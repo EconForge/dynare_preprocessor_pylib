@@ -83,8 +83,8 @@ ModFile::evalAllExpressions(bool warn_uninit, const bool nopreprocessoroutput)
   for (int id = 0; id <= symbol_table.maxID(); id++)
     {
       SymbolType type = symbol_table.getType(id);
-      if ((type == eEndogenous || type == eExogenous || type == eExogenousDet
-           || type == eParameter || type == eModelLocalVariable)
+      if ((type == SymbolType::endogenous || type == SymbolType::exogenous || type == SymbolType::exogenousDet
+           || type == SymbolType::parameter || type == SymbolType::modelLocalVariable)
           && global_eval_context.find(id) == global_eval_context.end())
         {
           if (warn_uninit)
@@ -214,7 +214,7 @@ ModFile::checkPass(bool nostrict, bool stochastic)
 
   if (symbol_table.exists("dsge_prior_weight"))
     {
-      if (symbol_table.getType("dsge_prior_weight") != eParameter)
+      if (symbol_table.getType("dsge_prior_weight") != SymbolType::parameter)
         {
           cerr << "ERROR: dsge_prior_weight may only be used as a parameter." << endl;
           exit(EXIT_FAILURE);
@@ -357,7 +357,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       set<int> unusedEndogs = dynamic_model.findUnusedEndogenous();
       for (int unusedEndog : unusedEndogs)
         {
-          symbol_table.changeType(unusedEndog, eUnusedEndogenous);
+          symbol_table.changeType(unusedEndog, SymbolType::unusedEndogenous);
           warnings << "WARNING: '" << symbol_table.getName(unusedEndog)
                    << "' not used in model block, removed by nostrict command-line option" << endl;
         }
@@ -554,7 +554,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   if (mod_file_struct.dsge_var_estimated || !mod_file_struct.dsge_var_calibrated.empty())
     try
       {
-        int sid = symbol_table.addSymbol("dsge_prior_weight", eParameter);
+        int sid = symbol_table.addSymbol("dsge_prior_weight", SymbolType::parameter);
         if (!mod_file_struct.dsge_var_calibrated.empty())
           addStatementAtFront(new InitParamStatement(sid,
                                                      expressions_tree.AddNonNegativeConstant(mod_file_struct.dsge_var_calibrated),

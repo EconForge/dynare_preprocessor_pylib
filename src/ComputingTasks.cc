@@ -298,13 +298,13 @@ PacModelStatement::writeOutput(ostream &output, const string &basename, bool min
              << "M_.pac." << name << ".growth_type = ";
       switch(symbol_table.getType(growth))
         {
-        case eEndogenous:
+        case SymbolType::endogenous:
           output << "'endogenous';" << endl;
           break;
-        case eExogenous:
+        case SymbolType::exogenous:
           output << "'exogenous';" << endl;
           break;
-        case eParameter:
+        case SymbolType::parameter:
           output << "'parameter';" << endl;
           break;
         default:
@@ -354,13 +354,13 @@ PacModelStatement::writeJsonOutput(ostream &output) const
              << "\"growth_type\": ";
       switch(symbol_table.getType(growth))
         {
-        case eEndogenous:
+        case SymbolType::endogenous:
           output << "\"endogenous\"" << endl;
           break;
-        case eExogenous:
+        case SymbolType::exogenous:
           output << "\"exogenous\"" << endl;
           break;
-        case eParameter:
+        case SymbolType::parameter:
           output << "\"parameter\"" << endl;
           break;
         default:
@@ -1060,7 +1060,7 @@ RamseyPolicyStatement::checkRamseyPolicyList()
           cerr << "ERROR: ramsey_policy: " << it << " was not declared." << endl;
           exit(EXIT_FAILURE);
         }
-      if (symbol_table.getType(it) != eEndogenous)
+      if (symbol_table.getType(it) != SymbolType::endogenous)
         {
           cerr << "ERROR: ramsey_policy: " << it << " is not endogenous." << endl;
           exit(EXIT_FAILURE);
@@ -1528,9 +1528,9 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, b
       switch (it.type)
         {
         case 1:
-          if (symb_type == eExogenous)
+          if (symb_type == SymbolType::exogenous)
             output << "estim_params_.var_exo = [estim_params_.var_exo; ";
-          else if (symb_type == eEndogenous)
+          else if (symb_type == SymbolType::endogenous)
             output << "estim_params_.var_endo = [estim_params_.var_endo; ";
           output << symb_id;
           break;
@@ -1539,9 +1539,9 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, b
                  << symb_id;
           break;
         case 3:
-          if (symb_type == eExogenous)
+          if (symb_type == SymbolType::exogenous)
             output << "estim_params_.corrx = [estim_params_.corrx; ";
-          else if (symb_type == eEndogenous)
+          else if (symb_type == SymbolType::endogenous)
             output << "estim_params_.corrn = [estim_params_.corrn; ";
           output << symb_id << " " << symbol_table.getTypeSpecificID(it.name2)+1;
           break;
@@ -1644,21 +1644,21 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basenam
 
       if (it.type < 3)
         {
-          if (symb_type == eExogenous)
+          if (symb_type == SymbolType::exogenous)
             {
               output << "tmp1 = find(estim_params_.var_exo(:,1)==" << symb_id << ");" << endl;
               output << "estim_params_.var_exo(tmp1,2) = ";
               it.init_val->writeOutput(output);
               output << ";" << endl;
             }
-          else if (symb_type == eEndogenous)
+          else if (symb_type == SymbolType::endogenous)
             {
               output << "tmp1 = find(estim_params_.var_endo(:,1)==" << symb_id << ");" << endl;
               output << "estim_params_.var_endo(tmp1,2) = ";
               it.init_val->writeOutput(output);
               output << ";" << endl;
             }
-          else if (symb_type == eParameter)
+          else if (symb_type == SymbolType::parameter)
             {
               output << "tmp1 = find(estim_params_.param_vals(:,1)==" << symb_id << ");" << endl;
               output << "estim_params_.param_vals(tmp1,2) = ";
@@ -1668,7 +1668,7 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basenam
         }
       else
         {
-          if (symb_type == eExogenous)
+          if (symb_type == SymbolType::exogenous)
             {
               output << "tmp1 = find((estim_params_.corrx(:,1)==" << symb_id << " & estim_params_.corrx(:,2)==" << symbol_table.getTypeSpecificID(it.name2)+1 << ") | "
                      <<             "(estim_params_.corrx(:,2)==" << symb_id << " & estim_params_.corrx(:,1)==" << symbol_table.getTypeSpecificID(it.name2)+1 << "));" << endl;
@@ -1676,7 +1676,7 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basenam
               it.init_val->writeOutput(output);
               output << ";" << endl;
             }
-          else if (symb_type == eEndogenous)
+          else if (symb_type == SymbolType::endogenous)
             {
               output << "tmp1 = find((estim_params_.corrn(:,1)==" << symb_id << " & estim_params_.corrn(:,2)==" << symbol_table.getTypeSpecificID(it.name2)+1 << ") | "
                      <<             "(estim_params_.corrn(:,2)==" << symb_id << " & estim_params_.corrn(:,1)==" << symbol_table.getTypeSpecificID(it.name2)+1 << "));" << endl;
@@ -1740,7 +1740,7 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
 
       if (it.type < 3)
         {
-          if (symb_type == eExogenous)
+          if (symb_type == SymbolType::exogenous)
             {
               output << "tmp1 = find(estim_params_.var_exo(:,1)==" << symb_id << ");" << endl;
 
@@ -1752,7 +1752,7 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
               it.up_bound->writeOutput(output);
               output << ";" << endl;
             }
-          else if (symb_type == eEndogenous)
+          else if (symb_type == SymbolType::endogenous)
             {
               output << "tmp1 = find(estim_params_.var_endo(:,1)==" << symb_id << ");" << endl;
 
@@ -1764,7 +1764,7 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
               it.up_bound->writeOutput(output);
               output << ";" << endl;
             }
-          else if (symb_type == eParameter)
+          else if (symb_type == SymbolType::parameter)
             {
               output << "tmp1 = find(estim_params_.param_vals(:,1)==" << symb_id << ");" << endl;
 
@@ -1779,7 +1779,7 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
         }
       else
         {
-          if (symb_type == eExogenous)
+          if (symb_type == SymbolType::exogenous)
             {
               output << "tmp1 = find((estim_params_.corrx(:,1)==" << symb_id << " & estim_params_.corrx(:,2)==" << symbol_table.getTypeSpecificID(it.name2)+1 << ") | "
                      <<             "(estim_params_.corrx(:,2)==" << symb_id << " & estim_params_.corrx(:,1)==" << symbol_table.getTypeSpecificID(it.name2)+1 << "));" << endl;
@@ -1792,7 +1792,7 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basen
               it.up_bound->writeOutput(output);
               output << ";" << endl;
             }
-          else if (symb_type == eEndogenous)
+          else if (symb_type == SymbolType::endogenous)
             {
               output << "tmp1 = find((estim_params_.corrn(:,1)==" << symb_id << " & estim_params_.corrn(:,2)==" << symbol_table.getTypeSpecificID(it.name2)+1 << ") | "
                      <<             "(estim_params_.corrn(:,2)==" << symb_id << " & estim_params_.corrn(:,1)==" << symbol_table.getTypeSpecificID(it.name2)+1 << "));" << endl;
@@ -1856,7 +1856,7 @@ ObservationTrendsStatement::writeOutput(ostream &output, const string &basename,
   for (const auto & trend_element : trend_elements)
     {
       SymbolType type = symbol_table.getType(trend_element.first);
-      if (type == eEndogenous)
+      if (type == SymbolType::endogenous)
         {
           output << "tmp1 = strmatch('" << trend_element.first << "',options_.varobs,'exact');" << endl;
           output << "options_.trend_coeffs{tmp1} = '";
@@ -1876,7 +1876,7 @@ ObservationTrendsStatement::writeJsonOutput(ostream &output) const
   bool printed = false;
   for (const auto & trend_element : trend_elements)
     {
-      if (symbol_table.getType(trend_element.first) == eEndogenous)
+      if (symbol_table.getType(trend_element.first) == SymbolType::endogenous)
         {
           if (printed)
             output << ", ";
@@ -3562,9 +3562,9 @@ SubsamplesStatement::writeOutput(ostream &output, const string &basename, bool m
   // Initialize associated subsample substructures in estimation_info
   const SymbolType symb_type = symbol_table.getType(name1);
   string lhs_field;
-  if (symb_type == eParameter)
+  if (symb_type == SymbolType::parameter)
     lhs_field = "parameter";
-  else if (symb_type == eExogenous || symb_type == eExogenousDet)
+  else if (symb_type == SymbolType::exogenous || symb_type == SymbolType::exogenousDet)
     lhs_field = "structural_innovation";
   else
     lhs_field = "measurement_error";
@@ -3648,9 +3648,9 @@ SubsamplesEqualStatement::writeOutput(ostream &output, const string &basename, b
   // Initialize associated subsample substructures in estimation_info
   const SymbolType symb_type = symbol_table.getType(to_name1);
   string lhs_field;
-  if (symb_type == eParameter)
+  if (symb_type == SymbolType::parameter)
     lhs_field = "parameter";
-  else if (symb_type == eExogenous || symb_type == eExogenousDet)
+  else if (symb_type == SymbolType::exogenous || symb_type == SymbolType::exogenousDet)
     lhs_field = "structural_innovation";
   else
     lhs_field = "measurement_error";
@@ -3909,7 +3909,7 @@ BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 bool
 BasicPriorStatement::is_structural_innovation(const SymbolType symb_type) const
 {
-  if (symb_type == eExogenous || symb_type == eExogenousDet)
+  if (symb_type == SymbolType::exogenous || symb_type == SymbolType::exogenousDet)
     return true;
   return false;
 }
@@ -3917,7 +3917,7 @@ BasicPriorStatement::is_structural_innovation(const SymbolType symb_type) const
 void
 BasicPriorStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
 {
-  if (symb_type == eExogenous || symb_type == eExogenousDet)
+  if (symb_type == SymbolType::exogenous || symb_type == SymbolType::exogenousDet)
     lhs_field = "structural_innovation";
   else
     lhs_field = "measurement_error";
@@ -4314,7 +4314,7 @@ PriorEqualStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 void
 PriorEqualStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
 {
-  if (symb_type == eExogenous || symb_type == eExogenousDet)
+  if (symb_type == SymbolType::exogenous || symb_type == SymbolType::exogenousDet)
     lhs_field = "structural_innovation";
   else
     lhs_field = "measurement_error";
@@ -4416,7 +4416,7 @@ BasicOptionsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 bool
 BasicOptionsStatement::is_structural_innovation(const SymbolType symb_type) const
 {
-  if (symb_type == eExogenous || symb_type == eExogenousDet)
+  if (symb_type == SymbolType::exogenous || symb_type == SymbolType::exogenousDet)
     return true;
   return false;
 }
@@ -4424,7 +4424,7 @@ BasicOptionsStatement::is_structural_innovation(const SymbolType symb_type) cons
 void
 BasicOptionsStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
 {
-  if (symb_type == eExogenous || symb_type == eExogenousDet)
+  if (symb_type == SymbolType::exogenous || symb_type == SymbolType::exogenousDet)
     lhs_field = "structural_innovation";
   else
     lhs_field = "measurement_error";
@@ -4692,7 +4692,7 @@ OptionsEqualStatement::writeJsonOutput(ostream &output) const
 void
 OptionsEqualStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
 {
-  if (symb_type == eExogenous || symb_type == eExogenousDet)
+  if (symb_type == SymbolType::exogenous || symb_type == SymbolType::exogenousDet)
     lhs_field = "structural_innovation";
   else
     lhs_field = "measurement_error";

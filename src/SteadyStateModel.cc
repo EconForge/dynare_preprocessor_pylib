@@ -32,9 +32,9 @@ SteadyStateModel::addDefinition(int symb_id, expr_t expr)
 {
   AddVariable(symb_id); // Create the variable node to be used in write method
 
-  assert(symbol_table.getType(symb_id) == eEndogenous
-         || symbol_table.getType(symb_id) == eModFileLocalVariable
-         || symbol_table.getType(symb_id) == eParameter);
+  assert(symbol_table.getType(symb_id) == SymbolType::endogenous
+         || symbol_table.getType(symb_id) == SymbolType::modFileLocalVariable
+         || symbol_table.getType(symb_id) == SymbolType::parameter);
 
   // Add the variable
   vector<int> v;
@@ -48,9 +48,9 @@ SteadyStateModel::addMultipleDefinitions(const vector<int> &symb_ids, expr_t exp
   for (int symb_id : symb_ids)
     {
       AddVariable(symb_id); // Create the variable nodes to be used in write method
-      assert(symbol_table.getType(symb_id) == eEndogenous
-             || symbol_table.getType(symb_id) == eModFileLocalVariable
-             || symbol_table.getType(symb_id) == eParameter);
+      assert(symbol_table.getType(symb_id) == SymbolType::endogenous
+             || symbol_table.getType(symb_id) == SymbolType::modFileLocalVariable
+             || symbol_table.getType(symb_id) == SymbolType::parameter);
     }
   def_table.emplace_back(symb_ids, expr);
 }
@@ -79,8 +79,8 @@ SteadyStateModel::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
         {
           set<int> used_symbols;
           const expr_t &expr = i.second;
-          expr->collectVariables(eEndogenous, used_symbols);
-          expr->collectVariables(eModFileLocalVariable, used_symbols);
+          expr->collectVariables(SymbolType::endogenous, used_symbols);
+          expr->collectVariables(SymbolType::modFileLocalVariable, used_symbols);
           for (int used_symbol : used_symbols)
             if (find(so_far_defined.begin(), so_far_defined.end(), used_symbol)
                 == so_far_defined.end())

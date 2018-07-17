@@ -688,13 +688,13 @@ change_type : CHANGE_TYPE '(' change_type_arg ')' change_type_var_list ';'
             ;
 
 change_type_arg : PARAMETERS
-                  { $$ = eParameter; }
+                  { $$ = SymbolType::parameter; }
                 | VAR
-                  { $$ = eEndogenous; }
+                  { $$ = SymbolType::endogenous; }
                 | VAREXO
-                  { $$ = eExogenous; }
+                  { $$ = SymbolType::exogenous; }
                 | VAREXO_DET
-                  { $$ = eExogenousDet; }
+                  { $$ = SymbolType::exogenousDet; }
                 ;
 
 change_type_var_list : symbol
@@ -894,11 +894,11 @@ hand_side : '(' hand_side ')'
           | symbol
             { $$ = driver.add_model_variable($1); }
           | symbol PIPE_E
-            { $$ = driver.declare_or_change_type(eEndogenous, $1); }
+            { $$ = driver.declare_or_change_type(SymbolType::endogenous, $1); }
           | symbol PIPE_X
-            { $$ = driver.declare_or_change_type(eExogenous, $1); }
+            { $$ = driver.declare_or_change_type(SymbolType::exogenous, $1); }
           | symbol PIPE_P
-            { $$ = driver.declare_or_change_type(eParameter, $1); }
+            { $$ = driver.declare_or_change_type(SymbolType::parameter, $1); }
           | non_negative_number
             { $$ = driver.add_non_negative_constant($1); }
           | hand_side PLUS hand_side

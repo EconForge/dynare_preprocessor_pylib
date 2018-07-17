@@ -79,7 +79,7 @@ bool
 DataTree::ParamUsedWithLeadLagInternal() const
 {
   for (const auto & it : variable_node_map)
-    if (symbol_table.getType(it.first.first) == eParameter && it.first.second != 0)
+    if (symbol_table.getType(it.first.first) == SymbolType::parameter && it.first.second != 0)
       return true;
   return false;
 }
@@ -507,7 +507,7 @@ DataTree::AddExpectation(int iArg1, expr_t iArg2)
 expr_t
 DataTree::AddVarExpectation(const int symb_id, const int forecast_horizon, const string &model_name)
 {
-  assert(symbol_table.getType(symb_id) == eEndogenous);
+  assert(symbol_table.getType(symb_id) == SymbolType::endogenous);
 
   auto it = var_expectation_node_map.find({ model_name, symb_id, forecast_horizon });
   if (it != var_expectation_node_map.end())
@@ -535,7 +535,7 @@ DataTree::AddEqual(expr_t iArg1, expr_t iArg2)
 void
 DataTree::AddLocalVariable(int symb_id, expr_t value) noexcept(false)
 {
-  assert(symbol_table.getType(symb_id) == eModelLocalVariable);
+  assert(symbol_table.getType(symb_id) == SymbolType::modelLocalVariable);
 
   // Throw an exception if symbol already declared
   auto it = local_variables_table.find(symb_id);
@@ -549,7 +549,7 @@ DataTree::AddLocalVariable(int symb_id, expr_t value) noexcept(false)
 expr_t
 DataTree::AddExternalFunction(int symb_id, const vector<expr_t> &arguments)
 {
-  assert(symbol_table.getType(symb_id) == eExternalFunction);
+  assert(symbol_table.getType(symb_id) == SymbolType::externalFunction);
 
   auto it = external_function_node_map.find({ arguments, symb_id });
   if (it != external_function_node_map.end())
@@ -561,7 +561,7 @@ DataTree::AddExternalFunction(int symb_id, const vector<expr_t> &arguments)
 expr_t
 DataTree::AddFirstDerivExternalFunction(int top_level_symb_id, const vector<expr_t> &arguments, int input_index)
 {
-  assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
+  assert(symbol_table.getType(top_level_symb_id) == SymbolType::externalFunction);
 
   auto it
     = first_deriv_external_function_node_map.find({ arguments, input_index, top_level_symb_id });
@@ -574,7 +574,7 @@ DataTree::AddFirstDerivExternalFunction(int top_level_symb_id, const vector<expr
 expr_t
 DataTree::AddSecondDerivExternalFunction(int top_level_symb_id, const vector<expr_t> &arguments, int input_index1, int input_index2)
 {
-  assert(symbol_table.getType(top_level_symb_id) == eExternalFunction);
+  assert(symbol_table.getType(top_level_symb_id) == SymbolType::externalFunction);
 
   auto it
     = second_deriv_external_function_node_map.find({ arguments, input_index1, input_index2,

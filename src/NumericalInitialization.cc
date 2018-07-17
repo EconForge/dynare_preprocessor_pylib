@@ -127,9 +127,9 @@ InitOrEndValStatement::getUninitializedVariables(SymbolType type)
   if (!all_values_required)
     return unused;
 
-  if (type == eEndogenous)
+  if (type == SymbolType::endogenous)
     unused = symbol_table.getEndogenous();
-  else if (type == eExogenous)
+  else if (type == SymbolType::exogenous)
     unused = symbol_table.getExogenous();
   else
     {
@@ -158,11 +158,11 @@ InitOrEndValStatement::writeInitValues(ostream &output) const
       SymbolType type = symbol_table.getType(symb_id);
       int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
 
-      if (type == eEndogenous)
+      if (type == SymbolType::endogenous)
         output << "oo_.steady_state";
-      else if (type == eExogenous)
+      else if (type == SymbolType::exogenous)
         output << "oo_.exo_steady_state";
-      else if (type == eExogenousDet)
+      else if (type == SymbolType::exogenousDet)
         output << "oo_.exo_det_steady_state";
 
       output << "( " << tsid << " ) = ";
@@ -195,8 +195,8 @@ InitValStatement::InitValStatement(const init_values_t &init_values_arg,
 void
 InitValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  set<int> exogs = getUninitializedVariables(eExogenous);
-  set<int> endogs = getUninitializedVariables(eEndogenous);
+  set<int> exogs = getUninitializedVariables(SymbolType::exogenous);
+  set<int> endogs = getUninitializedVariables(SymbolType::endogenous);
 
   if (endogs.size() > 0)
     {
@@ -259,8 +259,8 @@ EndValStatement::EndValStatement(const init_values_t &init_values_arg,
 void
 EndValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  set<int> exogs = getUninitializedVariables(eExogenous);
-  set<int> endogs = getUninitializedVariables(eEndogenous);
+  set<int> exogs = getUninitializedVariables(SymbolType::exogenous);
+  set<int> endogs = getUninitializedVariables(SymbolType::endogenous);
 
   if (endogs.size() > 0)
     {
@@ -375,18 +375,18 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
       SymbolType type = symbol_table.getType(symb_id);
 
       // For a lag greater than 1 on endo, or for any exo, lookup for auxiliary variable
-      if ((type == eEndogenous && lag < 0) || type == eExogenous)
+      if ((type == SymbolType::endogenous && lag < 0) || type == SymbolType::exogenous)
         {
           try
             {
               // This function call must remain the 1st statement in this block
               symb_id = symbol_table.searchAuxiliaryVars(symb_id, lag);
               lag = 0;
-              type = eEndogenous;
+              type = SymbolType::endogenous;
             }
           catch (SymbolTable::SearchFailedException &e)
             {
-              if (type == eEndogenous)
+              if (type == SymbolType::endogenous)
                 {
                   cerr << "HISTVAL: internal error of Dynare, please contact the developers";
                   exit(EXIT_FAILURE);
@@ -398,11 +398,11 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
 
       int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
 
-      if (type == eEndogenous)
+      if (type == SymbolType::endogenous)
         output << "M_.endo_histval( " << tsid << ", M_.maximum_lag + " << lag << ") = ";
-      else if (type == eExogenous)
+      else if (type == SymbolType::exogenous)
         output << "M_.exo_histval( " << tsid << ", M_.maximum_lag + " << lag << ") = ";
-      else if (type == eExogenousDet)
+      else if (type == SymbolType::exogenousDet)
         output << "M_.exo_det_histval( " << tsid << ", M_.maximum_lag + " << lag << ") = ";
 
       expression->writeOutput(output);
@@ -494,7 +494,7 @@ HomotopyStatement::writeOutput(ostream &output, const string &basename, bool min
       const SymbolType type = symbol_table.getType(symb_id);
       const int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
 
-      output << "options_.homotopy_values = vertcat(options_.homotopy_values, [ " << type << ", " << tsid << ", ";
+      output << "options_.homotopy_values = vertcat(options_.homotopy_values, [ " << static_cast<int>(type) << ", " << tsid << ", ";
       if (expression1 != nullptr)
         expression1->writeOutput(output);
       else
@@ -590,16 +590,16 @@ LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &ba
     {
       switch (symbol_table.getType(it.first))
         {
-        case eParameter:
+        case SymbolType::parameter:
           output << "M_.params";
           break;
-        case eEndogenous:
+        case SymbolType::endogenous:
           output << "oo_.steady_state";
           break;
-        case eExogenous:
+        case SymbolType::exogenous:
           output << "oo_.exo_steady_state";
           break;
-        case eExogenousDet:
+        case SymbolType::exogenousDet:
           output << "oo_.exo_det_steady_state";
           break;
         default:

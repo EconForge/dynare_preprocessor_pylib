@@ -128,7 +128,7 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
     {
       if (verbose)
         cerr << "ERROR: Could not normalize the model. Variable "
-             << symbol_table.getName(symbol_table.getID(eEndogenous, it - mate_map.begin()))
+             << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, it - mate_map.begin()))
              << " is not in the maximum cardinality matching." << endl;
       check = false;
     }
@@ -208,12 +208,12 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
                 contemporaneous_jacobian[{ it->first.first, it->first.second }] = 0;
               try
                 {
-                  if (first_derivatives.find({ it->first.first, getDerivID(symbol_table.getID(eEndogenous, it->first.second), 0) }) == first_derivatives.end())
-                    first_derivatives[{ it->first.first, getDerivID(symbol_table.getID(eEndogenous, it->first.second), 0) }] = Zero;
+                  if (first_derivatives.find({ it->first.first, getDerivID(symbol_table.getID(SymbolType::endogenous, it->first.second), 0) }) == first_derivatives.end())
+                    first_derivatives[{ it->first.first, getDerivID(symbol_table.getID(SymbolType::endogenous, it->first.second), 0) }] = Zero;
                 }
               catch (DataTree::UnknownDerivIDException &e)
                 {
-                  cerr << "The variable " << symbol_table.getName(symbol_table.getID(eEndogenous, it->first.second))
+                  cerr << "The variable " << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, it->first.second))
                        << " does not appear at the current period (i.e. with no lead and no lag); this case is not handled by the 'block' option of the 'model' block." << endl;
                   exit(EXIT_FAILURE);
                 }
@@ -238,7 +238,7 @@ ModelTree::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
         continue;
 
       int symb_id = lhs->get_symb_id();
-      if (symbol_table.getType(symb_id) != eEndogenous)
+      if (symbol_table.getType(symb_id) != SymbolType::endogenous)
         continue;
 
       set<pair<int, int>> endo;
@@ -260,7 +260,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
        it != first_derivatives.end(); it++)
     {
       int deriv_id = it->first.second;
-      if (getTypeByDerivID(deriv_id) == eEndogenous)
+      if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
         {
           expr_t Id = it->second;
           int eq = it->first.first;
@@ -457,7 +457,7 @@ ModelTree::equationTypeDetermination(const map<pair<int, pair<int, int>>, expr_t
           derivative->second->collectEndogenous(result);
           auto d_endo_variable = result.find({ var, 0 });
           //Determine whether the equation could be evaluated rather than to be solved
-          if (lhs->isVariableNodeEqualTo(eEndogenous, Index_Var_IM[i], 0) && derivative->second->isNumConstNodeEqualTo(1))
+          if (lhs->isVariableNodeEqualTo(SymbolType::endogenous, Index_Var_IM[i], 0) && derivative->second->isNumConstNodeEqualTo(1))
             {
               Equation_Simulation_Type = E_EVALUATE;
             }
@@ -1120,7 +1120,7 @@ ModelTree::computeTemporaryTerms(bool is_matlab)
   // All used model local variables are automatically set as temporary variables
   set<int> used_local_vars;
   for (auto & equation : equations)
-    equation->collectVariables(eModelLocalVariable, used_local_vars);
+    equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
 
   for (int used_local_var : used_local_vars)
     {
@@ -1459,7 +1459,7 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, deriv_node_temp_terms_t
   const temporary_terms_t tt;
 
   for (auto equation : equations)
-    equation->collectVariables(eModelLocalVariable, used_local_vars);
+    equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
 
   output << "\"model_local_variables\": [";
   bool printed = false;
@@ -1621,7 +1621,7 @@ ModelTree::Write_Inf_To_Bin_File(const string &filename,
   for (const auto & first_derivative : first_derivatives)
     {
       int deriv_id = first_derivative.first.second;
-      if (getTypeByDerivID(deriv_id) == eEndogenous)
+      if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
         {
           int eq = first_derivative.first.first;
           int symb = getSymbIDByDerivID(deriv_id);

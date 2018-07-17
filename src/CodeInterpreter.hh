@@ -139,20 +139,20 @@ enum BlockSimulationType
 
 //! Enumeration of possible symbol types
 /*! Warning: do not to change existing values for 0 to 4: the values matter for homotopy_setup command */
-enum SymbolType
+enum class SymbolType
   {
-    eEndogenous = 0,                //!< Endogenous
-    eExogenous = 1,                 //!< Exogenous
-    eExogenousDet = 2,              //!< Exogenous deterministic
-    eParameter = 4,                 //!< Parameter
-    eModelLocalVariable = 10,       //!< Local variable whose scope is model (pound expression)
-    eModFileLocalVariable = 11,     //!< Local variable whose scope is mod file (model excluded)
-    eExternalFunction = 12,         //!< External (user-defined) function
-    eTrend = 13,                    //!< Trend variable
-    eStatementDeclaredVariable = 14, //!< Local variable assigned within a Statement (see subsample statement for example)
-    eLogTrend = 15,                 //!< Log-trend variable
-    eUnusedEndogenous = 16,
-    eEndogenousVAR = 17             //!< Variables declared in a var_model statement
+    endogenous = 0,                //!< Endogenous
+    exogenous = 1,                 //!< Exogenous
+    exogenousDet = 2,              //!< Exogenous deterministic
+    parameter = 4,                 //!< Parameter
+    modelLocalVariable = 10,       //!< Local variable whose scope is model (pound expression)
+    modFileLocalVariable = 11,     //!< Local variable whose scope is mod file (model excluded)
+    externalFunction = 12,         //!< External (user-defined) function
+    trend = 13,                    //!< Trend variable
+    statementDeclaredVariable = 14, //!< Local variable assigned within a Statement (see subsample statement for example)
+    logTrend = 15,                 //!< Log-trend variable
+    unusedEndogenous = 16,
+    endogenousVAR = 17             //!< Variables declared in a var_model statement
   };
 
 enum ExpressionType

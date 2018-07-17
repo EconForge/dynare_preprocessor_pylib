@@ -36,7 +36,7 @@ ParsingDriver::symbol_exists_and_is_not_modfile_local_or_external_function(const
 
   SymbolType type = mod_file->symbol_table.getType(s);
 
-  return (type != eModFileLocalVariable && type != eExternalFunction);
+  return (type != SymbolType::modFileLocalVariable && type != SymbolType::externalFunction);
 }
 
 void
@@ -59,7 +59,7 @@ ParsingDriver::check_symbol_is_parameter(string *name)
 {
   check_symbol_existence(*name);
   int symb_id = mod_file->symbol_table.getID(*name);
-  if (mod_file->symbol_table.getType(symb_id) != eParameter)
+  if (mod_file->symbol_table.getType(symb_id) != SymbolType::parameter)
     error(*name + " is not a parameter");
 }
 
@@ -208,7 +208,7 @@ ParsingDriver::declare_symbol(const string *name, SymbolType type, const string 
 void
 ParsingDriver::declare_endogenous(string *name, string *tex_name, vector<pair<string *, string *> *> *partition_value)
 {
-  declare_symbol(name, eEndogenous, tex_name, partition_value);
+  declare_symbol(name, SymbolType::endogenous, tex_name, partition_value);
   delete name;
   if (tex_name != nullptr)
     delete tex_name;
@@ -230,21 +230,21 @@ ParsingDriver::declare_var_endogenous(string *name)
   if (mod_file->symbol_table.exists(*name))
     {
       SymbolType type = mod_file->symbol_table.getType(*name);
-      if (type != eEndogenous && type != eExogenous && type != eExogenousDet)
+      if (type != SymbolType::endogenous && type != SymbolType::exogenous && type != SymbolType::exogenousDet)
         error("Symbol " + *name + " used in a VAR must be either endogenous or "
               +"exogenous if it is also used elsewhere in the .mod file");
       add_in_symbol_list(name);
       return;
     }
 
-  declare_symbol(name, eEndogenousVAR, nullptr, nullptr);
+  declare_symbol(name, SymbolType::endogenousVAR, nullptr, nullptr);
   add_in_symbol_list(name);
 }
 
 void
 ParsingDriver::declare_exogenous(string *name, string *tex_name, vector<pair<string *, string *> *> *partition_value)
 {
-  declare_symbol(name, eExogenous, tex_name, partition_value);
+  declare_symbol(name, SymbolType::exogenous, tex_name, partition_value);
   delete name;
   if (tex_name != nullptr)
     delete tex_name;
@@ -263,7 +263,7 @@ ParsingDriver::declare_exogenous(string *name, string *tex_name, vector<pair<str
 void
 ParsingDriver::declare_exogenous_det(string *name, string *tex_name, vector<pair<string *, string *> *> *partition_value)
 {
-  declare_symbol(name, eExogenousDet, tex_name, partition_value);
+  declare_symbol(name, SymbolType::exogenousDet, tex_name, partition_value);
   delete name;
   if (tex_name != nullptr)
     delete tex_name;
@@ -282,7 +282,7 @@ ParsingDriver::declare_exogenous_det(string *name, string *tex_name, vector<pair
 void
 ParsingDriver::declare_parameter(string *name, string *tex_name, vector<pair<string *, string *> *> *partition_value)
 {
-  declare_symbol(name, eParameter, tex_name, partition_value);
+  declare_symbol(name, SymbolType::parameter, tex_name, partition_value);
   delete name;
   if (tex_name != nullptr)
     delete tex_name;
@@ -304,7 +304,7 @@ ParsingDriver::declare_statement_local_variable(string *name)
   if (mod_file->symbol_table.exists(*name))
     error("Symbol " + *name + " cannot be assigned within a statement "
           +"while being assigned elsewhere in the modfile");
-  declare_symbol(name, eStatementDeclaredVariable, nullptr, nullptr);
+  declare_symbol(name, SymbolType::statementDeclaredVariable, nullptr, nullptr);
   delete name;
 }
 
@@ -326,7 +326,7 @@ ParsingDriver::begin_trend()
 void
 ParsingDriver::declare_trend_var(bool log_trend, string *name, string *tex_name)
 {
-  declare_symbol(name, log_trend ? eLogTrend : eTrend, tex_name, nullptr);
+  declare_symbol(name, log_trend ? SymbolType::logTrend : SymbolType::trend, tex_name, nullptr);
   declared_trend_vars.push_back(mod_file->symbol_table.getID(*name));
   delete name;
   if (tex_name != nullptr)
@@ -354,7 +354,7 @@ ParsingDriver::add_predetermined_variable(string *name)
   try
     {
       int symb_id = mod_file->symbol_table.getID(*name);
-      if (mod_file->symbol_table.getType(symb_id) != eEndogenous)
+      if (mod_file->symbol_table.getType(symb_id) != SymbolType::endogenous)
         error("Predetermined variables must be endogenous variables");
 
       mod_file->symbol_table.markPredetermined(symb_id);
@@ -373,13 +373,13 @@ ParsingDriver::add_equation_tags(string *key, string *value)
 
   transform(key->begin(), key->end(), key->begin(), ::tolower);
   if (key->compare("endogenous") == 0)
-    declare_or_change_type(eEndogenous, value);
+    declare_or_change_type(SymbolType::endogenous, value);
 
   else if (key->compare("exogenous") == 0)
-    declare_or_change_type(eExogenous, value);
+    declare_or_change_type(SymbolType::exogenous, value);
 
   else if (key->compare("parameter") == 0)
-    declare_or_change_type(eParameter, value);
+    declare_or_change_type(SymbolType::parameter, value);
 
   if (!(key->compare("endogenous") == 0
         || key->compare("exogenous") == 0
@@ -459,13 +459,13 @@ ParsingDriver::declare_or_change_type(SymbolType new_type, string *name)
     {
       switch (new_type)
         {
-        case eEndogenous:
+        case SymbolType::endogenous:
           declare_endogenous(new string(*name));
           break;
-        case eExogenous:
+        case SymbolType::exogenous:
           declare_exogenous(new string(*name));
           break;
-        case eParameter:
+        case SymbolType::parameter:
           declare_parameter(new string(*name));
           break;
         default:
@@ -484,21 +484,21 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
   assert(symb_id >= 0);
   SymbolType type = mod_file->symbol_table.getType(symb_id);
 
-  if (type == eModFileLocalVariable)
+  if (type == SymbolType::modFileLocalVariable)
     error("Variable " + mod_file->symbol_table.getName(symb_id) +
           " not allowed inside model declaration. Its scope is only outside model.");
 
-  if (type == eExternalFunction)
+  if (type == SymbolType::externalFunction)
     error("Symbol " + mod_file->symbol_table.getName(symb_id) +
           " is a function name external to Dynare. It cannot be used like a variable without input argument inside model.");
 
-  if (type == eModelLocalVariable && lag != 0)
+  if (type == SymbolType::modelLocalVariable && lag != 0)
     error("Model local variable " + mod_file->symbol_table.getName(symb_id) + " cannot be given a lead or a lag.");
 
   if (dynamic_cast<StaticModel *>(model_tree) != nullptr && lag != 0)
     error("Leads and lags on variables are forbidden in 'planner_objective'.");
 
-  if (dynamic_cast<StaticModel *>(model_tree) != nullptr && type == eModelLocalVariable)
+  if (dynamic_cast<StaticModel *>(model_tree) != nullptr && type == SymbolType::modelLocalVariable)
     error("Model local variable " + mod_file->symbol_table.getName(symb_id) + " cannot be used in 'planner_objective'.");
 
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
@@ -510,17 +510,17 @@ ParsingDriver::add_expression_variable(string *name)
 {
   // If symbol doesn't exist, then declare it as a mod file local variable
   if (!mod_file->symbol_table.exists(*name))
-    mod_file->symbol_table.addSymbol(*name, eModFileLocalVariable);
+    mod_file->symbol_table.addSymbol(*name, SymbolType::modFileLocalVariable);
 
   // This check must come after the previous one!
-  if (mod_file->symbol_table.getType(*name) == eModelLocalVariable)
+  if (mod_file->symbol_table.getType(*name) == SymbolType::modelLocalVariable)
     error("Variable " + *name + " not allowed outside model declaration. Its scope is only inside model.");
 
-  if (mod_file->symbol_table.getType(*name) == eTrend
-      || mod_file->symbol_table.getType(*name) == eLogTrend)
+  if (mod_file->symbol_table.getType(*name) == SymbolType::trend
+      || mod_file->symbol_table.getType(*name) == SymbolType::logTrend)
     error("Variable " + *name + " not allowed outside model declaration, because it is a trend variable.");
 
-  if (mod_file->symbol_table.getType(*name) == eExternalFunction)
+  if (mod_file->symbol_table.getType(*name) == SymbolType::externalFunction)
     error("Symbol '" + *name + "' is the name of a MATLAB/Octave function, and cannot be used as a variable.");
 
   int symb_id = mod_file->symbol_table.getID(*name);
@@ -561,7 +561,7 @@ ParsingDriver::end_nonstationary_var(bool log_deflator, expr_t deflator)
     }
 
   set<int> r;
-  deflator->collectVariables(eEndogenous, r);
+  deflator->collectVariables(SymbolType::endogenous, r);
   for (int it : r)
     if (dynamic_model->isNonstationary(it))
       error("The deflator contains a non-stationary endogenous variable. This is not allowed. Please use only stationary endogenous and/or {log_}trend_vars.");
@@ -767,9 +767,9 @@ ParsingDriver::init_val(string *name, expr_t rhs)
   int symb_id = mod_file->symbol_table.getID(*name);
   SymbolType type = mod_file->symbol_table.getType(symb_id);
 
-  if (type != eEndogenous
-      && type != eExogenous
-      && type != eExogenousDet)
+  if (type != SymbolType::endogenous
+      && type != SymbolType::exogenous
+      && type != SymbolType::exogenousDet)
     error("initval/endval: " + *name + " should be an endogenous or exogenous variable");
 
   init_values.emplace_back(symb_id, rhs);
@@ -799,9 +799,9 @@ ParsingDriver::hist_val(string *name, string *lag, expr_t rhs)
   int symb_id = mod_file->symbol_table.getID(*name);
   SymbolType type = mod_file->symbol_table.getType(symb_id);
 
-  if (type != eEndogenous
-      && type != eExogenous
-      && type != eExogenousDet)
+  if (type != SymbolType::endogenous
+      && type != SymbolType::exogenous
+      && type != SymbolType::exogenousDet)
     error("histval: " + *name + " should be an endogenous or exogenous variable");
 
   int ilag = stoi(*lag);
@@ -829,9 +829,9 @@ ParsingDriver::homotopy_val(string *name, expr_t val1, expr_t val2)
   int symb_id = mod_file->symbol_table.getID(*name);
   SymbolType type = mod_file->symbol_table.getType(symb_id);
 
-  if (type != eParameter
-      && type != eExogenous
-      && type != eExogenousDet)
+  if (type != SymbolType::parameter
+      && type != SymbolType::exogenous
+      && type != SymbolType::exogenousDet)
     error("homotopy_val: " + *name + " should be a parameter or exogenous variable");
 
   homotopy_values.emplace_back(symb_id, make_pair(val1, val2));
@@ -926,7 +926,7 @@ ParsingDriver::differentiate_forward_vars_some()
        it != mod_file->differentiate_forward_vars_subset.end(); ++it)
     {
       check_symbol_existence(*it);
-      if (mod_file->symbol_table.getType(*it) != eEndogenous)
+      if (mod_file->symbol_table.getType(*it) != SymbolType::endogenous)
         error("Symbol " + *it + " is not an endogenous");
     }
   symbol_list.clear();
@@ -1042,12 +1042,12 @@ ParsingDriver::add_det_shock(string *var, bool conditional_forecast)
 
   if (conditional_forecast)
     {
-      if (type != eEndogenous)
+      if (type != SymbolType::endogenous)
         error("conditional_forecast_paths: shocks can only be applied to endogenous variables");
     }
   else
     {
-      if (type != eExogenous && type != eExogenousDet)
+      if (type != SymbolType::exogenous && type != SymbolType::exogenousDet)
         error("shocks: shocks can only be applied to exogenous variables");
     }
 
@@ -1569,7 +1569,7 @@ ParsingDriver::option_symbol_list(const string &name_option)
       vector<string> shocks = symbol_list.get_symbols();
       for (vector<string>::const_iterator it = shocks.begin();
            it != shocks.end(); it++)
-        if (mod_file->symbol_table.getType(*it) != eExogenous)
+        if (mod_file->symbol_table.getType(*it) != SymbolType::exogenous)
           error("Variables passed to irf_shocks must be exogenous. Caused by: " + *it);
     }
 
@@ -1578,7 +1578,7 @@ ParsingDriver::option_symbol_list(const string &name_option)
       vector<string> parameters = symbol_list.get_symbols();
       for (vector<string>::const_iterator it = parameters.begin();
            it != parameters.end(); it++)
-        if (mod_file->symbol_table.getType(*it) != eParameter)
+        if (mod_file->symbol_table.getType(*it) != SymbolType::parameter)
           error("Variables passed to the parameters option of the markov_switching statement must be parameters. Caused by: " + *it);
     }
 
@@ -1700,7 +1700,7 @@ ParsingDriver::add_estimated_params_element()
       switch (estim_params.type)
         {
         case 1:
-          if (type != eEndogenous && type != eExogenous)
+          if (type != SymbolType::endogenous && type != SymbolType::exogenous)
             error(estim_params.name + " must be an endogenous or an exogenous variable");
           break;
         case 2:
@@ -1709,7 +1709,7 @@ ParsingDriver::add_estimated_params_element()
         case 3:
           check_symbol_existence(estim_params.name2);
           SymbolType type2 = mod_file->symbol_table.getType(estim_params.name2);
-          if ((type != eEndogenous && type != eExogenous) || type != type2)
+          if ((type != SymbolType::endogenous && type != SymbolType::exogenous) || type != type2)
             error(estim_params.name + " and " + estim_params.name2 + " must either be both endogenous variables or both exogenous");
           break;
         }
@@ -1744,7 +1744,7 @@ ParsingDriver::add_osr_params_element()
 {
   check_symbol_existence(osr_params.name);
   SymbolType type = mod_file->symbol_table.getType(osr_params.name);
-  if (type != eParameter)
+  if (type != SymbolType::parameter)
     error(osr_params.name + " must be a parameter to be used in the osr_bounds block");
   osr_params_list.push_back(osr_params);
   osr_params.init(*data_tree);
@@ -1830,7 +1830,7 @@ ParsingDriver::check_symbol_is_statement_variable(string *name)
 {
   check_symbol_existence(*name);
   int symb_id = mod_file->symbol_table.getID(*name);
-  if (mod_file->symbol_table.getType(symb_id) != eStatementDeclaredVariable)
+  if (mod_file->symbol_table.getType(symb_id) != SymbolType::statementDeclaredVariable)
     error(*name + " is not a variable assigned in a statement");
 }
 
@@ -2012,9 +2012,9 @@ ParsingDriver::check_symbol_is_endogenous_or_exogenous(string *name)
   int symb_id = mod_file->symbol_table.getID(*name);
   switch (mod_file->symbol_table.getType(symb_id))
     {
-    case eEndogenous:
-    case eExogenous:
-    case eExogenousDet:
+    case SymbolType::endogenous:
+    case SymbolType::exogenous:
+    case SymbolType::exogenousDet:
       break;
     default:
       error(*name + " is neither endogenous or exogenous.");
@@ -2028,8 +2028,8 @@ ParsingDriver::check_symbol_is_exogenous(string *name)
   int symb_id = mod_file->symbol_table.getID(*name);
   switch (mod_file->symbol_table.getType(symb_id))
     {
-    case eExogenous:
-    case eExogenousDet:
+    case SymbolType::exogenous:
+    case SymbolType::exogenousDet:
       break;
     default:
       error(*name + " is not exogenous.");
@@ -2174,7 +2174,7 @@ ParsingDriver::add_varobs(string *name)
 {
   check_symbol_existence(*name);
   int symb_id = mod_file->symbol_table.getID(*name);
-  if (mod_file->symbol_table.getType(symb_id) != eEndogenous)
+  if (mod_file->symbol_table.getType(symb_id) != SymbolType::endogenous)
     error("varobs: " + *name + " is not an endogenous variable");
   mod_file->symbol_table.addObservedVariable(symb_id);
   delete name;
@@ -2192,7 +2192,7 @@ ParsingDriver::add_varexobs(string *name)
 {
   check_symbol_existence(*name);
   int symb_id = mod_file->symbol_table.getID(*name);
-  if (mod_file->symbol_table.getType(symb_id) != eExogenous)
+  if (mod_file->symbol_table.getType(symb_id) != SymbolType::exogenous)
     error("varexobs: " + *name + " is not an exogenous variable");
   mod_file->symbol_table.addObservedExogenousVariable(symb_id);
   delete name;
@@ -2219,7 +2219,7 @@ void
 ParsingDriver::set_optim_weights(string *name, expr_t value)
 {
   check_symbol_existence(*name);
-  if (mod_file->symbol_table.getType(*name) != eEndogenous)
+  if (mod_file->symbol_table.getType(*name) != SymbolType::endogenous)
     error("optim_weights: " + *name + " isn't an endogenous variable");
   if (var_weights.find(*name) != var_weights.end())
     error("optim_weights: " + *name + " declared twice");
@@ -2231,11 +2231,11 @@ void
 ParsingDriver::set_optim_weights(string *name1, string *name2, expr_t value)
 {
   check_symbol_existence(*name1);
-  if (mod_file->symbol_table.getType(*name1) != eEndogenous)
+  if (mod_file->symbol_table.getType(*name1) != SymbolType::endogenous)
     error("optim_weights: " + *name1 + " isn't an endogenous variable");
 
   check_symbol_existence(*name2);
-  if (mod_file->symbol_table.getType(*name2) != eEndogenous)
+  if (mod_file->symbol_table.getType(*name2) != SymbolType::endogenous)
     error("optim_weights: " + *name2 + " isn't an endogenous variable");
 
   pair<string, string> covar_key(*name1, *name2);
@@ -2657,7 +2657,7 @@ ParsingDriver::add_model_equal_with_zero_rhs(expr_t arg)
 void
 ParsingDriver::declare_model_local_variable(string *name, string *tex_name)
 {
-  declare_symbol(name, eModelLocalVariable, tex_name, nullptr);
+  declare_symbol(name, SymbolType::modelLocalVariable, tex_name, nullptr);
   delete name;
   if (tex_name != nullptr)
     delete tex_name;
@@ -2669,13 +2669,13 @@ ParsingDriver::declare_and_init_model_local_variable(string *name, expr_t rhs)
   int symb_id;
   try
     {
-      symb_id = mod_file->symbol_table.addSymbol(*name, eModelLocalVariable);
+      symb_id = mod_file->symbol_table.addSymbol(*name, SymbolType::modelLocalVariable);
     }
   catch (SymbolTable::AlreadyDeclaredException &e)
     {
       // It can have already been declared in a steady_state_model block, check that it is indeed a ModelLocalVariable
       symb_id = mod_file->symbol_table.getID(*name);
-      if (mod_file->symbol_table.getType(symb_id) != eModelLocalVariable)
+      if (mod_file->symbol_table.getType(symb_id) != SymbolType::modelLocalVariable)
         error(*name + " has wrong type or was already used on the right-hand side. You cannot use it on the left-hand side of a pound ('#') expression");
     }
 
@@ -3070,7 +3070,7 @@ ParsingDriver::external_function_option(const string &name_option, const string 
     {
       if (opt.empty())
         error("An argument must be passed to the 'name' option of the external_function() statement.");
-      declare_symbol(&opt, eExternalFunction, nullptr, nullptr);
+      declare_symbol(&opt, SymbolType::externalFunction, nullptr, nullptr);
       current_external_function_id = mod_file->symbol_table.getID(opt);
     }
   else if (name_option == "first_deriv_provided")
@@ -3079,7 +3079,7 @@ ParsingDriver::external_function_option(const string &name_option, const string 
         current_external_function_options.firstDerivSymbID = eExtFunSetButNoNameProvided;
       else
         {
-          declare_symbol(&opt, eExternalFunction, nullptr, nullptr);
+          declare_symbol(&opt, SymbolType::externalFunction, nullptr, nullptr);
           current_external_function_options.firstDerivSymbID = mod_file->symbol_table.getID(opt);
         }
     }
@@ -3089,7 +3089,7 @@ ParsingDriver::external_function_option(const string &name_option, const string 
         current_external_function_options.secondDerivSymbID = eExtFunSetButNoNameProvided;
       else
         {
-          declare_symbol(&opt, eExternalFunction, nullptr, nullptr);
+          declare_symbol(&opt, SymbolType::externalFunction, nullptr, nullptr);
           current_external_function_options.secondDerivSymbID = mod_file->symbol_table.getID(opt);
         }
     }
@@ -3180,7 +3180,7 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
 {
   expr_t nid;
   if (mod_file->symbol_table.exists(*function_name))
-    if (mod_file->symbol_table.getType(*function_name) != eExternalFunction)
+    if (mod_file->symbol_table.getType(*function_name) != SymbolType::externalFunction)
       if (!in_model_block)
         {
           if (stack_external_function_args.top().size() > 0)
@@ -3238,7 +3238,7 @@ ParsingDriver::add_model_var_or_external_function(string *function_name, bool in
             error("To use an external function (" + *function_name +
                   ") within the model block, you must first declare it via the external_function() statement.");
         }
-      declare_symbol(function_name, eExternalFunction, nullptr, nullptr);
+      declare_symbol(function_name, SymbolType::externalFunction, nullptr, nullptr);
       current_external_function_options.nargs = stack_external_function_args.top().size();
       mod_file->external_functions_table.addExternalFunction(mod_file->symbol_table.getID(*function_name),
                                                              current_external_function_options, in_model_block);
@@ -3304,11 +3304,11 @@ ParsingDriver::add_steady_state_model_equal(string *varname, expr_t expr)
   catch (SymbolTable::UnknownSymbolNameException &e)
     {
       // Unknown symbol, declare it as a ModFileLocalVariable
-      id = mod_file->symbol_table.addSymbol(*varname, eModFileLocalVariable);
+      id = mod_file->symbol_table.addSymbol(*varname, SymbolType::modFileLocalVariable);
     }
 
   SymbolType type = mod_file->symbol_table.getType(id);
-  if (type != eEndogenous && type != eModFileLocalVariable && type != eParameter)
+  if (type != SymbolType::endogenous && type != SymbolType::modFileLocalVariable && type != SymbolType::parameter)
     error(*varname + " has incorrect type");
 
   mod_file->steady_state_model.addDefinition(id, expr);
@@ -3332,10 +3332,10 @@ ParsingDriver::add_steady_state_model_equal_multiple(expr_t expr)
       catch (SymbolTable::UnknownSymbolNameException &e)
         {
           // Unknown symbol, declare it as a ModFileLocalVariable
-          id = mod_file->symbol_table.addSymbol(symb, eModFileLocalVariable);
+          id = mod_file->symbol_table.addSymbol(symb, SymbolType::modFileLocalVariable);
         }
       SymbolType type = mod_file->symbol_table.getType(id);
-      if (type != eEndogenous && type != eModFileLocalVariable && type != eParameter)
+      if (type != SymbolType::endogenous && type != SymbolType::modFileLocalVariable && type != SymbolType::parameter)
         error(symb + " has incorrect type");
       ids.push_back(id);
     }
@@ -3385,13 +3385,13 @@ ParsingDriver::add_moment_calibration_item(string *endo1, string *endo2, string 
 
   check_symbol_existence(*endo1);
   c.endo1 = mod_file->symbol_table.getID(*endo1);
-  if (mod_file->symbol_table.getType(*endo1) != eEndogenous)
+  if (mod_file->symbol_table.getType(*endo1) != SymbolType::endogenous)
     error("Variable " + *endo1 + " is not an endogenous.");
   delete endo1;
 
   check_symbol_existence(*endo2);
   c.endo2 = mod_file->symbol_table.getID(*endo2);
-  if (mod_file->symbol_table.getType(*endo2) != eEndogenous)
+  if (mod_file->symbol_table.getType(*endo2) != SymbolType::endogenous)
     error("Variable " + *endo2 + " is not an endogenous.");
   delete endo2;
 
@@ -3423,7 +3423,7 @@ ParsingDriver::add_irf_calibration_item(string *endo, string *periods, string *e
 
   check_symbol_existence(*endo);
   c.endo = mod_file->symbol_table.getID(*endo);
-  if (mod_file->symbol_table.getType(*endo) != eEndogenous)
+  if (mod_file->symbol_table.getType(*endo) != SymbolType::endogenous)
     error("Variable " + *endo + " is not an endogenous.");
   delete endo;
 
@@ -3432,7 +3432,7 @@ ParsingDriver::add_irf_calibration_item(string *endo, string *periods, string *e
 
   check_symbol_existence(*exo);
   c.exo = mod_file->symbol_table.getID(*exo);
-  if (mod_file->symbol_table.getType(*exo) != eExogenous)
+  if (mod_file->symbol_table.getType(*exo) != SymbolType::exogenous)
     error("Variable " + *endo + " is not an exogenous.");
   delete exo;
 
@@ -3544,7 +3544,7 @@ ParsingDriver::add_ramsey_constraint(const string *name, BinaryOpcode op_code, c
   int symb_id = mod_file->symbol_table.getID(*name);
   SymbolType type = mod_file->symbol_table.getType(symb_id);
 
-  if (type != eEndogenous)
+  if (type != SymbolType::endogenous)
     error("ramsey_constraints: " + *name + " should be an endogenous variable");
 
   RamseyConstraintsStatement::Constraint C;
@@ -3563,7 +3563,7 @@ ParsingDriver::add_shock_group_element(string *name)
   int symb_id = mod_file->symbol_table.getID(*name);
   SymbolType type = mod_file->symbol_table.getType(symb_id);
 
-  if (type != eExogenous)
+  if (type != SymbolType::exogenous)
     error("shock_groups: " + *name + " should be an exogenous variable");
 
   shock_group.push_back(*name);

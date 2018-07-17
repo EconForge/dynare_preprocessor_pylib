@@ -112,19 +112,19 @@ SymbolTable::freeze() noexcept(false)
       int tsi;
       switch (getType(i))
         {
-        case eEndogenous:
+        case SymbolType::endogenous:
           tsi = endo_ids.size();
           endo_ids.push_back(i);
           break;
-        case eExogenous:
+        case SymbolType::exogenous:
           tsi = exo_ids.size();
           exo_ids.push_back(i);
           break;
-        case eExogenousDet:
+        case SymbolType::exogenousDet:
           tsi = exo_det_ids.size();
           exo_det_ids.push_back(i);
           break;
-        case eParameter:
+        case SymbolType::parameter:
           tsi = param_ids.size();
           param_ids.push_back(i);
           break;
@@ -166,22 +166,22 @@ SymbolTable::getID(SymbolType type, int tsid) const noexcept(false)
 
   switch (type)
     {
-    case eEndogenous:
+    case SymbolType::endogenous:
       if (tsid < 0 || tsid >= (int) endo_ids.size())
         throw UnknownTypeSpecificIDException(tsid, type);
       else
         return endo_ids[tsid];
-    case eExogenous:
+    case SymbolType::exogenous:
       if (tsid < 0 || tsid >= (int) exo_ids.size())
         throw UnknownTypeSpecificIDException(tsid, type);
       else
         return exo_ids[tsid];
-    case eExogenousDet:
+    case SymbolType::exogenousDet:
       if (tsid < 0 || tsid >= (int) exo_det_ids.size())
         throw UnknownTypeSpecificIDException(tsid, type);
       else
         return exo_det_ids[tsid];
-    case eParameter:
+    case SymbolType::parameter:
       if (tsid < 0 || tsid >= (int) param_ids.size())
         throw UnknownTypeSpecificIDException(tsid, type);
       else
@@ -222,7 +222,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
         output << "M_.exo_names(" << id+1 << ") = {'" << getName(exo_ids[id]) << "'};" << endl
                << "M_.exo_names_tex(" << id+1 << ") = {'" << getTeXName(exo_ids[id]) << "'};" << endl
                << "M_.exo_names_long(" << id+1 << ") = {'" << getLongName(exo_ids[id]) << "'};" << endl;
-      map<string, map<int, string>> partitions = getPartitionsForType(eExogenous);
+      map<string, map<int, string>> partitions = getPartitionsForType(SymbolType::exogenous);
       for (map<string, map<int, string>>::const_iterator it = partitions.begin();
            it != partitions.end(); it++)
         if (it->first != "long_name")
@@ -251,7 +251,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
                << "M_.exo_det_names_tex(" << id+1 << ") = {'" << getTeXName(exo_det_ids[id]) << "'};" << endl
                << "M_.exo_det_names_long(" << id+1 << ") = {'" << getLongName(exo_det_ids[id]) << "'};" << endl;
       output << "M_.exo_det_partitions = struct();" << endl;
-      map<string, map<int, string>> partitions = getPartitionsForType(eExogenousDet);
+      map<string, map<int, string>> partitions = getPartitionsForType(SymbolType::exogenousDet);
       for (map<string, map<int, string>>::const_iterator it = partitions.begin();
            it != partitions.end(); it++)
         if (it->first != "long_name")
@@ -280,7 +280,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
                << "M_.endo_names_tex(" << id+1 << ") = {'" << getTeXName(endo_ids[id]) << "'};" << endl
                << "M_.endo_names_long(" << id+1 << ") = {'" << getLongName(endo_ids[id]) << "'};" << endl;
       output << "M_.endo_partitions = struct();" << endl;
-      map<string, map<int, string>> partitions = getPartitionsForType(eEndogenous);
+      map<string, map<int, string>> partitions = getPartitionsForType(SymbolType::endogenous);
       for (map<string, map<int, string>>::const_iterator it = partitions.begin();
            it != partitions.end(); it++)
         if (it->first != "long_name")
@@ -313,7 +313,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
             output << "options_.dsge_var = 1;" << endl;
         }
       output << "M_.param_partitions = struct();" << endl;
-      map<string, map<int, string>> partitions = getPartitionsForType(eParameter);
+      map<string, map<int, string>> partitions = getPartitionsForType(SymbolType::parameter);
       for (map<string, map<int, string>>::const_iterator it = partitions.begin();
            it != partitions.end(); it++)
         if (it->first != "long_name")
@@ -627,7 +627,7 @@ SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index, expr_t expr_arg) 
   int symb_id;
   try
     {
-      symb_id = addSymbol(varname.str(), eEndogenous);
+      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
@@ -653,7 +653,7 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
   int symb_id;
   try
     {
-      symb_id = addSymbol(varname.str(), eEndogenous);
+      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
@@ -701,7 +701,7 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t e
 
   try
     {
-      symb_id = addSymbol(varname.str(), eEndogenous);
+      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
@@ -724,7 +724,7 @@ SymbolTable::addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id
 
   try
     {
-      symb_id = addSymbol(varname.str(), eEndogenous);
+      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
@@ -747,7 +747,7 @@ SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, i
 
   try
     {
-      symb_id = addSymbol(varname.str(), eEndogenous);
+      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
@@ -775,7 +775,7 @@ SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id
   varname << "AUX_UOP_" << index;
   try
     {
-      symb_id = addSymbol(varname.str(), eEndogenous);
+      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
@@ -797,7 +797,7 @@ SymbolTable::addVarModelEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag,
 
   try
     {
-      symb_id = addSymbol(varname.str(), eEndogenous);
+      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
@@ -819,7 +819,7 @@ SymbolTable::addMultiplierAuxiliaryVar(int index) noexcept(false)
 
   try
     {
-      symb_id = addSymbol(varname.str(), eEndogenous);
+      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
@@ -840,7 +840,7 @@ SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id, expr_t expr_arg) noexc
 
   try
     {
-      symb_id = addSymbol(varname.str(), eEndogenous);
+      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
@@ -896,7 +896,7 @@ SymbolTable::markPredetermined(int symb_id) noexcept(false)
   if (frozen)
     throw FrozenException();
 
-  assert(getType(symb_id) == eEndogenous);
+  assert(getType(symb_id) == SymbolType::endogenous);
 
   predetermined_variables.insert(symb_id);
 }
@@ -918,7 +918,7 @@ void
 SymbolTable::addObservedVariable(int symb_id) noexcept(false)
 {
   validateSymbID(symb_id);
-  assert(getType(symb_id) == eEndogenous);
+  assert(getType(symb_id) == SymbolType::endogenous);
   varobs.push_back(symb_id);
 }
 
@@ -946,7 +946,7 @@ void
 SymbolTable::addObservedExogenousVariable(int symb_id) noexcept(false)
 {
   validateSymbID(symb_id);
-  assert(getType(symb_id) != eEndogenous);
+  assert(getType(symb_id) != SymbolType::endogenous);
   varexobs.push_back(symb_id);
 }
 
@@ -975,7 +975,7 @@ SymbolTable::getTrendVarIds() const
 {
   vector <int> trendVars;
   for (const auto & it : symbol_table)
-    if (getType(it.second) == eTrend || getType(it.second) == eLogTrend)
+    if (getType(it.second) == SymbolType::trend || getType(it.second) == SymbolType::logTrend)
       trendVars.push_back(it.second);
   return trendVars;
 }
@@ -985,7 +985,7 @@ SymbolTable::getExogenous() const
 {
   set <int> exogs;
   for (const auto & it : symbol_table)
-    if (getType(it.second) == eExogenous)
+    if (getType(it.second) == SymbolType::exogenous)
       exogs.insert(it.second);
   return exogs;
 }
@@ -995,7 +995,7 @@ SymbolTable::getObservedExogenous() const
 {
   set <int> oexogs;
   for (const auto & it : symbol_table)
-    if (getType(it.second) == eExogenous)
+    if (getType(it.second) == SymbolType::exogenous)
       if (isObservedExogenousVariable(it.second))
         oexogs.insert(it.second);
   return oexogs;
@@ -1006,7 +1006,7 @@ SymbolTable::getEndogenous() const
 {
   set <int> endogs;
   for (const auto & it : symbol_table)
-    if (getType(it.second) == eEndogenous)
+    if (getType(it.second) == SymbolType::endogenous)
       endogs.insert(it.second);
   return endogs;
 }
@@ -1034,7 +1034,7 @@ SymbolTable::getOrigEndogenous() const
 {
   set <int> origendogs;
   for (const auto & it : symbol_table)
-    if (getType(it.second) == eEndogenous && !isAuxiliaryVariable(it.second))
+    if (getType(it.second) == SymbolType::endogenous && !isAuxiliaryVariable(it.second))
       origendogs.insert(it.second);
   return origendogs;
 }

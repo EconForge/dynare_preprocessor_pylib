@@ -139,7 +139,7 @@ void
 ExprNode::collectEndogenous(set<pair<int, int>> &result) const
 {
   set<pair<int, int>> symb_ids;
-  collectDynamicVariables(eEndogenous, symb_ids);
+  collectDynamicVariables(SymbolType::endogenous, symb_ids);
   for (const auto & symb_id : symb_ids)
     result.emplace(datatree.symbol_table.getTypeSpecificID(symb_id.first), symb_id.second);
 }
@@ -148,7 +148,7 @@ void
 ExprNode::collectExogenous(set<pair<int, int>> &result) const
 {
   set<pair<int, int>> symb_ids;
-  collectDynamicVariables(eExogenous, symb_ids);
+  collectDynamicVariables(SymbolType::exogenous, symb_ids);
   for (const auto & symb_id : symb_ids)
     result.emplace(datatree.symbol_table.getTypeSpecificID(symb_id.first), symb_id.second);
 }
@@ -685,8 +685,8 @@ VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg)
   datatree.variable_node_map[{ symb_id, lag }] = this;
 
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
-  assert(type != eExternalFunction
-         && (lag == 0 || (type != eModelLocalVariable && type != eModFileLocalVariable)));
+  assert(type != SymbolType::externalFunction
+         && (lag == 0 || (type != SymbolType::modelLocalVariable && type != SymbolType::modFileLocalVariable)));
 }
 
 void
@@ -700,27 +700,27 @@ VariableNode::prepareForDerivation()
   // Fill in non_null_derivatives
   switch (type)
     {
-    case eEndogenous:
-    case eExogenous:
-    case eExogenousDet:
-    case eParameter:
-    case eTrend:
-    case eLogTrend:
+    case SymbolType::endogenous:
+    case SymbolType::exogenous:
+    case SymbolType::exogenousDet:
+    case SymbolType::parameter:
+    case SymbolType::trend:
+    case SymbolType::logTrend:
       // For a variable or a parameter, the only non-null derivative is with respect to itself
       non_null_derivatives.insert(datatree.getDerivID(symb_id, lag));
       break;
-    case eModelLocalVariable:
+    case SymbolType::modelLocalVariable:
       datatree.local_variables_table[symb_id]->prepareForDerivation();
       // Non null derivatives are those of the value of the local parameter
       non_null_derivatives = datatree.local_variables_table[symb_id]->non_null_derivatives;
       break;
-    case eModFileLocalVariable:
-    case eStatementDeclaredVariable:
-    case eUnusedEndogenous:
+    case SymbolType::modFileLocalVariable:
+    case SymbolType::statementDeclaredVariable:
+    case SymbolType::unusedEndogenous:
       // Such a variable is never derived
       break;
-    case eExternalFunction:
-    case eEndogenousVAR:
+    case SymbolType::externalFunction:
+    case SymbolType::endogenousVAR:
       cerr << "VariableNode::prepareForDerivation: impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -731,29 +731,29 @@ VariableNode::computeDerivative(int deriv_id)
 {
   switch (type)
     {
-    case eEndogenous:
-    case eExogenous:
-    case eExogenousDet:
-    case eParameter:
-    case eTrend:
-    case eLogTrend:
+    case SymbolType::endogenous:
+    case SymbolType::exogenous:
+    case SymbolType::exogenousDet:
+    case SymbolType::parameter:
+    case SymbolType::trend:
+    case SymbolType::logTrend:
       if (deriv_id == datatree.getDerivID(symb_id, lag))
         return datatree.One;
       else
         return datatree.Zero;
-    case eModelLocalVariable:
+    case SymbolType::modelLocalVariable:
       return datatree.local_variables_table[symb_id]->getDerivative(deriv_id);
-    case eModFileLocalVariable:
+    case SymbolType::modFileLocalVariable:
       cerr << "ModFileLocalVariable is not derivable" << endl;
       exit(EXIT_FAILURE);
-    case eStatementDeclaredVariable:
+    case SymbolType::statementDeclaredVariable:
       cerr << "eStatementDeclaredVariable is not derivable" << endl;
       exit(EXIT_FAILURE);
-    case eUnusedEndogenous:
+    case SymbolType::unusedEndogenous:
       cerr << "eUnusedEndogenous is not derivable" << endl;
       exit(EXIT_FAILURE);
-    case eExternalFunction:
-    case eEndogenousVAR:
+    case SymbolType::externalFunction:
+    case SymbolType::endogenousVAR:
       cerr << "Impossible case!" << endl;
       exit(EXIT_FAILURE);
     }
@@ -767,7 +767,7 @@ VariableNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, t
   auto it = temporary_terms.find(const_cast<VariableNode *>(this));
   if (it != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
-  if (type == eModelLocalVariable)
+  if (type == SymbolType::modelLocalVariable)
     datatree.local_variables_table[symb_id]->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
 }
 
@@ -810,7 +810,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         output << "\\bar";
       output << "{" << datatree.symbol_table.getTeXName(symb_id);
       if (output_type == oLatexDynamicModel
-          && (type == eEndogenous || type == eExogenous || type == eExogenousDet || type == eModelLocalVariable || type == eTrend || type == eLogTrend))
+          && (type == SymbolType::endogenous || type == SymbolType::exogenous || type == SymbolType::exogenousDet || type == SymbolType::modelLocalVariable || type == SymbolType::trend || type == SymbolType::logTrend))
         {
           output << "_{t";
           if (lag != 0)
@@ -829,14 +829,14 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
   switch (type)
     {
-    case eParameter:
+    case SymbolType::parameter:
       if (output_type == oMatlabOutsideModel)
         output << "M_.params" << "(" << tsid + 1 << ")";
       else
         output << "params" << LEFT_ARRAY_SUBSCRIPT(output_type) << tsid + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type);
       break;
 
-    case eModelLocalVariable:
+    case SymbolType::modelLocalVariable:
       if (output_type == oMatlabDynamicModelSparse || output_type == oMatlabStaticModelSparse
           || output_type == oMatlabDynamicSteadyStateOperator || output_type == oMatlabDynamicSparseSteadyStateOperator
           || output_type == oCDynamicSteadyStateOperator)
@@ -851,11 +851,11 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         output << datatree.symbol_table.getName(symb_id) << "__";
       break;
 
-    case eModFileLocalVariable:
+    case SymbolType::modFileLocalVariable:
       output << datatree.symbol_table.getName(symb_id);
       break;
 
-    case eEndogenous:
+    case SymbolType::endogenous:
       switch (output_type)
         {
         case oJuliaDynamicModel:
@@ -906,7 +906,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         }
       break;
 
-    case eExogenous:
+    case SymbolType::exogenous:
       i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
       switch (output_type)
         {
@@ -959,7 +959,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         }
       break;
 
-    case eExogenousDet:
+    case SymbolType::exogenousDet:
       i = tsid + datatree.symbol_table.exo_nbr() + ARRAY_SUBSCRIPT_OFFSET(output_type);
       switch (output_type)
         {
@@ -1012,12 +1012,12 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         }
       break;
 
-    case eExternalFunction:
-    case eTrend:
-    case eLogTrend:
-    case eStatementDeclaredVariable:
-    case eUnusedEndogenous:
-    case eEndogenousVAR:
+    case SymbolType::externalFunction:
+    case SymbolType::trend:
+    case SymbolType::logTrend:
+    case SymbolType::statementDeclaredVariable:
+    case SymbolType::unusedEndogenous:
+    case SymbolType::endogenousVAR:
       cerr << "Impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -1026,7 +1026,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 expr_t
 VariableNode::substituteStaticAuxiliaryVariable() const
 {
-  if (type == eEndogenous)
+  if (type == SymbolType::endogenous)
     {
       try
         {
@@ -1055,12 +1055,12 @@ VariableNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                       const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                       const deriv_node_temp_terms_t &tef_terms) const
 {
-  if (type == eModelLocalVariable || type == eModFileLocalVariable)
+  if (type == SymbolType::modelLocalVariable || type == SymbolType::modFileLocalVariable)
     datatree.local_variables_table[symb_id]->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic, tef_terms);
   else
     {
       int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
-      if (type == eExogenousDet)
+      if (type == SymbolType::exogenousDet)
         tsid += datatree.symbol_table.exo_nbr();
       if (!lhs_rhs)
         {
@@ -1068,26 +1068,26 @@ VariableNode::compile(ostream &CompileCode, unsigned int &instruction_number,
             {
               if (steady_dynamic)  // steady state values in a dynamic model
                 {
-                  FLDVS_ fldvs(type, tsid);
+                  FLDVS_ fldvs{static_cast<uint8_t>(type), static_cast<unsigned int>(tsid)};
                   fldvs.write(CompileCode, instruction_number);
                 }
               else
                 {
-                  if (type == eParameter)
+                  if (type == SymbolType::parameter)
                     {
-                      FLDV_ fldv(type, tsid);
+                      FLDV_ fldv{static_cast<int>(type), static_cast<unsigned int>(tsid)};
                       fldv.write(CompileCode, instruction_number);
                     }
                   else
                     {
-                      FLDV_ fldv(type, tsid, lag);
+                      FLDV_ fldv{static_cast<int>(type), static_cast<unsigned int>(tsid), lag};
                       fldv.write(CompileCode, instruction_number);
                     }
                 }
             }
           else
             {
-              FLDSV_ fldsv(type, tsid);
+              FLDSV_ fldsv{static_cast<uint8_t>(type), static_cast<unsigned int>(tsid)};
               fldsv.write(CompileCode, instruction_number);
             }
         }
@@ -1102,21 +1102,21 @@ VariableNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                 }
               else
                 {
-                  if (type == eParameter)
+                  if (type == SymbolType::parameter)
                     {
-                      FSTPV_ fstpv(type, tsid);
+                      FSTPV_ fstpv{static_cast<int>(type), static_cast<unsigned int>(tsid)};
                       fstpv.write(CompileCode, instruction_number);
                     }
                   else
                     {
-                      FSTPV_ fstpv(type, tsid, lag);
+                      FSTPV_ fstpv{static_cast<int>(type), static_cast<unsigned int>(tsid), lag};
                       fstpv.write(CompileCode, instruction_number);
                     }
                 }
             }
           else
             {
-              FSTPSV_ fstpsv(type, tsid);
+              FSTPSV_ fstpsv{static_cast<uint8_t>(type), static_cast<unsigned int>(tsid)};
               fstpsv.write(CompileCode, instruction_number);
             }
         }
@@ -1131,14 +1131,14 @@ VariableNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
                                     vector<vector<temporary_terms_t>> &v_temporary_terms,
                                     int equation) const
 {
-  if (type == eModelLocalVariable)
+  if (type == SymbolType::modelLocalVariable)
     datatree.local_variables_table[symb_id]->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, Curr_block, v_temporary_terms, equation);
 }
 
 void
 VariableNode::collectVARLHSVariable(set<expr_t> &result) const
 {
-  if (type == eEndogenous && lag == 0)
+  if (type == SymbolType::endogenous && lag == 0)
     result.insert(const_cast<VariableNode *>(this));
   else
     {
@@ -1152,7 +1152,7 @@ VariableNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &
 {
   if (type == type_arg)
     result.emplace(symb_id, lag);
-  if (type == eModelLocalVariable)
+  if (type == SymbolType::modelLocalVariable)
     datatree.local_variables_table[symb_id]->collectDynamicVariables(type_arg, result);
 }
 
@@ -1171,7 +1171,7 @@ VariableNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
      the flag is equal to 2.
      - an expression equal to the RHS if flag = 0 and equal to NULL elsewhere
   */
-  if (type == eEndogenous)
+  if (type == SymbolType::endogenous)
     {
       if (datatree.symbol_table.getTypeSpecificID(symb_id) == var_endo && lag == 0)
         /* the endogenous variable */
@@ -1181,7 +1181,7 @@ VariableNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
     }
   else
     {
-      if (type == eParameter)
+      if (type == SymbolType::parameter)
         return { 0, datatree.AddVariableInternal(symb_id, 0) };
       else
         return { 0, datatree.AddVariableInternal(symb_id, lag) };
@@ -1193,12 +1193,12 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recur
 {
   switch (type)
     {
-    case eEndogenous:
-    case eExogenous:
-    case eExogenousDet:
-    case eParameter:
-    case eTrend:
-    case eLogTrend:
+    case SymbolType::endogenous:
+    case SymbolType::exogenous:
+    case SymbolType::exogenousDet:
+    case SymbolType::parameter:
+    case SymbolType::trend:
+    case SymbolType::logTrend:
       if (deriv_id == datatree.getDerivID(symb_id, lag))
         return datatree.One;
       else
@@ -1224,19 +1224,19 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recur
           else
             return datatree.Zero;
         }
-    case eModelLocalVariable:
+    case SymbolType::modelLocalVariable:
       return datatree.local_variables_table[symb_id]->getChainRuleDerivative(deriv_id, recursive_variables);
-    case eModFileLocalVariable:
+    case SymbolType::modFileLocalVariable:
       cerr << "ModFileLocalVariable is not derivable" << endl;
       exit(EXIT_FAILURE);
-    case eStatementDeclaredVariable:
+    case SymbolType::statementDeclaredVariable:
       cerr << "eStatementDeclaredVariable is not derivable" << endl;
       exit(EXIT_FAILURE);
-    case eUnusedEndogenous:
+    case SymbolType::unusedEndogenous:
       cerr << "eUnusedEndogenous is not derivable" << endl;
       exit(EXIT_FAILURE);
-    case eExternalFunction:
-    case eEndogenousVAR:
+    case SymbolType::externalFunction:
+    case SymbolType::endogenousVAR:
       cerr << "Impossible case!" << endl;
       exit(EXIT_FAILURE);
     }
@@ -1255,26 +1255,26 @@ VariableNode::computeXrefs(EquationInfo &ei) const
 {
   switch (type)
     {
-    case eEndogenous:
+    case SymbolType::endogenous:
       ei.endo.emplace(symb_id, lag);
       break;
-    case eExogenous:
+    case SymbolType::exogenous:
       ei.exo.emplace(symb_id, lag);
       break;
-    case eExogenousDet:
+    case SymbolType::exogenousDet:
       ei.exo_det.emplace(symb_id, lag);
       break;
-    case eParameter:
+    case SymbolType::parameter:
       ei.param.emplace(symb_id, 0);
       break;
-    case eTrend:
-    case eLogTrend:
-    case eModelLocalVariable:
-    case eModFileLocalVariable:
-    case eStatementDeclaredVariable:
-    case eUnusedEndogenous:
-    case eExternalFunction:
-    case eEndogenousVAR:
+    case SymbolType::trend:
+    case SymbolType::logTrend:
+    case SymbolType::modelLocalVariable:
+    case SymbolType::modFileLocalVariable:
+    case SymbolType::statementDeclaredVariable:
+    case SymbolType::unusedEndogenous:
+    case SymbolType::externalFunction:
+    case SymbolType::endogenousVAR:
       break;
     }
 }
@@ -1290,9 +1290,9 @@ VariableNode::maxEndoLead() const
 {
   switch (type)
     {
-    case eEndogenous:
+    case SymbolType::endogenous:
       return max(lag, 0);
-    case eModelLocalVariable:
+    case SymbolType::modelLocalVariable:
       return datatree.local_variables_table[symb_id]->maxEndoLead();
     default:
       return 0;
@@ -1304,9 +1304,9 @@ VariableNode::maxExoLead() const
 {
   switch (type)
     {
-    case eExogenous:
+    case SymbolType::exogenous:
       return max(lag, 0);
-    case eModelLocalVariable:
+    case SymbolType::modelLocalVariable:
       return datatree.local_variables_table[symb_id]->maxExoLead();
     default:
       return 0;
@@ -1318,9 +1318,9 @@ VariableNode::maxEndoLag() const
 {
   switch (type)
     {
-    case eEndogenous:
+    case SymbolType::endogenous:
       return max(-lag, 0);
-    case eModelLocalVariable:
+    case SymbolType::modelLocalVariable:
       return datatree.local_variables_table[symb_id]->maxEndoLag();
     default:
       return 0;
@@ -1332,9 +1332,9 @@ VariableNode::maxExoLag() const
 {
   switch (type)
     {
-    case eExogenous:
+    case SymbolType::exogenous:
       return max(-lag, 0);
-    case eModelLocalVariable:
+    case SymbolType::modelLocalVariable:
       return datatree.local_variables_table[symb_id]->maxExoLag();
     default:
       return 0;
@@ -1346,11 +1346,11 @@ VariableNode::maxLead() const
 {
   switch (type)
     {
-    case eEndogenous:
+    case SymbolType::endogenous:
       return lag;
-    case eExogenous:
+    case SymbolType::exogenous:
       return lag;
-    case eModelLocalVariable:
+    case SymbolType::modelLocalVariable:
       return datatree.local_variables_table[symb_id]->maxLead();
     default:
       return 0;
@@ -1362,14 +1362,14 @@ VariableNode::VarMinLag() const
 {
   switch (type)
     {
-    case eEndogenous:
+    case SymbolType::endogenous:
       return -lag;
-    case eExogenous:
+    case SymbolType::exogenous:
       if (lag > 0)
         return -lag;
       else
         return 1; // Can have contemporaneus exog in VAR
-    case eModelLocalVariable:
+    case SymbolType::modelLocalVariable:
       return datatree.local_variables_table[symb_id]->VarMinLag();
     default:
       return 1;
@@ -1381,11 +1381,11 @@ VariableNode::maxLag() const
 {
   switch (type)
     {
-    case eEndogenous:
+    case SymbolType::endogenous:
       return -lag;
-    case eExogenous:
+    case SymbolType::exogenous:
       return -lag;
-    case eModelLocalVariable:
+    case SymbolType::modelLocalVariable:
       return datatree.local_variables_table[symb_id]->maxLag();
     default:
       return 0;
@@ -1453,13 +1453,13 @@ VariableNode::decreaseLeadsLags(int n) const
 {
   switch (type)
     {
-    case eEndogenous:
-    case eExogenous:
-    case eExogenousDet:
-    case eTrend:
-    case eLogTrend:
+    case SymbolType::endogenous:
+    case SymbolType::exogenous:
+    case SymbolType::exogenousDet:
+    case SymbolType::trend:
+    case SymbolType::logTrend:
       return datatree.AddVariable(symb_id, lag-n);
-    case eModelLocalVariable:
+    case SymbolType::modelLocalVariable:
       return datatree.local_variables_table[symb_id]->decreaseLeadsLags(n);
     default:
       return const_cast<VariableNode *>(this);
@@ -1481,12 +1481,12 @@ VariableNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vecto
   expr_t value;
   switch (type)
     {
-    case eEndogenous:
+    case SymbolType::endogenous:
       if (lag <= 1)
         return const_cast<VariableNode *>(this);
       else
         return createEndoLeadAuxiliaryVarForMyself(subst_table, neweqs);
-    case eModelLocalVariable:
+    case SymbolType::modelLocalVariable:
       value = datatree.local_variables_table[symb_id];
       if (value->maxEndoLead() <= 1)
         return const_cast<VariableNode *>(this);
@@ -1506,7 +1506,7 @@ VariableNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector
   int cur_lag;
   switch (type)
     {
-    case eEndogenous:
+    case SymbolType::endogenous:
       if (lag >= -1)
         return const_cast<VariableNode *>(this);
 
@@ -1537,7 +1537,7 @@ VariableNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector
         }
       return substexpr;
 
-    case eModelLocalVariable:
+    case SymbolType::modelLocalVariable:
       value = datatree.local_variables_table[symb_id];
       if (value->maxEndoLag() <= 1)
         return const_cast<VariableNode *>(this);
@@ -1554,12 +1554,12 @@ VariableNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode 
   expr_t value;
   switch (type)
     {
-    case eExogenous:
+    case SymbolType::exogenous:
       if (lag <= 0)
         return const_cast<VariableNode *>(this);
       else
         return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
-    case eModelLocalVariable:
+    case SymbolType::modelLocalVariable:
       value = datatree.local_variables_table[symb_id];
       if (value->maxExoLead() == 0)
         return const_cast<VariableNode *>(this);
@@ -1579,7 +1579,7 @@ VariableNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *
   int cur_lag;
   switch (type)
     {
-    case eExogenous:
+    case SymbolType::exogenous:
       if (lag >= 0)
         return const_cast<VariableNode *>(this);
 
@@ -1610,7 +1610,7 @@ VariableNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *
         }
       return substexpr;
 
-    case eModelLocalVariable:
+    case SymbolType::modelLocalVariable:
       value = datatree.local_variables_table[symb_id];
       if (value->maxExoLag() == 0)
         return const_cast<VariableNode *>(this);
@@ -1633,7 +1633,7 @@ VariableNode::differentiateForwardVars(const vector<string> &subset, subst_table
   expr_t value;
   switch (type)
     {
-    case eEndogenous:
+    case SymbolType::endogenous:
       assert(lag <= 1);
       if (lag <= 0
           || (subset.size() > 0
@@ -1656,7 +1656,7 @@ VariableNode::differentiateForwardVars(const vector<string> &subset, subst_table
             }
           return datatree.AddPlus(datatree.AddVariable(symb_id, 0), diffvar);
         }
-    case eModelLocalVariable:
+    case SymbolType::modelLocalVariable:
       value = datatree.local_variables_table[symb_id];
       if (value->maxEndoLead() <= 0)
         return const_cast<VariableNode *>(this);
@@ -1691,7 +1691,7 @@ VariableNode::containsPacExpectation() const
 bool
 VariableNode::containsEndogenous() const
 {
-  if (type == eEndogenous)
+  if (type == SymbolType::endogenous)
     return true;
   else
     return false;
@@ -1700,15 +1700,15 @@ VariableNode::containsEndogenous() const
 bool
 VariableNode::containsExogenous() const
 {
-  return (type == eExogenous || type == eExogenousDet);
+  return (type == SymbolType::exogenous || type == SymbolType::exogenousDet);
 }
 
 expr_t
 VariableNode::replaceTrendVar() const
 {
-  if (get_type() == eTrend)
+  if (get_type() == SymbolType::trend)
     return datatree.One;
-  else if (get_type() == eLogTrend)
+  else if (get_type() == SymbolType::logTrend)
     return datatree.Zero;
   else
     return const_cast<VariableNode *>(this);
@@ -1745,12 +1745,12 @@ VariableNode::countDiffs() const
 expr_t
 VariableNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
 {
-  if ((get_type() != eTrend && get_type() != eLogTrend) || get_lag() == 0)
+  if ((get_type() != SymbolType::trend && get_type() != SymbolType::logTrend) || get_lag() == 0)
     return const_cast<VariableNode *>(this);
 
   map<int, expr_t>::const_iterator it = trend_symbols_map.find(symb_id);
   expr_t noTrendLeadLagNode = new VariableNode(datatree, it->first, 0);
-  bool log_trend = get_type() == eLogTrend;
+  bool log_trend = get_type() == SymbolType::logTrend;
   expr_t trend = it->second;
 
   if (get_lag() > 0)
@@ -1823,7 +1823,7 @@ void
 VariableNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
 {
   string varname = datatree.symbol_table.getName(symb_id);
-  if (type == eEndogenous)
+  if (type == SymbolType::endogenous)
     if (model_endos_and_lags.find(varname) == model_endos_and_lags.end())
       model_endos_and_lags[varname] = min(model_endos_and_lags[varname], lag);
     else
@@ -1932,7 +1932,7 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
     case oSteadyState:
       if (datatree.isDynamic())
         {
-          if (datatree.getTypeByDerivID(deriv_id) == eParameter)
+          if (datatree.getTypeByDerivID(deriv_id) == SymbolType::parameter)
             {
               auto *varg = dynamic_cast<VariableNode *>(arg);
               if (varg == nullptr)
@@ -1941,7 +1941,7 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
                        << "standalone variables (like STEADY_STATE(y)) to be derivable w.r.t. parameters" << endl;
                   exit(EXIT_FAILURE);
                 }
-              if (datatree.symbol_table.getType(varg->symb_id) == eEndogenous)
+              if (datatree.symbol_table.getType(varg->symb_id) == SymbolType::endogenous)
                 return datatree.AddSteadyStateParamDeriv(arg, datatree.getSymbIDByDerivID(deriv_id));
               else
                 return datatree.Zero;
@@ -1953,18 +1953,18 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
         return darg;
     case oSteadyStateParamDeriv:
       assert(datatree.isDynamic());
-      if (datatree.getTypeByDerivID(deriv_id) == eParameter)
+      if (datatree.getTypeByDerivID(deriv_id) == SymbolType::parameter)
         {
           auto *varg = dynamic_cast<VariableNode *>(arg);
           assert(varg != nullptr);
-          assert(datatree.symbol_table.getType(varg->symb_id) == eEndogenous);
+          assert(datatree.symbol_table.getType(varg->symb_id) == SymbolType::endogenous);
           return datatree.AddSteadyStateParam2ndDeriv(arg, param1_symb_id, datatree.getSymbIDByDerivID(deriv_id));
         }
       else
         return datatree.Zero;
     case oSteadyStateParam2ndDeriv:
       assert(datatree.isDynamic());
-      if (datatree.getTypeByDerivID(deriv_id) == eParameter)
+      if (datatree.getTypeByDerivID(deriv_id) == SymbolType::parameter)
         {
           cerr << "3rd derivative of STEADY_STATE node w.r.t. three parameters not implemented" << endl;
           exit(EXIT_FAILURE);
@@ -2295,8 +2295,8 @@ UnaryOpNode::writeJsonOutput(ostream &output,
       {
         auto *varg = dynamic_cast<VariableNode *>(arg);
         assert(varg != nullptr);
-        assert(datatree.symbol_table.getType(varg->symb_id) == eEndogenous);
-        assert(datatree.symbol_table.getType(param1_symb_id) == eParameter);
+        assert(datatree.symbol_table.getType(varg->symb_id) == SymbolType::endogenous);
+        assert(datatree.symbol_table.getType(param1_symb_id) == SymbolType::parameter);
         int tsid_endo = datatree.symbol_table.getTypeSpecificID(varg->symb_id);
         int tsid_param = datatree.symbol_table.getTypeSpecificID(param1_symb_id);
         output << "ss_param_deriv(" << tsid_endo+1 << "," << tsid_param+1 << ")";
@@ -2306,9 +2306,9 @@ UnaryOpNode::writeJsonOutput(ostream &output,
       {
         auto *varg = dynamic_cast<VariableNode *>(arg);
         assert(varg != nullptr);
-        assert(datatree.symbol_table.getType(varg->symb_id) == eEndogenous);
-        assert(datatree.symbol_table.getType(param1_symb_id) == eParameter);
-        assert(datatree.symbol_table.getType(param2_symb_id) == eParameter);
+        assert(datatree.symbol_table.getType(varg->symb_id) == SymbolType::endogenous);
+        assert(datatree.symbol_table.getType(param1_symb_id) == SymbolType::parameter);
+        assert(datatree.symbol_table.getType(param2_symb_id) == SymbolType::parameter);
         int tsid_endo = datatree.symbol_table.getTypeSpecificID(varg->symb_id);
         int tsid_param1 = datatree.symbol_table.getTypeSpecificID(param1_symb_id);
         int tsid_param2 = datatree.symbol_table.getTypeSpecificID(param2_symb_id);
@@ -2461,8 +2461,8 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       {
         auto *varg = dynamic_cast<VariableNode *>(arg);
         assert(varg != nullptr);
-        assert(datatree.symbol_table.getType(varg->symb_id) == eEndogenous);
-        assert(datatree.symbol_table.getType(param1_symb_id) == eParameter);
+        assert(datatree.symbol_table.getType(varg->symb_id) == SymbolType::endogenous);
+        assert(datatree.symbol_table.getType(param1_symb_id) == SymbolType::parameter);
         int tsid_endo = datatree.symbol_table.getTypeSpecificID(varg->symb_id);
         int tsid_param = datatree.symbol_table.getTypeSpecificID(param1_symb_id);
         assert(IS_MATLAB(output_type));
@@ -2473,9 +2473,9 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       {
         auto *varg = dynamic_cast<VariableNode *>(arg);
         assert(varg != nullptr);
-        assert(datatree.symbol_table.getType(varg->symb_id) == eEndogenous);
-        assert(datatree.symbol_table.getType(param1_symb_id) == eParameter);
-        assert(datatree.symbol_table.getType(param2_symb_id) == eParameter);
+        assert(datatree.symbol_table.getType(varg->symb_id) == SymbolType::endogenous);
+        assert(datatree.symbol_table.getType(param1_symb_id) == SymbolType::parameter);
+        assert(datatree.symbol_table.getType(param2_symb_id) == SymbolType::parameter);
         int tsid_endo = datatree.symbol_table.getTypeSpecificID(varg->symb_id);
         int tsid_param1 = datatree.symbol_table.getTypeSpecificID(param1_symb_id);
         int tsid_param2 = datatree.symbol_table.getTypeSpecificID(param2_symb_id);
@@ -4541,19 +4541,19 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
     case oEqual:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          return { 0, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(eEndogenous, var_endo), 0), datatree.AddMinus(expr_t_2, expr_t_1)) };
+          return { 0, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(SymbolType::endogenous, var_endo), 0), datatree.AddMinus(expr_t_2, expr_t_1)) };
         }
       else if (is_endogenous_present_1 && is_endogenous_present_2)
         {
-          return { 0, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(eEndogenous, var_endo), 0), datatree.Zero) };
+          return { 0, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(SymbolType::endogenous, var_endo), 0), datatree.Zero) };
         }
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          return { 0, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(eEndogenous, var_endo), 0), /*datatree.AddUMinus(expr_t_1)*/ expr_t_1) };
+          return { 0, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(SymbolType::endogenous, var_endo), 0), /*datatree.AddUMinus(expr_t_1)*/ expr_t_1) };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          return { 0, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(eEndogenous, var_endo), 0), expr_t_2) };
+          return { 0, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(SymbolType::endogenous, var_endo), 0), expr_t_2) };
         }
       break;
     case oMax:
@@ -5005,12 +5005,12 @@ BinaryOpNode::walkPacParametersHelper(const expr_t arg1, const expr_t arg2,
                                       set<pair<int, pair<int, int>>> &ar_params_and_vars) const
 {
   set<int> params;
-  arg1->collectVariables(eParameter, params);
+  arg1->collectVariables(SymbolType::parameter, params);
   if (params.size() != 1)
     return;
 
   set<pair<int, int>> endogs;
-  arg2->collectDynamicVariables(eEndogenous, endogs);
+  arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
   if (endogs.size() == 1)
     ar_params_and_vars.emplace(*(params.begin()), *(endogs.begin()));
   else if (endogs.size() >= 2)
@@ -5022,10 +5022,10 @@ BinaryOpNode::walkPacParametersHelper(const expr_t arg1, const expr_t arg2,
           auto *test_arg2 = dynamic_cast<VariableNode *>(testarg2->get_arg2());
           if (test_arg1 != nullptr && test_arg2 != nullptr && lhs.first != -1)
             {
-              test_arg1->collectDynamicVariables(eEndogenous, endogs);
+              test_arg1->collectDynamicVariables(SymbolType::endogenous, endogs);
               ec_params_and_vars.emplace(*(params.begin()), *(endogs.begin()));
               endogs.clear();
-              test_arg2->collectDynamicVariables(eEndogenous, endogs);
+              test_arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
               ec_params_and_vars.emplace(*(params.begin()), *(endogs.begin()));
             }
         }
@@ -5047,7 +5047,7 @@ BinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<
   else if (op_code == oEqual)
     {
       set<pair<int, int>> general_lhs;
-      arg1->collectDynamicVariables(eEndogenous, general_lhs);
+      arg1->collectDynamicVariables(SymbolType::endogenous, general_lhs);
       if (general_lhs.size() == 1)
         lhs = *(general_lhs.begin());
     }
@@ -8460,7 +8460,7 @@ PacExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, con
           param_name_h0 << "h0_" << model_name
                         << "_var_" << datatree.symbol_table.getName(*it)
                         << "_lag_" << i;
-          int new_param_symb_id = datatree.symbol_table.addSymbol(param_name_h0.str(), eParameter);
+          int new_param_symb_id = datatree.symbol_table.addSymbol(param_name_h0.str(), SymbolType::parameter);
           h0_indices.push_back(new_param_symb_id);
           subExpr = datatree.AddPlus(subExpr,
                                      datatree.AddTimes(datatree.AddVariable(new_param_symb_id),
@@ -8475,7 +8475,7 @@ PacExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, con
           param_name_h1 << "h1_" << model_name
                         << "_var_" << datatree.symbol_table.getName(*it)
                         << "_lag_" << i;
-          int new_param_symb_id = datatree.symbol_table.addSymbol(param_name_h1.str(), eParameter);
+          int new_param_symb_id = datatree.symbol_table.addSymbol(param_name_h1.str(), SymbolType::parameter);
           h1_indices.push_back(new_param_symb_id);
           subExpr = datatree.AddPlus(subExpr,
                                      datatree.AddTimes(datatree.AddVariable(new_param_symb_id),
@@ -8486,7 +8486,7 @@ PacExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, con
     {
       growth_param_index = datatree.symbol_table.addSymbol(model_name +
                                                            "_pac_growth_neutrality_correction",
-                                                           eParameter);
+                                                           SymbolType::parameter);
       subExpr = datatree.AddPlus(subExpr,
                                  datatree.AddTimes(datatree.AddVariable(growth_param_index),
                                                    datatree.AddVariable(growth_symb_id)));

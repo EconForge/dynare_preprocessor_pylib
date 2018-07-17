@@ -43,7 +43,7 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
   for (const auto & det_shock : det_shocks)
     {
       int id = symbol_table.getTypeSpecificID(det_shock.first) + 1;
-      bool exo_det = (symbol_table.getType(det_shock.first) == eExogenousDet);
+      bool exo_det = (symbol_table.getType(det_shock.first) == SymbolType::exogenousDet);
 
       for (size_t i = 0; i < det_shock.second.size(); i++)
         {
@@ -220,10 +220,10 @@ ShocksStatement::writeVarOrStdShock(ostream &output, var_and_std_shocks_t::const
                                     bool stddev) const
 {
   SymbolType type = symbol_table.getType(it->first);
-  assert(type == eExogenous || symbol_table.isObservedVariable(it->first));
+  assert(type == SymbolType::exogenous || symbol_table.isObservedVariable(it->first));
 
   int id;
-  if (type == eExogenous)
+  if (type == SymbolType::exogenous)
     {
       output << "M_.Sigma_e(";
       id = symbol_table.getTypeSpecificID(it->first) + 1;
@@ -261,11 +261,11 @@ ShocksStatement::writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_t:
 {
   SymbolType type1 = symbol_table.getType(it->first.first);
   SymbolType type2 = symbol_table.getType(it->first.second);
-  assert((type1 == eExogenous && type2 == eExogenous)
+  assert((type1 == SymbolType::exogenous && type2 == SymbolType::exogenous)
          || (symbol_table.isObservedVariable(it->first.first) && symbol_table.isObservedVariable(it->first.second)));
   string matrix, corr_matrix;
   int id1, id2;
-  if (type1 == eExogenous)
+  if (type1 == SymbolType::exogenous)
     {
       matrix = "M_.Sigma_e";
       corr_matrix = "M_.Correlation_matrix";
@@ -319,7 +319,7 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
      Also Determine if there is a calibrated measurement error */
   for (auto var_shock : var_shocks)
     {
-      if (symbol_table.getType(var_shock.first) != eExogenous
+      if (symbol_table.getType(var_shock.first) != SymbolType::exogenous
           && !symbol_table.isObservedVariable(var_shock.first))
         {
           cerr << "shocks: setting a variance on '"
@@ -330,7 +330,7 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
 
   for (auto std_shock : std_shocks)
     {
-      if (symbol_table.getType(std_shock.first) != eExogenous
+      if (symbol_table.getType(std_shock.first) != SymbolType::exogenous
           && !symbol_table.isObservedVariable(std_shock.first))
         {
           cerr << "shocks: setting a standard error on '"
@@ -344,8 +344,8 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
       int symb_id1 = covar_shock.first.first;
       int symb_id2 = covar_shock.first.second;
 
-      if (!((symbol_table.getType(symb_id1) == eExogenous
-             && symbol_table.getType(symb_id2) == eExogenous)
+      if (!((symbol_table.getType(symb_id1) == SymbolType::exogenous
+             && symbol_table.getType(symb_id2) == SymbolType::exogenous)
             || (symbol_table.isObservedVariable(symb_id1)
                 && symbol_table.isObservedVariable(symb_id2))))
         {
@@ -361,8 +361,8 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
       int symb_id1 = corr_shock.first.first;
       int symb_id2 = corr_shock.first.second;
 
-      if (!((symbol_table.getType(symb_id1) == eExogenous
-             && symbol_table.getType(symb_id2) == eExogenous)
+      if (!((symbol_table.getType(symb_id1) == SymbolType::exogenous
+             && symbol_table.getType(symb_id2) == SymbolType::exogenous)
             || (symbol_table.isObservedVariable(symb_id1)
                 && symbol_table.isObservedVariable(symb_id2))))
         {
@@ -378,13 +378,13 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
 
   // Fill in mod_file_struct.parameters_with_shocks_values (related to #469)
   for (auto var_shock : var_shocks)
-    var_shock.second->collectVariables(eParameter, mod_file_struct.parameters_within_shocks_values);
+    var_shock.second->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
   for (auto std_shock : std_shocks)
-    std_shock.second->collectVariables(eParameter, mod_file_struct.parameters_within_shocks_values);
+    std_shock.second->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
   for (const auto & covar_shock : covar_shocks)
-    covar_shock.second->collectVariables(eParameter, mod_file_struct.parameters_within_shocks_values);
+    covar_shock.second->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
   for (const auto & corr_shock : corr_shocks)
-    corr_shock.second->collectVariables(eParameter, mod_file_struct.parameters_within_shocks_values);
+    corr_shock.second->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
 
 }
 
