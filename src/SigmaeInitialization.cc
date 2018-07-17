@@ -27,24 +27,24 @@ SigmaeStatement::SigmaeStatement(matrix_t matrix_arg) noexcept(false) :
 {
 }
 
-SigmaeStatement::matrix_form_t
+SigmaeStatement::MatrixForm
 SigmaeStatement::determineMatrixForm(const matrix_t &matrix) noexcept(false)
 {
   size_t nbe;
   int inc;
-  matrix_form_t type;
+  MatrixForm type;
   // Checking if first or last row has one element.
   if (matrix.front().size() == 1)
     {
       inc = 1;
       nbe = 2;
-      type = eLower;
+      type = MatrixForm::lower;
     }
   else if (matrix.back().size() == 1)
     {
       inc = -1;
       nbe = matrix.front().size()-1;
-      type = eUpper;
+      type = MatrixForm::upper;
     }
   else
     throw MatrixFormException();
@@ -70,17 +70,17 @@ SigmaeStatement::writeOutput(ostream &output, const string &basename, bool minim
     {
       for (ic = 0; ic < matrix.size(); ic++)
         {
-          if (ic >= ir && matrix_form == eUpper)
+          if (ic >= ir && matrix_form == MatrixForm::upper)
             {
               ic1 = ic-ir;
               ir1 = ir;
             }
-          else if (ic < ir && matrix_form == eUpper)
+          else if (ic < ir && matrix_form == MatrixForm::upper)
             {
               ic1 = ir-ic;
               ir1 = ic;
             }
-          else if (ic > ir && matrix_form == eLower)
+          else if (ic > ir && matrix_form == MatrixForm::lower)
             {
               ic1 = ir;
               ir1 = ic;

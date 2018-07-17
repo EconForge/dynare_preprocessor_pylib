@@ -31,10 +31,10 @@ class SigmaeStatement : public Statement
 {
 public:
   //! Matrix form (lower or upper triangular) enum
-  enum matrix_form_t
+  enum class MatrixForm
     {
-      eLower = 0,              //!< Lower triangular matrix
-      eUpper = 1               //!< Upper triangular matrix
+      lower,              //!< Lower triangular matrix
+      upper               //!< Upper triangular matrix
     };
   //! Type of a matrix row
   using row_t = vector<expr_t>;
@@ -49,11 +49,11 @@ private:
   //! The matrix
   const matrix_t matrix;
   //! Matrix form (lower or upper)
-  const matrix_form_t matrix_form;
+  const MatrixForm matrix_form;
 
   //! Returns the type (upper or lower triangular) of a given matrix
   /*! Throws an exception if it is neither upper triangular nor lower triangular */
-  static matrix_form_t determineMatrixForm(const matrix_t &matrix) noexcept(false);
+  static MatrixForm determineMatrixForm(const matrix_t &matrix) noexcept(false);
 
 public:
   SigmaeStatement(matrix_t matrix_arg) noexcept(false);
