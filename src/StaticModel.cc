@@ -485,7 +485,7 @@ StaticModel::writeModelEquationsCode(const string &basename, map_idx_t map_idx) 
             {
               FLDSU_ fldsu(it->second);
               fldsu.write(code_file, instruction_number);
-              FLDSV_ fldsv{static_cast<int>(SymbolType::endogenous), it->first};
+              FLDSV_ fldsv{static_cast<int>(SymbolType::endogenous), static_cast<unsigned int>(it->first)};
               fldsv.write(code_file, instruction_number);
               FBINARY_ fbinary(oTimes);
               fbinary.write(code_file, instruction_number);
@@ -786,7 +786,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
                         {
                           FLDSU_ fldsu(Uf[v].Ufl->u);
                           fldsu.write(code_file, instruction_number);
-                          FLDSV_ fldsv{static_cast<int>(SymbolType::endogenous), Uf[v].Ufl->var};
+                          FLDSV_ fldsv{static_cast<int>(SymbolType::endogenous), static_cast<unsigned int>(Uf[v].Ufl->var)};
                           fldsv.write(code_file, instruction_number);
 
                           FBINARY_ fbinary(oTimes);
