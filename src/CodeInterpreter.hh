@@ -229,15 +229,15 @@ enum class TrinaryOpcode
     normpdf
   };
 
-enum external_function_type
+enum class ExternalFunctionType
   {
-    ExternalFunctionWithoutDerivative,
-    ExternalFunctionWithFirstDerivative,
-    ExternalFunctionWithFirstandSecondDerivative,
-    ExternalFunctionNumericalFirstDerivative,
-    ExternalFunctionFirstDerivative,
-    ExternalFunctionNumericalSecondDerivative,
-    ExternalFunctionSecondDerivative
+    withoutDerivative,
+    withFirstDerivative,
+    withFirstAndSecondDerivative,
+    numericalFirstDerivative,
+    firstDerivative,
+    numericalSecondDerivative,
+    secondDerivative
   };
 
 enum class PriorDistributions
@@ -1176,7 +1176,7 @@ class FCALL_ : public TagWithFourArguments<unsigned int, unsigned int, string, u
   string func_name;
   string arg_func_name;
   unsigned int add_input_arguments, row, col;
-  external_function_type function_type;
+  ExternalFunctionType function_type;
 public:
   inline
   FCALL_() : TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments(FCALL)
@@ -1185,7 +1185,7 @@ public:
     add_input_arguments = 0;
     row = 0;
     col = 0;
-    function_type = ExternalFunctionWithoutDerivative;
+    function_type = ExternalFunctionType::withoutDerivative;
   };
   inline
   FCALL_(unsigned int nb_output_arguments, unsigned int nb_input_arguments, string f_name, unsigned int indx) :
@@ -1195,7 +1195,7 @@ public:
     add_input_arguments = 0;
     row = 0;
     col = 0;
-    function_type = ExternalFunctionWithoutDerivative;
+    function_type = ExternalFunctionType::withoutDerivative;
     func_name = f_name;
   };
   inline string
@@ -1260,11 +1260,11 @@ public:
     return col;
   };
   inline void
-  set_function_type(external_function_type arg_function_type)
+  set_function_type(ExternalFunctionType arg_function_type)
   {
     function_type = arg_function_type;
   };
-  inline external_function_type
+  inline ExternalFunctionType
   get_function_type()
   {
     return (function_type);

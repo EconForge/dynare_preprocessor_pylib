@@ -6631,13 +6631,13 @@ ExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCode, unsign
       switch (nb_output_arguments)
         {
         case 1:
-          fcall.set_function_type(ExternalFunctionWithoutDerivative);
+          fcall.set_function_type(ExternalFunctionType::withoutDerivative);
           break;
         case 2:
-          fcall.set_function_type(ExternalFunctionWithFirstDerivative);
+          fcall.set_function_type(ExternalFunctionType::withFirstDerivative);
           break;
         case 3:
-          fcall.set_function_type(ExternalFunctionWithFirstandSecondDerivative);
+          fcall.set_function_type(ExternalFunctionType::withFirstAndSecondDerivative);
           break;
         }
       fcall.write(CompileCode, instruction_number);
@@ -7156,7 +7156,7 @@ FirstDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCo
       fcall.set_arg_func_name(datatree.symbol_table.getName(symb_id));
       fcall.set_row(inputIndex);
       fcall.set_nb_add_input_arguments(nb_add_input_arguments);
-      fcall.set_function_type(ExternalFunctionNumericalFirstDerivative);
+      fcall.set_function_type(ExternalFunctionType::numericalFirstDerivative);
       fcall.write(CompileCode, instruction_number);
       FSTPTEFD_ fstptefd(indx, inputIndex);
       fstptefd.write(CompileCode, instruction_number);
@@ -7171,7 +7171,7 @@ FirstDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCo
       unsigned int nb_output_arguments = 1;
 
       FCALL_ fcall(nb_output_arguments, nb_add_input_arguments, datatree.symbol_table.getName(first_deriv_symb_id), indx);
-      fcall.set_function_type(ExternalFunctionFirstDerivative);
+      fcall.set_function_type(ExternalFunctionType::firstDerivative);
       fcall.write(CompileCode, instruction_number);
       FSTPTEFD_ fstptefd(indx, inputIndex);
       fstptefd.write(CompileCode, instruction_number);
