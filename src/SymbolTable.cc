@@ -192,7 +192,7 @@ SymbolTable::getID(SymbolType type, int tsid) const noexcept(false)
 }
 
 map<string, map<int, string>>
-SymbolTable::getPartitionsForType(enum SymbolType st) const noexcept(false)
+SymbolTable::getPartitionsForType(SymbolType st) const noexcept(false)
 {
   map<string, map<int, string>> partitions;
   for (const auto & it : partition_value_map)

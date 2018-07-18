@@ -320,7 +320,7 @@ public:
   //! Returns true if the partition name is the first encountered for the type of variable represented by id
   bool isFirstOfPartitionForType(int id) const noexcept(false);
   //! Returns a list of partitions and symbols that belong to that partition
-  map<string, map<int, string>> getPartitionsForType(enum SymbolType st) const noexcept(false);
+  map<string, map<int, string>> getPartitionsForType(SymbolType st) const noexcept(false);
   //! Get type (by ID)
   inline SymbolType getType(int id) const noexcept(false);
   //! Get type (by name)
