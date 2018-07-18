@@ -1126,43 +1126,43 @@ ModelTree::computeTemporaryTerms(bool is_matlab)
     {
       VariableNode *v = AddVariable(used_local_var);
       temporary_terms_mlv[v] = local_variables_table.find(used_local_var)->second;
-      reference_count[v] = { ExprNode::min_cost(is_matlab)+1, eResiduals };
+      reference_count[v] = { ExprNode::min_cost(is_matlab)+1, NodeTreeReference::residuals };
     }
 
   map<NodeTreeReference, temporary_terms_t> temp_terms_map;
-  temp_terms_map[eResiduals] = temporary_terms_res;
-  temp_terms_map[eFirstDeriv] = temporary_terms_g1;
-  temp_terms_map[eSecondDeriv] = temporary_terms_g2;
-  temp_terms_map[eThirdDeriv] = temporary_terms_g3;
+  temp_terms_map[NodeTreeReference::residuals] = temporary_terms_res;
+  temp_terms_map[NodeTreeReference::firstDeriv] = temporary_terms_g1;
+  temp_terms_map[NodeTreeReference::secondDeriv] = temporary_terms_g2;
+  temp_terms_map[NodeTreeReference::thirdDeriv] = temporary_terms_g3;
 
   for (auto & equation : equations)
     equation->computeTemporaryTerms(reference_count,
                                  temp_terms_map,
-                                 is_matlab, eResiduals);
+                                 is_matlab, NodeTreeReference::residuals);
 
   for (auto & first_derivative : first_derivatives)
     first_derivative.second->computeTemporaryTerms(reference_count,
                                       temp_terms_map,
-                                      is_matlab, eFirstDeriv);
+                                      is_matlab, NodeTreeReference::firstDeriv);
 
   for (auto & second_derivative : second_derivatives)
     second_derivative.second->computeTemporaryTerms(reference_count,
                                       temp_terms_map,
-                                      is_matlab, eSecondDeriv);
+                                      is_matlab, NodeTreeReference::secondDeriv);
 
   for (auto & third_derivative : third_derivatives)
     third_derivative.second->computeTemporaryTerms(reference_count,
                                       temp_terms_map,
-                                      is_matlab, eThirdDeriv);
+                                      is_matlab, NodeTreeReference::thirdDeriv);
 
   for (map<NodeTreeReference, temporary_terms_t>::const_iterator it = temp_terms_map.begin();
        it != temp_terms_map.end(); it++)
       temporary_terms.insert(it->second.begin(), it->second.end());
 
-  temporary_terms_res = temp_terms_map[eResiduals];
-  temporary_terms_g1  = temp_terms_map[eFirstDeriv];
-  temporary_terms_g2  = temp_terms_map[eSecondDeriv];
-  temporary_terms_g3  = temp_terms_map[eThirdDeriv];
+  temporary_terms_res = temp_terms_map[NodeTreeReference::residuals];
+  temporary_terms_g1  = temp_terms_map[NodeTreeReference::firstDeriv];
+  temporary_terms_g2  = temp_terms_map[NodeTreeReference::secondDeriv];
+  temporary_terms_g3  = temp_terms_map[NodeTreeReference::thirdDeriv];
 
   int idx = 0;
   for (map<expr_t, expr_t, ExprNodeLess>::const_iterator it = temporary_terms_mlv.begin();
@@ -1897,49 +1897,49 @@ ModelTree::computeParamsDerivativesTemporaryTerms()
   map<expr_t, pair<int, NodeTreeReference >> reference_count;
   params_derivs_temporary_terms.clear();
   map<NodeTreeReference, temporary_terms_t> temp_terms_map;
-  temp_terms_map[eResidualsParamsDeriv] = params_derivs_temporary_terms_res;
-  temp_terms_map[eJacobianParamsDeriv] = params_derivs_temporary_terms_g1;
-  temp_terms_map[eResidualsParamsSecondDeriv] = params_derivs_temporary_terms_res2;
-  temp_terms_map[eJacobianParamsSecondDeriv] = params_derivs_temporary_terms_g12;
-  temp_terms_map[eHessianParamsDeriv] = params_derivs_temporary_terms_g2;
+  temp_terms_map[NodeTreeReference::residualsParamsDeriv] = params_derivs_temporary_terms_res;
+  temp_terms_map[NodeTreeReference::jacobianParamsDeriv] = params_derivs_temporary_terms_g1;
+  temp_terms_map[NodeTreeReference::residualsParamsSecondDeriv] = params_derivs_temporary_terms_res2;
+  temp_terms_map[NodeTreeReference::jacobianParamsSecondDeriv] = params_derivs_temporary_terms_g12;
+  temp_terms_map[NodeTreeReference::hessianParamsDeriv] = params_derivs_temporary_terms_g2;
 
   for (auto & residuals_params_derivative : residuals_params_derivatives)
     residuals_params_derivative.second->computeTemporaryTerms(reference_count,
                                       temp_terms_map,
-                                      true, eResidualsParamsDeriv);
+                                      true, NodeTreeReference::residualsParamsDeriv);
 
   for (auto & jacobian_params_derivative : jacobian_params_derivatives)
     jacobian_params_derivative.second->computeTemporaryTerms(reference_count,
                                       temp_terms_map,
-                                      true, eJacobianParamsDeriv);
+                                      true, NodeTreeReference::jacobianParamsDeriv);
 
   for (second_derivatives_t::const_iterator it = residuals_params_second_derivatives.begin();
        it != residuals_params_second_derivatives.end(); ++it)
     it->second->computeTemporaryTerms(reference_count,
                                       temp_terms_map,
-                                      true, eResidualsParamsSecondDeriv);
+                                      true, NodeTreeReference::residualsParamsSecondDeriv);
 
   for (third_derivatives_t::const_iterator it = jacobian_params_second_derivatives.begin();
        it != jacobian_params_second_derivatives.end(); ++it)
     it->second->computeTemporaryTerms(reference_count,
                                       temp_terms_map,
-                                      true, eJacobianParamsSecondDeriv);
+                                      true, NodeTreeReference::jacobianParamsSecondDeriv);
 
   for (third_derivatives_t::const_iterator it = hessian_params_derivatives.begin();
        it != hessian_params_derivatives.end(); ++it)
     it->second->computeTemporaryTerms(reference_count,
                                       temp_terms_map,
-                                      true, eHessianParamsDeriv);
+                                      true, NodeTreeReference::hessianParamsDeriv);
 
   for (map<NodeTreeReference, temporary_terms_t>::const_iterator it = temp_terms_map.begin();
        it != temp_terms_map.end(); it++)
     params_derivs_temporary_terms.insert(it->second.begin(), it->second.end());
 
-  params_derivs_temporary_terms_res  = temp_terms_map[eResidualsParamsDeriv];
-  params_derivs_temporary_terms_g1   = temp_terms_map[eJacobianParamsDeriv];
-  params_derivs_temporary_terms_res2 = temp_terms_map[eResidualsParamsSecondDeriv];
-  params_derivs_temporary_terms_g12  = temp_terms_map[eJacobianParamsSecondDeriv];
-  params_derivs_temporary_terms_g2   = temp_terms_map[eHessianParamsDeriv];
+  params_derivs_temporary_terms_res  = temp_terms_map[NodeTreeReference::residualsParamsDeriv];
+  params_derivs_temporary_terms_g1   = temp_terms_map[NodeTreeReference::jacobianParamsDeriv];
+  params_derivs_temporary_terms_res2 = temp_terms_map[NodeTreeReference::residualsParamsSecondDeriv];
+  params_derivs_temporary_terms_g12  = temp_terms_map[NodeTreeReference::jacobianParamsSecondDeriv];
+  params_derivs_temporary_terms_g2   = temp_terms_map[NodeTreeReference::hessianParamsDeriv];
 
   int idx = 0;
   for (auto tt : params_derivs_temporary_terms_res)

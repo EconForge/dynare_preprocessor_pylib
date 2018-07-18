@@ -254,17 +254,17 @@ enum PriorDistributions
     eWeibull = 8
   };
 
-enum NodeTreeReference
+enum class NodeTreeReference
   {
-    eResiduals = 0,
-    eFirstDeriv = 1,
-    eSecondDeriv = 2,
-    eThirdDeriv = 3,
-    eResidualsParamsDeriv = 4,
-    eJacobianParamsDeriv = 5,
-    eResidualsParamsSecondDeriv = 6,
-    eJacobianParamsSecondDeriv = 7,
-    eHessianParamsDeriv = 8
+    residuals,
+    firstDeriv,
+    secondDeriv,
+    thirdDeriv,
+    residualsParamsDeriv,
+    jacobianParamsDeriv,
+    residualsParamsSecondDeriv,
+    jacobianParamsSecondDeriv,
+    hessianParamsDeriv
   };
 
 /*! Lists elements of the NodeTreeReference enum that come “before” the argument.
@@ -275,7 +275,7 @@ nodeTreeReferencesBefore(NodeTreeReference tr)
   vector<NodeTreeReference> v;
 
   // Should be same order as the one appearing in ModelTree::computeTemporaryTerms()
-  for (auto tr2 : { eResiduals, eFirstDeriv, eSecondDeriv, eThirdDeriv })
+  for (auto tr2 : { NodeTreeReference::residuals, NodeTreeReference::firstDeriv, NodeTreeReference::secondDeriv, NodeTreeReference::thirdDeriv })
     if (tr == tr2)
       return v;
     else
@@ -283,8 +283,8 @@ nodeTreeReferencesBefore(NodeTreeReference tr)
   v.clear();
 
   // Should be same order as the one appearing in ModelTree::computeParamsDerivativesTemporaryTerms()
-  for (auto tr2 : { eResidualsParamsDeriv, eJacobianParamsDeriv, eResidualsParamsSecondDeriv,
-        eJacobianParamsSecondDeriv, eHessianParamsDeriv})
+  for (auto tr2 : { NodeTreeReference::residualsParamsDeriv, NodeTreeReference::jacobianParamsDeriv, NodeTreeReference::residualsParamsSecondDeriv,
+        NodeTreeReference::jacobianParamsSecondDeriv, NodeTreeReference::hessianParamsDeriv})
     if (tr == tr2)
       return v;
     else
