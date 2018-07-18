@@ -1892,7 +1892,7 @@ ParsingDriver::set_prior(string *name, string *subsample_name)
   mod_file->addStatement(new PriorStatement(*name, *subsample_name, prior_shape, prior_variance, options_list));
   options_list.clear();
   set_prior_variance();
-  prior_shape = eNoShape;
+  prior_shape = PriorDistributions::noShape;
   delete name;
   delete subsample_name;
 }
@@ -1905,7 +1905,7 @@ ParsingDriver::set_joint_prior(vector<string *> *symbol_vec)
   mod_file->addStatement(new JointPriorStatement(joint_parameters, prior_shape, options_list));
   joint_parameters.clear();
   options_list.clear();
-  prior_shape = eNoShape;
+  prior_shape = PriorDistributions::noShape;
   delete symbol_vec;
 }
 
@@ -2045,7 +2045,7 @@ ParsingDriver::set_std_prior(string *name, string *subsample_name)
                                                options_list, mod_file->symbol_table));
   options_list.clear();
   set_prior_variance();
-  prior_shape = eNoShape;
+  prior_shape = PriorDistributions::noShape;
   delete name;
   delete subsample_name;
 }
@@ -2071,7 +2071,7 @@ ParsingDriver::set_corr_prior(string *name1, string *name2, string *subsample_na
                                                 options_list, mod_file->symbol_table));
   options_list.clear();
   set_prior_variance();
-  prior_shape = eNoShape;
+  prior_shape = PriorDistributions::noShape;
   delete name1;
   delete name2;
   delete subsample_name;

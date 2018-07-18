@@ -464,7 +464,7 @@ public:
     type = 0;
     name = "";
     name2 = "";
-    prior = eNoShape;
+    prior = PriorDistributions::noShape;
     init_val = datatree.NaN;
     low_bound = datatree.MinusInfinity;
     up_bound = datatree.Infinity;

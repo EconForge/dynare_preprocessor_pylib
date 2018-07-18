@@ -1697,41 +1697,41 @@ osr_bounds_elem : symbol COMMA expression COMMA expression ';'
                 ;
 
 prior_distribution : BETA
-                     { $$ = eBeta; }
+                     { $$ = PriorDistributions::beta; }
                    | GAMMA
-                     { $$ = eGamma; }
+                     { $$ = PriorDistributions::gamma; }
                    | NORMAL
-                     { $$ = eNormal; }
+                     { $$ = PriorDistributions::normal; }
                    | INV_GAMMA
-                     { $$ = eInvGamma; }
+                     { $$ = PriorDistributions::invGamma; }
                    | INV_GAMMA1
-                     { $$ = eInvGamma1; }
+                     { $$ = PriorDistributions::invGamma1; }
                    | UNIFORM
-                     { $$ = eUniform; }
+                     { $$ = PriorDistributions::uniform; }
                    | INV_GAMMA2
-                     { $$ = eInvGamma2; }
+                     { $$ = PriorDistributions::invGamma2; }
                    | DIRICHLET
-                     { $$ = eDirichlet; }
+                     { $$ = PriorDistributions::dirichlet; }
                    | WEIBULL
-                     { $$ = eWeibull; }
+                     { $$ = PriorDistributions::weibull; }
                    ;
 
 prior_pdf : BETA_PDF
-            { $$ = eBeta; }
+            { $$ = PriorDistributions::beta; }
           | GAMMA_PDF
-            { $$ = eGamma; }
+            { $$ = PriorDistributions::gamma; }
           | NORMAL_PDF
-            { $$ = eNormal; }
+            { $$ = PriorDistributions::normal; }
           | INV_GAMMA_PDF
-            { $$ = eInvGamma; }
+            { $$ = PriorDistributions::invGamma; }
           | INV_GAMMA1_PDF
-            { $$ = eInvGamma1; }
+            { $$ = PriorDistributions::invGamma1; }
           | UNIFORM_PDF
-            { $$ = eUniform; }
+            { $$ = PriorDistributions::uniform; }
           | INV_GAMMA2_PDF
-            { $$ = eInvGamma2; }
+            { $$ = PriorDistributions::invGamma2; }
           | WEIBULL_PDF
-            { $$ = eWeibull; }
+            { $$ = PriorDistributions::weibull; }
           ;
 
 date_str : DATES { $$ = $1; }
@@ -1799,19 +1799,19 @@ subsamples_name_list : subsamples_name_list COMMA o_subsample_name
                      | o_subsample_name
                      ;
 
-prior : symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
+prior : symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
         { driver.set_prior($1, new string ("")); }
-      | symbol '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
+      | symbol '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
         { driver.set_prior($1, $3); }
-      | SYMBOL_VEC '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; }  '(' joint_prior_options_list ')' ';'
+      | SYMBOL_VEC '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; }  '(' joint_prior_options_list ')' ';'
         { driver.set_joint_prior($1); }
-      | STD '(' symbol ')' '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
+      | STD '(' symbol ')' '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
         { driver.set_std_prior($3, new string ("")); }
-      | STD '(' symbol ')' '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
+      | STD '(' symbol ')' '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
         { driver.set_std_prior($3, $6); }
-      | CORR '(' symbol COMMA symbol ')' '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
+      | CORR '(' symbol COMMA symbol ')' '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
         { driver.set_corr_prior($3, $5, new string ("")); }
-      | CORR '(' symbol COMMA symbol ')' '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = eNoShape; } '(' prior_options_list ')' ';'
+      | CORR '(' symbol COMMA symbol ')' '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
         { driver.set_corr_prior($3, $5, $8); }
       ;
 

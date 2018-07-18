@@ -1459,7 +1459,7 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
         mod_file_struct.dsge_prior_weight_in_estimated_params = true;
 
       // Handle case of degenerate beta prior
-      if (it.prior == eBeta)
+      if (it.prior == PriorDistributions::beta)
         try
           {
             if (it.mean->eval(eval_context_t()) == 0.5
@@ -1553,7 +1553,7 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, b
       output << ", ";
       it.up_bound->writeOutput(output);
       output << ", "
-             << it.prior << ", ";
+             << static_cast<int>(it.prior) << ", ";
       it.mean->writeOutput(output);
       output << ", ";
       it.std->writeOutput(output);
@@ -1598,7 +1598,7 @@ EstimatedParamsStatement::writeJsonOutput(ostream &output) const
       output << "\", \"upper_bound\": \"";
       it->up_bound->writeJsonOutput(output, {}, {});
       output << "\", \"prior_distribution\": "
-             << it->prior
+             << static_cast<int>(it->prior)
              << ", \"mean\": \"";
       it->mean->writeJsonOutput(output, {}, {});
       output << "\", \"std\": \"";
@@ -3711,7 +3711,7 @@ JointPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       exit(EXIT_FAILURE);
     }
 
-  if (prior_shape == eNoShape)
+  if (prior_shape == PriorDistributions::noShape)
     {
       cerr << "ERROR: You must pass the shape option to the prior statement." << endl;
       exit(EXIT_FAILURE);
@@ -3760,8 +3760,8 @@ JointPriorStatement::writeOutput(ostream &output, const string &basename, bool m
   writeOutputHelper(output, "median", lhs_field);
   writeOutputHelper(output, "mode", lhs_field);
 
-  assert(prior_shape != eNoShape);
-  output << lhs_field << ".shape = " << prior_shape << ";" << endl;
+  assert(prior_shape != PriorDistributions::noShape);
+  output << lhs_field << ".shape = " << static_cast<int>(prior_shape) << ";" << endl;
 
   writeOutputHelper(output, "shift", lhs_field);
   writeOutputHelper(output, "stdev", lhs_field);
@@ -3821,31 +3821,31 @@ JointPriorStatement::writeJsonOutput(ostream &output) const
   output << ", \"shape\": ";
   switch (prior_shape)
     {
-    case eBeta:
+    case PriorDistributions::beta:
       output << "\"beta\"";
       break;
-    case eGamma:
+    case PriorDistributions::gamma:
       output << "\"gamma\"";
       break;
-    case eNormal:
+    case PriorDistributions::normal:
       output << "\"normal\"";
       break;
-    case eInvGamma:
+    case PriorDistributions::invGamma:
       output << "\"inv_gamma\"";
       break;
-    case eUniform:
+    case PriorDistributions::uniform:
       output << "\"uniform\"";
       break;
-    case eInvGamma2:
+    case PriorDistributions::invGamma2:
       output << "\"inv_gamma2\"";
       break;
-    case eDirichlet:
+    case PriorDistributions::dirichlet:
       output << "\"dirichlet\"";
       break;
-    case eWeibull:
+    case PriorDistributions::weibull:
       output << "\"weibull\"";
       break;
-    case eNoShape:
+    case PriorDistributions::noShape:
       cerr << "Impossible case." << endl;
       exit(EXIT_FAILURE);
     }
@@ -3871,7 +3871,7 @@ BasicPriorStatement::BasicPriorStatement(string name_arg,
 void
 BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  if (prior_shape == eNoShape)
+  if (prior_shape == PriorDistributions::noShape)
     {
       cerr << "ERROR: You must pass the shape option to the prior statement." << endl;
       exit(EXIT_FAILURE);
@@ -3934,8 +3934,8 @@ BasicPriorStatement::writeCommonOutput(ostream &output, const string &lhs_field)
   writeCommonOutputHelper(output, "median", lhs_field);
   writeCommonOutputHelper(output, "mode", lhs_field);
 
-  assert(prior_shape != eNoShape);
-  output << lhs_field << ".shape = " << prior_shape << ";" << endl;
+  assert(prior_shape != PriorDistributions::noShape);
+  output << lhs_field << ".shape = " << static_cast<int>(prior_shape) << ";" << endl;
 
   writeCommonOutputHelper(output, "shift", lhs_field);
   writeCommonOutputHelper(output, "stdev", lhs_field);
@@ -4034,32 +4034,32 @@ BasicPriorStatement::writeCShape(ostream &output) const
   output << "shape = ";
   switch (prior_shape)
     {
-    case eBeta:
+    case PriorDistributions::beta:
       output << "\"beta\";" << endl;
       break;
-    case eGamma:
+    case PriorDistributions::gamma:
       output << "\"gamma\";" << endl;
       break;
-    case eNormal:
+    case PriorDistributions::normal:
       output << "\"normal\";" << endl;
       break;
-    case eInvGamma:
+    case PriorDistributions::invGamma:
       output << "\"inv_gamma\";" << endl;
       break;
-    case eUniform:
+    case PriorDistributions::uniform:
       output << "\"uniform\";" << endl;
       break;
-    case eInvGamma2:
+    case PriorDistributions::invGamma2:
       output << "\"inv_gamma2\";" << endl;
       break;
-    case eDirichlet:
+    case PriorDistributions::dirichlet:
       output << "\"dirichlet\";" << endl;
       break;
-    case eWeibull:
+    case PriorDistributions::weibull:
       output << "\"weibull\";" << endl;
       break;
-    case eNoShape:
-      assert(prior_shape != eNoShape);
+    case PriorDistributions::noShape:
+      assert(prior_shape != PriorDistributions::noShape);
     }
 }
 
@@ -4069,32 +4069,32 @@ BasicPriorStatement::writeJsonShape(ostream &output) const
   output << "\"shape\": ";
   switch (prior_shape)
     {
-    case eBeta:
+    case PriorDistributions::beta:
       output << "\"beta\"";
       break;
-    case eGamma:
+    case PriorDistributions::gamma:
       output << "\"gamma\"";
       break;
-    case eNormal:
+    case PriorDistributions::normal:
       output << "\"normal\"";
       break;
-    case eInvGamma:
+    case PriorDistributions::invGamma:
       output << "\"inv_gamma\"";
       break;
-    case eUniform:
+    case PriorDistributions::uniform:
       output << "\"uniform\"";
       break;
-    case eInvGamma2:
+    case PriorDistributions::invGamma2:
       output << "\"inv_gamma2\"";
       break;
-    case eDirichlet:
+    case PriorDistributions::dirichlet:
       output << "\"dirichlet\"";
       break;
-    case eWeibull:
+    case PriorDistributions::weibull:
       output << "\"weibull\"";
       break;
-    case eNoShape:
-      assert(prior_shape != eNoShape);
+    case PriorDistributions::noShape:
+      assert(prior_shape != PriorDistributions::noShape);
     }
 }
 

@@ -240,18 +240,18 @@ enum external_function_type
     ExternalFunctionSecondDerivative
   };
 
-enum PriorDistributions
+enum class PriorDistributions
   {
-    eNoShape = 0,
-    eBeta = 1,
-    eGamma = 2,
-    eNormal = 3,
-    eInvGamma = 4,
-    eInvGamma1 = 4,
-    eUniform = 5,
-    eInvGamma2 = 6,
-    eDirichlet = 7,
-    eWeibull = 8
+    noShape = 0,
+    beta = 1,
+    gamma = 2,
+    normal = 3,
+    invGamma = 4,
+    invGamma1 = 4,
+    uniform = 5,
+    invGamma2 = 6,
+    dirichlet = 7,
+    weibull = 8
   };
 
 enum class NodeTreeReference
