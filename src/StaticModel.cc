@@ -487,15 +487,15 @@ StaticModel::writeModelEquationsCode(const string &basename, map_idx_t map_idx) 
               fldsu.write(code_file, instruction_number);
               FLDSV_ fldsv{static_cast<int>(SymbolType::endogenous), static_cast<unsigned int>(it->first)};
               fldsv.write(code_file, instruction_number);
-              FBINARY_ fbinary(oTimes);
+              FBINARY_ fbinary{static_cast<int>(BinaryOpcode::times)};
               fbinary.write(code_file, instruction_number);
               if (it != derivatives[i].begin())
                 {
-                  FBINARY_ fbinary(oPlus);
+                  FBINARY_ fbinary{static_cast<int>(BinaryOpcode::plus)};
                   fbinary.write(code_file, instruction_number);
                 }
             }
-          FBINARY_ fbinary(oMinus);
+          FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
           fbinary.write(code_file, instruction_number);
         }
       FSTPSU_ fstpsu(i);
@@ -710,7 +710,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
               lhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
               rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
 
-              FBINARY_ fbinary(oMinus);
+              FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
               fbinary.write(code_file, instruction_number);
 
               FSTPR_ fstpr(i - block_recursive);
@@ -789,7 +789,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
                           FLDSV_ fldsv{static_cast<int>(SymbolType::endogenous), static_cast<unsigned int>(Uf[v].Ufl->var)};
                           fldsv.write(code_file, instruction_number);
 
-                          FBINARY_ fbinary(oTimes);
+                          FBINARY_ fbinary{static_cast<int>(BinaryOpcode::times)};
                           fbinary.write(code_file, instruction_number);
 
                           FCUML_ fcuml;
@@ -802,7 +802,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
                           free(Uf[v].Ufl);
                           Uf[v].Ufl = Uf[v].Ufl_First;
                         }
-                      FBINARY_ fbinary(oMinus);
+                      FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
                       fbinary.write(code_file, instruction_number);
 
                       FSTPSU_ fstpsu(i - block_recursive);
@@ -906,7 +906,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
               lhs->compile(code_file, instruction_number, false, tt2, map_idx2[block], false, false);
               rhs->compile(code_file, instruction_number, false, tt2, map_idx2[block], false, false);
 
-              FBINARY_ fbinary(oMinus);
+              FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
               fbinary.write(code_file, instruction_number);
 
               FSTPR_ fstpr(i - block_recursive);
@@ -1899,7 +1899,7 @@ StaticModel::writeStaticCFile(const string &basename) const
   output << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
          << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
 
-  // Write function definition if oPowerDeriv is used
+  // Write function definition if BinaryOpcode::powerDeriv is used
   writePowerDerivCHeader(output);
   writeNormcdfCHeader(output);
 

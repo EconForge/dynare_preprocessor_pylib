@@ -953,15 +953,15 @@ DynamicModel::writeModelEquationsCode(const string &basename, const map_idx_t &m
               fldu.write(code_file, instruction_number);
               FLDV_ fldv{static_cast<int>(SymbolType::endogenous), static_cast<unsigned int>(it->first.first), it->first.second};
               fldv.write(code_file, instruction_number);
-              FBINARY_ fbinary(oTimes);
+              FBINARY_ fbinary{static_cast<int>(BinaryOpcode::times)};
               fbinary.write(code_file, instruction_number);
               if (it != derivatives[i].begin())
                 {
-                  FBINARY_ fbinary(oPlus);
+                  FBINARY_ fbinary{static_cast<int>(BinaryOpcode::plus)};
                   fbinary.write(code_file, instruction_number);
                 }
             }
-          FBINARY_ fbinary(oMinus);
+          FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
           fbinary.write(code_file, instruction_number);
         }
       FSTPU_ fstpu(i);
@@ -1273,7 +1273,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
               lhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
               rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
 
-              FBINARY_ fbinary(oMinus);
+              FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
               fbinary.write(code_file, instruction_number);
               FSTPR_ fstpr(i - block_recursive);
               fstpr.write(code_file, instruction_number);
@@ -1362,7 +1362,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
                           FLDV_ fldv{static_cast<int>(SymbolType::endogenous), static_cast<unsigned int>(Uf[v].Ufl->var), Uf[v].Ufl->lag};
                           fldv.write(code_file, instruction_number);
 
-                          FBINARY_ fbinary(oTimes);
+                          FBINARY_ fbinary{static_cast<int>(BinaryOpcode::times)};
                           fbinary.write(code_file, instruction_number);
 
                           FCUML_ fcuml;
@@ -1375,7 +1375,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
                           free(Uf[v].Ufl);
                           Uf[v].Ufl = Uf[v].Ufl_First;
                         }
-                      FBINARY_ fbinary(oMinus);
+                      FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
                       fbinary.write(code_file, instruction_number);
 
                       FSTPU_ fstpu(i - block_recursive);
@@ -1585,7 +1585,7 @@ DynamicModel::writeDynamicCFile(const string &basename, const int order) const
   mDynamicModelFile << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
                     << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
 
-  // Write function definition if oPowerDeriv is used
+  // Write function definition if BinaryOpcode::powerDeriv is used
   writePowerDerivCHeader(mDynamicModelFile);
   writeNormcdfCHeader(mDynamicModelFile);
 
@@ -5567,7 +5567,7 @@ DynamicModel::fillEvalContext(eval_context_t &eval_context) const
   // First, auxiliary variables
   for (auto aux_equation : aux_equations)
     {
-      assert(aux_equation->get_op_code() == oEqual);
+      assert(aux_equation->get_op_code() == BinaryOpcode::equal);
       auto *auxvar = dynamic_cast<VariableNode *>(aux_equation->get_arg1());
       assert(auxvar != nullptr);
       try
@@ -5620,7 +5620,7 @@ void
 DynamicModel::addStaticOnlyEquation(expr_t eq, int lineno, const vector<pair<string, string>> &eq_tags)
 {
   auto *beq = dynamic_cast<BinaryOpNode *>(eq);
-  assert(beq != nullptr && beq->get_op_code() == oEqual);
+  assert(beq != nullptr && beq->get_op_code() == BinaryOpcode::equal);
 
   vector<pair<string, string>> soe_eq_tags;
   for (const auto & eq_tag : eq_tags)

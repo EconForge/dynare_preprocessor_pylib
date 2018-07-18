@@ -1856,8 +1856,8 @@ UnaryOpNode::prepareForDerivation()
 
   // Non-null derivatives are those of the argument (except for STEADY_STATE)
   non_null_derivatives = arg->non_null_derivatives;
-  if (op_code == oSteadyState || op_code == oSteadyStateParamDeriv
-      || op_code == oSteadyStateParam2ndDeriv)
+  if (op_code == UnaryOpcode::steadyState || op_code == UnaryOpcode::steadyStateParamDeriv
+      || op_code == UnaryOpcode::steadyStateParam2ndDeriv)
     datatree.addAllParamDerivId(non_null_derivatives);
 }
 
@@ -1868,68 +1868,68 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
 
   switch (op_code)
     {
-    case oUminus:
+    case UnaryOpcode::uminus:
       return datatree.AddUMinus(darg);
-    case oExp:
+    case UnaryOpcode::exp:
       return datatree.AddTimes(darg, this);
-    case oLog:
+    case UnaryOpcode::log:
       return datatree.AddDivide(darg, arg);
-    case oLog10:
+    case UnaryOpcode::log10:
       t11 = datatree.AddExp(datatree.One);
       t12 = datatree.AddLog10(t11);
       t13 = datatree.AddDivide(darg, arg);
       return datatree.AddTimes(t12, t13);
-    case oCos:
+    case UnaryOpcode::cos:
       t11 = datatree.AddSin(arg);
       t12 = datatree.AddUMinus(t11);
       return datatree.AddTimes(darg, t12);
-    case oSin:
+    case UnaryOpcode::sin:
       t11 = datatree.AddCos(arg);
       return datatree.AddTimes(darg, t11);
-    case oTan:
+    case UnaryOpcode::tan:
       t11 = datatree.AddTimes(this, this);
       t12 = datatree.AddPlus(t11, datatree.One);
       return datatree.AddTimes(darg, t12);
-    case oAcos:
+    case UnaryOpcode::acos:
       t11 = datatree.AddSin(this);
       t12 = datatree.AddDivide(darg, t11);
       return datatree.AddUMinus(t12);
-    case oAsin:
+    case UnaryOpcode::asin:
       t11 = datatree.AddCos(this);
       return datatree.AddDivide(darg, t11);
-    case oAtan:
+    case UnaryOpcode::atan:
       t11 = datatree.AddTimes(arg, arg);
       t12 = datatree.AddPlus(datatree.One, t11);
       return datatree.AddDivide(darg, t12);
-    case oCosh:
+    case UnaryOpcode::cosh:
       t11 = datatree.AddSinh(arg);
       return datatree.AddTimes(darg, t11);
-    case oSinh:
+    case UnaryOpcode::sinh:
       t11 = datatree.AddCosh(arg);
       return datatree.AddTimes(darg, t11);
-    case oTanh:
+    case UnaryOpcode::tanh:
       t11 = datatree.AddTimes(this, this);
       t12 = datatree.AddMinus(datatree.One, t11);
       return datatree.AddTimes(darg, t12);
-    case oAcosh:
+    case UnaryOpcode::acosh:
       t11 = datatree.AddSinh(this);
       return datatree.AddDivide(darg, t11);
-    case oAsinh:
+    case UnaryOpcode::asinh:
       t11 = datatree.AddCosh(this);
       return datatree.AddDivide(darg, t11);
-    case oAtanh:
+    case UnaryOpcode::atanh:
       t11 = datatree.AddTimes(arg, arg);
       t12 = datatree.AddMinus(datatree.One, t11);
       return datatree.AddTimes(darg, t12);
-    case oSqrt:
+    case UnaryOpcode::sqrt:
       t11 = datatree.AddPlus(this, this);
       return datatree.AddDivide(darg, t11);
-    case oAbs:
+    case UnaryOpcode::abs:
       t11 = datatree.AddSign(arg);
       return datatree.AddTimes(t11, darg);
-    case oSign:
+    case UnaryOpcode::sign:
       return datatree.Zero;
-    case oSteadyState:
+    case UnaryOpcode::steadyState:
       if (datatree.isDynamic())
         {
           if (datatree.getTypeByDerivID(deriv_id) == SymbolType::parameter)
@@ -1951,7 +1951,7 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
         }
       else
         return darg;
-    case oSteadyStateParamDeriv:
+    case UnaryOpcode::steadyStateParamDeriv:
       assert(datatree.isDynamic());
       if (datatree.getTypeByDerivID(deriv_id) == SymbolType::parameter)
         {
@@ -1962,7 +1962,7 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
         }
       else
         return datatree.Zero;
-    case oSteadyStateParam2ndDeriv:
+    case UnaryOpcode::steadyStateParam2ndDeriv:
       assert(datatree.isDynamic());
       if (datatree.getTypeByDerivID(deriv_id) == SymbolType::parameter)
         {
@@ -1971,10 +1971,10 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
         }
       else
         return datatree.Zero;
-    case oExpectation:
-      cerr << "UnaryOpNode::composeDerivatives: not implemented on oExpectation" << endl;
+    case UnaryOpcode::expectation:
+      cerr << "UnaryOpNode::composeDerivatives: not implemented on UnaryOpcode::expectation" << endl;
       exit(EXIT_FAILURE);
-    case oErf:
+    case UnaryOpcode::erf:
       // x^2
       t11 = datatree.AddPower(arg, datatree.Two);
       // exp(x^2)
@@ -1987,11 +1987,11 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
       t14 = datatree.AddDivide(datatree.Two, t13);
       // (2/(sqrt(pi)*exp(x^2)))*dx;
       return datatree.AddTimes(t14, darg);
-    case oDiff:
-      cerr << "UnaryOpNode::composeDerivatives: not implemented on oDiff" << endl;
+    case UnaryOpcode::diff:
+      cerr << "UnaryOpNode::composeDerivatives: not implemented on UnaryOpcode::diff" << endl;
       exit(EXIT_FAILURE);
-    case oAdl:
-      cerr << "UnaryOpNode::composeDerivatives: not implemented on oAdl" << endl;
+    case UnaryOpcode::adl:
+      cerr << "UnaryOpNode::composeDerivatives: not implemented on UnaryOpcode::adl" << endl;
       exit(EXIT_FAILURE);
     }
   // Suppress GCC warning
@@ -2033,99 +2033,99 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
     // Cost for Matlab files
     switch (op_code)
       {
-      case oUminus:
-      case oSign:
+      case UnaryOpcode::uminus:
+      case UnaryOpcode::sign:
         return cost + 70;
-      case oExp:
+      case UnaryOpcode::exp:
         return cost + 160;
-      case oLog:
+      case UnaryOpcode::log:
         return cost + 300;
-      case oLog10:
-      case oErf:
+      case UnaryOpcode::log10:
+      case UnaryOpcode::erf:
         return cost + 16000;
-      case oCos:
-      case oSin:
-      case oCosh:
+      case UnaryOpcode::cos:
+      case UnaryOpcode::sin:
+      case UnaryOpcode::cosh:
         return cost + 210;
-      case oTan:
+      case UnaryOpcode::tan:
         return cost + 230;
-      case oAcos:
+      case UnaryOpcode::acos:
         return cost + 300;
-      case oAsin:
+      case UnaryOpcode::asin:
         return cost + 310;
-      case oAtan:
+      case UnaryOpcode::atan:
         return cost + 140;
-      case oSinh:
+      case UnaryOpcode::sinh:
         return cost + 240;
-      case oTanh:
+      case UnaryOpcode::tanh:
         return cost + 190;
-      case oAcosh:
+      case UnaryOpcode::acosh:
         return cost + 770;
-      case oAsinh:
+      case UnaryOpcode::asinh:
         return cost + 460;
-      case oAtanh:
+      case UnaryOpcode::atanh:
         return cost + 350;
-      case oSqrt:
-      case oAbs:
+      case UnaryOpcode::sqrt:
+      case UnaryOpcode::abs:
         return cost + 570;
-      case oSteadyState:
-      case oSteadyStateParamDeriv:
-      case oSteadyStateParam2ndDeriv:
-      case oExpectation:
+      case UnaryOpcode::steadyState:
+      case UnaryOpcode::steadyStateParamDeriv:
+      case UnaryOpcode::steadyStateParam2ndDeriv:
+      case UnaryOpcode::expectation:
         return cost;
-      case oDiff:
-        cerr << "UnaryOpNode::cost: not implemented on oDiff" << endl;
+      case UnaryOpcode::diff:
+        cerr << "UnaryOpNode::cost: not implemented on UnaryOpcode::diff" << endl;
         exit(EXIT_FAILURE);
-      case oAdl:
-        cerr << "UnaryOpNode::cost: not implemented on oAdl" << endl;
+      case UnaryOpcode::adl:
+        cerr << "UnaryOpNode::cost: not implemented on UnaryOpcode::adl" << endl;
         exit(EXIT_FAILURE);
       }
   else
     // Cost for C files
     switch (op_code)
       {
-      case oUminus:
-      case oSign:
+      case UnaryOpcode::uminus:
+      case UnaryOpcode::sign:
         return cost + 3;
-      case oExp:
-      case oAcosh:
+      case UnaryOpcode::exp:
+      case UnaryOpcode::acosh:
         return cost + 210;
-      case oLog:
+      case UnaryOpcode::log:
         return cost + 137;
-      case oLog10:
+      case UnaryOpcode::log10:
         return cost + 139;
-      case oCos:
-      case oSin:
+      case UnaryOpcode::cos:
+      case UnaryOpcode::sin:
         return cost + 160;
-      case oTan:
+      case UnaryOpcode::tan:
         return cost + 170;
-      case oAcos:
-      case oAtan:
+      case UnaryOpcode::acos:
+      case UnaryOpcode::atan:
         return cost + 190;
-      case oAsin:
+      case UnaryOpcode::asin:
         return cost + 180;
-      case oCosh:
-      case oSinh:
-      case oTanh:
-      case oErf:
+      case UnaryOpcode::cosh:
+      case UnaryOpcode::sinh:
+      case UnaryOpcode::tanh:
+      case UnaryOpcode::erf:
         return cost + 240;
-      case oAsinh:
+      case UnaryOpcode::asinh:
         return cost + 220;
-      case oAtanh:
+      case UnaryOpcode::atanh:
         return cost + 150;
-      case oSqrt:
-      case oAbs:
+      case UnaryOpcode::sqrt:
+      case UnaryOpcode::abs:
         return cost + 90;
-      case oSteadyState:
-      case oSteadyStateParamDeriv:
-      case oSteadyStateParam2ndDeriv:
-      case oExpectation:
+      case UnaryOpcode::steadyState:
+      case UnaryOpcode::steadyStateParamDeriv:
+      case UnaryOpcode::steadyStateParam2ndDeriv:
+      case UnaryOpcode::expectation:
         return cost;
-      case oDiff:
-        cerr << "UnaryOpNode::cost: not implemented on oDiff" << endl;
+      case UnaryOpcode::diff:
+        cerr << "UnaryOpNode::cost: not implemented on UnaryOpcode::diff" << endl;
         exit(EXIT_FAILURE);
-      case oAdl:
-        cerr << "UnaryOpNode::cost: not implemented on oAdl" << endl;
+      case UnaryOpcode::adl:
+        cerr << "UnaryOpNode::cost: not implemented on UnaryOpcode::adl" << endl;
         exit(EXIT_FAILURE);
       }
   exit(EXIT_FAILURE);
@@ -2209,72 +2209,72 @@ UnaryOpNode::writeJsonOutput(ostream &output,
     }
 
   // Always put parenthesis around uminus nodes
-  if (op_code == oUminus)
+  if (op_code == UnaryOpcode::uminus)
     output << "(";
 
   switch (op_code)
     {
-    case oUminus:
+    case UnaryOpcode::uminus:
       output << "-";
       break;
-    case oExp:
+    case UnaryOpcode::exp:
       output << "exp";
       break;
-    case oLog:
+    case UnaryOpcode::log:
       output << "log";
       break;
-    case oLog10:
+    case UnaryOpcode::log10:
       output << "log10";
       break;
-    case oCos:
+    case UnaryOpcode::cos:
       output << "cos";
       break;
-    case oSin:
+    case UnaryOpcode::sin:
       output << "sin";
       break;
-    case oTan:
+    case UnaryOpcode::tan:
       output << "tan";
       break;
-    case oAcos:
+    case UnaryOpcode::acos:
       output << "acos";
       break;
-    case oAsin:
+    case UnaryOpcode::asin:
       output << "asin";
       break;
-    case oAtan:
+    case UnaryOpcode::atan:
       output << "atan";
       break;
-    case oCosh:
+    case UnaryOpcode::cosh:
       output << "cosh";
       break;
-    case oSinh:
+    case UnaryOpcode::sinh:
       output << "sinh";
       break;
-    case oTanh:
+    case UnaryOpcode::tanh:
       output << "tanh";
       break;
-    case oAcosh:
+    case UnaryOpcode::acosh:
       output << "acosh";
       break;
-    case oAsinh:
+    case UnaryOpcode::asinh:
       output << "asinh";
       break;
-    case oAtanh:
+    case UnaryOpcode::atanh:
       output << "atanh";
       break;
-    case oSqrt:
+    case UnaryOpcode::sqrt:
       output << "sqrt";
       break;
-    case oAbs:
+    case UnaryOpcode::abs:
       output << "abs";
       break;
-    case oSign:
+    case UnaryOpcode::sign:
       output << "sign";
       break;
-    case oDiff:
+    case UnaryOpcode::diff:
       output << "diff";
       break;
-    case oAdl:
+    case UnaryOpcode::adl:
       output << "adl(";
       arg->writeJsonOutput(output, temporary_terms, tef_terms);
       output << ", '" << adl_param_name << "', [";
@@ -2286,12 +2286,12 @@ UnaryOpNode::writeJsonOutput(ostream &output,
         }
       output << "])";
       return;
-    case oSteadyState:
+    case UnaryOpcode::steadyState:
       output << "(";
       arg->writeJsonOutput(output, temporary_terms, tef_terms, isdynamic);
       output << ")";
       return;
-    case oSteadyStateParamDeriv:
+    case UnaryOpcode::steadyStateParamDeriv:
       {
         auto *varg = dynamic_cast<VariableNode *>(arg);
         assert(varg != nullptr);
@@ -2302,7 +2302,7 @@ UnaryOpNode::writeJsonOutput(ostream &output,
         output << "ss_param_deriv(" << tsid_endo+1 << "," << tsid_param+1 << ")";
       }
       return;
-    case oSteadyStateParam2ndDeriv:
+    case UnaryOpcode::steadyStateParam2ndDeriv:
       {
         auto *varg = dynamic_cast<VariableNode *>(arg);
         assert(varg != nullptr);
@@ -2316,10 +2316,10 @@ UnaryOpNode::writeJsonOutput(ostream &output,
                << "," << tsid_param2+1 << ")";
       }
       return;
-    case oExpectation:
+    case UnaryOpcode::expectation:
       output << "EXPECTATION(" << expectation_information_set << ")";
       break;
-    case oErf:
+    case UnaryOpcode::erf:
       output << "erf";
       break;
     }
@@ -2330,8 +2330,8 @@ UnaryOpNode::writeJsonOutput(ostream &output,
      - current opcode is not uminus, or
      - current opcode is uminus and argument has lowest precedence
   */
-  if (op_code != oUminus
-      || (op_code == oUminus
+  if (op_code != UnaryOpcode::uminus
+      || (op_code == UnaryOpcode::uminus
           && arg->precedenceJson(temporary_terms) < precedenceJson(temporary_terms)))
     {
       output << "(";
@@ -2345,7 +2345,7 @@ UnaryOpNode::writeJsonOutput(ostream &output,
     output << ")";
 
   // Close parenthesis for uminus
-  if (op_code == oUminus)
+  if (op_code == UnaryOpcode::uminus)
     output << ")";
 }
 
@@ -2359,78 +2359,78 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     return;
 
   // Always put parenthesis around uminus nodes
-  if (op_code == oUminus)
+  if (op_code == UnaryOpcode::uminus)
     output << LEFT_PAR(output_type);
 
   switch (op_code)
     {
-    case oUminus:
+    case UnaryOpcode::uminus:
       output << "-";
       break;
-    case oExp:
+    case UnaryOpcode::exp:
       output << "exp";
       break;
-    case oLog:
+    case UnaryOpcode::log:
       if (IS_LATEX(output_type))
         output << "\\log";
       else
         output << "log";
       break;
-    case oLog10:
+    case UnaryOpcode::log10:
       if (IS_LATEX(output_type))
         output << "\\log_{10}";
       else
         output << "log10";
       break;
-    case oCos:
+    case UnaryOpcode::cos:
       output << "cos";
       break;
-    case oSin:
+    case UnaryOpcode::sin:
       output << "sin";
       break;
-    case oTan:
+    case UnaryOpcode::tan:
       output << "tan";
       break;
-    case oAcos:
+    case UnaryOpcode::acos:
       output << "acos";
       break;
-    case oAsin:
+    case UnaryOpcode::asin:
       output << "asin";
       break;
-    case oAtan:
+    case UnaryOpcode::atan:
       output << "atan";
       break;
-    case oCosh:
+    case UnaryOpcode::cosh:
       output << "cosh";
       break;
-    case oSinh:
+    case UnaryOpcode::sinh:
       output << "sinh";
       break;
-    case oTanh:
+    case UnaryOpcode::tanh:
       output << "tanh";
       break;
-    case oAcosh:
+    case UnaryOpcode::acosh:
       output << "acosh";
       break;
-    case oAsinh:
+    case UnaryOpcode::asinh:
       output << "asinh";
       break;
-    case oAtanh:
+    case UnaryOpcode::atanh:
       output << "atanh";
       break;
-    case oSqrt:
+    case UnaryOpcode::sqrt:
       output << "sqrt";
       break;
-    case oAbs:
+    case UnaryOpcode::abs:
       output << "abs";
       break;
-    case oSign:
+    case UnaryOpcode::sign:
       if (output_type == oCDynamicModel || output_type == oCStaticModel)
         output << "copysign";
       else
         output << "sign";
       break;
-    case oSteadyState:
+    case UnaryOpcode::steadyState:
       ExprNodeOutputType new_output_type;
       switch (output_type)
         {
@@ -2457,7 +2457,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       arg->writeOutput(output, new_output_type, temporary_terms, temporary_terms_idxs, tef_terms);
       output << ")";
       return;
-    case oSteadyStateParamDeriv:
+    case UnaryOpcode::steadyStateParamDeriv:
       {
         auto *varg = dynamic_cast<VariableNode *>(arg);
         assert(varg != nullptr);
@@ -2469,7 +2469,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         output << "ss_param_deriv(" << tsid_endo+1 << "," << tsid_param+1 << ")";
       }
       return;
-    case oSteadyStateParam2ndDeriv:
+    case UnaryOpcode::steadyStateParam2ndDeriv:
       {
         auto *varg = dynamic_cast<VariableNode *>(arg);
         assert(varg != nullptr);
@@ -2484,10 +2484,10 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                << "," << tsid_param2+1 << ")";
       }
       return;
-    case oExpectation:
+    case UnaryOpcode::expectation:
       if (!IS_LATEX(output_type))
         {
-          cerr << "UnaryOpNode::writeOutput: not implemented on oExpectation" << endl;
+          cerr << "UnaryOpNode::writeOutput: not implemented on UnaryOpcode::expectation" << endl;
           exit(EXIT_FAILURE);
         }
       output << "\\mathbb{E}_{t";
@@ -2499,13 +2499,13 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         }
       output << "}";
       break;
-    case oErf:
+    case UnaryOpcode::erf:
       output << "erf";
       break;
-    case oDiff:
+    case UnaryOpcode::diff:
       output << "diff";
       break;
-    case oAdl:
+    case UnaryOpcode::adl:
       output << "adl";
       break;
     }
@@ -2516,12 +2516,12 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
      - current opcode is not uminus, or
      - current opcode is uminus and argument has lowest precedence
   */
-  if (op_code != oUminus
-      || (op_code == oUminus
+  if (op_code != UnaryOpcode::uminus
+      || (op_code == UnaryOpcode::uminus
           && arg->precedence(output_type, temporary_terms) < precedence(output_type, temporary_terms)))
     {
       output << LEFT_PAR(output_type);
-      if (op_code == oSign && (output_type == oCDynamicModel || output_type == oCStaticModel))
+      if (op_code == UnaryOpcode::sign && (output_type == oCDynamicModel || output_type == oCStaticModel))
         output << "1.0,";
       close_parenthesis = true;
     }
@@ -2533,7 +2533,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     output << RIGHT_PAR(output_type);
 
   // Close parenthesis for uminus
-  if (op_code == oUminus)
+  if (op_code == UnaryOpcode::uminus)
     output << RIGHT_PAR(output_type);
 }
 
@@ -2570,56 +2570,56 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) noexcept(false)
 {
   switch (op_code)
     {
-    case oUminus:
+    case UnaryOpcode::uminus:
       return (-v);
-    case oExp:
+    case UnaryOpcode::exp:
       return (exp(v));
-    case oLog:
+    case UnaryOpcode::log:
       return (log(v));
-    case oLog10:
+    case UnaryOpcode::log10:
       return (log10(v));
-    case oCos:
+    case UnaryOpcode::cos:
       return (cos(v));
-    case oSin:
+    case UnaryOpcode::sin:
       return (sin(v));
-    case oTan:
+    case UnaryOpcode::tan:
       return (tan(v));
-    case oAcos:
+    case UnaryOpcode::acos:
       return (acos(v));
-    case oAsin:
+    case UnaryOpcode::asin:
       return (asin(v));
-    case oAtan:
+    case UnaryOpcode::atan:
       return (atan(v));
-    case oCosh:
+    case UnaryOpcode::cosh:
       return (cosh(v));
-    case oSinh:
+    case UnaryOpcode::sinh:
       return (sinh(v));
-    case oTanh:
+    case UnaryOpcode::tanh:
       return (tanh(v));
-    case oAcosh:
+    case UnaryOpcode::acosh:
       return (acosh(v));
-    case oAsinh:
+    case UnaryOpcode::asinh:
       return (asinh(v));
-    case oAtanh:
+    case UnaryOpcode::atanh:
       return (atanh(v));
-    case oSqrt:
+    case UnaryOpcode::sqrt:
       return (sqrt(v));
-    case oAbs:
+    case UnaryOpcode::abs:
       return (abs(v));
-    case oSign:
+    case UnaryOpcode::sign:
       return (v > 0) ? 1 : ((v < 0) ? -1 : 0);
-    case oSteadyState:
+    case UnaryOpcode::steadyState:
       return (v);
-    case oSteadyStateParamDeriv:
-    case oSteadyStateParam2ndDeriv:
-    case oExpectation:
-    case oErf:
+    case UnaryOpcode::steadyStateParamDeriv:
+    case UnaryOpcode::steadyStateParam2ndDeriv:
+    case UnaryOpcode::expectation:
+    case UnaryOpcode::erf:
       return (erf(v));
-    case oDiff:
-      cerr << "UnaryOpNode::eval_opcode: not implemented on oDiff" << endl;
+    case UnaryOpcode::diff:
+      cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::diff" << endl;
       exit(EXIT_FAILURE);
-    case oAdl:
-      cerr << "UnaryOpNode::eval_opcode: not implemented on oAdl" << endl;
+    case UnaryOpcode::adl:
+      cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::adl" << endl;
       exit(EXIT_FAILURE);
     }
   // Suppress GCC warning
@@ -2657,12 +2657,12 @@ UnaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
         }
       return;
     }
-  if (op_code == oSteadyState)
+  if (op_code == UnaryOpcode::steadyState)
     arg->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, true, tef_terms);
   else
     {
       arg->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic, tef_terms);
-      FUNARY_ funary(op_code);
+      FUNARY_ funary{static_cast<uint8_t>(op_code)};
       funary.write(CompileCode, instruction_number);
     }
 }
@@ -2670,7 +2670,7 @@ UnaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 void
 UnaryOpNode::collectVARLHSVariable(set<expr_t> &result) const
 {
-  if (op_code == oDiff)
+  if (op_code == UnaryOpcode::diff)
     result.insert(const_cast<UnaryOpNode *>(this));
   else
     arg->collectVARLHSVariable(result);
@@ -2697,64 +2697,64 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
     {
       switch (op_code)
         {
-        case oUminus:
-          List_of_Op_RHS.emplace_back(oUminus, make_pair(nullptr, nullptr));
+        case UnaryOpcode::uminus:
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::uminus), make_pair(nullptr, nullptr));
           return { 1, nullptr };
-        case oExp:
-          List_of_Op_RHS.emplace_back(oLog, make_pair(nullptr, nullptr));
+        case UnaryOpcode::exp:
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::log), make_pair(nullptr, nullptr));
           return { 1, nullptr };
-        case oLog:
-          List_of_Op_RHS.emplace_back(oExp, make_pair(nullptr, nullptr));
+        case UnaryOpcode::log:
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::exp), make_pair(nullptr, nullptr));
           return { 1, nullptr };
-        case oLog10:
-          List_of_Op_RHS.emplace_back(oPower, make_pair(nullptr, datatree.AddNonNegativeConstant("10")));
+        case UnaryOpcode::log10:
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::power), make_pair(nullptr, datatree.AddNonNegativeConstant("10")));
           return { 1, nullptr };
-        case oCos:
-          List_of_Op_RHS.emplace_back(oAcos, make_pair(nullptr, nullptr));
+        case UnaryOpcode::cos:
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::acos), make_pair(nullptr, nullptr));
           return { 1, nullptr };
-        case oSin:
-          List_of_Op_RHS.emplace_back(oAsin, make_pair(nullptr, nullptr));
+        case UnaryOpcode::sin:
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::asin), make_pair(nullptr, nullptr));
           return { 1, nullptr };
-        case oTan:
-          List_of_Op_RHS.emplace_back(oAtan, make_pair(nullptr, nullptr));
+        case UnaryOpcode::tan:
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::atan), make_pair(nullptr, nullptr));
           return { 1, nullptr };
-        case oAcos:
-          List_of_Op_RHS.emplace_back(oCos, make_pair(nullptr, nullptr));
+        case UnaryOpcode::acos:
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::cos), make_pair(nullptr, nullptr));
           return { 1, nullptr };
-        case oAsin:
-          List_of_Op_RHS.emplace_back(oSin, make_pair(nullptr, nullptr));
+        case UnaryOpcode::asin:
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::sin), make_pair(nullptr, nullptr));
           return { 1, nullptr };
-        case oAtan:
-          List_of_Op_RHS.emplace_back(oTan, make_pair(nullptr, nullptr));
+        case UnaryOpcode::atan:
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::tan), make_pair(nullptr, nullptr));
           return { 1, nullptr };
-        case oCosh:
-          List_of_Op_RHS.emplace_back(oAcosh, make_pair(nullptr, nullptr));
+        case UnaryOpcode::cosh:
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::acosh), make_pair(nullptr, nullptr));
           return { 1, nullptr };
-        case oSinh:
-          List_of_Op_RHS.emplace_back(oAsinh, make_pair(nullptr, nullptr));
+        case UnaryOpcode::sinh:
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::asinh), make_pair(nullptr, nullptr));
           return { 1, nullptr };
-        case oTanh:
-          List_of_Op_RHS.emplace_back(oAtanh, make_pair(nullptr, nullptr));
+        case UnaryOpcode::tanh:
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::atanh), make_pair(nullptr, nullptr));
           return { 1, nullptr };
-        case oAcosh:
-          List_of_Op_RHS.emplace_back(oCosh, make_pair(nullptr, nullptr));
+        case UnaryOpcode::acosh:
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::cosh), make_pair(nullptr, nullptr));
           return { 1, nullptr };
-        case oAsinh:
-          List_of_Op_RHS.emplace_back(oSinh, make_pair(nullptr, nullptr));
+        case UnaryOpcode::asinh:
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::sinh), make_pair(nullptr, nullptr));
           return { 1, nullptr };
-        case oAtanh:
-          List_of_Op_RHS.emplace_back(oTanh, make_pair(nullptr, nullptr));
+        case UnaryOpcode::atanh:
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::tanh), make_pair(nullptr, nullptr));
           return { 1, nullptr };
-        case oSqrt:
-          List_of_Op_RHS.emplace_back(oPower, make_pair(nullptr, datatree.Two));
+        case UnaryOpcode::sqrt:
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::power), make_pair(nullptr, datatree.Two));
           return { 1, nullptr };
-        case oAbs:
+        case UnaryOpcode::abs:
           return { 2, nullptr };
-        case oSign:
+        case UnaryOpcode::sign:
           return { 2, nullptr };
-        case oSteadyState:
+        case UnaryOpcode::steadyState:
           return { 2, nullptr };
-        case oErf:
+        case UnaryOpcode::erf:
           return { 2, nullptr };
         default:
           cerr << "Unary operator not handled during the normalization process" << endl;
@@ -2766,47 +2766,47 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
          related to the equation, the function with its argument is stored in the RHS*/
       switch (op_code)
         {
-        case oUminus:
+        case UnaryOpcode::uminus:
           return { 0, datatree.AddUMinus(New_expr_t) };
-        case oExp:
+        case UnaryOpcode::exp:
           return { 0, datatree.AddExp(New_expr_t) };
-        case oLog:
+        case UnaryOpcode::log:
           return { 0, datatree.AddLog(New_expr_t) };
-        case oLog10:
+        case UnaryOpcode::log10:
           return { 0, datatree.AddLog10(New_expr_t) };
-        case oCos:
+        case UnaryOpcode::cos:
           return { 0, datatree.AddCos(New_expr_t) };
-        case oSin:
+        case UnaryOpcode::sin:
           return { 0, datatree.AddSin(New_expr_t) };
-        case oTan:
+        case UnaryOpcode::tan:
           return { 0, datatree.AddTan(New_expr_t) };
-        case oAcos:
+        case UnaryOpcode::acos:
           return { 0, datatree.AddAcos(New_expr_t) };
-        case oAsin:
+        case UnaryOpcode::asin:
           return { 0, datatree.AddAsin(New_expr_t) };
-        case oAtan:
+        case UnaryOpcode::atan:
           return { 0, datatree.AddAtan(New_expr_t) };
-        case oCosh:
+        case UnaryOpcode::cosh:
           return { 0, datatree.AddCosh(New_expr_t) };
-        case oSinh:
+        case UnaryOpcode::sinh:
           return { 0, datatree.AddSinh(New_expr_t) };
-        case oTanh:
+        case UnaryOpcode::tanh:
           return { 0, datatree.AddTanh(New_expr_t) };
-        case oAcosh:
+        case UnaryOpcode::acosh:
           return { 0, datatree.AddAcosh(New_expr_t) };
-        case oAsinh:
+        case UnaryOpcode::asinh:
           return { 0, datatree.AddAsinh(New_expr_t) };
-        case oAtanh:
+        case UnaryOpcode::atanh:
           return { 0, datatree.AddAtanh(New_expr_t) };
-        case oSqrt:
+        case UnaryOpcode::sqrt:
           return { 0, datatree.AddSqrt(New_expr_t) };
-        case oAbs:
+        case UnaryOpcode::abs:
           return { 0, datatree.AddAbs(New_expr_t) };
-        case oSign:
+        case UnaryOpcode::sign:
           return { 0, datatree.AddSign(New_expr_t) };
-        case oSteadyState:
+        case UnaryOpcode::steadyState:
           return { 0, datatree.AddSteadyState(New_expr_t) };
-        case oErf:
+        case UnaryOpcode::erf:
           return { 0, datatree.AddErf(New_expr_t) };
         default:
           cerr << "Unary operator not handled during the normalization process" << endl;
@@ -2829,59 +2829,59 @@ UnaryOpNode::buildSimilarUnaryOpNode(expr_t alt_arg, DataTree &alt_datatree) con
 {
   switch (op_code)
     {
-    case oUminus:
+    case UnaryOpcode::uminus:
       return alt_datatree.AddUMinus(alt_arg);
-    case oExp:
+    case UnaryOpcode::exp:
       return alt_datatree.AddExp(alt_arg);
-    case oLog:
+    case UnaryOpcode::log:
       return alt_datatree.AddLog(alt_arg);
-    case oLog10:
+    case UnaryOpcode::log10:
       return alt_datatree.AddLog10(alt_arg);
-    case oCos:
+    case UnaryOpcode::cos:
       return alt_datatree.AddCos(alt_arg);
-    case oSin:
+    case UnaryOpcode::sin:
       return alt_datatree.AddSin(alt_arg);
-    case oTan:
+    case UnaryOpcode::tan:
       return alt_datatree.AddTan(alt_arg);
-    case oAcos:
+    case UnaryOpcode::acos:
       return alt_datatree.AddAcos(alt_arg);
-    case oAsin:
+    case UnaryOpcode::asin:
       return alt_datatree.AddAsin(alt_arg);
-    case oAtan:
+    case UnaryOpcode::atan:
       return alt_datatree.AddAtan(alt_arg);
-    case oCosh:
+    case UnaryOpcode::cosh:
       return alt_datatree.AddCosh(alt_arg);
-    case oSinh:
+    case UnaryOpcode::sinh:
       return alt_datatree.AddSinh(alt_arg);
-    case oTanh:
+    case UnaryOpcode::tanh:
       return alt_datatree.AddTanh(alt_arg);
-    case oAcosh:
+    case UnaryOpcode::acosh:
       return alt_datatree.AddAcosh(alt_arg);
-    case oAsinh:
+    case UnaryOpcode::asinh:
       return alt_datatree.AddAsinh(alt_arg);
-    case oAtanh:
+    case UnaryOpcode::atanh:
       return alt_datatree.AddAtanh(alt_arg);
-    case oSqrt:
+    case UnaryOpcode::sqrt:
       return alt_datatree.AddSqrt(alt_arg);
-    case oAbs:
+    case UnaryOpcode::abs:
       return alt_datatree.AddAbs(alt_arg);
-    case oSign:
+    case UnaryOpcode::sign:
       return alt_datatree.AddSign(alt_arg);
-    case oSteadyState:
+    case UnaryOpcode::steadyState:
       return alt_datatree.AddSteadyState(alt_arg);
-    case oSteadyStateParamDeriv:
-      cerr << "UnaryOpNode::buildSimilarUnaryOpNode: oSteadyStateParamDeriv can't be translated" << endl;
+    case UnaryOpcode::steadyStateParamDeriv:
+      cerr << "UnaryOpNode::buildSimilarUnaryOpNode: UnaryOpcode::steadyStateParamDeriv can't be translated" << endl;
       exit(EXIT_FAILURE);
-    case oSteadyStateParam2ndDeriv:
-      cerr << "UnaryOpNode::buildSimilarUnaryOpNode: oSteadyStateParam2ndDeriv can't be translated" << endl;
+    case UnaryOpcode::steadyStateParam2ndDeriv:
+      cerr << "UnaryOpNode::buildSimilarUnaryOpNode: UnaryOpcode::steadyStateParam2ndDeriv can't be translated" << endl;
       exit(EXIT_FAILURE);
-    case oExpectation:
+    case UnaryOpcode::expectation:
       return alt_datatree.AddExpectation(expectation_information_set, alt_arg);
-    case oErf:
+    case UnaryOpcode::erf:
       return alt_datatree.AddErf(alt_arg);
-    case oDiff:
+    case UnaryOpcode::diff:
       return alt_datatree.AddDiff(alt_arg);
-    case oAdl:
+    case UnaryOpcode::adl:
       return alt_datatree.AddAdl(alt_arg, adl_param_name, adl_lags);
     }
   // Suppress GCC warning
@@ -2941,7 +2941,7 @@ UnaryOpNode::maxLead() const
 int
 UnaryOpNode::maxLag() const
 {
-  if (op_code == oDiff)
+  if (op_code == UnaryOpcode::diff)
     return arg->maxLag() + 1;
   return arg->maxLag();
 }
@@ -2949,7 +2949,7 @@ UnaryOpNode::maxLag() const
 expr_t
 UnaryOpNode::undiff() const
 {
-  if (op_code == oDiff)
+  if (op_code == UnaryOpcode::diff)
     return arg;
   return arg->undiff();
 }
@@ -2972,14 +2972,14 @@ UnaryOpNode::VarMinLag() const
 int
 UnaryOpNode::PacMaxLag(vector<int> &lhs) const
 {
-  //This will never be an oDiff node
+  //This will never be an UnaryOpcode::diff node
   return arg->PacMaxLag(lhs);
 }
 
 expr_t
 UnaryOpNode::substituteAdl() const
 {
-  if (op_code != oAdl)
+  if (op_code != UnaryOpcode::adl)
     {
       expr_t argsubst = arg->substituteAdl();
       return buildSimilarUnaryOpNode(argsubst, datatree);
@@ -3012,7 +3012,7 @@ UnaryOpNode::substituteAdl() const
 int
 UnaryOpNode::countDiffs() const
 {
-  if (op_code == oDiff)
+  if (op_code == UnaryOpcode::diff)
     return arg->countDiffs() + 1;
   return arg->countDiffs();
 }
@@ -3022,25 +3022,25 @@ UnaryOpNode::createAuxVarForUnaryOpNode() const
 {
   switch (op_code)
     {
-    case oExp:
-    case oLog:
-    case oLog10:
-    case oCos:
-    case oSin:
-    case oTan:
-    case oAcos:
-    case oAsin:
-    case oAtan:
-    case oCosh:
-    case oSinh:
-    case oTanh:
-    case oAcosh:
-    case oAsinh:
-    case oAtanh:
-    case oSqrt:
-    case oAbs:
-    case oSign:
-    case oErf:
+    case UnaryOpcode::exp:
+    case UnaryOpcode::log:
+    case UnaryOpcode::log10:
+    case UnaryOpcode::cos:
+    case UnaryOpcode::sin:
+    case UnaryOpcode::tan:
+    case UnaryOpcode::acos:
+    case UnaryOpcode::asin:
+    case UnaryOpcode::atan:
+    case UnaryOpcode::cosh:
+    case UnaryOpcode::sinh:
+    case UnaryOpcode::tanh:
+    case UnaryOpcode::acosh:
+    case UnaryOpcode::asinh:
+    case UnaryOpcode::atanh:
+    case UnaryOpcode::sqrt:
+    case UnaryOpcode::abs:
+    case UnaryOpcode::sign:
+    case UnaryOpcode::erf:
       return true;
     default:
       return false;
@@ -3076,7 +3076,7 @@ UnaryOpNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) 
 {
   arg->findDiffNodes(static_datatree, diff_table);
 
-  if (op_code != oDiff)
+  if (op_code != UnaryOpcode::diff)
     return;
 
   expr_t sthis = this->toStatic(static_datatree);
@@ -3100,7 +3100,7 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
                             vector<BinaryOpNode *> &neweqs) const
 {
   expr_t argsubst = arg->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
-  if (op_code != oDiff)
+  if (op_code != UnaryOpcode::diff)
     return buildSimilarUnaryOpNode(argsubst, datatree);
 
   subst_table_t::const_iterator sit = subst_table.find(this);
@@ -3235,7 +3235,7 @@ UnaryOpNode::decreaseLeadsLagsPredeterminedVariables() const
 expr_t
 UnaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
-  if (op_code == oUminus || deterministic_model)
+  if (op_code == UnaryOpcode::uminus || deterministic_model)
     {
       expr_t argsubst = arg->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
       return buildSimilarUnaryOpNode(argsubst, datatree);
@@ -3259,7 +3259,7 @@ UnaryOpNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<
 expr_t
 UnaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
-  if (op_code == oUminus || deterministic_model)
+  if (op_code == UnaryOpcode::uminus || deterministic_model)
     {
       expr_t argsubst = arg->substituteExoLead(subst_table, neweqs, deterministic_model);
       return buildSimilarUnaryOpNode(argsubst, datatree);
@@ -3283,7 +3283,7 @@ UnaryOpNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *>
 expr_t
 UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
 {
-  if (op_code == oExpectation)
+  if (op_code == UnaryOpcode::expectation)
     {
       auto it = subst_table.find(const_cast<UnaryOpNode *>(this));
       if (it != subst_table.end())
@@ -3303,7 +3303,7 @@ UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNo
             exit(EXIT_FAILURE);
           }
 
-      //take care of any nested expectation operators by calling arg->substituteExpectation(.), then decreaseLeadsLags for this oExpectation operator
+      //take care of any nested expectation operators by calling arg->substituteExpectation(.), then decreaseLeadsLags for this UnaryOpcode::expectation operator
       //arg(lag-period) (holds entire subtree of arg(lag-period)
       expr_t substexpr = (arg->substituteExpectation(subst_table, neweqs, partial_information_model))->decreaseLeadsLags(expectation_information_set);
       assert(substexpr != nullptr);
@@ -3382,9 +3382,9 @@ UnaryOpNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
 bool
 UnaryOpNode::isInStaticForm() const
 {
-  if (op_code == oSteadyState || op_code == oSteadyStateParamDeriv
-      || op_code == oSteadyStateParam2ndDeriv
-      || op_code == oExpectation)
+  if (op_code == UnaryOpcode::steadyState || op_code == UnaryOpcode::steadyStateParamDeriv
+      || op_code == UnaryOpcode::steadyStateParam2ndDeriv
+      || op_code == UnaryOpcode::expectation)
     return false;
   else
     return arg->isInStaticForm();
@@ -3430,7 +3430,7 @@ expr_t
 UnaryOpNode::substituteStaticAuxiliaryVariable() const
 {
   expr_t argsubst = arg->substituteStaticAuxiliaryVariable();
-  if (op_code == oExpectation)
+  if (op_code == UnaryOpcode::expectation)
     return argsubst;
   else
     return buildSimilarUnaryOpNode(argsubst, datatree);
@@ -3495,15 +3495,15 @@ BinaryOpNode::composeDerivatives(expr_t darg1, expr_t darg2)
 
   switch (op_code)
     {
-    case oPlus:
+    case BinaryOpcode::plus:
       return datatree.AddPlus(darg1, darg2);
-    case oMinus:
+    case BinaryOpcode::minus:
       return datatree.AddMinus(darg1, darg2);
-    case oTimes:
+    case BinaryOpcode::times:
       t11 = datatree.AddTimes(darg1, arg2);
       t12 = datatree.AddTimes(darg2, arg1);
       return datatree.AddPlus(t11, t12);
-    case oDivide:
+    case BinaryOpcode::divide:
       if (darg2 != datatree.Zero)
         {
           t11 = datatree.AddTimes(darg1, arg2);
@@ -3514,14 +3514,14 @@ BinaryOpNode::composeDerivatives(expr_t darg1, expr_t darg2)
         }
       else
         return datatree.AddDivide(darg1, arg2);
-    case oLess:
-    case oGreater:
-    case oLessEqual:
-    case oGreaterEqual:
-    case oEqualEqual:
-    case oDifferent:
+    case BinaryOpcode::less:
+    case BinaryOpcode::greater:
+    case BinaryOpcode::lessEqual:
+    case BinaryOpcode::greaterEqual:
+    case BinaryOpcode::equalEqual:
+    case BinaryOpcode::different:
       return datatree.Zero;
-    case oPower:
+    case BinaryOpcode::power:
       if (darg2 == datatree.Zero)
         if (darg1 == datatree.Zero)
           return datatree.Zero;
@@ -3544,7 +3544,7 @@ BinaryOpNode::composeDerivatives(expr_t darg1, expr_t darg2)
           t15 = datatree.AddPlus(t12, t14);
           return datatree.AddTimes(t15, this);
         }
-    case oPowerDeriv:
+    case BinaryOpcode::powerDeriv:
       if (darg2 == datatree.Zero)
         return datatree.AddTimes(darg1, datatree.AddPowerDeriv(arg1, arg2, powerDerivOrder + 1));
       else
@@ -3576,19 +3576,19 @@ BinaryOpNode::composeDerivatives(expr_t darg1, expr_t darg2)
           t14 = datatree.AddTimes(f, t13);
           return datatree.AddPlus(first_part, t14);
         }
-    case oMax:
+    case BinaryOpcode::max:
       t11 = datatree.AddGreater(arg1, arg2);
       t12 = datatree.AddTimes(t11, darg1);
       t13 = datatree.AddMinus(datatree.One, t11);
       t14 = datatree.AddTimes(t13, darg2);
       return datatree.AddPlus(t14, t12);
-    case oMin:
+    case BinaryOpcode::min:
       t11 = datatree.AddGreater(arg2, arg1);
       t12 = datatree.AddTimes(t11, darg1);
       t13 = datatree.AddMinus(datatree.One, t11);
       t14 = datatree.AddTimes(t13, darg2);
       return datatree.AddPlus(t14, t12);
-    case oEqual:
+    case BinaryOpcode::equal:
       return datatree.AddMinus(darg1, darg2);
     }
   // Suppress GCC warning
@@ -3598,7 +3598,7 @@ BinaryOpNode::composeDerivatives(expr_t darg1, expr_t darg2)
 expr_t
 BinaryOpNode::unpackPowerDeriv() const
 {
-  if (op_code != oPowerDeriv)
+  if (op_code != BinaryOpcode::powerDeriv)
     return const_cast<BinaryOpNode *>(this);
 
   expr_t front = datatree.One;
@@ -3630,31 +3630,31 @@ BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t
 
   switch (op_code)
     {
-    case oEqual:
+    case BinaryOpcode::equal:
       return 0;
-    case oEqualEqual:
-    case oDifferent:
+    case BinaryOpcode::equalEqual:
+    case BinaryOpcode::different:
       return 1;
-    case oLessEqual:
-    case oGreaterEqual:
-    case oLess:
-    case oGreater:
+    case BinaryOpcode::lessEqual:
+    case BinaryOpcode::greaterEqual:
+    case BinaryOpcode::less:
+    case BinaryOpcode::greater:
       return 2;
-    case oPlus:
-    case oMinus:
+    case BinaryOpcode::plus:
+    case BinaryOpcode::minus:
       return 3;
-    case oTimes:
-    case oDivide:
+    case BinaryOpcode::times:
+    case BinaryOpcode::divide:
       return 4;
-    case oPower:
-    case oPowerDeriv:
+    case BinaryOpcode::power:
+    case BinaryOpcode::powerDeriv:
       if (IS_C(output_type))
         // In C, power operator is of the form pow(a, b)
         return 100;
       else
         return 5;
-    case oMin:
-    case oMax:
+    case BinaryOpcode::min:
+    case BinaryOpcode::max:
       return 100;
     }
   // Suppress GCC warning
@@ -3671,27 +3671,27 @@ BinaryOpNode::precedenceJson(const temporary_terms_t &temporary_terms) const
 
   switch (op_code)
     {
-    case oEqual:
+    case BinaryOpcode::equal:
       return 0;
-    case oEqualEqual:
-    case oDifferent:
+    case BinaryOpcode::equalEqual:
+    case BinaryOpcode::different:
       return 1;
-    case oLessEqual:
-    case oGreaterEqual:
-    case oLess:
-    case oGreater:
+    case BinaryOpcode::lessEqual:
+    case BinaryOpcode::greaterEqual:
+    case BinaryOpcode::less:
+    case BinaryOpcode::greater:
       return 2;
-    case oPlus:
-    case oMinus:
+    case BinaryOpcode::plus:
+    case BinaryOpcode::minus:
       return 3;
-    case oTimes:
-    case oDivide:
+    case BinaryOpcode::times:
+    case BinaryOpcode::divide:
       return 4;
-    case oPower:
-    case oPowerDeriv:
+    case BinaryOpcode::power:
+    case BinaryOpcode::powerDeriv:
       return 5;
-    case oMin:
-    case oMax:
+    case BinaryOpcode::min:
+    case BinaryOpcode::max:
       return 100;
     }
   // Suppress GCC warning
@@ -3730,53 +3730,53 @@ BinaryOpNode::cost(int cost, bool is_matlab) const
     // Cost for Matlab files
     switch (op_code)
       {
-      case oLess:
-      case oGreater:
-      case oLessEqual:
-      case oGreaterEqual:
-      case oEqualEqual:
-      case oDifferent:
+      case BinaryOpcode::less:
+      case BinaryOpcode::greater:
+      case BinaryOpcode::lessEqual:
+      case BinaryOpcode::greaterEqual:
+      case BinaryOpcode::equalEqual:
+      case BinaryOpcode::different:
         return cost + 60;
-      case oPlus:
-      case oMinus:
-      case oTimes:
+      case BinaryOpcode::plus:
+      case BinaryOpcode::minus:
+      case BinaryOpcode::times:
         return cost + 90;
-      case oMax:
-      case oMin:
+      case BinaryOpcode::max:
+      case BinaryOpcode::min:
         return cost + 110;
-      case oDivide:
+      case BinaryOpcode::divide:
         return cost + 990;
-      case oPower:
-      case oPowerDeriv:
+      case BinaryOpcode::power:
+      case BinaryOpcode::powerDeriv:
         return cost + (min_cost_matlab/2+1);
-      case oEqual:
+      case BinaryOpcode::equal:
         return cost;
       }
   else
     // Cost for C files
     switch (op_code)
       {
-      case oLess:
-      case oGreater:
-      case oLessEqual:
-      case oGreaterEqual:
-      case oEqualEqual:
-      case oDifferent:
+      case BinaryOpcode::less:
+      case BinaryOpcode::greater:
+      case BinaryOpcode::lessEqual:
+      case BinaryOpcode::greaterEqual:
+      case BinaryOpcode::equalEqual:
+      case BinaryOpcode::different:
         return cost + 2;
-      case oPlus:
-      case oMinus:
-      case oTimes:
+      case BinaryOpcode::plus:
+      case BinaryOpcode::minus:
+      case BinaryOpcode::times:
         return cost + 4;
-      case oMax:
-      case oMin:
+      case BinaryOpcode::max:
+      case BinaryOpcode::min:
         return cost + 5;
-      case oDivide:
+      case BinaryOpcode::divide:
         return cost + 15;
-      case oPower:
+      case BinaryOpcode::power:
         return cost + 520;
-      case oPowerDeriv:
+      case BinaryOpcode::powerDeriv:
         return cost + (min_cost_c/2+1);;
-      case oEqual:
+      case BinaryOpcode::equal:
         return cost;
       }
   // Suppress GCC warning
@@ -3805,7 +3805,7 @@ BinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &r
          an equal node: we don't want them as temporary terms) */
       reference_count[this2] = { it->second.first + 1, it->second.second };;
       if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > min_cost(is_matlab)
-          && op_code != oEqual)
+          && op_code != BinaryOpcode::equal)
         temp_terms_map[reference_count[this2].second].insert(this2);
     }
 }
@@ -3831,7 +3831,7 @@ BinaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
     {
       reference_count[this2]++;
       if (reference_count[this2] * cost(temporary_terms, false) > min_cost_c
-          && op_code != oEqual)
+          && op_code != BinaryOpcode::equal)
         {
           temporary_terms.insert(this2);
           v_temporary_terms[first_occurence[this2].first][first_occurence[this2].second].insert(this2);
@@ -3844,17 +3844,17 @@ BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivO
 {
   switch (op_code)
     {
-    case oPlus:
+    case BinaryOpcode::plus:
       return (v1 + v2);
-    case oMinus:
+    case BinaryOpcode::minus:
       return (v1 - v2);
-    case oTimes:
+    case BinaryOpcode::times:
       return (v1 * v2);
-    case oDivide:
+    case BinaryOpcode::divide:
       return (v1 / v2);
-    case oPower:
+    case BinaryOpcode::power:
       return (pow(v1, v2));
-    case oPowerDeriv:
+    case BinaryOpcode::powerDeriv:
       if (fabs(v1) < near_zero && v2 > 0
           && derivOrder > v2
           && fabs(v2-nearbyint(v2)) < near_zero)
@@ -3866,29 +3866,29 @@ BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivO
             dxp *= v2--;
           return dxp;
         }
-    case oMax:
+    case BinaryOpcode::max:
       if (v1 < v2)
         return v2;
       else
         return v1;
-    case oMin:
+    case BinaryOpcode::min:
       if (v1 > v2)
         return v2;
       else
         return v1;
-    case oLess:
+    case BinaryOpcode::less:
       return (v1 < v2);
-    case oGreater:
+    case BinaryOpcode::greater:
       return (v1 > v2);
-    case oLessEqual:
+    case BinaryOpcode::lessEqual:
       return (v1 <= v2);
-    case oGreaterEqual:
+    case BinaryOpcode::greaterEqual:
       return (v1 >= v2);
-    case oEqualEqual:
+    case BinaryOpcode::equalEqual:
       return (v1 == v2);
-    case oDifferent:
+    case BinaryOpcode::different:
       return (v1 != v2);
-    case oEqual:
+    case BinaryOpcode::equal:
       throw EvalException();
     }
   // Suppress GCC warning
@@ -3928,14 +3928,14 @@ BinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
         }
       return;
     }
-  if (op_code == oPowerDeriv)
+  if (op_code == BinaryOpcode::powerDeriv)
     {
       FLDC_ fldc(powerDerivOrder);
       fldc.write(CompileCode, instruction_number);
     }
   arg1->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic, tef_terms);
   arg2->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic, tef_terms);
-  FBINARY_ fbinary(op_code);
+  FBINARY_ fbinary{static_cast<int>(op_code)};
   fbinary.write(CompileCode, instruction_number);
 }
 
@@ -3973,14 +3973,14 @@ BinaryOpNode::writeJsonOutput(ostream &output,
       return;
     }
 
-  if (op_code == oMax || op_code == oMin)
+  if (op_code == BinaryOpcode::max || op_code == BinaryOpcode::min)
     {
       switch (op_code)
         {
-        case oMax:
+        case BinaryOpcode::max:
           output << "max(";
           break;
-        case oMin:
+        case BinaryOpcode::min:
           output << "min(";
           break;
         default:
@@ -3993,7 +3993,7 @@ BinaryOpNode::writeJsonOutput(ostream &output,
       return;
     }
 
-  if (op_code == oPowerDeriv)
+  if (op_code == BinaryOpcode::powerDeriv)
     {
       output << "get_power_deriv(";
       arg1->writeJsonOutput(output, temporary_terms, tef_terms, isdynamic);
@@ -4011,7 +4011,7 @@ BinaryOpNode::writeJsonOutput(ostream &output,
   // add parenthesis around left argument
   auto *barg1 = dynamic_cast<BinaryOpNode *>(arg1);
   if (arg1->precedenceJson(temporary_terms) < prec
-      || (op_code == oPower && barg1 != nullptr && barg1->op_code == oPower))
+      || (op_code == BinaryOpcode::power && barg1 != nullptr && barg1->op_code == BinaryOpcode::power))
     {
       output << "(";
       close_parenthesis = true;
@@ -4026,40 +4026,40 @@ BinaryOpNode::writeJsonOutput(ostream &output,
   // Write current operator symbol
   switch (op_code)
     {
-    case oPlus:
+    case BinaryOpcode::plus:
       output << "+";
       break;
-    case oMinus:
+    case BinaryOpcode::minus:
       output << "-";
       break;
-    case oTimes:
+    case BinaryOpcode::times:
       output << "*";
       break;
-    case oDivide:
+    case BinaryOpcode::divide:
       output << "/";
       break;
-    case oPower:
+    case BinaryOpcode::power:
       output << "^";
       break;
-    case oLess:
+    case BinaryOpcode::less:
       output << "<";
       break;
-    case oGreater:
+    case BinaryOpcode::greater:
       output << ">";
       break;
-    case oLessEqual:
+    case BinaryOpcode::lessEqual:
       output << "<=";
       break;
-    case oGreaterEqual:
+    case BinaryOpcode::greaterEqual:
       output << ">=";
       break;
-    case oEqualEqual:
+    case BinaryOpcode::equalEqual:
       output << "==";
       break;
-    case oDifferent:
+    case BinaryOpcode::different:
       output << "!=";
       break;
-    case oEqual:
+    case BinaryOpcode::equal:
       output << "=";
       break;
     default:
@@ -4076,9 +4076,9 @@ BinaryOpNode::writeJsonOutput(ostream &output,
   auto *barg2 = dynamic_cast<BinaryOpNode *>(arg2);
   int arg2_prec = arg2->precedenceJson(temporary_terms);
   if (arg2_prec < prec
-      || (op_code == oPower && barg2 != nullptr && barg2->op_code == oPower)
-      || (op_code == oMinus && arg2_prec == prec)
-      || (op_code == oDivide && arg2_prec == prec))
+      || (op_code == BinaryOpcode::power && barg2 != nullptr && barg2->op_code == BinaryOpcode::power)
+      || (op_code == BinaryOpcode::minus && arg2_prec == prec)
+      || (op_code == BinaryOpcode::divide && arg2_prec == prec))
     {
       output << "(";
       close_parenthesis = true;
@@ -4101,7 +4101,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     return;
 
   // Treat derivative of Power
-  if (op_code == oPowerDeriv)
+  if (op_code == BinaryOpcode::powerDeriv)
     {
       if (IS_LATEX(output_type))
         unpackPowerDeriv()->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
@@ -4120,17 +4120,17 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
 
   // Treat special case of power operator in C, and case of max and min operators
-  if ((op_code == oPower && IS_C(output_type)) || op_code == oMax || op_code == oMin)
+  if ((op_code == BinaryOpcode::power && IS_C(output_type)) || op_code == BinaryOpcode::max || op_code == BinaryOpcode::min)
     {
       switch (op_code)
         {
-        case oPower:
+        case BinaryOpcode::power:
           output << "pow(";
           break;
-        case oMax:
+        case BinaryOpcode::max:
           output << "max(";
           break;
-        case oMin:
+        case BinaryOpcode::min:
           output << "min(";
           break;
         default:
@@ -4147,14 +4147,14 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
   bool close_parenthesis = false;
 
-  if (IS_LATEX(output_type) && op_code == oDivide)
+  if (IS_LATEX(output_type) && op_code == BinaryOpcode::divide)
     output << "\\frac{";
   else
     {
       // If left argument has a lower precedence, or if current and left argument are both power operators, add parenthesis around left argument
       auto *barg1 = dynamic_cast<BinaryOpNode *>(arg1);
       if (arg1->precedence(output_type, temporary_terms) < prec
-          || (op_code == oPower && barg1 != nullptr && barg1->op_code == oPower))
+          || (op_code == BinaryOpcode::power && barg1 != nullptr && barg1->op_code == BinaryOpcode::power))
         {
           output << LEFT_PAR(output_type);
           close_parenthesis = true;
@@ -4167,53 +4167,53 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   if (close_parenthesis)
     output << RIGHT_PAR(output_type);
 
-  if (IS_LATEX(output_type) && op_code == oDivide)
+  if (IS_LATEX(output_type) && op_code == BinaryOpcode::divide)
     output << "}";
 
   // Write current operator symbol
   switch (op_code)
     {
-    case oPlus:
+    case BinaryOpcode::plus:
       output << "+";
       break;
-    case oMinus:
+    case BinaryOpcode::minus:
       output << "-";
       break;
-    case oTimes:
+    case BinaryOpcode::times:
       if (IS_LATEX(output_type))
         output << "\\, ";
       else
         output << "*";
       break;
-    case oDivide:
+    case BinaryOpcode::divide:
       if (!IS_LATEX(output_type))
         output << "/";
       break;
-    case oPower:
+    case BinaryOpcode::power:
       output << "^";
       break;
-    case oLess:
+    case BinaryOpcode::less:
       output << "<";
       break;
-    case oGreater:
+    case BinaryOpcode::greater:
       output << ">";
       break;
-    case oLessEqual:
+    case BinaryOpcode::lessEqual:
       if (IS_LATEX(output_type))
         output << "\\leq ";
       else
         output << "<=";
       break;
-    case oGreaterEqual:
+    case BinaryOpcode::greaterEqual:
       if (IS_LATEX(output_type))
         output << "\\geq ";
       else
         output << ">=";
       break;
-    case oEqualEqual:
+    case BinaryOpcode::equalEqual:
       output << "==";
       break;
-    case oDifferent:
+    case BinaryOpcode::different:
       if (IS_MATLAB(output_type))
         output << "~=";
       else
@@ -4224,7 +4224,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output << "\\neq ";
         }
       break;
-    case oEqual:
+    case BinaryOpcode::equal:
       output << "=";
       break;
     default:
@@ -4233,7 +4233,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
   close_parenthesis = false;
 
-  if (IS_LATEX(output_type) && (op_code == oPower || op_code == oDivide))
+  if (IS_LATEX(output_type) && (op_code == BinaryOpcode::power || op_code == BinaryOpcode::divide))
     output << "{";
   else
     {
@@ -4245,9 +4245,9 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       auto *barg2 = dynamic_cast<BinaryOpNode *>(arg2);
       int arg2_prec = arg2->precedence(output_type, temporary_terms);
       if (arg2_prec < prec
-          || (op_code == oPower && barg2 != nullptr && barg2->op_code == oPower && !IS_LATEX(output_type))
-          || (op_code == oMinus && arg2_prec == prec)
-          || (op_code == oDivide && arg2_prec == prec && !IS_LATEX(output_type)))
+          || (op_code == BinaryOpcode::power && barg2 != nullptr && barg2->op_code == BinaryOpcode::power && !IS_LATEX(output_type))
+          || (op_code == BinaryOpcode::minus && arg2_prec == prec)
+          || (op_code == BinaryOpcode::divide && arg2_prec == prec && !IS_LATEX(output_type)))
         {
           output << LEFT_PAR(output_type);
           close_parenthesis = true;
@@ -4257,7 +4257,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   // Write right argument
   arg2->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 
-  if (IS_LATEX(output_type) && (op_code == oPower || op_code == oDivide))
+  if (IS_LATEX(output_type) && (op_code == BinaryOpcode::power || op_code == BinaryOpcode::divide))
     output << "}";
 
   if (close_parenthesis)
@@ -4330,18 +4330,18 @@ BinaryOpNode::Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const
   switch (op_type)
     {
     case 0: /*Unary Operator*/
-      switch (op)
+      switch (static_cast<UnaryOpcode>(op))
         {
-        case oUminus:
+        case UnaryOpcode::uminus:
           return (datatree.AddUMinus(arg1));
           break;
-        case oExp:
+        case UnaryOpcode::exp:
           return (datatree.AddExp(arg1));
           break;
-        case oLog:
+        case UnaryOpcode::log:
           return (datatree.AddLog(arg1));
           break;
-        case oLog10:
+        case UnaryOpcode::log10:
           return (datatree.AddLog10(arg1));
           break;
         default:
@@ -4350,21 +4350,21 @@ BinaryOpNode::Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const
         }
       break;
     case 1: /*Binary Operator*/
-      switch (op)
+      switch (static_cast<BinaryOpcode>(op))
         {
-        case oPlus:
+        case BinaryOpcode::plus:
           return (datatree.AddPlus(arg1, arg2));
           break;
-        case oMinus:
+        case BinaryOpcode::minus:
           return (datatree.AddMinus(arg1, arg2));
           break;
-        case oTimes:
+        case BinaryOpcode::times:
           return (datatree.AddTimes(arg1, arg2));
           break;
-        case oDivide:
+        case BinaryOpcode::divide:
           return (datatree.AddDivide(arg1, arg2));
           break;
-        case oPower:
+        case BinaryOpcode::power:
           return (datatree.AddPower(arg1, arg2));
           break;
         default:
@@ -4402,7 +4402,7 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
   else if (is_endogenous_present_1) /*If the current values of the endogenous variable associated to the equation
                                       is present only in the first operand of the expression, we try to normalize the equation*/
     {
-      if (op_code == oEqual)       /* The end of the normalization process :
+      if (op_code == BinaryOpcode::equal)       /* The end of the normalization process :
                                       All the operations needed to normalize the equation are applied. */
         {
           pair<int, pair<expr_t, expr_t>> it;
@@ -4426,7 +4426,7 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
     }
   else if (is_endogenous_present_2)
     {
-      if (op_code == oEqual)
+      if (op_code == BinaryOpcode::equal)
         {
           int oo = List_of_Op_RHS2.size();
           for (int i = 0; i < oo; i++)
@@ -4449,96 +4449,96 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
     }
   switch (op_code)
     {
-    case oPlus:
+    case BinaryOpcode::plus:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oMinus, make_pair(datatree.AddPlus(expr_t_1, expr_t_2), nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), make_pair(datatree.AddPlus(expr_t_1, expr_t_2), nullptr));
           return { 0, datatree.AddPlus(expr_t_1, expr_t_2) };
         }
       else if (is_endogenous_present_1 && is_endogenous_present_2)
         return { 1, nullptr };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oMinus, make_pair(expr_t_1, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), make_pair(expr_t_1, nullptr));
           return { 1, expr_t_1 };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oMinus, make_pair(expr_t_2, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), make_pair(expr_t_2, nullptr));
           return { 1, expr_t_2 };
         }
       break;
-    case oMinus:
+    case BinaryOpcode::minus:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oMinus, make_pair(datatree.AddMinus(expr_t_1, expr_t_2), nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), make_pair(datatree.AddMinus(expr_t_1, expr_t_2), nullptr));
           return { 0, datatree.AddMinus(expr_t_1, expr_t_2) };
         }
       else if (is_endogenous_present_1 && is_endogenous_present_2)
         return { 1, nullptr };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oUminus, make_pair(nullptr, nullptr));
-          List_of_Op_RHS.emplace_back(oMinus, make_pair(expr_t_1, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::uminus), make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), make_pair(expr_t_1, nullptr));
           return { 1, expr_t_1 };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oPlus, make_pair(expr_t_2, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::plus), make_pair(expr_t_2, nullptr));
           return { 1, datatree.AddUMinus(expr_t_2) };
         }
       break;
-    case oTimes:
+    case BinaryOpcode::times:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddTimes(expr_t_1, expr_t_2) };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oDivide, make_pair(expr_t_1, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::divide), make_pair(expr_t_1, nullptr));
           return { 1, expr_t_1 };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oDivide, make_pair(expr_t_2, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::divide), make_pair(expr_t_2, nullptr));
           return { 1, expr_t_2 };
         }
       else
         return { 1, nullptr };
       break;
-    case oDivide:
+    case BinaryOpcode::divide:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddDivide(expr_t_1, expr_t_2) };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oDivide, make_pair(nullptr, expr_t_1));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::divide), make_pair(nullptr, expr_t_1));
           return { 1, expr_t_1 };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oTimes, make_pair(expr_t_2, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::times), make_pair(expr_t_2, nullptr));
           return { 1, expr_t_2 };
         }
       else
         return { 1, nullptr };
       break;
-    case oPower:
+    case BinaryOpcode::power:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddPower(expr_t_1, expr_t_2) };
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(oPower, make_pair(datatree.AddDivide(datatree.One, expr_t_2), nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::power), make_pair(datatree.AddDivide(datatree.One, expr_t_2), nullptr));
           return { 1, nullptr };
         }
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
           /* we have to nomalize a^f(X) = RHS */
           /* First computes the ln(RHS)*/
-          List_of_Op_RHS.emplace_back(oLog, make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::log), make_pair(nullptr, nullptr));
           /* Second  computes f(X) = ln(RHS) / ln(a)*/
-          List_of_Op_RHS.emplace_back(oDivide, make_pair(nullptr, datatree.AddLog(expr_t_1)));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::divide), make_pair(nullptr, datatree.AddLog(expr_t_1)));
           return { 1, nullptr };
         }
       break;
-    case oEqual:
+    case BinaryOpcode::equal:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         {
           return { 0, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(SymbolType::endogenous, var_endo), 0), datatree.AddMinus(expr_t_2, expr_t_1)) };
@@ -4556,49 +4556,49 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
           return { 0, datatree.AddEqual(datatree.AddVariable(datatree.symbol_table.getID(SymbolType::endogenous, var_endo), 0), expr_t_2) };
         }
       break;
-    case oMax:
+    case BinaryOpcode::max:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddMax(expr_t_1, expr_t_2) };
       else
         return { 1, nullptr };
       break;
-    case oMin:
+    case BinaryOpcode::min:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddMin(expr_t_1, expr_t_2) };
       else
         return { 1, nullptr };
       break;
-    case oLess:
+    case BinaryOpcode::less:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddLess(expr_t_1, expr_t_2) };
       else
         return { 1, nullptr };
       break;
-    case oGreater:
+    case BinaryOpcode::greater:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddGreater(expr_t_1, expr_t_2) };
       else
         return { 1, nullptr };
       break;
-    case oLessEqual:
+    case BinaryOpcode::lessEqual:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddLessEqual(expr_t_1, expr_t_2) };
       else
         return { 1, nullptr };
       break;
-    case oGreaterEqual:
+    case BinaryOpcode::greaterEqual:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddGreaterEqual(expr_t_1, expr_t_2) };
       else
         return { 1, nullptr };
       break;
-    case oEqualEqual:
+    case BinaryOpcode::equalEqual:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddEqualEqual(expr_t_1, expr_t_2) };
       else
         return { 1, nullptr };
       break;
-    case oDifferent:
+    case BinaryOpcode::different:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddDifferent(expr_t_1, expr_t_2) };
       else
@@ -4626,35 +4626,35 @@ BinaryOpNode::buildSimilarBinaryOpNode(expr_t alt_arg1, expr_t alt_arg2, DataTre
 {
   switch (op_code)
     {
-    case oPlus:
+    case BinaryOpcode::plus:
       return alt_datatree.AddPlus(alt_arg1, alt_arg2);
-    case oMinus:
+    case BinaryOpcode::minus:
       return alt_datatree.AddMinus(alt_arg1, alt_arg2);
-    case oTimes:
+    case BinaryOpcode::times:
       return alt_datatree.AddTimes(alt_arg1, alt_arg2);
-    case oDivide:
+    case BinaryOpcode::divide:
       return alt_datatree.AddDivide(alt_arg1, alt_arg2);
-    case oPower:
+    case BinaryOpcode::power:
       return alt_datatree.AddPower(alt_arg1, alt_arg2);
-    case oEqual:
+    case BinaryOpcode::equal:
       return alt_datatree.AddEqual(alt_arg1, alt_arg2);
-    case oMax:
+    case BinaryOpcode::max:
       return alt_datatree.AddMax(alt_arg1, alt_arg2);
-    case oMin:
+    case BinaryOpcode::min:
       return alt_datatree.AddMin(alt_arg1, alt_arg2);
-    case oLess:
+    case BinaryOpcode::less:
       return alt_datatree.AddLess(alt_arg1, alt_arg2);
-    case oGreater:
+    case BinaryOpcode::greater:
       return alt_datatree.AddGreater(alt_arg1, alt_arg2);
-    case oLessEqual:
+    case BinaryOpcode::lessEqual:
       return alt_datatree.AddLessEqual(alt_arg1, alt_arg2);
-    case oGreaterEqual:
+    case BinaryOpcode::greaterEqual:
       return alt_datatree.AddGreaterEqual(alt_arg1, alt_arg2);
-    case oEqualEqual:
+    case BinaryOpcode::equalEqual:
       return alt_datatree.AddEqualEqual(alt_arg1, alt_arg2);
-    case oDifferent:
+    case BinaryOpcode::different:
       return alt_datatree.AddDifferent(alt_arg1, alt_arg2);
-    case oPowerDeriv:
+    case BinaryOpcode::powerDeriv:
       return alt_datatree.AddPowerDeriv(alt_arg1, alt_arg2, powerDerivOrder);
     }
   // Suppress GCC warning
@@ -4768,21 +4768,21 @@ BinaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vecto
     {
       switch (op_code)
         {
-        case oPlus:
-        case oMinus:
-        case oEqual:
+        case BinaryOpcode::plus:
+        case BinaryOpcode::minus:
+        case BinaryOpcode::equal:
           arg1subst = maxendolead1 >= 2 ? arg1->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model) : arg1;
           arg2subst = maxendolead2 >= 2 ? arg2->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model) : arg2;
           return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
-        case oTimes:
-        case oDivide:
+        case BinaryOpcode::times:
+        case BinaryOpcode::divide:
           if (maxendolead1 >= 2 && maxendolead2 == 0 && arg2->maxExoLead() == 0)
             {
               arg1subst = arg1->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
               return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
             }
           if (maxendolead1 == 0 && arg1->maxExoLead() == 0
-              && maxendolead2 >= 2 && op_code == oTimes)
+              && maxendolead2 >= 2 && op_code == BinaryOpcode::times)
             {
               arg2subst = arg2->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
               return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
@@ -4820,21 +4820,21 @@ BinaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode 
     {
       switch (op_code)
         {
-        case oPlus:
-        case oMinus:
-        case oEqual:
+        case BinaryOpcode::plus:
+        case BinaryOpcode::minus:
+        case BinaryOpcode::equal:
           arg1subst = maxexolead1 >= 1 ? arg1->substituteExoLead(subst_table, neweqs, deterministic_model) : arg1;
           arg2subst = maxexolead2 >= 1 ? arg2->substituteExoLead(subst_table, neweqs, deterministic_model) : arg2;
           return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
-        case oTimes:
-        case oDivide:
+        case BinaryOpcode::times:
+        case BinaryOpcode::divide:
           if (maxexolead1 >= 1 && maxexolead2 == 0 && arg2->maxEndoLead() == 0)
             {
               arg1subst = arg1->substituteExoLead(subst_table, neweqs, deterministic_model);
               return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
             }
           if (maxexolead1 == 0 && arg1->maxEndoLead() == 0
-              && maxexolead2 >= 1 && op_code == oTimes)
+              && maxexolead2 >= 1 && op_code == BinaryOpcode::times)
             {
               arg2subst = arg2->substituteExoLead(subst_table, neweqs, deterministic_model);
               return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
@@ -5016,7 +5016,7 @@ BinaryOpNode::walkPacParametersHelper(const expr_t arg1, const expr_t arg2,
   else if (endogs.size() >= 2)
     {
       auto *testarg2 = dynamic_cast<BinaryOpNode *>(arg2);
-      if (testarg2 != nullptr && testarg2->get_op_code() == oMinus)
+      if (testarg2 != nullptr && testarg2->get_op_code() == BinaryOpcode::minus)
         {
           auto *test_arg1 = dynamic_cast<VariableNode *>(testarg2->get_arg1());
           auto *test_arg2 = dynamic_cast<VariableNode *>(testarg2->get_arg2());
@@ -5035,7 +5035,7 @@ BinaryOpNode::walkPacParametersHelper(const expr_t arg1, const expr_t arg2,
 void
 BinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int>>> &ec_params_and_vars, set<pair<int, pair<int, int>>> &ar_params_and_vars) const
 {
-  if (op_code == oTimes)
+  if (op_code == BinaryOpcode::times)
     {
       int orig_ar_params_and_vars_size = ar_params_and_vars.size();
       int orig_ec_params_and_vars_size = ec_params_and_vars.size();
@@ -5044,7 +5044,7 @@ BinaryOpNode::walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<
           && (int)ec_params_and_vars.size() == orig_ec_params_and_vars_size)
         walkPacParametersHelper(arg2, arg1, lhs, ec_params_and_vars, ar_params_and_vars);
     }
-  else if (op_code == oEqual)
+  else if (op_code == BinaryOpcode::equal)
     {
       set<pair<int, int>> general_lhs;
       arg1->collectDynamicVariables(SymbolType::endogenous, general_lhs);
@@ -5145,7 +5145,7 @@ TrinaryOpNode::composeDerivatives(expr_t darg1, expr_t darg2, expr_t darg3)
 
   switch (op_code)
     {
-    case oNormcdf:
+    case TrinaryOpcode::normcdf:
       // normal pdf is inlined in the tree
       expr_t y;
       // sqrt(2*pi)
@@ -5180,7 +5180,7 @@ TrinaryOpNode::composeDerivatives(expr_t darg1, expr_t darg2, expr_t darg3)
       // (darg1/sigma - darg2/sigma - darg3*(x-mu)/sigma^2) * t15
       // where t15 is the derivative of a standardized normal
       return datatree.AddTimes(t11, t15);
-    case oNormpdf:
+    case TrinaryOpcode::normpdf:
       // (x - mu)
       t11 = datatree.AddMinus(arg1, arg2);
       // (x - mu)/sigma
@@ -5224,8 +5224,8 @@ TrinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_
 
   switch (op_code)
     {
-    case oNormcdf:
-    case oNormpdf:
+    case TrinaryOpcode::normcdf:
+    case TrinaryOpcode::normpdf:
       return 100;
     }
   // Suppress GCC warning
@@ -5268,16 +5268,16 @@ TrinaryOpNode::cost(int cost, bool is_matlab) const
     // Cost for Matlab files
     switch (op_code)
       {
-      case oNormcdf:
-      case oNormpdf:
+      case TrinaryOpcode::normcdf:
+      case TrinaryOpcode::normpdf:
         return cost+1000;
       }
   else
     // Cost for C files
     switch (op_code)
       {
-      case oNormcdf:
-      case oNormpdf:
+      case TrinaryOpcode::normcdf:
+      case TrinaryOpcode::normpdf:
         return cost+1000;
       }
   // Suppress GCC warning
@@ -5344,9 +5344,9 @@ TrinaryOpNode::eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v
 {
   switch (op_code)
     {
-    case oNormcdf:
+    case TrinaryOpcode::normcdf:
       return (0.5*(1+erf((v1-v2)/v3/M_SQRT2)));
-    case oNormpdf:
+    case TrinaryOpcode::normpdf:
       return (1/(v3*sqrt(2*M_PI)*exp(pow((v1-v2)/v3, 2)/2)));
     }
   // Suppress GCC warning
@@ -5390,7 +5390,7 @@ TrinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
   arg1->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic, tef_terms);
   arg2->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic, tef_terms);
   arg3->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, map_idx, dynamic, steady_dynamic, tef_terms);
-  FTRINARY_ ftrinary(op_code);
+  FTRINARY_ ftrinary{static_cast<int>(op_code)};
   ftrinary.write(CompileCode, instruction_number);
 }
 
@@ -5432,10 +5432,10 @@ TrinaryOpNode::writeJsonOutput(ostream &output,
 
   switch (op_code)
     {
-    case oNormcdf:
+    case TrinaryOpcode::normcdf:
       output << "normcdf(";
       break;
-    case oNormpdf:
+    case TrinaryOpcode::normpdf:
       output << "normpdf(";
       break;
     }
@@ -5459,7 +5459,7 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
   switch (op_code)
     {
-    case oNormcdf:
+    case TrinaryOpcode::normcdf:
       if (IS_C(output_type))
         {
           // In C, there is no normcdf() primitive, so use erf()
@@ -5482,7 +5482,7 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << ")";
         }
       break;
-    case oNormpdf:
+    case TrinaryOpcode::normpdf:
       if (IS_C(output_type))
         {
           //(1/(v3*sqrt(2*M_PI)*exp(pow((v1-v2)/v3,2)/2)))
@@ -5593,9 +5593,9 @@ TrinaryOpNode::buildSimilarTrinaryOpNode(expr_t alt_arg1, expr_t alt_arg2, expr_
 {
   switch (op_code)
     {
-    case oNormcdf:
+    case TrinaryOpcode::normcdf:
       return alt_datatree.AddNormcdf(alt_arg1, alt_arg2, alt_arg3);
-    case oNormpdf:
+    case TrinaryOpcode::normpdf:
       return alt_datatree.AddNormpdf(alt_arg1, alt_arg2, alt_arg3);
     }
   // Suppress GCC warning

@@ -3156,7 +3156,7 @@ ParsingDriver::is_there_one_integer_argument() const
         }
     }
   else
-    if (unaryNode->get_op_code() != oUminus)
+    if (unaryNode->get_op_code() != UnaryOpcode::uminus)
       return { false, 0 };
     else
       {
@@ -3516,25 +3516,25 @@ ParsingDriver::add_ramsey_constraints_statement()
 void
 ParsingDriver::ramsey_constraint_add_less(const string *name, const expr_t rhs)
 {
-  add_ramsey_constraint(name, oLess, rhs);
+  add_ramsey_constraint(name, BinaryOpcode::less, rhs);
 }
 
 void
 ParsingDriver::ramsey_constraint_add_greater(const string *name, const expr_t rhs)
 {
-  add_ramsey_constraint(name, oGreater, rhs);
+  add_ramsey_constraint(name, BinaryOpcode::greater, rhs);
 }
 
 void
 ParsingDriver::ramsey_constraint_add_less_equal(const string *name, const expr_t rhs)
 {
-  add_ramsey_constraint(name, oLessEqual, rhs);
+  add_ramsey_constraint(name, BinaryOpcode::lessEqual, rhs);
 }
 
 void
 ParsingDriver::ramsey_constraint_add_greater_equal(const string *name, const expr_t rhs)
 {
-  add_ramsey_constraint(name, oGreaterEqual, rhs);
+  add_ramsey_constraint(name, BinaryOpcode::greaterEqual, rhs);
 }
 
 void

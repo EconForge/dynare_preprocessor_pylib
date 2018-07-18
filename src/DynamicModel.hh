@@ -411,7 +411,7 @@ public:
   //! Transforms the model by removing all lags on exos
   void substituteExoLag(bool deterministic_model);
 
-  //! Transforms the model by removing all oExpectation
+  //! Transforms the model by removing all UnaryOpcode::expectation
   void substituteExpectation(bool partial_information_model);
 
   //! Transforms the model by decreasing the lead/lag of predetermined variables in model equations by one

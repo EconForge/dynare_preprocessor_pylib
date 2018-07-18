@@ -98,7 +98,7 @@ DataTree::AddPlus(expr_t iArg1, expr_t iArg2)
     {
       // Simplify x+(-y) in x-y
       auto *uarg2 = dynamic_cast<UnaryOpNode *>(iArg2);
-      if (uarg2 != nullptr && uarg2->get_op_code() == oUminus)
+      if (uarg2 != nullptr && uarg2->get_op_code() == UnaryOpcode::uminus)
         return AddMinus(iArg1, uarg2->get_arg());
 
       // To treat commutativity of "+"
@@ -109,7 +109,7 @@ DataTree::AddPlus(expr_t iArg1, expr_t iArg2)
           iArg1 = iArg2;
           iArg2 = tmp;
         }
-      return AddBinaryOp(iArg1, oPlus, iArg2);
+      return AddBinaryOp(iArg1, BinaryOpcode::plus, iArg2);
     }
   else if (iArg1 != Zero)
     return iArg1;
@@ -131,7 +131,7 @@ DataTree::AddMinus(expr_t iArg1, expr_t iArg2)
   if (iArg1 == iArg2)
     return Zero;
 
-  return AddBinaryOp(iArg1, oMinus, iArg2);
+  return AddBinaryOp(iArg1, BinaryOpcode::minus, iArg2);
 }
 
 expr_t
@@ -141,10 +141,10 @@ DataTree::AddUMinus(expr_t iArg1)
     {
       // Simplify -(-x) in x
       auto *uarg = dynamic_cast<UnaryOpNode *>(iArg1);
-      if (uarg != nullptr && uarg->get_op_code() == oUminus)
+      if (uarg != nullptr && uarg->get_op_code() == UnaryOpcode::uminus)
         return uarg->get_arg();
 
-      return AddUnaryOp(oUminus, iArg1);
+      return AddUnaryOp(UnaryOpcode::uminus, iArg1);
     }
   else
     return Zero;
@@ -167,7 +167,7 @@ DataTree::AddTimes(expr_t iArg1, expr_t iArg2)
           iArg1 = iArg2;
           iArg2 = tmp;
         }
-      return AddBinaryOp(iArg1, oTimes, iArg2);
+      return AddBinaryOp(iArg1, BinaryOpcode::times, iArg2);
     }
   else if (iArg1 != Zero && iArg1 != One && iArg2 == One)
     return iArg1;
@@ -198,50 +198,50 @@ DataTree::AddDivide(expr_t iArg1, expr_t iArg2) noexcept(false)
   if (iArg1 == iArg2)
     return One;
 
-  return AddBinaryOp(iArg1, oDivide, iArg2);
+  return AddBinaryOp(iArg1, BinaryOpcode::divide, iArg2);
 }
 
 expr_t
 DataTree::AddLess(expr_t iArg1, expr_t iArg2)
 {
-  return AddBinaryOp(iArg1, oLess, iArg2);
+  return AddBinaryOp(iArg1, BinaryOpcode::less, iArg2);
 }
 
 expr_t
 DataTree::AddGreater(expr_t iArg1, expr_t iArg2)
 {
-  return AddBinaryOp(iArg1, oGreater, iArg2);
+  return AddBinaryOp(iArg1, BinaryOpcode::greater, iArg2);
 }
 
 expr_t
 DataTree::AddLessEqual(expr_t iArg1, expr_t iArg2)
 {
-  return AddBinaryOp(iArg1, oLessEqual, iArg2);
+  return AddBinaryOp(iArg1, BinaryOpcode::lessEqual, iArg2);
 }
 
 expr_t
 DataTree::AddGreaterEqual(expr_t iArg1, expr_t iArg2)
 {
-  return AddBinaryOp(iArg1, oGreaterEqual, iArg2);
+  return AddBinaryOp(iArg1, BinaryOpcode::greaterEqual, iArg2);
 }
 
 expr_t
 DataTree::AddEqualEqual(expr_t iArg1, expr_t iArg2)
 {
-  return AddBinaryOp(iArg1, oEqualEqual, iArg2);
+  return AddBinaryOp(iArg1, BinaryOpcode::equalEqual, iArg2);
 }
 
 expr_t
 DataTree::AddDifferent(expr_t iArg1, expr_t iArg2)
 {
-  return AddBinaryOp(iArg1, oDifferent, iArg2);
+  return AddBinaryOp(iArg1, BinaryOpcode::different, iArg2);
 }
 
 expr_t
 DataTree::AddPower(expr_t iArg1, expr_t iArg2)
 {
   if (iArg1 != Zero && iArg2 != Zero && iArg1 != One && iArg2 != One)
-    return AddBinaryOp(iArg1, oPower, iArg2);
+    return AddBinaryOp(iArg1, BinaryOpcode::power, iArg2);
   else if (iArg1 == One)
     return One;
   else if (iArg2 == One)
@@ -256,26 +256,26 @@ expr_t
 DataTree::AddPowerDeriv(expr_t iArg1, expr_t iArg2, int powerDerivOrder)
 {
   assert(powerDerivOrder > 0);
-  return AddBinaryOp(iArg1, oPowerDeriv, iArg2, powerDerivOrder);
+  return AddBinaryOp(iArg1, BinaryOpcode::powerDeriv, iArg2, powerDerivOrder);
 }
 
 expr_t
 DataTree::AddDiff(expr_t iArg1)
 {
-  return AddUnaryOp(oDiff, iArg1);
+  return AddUnaryOp(UnaryOpcode::diff, iArg1);
 }
 
 expr_t
 DataTree::AddAdl(expr_t iArg1, const string &name, const vector<int> &lags)
 {
-  return AddUnaryOp(oAdl, iArg1, 0, 0, 0, string(name), lags);
+  return AddUnaryOp(UnaryOpcode::adl, iArg1, 0, 0, 0, string(name), lags);
 }
 
 expr_t
 DataTree::AddExp(expr_t iArg1)
 {
   if (iArg1 != Zero)
-    return AddUnaryOp(oExp, iArg1);
+    return AddUnaryOp(UnaryOpcode::exp, iArg1);
   else
     return One;
 }
@@ -284,7 +284,7 @@ expr_t
 DataTree::AddLog(expr_t iArg1)
 {
   if (iArg1 != Zero && iArg1 != One)
-    return AddUnaryOp(oLog, iArg1);
+    return AddUnaryOp(UnaryOpcode::log, iArg1);
   else if (iArg1 == One)
     return Zero;
   else
@@ -298,7 +298,7 @@ expr_t
 DataTree::AddLog10(expr_t iArg1)
 {
   if (iArg1 != Zero && iArg1 != One)
-    return AddUnaryOp(oLog10, iArg1);
+    return AddUnaryOp(UnaryOpcode::log10, iArg1);
   else if (iArg1 == One)
     return Zero;
   else
@@ -312,7 +312,7 @@ expr_t
 DataTree::AddCos(expr_t iArg1)
 {
   if (iArg1 != Zero)
-    return AddUnaryOp(oCos, iArg1);
+    return AddUnaryOp(UnaryOpcode::cos, iArg1);
   else
     return One;
 }
@@ -321,7 +321,7 @@ expr_t
 DataTree::AddSin(expr_t iArg1)
 {
   if (iArg1 != Zero)
-    return AddUnaryOp(oSin, iArg1);
+    return AddUnaryOp(UnaryOpcode::sin, iArg1);
   else
     return Zero;
 }
@@ -330,7 +330,7 @@ expr_t
 DataTree::AddTan(expr_t iArg1)
 {
   if (iArg1 != Zero)
-    return AddUnaryOp(oTan, iArg1);
+    return AddUnaryOp(UnaryOpcode::tan, iArg1);
   else
     return Zero;
 }
@@ -339,7 +339,7 @@ expr_t
 DataTree::AddAcos(expr_t iArg1)
 {
   if (iArg1 != One)
-    return AddUnaryOp(oAcos, iArg1);
+    return AddUnaryOp(UnaryOpcode::acos, iArg1);
   else
     return Zero;
 }
@@ -348,7 +348,7 @@ expr_t
 DataTree::AddAsin(expr_t iArg1)
 {
   if (iArg1 != Zero)
-    return AddUnaryOp(oAsin, iArg1);
+    return AddUnaryOp(UnaryOpcode::asin, iArg1);
   else
     return Zero;
 }
@@ -357,7 +357,7 @@ expr_t
 DataTree::AddAtan(expr_t iArg1)
 {
   if (iArg1 != Zero)
-    return AddUnaryOp(oAtan, iArg1);
+    return AddUnaryOp(UnaryOpcode::atan, iArg1);
   else
     return Zero;
 }
@@ -366,7 +366,7 @@ expr_t
 DataTree::AddCosh(expr_t iArg1)
 {
   if (iArg1 != Zero)
-    return AddUnaryOp(oCosh, iArg1);
+    return AddUnaryOp(UnaryOpcode::cosh, iArg1);
   else
     return One;
 }
@@ -375,7 +375,7 @@ expr_t
 DataTree::AddSinh(expr_t iArg1)
 {
   if (iArg1 != Zero)
-    return AddUnaryOp(oSinh, iArg1);
+    return AddUnaryOp(UnaryOpcode::sinh, iArg1);
   else
     return Zero;
 }
@@ -384,7 +384,7 @@ expr_t
 DataTree::AddTanh(expr_t iArg1)
 {
   if (iArg1 != Zero)
-    return AddUnaryOp(oTanh, iArg1);
+    return AddUnaryOp(UnaryOpcode::tanh, iArg1);
   else
     return Zero;
 }
@@ -393,7 +393,7 @@ expr_t
 DataTree::AddAcosh(expr_t iArg1)
 {
   if (iArg1 != One)
-    return AddUnaryOp(oAcosh, iArg1);
+    return AddUnaryOp(UnaryOpcode::acosh, iArg1);
   else
     return Zero;
 }
@@ -402,7 +402,7 @@ expr_t
 DataTree::AddAsinh(expr_t iArg1)
 {
   if (iArg1 != Zero)
-    return AddUnaryOp(oAsinh, iArg1);
+    return AddUnaryOp(UnaryOpcode::asinh, iArg1);
   else
     return Zero;
 }
@@ -411,7 +411,7 @@ expr_t
 DataTree::AddAtanh(expr_t iArg1)
 {
   if (iArg1 != Zero)
-    return AddUnaryOp(oAtanh, iArg1);
+    return AddUnaryOp(UnaryOpcode::atanh, iArg1);
   else
     return Zero;
 }
@@ -420,7 +420,7 @@ expr_t
 DataTree::AddSqrt(expr_t iArg1)
 {
   if (iArg1 != Zero)
-    return AddUnaryOp(oSqrt, iArg1);
+    return AddUnaryOp(UnaryOpcode::sqrt, iArg1);
   else
     return Zero;
 }
@@ -433,7 +433,7 @@ DataTree::AddAbs(expr_t iArg1)
   if (iArg1 == One)
     return One;
   else
-    return AddUnaryOp(oAbs, iArg1);
+    return AddUnaryOp(UnaryOpcode::abs, iArg1);
 }
 
 expr_t
@@ -444,14 +444,14 @@ DataTree::AddSign(expr_t iArg1)
   if (iArg1 == One)
     return One;
   else
-    return AddUnaryOp(oSign, iArg1);
+    return AddUnaryOp(UnaryOpcode::sign, iArg1);
 }
 
 expr_t
 DataTree::AddErf(expr_t iArg1)
 {
   if (iArg1 != Zero)
-    return AddUnaryOp(oErf, iArg1);
+    return AddUnaryOp(UnaryOpcode::erf, iArg1);
   else
     return Zero;
 }
@@ -459,49 +459,49 @@ DataTree::AddErf(expr_t iArg1)
 expr_t
 DataTree::AddMax(expr_t iArg1, expr_t iArg2)
 {
-  return AddBinaryOp(iArg1, oMax, iArg2);
+  return AddBinaryOp(iArg1, BinaryOpcode::max, iArg2);
 }
 
 expr_t
 DataTree::AddMin(expr_t iArg1, expr_t iArg2)
 {
-  return AddBinaryOp(iArg1, oMin, iArg2);
+  return AddBinaryOp(iArg1, BinaryOpcode::min, iArg2);
 }
 
 expr_t
 DataTree::AddNormcdf(expr_t iArg1, expr_t iArg2, expr_t iArg3)
 {
-  return AddTrinaryOp(iArg1, oNormcdf, iArg2, iArg3);
+  return AddTrinaryOp(iArg1, TrinaryOpcode::normcdf, iArg2, iArg3);
 }
 
 expr_t
 DataTree::AddNormpdf(expr_t iArg1, expr_t iArg2, expr_t iArg3)
 {
-  return AddTrinaryOp(iArg1, oNormpdf, iArg2, iArg3);
+  return AddTrinaryOp(iArg1, TrinaryOpcode::normpdf, iArg2, iArg3);
 }
 
 expr_t
 DataTree::AddSteadyState(expr_t iArg1)
 {
-  return AddUnaryOp(oSteadyState, iArg1);
+  return AddUnaryOp(UnaryOpcode::steadyState, iArg1);
 }
 
 expr_t
 DataTree::AddSteadyStateParamDeriv(expr_t iArg1, int param_symb_id)
 {
-  return AddUnaryOp(oSteadyStateParamDeriv, iArg1, 0, param_symb_id);
+  return AddUnaryOp(UnaryOpcode::steadyStateParamDeriv, iArg1, 0, param_symb_id);
 }
 
 expr_t
 DataTree::AddSteadyStateParam2ndDeriv(expr_t iArg1, int param1_symb_id, int param2_symb_id)
 {
-  return AddUnaryOp(oSteadyStateParam2ndDeriv, iArg1, 0, param1_symb_id, param2_symb_id);
+  return AddUnaryOp(UnaryOpcode::steadyStateParam2ndDeriv, iArg1, 0, param1_symb_id, param2_symb_id);
 }
 
 expr_t
 DataTree::AddExpectation(int iArg1, expr_t iArg2)
 {
-  return AddUnaryOp(oExpectation, iArg2, iArg1);
+  return AddUnaryOp(UnaryOpcode::expectation, iArg2, iArg1);
 }
 
 expr_t
@@ -529,7 +529,7 @@ DataTree::AddPacExpectation(const string &model_name)
 expr_t
 DataTree::AddEqual(expr_t iArg1, expr_t iArg2)
 {
-  return AddBinaryOp(iArg1, oEqual, iArg2);
+  return AddBinaryOp(iArg1, BinaryOpcode::equal, iArg2);
 }
 
 void
@@ -706,14 +706,14 @@ DataTree::minLagForSymbol(int symb_id) const
 void
 DataTree::writePowerDerivCHeader(ostream &output) const
 {
-  if (isBinaryOpUsed(oPowerDeriv))
+  if (isBinaryOpUsed(BinaryOpcode::powerDeriv))
     output << "double getPowerDeriv(double, double, int);" << endl;
 }
 
 void
 DataTree::writePowerDeriv(ostream &output) const
 {
-  if (isBinaryOpUsed(oPowerDeriv))
+  if (isBinaryOpUsed(BinaryOpcode::powerDeriv))
     output << "/*" << endl
            << " * The k-th derivative of x^p" << endl
            << " */" << endl
@@ -739,7 +739,7 @@ void
 DataTree::writeNormcdfCHeader(ostream &output) const
 {
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
-  if (isTrinaryOpUsed(oNormcdf))
+  if (isTrinaryOpUsed(TrinaryOpcode::normcdf))
     output << "#ifdef _MSC_VER" << endl
            << "double normcdf(double);" << endl
            << "#endif" << endl;
@@ -750,7 +750,7 @@ void
 DataTree::writeNormcdf(ostream &output) const
 {
 #if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
-  if (isTrinaryOpUsed(oNormcdf))
+  if (isTrinaryOpUsed(TrinaryOpcode::normcdf))
     output << endl
            << "#ifdef _MSC_VER" << endl
            << "/*" << endl

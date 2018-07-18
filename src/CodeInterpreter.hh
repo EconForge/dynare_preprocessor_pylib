@@ -174,59 +174,59 @@ enum ExpressionType
     ThirdParamDerivative
   };
 
-enum UnaryOpcode
+enum class UnaryOpcode
   {
-    oUminus,
-    oExp,
-    oLog,
-    oLog10,
-    oCos,
-    oSin,
-    oTan,
-    oAcos,
-    oAsin,
-    oAtan,
-    oCosh,
-    oSinh,
-    oTanh,
-    oAcosh,
-    oAsinh,
-    oAtanh,
-    oSqrt,
-    oAbs,
-    oSign,
-    oSteadyState,
-    oSteadyStateParamDeriv, // for the derivative of the STEADY_STATE operator w.r.t. to a parameter
-    oSteadyStateParam2ndDeriv, // for the 2nd derivative of the STEADY_STATE operator w.r.t. to a parameter
-    oExpectation,
-    oErf,
-    oDiff,
-    oAdl
+    uminus,
+    exp,
+    log,
+    log10,
+    cos,
+    sin,
+    tan,
+    acos,
+    asin,
+    atan,
+    cosh,
+    sinh,
+    tanh,
+    acosh,
+    asinh,
+    atanh,
+    sqrt,
+    abs,
+    sign,
+    steadyState,
+    steadyStateParamDeriv, // for the derivative of the STEADY_STATE operator w.r.t. to a parameter
+    steadyStateParam2ndDeriv, // for the 2nd derivative of the STEADY_STATE operator w.r.t. to a parameter
+    expectation,
+    erf,
+    diff,
+    adl
   };
 
-enum BinaryOpcode
+enum class BinaryOpcode
   {
-    oPlus,
-    oMinus,
-    oTimes,
-    oDivide,
-    oPower,
-    oPowerDeriv, // for the derivative of the power function (see trac ticket #78)
-    oEqual,
-    oMax,
-    oMin,
-    oLess,
-    oGreater,
-    oLessEqual,
-    oGreaterEqual,
-    oEqualEqual,
-    oDifferent
+    plus,
+    minus,
+    times,
+    divide,
+    power,
+    powerDeriv, // for the derivative of the power function (see trac ticket #78)
+    equal,
+    max,
+    min,
+    less,
+    greater,
+    lessEqual,
+    greaterEqual,
+    equalEqual,
+    different
   };
 
-enum TrinaryOpcode
+enum class TrinaryOpcode
   {
-    oNormcdf,
-    oNormpdf
+    normcdf,
+    normpdf
   };
 
 enum external_function_type

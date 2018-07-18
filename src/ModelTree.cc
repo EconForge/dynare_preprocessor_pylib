@@ -1587,7 +1587,7 @@ ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_n
           lhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, dynamic, steady_dynamic);
           rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, dynamic, steady_dynamic);
 
-          FBINARY_ fbinary(oMinus);
+          FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
           fbinary.write(code_file, instruction_number);
 
           FSTPR_ fstpr(eq);
@@ -1729,7 +1729,7 @@ void
 ModelTree::addEquation(expr_t eq, int lineno)
 {
   auto *beq = dynamic_cast<BinaryOpNode *>(eq);
-  assert(beq != nullptr && beq->get_op_code() == oEqual);
+  assert(beq != nullptr && beq->get_op_code() == BinaryOpcode::equal);
 
   equations.push_back(beq);
   equations_lineno.push_back(lineno);
@@ -1748,7 +1748,7 @@ void
 ModelTree::addAuxEquation(expr_t eq)
 {
   auto *beq = dynamic_cast<BinaryOpNode *>(eq);
-  assert(beq != nullptr && beq->get_op_code() == oEqual);
+  assert(beq != nullptr && beq->get_op_code() == BinaryOpcode::equal);
 
   aux_equations.push_back(beq);
 }

@@ -273,29 +273,29 @@ ModFile::checkPass(bool nostrict, bool stochastic)
     }
 
   if (stochastic_statement_present
-      && (dynamic_model.isUnaryOpUsed(oSign)
-          || dynamic_model.isUnaryOpUsed(oAbs)
-          || dynamic_model.isBinaryOpUsed(oMax)
-          || dynamic_model.isBinaryOpUsed(oMin)
-          || dynamic_model.isBinaryOpUsed(oGreater)
-          || dynamic_model.isBinaryOpUsed(oLess)
-          || dynamic_model.isBinaryOpUsed(oGreaterEqual)
-          || dynamic_model.isBinaryOpUsed(oLessEqual)
-          || dynamic_model.isBinaryOpUsed(oEqualEqual)
-          || dynamic_model.isBinaryOpUsed(oDifferent)))
+      && (dynamic_model.isUnaryOpUsed(UnaryOpcode::sign)
+          || dynamic_model.isUnaryOpUsed(UnaryOpcode::abs)
+          || dynamic_model.isBinaryOpUsed(BinaryOpcode::max)
+          || dynamic_model.isBinaryOpUsed(BinaryOpcode::min)
+          || dynamic_model.isBinaryOpUsed(BinaryOpcode::greater)
+          || dynamic_model.isBinaryOpUsed(BinaryOpcode::less)
+          || dynamic_model.isBinaryOpUsed(BinaryOpcode::greaterEqual)
+          || dynamic_model.isBinaryOpUsed(BinaryOpcode::lessEqual)
+          || dynamic_model.isBinaryOpUsed(BinaryOpcode::equalEqual)
+          || dynamic_model.isBinaryOpUsed(BinaryOpcode::different)))
     warnings << "WARNING: you are using a function (max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) which is unsuitable for a stochastic context; see the reference manual, section about \"Expressions\", for more details." << endl;
 
   if (linear
-      && (dynamic_model.isUnaryOpUsed(oSign)
-          || dynamic_model.isUnaryOpUsed(oAbs)
-          || dynamic_model.isBinaryOpUsed(oMax)
-          || dynamic_model.isBinaryOpUsed(oMin)
-          || dynamic_model.isBinaryOpUsed(oGreater)
-          || dynamic_model.isBinaryOpUsed(oLess)
-          || dynamic_model.isBinaryOpUsed(oGreaterEqual)
-          || dynamic_model.isBinaryOpUsed(oLessEqual)
-          || dynamic_model.isBinaryOpUsed(oEqualEqual)
-          || dynamic_model.isBinaryOpUsed(oDifferent)))
+      && (dynamic_model.isUnaryOpUsed(UnaryOpcode::sign)
+          || dynamic_model.isUnaryOpUsed(UnaryOpcode::abs)
+          || dynamic_model.isBinaryOpUsed(BinaryOpcode::max)
+          || dynamic_model.isBinaryOpUsed(BinaryOpcode::min)
+          || dynamic_model.isBinaryOpUsed(BinaryOpcode::greater)
+          || dynamic_model.isBinaryOpUsed(BinaryOpcode::less)
+          || dynamic_model.isBinaryOpUsed(BinaryOpcode::greaterEqual)
+          || dynamic_model.isBinaryOpUsed(BinaryOpcode::lessEqual)
+          || dynamic_model.isBinaryOpUsed(BinaryOpcode::equalEqual)
+          || dynamic_model.isBinaryOpUsed(BinaryOpcode::different)))
     warnings << "WARNING: you have declared your model 'linear' but you are using a function (max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) which potentially makes it non-linear." << endl;
 
   // Test if some estimated parameters are used within the values of shocks
@@ -905,17 +905,17 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   // If using USE_DLL with MSVC 10.0 or earlier, check that the user didn't use a function not supported by the compiler (because MSVC <= 10.0 doesn't comply with C99 standard)
   if (use_dll && msvc)
     {
-      if (dynamic_model.isUnaryOpUsed(oAcosh))
+      if (dynamic_model.isUnaryOpUsed(UnaryOpcode::acosh))
         {
           cerr << "ERROR: acosh() function is not supported with USE_DLL option and older MSVC compilers; use Cygwin, MinGW or upgrade your MSVC compiler to 11.0 (2012) or later." << endl;
           exit(EXIT_FAILURE);
         }
-      if (dynamic_model.isUnaryOpUsed(oAsinh))
+      if (dynamic_model.isUnaryOpUsed(UnaryOpcode::asinh))
         {
           cerr << "ERROR: asinh() function is not supported with USE_DLL option and older MSVC compilers; use Cygwin, MinGW or upgrade your MSVC compiler to 11.0 (2012) or later." << endl;
           exit(EXIT_FAILURE);
         }
-      if (dynamic_model.isUnaryOpUsed(oAtanh))
+      if (dynamic_model.isUnaryOpUsed(UnaryOpcode::atanh))
         {
           cerr << "ERROR: atanh() function is not supported with USE_DLL option and older MSVC compilers; use Cygwin, MinGW or upgrade your MSVC compiler to 11.0 (2012) or later." << endl;
           exit(EXIT_FAILURE);

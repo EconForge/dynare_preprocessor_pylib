@@ -946,16 +946,16 @@ RamseyConstraintsStatement::writeOutput(ostream &output, const string &basename,
       output << "{" << it->endo + 1 << ", '";
       switch (it->code)
         {
-        case oLess:
+        case BinaryOpcode::less:
           output << '<';
           break;
-        case oGreater:
+        case BinaryOpcode::greater:
           output << '>';
           break;
-        case oLessEqual:
+        case BinaryOpcode::lessEqual:
           output << "<=";
           break;
-        case oGreaterEqual:
+        case BinaryOpcode::greaterEqual:
           output << ">=";
           break;
         default:
@@ -981,16 +981,16 @@ RamseyConstraintsStatement::writeJsonOutput(ostream &output) const
       output << "{\"constraint\": \"" << symbol_table.getName(it->endo) << " ";
       switch (it->code)
         {
-        case oLess:
+        case BinaryOpcode::less:
           output << '<';
           break;
-        case oGreater:
+        case BinaryOpcode::greater:
           output << '>';
           break;
-        case oLessEqual:
+        case BinaryOpcode::lessEqual:
           output << "<=";
           break;
-        case oGreaterEqual:
+        case BinaryOpcode::greaterEqual:
           output << ">=";
           break;
         default:

@@ -726,7 +726,7 @@ private:
   const expr_t arg;
   //! Stores the information set. Only used for expectation operator
   const int expectation_information_set;
-  //! Only used for oSteadyStateParamDeriv and oSteadyStateParam2ndDeriv
+  //! Only used for UnaryOpcode::steadyStateParamDeriv and UnaryOpcode::steadyStateParam2ndDeriv
   const int param1_symb_id, param2_symb_id;
   const UnaryOpcode op_code;
   const string adl_param_name;
