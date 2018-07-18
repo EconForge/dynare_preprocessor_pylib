@@ -20,7 +20,7 @@
 #ifndef _EXTENDED_PREPROCESSOR_TYPES_HH
 #define _EXTENDED_PREPROCESSOR_TYPES_HH
 
-enum FileOutputType
+enum class FileOutputType
   {
     none,                             // outputs files for Matlab/Octave processing
     dynamic,                          // outputs <fname>_dynamic.* and related files
@@ -29,7 +29,7 @@ enum FileOutputType
     third,                            // outputs <fname>_first_derivatives.*, <fname>_second_derivatives.*, <fname>_third_derivatives.*  and related files
   };
 
-enum LanguageOutputType
+enum class LanguageOutputType
   {
     matlab,                           // outputs files for Matlab/Octave processing
     cuda,                             // outputs files for CUDA (not yet implemented)
@@ -37,13 +37,13 @@ enum LanguageOutputType
     python,                           // outputs files for Python (not yet implemented) (not yet implemented)
   };
 
-enum JsonFileOutputType
+enum class JsonFileOutputType
   {
     file,                             // output JSON files to file
     standardout,                      // output JSON files to stdout
   };
 
-enum JsonOutputPointType
+enum class JsonOutputPointType
   {
     nojson,                            // don't output JSON
     parsing,                           // output JSON after the parsing step

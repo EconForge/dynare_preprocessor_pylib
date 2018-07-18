@@ -2265,7 +2265,7 @@ PlannerObjectiveStatement::getPlannerObjective() const
 void
 PlannerObjectiveStatement::computingPass()
 {
-  model_tree->computingPass(eval_context_t(), false, true, true, none, false, false, false);
+  model_tree->computingPass({}, false, true, true, 0, false, false, false);
   computing_pass_called = true;
 }
 

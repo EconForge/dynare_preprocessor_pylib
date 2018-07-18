@@ -117,12 +117,12 @@ main(int argc, char **argv)
   bool transform_unary_ops = false;
   map<string, string> defines;
   vector<string> path;
-  FileOutputType output_mode = none;
-  JsonOutputPointType json = nojson;
-  JsonFileOutputType json_output_mode = file;
+  FileOutputType output_mode{FileOutputType::none};
+  JsonOutputPointType json{JsonOutputPointType::nojson};
+  JsonFileOutputType json_output_mode{JsonFileOutputType::file};
   bool onlyjson = false;
   bool jsonderivsimple = false;
-  LanguageOutputType language = matlab;
+  LanguageOutputType language{LanguageOutputType::matlab};
   bool nopreprocessoroutput = false;
 
   // Parse options
@@ -265,13 +265,13 @@ main(int argc, char **argv)
               usage();
             }
           if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 7, "dynamic", 7))
-            output_mode = dynamic;
+            output_mode = FileOutputType::dynamic;
           else if (strlen(argv[arg]) ==  12 && !strncmp(argv[arg] + 7, "first", 5))
-            output_mode = first;
+            output_mode = FileOutputType::first;
           else if (strlen(argv[arg]) == 13 && !strncmp(argv[arg] + 7, "second", 6))
-            output_mode = second;
+            output_mode = FileOutputType::second;
           else if (strlen(argv[arg]) == 12 && !strncmp(argv[arg] + 7, "third", 5))
-            output_mode = third;
+            output_mode = FileOutputType::third;
           else
             {
               cerr << "Incorrect syntax for output option" << endl;
@@ -287,15 +287,15 @@ main(int argc, char **argv)
             }
 
           if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 9, "julia", 5))
-            language = julia;
+            language = LanguageOutputType::julia;
           else
             {
               // we don't want temp terms in external functions (except Julia)
               no_tmp_terms = true;
               if (strlen(argv[arg]) == 13 && !strncmp(argv[arg] + 9, "cuda", 4))
-                language = cuda;
+                language = LanguageOutputType::cuda;
               else if (strlen(argv[arg]) == 15 && !strncmp(argv[arg] + 9, "python", 6))
-                language = python;
+                language = LanguageOutputType::python;
               else
                 {
                   cerr << "Incorrect syntax for language option" << endl;
@@ -304,7 +304,7 @@ main(int argc, char **argv)
             }
         }
       else if (!strcmp(argv[arg], "jsonstdout"))
-        json_output_mode = standardout;
+        json_output_mode = JsonFileOutputType::standardout;
       else if (!strcmp(argv[arg], "onlyjson"))
         onlyjson = true;
       else if (!strcmp(argv[arg], "nopreprocessoroutput"))
@@ -319,13 +319,13 @@ main(int argc, char **argv)
               usage();
             }
           if (strlen(argv[arg]) == 10 && !strncmp(argv[arg] + 5, "parse", 5))
-            json = parsing;
+            json = JsonOutputPointType::parsing;
           else if (strlen(argv[arg]) ==  10 && !strncmp(argv[arg] + 5, "check", 5))
-            json = checkpass;
+            json = JsonOutputPointType::checkpass;
           else if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 5, "transform", 9))
-            json = transformpass;
+            json = JsonOutputPointType::transformpass;
           else if (strlen(argv[arg]) == 12 && !strncmp(argv[arg] + 5, "compute", 7))
-            json = computingpass;
+            json = JsonOutputPointType::computingpass;
           else
             {
               cerr << "Incorrect syntax for json option" << endl;

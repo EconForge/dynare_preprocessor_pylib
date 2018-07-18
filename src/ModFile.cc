@@ -677,7 +677,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
           || mod_file_struct.calib_smoother_present)
         {
           if (mod_file_struct.perfect_foresight_solver_present)
-            dynamic_model.computingPass(true, false, false, none, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput);
+            dynamic_model.computingPass(true, false, false, 0, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput);
           else
             {
               if (mod_file_struct.stoch_simul_present
@@ -694,11 +694,11 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
                 || mod_file_struct.identification_present
                 || mod_file_struct.estimation_analytic_derivation
                 || linear
-                || output == second
-                || output == third;
+                || output == FileOutputType::second
+                || output == FileOutputType::third;
               bool thirdDerivatives = mod_file_struct.order_option == 3
                 || mod_file_struct.estimation_analytic_derivation
-                || output == third;
+                || output == FileOutputType::third;
               int paramsDerivsOrder = 0;
               if (mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation)
                 paramsDerivsOrder = params_derivs_order;
@@ -708,7 +708,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
             }
         }
       else // No computing task requested, compute derivatives up to 2nd order by default
-        dynamic_model.computingPass(true, true, false, none, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput);
+        dynamic_model.computingPass(true, true, false, 0, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput);
 
       map<int, string> eqs;
       if (mod_file_struct.ramsey_model_present)
@@ -1061,7 +1061,7 @@ ModFile::writeExternalFiles(const string &basename, FileOutputType output, Langu
 {
   switch (language)
     {
-    case julia:
+    case LanguageOutputType::julia:
       writeExternalFilesJulia(basename, output, nopreprocessoroutput);
       break;
     default:
@@ -1201,44 +1201,44 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output, 
 void
 ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, const bool nopreprocessoroutput, bool jsonderivsimple)
 {
-  if (json == nojson)
+  if (json == JsonOutputPointType::nojson)
     return;
 
-  if (json == parsing || json == checkpass)
+  if (json == JsonOutputPointType::parsing || json == JsonOutputPointType::checkpass)
     symbol_table.freeze();
 
-  if (json_output_mode == standardout)
+  if (json_output_mode == JsonFileOutputType::standardout)
     cout << "//-- BEGIN JSON --// " << endl
          << "{" << endl;
 
-  writeJsonOutputParsingCheck(basename, json_output_mode, json == transformpass, json == computingpass);
+  writeJsonOutputParsingCheck(basename, json_output_mode, json == JsonOutputPointType::transformpass, json == JsonOutputPointType::computingpass);
 
-  if (json == parsing || json == checkpass)
+  if (json == JsonOutputPointType::parsing || json == JsonOutputPointType::checkpass)
     symbol_table.unfreeze();
 
-  if (json == computingpass)
+  if (json == JsonOutputPointType::computingpass)
     writeJsonComputingPassOutput(basename, json_output_mode, jsonderivsimple);
 
-  if (json_output_mode == standardout)
+  if (json_output_mode == JsonFileOutputType::standardout)
     cout << "}" << endl
          << "//-- END JSON --// " << endl;
 
   if (!nopreprocessoroutput)
     switch (json)
       {
-      case parsing:
+      case JsonOutputPointType::parsing:
         cout << "JSON written after Parsing step." << endl;
         break;
-      case checkpass:
+      case JsonOutputPointType::checkpass:
         cout << "JSON written after Check step." << endl;
         break;
-      case transformpass:
+      case JsonOutputPointType::transformpass:
         cout << "JSON written after Transform step." << endl;
         break;
-      case computingpass:
+      case JsonOutputPointType::computingpass:
         cout << "JSON written after Computing step." << endl;
         break;
-      case nojson:
+      case JsonOutputPointType::nojson:
         cerr << "ModFile::writeJsonOutput: should not arrive here." << endl;
         exit(EXIT_FAILURE);
       }
@@ -1292,7 +1292,7 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
     steady_state_model.writeJsonSteadyStateFile(steady_state_model_output,
                                                 transformpass || computingpass);
 
-  if (json_output_mode == standardout)
+  if (json_output_mode == JsonFileOutputType::standardout)
     {
       if (transformpass || computingpass)
         cout << "\"transformed_modfile\": ";
@@ -1376,7 +1376,7 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
 void
 ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType json_output_mode, bool jsonderivsimple) const
 {
-  if (basename.empty() && json_output_mode != standardout)
+  if (basename.empty() && json_output_mode != JsonFileOutputType::standardout)
     {
       cerr << "ERROR: Missing file name" << endl;
       exit(EXIT_FAILURE);
@@ -1404,7 +1404,7 @@ ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType
   if (!tmp_out.str().empty())
     dynamic_paramsd_output << "{" << tmp_out.str() << "}" << endl;
 
-  if (json_output_mode == standardout)
+  if (json_output_mode == JsonFileOutputType::standardout)
     {
       cout << ", \"static_model\": " << static_output.str() << endl
            << ", \"dynamic_model\": " << dynamic_output.str() << endl;

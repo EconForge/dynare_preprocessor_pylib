@@ -46,17 +46,17 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
 
   // Do parsing and construct internal representation of mod file
   ModFile *mod_file = p.parse(in, debug);
-  if (json == parsing)
+  if (json == JsonOutputPointType::parsing)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, nopreprocessoroutput);
 
   // Run checking pass
   mod_file->checkPass(nostrict, stochastic);
-  if (json == checkpass)
+  if (json == JsonOutputPointType::checkpass)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, nopreprocessoroutput);
 
   // Perform transformations on the model (creation of auxiliary vars and equations)
-  mod_file->transformPass(nostrict, stochastic, compute_xrefs || json == transformpass, nopreprocessoroutput, transform_unary_ops);
-  if (json == transformpass)
+  mod_file->transformPass(nostrict, stochastic, compute_xrefs || json == JsonOutputPointType::transformpass, nopreprocessoroutput, transform_unary_ops);
+  if (json == JsonOutputPointType::transformpass)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, nopreprocessoroutput);
 
   // Evaluate parameters initialization, initval, endval and pounds
@@ -64,11 +64,11 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
 
   // Do computations
   mod_file->computingPass(no_tmp_terms, output_mode, params_derivs_order, nopreprocessoroutput);
-  if (json == computingpass)
+  if (json == JsonOutputPointType::computingpass)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, nopreprocessoroutput, jsonderivsimple);
 
   // Write outputs
-  if (output_mode != none)
+  if (output_mode != FileOutputType::none)
     mod_file->writeExternalFiles(basename, output_mode, language, nopreprocessoroutput);
   else
     mod_file->writeOutputFiles(basename, clear_all, clear_global, no_log, no_warn, console, nograph,
