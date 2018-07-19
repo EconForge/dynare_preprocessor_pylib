@@ -375,15 +375,7 @@ ParsingDriver::add_equation_tags(string *key, string *value)
   if (key->compare("endogenous") == 0)
     declare_or_change_type(SymbolType::endogenous, value);
 
-  else if (key->compare("exogenous") == 0)
-    declare_or_change_type(SymbolType::exogenous, value);
-
-  else if (key->compare("parameter") == 0)
-    declare_or_change_type(SymbolType::parameter, value);
-
-  if (!(key->compare("endogenous") == 0
-        || key->compare("exogenous") == 0
-        || key->compare("parameter") == 0))
+  if (!(key->compare("endogenous") == 0))
     delete value;
 
   delete key;
