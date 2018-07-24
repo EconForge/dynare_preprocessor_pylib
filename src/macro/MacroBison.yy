@@ -17,7 +17,7 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-%skeleton "lalr1.cc"
+%language "c++"
 %require "2.5"
 %defines
 
