@@ -155,11 +155,8 @@ class MacroDriver
 {
   friend class MacroValue;
 private:
-  //! Stores all created macro values
-  set<const MacroValue *> values;
-
   // The map defining an environment
-  using env_t = map<string, const MacroValue *>;
+  using env_t = map<string, MacroValuePtr>;
 
   //! Environment: maps macro variables to their values
   env_t env;
@@ -169,7 +166,7 @@ private:
 
   //! Stack used to keep track of (possibly nested) loops
   //! First element is loop variable name, second is the array over which iteration is done, and third is subscript to be used by next call of iter_loop() (beginning with 0) */
-  stack<pair<string, pair<const MacroValue *, int>>> loop_stack;
+  stack<tuple<string, shared_ptr<ArrayMV>, int>> loop_stack;
 public:
   //! Exception thrown when value of an unknown variable is requested
   class UnknownVariable
@@ -180,12 +177,6 @@ public:
     {
     }
   };
-
-  //! Constructor
-  MacroDriver();
-  //! Destructor
-  virtual
-  ~MacroDriver();
 
   //! Starts parsing a file, returns output in out
   /*! \param no_line_macro should we omit the @#line statements ? */
@@ -202,7 +193,7 @@ public:
   bool no_line_macro;
 
   //! Reference to the lexer
-  class MacroFlex *lexer;
+  unique_ptr<MacroFlex> lexer;
 
   //! Used to store the value of the last @#if condition
   bool last_if;
@@ -214,14 +205,14 @@ public:
   string printvars(const Macro::parser::location_type &l, const bool save) const;
 
   //! Set a variable
-  void set_variable(const string &name, const MacroValue *value);
+  void set_variable(const string &name, MacroValuePtr value);
 
   //! Replace "@{x}" with the value of x (if it exists in the environment) in a string
   //! Check for variable existence first in func_env before checking in env
   string replace_vars_in_str(const string &s) const;
 
   //! Set a function with arguments
-  void set_string_function(const string &name, vector<string> &args, const MacroValue *value);
+  void set_string_function(const string &name, vector<string> &args, const MacroValuePtr &value);
 
   //! Push function arguments onto func_env stack setting equal to NULL
   void push_args_into_func_env(const vector<string> &args);
@@ -230,22 +221,21 @@ public:
   void pop_func_env();
 
   //! Evaluate a function with arguments
-  const StringMV *eval_string_function(const string &name, const MacroValue *args);
+  MacroValuePtr eval_string_function(const string &name, const vector<MacroValuePtr> &args);
 
   //! Get a variable
-  /*! Returns a newly allocated value (clone of the value stored in environment). */
-  const MacroValue *get_variable(const string &name) const noexcept(false);
+  MacroValuePtr get_variable(const string &name) const noexcept(false);
 
   //! Initiate a for loop
   /*! Does not set name = value[1]. You must call iter_loop() for that. */
-  void init_loop(const string &name, const MacroValue *value) noexcept(false);
+  void init_loop(const string &name, MacroValuePtr value) noexcept(false);
 
   //! Iterate innermost loop
   /*! Returns false if iteration is no more possible (end of loop); in that case it destroys the pointer given to init_loop() */
   bool iter_loop();
 
   //! Begins an @#if statement
-  void begin_if(const MacroValue *value) noexcept(false);
+  void begin_if(const MacroValuePtr &value) noexcept(false);
 
   //! Begins an @#ifdef statement
   void begin_ifdef(const string &name);
@@ -254,10 +244,10 @@ public:
   void begin_ifndef(const string &name);
 
   //! Executes @#echo directive
-  void echo(const Macro::parser::location_type &l, const MacroValue *value) const noexcept(false);
+  void echo(const Macro::parser::location_type &l, const MacroValuePtr &value) const noexcept(false);
 
   //! Executes @#error directive
-  void error(const Macro::parser::location_type &l, const MacroValue *value) const noexcept(false);
+  void error(const Macro::parser::location_type &l, const MacroValuePtr &value) const noexcept(false);
 };
 
 #endif // ! MACRO_DRIVER_HH

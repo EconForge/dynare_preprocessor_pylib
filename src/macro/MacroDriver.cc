@@ -26,15 +26,6 @@
 
 #include "MacroDriver.hh"
 
-MacroDriver::MacroDriver()
-= default;
-
-MacroDriver::~MacroDriver()
-{
-  for (auto value : values)
-    delete value;
-}
-
 void
 MacroDriver::parse(const string &f, const string &fb, const string &modfiletxt,
                    ostream &out, bool debug, bool no_line_macro_arg, map<string, string> defines,
@@ -66,7 +57,7 @@ MacroDriver::parse(const string &f, const string &fb, const string &modfiletxt,
       }
   file_with_endl << modfiletxt << endl;
 
-  lexer = new MacroFlex(&file_with_endl, &out, no_line_macro, path);
+  lexer = make_unique<MacroFlex>(&file_with_endl, &out, no_line_macro, path);
   lexer->set_debug(debug);
 
   Macro::parser parser(*this, out);
@@ -78,8 +69,6 @@ MacroDriver::parse(const string &f, const string &fb, const string &modfiletxt,
 
   // Launch macro-processing
   parser.parse();
-
-  delete lexer;
 }
 
 void
@@ -93,7 +82,7 @@ string
 MacroDriver::replace_vars_in_str(const string &s) const
 {
   if (s.find("@") == string::npos)
-    return string(s);
+    return s;
 
   string retval(s);
   smatch name;
@@ -107,7 +96,7 @@ MacroDriver::replace_vars_in_str(const string &s) const
       regex_search(macro, name, name_regex);
       try
         {
-          const MacroValue *mv = nullptr;
+          MacroValuePtr mv;
           bool found_in_func_env = false;
           for (unsigned i = func_env.size(); i-- > 0;)
             {
@@ -122,7 +111,7 @@ MacroDriver::replace_vars_in_str(const string &s) const
           if (!found_in_func_env)
             mv = get_variable(name.str());
 
-          if (mv != nullptr)
+          if (mv)
             {
               // mv will equal nullptr if we have
               // @#define y = 1
@@ -141,28 +130,27 @@ MacroDriver::replace_vars_in_str(const string &s) const
 }
 
 void
-MacroDriver::set_string_function(const string &name, vector<string> &args, const MacroValue *value)
+MacroDriver::set_string_function(const string &name, vector<string> &args, const MacroValuePtr &value)
 {
-  auto *smv = dynamic_cast<const StringMV *>(value);
+  auto smv = dynamic_pointer_cast<StringMV>(value);
   if (!smv)
     throw MacroValue::TypeError("The definition of a macro function must evaluate to a string");
 
-  env[name] = new FuncMV(*this, args, *(const_cast<StringMV *>(smv)));
+  env[name] = make_shared<FuncMV>(args, smv->value);
 }
 
-const StringMV *
-MacroDriver::eval_string_function(const string &name, const MacroValue *args)
+MacroValuePtr
+MacroDriver::eval_string_function(const string &name, const vector<MacroValuePtr> &args)
 {
   auto it = env.find(name);
   if (it == env.end())
     throw UnknownVariable(name);
 
-  const auto *fmv = dynamic_cast<const FuncMV *>(env[name]);
+  auto fmv = dynamic_pointer_cast<FuncMV>(it->second);
   if (!fmv)
     throw MacroValue::TypeError("You are using " + name + " as if it were a macro function");
 
-  vector<string> func_args = fmv->get_args();
-  if (func_args.size() != (size_t)dynamic_cast<const IntMV *>(args->length())->get_int_value())
+  if (fmv->args.size() != args.size())
     {
       cerr << "Macroprocessor: The evaluation of: " << name << " could not be completed" << endl
            << "because the number of arguments provided is different than the number of" << endl
@@ -172,11 +160,11 @@ MacroDriver::eval_string_function(const string &name, const MacroValue *args)
 
   int i = 0;
   env_t func_env_map;
-  for (const auto it : func_args)
-    func_env_map[it] = args->at(i++);
+  for (const auto it : fmv->args)
+    func_env_map[it] = args[i++];
 
   func_env.push_back(func_env_map);
-  StringMV *smv = new StringMV(*this, replace_vars_in_str(fmv->toString()));
+  auto smv = make_shared<StringMV>(replace_vars_in_str(fmv->toString()));
   pop_func_env();
   return smv;
 }
@@ -186,7 +174,7 @@ MacroDriver::push_args_into_func_env(const vector<string> &args)
 {
   env_t func_env_map;
   for (const auto it : args)
-    func_env_map[it] = NULL;
+    func_env_map[it] = MacroValuePtr();
   func_env.push_back(func_env_map);
 }
 
@@ -197,12 +185,12 @@ MacroDriver::pop_func_env()
 }
 
 void
-MacroDriver::set_variable(const string &name, const MacroValue *value)
+MacroDriver::set_variable(const string &name, MacroValuePtr value)
 {
-  env[name] = value;
+  env[name] = move(value);
 }
 
-const MacroValue *
+MacroValuePtr
 MacroDriver::get_variable(const string &name) const noexcept(false)
 {
   auto it = env.find(name);
@@ -212,13 +200,12 @@ MacroDriver::get_variable(const string &name) const noexcept(false)
 }
 
 void
-MacroDriver::init_loop(const string &name, const MacroValue *value) noexcept(false)
+MacroDriver::init_loop(const string &name, MacroValuePtr value) noexcept(false)
 {
-  const auto *mv1 = dynamic_cast<const ArrayMV<int> *>(value);
-  const auto *mv2 = dynamic_cast<const ArrayMV<string> *>(value);
-  if (!mv1 && !mv2)
+  auto mv = dynamic_pointer_cast<ArrayMV>(value);
+  if (!mv)
     throw MacroValue::TypeError("Argument of @#for loop must be an array expression");
-  loop_stack.emplace(name, make_pair(value, 0));
+  loop_stack.emplace(name, move(mv), 0);
 }
 
 bool
@@ -227,44 +214,26 @@ MacroDriver::iter_loop()
   if (loop_stack.empty())
     throw "No loop on which to iterate!";
 
-  int &i = loop_stack.top().second.second;
-  const MacroValue *mv = loop_stack.top().second.first;
-  string name = loop_stack.top().first;
+  int &i = get<2>(loop_stack.top());
+  auto mv = get<1>(loop_stack.top());
+  string &name = get<0>(loop_stack.top());
 
-  const auto *mv1 = dynamic_cast<const ArrayMV<int> *>(mv);
-  if (mv1)
+  if (i >= static_cast<int>(mv->values.size()))
     {
-      if (i >= (int) mv1->values.size())
-        {
-          loop_stack.pop();
-          return false;
-        }
-      else
-        {
-          env[name] = new IntMV(*this, mv1->values[i++]);
-          return true;
-        }
+      loop_stack.pop();
+      return false;
     }
   else
     {
-      const auto *mv2 = dynamic_cast<const ArrayMV<string> *>(mv);
-      if (i >= (int) mv2->values.size())
-        {
-          loop_stack.pop();
-          return false;
-        }
-      else
-        {
-          env[name] = new StringMV(*this, mv2->values[i++]);
-          return true;
-        }
+      env[name] = mv->values[i++];
+      return true;
     }
 }
 
 void
-MacroDriver::begin_if(const MacroValue *value) noexcept(false)
+MacroDriver::begin_if(const MacroValuePtr &value) noexcept(false)
 {
-  const auto *ival = dynamic_cast<const IntMV *>(value);
+  auto ival = dynamic_pointer_cast<IntMV>(value);
   if (!ival)
     throw MacroValue::TypeError("Argument of @#if must be an integer");
   last_if = (bool) ival->value;
@@ -276,11 +245,11 @@ MacroDriver::begin_ifdef(const string &name)
   try
     {
       get_variable(name);
-      begin_if(new IntMV(*this, 1));
+      begin_if(make_shared<IntMV>(1));
     }
   catch (UnknownVariable &)
     {
-      begin_if(new IntMV(*this, 0));
+      begin_if(make_shared<IntMV>(0));
     }
 }
 
@@ -290,18 +259,18 @@ MacroDriver::begin_ifndef(const string &name)
   try
     {
       get_variable(name);
-      begin_if(new IntMV(*this, 0));
+      begin_if(make_shared<IntMV>(0));
     }
   catch (UnknownVariable &)
     {
-      begin_if(new IntMV(*this, 1));
+      begin_if(make_shared<IntMV>(1));
     }
 }
 
 void
-MacroDriver::echo(const Macro::parser::location_type &l, const MacroValue *value) const noexcept(false)
+MacroDriver::echo(const Macro::parser::location_type &l, const MacroValuePtr &value) const noexcept(false)
 {
-  const auto *sval = dynamic_cast<const StringMV *>(value);
+  auto sval = dynamic_pointer_cast<StringMV>(value);
   if (!sval)
     throw MacroValue::TypeError("Argument of @#echo must be a string");
 
@@ -309,9 +278,9 @@ MacroDriver::echo(const Macro::parser::location_type &l, const MacroValue *value
 }
 
 void
-MacroDriver::error(const Macro::parser::location_type &l, const MacroValue *value) const noexcept(false)
+MacroDriver::error(const Macro::parser::location_type &l, const MacroValuePtr &value) const noexcept(false)
 {
-  const auto *sval = dynamic_cast<const StringMV *>(value);
+  auto sval = dynamic_pointer_cast<StringMV>(value);
   if (!sval)
     throw MacroValue::TypeError("Argument of @#error must be a string");
 
@@ -328,7 +297,7 @@ MacroDriver::printvars(const Macro::parser::location_type &l, const bool tostdou
       for (const auto & it : env)
         {
           cout << "    ";
-          const auto *fmv = dynamic_cast<const FuncMV *>(it.second);
+          auto fmv = dynamic_pointer_cast<FuncMV>(it.second);
           if (!fmv)
             cout << it.first << " = " << it.second->print() << endl;
           else

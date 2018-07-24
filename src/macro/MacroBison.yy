@@ -18,8 +18,10 @@
  */
 
 %language "c++"
-%require "2.5"
+%require "3.0"
 %defines
+%define api.value.type variant
+%define parse.assert
 
 %code top {
 class MacroDriver;
@@ -45,14 +47,6 @@ class MacroDriver;
 #include "MacroValue.hh"
 }
 
-%union
-{
-  string *string_val;
-  int int_val;
-  const MacroValue *mv;
-  vector<string> *vector_string_val;
-};
-
 %code {
 #include "MacroDriver.hh"
 
@@ -76,8 +70,8 @@ class MacroDriver;
 %token DEFINE LINE FOR IN IF ELSE ENDIF ECHO_DIR ERROR IFDEF IFNDEF
 %token LPAREN RPAREN LBRACKET RBRACKET EQUAL EOL LENGTH ECHOMACROVARS SAVE
 
-%token <int_val> INTEGER
-%token <string_val> NAME STRING
+%token <int> INTEGER
+%token <string> NAME STRING
 
 %left COMMA
 %left LOGICAL_OR
@@ -90,8 +84,9 @@ class MacroDriver;
 %left UMINUS UPLUS EXCLAMATION
 %left LBRACKET
 
-%type <vector_string_val> func_args
-%type <mv> expr array_expr
+%type <vector<string>> func_args
+%type <MacroValuePtr> expr
+%type <vector<MacroValuePtr>> comma_expr
 %%
 
 %start statement_list_or_nothing;
@@ -107,15 +102,15 @@ statement_list : statement EOL
 statement : expr
             { out << $1->toString(); }
           | DEFINE NAME EQUAL expr
-            { driver.set_variable(*$2, $4); delete $2; }
+            { driver.set_variable($2, $4); }
           | FOR NAME IN expr
-            { TYPERR_CATCH(driver.init_loop(*$2, $4), @$); delete $2; }
+            { TYPERR_CATCH(driver.init_loop($2, $4), @$); }
           | IF expr
             { TYPERR_CATCH(driver.begin_if($2), @$); }
           | IFDEF NAME
-            { TYPERR_CATCH(driver.begin_ifdef(*$2), @$); delete $2; }
+            { TYPERR_CATCH(driver.begin_ifdef($2), @$); }
           | IFNDEF NAME
-            { TYPERR_CATCH(driver.begin_ifndef(*$2), @$); delete $2; }
+            { TYPERR_CATCH(driver.begin_ifndef($2), @$); }
           | ECHO_DIR expr
             { TYPERR_CATCH(driver.echo(@$, $2), @$); }
           | ERROR expr
@@ -126,98 +121,96 @@ statement : expr
             { driver.printvars(@$, true); }
           | ECHOMACROVARS LPAREN SAVE RPAREN
             { out << driver.printvars(@$, false); }
-          | DEFINE NAME LPAREN func_args { driver.push_args_into_func_env(*$4); } RPAREN EQUAL expr
+          | DEFINE NAME LPAREN func_args { driver.push_args_into_func_env($4); } RPAREN EQUAL expr
             {
-              TYPERR_CATCH(driver.set_string_function(*$2, *$4, $8), @$);
+              TYPERR_CATCH(driver.set_string_function($2, $4, $8), @$);
               driver.pop_func_env();
-              delete $2;
-              delete $4;
             }
           ;
 
 func_args : NAME
-            { $$ = new vector<string>(); $$->push_back(*$1); delete $1; }
+            { $$ = vector<string>{$1}; }
           | func_args COMMA NAME
-            { $$->push_back(*$3); delete $3; }
+            { $1.push_back($3); $$ = $1; }
           ;
 
 expr : INTEGER
-       { $$ = new IntMV(driver, $1); }
+       { $$ = make_shared<IntMV>($1); }
      | STRING
-       { $$ = new StringMV(driver, driver.replace_vars_in_str(*$1)); delete $1; }
+       { $$ = make_shared<StringMV>(driver.replace_vars_in_str($1)); }
      | NAME
        {
          try
            {
-             $$ = driver.get_variable(*$1);
+             $$ = driver.get_variable($1);
            }
          catch(MacroDriver::UnknownVariable(&e))
            {
              error(@$, "Unknown variable: " + e.name);
            }
-         delete $1;
        }
-     | NAME LPAREN array_expr RPAREN
-       { TYPERR_CATCH($$ = driver.eval_string_function(*$1, $3), @$); delete $1; }
+     | NAME LPAREN comma_expr RPAREN
+       { TYPERR_CATCH($$ = driver.eval_string_function($1, $3), @$); }
      | LENGTH LPAREN expr RPAREN
        { TYPERR_CATCH($$ = $3->length(), @$); }
      | LPAREN expr RPAREN
        { $$ = $2; }
      | expr PLUS expr
-       { TYPERR_CATCH($$ = *$1 + *$3, @$); }
+       { TYPERR_CATCH($$ = $1->plus($3), @$); }
      | expr MINUS expr
-       { TYPERR_CATCH($$ = *$1 - *$3, @$); }
+       { TYPERR_CATCH($$ = $1->minus($3), @$); }
      | expr TIMES expr
-       { TYPERR_CATCH($$ = *$1 * *$3, @$); }
+       { TYPERR_CATCH($$ = $1->times($3), @$); }
      | expr DIVIDE expr
        {
-         if (dynamic_cast<const IntMV *>($3) != NULL
-             && ((IntMV *)$3)->get_int_value() == 0)
-           driver.error(@$, "Division by zero");
-         TYPERR_CATCH($$ = *$1 / *$3, @$);
+         TYPERR_CATCH($$ = $1->divide($3), @$)
+         catch(MacroValue::DivisionByZeroError)
+           {
+             error(@$, "Division by zero");
+           }
        }
      | expr LESS expr
-       { TYPERR_CATCH($$ = *$1 < *$3, @$); }
+       { TYPERR_CATCH($$ = $1->is_less($3), @$); }
      | expr GREATER expr
-       { TYPERR_CATCH($$ = *$1 > *$3, @$); }
+       { TYPERR_CATCH($$ = $1->is_greater($3), @$); }
      | expr LESS_EQUAL expr
-       { TYPERR_CATCH($$ = *$1 <= *$3, @$); }
+       { TYPERR_CATCH($$ = $1->is_less_equal($3), @$); }
      | expr GREATER_EQUAL expr
-       { TYPERR_CATCH($$ = *$1 >= *$3, @$); }
+       { TYPERR_CATCH($$ = $1->is_greater_equal($3), @$); }
      | expr EQUAL_EQUAL expr
-       { TYPERR_CATCH($$ = *$1 == *$3, @$); }
+       { $$ = $1->is_equal($3); }
      | expr EXCLAMATION_EQUAL expr
-       { TYPERR_CATCH($$ = *$1 != *$3, @$); }
+       { $$ = $1->is_different($3); }
      | expr LOGICAL_OR expr
-       { TYPERR_CATCH($$ = *$1 || *$3, @$); }
+       { TYPERR_CATCH($$ = $1->logical_or($3), @$); }
      | expr LOGICAL_AND expr
-       { TYPERR_CATCH($$ = *$1 && *$3, @$); }
+       { TYPERR_CATCH($$ = $1->logical_and($3), @$); }
      | MINUS expr %prec UMINUS
-       { TYPERR_CATCH($$ = -*$2, @$); }
+       { TYPERR_CATCH($$ = $2->unary_minus(), @$); }
      | PLUS expr %prec UPLUS
-       { TYPERR_CATCH($$ = +(*$2), @$); }
+       { TYPERR_CATCH($$ = $2->unary_plus(), @$); }
      | EXCLAMATION expr
-       { TYPERR_CATCH($$ = !*$2, @$); }
-     | expr LBRACKET array_expr RBRACKET
+       { TYPERR_CATCH($$ = $2->logical_not(), @$); }
+     | expr LBRACKET expr RBRACKET
        {
-         TYPERR_CATCH($$ = (*$1)[*$3], @$)
+         TYPERR_CATCH($$ = $1->subscript($3), @$)
          catch(MacroValue::OutOfBoundsError)
            {
              error(@$, "Index out of bounds");
            }
        }
-     | LBRACKET array_expr RBRACKET
-       { $$ = $2; }
+     | LBRACKET comma_expr RBRACKET
+       { $$ = make_shared<ArrayMV>($2); }
      | expr COLON expr
-       { TYPERR_CATCH($$ = IntMV::new_range(driver, $1, $3), @$); }
+       { TYPERR_CATCH($$ = ArrayMV::range($1, $3), @$); }
      | expr IN expr
-       { TYPERR_CATCH($$ = $1->in($3), @$); }
+       { TYPERR_CATCH($$ = $3->in($1), @$); }
      ;
 
-array_expr : expr
-             { $$ = $1->toArray(); }
-           | array_expr COMMA expr
-             { TYPERR_CATCH($$ = $3->append($1), @$); }
+comma_expr : expr
+             { $$ = vector<MacroValuePtr>{$1}; }
+           | comma_expr COMMA expr
+             { $1.push_back($3); $$ = $1; }
            ;
 
 %%

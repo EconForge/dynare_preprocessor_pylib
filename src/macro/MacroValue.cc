@@ -21,442 +21,464 @@
 
 #include "MacroDriver.hh"
 
-MacroValue::MacroValue(MacroDriver &driver_arg) : driver(driver_arg)
+MacroValuePtr
+MacroValue::plus(const MacroValuePtr &mv) noexcept(false)
 {
-  driver.values.insert(this);
+  throw TypeError("Operator + does not exist for this type");
 }
 
-MacroValue::~MacroValue()
-= default;
-
-const MacroValue *
-MacroValue::operator+() const noexcept(false)
+MacroValuePtr
+MacroValue::unary_plus() noexcept(false)
 {
   throw TypeError("Unary operator + does not exist for this type");
 }
 
-const MacroValue *
-MacroValue::operator-(const MacroValue &mv) const noexcept(false)
+MacroValuePtr
+MacroValue::minus(const MacroValuePtr &mv) noexcept(false)
 {
   throw TypeError("Operator - does not exist for this type");
 }
 
-const MacroValue *
-MacroValue::operator-() const noexcept(false)
+MacroValuePtr
+MacroValue::unary_minus() noexcept(false)
 {
   throw TypeError("Unary operator - does not exist for this type");
 }
 
-const MacroValue *
-MacroValue::operator*(const MacroValue &mv) const noexcept(false)
+MacroValuePtr
+MacroValue::times(const MacroValuePtr &mv) noexcept(false)
 {
   throw TypeError("Operator * does not exist for this type");
 }
 
-const MacroValue *
-MacroValue::operator/(const MacroValue &mv) const noexcept(false)
+MacroValuePtr
+MacroValue::divide(const MacroValuePtr &mv) noexcept(false)
 {
   throw TypeError("Operator / does not exist for this type");
 }
 
-const MacroValue *
-MacroValue::operator<(const MacroValue &mv) const noexcept(false)
+shared_ptr<IntMV>
+MacroValue::is_less(const MacroValuePtr &mv) noexcept(false)
 {
   throw TypeError("Operator < does not exist for this type");
 }
 
-const MacroValue *
-MacroValue::operator>(const MacroValue &mv) const noexcept(false)
+shared_ptr<IntMV>
+MacroValue::is_greater(const MacroValuePtr &mv) noexcept(false)
 {
   throw TypeError("Operator > does not exist for this type");
 }
 
-const MacroValue *
-MacroValue::operator<=(const MacroValue &mv) const noexcept(false)
+shared_ptr<IntMV>
+MacroValue::is_less_equal(const MacroValuePtr &mv) noexcept(false)
 {
   throw TypeError("Operator <= does not exist for this type");
 }
 
-const MacroValue *
-MacroValue::operator>=(const MacroValue &mv) const noexcept(false)
+shared_ptr<IntMV>
+MacroValue::is_greater_equal(const MacroValuePtr &mv) noexcept(false)
 {
   throw TypeError("Operator >= does not exist for this type");
 }
 
-const MacroValue *
-MacroValue::operator&&(const MacroValue &mv) const noexcept(false)
+shared_ptr<IntMV>
+MacroValue::is_different(const MacroValuePtr &mv)
+{
+  if (is_equal(mv)->value)
+    return make_shared<IntMV>(0);
+  else
+    return make_shared<IntMV>(1);
+}
+
+shared_ptr<IntMV>
+MacroValue::logical_and(const MacroValuePtr &mv) noexcept(false)
 {
   throw TypeError("Operator && does not exist for this type");
 }
 
-const MacroValue *
-MacroValue::operator||(const MacroValue &mv) const noexcept(false)
+shared_ptr<IntMV>
+MacroValue::logical_or(const MacroValuePtr &mv) noexcept(false)
 {
   throw TypeError("Operator || does not exist for this type");
 }
 
-const MacroValue *
-MacroValue::operator!() const noexcept(false)
+shared_ptr<IntMV>
+MacroValue::logical_not() noexcept(false)
 {
   throw TypeError("Operator ! does not exist for this type");
 }
 
-const MacroValue *
-MacroValue::operator[](const MacroValue &mv) const noexcept(false)
+MacroValuePtr
+MacroValue::subscript(const MacroValuePtr &mv) noexcept(false)
 {
   throw TypeError("Operator [] does not exist for this type");
 }
 
-const MacroValue *
-MacroValue::length() const noexcept(false)
+shared_ptr<IntMV>
+MacroValue::length() noexcept(false)
 {
   throw TypeError("Length not supported for this type");
 }
 
-const MacroValue *
-MacroValue::at(int i) const noexcept(false)
+shared_ptr<IntMV>
+MacroValue::in(const MacroValuePtr &mv) noexcept(false)
 {
-  throw TypeError("Length not supported for this type");
+  throw TypeError("Second argument of 'in' operator must be an array");
 }
 
-const MacroValue *
-MacroValue::append(const MacroValue *mv) const noexcept(false)
-{
-  throw TypeError("Cannot append an array at the end of another one. Should use concatenation.");
-}
-
-const MacroValue *
-MacroValue::in(const MacroValue *array) const noexcept(false)
-{
-  throw TypeError("First argument of 'in' operator cannot be an array");
-}
-
-const MacroValue *
-MacroValue::new_base_value(MacroDriver &driver, int i)
-{
-  return new IntMV(driver, i);
-}
-
-const MacroValue *
-MacroValue::new_base_value(MacroDriver &driver, const string &s)
-{
-  return new StringMV(driver, s);
-}
-
-IntMV::IntMV(MacroDriver &driver, int value_arg) : MacroValue(driver), value(value_arg)
+IntMV::IntMV(int value_arg) : value{value_arg}
 {
 }
 
-IntMV::~IntMV()
-= default;
-
-const MacroValue *
-IntMV::operator+(const MacroValue &mv) const noexcept(false)
+MacroValuePtr
+IntMV::plus(const MacroValuePtr &mv) noexcept(false)
 {
-  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
-  if (mv2 == nullptr)
+  auto mv2 = dynamic_pointer_cast<IntMV>(mv);
+  if (!mv2)
     throw TypeError("Type mismatch for operands of + operator");
-  return new IntMV(driver, value + mv2->value);
+  return make_shared<IntMV>(value + mv2->value);
 }
 
-const MacroValue *
-IntMV::operator+() const noexcept(false)
+MacroValuePtr
+IntMV::unary_plus() noexcept(false)
 {
-  return this;
+  return make_shared<IntMV>(value);
 }
 
-const MacroValue *
-IntMV::operator-(const MacroValue &mv) const noexcept(false)
+MacroValuePtr
+IntMV::minus(const MacroValuePtr &mv) noexcept(false)
 {
-  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
-  if (mv2 == nullptr)
+  auto mv2 = dynamic_pointer_cast<IntMV>(mv);
+  if (!mv2)
     throw TypeError("Type mismatch for operands of - operator");
-  return new IntMV(driver, value - mv2->value);
+  return make_shared<IntMV>(value - mv2->value);
 }
 
-const MacroValue *
-IntMV::operator-() const noexcept(false)
+MacroValuePtr
+IntMV::unary_minus() noexcept(false)
 {
-  return new IntMV(driver, -value);
+  return make_shared<IntMV>(-value);
 }
 
-const MacroValue *
-IntMV::operator*(const MacroValue &mv) const noexcept(false)
+MacroValuePtr
+IntMV::times(const MacroValuePtr &mv) noexcept(false)
 {
-  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
-  if (mv2 == nullptr)
+  auto mv2 = dynamic_pointer_cast<IntMV>(mv);
+  if (!mv2)
     throw TypeError("Type mismatch for operands of * operator");
-  return new IntMV(driver, value * mv2->value);
+  return make_shared<IntMV>(value * mv2->value);
 }
 
-const MacroValue *
-IntMV::operator/(const MacroValue &mv) const noexcept(false)
+MacroValuePtr
+IntMV::divide(const MacroValuePtr &mv) noexcept(false)
 {
-  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
-  if (mv2 == nullptr)
+  auto mv2 = dynamic_pointer_cast<IntMV>(mv);
+  if (!mv2)
     throw TypeError("Type mismatch for operands of / operator");
-  return new IntMV(driver, value / mv2->value);
+  if (!mv2->value)
+    throw DivisionByZeroError();
+  return make_shared<IntMV>(value / mv2->value);
 }
 
-const MacroValue *
-IntMV::operator<(const MacroValue &mv) const noexcept(false)
+shared_ptr<IntMV>
+IntMV::is_less(const MacroValuePtr &mv) noexcept(false)
 {
-  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
-  if (mv2 == nullptr)
+  auto mv2 = dynamic_pointer_cast<IntMV>(mv);
+  if (!mv2)
     throw TypeError("Type mismatch for operands of < operator");
-  return new IntMV(driver, value < mv2->value);
+  return make_shared<IntMV>(value < mv2->value);
 }
 
-const MacroValue *
-IntMV::operator>(const MacroValue &mv) const noexcept(false)
+shared_ptr<IntMV>
+IntMV::is_greater(const MacroValuePtr &mv) noexcept(false)
 {
-  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
-  if (mv2 == nullptr)
+  auto mv2 = dynamic_pointer_cast<IntMV>(mv);
+  if (!mv2)
     throw TypeError("Type mismatch for operands of > operator");
-  return new IntMV(driver, value > mv2->value);
+  return make_shared<IntMV>(value > mv2->value);
 }
 
-const MacroValue *
-IntMV::operator<=(const MacroValue &mv) const noexcept(false)
+shared_ptr<IntMV>
+IntMV::is_less_equal(const MacroValuePtr &mv) noexcept(false)
 {
-  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
-  if (mv2 == nullptr)
+  auto mv2 = dynamic_pointer_cast<IntMV>(mv);
+  if (!mv2)
     throw TypeError("Type mismatch for operands of <= operator");
-  return new IntMV(driver, value <= mv2->value);
+  return make_shared<IntMV>(value <= mv2->value);
 }
 
-const MacroValue *
-IntMV::operator>=(const MacroValue &mv) const noexcept(false)
+shared_ptr<IntMV>
+IntMV::is_greater_equal(const MacroValuePtr &mv) noexcept(false)
 {
-  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
-  if (mv2 == nullptr)
+  auto mv2 = dynamic_pointer_cast<IntMV>(mv);
+  if (!mv2)
     throw TypeError("Type mismatch for operands of >= operator");
-  return new IntMV(driver, value >= mv2->value);
+  return make_shared<IntMV>(value >= mv2->value);
 }
 
-const MacroValue *
-IntMV::operator==(const MacroValue &mv) const noexcept(false)
+shared_ptr<IntMV>
+IntMV::is_equal(const MacroValuePtr &mv)
 {
-  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
-  if (mv2 == nullptr)
-    return new IntMV(driver, 0);
+  auto mv2 = dynamic_pointer_cast<IntMV>(mv);
+  if (!mv2)
+    return make_shared<IntMV>(0);
   else
-    return new IntMV(driver, value == mv2->value);
+    return make_shared<IntMV>(value == mv2->value);
 }
 
-const MacroValue *
-IntMV::operator!=(const MacroValue &mv) const noexcept(false)
+shared_ptr<IntMV>
+IntMV::logical_and(const MacroValuePtr &mv) noexcept(false)
 {
-  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
-  if (mv2 == nullptr)
-    return new IntMV(driver, 1);
-  else
-    return new IntMV(driver, value != mv2->value);
-}
-
-const MacroValue *
-IntMV::operator&&(const MacroValue &mv) const noexcept(false)
-{
-  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
-  if (mv2 == nullptr)
+  auto mv2 = dynamic_pointer_cast<IntMV>(mv);
+  if (!mv2)
     throw TypeError("Type mismatch for operands of && operator");
-  return new IntMV(driver, value && mv2->value);
+  return make_shared<IntMV>(value && mv2->value);
 }
 
-const MacroValue *
-IntMV::operator||(const MacroValue &mv) const noexcept(false)
+shared_ptr<IntMV>
+IntMV::logical_or(const MacroValuePtr &mv) noexcept(false)
 {
-  const auto *mv2 = dynamic_cast<const IntMV *>(&mv);
-  if (mv2 == nullptr)
+  auto mv2 = dynamic_pointer_cast<IntMV>(mv);
+  if (!mv2)
     throw TypeError("Type mismatch for operands of || operator");
-  return new IntMV(driver, value || mv2->value);
+  return make_shared<IntMV>(value || mv2->value);
 }
 
-const MacroValue *
-IntMV::operator!() const noexcept(false)
+shared_ptr<IntMV>
+IntMV::logical_not() noexcept(false)
 {
-  return new IntMV(driver, !value);
+  return make_shared<IntMV>(!value);
 }
 
 string
-IntMV::toString() const
+IntMV::toString()
 {
   return to_string(value);
 }
 
 string
-IntMV::print() const
+IntMV::print()
 {
   return toString();
 }
 
-const MacroValue *
-IntMV::toArray() const
-{
-  vector<int> v;
-  v.push_back(value);
-  return new ArrayMV<int>(driver, v);
-}
-
-const MacroValue *
-IntMV::append(const MacroValue *array) const noexcept(false)
-{
-  const auto *array2 = dynamic_cast<const ArrayMV<int> *>(array);
-  if (array2 == nullptr)
-    throw TypeError("Type mismatch for append operation");
-
-  vector<int> v(array2->values);
-  v.push_back(value);
-  return new ArrayMV<int>(driver, v);
-}
-
-const MacroValue *
-IntMV::in(const MacroValue *array) const noexcept(false)
-{
-  const auto *array2 = dynamic_cast<const ArrayMV<int> *>(array);
-  if (array2 == nullptr)
-    throw TypeError("Type mismatch for 'in' operator");
-
-  int result = 0;
-  for (int v : array2->values)
-    if (v == value)
-      {
-        result = 1;
-        break;
-      }
-
-  return new IntMV(driver, result);
-}
-
-const MacroValue *
-IntMV::new_range(MacroDriver &driver, const MacroValue *mv1, const MacroValue *mv2) noexcept(false)
-{
-  const auto *mv1i = dynamic_cast<const IntMV *>(mv1);
-  const auto *mv2i = dynamic_cast<const IntMV *>(mv2);
-  if (mv1i == nullptr || mv2i == nullptr)
-    throw TypeError("Arguments of range operator (:) must be integers");
-
-  int v1 = mv1i->value;
-  int v2 = mv2i->value;
-
-  vector<int> result;
-  for (; v1 <= v2; v1++)
-    result.push_back(v1);
-  return new ArrayMV<int>(driver, result);
-}
-
-StringMV::StringMV(MacroDriver &driver, string value_arg) :
-  MacroValue(driver), value(move(value_arg))
+StringMV::StringMV(string value_arg) :
+  value{move(value_arg)}
 {
 }
 
-StringMV::~StringMV()
-= default;
-
-const MacroValue *
-StringMV::operator+(const MacroValue &mv) const noexcept(false)
+MacroValuePtr
+StringMV::plus(const MacroValuePtr &mv) noexcept(false)
 {
-  const auto *mv2 = dynamic_cast<const StringMV *>(&mv);
-  if (mv2 != nullptr)
-    return new StringMV(driver, value + mv2->value);
-
-  const auto *mv3 = dynamic_cast<const FuncMV *>(&mv);
-  if (mv3 != nullptr)
-    return new StringMV(driver, value + mv3->toString());
+  auto mv2 = dynamic_pointer_cast<StringMV>(mv);
+  if (mv2)
+    return make_shared<StringMV>(value + mv2->value);
 
   throw TypeError("Type mismatch for operands of + operator");
 }
 
-const MacroValue *
-StringMV::operator==(const MacroValue &mv) const noexcept(false)
+shared_ptr<IntMV>
+StringMV::is_equal(const MacroValuePtr &mv)
 {
-  const auto *mv2 = dynamic_cast<const StringMV *>(&mv);
-  if (mv2 == nullptr)
-    return new IntMV(driver, 0);
+  auto mv2 = dynamic_pointer_cast<StringMV>(mv);
+  if (mv2)
+    return make_shared<IntMV>(value == mv2->value);
   else
-    return new IntMV(driver, value == mv2->value);
+    return make_shared<IntMV>(0);
 }
 
-const MacroValue *
-StringMV::operator!=(const MacroValue &mv) const noexcept(false)
+MacroValuePtr
+StringMV::subscript(const MacroValuePtr &mv) noexcept(false)
 {
-  const auto *mv2 = dynamic_cast<const StringMV *>(&mv);
-  if (mv2 == nullptr)
-    return new IntMV(driver, 1);
-  else
-    return new IntMV(driver, value != mv2->value);
-}
-
-const MacroValue *
-StringMV::operator[](const MacroValue &mv) const noexcept(false)
-{
-  const auto *mv2 = dynamic_cast<const ArrayMV<int> *>(&mv);
-  if (mv2 == nullptr)
-    throw TypeError("Expression inside [] must be an integer array");
   string result;
-  for (int v : mv2->values)
-    {
-      if (v < 1 || v > (int) value.length())
-        throw OutOfBoundsError();
-      char c = value.at(v - 1);
-      result.append(1, c);
-    }
-  return new StringMV(driver, result);
+
+  auto copy_element = [&](int i) {
+    if (i < 1 || i > static_cast<int>(value.length()))
+      throw OutOfBoundsError();
+    result.append(1, value.at(i - 1));
+  };
+
+  auto mv2 = dynamic_pointer_cast<IntMV>(mv);
+  auto mv3 = dynamic_pointer_cast<ArrayMV>(mv);
+
+  if (mv2)
+    copy_element(mv2->value);
+  else if (mv3)
+    for (auto &v : mv3->values)
+      {
+        auto v2 = dynamic_pointer_cast<IntMV>(v);
+        if (!v2)
+          throw TypeError("Expression inside [] must be an integer or an integer array");
+        copy_element(v2->value);
+      }
+  else
+    throw TypeError("Expression inside [] must be an integer or an integer array");
+
+  return make_shared<StringMV>(result);
 }
 
 string
-StringMV::toString() const
+StringMV::toString()
 {
   return value;
 }
 
 string
-StringMV::print() const
+StringMV::print()
 {
   return "'" + value + "'";
 }
 
-const MacroValue *
-StringMV::toArray() const
+FuncMV::FuncMV(vector<string> args_arg, string body_arg) :
+  args{move(args_arg)}, body{move(body_arg)}
 {
-  vector<string> v;
-  v.push_back(value);
-  return new ArrayMV<string>(driver, v);
 }
 
-const MacroValue *
-StringMV::append(const MacroValue *array) const noexcept(false)
+shared_ptr<IntMV>
+FuncMV::is_equal(const MacroValuePtr &mv)
 {
-  const auto *array2 = dynamic_cast<const ArrayMV<string> *>(array);
-  if (array2 == nullptr)
-    throw TypeError("Type mismatch for append operation");
+  auto mv2 = dynamic_pointer_cast<FuncMV>(mv);
+  if (!mv2 || body != mv2->body)
+    return make_shared<IntMV>(0);
 
-  vector<string> v(array2->values);
-  v.push_back(value);
-  return new ArrayMV<string>(driver, v);
+  if (args.size() == mv2->args.size())
+    for (size_t i = 0; i < args.size(); i++)
+      if (args[i] != mv2->args[i])
+        return make_shared<IntMV>(0);
+
+  return make_shared<IntMV>(1);
 }
 
-const MacroValue *
-StringMV::in(const MacroValue *array) const noexcept(false)
-{
-  const auto *array2 = dynamic_cast<const ArrayMV<string> *>(array);
-  if (array2 == nullptr)
-    throw TypeError("Type mismatch for 'in' operator");
-
-  int result = 0;
-  for (const auto &v : array2->values)
-    if (v == value)
-      {
-        result = 1;
-        break;
-      }
-
-  return new IntMV(driver, result);
-}
-
-template<>
 string
-ArrayMV<int>::print() const
+FuncMV::toString()
+{
+  return body;
+}
+
+string
+FuncMV::print()
+{
+  bool comma_flag = false;
+  string retval = "(";
+  for (auto it : args)
+    {
+      if (comma_flag)
+          retval += ", ";
+      retval += it;
+      comma_flag = true;
+    }
+  retval += ")";
+  return retval + " = '" + body + "'";
+}
+
+ArrayMV::ArrayMV(vector<MacroValuePtr> values_arg) : values{move(values_arg)}
+{
+}
+
+MacroValuePtr
+ArrayMV::plus(const MacroValuePtr &mv) noexcept(false)
+{
+  auto mv2 = dynamic_pointer_cast<ArrayMV>(mv);
+  if (!mv2)
+    throw TypeError("Type mismatch for operands of + operator");
+
+  vector<MacroValuePtr> values_copy{values};
+  values_copy.insert(values_copy.end(), mv2->values.begin(), mv2->values.end());
+  return make_shared<ArrayMV>(values_copy);
+}
+
+MacroValuePtr
+ArrayMV::minus(const MacroValuePtr &mv) noexcept(false)
+{
+  auto mv2 = dynamic_pointer_cast<ArrayMV>(mv);
+  if (!mv2)
+    throw TypeError("Type mismatch for operands of - operator");
+
+  /* Highly inefficient algorithm for computing set difference
+     (but vector<T> is not suited for that...) */
+  vector<MacroValuePtr> new_values;
+  for (auto &it : values)
+    {
+      auto it2 = mv2->values.cbegin();
+      for (; it2 != mv2->values.cend(); ++it2)
+        if (it->is_different(*it2)->value)
+          break;
+      if (it2 == mv2->values.cend())
+        new_values.push_back(it);
+    }
+
+  return make_shared<ArrayMV>(new_values);
+}
+
+shared_ptr<IntMV>
+ArrayMV::is_equal(const MacroValuePtr &mv)
+{
+  auto mv2 = dynamic_pointer_cast<ArrayMV>(mv);
+  if (!mv2 || values.size() != mv2->values.size())
+    return make_shared<IntMV>(0);
+
+  auto it = values.cbegin();
+  auto it2 = mv2->values.cbegin();
+  while (it != values.cend())
+    {
+      if ((*it)->is_different(*it2)->value)
+        return make_shared<IntMV>(0);
+      ++it;
+      ++it2;
+    }
+  return make_shared<IntMV>(1);
+}
+
+MacroValuePtr
+ArrayMV::subscript(const MacroValuePtr &mv) noexcept(false)
+{
+  vector<MacroValuePtr> result;
+
+  auto copy_element = [&](int i) {
+    if (i < 1 || i > static_cast<int>(values.size()))
+      throw OutOfBoundsError();
+    result.push_back(values[i - 1]);
+  };
+
+  auto mv2 = dynamic_pointer_cast<IntMV>(mv);
+  auto mv3 = dynamic_pointer_cast<ArrayMV>(mv);
+
+  if (mv2)
+    copy_element(mv2->value);
+  else if (mv3)
+    for (auto &v : mv3->values)
+      {
+        auto v2 = dynamic_pointer_cast<IntMV>(v);
+        if (!v2)
+          throw TypeError("Expression inside [] must be an integer or an integer array");
+        copy_element(v2->value);
+      }
+  else
+    throw TypeError("Expression inside [] must be an integer or an integer array");
+
+  if (result.size() > 1 || result.size() == 0)
+    return make_shared<ArrayMV>(result);
+  else
+    return result[0];
+}
+
+string
+ArrayMV::toString()
+{
+  ostringstream ss;
+  for (auto &v : values)
+    ss << v->toString();
+  return ss.str();
+}
+
+shared_ptr<IntMV>
+ArrayMV::length() noexcept(false)
+{
+  return make_shared<IntMV>(values.size());
+}
+
+string
+ArrayMV::print()
 {
   ostringstream ss;
   ss << "[";
@@ -466,104 +488,40 @@ ArrayMV<int>::print() const
       if (it != values.begin())
         ss << ", ";
 
-        ss << *it;
+      ss << (*it)->print();
     }
   ss << "]";
   return ss.str();
 }
 
-template<>
-string
-ArrayMV<string>::print() const
+shared_ptr<ArrayMV>
+ArrayMV::append(MacroValuePtr mv) noexcept(false)
 {
-  ostringstream ss;
-  ss << "{";
-  for (auto it = values.begin();
-       it != values.end(); it++)
-    {
-      if (it != values.begin())
-        ss << ", ";
-
-      ss << "'" << *it << "'";
-    }
-  ss << "}";
-  return ss.str();
+  vector<MacroValuePtr> v{values};
+  v.push_back(move(mv));
+  return make_shared<ArrayMV>(v);
 }
 
-FuncMV::FuncMV(MacroDriver &driver, vector<string> &args_arg, StringMV &value_arg) :
-  MacroValue(driver), args(args_arg), value(value_arg)
+shared_ptr<IntMV>
+ArrayMV::in(const MacroValuePtr &mv) noexcept(false)
 {
+  for (auto &v : values)
+    if (v->is_equal(mv)->value)
+      return make_shared<IntMV>(1);
+
+  return make_shared<IntMV>(0);
 }
 
-FuncMV::~FuncMV()
-= default;
-
-const MacroValue *
-FuncMV::operator+(const MacroValue &mv) const noexcept(false)
+shared_ptr<ArrayMV>
+ArrayMV::range(const MacroValuePtr &mv1, const MacroValuePtr &mv2) noexcept(false)
 {
-  const auto *mv2 = dynamic_cast<const FuncMV *>(&mv);
-  if (mv2 != nullptr)
-    return value + mv2->value;
+  auto mv1i = dynamic_pointer_cast<IntMV>(mv1);
+  auto mv2i = dynamic_pointer_cast<IntMV>(mv2);
+  if (!mv1i || !mv2i)
+    throw TypeError("Arguments of range operator (:) must be integers");
 
-  const auto *mv3 = dynamic_cast<const StringMV *>(&mv);
-  if (mv3 != nullptr)
-    return value + *mv3;
-
-  throw TypeError("Type mismatch for operands of + operator");
-}
-
-const MacroValue *
-FuncMV::operator==(const MacroValue &mv) const noexcept(false)
-{
-  const auto *mv2 = dynamic_cast<const FuncMV *>(&mv);
-  if (mv2 == nullptr)
-    return new IntMV(driver, 0);
-
-  if (value != mv2->value)
-    return new IntMV(driver, 0);
-
-  if (args.size() == mv2->args.size())
-    for (size_t i = 0; i < args.size(); i++)
-      if (args[i] != mv2->args[i])
-        return new IntMV(driver, 0);
-
-  return new IntMV(driver, 1);
-}
-
-const MacroValue *
-FuncMV::operator!=(const MacroValue &mv) const noexcept(false)
-{
-  if (dynamic_cast<const IntMV *>(*this == mv)->value == 1)
-    return new IntMV(driver, 0);
-  return new IntMV(driver, 1);
-}
-
-string
-FuncMV::toString() const
-{
-  return value.toString();
-}
-
-string
-FuncMV::print() const
-{
-  bool comma_flag = false;
-  string retval = "(";
-  for (const auto it : args)
-    {
-      if (comma_flag)
-          retval += ", ";
-      retval += it;
-      comma_flag = true;
-    }
-  retval += ")";
-  return retval + " = '" + value.toString() + "'";
-}
-
-const MacroValue *
-FuncMV::toArray() const
-{
-  vector<string> v;
-  v.push_back(value.toString());
-  return new ArrayMV<string>(driver, v);
+  vector<MacroValuePtr> result;
+  for (int v1 = mv1i->value, v2 = mv2i->value; v1 <= v2; v1++)
+    result.push_back(make_shared<IntMV>(v1));
+  return make_shared<ArrayMV>(result);
 }

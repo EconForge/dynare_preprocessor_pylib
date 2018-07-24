@@ -102,7 +102,7 @@ CONT \\\\
                               if (string::npos != p)
                                 pathvar.erase(p+1);
 
-                              string *includepath = NULL;
+                              string *includepath = nullptr;
                               try
                               {
                                 includepath = new string(driver.get_variable(pathvar)->toString());
@@ -144,7 +144,7 @@ CONT \\\\
                               if (string::npos != p)
                                 modvarname.erase(p+1);
 
-                              string *filename = NULL;
+                              string *filename = nullptr;
                               try
                               {
                                 filename = new string(driver.get_variable(modvarname)->toString());
@@ -204,7 +204,7 @@ CONT \\\\
 <STMT,EXPR>{SPC}+           { yylloc->step(); }
 
 <STMT,EXPR>[0-9]+           {
-                              yylval->int_val = atoi(yytext);
+                              yylval->build<int>(atoi(yytext));
                               return token::INTEGER;
                             }
 <STMT,EXPR>\(               { return token::LPAREN; }
@@ -231,8 +231,9 @@ CONT \\\\
 <STMT,EXPR>length           { return token::LENGTH; }
 
 <STMT,EXPR>\"[^\"]*\"       {
-                              yylval->string_val = new string(yytext + 1);
-                              yylval->string_val->resize(yylval->string_val->length() - 1);
+                              string s{yytext + 1};
+                              s.resize(s.length() - 1);
+                              yylval->build<string>(s);
                               return token::STRING;
                             }
 
@@ -256,7 +257,7 @@ CONT \\\\
 <STMT>error                 { return token::ERROR; }
 
 <STMT,EXPR>[A-Za-z_][A-Za-z0-9_]* {
-                              yylval->string_val = new string(yytext);
+                              yylval->build<string>(yytext);
                               return token::NAME;
                             }
 
