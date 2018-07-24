@@ -159,7 +159,7 @@ expr : INTEGER
        }
      | NAME LPAREN array_expr RPAREN
        { TYPERR_CATCH($$ = driver.eval_string_function(*$1, $3), @$); delete $1; }
-     | LENGTH LPAREN array_expr RPAREN
+     | LENGTH LPAREN expr RPAREN
        { TYPERR_CATCH($$ = $3->length(), @$); }
      | LPAREN expr RPAREN
        { $$ = $2; }
