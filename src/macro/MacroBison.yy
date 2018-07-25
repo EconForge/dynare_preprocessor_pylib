@@ -207,7 +207,8 @@ expr : INTEGER
        { TYPERR_CATCH($$ = $3->in($1), @$); }
      ;
 
-comma_expr : expr
+comma_expr : { $$ = vector<MacroValuePtr>{}; } // Empty array
+           | expr
              { $$ = vector<MacroValuePtr>{$1}; }
            | comma_expr COMMA expr
              { $1.push_back($3); $$ = $1; }
