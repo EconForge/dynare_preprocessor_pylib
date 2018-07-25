@@ -161,6 +161,7 @@ public:
   //! Returns underlying string value
   string toString() override;
   string print() override;
+  shared_ptr<IntMV> length() noexcept(false) override;
 };
 
 class FuncMV : public MacroValue

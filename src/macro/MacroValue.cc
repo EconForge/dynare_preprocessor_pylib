@@ -329,6 +329,12 @@ StringMV::print()
   return "'" + value + "'";
 }
 
+shared_ptr<IntMV>
+StringMV::length() noexcept(false)
+{
+  return make_shared<IntMV>(value.length());
+}
+
 FuncMV::FuncMV(vector<string> args_arg, string body_arg) :
   args{move(args_arg)}, body{move(body_arg)}
 {
