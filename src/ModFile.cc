@@ -525,8 +525,6 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       dynamic_model.substituteEndoLagGreaterThanTwo(true);
     }
 
-  dynamic_model.combineDiffAuxEquations();
-
   for (auto & statement : statements)
     {
       auto *vms = dynamic_cast<VarModelStatement *>(statement);

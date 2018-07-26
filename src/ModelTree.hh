@@ -60,12 +60,6 @@ protected:
 
   //! Only stores generated auxiliary equations, in an order meaningful for evaluation
   deque<BinaryOpNode *> aux_equations;
-  //! Temporarily stores aux equations for diff operator
-  //! This is a hack to make diff aux vars work: they must be substituted before we consider VARs
-  //! But leads lags can't be substituted until after we consider VARs
-  //! The diff_aux_vars may depend on aux_vars created for leads lags, as in
-  //! diff(x(-1)) => x(-1) - x(-2) => x(-1) - aux_var(-1); aux_var = x(-1);
-  deque<BinaryOpNode *> diff_aux_equations;
 
   //! Stores equation tags
   vector<pair<int, pair<string, string>>> equation_tags;

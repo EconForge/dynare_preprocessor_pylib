@@ -439,9 +439,6 @@ public:
   void getUndiffLHSForPac(vector<int> &lhs, vector<expr_t> &lhs_expr_t, vector<bool> &diff, vector<int> &orig_diff_var,
                           vector<int> &eqnumber, map<string, int> &undiff, ExprNode::subst_table_t &diff_subst_table);
 
-  //! Adds contents of diff_aux_equations to the back of aux_equations
-  void combineDiffAuxEquations();
-
   //! Fill var_expectation_functions_to_write
   void fillVarExpectationFunctionsToWrite();
 
