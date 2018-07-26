@@ -5445,6 +5445,26 @@ DynamicModel::substituteDiff(StaticModel &static_model, ExprNode::subst_table_t 
   for (const auto & equation : equations)
     equation->findDiffNodes(static_model, diff_table);
 
+  /* Ensure that all diff operators appear once with their argument at current
+     period (i.e. maxLag=0).
+     If it is not the case, generate the corresponding expressions.
+     This is necessary to avoid lags of more than one in the auxiliary
+     equation, which would then be modified by subsequent transformations
+     (removing lags > 1), which in turn would break the recursive ordering
+     of auxiliary equations. See McModelTeam/McModelProject/issues/95 */
+  for (auto &it : diff_table)
+    {
+      auto iterator_arg_max_lag = it.second.rbegin();
+      int arg_max_lag = iterator_arg_max_lag->first;
+      expr_t arg_max_expr = iterator_arg_max_lag->second;
+      while (arg_max_lag < 0)
+        {
+          arg_max_lag++;
+          arg_max_expr = arg_max_expr->decreaseLeadsLags(-1);
+          it.second[arg_max_lag] = arg_max_expr;
+        }
+    }
+
   // Substitute in model local variables
   vector<BinaryOpNode *> neweqs;
   for (auto & it : local_variables_table)
