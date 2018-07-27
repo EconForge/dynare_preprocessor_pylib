@@ -59,6 +59,15 @@ protected:
   vector<int> equations_lineno;
 
   //! Only stores generated auxiliary equations, in an order meaningful for evaluation
+  /*! These equations only contain the definition of auxiliary variables, and
+      may diverge from those in the main model (equations), if other model
+      transformations applied subsequently. This is not a problem, since
+      aux_equations is only used for regenerating the values of auxiliaries
+      given the others.
+
+      For example, such a divergence appears when there is an expectation
+      operator in a ramsey model, see
+      tests/optimal_policy/nk_ramsey_expectation.mod */
   deque<BinaryOpNode *> aux_equations;
 
   //! Stores equation tags
