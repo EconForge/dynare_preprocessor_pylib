@@ -5391,7 +5391,10 @@ DynamicModel::substituteDiff(StaticModel &static_model, ExprNode::subst_table_t 
       auto iterator_arg_max_lag = it.second.rbegin();
       int arg_max_lag = iterator_arg_max_lag->first;
       expr_t arg_max_expr = iterator_arg_max_lag->second;
-      while (arg_max_lag < 0)
+
+      /* We compare arg_max_lag with the result of countDiffs(), in order to
+         properly handle nested diffs. See McModelTeam/McModelProject/issues/97 */
+      while (arg_max_lag < 1 - it.first->countDiffs())
         {
           arg_max_lag++;
           arg_max_expr = arg_max_expr->decreaseLeadsLags(-1);
