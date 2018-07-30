@@ -71,7 +71,7 @@ DynareFlex.cc FlexLexer.h: DynareFlex.ll
 	cp $(LEXINC)/FlexLexer.h . || test -f ./FlexLexer.h
 
 DynareBison.cc DynareBison.hh location.hh stack.hh position.hh: DynareBison.yy
-	$(YACC) -o DynareBison.cc DynareBison.yy
+	$(YACC) -W -o DynareBison.cc DynareBison.yy
 
 all-local: $(PROGRAMS)
 

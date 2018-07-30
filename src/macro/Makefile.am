@@ -20,4 +20,4 @@ MacroFlex.cc: MacroFlex.ll
 	$(LEX) -o MacroFlex.cc MacroFlex.ll
 
 MacroBison.cc MacroBison.hh location.hh stack.hh position.hh: MacroBison.yy
-	$(YACC) -o MacroBison.cc MacroBison.yy
+	$(YACC) -W -o MacroBison.cc MacroBison.yy

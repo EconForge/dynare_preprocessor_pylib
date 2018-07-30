@@ -67,13 +67,12 @@ class MacroDriver;
 
 }
 
-%token DEFINE LINE FOR IN IF ELSE ENDIF ECHO_DIR ERROR IFDEF IFNDEF
+%token COMMA DEFINE LINE FOR IN IF ELSE ENDIF ECHO_DIR ERROR IFDEF IFNDEF
 %token LPAREN RPAREN LBRACKET RBRACKET EQUAL EOL LENGTH ECHOMACROVARS SAVE
 
 %token <int> INTEGER
 %token <string> NAME STRING
 
-%left COMMA
 %left LOGICAL_OR
 %left LOGICAL_AND
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL_EQUAL EXCLAMATION_EQUAL
@@ -81,8 +80,8 @@ class MacroDriver;
 %nonassoc COLON
 %left PLUS MINUS
 %left TIMES DIVIDE
-%left UMINUS UPLUS EXCLAMATION
-%left LBRACKET
+%precedence UMINUS UPLUS EXCLAMATION
+%precedence LBRACKET
 
 %type <vector<string>> func_args
 %type <MacroValuePtr> expr
@@ -91,7 +90,7 @@ class MacroDriver;
 
 %start statement_list_or_nothing;
 
-statement_list_or_nothing : /* empty */
+statement_list_or_nothing : %empty
                           | statement_list
                           ;
 
@@ -207,7 +206,8 @@ expr : INTEGER
        { TYPERR_CATCH($$ = $3->in($1), @$); }
      ;
 
-comma_expr : { $$ = vector<MacroValuePtr>{}; } // Empty array
+comma_expr : %empty
+             { $$ = vector<MacroValuePtr>{}; } // Empty array
            | expr
              { $$ = vector<MacroValuePtr>{$1}; }
            | comma_expr COMMA expr
