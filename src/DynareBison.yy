@@ -18,8 +18,10 @@
  */
 
 %language "c++"
-%require "2.5"
+%require "3.0"
 %defines
+%define api.value.type variant
+%define parse.assert
 
 %code top {
 class ParsingDriver;
@@ -44,19 +46,6 @@ class ParsingDriver;
 
 %debug
 %error-verbose
-
-%union
-{
-  string *string_val;
-  expr_t node_val;
-  SymbolType symbol_type_val;
-  vector<string> *vector_string_val;
-  vector<string *> *vector_string_p_val;
-  vector<int> *vector_int_val;
-  pair<string *, string *> *string_pair_val;
-  vector<pair<string *, string *> *> *vector_string_pair_val;
-  PriorDistributions prior_distributions_val;
-};
 
 %code {
 /* Little hack: we redefine the macro which computes the locations, because
@@ -96,13 +85,13 @@ class ParsingDriver;
 %token DATAFILE FILE SERIES DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR
 %token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME OSR_PARAMS_BOUNDS KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED
-%token <string_val> FLOAT_NUMBER DATES
+%token <string> FLOAT_NUMBER DATES
 %token DEFAULT FIXED_POINT OPT_ALGO
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
 %token GAMMA_PDF GRAPH GRAPH_FORMAT CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
 %token HISTVAL HISTVAL_FILE HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID HYBRID ONE_SIDED_HP_FILTER
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT INFILE INVARS
-%token <string_val> INT_NUMBER
+%token <string> INT_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD IRF_CALIBRATION
 %token FAST_KALMAN_FILTER KALMAN_ALGO KALMAN_TOL DIFFUSE_KALMAN_TOL SUBSAMPLES OPTIONS TOLF TOLX PLOT_INIT_DATE PLOT_END_DATE
 %token LAPLACE LIK_ALGO LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_RESULTS_AFTER_LOAD_MH LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV LINEAR_APPROXIMATION
@@ -113,7 +102,7 @@ class ParsingDriver;
 %token NUMBER_OF_PARTICLES RESAMPLING SYSTEMATIC GENERIC RESAMPLING_THRESHOLD RESAMPLING_METHOD KITAGAWA STRATIFIED SMOOTH
 %token CPF_WEIGHTS AMISANOTRISTANI MURRAYJONESPARSLOW WRITE_EQUATION_TAGS METHOD
 %token NONLINEAR_FILTER_INITIALIZATION FILTER_ALGORITHM PROPOSAL_APPROXIMATION CUBATURE UNSCENTED MONTECARLO DISTRIBUTION_APPROXIMATION
-%token <string_val> NAME
+%token <string> NAME
 %token USE_PENALIZED_OBJECTIVE_FOR_HESSIAN INIT_STATE FAST_REALTIME RESCALE_PREDICTION_ERROR_COVARIANCE GENERATE_IRFS
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS NO_HOMOTOPY VAR_MODEL_NAME
 %token NOGRAPH POSTERIOR_NOGRAPH POSTERIOR_GRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS MODEL_NAME STDERR_MULTIPLES DIAGONAL_ONLY
@@ -121,14 +110,14 @@ class ParsingDriver;
 %token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERIODS PERIOD PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PERFECT_FORESIGHT_SETUP PERFECT_FORESIGHT_SOLVER NO_POSTERIOR_KERNEL_DENSITY FUNCTION
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN MLE_MODE PRUNING
-%token <string_val> QUOTED_STRING
+%token <string> QUOTED_STRING
 %token QZ_CRITERIUM QZ_ZERO_THRESHOLD FULL DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE PIPE_E PIPE_X PIPE_P
 %token RELATIVE_IRF REPLIC SIMUL_REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY
 %token SHOCKS SHOCK_DECOMPOSITION SHOCK_GROUPS USE_SHOCK_GROUPS SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED ENDOGENOUS_TERMINAL_PERIOD
 %token SMOOTHER SMOOTHER2HISTVAL SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS ROBUST_LIN_SOLVE
 %token STDERR STEADY STOCH_SIMUL SURPRISE SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME REALTIME_SHOCK_DECOMPOSITION
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
-%token <string_val> TEX_NAME
+%token <string> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL CROSSEQUATIONS COVARIANCE WRITE_LATEX_STEADY_STATE_MODEL
@@ -151,7 +140,7 @@ class ParsingDriver;
 %token VLISTLOG VLISTPER SPECTRAL_DENSITY
 %token RESTRICTION RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST
 %token DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR SPECIFICATION SIMS_ZHA
-%token <string_val> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX DIRICHLET DIAGONAL OPTIMAL
+%token <string> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX DIRICHLET DIAGONAL OPTIMAL
 %token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD WEIBULL WEIBULL_PDF
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF IMFBAND INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
 %token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE FILTER_DECOMPOSITION SMOOTHED_STATE_UNCERTAINTY
@@ -179,22 +168,23 @@ class ParsingDriver;
 %token SIMULATION_MULTIPLE SEED BOUNDED_SHOCK_SUPPORT EQTAGS
 %token ANALYTICAL_GIRF IRF_IN_PERCENT EMAS_GIRF EMAS_DROP EMAS_TOLF EMAS_MAX_ITER
 
-%token <vector_string_p_val> SYMBOL_VEC
+%token <vector<string>> SYMBOL_VEC
 
-%type <node_val> expression expression_or_empty
-%type <node_val> equation hand_side
-%type <string_val> non_negative_number signed_number signed_integer date_str
-%type <string_val> filename symbol vec_of_vec_value vec_value_list date_expr number
-%type <string_val> vec_value_1 vec_value signed_inf signed_number_w_inf
-%type <string_val> range vec_value_w_inf vec_value_1_w_inf
-%type <string_val> integer_range signed_integer_range sub_sampling_options list_sub_sampling_option
-%type <string_pair_val> named_var_elem
-%type <vector_string_pair_val> named_var named_var_1
-%type <symbol_type_val> change_type_arg
-%type <vector_string_val> vec_str vec_str_1
-%type <vector_string_p_val> change_type_var_list subsamples_eq_opt prior_eq_opt options_eq_opt calibration_range
-%type <vector_int_val> vec_int_elem vec_int_1 vec_int vec_int_number
-%type <prior_distributions_val> prior_pdf prior_distribution
+%type <expr_t> expression expression_or_empty
+%type <expr_t> equation hand_side
+%type <string> non_negative_number signed_number signed_integer date_str
+%type <string> filename symbol vec_of_vec_value vec_value_list date_expr number
+%type <string> vec_value_1 vec_value signed_inf signed_number_w_inf
+%type <string> range vec_value_w_inf vec_value_1_w_inf
+%type <string> integer_range signed_integer_range sub_sampling_options list_sub_sampling_option
+%type <pair<string,string>> named_var_elem subsamples_eq_opt calibration_range
+%type <vector<pair<string,string>>> named_var named_var_1
+%type <SymbolType> change_type_arg
+%type <vector<string>> vec_str vec_str_1
+%type <vector<string>> change_type_var_list
+%type <vector<int>> vec_int_elem vec_int_1 vec_int vec_int_number
+%type <PriorDistributions> prior_pdf prior_distribution
+%type <tuple<string,string,string,string>> prior_eq_opt options_eq_opt
 %%
 
 %start statement_list;
@@ -410,7 +400,7 @@ restriction : EXCLUSION LAG INT_NUMBER ';' restriction_exclusion_equation_list
             | RESTRICTION EQUATION '(' symbol ')' restriction_equation_equality ';'
               { driver.add_VAR_restriction_equation_or_crossequation_final($4); }
             | RESTRICTION CROSSEQUATIONS restriction_crossequation_equality ';'
-              { driver.add_VAR_restriction_equation_or_crossequation_final(NULL); }
+              { driver.add_VAR_restriction_equation_or_crossequation_final(""); }
             | RESTRICTION COVARIANCE '(' symbol COMMA symbol ')' EQUAL number ';'
               { driver.add_VAR_covariance_number_restriction($4, $6, $9); }
             | RESTRICTION COVARIANCE '(' symbol COMMA symbol ')' EQUAL '(' symbol COMMA symbol ')' ';'
@@ -432,14 +422,13 @@ restriction_equation_equality_side : coeff_def TIMES expression
                                      { driver.add_VAR_restriction_eq_or_crosseq($3); }
                                    | coeff_def DIVIDE expression
                                      {
-                                       string *onestr = new string("1");
-                                       expr_t one = driver.add_non_negative_constant(onestr);
+                                       expr_t one = driver.add_non_negative_constant("1");
                                        driver.add_VAR_restriction_eq_or_crosseq(driver.add_divide(one, $3));
                                      }
                                    ;
 
 coeff_def : COEFF '(' symbol COMMA INT_NUMBER ')'
-            { driver.add_VAR_restriction_coeff($3, NULL, $5); }
+            { driver.add_VAR_restriction_coeff($3, "", $5); }
           ;
 
 
@@ -458,8 +447,7 @@ restriction_crossequation_equality_side : coeff_def1 TIMES expression
                                           { driver.add_VAR_restriction_eq_or_crosseq($3); }
                                         | coeff_def1 DIVIDE expression
                                           {
-                                            string *onestr = new string("1");
-                                            expr_t one = driver.add_non_negative_constant(onestr);
+                                            expr_t one = driver.add_non_negative_constant("1");
                                             driver.add_VAR_restriction_eq_or_crosseq(driver.add_divide(one, $3));
                                           }
                                         ;
@@ -495,11 +483,11 @@ nonstationary_var_list : nonstationary_var_list symbol
                        | symbol
                          { driver.declare_nonstationary_var($1); }
                        |  nonstationary_var_list symbol named_var
-                         { driver.declare_nonstationary_var($2, NULL, $3); }
+                         { driver.declare_nonstationary_var($2, "", $3); }
                        | nonstationary_var_list COMMA symbol named_var
-                         { driver.declare_nonstationary_var($3, NULL, $4); }
+                         { driver.declare_nonstationary_var($3, "", $4); }
                        | symbol named_var
-                         { driver.declare_nonstationary_var($1, NULL, $2); }
+                         { driver.declare_nonstationary_var($1, "", $2); }
                        | nonstationary_var_list symbol TEX_NAME
                          { driver.declare_nonstationary_var($2, $3); }
                        | nonstationary_var_list COMMA symbol TEX_NAME
@@ -525,35 +513,28 @@ parameters : PARAMETERS parameter_list ';';
 model_local_variable : MODEL_LOCAL_VARIABLE model_local_variable_list ';';
 
 named_var_elem : symbol EQUAL QUOTED_STRING
-               {
-                  pair<string *, string *> *pr = new pair<string *, string *>($1, $3);
-                  $$ = pr;
-               }
+               { $$ = make_pair($1, $3); }
 
 named_var_1 : '(' named_var_elem
-              {
-                $$ = new vector<pair<string *, string *> *>();
-                $$->push_back($2);
-              }
+              { $$ = vector<pair<string, string>>{$2}; }
             | '(' COMMA named_var_elem
-              {
-                $$ = new vector<pair<string *, string *> *>();
-                $$->push_back($3);
-              }
+              { $$ = vector<pair<string, string>>{$3}; }
             | named_var_1 named_var_elem
               {
-                $1->push_back($2);
                 $$ = $1;
+                $$.push_back($2);
               }
             | named_var_1 COMMA named_var_elem
               {
-                $1->push_back($3);
                 $$ = $1;
+                $$.push_back($3);
               }
             ;
 
-named_var : named_var_1 ')' { $$ = $1; }
-          | named_var_1 COMMA ')' { $$ = $1; }
+named_var : named_var_1 ')'
+            { $$ = $1; }
+          | named_var_1 COMMA ')'
+            { $$ = $1; }
           ;
 
 var_list : var_list symbol
@@ -563,11 +544,11 @@ var_list : var_list symbol
          | symbol
            { driver.declare_endogenous($1); }
          | var_list symbol named_var
-           { driver.declare_endogenous($2, NULL, $3); }
+           { driver.declare_endogenous($2, "", $3); }
          | var_list COMMA symbol named_var
-           { driver.declare_endogenous($3, NULL, $4); }
+           { driver.declare_endogenous($3, "", $4); }
          | symbol named_var
-           { driver.declare_endogenous($1, NULL, $2); }
+           { driver.declare_endogenous($1, "", $2); }
          | var_list symbol TEX_NAME
            { driver.declare_endogenous($2, $3); }
          | var_list COMMA symbol TEX_NAME
@@ -589,11 +570,11 @@ varexo_list : varexo_list symbol
             | symbol
               { driver.declare_exogenous($1); }
             | varexo_list symbol named_var
-              { driver.declare_exogenous($2, NULL, $3); }
+              { driver.declare_exogenous($2, "", $3); }
             | varexo_list COMMA symbol named_var
-              { driver.declare_exogenous($3, NULL, $4); }
+              { driver.declare_exogenous($3, "", $4); }
             | symbol named_var
-              { driver.declare_exogenous($1, NULL, $2); }
+              { driver.declare_exogenous($1, "", $2); }
             | varexo_list symbol TEX_NAME
               { driver.declare_exogenous($2, $3); }
             | varexo_list COMMA symbol TEX_NAME
@@ -615,11 +596,11 @@ varexo_det_list : varexo_det_list symbol
                 | symbol
                   { driver.declare_exogenous_det($1); }
                 | varexo_det_list symbol named_var
-                  { driver.declare_exogenous_det($2, NULL, $3); }
+                  { driver.declare_exogenous_det($2, "", $3); }
                 | varexo_det_list COMMA symbol named_var
-                  { driver.declare_exogenous_det($3, NULL, $4); }
+                  { driver.declare_exogenous_det($3, "", $4); }
                 | symbol named_var
-                  { driver.declare_exogenous_det($1, NULL, $2); }
+                  { driver.declare_exogenous_det($1, "", $2); }
                 | varexo_det_list symbol TEX_NAME
                   { driver.declare_exogenous_det($2, $3); }
                 | varexo_det_list COMMA symbol TEX_NAME
@@ -641,11 +622,11 @@ parameter_list : parameter_list symbol
                | symbol
                  { driver.declare_parameter($1); }
                | parameter_list symbol named_var
-                 { driver.declare_parameter($2, NULL, $3); }
+                 { driver.declare_parameter($2, "", $3); }
                | parameter_list COMMA symbol named_var
-                 { driver.declare_parameter($3, NULL, $4); }
+                 { driver.declare_parameter($3, "", $4); }
                | symbol named_var
-                 { driver.declare_parameter($1, NULL, $2); }
+                 { driver.declare_parameter($1, "", $2); }
                | parameter_list symbol TEX_NAME
                  { driver.declare_parameter($2, $3); }
                | parameter_list COMMA symbol TEX_NAME
@@ -697,11 +678,17 @@ change_type_arg : PARAMETERS
                 ;
 
 change_type_var_list : symbol
-                       { $$ = new vector<string *>(); $$->push_back($1); }
+                       { $$ = vector<string>{$1}; }
                      | change_type_var_list symbol
-                       { $$ = $1; $1->push_back($2); }
+                       {
+                         $$ = $1;
+                         $$.push_back($2);
+                       }
                      | change_type_var_list COMMA symbol
-                       { $$ = $1; $1->push_back($3); }
+                       {
+                         $$ = $1;
+                         $$.push_back($3);
+                       }
                      ;
 
 periods : PERIODS INT_NUMBER ';'
@@ -801,6 +788,7 @@ comma_expression : expression
 expression_or_empty : %empty
                       { $$ = driver.add_nan_constant(); }
                     | expression
+                      { $$ = $1; }
 	            ;
 
 initval : INITVAL ';' initval_list END ';'
@@ -886,7 +874,7 @@ tags_list : tags_list COMMA tag_pair
 tag_pair : NAME EQUAL QUOTED_STRING
            { driver.add_equation_tags($1, $3); }
          | NAME
-           { driver.add_equation_tags($1, new string()); }
+           { driver.add_equation_tags($1, ""); }
          ;
 
 hand_side : '(' hand_side ')'
@@ -926,7 +914,7 @@ hand_side : '(' hand_side ')'
           | EXPECTATION '(' signed_integer ')''(' hand_side ')'
 	    { $$ = driver.add_expectation($3, $6); }
           | VAR_EXPECTATION '(' symbol COMMA MODEL_NAME EQUAL NAME ')'
-            { $$ = driver.add_var_expectation($3, new string("1"), $7); }
+            { $$ = driver.add_var_expectation($3, "1", $7); }
           | VAR_EXPECTATION '(' symbol COMMA INT_NUMBER COMMA MODEL_NAME EQUAL NAME ')'
             { $$ = driver.add_var_expectation($3, $5, $9); }
           | PAC_EXPECTATION '(' symbol ')'
@@ -940,7 +928,7 @@ hand_side : '(' hand_side ')'
           | DIFF '(' hand_side ')'
             { $$ = driver.add_diff($3); }
           | ADL '(' hand_side COMMA QUOTED_STRING ')'
-            { $$ = driver.add_adl($3, $5, new string("1")); }
+            { $$ = driver.add_adl($3, $5, "1"); }
           | ADL '(' hand_side COMMA QUOTED_STRING COMMA INT_NUMBER ')'
             { $$ = driver.add_adl($3, $5, $7); }
           | ADL '(' hand_side COMMA QUOTED_STRING COMMA vec_int ')'
@@ -1472,40 +1460,49 @@ symbol_list : symbol_list symbol
 
 symbol_list_ext : symbol_list
                 | ':'
-                  {
-                    string *colon = new string(":");
-                    driver.add_in_symbol_list(colon);
-                  }
+                  { driver.add_in_symbol_list(":"); }
                 ;
 
 signed_integer : PLUS INT_NUMBER
                  { $$ = $2; }
                | MINUS INT_NUMBER
-                { $2->insert(0, "-"); $$ = $2; }
+                 {
+                   $$ = $2;
+                   $$.insert(0, "-");
+                 }
                | INT_NUMBER
+                 { $$ = $1; }
                ;
 
 non_negative_number : INT_NUMBER
+                      { $$ = $1; }
                     | FLOAT_NUMBER
+                      { $$ = $1; }
                     ;
 
 signed_number : PLUS non_negative_number
                { $$ = $2; }
               | MINUS non_negative_number
-               { $2->insert(0, "-"); $$ = $2; }
+               {
+                 $$ = $2;
+                 $$.insert(0, "-");
+               }
               | non_negative_number
+               { $$ = $1; }
               ;
 
 signed_inf : PLUS INF_CONSTANT
-             { $$ = new string ("Inf"); }
+             { $$ = "Inf"; }
            | MINUS INF_CONSTANT
-             { $$ = new string ("-Inf"); }
+             { $$ = "-Inf"; }
            | INF_CONSTANT
-             { $$ = new string ("Inf"); }
+             { $$ = "Inf"; }
            ;
 
 signed_number_w_inf : signed_inf
+                      { $$ = $1; }
                     | signed_number
+                      { $$ = $1; }
                     ;
 
 estimated_params : ESTIMATED_PARAMS ';' estimated_list END ';' { driver.estimated_params(); };
@@ -1522,22 +1519,18 @@ estimated_elem : estimated_elem1 COMMA estimated_elem2 ';'
 estimated_elem1 : STDERR symbol
                   {
                     driver.estim_params.type = 1;
-                    driver.estim_params.name = *$2;
-                    delete $2;
+                    driver.estim_params.name = $2;
                   }
                 | symbol
                   {
                     driver.estim_params.type = 2;
-                    driver.estim_params.name = *$1;
-                    delete $1;
+                    driver.estim_params.name = $1;
                   }
                 | CORR symbol COMMA symbol
                   {
                     driver.estim_params.type = 3;
-                    driver.estim_params.name = *$2;
-                    driver.estim_params.name2 = *$4;
-                    delete $2;
-                    delete $4;
+                    driver.estim_params.name = $2;
+                    driver.estim_params.name2 = $4;
                   }
                 | DSGE_PRIOR_WEIGHT
                   {
@@ -1619,25 +1612,21 @@ estimated_init_list : estimated_init_list estimated_init_elem
 estimated_init_elem : STDERR symbol COMMA expression ';'
                       {
                         driver.estim_params.type = 1;
-                        driver.estim_params.name = *$2;
+                        driver.estim_params.name = $2;
                         driver.estim_params.init_val = $4;
-                        delete $2;
                       }
                     | CORR symbol COMMA symbol COMMA expression ';'
                       {
                         driver.estim_params.type = 3;
-                        driver.estim_params.name = *$2;
-                        driver.estim_params.name2 = *$4;
+                        driver.estim_params.name = $2;
+                        driver.estim_params.name2 = $4;
                         driver.estim_params.init_val = $6;
-                        delete $2;
-                        delete $4;
                       }
                     | symbol COMMA expression ';'
                       {
                         driver.estim_params.type = 2;
-                        driver.estim_params.name = *$1;
+                        driver.estim_params.name = $1;
                         driver.estim_params.init_val = $3;
-                        delete $1;
                       }
                     ;
 
@@ -1653,28 +1642,24 @@ estimated_bounds_list : estimated_bounds_list estimated_bounds_elem
 estimated_bounds_elem : STDERR symbol COMMA expression COMMA expression ';'
                         {
                           driver.estim_params.type = 1;
-                          driver.estim_params.name = *$2;
+                          driver.estim_params.name = $2;
                           driver.estim_params.low_bound = $4;
                           driver.estim_params.up_bound = $6;
-                          delete $2;
                         }
                       | CORR symbol COMMA symbol COMMA expression COMMA expression ';'
                         {
                           driver.estim_params.type = 3;
-                          driver.estim_params.name = *$2;
-                          driver.estim_params.name2 = *$4;
+                          driver.estim_params.name = $2;
+                          driver.estim_params.name2 = $4;
                           driver.estim_params.low_bound = $6;
                           driver.estim_params.up_bound = $8;
-                          delete $2;
-                          delete $4;
                         }
                       | symbol COMMA expression COMMA expression ';'
                         {
                           driver.estim_params.type = 2;
-                          driver.estim_params.name = *$1;
+                          driver.estim_params.name = $1;
                           driver.estim_params.low_bound = $3;
                           driver.estim_params.up_bound = $5;
-                          delete $1;
                         }
                       ;
 
@@ -1689,10 +1674,9 @@ osr_bounds_list : osr_bounds_list osr_bounds_elem
 
 osr_bounds_elem : symbol COMMA expression COMMA expression ';'
                   {
-                    driver.osr_params.name = *$1;
+                    driver.osr_params.name = $1;
                     driver.osr_params.low_bound = $3;
                     driver.osr_params.up_bound = $5;
-                    delete $1;
                   }
                 ;
 
@@ -1734,12 +1718,13 @@ prior_pdf : BETA_PDF
             { $$ = PriorDistributions::weibull; }
           ;
 
-date_str : DATES { $$ = $1; }
+date_str : DATES
+           { $$ = $1; }
 
 date_expr : date_str
             { $$ = $1; }
           | date_expr PLUS INT_NUMBER
-            { $$ = $1; $$->append("+").append(*$3); }
+            { $$ = $1 + '+' + $3; }
           ;
 
 set_time : SET_TIME '(' date_expr ')' ';'
@@ -1764,53 +1749,37 @@ data_options : o_file
              ;
 
 subsamples : subsamples_eq_opt '(' subsamples_name_list ')' ';'
-             { driver.set_subsamples($1->at(0), $1->at(1)); }
+             { driver.set_subsamples($1.first, $1.second); }
            ;
 
 subsamples_eq : subsamples_eq_opt EQUAL subsamples_eq_opt ';'
-                {
-                  driver.copy_subsamples($1->at(0), $1->at(1), $3->at(0), $3->at(1));
-                  delete $1;
-                  delete $3;
-                }
+                { driver.copy_subsamples($1.first, $1.second, $3.first, $3.second); }
               ;
 
 subsamples_eq_opt : symbol '.' SUBSAMPLES
-                    {
-                      $$ = new vector<string *>();
-                      $$->push_back($1);
-                      $$->push_back(new string (""));
-                    }
+                    { $$ = make_pair($1, ""); }
                   | STD '(' symbol ')' '.'SUBSAMPLES
-                    {
-                      $$ = new vector<string *>();
-                      $$->push_back($3);
-                      $$->push_back(new string (""));
-                    }
+                    { $$ = make_pair($3, ""); }
                   | CORR '(' symbol COMMA symbol ')' '.' SUBSAMPLES
-                    {
-                      $$ = new vector<string *>();
-                      $$->push_back($3);
-                      $$->push_back($5);
-                    }
-                 ;
+                    { $$ = make_pair($3, $5); }
+                  ;
 
 subsamples_name_list : subsamples_name_list COMMA o_subsample_name
                      | o_subsample_name
                      ;
 
 prior : symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
-        { driver.set_prior($1, new string ("")); }
+        { driver.set_prior($1, ""); }
       | symbol '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
         { driver.set_prior($1, $3); }
       | SYMBOL_VEC '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; }  '(' joint_prior_options_list ')' ';'
         { driver.set_joint_prior($1); }
       | STD '(' symbol ')' '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
-        { driver.set_std_prior($3, new string ("")); }
+        { driver.set_std_prior($3, ""); }
       | STD '(' symbol ')' '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
         { driver.set_std_prior($3, $6); }
       | CORR '(' symbol COMMA symbol ')' '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
-        { driver.set_corr_prior($3, $5, new string ("")); }
+        { driver.set_corr_prior($3, $5, ""); }
       | CORR '(' symbol COMMA symbol ')' '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
         { driver.set_corr_prior($3, $5, $8); }
       ;
@@ -1848,74 +1817,34 @@ joint_prior_options : o_shift
                     ;
 
 prior_eq : prior_eq_opt EQUAL prior_eq_opt ';'
-           {
-             driver.copy_prior($1->at(0), $1->at(1), $1->at(2), $1->at(3),
-                               $3->at(0), $3->at(1), $3->at(2), $3->at(3));
-             delete $1;
-             delete $3;
-           }
+           { driver.copy_prior(get<0>($1), get<1>($1), get<2>($1), get<3>($1),
+                               get<0>($3), get<1>($3), get<2>($3), get<3>($3)); }
          ;
 
 prior_eq_opt : symbol '.' PRIOR
-               {
-                 $$ = new vector<string *>();
-                 $$->push_back(new string ("par"));
-                 $$->push_back($1);
-                 $$->push_back(new string (""));
-                 $$->push_back(new string (""));
-               }
+               { $$ = make_tuple("par", $1, "", ""); }
              | symbol '.' symbol '.' PRIOR
-               {
-                 $$ = new vector<string *>();
-                 $$->push_back(new string ("par"));
-                 $$->push_back($1);
-                 $$->push_back(new string (""));
-                 $$->push_back($3);
-               }
+               { $$ = make_tuple("par", $1, "", $3); }
              | STD '(' symbol ')' '.'  PRIOR
-               {
-                 $$ = new vector<string *>();
-                 $$->push_back(new string ("std"));
-                 $$->push_back($3);
-                 $$->push_back(new string (""));
-                 $$->push_back(new string (""));
-               }
+               { $$ = make_tuple("std", $3, "", ""); }
              | STD '(' symbol ')' '.' symbol '.' PRIOR
-               {
-                 $$ = new vector<string *>();
-                 $$->push_back(new string ("std"));
-                 $$->push_back($3);
-                 $$->push_back(new string (""));
-                 $$->push_back($6);
-               }
+               { $$ = make_tuple("std", $3, "", $6); }
              | CORR '(' symbol COMMA symbol ')' '.'  PRIOR
-               {
-                 $$ = new vector<string *>();
-                 $$->push_back(new string ("corr"));
-                 $$->push_back($3);
-                 $$->push_back($5);
-                 $$->push_back(new string (""));
-               }
+               { $$ = make_tuple("corr", $3, $5, ""); }
              | CORR '(' symbol COMMA symbol ')' '.' symbol '.' PRIOR
-               {
-                 $$ = new vector<string *>();
-                 $$->push_back(new string ("corr"));
-                 $$->push_back($3);
-                 $$->push_back($5);
-                 $$->push_back($8);
-               }
+               { $$ = make_tuple("corr", $3, $5, $8); }
              ;
 
 options : symbol '.' OPTIONS '(' options_options_list ')' ';'
-          { driver.set_options($1, new string ("")); }
+          { driver.set_options($1, ""); }
         | symbol '.' symbol '.' OPTIONS '(' options_options_list ')' ';'
           { driver.set_options($1, $3); }
         | STD '(' symbol ')' '.' OPTIONS '(' options_options_list ')' ';'
-          { driver.set_std_options($3, new string ("")); }
+          { driver.set_std_options($3, ""); }
         | STD '(' symbol ')' '.' symbol '.' OPTIONS '(' options_options_list ')' ';'
           { driver.set_std_options($3, $6); }
         | CORR '(' symbol COMMA symbol ')' '.' OPTIONS '(' options_options_list ')' ';'
-          { driver.set_corr_options($3, $5, new string ("")); }
+          { driver.set_corr_options($3, $5, ""); }
         | CORR '(' symbol COMMA symbol ')' '.' symbol '.' OPTIONS '(' options_options_list ')' ';'
           { driver.set_corr_options($3, $5, $8); }
         ;
@@ -1930,62 +1859,22 @@ options_options : o_jscale
                 ;
 
 options_eq : options_eq_opt EQUAL options_eq_opt ';'
-             {
-               driver.copy_options($1->at(0), $1->at(1), $1->at(2), $1->at(3),
-                                   $3->at(0), $3->at(1), $3->at(2), $3->at(3));
-               delete $1;
-               delete $3;
-             }
+             { driver.copy_prior(get<0>($1), get<1>($1), get<2>($1), get<3>($1),
+                                 get<0>($3), get<1>($3), get<2>($3), get<3>($3)); }
            ;
 
 options_eq_opt : symbol '.' OPTIONS
-                 {
-                   $$ = new vector<string *>();
-                   $$->push_back(new string ("par"));
-                   $$->push_back($1);
-                   $$->push_back(new string (""));
-                   $$->push_back(new string (""));
-                 }
+                 { $$ = make_tuple("par", $1, "", ""); }
                | symbol '.' symbol '.' OPTIONS
-                 {
-                   $$ = new vector<string *>();
-                   $$->push_back(new string ("par"));
-                   $$->push_back($1);
-                   $$->push_back(new string (""));
-                   $$->push_back($3);
-                 }
+                 { $$ = make_tuple("par", $1, "", $3); }
                | STD '(' symbol ')' '.'  OPTIONS
-                 {
-                   $$ = new vector<string *>();
-                   $$->push_back(new string ("std"));
-                   $$->push_back($3);
-                   $$->push_back(new string (""));
-                   $$->push_back(new string (""));
-                 }
+                 { $$ = make_tuple("std", $3, "", ""); }
                | STD '(' symbol ')' '.' symbol '.' OPTIONS
-                 {
-                   $$ = new vector<string *>();
-                   $$->push_back(new string ("std"));
-                   $$->push_back($3);
-                   $$->push_back(new string (""));
-                   $$->push_back($6);
-                 }
+                 { $$ = make_tuple("std", $3, "", $6); }
                | CORR '(' symbol COMMA symbol ')' '.'  OPTIONS
-                 {
-                   $$ = new vector<string *>();
-                   $$->push_back(new string ("corr"));
-                   $$->push_back($3);
-                   $$->push_back($5);
-                   $$->push_back(new string (""));
-                 }
+                 { $$ = make_tuple("corr", $3, $5, ""); }
                | CORR '(' symbol COMMA symbol ')' '.' symbol '.' OPTIONS
-                 {
-                   $$ = new vector<string *>();
-                   $$->push_back(new string ("corr"));
-                   $$->push_back($3);
-                   $$->push_back($5);
-                   $$->push_back($8);
-                 }
+                 { $$ = make_tuple("corr", $3, $5, $8); }
                ;
 
 estimation : ESTIMATION ';'
@@ -2134,30 +2023,15 @@ optim_options : list_optim_option
               ;
 
 list_sub_sampling_option : QUOTED_STRING COMMA QUOTED_STRING
-                           {
-                             $1->insert(0, "''");
-                             $1->append("'', ''");
-                             $1->append(*$3);
-                             $1->append("''");
-                             $$ = $1;
-                           }
+                           { $$ = "''" + $1 + "'', ''" + $3 + "''"; }
                          | QUOTED_STRING COMMA signed_number
-                           {
-                             $1->insert(0, "''");
-                             $1->append("'',");
-                             $1->append(*$3);
-                             $$ = $1;
-                           }
+                           { $$ = "''" + $1 + "''," + $3; }
                          ;
 
 sub_sampling_options : list_sub_sampling_option
                        { $$ = $1; }
                      | sub_sampling_options COMMA list_sub_sampling_option
-                       {
-                         $1->append(",");
-                         $1->append(*$3);
-                         $$ = $1;
-                       }
+                       { $$ = $1 + ',' + $3; }
                      ;
 
 list_sampling_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -2165,11 +2039,7 @@ list_sampling_option : QUOTED_STRING COMMA QUOTED_STRING
                      | QUOTED_STRING COMMA signed_number
                        { driver.sampling_options_num($1, $3); }
                      | QUOTED_STRING COMMA '(' sub_sampling_options ')'
-                       {
-                         $4->insert(0,"(");
-                         $4->append(")");
-                         driver.sampling_options_string($1, $4);
-                       }
+                       { driver.sampling_options_string($1, '(' + $4 + ')'); }
                      ;
 
 sampling_options : list_sampling_option
@@ -2303,7 +2173,9 @@ model_comparison : MODEL_COMPARISON mc_filename_list ';'
                  ;
 
 filename : symbol
+           { $$ = $1; }
          | QUOTED_STRING
+           { $$ = $1; }
          ;
 
 parallel_local_filename_list : filename
@@ -2900,7 +2772,7 @@ homotopy_list : homotopy_item
 homotopy_item : symbol COMMA expression COMMA expression ';'
                 { driver.homotopy_val($1, $3, $5);}
               | symbol COMMA expression ';'
-                { driver.homotopy_val($1, NULL, $3);}
+                { driver.homotopy_val($1, nullptr, $3);}
               ;
 
 forecast: FORECAST ';' {driver.forecast();}
@@ -3049,29 +2921,13 @@ model_diagnostics : MODEL_DIAGNOSTICS ';'
                   ;
 
 calibration_range : '[' signed_number_w_inf signed_number_w_inf ']'
-                    {
-                      $$ = new vector<string *>();
-                      $$->push_back($2);
-                      $$->push_back($3);
-                    }
+                    { $$ = make_pair($2, $3); }
                   | '[' signed_number_w_inf COMMA signed_number_w_inf ']'
-                    {
-                      $$ = new vector<string *>();
-                      $$->push_back($2);
-                      $$->push_back($4);
-                    }
+                    { $$ = make_pair($2, $4); }
                   | PLUS
-                    {
-                      $$ = new vector<string *>();
-                      $$->push_back(new string("0"));
-                      $$->push_back(new string("inf"));
-                    }
+                    { $$ = make_pair("0", "inf"); }
                   | MINUS
-                    {
-                      $$ = new vector<string *>();
-                      $$->push_back(new string("-inf"));
-                      $$->push_back(new string("0"));
-                    }
+                    { $$ = make_pair("-inf", "0"); }
                   ;
 
 moment_calibration : MOMENT_CALIBRATION ';' moment_calibration_list END ';'
@@ -3083,7 +2939,7 @@ moment_calibration_list : moment_calibration_item
                         ;
 
 moment_calibration_item : symbol COMMA symbol COMMA calibration_range ';'
-                          { driver.add_moment_calibration_item($1, $3, new string("0"), $5); }
+                          { driver.add_moment_calibration_item($1, $3, "0", $5); }
                         | symbol COMMA symbol '(' signed_integer ')' COMMA calibration_range ';'
                           { driver.add_moment_calibration_item($1, $3, $5, $8); }
                         | symbol COMMA symbol '(' signed_integer_range ')' COMMA calibration_range ';'
@@ -3101,7 +2957,7 @@ irf_calibration_list : irf_calibration_item
                      ;
 
 irf_calibration_item : symbol COMMA symbol COMMA calibration_range ';'
-                       { driver.add_irf_calibration_item($1, new string("1"), $3, $5); }
+                       { driver.add_irf_calibration_item($1, "1", $3, $5); }
                      | symbol '(' INT_NUMBER ')' COMMA symbol COMMA calibration_range ';'
                        { driver.add_irf_calibration_item($1, $3, $6, $8); }
                      | symbol '(' integer_range ')' COMMA symbol COMMA calibration_range ';'
@@ -3125,7 +2981,8 @@ smoother2histval_option : o_infile
                         | o_outvars
                         ;
 
-shock_groups : SHOCK_GROUPS ';' shock_group_list END ';'{driver.end_shock_groups(new string("default"));}
+shock_groups : SHOCK_GROUPS ';' shock_group_list END ';'
+               { driver.end_shock_groups("default"); }
              | SHOCK_GROUPS '(' NAME EQUAL symbol ')' ';' shock_group_list END ';'
                {driver.end_shock_groups($5);}
              ;
@@ -3144,14 +3001,14 @@ shock_name_list : shock_name_list COMMA symbol {driver.add_shock_group_element($
                 ;
 
 o_dr_algo : DR_ALGO EQUAL INT_NUMBER {
-                                       if (*$3 == string("0"))
+                                       if ($3 == "0")
                                          driver.warning("dr_algo option is now deprecated, and may be removed in a future version of Dynare");
                                        else
                                          driver.error("dr_algo=1 option is no longer supported");
                                      };
 o_solve_algo : SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("solve_algo", $3); };
 o_simul_algo : SIMUL_ALGO EQUAL INT_NUMBER {
-                                             if (*$3 == string("0"))
+                                             if ($3 == "0")
                                                driver.warning("simul_algo option is now deprecated, and may be removed in a future version of Dynare");
                                              else
                                                driver.error("simul_algo=1 option is no longer supported");
@@ -3789,48 +3646,27 @@ o_emas_tolf : EMAS_TOLF EQUAL non_negative_number { driver.option_num("irf_opt.E
 o_emas_max_iter : EMAS_MAX_ITER EQUAL INT_NUMBER { driver.option_num("irf_opt.EM.iter", $3); };
 
 range : symbol ':' symbol
-        {
-          $1->append(":");
-          $1->append(*$3);
-          delete $3;
-          $$ = $1;
-        };
+        { $$ = $1 + ':' + $3; }
 
 integer_range : INT_NUMBER ':' INT_NUMBER
-                {
-                  $1->append(":");
-                  $1->append(*$3);
-                  delete $3;
-                  $$ = $1;
-                };
-        
-signed_integer_range : signed_integer ':' signed_integer
-                       {
-                         $1->append(":");
-                         $1->append(*$3);
-                         delete $3;
-                         $$ = $1;
-                       }
-                     | MINUS '(' signed_integer ':' signed_integer ')'
-                       {
-                         $3->insert(0, "-(");
-                         $3->append(":");
-                         $3->append(*$5);
-                         delete $5;
-                         $3->append(")");
-                         $$ = $3;
-                       };
+                { $$ = $1 + ':' + $3; }
 
-vec_int_number : INT_NUMBER { $$ = new vector<int>(); $$->push_back(stoi(*$1)); delete $1; };
+signed_integer_range : signed_integer ':' signed_integer
+                       { $$ = $1 + ':' + $3; }
+                     | MINUS '(' signed_integer ':' signed_integer ')'
+                       { $$ = "-(" + $3 + ':' + $5 + ")"; };
+
+vec_int_number : INT_NUMBER
+                 { $$ = vector<int>{stoi($1)}; }
+               ;
 
 vec_int_elem : vec_int_number
+               { $$ = $1; }
              | INT_NUMBER ':' INT_NUMBER
                {
-                 $$ = new vector<int>();
-                 for(int i=stoi(*$1); i<=stoi(*$3); i++)
-                   $$->push_back(i);
-                 delete $1;
-                 delete $3;
+                 $$ = vector<int>{};
+                 for (int i = stoi($1); i <= stoi($3); i++)
+                   $$.push_back(i);
                }
              ;
 
@@ -3841,18 +3677,12 @@ vec_int_1 : '[' vec_int_elem
           | vec_int_1 vec_int_elem
             {
               $$ = $1;
-              for (vector<int>::const_iterator it=$2->begin();
-                   it!=$2->end(); it++)
-                $1->push_back(*it);
-              delete $2;
+              $$.insert($$.end(), $2.begin(), $2.end());
             }
           | vec_int_1 COMMA vec_int_elem
             {
               $$ = $1;
-              for (vector<int>::const_iterator it=$3->begin();
-                   it!=$3->end(); it++)
-                $1->push_back(*it);
-              delete $3;
+              $$.insert($$.end(), $3.begin(), $3.end());
             }
           ;
 
@@ -3863,13 +3693,19 @@ vec_int : vec_int_1 ']'
         ;
 
 vec_str_1 : '[' QUOTED_STRING
-            { $$ = new vector<string>(); $$->push_back(*$2); delete $2; }
+            { $$ = vector<string>{$2}; }
           | '[' COMMA QUOTED_STRING
-            { $$ = new vector<string>(); $$->push_back(*$3); delete $3; }
+            { $$ = vector<string>{$3}; }
           | vec_str_1 QUOTED_STRING
-            { $$->push_back(*$2); delete $2; }
+            {
+              $$ = $1;
+              $$.push_back($2);
+            }
           | vec_str_1 COMMA QUOTED_STRING
-            { $$->push_back(*$3); delete $3; }
+            {
+              $$ = $1;
+              $$.push_back($3);
+            }
           ;
 
 vec_str : vec_str_1 ']'
@@ -3878,79 +3714,89 @@ vec_str : vec_str_1 ']'
           { $$ = $1; }
         ;
 
-vec_value_1 : '[' signed_number { $2->insert(0,"["); $$ = $2; }
-            | '[' COMMA signed_number { $3->insert(0,"["); $$ = $3; }
+vec_value_1 : '[' signed_number
+              { $$ = '[' + $2; }
+            | '[' COMMA signed_number
+              { $$ = '[' + $3; }
             | vec_value_1 signed_number
-              {
-                $1->append(" ");
-                $1->append(*$2);
-                delete $2;
-                $$ = $1;
-              }
+              { $$ = $1 + ' ' + $2; }
             | vec_value_1 COMMA signed_number
-              {
-                $1->append(" ");
-                $1->append(*$3);
-                delete $3;
-                $$ = $1;
-              }
+              { $$ = $1 + ' ' + $3; }
             ;
 
-vec_value : vec_value_1 ']' { $1->append("]"); $$ = $1; }
-          | vec_value_1 COMMA ']' { $1->append("]"); $$ = $1; }
+vec_value : vec_value_1 ']'
+             { $$ = $1 + ']'; }
+          | vec_value_1 COMMA ']'
+             { $$ = $1 + ']'; }
           ;
 
 vec_value_list : vec_value_list COMMA vec_value
-                 {
-                   $1->append(",");
-                   $1->append(*$3);
-                   delete $3;
-                   $$ = $1;
-                 }
+                 { $$ = $1 + ',' + $3; }
                | vec_value
                  { $$ = $1; }
                ;
 
-vec_of_vec_value : '[' vec_value_list ']' { $$ = $2; }
-                 | vec_value  { $$ = $1; };
+vec_of_vec_value : '[' vec_value_list ']'
+                   { $$ = $2; }
+                 | vec_value
+                   { $$ = $1; };
 
 vec_value_1_w_inf : '[' signed_number_w_inf
-                    { $2->insert(0, "["); $$ = $2;}
+                    { $$ = '[' + $2; }
                   | vec_value_1_w_inf signed_number_w_inf
-                    {
-                      $1->append(" ");
-                      $1->append(*$2);
-                      delete $2;
-                      $$ = $1;
-                    }
+                    { $$ = $1 + ' ' + $2; }
                   ;
 
-vec_value_w_inf : vec_value_1_w_inf ']' { $1->append("]"); $$ = $1; };
+vec_value_w_inf : vec_value_1_w_inf ']'
+                  { $$ = $1 + ']'; };
 
 symbol : NAME
+         { $$ = $1; }
        | ALPHA
+         { $$ = $1; }
        | BETA
+         { $$ = $1; }
        | NINV
+         { $$ = $1; }
        | ABAND
+         { $$ = $1; }
        | CMS
+         { $$ = $1; }
        | NCMS
+         { $$ = $1; }
        | CNUM
+         { $$ = $1; }
        | GAMMA
+         { $$ = $1; }
        | INV_GAMMA
+         { $$ = $1; }
        | INV_GAMMA1
+         { $$ = $1; }
        | INV_GAMMA2
+         { $$ = $1; }
        | NORMAL
+         { $$ = $1; }
        | UNIFORM
+         { $$ = $1; }
        | EPS
+         { $$ = $1; }
        | PDF
+         { $$ = $1; }
        | FIG
+         { $$ = $1; }
        | NONE
+         { $$ = $1; }
        | DR
+         { $$ = $1; }
        | PRIOR
+         { $$ = $1; }
        ;
 
+
 number : INT_NUMBER
+         { $$ = $1; }
        | FLOAT_NUMBER
+         { $$ = $1; }
        ;
 %%
 

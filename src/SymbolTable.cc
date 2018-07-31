@@ -42,7 +42,7 @@ SymbolTable::SymbolTable()
 = default;
 
 int
-SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string *, string *> *> *partition_value) noexcept(false)
+SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string, string>> &partition_value) noexcept(false)
 {
   if (frozen)
     throw FrozenException();
@@ -69,12 +69,11 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
 
   string final_long_name = name;
   bool non_long_name_partition_exists = false;
-  if (partition_value)
-    for (auto it : *partition_value)
-      if (*(it->first) == "long_name")
-        final_long_name = *(it->second);
-      else
-        non_long_name_partition_exists = true;
+  for (auto it : partition_value)
+    if (it.first == "long_name")
+      final_long_name = it.second;
+    else
+      non_long_name_partition_exists = true;
 
   int id = symbol_table.size();
 
@@ -86,8 +85,8 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
   if (non_long_name_partition_exists)
     {
       map<string, string> pmv;
-      for (auto it : *partition_value)
-        pmv[*(it->first)] = *(it->second);
+      for (auto it : partition_value)
+        pmv[it.first] = it.second;
       partition_value_map[id] = pmv;
     }
   return id;
@@ -96,7 +95,7 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
 int
 SymbolTable::addSymbol(const string &name, SymbolType type) noexcept(false)
 {
-  return addSymbol(name, type, "", nullptr);
+  return addSymbol(name, type, "", {});
 }
 
 void

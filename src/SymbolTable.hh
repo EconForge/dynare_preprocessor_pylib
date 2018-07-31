@@ -237,7 +237,7 @@ private:
 public:
   //! Add a symbol
   /*! Returns the symbol ID */
-  int addSymbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string *, string *> *> *partition_value) noexcept(false);
+  int addSymbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string, string>> &partition_value) noexcept(false);
   //! Add a symbol without its TeX name (will be equal to its name)
   /*! Returns the symbol ID */
   int addSymbol(const string &name, SymbolType type) noexcept(false);
