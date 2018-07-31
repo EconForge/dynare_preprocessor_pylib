@@ -1,3 +1,4 @@
+/* -*- C++ -*- */
 /*
  * Copyright (C) 2008-2018 Dynare Team
  *
