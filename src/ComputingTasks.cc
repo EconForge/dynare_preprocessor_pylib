@@ -2231,22 +2231,16 @@ ModelComparisonStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-PlannerObjectiveStatement::PlannerObjectiveStatement(StaticModel *model_tree_arg) :
-  model_tree(model_tree_arg),
-  computing_pass_called(false)
+PlannerObjectiveStatement::PlannerObjectiveStatement(SymbolTable &symbol_table, NumericalConstants &num_constants, ExternalFunctionsTable &external_functions_table) :
+  model_tree{symbol_table, num_constants, external_functions_table}
 {
-}
-
-PlannerObjectiveStatement::~PlannerObjectiveStatement()
-{
-  delete model_tree;
 }
 
 void
 PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  assert(model_tree->equation_number() == 1);
-  if (model_tree->exoPresentInEqs())
+  assert(model_tree.equation_number() == 1);
+  if (model_tree.exoPresentInEqs())
     {
       cerr << "ERROR: You cannot include exogenous variables in the planner objective. Please "
            << "define an auxiliary endogenous variable like eps_aux=epsilon and use it instead "
@@ -2256,8 +2250,8 @@ PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct, WarningC
   mod_file_struct.planner_objective_present = true;
 }
 
-StaticModel *
-PlannerObjectiveStatement::getPlannerObjective() const
+StaticModel &
+PlannerObjectiveStatement::getPlannerObjective()
 {
   return model_tree;
 }
@@ -2265,14 +2259,14 @@ PlannerObjectiveStatement::getPlannerObjective() const
 void
 PlannerObjectiveStatement::computingPass()
 {
-  model_tree->computingPass({}, false, true, true, 0, false, false, false);
+  model_tree.computingPass({}, false, true, true, 0, false, false, false);
   computing_pass_called = true;
 }
 
 void
 PlannerObjectiveStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  model_tree->writeStaticFile(basename + ".objective", false, false, false, false);
+  model_tree.writeStaticFile(basename + ".objective", false, false, false, false);
 }
 
 void
@@ -2281,9 +2275,9 @@ PlannerObjectiveStatement::writeJsonOutput(ostream &output) const
   output << "{\"statementName\": \"planner_objective\""
          << ", ";
   if (computing_pass_called)
-    model_tree->writeJsonComputingPassOutput(output, false);
+    model_tree.writeJsonComputingPassOutput(output, false);
   else
-    model_tree->writeJsonOutput(output);
+    model_tree.writeJsonOutput(output);
 
   output << "}";
 }

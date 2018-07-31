@@ -534,19 +534,15 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
-/*! \todo Make model_tree a member instead of a pointer */
 class PlannerObjectiveStatement : public Statement
 {
 private:
-  StaticModel *model_tree;
-  bool computing_pass_called;
+  StaticModel model_tree;
+  bool computing_pass_called{false};
 public:
-  //! Constructor
-  /*! \param model_tree_arg the model tree used to store the objective function.
-    It is owned by the PlannerObjectiveStatement, and will be deleted by its destructor */
-  PlannerObjectiveStatement(StaticModel *model_tree_arg);
-  
-  ~PlannerObjectiveStatement() override;
+  PlannerObjectiveStatement(SymbolTable &symbol_table,
+                            NumericalConstants &num_constants,
+                            ExternalFunctionsTable &external_functions_table);
   /*! \todo check there are only endogenous variables at the current period in the objective
     (no exogenous, no lead/lag) */
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
@@ -554,8 +550,8 @@ public:
   void computingPass() override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
-  //! Return the Planner Objective
-  StaticModel *getPlannerObjective() const;
+  //! Return a reference the Planner Objective model tree
+  StaticModel &getPlannerObjective();
 };
 
 class BVARDensityStatement : public Statement

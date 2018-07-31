@@ -466,14 +466,21 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   mod_file_struct.orig_eq_nbr = dynamic_model.equation_number();
   if (mod_file_struct.ramsey_model_present)
     {
-      StaticModel *planner_objective = nullptr;
+      PlannerObjectiveStatement *pos = nullptr;
       for (auto & statement : statements)
         {
-          auto *pos = dynamic_cast<PlannerObjectiveStatement *>(statement);
-          if (pos != nullptr)
-            planner_objective = pos->getPlannerObjective();
+          auto pos2 = dynamic_cast<PlannerObjectiveStatement *>(statement);
+          if (pos2 != nullptr)
+            if (pos != nullptr)
+              {
+                cerr << "ERROR: there can only be one planner_objective statement" << endl;
+                exit(EXIT_FAILURE);
+              }
+            else
+              pos = pos2;
         }
-      assert(planner_objective != nullptr);
+      assert(pos != nullptr);
+      const StaticModel &planner_objective = pos->getPlannerObjective();
 
       /*
         clone the model then clone the new equations back to the original because
@@ -482,7 +489,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       if (linear)
         dynamic_model.cloneDynamic(orig_ramsey_dynamic_model);
       dynamic_model.cloneDynamic(ramsey_FOC_equations_dynamic_model);
-      ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(*planner_objective, nopreprocessoroutput);
+      ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(planner_objective, nopreprocessoroutput);
       ramsey_FOC_equations_dynamic_model.replaceMyEquations(dynamic_model);
       mod_file_struct.ramsey_eq_nbr = dynamic_model.equation_number() - mod_file_struct.orig_eq_nbr;
     }
