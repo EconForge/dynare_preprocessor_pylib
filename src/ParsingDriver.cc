@@ -86,10 +86,10 @@ ParsingDriver::reset_current_external_function_options()
   current_external_function_id = eExtFunNotSet;
 }
 
-ModFile *
+unique_ptr<ModFile>
 ParsingDriver::parse(istream &in, bool debug)
 {
-  mod_file = new ModFile(warnings);
+  mod_file = make_unique<ModFile>(warnings);
 
   symbol_list.clear();
 
@@ -98,16 +98,14 @@ ParsingDriver::parse(istream &in, bool debug)
   osr_params.init(*data_tree);
   reset_current_external_function_options();
 
-  lexer = new DynareFlex(&in);
+  lexer = make_unique<DynareFlex>(&in);
   lexer->set_debug(debug);
 
   Dynare::parser parser(*this);
   parser.set_debug_level(debug);
   parser.parse();
 
-  delete lexer;
-
-  return mod_file;
+  return move(mod_file);
 }
 
 void
@@ -357,11 +355,10 @@ ParsingDriver::declare_or_change_type(SymbolType new_type, const string &name)
       mod_file->symbol_table.changeType(symb_id, new_type);
 
       // change in equations in ModelTree
-      auto *dm = new DynamicModel(mod_file->symbol_table,
+      auto dm = make_unique<DynamicModel>(mod_file->symbol_table,
                                           mod_file->num_constants,
                                           mod_file->external_functions_table);
       mod_file->dynamic_model.updateAfterVariableChange(*dm);
-      delete dm;
 
       // remove error messages
       undeclared_model_vars.erase(name);

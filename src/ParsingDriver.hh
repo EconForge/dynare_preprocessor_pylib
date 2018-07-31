@@ -241,7 +241,7 @@ private:
   map<string, vector<string>> var_map;
 
   //! The mod file representation constructed by this ParsingDriver
-  ModFile *mod_file;
+  unique_ptr<ModFile> mod_file;
 
   WarningConsolidation &warnings;
 
@@ -257,11 +257,10 @@ public:
   ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) : warnings(warnings_arg), nostrict(nostrict_arg) { };
 
   //! Starts parsing, and constructs the MOD file representation
-  /*! The returned pointer should be deleted after use */
-  ModFile *parse(istream &in, bool debug);
+  unique_ptr<ModFile> parse(istream &in, bool debug);
 
   //! Reference to the lexer
-  class DynareFlex *lexer;
+  unique_ptr<DynareFlex> lexer;
 
   //! Copy of parsing location, maintained by YYLLOC_DEFAULT macro in DynareBison.yy
   Dynare::parser::location_type location;
