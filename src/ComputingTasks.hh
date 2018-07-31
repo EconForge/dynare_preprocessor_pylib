@@ -122,18 +122,18 @@ public:
 class PacModelStatement : public Statement
 {
 private:
-  const string &name;
-  const string &var_name;
-  const string &discount;
-  const string &growth;
+  const string name;
+  const string var_name;
+  const string discount;
+  const string growth;
   const map<string, int> undiff;
   const SymbolTable &symbol_table;
   vector<int> lhs;
 public:
-  PacModelStatement(const string &name_arg,
-                    const string &var_name_arg,
-                    const string &discount_arg,
-                    const string &growth_arg,
+  PacModelStatement(string name_arg,
+                    string var_name_arg,
+                    string discount_arg,
+                    string growth_arg,
                     map<string, int> undiff_arg,
                     const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
@@ -148,7 +148,7 @@ class VarModelStatement : public Statement
 private:
   const SymbolList symbol_list;
   const OptionsList options_list;
-  const string &name;
+  const string name;
   const SymbolTable &symbol_table;
   vector<int> eqnumber, lhs, orig_diff_var;
   vector<set<pair<int, int>>> rhs_by_eq; // rhs by equation
@@ -157,7 +157,7 @@ private:
 public:
   VarModelStatement(SymbolList symbol_list_arg,
                     OptionsList options_list_arg,
-                    const string &name_arg,
+                    string name_arg,
                     const SymbolTable &symbol_table_arg);
   void getVarModelInfo(string &var_model_name,
                        map<string, pair<SymbolList, int>> &var_model_info,
@@ -177,8 +177,8 @@ class VarRestrictionsStatement : public Statement
 {
 private:
   using var_restriction_eq_crosseq_t = pair<pair<int, pair<int, int>>, expr_t>;
-  const string &var_model_name;
-  const map<string, vector<string>> &var_map;
+  const string var_model_name;
+  const map<string, vector<string>> var_map;
   const map<int, map<int, SymbolList>> exclusion_restrictions;
   using equation_restrictions_t = map<int, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double>>;
   const equation_restrictions_t equation_restrictions;
@@ -189,8 +189,8 @@ private:
   const SymbolTable &symbol_table;
   int findIdxInVector(const vector<string> &vecvars, const string &var) const;
 public:
-  VarRestrictionsStatement(const string &var_model_name_arg,
-                           const map<string, vector<string>> &var_map_arg,
+  VarRestrictionsStatement(string var_model_name_arg,
+                           map<string, vector<string>> var_map_arg,
                            map<int, map<int, SymbolList>> exclusion_restrictions_arg,
                            equation_restrictions_t equation_restrictions_arg,
                            crossequation_restrictions_t crossequation_restrictions_arg,
@@ -912,12 +912,12 @@ private:
   const string name1;
   const string name2;
   const subsample_declaration_map_t subsample_declaration_map;
-  const SymbolTable symbol_table;
+  const SymbolTable &symbol_table;
 public:
   SubsamplesStatement(string name1_arg,
                       string name2_arg,
-                      const subsample_declaration_map_t subsample_declaration_map_arg,
-                      SymbolTable symbol_table_arg);
+                      subsample_declaration_map_t subsample_declaration_map_arg,
+                      const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -930,13 +930,13 @@ private:
   const string to_name2;
   const string from_name1;
   const string from_name2;
-  const SymbolTable symbol_table;
+  const SymbolTable &symbol_table;
 public:
   SubsamplesEqualStatement(string to_name1_arg,
                            string to_name2_arg,
                            string from_name1_arg,
                            string from_name2_arg,
-                           SymbolTable symbol_table_arg);
+                           const SymbolTable &symbol_table_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -948,8 +948,8 @@ private:
   const PriorDistributions prior_shape;
   const OptionsList options_list;
 public:
-  JointPriorStatement(const vector<string> joint_parameters_arg,
-                      const PriorDistributions &prior_shape_arg,
+  JointPriorStatement(vector<string> joint_parameters_arg,
+                      PriorDistributions prior_shape_arg,
                       OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
@@ -970,8 +970,8 @@ protected:
   const OptionsList options_list;
   BasicPriorStatement(string name_arg,
                       string subsample_name_arg,
-                      const PriorDistributions &prior_shape_arg,
-                      const expr_t &variance_arg,
+                      PriorDistributions prior_shape_arg,
+                      expr_t variance_arg,
                       OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
@@ -994,11 +994,11 @@ protected:
 class PriorStatement : public BasicPriorStatement
 {
 public:
-  PriorStatement(const string &name_arg,
-                 const string &subsample_name_arg,
-                 const PriorDistributions &prior_shape_arg,
-                 const expr_t &variance_arg,
-                 const OptionsList &options_list_arg);
+  PriorStatement(string name_arg,
+                 string subsample_name_arg,
+                 PriorDistributions prior_shape_arg,
+                 expr_t variance_arg,
+                 OptionsList options_list_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeCOutput(ostream &output, const string &basename) override;
   void writeJsonOutput(ostream &output) const override;
@@ -1007,14 +1007,14 @@ public:
 class StdPriorStatement : public BasicPriorStatement
 {
 private:
-  const SymbolTable symbol_table;
+  const SymbolTable &symbol_table;
 public:
-  StdPriorStatement(const string &name_arg,
-                    const string &subsample_name_arg,
-                    const PriorDistributions &prior_shape_arg,
-                    const expr_t &variance_arg,
-                    const OptionsList &options_list_arg,
-                    SymbolTable symbol_table_arg);
+  StdPriorStatement(string name_arg,
+                    string subsample_name_arg,
+                    PriorDistributions prior_shape_arg,
+                    expr_t variance_arg,
+                    OptionsList options_list_arg,
+                    const SymbolTable &symbol_table_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeCOutput(ostream &output, const string &basename) override;
   void writeJsonOutput(ostream &output) const override;
@@ -1024,15 +1024,15 @@ class CorrPriorStatement : public BasicPriorStatement
 {
 private:
   const string name1;
-  const SymbolTable symbol_table;
+  const SymbolTable &symbol_table;
 public:
-  CorrPriorStatement(const string &name_arg1,
+  CorrPriorStatement(string name_arg1,
                      string name_arg2,
-                     const string &subsample_name_arg,
-                     const PriorDistributions &prior_shape_arg,
-                     const expr_t &variance_arg,
-                     const OptionsList &options_list_arg,
-                     SymbolTable symbol_table_arg);
+                     string subsample_name_arg,
+                     PriorDistributions prior_shape_arg,
+                     expr_t variance_arg,
+                     OptionsList options_list_arg,
+                     const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeCOutput(ostream &output, const string &basename) override;
@@ -1050,7 +1050,7 @@ private:
   const string from_name1;
   const string from_name2;
   const string from_subsample_name;
-  const SymbolTable symbol_table;
+  const SymbolTable &symbol_table;
 public:
   PriorEqualStatement(string to_declaration_type_arg,
                       string to_name1_arg,
@@ -1060,7 +1060,7 @@ public:
                       string from_name1_arg,
                       string from_name2_arg,
                       string from_subsample_name_arg,
-                      SymbolTable symbol_table_arg);
+                      const SymbolTable &symbol_table_arg);
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
@@ -1094,7 +1094,7 @@ protected:
 class OptionsStatement : public BasicOptionsStatement
 {
 public:
-  OptionsStatement(const string &name_arg, const string &subsample_name_arg, const OptionsList &options_list_arg);
+  OptionsStatement(string name_arg, string subsample_name_arg, OptionsList options_list_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeCOutput(ostream &output, const string &basename) override;
   void writeJsonOutput(ostream &output) const override;
@@ -1103,12 +1103,12 @@ public:
 class StdOptionsStatement : public BasicOptionsStatement
 {
 private:
-  const SymbolTable symbol_table;
+  const SymbolTable &symbol_table;
 public:
-  StdOptionsStatement(const string &name_arg,
-                      const string &subsample_name_arg,
-                      const OptionsList &options_list_arg,
-                      SymbolTable symbol_table_arg);
+  StdOptionsStatement(string name_arg,
+                      string subsample_name_arg,
+                      OptionsList options_list_arg,
+                      const SymbolTable &symbol_table_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeCOutput(ostream &output, const string &basename) override;
   void writeJsonOutput(ostream &output) const override;
@@ -1118,12 +1118,12 @@ class CorrOptionsStatement : public BasicOptionsStatement
 {
 private:
   const string name1;
-  const SymbolTable symbol_table;
+  const SymbolTable &symbol_table;
 public:
-  CorrOptionsStatement(const string &name_arg1, string name_arg2,
-                       const string &subsample_name_arg,
-                       const OptionsList &options_list_arg,
-                       SymbolTable symbol_table_arg);
+  CorrOptionsStatement(string name_arg1, string name_arg2,
+                       string subsample_name_arg,
+                       OptionsList options_list_arg,
+                       const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeCOutput(ostream &output, const string &basename) override;
@@ -1141,7 +1141,7 @@ private:
   const string from_name1;
   const string from_name2;
   const string from_subsample_name;
-  const SymbolTable symbol_table;
+  const SymbolTable &symbol_table;
 public:
   OptionsEqualStatement(string to_declaration_type_arg,
                         string to_name1_arg,
@@ -1151,7 +1151,7 @@ public:
                         string from_name1_arg,
                         string from_name2_arg,
                         string from_subsample_name_arg,
-                        SymbolTable symbol_table_arg);
+                        const SymbolTable &symbol_table_arg);
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;

@@ -257,18 +257,18 @@ PriorPosteriorFunctionStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-PacModelStatement::PacModelStatement(const string &name_arg,
-                                     const string &var_name_arg,
-                                     const string &discount_arg,
-                                     const string &growth_arg,
+PacModelStatement::PacModelStatement(string name_arg,
+                                     string var_name_arg,
+                                     string discount_arg,
+                                     string growth_arg,
                                      map<string, int> undiff_arg,
                                      const SymbolTable &symbol_table_arg) :
-  name(name_arg),
-  var_name(var_name_arg),
-  discount(discount_arg),
-  growth(growth_arg),
-  undiff(move(undiff_arg)),
-  symbol_table(symbol_table_arg)
+  name{move(name_arg)},
+  var_name{move(var_name_arg)},
+  discount{move(discount_arg)},
+  growth{move(growth_arg)},
+  undiff{move(undiff_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -382,11 +382,11 @@ PacModelStatement::getPacModelInfoForPacExpectation(tuple<string, string, string
 
 VarModelStatement::VarModelStatement(SymbolList symbol_list_arg,
                                      OptionsList options_list_arg,
-                                     const string &name_arg,
+                                     string name_arg,
                                      const SymbolTable &symbol_table_arg) :
   symbol_list(move(symbol_list_arg)),
   options_list(move(options_list_arg)),
-  name(name_arg),
+  name{move(name_arg)},
   symbol_table(symbol_table_arg)
 {
 }
@@ -575,16 +575,16 @@ VarEstimationStatement::writeOutput(ostream &output, const string &basename, boo
   output << "oo_ = var_estimation(M_, options_, oo_);" << endl;
 }
 
-VarRestrictionsStatement::VarRestrictionsStatement(const string &var_model_name_arg,
-                                                   const map<string, vector<string>> &var_map_arg,
+VarRestrictionsStatement::VarRestrictionsStatement(string var_model_name_arg,
+                                                   map<string, vector<string>> var_map_arg,
                                                    map<int, map<int, SymbolList>> exclusion_restrictions_arg,
                                                    equation_restrictions_t equation_restrictions_arg,
                                                    crossequation_restrictions_t crossequation_restrictions_arg,
                                                    map<pair<int, int>, double> covariance_number_restriction_arg,
                                                    map<pair<int, int>, pair<int, int>> covariance_pair_restriction_arg,
                                                    const SymbolTable &symbol_table_arg) :
-  var_model_name(var_model_name_arg),
-  var_map(var_map_arg),
+  var_model_name{move(var_model_name_arg)},
+  var_map{move(var_map_arg)},
   exclusion_restrictions(move(exclusion_restrictions_arg)),
   equation_restrictions(move(equation_restrictions_arg)),
   crossequation_restrictions(move(crossequation_restrictions_arg)),
@@ -3523,12 +3523,12 @@ EstimationDataStatement::writeJsonOutput(ostream &output) const
 
 SubsamplesStatement::SubsamplesStatement(string name1_arg,
                                          string name2_arg,
-                                         const subsample_declaration_map_t subsample_declaration_map_arg,
-                                         SymbolTable symbol_table_arg) :
+                                         subsample_declaration_map_t subsample_declaration_map_arg,
+                                         const SymbolTable &symbol_table_arg) :
   name1(move(name1_arg)),
   name2(move(name2_arg)),
   subsample_declaration_map(subsample_declaration_map_arg),
-  symbol_table(move(symbol_table_arg))
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -3622,12 +3622,12 @@ SubsamplesEqualStatement::SubsamplesEqualStatement(string to_name1_arg,
                                                    string to_name2_arg,
                                                    string from_name1_arg,
                                                    string from_name2_arg,
-                                                   SymbolTable symbol_table_arg) :
+                                                   const SymbolTable &symbol_table_arg) :
   to_name1(move(to_name1_arg)),
   to_name2(move(to_name2_arg)),
   from_name1(move(from_name1_arg)),
   from_name2(move(from_name2_arg)),
-  symbol_table(move(symbol_table_arg))
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -3693,10 +3693,10 @@ SubsamplesEqualStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-JointPriorStatement::JointPriorStatement(const vector<string> joint_parameters_arg,
-                                         const PriorDistributions &prior_shape_arg,
+JointPriorStatement::JointPriorStatement(vector<string> joint_parameters_arg,
+                                         PriorDistributions prior_shape_arg,
                                          OptionsList options_list_arg) :
-  joint_parameters(joint_parameters_arg),
+  joint_parameters{move(joint_parameters_arg)},
   prior_shape(prior_shape_arg),
   options_list(move(options_list_arg))
 {
@@ -3857,8 +3857,8 @@ BasicPriorStatement::~BasicPriorStatement()
 
 BasicPriorStatement::BasicPriorStatement(string name_arg,
                                          string subsample_name_arg,
-                                         const PriorDistributions &prior_shape_arg,
-                                         const expr_t &variance_arg,
+                                         PriorDistributions prior_shape_arg,
+                                         expr_t variance_arg,
                                          OptionsList options_list_arg) :
   name(move(name_arg)),
   subsample_name(move(subsample_name_arg)),
@@ -4098,12 +4098,12 @@ BasicPriorStatement::writeJsonShape(ostream &output) const
     }
 }
 
-PriorStatement::PriorStatement(const string &name_arg,
-                               const string &subsample_name_arg,
-                               const PriorDistributions &prior_shape_arg,
-                               const expr_t &variance_arg,
-                               const OptionsList &options_list_arg) :
-  BasicPriorStatement(name_arg, subsample_name_arg, prior_shape_arg, variance_arg, options_list_arg)
+PriorStatement::PriorStatement(string name_arg,
+                               string subsample_name_arg,
+                               PriorDistributions prior_shape_arg,
+                               expr_t variance_arg,
+                               OptionsList options_list_arg) :
+  BasicPriorStatement{move(name_arg), move(subsample_name_arg), prior_shape_arg, variance_arg, move(options_list_arg)}
 {
 }
 
@@ -4141,14 +4141,14 @@ PriorStatement::writeCOutput(ostream &output, const string &basename)
          << "     index, shape, mean, mode, stdev, variance, domain));" << endl;
 }
 
-StdPriorStatement::StdPriorStatement(const string &name_arg,
-                                     const string &subsample_name_arg,
-                                     const PriorDistributions &prior_shape_arg,
-                                     const expr_t &variance_arg,
-                                     const OptionsList &options_list_arg,
-                                     SymbolTable symbol_table_arg) :
-  BasicPriorStatement(name_arg, subsample_name_arg, prior_shape_arg, variance_arg, options_list_arg),
-  symbol_table(move(symbol_table_arg))
+StdPriorStatement::StdPriorStatement(string name_arg,
+                                     string subsample_name_arg,
+                                     PriorDistributions prior_shape_arg,
+                                     expr_t variance_arg,
+                                     OptionsList options_list_arg,
+                                     const SymbolTable &symbol_table_arg) :
+  BasicPriorStatement{move(name_arg), move(subsample_name_arg), prior_shape_arg, variance_arg, move(options_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -4198,15 +4198,15 @@ StdPriorStatement::writeCOutput(ostream &output, const string &basename)
   output << endl << "     index, shape, mean, mode, stdev, variance, domain));" << endl;
 }
 
-CorrPriorStatement::CorrPriorStatement(const string &name_arg1, string name_arg2,
-                                       const string &subsample_name_arg,
-                                       const PriorDistributions &prior_shape_arg,
-                                       const expr_t &variance_arg,
-                                       const OptionsList &options_list_arg,
-                                       SymbolTable symbol_table_arg) :
-  BasicPriorStatement(name_arg1, subsample_name_arg, prior_shape_arg, variance_arg, options_list_arg),
+CorrPriorStatement::CorrPriorStatement(string name_arg1, string name_arg2,
+                                       string subsample_name_arg,
+                                       PriorDistributions prior_shape_arg,
+                                       expr_t variance_arg,
+                                       OptionsList options_list_arg,
+                                       const SymbolTable &symbol_table_arg) :
+  BasicPriorStatement{move(name_arg1), move(subsample_name_arg), prior_shape_arg, variance_arg, move(options_list_arg)},
   name1(move(name_arg2)),
-  symbol_table(move(symbol_table_arg))
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -4287,7 +4287,7 @@ PriorEqualStatement::PriorEqualStatement(string to_declaration_type_arg,
                                          string from_name1_arg,
                                          string from_name2_arg,
                                          string from_subsample_name_arg,
-                                         SymbolTable symbol_table_arg) :
+                                         const SymbolTable &symbol_table_arg) :
   to_declaration_type(move(to_declaration_type_arg)),
   to_name1(move(to_name1_arg)),
   to_name2(move(to_name2_arg)),
@@ -4296,7 +4296,7 @@ PriorEqualStatement::PriorEqualStatement(string to_declaration_type_arg,
   from_name1(move(from_name1_arg)),
   from_name2(move(from_name2_arg)),
   from_subsample_name(move(from_subsample_name_arg)),
-  symbol_table(move(symbol_table_arg))
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -4485,10 +4485,10 @@ BasicOptionsStatement::writeJsonOptionsOutput(ostream &output) const
     }
 }
 
-OptionsStatement::OptionsStatement(const string &name_arg,
-                                   const string &subsample_name_arg,
-                                   const OptionsList &options_list_arg) :
-  BasicOptionsStatement(name_arg, subsample_name_arg, options_list_arg)
+OptionsStatement::OptionsStatement(string name_arg,
+                                   string subsample_name_arg,
+                                   OptionsList options_list_arg) :
+  BasicOptionsStatement{move(name_arg), move(subsample_name_arg), move(options_list_arg)}
 {
 }
 
@@ -4519,12 +4519,12 @@ OptionsStatement::writeCOutput(ostream &output, const string &basename)
   output << "msdsgeinfo->addOption(new ModFileOption(index, init));" << endl;
 }
 
-StdOptionsStatement::StdOptionsStatement(const string &name_arg,
-                                         const string &subsample_name_arg,
-                                         const OptionsList &options_list_arg,
-                                         SymbolTable symbol_table_arg) :
-  BasicOptionsStatement(name_arg, subsample_name_arg, options_list_arg),
-  symbol_table(move(symbol_table_arg))
+StdOptionsStatement::StdOptionsStatement(string name_arg,
+                                         string subsample_name_arg,
+                                         OptionsList options_list_arg,
+                                         const SymbolTable &symbol_table_arg) :
+  BasicOptionsStatement{move(name_arg), move(subsample_name_arg), move(options_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -4569,13 +4569,13 @@ StdOptionsStatement::writeCOutput(ostream &output, const string &basename)
   output << "index, init));" << endl;
 }
 
-CorrOptionsStatement::CorrOptionsStatement(const string &name_arg1, string name_arg2,
-                                           const string &subsample_name_arg,
-                                           const OptionsList &options_list_arg,
-                                           SymbolTable symbol_table_arg) :
-  BasicOptionsStatement(name_arg1, subsample_name_arg, options_list_arg),
-  name1(move(name_arg2)),
-  symbol_table(move(symbol_table_arg))
+CorrOptionsStatement::CorrOptionsStatement(string name_arg1, string name_arg2,
+                                           string subsample_name_arg,
+                                           OptionsList options_list_arg,
+                                           const SymbolTable &symbol_table_arg) :
+  BasicOptionsStatement{move(name_arg1), move(subsample_name_arg), move(options_list_arg)},
+  name1{move(name_arg2)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -4650,7 +4650,7 @@ OptionsEqualStatement::OptionsEqualStatement(string to_declaration_type_arg,
                                              string from_name1_arg,
                                              string from_name2_arg,
                                              string from_subsample_name_arg,
-                                             SymbolTable symbol_table_arg) :
+                                             const SymbolTable &symbol_table_arg) :
   to_declaration_type(move(to_declaration_type_arg)),
   to_name1(move(to_name1_arg)),
   to_name2(move(to_name2_arg)),
@@ -4659,7 +4659,7 @@ OptionsEqualStatement::OptionsEqualStatement(string to_declaration_type_arg,
   from_name1(move(from_name1_arg)),
   from_name2(move(from_name2_arg)),
   from_subsample_name(move(from_subsample_name_arg)),
-  symbol_table(move(symbol_table_arg))
+  symbol_table{symbol_table_arg}
 {
 }
 
