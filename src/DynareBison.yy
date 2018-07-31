@@ -22,7 +22,10 @@
 %require "3.0"
 %defines
 %define api.value.type variant
+%define api.namespace {Dynare}
 %define parse.assert
+%define parse.error verbose
+%define parse.trace
 
 %code top {
 class ParsingDriver;
@@ -33,8 +36,6 @@ class ParsingDriver;
 #include "CodeInterpreter.hh"
 }
 
-%name-prefix "Dynare"
-
 %parse-param { ParsingDriver &driver }
 %lex-param { ParsingDriver &driver }
 
@@ -44,9 +45,6 @@ class ParsingDriver;
   // Initialize the locations' filenames to the filename maintained by the lexer
   @$.begin.filename = @$.end.filename = &(driver.lexer->filename);
 }
-
-%debug
-%error-verbose
 
 %code {
 /* Little hack: we redefine the macro which computes the locations, because

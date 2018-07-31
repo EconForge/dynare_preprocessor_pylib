@@ -22,13 +22,14 @@
 %require "3.0"
 %defines
 %define api.value.type variant
+%define api.namespace {Macro}
 %define parse.assert
+%define parse.error verbose
+%define parse.trace
 
 %code top {
 class MacroDriver;
 }
-
-%name-prefix "Macro"
 
 %parse-param { MacroDriver &driver }
 %parse-param { ostream &out }
@@ -40,9 +41,6 @@ class MacroDriver;
   // Initialize the location filenames
   @$.begin.filename = @$.end.filename = &driver.file;
 };
-
-%debug
-%error-verbose
 
 %code requires {
 #include "MacroValue.hh"
