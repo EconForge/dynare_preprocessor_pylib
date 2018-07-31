@@ -232,9 +232,7 @@ CONT \\\\
 <STMT,EXPR>length           { return token::LENGTH; }
 
 <STMT,EXPR>\"[^\"]*\"       {
-                              string s{yytext + 1};
-                              s.resize(s.length() - 1);
-                              yylval->build<string>(s);
+                              yylval->build<string>(yytext + 1).pop_back();
                               return token::STRING;
                             }
 
