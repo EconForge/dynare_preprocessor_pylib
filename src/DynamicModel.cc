@@ -1516,34 +1516,6 @@ DynamicModel::writeDynamicMFile(const string &basename) const
 }
 
 void
-DynamicModel::fillVarExpectationFunctionsToWrite()
-{
-  for (auto &it : var_expectation_node_map)
-    var_expectation_functions_to_write[get<0>(it.first)].insert(get<2>(it.first));
-}
-
-map<string, set<int>>
-DynamicModel::getVarExpectationFunctionsToWrite() const
-{
-  return var_expectation_functions_to_write;
-}
-
-void
-DynamicModel::writeVarExpectationCalls(ostream &output) const
-{
-  for (const auto & it : var_expectation_functions_to_write)
-    {
-      int i = 0;
-      output << "dynamic_var_forecast_" << it.first << " = "
-             << "var_forecast_" << it.first << "(y);" << endl;
-
-      for (auto it1 = it.second.begin(); it1 != it.second.end(); it1++)
-        output << "dynamic_var_forecast_" << it.first << "_" << *it1 << " = "
-               << "dynamic_var_forecast_" << it.first << "(" << ++i << ", :);" << endl;
-    }
-}
-
-void
 DynamicModel::writeDynamicJuliaFile(const string &basename) const
 {
   writeDynamicModel(basename, false, true);
@@ -3626,13 +3598,6 @@ DynamicModel::getVarLhsDiffAndInfo(vector<int> &eqnumber, vector<bool> &diff,
       else
         orig_diff_var.push_back(-1);
     }
-}
-
-void
-DynamicModel::setVarExpectationIndices(map<string, pair<SymbolList, int>> &var_model_info)
-{
-  for (auto & equation : equations)
-    equation->setVarExpectationIndex(var_model_info);
 }
 
 void
@@ -6219,4 +6184,11 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
          << ", " << third_derivs_output.str()
          << ", " << third_derivs1_output.str()
          << "}";
+}
+
+void
+DynamicModel::substituteVarExpectation(const map<string, expr_t> &subst_table)
+{
+  for (auto & equation : equations)
+    equation = dynamic_cast<BinaryOpNode *>(equation->substituteVarExpectation(subst_table));
 }

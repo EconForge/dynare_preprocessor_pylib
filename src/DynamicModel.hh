@@ -100,8 +100,6 @@ private:
   void writeDynamicMFile(const string &basename) const;
   //! Writes dynamic model file (Julia version)
   void writeDynamicJuliaFile(const string &dynamic_basename) const;
-  //! Write Var Expectation calls
-  void writeVarExpectationCalls(ostream &output) const;
   //! Writes dynamic model file (C version)
   /*! \todo add third derivatives handling */
   void writeDynamicCFile(const string &basename, const int order) const;
@@ -320,8 +318,6 @@ public:
   void getVarLhsDiffAndInfo(vector<int> &eqnumber, vector<bool> &diff,
                             vector<int> &orig_diff_var) const;
 
-  //! Set indices for var expectation in dynamic model file
-  void setVarExpectationIndices(map<string, pair<SymbolList, int>> &var_model_info);
   //! Add aux equations (and aux variables) for variables declared in var_model at max order if they don't already exist
   void addEquationsForVar(map<string, pair<SymbolList, int>> &var_model_info);
   //! Get Pac equation parameter info
@@ -435,15 +431,12 @@ public:
   //! Substitutes diff operator
   void substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table);
 
+  //! Substitute VarExpectation operators
+  void substituteVarExpectation(const map<string, expr_t> &subst_table);
+
   //! Table to undiff LHS variables for pac vector z
   void getUndiffLHSForPac(vector<int> &lhs, vector<expr_t> &lhs_expr_t, vector<bool> &diff, vector<int> &orig_diff_var,
                           vector<int> &eqnumber, map<string, int> &undiff, ExprNode::subst_table_t &diff_subst_table);
-
-  //! Fill var_expectation_functions_to_write
-  void fillVarExpectationFunctionsToWrite();
-
-  //! Get var_expectation_functions_to_write
-  map<string, set<int>> getVarExpectationFunctionsToWrite() const;
 
   //! Transforms the model by replacing trend variables with a 1
   void removeTrendVariableFromEquations();

@@ -82,7 +82,7 @@ protected:
   external_function_node_map_t external_function_node_map;
 
   // (model_name, symb_id, forecast_horizon) -> VarExpectationNode
-  using var_expectation_node_map_t = map<tuple<string, int, int>, VarExpectationNode *>;
+  using var_expectation_node_map_t = map<string, VarExpectationNode *>;
   var_expectation_node_map_t var_expectation_node_map;
 
   // model_name -> PacExpectationNode
@@ -242,8 +242,8 @@ public:
   expr_t AddSteadyStateParam2ndDeriv(expr_t iArg1, int param1_symb_id, int param2_symb_id);
   //! Adds "arg1=arg2" to model tree
   expr_t AddEqual(expr_t iArg1, expr_t iArg2);
-  //! Adds "var_expectation(arg1, arg2, model_name=arg3)" to model tree
-  expr_t AddVarExpectation(const int symb_id, const int forecast_horizon, const string &model_name);
+  //! Adds "var_expectation(model_name)" to model tree
+  expr_t AddVarExpectation(const string &model_name);
   //! Adds pac_expectation command to model tree
   expr_t AddPacExpectation(const string &model_name);
   //! Adds a model local variable with its value

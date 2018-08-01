@@ -444,11 +444,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
      }
 
   if (!var_model_info_var_expectation.empty())
-    {
-      dynamic_model.setVarExpectationIndices(var_model_info_var_expectation);
-      dynamic_model.addEquationsForVar(var_model_info_var_expectation);
-    }
-  dynamic_model.fillVarExpectationFunctionsToWrite();
+    dynamic_model.addEquationsForVar(var_model_info_var_expectation);
 
   if (symbol_table.predeterminedNbr() > 0)
     dynamic_model.transformPredeterminedVariables();
@@ -511,6 +507,69 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
         exit(EXIT_FAILURE);
     }
 
+  /* Handle var_expectation_model statements: collect information about them,
+     create the new corresponding parameters, and the expressions to replace
+     the var_expectation statements.
+     TODO: move information collection to checkPass(), within a new
+     VarModelTable class */
+  map<string, expr_t> var_expectation_subst_table;
+  for (auto & statement : statements)
+    {
+      auto vems = dynamic_cast<VarExpectationModelStatement *>(statement);
+      if (!vems)
+        continue;
+
+      auto &model_name = vems->model_name;
+
+      /* Find the corresponding VM statement and extract information for it;
+         ideally we should have a VarModelTable for that purpose */
+      VarModelStatement *vms = nullptr;
+      for (auto & statement2 : statements)
+        if ((vms = dynamic_cast<VarModelStatement *>(statement2))
+            && vms->name == vems->var_model_name)
+          break;
+      if (!vms)
+        {
+          cerr << "ERROR: var_expectation_model " << model_name << " refers to nonexistent " << vems->var_model_name << " var_model" << endl;
+          exit(EXIT_FAILURE);
+        }
+      /* The code below is duplicated further below in this function; but we
+         can't avoid that until the collecting of information about VARs is
+         moved *before* lead/lag substitutions (or even better, in checkPass()) */
+      vector<expr_t> lhs_expr_t;
+      vector<int> lhs, eqnumber;
+      vector<set<pair<int, int>>> rhs;
+      vector<bool> nonstationary;
+      vector<string> eqtags{var_model_eq_tags[var_model_name]};
+      dynamic_model.getVarModelVariablesFromEqTags(eqtags,
+                                                   eqnumber, lhs, lhs_expr_t, rhs, nonstationary);
+      int max_lag{original_model.getVarMaxLag(diff_static_model, eqnumber)};
+
+      /* Create auxiliary parameters and the expression to be substituted to
+         the var_expectations statement */
+      auto subst_expr = dynamic_model.Zero;
+      for (int lag = 1; lag <= max_lag; lag++)
+        for (auto variable : lhs)
+          {
+            string param_name = "var_expectation_model_" + model_name + '_' + symbol_table.getName(variable) + '_' + to_string(lag);
+            int new_param_id = symbol_table.addSymbol(param_name, SymbolType::parameter);
+            vems->aux_params_ids.push_back(new_param_id);
+
+            subst_expr = dynamic_model.AddPlus(subst_expr,
+                                               dynamic_model.AddTimes(dynamic_model.AddVariable(new_param_id),
+                                                                      dynamic_model.AddVariable(variable, -lag)));
+          }
+
+      if (var_expectation_subst_table.find(model_name) != var_expectation_subst_table.end())
+        {
+          cerr << "ERROR: model name '" << model_name << "' is used by several var_expectation_model statements" << endl;
+          exit(EXIT_FAILURE);
+        }
+      var_expectation_subst_table[model_name] = subst_expr;
+    }
+  // And finally perform the substitutions
+  dynamic_model.substituteVarExpectation(var_expectation_subst_table);
+
   if (mod_file_struct.stoch_simul_present
       || mod_file_struct.estimation_present
       || mod_file_struct.osr_present
@@ -532,6 +591,10 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       dynamic_model.substituteEndoLagGreaterThanTwo(true);
     }
 
+  /* TODO: most of this should rather be done in checkPass(). Also we should
+     probably add a VarModelTable class (similar to SymbolTable) for storing all
+     this information about VAR models, instead of putting it inside the
+     Statement(s) classes */
   for (auto & statement : statements)
     {
       auto *vms = dynamic_cast<VarModelStatement *>(statement);
@@ -997,11 +1060,6 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
       auto *lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(statement);
       if (lpass && !no_static)
         static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
-
-      // Special treatement for Var Models
-      auto *vms = dynamic_cast<VarModelStatement *>(statement);
-      if (vms != nullptr)
-        vms->createVarModelMFunction(mOutputFile, dynamic_model.getVarExpectationFunctionsToWrite());
     }
 
   mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl

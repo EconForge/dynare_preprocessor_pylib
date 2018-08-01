@@ -297,6 +297,9 @@ public:
   map<pair<int, int>, double> covariance_number_restriction;
   map<pair<int, int>, pair<int, int>> covariance_pair_restriction;
 
+  //! Temporary storage for discount option of VAR_EXPECTATION_MODEL
+  expr_t var_expectation_model_discount{nullptr};
+
   //! Error handler with explicit location
   void error(const Dynare::parser::location_type &l, const string &m) __attribute__ ((noreturn));
   //! Error handler using saved location
@@ -688,8 +691,8 @@ public:
   expr_t add_power(expr_t arg1,  expr_t arg2);
   //! Writes token "E(arg1)(arg2)" to model tree
   expr_t add_expectation(const string &arg1,  expr_t arg2);
-  //! Writes token "VAR_EXPECTATION(arg1, arg2, arg3)" to model tree
-  expr_t add_var_expectation(const string &arg1, const string &arg2, const string &arg3);
+  //! Writes token "VAR_EXPECTATION(model_name)" to model tree
+  expr_t add_var_expectation(const string &model_name);
   //! Writes token "PAC_EXPECTATION(model_name, discount, growth)" to model tree
   expr_t add_pac_expectation(const string &var_model_name);
   //! Creates pac_model statement
@@ -836,6 +839,8 @@ public:
   void gmm_estimation();
   //! SMM Estimation statement
   void smm_estimation();
+  //! Add a var_expectation_model statement
+  void var_expectation_model();
 };
 
 #endif // ! PARSING_DRIVER_HH

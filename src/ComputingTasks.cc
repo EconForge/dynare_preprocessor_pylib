@@ -528,30 +528,6 @@ VarModelStatement::writeJsonOutput(ostream &output) const
          << "\"model_name\": \"" << name << "\"}";
 }
 
-void
-VarModelStatement::createVarModelMFunction(ostream &output, const map<string, set<int>> &var_expectation_functions_to_write) const
-{
-  if (var_expectation_functions_to_write.find(name) == var_expectation_functions_to_write.end())
-    return;
-
-  stringstream ss;
-  set<int> horizons = var_expectation_functions_to_write.find(name)->second;
-  for (auto it = horizons.begin(); it != horizons.end(); it++)
-    {
-      if (it != horizons.begin())
-        ss << " ";
-      ss << *it;
-    }
-
-  output << "writeVarExpectationFunction('" << name << "', ";
-  if (horizons.size() > 1)
-    output << "[";
-  output << ss.rdbuf();
-  if (horizons.size() > 1)
-    output << "]";
-  output << ");" << endl;
-}
-
 VarEstimationStatement::VarEstimationStatement(OptionsList options_list_arg) :
   options_list(move(options_list_arg))
 {
@@ -5016,4 +4992,46 @@ GenerateIRFsStatement::writeJsonOutput(ostream &output) const
       output << "]";
     }
   output << "}";
+}
+
+VarExpectationModelStatement::VarExpectationModelStatement(string model_name_arg, string variable_arg, string var_model_name_arg,
+                                                           string horizon_arg, expr_t discount_arg, const SymbolTable &symbol_table_arg) :
+  model_name{move(model_name_arg)}, variable{move(variable_arg)},
+  var_model_name{move(var_model_name_arg)}, horizon{move(horizon_arg)},
+  discount{discount_arg}, symbol_table{symbol_table_arg}
+{
+}
+
+void
+VarExpectationModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  string mstruct = "M_.var_expectation." + model_name;
+  output << mstruct << ".var_model_name = '" << var_model_name << "';" << endl
+         << mstruct << ".horizon = " << horizon << ';' << endl;
+  auto disc_var = dynamic_cast<const VariableNode *>(discount);
+  if (disc_var)
+    output << mstruct << ".discount_index = " << disc_var->get_symb_id() << ';' << endl;
+  else
+    {
+      output << mstruct << ".discount_value = ";
+      discount->writeOutput(output);
+      output << ';' << endl;
+    }
+  output << mstruct << ".param_indices = [ ";
+  for (int param_id : aux_params_ids)
+    output << symbol_table.getTypeSpecificID(param_id) << ' ';
+  output << "];" << endl;
+}
+
+void
+VarExpectationModelStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"var_expectation_model\","
+         << "\"model_name\": \"" << model_name << "\", "
+         << "\"variable\": \"" << variable << "\", "
+         << "\"var_model_name\": \"" << var_model_name << "\", "
+         << "\"horizon\": \"" << horizon << "\", "
+         << "\"discount\": \"";
+  discount->writeOutput(output);
+  output << "\"}";
 }

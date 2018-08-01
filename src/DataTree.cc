@@ -505,15 +505,13 @@ DataTree::AddExpectation(int iArg1, expr_t iArg2)
 }
 
 expr_t
-DataTree::AddVarExpectation(const int symb_id, const int forecast_horizon, const string &model_name)
+DataTree::AddVarExpectation(const string &model_name)
 {
-  assert(symbol_table.getType(symb_id) == SymbolType::endogenous);
-
-  auto it = var_expectation_node_map.find({ model_name, symb_id, forecast_horizon });
+  auto it = var_expectation_node_map.find(model_name);
   if (it != var_expectation_node_map.end())
     return it->second;
 
-  return new VarExpectationNode(*this, symb_id, forecast_horizon, model_name);
+  return new VarExpectationNode(*this, model_name);
 }
 
 expr_t

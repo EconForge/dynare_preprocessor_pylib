@@ -141,6 +141,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <INITIAL>simul {BEGIN DYNARE_STATEMENT; return token::SIMUL;}
 <INITIAL>stoch_simul {BEGIN DYNARE_STATEMENT; return token::STOCH_SIMUL;}
 <INITIAL>var_model {BEGIN DYNARE_STATEMENT; return token::VAR_MODEL;}
+<INITIAL>var_expectation_model {BEGIN DYNARE_STATEMENT; return token::VAR_EXPECTATION_MODEL;}
 <INITIAL>pac_model {BEGIN DYNARE_STATEMENT; return token::PAC_MODEL;}
 <INITIAL>dsample {BEGIN DYNARE_STATEMENT; return token::DSAMPLE;}
 <INITIAL>Sigma_e {BEGIN DYNARE_STATEMENT; sigma_e = 1; return token::SIGMA_E;}
@@ -675,6 +676,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>emas_drop {return token::EMAS_DROP; }
 <DYNARE_STATEMENT>emas_tolf {return token::EMAS_TOLF; }
 <DYNARE_STATEMENT>emas_max_iter {return token::EMAS_MAX_ITER; }
+<DYNARE_STATEMENT>variable {return token::VARIABLE;}
 
 <DYNARE_STATEMENT>[\$][^$]*[\$] {
   strtok(yytext+1, "$");

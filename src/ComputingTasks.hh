@@ -145,10 +145,11 @@ public:
 
 class VarModelStatement : public Statement
 {
-private:
+public:
   const SymbolList symbol_list;
   const OptionsList options_list;
   const string name;
+private:
   const SymbolTable &symbol_table;
   vector<int> eqnumber, lhs, orig_diff_var;
   vector<set<pair<int, int>>> rhs_by_eq; // rhs by equation
@@ -170,7 +171,6 @@ public:
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
-  void createVarModelMFunction(ostream &output, const map<string, set<int>> &var_expectation_functions_to_write) const;
 };
 
 class VarRestrictionsStatement : public Statement
@@ -1205,6 +1205,22 @@ public:
   GenerateIRFsStatement(OptionsList options_list_arg,
                         vector<string> generate_irf_names_arg,
                         vector<map<string, double>> generate_irf_elements_arg);
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
+};
+
+class VarExpectationModelStatement : public Statement
+{
+public:
+  const string model_name, variable, var_model_name, horizon;
+  const expr_t discount;
+  const SymbolTable &symbol_table;
+  // List of generated auxiliary param ids, in variable-major order
+  vector<int> aux_params_ids; // TODO: move this to some new VarModelTable object
+
+public:
+  VarExpectationModelStatement(string model_name_arg, string variable_arg, string var_model_name_arg,
+                               string horizon_arg, expr_t discount_arg, const SymbolTable &symbol_table_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };

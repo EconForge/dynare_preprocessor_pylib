@@ -547,6 +547,12 @@ NumConstNode::substituteAdl() const
   return const_cast<NumConstNode *>(this);
 }
 
+expr_t
+NumConstNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
+{
+  return const_cast<NumConstNode *>(this);
+}
+
 void
 NumConstNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const
 {
@@ -641,11 +647,6 @@ bool
 NumConstNode::isInStaticForm() const
 {
   return true;
-}
-
-void
-NumConstNode::setVarExpectationIndex(map<string, pair<SymbolList, int>> &var_model_info)
-{
 }
 
 void
@@ -1419,6 +1420,12 @@ VariableNode::substituteAdl() const
   return const_cast<VariableNode *>(this);
 }
 
+expr_t
+VariableNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
+{
+  return const_cast<VariableNode *>(this);
+}
+
 void
 VariableNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const
 {
@@ -1791,11 +1798,6 @@ bool
 VariableNode::isInStaticForm() const
 {
   return lag == 0;
-}
-
-void
-VariableNode::setVarExpectationIndex(map<string, pair<SymbolList, int>> &var_model_info)
-{
 }
 
 void
@@ -3009,6 +3011,13 @@ UnaryOpNode::substituteAdl() const
   return retval;
 }
 
+expr_t
+UnaryOpNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
+{
+  expr_t argsubst = arg->substituteVarExpectation(subst_table);
+  return buildSimilarUnaryOpNode(argsubst, datatree);
+}
+
 int
 UnaryOpNode::countDiffs() const
 {
@@ -3388,12 +3397,6 @@ UnaryOpNode::isInStaticForm() const
     return false;
   else
     return arg->isInStaticForm();
-}
-
-void
-UnaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int>> &var_model_info)
-{
-  arg->setVarExpectationIndex(var_model_info);
 }
 
 void
@@ -4870,6 +4873,15 @@ BinaryOpNode::substituteAdl() const
   return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
 }
 
+
+expr_t
+BinaryOpNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
+{
+  expr_t arg1subst = arg1->substituteVarExpectation(subst_table);
+  expr_t arg2subst = arg2->substituteVarExpectation(subst_table);
+  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+}
+
 void
 BinaryOpNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const
 {
@@ -4989,13 +5001,6 @@ bool
 BinaryOpNode::isInStaticForm() const
 {
   return arg1->isInStaticForm() && arg2->isInStaticForm();
-}
-
-void
-BinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int>> &var_model_info)
-{
-  arg1->setVarExpectationIndex(var_model_info);
-  arg2->setVarExpectationIndex(var_model_info);
 }
 
 void
@@ -5779,6 +5784,16 @@ TrinaryOpNode::substituteAdl() const
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
 
+
+expr_t
+TrinaryOpNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
+{
+  expr_t arg1subst = arg1->substituteVarExpectation(subst_table);
+  expr_t arg2subst = arg2->substituteVarExpectation(subst_table);
+  expr_t arg3subst = arg3->substituteVarExpectation(subst_table);
+  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+}
+
 void
 TrinaryOpNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const
 {
@@ -5899,14 +5914,6 @@ bool
 TrinaryOpNode::isInStaticForm() const
 {
   return arg1->isInStaticForm() && arg2->isInStaticForm() && arg3->isInStaticForm();
-}
-
-void
-TrinaryOpNode::setVarExpectationIndex(map<string, pair<SymbolList, int>> &var_model_info)
-{
-  arg1->setVarExpectationIndex(var_model_info);
-  arg2->setVarExpectationIndex(var_model_info);
-  arg3->setVarExpectationIndex(var_model_info);
 }
 
 void
@@ -6214,6 +6221,15 @@ AbstractExternalFunctionNode::substituteAdl() const
   return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
+expr_t
+AbstractExternalFunctionNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
+{
+  vector<expr_t> arguments_subst;
+  for (auto argument : arguments)
+    arguments_subst.push_back(argument->substituteVarExpectation(subst_table));
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+}
+
 void
 AbstractExternalFunctionNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const
 {
@@ -6396,13 +6412,6 @@ AbstractExternalFunctionNode::isInStaticForm() const
     if (!argument->isInStaticForm())
       return false;
   return true;
-}
-
-void
-AbstractExternalFunctionNode::setVarExpectationIndex(map<string, pair<SymbolList, int>> &var_model_info)
-{
-  for (auto argument : arguments)
-    argument->setVarExpectationIndex(var_model_info);
 }
 
 void
@@ -7564,16 +7573,11 @@ SecondDerivExternalFunctionNode::sameTefTermPredicate() const
 }
 
 VarExpectationNode::VarExpectationNode(DataTree &datatree_arg,
-                                       int symb_id_arg,
-                                       int forecast_horizon_arg,
-                                       const string &model_name_arg) :
+                                       string model_name_arg) :
   ExprNode(datatree_arg),
-  symb_id(symb_id_arg),
-  forecast_horizon(forecast_horizon_arg),
-  model_name(model_name_arg),
-  yidx(-1)
+  model_name{move(model_name_arg)}
 {
-  datatree.var_expectation_node_map[{ model_name, symb_id, forecast_horizon }] = this;
+  datatree.var_expectation_node_map[model_name] = this;
 }
 
 void
@@ -7581,7 +7585,8 @@ VarExpectationNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReferenc
                                           map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                           bool is_matlab, NodeTreeReference tr) const
 {
-  temp_terms_map[tr].insert(const_cast<VarExpectationNode *>(this));
+  cerr << "VarExpectationNode::computeTemporaryTerms not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 void
@@ -7592,22 +7597,21 @@ VarExpectationNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
                                           vector< vector<temporary_terms_t>> &v_temporary_terms,
                                           int equation) const
 {
-  expr_t this2 = const_cast<VarExpectationNode *>(this);
-  temporary_terms.insert(this2);
-  first_occurence[this2] = { Curr_block, equation };
-  v_temporary_terms[Curr_block][equation].insert(this2);
+  cerr << "VarExpectationNode::computeTemporaryTerms not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 expr_t
 VarExpectationNode::toStatic(DataTree &static_datatree) const
 {
-  return static_datatree.AddVariable(symb_id);
+  cerr << "VarExpectationNode::toStatic not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 expr_t
 VarExpectationNode::cloneDynamic(DataTree &dynamic_datatree) const
 {
-  return dynamic_datatree.AddVarExpectation(symb_id, forecast_horizon, model_name);
+  return dynamic_datatree.AddVarExpectation(model_name);
 }
 
 void
@@ -7620,101 +7624,110 @@ VarExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
   if (IS_LATEX(output_type))
     {
-      output << "VAR_" << model_name << LEFT_PAR(output_type)
-             << datatree.symbol_table.getTeXName(symb_id)
-             << "_{t+" << forecast_horizon << "}" << RIGHT_PAR(output_type);
+      output << "VAR_EXPECTATION(" << model_name << ')';
       return;
     }
 
-  if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
-    return;
-
-  output << "dynamic_var_forecast_" << model_name << "_" << forecast_horizon << "(" << yidx + 1 << ")";
+  cerr << "VarExpectationNode::writeOutput not implemented for non-LaTeX." << endl;
+  exit(EXIT_FAILURE);
 }
 
 int
 VarExpectationNode::maxEndoLead() const
 {
-  return 0;
+  cerr << "VarExpectationNode::maxEndoLead not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 int
 VarExpectationNode::maxExoLead() const
 {
-  return 0;
+  cerr << "VarExpectationNode::maxExoLead not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 int
 VarExpectationNode::maxEndoLag() const
 {
-  return 0;
+  cerr << "VarExpectationNode::maxEndoLead not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 int
 VarExpectationNode::maxExoLag() const
 {
-  return 0;
+  cerr << "VarExpectationNode::maxExoLead not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 int
 VarExpectationNode::maxLead() const
 {
-  return 0;
+  cerr << "VarExpectationNode::maxLead not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 int
 VarExpectationNode::maxLag() const
 {
-  return 0;
+  cerr << "VarExpectationNode::maxLag not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 expr_t
 VarExpectationNode::undiff() const
 {
-  return const_cast<VarExpectationNode *>(this);
+  cerr << "VarExpectationNode::undiff not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 int
 VarExpectationNode::VarMinLag() const
 {
-  return 1;
+  cerr << "VarExpectationNode::VarMinLag not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 int
 VarExpectationNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
 {
-  return 0;
+  cerr << "VarExpectationNode::VarMaxLag not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 int
 VarExpectationNode::PacMaxLag(vector<int> &lhs) const
 {
-  return 0;
+  cerr << "VarExpectationNode::PacMaxLag not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 expr_t
 VarExpectationNode::decreaseLeadsLags(int n) const
 {
-  return const_cast<VarExpectationNode *>(this);
+  cerr << "VarExpectationNode::decreaseLeadsLags not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 void
 VarExpectationNode::prepareForDerivation()
 {
-  preparedForDerivation = true;
-  // Come back
+  cerr << "VarExpectationNode::prepareForDerivation not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 expr_t
 VarExpectationNode::computeDerivative(int deriv_id)
 {
-  return datatree.Zero;
+  cerr << "VarExpectationNode::computeDerivative not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 expr_t
 VarExpectationNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables)
 {
-  return datatree.Zero;
+  cerr << "VarExpectationNode::getChainRuleDerivative not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 bool
@@ -7726,17 +7739,14 @@ VarExpectationNode::containsExternalFunction() const
 double
 VarExpectationNode::eval(const eval_context_t &eval_context) const noexcept(false)
 {
-  auto it = eval_context.find(symb_id);
-  if (it == eval_context.end())
-    throw EvalException();
-
-  return it->second;
+  throw EvalException();
 }
 
 int
 VarExpectationNode::countDiffs() const
 {
-  return 0;
+  cerr << "VarExpectationNode::countDiffs not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 void
@@ -7759,9 +7769,8 @@ VarExpectationNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, i
 void
 VarExpectationNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  auto it = temporary_terms.find(const_cast<VarExpectationNode *>(this));
-  if (it != temporary_terms.end())
-    temporary_terms_inuse.insert(idx);
+  cerr << "VarExpectationNode::collectTemporary_terms not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 void
@@ -7777,31 +7786,36 @@ VarExpectationNode::compile(ostream &CompileCode, unsigned int &instruction_numb
 pair<int, expr_t >
 VarExpectationNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
 {
-  return { 0, datatree.AddVariableInternal(symb_id, 0) };
+  cerr << "VarExpectationNode::normalizeEquation not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 expr_t
 VarExpectationNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
-  return const_cast<VarExpectationNode *>(this);
+  cerr << "VarExpectationNode::substituteEndoLeadGreaterThanTwo not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 expr_t
 VarExpectationNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  return const_cast<VarExpectationNode *>(this);
+  cerr << "VarExpectationNode::substituteEndoLagGreaterThanTwo not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 expr_t
 VarExpectationNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
-  return const_cast<VarExpectationNode *>(this);
+  cerr << "VarExpectationNode::substituteExoLead not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 expr_t
 VarExpectationNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  return const_cast<VarExpectationNode *>(this);
+  cerr << "VarExpectationNode::substituteExoLag not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 expr_t
@@ -7814,6 +7828,18 @@ expr_t
 VarExpectationNode::substituteAdl() const
 {
   return const_cast<VarExpectationNode *>(this);
+}
+
+expr_t
+VarExpectationNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
+{
+  auto it = subst_table.find(model_name);
+  if (it == subst_table.end())
+    {
+      cerr << "ERROR: unknown model '" << model_name << "' used in var_expectation expression" << endl;
+      exit(EXIT_FAILURE);
+    }
+  return it->second;
 }
 
 void
@@ -7848,7 +7874,8 @@ VarExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, con
 expr_t
 VarExpectationNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  return const_cast<VarExpectationNode *>(this);
+  cerr << "VarExpectationNode::differentiateForwardVars not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 bool
@@ -7860,13 +7887,15 @@ VarExpectationNode::containsPacExpectation() const
 bool
 VarExpectationNode::containsEndogenous() const
 {
-  return true;
+  cerr << "VarExpectationNode::containsEndogenous not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 bool
 VarExpectationNode::containsExogenous() const
 {
-  return false;
+  cerr << "VarExpectationNode::containsExogenous not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 bool
@@ -7878,7 +7907,8 @@ VarExpectationNode::isNumConstNodeEqualTo(double value) const
 expr_t
 VarExpectationNode::decreaseLeadsLagsPredeterminedVariables() const
 {
-  return const_cast<VarExpectationNode *>(this);
+  cerr << "VarExpectationNode::decreaseLeadsLagsPredeterminedVariables not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 bool
@@ -7890,43 +7920,42 @@ VarExpectationNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, 
 expr_t
 VarExpectationNode::replaceTrendVar() const
 {
-  return const_cast<VarExpectationNode *>(this);
+  cerr << "VarExpectationNode::replaceTrendVar not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 expr_t
 VarExpectationNode::detrend(int symb_id, bool log_trend, expr_t trend) const
 {
-  return const_cast<VarExpectationNode *>(this);
+  cerr << "VarExpectationNode::detrend not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 expr_t
 VarExpectationNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
 {
-  return const_cast<VarExpectationNode *>(this);
+  cerr << "VarExpectationNode::removeTrendLeadLag not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 bool
 VarExpectationNode::isInStaticForm() const
 {
-  return false;
+  cerr << "VarExpectationNode::isInStaticForm not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 bool
 VarExpectationNode::isVarModelReferenced(const string &model_info_name) const
 {
-  return model_name == model_info_name;
+  /* TODO: should check here whether the var_expectation_model is equal to the
+     argument; we probably need a VarModelTable class to do that elegantly */
+  return false;
 }
 
 void
 VarExpectationNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
 {
-}
-
-void
-VarExpectationNode::setVarExpectationIndex(map<string, pair<SymbolList, int>> &var_model_info)
-{
-  vector<string> vs = var_model_info[model_name].first.get_symbols();
-  yidx = find(vs.begin(), vs.end(), datatree.symbol_table.getName(symb_id)) - vs.begin();
 }
 
 void
@@ -7956,12 +7985,7 @@ VarExpectationNode::writeJsonOutput(ostream &output,
                                     const deriv_node_temp_terms_t &tef_terms,
                                     const bool isdynamic) const
 {
-  output << "var_expectation("
-         << "forecast_horizon = " << forecast_horizon
-         << ", name = " << datatree.symbol_table.getName(symb_id)
-         << ", model_name = " << model_name
-         << ", yindex = " << yidx
-         << ")";
+  output << "var_expectation(" << model_name << ')';
 }
 
 PacExpectationNode::PacExpectationNode(DataTree &datatree_arg,
@@ -8271,6 +8295,12 @@ PacExpectationNode::substituteAdl() const
   return const_cast<PacExpectationNode *>(this);
 }
 
+expr_t
+PacExpectationNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
+{
+  return const_cast<PacExpectationNode *>(this);
+}
+
 void
 PacExpectationNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const
 {
@@ -8368,11 +8398,6 @@ PacExpectationNode::isVarModelReferenced(const string &model_info_name) const
 
 void
 PacExpectationNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
-{
-}
-
-void
-PacExpectationNode::setVarExpectationIndex(map<string, pair<SymbolList, int>> &var_model_info)
 {
 }
 

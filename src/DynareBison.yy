@@ -118,7 +118,7 @@ class ParsingDriver;
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL
 %token <string> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
-%token VALUES VAR VAREXO VAREXO_DET VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
+%token VALUES VAR VAREXO VAREXO_DET VARIABLE VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION VAR_EXPECTATION_MODEL PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL CROSSEQUATIONS COVARIANCE WRITE_LATEX_STEADY_STATE_MODEL
 %token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP VAR_MODEL PAC_MODEL QOQ YOY AOA UNDIFF PAC_EXPECTATION
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
@@ -175,8 +175,9 @@ class ParsingDriver;
 %type <string> filename symbol vec_of_vec_value vec_value_list date_expr number
 %type <string> vec_value_1 vec_value signed_inf signed_number_w_inf
 %type <string> range vec_value_w_inf vec_value_1_w_inf
-%type <string> integer_range signed_integer_range sub_sampling_options list_sub_sampling_option
-%type <pair<string,string>> named_var_elem subsamples_eq_opt calibration_range
+%type <string> integer_range signed_integer_range
+%type <string> sub_sampling_options list_sub_sampling_option
+%type <pair<string,string>> named_var_elem subsamples_eq_opt calibration_range integer_range_w_inf
 %type <vector<pair<string,string>>> named_var named_var_1
 %type <SymbolType> change_type_arg
 %type <vector<string>> vec_str vec_str_1
@@ -298,6 +299,7 @@ statement : parameters
           | gmm_estimation
           | smm_estimation
           | shock_groups
+          | var_expectation_model
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -385,6 +387,29 @@ pac_model_options : o_pac_name
                   | UNDIFF '(' QUOTED_STRING COMMA INT_NUMBER ')'
                     { driver.pac_model_undiff($3, $5); }
                   ;
+
+var_expectation_model : VAR_EXPECTATION_MODEL '(' var_expectation_model_options_list ')' ';'
+                        { driver.var_expectation_model(); }
+                      ;
+
+var_expectation_model_options_list : var_expectation_model_option
+                                   | var_expectation_model_options_list COMMA var_expectation_model_option
+                                   ;
+
+
+var_expectation_model_option : VARIABLE EQUAL symbol
+                               { driver.option_str("variable", $3); }
+                             | VAR_MODEL_NAME EQUAL symbol
+                               { driver.option_str("var_model_name", $3); }
+                             | HORIZON EQUAL INT_NUMBER
+                               { driver.option_num("horizon", $3); }
+                             | HORIZON EQUAL integer_range_w_inf
+                               { driver.option_num("horizon", "[ " + $3.first + ' ' + $3.second + " ]"); }
+                             | MODEL_NAME EQUAL symbol
+                               { driver.option_str("model_name", $3); }
+                             | DISCOUNT EQUAL expression
+                               { driver.var_expectation_model_discount = $3; }
+                             ;
 
 restrictions : RESTRICTIONS '(' symbol ')' ';' { driver.begin_VAR_restrictions(); }
                restrictions_list END ';' { driver.end_VAR_restrictions($3); }
@@ -912,10 +937,8 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_power($1, $3); }
           | EXPECTATION '(' signed_integer ')''(' hand_side ')'
 	    { $$ = driver.add_expectation($3, $6); }
-          | VAR_EXPECTATION '(' symbol COMMA MODEL_NAME EQUAL NAME ')'
-            { $$ = driver.add_var_expectation($3, "1", $7); }
-          | VAR_EXPECTATION '(' symbol COMMA INT_NUMBER COMMA MODEL_NAME EQUAL NAME ')'
-            { $$ = driver.add_var_expectation($3, $5, $9); }
+          | VAR_EXPECTATION '(' symbol ')'
+            { $$ = driver.add_var_expectation($3); }
           | PAC_EXPECTATION '(' symbol ')'
             { $$ = driver.add_pac_expectation($3); }
           | MINUS hand_side %prec UMINUS
@@ -3649,6 +3672,12 @@ range : symbol ':' symbol
 
 integer_range : INT_NUMBER ':' INT_NUMBER
                 { $$ = $1 + ':' + $3; }
+
+integer_range_w_inf : INT_NUMBER ':' INT_NUMBER
+                      { $$ = make_pair($1, $3); }
+                    | INT_NUMBER ':' INF_CONSTANT
+                      { $$ = make_pair($1, "Inf"); }
+                    ;
 
 signed_integer_range : signed_integer ':' signed_integer
                        { $$ = $1 + ':' + $3; }

@@ -2508,9 +2508,9 @@ ParsingDriver::add_expectation(const string &arg1, expr_t arg2)
 }
 
 expr_t
-ParsingDriver::add_var_expectation(const string &arg1, const string &arg2, const string &arg3)
+ParsingDriver::add_var_expectation(const string &model_name)
 {
-  return data_tree->AddVarExpectation(mod_file->symbol_table.getID(arg1), stoi(arg2), arg3);
+  return data_tree->AddVarExpectation(model_name);
 }
 
 expr_t
@@ -3227,4 +3227,46 @@ ParsingDriver::end_shock_groups(const string &name)
 {
   mod_file->addStatement(new ShockGroupsStatement(shock_groups, name));
   shock_groups.clear();
+}
+
+void
+ParsingDriver::var_expectation_model()
+{
+  auto it = options_list.string_options.find("variable");
+  if (it == options_list.string_options.end())
+    error("You must pass the variable option to the var_expectation_model statement.");
+  auto variable = it->second;
+  check_symbol_is_endogenous(variable);
+
+  it = options_list.string_options.find("var_model_name");
+  if (it == options_list.string_options.end())
+    error("You must pass the var_model_name option to the var_expectation_model statement.");
+  auto var_model_name = it->second;
+
+  it = options_list.string_options.find("model_name");
+  if (it == options_list.string_options.end())
+    error("You must pass the model_name option to the var_expectation_model statement.");
+  auto model_name = it->second;
+
+  it = options_list.num_options.find("horizon");
+  if (it == options_list.num_options.end())
+    error("You must pass the horizon option to the var_expectation_model statement.");
+  auto horizon = it->second;
+
+  if (var_expectation_model_discount)
+    {
+      VariableNode *var;
+      if (!dynamic_cast<NumConstNode *>(var_expectation_model_discount)
+          && !((var = dynamic_cast<VariableNode *>(var_expectation_model_discount))
+               && var->get_type() == SymbolType::parameter))
+        error("The discount factor must be a constant expression or a parameter");
+    }
+  else
+    var_expectation_model_discount = data_tree->One;
+
+  mod_file->addStatement(new VarExpectationModelStatement(model_name, variable, var_model_name, horizon,
+                                                          var_expectation_model_discount, mod_file->symbol_table));
+
+  options_list.clear();
+  var_expectation_model_discount = nullptr;
 }
