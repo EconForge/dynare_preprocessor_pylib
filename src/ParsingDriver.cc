@@ -283,18 +283,9 @@ ParsingDriver::end_trend_var(expr_t growth_factor)
 void
 ParsingDriver::add_predetermined_variable(const string &name)
 {
-  try
-    {
-      int symb_id = mod_file->symbol_table.getID(name);
-      if (mod_file->symbol_table.getType(symb_id) != SymbolType::endogenous)
-        error("Predetermined variables must be endogenous variables");
-
-      mod_file->symbol_table.markPredetermined(symb_id);
-    }
-  catch (SymbolTable::UnknownSymbolNameException &e)
-    {
-      error("Undeclared symbol name: " + name);
-    }
+  check_symbol_is_endogenous(name);
+  int symb_id = mod_file->symbol_table.getID(name);
+  mod_file->symbol_table.markPredetermined(symb_id);
 }
 
 void
@@ -643,15 +634,8 @@ ParsingDriver::init_val(const string &name, expr_t rhs)
         return;
       }
 
-  check_symbol_existence(name);
+  check_symbol_is_endogenous_or_exogenous(name);
   int symb_id = mod_file->symbol_table.getID(name);
-  SymbolType type = mod_file->symbol_table.getType(symb_id);
-
-  if (type != SymbolType::endogenous
-      && type != SymbolType::exogenous
-      && type != SymbolType::exogenousDet)
-    error("initval/endval: " + name + " should be an endogenous or exogenous variable");
-
   init_values.emplace_back(symb_id, rhs);
 }
 
@@ -671,14 +655,8 @@ ParsingDriver::hist_val(const string &name, const string &lag, expr_t rhs)
         return;
       }
 
-  check_symbol_existence(name);
+  check_symbol_is_endogenous_or_exogenous(name);
   int symb_id = mod_file->symbol_table.getID(name);
-  SymbolType type = mod_file->symbol_table.getType(symb_id);
-
-  if (type != SymbolType::endogenous
-      && type != SymbolType::exogenous
-      && type != SymbolType::exogenousDet)
-    error("histval: " + name + " should be an endogenous or exogenous variable");
 
   int ilag = stoi(lag);
   if (ilag > 0)
@@ -789,11 +767,7 @@ ParsingDriver::differentiate_forward_vars_some()
   mod_file->differentiate_forward_vars_subset = symbol_list.get_symbols();
   for (vector<string>::const_iterator it = mod_file->differentiate_forward_vars_subset.begin();
        it != mod_file->differentiate_forward_vars_subset.end(); ++it)
-    {
-      check_symbol_existence(*it);
-      if (mod_file->symbol_table.getType(*it) != SymbolType::endogenous)
-        error("Symbol " + *it + " is not an endogenous");
-    }
+    check_symbol_is_endogenous(*it);
   symbol_list.clear();
 }
 
@@ -899,20 +873,12 @@ ParsingDriver::end_mshocks(bool overwrite)
 void
 ParsingDriver::add_det_shock(const string &var, bool conditional_forecast)
 {
-  check_symbol_existence(var);
-  int symb_id = mod_file->symbol_table.getID(var);
-  SymbolType type = mod_file->symbol_table.getType(symb_id);
-
   if (conditional_forecast)
-    {
-      if (type != SymbolType::endogenous)
-        error("conditional_forecast_paths: shocks can only be applied to endogenous variables");
-    }
+    check_symbol_is_endogenous(var);
   else
-    {
-      if (type != SymbolType::exogenous && type != SymbolType::exogenousDet)
-        error("shocks: shocks can only be applied to exogenous variables");
-    }
+    check_symbol_is_exogenous(var);
+
+  int symb_id = mod_file->symbol_table.getID(var);
 
   if (det_shocks.find(symb_id) != det_shocks.end())
     error("shocks/conditional_forecast_paths: variable " + var + " declared twice");
@@ -1790,8 +1756,7 @@ void
 ParsingDriver::check_symbol_is_endogenous_or_exogenous(const string &name)
 {
   check_symbol_existence(name);
-  int symb_id = mod_file->symbol_table.getID(name);
-  switch (mod_file->symbol_table.getType(symb_id))
+  switch (mod_file->symbol_table.getType(name))
     {
     case SymbolType::endogenous:
     case SymbolType::exogenous:
@@ -1803,11 +1768,18 @@ ParsingDriver::check_symbol_is_endogenous_or_exogenous(const string &name)
 }
 
 void
+ParsingDriver::check_symbol_is_endogenous(const string &name)
+{
+  check_symbol_existence(name);
+  if (mod_file->symbol_table.getType(name) != SymbolType::endogenous)
+    error(name + " is not endogenous.");
+}
+
+void
 ParsingDriver::check_symbol_is_exogenous(const string &name)
 {
   check_symbol_existence(name);
-  int symb_id = mod_file->symbol_table.getID(name);
-  switch (mod_file->symbol_table.getType(symb_id))
+  switch (mod_file->symbol_table.getType(name))
     {
     case SymbolType::exogenous:
     case SymbolType::exogenousDet:
@@ -1935,10 +1907,8 @@ ParsingDriver::check_varobs()
 void
 ParsingDriver::add_varobs(const string &name)
 {
-  check_symbol_existence(name);
+  check_symbol_is_endogenous(name);
   int symb_id = mod_file->symbol_table.getID(name);
-  if (mod_file->symbol_table.getType(symb_id) != SymbolType::endogenous)
-    error("varobs: " + name + " is not an endogenous variable");
   mod_file->symbol_table.addObservedVariable(symb_id);
 }
 
@@ -1978,9 +1948,7 @@ ParsingDriver::set_trend_element(string arg1, expr_t arg2)
 void
 ParsingDriver::set_optim_weights(string name, expr_t value)
 {
-  check_symbol_existence(name);
-  if (mod_file->symbol_table.getType(name) != SymbolType::endogenous)
-    error("optim_weights: " + name + " isn't an endogenous variable");
+  check_symbol_is_endogenous(name);
   if (var_weights.find(name) != var_weights.end())
     error("optim_weights: " + name + " declared twice");
   var_weights[move(name)] = move(value);
@@ -1989,13 +1957,8 @@ ParsingDriver::set_optim_weights(string name, expr_t value)
 void
 ParsingDriver::set_optim_weights(const string &name1, const string &name2, expr_t value)
 {
-  check_symbol_existence(name1);
-  if (mod_file->symbol_table.getType(name1) != SymbolType::endogenous)
-    error("optim_weights: " + name1 + " isn't an endogenous variable");
-
-  check_symbol_existence(name2);
-  if (mod_file->symbol_table.getType(name2) != SymbolType::endogenous)
-    error("optim_weights: " + name2 + " isn't an endogenous variable");
+  check_symbol_is_endogenous(name1);
+  check_symbol_is_endogenous(name2);
 
   pair<string, string> covar_key{name1, name2};
 
@@ -3089,15 +3052,11 @@ ParsingDriver::add_moment_calibration_item(const string &endo1, const string &en
 {
   MomentCalibration::Constraint c;
 
-  check_symbol_existence(endo1);
+  check_symbol_is_endogenous(endo1);
   c.endo1 = mod_file->symbol_table.getID(endo1);
-  if (mod_file->symbol_table.getType(endo1) != SymbolType::endogenous)
-    error("Variable " + endo1 + " is not an endogenous.");
 
-  check_symbol_existence(endo2);
+  check_symbol_is_endogenous(endo2);
   c.endo2 = mod_file->symbol_table.getID(endo2);
-  if (mod_file->symbol_table.getType(endo2) != SymbolType::endogenous)
-    error("Variable " + endo2 + " is not an endogenous.");
 
   c.lags = move(lags);
 
@@ -3120,10 +3079,8 @@ ParsingDriver::add_irf_calibration_item(const string &endo, string periods, cons
 {
   IrfCalibration::Constraint c;
 
-  check_symbol_existence(endo);
+  check_symbol_is_endogenous(endo);
   c.endo = mod_file->symbol_table.getID(endo);
-  if (mod_file->symbol_table.getType(endo) != SymbolType::endogenous)
-    error("Variable " + endo + " is not an endogenous.");
 
   c.periods = move(periods);
 
@@ -3231,12 +3188,8 @@ ParsingDriver::ramsey_constraint_add_greater_equal(const string &name, const exp
 void
 ParsingDriver::add_ramsey_constraint(const string &name, BinaryOpcode op_code, const expr_t rhs)
 {
-  check_symbol_existence(name);
+  check_symbol_is_endogenous(name);
   int symb_id = mod_file->symbol_table.getID(name);
-  SymbolType type = mod_file->symbol_table.getType(symb_id);
-
-  if (type != SymbolType::endogenous)
-    error("ramsey_constraints: " + name + " should be an endogenous variable");
 
   RamseyConstraintsStatement::Constraint C;
   C.endo = symb_id;

@@ -93,6 +93,9 @@ private:
   //! Checks that a given symbol exists and is a endogenous or exogenous, and stops with an error message if it isn't
   void check_symbol_is_endogenous_or_exogenous(const string &name);
 
+  //! Checks that a given symbol exists and is a endogenous, and stops with an error message if it isn't
+  void check_symbol_is_endogenous(const string &name);
+
   //! Checks that a given symbol exists and is a exogenous, and stops with an error message if it isn't
   void check_symbol_is_exogenous(const string &name);
 
