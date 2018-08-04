@@ -5019,7 +5019,7 @@ VarExpectationModelStatement::writeOutput(ostream &output, const string &basenam
     }
   output << mstruct << ".param_indices = [ ";
   for (int param_id : aux_params_ids)
-    output << symbol_table.getTypeSpecificID(param_id) << ' ';
+    output << symbol_table.getTypeSpecificID(param_id)+1 << ' ';
   output << "];" << endl;
 }
 
