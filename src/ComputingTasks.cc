@@ -5008,7 +5008,8 @@ VarExpectationModelStatement::writeOutput(ostream &output, const string &basenam
   string mstruct = "M_.var_expectation." + model_name;
   output << mstruct << ".var_model_name = '" << var_model_name << "';" << endl
          << mstruct << ".horizon = " << horizon << ';' << endl
-         << mstruct << ".variable = '" << variable << "';" << endl;
+         << mstruct << ".variable = '" << variable << "';" << endl
+         << mstruct << ".variable_id = " << symbol_table.getTypeSpecificID(variable)+1 << ";" << endl;
   auto disc_var = dynamic_cast<const VariableNode *>(discount);
   if (disc_var)
     output << mstruct << ".discount_index = " << disc_var->get_symb_id() << ';' << endl;
