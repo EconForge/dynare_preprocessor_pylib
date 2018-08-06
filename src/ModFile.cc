@@ -548,7 +548,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       /* Create auxiliary parameters and the expression to be substituted to
          the var_expectations statement */
       auto subst_expr = dynamic_model.Zero;
-      for (int lag = 1; lag <= max_lag; lag++)
+      for (int lag = 0; lag < max_lag; lag++)
         for (auto variable : lhs)
           {
             string param_name = "var_expectation_model_" + model_name + '_' + symbol_table.getName(variable) + '_' + to_string(lag);
