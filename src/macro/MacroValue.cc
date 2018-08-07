@@ -126,6 +126,12 @@ MacroValue::in(const MacroValuePtr &mv) noexcept(false)
   throw TypeError("Second argument of 'in' operator must be an array");
 }
 
+shared_ptr<ArrayMV>
+MacroValue::set_union(const MacroValuePtr &mv) noexcept(false)
+{
+  throw TypeError("Operator | does not exist for this type");
+}
+
 IntMV::IntMV(int value_arg) : value{value_arg}
 {
 }
@@ -530,6 +536,30 @@ ArrayMV::range(const MacroValuePtr &mv1, const MacroValuePtr &mv2) noexcept(fals
   for (int v1 = mv1i->value, v2 = mv2i->value; v1 <= v2; v1++)
     result.push_back(make_shared<IntMV>(v1));
   return make_shared<ArrayMV>(result);
+}
+
+shared_ptr<ArrayMV>
+ArrayMV::set_union(const MacroValuePtr &mv) noexcept(false)
+{
+  auto mv2 = dynamic_pointer_cast<ArrayMV>(mv);
+  if (!mv2)
+    throw TypeError("Arguments of the union operator (|) must be sets");
+
+  vector<MacroValuePtr> new_values = values;
+  for (auto &it : mv2->values)
+    {
+      bool found = false;
+      for (auto &nvit : new_values)
+        if (nvit->is_equal(it)->value)
+          {
+            found = true;
+            break;
+          }
+      if (!found)
+        new_values.push_back(it);
+    }
+
+  return make_shared<ArrayMV>(new_values);
 }
 
 TupleMV::TupleMV(vector<MacroValuePtr> values_arg) : values{move(values_arg)}

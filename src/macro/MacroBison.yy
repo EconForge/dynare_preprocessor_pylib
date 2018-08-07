@@ -78,7 +78,7 @@ class MacroDriver;
 %nonassoc IN
 %nonassoc COLON
 %left PLUS MINUS
-%left TIMES DIVIDE
+%left TIMES DIVIDE UNION
 %precedence UMINUS UPLUS EXCLAMATION
 %precedence LBRACKET
 
@@ -205,6 +205,8 @@ expr : INTEGER
        { TYPERR_CATCH($$ = ArrayMV::range($1, $3), @$); }
      | expr IN expr
        { TYPERR_CATCH($$ = $3->in($1), @$); }
+     | expr UNION expr
+       { TYPERR_CATCH($$ = $1->set_union($3), @$); }
      ;
 
 comma_expr : %empty

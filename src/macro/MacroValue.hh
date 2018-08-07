@@ -105,6 +105,8 @@ public:
   //! Applies "in" operator
   /*! The argument is the element to be tested for inclusion. Returns an IntMV, equal to 0 or 1 */
   virtual shared_ptr<IntMV> in(const MacroValuePtr &mv) noexcept(false);
+  //! Creates the union of two sets
+  virtual shared_ptr<ArrayMV> set_union(const MacroValuePtr &mv) noexcept(false);
 };
 
 //! Represents an integer value in macro language
@@ -210,6 +212,7 @@ public:
     If mv2 < mv1, returns an empty range (for consistency with MATLAB).
   */
   static shared_ptr<ArrayMV> range(const MacroValuePtr &mv1, const MacroValuePtr &mv2) noexcept(false);
+  shared_ptr<ArrayMV> set_union(const MacroValuePtr &mvp) noexcept(false) override;
 };
 
 //! Represents a tuple value in macro language
