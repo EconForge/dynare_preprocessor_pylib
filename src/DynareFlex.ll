@@ -357,7 +357,6 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>modifiedharmonicmean {return token::MODIFIEDHARMONICMEAN;}
 <DYNARE_STATEMENT>constant	{return token::CONSTANT;}
 <DYNARE_STATEMENT>noconstant	{return token::NOCONSTANT;}
-<DYNARE_STATEMENT>covar         {return token::COVAR;}
 <DYNARE_STATEMENT>filename      {return token::FILENAME;}
 <DYNARE_STATEMENT>diffuse_filter {return token::DIFFUSE_FILTER;}
 <DYNARE_STATEMENT>plot_priors   {return token::PLOT_PRIORS;}
@@ -491,7 +490,6 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>indxap {return token::INDXAP;}
 <DYNARE_STATEMENT>apband {return token::APBAND;}
 <DYNARE_STATEMENT>indximf {return token::INDXIMF;}
-<DYNARE_STATEMENT>imfband {return token::IMFBAND;}
 <DYNARE_STATEMENT>indxfore {return token::INDXFORE;}
 <DYNARE_STATEMENT>foreband {return token::FOREBAND;}
 <DYNARE_STATEMENT>indxgforehat {return token::INDXGFOREHAT;}
@@ -515,7 +513,6 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
   return token::CNUM;
 }
 <DYNARE_STATEMENT>nodecomposition {return token::NODECOMPOSITION;};
-<DYNARE_STATEMENT>banact {return token::BANACT;}
 <DYNARE_BLOCK>use_calibration {return token::USE_CALIBRATION;}
 <DYNARE_STATEMENT>output_file_tag {return token::OUTPUT_FILE_TAG;}
 <DYNARE_STATEMENT>file_tag {return token::FILE_TAG;};
@@ -705,7 +702,6 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_BLOCK>; {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_BLOCK># {return Dynare::parser::token_type (yytext[0]);}
 
-<DYNARE_BLOCK>autocorr {return token::AUTOCORR;}
 <DYNARE_BLOCK>restriction {return token::RESTRICTION;}
 
  /* Inside Dynare statement */
@@ -813,12 +809,6 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT,DYNARE_BLOCK>asin {return token::ASIN;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>acos {return token::ACOS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>atan {return token::ATAN;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>sinh {return token::SINH;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>cosh {return token::COSH;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>tanh {return token::TANH;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>asinh {return token::ASINH;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>acosh {return token::ACOSH;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>atanh {return token::ATANH;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>sqrt {return token::SQRT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>max {return token::MAX;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>min {return token::MIN;}
@@ -834,7 +824,6 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>discount {return token::DISCOUNT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>varobs {return token::VAROBS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>varexobs {return token::VAREXOBS;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>full {return token::FULL;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>nan {return token::NAN_CONSTANT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>inf {return token::INF_CONSTANT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>constants {return token::CONSTANTS;}
