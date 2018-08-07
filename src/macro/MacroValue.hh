@@ -212,4 +212,24 @@ public:
   static shared_ptr<ArrayMV> range(const MacroValuePtr &mv1, const MacroValuePtr &mv2) noexcept(false);
 };
 
+//! Represents a tuple value in macro language
+class TupleMV : public MacroValue
+{
+public:
+  TupleMV(vector<MacroValuePtr> values_arg);
+
+  //! Underlying vector
+  const vector<MacroValuePtr> values;
+
+  shared_ptr<IntMV> is_equal(const MacroValuePtr &mv) override;
+  //! Subscripting operator
+  /*! Argument must be an ArrayMV<int>. Indexes begin at 1. Returns a StringMV. */
+  MacroValuePtr subscript(const MacroValuePtr &mv) noexcept(false) override;
+  //! Returns underlying string value
+  string toString() override;
+  string print() override;
+  shared_ptr<IntMV> length() noexcept(false) override;
+  shared_ptr<IntMV> in(const MacroValuePtr &mv) noexcept(false) override;
+};
+
 #endif

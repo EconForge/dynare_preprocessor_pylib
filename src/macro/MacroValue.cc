@@ -531,3 +531,110 @@ ArrayMV::range(const MacroValuePtr &mv1, const MacroValuePtr &mv2) noexcept(fals
     result.push_back(make_shared<IntMV>(v1));
   return make_shared<ArrayMV>(result);
 }
+
+TupleMV::TupleMV(vector<MacroValuePtr> values_arg) : values{move(values_arg)}
+{
+}
+
+shared_ptr<IntMV>
+TupleMV::is_equal(const MacroValuePtr &mv)
+{
+  auto mv2 = dynamic_pointer_cast<TupleMV>(mv);
+  if (!mv2 || values.size() != mv2->values.size())
+    return make_shared<IntMV>(0);
+
+  auto it = values.cbegin();
+  auto it2 = mv2->values.cbegin();
+  while (it != values.cend())
+    {
+      if ((*it)->is_different(*it2)->value)
+        return make_shared<IntMV>(0);
+      ++it;
+      ++it2;
+    }
+  return make_shared<IntMV>(1);
+}
+
+MacroValuePtr
+TupleMV::subscript(const MacroValuePtr &mv) noexcept(false)
+{
+  vector<MacroValuePtr> result;
+
+  auto copy_element = [&](int i) {
+    if (i < 1 || i > static_cast<int>(values.size()))
+      throw OutOfBoundsError();
+    result.push_back(values[i - 1]);
+  };
+
+  auto mv2 = dynamic_pointer_cast<IntMV>(mv);
+  auto mv3 = dynamic_pointer_cast<TupleMV>(mv);
+
+  if (mv2)
+    copy_element(mv2->value);
+  else if (mv3)
+    for (auto &v : mv3->values)
+      {
+        auto v2 = dynamic_pointer_cast<IntMV>(v);
+        if (!v2)
+          throw TypeError("Expression inside [] must be an integer or an integer array");
+        copy_element(v2->value);
+      }
+  else
+    throw TypeError("Expression inside [] must be an integer or an integer array");
+
+  if (result.size() > 1 || result.size() == 0)
+    return make_shared<TupleMV>(result);
+  else
+    return result[0];
+}
+
+string
+TupleMV::toString()
+{
+  ostringstream ss;
+  bool print_comma = false;
+  ss << "(";
+  for (auto &v : values)
+    {
+      if (print_comma)
+        ss << ", ";
+      else
+        print_comma = true;
+      ss << v->toString();
+    }
+  ss << ")";
+  return ss.str();
+}
+
+shared_ptr<IntMV>
+TupleMV::length() noexcept(false)
+{
+  return make_shared<IntMV>(values.size());
+}
+
+string
+TupleMV::print()
+{
+  ostringstream ss;
+  ss << "(";
+  for (auto it = values.begin();
+       it != values.end(); it++)
+    {
+      if (it != values.begin())
+        ss << ", ";
+
+      ss << (*it)->print();
+    }
+  ss << ")";
+  return ss.str();
+}
+
+shared_ptr<IntMV>
+TupleMV::in(const MacroValuePtr &mv) noexcept(false)
+{
+  for (auto &v : values)
+    if (v->is_equal(mv)->value)
+      return make_shared<IntMV>(1);
+
+  return make_shared<IntMV>(0);
+}

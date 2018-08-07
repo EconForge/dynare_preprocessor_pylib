@@ -84,7 +84,7 @@ class MacroDriver;
 
 %type <vector<string>> func_args
 %type <MacroValuePtr> expr
-%type <vector<MacroValuePtr>> comma_expr
+%type <vector<MacroValuePtr>> comma_expr tuple_comma_expr
 %%
 
 %start statement_list_or_nothing;
@@ -136,6 +136,8 @@ expr : INTEGER
        { $$ = make_shared<IntMV>($1); }
      | STRING
        { $$ = make_shared<StringMV>(driver.replace_vars_in_str($1)); }
+     | LPAREN tuple_comma_expr RPAREN
+       { $$ = make_shared<TupleMV>($2); }
      | NAME
        {
          try
@@ -212,6 +214,16 @@ comma_expr : %empty
            | comma_expr COMMA expr
              { $1.push_back($3); $$ = $1; }
            ;
+
+tuple_comma_expr : %empty
+                   { $$ = vector<MacroValuePtr>{}; } // Empty array
+                 | expr COMMA
+                   { $$ = vector<MacroValuePtr>{$1}; }
+                 | expr COMMA expr
+                   { $$ = vector<MacroValuePtr>{$1, $3}; }
+                 | tuple_comma_expr COMMA expr
+                   { $1.push_back($3); $$ = $1; }
+                 ;
 
 %%
 
