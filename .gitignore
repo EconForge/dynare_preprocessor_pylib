@@ -54,3 +54,13 @@ TAGS
 *.vrb
 !/doc/macroprocessor/new-design.pdf
 !/doc/macroprocessor/old-design.pdf
+
+# test files
+checksum
+*.mod
+*.tex
+*.json
++*
+
+# Bison verbose output file
+*.output
