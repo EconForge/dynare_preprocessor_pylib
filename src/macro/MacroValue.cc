@@ -132,6 +132,12 @@ MacroValue::set_union(const MacroValuePtr &mv) noexcept(false)
   throw TypeError("Operator | does not exist for this type");
 }
 
+shared_ptr<ArrayMV>
+MacroValue::set_intersection(const MacroValuePtr &mv) noexcept(false)
+{
+  throw TypeError("Operator & does not exist for this type");
+}
+
 IntMV::IntMV(int value_arg) : value{value_arg}
 {
 }
@@ -558,6 +564,25 @@ ArrayMV::set_union(const MacroValuePtr &mv) noexcept(false)
       if (!found)
         new_values.push_back(it);
     }
+
+  return make_shared<ArrayMV>(new_values);
+}
+
+shared_ptr<ArrayMV>
+ArrayMV::set_intersection(const MacroValuePtr &mv) noexcept(false)
+{
+  auto mv2 = dynamic_pointer_cast<ArrayMV>(mv);
+  if (!mv2)
+    throw TypeError("Arguments of the intersection operator (|) must be sets");
+
+  vector<MacroValuePtr> new_values;
+  for (auto &it : mv2->values)
+    for (auto &nvit : values)
+      if (nvit->is_equal(it)->value)
+        {
+          new_values.push_back(it);
+          break;
+        }
 
   return make_shared<ArrayMV>(new_values);
 }

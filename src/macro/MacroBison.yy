@@ -78,7 +78,7 @@ class MacroDriver;
 %nonassoc IN
 %nonassoc COLON
 %left PLUS MINUS
-%left TIMES DIVIDE UNION
+%left TIMES DIVIDE UNION INTERSECTION
 %precedence UMINUS UPLUS EXCLAMATION
 %precedence LBRACKET
 
@@ -207,6 +207,8 @@ expr : INTEGER
        { TYPERR_CATCH($$ = $3->in($1), @$); }
      | expr UNION expr
        { TYPERR_CATCH($$ = $1->set_union($3), @$); }
+     | expr INTERSECTION expr
+       { TYPERR_CATCH($$ = $1->set_intersection($3), @$); }
      ;
 
 comma_expr : %empty

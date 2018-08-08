@@ -107,6 +107,8 @@ public:
   virtual shared_ptr<IntMV> in(const MacroValuePtr &mv) noexcept(false);
   //! Creates the union of two sets
   virtual shared_ptr<ArrayMV> set_union(const MacroValuePtr &mv) noexcept(false);
+  //! Creates the intersection of two sets
+  virtual shared_ptr<ArrayMV> set_intersection(const MacroValuePtr &mv) noexcept(false);
 };
 
 //! Represents an integer value in macro language
@@ -213,6 +215,7 @@ public:
   */
   static shared_ptr<ArrayMV> range(const MacroValuePtr &mv1, const MacroValuePtr &mv2) noexcept(false);
   shared_ptr<ArrayMV> set_union(const MacroValuePtr &mvp) noexcept(false) override;
+  shared_ptr<ArrayMV> set_intersection(const MacroValuePtr &mvp) noexcept(false) override;
 };
 
 //! Represents a tuple value in macro language
