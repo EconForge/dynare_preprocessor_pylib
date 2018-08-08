@@ -419,7 +419,7 @@ ArrayMV::minus(const MacroValuePtr &mv) noexcept(false)
     {
       auto it2 = mv2->values.cbegin();
       for (; it2 != mv2->values.cend(); ++it2)
-        if (it->is_different(*it2)->value)
+        if (it->is_equal(*it2)->value)
           break;
       if (it2 == mv2->values.cend())
         new_values.push_back(it);
