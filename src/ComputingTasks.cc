@@ -5012,7 +5012,7 @@ VarExpectationModelStatement::writeOutput(ostream &output, const string &basenam
          << mstruct << ".variable_id = " << symbol_table.getTypeSpecificID(variable)+1 << ";" << endl;
   auto disc_var = dynamic_cast<const VariableNode *>(discount);
   if (disc_var)
-    output << mstruct << ".discount_index = " << disc_var->get_symb_id() << ';' << endl;
+    output << mstruct << ".discount_index = " << symbol_table.getTypeSpecificID(disc_var->get_symb_id()) + 1 << ';' << endl;
   else
     {
       output << mstruct << ".discount_value = ";
