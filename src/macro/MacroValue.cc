@@ -428,6 +428,67 @@ ArrayMV::minus(const MacroValuePtr &mv) noexcept(false)
   return make_shared<ArrayMV>(new_values);
 }
 
+MacroValuePtr
+ArrayMV::times(const MacroValuePtr &mv) noexcept(false)
+{
+  auto mv2 = dynamic_pointer_cast<ArrayMV>(mv);
+  if (!mv2)
+    throw TypeError("Type mismatch for operands of * operator");
+
+  vector<MacroValuePtr> new_values;
+  for (auto &itl : values)
+    for (auto &itr : mv2->values)
+      {
+        vector<MacroValuePtr> new_tuple;
+        auto lmvi = dynamic_pointer_cast<IntMV>(itl);
+        if (lmvi)
+          new_tuple.push_back(lmvi);
+        else
+          {
+            auto lmvs = dynamic_pointer_cast<StringMV>(itl);
+            if (lmvs)
+              new_tuple.push_back(lmvs);
+            else
+              {
+                auto lmvt = dynamic_pointer_cast<TupleMV>(itl);
+                if (lmvt)
+                  new_tuple = lmvt->values;
+                else
+                  {
+                    cerr << "ArrayMV::times: unsupported type on lhs" << endl;
+                    exit(EXIT_FAILURE);
+                  }
+              }
+          }
+
+        auto rmvi = dynamic_pointer_cast<IntMV>(itr);
+        if (rmvi)
+          new_tuple.push_back(rmvi);
+        else
+          {
+            auto rmvs = dynamic_pointer_cast<StringMV>(itr);
+            if (rmvs)
+              new_tuple.push_back(rmvs);
+            else
+              {
+                auto rmvt = dynamic_pointer_cast<TupleMV>(itr);
+                if (rmvt)
+                  for (auto &tit : rmvt->values)
+                    new_tuple.push_back(tit);
+                 else
+                  {
+                    cerr << "ArrayMV::times: unsupported type on rhs" << endl;
+                    exit(EXIT_FAILURE);
+                  }
+              }
+          }
+
+        new_values.push_back(make_shared<TupleMV>(new_tuple));
+      }
+
+  return make_shared<ArrayMV>(new_values);
+}
+
 shared_ptr<IntMV>
 ArrayMV::is_equal(const MacroValuePtr &mv)
 {

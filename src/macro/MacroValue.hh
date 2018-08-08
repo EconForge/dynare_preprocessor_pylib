@@ -216,6 +216,8 @@ public:
   static shared_ptr<ArrayMV> range(const MacroValuePtr &mv1, const MacroValuePtr &mv2) noexcept(false);
   shared_ptr<ArrayMV> set_union(const MacroValuePtr &mvp) noexcept(false) override;
   shared_ptr<ArrayMV> set_intersection(const MacroValuePtr &mvp) noexcept(false) override;
+  // Computes the Cartesian product of two sets
+  MacroValuePtr times(const MacroValuePtr &mv) noexcept(false) override;
 };
 
 //! Represents a tuple value in macro language
