@@ -165,8 +165,10 @@ private:
   vector<env_t> func_env;
 
   //! Stack used to keep track of (possibly nested) loops
-  //! First element is loop variable name, second is the array over which iteration is done, and third is subscript to be used by next call of iter_loop() (beginning with 0) */
-  stack<tuple<string, shared_ptr<ArrayMV>, int>> loop_stack;
+  //! First element is loop variable name
+  //! Second is the array over which iteration is done
+  //! Third is subscript to be used by next call of iter_loop() (beginning with 0) */
+  stack<tuple<vector<string>, shared_ptr<ArrayMV>, int>> loop_stack;
 public:
   //! Exception thrown when value of an unknown variable is requested
   class UnknownVariable
@@ -229,10 +231,13 @@ public:
   //! Initiate a for loop
   /*! Does not set name = value[1]. You must call iter_loop() for that. */
   void init_loop(const string &name, MacroValuePtr value) noexcept(false);
+  /*! Same as above but for looping over tuple array */
+  void init_loop(const vector<string> &names, MacroValuePtr value) noexcept(false);
 
   //! Iterate innermost loop
-  /*! Returns false if iteration is no more possible (end of loop); in that case it destroys the pointer given to init_loop() */
-  bool iter_loop();
+  /*! Returns false if iteration is no more possible (end of loop);
+      in that case it destroys the pointer given to init_loop() */
+  bool iter_loop() noexcept(false);
 
   //! Begins an @#if statement
   void begin_if(const MacroValuePtr &value) noexcept(false);

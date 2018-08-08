@@ -205,18 +205,28 @@ MacroDriver::init_loop(const string &name, MacroValuePtr value) noexcept(false)
   auto mv = dynamic_pointer_cast<ArrayMV>(value);
   if (!mv)
     throw MacroValue::TypeError("Argument of @#for loop must be an array expression");
-  loop_stack.emplace(name, move(mv), 0);
+  loop_stack.emplace(vector<string> {name}, move(mv), 0);
 }
 
+void
+MacroDriver::init_loop(const vector<string> &names, MacroValuePtr value) noexcept(false)
+{
+  auto mv = dynamic_pointer_cast<ArrayMV>(value);
+  if (!mv)
+    throw MacroValue::TypeError("Argument of @#for loop must be an array expression");
+  loop_stack.emplace(names, move(mv), 0);
+}
+
+
 bool
-MacroDriver::iter_loop()
+MacroDriver::iter_loop()  noexcept(false)
 {
   if (loop_stack.empty())
     throw "No loop on which to iterate!";
 
   int &i = get<2>(loop_stack.top());
   auto mv = get<1>(loop_stack.top());
-  string &name = get<0>(loop_stack.top());
+  vector<string> &names = get<0>(loop_stack.top());
 
   if (i >= static_cast<int>(mv->values.size()))
     {
@@ -225,7 +235,27 @@ MacroDriver::iter_loop()
     }
   else
     {
-      env[name] = mv->values[i++];
+      if (names.size() == 1)
+        env[names.at(0)] = mv->values[i++];
+      else
+        {
+          auto tmv = dynamic_pointer_cast<TupleMV>(mv->values[i++]);
+          if (!tmv)
+             throw MacroValue::TypeError("Argument of @#for loop must be an array expression of tuples");
+          if (tmv->values.size() != names.size())
+            {
+              cerr << "Error in for loop: tuple in array contains " << tmv->length()
+                   << " elements while you are assigning to " << names.size() << " variables."
+                   << endl;
+              exit(EXIT_FAILURE);
+            }
+
+          for (auto &name: names)
+            {
+              auto idx = &name - &names[0];
+              env[name] = tmv->values.at(idx);
+            }
+        }
       return true;
     }
 }

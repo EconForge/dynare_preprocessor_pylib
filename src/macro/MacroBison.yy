@@ -82,7 +82,7 @@ class MacroDriver;
 %precedence UMINUS UPLUS EXCLAMATION
 %precedence LBRACKET
 
-%type <vector<string>> func_args
+%type <vector<string>> comma_name
 %type <MacroValuePtr> expr
 %type <vector<MacroValuePtr>> comma_expr tuple_comma_expr
 %%
@@ -103,6 +103,8 @@ statement : expr
             { driver.set_variable($2, $4); }
           | FOR NAME IN expr
             { TYPERR_CATCH(driver.init_loop($2, $4), @$); }
+          | FOR LPAREN comma_name RPAREN IN expr
+            { TYPERR_CATCH(driver.init_loop($3, $6), @$); }
           | IF expr
             { TYPERR_CATCH(driver.begin_if($2), @$); }
           | IFDEF NAME
@@ -119,18 +121,18 @@ statement : expr
             { driver.printvars(@$, true); }
           | ECHOMACROVARS LPAREN SAVE RPAREN
             { out << driver.printvars(@$, false); }
-          | DEFINE NAME LPAREN func_args { driver.push_args_into_func_env($4); } RPAREN EQUAL expr
+          | DEFINE NAME LPAREN comma_name { driver.push_args_into_func_env($4); } RPAREN EQUAL expr
             {
               TYPERR_CATCH(driver.set_string_function($2, $4, $8), @$);
               driver.pop_func_env();
             }
           ;
 
-func_args : NAME
-            { $$ = vector<string>{$1}; }
-          | func_args COMMA NAME
-            { $1.push_back($3); $$ = $1; }
-          ;
+comma_name : NAME
+             { $$ = vector<string>{$1}; }
+           | comma_name COMMA NAME
+             { $1.push_back($3); $$ = $1; }
+           ;
 
 expr : INTEGER
        { $$ = make_shared<IntMV>($1); }
