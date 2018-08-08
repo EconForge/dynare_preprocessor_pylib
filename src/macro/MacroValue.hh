@@ -109,6 +109,8 @@ public:
   virtual shared_ptr<ArrayMV> set_union(const MacroValuePtr &mv) noexcept(false);
   //! Creates the intersection of two sets
   virtual shared_ptr<ArrayMV> set_intersection(const MacroValuePtr &mv) noexcept(false);
+  //! Power as shortcut for Cartesion product
+  virtual MacroValuePtr power(const MacroValuePtr &mv) noexcept(false);
 };
 
 //! Represents an integer value in macro language
@@ -218,6 +220,8 @@ public:
   shared_ptr<ArrayMV> set_intersection(const MacroValuePtr &mvp) noexcept(false) override;
   // Computes the Cartesian product of two sets
   MacroValuePtr times(const MacroValuePtr &mv) noexcept(false) override;
+  // Shortcut for Cartesian product of two sets
+  MacroValuePtr power(const MacroValuePtr &mv) noexcept(false) override;
 };
 
 //! Represents a tuple value in macro language

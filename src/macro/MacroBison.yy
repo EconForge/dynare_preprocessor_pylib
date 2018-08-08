@@ -66,7 +66,7 @@ class MacroDriver;
 
 }
 
-%token COMMA DEFINE LINE FOR IN IF ECHO_DIR ERROR IFDEF IFNDEF
+%token COMMA DEFINE LINE FOR IN IF ECHO_DIR ERROR IFDEF IFNDEF POWER
 %token LPAREN RPAREN LBRACKET RBRACKET EQUAL EOL LENGTH ECHOMACROVARS SAVE
 
 %token <int> INTEGER
@@ -78,7 +78,7 @@ class MacroDriver;
 %nonassoc IN
 %nonassoc COLON
 %left PLUS MINUS
-%left TIMES DIVIDE UNION INTERSECTION
+%left TIMES DIVIDE UNION INTERSECTION POWER
 %precedence UMINUS UPLUS EXCLAMATION
 %precedence LBRACKET
 
@@ -209,6 +209,8 @@ expr : INTEGER
        { TYPERR_CATCH($$ = $1->set_union($3), @$); }
      | expr INTERSECTION expr
        { TYPERR_CATCH($$ = $1->set_intersection($3), @$); }
+     | expr POWER expr
+       { TYPERR_CATCH($$ = $1->power($3), @$); }
      ;
 
 comma_expr : %empty

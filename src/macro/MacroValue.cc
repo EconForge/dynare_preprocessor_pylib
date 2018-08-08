@@ -138,6 +138,12 @@ MacroValue::set_intersection(const MacroValuePtr &mv) noexcept(false)
   throw TypeError("Operator & does not exist for this type");
 }
 
+MacroValuePtr
+MacroValue::power(const MacroValuePtr &mv) noexcept(false)
+{
+  throw TypeError("Operator ^ does not exist for this type");
+}
+
 IntMV::IntMV(int value_arg) : value{value_arg}
 {
 }
@@ -646,6 +652,23 @@ ArrayMV::set_intersection(const MacroValuePtr &mv) noexcept(false)
         }
 
   return make_shared<ArrayMV>(new_values);
+}
+
+MacroValuePtr
+ArrayMV::power(const MacroValuePtr &mv) noexcept(false)
+{
+  auto mv2 = dynamic_pointer_cast<IntMV>(mv);
+  if (!mv2)
+    throw TypeError("The second argument of the power operator (^) must be an integer");
+
+  shared_ptr<ArrayMV> retval = make_shared<ArrayMV>(values);
+  for (int i = 1; i < mv2->value; i++)
+    {
+      shared_ptr<MacroValue> mvp = retval->times(make_shared<ArrayMV>(values));
+      retval = make_shared<ArrayMV>(dynamic_pointer_cast<ArrayMV>(mvp)->values);
+    }
+
+  return retval;
 }
 
 TupleMV::TupleMV(vector<MacroValuePtr> values_arg) : values{move(values_arg)}

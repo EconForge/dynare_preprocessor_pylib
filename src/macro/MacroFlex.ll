@@ -220,6 +220,7 @@ CONT \\\\
 <STMT,EXPR>&&               { return token::LOGICAL_AND; }
 <STMT,EXPR>"|"              { return token::UNION; }
 <STMT,EXPR>"&"              { return token::INTERSECTION; }
+<STMT,EXPR>"^"              { return token::POWER; }
 <STMT,EXPR>"<="             { return token::LESS_EQUAL; }
 <STMT,EXPR>">="             { return token::GREATER_EQUAL; }
 <STMT,EXPR>"<"              { return token::LESS; }
