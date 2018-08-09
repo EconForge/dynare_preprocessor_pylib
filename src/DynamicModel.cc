@@ -3749,13 +3749,30 @@ DynamicModel::walkPacParameters()
 {
   for (auto & equation : equations)
     {
-      bool pac_encountered = false;
       pair<int, int> lhs (-1, -1);
-      set<pair<int, pair<int, int>>> params_and_vars;
-      set<pair<int, pair<int, int>>> ecm_params_and_vars;
-      equation->walkPacParameters(pac_encountered, lhs, ecm_params_and_vars, params_and_vars);
-      if (pac_encountered)
-        equation->addParamInfoToPac(lhs, ecm_params_and_vars, params_and_vars);
+      set<pair<int, pair<int, int>>> ar_params_and_vars, ec_params_and_vars;
+      set<pair<int, pair<pair<int, int>, double>>> non_optim_params_vars_and_scaling_factor;
+
+      if (equation->containsPacExpectation())
+        {
+          set<int> optim_share;
+          expr_t optim_part = nullptr;
+          expr_t non_optim_part = nullptr;
+          equation->getPacLHS(lhs);
+          equation->get_arg2()->getPacOptimizingShareAndExprNodes(optim_share,
+                                                                  optim_part,
+                                                                  non_optim_part);
+          if (optim_part == nullptr)
+            equation->get_arg2()->getPacOptimizingPart(ec_params_and_vars, ar_params_and_vars);
+          else
+            {
+              optim_part->getPacOptimizingPart(ec_params_and_vars, ar_params_and_vars);
+              non_optim_part->getPacNonOptimizingPart(non_optim_params_vars_and_scaling_factor);
+            }
+          equation->addParamInfoToPac(lhs,
+                                      ec_params_and_vars, ar_params_and_vars,
+                                      non_optim_params_vars_and_scaling_factor);
+        }
     }
 }
 
