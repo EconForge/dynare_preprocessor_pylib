@@ -3755,6 +3755,7 @@ DynamicModel::walkPacParameters()
 
       if (equation->containsPacExpectation())
         {
+          int optim_share_index = -1;
           set<int> optim_share;
           expr_t optim_part = nullptr;
           expr_t non_optim_part = nullptr;
@@ -3766,10 +3767,12 @@ DynamicModel::walkPacParameters()
             equation->get_arg2()->getPacOptimizingPart(ec_params_and_vars, ar_params_and_vars);
           else
             {
+              optim_share_index = *(optim_share.begin());
               optim_part->getPacOptimizingPart(ec_params_and_vars, ar_params_and_vars);
               non_optim_part->getPacNonOptimizingPart(non_optim_params_vars_and_scaling_factor);
             }
           equation->addParamInfoToPac(lhs,
+                                      optim_share_index,
                                       ec_params_and_vars, ar_params_and_vars,
                                       non_optim_params_vars_and_scaling_factor);
         }
