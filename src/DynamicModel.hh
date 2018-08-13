@@ -323,7 +323,7 @@ public:
   //! Get Pac equation parameter info
   void walkPacParameters();
   //! Add var_model info to pac_expectation nodes
-  void fillPacExpectationVarInfo(string &var_model_name,
+  void fillPacExpectationVarInfo(string &pac_model_name,
                                  vector<int> &lhs,
                                  int max_lag,
                                  vector<bool> &nonstationary,
