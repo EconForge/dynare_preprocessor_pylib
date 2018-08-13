@@ -370,7 +370,7 @@ class ExprNode
 
       //! Get Max lag of var associated with Pac model
       //! Takes account of undiffed LHS variables in calculating the max lag
-      virtual int PacMaxLag(vector<int> &lhs) const = 0;
+      virtual int PacMaxLag(int lhs_symb_id) const = 0;
 
       virtual expr_t undiff() const = 0;
 
@@ -533,10 +533,10 @@ class ExprNode
       virtual void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg) = 0;
 
       //! Fills var_model info for pac_expectation node
-      virtual void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) = 0;
+      virtual void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) = 0;
 
       //! Returns true if PacExpectationNode encountered
-      virtual bool containsPacExpectation() const = 0;
+      virtual bool containsPacExpectation(const string &pac_model_name = "") const = 0;
 
       //! Fills map
       virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const = 0;
@@ -591,7 +591,7 @@ public:
   int maxLag() const override;
   int VarMinLag() const override;
   int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
-  int PacMaxLag(vector<int> &lhs) const override;
+  int PacMaxLag(int lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -620,8 +620,8 @@ public:
   bool isInStaticForm() const override;
   void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int>>> &ec_params_and_vars, set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg) override;
-  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
-  virtual bool containsPacExpectation() const override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  virtual bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   expr_t substituteStaticAuxiliaryVariable() const override;
@@ -682,7 +682,7 @@ public:
   int maxLag() const override;
   int VarMinLag() const override;
   int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
-  int PacMaxLag(vector<int> &lhs) const override;
+  int PacMaxLag(int lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -711,8 +711,8 @@ public:
   bool isInStaticForm() const override;
   void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int>>> &ec_params_and_vars, set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg) override;
-  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
-  bool containsPacExpectation() const override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
@@ -794,7 +794,7 @@ public:
   int maxLag() const override;
   int VarMinLag() const override;
   int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
-  int PacMaxLag(vector<int> &lhs) const override;
+  int PacMaxLag(int lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -826,8 +826,8 @@ public:
   bool isInStaticForm() const override;
   void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int>>> &ec_params_and_vars, set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg) override;
-  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
-  bool containsPacExpectation() const override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
@@ -926,7 +926,7 @@ public:
   int maxLag() const override;
   int VarMinLag() const override;
   int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
-  int PacMaxLag(vector<int> &lhs) const override;
+  int PacMaxLag(int lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -963,8 +963,8 @@ public:
   bool isInStaticForm() const override;
   void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int>>> &ec_params_and_vars, set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg) override;
-  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
-  bool containsPacExpectation() const override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
@@ -1033,7 +1033,7 @@ public:
   int maxLag() const override;
   int VarMinLag() const override;
   int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
-  int PacMaxLag(vector<int> &lhs) const override;
+  int PacMaxLag(int lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -1064,8 +1064,8 @@ public:
   bool isInStaticForm() const override;
   void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int>>> &ec_params_and_vars, set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg) override;
-  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
-  bool containsPacExpectation() const override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
@@ -1146,7 +1146,7 @@ public:
   int maxLag() const override;
   int VarMinLag() const override;
   int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
-  int PacMaxLag(vector<int> &lhs) const override;
+  int PacMaxLag(int lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -1177,8 +1177,8 @@ public:
   bool isInStaticForm() const override;
   void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int>>> &ec_params_and_vars, set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg) override;
-  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
-  bool containsPacExpectation() const override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
@@ -1335,7 +1335,7 @@ public:
   int maxLag() const override;
   int VarMinLag() const override;
   int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
-  int PacMaxLag(vector<int> &lhs) const override;
+  int PacMaxLag(int lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   void prepareForDerivation() override;
@@ -1377,8 +1377,8 @@ public:
   bool isInStaticForm() const override;
   void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int>>> &ec_params_and_vars, set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg) override;
-  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
-  bool containsPacExpectation() const override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   expr_t substituteStaticAuxiliaryVariable() const override;
@@ -1394,7 +1394,7 @@ private:
   bool stationary_vars_present, nonstationary_vars_present;
   vector<int> lhs;
   pair<int, int> lhs_pac_var;
-  int max_lag;
+  int max_lag, pac_max_lag;
   vector<int> h0_indices, h1_indices;
   int growth_param_index, equation_number;
   set<pair<int, pair<int, int>>> ec_params_and_vars;
@@ -1421,7 +1421,7 @@ public:
   int maxLag() const override;
   int VarMinLag() const override;
   int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
-  int PacMaxLag(vector<int> &lhs) const override;
+  int PacMaxLag(int lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   void prepareForDerivation() override;
@@ -1463,8 +1463,8 @@ public:
   bool isInStaticForm() const override;
   void walkPacParameters(bool &pac_encountered, pair<int, int> &lhs, set<pair<int, pair<int, int>>> &ec_params_and_vars, set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, int>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg) override;
-  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
-  bool containsPacExpectation() const override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   expr_t substituteStaticAuxiliaryVariable() const override;

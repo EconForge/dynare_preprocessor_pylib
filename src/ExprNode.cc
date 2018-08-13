@@ -494,7 +494,7 @@ NumConstNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) cons
 }
 
 int
-NumConstNode::PacMaxLag(vector<int> &lhs) const
+NumConstNode::PacMaxLag(int lhs_symb_id) const
 {
   return 0;
 }
@@ -608,7 +608,7 @@ NumConstNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
 }
 
 bool
-NumConstNode::containsPacExpectation() const
+NumConstNode::containsPacExpectation(const string &pac_model_name) const
 {
   return false;
 }
@@ -660,7 +660,7 @@ NumConstNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int,
 }
 
 void
-NumConstNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
+NumConstNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
 {
 }
 
@@ -1409,9 +1409,11 @@ VariableNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) cons
 }
 
 int
-VariableNode::PacMaxLag(vector<int> &lhs) const
+VariableNode::PacMaxLag(int lhs_symb_id) const
 {
-  return -lag;
+  if (lhs_symb_id == symb_id)
+    return -lag;
+  return 0;
 }
 
 expr_t
@@ -1690,7 +1692,7 @@ VariableNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int la
 }
 
 bool
-VariableNode::containsPacExpectation() const
+VariableNode::containsPacExpectation(const string &pac_model_name) const
 {
   return false;
 }
@@ -1811,7 +1813,7 @@ VariableNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int,
 }
 
 void
-VariableNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
+VariableNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
 {
 }
 
@@ -2972,10 +2974,10 @@ UnaryOpNode::VarMinLag() const
 }
 
 int
-UnaryOpNode::PacMaxLag(vector<int> &lhs) const
+UnaryOpNode::PacMaxLag(int lhs_symb_id) const
 {
   //This will never be an UnaryOpcode::diff node
-  return arg->PacMaxLag(lhs);
+  return arg->PacMaxLag(lhs_symb_id);
 }
 
 expr_t
@@ -3350,9 +3352,9 @@ UnaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag
 }
 
 bool
-UnaryOpNode::containsPacExpectation() const
+UnaryOpNode::containsPacExpectation(const string &pac_model_name) const
 {
-  return arg->containsPacExpectation();
+  return arg->containsPacExpectation(pac_model_name);
 }
 
 bool
@@ -3412,9 +3414,9 @@ UnaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int, 
 }
 
 void
-UnaryOpNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
+UnaryOpNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
 {
-  arg->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
+  arg->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
 }
 
 bool
@@ -4732,9 +4734,9 @@ BinaryOpNode::undiff() const
 }
 
 int
-BinaryOpNode::PacMaxLag(vector<int> &lhs) const
+BinaryOpNode::PacMaxLag(int lhs_symb_id) const
 {
-  return max(arg1->PacMaxLag(lhs), arg2->PacMaxLag(lhs));
+  return max(arg1->PacMaxLag(lhs_symb_id), arg2->PacMaxLag(lhs_symb_id));
 }
 
 expr_t
@@ -4956,9 +4958,9 @@ BinaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int la
 }
 
 bool
-BinaryOpNode::containsPacExpectation() const
+BinaryOpNode::containsPacExpectation(const string &pac_model_name) const
 {
-  return (arg1->containsPacExpectation() || arg2->containsPacExpectation());
+  return (arg1->containsPacExpectation(pac_model_name) || arg2->containsPacExpectation(pac_model_name));
 }
 
 bool
@@ -5069,10 +5071,10 @@ BinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int,
 }
 
 void
-BinaryOpNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
+BinaryOpNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
 {
-  arg1->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
-  arg2->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
+  arg1->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
+  arg2->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
 }
 
 bool
@@ -5693,9 +5695,9 @@ TrinaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) con
 }
 
 int
-TrinaryOpNode::PacMaxLag(vector<int> &lhs) const
+TrinaryOpNode::PacMaxLag(int lhs_symb_id) const
 {
-  return max(arg1->PacMaxLag(lhs), max(arg2->PacMaxLag(lhs), arg3->PacMaxLag(lhs)));
+  return max(arg1->PacMaxLag(lhs_symb_id), max(arg2->PacMaxLag(lhs_symb_id), arg3->PacMaxLag(lhs_symb_id)));
 }
 
 expr_t
@@ -5866,9 +5868,9 @@ TrinaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int l
 }
 
 bool
-TrinaryOpNode::containsPacExpectation() const
+TrinaryOpNode::containsPacExpectation(const string &pac_model_name) const
 {
-  return (arg1->containsPacExpectation() || arg2->containsPacExpectation() || arg3->containsPacExpectation());
+  return (arg1->containsPacExpectation(pac_model_name) || arg2->containsPacExpectation(pac_model_name) || arg3->containsPacExpectation(pac_model_name));
 }
 
 bool
@@ -5933,11 +5935,11 @@ TrinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pair<int
 }
 
 void
-TrinaryOpNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
+TrinaryOpNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
 {
-  arg1->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
-  arg2->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
-  arg3->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
+  arg1->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
+  arg2->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
+  arg3->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
 }
 
 bool
@@ -6141,11 +6143,11 @@ AbstractExternalFunctionNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &
 }
 
 int
-AbstractExternalFunctionNode::PacMaxLag(vector<int> &lhs) const
+AbstractExternalFunctionNode::PacMaxLag(int lhs_symb_id) const
 {
   int val = 0;
   for (auto argument : arguments)
-    val = max(val, argument->PacMaxLag(lhs));
+    val = max(val, argument->PacMaxLag(lhs_symb_id));
   return val;
 }
 
@@ -6352,11 +6354,11 @@ AbstractExternalFunctionNode::isVariableNodeEqualTo(SymbolType type_arg, int var
 
 
 bool
-AbstractExternalFunctionNode::containsPacExpectation() const
+AbstractExternalFunctionNode::containsPacExpectation(const string &pac_model_name) const
 {
   bool result = false;
   for (auto argument : arguments)
-    result = result || argument->containsPacExpectation();
+    result = result || argument->containsPacExpectation(pac_model_name);
   return result;
 }
 
@@ -6429,10 +6431,10 @@ AbstractExternalFunctionNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pai
 }
 
 void
-AbstractExternalFunctionNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
+AbstractExternalFunctionNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
 {
   for (auto argument : arguments)
-    argument->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
+    argument->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
 }
 
 bool
@@ -7696,7 +7698,7 @@ VarExpectationNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs
 }
 
 int
-VarExpectationNode::PacMaxLag(vector<int> &lhs) const
+VarExpectationNode::PacMaxLag(int lhs_symb_id) const
 {
   cerr << "VarExpectationNode::PacMaxLag not implemented." << endl;
   exit(EXIT_FAILURE);
@@ -7879,7 +7881,7 @@ VarExpectationNode::differentiateForwardVars(const vector<string> &subset, subst
 }
 
 bool
-VarExpectationNode::containsPacExpectation() const
+VarExpectationNode::containsPacExpectation(const string &pac_model_name) const
 {
   return false;
 }
@@ -7969,7 +7971,7 @@ VarExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pai
 }
 
 void
-VarExpectationNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
+VarExpectationNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
 {
 }
 
@@ -8046,7 +8048,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
   output << "M_.pac." << model_name << ".lhs_var = "
          << datatree.symbol_table.getTypeSpecificID(lhs_pac_var.first) + 1 << ";" << endl
-         << "M_.pac." << model_name << ".max_lag = " << max_lag << ";" << endl;
+         << "M_.pac." << model_name << ".max_lag = " << pac_max_lag << ";" << endl;
 
   if (growth_symb_id >= 0)
     output << "M_.pac." << model_name << ".growth_neutrality_param_index = "
@@ -8167,7 +8169,7 @@ PacExpectationNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs
 }
 
 int
-PacExpectationNode::PacMaxLag(vector<int> &lhs) const
+PacExpectationNode::PacMaxLag(int lhs_symb_id) const
 {
   return 0;
 }
@@ -8331,9 +8333,12 @@ PacExpectationNode::differentiateForwardVars(const vector<string> &subset, subst
 }
 
 bool
-PacExpectationNode::containsPacExpectation() const
+PacExpectationNode::containsPacExpectation(const string &pac_model_name) const
 {
-  return true;
+  if (pac_model_name.empty())
+    return true;
+  else
+    return pac_model_name == model_name;
 }
 
 bool
@@ -8446,13 +8451,14 @@ PacExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, set<pair<int, pai
 
 
 void
-PacExpectationNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
+PacExpectationNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
 {
   if (model_name != model_name_arg)
     return;
 
   lhs = lhs_arg;
   max_lag = max_lag_arg;
+  pac_max_lag = pac_max_lag_arg;
   growth_symb_id = growth_symb_id_arg;
   equation_number = equation_number_arg;
 

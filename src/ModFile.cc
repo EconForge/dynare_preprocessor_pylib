@@ -437,7 +437,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
                  }
                pms->fillUndiffedLHS(lhs);
                dynamic_model.walkPacParameters();
-               dynamic_model.fillPacExpectationVarInfo(pac_model_name, lhs, max_lag, nonstationary, growth_symb_id);
+               int pac_max_lag = original_model.getPacMaxLag(pac_model_name);
+               dynamic_model.fillPacExpectationVarInfo(pac_model_name, lhs, max_lag, pac_max_lag, nonstationary, growth_symb_id);
                dynamic_model.substitutePacExpectation();
              }
          }

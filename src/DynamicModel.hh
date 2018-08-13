@@ -326,6 +326,7 @@ public:
   void fillPacExpectationVarInfo(string &pac_model_name,
                                  vector<int> &lhs,
                                  int max_lag,
+                                 int pac_max_lag,
                                  vector<bool> &nonstationary,
                                  int growth_symb_id);
 
@@ -433,6 +434,9 @@ public:
 
   //! Substitute VarExpectation operators
   void substituteVarExpectation(const map<string, expr_t> &subst_table);
+
+  //! Return max lag of pac equation
+  int getPacMaxLag(const string &pac_model_name) const;
 
   //! Table to undiff LHS variables for pac vector z
   void getUndiffLHSForPac(vector<int> &lhs, vector<expr_t> &lhs_expr_t, vector<bool> &diff, vector<int> &orig_diff_var,

@@ -3759,15 +3759,35 @@ DynamicModel::walkPacParameters()
     }
 }
 
+int
+DynamicModel::getPacMaxLag(const string &pac_model_name) const
+{
+  for (auto & equation : equations)
+    if (equation->containsPacExpectation(pac_model_name))
+      {
+        set<pair<int, int>> endogs;
+        equation->get_arg1()->collectDynamicVariables(SymbolType::endogenous, endogs);
+        if (endogs.size() != 1)
+          {
+            cerr << "The LHS of the PAC equation may only be comprised of one endogenous variable"
+                 << endl;
+            exit(EXIT_FAILURE);
+          }
+        return equation->PacMaxLag((*(endogs.begin())).first);
+      }
+  return 0;
+}
+
 void
 DynamicModel::fillPacExpectationVarInfo(string &pac_model_name,
                                         vector<int> &lhs,
                                         int max_lag,
+                                        int pac_max_lag,
                                         vector<bool> &nonstationary,
                                         int growth_symb_id)
 {
   for (size_t i = 0; i < equations.size(); i++)
-    equations[i]->fillPacExpectationVarInfo(pac_model_name, lhs, max_lag, nonstationary, growth_symb_id, i);
+    equations[i]->fillPacExpectationVarInfo(pac_model_name, lhs, max_lag, pac_max_lag, nonstationary, growth_symb_id, i);
 }
 
 void
