@@ -5264,6 +5264,15 @@ BinaryOpNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
       set<int> params1, params2;
       arg1->collectVariables(SymbolType::parameter, params1);
       arg2->collectVariables(SymbolType::parameter, params2);
+
+      if (dynamic_cast<NumConstNode *>(arg1) != nullptr
+          || dynamic_cast<NumConstNode *>(arg2) != nullptr)
+        {
+          cerr << "Error: Please do not use hard-coded parameter values in the PAC equation"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+
       if (optim_part == nullptr)
         if (test_arg1 != nullptr || test_arg2 != nullptr)
           if (params1.size() == 1 || params2.size() == 1)
