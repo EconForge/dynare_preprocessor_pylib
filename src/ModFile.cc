@@ -30,15 +30,25 @@
 #include "ComputingTasks.hh"
 
 ModFile::ModFile(WarningConsolidation &warnings_arg)
-  : expressions_tree(symbol_table, num_constants, external_functions_table),
-    original_model(symbol_table, num_constants, external_functions_table),
-    dynamic_model(symbol_table, num_constants, external_functions_table),
-    trend_dynamic_model(symbol_table, num_constants, external_functions_table),
-    ramsey_FOC_equations_dynamic_model(symbol_table, num_constants, external_functions_table),
-    orig_ramsey_dynamic_model(symbol_table, num_constants, external_functions_table),
-    static_model(symbol_table, num_constants, external_functions_table),
-    steady_state_model(symbol_table, num_constants, external_functions_table, static_model),
-    diff_static_model(symbol_table, num_constants, external_functions_table),
+  : trend_component_model_table(symbol_table),
+    expressions_tree(symbol_table, num_constants,
+                     external_functions_table, trend_component_model_table),
+    original_model(symbol_table, num_constants,
+                   external_functions_table, trend_component_model_table),
+    dynamic_model(symbol_table, num_constants,
+                  external_functions_table, trend_component_model_table),
+    trend_dynamic_model(symbol_table, num_constants,
+                        external_functions_table, trend_component_model_table),
+    ramsey_FOC_equations_dynamic_model(symbol_table, num_constants,
+                                       external_functions_table, trend_component_model_table),
+    orig_ramsey_dynamic_model(symbol_table, num_constants,
+                              external_functions_table, trend_component_model_table),
+    static_model(symbol_table, num_constants,
+                 external_functions_table, trend_component_model_table),
+    steady_state_model(symbol_table, num_constants,
+                       external_functions_table, trend_component_model_table, static_model),
+    diff_static_model(symbol_table, num_constants,
+                      external_functions_table, trend_component_model_table),
     linear(false), block(false), byte_code(false), use_dll(false), no_static(false),
     differentiate_forward_vars(false), nonstationary_variables(false),
     param_used_with_lead_lag(false), warnings(warnings_arg)
@@ -368,16 +378,10 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   set<string> eqtags;
   map<string, vector<string>> var_model_eq_tags;
   map<string, pair<SymbolList, int>> var_model_info_var_expectation;
-  for (auto & statement : statements)
-    {
-      auto *vms = dynamic_cast<VarModelStatement *>(statement);
-      if (vms != nullptr)
-        {
-          vms->getVarModelInfo(var_model_name, var_model_info_var_expectation, var_model_eq_tags);
-          for (auto & eqtag : var_model_eq_tags[var_model_name])
-            eqtags.insert(eqtag);
-        }
-    }
+
+  for (auto const &it : trend_component_model_table.getEqTags())
+    for (auto &it1 : it.second)
+      eqtags.insert(it1);
 
   if (transform_unary_ops)
     dynamic_model.substituteUnaryOps(diff_static_model);
@@ -389,64 +393,46 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   ExprNode::subst_table_t diff_subst_table;
   dynamic_model.substituteDiff(diff_static_model, diff_subst_table);
 
+  // Fill Trend Component Model Table
+  dynamic_model.fillTrendComponentModelTable();
+  original_model.fillTrendComponentModelTableFromOrigModel(diff_static_model);
+
   // Var Model
-  map<string, tuple<vector<int>, vector<expr_t>, vector<bool>, vector<int>, int, vector<bool>, vector<int>>>
-    var_model_info_pac_expectation;
   for (auto & statement : statements)
     {
-      int max_lag;
-      string var_model_name;
-      vector<string> eqtags;
-      vector<expr_t> lhs_expr_t;
-      vector<bool> nonstationary, diff;
-      vector<int> lhs, eqnumber, orig_diff_var;
-      auto *vms = dynamic_cast<VarModelStatement *>(statement);
-      if (vms != nullptr)
-        {
-          vector<set<pair<int, int>>> rhs;
-          vms->getVarModelInfo(var_model_name, var_model_info_var_expectation, var_model_eq_tags);
-          eqtags = var_model_eq_tags[var_model_name];
-          dynamic_model.getVarModelVariablesFromEqTags(eqtags,
-                                                       eqnumber, lhs, lhs_expr_t, rhs, nonstationary);
-          original_model.checkVarMinLag(eqnumber);
-          max_lag = original_model.getVarMaxLag(diff_static_model, eqnumber);
-          original_model.getVarLhsDiffAndInfo(eqnumber, diff, orig_diff_var);
-          vms->fillVarModelInfoFromEquations(eqnumber, lhs, rhs, nonstationary,
-                                             diff, orig_diff_var, max_lag);
-          var_model_info_pac_expectation[var_model_name] =
-            { lhs, lhs_expr_t, diff, orig_diff_var, max_lag, nonstationary, eqnumber };
-        }
       auto *pms = dynamic_cast<PacModelStatement *>(statement);
       if (pms != nullptr)
          {
-           int growth_symb_id;
-           string pac_model_name;
-           map<string, int> undiff;
-           tuple<string, string, string, int, map<string, int>> pac_model_info_pac_expectation;
-           pms->getPacModelInfoForPacExpectation(pac_model_info_pac_expectation);
-           tie ( pac_model_name, var_model_name, ignore, growth_symb_id, undiff ) = pac_model_info_pac_expectation;
-           eqtags = var_model_eq_tags[var_model_name];
-           if (!eqtags.empty())
+           vector<int> lhs;
+           vector<bool> nonstationary;
+           int growth_symb_id, max_lag;
+           string aux_model_name, pac_model_name;
+           tie ( pac_model_name, aux_model_name, growth_symb_id ) =
+             pms->getPacModelInfoForPacExpectation();
+           if (trend_component_model_table.isExistingTrendComponentModelName(aux_model_name))
              {
-               tie ( lhs, lhs_expr_t, diff, orig_diff_var, max_lag, nonstationary, eqnumber ) =
-                 var_model_info_pac_expectation[var_model_name];
-               if (!undiff.empty())
-                 {
-                   dynamic_model.getUndiffLHSForPac(lhs, lhs_expr_t, diff, orig_diff_var, eqnumber, undiff, diff_subst_table);
-                   max_lag++;
-                 }
-               pms->fillUndiffedLHS(lhs);
-               dynamic_model.walkPacParameters();
-               int pac_max_lag = original_model.getPacMaxLag(pac_model_name);
-               dynamic_model.fillPacExpectationVarInfo(pac_model_name, lhs, max_lag, pac_max_lag, nonstationary, growth_symb_id);
-               dynamic_model.substitutePacExpectation();
+               max_lag = trend_component_model_table.getMaxLag(aux_model_name) + 1;
+               lhs = dynamic_model.getUndiffLHSForPac(aux_model_name, diff_subst_table);
+               nonstationary = trend_component_model_table.getNonstationary(aux_model_name);
              }
+           else
+             {
+               // get var_model lhs and max_lag; for now stop with error
+               cerr << "ERROR: var_models not yet supported for use with pac_model" << endl;
+               exit(EXIT_FAILURE);
+             }
+           pms->fillUndiffedLHS(lhs);
+           dynamic_model.walkPacParameters();
+           int pac_max_lag = original_model.getPacMaxLag(pac_model_name);
+           dynamic_model.fillPacExpectationVarInfo(pac_model_name, lhs, max_lag,
+                                                   pac_max_lag, nonstationary, growth_symb_id);
+           dynamic_model.substitutePacExpectation();
          }
      }
-
+  /*
   if (!var_model_info_var_expectation.empty())
     dynamic_model.addEquationsForVar(var_model_info_var_expectation);
-
+  */
   if (symbol_table.predeterminedNbr() > 0)
     dynamic_model.transformPredeterminedVariables();
 
@@ -542,9 +528,11 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       vector<set<pair<int, int>>> rhs;
       vector<bool> nonstationary;
       vector<string> eqtags{var_model_eq_tags[var_model_name]};
+      /*
       dynamic_model.getVarModelVariablesFromEqTags(eqtags,
                                                    eqnumber, lhs, lhs_expr_t, rhs, nonstationary);
-      int max_lag{original_model.getVarMaxLag(diff_static_model, eqnumber)};
+      */
+      int max_lag = trend_component_model_table.getMaxLag(var_model_name);
 
       /* Create auxiliary parameters and the expression to be substituted to
          the var_expectations statement */
@@ -596,13 +584,15 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
      probably add a VarModelTable class (similar to SymbolTable) for storing all
      this information about VAR models, instead of putting it inside the
      Statement(s) classes */
+  dynamic_model.fillTrendComponentModelTable();
+  /*
   for (auto & statement : statements)
     {
       auto *vms = dynamic_cast<VarModelStatement *>(statement);
       if (vms != nullptr)
         {
           string var_model_name;
-          vms->getVarModelInfo(var_model_name, var_model_info_var_expectation, var_model_eq_tags);
+          //vms->getVarModelInfo(var_model_name, var_model_info_var_expectation, var_model_eq_tags);
           vector<expr_t> lhs_expr_t;
           vector<int> lhs, eqnumber, orig_diff_var;
           vector<set<pair<int, int>>> rhs;
@@ -610,13 +600,15 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
           vector<string> eqtags = var_model_eq_tags[var_model_name];
           dynamic_model.getVarModelVariablesFromEqTags(eqtags,
                                                        eqnumber, lhs, lhs_expr_t, rhs, nonstationary);
-          int max_lag = original_model.getVarMaxLag(diff_static_model, eqnumber);
-          original_model.getVarLhsDiffAndInfo(eqnumber, diff, orig_diff_var);
+
+          int max_lag = trend_component_model_table.getMaxLag(var_model_name);
+      //          int max_lag = original_model.getVarMaxLag(diff_static_model, eqnumber);
+          //original_model.getVarLhsDiffAndInfo(eqnumber, diff, orig_diff_var);
           vms->fillVarModelInfoFromEquations(eqnumber, lhs, rhs, nonstationary,
                                              diff, orig_diff_var, max_lag);
         }
     }
-
+*/
   if (differentiate_forward_vars)
     dynamic_model.differentiateForwardVars(differentiate_forward_vars_subset);
 
@@ -910,6 +902,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
     cout << "Processing outputs ..." << endl;
 
   symbol_table.writeOutput(mOutputFile);
+
+  trend_component_model_table.writeOutput(mOutputFile);
 
   // Initialize M_.Sigma_e, M_.Correlation_matrix, M_.H, and M_.Correlation_matrix_ME
   mOutputFile << "M_.Sigma_e = zeros(" << symbol_table.exo_nbr() << ", "

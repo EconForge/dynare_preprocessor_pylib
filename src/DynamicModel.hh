@@ -250,7 +250,7 @@ private:
   void findPacExpectationEquationNumbers(vector<int> &eqnumber) const;
 
 public:
-  DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg, ExternalFunctionsTable &external_functions_table_arg);
+  DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg, ExternalFunctionsTable &external_functions_table_arg, TrendComponentModelTable &trend_component_model_table_arg);
   //! Adds a variable node
   /*! This implementation allows for non-zero lag */
   VariableNode *AddVariable(int symb_id, int lag = 0) override;
@@ -300,26 +300,12 @@ public:
   //! Set the equations that have non-zero second derivatives
   void setNonZeroHessianEquations(map<int, string> &eqs);
 
-  //! Get equation info associated with equation tags from var_model
-  void getVarModelVariablesFromEqTags(vector<string> &var_model_eqtags,
-                                      vector<int> &eqnumber,
-                                      vector<int> &lhs,
-                                      vector<expr_t> &lhs_expr_t,
-                                      vector<set<pair<int, int>>> &rhs,
-                                      vector<bool> &nonstationary) const;
-
-  //! Returns the max lag of the VAR
-  void checkVarMinLag(vector<int> &eqnumber) const;
-
-  //! Returns the max lag of the VAR
-  int getVarMaxLag(StaticModel &static_model, vector<int> &eqnumber) const;
-
-  // Get equtaino information on diff operator and max lag info
-  void getVarLhsDiffAndInfo(vector<int> &eqnumber, vector<bool> &diff,
-                            vector<int> &orig_diff_var) const;
+  //! Fill the Trend Component Model Table
+  void fillTrendComponentModelTable() const;
+  void fillTrendComponentModelTableFromOrigModel(StaticModel &static_model) const;
 
   //! Add aux equations (and aux variables) for variables declared in var_model at max order if they don't already exist
-  void addEquationsForVar(map<string, pair<SymbolList, int>> &var_model_info);
+  //  void addEquationsForVar(map<string, pair<SymbolList, int>> &var_model_info);
   //! Get Pac equation parameter info
   void walkPacParameters();
   //! Add var_model info to pac_expectation nodes
@@ -439,8 +425,8 @@ public:
   int getPacMaxLag(const string &pac_model_name) const;
 
   //! Table to undiff LHS variables for pac vector z
-  void getUndiffLHSForPac(vector<int> &lhs, vector<expr_t> &lhs_expr_t, vector<bool> &diff, vector<int> &orig_diff_var,
-                          vector<int> &eqnumber, map<string, int> &undiff, ExprNode::subst_table_t &diff_subst_table);
+  vector<int> getUndiffLHSForPac(const string &aux_model_name,
+                                 ExprNode::subst_table_t &diff_subst_table);
 
   //! Transforms the model by replacing trend variables with a 1
   void removeTrendVariableFromEquations();

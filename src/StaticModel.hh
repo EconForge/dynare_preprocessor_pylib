@@ -160,7 +160,10 @@ protected:
   void writeStaticModel(ostream &DynamicOutput, bool use_dll, bool julia) const;
   void writeStaticModel(const string &dynamic_basename, bool use_dll, bool julia) const;
 public:
-  StaticModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants, ExternalFunctionsTable &external_functions_table_arg);
+  StaticModel(SymbolTable &symbol_table_arg,
+              NumericalConstants &num_constants,
+              ExternalFunctionsTable &external_functions_table_arg,
+              TrendComponentModelTable &trend_component_model_table_arg);
 
   //! Writes information on block decomposition when relevant
   void writeOutput(ostream &output, bool block) const;

@@ -258,16 +258,14 @@ PriorPosteriorFunctionStatement::writeJsonOutput(ostream &output) const
 }
 
 PacModelStatement::PacModelStatement(string name_arg,
-                                     string var_name_arg,
+                                     string aux_model_name_arg,
                                      string discount_arg,
                                      string growth_arg,
-                                     map<string, int> undiff_arg,
                                      const SymbolTable &symbol_table_arg) :
   name{move(name_arg)},
-  var_name{move(var_name_arg)},
+  aux_model_name{move(aux_model_name_arg)},
   discount{move(discount_arg)},
   growth{move(growth_arg)},
-  undiff{move(undiff_arg)},
   symbol_table{symbol_table_arg}
 {
 }
@@ -289,7 +287,7 @@ PacModelStatement::fillUndiffedLHS(vector<int> &lhs_arg)
 void
 PacModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  output << "M_.pac." << name << ".var_model_name = '" << var_name << "';" << endl
+  output << "M_.pac." << name << ".auxiliary_model_name = '" << aux_model_name << "';" << endl
          << "M_.pac." << name << ".discount_index = " << symbol_table.getTypeSpecificID(discount) + 1 << ";" << endl;
 
   if (!growth.empty())
@@ -320,7 +318,8 @@ PacModelStatement::writeOutput(ostream &output, const string &basename, bool min
         output << " ";
       output << *it + 1;
     }
-  output << "];" << endl
+  output << "];" << endl;
+  /*
          << "M_.pac." << name << ".undiff_eqtags = {";
   for (auto it = undiff.begin(); it != undiff.end(); it++)
     {
@@ -337,6 +336,7 @@ PacModelStatement::writeOutput(ostream &output, const string &basename, bool min
       output << it->second;
     }
   output << "];" << endl;
+  */
 }
 
 void
@@ -344,7 +344,7 @@ PacModelStatement::writeJsonOutput(ostream &output) const
 {
   output << "{\"statementName\": \"pac_model\","
          << "\"model_name\": \"" << name << "\","
-         << "\"var_model_name\": \"" << var_name << "\","
+         << "\"auxiliary_model_name\": \"" << aux_model_name << "\","
          << "\"discount_index\": " << symbol_table.getTypeSpecificID(discount) + 1;
 
   if (!growth.empty())
@@ -371,13 +371,13 @@ PacModelStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-void
-PacModelStatement::getPacModelInfoForPacExpectation(tuple<string, string, string, int, map<string, int>> &pac_model_info) const
+tuple<string, string, int>
+PacModelStatement::getPacModelInfoForPacExpectation() const
 {
   int growth_symb_id = -1;
   if (!growth.empty())
     growth_symb_id = symbol_table.getID(growth);
-  pac_model_info = { name, var_name, discount, growth_symb_id, undiff };
+  return { name, aux_model_name, growth_symb_id };
 }
 
 VarModelStatement::VarModelStatement(SymbolList symbol_list_arg,
@@ -2207,8 +2207,12 @@ ModelComparisonStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-PlannerObjectiveStatement::PlannerObjectiveStatement(SymbolTable &symbol_table, NumericalConstants &num_constants, ExternalFunctionsTable &external_functions_table) :
-  model_tree{symbol_table, num_constants, external_functions_table}
+PlannerObjectiveStatement::PlannerObjectiveStatement(SymbolTable &symbol_table,
+                                                     NumericalConstants &num_constants,
+                                                     ExternalFunctionsTable &external_functions_table,
+                                                     TrendComponentModelTable &trend_component_model_table_arg) :
+  model_tree{symbol_table, num_constants,
+             external_functions_table, trend_component_model_table_arg}
 {
 }
 

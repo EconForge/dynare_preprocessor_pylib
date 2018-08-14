@@ -242,8 +242,6 @@ private:
   SymbolList graph_formats;
   //! Temporary storage for equation tags
   vector<pair<string, string>> eq_tags;
-  //! Temporary storage for pac statement undiff option
-  map<string, int> pac_undiff;
 
   //! Map Var name to variables
   map<string, vector<string>> var_map;
@@ -463,6 +461,8 @@ public:
   void rplot();
   //! Writes a stock_simul command
   void stoch_simul();
+  //! Writes a trend component command
+  void trend_component_model();
   //! Writes a var (vector autoregression) command
   void var_model();
   //! Writes a simul command
@@ -697,8 +697,6 @@ public:
   expr_t add_pac_expectation(const string &var_model_name);
   //! Creates pac_model statement
   void pac_model();
-  //! Add undiff option for pac_model statement
-  void pac_model_undiff(string eqtag, const string &order);
   //! Writes token "diff(arg1)" to model tree
   expr_t add_diff(expr_t arg1);
   //! Writes token "adl(arg1, lag)" to model tree

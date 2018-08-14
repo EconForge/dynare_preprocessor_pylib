@@ -348,7 +348,8 @@ ParsingDriver::declare_or_change_type(SymbolType new_type, const string &name)
       // change in equations in ModelTree
       auto dm = make_unique<DynamicModel>(mod_file->symbol_table,
                                           mod_file->num_constants,
-                                          mod_file->external_functions_table);
+                                          mod_file->external_functions_table,
+                                          mod_file->trend_component_model_table);
       mod_file->dynamic_model.updateAfterVariableChange(*dm);
 
       // remove error messages
@@ -1419,6 +1420,30 @@ ParsingDriver::stoch_simul()
 }
 
 void
+ParsingDriver::trend_component_model()
+{
+ OptionsList::string_options_t::const_iterator it =
+   options_list.string_options.find("trend_component.name");
+  if (it == options_list.string_options.end())
+    error("You must pass the model_name option to the trend_component_model statement.");
+  auto name = it->second;
+
+  OptionsList::vec_str_options_t::const_iterator it1 =
+    options_list.vector_str_options.find("trend_component.eqtags");
+  if (it1 == options_list.vector_str_options.end())
+    error("You must pass the eqtags option to the trend_component_model statement.");
+  auto eqtags = it1->second;
+
+  it1 = options_list.vector_str_options.find("trend_component.trends");
+  if (it1 == options_list.vector_str_options.end())
+    error("You must pass the trends option to the trend_component_model statement.");
+  auto trends = it1->second;
+
+  mod_file->trend_component_model_table.addTrendComponentModel(name, eqtags, trends);
+  options_list.clear();
+}
+
+void
 ParsingDriver::var_model()
 {
   OptionsList::string_options_t::const_iterator it = options_list.string_options.find("var.model_name");
@@ -2045,7 +2070,10 @@ ParsingDriver::run_model_comparison()
 void
 ParsingDriver::begin_planner_objective()
 {
-  planner_objective_statement = new PlannerObjectiveStatement(mod_file->symbol_table, mod_file->num_constants, mod_file->external_functions_table);
+  planner_objective_statement = new PlannerObjectiveStatement(mod_file->symbol_table,
+                                                              mod_file->num_constants,
+                                                              mod_file->external_functions_table,
+                                                              mod_file->trend_component_model_table);
 
   set_current_data_tree(&planner_objective_statement->getPlannerObjective());
 }
@@ -2527,10 +2555,10 @@ ParsingDriver::pac_model()
     error("You must pass the model_name option to the pac_model statement.");
   auto name = it->second;
 
-  it = options_list.string_options.find("pac.var_model_name");
+  it = options_list.string_options.find("pac.aux_model_name");
   if (it == options_list.string_options.end())
-    error("You must pass the var_model_name option to the pac_model statement.");
-  auto var_name = it->second;
+    error("You must pass the auxiliary_model_name option to the pac_model statement.");
+  auto aux_model_name = it->second;
 
   it = options_list.string_options.find("pac.discount");
   if (it == options_list.string_options.end())
@@ -2542,17 +2570,11 @@ ParsingDriver::pac_model()
   if (it != options_list.string_options.end())
     growth = it->second;
 
-  mod_file->addStatement(new PacModelStatement(name, var_name, discount, growth, pac_undiff, mod_file->symbol_table));
+  mod_file->addStatement(new PacModelStatement(name, aux_model_name, discount, growth,
+                                               mod_file->symbol_table));
 
   symbol_list.clear();
   options_list.clear();
-  pac_undiff.clear();
-}
-
-void
-ParsingDriver::pac_model_undiff(string eqtag, const string &order)
-{
-  pac_undiff[move(eqtag)] = stoi(order);
 }
 
 expr_t

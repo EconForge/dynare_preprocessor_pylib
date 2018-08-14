@@ -52,7 +52,9 @@ dynare_m_SOURCES = \
 	SteadyStateModel.cc \
 	WarningConsolidation.hh \
 	WarningConsolidation.cc \
-	ExtendedPreprocessorTypes.hh
+	ExtendedPreprocessorTypes.hh \
+	SubModel.cc \
+	SubModel.hh
 
 
 ACLOCAL_AMFLAGS = -I m4

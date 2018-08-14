@@ -123,24 +123,22 @@ class PacModelStatement : public Statement
 {
 private:
   const string name;
-  const string var_name;
+  const string aux_model_name;
   const string discount;
   const string growth;
-  const map<string, int> undiff;
   const SymbolTable &symbol_table;
   vector<int> lhs;
 public:
   PacModelStatement(string name_arg,
-                    string var_name_arg,
+                    string aux_model_name_arg,
                     string discount_arg,
                     string growth_arg,
-                    map<string, int> undiff_arg,
                     const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
   void fillUndiffedLHS(vector<int> &lhs);
-  void getPacModelInfoForPacExpectation(tuple<string, string, string, int, map<string, int>> &pac_model_info) const;
+  tuple<string, string, int> getPacModelInfoForPacExpectation() const;
 };
 
 class VarModelStatement : public Statement
@@ -542,7 +540,8 @@ private:
 public:
   PlannerObjectiveStatement(SymbolTable &symbol_table,
                             NumericalConstants &num_constants,
-                            ExternalFunctionsTable &external_functions_table);
+                            ExternalFunctionsTable &external_functions_table,
+                            TrendComponentModelTable &trend_component_model_table_arg);
   /*! \todo check there are only endogenous variables at the current period in the objective
     (no exogenous, no lead/lag) */
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;

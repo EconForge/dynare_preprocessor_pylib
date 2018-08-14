@@ -111,7 +111,7 @@ class ParsingDriver;
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN MLE_MODE PRUNING
 %token <string> QUOTED_STRING
 %token QZ_CRITERIUM QZ_ZERO_THRESHOLD DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE PIPE_E PIPE_X PIPE_P
-%token RELATIVE_IRF REPLIC SIMUL_REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY
+%token RELATIVE_IRF REPLIC SIMUL_REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY TRENDS
 %token SHOCKS SHOCK_DECOMPOSITION SHOCK_GROUPS USE_SHOCK_GROUPS SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED ENDOGENOUS_TERMINAL_PERIOD
 %token SMOOTHER SMOOTHER2HISTVAL SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS ROBUST_LIN_SOLVE
 %token STDERR STEADY STOCH_SIMUL SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME REALTIME_SHOCK_DECOMPOSITION
@@ -120,14 +120,14 @@ class ParsingDriver;
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VARIABLE VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION VAR_EXPECTATION_MODEL PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL CROSSEQUATIONS COVARIANCE WRITE_LATEX_STEADY_STATE_MODEL
-%token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP VAR_MODEL PAC_MODEL QOQ YOY AOA UNDIFF PAC_EXPECTATION
+%token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP VAR_MODEL PAC_MODEL QOQ YOY AOA UNDIFF PAC_EXPECTATION TREND_COMPONENT_MODEL
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
 %left PLUS MINUS
 %left TIMES DIVIDE
 %precedence UMINUS UPLUS
 %nonassoc POWER
-%token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN ERF DIFF ADL
+%token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN ERF DIFF ADL AUXILIARY_MODEL_NAME
 %token SQRT NORMCDF NORMPDF STEADY_STATE EXPECTATION VAR_ESTIMATION
 /* GSA analysis */
 %token DYNARE_SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU MORRIS_NLIV
@@ -223,6 +223,7 @@ statement : parameters
           | data
           | var_model
           | pac_model
+          | trend_component_model
           | restrictions
           | prior
           | prior_eq
@@ -374,6 +375,18 @@ var_model_options : o_var_name
                   | o_var_eq_tags
                   ;
 
+trend_component_model : TREND_COMPONENT_MODEL '('  trend_component_model_options_list ')' ';' { driver.trend_component_model(); }
+                      ;
+
+trend_component_model_options_list : trend_component_model_options_list COMMA trend_component_model_options
+                                   | trend_component_model_options
+                                   ;
+
+trend_component_model_options : o_trend_component_model_name
+                              | o_trend_component_model_trends
+                              | o_trend_component_model_eq_tags
+                              ;
+
 pac_model : PAC_MODEL '(' pac_model_options_list ')' ';' { driver.pac_model(); } ;
 
 pac_model_options_list : pac_model_options_list COMMA pac_model_options
@@ -381,11 +394,9 @@ pac_model_options_list : pac_model_options_list COMMA pac_model_options
                        ;
 
 pac_model_options : o_pac_name
-                  | o_pac_var_name
+                  | o_pac_aux_model_name
                   | o_pac_discount
                   | o_pac_growth
-                  | UNDIFF '(' QUOTED_STRING COMMA INT_NUMBER ')'
-                    { driver.pac_model_undiff($3, $5); }
                   ;
 
 var_expectation_model : VAR_EXPECTATION_MODEL '(' var_expectation_model_options_list ')' ';'
@@ -3084,7 +3095,7 @@ o_qz_criterium : QZ_CRITERIUM EQUAL non_negative_number { driver.option_num("qz_
 o_qz_zero_threshold : QZ_ZERO_THRESHOLD EQUAL non_negative_number { driver.option_num("qz_zero_threshold", $3); };
 o_file : FILE EQUAL filename { driver.option_str("file", $3); };
 o_pac_name : MODEL_NAME EQUAL symbol { driver.option_str("pac.model_name", $3); };
-o_pac_var_name : VAR_MODEL_NAME EQUAL symbol { driver.option_str("pac.var_model_name", $3); };
+o_pac_aux_model_name : AUXILIARY_MODEL_NAME EQUAL symbol { driver.option_str("pac.aux_model_name", $3); };
 o_pac_discount : DISCOUNT EQUAL symbol { driver.option_str("pac.discount", $3); };
 o_pac_growth : GROWTH EQUAL symbol { driver.option_str("pac.growth", $3); };
 o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var.model_name", $3); };
@@ -3101,6 +3112,9 @@ o_nobs : NOBS EQUAL vec_int
        | NOBS EQUAL vec_int_number
          { driver.option_vec_int("nobs", $3); }
        ;
+o_trend_component_model_name : MODEL_NAME EQUAL symbol { driver.option_str("trend_component.name", $3); };
+o_trend_component_model_trends : TRENDS EQUAL vec_str { driver.option_vec_str("trend_component.trends", $3); }
+o_trend_component_model_eq_tags : EQTAGS EQUAL vec_str { driver.option_vec_str("trend_component.eqtags", $3); }
 o_conditional_variance_decomposition : CONDITIONAL_VARIANCE_DECOMPOSITION EQUAL vec_int
                                        { driver.option_vec_int("conditional_variance_decomposition", $3); }
                                      | CONDITIONAL_VARIANCE_DECOMPOSITION EQUAL vec_int_number

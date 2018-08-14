@@ -34,6 +34,7 @@ using namespace std;
 #include "NumericalConstants.hh"
 #include "ExternalFunctionsTable.hh"
 #include "ExprNode.hh"
+#include "SubModel.hh"
 
 class DataTree
 {
@@ -56,6 +57,8 @@ protected:
   NumericalConstants &num_constants;
   //! A reference to the external functions table
   ExternalFunctionsTable &external_functions_table;
+  //! A reference to the trend component model table
+  TrendComponentModelTable &trend_component_model_table;
 
   //! num_constant_id -> NumConstNode
   using num_const_node_map_t = map<int, NumConstNode *>;
@@ -130,7 +133,10 @@ private:
   inline expr_t AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t arg3);
 
 public:
-  DataTree(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg, ExternalFunctionsTable &external_functions_table_arg);
+  DataTree(SymbolTable &symbol_table_arg,
+           NumericalConstants &num_constants_arg,
+           ExternalFunctionsTable &external_functions_table_arg,
+           TrendComponentModelTable &trend_component_model_table_arg);
   virtual
   ~DataTree();
 

@@ -38,6 +38,7 @@ using namespace std;
 #include "ConfigFile.hh"
 #include "WarningConsolidation.hh"
 #include "ExtendedPreprocessorTypes.hh"
+#include "SubModel.hh"
 
 //! The abstract representation of a "mod" file
 class ModFile
@@ -51,6 +52,8 @@ public:
   ExternalFunctionsTable external_functions_table;
   //! Numerical constants table
   NumericalConstants num_constants;
+  //! Trend Component Model Table used for storing info about trend component models
+  TrendComponentModelTable trend_component_model_table;
   //! Expressions outside model block
   DataTree expressions_tree;
   //! Original model, as declared in the "model" block, that won't be modified by the preprocessor
@@ -69,6 +72,7 @@ public:
   SteadyStateModel steady_state_model;
   //! Static model used for mapping arguments of diff operator
   StaticModel diff_static_model;
+
   //! Option linear
   bool linear;
 

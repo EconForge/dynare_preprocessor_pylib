@@ -141,6 +141,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <INITIAL>simul {BEGIN DYNARE_STATEMENT; return token::SIMUL;}
 <INITIAL>stoch_simul {BEGIN DYNARE_STATEMENT; return token::STOCH_SIMUL;}
 <INITIAL>var_model {BEGIN DYNARE_STATEMENT; return token::VAR_MODEL;}
+<INITIAL>trend_component_model {BEGIN DYNARE_STATEMENT; return token::TREND_COMPONENT_MODEL;}
 <INITIAL>var_expectation_model {BEGIN DYNARE_STATEMENT; return token::VAR_EXPECTATION_MODEL;}
 <INITIAL>pac_model {BEGIN DYNARE_STATEMENT; return token::PAC_MODEL;}
 <INITIAL>dsample {BEGIN DYNARE_STATEMENT; return token::DSAMPLE;}
@@ -348,6 +349,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>periods	{return token::PERIODS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>model_name	{return token::MODEL_NAME;}
 <DYNARE_STATEMENT>var_model_name    {return token::VAR_MODEL_NAME;}
+<DYNARE_STATEMENT>auxiliary_model_name    {return token::AUXILIARY_MODEL_NAME;}
 <DYNARE_STATEMENT>endogenous_terminal_period 	{return token::ENDOGENOUS_TERMINAL_PERIOD;}
 <DYNARE_STATEMENT>sub_draws	{return token::SUB_DRAWS;}
 <DYNARE_STATEMENT>minimal_solving_periods {return token::MINIMAL_SOLVING_PERIODS;}
@@ -487,6 +489,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 }
 <DYNARE_STATEMENT>write_equation_tags {return token::WRITE_EQUATION_TAGS;}
 <DYNARE_STATEMENT>eqtags {return token::EQTAGS;}
+<DYNARE_STATEMENT>trends {return token::TRENDS;}
 <DYNARE_STATEMENT>indxap {return token::INDXAP;}
 <DYNARE_STATEMENT>apband {return token::APBAND;}
 <DYNARE_STATEMENT>indximf {return token::INDXIMF;}

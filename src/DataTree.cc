@@ -28,10 +28,12 @@
 
 DataTree::DataTree(SymbolTable &symbol_table_arg,
                    NumericalConstants &num_constants_arg,
-                   ExternalFunctionsTable &external_functions_table_arg) :
+                   ExternalFunctionsTable &external_functions_table_arg,
+                   TrendComponentModelTable &trend_component_model_table_arg) :
   symbol_table(symbol_table_arg),
   num_constants(num_constants_arg),
   external_functions_table(external_functions_table_arg),
+  trend_component_model_table(trend_component_model_table_arg),
   node_counter(0)
 {
   Zero = AddNonNegativeConstant("0");
