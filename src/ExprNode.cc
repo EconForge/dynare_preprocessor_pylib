@@ -8430,47 +8430,50 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         output << " ";
       output << it->second.second;
     }
-  output << "];" << endl
-         << "M_.pac." << model_name << ".non_optim.params = [";
-  for (auto it = params_vars_and_scaling_factor.begin();
-       it != params_vars_and_scaling_factor.end(); it++)
+  output << "];" << endl;
+  if (!params_vars_and_scaling_factor.empty())
     {
-      if (it != params_vars_and_scaling_factor.begin())
-        output << " ";
-      if (it->first >= 0)
-        output << datatree.symbol_table.getTypeSpecificID(it->first) + 1;
-      else
-        output << "NaN";
+      output << "M_.pac." << model_name << ".non_optimizing_behaviour.params = [";
+      for (auto it = params_vars_and_scaling_factor.begin();
+           it != params_vars_and_scaling_factor.end(); it++)
+        {
+          if (it != params_vars_and_scaling_factor.begin())
+            output << " ";
+          if (it->first >= 0)
+            output << datatree.symbol_table.getTypeSpecificID(it->first) + 1;
+          else
+            output << "NaN";
+        }
+      output << "];"
+             << "M_.pac." << model_name << ".non_optimizing_behaviour.vars = [";
+      for (auto it = params_vars_and_scaling_factor.begin();
+           it != params_vars_and_scaling_factor.end(); it++)
+        {
+          if (it != params_vars_and_scaling_factor.begin())
+            output << " ";
+          output << datatree.symbol_table.getTypeSpecificID(it->second.first.first) + 1;
+        }
+      output << "];" << endl
+             << "M_.pac." << model_name << ".non_optimizing_behaviour.lags = [";
+      for (auto it = params_vars_and_scaling_factor.begin();
+           it != params_vars_and_scaling_factor.end(); it++)
+        {
+          if (it != params_vars_and_scaling_factor.begin())
+            output << " ";
+          output << it->second.first.second;
+        }
+      output << "];" << endl
+             << "M_.pac." << model_name << ".non_optimizing_behaviour.scaling_factor = [";
+      for (auto it = params_vars_and_scaling_factor.begin();
+           it != params_vars_and_scaling_factor.end(); it++)
+        {
+          if (it != params_vars_and_scaling_factor.begin())
+            output << " ";
+          output << it->second.second;
+        }
+      output << "];" << endl;
     }
-  output << "];" << endl
-         << "M_.pac." << model_name << ".non_optim.vars = [";
-  for (auto it = params_vars_and_scaling_factor.begin();
-       it != params_vars_and_scaling_factor.end(); it++)
-    {
-      if (it != params_vars_and_scaling_factor.begin())
-        output << " ";
-      output << datatree.symbol_table.getTypeSpecificID(it->second.first.first) + 1;
-    }
-  output << "];" << endl
-         << "M_.pac." << model_name << ".non_optim.lags = [";
-  for (auto it = params_vars_and_scaling_factor.begin();
-       it != params_vars_and_scaling_factor.end(); it++)
-    {
-      if (it != params_vars_and_scaling_factor.begin())
-        output << " ";
-      output << it->second.first.second;
-    }
-  output << "];" << endl
-         << "M_.pac." << model_name << ".non_optim.scaling_factor = [";
-  for (auto it = params_vars_and_scaling_factor.begin();
-       it != params_vars_and_scaling_factor.end(); it++)
-    {
-      if (it != params_vars_and_scaling_factor.begin())
-        output << " ";
-      output << it->second.second;
-    }
-  output << "];" << endl
-         << "M_.pac." << model_name << ".h0_param_indices = [";
+  output << "M_.pac." << model_name << ".h0_param_indices = [";
   for (auto it = h0_indices.begin();
        it != h0_indices.end(); it++)
     {
