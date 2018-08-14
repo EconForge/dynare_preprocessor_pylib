@@ -8388,7 +8388,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
            << datatree.symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl;
 
   if (optim_share_index >= 0)
-    output << "M_.pac." << model_name << ".share_of_optimizing_agents_value = "
+    output << "M_.pac." << model_name << ".share_of_optimizing_agents_index = "
            << datatree.symbol_table.getTypeSpecificID(optim_share_index) + 1 << ";" << endl;
 
   output << "M_.pac." << model_name << ".ec.params = ";
