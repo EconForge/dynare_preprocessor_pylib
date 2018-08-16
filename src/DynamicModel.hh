@@ -250,7 +250,7 @@ private:
   void findPacExpectationEquationNumbers(vector<int> &eqnumber) const;
 
 public:
-  DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg, ExternalFunctionsTable &external_functions_table_argx);
+  DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg, ExternalFunctionsTable &external_functions_table_arg);
   //! Adds a variable node
   /*! This implementation allows for non-zero lag */
   VariableNode *AddVariable(int symb_id, int lag = 0) override;
