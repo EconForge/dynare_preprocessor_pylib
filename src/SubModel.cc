@@ -220,7 +220,7 @@ TrendComponentModelTable::writeOutput(ostream &output) const
 {
   for (const auto &name : names)
     {
-      output << "M_.trend_component." << name << ".model_name = '" << name << "'" << endl
+      output << "M_.trend_component." << name << ".model_name = '" << name << "';" << endl
              << "M_.trend_component." << name << ".eqtags = {";
       for (const auto &it : eqtags.at(name))
         output << "'" << it << "'; ";
