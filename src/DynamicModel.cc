@@ -34,9 +34,10 @@
 DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
                            NumericalConstants &num_constants_arg,
                            ExternalFunctionsTable &external_functions_table_arg,
-                           TrendComponentModelTable &trend_component_model_table_arg) :
-  ModelTree(symbol_table_arg, num_constants_arg,
-            external_functions_table_arg, trend_component_model_table_arg),
+                           TrendComponentModelTable &trend_component_model_table_arg,
+                           VarModelTable &var_model_table_arg) :
+  ModelTree(symbol_table_arg, num_constants_arg, external_functions_table_arg,
+            trend_component_model_table_arg, var_model_table_arg),
   max_lag(0), max_lead(0),
   max_endo_lag(0), max_endo_lead(0),
   max_exo_lag(0), max_exo_lead(0),
@@ -3455,6 +3456,168 @@ DynamicModel::runTrendTest(const eval_context_t &eval_context)
 }
 
 void
+DynamicModel::fillVarModelTable() const
+{
+  map<string, vector<int>> eqnums, lhsr;
+  map<string, vector<expr_t>> lhs_expr_tr;
+  map<string, vector<bool>> nonstationaryr;
+  map<string, vector<set<pair<int, int>>>> rhsr;
+  map<string, vector<string>> eqtags = var_model_table.getEqTags();
+
+  for (const auto &it : eqtags)
+    {
+      vector<int> eqnumber, lhs;
+      vector<expr_t> lhs_expr_t;
+      vector<set<pair<int, int>>> rhs;
+      vector<bool> nonstationary;
+
+      for (const auto &eqtag : it.second)
+        {
+          int eqn = -1;
+          set<pair<int, int>> lhs_set, lhs_tmp_set, rhs_set;
+          for (const auto &equation_tag : equation_tags)
+            if (equation_tag.second.first == "name"
+                && equation_tag.second.second == eqtag)
+              {
+                eqn = equation_tag.first;
+                break;
+              }
+
+          if (eqn == -1)
+            {
+              cerr << "ERROR: equation tag '" << eqtag << "' not found" << endl;
+              exit(EXIT_FAILURE);
+            }
+
+          bool nonstationary_bool = false;
+          for (const auto &equation_tag : equation_tags)
+            if (equation_tag.first == eqn)
+              if (equation_tag.second.first == "data_type"
+                  && equation_tag.second.second == "nonstationary")
+                {
+                  nonstationary_bool = true;
+                  break;
+                }
+          nonstationary.push_back(nonstationary_bool);
+
+          equations[eqn]->get_arg1()->collectDynamicVariables(SymbolType::endogenous, lhs_set);
+          equations[eqn]->get_arg1()->collectDynamicVariables(SymbolType::exogenous, lhs_tmp_set);
+          equations[eqn]->get_arg1()->collectDynamicVariables(SymbolType::parameter, lhs_tmp_set);
+
+          if (lhs_set.size() != 1 || !lhs_tmp_set.empty())
+            {
+              cerr << "ERROR: in Equation " << eqtag
+                   << ". A VAR may only have one endogenous variable on the LHS. " << endl;
+              exit(EXIT_FAILURE);
+            }
+
+          auto it = lhs_set.begin();
+          if (it->second != 0)
+            {
+              cerr << "ERROR: in Equation " << eqtag
+                   << ". The variable on the LHS of a VAR may not appear with a lead or a lag. "
+                   << endl;
+              exit(EXIT_FAILURE);
+            }
+
+          eqnumber.push_back(eqn);
+          lhs.push_back(it->first);
+          lhs_set.clear();
+          set<expr_t> lhs_expr_t_set;
+          equations[eqn]->get_arg1()->collectVARLHSVariable(lhs_expr_t_set);
+          lhs_expr_t.push_back(*(lhs_expr_t_set.begin()));
+
+          equations[eqn]->get_arg2()->collectDynamicVariables(SymbolType::endogenous, rhs_set);
+          for (const auto &it : rhs_set)
+            if (it.second > 0)
+              {
+                cerr << "ERROR: in Equation " << eqtag
+                     << ". A VAR may not have leaded or contemporaneous variables on the RHS. " << endl;
+                exit(EXIT_FAILURE);
+              }
+          rhs.push_back(rhs_set);
+        }
+      eqnums[it.first] = eqnumber;
+      lhsr[it.first] = lhs;
+      lhs_expr_tr[it.first] = lhs_expr_t;
+      rhsr[it.first] = rhs;
+      nonstationaryr[it.first] = nonstationary;
+    }
+  var_model_table.setEqNums(eqnums);
+  var_model_table.setLhs(lhsr);
+  var_model_table.setRhs(rhsr);
+  var_model_table.setLhsExprT(lhs_expr_tr);
+  var_model_table.setNonstationary(nonstationaryr);
+}
+
+void
+DynamicModel::fillVarModelTableFromOrigModel(StaticModel &static_model) const
+{
+  map<string, vector<int>> lags, orig_diff_var;
+  map<string, vector<bool>> diff;
+  for (const auto &it : var_model_table.getEqNums())
+    {
+      set<expr_t> lhs;
+      vector<int> orig_diff_var_vec;
+      vector<bool> diff_vec;
+      for (auto eqn : it.second)
+        {
+          // ensure no leads in equations
+          if (equations[eqn]->get_arg2()->VarMinLag() <= 0)
+            {
+              cerr << "ERROR in VAR model Equation (#" << eqn << "). "
+                   << "Leaded exogenous variables "
+                   << "and leaded or contemporaneous endogenous variables not allowed in VAR"
+                   << endl;
+              exit(EXIT_FAILURE);
+            }
+
+          // save lhs variables
+          equations[eqn]->get_arg1()->collectVARLHSVariable(lhs);
+
+          equations[eqn]->get_arg1()->countDiffs() > 0 ?
+            diff_vec.push_back(true) : diff_vec.push_back(false);
+          if (diff_vec.back())
+            {
+              set<pair<int, int>> diff_set;
+              equations[eqn]->get_arg1()->collectDynamicVariables(SymbolType::endogenous, diff_set);
+
+              if (diff_set.size() != 1)
+                {
+                  cerr << "ERROR: problem getting variable for LHS diff operator in equation "
+                       << eqn << endl;
+                  exit(EXIT_FAILURE);
+                }
+              orig_diff_var_vec.push_back(diff_set.begin()->first);
+            }
+          else
+            orig_diff_var_vec.push_back(-1);
+
+        }
+
+      if (it.second.size() != lhs.size())
+        {
+          cerr << "ERROR: The LHS variables of the VAR model are not unique" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      set<expr_t> lhs_static;
+      for(const auto &lh : lhs)
+        lhs_static.insert(lh->toStatic(static_model));
+
+      vector<int> max_lag;
+      for (auto eqn : it.second)
+        max_lag.push_back(equations[eqn]->get_arg2()->VarMaxLag(static_model, lhs_static));
+      lags[it.first] = max_lag;
+      diff[it.first] = diff_vec;
+      orig_diff_var[it.first] = orig_diff_var_vec;
+    }
+  var_model_table.setDiff(diff);
+  var_model_table.setMaxLags(lags);
+  var_model_table.setOrigDiffVar(orig_diff_var);
+}
+
+void
 DynamicModel::fillTrendComponentModelTable() const
 {
   map<string, vector<int>> eqnums, trend_eqnums, lhsr;
@@ -3530,7 +3693,7 @@ DynamicModel::fillTrendComponentModelTable() const
           if (lhs_set.size() != 1 || !lhs_tmp_set.empty())
             {
               cerr << "ERROR: in Equation " << eqtag
-                   << ". A VAR may only have one endogenous variable on the LHS. " << endl;
+                   << ". A trend component model  may only have one endogenous variable on the LHS. " << endl;
               exit(EXIT_FAILURE);
             }
 
@@ -3538,7 +3701,7 @@ DynamicModel::fillTrendComponentModelTable() const
           if (it->second != 0)
             {
               cerr << "ERROR: in Equation " << eqtag
-                   << ". The variable on the LHS of a VAR may not appear with a lead or a lag. "
+                   << ". The variable on the LHS of a trend component model may not appear with a lead or a lag. "
                    << endl;
               exit(EXIT_FAILURE);
             }
@@ -3555,7 +3718,7 @@ DynamicModel::fillTrendComponentModelTable() const
             if (it->second > 0)
               {
                 cerr << "ERROR: in Equation " << eqtag
-                     << ". A VAR may not have leaded or contemporaneous variables on the RHS. " << endl;
+                     << ". A trend component model may not have leaded or contemporaneous variables on the RHS. " << endl;
                 exit(EXIT_FAILURE);
               }
           rhs.push_back(rhs_set);
@@ -3589,7 +3752,7 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel(StaticModel &static_mode
           // ensure no leads in equations
           if (equations[eqn]->get_arg2()->VarMinLag() <= 0)
             {
-              cerr << "ERROR in VAR Equation (#" << eqn << "). "
+              cerr << "ERROR in trend component model Equation (#" << eqn << "). "
                    << "Leaded exogenous variables "
                    << "and leaded or contemporaneous endogenous variables not allowed in VAR"
                    << endl;
@@ -3621,7 +3784,7 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel(StaticModel &static_mode
 
       if (it.second.size() != lhs.size())
         {
-          cerr << "ERROR: The LHS variables of the VAR are not unique" << endl;
+          cerr << "ERROR: The LHS variables of the trend component model are not unique" << endl;
           exit(EXIT_FAILURE);
         }
 
@@ -3640,19 +3803,23 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel(StaticModel &static_mode
   trend_component_model_table.setMaxLags(lags);
   trend_component_model_table.setOrigDiffVar(orig_diff_var);
 }
-/*
+
 void
-DynamicModel::addEquationsForVar(map<string, pair<SymbolList, int>> &var_model_info)
+DynamicModel::addEquationsForVar()
 {
+  if (var_model_table.empty())
+    return;
+  map<string, pair<SymbolList, int>> var_symbol_list_and_order =
+    var_model_table.getSymbolListAndOrder();
+
   // List of endogenous variables and the minimum lag value that must exist in the model equations
   map<string, int> var_endos_and_lags, model_endos_and_lags;
-  for (map<string, pair<SymbolList, int>>::const_iterator it = var_model_info.begin();
-       it != var_model_info.end(); it++)
+  for (const auto & it : var_symbol_list_and_order)
     for (auto & equation : equations)
-      if (equation->isVarModelReferenced(it->first))
+      if (equation->isVarModelReferenced(it.first))
         {
-          vector<string> symbol_list = it->second.first.get_symbols();
-          int order = it->second.second;
+          vector<string> symbol_list = it.second.first.get_symbols();
+          int order = it.second.second;
           for (vector<string>::const_iterator it1 = symbol_list.begin();
                it1 != symbol_list.end(); it1++)
             if (order > 2)
@@ -3666,7 +3833,8 @@ DynamicModel::addEquationsForVar(map<string, pair<SymbolList, int>> &var_model_i
   if (var_endos_and_lags.empty())
     return;
 
-  // Ensure that the minimum lag value exists in the model equations. If not, add an equation for it
+  // Ensure that the minimum lag value exists in the model equations.
+  // If not, add an equation for it
   for (auto & equation : equations)
     equation->getEndosAndMaxLags(model_endos_and_lags);
 
@@ -3690,9 +3858,10 @@ DynamicModel::addEquationsForVar(map<string, pair<SymbolList, int>> &var_model_i
     }
 
   if (count > 0)
-    cout << "Accounting for var_model lags not in model block: added " << count << " auxiliary variables and equations." << endl;
+    cout << "Accounting for var_model lags not in model block: added "
+         << count << " auxiliary variables and equations." << endl;
 }
-*/
+
 vector<int>
 DynamicModel::getUndiffLHSForPac(const string &aux_model_name,
                                  ExprNode::subst_table_t &diff_subst_table)

@@ -250,7 +250,11 @@ private:
   void findPacExpectationEquationNumbers(vector<int> &eqnumber) const;
 
 public:
-  DynamicModel(SymbolTable &symbol_table_arg, NumericalConstants &num_constants_arg, ExternalFunctionsTable &external_functions_table_arg, TrendComponentModelTable &trend_component_model_table_arg);
+  DynamicModel(SymbolTable &symbol_table_arg,
+               NumericalConstants &num_constants_arg,
+               ExternalFunctionsTable &external_functions_table_arg,
+               TrendComponentModelTable &trend_component_model_table_arg,
+               VarModelTable &var_model_table_arg);
   //! Adds a variable node
   /*! This implementation allows for non-zero lag */
   VariableNode *AddVariable(int symb_id, int lag = 0) override;
@@ -304,8 +308,14 @@ public:
   void fillTrendComponentModelTable() const;
   void fillTrendComponentModelTableFromOrigModel(StaticModel &static_model) const;
 
-  //! Add aux equations (and aux variables) for variables declared in var_model at max order if they don't already exist
-  //  void addEquationsForVar(map<string, pair<SymbolList, int>> &var_model_info);
+  //! Fill the Var Model Table
+  void fillVarModelTable() const;
+  void fillVarModelTableFromOrigModel(StaticModel &static_model) const;
+
+  //! Add aux equations (and aux variables) for variables declared in var_model
+  //! at max order if they don't already exist
+  void addEquationsForVar();
+
   //! Get Pac equation parameter info
   void walkPacParameters();
   //! Add var_model info to pac_expectation nodes

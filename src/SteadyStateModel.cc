@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Dynare Team
+ * Copyright (C) 2010-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -26,9 +26,10 @@ SteadyStateModel::SteadyStateModel(SymbolTable &symbol_table_arg,
                                    NumericalConstants &num_constants_arg,
                                    ExternalFunctionsTable &external_functions_table_arg,
                                    TrendComponentModelTable &trend_component_model_table_arg,
+                                   VarModelTable &var_model_table_arg,
                                    const StaticModel &static_model_arg) :
-  DataTree(symbol_table_arg, num_constants_arg,
-           external_functions_table_arg, trend_component_model_table_arg),
+  DataTree(symbol_table_arg, num_constants_arg, external_functions_table_arg,
+           trend_component_model_table_arg, var_model_table_arg),
   static_model(static_model_arg)
 {
 }

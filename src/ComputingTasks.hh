@@ -141,36 +141,6 @@ public:
   tuple<string, string, int> getPacModelInfoForPacExpectation() const;
 };
 
-class VarModelStatement : public Statement
-{
-public:
-  const SymbolList symbol_list;
-  const OptionsList options_list;
-  const string name;
-private:
-  const SymbolTable &symbol_table;
-  vector<int> eqnumber, lhs, orig_diff_var;
-  vector<set<pair<int, int>>> rhs_by_eq; // rhs by equation
-  vector<bool> nonstationary, diff;
-  int max_lag;
-public:
-  VarModelStatement(SymbolList symbol_list_arg,
-                    OptionsList options_list_arg,
-                    string name_arg,
-                    const SymbolTable &symbol_table_arg);
-  void getVarModelInfo(string &var_model_name,
-                       map<string, pair<SymbolList, int>> &var_model_info,
-                       map<string, vector<string>> &var_model_eqtags) const;
-  void fillVarModelInfoFromEquations(vector<int> &eqnumber_arg, vector<int> &lhs_arg,
-                                     vector<set<pair<int, int>>> &rhs_arg,
-                                     vector<bool> &nonstationary_arg,
-                                     vector<bool> &diff_arg, vector<int> &orig_diff_var_arg,
-                                     int max_lag_arg);
-  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
-  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
-  void writeJsonOutput(ostream &output) const override;
-};
-
 class VarRestrictionsStatement : public Statement
 {
 private:
@@ -541,7 +511,8 @@ public:
   PlannerObjectiveStatement(SymbolTable &symbol_table,
                             NumericalConstants &num_constants,
                             ExternalFunctionsTable &external_functions_table,
-                            TrendComponentModelTable &trend_component_model_table_arg);
+                            TrendComponentModelTable &trend_component_model_table_arg,
+                            VarModelTable &var_model_table_arg);
   /*! \todo check there are only endogenous variables at the current period in the objective
     (no exogenous, no lead/lag) */
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;

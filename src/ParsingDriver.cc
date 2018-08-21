@@ -349,7 +349,8 @@ ParsingDriver::declare_or_change_type(SymbolType new_type, const string &name)
       auto dm = make_unique<DynamicModel>(mod_file->symbol_table,
                                           mod_file->num_constants,
                                           mod_file->external_functions_table,
-                                          mod_file->trend_component_model_table);
+                                          mod_file->trend_component_model_table,
+                                          mod_file->var_model_table);
       mod_file->dynamic_model.updateAfterVariableChange(*dm);
 
       // remove error messages
@@ -1444,25 +1445,34 @@ ParsingDriver::trend_component_model()
 void
 ParsingDriver::var_model()
 {
-  OptionsList::string_options_t::const_iterator it = options_list.string_options.find("var.model_name");
-  if (it == options_list.string_options.end())
+  const auto its = options_list.string_options.find("var.model_name");
+  if (its == options_list.string_options.end())
     error("You must pass the model_name option to the var_model statement.");
-  auto name = it->second;
+  auto name = its->second;
 
-  if (options_list.vector_str_options.find("var.eqtags") != options_list.vector_str_options.end())
-    if (!symbol_list.empty())
-      error("You cannot pass a symbol list when passing equation tags to the var_model statement");
-    else if (options_list.num_options.find("var.order") != options_list.num_options.end())
-      error("You cannot pass the order option when passing equation tags to the var_model statement");
-
+  int order = 0;
+  const auto itn = options_list.num_options.find("var.order");
+  if (itn != options_list.num_options.end())
+    order = stoi(itn->second);
+  else
   if (!symbol_list.empty())
-    if (options_list.num_options.find("var.order") == options_list.num_options.end())
-      error("You must pass the order option when passing a symbol list to the var_model statement");
+    error("You must pass the order option when passing a symbol list to the var_model statement");
 
-  mod_file->addStatement(new VarModelStatement(symbol_list, options_list, name, mod_file->symbol_table));
-  var_map[it->second] = symbol_list.getSymbols();
+  vector<string> eqtags;
+  const auto itvs = options_list.vector_str_options.find("var.eqtags");
+  if (itvs != options_list.vector_str_options.end())
+    {
+      eqtags = itvs->second;
+      if (!symbol_list.empty())
+        error("You cannot pass a symbol list when passing equation tags to the var_model statement");
+      else if (itn != options_list.num_options.end())
+        error("You cannot pass the order option when passing equation tags to the var_model statement");
+    }
+
+  mod_file->var_model_table.addVarModel(name, eqtags, make_pair(symbol_list, order));
   symbol_list.clear();
   options_list.clear();
+  var_map[its->second] = symbol_list.getSymbols();
 }
 
 void
@@ -2071,8 +2081,8 @@ ParsingDriver::begin_planner_objective()
   planner_objective_statement = new PlannerObjectiveStatement(mod_file->symbol_table,
                                                               mod_file->num_constants,
                                                               mod_file->external_functions_table,
-                                                              mod_file->trend_component_model_table);
-
+                                                              mod_file->trend_component_model_table,
+                                                              mod_file->var_model_table);
   set_current_data_tree(&planner_objective_statement->getPlannerObjective());
 }
 

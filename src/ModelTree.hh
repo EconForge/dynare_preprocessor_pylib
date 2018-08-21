@@ -324,7 +324,8 @@ public:
   ModelTree(SymbolTable &symbol_table_arg,
             NumericalConstants &num_constants_arg,
             ExternalFunctionsTable &external_functions_table_arg,
-            TrendComponentModelTable &trend_component_model_table_arg);
+            TrendComponentModelTable &trend_component_model_table_arg,
+            VarModelTable &var_model_table_arg);
   //! Absolute value under which a number is considered to be zero
   double cutoff;
   //! Compute the minimum feedback set

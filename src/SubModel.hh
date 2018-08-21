@@ -101,4 +101,69 @@ TrendComponentModelTable::empty() const
   return names.empty();
 }
 
+
+class VarModelTable
+{
+private:
+  SymbolTable &symbol_table;
+  set<string> names;
+  map<string, pair<SymbolList, int>> symbol_list_and_order;
+  map<string, vector<string>> eqtags;
+  map<string, vector<int>> eqnums, max_lags, lhs, orig_diff_var;
+  map<string, vector<set<pair<int, int>>>> rhs;
+  map<string, vector<bool>> diff, nonstationary;
+  map<string, vector<expr_t>> lhs_expr_t;
+public:
+  VarModelTable(SymbolTable &symbol_table_arg);
+
+  //! Add a trend component model
+  void addVarModel(string name, vector<string> eqtags,
+                   pair<SymbolList, int> symbol_list_and_order_arg);
+
+  inline bool isExistingVarModelName(const string &name_arg) const;
+  inline bool empty() const;
+
+  map<string, vector<string>> getEqTags() const;
+  vector<string> getEqTags(const string &name_arg) const;
+  map<string, vector<int>> getEqNums() const;
+  vector<int> getEqNums(const string &name_arg) const;
+  vector<int> getMaxLags(const string &name_arg) const;
+  int getMaxLag(const string &name_arg) const;
+  vector<int> getLhs(const string &name_arg) const;
+  vector<bool> getNonstationary(const string &name_arg) const;
+  map<string, pair<SymbolList, int>> getSymbolListAndOrder() const;
+  vector<set<pair<int, int>>> getRhs(const string &name_arg) const;
+  vector<expr_t> getLhsExprT(const string &name_arg) const;
+
+  void setEqNums(map<string, vector<int>> eqnums_arg);
+  void setLhs(map<string, vector<int>> lhs_arg);
+  void setRhs(map<string, vector<set<pair<int, int>>>> rhs_arg);
+  void setLhsExprT(map<string, vector<expr_t>> lhs_expr_t_arg);
+  void setNonstationary(map<string, vector<bool>> nonstationary_arg);
+  void setDiff(map<string, vector<bool>> diff_arg);
+  void setMaxLags(map<string, vector<int>> max_lags_arg);
+  void setOrigDiffVar(map<string, vector<int>> orig_diff_var_arg);
+
+  //! Write output of this class
+  void writeOutput(ostream &output) const;
+
+  //! Write JSON Output
+  void writeJsonOutput(ostream &output) const;
+
+private:
+  void checkModelName(const string &name_arg) const;
+};
+
+inline bool
+VarModelTable::isExistingVarModelName(const string &name_arg) const
+{
+  return names.find(name_arg) == names.end() ? false : true;
+}
+
+inline bool
+VarModelTable::empty() const
+{
+  return names.empty();
+}
+
 #endif

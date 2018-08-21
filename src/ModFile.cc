@@ -30,25 +30,26 @@
 #include "ComputingTasks.hh"
 
 ModFile::ModFile(WarningConsolidation &warnings_arg)
-  : trend_component_model_table(symbol_table),
-    expressions_tree(symbol_table, num_constants,
-                     external_functions_table, trend_component_model_table),
-    original_model(symbol_table, num_constants,
-                   external_functions_table, trend_component_model_table),
-    dynamic_model(symbol_table, num_constants,
-                  external_functions_table, trend_component_model_table),
-    trend_dynamic_model(symbol_table, num_constants,
-                        external_functions_table, trend_component_model_table),
-    ramsey_FOC_equations_dynamic_model(symbol_table, num_constants,
-                                       external_functions_table, trend_component_model_table),
-    orig_ramsey_dynamic_model(symbol_table, num_constants,
-                              external_functions_table, trend_component_model_table),
-    static_model(symbol_table, num_constants,
-                 external_functions_table, trend_component_model_table),
-    steady_state_model(symbol_table, num_constants,
-                       external_functions_table, trend_component_model_table, static_model),
-    diff_static_model(symbol_table, num_constants,
-                      external_functions_table, trend_component_model_table),
+  : var_model_table(symbol_table),
+    trend_component_model_table(symbol_table),
+    expressions_tree(symbol_table, num_constants, external_functions_table,
+                     trend_component_model_table, var_model_table),
+    original_model(symbol_table, num_constants, external_functions_table,
+                   trend_component_model_table, var_model_table),
+    dynamic_model(symbol_table, num_constants, external_functions_table,
+                  trend_component_model_table, var_model_table),
+    trend_dynamic_model(symbol_table, num_constants, external_functions_table,
+                        trend_component_model_table, var_model_table),
+    ramsey_FOC_equations_dynamic_model(symbol_table, num_constants, external_functions_table,
+                                       trend_component_model_table, var_model_table),
+    orig_ramsey_dynamic_model(symbol_table, num_constants, external_functions_table,
+                              trend_component_model_table, var_model_table),
+    static_model(symbol_table, num_constants, external_functions_table,
+                 trend_component_model_table, var_model_table),
+    steady_state_model(symbol_table, num_constants, external_functions_table,
+                       trend_component_model_table, var_model_table, static_model),
+    diff_static_model(symbol_table, num_constants, external_functions_table,
+                      trend_component_model_table, var_model_table),
     linear(false), block(false), byte_code(false), use_dll(false), no_static(false),
     differentiate_forward_vars(false), nonstationary_variables(false),
     param_used_with_lead_lag(false), warnings(warnings_arg)
@@ -374,19 +375,21 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
     }
 
   // Get all equation tags associated with VARs and Pac Models
-  string var_model_name;
   set<string> eqtags;
-  map<string, vector<string>> var_model_eq_tags;
   map<string, pair<SymbolList, int>> var_model_info_var_expectation;
 
   for (auto const &it : trend_component_model_table.getEqTags())
     for (auto &it1 : it.second)
       eqtags.insert(it1);
 
+  for (auto const &it : var_model_table.getEqTags())
+    for (auto &it1 : it.second)
+      eqtags.insert(it1);
+
   if (transform_unary_ops)
     dynamic_model.substituteUnaryOps(diff_static_model);
   else
-    // substitute only those unary ops that appear in VAR equations
+    // substitute only those unary ops that appear in auxiliary model equations
     dynamic_model.substituteUnaryOps(diff_static_model, eqtags);
 
   // Create auxiliary variable and equations for Diff operators that appear in VAR equations
@@ -396,8 +399,10 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   // Fill Trend Component Model Table
   dynamic_model.fillTrendComponentModelTable();
   original_model.fillTrendComponentModelTableFromOrigModel(diff_static_model);
+  dynamic_model.fillVarModelTable();
+  original_model.fillVarModelTableFromOrigModel(diff_static_model);
 
-  // Var Model
+  // Pac Model
   for (auto & statement : statements)
     {
       auto *pms = dynamic_cast<PacModelStatement *>(statement);
@@ -415,10 +420,16 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
                lhs = dynamic_model.getUndiffLHSForPac(aux_model_name, diff_subst_table);
                nonstationary = trend_component_model_table.getNonstationary(aux_model_name);
              }
+           else if (var_model_table.isExistingVarModelName(aux_model_name))
+             {
+               max_lag = var_model_table.getMaxLag(aux_model_name) + 1;
+               lhs = var_model_table.getLhs(aux_model_name);
+               nonstationary = var_model_table.getNonstationary(aux_model_name);
+             }
            else
              {
-               // get var_model lhs and max_lag; for now stop with error
-               cerr << "ERROR: var_models not yet supported for use with pac_model" << endl;
+               cerr << "Error: aux_model_name not recognized as VAR model or Trend Component model"
+                    << endl;
                exit(EXIT_FAILURE);
              }
            pms->fillUndiffedLHS(lhs);
@@ -429,10 +440,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
            dynamic_model.substitutePacExpectation();
          }
      }
-  /*
-  if (!var_model_info_var_expectation.empty())
-    dynamic_model.addEquationsForVar(var_model_info_var_expectation);
-  */
+
+  dynamic_model.addEquationsForVar();
+
   if (symbol_table.predeterminedNbr() > 0)
     dynamic_model.transformPredeterminedVariables();
 
@@ -507,35 +517,17 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
         continue;
 
       auto &model_name = vems->model_name;
-
-      /* Find the corresponding VM statement and extract information for it;
-         ideally we should have a VarModelTable for that purpose */
-      VarModelStatement *vms = nullptr;
-      for (auto & statement2 : statements)
-        if ((vms = dynamic_cast<VarModelStatement *>(statement2))
-            && vms->name == vems->var_model_name)
-          break;
-      if (!vms)
+      if (!var_model_table.isExistingVarModelName(vems->var_model_name))
         {
-          cerr << "ERROR: var_expectation_model " << model_name << " refers to nonexistent " << vems->var_model_name << " var_model" << endl;
+          cerr << "ERROR: var_expectation_model " << model_name
+               << " refers to nonexistent " << vems->var_model_name << " var_model" << endl;
           exit(EXIT_FAILURE);
         }
-      /* The code below is duplicated further below in this function; but we
-         can't avoid that until the collecting of information about VARs is
-         moved *before* lead/lag substitutions (or even better, in checkPass()) */
-      vector<expr_t> lhs_expr_t;
-      vector<int> lhs, eqnumber;
-      vector<set<pair<int, int>>> rhs;
-      vector<bool> nonstationary;
-      vector<string> eqtags{var_model_eq_tags[var_model_name]};
-      /*
-      dynamic_model.getVarModelVariablesFromEqTags(eqtags,
-                                                   eqnumber, lhs, lhs_expr_t, rhs, nonstationary);
-      */
-      int max_lag = trend_component_model_table.getMaxLag(var_model_name);
 
       /* Create auxiliary parameters and the expression to be substituted to
          the var_expectations statement */
+      int max_lag = var_model_table.getMaxLag(vems->var_model_name);
+      vector<int> lhs = var_model_table.getLhs(vems->var_model_name);
       auto subst_expr = dynamic_model.Zero;
       for (int lag = 0; lag < max_lag; lag++)
         for (auto variable : lhs)
@@ -580,35 +572,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       dynamic_model.substituteEndoLagGreaterThanTwo(true);
     }
 
-  /* TODO: most of this should rather be done in checkPass(). Also we should
-     probably add a VarModelTable class (similar to SymbolTable) for storing all
-     this information about VAR models, instead of putting it inside the
-     Statement(s) classes */
   dynamic_model.fillTrendComponentModelTable();
-  /*
-  for (auto & statement : statements)
-    {
-      auto *vms = dynamic_cast<VarModelStatement *>(statement);
-      if (vms != nullptr)
-        {
-          string var_model_name;
-          //vms->getVarModelInfo(var_model_name, var_model_info_var_expectation, var_model_eq_tags);
-          vector<expr_t> lhs_expr_t;
-          vector<int> lhs, eqnumber, orig_diff_var;
-          vector<set<pair<int, int>>> rhs;
-          vector<bool> nonstationary, diff;
-          vector<string> eqtags = var_model_eq_tags[var_model_name];
-          dynamic_model.getVarModelVariablesFromEqTags(eqtags,
-                                                       eqnumber, lhs, lhs_expr_t, rhs, nonstationary);
 
-          int max_lag = trend_component_model_table.getMaxLag(var_model_name);
-      //          int max_lag = original_model.getVarMaxLag(diff_static_model, eqnumber);
-          //original_model.getVarLhsDiffAndInfo(eqnumber, diff, orig_diff_var);
-          vms->fillVarModelInfoFromEquations(eqnumber, lhs, rhs, nonstationary,
-                                             diff, orig_diff_var, max_lag);
-        }
-    }
-*/
   if (differentiate_forward_vars)
     dynamic_model.differentiateForwardVars(differentiate_forward_vars_subset);
 
@@ -1315,10 +1280,18 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
   output << ", ";
   dynamic_model.writeJsonOutput(output);
 
+
   if (!statements.empty()
+      || !var_model_table.empty()
       || !trend_component_model_table.empty())
     {
       output << ", \"statements\": [";
+      if (!var_model_table.empty())
+        {
+          var_model_table.writeJsonOutput(output);
+           output << ", ";
+        }
+
       if (!trend_component_model_table.empty())
         {
           trend_component_model_table.writeJsonOutput(output);

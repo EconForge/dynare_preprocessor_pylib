@@ -1004,9 +1004,10 @@ ModelTree::BlockLinear(const blocks_derivatives_t &blocks_derivatives, const vec
 ModelTree::ModelTree(SymbolTable &symbol_table_arg,
                      NumericalConstants &num_constants_arg,
                      ExternalFunctionsTable &external_functions_table_arg,
-                     TrendComponentModelTable &trend_component_model_table_arg) :
-  DataTree(symbol_table_arg, num_constants_arg,
-           external_functions_table_arg, trend_component_model_table_arg),
+                     TrendComponentModelTable &trend_component_model_table_arg,
+                     VarModelTable &var_model_table_arg) :
+  DataTree(symbol_table_arg, num_constants_arg, external_functions_table_arg,
+           trend_component_model_table_arg, var_model_table_arg),
   cutoff(1e-15),
   mfs(0)
 

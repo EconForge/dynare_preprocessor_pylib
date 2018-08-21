@@ -59,6 +59,8 @@ protected:
   ExternalFunctionsTable &external_functions_table;
   //! A reference to the trend component model table
   TrendComponentModelTable &trend_component_model_table;
+  //! A reference to the VAR model table
+  VarModelTable &var_model_table;
 
   //! num_constant_id -> NumConstNode
   using num_const_node_map_t = map<int, NumConstNode *>;
@@ -136,7 +138,8 @@ public:
   DataTree(SymbolTable &symbol_table_arg,
            NumericalConstants &num_constants_arg,
            ExternalFunctionsTable &external_functions_table_arg,
-           TrendComponentModelTable &trend_component_model_table_arg);
+           TrendComponentModelTable &trend_component_model_table_arg,
+           VarModelTable &var_model_table_arg);
   virtual
   ~DataTree();
 

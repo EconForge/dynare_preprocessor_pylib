@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2017 Dynare Team
+ * Copyright (C) 2006-2018 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -52,6 +52,8 @@ public:
   ExternalFunctionsTable external_functions_table;
   //! Numerical constants table
   NumericalConstants num_constants;
+  //! Var Model Table used for storing info about trend component models
+  VarModelTable var_model_table;
   //! Trend Component Model Table used for storing info about trend component models
   TrendComponentModelTable trend_component_model_table;
   //! Expressions outside model block

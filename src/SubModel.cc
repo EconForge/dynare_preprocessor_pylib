@@ -301,3 +301,241 @@ TrendComponentModelTable::writeJsonOutput(ostream &output) const
       output << "]}";
     }
 }
+
+VarModelTable::VarModelTable(SymbolTable &symbol_table_arg) :
+  symbol_table(symbol_table_arg)
+{
+}
+
+void
+VarModelTable::addVarModel(string name_arg, vector<string> eqtags_arg,
+                           pair<SymbolList, int> symbol_list_and_order_arg)
+{
+  if (isExistingVarModelName(name_arg))
+    {
+      cerr << "Error: a VAR model already exists with the name " << name_arg << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  eqtags[name_arg] = move(eqtags_arg);
+  symbol_list_and_order[name_arg] = move(symbol_list_and_order_arg);
+  names.insert(move(name_arg));
+}
+
+map<string, pair<SymbolList, int>>
+VarModelTable::getSymbolListAndOrder() const
+{
+  return symbol_list_and_order;
+}
+
+void
+VarModelTable::writeOutput(ostream &output) const
+{
+  for (const auto &name : names)
+    {
+      output << "M_.var." << name << ".model_name = '" << name << "';" << endl;
+      if (!symbol_list_and_order.empty())
+        {
+          symbol_list_and_order.at(name).first.writeOutput("M_.var." + name + ".var_list_", output);
+          output  << "M_.var." << name << ".order = "
+                  << symbol_list_and_order.at(name).second << ";" << endl;
+        }
+      output << "M_.var." << name << ".eqtags = {";
+      for (const auto &it : eqtags.at(name))
+        output << "'" << it << "'; ";
+      output << "};" << endl
+             << "M_.var." << name << ".eqn = [";
+      for (auto it : eqnums.at(name))
+        output << it + 1 << " ";
+      output << "];" << endl
+             << "M_.var." << name << ".lhs = [";
+      for (auto it : lhs.at(name))
+        output << symbol_table.getTypeSpecificID(it) + 1 << " ";
+      output << "];" << endl
+             << "M_.var." << name << ".max_lag = [";
+      for (auto it : max_lags.at(name))
+        output << it << " ";
+      output << "];" << endl
+             << "M_.var." << name << ".diff = [";
+      for (const auto &it : diff.at(name))
+        output << (it ? "true" : "false") << " ";
+      output << "];" << endl
+             << "M_.var." << name << ".orig_diff_var = [";
+      for (auto it : orig_diff_var.at(name))
+        output << (it >= 0 ? symbol_table.getTypeSpecificID(it) + 1 : -1) << " ";
+      output << "];" << endl;
+
+      int i = 1;
+      for (const auto &it : rhs.at(name))
+        {
+          output << "M_.var." << name << ".rhs.vars_at_eq{" << i << "}.var = [";
+          for (const auto &it1 : it)
+            output << symbol_table.getTypeSpecificID(it1.first) + 1 << " ";
+          output << "];" << endl
+                 << "M_.var." << name << ".rhs.vars_at_eq{" << i << "}.lag = [";
+          for (const auto &it1 : it)
+            output << it1.second << " ";
+          output << "];" << endl;
+
+          i++;
+        }
+    }
+}
+
+void
+VarModelTable::writeJsonOutput(ostream &output) const
+{
+  for (const auto &name : names)
+    {
+      if (name != *(names.begin()))
+        output << ", ";
+      output << "{\"statementName\": \"var_model\","
+             << "\"model_name\": \"" << name << "\",";
+      if (symbol_list_and_order.empty())
+        {
+          output << "\"eqtags\": [";
+          for (const auto &it : eqtags.at(name))
+            {
+              output << "\"" << it << "\"";
+              if (&it != &eqtags.at(name).back())
+                output << ", ";
+            }
+          output << "]";
+        }
+      else
+        {
+          output << "\"order\": \"" << symbol_list_and_order.at(name).second << "\",";
+        }
+      output << "}";
+    }
+}
+
+map<string, vector<string>>
+VarModelTable::getEqTags() const
+{
+  return eqtags;
+}
+
+vector<string>
+VarModelTable::getEqTags(const string &name_arg) const
+{
+  checkModelName(name_arg);
+  return eqtags.find(name_arg)->second;
+}
+
+void
+VarModelTable::checkModelName(const string &name_arg) const
+{
+  if (!isExistingVarModelName(name_arg))
+    {
+      cerr << name_arg
+           << " is not a recognized equation tag of a VAR model equation" << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
+VarModelTable::setEqNums(map<string, vector<int>> eqnums_arg)
+{
+  eqnums = move(eqnums_arg);
+}
+
+void
+VarModelTable::setLhs(map<string, vector<int>> lhs_arg)
+{
+  lhs = move(lhs_arg);
+}
+
+void
+VarModelTable::setRhs(map<string, vector<set<pair<int, int>>>> rhs_arg)
+{
+  rhs = move(rhs_arg);
+}
+
+void
+VarModelTable::setLhsExprT(map<string, vector<expr_t>> lhs_expr_t_arg)
+{
+  lhs_expr_t = move(lhs_expr_t_arg);
+}
+
+void
+VarModelTable::setNonstationary(map<string, vector<bool>> nonstationary_arg)
+{
+  nonstationary = move(nonstationary_arg);
+}
+
+map<string, vector<int>>
+VarModelTable::getEqNums() const
+{
+  return eqnums;
+}
+
+vector<int>
+VarModelTable::getEqNums(const string &name_arg) const
+{
+  checkModelName(name_arg);
+  return eqnums.find(name_arg)->second;
+}
+
+void
+VarModelTable::setMaxLags(map<string, vector<int>> max_lags_arg)
+{
+  max_lags = move(max_lags_arg);
+}
+
+void
+VarModelTable::setDiff(map<string, vector<bool>> diff_arg)
+{
+  diff = move(diff_arg);
+}
+
+void
+VarModelTable::setOrigDiffVar(map<string, vector<int>> orig_diff_var_arg)
+{
+  orig_diff_var = move(orig_diff_var_arg);
+}
+
+vector<int>
+VarModelTable::getMaxLags(const string &name_arg) const
+{
+  checkModelName(name_arg);
+  return max_lags.find(name_arg)->second;
+}
+
+int
+VarModelTable::getMaxLag(const string &name_arg) const
+{
+  int max_lag_int = 0;
+  for (auto it : getMaxLags(name_arg))
+    max_lag_int = max(max_lag_int, it);
+  return max_lag_int;
+}
+
+vector<int>
+VarModelTable::getLhs(const string &name_arg) const
+{
+  checkModelName(name_arg);
+  return lhs.find(name_arg)->second;
+}
+
+vector<bool>
+VarModelTable::getNonstationary(const string &name_arg) const
+{
+  checkModelName(name_arg);
+  return nonstationary.find(name_arg)->second;
+}
+
+vector<set<pair<int, int>>>
+VarModelTable::getRhs(const string &name_arg) const
+{
+  checkModelName(name_arg);
+  return rhs.find(name_arg)->second;
+}
+
+
+vector<expr_t>
+VarModelTable::getLhsExprT(const string &name_arg) const
+{
+  checkModelName(name_arg);
+  return lhs_expr_t.find(name_arg)->second;
+}

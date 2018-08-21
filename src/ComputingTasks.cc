@@ -380,154 +380,6 @@ PacModelStatement::getPacModelInfoForPacExpectation() const
   return { name, aux_model_name, growth_symb_id };
 }
 
-VarModelStatement::VarModelStatement(SymbolList symbol_list_arg,
-                                     OptionsList options_list_arg,
-                                     string name_arg,
-                                     const SymbolTable &symbol_table_arg) :
-  symbol_list(move(symbol_list_arg)),
-  options_list(move(options_list_arg)),
-  name{move(name_arg)},
-  symbol_table(symbol_table_arg)
-{
-}
-
-void
-VarModelStatement::getVarModelInfo(string &var_model_name,
-                                   map<string, pair<SymbolList, int>> &var_model_info,
-                                   map<string, vector<string>> &var_model_eqtags) const
-{
-  var_model_name = name;
-  if (symbol_list.empty())
-    {
-      auto it = options_list.vector_str_options.find("var.eqtags");
-      var_model_eqtags[name] = it->second;
-    }
-  else
-    {
-      auto it = options_list.num_options.find("var.order");
-      var_model_info[name] = { symbol_list, stoi(it->second) };
-    }
-}
-
-void
-VarModelStatement::fillVarModelInfoFromEquations(vector<int> &eqnumber_arg, vector<int> &lhs_arg,
-                                                 vector<set<pair<int, int>>> &rhs_arg,
-                                                 vector<bool> &nonstationary_arg,
-                                                 vector<bool> &diff_arg,
-                                                 vector<int> &orig_diff_var_arg,
-                                                 int max_lag_arg)
-{
-  eqnumber = eqnumber_arg;
-  lhs = lhs_arg;
-  rhs_by_eq = rhs_arg;
-  nonstationary = nonstationary_arg;
-  diff = diff_arg;
-  orig_diff_var = orig_diff_var_arg;
-  max_lag = max_lag_arg;
-}
-
-void
-VarModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
-{
-}
-
-void
-VarModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
-{
-  options_list.writeOutput(output);
-  if (!symbol_list.empty())
-    symbol_list.writeOutput("options_.var.var_list_", output);
-
-  output << "M_.var." << name << " = options_.var;" << endl
-         << "options_ = rmfield(options_, 'var');" << endl;
-
-  output << "M_.var." << name << ".eqn = [";
-  for (auto it = eqnumber.begin();
-       it != eqnumber.end(); it++)
-    {
-      if (it != eqnumber.begin())
-        output << " ";
-      output << *it + 1;
-    }
-  output << "];" << endl
-         << "M_.var." << name << ".lhs = [";
-  for (auto it = lhs.begin();
-       it != lhs.end(); it++)
-    {
-      if (it != lhs.begin())
-        output << " ";
-      output << symbol_table.getTypeSpecificID(*it) + 1;
-    }
-  output << "];" << endl
-         << "M_.var." << name << ".max_lag = " << max_lag << ";" << endl
-         << "M_.var." << name << ".nonstationary = [";
-  for (auto it = nonstationary.begin();
-       it != nonstationary.end(); it++)
-    {
-      if (it != nonstationary.begin())
-        output << " ";
-      if (*it)
-        output << "true";
-      else
-        output << "false";
-    }
-  output << "];" << endl
-         << "M_.var." << name << ".diff = [";
-  for (auto it = diff.begin();
-       it != diff.end(); it++)
-    {
-      if (it != diff.begin())
-        output << " ";
-      if (*it)
-        output << "true";
-      else
-        output << "false";
-    }
-  output << "];" << endl
-         << "M_.var." << name << ".orig_diff_var = [";
-  for (auto it = orig_diff_var.begin();
-       it != orig_diff_var.end(); it++)
-    {
-      if (it != orig_diff_var.begin())
-        output << " ";
-      if (*it == -1)
-        output << -1;
-      else
-        output << symbol_table.getTypeSpecificID(*it) + 1;
-    }
-  output << "];" << endl;
-  int i = 1;
-  for (auto it = rhs_by_eq.begin();
-       it != rhs_by_eq.end(); it++, i++)
-    {
-      output << "M_.var." << name << ".rhs.vars_at_eq{" << i << "}.var = [";
-      for (auto it1 = it->begin();
-           it1 != it->end(); it1++)
-        {
-          if (it1 != it->begin())
-            output << " ";
-          output << symbol_table.getTypeSpecificID(it1->first) + 1;
-        }
-      output << "];" << endl
-             << "M_.var." << name << ".rhs.vars_at_eq{" << i << "}.lag = [";
-      for (auto it1 = it->begin();
-           it1 != it->end(); it1++)
-        {
-          if (it1 != it->begin())
-            output << " ";
-          output << it1->second;
-        }
-      output << "];" << endl;
-    }
-}
-
-void
-VarModelStatement::writeJsonOutput(ostream &output) const
-{
-  output << "{\"statementName\": \"var_model\","
-         << "\"model_name\": \"" << name << "\"}";
-}
-
 VarEstimationStatement::VarEstimationStatement(OptionsList options_list_arg) :
   options_list(move(options_list_arg))
 {
@@ -2210,9 +2062,10 @@ ModelComparisonStatement::writeJsonOutput(ostream &output) const
 PlannerObjectiveStatement::PlannerObjectiveStatement(SymbolTable &symbol_table,
                                                      NumericalConstants &num_constants,
                                                      ExternalFunctionsTable &external_functions_table,
-                                                     TrendComponentModelTable &trend_component_model_table_arg) :
-  model_tree{symbol_table, num_constants,
-             external_functions_table, trend_component_model_table_arg}
+                                                     TrendComponentModelTable &trend_component_model_table_arg,
+                                                     VarModelTable &var_model_table_arg) :
+  model_tree{symbol_table, num_constants, external_functions_table,
+             trend_component_model_table_arg, var_model_table_arg}
 {
 }
 
