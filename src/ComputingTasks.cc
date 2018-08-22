@@ -4851,10 +4851,14 @@ GenerateIRFsStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-VarExpectationModelStatement::VarExpectationModelStatement(string model_name_arg, string variable_arg, string var_model_name_arg,
-                                                           string horizon_arg, expr_t discount_arg, const SymbolTable &symbol_table_arg) :
+VarExpectationModelStatement::VarExpectationModelStatement(string model_name_arg,
+                                                           string variable_arg,
+                                                           string aux_model_name_arg,
+                                                           string horizon_arg,
+                                                           expr_t discount_arg,
+                                                           const SymbolTable &symbol_table_arg) :
   model_name{move(model_name_arg)}, variable{move(variable_arg)},
-  var_model_name{move(var_model_name_arg)}, horizon{move(horizon_arg)},
+  aux_model_name{move(aux_model_name_arg)}, horizon{move(horizon_arg)},
   discount{discount_arg}, symbol_table{symbol_table_arg}
 {
 }
@@ -4863,7 +4867,7 @@ void
 VarExpectationModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   string mstruct = "M_.var_expectation." + model_name;
-  output << mstruct << ".auxiliary_model_name = '" << var_model_name << "';" << endl
+  output << mstruct << ".auxiliary_model_name = '" << aux_model_name << "';" << endl
          << mstruct << ".horizon = " << horizon << ';' << endl
          << mstruct << ".variable = '" << variable << "';" << endl
          << mstruct << ".variable_id = " << symbol_table.getTypeSpecificID(variable)+1 << ";" << endl;
@@ -4888,7 +4892,7 @@ VarExpectationModelStatement::writeJsonOutput(ostream &output) const
   output << "{\"statementName\": \"var_expectation_model\","
          << "\"model_name\": \"" << model_name << "\", "
          << "\"variable\": \"" << variable << "\", "
-         << "\"var_model_name\": \"" << var_model_name << "\", "
+         << "\"aux_model_name\": \"" << aux_model_name << "\", "
          << "\"horizon\": \"" << horizon << "\", "
          << "\"discount\": \"";
   discount->writeOutput(output);

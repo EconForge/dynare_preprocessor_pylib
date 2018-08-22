@@ -517,20 +517,20 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       int max_lag;
       vector<int> lhs;
       auto &model_name = vems->model_name;
-      if (var_model_table.isExistingVarModelName(vems->var_model_name))
+      if (var_model_table.isExistingVarModelName(vems->aux_model_name))
         {
-          max_lag = var_model_table.getMaxLag(vems->var_model_name);
-          lhs = var_model_table.getLhs(vems->var_model_name);
+          max_lag = var_model_table.getMaxLag(vems->aux_model_name);
+          lhs = var_model_table.getLhs(vems->aux_model_name);
         }
-      else if (trend_component_model_table.isExistingTrendComponentModelName(vems->var_model_name))
+      else if (trend_component_model_table.isExistingTrendComponentModelName(vems->aux_model_name))
         {
-          max_lag = trend_component_model_table.getMaxLag(vems->var_model_name);
-          lhs = trend_component_model_table.getLhs(vems->var_model_name);
+          max_lag = trend_component_model_table.getMaxLag(vems->aux_model_name);
+          lhs = trend_component_model_table.getLhs(vems->aux_model_name);
         }
       else
         {
           cerr << "ERROR: var_expectation_model " << model_name
-               << " refers to nonexistent auxiliary model " << vems->var_model_name << endl;
+               << " refers to nonexistent auxiliary model " << vems->aux_model_name << endl;
           exit(EXIT_FAILURE);
         }
 
