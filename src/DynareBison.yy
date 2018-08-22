@@ -410,8 +410,8 @@ var_expectation_model_options_list : var_expectation_model_option
 
 var_expectation_model_option : VARIABLE EQUAL symbol
                                { driver.option_str("variable", $3); }
-                             | VAR_MODEL_NAME EQUAL symbol
-                               { driver.option_str("var_model_name", $3); }
+                             | AUXILIARY_MODEL_NAME EQUAL symbol
+                               { driver.option_str("auxiliary_model_name", $3); }
                              | HORIZON EQUAL INT_NUMBER
                                { driver.option_num("horizon", $3); }
                              | HORIZON EQUAL integer_range_w_inf

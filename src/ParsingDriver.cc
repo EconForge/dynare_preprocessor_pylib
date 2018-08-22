@@ -3268,9 +3268,9 @@ ParsingDriver::var_expectation_model()
   auto variable = it->second;
   check_symbol_is_endogenous(variable);
 
-  it = options_list.string_options.find("var_model_name");
+  it = options_list.string_options.find("auxiliary_model_name");
   if (it == options_list.string_options.end())
-    error("You must pass the var_model_name option to the var_expectation_model statement.");
+    error("You must pass the auxiliary_model_name option to the var_expectation_model statement.");
   auto var_model_name = it->second;
 
   it = options_list.string_options.find("model_name");

@@ -4863,7 +4863,7 @@ void
 VarExpectationModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   string mstruct = "M_.var_expectation." + model_name;
-  output << mstruct << ".var_model_name = '" << var_model_name << "';" << endl
+  output << mstruct << ".auxiliary_model_name = '" << var_model_name << "';" << endl
          << mstruct << ".horizon = " << horizon << ';' << endl
          << mstruct << ".variable = '" << variable << "';" << endl
          << mstruct << ".variable_id = " << symbol_table.getTypeSpecificID(variable)+1 << ";" << endl;

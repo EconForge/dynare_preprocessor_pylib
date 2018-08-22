@@ -514,18 +514,28 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       if (!vems)
         continue;
 
+      int max_lag;
+      vector<int> lhs;
       auto &model_name = vems->model_name;
-      if (!var_model_table.isExistingVarModelName(vems->var_model_name))
+      if (var_model_table.isExistingVarModelName(vems->var_model_name))
+        {
+          max_lag = var_model_table.getMaxLag(vems->var_model_name);
+          lhs = var_model_table.getLhs(vems->var_model_name);
+        }
+      else if (trend_component_model_table.isExistingTrendComponentModelName(vems->var_model_name))
+        {
+          max_lag = trend_component_model_table.getMaxLag(vems->var_model_name);
+          lhs = trend_component_model_table.getLhs(vems->var_model_name);
+        }
+      else
         {
           cerr << "ERROR: var_expectation_model " << model_name
-               << " refers to nonexistent " << vems->var_model_name << " var_model" << endl;
+               << " refers to nonexistent auxiliary model " << vems->var_model_name << endl;
           exit(EXIT_FAILURE);
         }
 
-      /* Create auxiliary parameters and the expression to be substituted to
+      /* Create auxiliary parameters and the expression to be substituted into
          the var_expectations statement */
-      int max_lag = var_model_table.getMaxLag(vems->var_model_name);
-      vector<int> lhs = var_model_table.getLhs(vems->var_model_name);
       auto subst_expr = dynamic_model.Zero;
       for (int lag = 0; lag < max_lag; lag++)
         for (auto variable : lhs)
