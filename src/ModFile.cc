@@ -999,14 +999,6 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
         static_model.writeOutput(mOutputFile, block);
     }
 
-  // Print statements
-  // Print var_model statements first so that the forecast functions can be used by following statements
-  //  for (vector<Statement *>::const_iterator it = statements.begin();
-  //       it != statements.end(); it++)
-  //    if (dynamic_cast<VarModelStatement *>(*it) != NULL)
-  //      (*it)->writeOutput(mOutputFile, basename, minimal_workspace);
-  //  dynamic_model.writeVarExpectationFunctions(mOutputFile);
-
   for (auto statement : statements)
     {
       statement->writeOutput(mOutputFile, basename, minimal_workspace);
