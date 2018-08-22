@@ -256,8 +256,11 @@ TrendComponentModelTable::writeOutput(ostream &output) const
              << "M_.trend_component." << name << ".orig_diff_var = [";
       for (auto it : orig_diff_var.at(name))
         output << (it >= 0 ? symbol_table.getTypeSpecificID(it) + 1 : -1) << " ";
+      output << "];" << endl
+             << "M_.trend_component." << name << ".nonstationary = [";
+      for (auto it : nonstationary.at(name))
+        output << (it ? "true" : "false") << " ";
       output << "];" << endl;
-
       int i = 1;
       for (const auto &it : rhs.at(name))
         {
@@ -363,8 +366,11 @@ VarModelTable::writeOutput(ostream &output) const
              << "M_.var." << name << ".orig_diff_var = [";
       for (auto it : orig_diff_var.at(name))
         output << (it >= 0 ? symbol_table.getTypeSpecificID(it) + 1 : -1) << " ";
+      output << "];" << endl
+             << "M_.var." << name << ".nonstationary = [";
+      for (auto it : nonstationary.at(name))
+        output << (it ? "true" : "false") << " ";
       output << "];" << endl;
-
       int i = 1;
       for (const auto &it : rhs.at(name))
         {
