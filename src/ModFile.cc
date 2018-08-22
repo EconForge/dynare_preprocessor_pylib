@@ -422,7 +422,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
              }
            else if (var_model_table.isExistingVarModelName(aux_model_name))
              {
-               max_lag = var_model_table.getMaxLag(aux_model_name) + 1;
+               max_lag = var_model_table.getMaxLag(aux_model_name);
                lhs = var_model_table.getLhs(aux_model_name);
                nonstationary = var_model_table.getNonstationary(aux_model_name);
              }
