@@ -334,7 +334,7 @@ VarModelTable::writeOutput(ostream &output) const
   for (const auto &name : names)
     {
       output << "M_.var." << name << ".model_name = '" << name << "';" << endl;
-      if (!symbol_list_and_order.empty())
+      if (!symbol_list_and_order.at(name).first.empty())
         {
           symbol_list_and_order.at(name).first.writeOutput("M_.var." + name + ".var_list_", output);
           output  << "M_.var." << name << ".order = "
