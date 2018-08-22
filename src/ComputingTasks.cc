@@ -4892,7 +4892,7 @@ VarExpectationModelStatement::writeJsonOutput(ostream &output) const
   output << "{\"statementName\": \"var_expectation_model\","
          << "\"model_name\": \"" << model_name << "\", "
          << "\"variable\": \"" << variable << "\", "
-         << "\"aux_model_name\": \"" << aux_model_name << "\", "
+         << "\"auxiliary_model_name\": \"" << aux_model_name << "\", "
          << "\"horizon\": \"" << horizon << "\", "
          << "\"discount\": \"";
   discount->writeOutput(output);
