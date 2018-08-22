@@ -1315,9 +1315,16 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
   output << ", ";
   dynamic_model.writeJsonOutput(output);
 
-  if (!statements.empty())
+  if (!statements.empty()
+      || !trend_component_model_table.empty())
     {
       output << ", \"statements\": [";
+      if (!trend_component_model_table.empty())
+        {
+          trend_component_model_table.writeJsonOutput(output);
+          output << ", ";
+        }
+
       for (auto it = statements.begin();
            it != statements.end(); it++)
         {

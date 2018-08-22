@@ -1422,22 +1422,20 @@ ParsingDriver::stoch_simul()
 void
 ParsingDriver::trend_component_model()
 {
- OptionsList::string_options_t::const_iterator it =
-   options_list.string_options.find("trend_component.name");
-  if (it == options_list.string_options.end())
+  const auto its = options_list.string_options.find("trend_component.name");
+  if (its == options_list.string_options.end())
     error("You must pass the model_name option to the trend_component_model statement.");
-  auto name = it->second;
+  auto name = its->second;
 
-  OptionsList::vec_str_options_t::const_iterator it1 =
-    options_list.vector_str_options.find("trend_component.eqtags");
-  if (it1 == options_list.vector_str_options.end())
+  const auto itvs = options_list.vector_str_options.find("trend_component.eqtags");
+  if (itvs == options_list.vector_str_options.end())
     error("You must pass the eqtags option to the trend_component_model statement.");
-  auto eqtags = it1->second;
+  auto eqtags = itvs->second;
 
-  it1 = options_list.vector_str_options.find("trend_component.trends");
-  if (it1 == options_list.vector_str_options.end())
+  const auto itvs1 = options_list.vector_str_options.find("trend_component.trends");
+  if (itvs1 == options_list.vector_str_options.end())
     error("You must pass the trends option to the trend_component_model statement.");
-  auto trends = it1->second;
+  auto trends = itvs1->second;
 
   mod_file->trend_component_model_table.addTrendComponentModel(name, eqtags, trends);
   options_list.clear();

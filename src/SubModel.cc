@@ -283,6 +283,21 @@ TrendComponentModelTable::writeJsonOutput(ostream &output) const
       if (name != *(names.begin()))
         output << ", ";
       output << "{\"statementName\": \"trend_component_model\","
-             << "\"model_name\": \"" << name << "\"}";
+             << "\"model_name\": \"" << name << "\","
+             << "\"eqtags\": [";
+      for (const auto &it : eqtags.at(name))
+        {
+          output << "\"" << it << "\"";
+          if (&it != &eqtags.at(name).back())
+            output << ", ";
+        }
+      output << "], \"trend_eqtags\": [";
+      for (const auto &it : trend_eqtags.at(name))
+        {
+          output << "\"" << it << "\"";
+          if (&it != &trend_eqtags.at(name).back())
+            output << ", ";
+        }
+      output << "]}";
     }
 }

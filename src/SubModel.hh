@@ -48,9 +48,11 @@ public:
   TrendComponentModelTable(SymbolTable &symbol_table_arg);
 
   //! Add a trend component model
-  void addTrendComponentModel(string name, vector<string> eqtags, vector<string> trend_eqtags);
+  void addTrendComponentModel(string name_arg, vector<string> eqtags_arg,
+                              vector<string> trend_eqtags_arg);
 
   inline bool isExistingTrendComponentModelName(const string &name_arg) const;
+  inline bool empty() const;
 
   map<string, vector<string>> getEqTags() const;
   vector<string> getEqTags(const string &name_arg) const;
@@ -91,6 +93,12 @@ inline bool
 TrendComponentModelTable::isExistingTrendComponentModelName(const string &name_arg) const
 {
   return names.find(name_arg) == names.end() ? false : true;
+}
+
+inline bool
+TrendComponentModelTable::empty() const
+{
+  return names.empty();
 }
 
 #endif
