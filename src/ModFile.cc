@@ -378,12 +378,12 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   set<string> eqtags;
   map<string, pair<SymbolList, int>> var_model_info_var_expectation;
 
-  for (auto const &it : trend_component_model_table.getEqTags())
-    for (auto &it1 : it.second)
+  for (auto const & it : trend_component_model_table.getEqTags())
+    for (auto & it1 : it.second)
       eqtags.insert(it1);
 
-  for (auto const &it : var_model_table.getEqTags())
-    for (auto &it1 : it.second)
+  for (auto const & it : var_model_table.getEqTags())
+    for (auto & it1 : it.second)
       eqtags.insert(it1);
 
   if (transform_unary_ops)

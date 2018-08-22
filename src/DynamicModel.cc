@@ -3464,18 +3464,18 @@ DynamicModel::fillVarModelTable() const
   map<string, vector<set<pair<int, int>>>> rhsr;
   map<string, vector<string>> eqtags = var_model_table.getEqTags();
 
-  for (const auto &it : eqtags)
+  for (const auto & it : eqtags)
     {
       vector<int> eqnumber, lhs;
       vector<expr_t> lhs_expr_t;
       vector<set<pair<int, int>>> rhs;
       vector<bool> nonstationary;
 
-      for (const auto &eqtag : it.second)
+      for (const auto & eqtag : it.second)
         {
           int eqn = -1;
           set<pair<int, int>> lhs_set, lhs_tmp_set, rhs_set;
-          for (const auto &equation_tag : equation_tags)
+          for (const auto & equation_tag : equation_tags)
             if (equation_tag.second.first == "name"
                 && equation_tag.second.second == eqtag)
               {
@@ -3490,7 +3490,7 @@ DynamicModel::fillVarModelTable() const
             }
 
           bool nonstationary_bool = false;
-          for (const auto &equation_tag : equation_tags)
+          for (const auto & equation_tag : equation_tags)
             if (equation_tag.first == eqn)
               if (equation_tag.second.first == "data_type"
                   && equation_tag.second.second == "nonstationary")
@@ -3528,7 +3528,7 @@ DynamicModel::fillVarModelTable() const
           lhs_expr_t.push_back(*(lhs_expr_t_set.begin()));
 
           equations[eqn]->get_arg2()->collectDynamicVariables(SymbolType::endogenous, rhs_set);
-          for (const auto &it : rhs_set)
+          for (const auto & it : rhs_set)
             if (it.second > 0)
               {
                 cerr << "ERROR: in Equation " << eqtag
@@ -3555,7 +3555,7 @@ DynamicModel::fillVarModelTableFromOrigModel(StaticModel &static_model) const
 {
   map<string, vector<int>> lags, orig_diff_var;
   map<string, vector<bool>> diff;
-  for (const auto &it : var_model_table.getEqNums())
+  for (const auto & it : var_model_table.getEqNums())
     {
       set<expr_t> lhs;
       vector<int> orig_diff_var_vec;
@@ -3602,7 +3602,7 @@ DynamicModel::fillVarModelTableFromOrigModel(StaticModel &static_model) const
         }
 
       set<expr_t> lhs_static;
-      for(const auto &lh : lhs)
+      for(const auto & lh : lhs)
         lhs_static.insert(lh->toStatic(static_model));
 
       vector<int> max_lag;
@@ -3626,13 +3626,13 @@ DynamicModel::fillTrendComponentModelTable() const
   map<string, vector<set<pair<int, int>>>> rhsr;
   map<string, vector<string>> eqtags = trend_component_model_table.getEqTags();
   map<string, vector<string>> trend_eqtags = trend_component_model_table.getTrendEqTags();
-  for (const auto &it : trend_eqtags)
+  for (const auto & it : trend_eqtags)
     {
       vector<int> trend_eqnumber;
-      for (const auto &eqtag : it.second)
+      for (const auto & eqtag : it.second)
         {
           int eqn = -1;
-          for (const auto &equation_tag : equation_tags)
+          for (const auto & equation_tag : equation_tags)
             if (equation_tag.second.first == "name"
                 && equation_tag.second.second == eqtag)
               {
@@ -3650,18 +3650,18 @@ DynamicModel::fillTrendComponentModelTable() const
       trend_eqnums[it.first] = trend_eqnumber;
     }
 
-  for (const auto &it : eqtags)
+  for (const auto & it : eqtags)
     {
       vector<int> eqnumber, lhs;
       vector<expr_t> lhs_expr_t;
       vector<set<pair<int, int>>> rhs;
       vector<bool> nonstationary;
 
-      for (const auto &eqtag : it.second)
+      for (const auto & eqtag : it.second)
         {
           int eqn = -1;
           set<pair<int, int>> lhs_set, lhs_tmp_set, rhs_set;
-          for (const auto &equation_tag : equation_tags)
+          for (const auto & equation_tag : equation_tags)
             if (equation_tag.second.first == "name"
                 && equation_tag.second.second == eqtag)
               {
@@ -3676,7 +3676,7 @@ DynamicModel::fillTrendComponentModelTable() const
             }
 
           bool nonstationary_bool = false;
-          for (const auto &equation_tag : equation_tags)
+          for (const auto & equation_tag : equation_tags)
             if (equation_tag.first == eqn)
               if (equation_tag.second.first == "data_type"
                   && equation_tag.second.second == "nonstationary")
@@ -3742,7 +3742,7 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel(StaticModel &static_mode
 {
   map<string, vector<int>> lags, orig_diff_var;
   map<string, vector<bool>> diff;
-  for (const auto &it : trend_component_model_table.getEqNums())
+  for (const auto & it : trend_component_model_table.getEqNums())
     {
       set<expr_t> lhs;
       vector<int> orig_diff_var_vec;
@@ -3789,7 +3789,7 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel(StaticModel &static_mode
         }
 
       set<expr_t> lhs_static;
-      for(const auto &lh : lhs)
+      for(const auto & lh : lhs)
         lhs_static.insert(lh->toStatic(static_model));
 
       vector<int> max_lag;
