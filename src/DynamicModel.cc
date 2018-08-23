@@ -3511,8 +3511,8 @@ DynamicModel::fillVarModelTable() const
               exit(EXIT_FAILURE);
             }
 
-          auto it = lhs_set.begin();
-          if (it->second != 0)
+          auto itlhs = lhs_set.begin();
+          if (itlhs->second != 0)
             {
               cerr << "ERROR: in Equation " << eqtag
                    << ". The variable on the LHS of a VAR may not appear with a lead or a lag. "
@@ -3521,15 +3521,15 @@ DynamicModel::fillVarModelTable() const
             }
 
           eqnumber.push_back(eqn);
-          lhs.push_back(it->first);
+          lhs.push_back(itlhs->first);
           lhs_set.clear();
           set<expr_t> lhs_expr_t_set;
           equations[eqn]->get_arg1()->collectVARLHSVariable(lhs_expr_t_set);
           lhs_expr_t.push_back(*(lhs_expr_t_set.begin()));
 
           equations[eqn]->get_arg2()->collectDynamicVariables(SymbolType::endogenous, rhs_set);
-          for (const auto & it : rhs_set)
-            if (it.second > 0)
+          for (const auto & itrhs : rhs_set)
+            if (itrhs.second > 0)
               {
                 cerr << "ERROR: in Equation " << eqtag
                      << ". A VAR may not have leaded or contemporaneous variables on the RHS. " << endl;
@@ -3697,8 +3697,8 @@ DynamicModel::fillTrendComponentModelTable() const
               exit(EXIT_FAILURE);
             }
 
-          auto it = lhs_set.begin();
-          if (it->second != 0)
+          auto itlhs = lhs_set.begin();
+          if (itlhs->second != 0)
             {
               cerr << "ERROR: in Equation " << eqtag
                    << ". The variable on the LHS of a trend component model may not appear with a lead or a lag. "
@@ -3707,15 +3707,15 @@ DynamicModel::fillTrendComponentModelTable() const
             }
 
           eqnumber.push_back(eqn);
-          lhs.push_back(it->first);
+          lhs.push_back(itlhs->first);
           lhs_set.clear();
           set<expr_t> lhs_expr_t_set;
           equations[eqn]->get_arg1()->collectVARLHSVariable(lhs_expr_t_set);
           lhs_expr_t.push_back(*(lhs_expr_t_set.begin()));
 
           equations[eqn]->get_arg2()->collectDynamicVariables(SymbolType::endogenous, rhs_set);
-          for (it = rhs_set.begin(); it != rhs_set.end(); it++)
-            if (it->second > 0)
+          for (const auto & itrhs : rhs_set)
+            if (itrhs.second > 0)
               {
                 cerr << "ERROR: in Equation " << eqtag
                      << ". A trend component model may not have leaded or contemporaneous variables on the RHS. " << endl;
