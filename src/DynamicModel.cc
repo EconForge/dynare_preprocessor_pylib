@@ -3456,6 +3456,37 @@ DynamicModel::runTrendTest(const eval_context_t &eval_context)
 }
 
 void
+DynamicModel::updateVarAndTrendModelRhs() const
+{
+  for (int i = 0; i < 2; i++)
+    {
+      map<string, vector<int>> eqnums;
+      if (i == 0)
+        eqnums = var_model_table.getEqNums();
+      else if (i == 1)
+        eqnums = trend_component_model_table.getEqNums();
+
+      map<string, vector<set<pair<int, int>>>> rhsr;
+      for (const auto & it : eqnums)
+        {
+          vector<set<pair<int, int>>> rhs;
+          for (auto eqn : it.second)
+            {
+              set<pair<int, int>> rhs_set;
+              equations[eqn]->get_arg2()->collectDynamicVariables(SymbolType::endogenous, rhs_set);
+              rhs.push_back(rhs_set);
+            }
+          rhsr[it.first] = rhs;
+        }
+
+      if (i == 0)
+        var_model_table.setRhs(rhsr);
+      else if (i == 1)
+        trend_component_model_table.setRhs(rhsr);
+    }
+}
+
+void
 DynamicModel::fillVarModelTable() const
 {
   map<string, vector<int>> eqnums, lhsr;

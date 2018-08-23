@@ -312,6 +312,10 @@ public:
   void fillVarModelTable() const;
   void fillVarModelTableFromOrigModel(StaticModel &static_model) const;
 
+  //! Update the rhs references in the var model and trend component tables
+  //! after substitution of auxiliary variables
+  void updateVarAndTrendModelRhs() const;
+
   //! Add aux equations (and aux variables) for variables declared in var_model
   //! at max order if they don't already exist
   void addEquationsForVar();
