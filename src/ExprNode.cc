@@ -5096,18 +5096,10 @@ BinaryOpNode::getPacOptimizingPartHelper(const expr_t arg1, const expr_t arg2,
     {
       auto *testarg2 = dynamic_cast<BinaryOpNode *>(arg2);
       if (testarg2 != nullptr && testarg2->get_op_code() == BinaryOpcode::minus)
-        {
-          auto *test_arg1 = dynamic_cast<VariableNode *>(testarg2->get_arg1());
-          auto *test_arg2 = dynamic_cast<VariableNode *>(testarg2->get_arg2());
-          if (test_arg1 != nullptr && test_arg2 != nullptr)
-            {
-              test_arg1->collectDynamicVariables(SymbolType::endogenous, endogs);
-              ec_params_and_vars.emplace(*(params.begin()), *(endogs.begin()));
-              endogs.clear();
-              test_arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
-              ec_params_and_vars.emplace(*(params.begin()), *(endogs.begin()));
-            }
-        }
+        if (dynamic_cast<VariableNode *>(testarg2->get_arg1()) != nullptr
+            && dynamic_cast<VariableNode *>(testarg2->get_arg2()) != nullptr)
+          for (auto it : endogs)
+            ec_params_and_vars.emplace(*(params.begin()), it);
     }
 }
 
