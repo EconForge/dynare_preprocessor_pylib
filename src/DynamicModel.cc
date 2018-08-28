@@ -3968,7 +3968,8 @@ DynamicModel::walkPacParameters()
   for (auto & equation : equations)
     {
       pair<int, int> lhs (-1, -1);
-      set<pair<int, pair<int, int>>> ar_params_and_vars, ec_params_and_vars;
+      pair<int, vector<int>> ec_params_and_vars;
+      set<pair<int, pair<int, int>>> ar_params_and_vars;
       set<pair<int, pair<pair<int, int>, double>>> non_optim_params_vars_and_scaling_factor;
 
       if (equation->containsPacExpectation())
