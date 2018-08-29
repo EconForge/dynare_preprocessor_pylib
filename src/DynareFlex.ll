@@ -52,7 +52,7 @@ string eofbuff;
 
 %option prefix="Dynare"
 
-%option case-insensitive noyywrap nounput batch debug never-interactive
+%option case-insensitive noyywrap batch debug never-interactive
 
  /* NB: if new start conditions are defined, add them in the line for <<EOF>> */
 %x COMMENT
