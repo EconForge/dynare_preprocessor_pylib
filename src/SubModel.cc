@@ -79,6 +79,12 @@ TrendComponentModelTable::setNonstationary(map<string, vector<bool>> nonstationa
 }
 
 void
+TrendComponentModelTable::setTrendVar(map<string, vector<int>> trend_vars_arg)
+{
+  trend_vars = move(trend_vars_arg);
+}
+
+void
 TrendComponentModelTable::setLhs(map<string, vector<int>> lhs_arg)
 {
   lhs = move(lhs_arg);
@@ -275,6 +281,10 @@ TrendComponentModelTable::writeOutput(ostream &output) const
 
           i++;
         }
+      output << "M_.trend_component." << name << ".trend_vars = [";
+      for (auto it : trend_vars.at(name))
+        output << (it >= 0 ? symbol_table.getTypeSpecificID(it) + 1 : -1) << " ";
+      output << "];" << endl;
     }
 }
 

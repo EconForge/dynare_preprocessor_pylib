@@ -865,7 +865,10 @@ int
 SymbolTable::getOrigSymbIdForAuxVar(int aux_var_symb_id) const noexcept(false)
 {
   for (const auto & aux_var : aux_vars)
-    if ((aux_var.get_type() == AuxVarType::endoLag || aux_var.get_type() == AuxVarType::exoLag || aux_var.get_type() == AuxVarType::diff)
+    if ((aux_var.get_type() == AuxVarType::endoLag
+         || aux_var.get_type() == AuxVarType::exoLag
+         || aux_var.get_type() == AuxVarType::diff
+         || aux_var.get_type() == AuxVarType::diffLag)
         && aux_var.get_symb_id() == aux_var_symb_id)
       return aux_var.get_orig_symb_id();
   throw UnknownSymbolIDException(aux_var_symb_id);

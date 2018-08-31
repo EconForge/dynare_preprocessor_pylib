@@ -3466,23 +3466,46 @@ DynamicModel::updateVarAndTrendModelRhs() const
       else if (i == 1)
         eqnums = trend_component_model_table.getEqNums();
 
+      map<string, vector<int>> trend_varr;
       map<string, vector<set<pair<int, int>>>> rhsr;
       for (const auto & it : eqnums)
         {
+          vector<int> lhs;
+          vector<int> trend_var;
           vector<set<pair<int, int>>> rhs;
+          int lhs_idx = 0;
+          if (i == 1)
+            lhs = trend_component_model_table.getLhs(it.first);
           for (auto eqn : it.second)
             {
               set<pair<int, int>> rhs_set;
               equations[eqn]->get_arg2()->collectDynamicVariables(SymbolType::endogenous, rhs_set);
               rhs.push_back(rhs_set);
+              if (i == 1)
+                {
+                  int lhs_symb_id = lhs[lhs_idx++];
+                  if (symbol_table.isAuxiliaryVariable(lhs_symb_id))
+                    try
+                      {
+                        lhs_symb_id = symbol_table.getOrigSymbIdForAuxVar(lhs_symb_id);
+                      }
+                    catch (...)
+                      {
+                      }
+                  trend_var.push_back(equations[eqn]->get_arg2()->findTrendVariable(lhs_symb_id));
+                }
             }
           rhsr[it.first] = rhs;
+          trend_varr[it.first] = trend_var;
         }
 
       if (i == 0)
         var_model_table.setRhs(rhsr);
       else if (i == 1)
-        trend_component_model_table.setRhs(rhsr);
+        {
+          trend_component_model_table.setRhs(rhsr);
+          trend_component_model_table.setTrendVar(trend_varr);
+        }
     }
 }
 

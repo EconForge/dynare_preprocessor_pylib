@@ -563,6 +563,12 @@ NumConstNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_
 {
 }
 
+int
+NumConstNode::findTrendVariable(int lhs_symb_id) const
+{
+  return -1;
+}
+
 expr_t
 NumConstNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
@@ -1456,6 +1462,12 @@ VariableNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table)
 void
 VariableNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const
 {
+}
+
+int
+VariableNode::findTrendVariable(int lhs_symb_id) const
+{
+  return -1;
 }
 
 expr_t
@@ -3155,6 +3167,12 @@ UnaryOpNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) 
     }
   else
     diff_table[sthis][arg_max_lag] = const_cast<UnaryOpNode *>(this);
+}
+
+int
+UnaryOpNode::findTrendVariable(int lhs_symb_id) const
+{
+  return arg->findTrendVariable(lhs_symb_id);
 }
 
 expr_t
@@ -5078,6 +5096,65 @@ BinaryOpNode::isInStaticForm() const
   return arg1->isInStaticForm() && arg2->isInStaticForm();
 }
 
+bool
+BinaryOpNode::findTrendVariableHelper1(int lhs_symb_id, int rhs_symb_id) const
+{
+  if (lhs_symb_id == rhs_symb_id)
+    return true;
+
+  try
+    {
+      if (datatree.symbol_table.isAuxiliaryVariable(rhs_symb_id)
+          && lhs_symb_id == datatree.symbol_table.getOrigSymbIdForAuxVar(rhs_symb_id))
+        return true;
+    }
+  catch (...)
+    {
+    }
+  return false;
+}
+
+int
+BinaryOpNode::findTrendVariableHelper(const expr_t arg1, const expr_t arg2,
+                                      int lhs_symb_id) const
+{
+  set<int> params;
+  arg1->collectVariables(SymbolType::parameter, params);
+  if (params.size() != 1)
+    return -1;
+
+  set<pair<int, int>> endogs;
+  arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
+  if (endogs.size() == 2)
+    {
+      auto *testarg2 = dynamic_cast<BinaryOpNode *>(arg2);
+      if (testarg2 != nullptr && testarg2->get_op_code() == BinaryOpcode::minus)
+        {
+          auto *test_arg1 = dynamic_cast<VariableNode *>(testarg2->get_arg1());
+          auto *test_arg2 = dynamic_cast<VariableNode *>(testarg2->get_arg2());
+          if (test_arg1 != nullptr && test_arg2 != nullptr )
+            if (findTrendVariableHelper1(lhs_symb_id, endogs.begin()->first))
+              return endogs.rbegin()->first;
+            else if (findTrendVariableHelper1(lhs_symb_id, endogs.rbegin()->first))
+              return endogs.begin()->first;
+        }
+    }
+  return -1;
+}
+
+int
+BinaryOpNode::findTrendVariable(int lhs_symb_id) const
+{
+  int retval = findTrendVariableHelper(arg1, arg2, lhs_symb_id);
+  if (retval < 0)
+    retval = findTrendVariableHelper(arg2, arg1, lhs_symb_id);
+  if (retval < 0)
+    retval = arg1->findTrendVariable(lhs_symb_id);
+  if (retval < 0)
+    retval = arg2->findTrendVariable(lhs_symb_id);
+  return retval;
+}
+
 void
 BinaryOpNode::getPacOptimizingPartHelper(const expr_t arg1, const expr_t arg2,
                                          pair<int, vector<int>> &ec_params_and_vars,
@@ -6073,6 +6150,17 @@ TrinaryOpNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff
   arg3->findUnaryOpNodesForAuxVarCreation(static_datatree, nodes);
 }
 
+int
+TrinaryOpNode::findTrendVariable(int lhs_symb_id) const
+{
+  int retval = arg1->findTrendVariable(lhs_symb_id);
+  if (retval < 0)
+    retval = arg2->findTrendVariable(lhs_symb_id);
+  if (retval < 0)
+    retval = arg3->findTrendVariable(lhs_symb_id);
+  return retval;
+}
+
 expr_t
 TrinaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
                               vector<BinaryOpNode *> &neweqs) const
@@ -6533,6 +6621,18 @@ AbstractExternalFunctionNode::findUnaryOpNodesForAuxVarCreation(DataTree &static
 {
   for (auto argument : arguments)
     argument->findUnaryOpNodesForAuxVarCreation(static_datatree, nodes);
+}
+
+int
+AbstractExternalFunctionNode::findTrendVariable(int lhs_symb_id) const
+{
+  for (auto argument : arguments)
+    {
+      int retval = argument->findTrendVariable(lhs_symb_id);
+      if (retval >= 0)
+        return retval;
+    }
+  return -1;
 }
 
 expr_t
@@ -8168,6 +8268,12 @@ VarExpectationNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree,
 {
 }
 
+int
+VarExpectationNode::findTrendVariable(int lhs_symb_id) const
+{
+  return -1;
+}
+
 expr_t
 VarExpectationNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
                                    vector<BinaryOpNode *> &neweqs) const
@@ -8687,6 +8793,12 @@ PacExpectationNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_
 void
 PacExpectationNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const
 {
+}
+
+int
+PacExpectationNode::findTrendVariable(int lhs_symb_id) const
+{
+  return -1;
 }
 
 expr_t

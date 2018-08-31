@@ -44,6 +44,7 @@ private:
   map<string, vector<set<pair<int, int>>>> rhs;
   map<string, vector<bool>> diff, nonstationary;
   map<string, vector<expr_t>> lhs_expr_t;
+  map<string, vector<int>> trend_vars;
 public:
   TrendComponentModelTable(SymbolTable &symbol_table_arg);
 
@@ -77,6 +78,7 @@ public:
   void setDiff(map<string, vector<bool>> diff_arg);
   void setOrigDiffVar(map<string, vector<int>> orig_diff_var_arg);
   void setNonstationary(map<string, vector<bool>> nonstationary_arg);
+  void setTrendVar(map<string, vector<int>> trend_vars_arg);
 
   //! Write output of this class
   void writeOutput(ostream &output) const;
