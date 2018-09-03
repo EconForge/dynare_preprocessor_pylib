@@ -748,6 +748,9 @@ VariableNode::prepareForDerivation()
       break;
     case SymbolType::externalFunction:
     case SymbolType::endogenousVAR:
+    case SymbolType::endogenousEpilogue:
+    case SymbolType::exogenousEpilogue:
+    case SymbolType::parameterEpilogue:
       cerr << "VariableNode::prepareForDerivation: impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -781,7 +784,10 @@ VariableNode::computeDerivative(int deriv_id)
       exit(EXIT_FAILURE);
     case SymbolType::externalFunction:
     case SymbolType::endogenousVAR:
-      cerr << "Impossible case!" << endl;
+    case SymbolType::endogenousEpilogue:
+    case SymbolType::exogenousEpilogue:
+    case SymbolType::parameterEpilogue:
+      cerr << "VariableNode::computeDerivative: Impossible case!" << endl;
       exit(EXIT_FAILURE);
     }
   // Suppress GCC warning
@@ -857,6 +863,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   switch (type)
     {
     case SymbolType::parameter:
+    case SymbolType::parameterEpilogue:
       if (output_type == oMatlabOutsideModel)
         output << "M_.params" << "(" << tsid + 1 << ")";
       else
@@ -927,6 +934,13 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           if (lag != 0)
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
+        case oEpilogueFile:
+          output << datatree.symbol_table.getName(symb_id)
+                 << LEFT_ARRAY_SUBSCRIPT(output_type) << "epilogue_it__";
+          if (lag != 0)
+            output << lag;
+          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << endl;
           exit(EXIT_FAILURE);
@@ -979,6 +993,13 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << "ds." << datatree.symbol_table.getName(symb_id);
           if (lag != 0)
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          break;
+        case oEpilogueFile:
+          output << datatree.symbol_table.getName(symb_id)
+                 << LEFT_ARRAY_SUBSCRIPT(output_type) << "epilogue_it__";
+          if (lag != 0)
+            output << lag;
+          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << endl;
@@ -1033,19 +1054,33 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           if (lag != 0)
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
+        case oEpilogueFile:
+          output << datatree.symbol_table.getName(symb_id)
+                 << LEFT_ARRAY_SUBSCRIPT(output_type) << "epilogue_it__";
+          if (lag != 0)
+            output << lag;
+          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << endl;
           exit(EXIT_FAILURE);
         }
       break;
-
+    case SymbolType::endogenousEpilogue:
+    case SymbolType::exogenousEpilogue:
+      output << datatree.symbol_table.getName(symb_id)
+             << LEFT_ARRAY_SUBSCRIPT(output_type) << "epilogue_it__";
+      if (lag != 0)
+        output << lag;
+      output << RIGHT_ARRAY_SUBSCRIPT(output_type);
+      break;
     case SymbolType::externalFunction:
     case SymbolType::trend:
     case SymbolType::logTrend:
     case SymbolType::statementDeclaredVariable:
     case SymbolType::unusedEndogenous:
     case SymbolType::endogenousVAR:
-      cerr << "Impossible case" << endl;
+      cerr << "VariableNode::writeOutput: Impossible case" << endl;
       exit(EXIT_FAILURE);
     }
 }
@@ -1264,7 +1299,10 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recur
       exit(EXIT_FAILURE);
     case SymbolType::externalFunction:
     case SymbolType::endogenousVAR:
-      cerr << "Impossible case!" << endl;
+    case SymbolType::endogenousEpilogue:
+    case SymbolType::exogenousEpilogue:
+    case SymbolType::parameterEpilogue:
+      cerr << "VariableNode::getChainRuleDerivative: Impossible case" << endl;
       exit(EXIT_FAILURE);
     }
   // Suppress GCC warning
@@ -1302,6 +1340,9 @@ VariableNode::computeXrefs(EquationInfo &ei) const
     case SymbolType::unusedEndogenous:
     case SymbolType::externalFunction:
     case SymbolType::endogenousVAR:
+    case SymbolType::endogenousEpilogue:
+    case SymbolType::exogenousEpilogue:
+    case SymbolType::parameterEpilogue:
       break;
     }
 }
@@ -6705,6 +6746,7 @@ AbstractExternalFunctionNode::getIndxInTefTerms(int the_symb_id, const deriv_nod
   auto it = tef_terms.find({ the_symb_id, arguments });
   if (it != tef_terms.end())
     return it->second;
+  cout << endl << endl << tef_terms.size() <<  "." <<the_symb_id << endl << endl;
   throw UnknownFunctionNameAndArgs();
 }
 

@@ -259,8 +259,12 @@ private:
   //! Used by VAR restrictions
   void clear_VAR_storage();
 
+  //! True when parsing the epilogue block
+  bool parsing_epilogue;
+
 public:
-  ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) : warnings(warnings_arg), nostrict(nostrict_arg) { };
+  ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) :
+    warnings(warnings_arg), nostrict(nostrict_arg), parsing_epilogue(false) { };
 
   //! Starts parsing, and constructs the MOD file representation
   unique_ptr<ModFile> parse(istream &in, bool debug);
@@ -335,12 +339,18 @@ public:
   void initval_file(const string &filename);
   //! Declares an endogenous variable
   void declare_endogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
+  //! Declares an endogenous variable in the epilogue block
+  void declare_epilogue_endogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
   //! Declares an exogenous variable
   void declare_exogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
+  //! Declares an exogenous variable in the epilogue block
+  void declare_epilogue_exogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
   //! Declares an exogenous deterministic variable
   void declare_exogenous_det(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
   //! Declares a parameter
   void declare_parameter(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
+  //! Declare a parameter in the epilogue block
+  void declare_epilogue_parameter(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
   //! Declares a VAR variable and adds to symbol_list
   void declare_var_endogenous(const string &name);
   //! Declares a model local variable
@@ -402,6 +412,12 @@ public:
   void end_histval(bool all_values_required);
   //! Writes end of an homotopy_setup block
   void end_homotopy();
+  //! Begin epilogue block
+  void begin_epilogue();
+  //! Endepilogue block
+  void end_epilogue();
+  //! Add equation in epilogue block
+  void add_epilogue_equal(const string &varname, expr_t expr);
   //! Begin a model block
   void begin_model();
   //! End a model block, printing errors that were encountered in parsing

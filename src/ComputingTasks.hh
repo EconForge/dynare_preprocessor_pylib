@@ -27,7 +27,7 @@
 #include "Statement.hh"
 #include "StaticModel.hh"
 #include "DynamicModel.hh"
-#include "SteadyStateModel.hh"
+#include "ModelEquationBlock.hh"
 
 class SteadyStatement : public Statement
 {

@@ -44,6 +44,8 @@ ModFile::ModFile(WarningConsolidation &warnings_arg)
                                        trend_component_model_table, var_model_table),
     orig_ramsey_dynamic_model(symbol_table, num_constants, external_functions_table,
                               trend_component_model_table, var_model_table),
+    epilogue(symbol_table, num_constants, external_functions_table,
+             trend_component_model_table, var_model_table),
     static_model(symbol_table, num_constants, external_functions_table,
                  trend_component_model_table, var_model_table),
     steady_state_model(symbol_table, num_constants, external_functions_table,
@@ -126,6 +128,9 @@ ModFile::checkPass(bool nostrict, bool stochastic)
 
   // Check the steady state block
   steady_state_model.checkPass(mod_file_struct, warnings);
+
+  // Check epilogue block
+  epilogue.checkPass(warnings);
 
   if (mod_file_struct.write_latex_steady_state_model_present &&
       !mod_file_struct.steady_state_model_present)
@@ -767,6 +772,8 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
 
   for (auto & statement : statements)
     statement->computingPass();
+
+  epilogue.computingPass(true, true, false, 0, global_eval_context, true, false, false, false, true);
 }
 
 void
@@ -1074,6 +1081,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 
       // Create steady state file
       steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present, false);
+
+      // Create epilogue file
+      epilogue.writeEpilogueFile(basename);
     }
 
   if (!nopreprocessoroutput)

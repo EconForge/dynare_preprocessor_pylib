@@ -204,6 +204,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <INITIAL>shock_groups {BEGIN DYNARE_BLOCK; return token::SHOCK_GROUPS;}
 <INITIAL>mshocks {BEGIN DYNARE_BLOCK; return token::MSHOCKS;}
 <INITIAL>estimated_params {BEGIN DYNARE_BLOCK; return token::ESTIMATED_PARAMS;}
+<INITIAL>epilogue {BEGIN DYNARE_BLOCK; return token::EPILOGUE;}
  /* priors is an alias for estimated_params */
 <INITIAL>priors {BEGIN DYNARE_BLOCK;return token::ESTIMATED_PARAMS;}
 <INITIAL>estimated_params_init 		{BEGIN DYNARE_BLOCK; return token::ESTIMATED_PARAMS_INIT;}
@@ -629,6 +630,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>save_draws {return token::SAVE_DRAWS; }
 <DYNARE_STATEMENT>deflator {return token::DEFLATOR;}
 <DYNARE_STATEMENT>log_deflator {return token::LOG_DEFLATOR;}
+<DYNARE_STATEMENT>epilogue {return token::EPILOGUE;}
 <DYNARE_STATEMENT>growth_factor {return token::GROWTH_FACTOR;}
 <DYNARE_STATEMENT>log_growth_factor {return token::LOG_GROWTH_FACTOR;}
 <DYNARE_STATEMENT>growth {return token::GROWTH;}

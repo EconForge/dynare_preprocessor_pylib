@@ -48,8 +48,8 @@ dynare_m_SOURCES = \
 	CodeInterpreter.hh \
 	ExternalFunctionsTable.cc \
 	ExternalFunctionsTable.hh \
-	SteadyStateModel.hh \
-	SteadyStateModel.cc \
+	ModelEquationBlock.hh \
+	ModelEquationBlock.cc \
 	WarningConsolidation.hh \
 	WarningConsolidation.cc \
 	ExtendedPreprocessorTypes.hh \

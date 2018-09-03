@@ -32,7 +32,7 @@ using namespace std;
 #include "NumericalInitialization.hh"
 #include "StaticModel.hh"
 #include "DynamicModel.hh"
-#include "SteadyStateModel.hh"
+#include "ModelEquationBlock.hh"
 #include "Statement.hh"
 #include "ExternalFunctionsTable.hh"
 #include "ConfigFile.hh"
@@ -68,6 +68,8 @@ public:
   DynamicModel ramsey_FOC_equations_dynamic_model;
   //! A copy of the original model, used to test model linearity under ramsey problem
   DynamicModel orig_ramsey_dynamic_model;
+  //! Epilogue model, as declared in the "epilogue" block
+  Epilogue epilogue;
   //! Static model, as derived from the "model" block when leads and lags have been removed
   StaticModel static_model;
   //! Static model, as declared in the "steady_state_model" block if present

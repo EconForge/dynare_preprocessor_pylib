@@ -202,6 +202,14 @@ ParsingDriver::declare_endogenous(const string &name, const string &tex_name, co
 }
 
 void
+ParsingDriver::declare_epilogue_endogenous(const string &name,
+                                           const string &tex_name,
+                                           const vector<pair<string, string>> &partition_value)
+{
+  declare_symbol(name, SymbolType::endogenousEpilogue, tex_name, partition_value);
+}
+
+void
 ParsingDriver::declare_var_endogenous(const string &name)
 {
   if (mod_file->symbol_table.exists(name))
@@ -231,9 +239,25 @@ ParsingDriver::declare_exogenous_det(const string &name, const string &tex_name,
 }
 
 void
+ParsingDriver::declare_epilogue_exogenous(const string &name,
+                                          const string &tex_name,
+                                          const vector<pair<string, string>> &partition_value)
+{
+  declare_symbol(name, SymbolType::exogenousEpilogue, tex_name, partition_value);
+}
+
+void
 ParsingDriver::declare_parameter(const string &name, const string &tex_name, const vector<pair<string, string>> &partition_value)
 {
   declare_symbol(name, SymbolType::parameter, tex_name, partition_value);
+}
+
+void
+ParsingDriver::declare_epilogue_parameter(const string &name,
+                                          const string &tex_name,
+                                          const vector<pair<string, string>> &partition_value)
+{
+  declare_symbol(name, SymbolType::parameterEpilogue, tex_name, partition_value);
 }
 
 void
@@ -414,6 +438,9 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
 expr_t
 ParsingDriver::add_expression_variable(const string &name)
 {
+  if (parsing_epilogue && !mod_file->symbol_table.exists(name))
+    error("Variable " + name + " used in the epilogue block but was not declared.");
+
   // If symbol doesn't exist, then declare it as a mod file local variable
   if (!mod_file->symbol_table.exists(name))
     mod_file->symbol_table.addSymbol(name, SymbolType::modFileLocalVariable);
@@ -815,6 +842,35 @@ ParsingDriver::end_homotopy()
 {
   mod_file->addStatement(new HomotopyStatement(homotopy_values, mod_file->symbol_table));
   homotopy_values.clear();
+}
+
+void
+ParsingDriver::begin_epilogue()
+{
+  parsing_epilogue = true;
+  set_current_data_tree(&mod_file->epilogue);
+}
+
+void
+ParsingDriver::end_epilogue()
+{
+  parsing_epilogue = false;
+  reset_data_tree();
+}
+
+void
+ParsingDriver::add_epilogue_equal(const string &varname, expr_t expr)
+{
+  int id;
+  try
+    {
+      id = mod_file->symbol_table.getID(varname);
+    }
+  catch (SymbolTable::UnknownSymbolNameException &e)
+    {
+      error("Variable " + varname + " used in the epilogue block but was not declared.");
+    }
+  mod_file->epilogue.addDefinition(id, expr);
 }
 
 void
@@ -2887,7 +2943,7 @@ ParsingDriver::add_model_var_or_external_function(const string &function_name, b
   expr_t nid;
   if (mod_file->symbol_table.exists(function_name))
     if (mod_file->symbol_table.getType(function_name) != SymbolType::externalFunction)
-      if (!in_model_block)
+      if (!in_model_block && !parsing_epilogue)
         {
           if (stack_external_function_args.top().size() > 0)
             error(string("Symbol ") + function_name + string(" cannot take arguments."));
@@ -2915,7 +2971,7 @@ ParsingDriver::add_model_var_or_external_function(const string &function_name, b
         if (!mod_file->external_functions_table.exists(symb_id))
           error("Using a derivative of an external function (" + function_name + ") in the model block is currently not allowed.");
 
-        if (in_model_block)
+        if (in_model_block || parsing_epilogue)
           if (mod_file->external_functions_table.getNargs(symb_id) == eExtFunNotSet)
             error("Before using " + function_name
                   +"() in the model block, you must first declare it via the external_function() statement");
@@ -2925,6 +2981,9 @@ ParsingDriver::add_model_var_or_external_function(const string &function_name, b
       }
   else
     { //First time encountering this external function i.e., not previously declared or encountered
+      if (parsing_epilogue)
+        error("Variable " + function_name + " used in the epilogue block but was not declared.");
+
       if (in_model_block)
         {
           // Continue processing, noting that it was not declared

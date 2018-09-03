@@ -148,7 +148,7 @@ class ParsingDriver;
 %token SBVAR TREND_VAR DEFLATOR GROWTH_FACTOR MS_IRF MS_VARIANCE_DECOMPOSITION GROWTH
 %token MS_ESTIMATION MS_SIMULATION MS_COMPUTE_MDD MS_COMPUTE_PROBABILITIES MS_FORECAST
 %token SVAR_IDENTIFICATION EQUATION EXCLUSION LAG UPPER_CHOLESKY LOWER_CHOLESKY MONTHLY QUARTERLY
-%token MARKOV_SWITCHING CHAIN DURATION NUMBER_OF_REGIMES NUMBER_OF_LAGS
+%token MARKOV_SWITCHING CHAIN DURATION NUMBER_OF_REGIMES NUMBER_OF_LAGS EPILOGUE
 %token SVAR SVAR_GLOBAL_IDENTIFICATION_CHECK COEFF COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
 %token EXTERNAL_FUNCTION EXT_FUNC_NAME EXT_FUNC_NARGS FIRST_DERIV_PROVIDED SECOND_DERIV_PROVIDED
 %token SELECTED_VARIABLES_ONLY COVA_COMPUTE SIMULATION_FILE_TAG FILE_TAG
@@ -221,6 +221,7 @@ statement : parameters
           | estimated_params_init
           | set_time
           | data
+          | epilogue
           | var_model
           | pac_model
           | trend_component_model
@@ -348,6 +349,7 @@ log_trend_var_list : log_trend_var_list symbol
                    ;
 
 var : VAR var_list ';'
+    | VAR '(' EPILOGUE ')' epilogue_var_list ';'
     | VAR '(' DEFLATOR EQUAL { driver.begin_trend(); } hand_side ')' nonstationary_var_list ';'
       { driver.end_nonstationary_var(false, $6); }
     | VAR '(' LOG_DEFLATOR EQUAL { driver.begin_trend(); } hand_side ')' nonstationary_var_list ';'
@@ -537,13 +539,17 @@ nonstationary_var_list : nonstationary_var_list symbol
                          { driver.declare_nonstationary_var($1, $2, $3); }
                        ;
 
-varexo : VAREXO varexo_list ';';
+varexo : VAREXO varexo_list ';'
+       | VAREXO '(' EPILOGUE ')' epilogue_varexo_list ';'
+       ;
 
 varexo_det : VAREXO_DET varexo_det_list ';';
 
 predetermined_variables : PREDETERMINED_VARIABLES predetermined_variables_list ';';
 
 parameters : PARAMETERS parameter_list ';';
+           | PARAMETERS '(' EPILOGUE ')' epilogue_parameter_list ';';
+           ;
 
 model_local_variable : MODEL_LOCAL_VARIABLE model_local_variable_list ';';
 
@@ -598,6 +604,32 @@ var_list : var_list symbol
            { driver.declare_endogenous($1, $2, $3); }
          ;
 
+epilogue_var_list : epilogue_var_list symbol
+                    { driver.declare_epilogue_endogenous($2); }
+                  | epilogue_var_list COMMA symbol
+                    { driver.declare_epilogue_endogenous($3); }
+                  | symbol
+                    { driver.declare_epilogue_endogenous($1); }
+                  | epilogue_var_list symbol named_var
+                    { driver.declare_epilogue_endogenous($2, "", $3); }
+                  | epilogue_var_list COMMA symbol named_var
+                    { driver.declare_epilogue_endogenous($3, "", $4); }
+                  | symbol named_var
+                    { driver.declare_epilogue_endogenous($1, "", $2); }
+                  | epilogue_var_list symbol TEX_NAME
+                    { driver.declare_epilogue_endogenous($2, $3); }
+                  | epilogue_var_list COMMA symbol TEX_NAME
+                    { driver.declare_epilogue_endogenous($3, $4); }
+                  | symbol TEX_NAME
+                    { driver.declare_epilogue_endogenous($1, $2); }
+                  | epilogue_var_list symbol TEX_NAME named_var
+                    { driver.declare_epilogue_endogenous($2, $3, $4); }
+                  | epilogue_var_list COMMA symbol TEX_NAME named_var
+                    { driver.declare_epilogue_endogenous($3, $4, $5); }
+                  | symbol TEX_NAME named_var
+                    { driver.declare_epilogue_endogenous($1, $2, $3); }
+                  ;
+
 varexo_list : varexo_list symbol
               { driver.declare_exogenous($2); }
             | varexo_list COMMA symbol
@@ -650,6 +682,32 @@ varexo_det_list : varexo_det_list symbol
                    { driver.declare_exogenous_det($1, $2, $3); }
                 ;
 
+epilogue_varexo_list : epilogue_varexo_list symbol
+                       { driver.declare_epilogue_exogenous($2); }
+                     | epilogue_varexo_list COMMA symbol
+                       { driver.declare_epilogue_exogenous($3); }
+                     | symbol
+                       { driver.declare_epilogue_exogenous($1); }
+                     | epilogue_varexo_list symbol named_var
+                       { driver.declare_epilogue_exogenous($2, "", $3); }
+                     | epilogue_varexo_list COMMA symbol named_var
+                       { driver.declare_epilogue_exogenous($3, "", $4); }
+                     | symbol named_var
+                       { driver.declare_epilogue_exogenous($1, "", $2); }
+                     | epilogue_varexo_list symbol TEX_NAME
+                       { driver.declare_epilogue_exogenous($2, $3); }
+                     | epilogue_varexo_list COMMA symbol TEX_NAME
+                       { driver.declare_epilogue_exogenous($3, $4); }
+                     | symbol TEX_NAME
+                       { driver.declare_epilogue_exogenous($1, $2); }
+                     | epilogue_varexo_list symbol TEX_NAME named_var
+                       { driver.declare_epilogue_exogenous($2, $3, $4); }
+                     | epilogue_varexo_list COMMA symbol TEX_NAME named_var
+                       { driver.declare_epilogue_exogenous($3, $4, $5); }
+                     | symbol TEX_NAME named_var
+                       { driver.declare_epilogue_exogenous($1, $2, $3); }
+                     ;
+
 parameter_list : parameter_list symbol
                  { driver.declare_parameter($2); }
                | parameter_list COMMA symbol
@@ -675,6 +733,32 @@ parameter_list : parameter_list symbol
                | symbol TEX_NAME named_var
                  { driver.declare_parameter($1, $2, $3); }
                ;
+
+epilogue_parameter_list : epilogue_parameter_list symbol
+                          { driver.declare_parameter($2); }
+                        | epilogue_parameter_list COMMA symbol
+                          { driver.declare_parameter($3); }
+                        | symbol
+                          { driver.declare_parameter($1); }
+                        | epilogue_parameter_list symbol named_var
+                          { driver.declare_parameter($2, "", $3); }
+                        | epilogue_parameter_list COMMA symbol named_var
+                          { driver.declare_parameter($3, "", $4); }
+                        | symbol named_var
+                          { driver.declare_parameter($1, "", $2); }
+                        | epilogue_parameter_list symbol TEX_NAME
+                          { driver.declare_parameter($2, $3); }
+                        | epilogue_parameter_list COMMA symbol TEX_NAME
+                          { driver.declare_parameter($3, $4); }
+                        | symbol TEX_NAME
+                          { driver.declare_parameter($1, $2); }
+                        | epilogue_parameter_list symbol TEX_NAME named_var
+                          { driver.declare_parameter($2, $3, $4); }
+                        | epilogue_parameter_list COMMA symbol TEX_NAME named_var
+                          { driver.declare_parameter($3, $4, $5); }
+                        | symbol TEX_NAME named_var
+                          { driver.declare_parameter($1, $2, $3); }
+                        ;
 
 predetermined_variables_list : predetermined_variables_list symbol
                                { driver.add_predetermined_variable($2); }
@@ -863,6 +947,18 @@ histval_elem : symbol '(' signed_integer ')' EQUAL expression ';' { driver.hist_
 histval_file : HISTVAL_FILE '(' FILENAME EQUAL filename ')' ';'
                { driver.histval_file($5); }
              ;
+
+epilogue : EPILOGUE ';' { driver.begin_epilogue(); }
+           epilogue_equation_list END ';' { driver.end_epilogue(); }
+         ;
+
+epilogue_equation_list : epilogue_equation_list epilogue_equation
+                       | epilogue_equation
+                       ;
+
+epilogue_equation : symbol EQUAL expression ';'
+                    { driver.add_epilogue_equal($1, $3); }
+                  ;
 
 model_options : BLOCK { driver.block(); }
               | o_cutoff

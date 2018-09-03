@@ -23,6 +23,7 @@
 #include "DataTree.hh"
 #include "Statement.hh"
 #include "StaticModel.hh"
+#include "DynamicModel.hh"
 #include "WarningConsolidation.hh"
 
 class SteadyStateModel : public DataTree
@@ -60,5 +61,32 @@ public:
   //! Writes JSON output
   void writeJsonSteadyStateFile(ostream &output, bool transformComputingPass) const;
 };
+
+class Epilogue : public DynamicModel
+{
+private:
+  //! Associates a set of symbol IDs (the variable(s) assigned in a given statement) to an expression (their assigned value)
+  vector<pair<int, expr_t>> def_table;
+
+  //! List of variables found in block
+  set<int> endogs;
+  set<int> exogs;
+public:
+  Epilogue(SymbolTable &symbol_table_arg,
+           NumericalConstants &num_constants_arg,
+           ExternalFunctionsTable &external_functions_table_arg,
+           TrendComponentModelTable &trend_component_model_table_arg,
+           VarModelTable &var_model_table_arg);
+
+  //! Add an expression of the form "var = expr;"
+  void addDefinition(int symb_id, expr_t expr);
+
+  //! Checks that no variable is declared twice
+  void checkPass(WarningConsolidation &warnings) const;
+
+  //! Write the steady state file
+  void writeEpilogueFile(const string &basename) const;
+};
+
 
 #endif
