@@ -3456,31 +3456,48 @@ DynamicModel::runTrendTest(const eval_context_t &eval_context)
 }
 
 void
-DynamicModel::updateVarAndTrendModelRhs() const
+DynamicModel::updateVarAndTrendModel() const
 {
   for (int i = 0; i < 2; i++)
     {
-      map<string, vector<int>> eqnums;
+      map<string, vector<int>> eqnums, trend_eqnums;
       if (i == 0)
         eqnums = var_model_table.getEqNums();
       else if (i == 1)
-        eqnums = trend_component_model_table.getEqNums();
+        {
+          eqnums = trend_component_model_table.getEqNums();
+          trend_eqnums = trend_component_model_table.getTrendEqNums();
+        }
 
       map<string, vector<int>> trend_varr;
       map<string, vector<set<pair<int, int>>>> rhsr;
       for (const auto & it : eqnums)
         {
-          vector<int> lhs;
-          vector<int> trend_var;
+          vector<int> lhs, trend_var, trend_lhs;
           vector<set<pair<int, int>>> rhs;
-          int lhs_idx = 0;
+
           if (i == 1)
-            lhs = trend_component_model_table.getLhs(it.first);
+            {
+              lhs = trend_component_model_table.getLhs(it.first);
+              for (auto teqn : trend_eqnums.at(it.first))
+                {
+                  int eqnidx = 0;
+                  for (auto eqn : it.second)
+                    {
+                      if (eqn == teqn)
+                        trend_lhs.push_back(lhs[eqnidx]);
+                      eqnidx++;
+                    }
+                }
+            }
+
+          int lhs_idx = 0;
           for (auto eqn : it.second)
             {
               set<pair<int, int>> rhs_set;
               equations[eqn]->get_arg2()->collectDynamicVariables(SymbolType::endogenous, rhs_set);
               rhs.push_back(rhs_set);
+
               if (i == 1)
                 {
                   int lhs_symb_id = lhs[lhs_idx++];
@@ -3492,11 +3509,31 @@ DynamicModel::updateVarAndTrendModelRhs() const
                     catch (...)
                       {
                       }
-                  trend_var.push_back(equations[eqn]->get_arg2()->findTrendVariable(lhs_symb_id));
+                  int trend_var_symb_id = equations[eqn]->get_arg2()->findTrendVariable(lhs_symb_id);
+                  trend_var.push_back(trend_var_symb_id);
+                  if (trend_var_symb_id >= 0)
+                    {
+                      if (symbol_table.isAuxiliaryVariable(trend_var_symb_id))
+                        try
+                          {
+                            trend_var_symb_id = symbol_table.getOrigSymbIdForAuxVar(trend_var_symb_id);
+                          }
+                        catch (...)
+                          {
+                          }
+                      if (find(trend_lhs.begin(), trend_lhs.end(), trend_var_symb_id) == trend_lhs.end())
+                        {
+                          cerr << "ERROR: trend found in trend_component equation #" << eqn << " ("
+                               << symbol_table.getName(trend_var_symb_id) << ") does not correspond to a trend equation" << endl;
+                          exit(EXIT_FAILURE);
+                        }
+                    }
                 }
             }
+
           rhsr[it.first] = rhs;
-          trend_varr[it.first] = trend_var;
+          if (i == 1)
+            trend_varr[it.first] = trend_var;
         }
 
       if (i == 0)

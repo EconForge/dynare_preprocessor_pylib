@@ -177,6 +177,12 @@ TrendComponentModelTable::getEqNums() const
   return eqnums;
 }
 
+map<string, vector<int>>
+TrendComponentModelTable::getTrendEqNums() const
+{
+  return trend_eqnums;
+}
+
 vector<int>
 TrendComponentModelTable::getNonTrendEqNums(const string &name_arg) const
 {

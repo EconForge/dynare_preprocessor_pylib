@@ -59,6 +59,7 @@ public:
   vector<string> getEqTags(const string &name_arg) const;
   map<string, vector<string>> getTrendEqTags() const;
   map<string, vector<int>> getEqNums() const;
+  map<string, vector<int>> getTrendEqNums() const;
   vector<int> getEqNums(const string &name_arg) const;
   vector<int> getMaxLags(const string &name_arg) const;
   int getMaxLag(const string &name_arg) const;

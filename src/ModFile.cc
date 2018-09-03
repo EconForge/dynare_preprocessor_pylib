@@ -580,7 +580,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       dynamic_model.substituteEndoLagGreaterThanTwo(true);
     }
 
-  dynamic_model.updateVarAndTrendModelRhs();
+  dynamic_model.updateVarAndTrendModel();
 
   if (differentiate_forward_vars)
     dynamic_model.differentiateForwardVars(differentiate_forward_vars_subset);
