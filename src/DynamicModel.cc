@@ -3510,7 +3510,6 @@ DynamicModel::updateVarAndTrendModel() const
                       {
                       }
                   int trend_var_symb_id = equations[eqn]->get_arg2()->findTrendVariable(lhs_symb_id);
-                  trend_var.push_back(trend_var_symb_id);
                   if (trend_var_symb_id >= 0)
                     {
                       if (symbol_table.isAuxiliaryVariable(trend_var_symb_id))
@@ -3528,6 +3527,7 @@ DynamicModel::updateVarAndTrendModel() const
                           exit(EXIT_FAILURE);
                         }
                     }
+                  trend_var.push_back(trend_var_symb_id);
                 }
             }
 
