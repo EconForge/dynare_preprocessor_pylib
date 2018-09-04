@@ -4028,7 +4028,7 @@ DynamicModel::walkPacParameters()
   for (auto & equation : equations)
     {
       pair<int, int> lhs (-1, -1);
-      pair<int, vector<int>> ec_params_and_vars;
+      pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars;
       set<pair<int, pair<int, int>>> ar_params_and_vars;
       set<pair<int, pair<pair<int, int>, double>>> non_optim_params_vars_and_scaling_factor;
 
@@ -4039,15 +4039,25 @@ DynamicModel::walkPacParameters()
           expr_t optim_part = nullptr;
           expr_t non_optim_part = nullptr;
           equation->getPacLHS(lhs);
+          int lhs_orig_symb_id = lhs.first;
+          if (symbol_table.isAuxiliaryVariable(lhs_orig_symb_id))
+            try
+              {
+                lhs_orig_symb_id = symbol_table.getOrigSymbIdForAuxVar(lhs_orig_symb_id);
+              }
+            catch (...)
+              {
+              }
+
           equation->get_arg2()->getPacOptimizingShareAndExprNodes(optim_share,
                                                                   optim_part,
                                                                   non_optim_part);
           if (optim_part == nullptr)
-            equation->get_arg2()->getPacOptimizingPart(ec_params_and_vars, ar_params_and_vars);
+            equation->get_arg2()->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
           else
             {
               optim_share_index = *(optim_share.begin());
-              optim_part->getPacOptimizingPart(ec_params_and_vars, ar_params_and_vars);
+              optim_part->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
               non_optim_part->getPacNonOptimizingPart(non_optim_params_vars_and_scaling_factor);
             }
           equation->addParamInfoToPac(lhs,
