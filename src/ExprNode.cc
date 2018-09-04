@@ -8516,7 +8516,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   for (auto it : ec_params_and_vars.second.first)
       output << datatree.symbol_table.getTypeSpecificID(it) + 1 << " ";
   output << "];" << endl
-         << "M_.pac." << model_name << ".ec.is_endo = [";
+         << "M_.pac." << model_name << ".ec.isendo = [";
   for (auto it : ec_params_and_vars.second.second)
     output << (it ? "true" : "false") << " ";
   output << "];" << endl
