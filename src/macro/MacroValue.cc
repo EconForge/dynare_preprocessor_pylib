@@ -18,6 +18,7 @@
  */
 
 #include <utility>
+#include <cmath>
 
 #include "MacroDriver.hh"
 
@@ -196,6 +197,15 @@ IntMV::divide(const MacroValuePtr &mv) noexcept(false)
   if (!mv2->value)
     throw DivisionByZeroError();
   return make_shared<IntMV>(value / mv2->value);
+}
+
+MacroValuePtr
+IntMV::power(const MacroValuePtr &mv) noexcept(false)
+{
+  auto mv2 = dynamic_pointer_cast<IntMV>(mv);
+  if (!mv2)
+    throw TypeError("Type mismatch for operands of ^ operator");
+  return make_shared<IntMV>(pow(value, mv2->value));
 }
 
 shared_ptr<IntMV>

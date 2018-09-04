@@ -135,6 +135,7 @@ public:
   MacroValuePtr times(const MacroValuePtr &mv) noexcept(false) override;
   //! Computes arithmetic division
   MacroValuePtr divide(const MacroValuePtr &mv) noexcept(false) override;
+  MacroValuePtr power(const MacroValuePtr &mv) noexcept(false) override;
   shared_ptr<IntMV> is_less(const MacroValuePtr &mv) noexcept(false) override;
   shared_ptr<IntMV> is_greater(const MacroValuePtr &mv) noexcept(false) override;
   shared_ptr<IntMV> is_less_equal(const MacroValuePtr &mv) noexcept(false) override;
