@@ -225,6 +225,7 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model
   output << "end" << endl;
   if (julia)
     output << "end" << endl;
+  output.close();
 }
 
 void
