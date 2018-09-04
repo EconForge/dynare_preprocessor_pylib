@@ -52,7 +52,7 @@ public:
   ExternalFunctionsTable external_functions_table;
   //! Numerical constants table
   NumericalConstants num_constants;
-  //! Var Model Table used for storing info about trend component models
+  //! Var Model Table used for storing info about VAR models
   VarModelTable var_model_table;
   //! Trend Component Model Table used for storing info about trend component models
   TrendComponentModelTable trend_component_model_table;

@@ -73,7 +73,7 @@ public:
   //! Less comparison
   /*! Returns an IntMV, equal to 0 or 1 */
   virtual shared_ptr<IntMV> is_less(const MacroValuePtr &mv) noexcept(false);
-  //! Greater comparision
+  //! Greater comparison
   /*! Returns an IntMV, equal to 0 or 1 */
   virtual shared_ptr<IntMV> is_greater(const MacroValuePtr &mv) noexcept(false);
   //! Less or equal comparison
@@ -202,7 +202,7 @@ public:
   shared_ptr<IntMV> is_equal(const MacroValuePtr &mv) override;
   //! Subscripting operator
   /*! Argument must be an ArrayMV<int>. Indexes begin at 1.
-    If argument is a one-element array, returns an IntMV or StringMV.
+    If argument is a one-element array, returns the corresponding array element.
     Otherwise returns an array. */
   MacroValuePtr subscript(const MacroValuePtr &mv) noexcept(false) override;
   //! Returns a string containing the concatenation of string representations of elements
@@ -236,9 +236,8 @@ public:
 
   shared_ptr<IntMV> is_equal(const MacroValuePtr &mv) override;
   //! Subscripting operator
-  /*! Argument must be an ArrayMV<int>. Indexes begin at 1. Returns a StringMV. */
+  /*! Argument must be an ArrayMV<int>. Indexes begin at 1. */
   MacroValuePtr subscript(const MacroValuePtr &mv) noexcept(false) override;
-  //! Returns underlying string value
   string toString() override;
   string print() override;
   shared_ptr<IntMV> length() noexcept(false) override;
