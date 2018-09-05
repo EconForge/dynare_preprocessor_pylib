@@ -225,7 +225,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
   ExprNodeOutputType local_output_type;
   Ufoss.str("");
 
-  local_output_type = oMatlabDynamicModelSparse;
+  local_output_type = ExprNodeOutputType::matlabDynamicModelSparse;
   if (global_temporary_terms)
     local_temporary_terms = temporary_terms;
 
@@ -246,7 +246,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       unsigned int block_mfs = getBlockMfs(block);
       unsigned int block_recursive = block_size - block_mfs;
       deriv_node_temp_terms_t tef_terms;
-      local_output_type = oMatlabDynamicModelSparse;
+      local_output_type = ExprNodeOutputType::matlabDynamicModelSparse;
       if (global_temporary_terms)
         local_temporary_terms = temporary_terms;
 
@@ -415,7 +415,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
                     {
                       output << "  ";
                       // In the following, "Static" is used to avoid getting the "(it_)" subscripting
-                      it->writeOutput(output, oMatlabStaticModelSparse, local_temporary_terms, {});
+                      it->writeOutput(output, ExprNodeOutputType::matlabStaticModelSparse, local_temporary_terms, {});
                       output << " = T_zeros;" << endl;
                     }
                 }
@@ -1803,7 +1803,7 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
       else
         tmp_output << " ";
       // In the following, "Static" is used to avoid getting the "(it_)" subscripting
-      temporary_term->writeOutput(tmp_output, oMatlabStaticModelSparse, temporary_terms, {});
+      temporary_term->writeOutput(tmp_output, ExprNodeOutputType::matlabStaticModelSparse, temporary_terms, {});
     }
   if (tmp_output.str().length() > 0)
     mDynamicModelFile << "  global " << tmp_output.str() << ";\n";
@@ -1814,7 +1814,7 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
     {
       tmp_output << "  ";
       // In the following, "Static" is used to avoid getting the "(it_)" subscripting
-      temporary_term->writeOutput(tmp_output, oMatlabStaticModelSparse, temporary_terms, {});
+      temporary_term->writeOutput(tmp_output, ExprNodeOutputType::matlabStaticModelSparse, temporary_terms, {});
       tmp_output << "=T_init;\n";
     }
   if (tmp_output.str().length() > 0)
@@ -2298,8 +2298,8 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
   ostringstream third_derivatives_tt_output; // Used for storing third order derivatives temp terms
   ostringstream third_derivatives_output;    // Used for storing third order derivatives equations
 
-  ExprNodeOutputType output_type = (use_dll ? oCDynamicModel :
-                                    julia ? oJuliaDynamicModel : oMatlabDynamicModel);
+  ExprNodeOutputType output_type = (use_dll ? ExprNodeOutputType::CDynamicModel :
+                                    julia ? ExprNodeOutputType::juliaDynamicModel : ExprNodeOutputType::matlabDynamicModel);
 
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;
@@ -2366,7 +2366,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
           int col_nb_sym = id2 * dynJacobianColsNbr + id1;
 
           ostringstream for_sym;
-          if (output_type == oJuliaDynamicModel)
+          if (output_type == ExprNodeOutputType::juliaDynamicModel)
             {
               for_sym << "g2[" << eq + 1 << "," << col_nb + 1 << "]";
               hessian_output << "    @inbounds " << for_sym.str() << " = ";
@@ -2391,7 +2391,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
 
           // Treating symetric elements
           if (id1 != id2)
-            if (output_type == oJuliaDynamicModel)
+            if (output_type == ExprNodeOutputType::juliaDynamicModel)
               hessian_output << "    @inbounds g2[" << eq + 1 << "," << col_nb_sym + 1 << "] = "
                              << for_sym.str() << endl;
             else
@@ -2436,7 +2436,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
           int ref_col = id1 * hessianColsNbr + id2 * dynJacobianColsNbr + id3;
 
           ostringstream for_sym;
-          if (output_type == oJuliaDynamicModel)
+          if (output_type == ExprNodeOutputType::juliaDynamicModel)
             {
               for_sym << "g3[" << eq + 1 << "," << ref_col + 1 << "]";
               third_derivatives_output << "    @inbounds " << for_sym.str() << " = ";
@@ -2469,7 +2469,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
           int k2 = 1; // Keeps the offset of the permutation relative to k
           for (int col : cols)
             if (col != ref_col)
-              if (output_type == oJuliaDynamicModel)
+              if (output_type == ExprNodeOutputType::juliaDynamicModel)
                 third_derivatives_output << "    @inbounds g3[" << eq + 1 << "," << col + 1 << "] = "
                                          << for_sym.str() << endl;
               else
@@ -2491,7 +2491,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
         }
     }
 
-  if (output_type == oMatlabDynamicModel)
+  if (output_type == ExprNodeOutputType::matlabDynamicModel)
     {
       // Check that we don't have more than 32 nested parenthesis because Matlab does not suppor this. See Issue #1201
       map<string, string> tmp_paren_vars;
@@ -2565,7 +2565,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
 
       writeDynamicMatlabCompatLayer(basename);
     }
-  else if (output_type == oCDynamicModel)
+  else if (output_type == ExprNodeOutputType::CDynamicModel)
     {
       DynamicOutput << "void Dynamic(double *y, double *x, int nb_row_x, double *params, double *steady_state, int it_, double *residual, double *g1, double *v2, double *v3)" << endl
                     << "{" << endl
@@ -3428,7 +3428,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
 
   // Write PacExpectationInfo
   for (auto it : pac_expectation_info)
-    it->ExprNode::writeOutput(output, oMatlabDynamicModel);
+    it->ExprNode::writeOutput(output, ExprNodeOutputType::matlabDynamicModel);
 }
 
 map<pair<int, pair<int, int >>, expr_t>
@@ -4652,7 +4652,7 @@ void
 DynamicModel::writeSetAuxiliaryVariables(const string &basename, const bool julia) const
 {
   ostringstream output_func_body;
-  writeAuxVarRecursiveDefinitions(output_func_body, oMatlabDseries);
+  writeAuxVarRecursiveDefinitions(output_func_body, ExprNodeOutputType::matlabDseries);
 
   if (output_func_body.str().empty())
     return;
@@ -5185,7 +5185,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
       && !hessian_params_derivatives.size())
     return;
 
-  ExprNodeOutputType output_type = (julia ? oJuliaDynamicModel : oMatlabDynamicModel);
+  ExprNodeOutputType output_type = (julia ? ExprNodeOutputType::juliaDynamicModel : ExprNodeOutputType::matlabDynamicModel);
   ostringstream model_local_vars_output;   // Used for storing model local vars
   ostringstream model_output;              // Used for storing model temp vars and equations
   ostringstream jacobian_output;           // Used for storing jacobian equations
@@ -5422,13 +5422,13 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
 void
 DynamicModel::writeLatexFile(const string &basename, const bool write_equation_tags) const
 {
-  writeLatexModelFile(basename + "_dynamic", oLatexDynamicModel, write_equation_tags);
+  writeLatexModelFile(basename + "_dynamic", ExprNodeOutputType::latexDynamicModel, write_equation_tags);
 }
 
 void
 DynamicModel::writeLatexOriginalFile(const string &basename, const bool write_equation_tags) const
 {
-  writeLatexModelFile(basename + "_original", oLatexDynamicModel, write_equation_tags);
+  writeLatexModelFile(basename + "_original", ExprNodeOutputType::latexDynamicModel, write_equation_tags);
 }
 
 void
@@ -5908,7 +5908,7 @@ DynamicModel::isChecksumMatching(const string &basename) const
            << equation_tag.second.first
            << equation_tag.second.second;
 
-  ExprNodeOutputType buffer_type = oCDynamicModel;
+  ExprNodeOutputType buffer_type = ExprNodeOutputType::CDynamicModel;
 
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {

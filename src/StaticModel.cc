@@ -203,7 +203,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
   deriv_node_temp_terms_t tef_terms;
   ExprNodeOutputType local_output_type;
 
-  local_output_type = oMatlabStaticModelSparse;
+  local_output_type = ExprNodeOutputType::matlabStaticModelSparse;
   if (global_temporary_terms)
     local_temporary_terms = temporary_terms;
 
@@ -1343,8 +1343,8 @@ StaticModel::writeStaticModel(const string &basename,
   ostringstream third_derivatives_output;    // Used for storing third order derivatives equations
   ostringstream for_sym;
 
-  ExprNodeOutputType output_type = (use_dll ? oCStaticModel :
-                                    julia ? oJuliaStaticModel : oMatlabStaticModel);
+  ExprNodeOutputType output_type = (use_dll ? ExprNodeOutputType::CStaticModel :
+                                    julia ? ExprNodeOutputType::juliaStaticModel : ExprNodeOutputType::matlabStaticModel);
 
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;
@@ -1415,7 +1415,7 @@ StaticModel::writeStaticModel(const string &basename,
           int col_nb = tsid1*symbol_table.endo_nbr()+tsid2;
           int col_nb_sym = tsid2*symbol_table.endo_nbr()+tsid1;
 
-          if (output_type == oJuliaStaticModel)
+          if (output_type == ExprNodeOutputType::juliaStaticModel)
             {
               for_sym << "g2[" << eq + 1 << "," << col_nb + 1 << "]";
               hessian_output << "  @inbounds " << for_sym.str() << " = ";
@@ -1440,7 +1440,7 @@ StaticModel::writeStaticModel(const string &basename,
 
           // Treating symetric elements
           if (symb_id1 != symb_id2)
-            if (output_type == oJuliaStaticModel)
+            if (output_type == ExprNodeOutputType::juliaStaticModel)
               hessian_output << "  @inbounds g2[" << eq + 1 << "," << col_nb_sym + 1 << "] = "
                              << for_sym.str() << endl;
             else
@@ -1484,7 +1484,7 @@ StaticModel::writeStaticModel(const string &basename,
           // Reference column number for the g3 matrix
           int ref_col = id1 * hessianColsNbr + id2 * JacobianColsNbr + id3;
 
-          if (output_type == oJuliaStaticModel)
+          if (output_type == ExprNodeOutputType::juliaStaticModel)
             {
               for_sym << "g3[" << eq + 1 << "," << ref_col + 1 << "]";
               third_derivatives_output << "  @inbounds " << for_sym.str() << " = ";
@@ -1517,7 +1517,7 @@ StaticModel::writeStaticModel(const string &basename,
           int k2 = 1; // Keeps the offset of the permutation relative to k
           for (int col : cols)
             if (col != ref_col)
-              if (output_type == oJuliaStaticModel)
+              if (output_type == ExprNodeOutputType::juliaStaticModel)
                 third_derivatives_output << "  @inbounds g3[" << eq + 1 << "," << col + 1 << "] = "
                                          << for_sym.str() << endl;
               else
@@ -1539,7 +1539,7 @@ StaticModel::writeStaticModel(const string &basename,
         }
     }
 
-  if (output_type == oMatlabStaticModel)
+  if (output_type == ExprNodeOutputType::matlabStaticModel)
     {
       // Check that we don't have more than 32 nested parenthesis because Matlab does not suppor this. See Issue #1201
       map<string, string> tmp_paren_vars;
@@ -1619,7 +1619,7 @@ StaticModel::writeStaticModel(const string &basename,
 
       writeStaticMatlabCompatLayer(basename);
     }
-  else if (output_type == oCStaticModel)
+  else if (output_type == ExprNodeOutputType::CStaticModel)
     {
       StaticOutput << "void Static(double *y, double *x, int nb_row_x, double *params, double *residual, double *g1, double *v2)" << endl
                    << "{" << endl
@@ -2351,7 +2351,7 @@ StaticModel::collect_block_first_order_derivatives()
 void
 StaticModel::writeLatexFile(const string &basename, bool write_equation_tags) const
 {
-  writeLatexModelFile(basename + "_static", oLatexStaticModel, write_equation_tags);
+  writeLatexModelFile(basename + "_static", ExprNodeOutputType::latexStaticModel, write_equation_tags);
 }
 
 void
@@ -2368,7 +2368,7 @@ void
 StaticModel::writeSetAuxiliaryVariables(const string &basename, const bool julia) const
 {
   ostringstream output_func_body;
-  writeAuxVarRecursiveDefinitions(output_func_body, oMatlabStaticModel);
+  writeAuxVarRecursiveDefinitions(output_func_body, ExprNodeOutputType::matlabStaticModel);
 
   if (output_func_body.str().empty())
     return;
@@ -2402,7 +2402,7 @@ StaticModel::writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType
   deriv_node_temp_terms_t tef_terms;
   for (auto aux_equation : aux_equations)
     if (dynamic_cast<ExprNode *>(aux_equation)->containsExternalFunction())
-      dynamic_cast<ExprNode *>(aux_equation)->writeExternalFunctionOutput(output, oMatlabStaticModel, {}, {}, tef_terms);
+      dynamic_cast<ExprNode *>(aux_equation)->writeExternalFunctionOutput(output, ExprNodeOutputType::matlabStaticModel, {}, {}, tef_terms);
   for (auto aux_equation : aux_equations)
     {
       dynamic_cast<ExprNode *>(aux_equation->substituteStaticAuxiliaryDefinition())->writeOutput(output, output_type);
@@ -2418,12 +2418,12 @@ StaticModel::writeLatexAuxVarRecursiveDefinitions(ostream &output) const
     temporary_terms_idxs_t temporary_terms_idxs;
   for (auto aux_equation : aux_equations)
     if (dynamic_cast<ExprNode *>(aux_equation)->containsExternalFunction())
-      dynamic_cast<ExprNode *>(aux_equation)->writeExternalFunctionOutput(output, oLatexStaticModel,
+      dynamic_cast<ExprNode *>(aux_equation)->writeExternalFunctionOutput(output, ExprNodeOutputType::latexStaticModel,
                                                                               temporary_terms, temporary_terms_idxs, tef_terms);
   for (auto aux_equation : aux_equations)
     {
       output << "\\begin{dmath}" << endl;
-      dynamic_cast<ExprNode *>(aux_equation->substituteStaticAuxiliaryDefinition())->writeOutput(output, oLatexStaticModel);
+      dynamic_cast<ExprNode *>(aux_equation->substituteStaticAuxiliaryDefinition())->writeOutput(output, ExprNodeOutputType::latexStaticModel);
       output << endl << "\\end{dmath}" << endl;
     }
 }
@@ -2470,7 +2470,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
       && !hessian_params_derivatives.size())
     return;
 
-  ExprNodeOutputType output_type = (julia ? oJuliaStaticModel : oMatlabStaticModel);
+  ExprNodeOutputType output_type = (julia ? ExprNodeOutputType::juliaStaticModel : ExprNodeOutputType::matlabStaticModel);
 
   ostringstream model_local_vars_output;   // Used for storing model local vars
   ostringstream model_output;              // Used for storing model

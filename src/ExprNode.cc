@@ -104,10 +104,10 @@ ExprNode::checkIfTemporaryTermThenWrite(ostream &output, ExprNodeOutputType outp
   if (it == temporary_terms.end())
     return false;
 
-  if (output_type == oMatlabDynamicModelSparse)
+  if (output_type == ExprNodeOutputType::matlabDynamicModelSparse)
     output << "T" << idx << "(it_)";
   else
-    if (output_type == oMatlabStaticModelSparse || IS_C(output_type))
+    if (output_type == ExprNodeOutputType::matlabStaticModelSparse || isCOutput(output_type))
       output << "T" << idx;
     else
       {
@@ -177,7 +177,7 @@ ExprNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>
 void
 ExprNode::writeOutput(ostream &output) const
 {
-  writeOutput(output, oMatlabOutsideModel, {}, {});
+  writeOutput(output, ExprNodeOutputType::matlabOutsideModel, {}, {});
 }
 
 void
@@ -827,12 +827,12 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
     return;
 
-  if (IS_LATEX(output_type))
+  if (isLatexOutput(output_type))
     {
-      if (output_type == oLatexDynamicSteadyStateOperator)
+      if (output_type == ExprNodeOutputType::latexDynamicSteadyStateOperator)
         output << "\\bar";
       output << "{" << datatree.symbol_table.getTeXName(symb_id);
-      if (output_type == oLatexDynamicModel
+      if (output_type == ExprNodeOutputType::latexDynamicModel
           && (type == SymbolType::endogenous || type == SymbolType::exogenous || type == SymbolType::exogenousDet || type == SymbolType::modelLocalVariable || type == SymbolType::trend || type == SymbolType::logTrend))
         {
           output << "_{t";
@@ -854,16 +854,16 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     {
     case SymbolType::parameter:
     case SymbolType::parameterEpilogue:
-      if (output_type == oMatlabOutsideModel)
+      if (output_type == ExprNodeOutputType::matlabOutsideModel)
         output << "M_.params" << "(" << tsid + 1 << ")";
       else
         output << "params" << LEFT_ARRAY_SUBSCRIPT(output_type) << tsid + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type);
       break;
 
     case SymbolType::modelLocalVariable:
-      if (output_type == oMatlabDynamicModelSparse || output_type == oMatlabStaticModelSparse
-          || output_type == oMatlabDynamicSteadyStateOperator || output_type == oMatlabDynamicSparseSteadyStateOperator
-          || output_type == oCDynamicSteadyStateOperator)
+      if (output_type == ExprNodeOutputType::matlabDynamicModelSparse || output_type == ExprNodeOutputType::matlabStaticModelSparse
+          || output_type == ExprNodeOutputType::matlabDynamicSteadyStateOperator || output_type == ExprNodeOutputType::matlabDynamicSparseSteadyStateOperator
+          || output_type == ExprNodeOutputType::CDynamicSteadyStateOperator)
         {
           output << "(";
           datatree.getLocalVariable(symb_id)->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
@@ -882,20 +882,20 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     case SymbolType::endogenous:
       switch (output_type)
         {
-        case oJuliaDynamicModel:
-        case oMatlabDynamicModel:
-        case oCDynamicModel:
+        case ExprNodeOutputType::juliaDynamicModel:
+        case ExprNodeOutputType::matlabDynamicModel:
+        case ExprNodeOutputType::CDynamicModel:
           i = datatree.getDynJacobianCol(datatree.getDerivID(symb_id, lag)) + ARRAY_SUBSCRIPT_OFFSET(output_type);
           output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case oCStaticModel:
-        case oJuliaStaticModel:
-        case oMatlabStaticModel:
-        case oMatlabStaticModelSparse:
+        case ExprNodeOutputType::CStaticModel:
+        case ExprNodeOutputType::juliaStaticModel:
+        case ExprNodeOutputType::matlabStaticModel:
+        case ExprNodeOutputType::matlabStaticModelSparse:
           i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
           output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case oMatlabDynamicModelSparse:
+        case ExprNodeOutputType::matlabDynamicModelSparse:
           i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
           if (lag > 0)
             output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -904,27 +904,27 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           else
             output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_, " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case oMatlabOutsideModel:
+        case ExprNodeOutputType::matlabOutsideModel:
           output << "oo_.steady_state(" << tsid + 1 << ")";
           break;
-        case oJuliaDynamicSteadyStateOperator:
-        case oMatlabDynamicSteadyStateOperator:
-        case oMatlabDynamicSparseSteadyStateOperator:
+        case ExprNodeOutputType::juliaDynamicSteadyStateOperator:
+        case ExprNodeOutputType::matlabDynamicSteadyStateOperator:
+        case ExprNodeOutputType::matlabDynamicSparseSteadyStateOperator:
           output << "steady_state" << LEFT_ARRAY_SUBSCRIPT(output_type) << tsid + 1 << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case oCDynamicSteadyStateOperator:
+        case ExprNodeOutputType::CDynamicSteadyStateOperator:
           output << "steady_state[" << tsid << "]";
           break;
-        case oJuliaSteadyStateFile:
-        case oSteadyStateFile:
+        case ExprNodeOutputType::juliaSteadyStateFile:
+        case ExprNodeOutputType::steadyStateFile:
           output << "ys_" << LEFT_ARRAY_SUBSCRIPT(output_type) << tsid + 1 << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case oMatlabDseries:
+        case ExprNodeOutputType::matlabDseries:
           output << "ds." << datatree.symbol_table.getName(symb_id);
           if (lag != 0)
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case oEpilogueFile:
+        case ExprNodeOutputType::epilogueFile:
           output << datatree.symbol_table.getName(symb_id)
                  << LEFT_ARRAY_SUBSCRIPT(output_type) << "epilogue_it__";
           if (lag != 0)
@@ -941,9 +941,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
       switch (output_type)
         {
-        case oJuliaDynamicModel:
-        case oMatlabDynamicModel:
-        case oMatlabDynamicModelSparse:
+        case ExprNodeOutputType::juliaDynamicModel:
+        case ExprNodeOutputType::matlabDynamicModel:
+        case ExprNodeOutputType::matlabDynamicModelSparse:
           if (lag > 0)
             output <<  "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i
                    << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -954,7 +954,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output <<  "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_, " << i
                    << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case oCDynamicModel:
+        case ExprNodeOutputType::CDynamicModel:
           if (lag == 0)
             output <<  "x[it_+" << i << "*nb_row_x]";
           else if (lag > 0)
@@ -962,29 +962,29 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           else
             output <<  "x[it_" << lag << "+" << i << "*nb_row_x]";
           break;
-        case oCStaticModel:
-        case oJuliaStaticModel:
-        case oMatlabStaticModel:
-        case oMatlabStaticModelSparse:
+        case ExprNodeOutputType::CStaticModel:
+        case ExprNodeOutputType::juliaStaticModel:
+        case ExprNodeOutputType::matlabStaticModel:
+        case ExprNodeOutputType::matlabStaticModelSparse:
           output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case oMatlabOutsideModel:
+        case ExprNodeOutputType::matlabOutsideModel:
           assert(lag == 0);
           output <<  "oo_.exo_steady_state(" << i << ")";
           break;
-        case oMatlabDynamicSteadyStateOperator:
+        case ExprNodeOutputType::matlabDynamicSteadyStateOperator:
           output <<  "oo_.exo_steady_state(" << i << ")";
           break;
-        case oJuliaSteadyStateFile:
-        case oSteadyStateFile:
+        case ExprNodeOutputType::juliaSteadyStateFile:
+        case ExprNodeOutputType::steadyStateFile:
           output << "exo_" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case oMatlabDseries:
+        case ExprNodeOutputType::matlabDseries:
           output << "ds." << datatree.symbol_table.getName(symb_id);
           if (lag != 0)
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case oEpilogueFile:
+        case ExprNodeOutputType::epilogueFile:
           output << datatree.symbol_table.getName(symb_id)
                  << LEFT_ARRAY_SUBSCRIPT(output_type) << "epilogue_it__";
           if (lag != 0)
@@ -1001,9 +1001,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       i = tsid + datatree.symbol_table.exo_nbr() + ARRAY_SUBSCRIPT_OFFSET(output_type);
       switch (output_type)
         {
-        case oJuliaDynamicModel:
-        case oMatlabDynamicModel:
-        case oMatlabDynamicModelSparse:
+        case ExprNodeOutputType::juliaDynamicModel:
+        case ExprNodeOutputType::matlabDynamicModel:
+        case ExprNodeOutputType::matlabDynamicModelSparse:
           if (lag > 0)
             output <<  "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i
                    << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -1014,7 +1014,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output <<  "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_, " << i
                    << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case oCDynamicModel:
+        case ExprNodeOutputType::CDynamicModel:
           if (lag == 0)
             output <<  "x[it_+" << i << "*nb_row_x]";
           else if (lag > 0)
@@ -1022,29 +1022,29 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           else
             output <<  "x[it_" << lag << "+" << i << "*nb_row_x]";
           break;
-        case oCStaticModel:
-        case oJuliaStaticModel:
-        case oMatlabStaticModel:
-        case oMatlabStaticModelSparse:
+        case ExprNodeOutputType::CStaticModel:
+        case ExprNodeOutputType::juliaStaticModel:
+        case ExprNodeOutputType::matlabStaticModel:
+        case ExprNodeOutputType::matlabStaticModelSparse:
           output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case oMatlabOutsideModel:
+        case ExprNodeOutputType::matlabOutsideModel:
           assert(lag == 0);
           output <<  "oo_.exo_det_steady_state(" << tsid + 1 << ")";
           break;
-        case oMatlabDynamicSteadyStateOperator:
+        case ExprNodeOutputType::matlabDynamicSteadyStateOperator:
           output <<  "oo_.exo_det_steady_state(" << tsid + 1 << ")";
           break;
-        case oJuliaSteadyStateFile:
-        case oSteadyStateFile:
+        case ExprNodeOutputType::juliaSteadyStateFile:
+        case ExprNodeOutputType::steadyStateFile:
           output << "exo_" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case oMatlabDseries:
+        case ExprNodeOutputType::matlabDseries:
           output << "ds." << datatree.symbol_table.getName(symb_id);
           if (lag != 0)
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case oEpilogueFile:
+        case ExprNodeOutputType::epilogueFile:
           output << datatree.symbol_table.getName(symb_id)
                  << LEFT_ARRAY_SUBSCRIPT(output_type) << "epilogue_it__";
           if (lag != 0)
@@ -2467,13 +2467,13 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << "exp";
       break;
     case UnaryOpcode::log:
-      if (IS_LATEX(output_type))
+      if (isLatexOutput(output_type))
         output << "\\log";
       else
         output << "log";
       break;
     case UnaryOpcode::log10:
-      if (IS_LATEX(output_type))
+      if (isLatexOutput(output_type))
         output << "\\log_{10}";
       else
         output << "log10";
@@ -2521,7 +2521,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << "abs";
       break;
     case UnaryOpcode::sign:
-      if (output_type == oCDynamicModel || output_type == oCStaticModel)
+      if (output_type == ExprNodeOutputType::CDynamicModel || output_type == ExprNodeOutputType::CStaticModel)
         output << "copysign";
       else
         output << "sign";
@@ -2530,20 +2530,20 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       ExprNodeOutputType new_output_type;
       switch (output_type)
         {
-        case oMatlabDynamicModel:
-          new_output_type = oMatlabDynamicSteadyStateOperator;
+        case ExprNodeOutputType::matlabDynamicModel:
+          new_output_type = ExprNodeOutputType::matlabDynamicSteadyStateOperator;
           break;
-        case oLatexDynamicModel:
-          new_output_type = oLatexDynamicSteadyStateOperator;
+        case ExprNodeOutputType::latexDynamicModel:
+          new_output_type = ExprNodeOutputType::latexDynamicSteadyStateOperator;
           break;
-        case oCDynamicModel:
-          new_output_type = oCDynamicSteadyStateOperator;
+        case ExprNodeOutputType::CDynamicModel:
+          new_output_type = ExprNodeOutputType::CDynamicSteadyStateOperator;
           break;
-        case oJuliaDynamicModel:
-          new_output_type = oJuliaDynamicSteadyStateOperator;
+        case ExprNodeOutputType::juliaDynamicModel:
+          new_output_type = ExprNodeOutputType::juliaDynamicSteadyStateOperator;
           break;
-        case oMatlabDynamicModelSparse:
-          new_output_type = oMatlabDynamicSparseSteadyStateOperator;
+        case ExprNodeOutputType::matlabDynamicModelSparse:
+          new_output_type = ExprNodeOutputType::matlabDynamicSparseSteadyStateOperator;
           break;
         default:
           new_output_type = output_type;
@@ -2561,7 +2561,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         assert(datatree.symbol_table.getType(param1_symb_id) == SymbolType::parameter);
         int tsid_endo = datatree.symbol_table.getTypeSpecificID(varg->symb_id);
         int tsid_param = datatree.symbol_table.getTypeSpecificID(param1_symb_id);
-        assert(IS_MATLAB(output_type));
+        assert(isMatlabOutput(output_type));
         output << "ss_param_deriv(" << tsid_endo+1 << "," << tsid_param+1 << ")";
       }
       return;
@@ -2575,13 +2575,13 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         int tsid_endo = datatree.symbol_table.getTypeSpecificID(varg->symb_id);
         int tsid_param1 = datatree.symbol_table.getTypeSpecificID(param1_symb_id);
         int tsid_param2 = datatree.symbol_table.getTypeSpecificID(param2_symb_id);
-        assert(IS_MATLAB(output_type));
+        assert(isMatlabOutput(output_type));
         output << "ss_param_2nd_deriv(" << tsid_endo+1 << "," << tsid_param1+1
                << "," << tsid_param2+1 << ")";
       }
       return;
     case UnaryOpcode::expectation:
-      if (!IS_LATEX(output_type))
+      if (!isLatexOutput(output_type))
         {
           cerr << "UnaryOpNode::writeOutput: not implemented on UnaryOpcode::expectation" << endl;
           exit(EXIT_FAILURE);
@@ -2617,7 +2617,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           && arg->precedence(output_type, temporary_terms) < precedence(output_type, temporary_terms)))
     {
       output << LEFT_PAR(output_type);
-      if (op_code == UnaryOpcode::sign && (output_type == oCDynamicModel || output_type == oCStaticModel))
+      if (op_code == UnaryOpcode::sign && (output_type == ExprNodeOutputType::CDynamicModel || output_type == ExprNodeOutputType::CStaticModel))
         output << "1.0,";
       close_parenthesis = true;
     }
@@ -3761,7 +3761,7 @@ BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t
       return 4;
     case BinaryOpcode::power:
     case BinaryOpcode::powerDeriv:
-      if (IS_C(output_type))
+      if (isCOutput(output_type))
         // In C, power operator is of the form pow(a, b)
         return 100;
       else
@@ -4216,11 +4216,11 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   // Treat derivative of Power
   if (op_code == BinaryOpcode::powerDeriv)
     {
-      if (IS_LATEX(output_type))
+      if (isLatexOutput(output_type))
         unpackPowerDeriv()->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
       else
         {
-          if (output_type == oJuliaStaticModel || output_type == oJuliaDynamicModel)
+          if (output_type == ExprNodeOutputType::juliaStaticModel || output_type == ExprNodeOutputType::juliaDynamicModel)
             output << "get_power_deriv(";
           else
             output << "getPowerDeriv(";
@@ -4233,7 +4233,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
 
   // Treat special case of power operator in C, and case of max and min operators
-  if ((op_code == BinaryOpcode::power && IS_C(output_type)) || op_code == BinaryOpcode::max || op_code == BinaryOpcode::min)
+  if ((op_code == BinaryOpcode::power && isCOutput(output_type)) || op_code == BinaryOpcode::max || op_code == BinaryOpcode::min)
     {
       switch (op_code)
         {
@@ -4260,7 +4260,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
   bool close_parenthesis = false;
 
-  if (IS_LATEX(output_type) && op_code == BinaryOpcode::divide)
+  if (isLatexOutput(output_type) && op_code == BinaryOpcode::divide)
     output << "\\frac{";
   else
     {
@@ -4280,7 +4280,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   if (close_parenthesis)
     output << RIGHT_PAR(output_type);
 
-  if (IS_LATEX(output_type) && op_code == BinaryOpcode::divide)
+  if (isLatexOutput(output_type) && op_code == BinaryOpcode::divide)
     output << "}";
 
   // Write current operator symbol
@@ -4293,13 +4293,13 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << "-";
       break;
     case BinaryOpcode::times:
-      if (IS_LATEX(output_type))
+      if (isLatexOutput(output_type))
         output << "\\, ";
       else
         output << "*";
       break;
     case BinaryOpcode::divide:
-      if (!IS_LATEX(output_type))
+      if (!isLatexOutput(output_type))
         output << "/";
       break;
     case BinaryOpcode::power:
@@ -4312,13 +4312,13 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << ">";
       break;
     case BinaryOpcode::lessEqual:
-      if (IS_LATEX(output_type))
+      if (isLatexOutput(output_type))
         output << "\\leq ";
       else
         output << "<=";
       break;
     case BinaryOpcode::greaterEqual:
-      if (IS_LATEX(output_type))
+      if (isLatexOutput(output_type))
         output << "\\geq ";
       else
         output << ">=";
@@ -4327,11 +4327,11 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << "==";
       break;
     case BinaryOpcode::different:
-      if (IS_MATLAB(output_type))
+      if (isMatlabOutput(output_type))
         output << "~=";
       else
         {
-          if (IS_C(output_type) || IS_JULIA(output_type))
+          if (isCOutput(output_type) || isJuliaOutput(output_type))
             output << "!=";
           else
             output << "\\neq ";
@@ -4346,7 +4346,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
   close_parenthesis = false;
 
-  if (IS_LATEX(output_type) && (op_code == BinaryOpcode::power || op_code == BinaryOpcode::divide))
+  if (isLatexOutput(output_type) && (op_code == BinaryOpcode::power || op_code == BinaryOpcode::divide))
     output << "{";
   else
     {
@@ -4358,9 +4358,9 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       auto *barg2 = dynamic_cast<BinaryOpNode *>(arg2);
       int arg2_prec = arg2->precedence(output_type, temporary_terms);
       if (arg2_prec < prec
-          || (op_code == BinaryOpcode::power && barg2 != nullptr && barg2->op_code == BinaryOpcode::power && !IS_LATEX(output_type))
+          || (op_code == BinaryOpcode::power && barg2 != nullptr && barg2->op_code == BinaryOpcode::power && !isLatexOutput(output_type))
           || (op_code == BinaryOpcode::minus && arg2_prec == prec)
-          || (op_code == BinaryOpcode::divide && arg2_prec == prec && !IS_LATEX(output_type)))
+          || (op_code == BinaryOpcode::divide && arg2_prec == prec && !isLatexOutput(output_type)))
         {
           output << LEFT_PAR(output_type);
           close_parenthesis = true;
@@ -4370,7 +4370,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   // Write right argument
   arg2->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 
-  if (IS_LATEX(output_type) && (op_code == BinaryOpcode::power || op_code == BinaryOpcode::divide))
+  if (isLatexOutput(output_type) && (op_code == BinaryOpcode::power || op_code == BinaryOpcode::divide))
     output << "}";
 
   if (close_parenthesis)
@@ -5830,7 +5830,7 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   switch (op_code)
     {
     case TrinaryOpcode::normcdf:
-      if (IS_C(output_type))
+      if (isCOutput(output_type))
         {
           // In C, there is no normcdf() primitive, so use erf()
           output << "(0.5*(1+erf(((";
@@ -5853,7 +5853,7 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         }
       break;
     case TrinaryOpcode::normpdf:
-      if (IS_C(output_type))
+      if (isCOutput(output_type))
         {
           //(1/(v3*sqrt(2*M_PI)*exp(pow((v1-v2)/v3,2)/2)))
           output << "(1/(";
@@ -7121,11 +7121,11 @@ ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_typ
                                   const temporary_terms_idxs_t &temporary_terms_idxs,
                                   const deriv_node_temp_terms_t &tef_terms) const
 {
-  if (output_type == oMatlabOutsideModel || output_type == oSteadyStateFile
-      || output_type == oJuliaSteadyStateFile
-      || IS_LATEX(output_type))
+  if (output_type == ExprNodeOutputType::matlabOutsideModel || output_type == ExprNodeOutputType::steadyStateFile
+      || output_type == ExprNodeOutputType::juliaSteadyStateFile
+      || isLatexOutput(output_type))
     {
-      string name = IS_LATEX(output_type) ? datatree.symbol_table.getTeXName(symb_id)
+      string name = isLatexOutput(output_type) ? datatree.symbol_table.getTeXName(symb_id)
         : datatree.symbol_table.getName(symb_id);
       output << name << "(";
       writeExternalFunctionArguments(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
@@ -7136,7 +7136,7 @@ ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_typ
   if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
     return;
 
-  if (IS_C(output_type))
+  if (isCOutput(output_type))
     output << "*";
   output << "TEF_" << getIndxInTefTerms(symb_id, tef_terms);
 }
@@ -7160,7 +7160,7 @@ ExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutpu
       int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
       assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
 
-      if (IS_C(output_type))
+      if (isCOutput(output_type))
         {
           stringstream ending;
           ending << "_tef_" << getIndxInTefTerms(symb_id, tef_terms);
@@ -7367,9 +7367,9 @@ FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType 
                                             const temporary_terms_idxs_t &temporary_terms_idxs,
                                             const deriv_node_temp_terms_t &tef_terms) const
 {
-  assert(output_type != oMatlabOutsideModel);
+  assert(output_type != ExprNodeOutputType::matlabOutsideModel);
 
-  if (IS_LATEX(output_type))
+  if (isLatexOutput(output_type))
     {
       output << "\\frac{\\partial " << datatree.symbol_table.getTeXName(symb_id)
              << "}{\\partial " << inputIndex << "}(";
@@ -7391,7 +7391,7 @@ FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType 
            << LEFT_ARRAY_SUBSCRIPT(output_type) << tmpIndx << RIGHT_ARRAY_SUBSCRIPT(output_type);
   else if (first_deriv_symb_id == eExtFunNotSet)
     {
-      if (IS_C(output_type))
+      if (isCOutput(output_type))
         output << "*";
       output << "TEFD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex;
     }
@@ -7444,7 +7444,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
                                                             const temporary_terms_idxs_t &temporary_terms_idxs,
                                                             deriv_node_temp_terms_t &tef_terms) const
 {
-  assert(output_type != oMatlabOutsideModel);
+  assert(output_type != ExprNodeOutputType::matlabOutsideModel);
   int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
   assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
 
@@ -7461,7 +7461,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
   if (alreadyWrittenAsTefTerm(first_deriv_symb_id, tef_terms))
     return;
 
-  if (IS_C(output_type))
+  if (isCOutput(output_type))
     if (first_deriv_symb_id == eExtFunNotSet)
       {
         stringstream ending;
@@ -7748,9 +7748,9 @@ SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType
                                              const temporary_terms_idxs_t &temporary_terms_idxs,
                                              const deriv_node_temp_terms_t &tef_terms) const
 {
-  assert(output_type != oMatlabOutsideModel);
+  assert(output_type != ExprNodeOutputType::matlabOutsideModel);
 
-  if (IS_LATEX(output_type))
+  if (isLatexOutput(output_type))
     {
       output << "\\frac{\\partial^2 " << datatree.symbol_table.getTeXName(symb_id)
              << "}{\\partial " << inputIndex1 << "\\partial " << inputIndex2 << "}(";
@@ -7770,7 +7770,7 @@ SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType
 
   int indx = getIndxInTefTerms(symb_id, tef_terms);
   if (second_deriv_symb_id == symb_id)
-    if (IS_C(output_type))
+    if (isCOutput(output_type))
       output << "TEFDD_" << indx
              << LEFT_ARRAY_SUBSCRIPT(output_type) << tmpIndex1 << " * TEFDD_" << indx << "_nrows + "
              << tmpIndex2 << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -7779,12 +7779,12 @@ SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType
              << LEFT_ARRAY_SUBSCRIPT(output_type) << tmpIndex1 << "," << tmpIndex2 << RIGHT_ARRAY_SUBSCRIPT(output_type);
   else if (second_deriv_symb_id == eExtFunNotSet)
     {
-      if (IS_C(output_type))
+      if (isCOutput(output_type))
         output << "*";
       output << "TEFDD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex1 << "_" << inputIndex2;
     }
   else
-    if (IS_C(output_type))
+    if (isCOutput(output_type))
       output << "TEFDD_def_" << getIndxInTefTerms(second_deriv_symb_id, tef_terms)
              << LEFT_ARRAY_SUBSCRIPT(output_type) << tmpIndex1 << " * PROBLEM_" << indx << "_nrows"
              << tmpIndex2 << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -7799,7 +7799,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
                                                              const temporary_terms_idxs_t &temporary_terms_idxs,
                                                              deriv_node_temp_terms_t &tef_terms) const
 {
-  assert(output_type != oMatlabOutsideModel);
+  assert(output_type != ExprNodeOutputType::matlabOutsideModel);
   int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
   assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
 
@@ -7816,7 +7816,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
   if (alreadyWrittenAsTefTerm(second_deriv_symb_id, tef_terms))
     return;
 
-  if (IS_C(output_type))
+  if (isCOutput(output_type))
     if (second_deriv_symb_id == eExtFunNotSet)
       {
         stringstream ending;
@@ -8060,9 +8060,9 @@ VarExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                                 const temporary_terms_idxs_t &temporary_terms_idxs,
                                 const deriv_node_temp_terms_t &tef_terms) const
 {
-  assert(output_type != oMatlabOutsideModel);
+  assert(output_type != ExprNodeOutputType::matlabOutsideModel);
 
-  if (IS_LATEX(output_type))
+  if (isLatexOutput(output_type))
     {
       output << "VAR_EXPECTATION(" << model_name << ')';
       return;
@@ -8505,9 +8505,9 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                                 const temporary_terms_idxs_t &temporary_terms_idxs,
                                 const deriv_node_temp_terms_t &tef_terms) const
 {
-  assert(output_type != oMatlabOutsideModel);
+  assert(output_type != ExprNodeOutputType::matlabOutsideModel);
 
-  if (IS_LATEX(output_type))
+  if (isLatexOutput(output_type))
     {
       output << "PAC_EXPECTATION" << LEFT_PAR(output_type) << model_name << RIGHT_PAR(output_type);
       return;

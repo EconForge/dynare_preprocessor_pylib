@@ -67,65 +67,81 @@ using deriv_node_temp_terms_t = map<pair<int, vector<expr_t>>, int>;
 using diff_table_t = map<expr_t, map<int, expr_t>>;
 
 //! Possible types of output when writing ExprNode(s)
-enum ExprNodeOutputType
+enum class ExprNodeOutputType
   {
-    oMatlabStaticModel,                           //!< Matlab code, static model
-    oMatlabDynamicModel,                          //!< Matlab code, dynamic model
-    oMatlabStaticModelSparse,                     //!< Matlab code, static block decomposed model
-    oMatlabDynamicModelSparse,                    //!< Matlab code, dynamic block decomposed model
-    oCDynamicModel,                               //!< C code, dynamic model
-    oCStaticModel,                                //!< C code, static model
-    oJuliaStaticModel,                            //!< Julia code, static model
-    oJuliaDynamicModel,                           //!< Julia code, dynamic model
-    oMatlabOutsideModel,                          //!< Matlab code, outside model block (for example in initval)
-    oLatexStaticModel,                            //!< LaTeX code, static model
-    oLatexDynamicModel,                           //!< LaTeX code, dynamic model
-    oLatexDynamicSteadyStateOperator,             //!< LaTeX code, dynamic model, inside a steady state operator
-    oMatlabDynamicSteadyStateOperator,            //!< Matlab code, dynamic model, inside a steady state operator
-    oMatlabDynamicSparseSteadyStateOperator,      //!< Matlab code, dynamic block decomposed model, inside a steady state operator
-    oCDynamicSteadyStateOperator,                 //!< C code, dynamic model, inside a steady state operator
-    oJuliaDynamicSteadyStateOperator,             //!< Julia code, dynamic model, inside a steady state operator
-    oSteadyStateFile,                             //!< Matlab code, in the generated steady state file
-    oJuliaSteadyStateFile,                        //!< Julia code, in the generated steady state file
-    oMatlabDseries,                               //!< Matlab code for dseries
-    oEpilogueFile                                 //!< Matlab code, in the generated epilogue file
+    matlabStaticModel,                           //!< Matlab code, static model
+    matlabDynamicModel,                          //!< Matlab code, dynamic model
+    matlabStaticModelSparse,                     //!< Matlab code, static block decomposed model
+    matlabDynamicModelSparse,                    //!< Matlab code, dynamic block decomposed model
+    CDynamicModel,                               //!< C code, dynamic model
+    CStaticModel,                                //!< C code, static model
+    juliaStaticModel,                            //!< Julia code, static model
+    juliaDynamicModel,                           //!< Julia code, dynamic model
+    matlabOutsideModel,                          //!< Matlab code, outside model block (for example in initval)
+    latexStaticModel,                            //!< LaTeX code, static model
+    latexDynamicModel,                           //!< LaTeX code, dynamic model
+    latexDynamicSteadyStateOperator,             //!< LaTeX code, dynamic model, inside a steady state operator
+    matlabDynamicSteadyStateOperator,            //!< Matlab code, dynamic model, inside a steady state operator
+    matlabDynamicSparseSteadyStateOperator,      //!< Matlab code, dynamic block decomposed model, inside a steady state operator
+    CDynamicSteadyStateOperator,                 //!< C code, dynamic model, inside a steady state operator
+    juliaDynamicSteadyStateOperator,             //!< Julia code, dynamic model, inside a steady state operator
+    steadyStateFile,                             //!< Matlab code, in the generated steady state file
+    juliaSteadyStateFile,                        //!< Julia code, in the generated steady state file
+    matlabDseries,                               //!< Matlab code for dseries
+    epilogueFile                                 //!< Matlab code, in the generated epilogue file
   };
 
-#define IS_MATLAB(output_type) ((output_type) == oMatlabStaticModel     \
-                                || (output_type) == oMatlabDynamicModel \
-                                || (output_type) == oMatlabOutsideModel \
-                                || (output_type) == oMatlabStaticModelSparse \
-                                || (output_type) == oMatlabDynamicModelSparse \
-                                || (output_type) == oMatlabDynamicSteadyStateOperator \
-                                || (output_type) == oMatlabDynamicSparseSteadyStateOperator \
-                                || (output_type) == oSteadyStateFile \
-                                || (output_type) == oMatlabDseries \
-                                || (output_type) == oEpilogueFile)
+inline bool
+isMatlabOutput(ExprNodeOutputType output_type)
+{
+  return output_type == ExprNodeOutputType::matlabStaticModel
+    || output_type == ExprNodeOutputType::matlabDynamicModel
+    || output_type == ExprNodeOutputType::matlabOutsideModel
+    || output_type == ExprNodeOutputType::matlabStaticModelSparse
+    || output_type == ExprNodeOutputType::matlabDynamicModelSparse
+    || output_type == ExprNodeOutputType::matlabDynamicSteadyStateOperator
+    || output_type == ExprNodeOutputType::matlabDynamicSparseSteadyStateOperator
+    || output_type == ExprNodeOutputType::steadyStateFile
+    || output_type == ExprNodeOutputType::matlabDseries
+    || output_type == ExprNodeOutputType::epilogueFile;
+}
 
-#define IS_JULIA(output_type) ((output_type) == oJuliaStaticModel       \
-                               || (output_type) == oJuliaDynamicModel   \
-                               || (output_type) == oJuliaDynamicSteadyStateOperator \
-                               || (output_type) == oJuliaSteadyStateFile)
+inline bool
+isJuliaOutput(ExprNodeOutputType output_type)
+{
+  return output_type == ExprNodeOutputType::juliaStaticModel
+    || output_type == ExprNodeOutputType::juliaDynamicModel
+    || output_type == ExprNodeOutputType::juliaDynamicSteadyStateOperator
+    || output_type == ExprNodeOutputType::juliaSteadyStateFile;
+}
 
-#define IS_C(output_type) ((output_type) == oCDynamicModel              \
-                           || (output_type) == oCStaticModel            \
-                           || (output_type) == oCDynamicSteadyStateOperator)
+inline bool
+isCOutput(ExprNodeOutputType output_type)
+{
+  return output_type == ExprNodeOutputType::CDynamicModel
+    || output_type == ExprNodeOutputType::CStaticModel
+    || output_type == ExprNodeOutputType::CDynamicSteadyStateOperator;
+}
 
-#define IS_LATEX(output_type) ((output_type) == oLatexStaticModel       \
-                               || (output_type) == oLatexDynamicModel   \
-                               || (output_type) == oLatexDynamicSteadyStateOperator)
+inline bool
+isLatexOutput(ExprNodeOutputType output_type)
+{
+  return output_type == ExprNodeOutputType::latexStaticModel
+    || output_type == ExprNodeOutputType::latexDynamicModel
+    || output_type == ExprNodeOutputType::latexDynamicSteadyStateOperator;
+}
 
 /* Equal to 1 for Matlab langage or Julia, or to 0 for C language. Not defined for LaTeX.
    In Matlab and Julia, array indexes begin at 1, while they begin at 0 in C */
-#define ARRAY_SUBSCRIPT_OFFSET(output_type) ((int) (IS_MATLAB(output_type) || IS_JULIA(output_type)))
+#define ARRAY_SUBSCRIPT_OFFSET(output_type) ((int) (isMatlabOutput(output_type) || isJuliaOutput(output_type)))
 
 // Left and right array subscript delimiters: '(' and ')' for Matlab, '[' and ']' for C
-#define LEFT_ARRAY_SUBSCRIPT(output_type) (IS_MATLAB(output_type) ? '(' : '[')
-#define RIGHT_ARRAY_SUBSCRIPT(output_type) (IS_MATLAB(output_type) ? ')' : ']')
+#define LEFT_ARRAY_SUBSCRIPT(output_type) (isMatlabOutput(output_type) ? '(' : '[')
+#define RIGHT_ARRAY_SUBSCRIPT(output_type) (isMatlabOutput(output_type) ? ')' : ']')
 
 // Left and right parentheses
-#define LEFT_PAR(output_type) (IS_LATEX(output_type) ? "\\left(" : "(")
-#define RIGHT_PAR(output_type) (IS_LATEX(output_type) ? "\\right)" : ")")
+#define LEFT_PAR(output_type) (isLatexOutput(output_type) ? "\\left(" : "(")
+#define RIGHT_PAR(output_type) (isLatexOutput(output_type) ? "\\right)" : ")")
 
 //! Base class for expression nodes
 class ExprNode

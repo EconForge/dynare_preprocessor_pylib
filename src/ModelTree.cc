@@ -279,7 +279,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
           catch (ExprNode::EvalException &e)
             {
               cerr << "ERROR: evaluation of Jacobian failed for equation " << eq+1 << " (line " << equations_lineno[eq] << ") and variable " << symbol_table.getName(symb) << "(" << lag << ") [" << symb << "] !" << endl;
-              Id->writeOutput(cerr, oMatlabDynamicModelSparse, temporary_terms, {});
+              Id->writeOutput(cerr, ExprNodeOutputType::matlabDynamicModelSparse, temporary_terms, {});
               cerr << endl;
               exit(EXIT_FAILURE);
             }
@@ -1193,16 +1193,16 @@ ModelTree::writeModelLocalVariableTemporaryTerms(const temporary_terms_t &tto, c
   temporary_terms_t tt2;
   for (auto it : tt)
     {
-      if (IS_C(output_type))
+      if (isCOutput(output_type))
         output << "double ";
-      else if (IS_JULIA(output_type))
+      else if (isJuliaOutput(output_type))
         output << "    @inbounds const ";
 
       it.first->writeOutput(output, output_type, tto, temporary_terms_idxs, tef_terms);
       output << " = ";
       it.second->writeOutput(output, output_type, tt2, temporary_terms_idxs, tef_terms);
 
-      if (IS_C(output_type) || IS_MATLAB(output_type))
+      if (isCOutput(output_type) || isMatlabOutput(output_type))
         output << ";";
       output << endl;
 
@@ -1225,16 +1225,16 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt,
       if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != nullptr)
         (*it)->writeExternalFunctionOutput(output, output_type, tt2, tt_idxs, tef_terms);
 
-      if (IS_C(output_type))
+      if (isCOutput(output_type))
         output << "double ";
-      else if (IS_JULIA(output_type))
+      else if (isJuliaOutput(output_type))
         output << "    @inbounds ";
 
       (*it)->writeOutput(output, output_type, tt, tt_idxs, tef_terms);
       output << " = ";
       (*it)->writeOutput(output, output_type, tt2, tt_idxs, tef_terms);
 
-      if (IS_C(output_type) || IS_MATLAB(output_type))
+      if (isCOutput(output_type) || isMatlabOutput(output_type))
         output << ";";
       output << endl;
 
@@ -1527,7 +1527,7 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type,
         }
 
       if (vrhs != 0) // The right hand side of the equation is not empty ==> residual=lhs-rhs;
-        if (IS_JULIA(output_type))
+        if (isJuliaOutput(output_type))
           {
             output << "    @inbounds residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
                    << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
@@ -1553,7 +1553,7 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type,
           }
       else // The right hand side of the equation is empty ==> residual=lhs;
         {
-          if (IS_JULIA(output_type))
+          if (isJuliaOutput(output_type))
             output << "    @inbounds ";
           output << "residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
                  << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
@@ -1801,10 +1801,10 @@ ModelTree::set_cutoff_to_zero()
 void
 ModelTree::jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const
 {
-  if (IS_JULIA(output_type))
+  if (isJuliaOutput(output_type))
     output << "    @inbounds ";
   output << "g1" << LEFT_ARRAY_SUBSCRIPT(output_type);
-  if (IS_MATLAB(output_type) || IS_JULIA(output_type))
+  if (isMatlabOutput(output_type) || isJuliaOutput(output_type))
     output << eq_nb + 1 << "," << col_nb + 1;
   else
     output << eq_nb + col_nb *equations.size();
@@ -1815,7 +1815,7 @@ void
 ModelTree::sparseHelper(int order, ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const
 {
   output << "v" << order << LEFT_ARRAY_SUBSCRIPT(output_type);
-  if (IS_MATLAB(output_type) || IS_JULIA(output_type))
+  if (isMatlabOutput(output_type) || isJuliaOutput(output_type))
     output << row_nb + 1 << "," << col_nb + 1;
   else
     output << row_nb + col_nb * NNZDerivatives[order-1];

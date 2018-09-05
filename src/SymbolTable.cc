@@ -371,7 +371,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
             output << "M_.aux_vars(" << i+1 << ").orig_expr = '\\mathbb{E}_{t"
                    << (aux_vars[i].get_information_set() < 0 ? "" : "+")
                    << aux_vars[i].get_information_set() << "}(";
-            aux_vars[i].get_expr_node()->writeOutput(output, oLatexDynamicModel);
+            aux_vars[i].get_expr_node()->writeOutput(output, ExprNodeOutputType::latexDynamicModel);
             output << ")';" << endl;
             break;
           case AuxVarType::diff:
@@ -1139,7 +1139,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
               output << "typemin(Int), typemin(Int), typemin(Int), \"\\mathbb{E}_{t"
                      << (aux_var.get_information_set() < 0 ? "" : "+")
                      << aux_var.get_information_set() << "}(";
-              aux_var.get_expr_node()->writeOutput(output, oLatexDynamicModel);
+              aux_var.get_expr_node()->writeOutput(output, ExprNodeOutputType::latexDynamicModel);
               output << ")\"";
               break;
             default:

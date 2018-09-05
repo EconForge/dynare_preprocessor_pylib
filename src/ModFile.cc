@@ -1009,19 +1009,19 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
       auto ivs = dynamic_cast<InitValStatement *>(statement.get());
       if (ivs != nullptr)
         {
-          static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
+          static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
           ivs->writeOutputPostInit(mOutputFile);
         }
 
       // Special treatment for endval block: insert initial values for the auxiliary variables
       auto evs = dynamic_cast<EndValStatement *>(statement.get());
       if (evs != nullptr)
-        static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
+        static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
 
       // Special treatment for load params and steady state statement: insert initial values for the auxiliary variables
       auto lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(statement.get());
       if (lpass && !no_static)
-        static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
+        static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
     }
 
   mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl
