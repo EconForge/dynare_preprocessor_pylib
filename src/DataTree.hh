@@ -38,19 +38,7 @@ using namespace std;
 
 class DataTree
 {
-  friend class ExprNode;
-  friend class NumConstNode;
-  friend class VariableNode;
-  friend class UnaryOpNode;
-  friend class BinaryOpNode;
-  friend class TrinaryOpNode;
-  friend class AbstractExternalFunctionNode;
-  friend class ExternalFunctionNode;
-  friend class FirstDerivExternalFunctionNode;
-  friend class SecondDerivExternalFunctionNode;
-  friend class VarExpectationNode;
-  friend class PacExpectationNode;
-protected:
+public:
   //! A reference to the symbol table
   SymbolTable &symbol_table;
   //! Reference to numerical constants table
@@ -62,6 +50,7 @@ protected:
   //! A reference to the VAR model table
   VarModelTable &var_model_table;
 
+protected:
   //! num_constant_id -> NumConstNode
   using num_const_node_map_t = map<int, NumConstNode *>;
   num_const_node_map_t num_const_node_map;
@@ -126,7 +115,6 @@ private:
   //! The list of nodes
   vector<unique_ptr<ExprNode>> node_list;
 
-  inline expr_t AddPossiblyNegativeConstant(double val);
   inline expr_t AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set = 0, int param1_symb_id = 0, int param2_symb_id = 0, const string &adl_param_name = "", const vector<int> &adl_lags = vector<int>());
   inline expr_t AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerDerivOrder = 0);
   inline expr_t AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t arg3);
@@ -157,6 +145,7 @@ public:
   {
   };
 
+  inline expr_t AddPossiblyNegativeConstant(double val);
   //! Adds a non-negative numerical constant (possibly Inf or NaN)
   expr_t AddNonNegativeConstant(const string &value);
   //! Adds a variable
@@ -316,6 +305,25 @@ public:
   {
     return false;
   };
+
+  class UnknownLocalVariableException
+  {
+  public:
+    //! Symbol ID
+    int id;
+    UnknownLocalVariableException(int id_arg) : id(id_arg)
+    {
+    }
+  };
+
+  expr_t getLocalVariable(int symb_id) const
+  {
+    auto it = local_variables_table.find(symb_id);
+    if (it == local_variables_table.end())
+      throw UnknownLocalVariableException(symb_id);
+
+    return it->second;
+  }
 };
 
 inline expr_t
