@@ -24,7 +24,7 @@ using namespace std;
 
 #include <string>
 #include <map>
-#include <list>
+#include <vector>
 #include <sstream>
 #include <iomanip>
 #include <cmath>
@@ -123,11 +123,8 @@ protected:
 private:
   const static int constants_precision{16};
 
-  using node_list_t = list<expr_t>;
   //! The list of nodes
-  node_list_t node_list;
-  //! A counter for filling ExprNode's idx field
-  int node_counter;
+  vector<unique_ptr<ExprNode>> node_list;
 
   inline expr_t AddPossiblyNegativeConstant(double val);
   inline expr_t AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set = 0, int param1_symb_id = 0, int param2_symb_id = 0, const string &adl_param_name = "", const vector<int> &adl_lags = vector<int>());
@@ -371,7 +368,12 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int 
         {
         }
     }
-  return new UnaryOpNode(*this, op_code, arg, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags);
+
+  auto sp = make_unique<UnaryOpNode>(*this, node_list.size(), op_code, arg, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags);
+  auto p = sp.get();
+  node_list.push_back(move(sp));
+  unary_op_node_map[{ arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags }] = p;
+  return p;
 }
 
 inline expr_t
@@ -392,7 +394,12 @@ DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerD
   catch (ExprNode::EvalException &e)
     {
     }
-  return new BinaryOpNode(*this, arg1, op_code, arg2, powerDerivOrder);
+
+  auto sp = make_unique<BinaryOpNode>(*this, node_list.size(), arg1, op_code, arg2, powerDerivOrder);
+  auto p = sp.get();
+  node_list.push_back(move(sp));
+  binary_op_node_map[{ arg1, arg2, op_code, powerDerivOrder }] = p;
+  return p;
 }
 
 inline expr_t
@@ -414,7 +421,12 @@ DataTree::AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t a
   catch (ExprNode::EvalException &e)
     {
     }
-  return new TrinaryOpNode(*this, arg1, op_code, arg2, arg3);
+
+  auto sp = make_unique<TrinaryOpNode>(*this, node_list.size(), arg1, op_code, arg2, arg3);
+  auto p = sp.get();
+  node_list.push_back(move(sp));
+  trinary_op_node_map[{ arg1, arg2, arg3, op_code }] = p;
+  return p;
 }
 
 #endif

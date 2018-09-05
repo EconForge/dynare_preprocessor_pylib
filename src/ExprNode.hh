@@ -153,7 +153,7 @@ class ExprNode
       DataTree &datatree;
 
       //! Index number
-      int idx;
+      const int idx;
 
       //! Is the data member non_null_derivatives initialized ?
       bool preparedForDerivation;
@@ -190,7 +190,7 @@ class ExprNode
                                          const temporary_terms_t &temporary_terms,
                                          const temporary_terms_idxs_t &temporary_terms_idxs) const;
     public:
-      ExprNode(DataTree &datatree_arg);
+      ExprNode(DataTree &datatree_arg, int idx_arg);
       virtual
       ~ExprNode();
 
@@ -581,7 +581,7 @@ private:
   const int id;
   expr_t computeDerivative(int deriv_id) override;
 public:
-  NumConstNode(DataTree &datatree_arg, int id_arg);
+  NumConstNode(DataTree &datatree_arg, int idx_arg, int id_arg);
   int
   get_id() const
   {
@@ -664,7 +664,7 @@ private:
   const int lag;
   expr_t computeDerivative(int deriv_id) override;
 public:
-  VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg);
+  VariableNode(DataTree &datatree_arg, int idx_arg, int symb_id_arg, int lag_arg);
   void prepareForDerivation() override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
@@ -771,7 +771,7 @@ private:
   //! Returns the derivative of this node if darg is the derivative of the argument
   expr_t composeDerivatives(expr_t darg, int deriv_id);
 public:
-  UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, string adl_param_name_arg, vector<int> adl_lags_arg);
+  UnaryOpNode(DataTree &datatree_arg, int idx_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, string adl_param_name_arg, vector<int> adl_lags_arg);
   void prepareForDerivation() override;
   void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
@@ -890,9 +890,7 @@ private:
   const int powerDerivOrder;
   const string adlparam;
 public:
-  BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
-               BinaryOpcode op_code_arg, const expr_t arg2_arg);
-  BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
+  BinaryOpNode(DataTree &datatree_arg, int idx_arg, const expr_t arg1_arg,
                BinaryOpcode op_code_arg, const expr_t arg2_arg, int powerDerivOrder);
   void prepareForDerivation() override;
   int precedenceJson(const temporary_terms_t &temporary_terms) const override;
@@ -1042,7 +1040,7 @@ private:
   //! Returns the derivative of this node if darg1, darg2 and darg3 are the derivatives of the arguments
   expr_t composeDerivatives(expr_t darg1, expr_t darg2, expr_t darg3);
 public:
-  TrinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
+  TrinaryOpNode(DataTree &datatree_arg, int idx_arg, const expr_t arg1_arg,
                 TrinaryOpcode op_code_arg, const expr_t arg2_arg, const expr_t arg3_arg);
   void prepareForDerivation() override;
   int precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const override;
@@ -1160,7 +1158,7 @@ protected:
     the same so-called "Tef" index) */
   virtual function<bool (expr_t)> sameTefTermPredicate() const = 0;
 public:
-  AbstractExternalFunctionNode(DataTree &datatree_arg, int symb_id_arg,
+  AbstractExternalFunctionNode(DataTree &datatree_arg, int idx_arg, int symb_id_arg,
                                vector<expr_t> arguments_arg);
   void prepareForDerivation() override;
   void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
@@ -1265,7 +1263,7 @@ private:
 protected:
   function<bool (expr_t)> sameTefTermPredicate() const override;
 public:
-  ExternalFunctionNode(DataTree &datatree_arg, int symb_id_arg,
+  ExternalFunctionNode(DataTree &datatree_arg, int idx_arg, int symb_id_arg,
                        const vector<expr_t> &arguments_arg);
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
@@ -1302,7 +1300,7 @@ private:
 protected:
   function<bool (expr_t)> sameTefTermPredicate() const override;
 public:
-  FirstDerivExternalFunctionNode(DataTree &datatree_arg,
+  FirstDerivExternalFunctionNode(DataTree &datatree_arg, int idx_arg,
                                  int top_level_symb_id_arg,
                                  const vector<expr_t> &arguments_arg,
                                  int inputIndex_arg);
@@ -1345,7 +1343,7 @@ private:
 protected:
   function<bool (expr_t)> sameTefTermPredicate() const override;
 public:
-  SecondDerivExternalFunctionNode(DataTree &datatree_arg,
+  SecondDerivExternalFunctionNode(DataTree &datatree_arg, int idx_arg,
                                   int top_level_symb_id_arg,
                                   const vector<expr_t> &arguments_arg,
                                   int inputIndex1_arg,
@@ -1385,7 +1383,7 @@ class VarExpectationNode : public ExprNode
 private:
   const string model_name;
 public:
-  VarExpectationNode(DataTree &datatree_arg, string model_name_arg);
+  VarExpectationNode(DataTree &datatree_arg, int idx_arg, string model_name_arg);
   void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const override;
@@ -1481,7 +1479,7 @@ private:
   set<pair<int, pair<int, int>>> ar_params_and_vars;
   set<pair<int, pair<pair<int, int>, double>>> params_vars_and_scaling_factor;
 public:
-  PacExpectationNode(DataTree &datatree_arg, string model_name);
+  PacExpectationNode(DataTree &datatree_arg, int idx_arg, string model_name);
   void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const override;

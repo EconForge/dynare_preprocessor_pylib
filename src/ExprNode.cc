@@ -30,13 +30,8 @@
 #include "DataTree.hh"
 #include "ModFile.hh"
 
-ExprNode::ExprNode(DataTree &datatree_arg) : datatree(datatree_arg), preparedForDerivation(false)
+ExprNode::ExprNode(DataTree &datatree_arg, int idx_arg) : datatree{datatree_arg}, idx{idx_arg}, preparedForDerivation{false}
 {
-  // Add myself to datatree
-  datatree.node_list.push_back(this);
-
-  // Set my index and increment counter
-  idx = datatree.node_counter++;
 }
 
 ExprNode::~ExprNode()
@@ -321,12 +316,10 @@ ExprNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
 {
 }
 
-NumConstNode::NumConstNode(DataTree &datatree_arg, int id_arg) :
-  ExprNode(datatree_arg),
+NumConstNode::NumConstNode(DataTree &datatree_arg, int idx_arg, int id_arg) :
+  ExprNode(datatree_arg, idx_arg),
   id(id_arg)
 {
-  // Add myself to the num const map
-  datatree.num_const_node_map[id] = this;
 }
 
 int
@@ -702,15 +695,12 @@ NumConstNode::substituteStaticAuxiliaryVariable() const
   return const_cast<NumConstNode *>(this);
 }
 
-VariableNode::VariableNode(DataTree &datatree_arg, int symb_id_arg, int lag_arg) :
-  ExprNode(datatree_arg),
+VariableNode::VariableNode(DataTree &datatree_arg, int idx_arg, int symb_id_arg, int lag_arg) :
+  ExprNode(datatree_arg, idx_arg),
   symb_id(symb_id_arg),
   type(datatree.symbol_table.getType(symb_id_arg)),
   lag(lag_arg)
 {
-  // Add myself to the variable map
-  datatree.variable_node_map[{ symb_id, lag }] = this;
-
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
   assert(type != SymbolType::externalFunction
          && (lag == 0 || (type != SymbolType::modelLocalVariable && type != SymbolType::modFileLocalVariable)));
@@ -1831,7 +1821,7 @@ VariableNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
     return const_cast<VariableNode *>(this);
 
   map<int, expr_t>::const_iterator it = trend_symbols_map.find(symb_id);
-  expr_t noTrendLeadLagNode = new VariableNode(datatree, it->first, 0);
+  expr_t noTrendLeadLagNode = datatree.AddVariable(it->first);
   bool log_trend = get_type() == SymbolType::logTrend;
   expr_t trend = it->second;
 
@@ -1938,8 +1928,8 @@ VariableNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
       model_endos_and_lags[varname] = lag;
 }
 
-UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, string adl_param_name_arg, vector<int> adl_lags_arg) :
-  ExprNode(datatree_arg),
+UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, int idx_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, string adl_param_name_arg, vector<int> adl_lags_arg) :
+  ExprNode(datatree_arg, idx_arg),
   arg(arg_arg),
   expectation_information_set(expectation_information_set_arg),
   param1_symb_id(param1_symb_id_arg),
@@ -1948,8 +1938,6 @@ UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, UnaryOpcode op_code_arg, const 
   adl_param_name(move(adl_param_name_arg)),
   adl_lags(move(adl_lags_arg))
 {
-  // Add myself to the unary op map
-  datatree.unary_op_node_map[{ arg, op_code, expectation_information_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags }] = this;
 }
 
 void
@@ -3573,27 +3561,15 @@ UnaryOpNode::substituteStaticAuxiliaryVariable() const
     return buildSimilarUnaryOpNode(argsubst, datatree);
 }
 
-BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
-                           BinaryOpcode op_code_arg, const expr_t arg2_arg) :
-  ExprNode(datatree_arg),
-  arg1(arg1_arg),
-  arg2(arg2_arg),
-  op_code(op_code_arg),
-  powerDerivOrder(0)
-{
-  datatree.binary_op_node_map[{ arg1, arg2, op_code, powerDerivOrder }] = this;
-}
-
-BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
+BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, int idx_arg, const expr_t arg1_arg,
                            BinaryOpcode op_code_arg, const expr_t arg2_arg, int powerDerivOrder_arg) :
-  ExprNode(datatree_arg),
+  ExprNode(datatree_arg, idx_arg),
   arg1(arg1_arg),
   arg2(arg2_arg),
   op_code(op_code_arg),
   powerDerivOrder(powerDerivOrder_arg)
 {
   assert(powerDerivOrder >= 0);
-  datatree.binary_op_node_map[{ arg1, arg2, op_code, powerDerivOrder }] = this;
 }
 
 void
@@ -5494,15 +5470,14 @@ BinaryOpNode::substituteStaticAuxiliaryDefinition() const
   return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
 }
 
-TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, const expr_t arg1_arg,
+TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, int idx_arg, const expr_t arg1_arg,
                              TrinaryOpcode op_code_arg, const expr_t arg2_arg, const expr_t arg3_arg) :
-  ExprNode(datatree_arg),
+  ExprNode(datatree_arg, idx_arg),
   arg1(arg1_arg),
   arg2(arg2_arg),
   arg3(arg3_arg),
   op_code(op_code_arg)
 {
-  datatree.trinary_op_node_map[{ arg1, arg2, arg3, op_code }] = this;
 }
 
 void
@@ -6395,9 +6370,10 @@ TrinaryOpNode::substituteStaticAuxiliaryVariable() const
 }
 
 AbstractExternalFunctionNode::AbstractExternalFunctionNode(DataTree &datatree_arg,
+                                                           int idx_arg,
                                                            int symb_id_arg,
                                                            vector<expr_t> arguments_arg) :
-  ExprNode(datatree_arg),
+  ExprNode(datatree_arg, idx_arg),
   symb_id(symb_id_arg),
   arguments(move(arguments_arg))
 {
@@ -7000,12 +6976,11 @@ AbstractExternalFunctionNode::substituteStaticAuxiliaryVariable() const
 }
 
 ExternalFunctionNode::ExternalFunctionNode(DataTree &datatree_arg,
+                                           int idx_arg,
                                            int symb_id_arg,
                                            const vector<expr_t> &arguments_arg) :
-  AbstractExternalFunctionNode(datatree_arg, symb_id_arg, arguments_arg)
+  AbstractExternalFunctionNode(datatree_arg, idx_arg, symb_id_arg, arguments_arg)
 {
-  // Add myself to the external function map
-  datatree.external_function_node_map[{ arguments, symb_id }] = this;
 }
 
 expr_t
@@ -7321,14 +7296,13 @@ ExternalFunctionNode::sameTefTermPredicate() const
 }
 
 FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatree_arg,
+                                                               int idx_arg,
                                                                int top_level_symb_id_arg,
                                                                const vector<expr_t> &arguments_arg,
                                                                int inputIndex_arg) :
-  AbstractExternalFunctionNode(datatree_arg, top_level_symb_id_arg, arguments_arg),
+  AbstractExternalFunctionNode(datatree_arg, idx_arg, top_level_symb_id_arg, arguments_arg),
   inputIndex(inputIndex_arg)
 {
-  // Add myself to the first derivative external function map
-  datatree.first_deriv_external_function_node_map[{ arguments, inputIndex, symb_id }] = this;
 }
 
 void
@@ -7705,16 +7679,15 @@ FirstDerivExternalFunctionNode::sameTefTermPredicate() const
 }
 
 SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datatree_arg,
+                                                                 int idx_arg,
                                                                  int top_level_symb_id_arg,
                                                                  const vector<expr_t> &arguments_arg,
                                                                  int inputIndex1_arg,
                                                                  int inputIndex2_arg) :
-  AbstractExternalFunctionNode(datatree_arg, top_level_symb_id_arg, arguments_arg),
+  AbstractExternalFunctionNode(datatree_arg, idx_arg, top_level_symb_id_arg, arguments_arg),
   inputIndex1(inputIndex1_arg),
   inputIndex2(inputIndex2_arg)
 {
-  // Add myself to the second derivative external function map
-  datatree.second_deriv_external_function_node_map[{ arguments, inputIndex1, inputIndex2, symb_id }] = this;
 }
 
 void
@@ -8040,11 +8013,11 @@ SecondDerivExternalFunctionNode::sameTefTermPredicate() const
 }
 
 VarExpectationNode::VarExpectationNode(DataTree &datatree_arg,
+                                       int idx_arg,
                                        string model_name_arg) :
-  ExprNode(datatree_arg),
+  ExprNode(datatree_arg, idx_arg),
   model_name{move(model_name_arg)}
 {
-  datatree.var_expectation_node_map[model_name] = this;
 }
 
 void
@@ -8485,11 +8458,11 @@ VarExpectationNode::writeJsonOutput(ostream &output,
 }
 
 PacExpectationNode::PacExpectationNode(DataTree &datatree_arg,
+                                       int idx_arg,
                                        string model_name_arg) :
-  ExprNode(datatree_arg),
+  ExprNode(datatree_arg, idx_arg),
   model_name(move(model_name_arg))
 {
-  datatree.pac_expectation_node_map[model_name] = this;
 }
 
 void

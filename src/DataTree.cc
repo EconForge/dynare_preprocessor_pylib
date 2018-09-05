@@ -35,8 +35,7 @@ DataTree::DataTree(SymbolTable &symbol_table_arg,
   num_constants(num_constants_arg),
   external_functions_table(external_functions_table_arg),
   trend_component_model_table(trend_component_model_table_arg),
-  var_model_table(var_model_table_arg),
-  node_counter(0)
+  var_model_table(var_model_table_arg)
 {
   Zero = AddNonNegativeConstant("0");
   One = AddNonNegativeConstant("1");
@@ -51,11 +50,7 @@ DataTree::DataTree(SymbolTable &symbol_table_arg,
   Pi = AddNonNegativeConstant("3.141592653589793");
 }
 
-DataTree::~DataTree()
-{
-  for (auto & it : node_list)
-    delete it;
-}
+DataTree::~DataTree() = default;
 
 expr_t
 DataTree::AddNonNegativeConstant(const string &value)
@@ -65,8 +60,12 @@ DataTree::AddNonNegativeConstant(const string &value)
   auto it = num_const_node_map.find(id);
   if (it != num_const_node_map.end())
     return it->second;
-  else
-    return new NumConstNode(*this, id);
+
+  auto sp = make_unique<NumConstNode>(*this, node_list.size(), id);
+  auto p = sp.get();
+  node_list.push_back(move(sp));
+  num_const_node_map[id] = p;
+  return p;
 }
 
 VariableNode *
@@ -75,8 +74,12 @@ DataTree::AddVariableInternal(int symb_id, int lag)
   auto it = variable_node_map.find({ symb_id, lag });
   if (it != variable_node_map.end())
     return it->second;
-  else
-    return new VariableNode(*this, symb_id, lag);
+
+  auto sp = make_unique<VariableNode>(*this, node_list.size(), symb_id, lag);
+  auto p = sp.get();
+  node_list.push_back(move(sp));
+  variable_node_map[{ symb_id, lag }] = p;
+  return p;
 }
 
 bool
@@ -515,7 +518,11 @@ DataTree::AddVarExpectation(const string &model_name)
   if (it != var_expectation_node_map.end())
     return it->second;
 
-  return new VarExpectationNode(*this, model_name);
+  auto sp = make_unique<VarExpectationNode>(*this, node_list.size(), model_name);
+  auto p = sp.get();
+  node_list.push_back(move(sp));
+  var_expectation_node_map[model_name] = p;
+  return p;
 }
 
 expr_t
@@ -525,7 +532,11 @@ DataTree::AddPacExpectation(const string &model_name)
   if (it != pac_expectation_node_map.end())
     return it->second;
 
-  return new PacExpectationNode(*this, model_name);
+  auto sp = make_unique<PacExpectationNode>(*this, node_list.size(), model_name);
+  auto p = sp.get();
+  node_list.push_back(move(sp));
+  pac_expectation_node_map[model_name] = p;
+  return p;
 }
 
 expr_t
@@ -557,7 +568,11 @@ DataTree::AddExternalFunction(int symb_id, const vector<expr_t> &arguments)
   if (it != external_function_node_map.end())
     return it->second;
 
-  return new ExternalFunctionNode(*this, symb_id, arguments);
+  auto sp = make_unique<ExternalFunctionNode>(*this, node_list.size(), symb_id, arguments);
+  auto p = sp.get();
+  node_list.push_back(move(sp));
+  external_function_node_map[{ arguments, symb_id }] = p;
+  return p;
 }
 
 expr_t
@@ -570,7 +585,11 @@ DataTree::AddFirstDerivExternalFunction(int top_level_symb_id, const vector<expr
   if (it != first_deriv_external_function_node_map.end())
     return it->second;
 
-  return new FirstDerivExternalFunctionNode(*this, top_level_symb_id, arguments, input_index);
+  auto sp = make_unique<FirstDerivExternalFunctionNode>(*this, node_list.size(), top_level_symb_id, arguments, input_index);
+  auto p = sp.get();
+  node_list.push_back(move(sp));
+  first_deriv_external_function_node_map[{ arguments, input_index, top_level_symb_id }] = p;
+  return p;
 }
 
 expr_t
@@ -584,7 +603,11 @@ DataTree::AddSecondDerivExternalFunction(int top_level_symb_id, const vector<exp
   if (it != second_deriv_external_function_node_map.end())
     return it->second;
 
-  return new SecondDerivExternalFunctionNode(*this, top_level_symb_id, arguments, input_index1, input_index2);
+  auto sp = make_unique<SecondDerivExternalFunctionNode>(*this, node_list.size(), top_level_symb_id, arguments, input_index1, input_index2);
+  auto p = sp.get();
+  node_list.push_back(move(sp));
+  second_deriv_external_function_node_map[{ arguments, input_index1, input_index2, top_level_symb_id }] = p;
+  return p;
 }
 
 bool
