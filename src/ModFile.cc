@@ -58,12 +58,6 @@ ModFile::ModFile(WarningConsolidation &warnings_arg)
 {
 }
 
-ModFile::~ModFile()
-{
-  for (auto & statement : statements)
-    delete statement;
-}
-
 void
 ModFile::evalAllExpressions(bool warn_uninit, const bool nopreprocessoroutput)
 {
@@ -71,17 +65,17 @@ ModFile::evalAllExpressions(bool warn_uninit, const bool nopreprocessoroutput)
     cout << "Evaluating expressions...";
 
   // Loop over all statements, and fill global eval context if relevant
-  for (vector<Statement *>::const_iterator it = statements.begin(); it != statements.end(); it++)
+  for (auto &st : statements)
     {
-      auto *ips = dynamic_cast<InitParamStatement *>(*it);
+      auto ips = dynamic_cast<InitParamStatement *>(st.get());
       if (ips)
         ips->fillEvalContext(global_eval_context);
 
-      auto *ies = dynamic_cast<InitOrEndValStatement *>(*it);
+      auto ies = dynamic_cast<InitOrEndValStatement *>(st.get());
       if (ies)
         ies->fillEvalContext(global_eval_context);
 
-      auto *lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(*it);
+      auto lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(st.get());
       if (lpass)
         lpass->fillEvalContext(global_eval_context);
     }
@@ -109,15 +103,15 @@ ModFile::evalAllExpressions(bool warn_uninit, const bool nopreprocessoroutput)
 }
 
 void
-ModFile::addStatement(Statement *st)
+ModFile::addStatement(unique_ptr<Statement> st)
 {
-  statements.push_back(st);
+  statements.push_back(move(st));
 }
 
 void
-ModFile::addStatementAtFront(Statement *st)
+ModFile::addStatementAtFront(unique_ptr<Statement> st)
 {
-  statements.insert(statements.begin(), st);
+  statements.insert(statements.begin(), move(st));
 }
 
 void
@@ -408,7 +402,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   // Pac Model
   for (auto & statement : statements)
     {
-      auto *pms = dynamic_cast<PacModelStatement *>(statement);
+      auto pms = dynamic_cast<PacModelStatement *>(statement.get());
       if (pms != nullptr)
          {
            vector<int> lhs;
@@ -465,7 +459,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       PlannerObjectiveStatement *pos = nullptr;
       for (auto & statement : statements)
         {
-          auto pos2 = dynamic_cast<PlannerObjectiveStatement *>(statement);
+          auto pos2 = dynamic_cast<PlannerObjectiveStatement *>(statement.get());
           if (pos2 != nullptr)
             if (pos != nullptr)
               {
@@ -515,7 +509,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   map<string, expr_t> var_expectation_subst_table;
   for (auto & statement : statements)
     {
-      auto vems = dynamic_cast<VarExpectationModelStatement *>(statement);
+      auto vems = dynamic_cast<VarExpectationModelStatement *>(statement.get());
       if (!vems)
         continue;
 
@@ -595,9 +589,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       {
         int sid = symbol_table.addSymbol("dsge_prior_weight", SymbolType::parameter);
         if (!mod_file_struct.dsge_var_calibrated.empty())
-          addStatementAtFront(new InitParamStatement(sid,
-                                                     expressions_tree.AddNonNegativeConstant(mod_file_struct.dsge_var_calibrated),
-                                                     symbol_table));
+          addStatementAtFront(make_unique<InitParamStatement>(sid,
+                                                              expressions_tree.AddNonNegativeConstant(mod_file_struct.dsge_var_calibrated),
+                                                              symbol_table));
       }
     catch (SymbolTable::AlreadyDeclaredException &e)
       {
@@ -642,7 +636,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   if (mod_file_struct.ramsey_policy_present)
     for (auto & statement : statements)
       {
-        auto *rps = dynamic_cast<RamseyPolicyStatement *>(statement);
+        auto *rps = dynamic_cast<RamseyPolicyStatement *>(statement.get());
         if (rps != nullptr)
           rps->checkRamseyPolicyList();
       }
@@ -1006,13 +1000,13 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
         static_model.writeOutput(mOutputFile, block);
     }
 
-  for (auto statement : statements)
+  for (auto &statement : statements)
     {
       statement->writeOutput(mOutputFile, basename, minimal_workspace);
 
       /* Special treatment for initval block: insert initial values for the
          auxiliary variables and initialize exo det */
-      auto *ivs = dynamic_cast<InitValStatement *>(statement);
+      auto ivs = dynamic_cast<InitValStatement *>(statement.get());
       if (ivs != nullptr)
         {
           static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
@@ -1020,12 +1014,12 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
         }
 
       // Special treatment for endval block: insert initial values for the auxiliary variables
-      auto *evs = dynamic_cast<EndValStatement *>(statement);
+      auto evs = dynamic_cast<EndValStatement *>(statement.get());
       if (evs != nullptr)
         static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
 
       // Special treatment for load params and steady state statement: insert initial values for the auxiliary variables
-      auto *lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(statement);
+      auto lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(statement.get());
       if (lpass && !no_static)
         static_model.writeAuxVarInitval(mOutputFile, oMatlabOutsideModel);
     }
@@ -1203,7 +1197,7 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output, 
   steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present, true);
 
   // Print statements (includes parameter values)
-  for (auto statement : statements)
+  for (auto &statement : statements)
     statement->writeJuliaOutput(jlOutputFile, basename);
 
   jlOutputFile << "model_.static = " << basename << "Static.static!" << endl

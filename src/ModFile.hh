@@ -45,7 +45,6 @@ class ModFile
 {
 public:
   ModFile(WarningConsolidation &warnings_arg);
-  ~ModFile();
   //! Symbol table
   SymbolTable symbol_table;
   //! External Functions table
@@ -117,7 +116,7 @@ public:
 
 private:
   //! List of statements
-  vector<Statement *> statements;
+  vector<unique_ptr<Statement>> statements;
   //! Structure of the mod file
   ModFileStructure mod_file_struct;
   //! Warnings Encountered
@@ -128,9 +127,9 @@ private:
   void writeJsonFileHelper(const string &fname, ostringstream &output) const;
 public:
   //! Add a statement
-  void addStatement(Statement *st);
+  void addStatement(unique_ptr<Statement> st);
   //! Add a statement at the front of the statements vector
-  void addStatementAtFront(Statement *st);
+  void addStatementAtFront(unique_ptr<Statement> st);
   //! Evaluate all the statements
   /*! \param warn_uninit Should a warning be displayed for uninitialized endogenous/exogenous/parameters ? */
   void evalAllExpressions(bool warn_uninit, const bool nopreprocessoroutput);

@@ -114,7 +114,7 @@ private:
   SymbolList symbol_list;
 
   //! Temporary store for the planner objective
-  PlannerObjectiveStatement *planner_objective_statement;
+  unique_ptr<PlannerObjectiveStatement> planner_objective_statement;
 
   //! The data tree in which to add expressions currently parsed
   /*! The object pointed to is not owned by the parsing driver. It is essentially a
