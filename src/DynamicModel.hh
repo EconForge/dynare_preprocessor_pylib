@@ -304,6 +304,9 @@ public:
   //! Set the equations that have non-zero second derivatives
   void setNonZeroHessianEquations(map<int, string> &eqs);
 
+  //! Fill Autoregressive Matrix for var_model
+  void fillAutoregressiveMatrix(map<string, map<tuple<int, int, int>, int>> &ARr) const;
+
   //! Fill the Trend Component Model Table
   void fillTrendComponentModelTable() const;
   void fillTrendComponentModelTableFromOrigModel(StaticModel &static_model) const;

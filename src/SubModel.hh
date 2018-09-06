@@ -116,6 +116,7 @@ private:
   map<string, vector<set<pair<int, int>>>> rhs;
   map<string, vector<bool>> diff, nonstationary;
   map<string, vector<expr_t>> lhs_expr_t;
+  map<string, map<tuple<int, int, int>, int>> AR; // AR: name -> (eqn, lag, lhs_symb_id) -> param_symb_id
 public:
   VarModelTable(SymbolTable &symbol_table_arg);
 
@@ -146,9 +147,10 @@ public:
   void setDiff(map<string, vector<bool>> diff_arg);
   void setMaxLags(map<string, vector<int>> max_lags_arg);
   void setOrigDiffVar(map<string, vector<int>> orig_diff_var_arg);
+  void setAR(map<string, map<tuple<int, int, int>, int>> AR_arg);
 
   //! Write output of this class
-  void writeOutput(ostream &output) const;
+  void writeOutput(const string &basename, ostream &output) const;
 
   //! Write JSON Output
   void writeJsonOutput(ostream &output) const;

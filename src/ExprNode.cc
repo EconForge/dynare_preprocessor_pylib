@@ -695,6 +695,11 @@ NumConstNode::substituteStaticAuxiliaryVariable() const
   return const_cast<NumConstNode *>(this);
 }
 
+void
+NumConstNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, int> &AR) const
+{
+}
+
 VariableNode::VariableNode(DataTree &datatree_arg, int idx_arg, int symb_id_arg, int lag_arg) :
   ExprNode(datatree_arg, idx_arg),
   symb_id(symb_id_arg),
@@ -1926,6 +1931,11 @@ VariableNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
       model_endos_and_lags[varname] = min(model_endos_and_lags[varname], lag);
     else
       model_endos_and_lags[varname] = lag;
+}
+
+void
+VariableNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, int> &AR) const
+{
 }
 
 UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, int idx_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, string adl_param_name_arg, vector<int> adl_lags_arg) :
@@ -3559,6 +3569,12 @@ UnaryOpNode::substituteStaticAuxiliaryVariable() const
     return argsubst;
   else
     return buildSimilarUnaryOpNode(argsubst, datatree);
+}
+
+void
+UnaryOpNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, int> &AR) const
+{
+  arg->fillAutoregressiveRow(eqn, lhs, AR);
 }
 
 BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, int idx_arg, const expr_t arg1_arg,
@@ -5419,6 +5435,49 @@ BinaryOpNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
 }
 
 void
+BinaryOpNode::fillAutoregressiveRowHelper(expr_t arg1, expr_t arg2,
+                                          int eqn,
+                                          const vector<int> &lhs,
+                                          map<tuple<int, int, int>, int> &AR) const
+{
+  set<int> params;
+  arg1->collectVariables(SymbolType::parameter, params);
+  if (params.size() != 1)
+    return;
+
+  set<pair<int, int>> endogs;
+  arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
+  if (endogs.size() != 1)
+    return;
+
+  int lhs_symb_id = endogs.begin()->first;
+  if (find(lhs.begin(), lhs.end(), lhs_symb_id) == lhs.end())
+    return;
+
+  int lag = endogs.begin()->second;
+  int param_symb_id = *(params.begin());
+
+  if (AR.find(make_tuple(eqn, -lag, lhs_symb_id)) != AR.end())
+    {
+      cerr << "BinaryOpNode::fillAutoregressiveRowHelper: Error filling AR matrix: lag/symb_id encountered more than once in equtaion" << endl;
+      exit(EXIT_FAILURE);
+    }
+  AR[make_tuple(eqn, -lag, lhs_symb_id)] = param_symb_id;
+}
+
+void
+BinaryOpNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, int> &AR) const
+{
+  if (op_code == BinaryOpcode::times)
+    {
+      fillAutoregressiveRowHelper(arg1, arg2, eqn, lhs, AR);
+      fillAutoregressiveRowHelper(arg2, arg1, eqn, lhs, AR);
+    }
+  arg1->fillAutoregressiveRow(eqn, lhs, AR);
+  arg2->fillAutoregressiveRow(eqn, lhs, AR);
+}
+
+void
 BinaryOpNode::getPacLHS(pair<int, int> &lhs)
 {
   set<pair<int, int>> general_lhs;
@@ -6369,6 +6428,14 @@ TrinaryOpNode::substituteStaticAuxiliaryVariable() const
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
 
+void
+TrinaryOpNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, int> &AR) const
+{
+  arg1->fillAutoregressiveRow(eqn, lhs, AR);
+  arg2->fillAutoregressiveRow(eqn, lhs, AR);
+  arg3->fillAutoregressiveRow(eqn, lhs, AR);
+}
+
 AbstractExternalFunctionNode::AbstractExternalFunctionNode(DataTree &datatree_arg,
                                                            int idx_arg,
                                                            int symb_id_arg,
@@ -6973,6 +7040,13 @@ AbstractExternalFunctionNode::substituteStaticAuxiliaryVariable() const
   for (auto argument : arguments)
     arguments_subst.push_back(argument->substituteStaticAuxiliaryVariable());
   return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+}
+
+void
+AbstractExternalFunctionNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, int> &AR) const
+{
+  cerr << "External functions not supported in VARs" << endl;
+  exit(EXIT_FAILURE);
 }
 
 ExternalFunctionNode::ExternalFunctionNode(DataTree &datatree_arg,
@@ -8449,6 +8523,13 @@ VarExpectationNode::substituteStaticAuxiliaryVariable() const
 }
 
 void
+VarExpectationNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, int> &AR) const
+{
+  cerr << "Var Expectation not supported in VARs" << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
 VarExpectationNode::writeJsonOutput(ostream &output,
                                     const temporary_terms_t &temporary_terms,
                                     const deriv_node_temp_terms_t &tef_terms,
@@ -8926,6 +9007,13 @@ expr_t
 PacExpectationNode::substituteStaticAuxiliaryVariable() const
 {
   return const_cast<PacExpectationNode *>(this);
+}
+
+void
+PacExpectationNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, int> &AR) const
+{
+  cerr << "Pac Expectation not supported in VARs" << endl;
+  exit(EXIT_FAILURE);
 }
 
 void
