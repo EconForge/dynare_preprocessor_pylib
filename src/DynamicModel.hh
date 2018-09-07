@@ -305,7 +305,7 @@ public:
   void setNonZeroHessianEquations(map<int, string> &eqs);
 
   //! Fill Autoregressive Matrix for var_model
-  void fillAutoregressiveMatrix(map<string, map<tuple<int, int, int>, int>> &ARr) const;
+  void fillAutoregressiveMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ARr) const;
 
   //! Fill the Trend Component Model Table
   void fillTrendComponentModelTable() const;

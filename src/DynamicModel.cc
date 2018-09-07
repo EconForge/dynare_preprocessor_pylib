@@ -3708,18 +3708,18 @@ DynamicModel::fillVarModelTableFromOrigModel(StaticModel &static_model) const
   var_model_table.setOrigDiffVar(orig_diff_var);
 
   // Fill AR Matrix
-  map<string, map<tuple<int, int, int>, int>> ARr;
+  map<string, map<tuple<int, int, int>, expr_t>> ARr;
   fillAutoregressiveMatrix(ARr);
   var_model_table.setAR(ARr);
 }
 
 void
-DynamicModel::fillAutoregressiveMatrix(map<string, map<tuple<int, int, int>, int>> &ARr) const
+DynamicModel::fillAutoregressiveMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ARr) const
 {
   for (const auto & it : var_model_table.getEqNums())
     {
       int i = 0;
-      map<tuple<int, int, int>, int> AR;
+      map<tuple<int, int, int>, expr_t> AR;
       for (auto eqn : it.second)
         equations[eqn]->get_arg2()->fillAutoregressiveRow(i++, var_model_table.getLhs(it.first), AR);
       ARr[it.first] = AR;

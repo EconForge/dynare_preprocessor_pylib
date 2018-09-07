@@ -421,10 +421,11 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
         {
           int eqn, lag, lhs_symb_id;
           tie (eqn, lag, lhs_symb_id) = it.first;
-          int param_symb_id = it.second;
           int colidx = (int) distance(lhs.begin(), find(lhs.begin(), lhs.end(), lhs_symb_id));
           ar_output << "    ar(" << eqn + 1 << ", " << colidx + 1 << ", " << lag
-                    << ") = params(" << symbol_table.getTypeSpecificID(param_symb_id) + 1 << ");" << endl;
+                    << ") = ";
+          it.second->writeOutput(ar_output, ExprNodeOutputType::matlabDynamicModel);
+          ar_output << endl;
         }
       ar_output << "    return" << endl
                 << "end" << endl << endl;
@@ -548,7 +549,7 @@ VarModelTable::setOrigDiffVar(map<string, vector<int>> orig_diff_var_arg)
 }
 
 void
-VarModelTable::setAR(map<string, map<tuple<int, int, int>, int>> AR_arg)
+VarModelTable::setAR(map<string, map<tuple<int, int, int>, expr_t>> AR_arg)
 {
   AR = move(AR_arg);
 }
