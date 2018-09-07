@@ -45,6 +45,7 @@ private:
   map<string, vector<bool>> diff, nonstationary;
   map<string, vector<expr_t>> lhs_expr_t;
   map<string, vector<int>> trend_vars;
+  map<string, map<tuple<int, int, int>, expr_t>> AR; // AR: name -> (eqn, lag, lhs_symb_id) -> param_expr_t
 public:
   TrendComponentModelTable(SymbolTable &symbol_table_arg);
 
@@ -80,16 +81,18 @@ public:
   void setOrigDiffVar(map<string, vector<int>> orig_diff_var_arg);
   void setNonstationary(map<string, vector<bool>> nonstationary_arg);
   void setTrendVar(map<string, vector<int>> trend_vars_arg);
+  void setAR(map<string, map<tuple<int, int, int>, expr_t>> AR_arg);
+  void setNonTrendEqNums(map<string, vector<int>> trend_eqnums_arg);
 
   //! Write output of this class
-  void writeOutput(ostream &output) const;
+  void writeOutput(const string &basename, ostream &output) const;
 
   //! Write JSON Output
   void writeJsonOutput(ostream &output) const;
 
 private:
   void checkModelName(const string &name_arg) const;
-  void setUndiffEqnums();
+  void setNonTrendEqnums();
 };
 
 inline bool
@@ -120,7 +123,7 @@ private:
 public:
   VarModelTable(SymbolTable &symbol_table_arg);
 
-  //! Add a trend component model
+  //! Add a VAR model
   void addVarModel(string name, vector<string> eqtags,
                    pair<SymbolList, int> symbol_list_and_order_arg);
 

@@ -878,7 +878,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   symbol_table.writeOutput(mOutputFile);
 
   var_model_table.writeOutput(basename, mOutputFile);
-  trend_component_model_table.writeOutput(mOutputFile);
+  trend_component_model_table.writeOutput(basename, mOutputFile);
 
   // Initialize M_.Sigma_e, M_.Correlation_matrix, M_.H, and M_.Correlation_matrix_ME
   mOutputFile << "M_.Sigma_e = zeros(" << symbol_table.exo_nbr() << ", "

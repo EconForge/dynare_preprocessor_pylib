@@ -291,6 +291,10 @@ public:
   int searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const noexcept(false);
   //! Serches aux_vars for the aux var represented by aux_var_symb_id and returns its associated orig_symb_id
   int getOrigSymbIdForAuxVar(int aux_var_symb_id) const noexcept(false);
+  //! Searches for diff aux var and finds the original lag associated with this variable
+  int getOrigLeadLagForDiffAuxVar(int diff_aux_var_symb_id) const noexcept(false);
+  //! Searches for diff aux var and finds the symb id associated with this variable
+  int getOrigSymbIdForDiffAuxVar(int diff_aux_var_symb_id) const noexcept(false);
   //! Adds an auxiliary variable when var_model is used with an order that is greater in absolute value
   //! than the largest lag present in the model.
   int addVarModelEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) noexcept(false);

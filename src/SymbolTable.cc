@@ -874,6 +874,31 @@ SymbolTable::getOrigSymbIdForAuxVar(int aux_var_symb_id) const noexcept(false)
   throw UnknownSymbolIDException(aux_var_symb_id);
 }
 
+int
+SymbolTable::getOrigLeadLagForDiffAuxVar(int diff_aux_var_symb_id) const noexcept(false)
+{
+  int lag = 0;
+  for (const auto & aux_var : aux_vars)
+    if ((aux_var.get_type() == AuxVarType::diff
+         || aux_var.get_type() == AuxVarType::diffLag)
+        && aux_var.get_symb_id() == diff_aux_var_symb_id)
+      lag += 1 + getOrigLeadLagForDiffAuxVar(aux_var.get_orig_symb_id());
+  return lag;
+}
+
+int
+SymbolTable::getOrigSymbIdForDiffAuxVar(int diff_aux_var_symb_id) const noexcept(false)
+{
+  int orig_symb_id = -1;
+  for (const auto & aux_var : aux_vars)
+    if (aux_var.get_symb_id() == diff_aux_var_symb_id)
+      if (aux_var.get_type() == AuxVarType::diff)
+        orig_symb_id = diff_aux_var_symb_id;
+      else if (aux_var.get_type() == AuxVarType::diffLag)
+        orig_symb_id = getOrigSymbIdForDiffAuxVar(aux_var.get_orig_symb_id());
+  return orig_symb_id;
+}
+
 expr_t
 SymbolTable::getAuxiliaryVarsExprNode(int symb_id) const noexcept(false)
 // throw exception if it is a Lagrange multiplier

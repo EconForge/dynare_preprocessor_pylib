@@ -3709,19 +3709,22 @@ DynamicModel::fillVarModelTableFromOrigModel(StaticModel &static_model) const
 
   // Fill AR Matrix
   map<string, map<tuple<int, int, int>, expr_t>> ARr;
-  fillAutoregressiveMatrix(ARr);
+  fillAutoregressiveMatrix(ARr, false);
   var_model_table.setAR(ARr);
 }
 
 void
-DynamicModel::fillAutoregressiveMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ARr) const
+DynamicModel::fillAutoregressiveMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ARr, bool is_trend_component_model) const
 {
-  for (const auto & it : var_model_table.getEqNums())
+  auto eqnums = is_trend_component_model ? trend_component_model_table.getEqNums() : var_model_table.getEqNums();
+  for (const auto & it : eqnums)
     {
       int i = 0;
       map<tuple<int, int, int>, expr_t> AR;
+      vector<int> lhs = is_trend_component_model ?
+        trend_component_model_table.getLhs(it.first) : var_model_table.getLhs(it.first);
       for (auto eqn : it.second)
-        equations[eqn]->get_arg2()->fillAutoregressiveRow(i++, var_model_table.getLhs(it.first), AR);
+        equations[eqn]->get_arg2()->fillAutoregressiveRow(i++, lhs, AR);
       ARr[it.first] = AR;
     }
 }
@@ -3844,6 +3847,11 @@ DynamicModel::fillTrendComponentModelTable() const
   trend_component_model_table.setRhs(rhsr);
   trend_component_model_table.setLhsExprT(lhs_expr_tr);
   trend_component_model_table.setNonstationary(nonstationaryr);
+
+  // Fill AR Matrix
+  map<string, map<tuple<int, int, int>, expr_t>> ARr;
+  fillAutoregressiveMatrix(ARr, true);
+  trend_component_model_table.setAR(ARr);
 }
 
 void

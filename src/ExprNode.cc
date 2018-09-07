@@ -5440,21 +5440,30 @@ BinaryOpNode::fillAutoregressiveRowHelper(expr_t arg1, expr_t arg2,
                                           const vector<int> &lhs,
                                           map<tuple<int, int, int>, expr_t> &AR) const
 {
+  if (op_code != BinaryOpcode::times)
+    return;
+
   set<pair<int, int>> endogs, tmp;
   arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
   if (endogs.size() != 1)
     return;
 
   int lhs_symb_id = endogs.begin()->first;
-  if (find(lhs.begin(), lhs.end(), lhs_symb_id) == lhs.end())
-    return;
+  int lag = endogs.begin()->second;
+  if (datatree.symbol_table.isAuxiliaryVariable(lhs_symb_id))
+    {
+      int orig_lhs_symb_id = datatree.symbol_table.getOrigSymbIdForDiffAuxVar(lhs_symb_id);
+      if (find(lhs.begin(), lhs.end(), orig_lhs_symb_id) == lhs.end())
+        return;
+      lag = -(datatree.symbol_table.getOrigLeadLagForDiffAuxVar(lhs_symb_id) - 1);
+      lhs_symb_id = orig_lhs_symb_id;
+    }
 
   arg1->collectDynamicVariables(SymbolType::endogenous, tmp);
   arg1->collectDynamicVariables(SymbolType::exogenous, tmp);
   if (tmp.size() != 0)
     return;
 
-  int lag = endogs.begin()->second;
   if (AR.find(make_tuple(eqn, -lag, lhs_symb_id)) != AR.end())
     {
       cerr << "BinaryOpNode::fillAutoregressiveRowHelper: Error filling AR matrix: lag/symb_id encountered more than once in equtaion" << endl;
@@ -5466,11 +5475,8 @@ BinaryOpNode::fillAutoregressiveRowHelper(expr_t arg1, expr_t arg2,
 void
 BinaryOpNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const
 {
-  if (op_code == BinaryOpcode::times)
-    {
-      fillAutoregressiveRowHelper(arg1, arg2, eqn, lhs, AR);
-      fillAutoregressiveRowHelper(arg2, arg1, eqn, lhs, AR);
-    }
+  fillAutoregressiveRowHelper(arg1, arg2, eqn, lhs, AR);
+  fillAutoregressiveRowHelper(arg2, arg1, eqn, lhs, AR);
   arg1->fillAutoregressiveRow(eqn, lhs, AR);
   arg2->fillAutoregressiveRow(eqn, lhs, AR);
 }
