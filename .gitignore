@@ -9,6 +9,7 @@
 *.a
 *.fig
 \#*\#
+*.txt
 
 # Build system rules
 build-aux/*
