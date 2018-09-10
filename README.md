@@ -5,8 +5,6 @@
 </a>
 </div>
 
-[![Build Status](https://travis-ci.org/DynareTeam/dynare-preprocessor.svg?branch=master)](https://travis-ci.org/DynareTeam/dynare-preprocessor)
-
 # Dynare Preprocessor
 
 The Dynare Preprocessor defines the Dynare model language. It takes in a `.mod`
