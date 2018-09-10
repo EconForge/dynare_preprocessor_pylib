@@ -45,7 +45,7 @@ private:
   map<string, vector<bool>> diff, nonstationary;
   map<string, vector<expr_t>> lhs_expr_t;
   map<string, vector<int>> trend_vars;
-  map<string, map<tuple<int, int, int>, expr_t>> AR; // AR: name -> (eqn, lag, lhs_symb_id) -> param_expr_t
+  map<string, map<tuple<int, int, int>, expr_t>> AR, EC; // AR/EC: name -> (eqn, lag, lhs_symb_id) -> expr_t
 public:
   TrendComponentModelTable(SymbolTable &symbol_table_arg);
 
@@ -61,6 +61,7 @@ public:
   map<string, vector<string>> getTrendEqTags() const;
   map<string, vector<int>> getEqNums() const;
   map<string, vector<int>> getTrendEqNums() const;
+  vector<int> getTrendEqNums(const string &name_arg) const;
   vector<int> getEqNums(const string &name_arg) const;
   vector<int> getMaxLags(const string &name_arg) const;
   int getMaxLag(const string &name_arg) const;
@@ -68,6 +69,7 @@ public:
   vector<expr_t> getLhsExprT(const string &name_arg) const;
   vector<bool> getDiff(const string &name_arg) const;
   vector<int> getOrigDiffVar(const string &name_arg) const;
+  map<string, vector<int>> getNonTrendEqNums() const;
   vector<int> getNonTrendEqNums(const string &name_arg) const;
   vector<bool> getNonstationary(const string &name_arg) const;
 
@@ -82,6 +84,7 @@ public:
   void setNonstationary(map<string, vector<bool>> nonstationary_arg);
   void setTrendVar(map<string, vector<int>> trend_vars_arg);
   void setAR(map<string, map<tuple<int, int, int>, expr_t>> AR_arg);
+  void setEC(map<string, map<tuple<int, int, int>, expr_t>> EC_arg);
   void setNonTrendEqNums(map<string, vector<int>> trend_eqnums_arg);
 
   //! Write output of this class

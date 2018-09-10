@@ -571,6 +571,9 @@ class ExprNode
       //! Fills the AR matrix structure
       virtual void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const = 0;
 
+      //! Fills the EC matrix structure
+      virtual void fillErrorCorrectionRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &EC) const = 0;
+
       //! Returns true if PacExpectationNode encountered
       virtual bool containsPacExpectation(const string &pac_model_name = "") const = 0;
 
@@ -658,6 +661,7 @@ public:
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
+  void fillErrorCorrectionRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
                                &params_vars_and_scaling_factor) const override;
@@ -758,6 +762,7 @@ public:
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
+  void fillErrorCorrectionRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
                                &params_vars_and_scaling_factor) const override;
@@ -882,6 +887,7 @@ public:
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
+  void fillErrorCorrectionRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
                                &params_vars_and_scaling_factor) const override;
@@ -1036,6 +1042,9 @@ public:
   void fillAutoregressiveRowHelper(expr_t arg1, expr_t arg2,
                                    int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
+  void fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
+                                    int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const;
+  void fillErrorCorrectionRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
@@ -1144,6 +1153,7 @@ public:
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
+  void fillErrorCorrectionRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
                                &params_vars_and_scaling_factor) const override;
@@ -1266,6 +1276,7 @@ public:
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
+  void fillErrorCorrectionRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
                                &params_vars_and_scaling_factor) const override;
@@ -1475,6 +1486,7 @@ public:
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
+  void fillErrorCorrectionRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
                                &params_vars_and_scaling_factor) const override;
@@ -1572,6 +1584,7 @@ public:
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
+  void fillErrorCorrectionRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
                                &params_vars_and_scaling_factor) const override;

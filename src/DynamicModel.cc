@@ -3849,9 +3849,29 @@ DynamicModel::fillTrendComponentModelTable() const
   trend_component_model_table.setNonstationary(nonstationaryr);
 
   // Fill AR Matrix
-  map<string, map<tuple<int, int, int>, expr_t>> ARr;
+  map<string, map<tuple<int, int, int>, expr_t>> ARr, ECr;
   fillAutoregressiveMatrix(ARr, true);
   trend_component_model_table.setAR(ARr);
+  fillErrorComponentMatrix(ECr);
+  trend_component_model_table.setEC(ECr);
+}
+
+void
+DynamicModel::fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ECr) const
+{
+  for (const auto & it : trend_component_model_table.getEqNums())
+    {
+      vector<int> nontrend_lhs;
+      vector<int> lhsv = trend_component_model_table.getLhs(it.first);
+      for (int trend_it : trend_component_model_table.getTrendEqNums(it.first))
+        nontrend_lhs.push_back(lhsv.at(distance(it.second.begin(), find(it.second.begin(), it.second.end(), trend_it))));
+
+      int i = 0;
+      map<tuple<int, int, int>, expr_t> EC;
+      for (auto eqn : it.second)
+        equations[eqn]->get_arg2()->fillErrorCorrectionRow(i++, nontrend_lhs, EC);
+      ECr[it.first] = EC;
+    }
 }
 
 void
