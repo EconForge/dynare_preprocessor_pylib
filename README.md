@@ -14,7 +14,7 @@ file, computes the derivatives of the model represented therein, and produces
 Matlab/Octave, C, Julia, or JSON output.
 
 There is more to come here. For the moment, see the [Dynare
-repository](https://github.com/DynareTeam/dynare)
+repository](https://git.dynare.org/Dynare/dynare)
 
 # License
 
