@@ -2,4 +2,6 @@ build:
   script:
     - autoreconf -si
     - ./configure
-    - make all pdf html
+    - make -j$(nproc)
+    - make -j$(nproc) pdf
+    - make -j$(nproc) html
