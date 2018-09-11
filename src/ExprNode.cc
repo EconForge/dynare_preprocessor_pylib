@@ -5464,6 +5464,11 @@ BinaryOpNode::fillAutoregressiveRowHelper(expr_t arg1, expr_t arg2,
   if (endogs.size() != 1)
     return;
 
+  arg1->collectDynamicVariables(SymbolType::endogenous, tmp);
+  arg1->collectDynamicVariables(SymbolType::exogenous, tmp);
+  if (tmp.size() != 0)
+    return;
+
   int lhs_symb_id = endogs.begin()->first;
   int lag = endogs.begin()->second;
   if (datatree.symbol_table.isAuxiliaryVariable(lhs_symb_id))
@@ -5471,14 +5476,10 @@ BinaryOpNode::fillAutoregressiveRowHelper(expr_t arg1, expr_t arg2,
       int orig_lhs_symb_id = datatree.symbol_table.getOrigSymbIdForDiffAuxVar(lhs_symb_id);
       if (find(lhs.begin(), lhs.end(), orig_lhs_symb_id) == lhs.end())
         return;
-      lag = -(datatree.symbol_table.getOrigLeadLagForDiffAuxVar(lhs_symb_id) - 1);
+      lag = -1 * datatree.symbol_table.getOrigLeadLagForDiffAuxVar(lhs_symb_id);
       lhs_symb_id = orig_lhs_symb_id;
     }
 
-  arg1->collectDynamicVariables(SymbolType::endogenous, tmp);
-  arg1->collectDynamicVariables(SymbolType::exogenous, tmp);
-  if (tmp.size() != 0)
-    return;
 
   if (AR.find(make_tuple(eqn, -lag, lhs_symb_id)) != AR.end())
     {
@@ -5525,20 +5526,29 @@ BinaryOpNode::fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
   int lhs_symb_id = -1;
   int max_lag = 0;
   for (const auto & it : endogs)
-    if (find(lhs.begin(), lhs.end(), it.first) != lhs.end())
-      if (encountered_trend_var)
-        {
-          cerr << "BinaryOpNode::fillErrorCorrectionRowHelper: Error filling EC matrix: "
-               << "two trend variables encountered in EC term" << endl;
-          exit(EXIT_FAILURE);
-        }
-      else
-        {
-          lhs_symb_id = it.first;
-          if (it.second < max_lag)
-            max_lag = it.second;
-          encountered_trend_var = true;
-        }
+    {
+      bool isauxvar = datatree.symbol_table.isAuxiliaryVariable(it.first);
+      int tmp_symb_id = isauxvar ?
+        datatree.symbol_table.getOrigSymbIdForDiffAuxVar(it.first) : it.first;
+
+      if (find(lhs.begin(), lhs.end(), tmp_symb_id) != lhs.end())
+        if (encountered_trend_var)
+          {
+            cerr << "BinaryOpNode::fillErrorCorrectionRowHelper: Error filling EC matrix: "
+                 << "two trend variables encountered in EC term" << endl;
+            exit(EXIT_FAILURE);
+          }
+        else
+          {
+            encountered_trend_var = true;
+            lhs_symb_id = tmp_symb_id;
+            int tmp_lag = it.second;
+            if (isauxvar)
+              tmp_lag = -1 * datatree.symbol_table.getOrigLeadLagForDiffAuxVar(it.first);
+            if (tmp_lag < max_lag)
+              max_lag = tmp_lag;
+          }
+    }
 
   if (!encountered_trend_var)
     return;
