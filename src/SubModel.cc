@@ -501,7 +501,7 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
           ar_output << "    ar(" << eqn + 1 << ", " << colidx + 1 << ", " << lag
                     << ") = ";
           it.second->writeOutput(ar_output, ExprNodeOutputType::matlabDynamicModel);
-          ar_output << endl;
+          ar_output << ";" << endl;
         }
       ar_output << "    return" << endl
                 << "end" << endl << endl;
