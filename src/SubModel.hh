@@ -40,7 +40,7 @@ private:
   SymbolTable &symbol_table;
   set<string> names;
   map<string, vector<string>> eqtags, trend_eqtags;
-  map<string, vector<int>> eqnums, trend_eqnums, nontrend_eqnums, max_lags, lhs, orig_diff_var;
+  map<string, vector<int>> eqnums, trend_eqnums, nontrend_eqnums, max_lags, lhs, trend_lhs, nontrend_lhs, orig_diff_var;
   map<string, vector<set<pair<int, int>>>> rhs;
   map<string, vector<bool>> diff, nonstationary;
   map<string, vector<expr_t>> lhs_expr_t;
@@ -72,20 +72,19 @@ public:
   map<string, vector<int>> getNonTrendEqNums() const;
   vector<int> getNonTrendEqNums(const string &name_arg) const;
   vector<bool> getNonstationary(const string &name_arg) const;
+  vector<int> getNontrendLhs(const string &name_arg) const;
+  vector<int> getTrendLhs(const string &name_arg) const;
 
-  void setEqNums(map<string, vector<int>> eqnums_arg);
-  void setTrendEqNums(map<string, vector<int>> trend_eqnums_arg);
-  void setLhs(map<string, vector<int>> lhs_arg);
+  void setVals(map<string, vector<int>> eqnums_arg, map<string, vector<int>> trend_eqnums_arg,
+               map<string, vector<int>> lhs_arg,
+               map<string, vector<expr_t>> lhs_expr_t_arg, map<string, vector<bool>> nonstationary_arg);
   void setRhs(map<string, vector<set<pair<int, int>>>> rhs_arg);
-  void setLhsExprT(map<string, vector<expr_t>> lhs_expr_t_arg);
   void setMaxLags(map<string, vector<int>> max_lags_arg);
   void setDiff(map<string, vector<bool>> diff_arg);
   void setOrigDiffVar(map<string, vector<int>> orig_diff_var_arg);
-  void setNonstationary(map<string, vector<bool>> nonstationary_arg);
   void setTrendVar(map<string, vector<int>> trend_vars_arg);
   void setAR(map<string, map<tuple<int, int, int>, expr_t>> AR_arg);
   void setEC(map<string, map<tuple<int, int, int>, expr_t>> EC_arg);
-  void setNonTrendEqNums(map<string, vector<int>> trend_eqnums_arg);
 
   //! Write output of this class
   void writeOutput(const string &basename, ostream &output) const;

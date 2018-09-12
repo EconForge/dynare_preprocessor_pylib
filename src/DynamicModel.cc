@@ -3841,12 +3841,8 @@ DynamicModel::fillTrendComponentModelTable() const
       rhsr[it.first] = rhs;
       nonstationaryr[it.first] = nonstationary;
     }
-  trend_component_model_table.setEqNums(eqnums);
-  trend_component_model_table.setTrendEqNums(trend_eqnums);
-  trend_component_model_table.setLhs(lhsr);
   trend_component_model_table.setRhs(rhsr);
-  trend_component_model_table.setLhsExprT(lhs_expr_tr);
-  trend_component_model_table.setNonstationary(nonstationaryr);
+  trend_component_model_table.setVals(eqnums, trend_eqnums, lhsr, lhs_expr_tr, nonstationaryr);
 
   // Fill AR Matrix
   map<string, map<tuple<int, int, int>, expr_t>> ARr, ECr;
