@@ -356,9 +356,8 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
                    << "    ec = zeros(" << nontrend_lhs_vec.size() << ", " << nontrend_lhs_vec.size() << ", 1);" << endl;
       for (const auto & it : EC.at(name))
         {
-          int eqn, lag, lhs_symb_id;
-          tie (eqn, lag, lhs_symb_id) = it.first;
-          int colidx = (int) distance(trend_lhs_vec.begin(), find(trend_lhs_vec.begin(), trend_lhs_vec.end(), lhs_symb_id));
+          int eqn, lag, colidx;
+          tie (eqn, lag, colidx) = it.first;
           ar_ec_output << "    ec(" << eqn + 1 << ", " << colidx + 1 << ", 1) = ";
           it.second->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
           ar_ec_output << ";" << endl;

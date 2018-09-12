@@ -308,11 +308,12 @@ public:
   void fillAutoregressiveMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ARr, bool is_trend_component_model) const;
 
   //! Fill Error Component Matrix for trend_component_model
-  void fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ECr) const;
+  void fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ECr, ExprNode::subst_table_t &diff_subst_table) const;
 
   //! Fill the Trend Component Model Table
   void fillTrendComponentModelTable() const;
   void fillTrendComponentModelTableFromOrigModel(StaticModel &static_model) const;
+  void fillTrendComponentmodelTableAREC(ExprNode::subst_table_t &diff_subst_table) const;
 
   //! Fill the Var Model Table
   void fillVarModelTable() const;
@@ -447,7 +448,7 @@ public:
 
   //! Table to undiff LHS variables for pac vector z
   vector<int> getUndiffLHSForPac(const string &aux_model_name,
-                                 ExprNode::subst_table_t &diff_subst_table);
+                                 ExprNode::subst_table_t &diff_subst_table) const;
 
   //! Transforms the model by replacing trend variables with a 1
   void removeTrendVariableFromEquations();

@@ -3844,25 +3844,32 @@ DynamicModel::fillTrendComponentModelTable() const
     }
   trend_component_model_table.setRhs(rhsr);
   trend_component_model_table.setVals(eqnums, trend_eqnums, lhsr, lhs_expr_tr, nonstationaryr);
-
-  // Fill AR Matrix
-  map<string, map<tuple<int, int, int>, expr_t>> ARr, ECr;
-  fillAutoregressiveMatrix(ARr, true);
-  trend_component_model_table.setAR(ARr);
-  fillErrorComponentMatrix(ECr);
-  trend_component_model_table.setEC(ECr);
 }
 
 void
-DynamicModel::fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ECr) const
+DynamicModel::fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ECr,
+                                       ExprNode::subst_table_t &diff_subst_table) const
 {
-  for (const auto & it : trend_component_model_table.getNonTrendEqNums())
+  for (const auto & it : trend_component_model_table.getEqNums())
     {
       int i = 0;
       map<tuple<int, int, int>, expr_t> EC;
       vector<int> trend_lhs = trend_component_model_table.getTrendLhs(it.first);
+      vector<int> nontrend_eqnums = trend_component_model_table.getNonTrendEqNums(it.first);
+      vector<int> undiff_nontrend_lhs = getUndiffLHSForPac(it.first, diff_subst_table);
+      vector<int> parsed_undiff_nontrend_lhs;
+
       for (auto eqn : it.second)
-        equations[eqn]->get_arg2()->fillErrorCorrectionRow(i++, trend_lhs, EC);
+        {
+          if (find(nontrend_eqnums.begin(), nontrend_eqnums.end(), eqn) != nontrend_eqnums.end())
+            parsed_undiff_nontrend_lhs.push_back(undiff_nontrend_lhs.at(i));
+          i++;
+        }
+
+      i = 0;
+      for (auto eqn : it.second)
+        if (find(nontrend_eqnums.begin(), nontrend_eqnums.end(), eqn) != nontrend_eqnums.end())
+          equations[eqn]->get_arg2()->fillErrorCorrectionRow(i++, parsed_undiff_nontrend_lhs, trend_lhs, EC);
       ECr[it.first] = EC;
     }
 }
@@ -3935,6 +3942,16 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel(StaticModel &static_mode
 }
 
 void
+DynamicModel::fillTrendComponentmodelTableAREC(ExprNode::subst_table_t &diff_subst_table) const
+{
+  map<string, map<tuple<int, int, int>, expr_t>> ARr, ECr;
+  fillAutoregressiveMatrix(ARr, true);
+  trend_component_model_table.setAR(ARr);
+  fillErrorComponentMatrix(ECr, diff_subst_table);
+  trend_component_model_table.setEC(ECr);
+}
+
+void
 DynamicModel::addEquationsForVar()
 {
   if (var_model_table.empty())
@@ -3994,7 +4011,7 @@ DynamicModel::addEquationsForVar()
 
 vector<int>
 DynamicModel::getUndiffLHSForPac(const string &aux_model_name,
-                                 ExprNode::subst_table_t &diff_subst_table)
+                                 ExprNode::subst_table_t &diff_subst_table) const
 {
   vector<expr_t> lhs_expr_t = trend_component_model_table.getLhsExprT(aux_model_name);
   vector<int> lhs = trend_component_model_table.getLhs(aux_model_name);

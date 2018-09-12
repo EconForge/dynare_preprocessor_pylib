@@ -396,6 +396,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   // Fill Trend Component Model Table
   dynamic_model.fillTrendComponentModelTable();
   original_model.fillTrendComponentModelTableFromOrigModel(diff_static_model);
+  dynamic_model.fillTrendComponentmodelTableAREC(diff_subst_table);
   dynamic_model.fillVarModelTable();
   original_model.fillVarModelTableFromOrigModel(diff_static_model);
 

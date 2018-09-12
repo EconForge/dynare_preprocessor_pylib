@@ -45,7 +45,8 @@ private:
   map<string, vector<bool>> diff, nonstationary;
   map<string, vector<expr_t>> lhs_expr_t;
   map<string, vector<int>> trend_vars;
-  map<string, map<tuple<int, int, int>, expr_t>> AR, EC; // AR/EC: name -> (eqn, lag, lhs_symb_id) -> expr_t
+  map<string, map<tuple<int, int, int>, expr_t>> AR; // AR: name -> (eqn, lag, lhs_symb_id) -> expr_t
+  map<string, map<tuple<int, int, int>, expr_t>> EC; // EC: name -> (eqn, lag, col) -> expr_t
 public:
   TrendComponentModelTable(SymbolTable &symbol_table_arg);
 
