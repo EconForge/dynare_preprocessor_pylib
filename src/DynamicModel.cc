@@ -3716,7 +3716,8 @@ DynamicModel::fillVarModelTableFromOrigModel(StaticModel &static_model) const
 void
 DynamicModel::fillAutoregressiveMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ARr, bool is_trend_component_model) const
 {
-  auto eqnums = is_trend_component_model ? trend_component_model_table.getEqNums() : var_model_table.getEqNums();
+  auto eqnums = is_trend_component_model ?
+    trend_component_model_table.getNonTrendEqNums() : var_model_table.getEqNums();
   for (const auto & it : eqnums)
     {
       int i = 0;
@@ -3855,17 +3856,13 @@ DynamicModel::fillTrendComponentModelTable() const
 void
 DynamicModel::fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ECr) const
 {
-  for (const auto & it : trend_component_model_table.getEqNums())
+  for (const auto & it : trend_component_model_table.getNonTrendEqNums())
     {
-      vector<int> nontrend_lhs;
-      vector<int> lhsv = trend_component_model_table.getLhs(it.first);
-      for (int trend_it : trend_component_model_table.getTrendEqNums(it.first))
-        nontrend_lhs.push_back(lhsv.at(distance(it.second.begin(), find(it.second.begin(), it.second.end(), trend_it))));
-
       int i = 0;
       map<tuple<int, int, int>, expr_t> EC;
+      vector<int> trend_lhs = trend_component_model_table.getTrendLhs(it.first);
       for (auto eqn : it.second)
-        equations[eqn]->get_arg2()->fillErrorCorrectionRow(i++, nontrend_lhs, EC);
+        equations[eqn]->get_arg2()->fillErrorCorrectionRow(i++, trend_lhs, EC);
       ECr[it.first] = EC;
     }
 }
