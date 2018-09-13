@@ -523,7 +523,7 @@ class ExprNode
       //! Substitute diff operator
       virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const = 0;
       virtual void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const = 0;
-      virtual int findTrendVariable(int lhs_symb_id) const = 0;
+      virtual int findTargetVariable(int lhs_symb_id) const = 0;
       virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
       virtual expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
 
@@ -643,7 +643,7 @@ public:
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const override;
   void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const override;
-  int findTrendVariable(int lhs_symb_id) const override;
+  int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
@@ -744,7 +744,7 @@ public:
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const override;
   void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const override;
-  int findTrendVariable(int lhs_symb_id) const override;
+  int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
@@ -869,7 +869,7 @@ public:
   void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const override;
   bool createAuxVarForUnaryOpNode() const;
   void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const override;
-  int findTrendVariable(int lhs_symb_id) const override;
+  int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
@@ -1014,9 +1014,9 @@ public:
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const override;
   void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const override;
-  bool findTrendVariableHelper1(int lhs_symb_id, int rhs_symb_id) const;
-  int findTrendVariableHelper(const expr_t arg1, const expr_t arg2, int lhs_symb_id) const;
-  int findTrendVariable(int lhs_symb_id) const override;
+  bool findTargetVariableHelper1(int lhs_symb_id, int rhs_symb_id) const;
+  int findTargetVariableHelper(const expr_t arg1, const expr_t arg2, int lhs_symb_id) const;
+  int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
@@ -1136,7 +1136,7 @@ public:
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const override;
   void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const override;
-  int findTrendVariable(int lhs_symb_id) const override;
+  int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
@@ -1257,7 +1257,7 @@ public:
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const override;
   void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const override;
-  int findTrendVariable(int lhs_symb_id) const override;
+  int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
@@ -1462,7 +1462,7 @@ public:
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const override;
   void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const override;
-  int findTrendVariable(int lhs_symb_id) const override;
+  int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
@@ -1560,7 +1560,7 @@ public:
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const override;
   void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const override;
-  int findTrendVariable(int lhs_symb_id) const override;
+  int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;

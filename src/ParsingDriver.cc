@@ -1489,12 +1489,12 @@ ParsingDriver::trend_component_model()
     error("You must pass the eqtags option to the trend_component_model statement.");
   auto eqtags = itvs->second;
 
-  const auto itvs1 = options_list.vector_str_options.find("trend_component.trends");
+  const auto itvs1 = options_list.vector_str_options.find("trend_component.targets");
   if (itvs1 == options_list.vector_str_options.end())
-    error("You must pass the trends option to the trend_component_model statement.");
-  auto trends = itvs1->second;
+    error("You must pass the targets option to the trend_component_model statement.");
+  auto targets = itvs1->second;
 
-  mod_file->trend_component_model_table.addTrendComponentModel(name, eqtags, trends);
+  mod_file->trend_component_model_table.addTrendComponentModel(name, eqtags, targets);
   options_list.clear();
 }
 

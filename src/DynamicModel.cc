@@ -3466,7 +3466,7 @@ DynamicModel::updateVarAndTrendModel() const
       else if (i == 1)
         {
           eqnums = trend_component_model_table.getEqNums();
-          trend_eqnums = trend_component_model_table.getTrendEqNums();
+          trend_eqnums = trend_component_model_table.getTargetEqNums();
         }
 
       map<string, vector<int>> trend_varr;
@@ -3509,7 +3509,7 @@ DynamicModel::updateVarAndTrendModel() const
                     catch (...)
                       {
                       }
-                  int trend_var_symb_id = equations[eqn]->get_arg2()->findTrendVariable(lhs_symb_id);
+                  int trend_var_symb_id = equations[eqn]->get_arg2()->findTargetVariable(lhs_symb_id);
                   if (trend_var_symb_id >= 0)
                     {
                       if (symbol_table.isAuxiliaryVariable(trend_var_symb_id))
@@ -3541,7 +3541,7 @@ DynamicModel::updateVarAndTrendModel() const
       else if (i == 1)
         {
           trend_component_model_table.setRhs(rhsr);
-          trend_component_model_table.setTrendVar(trend_varr);
+          trend_component_model_table.setTargetVar(trend_varr);
         }
     }
 }
@@ -3717,7 +3717,7 @@ void
 DynamicModel::fillAutoregressiveMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ARr, bool is_trend_component_model) const
 {
   auto eqnums = is_trend_component_model ?
-    trend_component_model_table.getNonTrendEqNums() : var_model_table.getEqNums();
+    trend_component_model_table.getNonTargetEqNums() : var_model_table.getEqNums();
   for (const auto & it : eqnums)
     {
       int i = 0;
@@ -3738,7 +3738,7 @@ DynamicModel::fillTrendComponentModelTable() const
   map<string, vector<bool>> nonstationaryr;
   map<string, vector<set<pair<int, int>>>> rhsr;
   map<string, vector<string>> eqtags = trend_component_model_table.getEqTags();
-  map<string, vector<string>> trend_eqtags = trend_component_model_table.getTrendEqTags();
+  map<string, vector<string>> trend_eqtags = trend_component_model_table.getTargetEqTags();
   for (const auto & it : trend_eqtags)
     {
       vector<int> trend_eqnumber;
@@ -3854,8 +3854,8 @@ DynamicModel::fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, exp
     {
       int i = 0;
       map<tuple<int, int, int>, expr_t> EC;
-      vector<int> trend_lhs = trend_component_model_table.getTrendLhs(it.first);
-      vector<int> nontrend_eqnums = trend_component_model_table.getNonTrendEqNums(it.first);
+      vector<int> trend_lhs = trend_component_model_table.getTargetLhs(it.first);
+      vector<int> nontrend_eqnums = trend_component_model_table.getNonTargetEqNums(it.first);
       vector<int> undiff_nontrend_lhs = getUndiffLHSForPac(it.first, diff_subst_table);
       vector<int> parsed_undiff_nontrend_lhs;
 
@@ -4018,7 +4018,7 @@ DynamicModel::getUndiffLHSForPac(const string &aux_model_name,
   vector<bool> diff = trend_component_model_table.getDiff(aux_model_name);
   vector<int> orig_diff_var = trend_component_model_table.getOrigDiffVar(aux_model_name);
   vector<int> eqnumber = trend_component_model_table.getEqNums(aux_model_name);
-  vector<int> nontrend_eqnums = trend_component_model_table.getNonTrendEqNums(aux_model_name);
+  vector<int> nontrend_eqnums = trend_component_model_table.getNonTargetEqNums(aux_model_name);
 
   for (auto eqn : nontrend_eqnums)
     {

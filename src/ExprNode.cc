@@ -557,7 +557,7 @@ NumConstNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_
 }
 
 int
-NumConstNode::findTrendVariable(int lhs_symb_id) const
+NumConstNode::findTargetVariable(int lhs_symb_id) const
 {
   return -1;
 }
@@ -1506,7 +1506,7 @@ VariableNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_
 }
 
 int
-VariableNode::findTrendVariable(int lhs_symb_id) const
+VariableNode::findTargetVariable(int lhs_symb_id) const
 {
   return -1;
 }
@@ -3219,9 +3219,9 @@ UnaryOpNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) 
 }
 
 int
-UnaryOpNode::findTrendVariable(int lhs_symb_id) const
+UnaryOpNode::findTargetVariable(int lhs_symb_id) const
 {
-  return arg->findTrendVariable(lhs_symb_id);
+  return arg->findTargetVariable(lhs_symb_id);
 }
 
 expr_t
@@ -5146,7 +5146,7 @@ BinaryOpNode::isInStaticForm() const
 }
 
 bool
-BinaryOpNode::findTrendVariableHelper1(int lhs_symb_id, int rhs_symb_id) const
+BinaryOpNode::findTargetVariableHelper1(int lhs_symb_id, int rhs_symb_id) const
 {
   if (lhs_symb_id == rhs_symb_id)
     return true;
@@ -5164,8 +5164,8 @@ BinaryOpNode::findTrendVariableHelper1(int lhs_symb_id, int rhs_symb_id) const
 }
 
 int
-BinaryOpNode::findTrendVariableHelper(const expr_t arg1, const expr_t arg2,
-                                      int lhs_symb_id) const
+BinaryOpNode::findTargetVariableHelper(const expr_t arg1, const expr_t arg2,
+                                       int lhs_symb_id) const
 {
   set<int> params;
   arg1->collectVariables(SymbolType::parameter, params);
@@ -5182,9 +5182,9 @@ BinaryOpNode::findTrendVariableHelper(const expr_t arg1, const expr_t arg2,
           auto *test_arg1 = dynamic_cast<VariableNode *>(testarg2->get_arg1());
           auto *test_arg2 = dynamic_cast<VariableNode *>(testarg2->get_arg2());
           if (test_arg1 != nullptr && test_arg2 != nullptr )
-            if (findTrendVariableHelper1(lhs_symb_id, endogs.begin()->first))
+            if (findTargetVariableHelper1(lhs_symb_id, endogs.begin()->first))
               return endogs.rbegin()->first;
-            else if (findTrendVariableHelper1(lhs_symb_id, endogs.rbegin()->first))
+            else if (findTargetVariableHelper1(lhs_symb_id, endogs.rbegin()->first))
               return endogs.begin()->first;
         }
     }
@@ -5192,15 +5192,15 @@ BinaryOpNode::findTrendVariableHelper(const expr_t arg1, const expr_t arg2,
 }
 
 int
-BinaryOpNode::findTrendVariable(int lhs_symb_id) const
+BinaryOpNode::findTargetVariable(int lhs_symb_id) const
 {
-  int retval = findTrendVariableHelper(arg1, arg2, lhs_symb_id);
+  int retval = findTargetVariableHelper(arg1, arg2, lhs_symb_id);
   if (retval < 0)
-    retval = findTrendVariableHelper(arg2, arg1, lhs_symb_id);
+    retval = findTargetVariableHelper(arg2, arg1, lhs_symb_id);
   if (retval < 0)
-    retval = arg1->findTrendVariable(lhs_symb_id);
+    retval = arg1->findTargetVariable(lhs_symb_id);
   if (retval < 0)
-    retval = arg2->findTrendVariable(lhs_symb_id);
+    retval = arg2->findTargetVariable(lhs_symb_id);
   return retval;
 }
 
@@ -6341,13 +6341,13 @@ TrinaryOpNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff
 }
 
 int
-TrinaryOpNode::findTrendVariable(int lhs_symb_id) const
+TrinaryOpNode::findTargetVariable(int lhs_symb_id) const
 {
-  int retval = arg1->findTrendVariable(lhs_symb_id);
+  int retval = arg1->findTargetVariable(lhs_symb_id);
   if (retval < 0)
-    retval = arg2->findTrendVariable(lhs_symb_id);
+    retval = arg2->findTargetVariable(lhs_symb_id);
   if (retval < 0)
-    retval = arg3->findTrendVariable(lhs_symb_id);
+    retval = arg3->findTargetVariable(lhs_symb_id);
   return retval;
 }
 
@@ -6831,11 +6831,11 @@ AbstractExternalFunctionNode::findUnaryOpNodesForAuxVarCreation(DataTree &static
 }
 
 int
-AbstractExternalFunctionNode::findTrendVariable(int lhs_symb_id) const
+AbstractExternalFunctionNode::findTargetVariable(int lhs_symb_id) const
 {
   for (auto argument : arguments)
     {
-      int retval = argument->findTrendVariable(lhs_symb_id);
+      int retval = argument->findTargetVariable(lhs_symb_id);
       if (retval >= 0)
         return retval;
     }
@@ -8488,7 +8488,7 @@ VarExpectationNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree,
 }
 
 int
-VarExpectationNode::findTrendVariable(int lhs_symb_id) const
+VarExpectationNode::findTargetVariable(int lhs_symb_id) const
 {
   return -1;
 }
@@ -9033,7 +9033,7 @@ PacExpectationNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree,
 }
 
 int
-PacExpectationNode::findTrendVariable(int lhs_symb_id) const
+PacExpectationNode::findTargetVariable(int lhs_symb_id) const
 {
   return -1;
 }

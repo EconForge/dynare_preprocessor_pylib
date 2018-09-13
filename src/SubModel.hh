@@ -11,7 +11,7 @@
  * Dynare is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU General Public License for more details.SS
  *
  * You should have received a copy of the GNU General Public License
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
@@ -39,12 +39,12 @@ class TrendComponentModelTable
 private:
   SymbolTable &symbol_table;
   set<string> names;
-  map<string, vector<string>> eqtags, trend_eqtags;
-  map<string, vector<int>> eqnums, trend_eqnums, nontrend_eqnums, max_lags, lhs, trend_lhs, nontrend_lhs, orig_diff_var;
+  map<string, vector<string>> eqtags, target_eqtags;
+  map<string, vector<int>> eqnums, target_eqnums, nontarget_eqnums, max_lags, lhs, target_lhs, nontarget_lhs, orig_diff_var;
   map<string, vector<set<pair<int, int>>>> rhs;
   map<string, vector<bool>> diff, nonstationary;
   map<string, vector<expr_t>> lhs_expr_t;
-  map<string, vector<int>> trend_vars;
+  map<string, vector<int>> target_vars;
   map<string, map<tuple<int, int, int>, expr_t>> AR; // AR: name -> (eqn, lag, lhs_symb_id) -> expr_t
   map<string, map<tuple<int, int, int>, expr_t>> EC; // EC: name -> (eqn, lag, col) -> expr_t
 public:
@@ -52,17 +52,17 @@ public:
 
   //! Add a trend component model
   void addTrendComponentModel(string name_arg, vector<string> eqtags_arg,
-                              vector<string> trend_eqtags_arg);
+                              vector<string> target_eqtags_arg);
 
   inline bool isExistingTrendComponentModelName(const string &name_arg) const;
   inline bool empty() const;
 
   map<string, vector<string>> getEqTags() const;
   vector<string> getEqTags(const string &name_arg) const;
-  map<string, vector<string>> getTrendEqTags() const;
+  map<string, vector<string>> getTargetEqTags() const;
   map<string, vector<int>> getEqNums() const;
-  map<string, vector<int>> getTrendEqNums() const;
-  vector<int> getTrendEqNums(const string &name_arg) const;
+  map<string, vector<int>> getTargetEqNums() const;
+  vector<int> getTargetEqNums(const string &name_arg) const;
   vector<int> getEqNums(const string &name_arg) const;
   vector<int> getMaxLags(const string &name_arg) const;
   int getMaxLag(const string &name_arg) const;
@@ -70,20 +70,20 @@ public:
   vector<expr_t> getLhsExprT(const string &name_arg) const;
   vector<bool> getDiff(const string &name_arg) const;
   vector<int> getOrigDiffVar(const string &name_arg) const;
-  map<string, vector<int>> getNonTrendEqNums() const;
-  vector<int> getNonTrendEqNums(const string &name_arg) const;
+  map<string, vector<int>> getNonTargetEqNums() const;
+  vector<int> getNonTargetEqNums(const string &name_arg) const;
   vector<bool> getNonstationary(const string &name_arg) const;
   vector<int> getNontrendLhs(const string &name_arg) const;
-  vector<int> getTrendLhs(const string &name_arg) const;
+  vector<int> getTargetLhs(const string &name_arg) const;
 
-  void setVals(map<string, vector<int>> eqnums_arg, map<string, vector<int>> trend_eqnums_arg,
+  void setVals(map<string, vector<int>> eqnums_arg, map<string, vector<int>> target_eqnums_arg,
                map<string, vector<int>> lhs_arg,
                map<string, vector<expr_t>> lhs_expr_t_arg, map<string, vector<bool>> nonstationary_arg);
   void setRhs(map<string, vector<set<pair<int, int>>>> rhs_arg);
   void setMaxLags(map<string, vector<int>> max_lags_arg);
   void setDiff(map<string, vector<bool>> diff_arg);
   void setOrigDiffVar(map<string, vector<int>> orig_diff_var_arg);
-  void setTrendVar(map<string, vector<int>> trend_vars_arg);
+  void setTargetVar(map<string, vector<int>> target_vars_arg);
   void setAR(map<string, map<tuple<int, int, int>, expr_t>> AR_arg);
   void setEC(map<string, map<tuple<int, int, int>, expr_t>> EC_arg);
 
@@ -95,7 +95,7 @@ public:
 
 private:
   void checkModelName(const string &name_arg) const;
-  void setNonTrendEqnums();
+  void setNonTargetEqnums();
 };
 
 inline bool

@@ -29,7 +29,7 @@ TrendComponentModelTable::TrendComponentModelTable(SymbolTable &symbol_table_arg
 void
 TrendComponentModelTable::addTrendComponentModel(string name_arg,
                                                  vector<string> eqtags_arg,
-                                                 vector<string> trend_eqtags_arg)
+                                                 vector<string> target_eqtags_arg)
 {
   if (isExistingTrendComponentModelName(name_arg))
     {
@@ -37,17 +37,17 @@ TrendComponentModelTable::addTrendComponentModel(string name_arg,
       exit(EXIT_FAILURE);
     }
   eqtags[name_arg] = move(eqtags_arg);
-  trend_eqtags[name_arg] = move(trend_eqtags_arg);
+  target_eqtags[name_arg] = move(target_eqtags_arg);
   names.insert(move(name_arg));
 }
 
 void
-TrendComponentModelTable::setVals(map<string, vector<int>> eqnums_arg, map<string, vector<int>> trend_eqnums_arg,
+TrendComponentModelTable::setVals(map<string, vector<int>> eqnums_arg, map<string, vector<int>> target_eqnums_arg,
                                   map<string, vector<int>> lhs_arg,
                                   map<string, vector<expr_t>> lhs_expr_t_arg, map<string, vector<bool>> nonstationary_arg)
 {
   eqnums = move(eqnums_arg);
-  trend_eqnums = move(trend_eqnums_arg);
+  target_eqnums = move(target_eqnums_arg);
   lhs = move(lhs_arg);
   lhs_expr_t = move(lhs_expr_t_arg);
   nonstationary = move(nonstationary_arg);
@@ -56,23 +56,23 @@ TrendComponentModelTable::setVals(map<string, vector<int>> eqnums_arg, map<strin
     {
       vector<int> nontrend_vec;
       for (auto eq : it.second)
-        if (find(trend_eqnums[it.first].begin(), trend_eqnums[it.first].end(), eq) == trend_eqnums[it.first].end())
+        if (find(target_eqnums[it.first].begin(), target_eqnums[it.first].end(), eq) == target_eqnums[it.first].end())
           nontrend_vec.push_back(eq);
-      nontrend_eqnums[it.first] = nontrend_vec;
+      nontarget_eqnums[it.first] = nontrend_vec;
     }
 
   for (const auto &name : names)
     {
-      vector<int> nontrend_lhs_vec, trend_lhs_vec;
+      vector<int> nontarget_lhs_vec, target_lhs_vec;
       vector<int> lhsv = getLhs(name);
       vector<int> eqnumsv = getEqNums(name);
-      for (int nontrend_it : getNonTrendEqNums(name))
-        nontrend_lhs_vec.push_back(lhsv.at(distance(eqnumsv.begin(), find(eqnumsv.begin(), eqnumsv.end(), nontrend_it))));
-      nontrend_lhs[name] = nontrend_lhs_vec;
+      for (int nontrend_it : getNonTargetEqNums(name))
+        nontarget_lhs_vec.push_back(lhsv.at(distance(eqnumsv.begin(), find(eqnumsv.begin(), eqnumsv.end(), nontrend_it))));
+      nontarget_lhs[name] = nontarget_lhs_vec;
 
-      for (int trend_it : getTrendEqNums(name))
-        trend_lhs_vec.push_back(lhsv.at(distance(eqnumsv.begin(), find(eqnumsv.begin(), eqnumsv.end(), trend_it))));
-      trend_lhs[name] = trend_lhs_vec;
+      for (int trend_it : getTargetEqNums(name))
+        target_lhs_vec.push_back(lhsv.at(distance(eqnumsv.begin(), find(eqnumsv.begin(), eqnumsv.end(), trend_it))));
+      target_lhs[name] = target_lhs_vec;
     }
 }
 
@@ -83,9 +83,9 @@ TrendComponentModelTable::setRhs(map<string, vector<set<pair<int, int>>>> rhs_ar
 }
 
 void
-TrendComponentModelTable::setTrendVar(map<string, vector<int>> trend_vars_arg)
+TrendComponentModelTable::setTargetVar(map<string, vector<int>> target_vars_arg)
 {
-  trend_vars = move(trend_vars_arg);
+  target_vars = move(target_vars_arg);
 }
 
 void
@@ -160,14 +160,14 @@ vector<int>
 TrendComponentModelTable::getNontrendLhs(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return nontrend_lhs.find(name_arg)->second;
+  return nontarget_lhs.find(name_arg)->second;
 }
 
 vector<int>
-TrendComponentModelTable::getTrendLhs(const string &name_arg) const
+TrendComponentModelTable::getTargetLhs(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return trend_lhs.find(name_arg)->second;
+  return target_lhs.find(name_arg)->second;
 }
 
 vector<int>
@@ -185,9 +185,9 @@ TrendComponentModelTable::getLhsExprT(const string &name_arg) const
 }
 
 map<string, vector<string>>
-TrendComponentModelTable::getTrendEqTags() const
+TrendComponentModelTable::getTargetEqTags() const
 {
-  return trend_eqtags;
+  return target_eqtags;
 }
 
 map<string, vector<int>>
@@ -197,29 +197,29 @@ TrendComponentModelTable::getEqNums() const
 }
 
 map<string, vector<int>>
-TrendComponentModelTable::getTrendEqNums() const
+TrendComponentModelTable::getTargetEqNums() const
 {
-  return trend_eqnums;
+  return target_eqnums;
 }
 
 vector<int>
-TrendComponentModelTable::getTrendEqNums(const string &name_arg) const
+TrendComponentModelTable::getTargetEqNums(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return trend_eqnums.find(name_arg)->second;
+  return target_eqnums.find(name_arg)->second;
 }
 
 map<string, vector<int>>
-TrendComponentModelTable::getNonTrendEqNums() const
+TrendComponentModelTable::getNonTargetEqNums() const
 {
-  return nontrend_eqnums;
+  return nontarget_eqnums;
 }
 
 vector<int>
-TrendComponentModelTable::getNonTrendEqNums(const string &name_arg) const
+TrendComponentModelTable::getNonTargetEqNums(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return nontrend_eqnums.find(name_arg)->second;
+  return nontarget_eqnums.find(name_arg)->second;
 }
 
 vector<int>
@@ -285,14 +285,14 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
       for (auto it : eqnums.at(name))
         output << it + 1 << " ";
       output << "];" << endl
-             << "M_.trend_component." << name << ".trend_eqn = [";
-      for (auto it : trend_eqnums.at(name))
+             << "M_.trend_component." << name << ".target_eqn = [";
+      for (auto it : target_eqnums.at(name))
         output << it + 1 << " ";
       output << "];" << endl
-             << "M_.trend_component." << name << ".trends = [";
+             << "M_.trend_component." << name << ".targets = [";
       for (auto it : eqnums.at(name))
-        if (find(trend_eqnums.at(name).begin(), trend_eqnums.at(name).end(), it)
-            == trend_eqnums.at(name).end())
+        if (find(target_eqnums.at(name).begin(), target_eqnums.at(name).end(), it)
+            == target_eqnums.at(name).end())
           output << "false ";
         else
           output << "true ";
@@ -331,29 +331,29 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
 
           i++;
         }
-      output << "M_.trend_component." << name << ".trend_vars = [";
-      for (auto it : trend_vars.at(name))
+      output << "M_.trend_component." << name << ".target_vars = [";
+      for (auto it : target_vars.at(name))
         output << (it >= 0 ? symbol_table.getTypeSpecificID(it) + 1 : -1) << " ";
       output << "];" << endl;
 
-      vector<int> trend_lhs_vec = getTrendLhs(name);
-      vector<int> nontrend_lhs_vec = getNontrendLhs(name);
+      vector<int> target_lhs_vec = getTargetLhs(name);
+      vector<int> nontarget_lhs_vec = getNontrendLhs(name);
 
       ar_ec_output << "if strcmp(model_name, '" << name << "')" << endl
                 << "    % AR" << endl
-                << "    ar = zeros(" << nontrend_lhs_vec.size() << ", " << nontrend_lhs_vec.size() << ", " << getMaxLag(name) << ");" << endl;
+                << "    ar = zeros(" << nontarget_lhs_vec.size() << ", " << nontarget_lhs_vec.size() << ", " << getMaxLag(name) << ");" << endl;
       for (const auto & it : AR.at(name))
         {
           int eqn, lag, lhs_symb_id;
           tie (eqn, lag, lhs_symb_id) = it.first;
-          int colidx = (int) distance(nontrend_lhs_vec.begin(), find(nontrend_lhs_vec.begin(), nontrend_lhs_vec.end(), lhs_symb_id));
+          int colidx = (int) distance(nontarget_lhs_vec.begin(), find(nontarget_lhs_vec.begin(), nontarget_lhs_vec.end(), lhs_symb_id));
           ar_ec_output << "    ar(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
           it.second->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
           ar_ec_output << ";" << endl;
         }
       ar_ec_output << endl
                    << "    % EC" << endl
-                   << "    ec = zeros(" << nontrend_lhs_vec.size() << ", " << nontrend_lhs_vec.size() << ", 1);" << endl;
+                   << "    ec = zeros(" << nontarget_lhs_vec.size() << ", " << nontarget_lhs_vec.size() << ", 1);" << endl;
       for (const auto & it : EC.at(name))
         {
           int eqn, lag, colidx;
@@ -386,11 +386,11 @@ TrendComponentModelTable::writeJsonOutput(ostream &output) const
           if (&it != &eqtags.at(name).back())
             output << ", ";
         }
-      output << "], \"trend_eqtags\": [";
-      for (const auto &it : trend_eqtags.at(name))
+      output << "], \"target_eqtags\": [";
+      for (const auto &it : target_eqtags.at(name))
         {
           output << "\"" << it << "\"";
-          if (&it != &trend_eqtags.at(name).back())
+          if (&it != &target_eqtags.at(name).back())
             output << ", ";
         }
       output << "]}";
