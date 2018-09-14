@@ -30,6 +30,11 @@ using namespace std;
 //! Stores a dynamic model
 class DynamicModel : public ModelTree
 {
+public:
+  //! A reference to the trend component model table
+  TrendComponentModelTable &trend_component_model_table;
+  //! A reference to the VAR model table
+  VarModelTable &var_model_table;
 private:
   constexpr static double zero_band{1e-8};
 

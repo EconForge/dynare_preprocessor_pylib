@@ -2061,11 +2061,8 @@ ModelComparisonStatement::writeJsonOutput(ostream &output) const
 
 PlannerObjectiveStatement::PlannerObjectiveStatement(SymbolTable &symbol_table,
                                                      NumericalConstants &num_constants,
-                                                     ExternalFunctionsTable &external_functions_table,
-                                                     TrendComponentModelTable &trend_component_model_table_arg,
-                                                     VarModelTable &var_model_table_arg) :
-  model_tree{symbol_table, num_constants, external_functions_table,
-             trend_component_model_table_arg, var_model_table_arg}
+                                                     ExternalFunctionsTable &external_functions_table) :
+  model_tree{symbol_table, num_constants, external_functions_table}
 {
 }
 

@@ -2136,9 +2136,7 @@ ParsingDriver::begin_planner_objective()
 {
   planner_objective_statement = make_unique<PlannerObjectiveStatement>(mod_file->symbol_table,
                                                                        mod_file->num_constants,
-                                                                       mod_file->external_functions_table,
-                                                                       mod_file->trend_component_model_table,
-                                                                       mod_file->var_model_table);
+                                                                       mod_file->external_functions_table);
   set_current_data_tree(&planner_objective_statement->getPlannerObjective());
 }
 

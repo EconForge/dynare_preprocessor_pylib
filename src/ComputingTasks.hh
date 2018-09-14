@@ -510,9 +510,7 @@ private:
 public:
   PlannerObjectiveStatement(SymbolTable &symbol_table,
                             NumericalConstants &num_constants,
-                            ExternalFunctionsTable &external_functions_table,
-                            TrendComponentModelTable &trend_component_model_table_arg,
-                            VarModelTable &var_model_table_arg);
+                            ExternalFunctionsTable &external_functions_table);
   /*! \todo check there are only endogenous variables at the current period in the objective
     (no exogenous, no lead/lag) */
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
