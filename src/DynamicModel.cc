@@ -3807,7 +3807,7 @@ DynamicModel::fillTrendComponentModelTable() const
           if (lhs_set.size() != 1 || !lhs_tmp_set.empty())
             {
               cerr << "ERROR: in Equation " << eqtag
-                   << ". A trend component model  may only have one endogenous variable on the LHS. " << endl;
+                   << ". A trend component model may only have one endogenous variable on the LHS. " << endl;
               exit(EXIT_FAILURE);
             }
 
