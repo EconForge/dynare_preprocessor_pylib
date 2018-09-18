@@ -532,9 +532,7 @@ VarModelTable::writeJsonOutput(ostream &output) const
           output << "]";
         }
       else
-        {
-          output << "\"order\": \"" << symbol_list_and_order.at(name).second << "\",";
-        }
+        output << "\"order\": \"" << symbol_list_and_order.at(name).second << "\"";
       output << "}";
     }
 }
