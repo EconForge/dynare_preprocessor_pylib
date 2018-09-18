@@ -360,6 +360,12 @@ NumConstNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 }
 
 void
+NumConstNode::writeJsonAST(ostream &output) const
+{
+  output << "{\"node_type\" : \"NumConstNode\", \"value\" : " << datatree.num_constants.get(id) << "}";
+}
+
+void
 NumConstNode::writeJsonOutput(ostream &output,
                               const temporary_terms_t &temporary_terms,
                               const deriv_node_temp_terms_t &tef_terms,
@@ -808,6 +814,62 @@ bool
 VariableNode::containsExternalFunction() const
 {
   return false;
+}
+
+void
+VariableNode::writeJsonAST(ostream &output) const
+{
+  output << "{\"node_type\" : \"VariableNode\", "
+         << "\"name\" : \"" << datatree.symbol_table.getName(symb_id) << "\", \"type\" : \"";
+  switch (type)
+    {
+    case SymbolType::endogenous:
+      output << "endogenous";
+      break;
+    case SymbolType::exogenous:
+      output << "exogenous";
+      break;
+    case SymbolType::exogenousDet:
+      output << "exogenousDet";
+      break;
+    case SymbolType::parameter:
+      output << "parameter";
+      break;
+    case SymbolType::modelLocalVariable:
+      output << "modelLocalVariable";
+      break;
+    case SymbolType::modFileLocalVariable:
+      output << "modFileLocalVariable";
+      break;
+    case SymbolType::externalFunction:
+      output << "externalFunction";
+      break;
+    case SymbolType::trend:
+      output << "trend";
+      break;
+    case SymbolType::statementDeclaredVariable:
+      output << "statementDeclaredVariable";
+      break;
+    case SymbolType::logTrend:
+      output << "logTrend:";
+      break;
+    case SymbolType::unusedEndogenous:
+      output << "unusedEndogenous";
+      break;
+    case SymbolType::endogenousVAR:
+      output << "endogenousVAR";
+      break;
+    case SymbolType::endogenousEpilogue:
+      output << "endogenousEpilogue";
+      break;
+    case SymbolType::exogenousEpilogue:
+      output << "exogenousEpilogue";
+      break;
+    case SymbolType::parameterEpilogue:
+      output << "parameterEpilogue";
+      break;
+    }
+  output << "\", \"lag\" : " << lag << "}";
 }
 
 void
@@ -2309,6 +2371,111 @@ bool
 UnaryOpNode::containsExternalFunction() const
 {
   return arg->containsExternalFunction();
+}
+
+void
+UnaryOpNode::writeJsonAST(ostream &output) const
+{
+  output << "{\"node_type\" : \"UnaryOpNode\", \"op\" : \"";
+  switch (op_code)
+    {
+    case UnaryOpcode::uminus:
+      output << "uminus";
+      break;
+    case UnaryOpcode::exp:
+      output << "exp";
+      break;
+    case UnaryOpcode::log:
+      output << "log";
+      break;
+    case UnaryOpcode::log10:
+      output << "log10";
+      break;
+    case UnaryOpcode::cos:
+      output << "cos";
+      break;
+    case UnaryOpcode::sin:
+      output << "sin";
+      break;
+    case UnaryOpcode::tan:
+      output << "tan";
+      break;
+    case UnaryOpcode::acos:
+      output << "acos";
+      break;
+    case UnaryOpcode::asin:
+      output << "asin";
+      break;
+    case UnaryOpcode::atan:
+      output << "atan";
+      break;
+    case UnaryOpcode::cosh:
+      output << "cosh";
+      break;
+    case UnaryOpcode::sinh:
+      output << "sinh";
+      break;
+    case UnaryOpcode::tanh:
+      output << "tanh";
+      break;
+    case UnaryOpcode::acosh:
+      output << "acosh";
+      break;
+    case UnaryOpcode::asinh:
+      output << "asinh";
+      break;
+    case UnaryOpcode::atanh:
+      output << "atanh";
+      break;
+    case UnaryOpcode::sqrt:
+      output << "sqrt";
+      break;
+    case UnaryOpcode::abs:
+      output << "abs";
+      break;
+    case UnaryOpcode::sign:
+      output << "sign";
+      break;
+    case UnaryOpcode::diff:
+      output << "diff";
+      break;
+    case UnaryOpcode::adl:
+      output << "adl";
+      break;
+    case UnaryOpcode::steadyState:
+      output << "steady_state";
+    case UnaryOpcode::steadyStateParamDeriv:
+      output << "steady_state_param_deriv";
+      break;
+    case UnaryOpcode::steadyStateParam2ndDeriv:
+      output << "steady_state_param_second_deriv";
+      break;
+    case UnaryOpcode::expectation:
+      output << "expectation";
+      break;
+    case UnaryOpcode::erf:
+      output << "erf";
+      break;
+    }
+  output << "\", \"arg\" : ";
+  arg->writeJsonAST(output);
+  switch (op_code)
+    {
+    case UnaryOpcode::adl:
+      output << ", \"adl_param_name\" : \"" << adl_param_name << "\""
+             << ", \"lags\" : [";
+      for (auto it = adl_lags.begin(); it != adl_lags.end(); it++)
+        {
+          if (it != adl_lags.begin())
+            output << ", ";
+          output << *it;
+        }
+      output << "]";
+      break;
+    default:
+      break;
+    }
+  output << "}";
 }
 
 void
@@ -4102,6 +4269,66 @@ BinaryOpNode::containsExternalFunction() const
 {
   return arg1->containsExternalFunction()
     || arg2->containsExternalFunction();
+}
+
+void
+BinaryOpNode::writeJsonAST(ostream &output) const
+{
+  output << "{\"node_type\" : \"BinaryOpNode\","
+         << " \"op\" : \"";
+  switch (op_code)
+    {
+    case BinaryOpcode::plus:
+      output << "+";
+      break;
+    case BinaryOpcode::minus:
+      output << "-";
+      break;
+    case BinaryOpcode::times:
+      output << "*";
+      break;
+    case BinaryOpcode::divide:
+      output << "/";
+      break;
+    case BinaryOpcode::power:
+      output << "^";
+      break;
+    case BinaryOpcode::less:
+      output << "<";
+      break;
+    case BinaryOpcode::greater:
+      output << ">";
+      break;
+    case BinaryOpcode::lessEqual:
+      output << "<=";
+      break;
+    case BinaryOpcode::greaterEqual:
+      output << ">=";
+      break;
+    case BinaryOpcode::equalEqual:
+      output << "==";
+      break;
+    case BinaryOpcode::different:
+      output << "!=";
+      break;
+    case BinaryOpcode::equal:
+      output << "=";
+      break;
+    case BinaryOpcode::max:
+      output << "max";
+      break;
+    case BinaryOpcode::min:
+      output << "min";
+      break;
+    case BinaryOpcode::powerDeriv:
+      output << "power_deriv";
+      break;
+    }
+  output << "\", \"arg1\" : ";
+  arg1->writeJsonAST(output);
+  output << ", \"arg2\" : ";
+  arg2->writeJsonAST(output);
+  output << "}";
 }
 
 void
@@ -5952,6 +6179,29 @@ TrinaryOpNode::containsExternalFunction() const
 }
 
 void
+TrinaryOpNode::writeJsonAST(ostream &output) const
+{
+  output << "{\"node_type\" : \"TrinaryOpNode\", "
+         << "\"op\" : \"";
+  switch (op_code)
+    {
+    case TrinaryOpcode::normcdf:
+      output << "normcdf";
+      break;
+    case TrinaryOpcode::normpdf:
+      output << "normpdf";
+      break;
+    }
+  output << "\", \"arg1\" : ";
+  arg1->writeJsonAST(output);
+  output << ", \"arg2\" : ";
+  arg2->writeJsonAST(output);
+  output << ", \"arg2\" : ";
+  arg3->writeJsonAST(output);
+  output << "}";
+}
+
+void
 TrinaryOpNode::writeJsonOutput(ostream &output,
                                const temporary_terms_t &temporary_terms,
                                const deriv_node_temp_terms_t &tef_terms,
@@ -7110,6 +7360,22 @@ AbstractExternalFunctionNode::writeExternalFunctionArguments(ostream &output, Ex
 }
 
 void
+AbstractExternalFunctionNode::writeJsonASTExternalFunctionArguments(ostream &output) const
+{
+  int i = 0;
+  output << "{";
+  for (auto it = arguments.begin(); it != arguments.end(); it++, i++)
+    {
+      if (it != arguments.begin())
+        output << ",";
+
+      output << "\"arg" << i << "\" : ";
+      (*it)->writeJsonAST(output);
+    }
+    output << "}";
+}
+
+void
 AbstractExternalFunctionNode::writeJsonExternalFunctionArguments(ostream &output,
                                                                  const temporary_terms_t &temporary_terms,
                                                                  const deriv_node_temp_terms_t &tef_terms,
@@ -7290,6 +7556,15 @@ ExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCode, unsign
       FSTPTEF_ fstptef(indx);
       fstptef.write(CompileCode, instruction_number);
     }
+}
+
+void
+ExternalFunctionNode::writeJsonAST(ostream &output) const
+{
+  output << "{\"node_type\" : \"ExternalFunctionNode\", "
+         << "\"name\" : \"" << datatree.symbol_table.getName(symb_id) << "\", \"args\" : [";
+  writeJsonASTExternalFunctionArguments(output);
+  output << "]}";
 }
 
 void
@@ -7525,6 +7800,15 @@ FirstDerivExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
   for (vector<expr_t>::const_iterator it = dNodes.begin(); it != dNodes.end(); it++)
     theDeriv = datatree.AddPlus(theDeriv, *it);
   return theDeriv;
+}
+
+void
+FirstDerivExternalFunctionNode::writeJsonAST(ostream &output) const
+{
+  output << "{\"node_type\" : \"FirstDerivExternalFunctionNode\", "
+         << "\"name\" : \"" << datatree.symbol_table.getName(symb_id) << "\", \"args\" : [";
+  writeJsonASTExternalFunctionArguments(output);
+  output << "]}";
 }
 
 void
@@ -7905,6 +8189,15 @@ SecondDerivExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
 {
   cerr << "ERROR: third order derivatives of external functions are not implemented" << endl;
   exit(EXIT_FAILURE);
+}
+
+void
+SecondDerivExternalFunctionNode::writeJsonAST(ostream &output) const
+{
+  output << "{\"node_type\" : \"SecondDerivExternalFunctionNode\", "
+         << "\"name\" : \"" << datatree.symbol_table.getName(symb_id) << "\", \"args\" : [";
+  writeJsonASTExternalFunctionArguments(output);
+  output << "]}";
 }
 
 void
@@ -8658,6 +8951,13 @@ VarExpectationNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_
 }
 
 void
+VarExpectationNode::writeJsonAST(ostream &output) const
+{
+  output << "{\"node_type\" : \"VarExpectationNode\", "
+         << "\"name\" : \"" << model_name << "\"}";
+}
+
+void
 VarExpectationNode::writeJsonOutput(ostream &output,
                                     const temporary_terms_t &temporary_terms,
                                     const deriv_node_temp_terms_t &tef_terms,
@@ -9149,6 +9449,13 @@ PacExpectationNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_
 {
   cerr << "Pac Expectation not supported in Trend Component Models" << endl;
   exit(EXIT_FAILURE);
+}
+
+void
+PacExpectationNode::writeJsonAST(ostream &output) const
+{
+  output << "{\"node_type\" : \"PacExpectationNode\", "
+         << "\"name\" : \"" << model_name << "\"}";
 }
 
 void

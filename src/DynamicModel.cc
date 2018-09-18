@@ -6057,6 +6057,46 @@ DynamicModel::writeJsonOutput(ostream &output) const
   writeJsonModelEquations(output, false);
   output << ", ";
   writeJsonXrefs(output);
+  output << ", ";
+  writeJsonAST(output);
+}
+
+void
+DynamicModel::writeJsonAST(ostream &output) const
+{
+  vector<pair<string, string>> eqtags;
+  output << "\"Abstract Syntax Tree\":[" << endl;
+  for (int eq = 0; eq < (int) equations.size(); eq++)
+    {
+      if (eq != 0)
+        output << ", ";
+
+      output << "{ \"number\":" << eq
+             << ", \"line\":" << equations_lineno[eq];
+
+      for (const auto & equation_tag : equation_tags)
+        if (equation_tag.first == eq)
+          eqtags.push_back(equation_tag.second);
+
+      if (!eqtags.empty())
+        {
+          output << ", \"tags\": {";
+          int i = 0;
+          for (vector<pair<string, string>>::const_iterator it = eqtags.begin(); it != eqtags.end(); it++, i++)
+            {
+              if (i != 0)
+                output << ", ";
+              output << "\"" << it->first << "\": \"" << it->second << "\"";
+            }
+          output << "}";
+          eqtags.clear();
+        }
+
+      output << ", \"AST\": ";
+      equations[eq]->writeJsonAST(output);
+      output << "}";
+    }
+  output << "]";
 }
 
 void
@@ -6103,6 +6143,8 @@ void
 DynamicModel::writeJsonOriginalModelOutput(ostream &output) const
 {
   writeJsonModelEquations(output, false);
+  output << ", ";
+  writeJsonAST(output);
 }
 
 void

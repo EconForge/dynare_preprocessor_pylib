@@ -262,6 +262,9 @@ class ExprNode
       //! Writes output of node in JSON syntax
       virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic = true) const = 0;
 
+      //! Writes the Abstract Syntax Tree in JSON
+      virtual void writeJsonAST(ostream &output) const = 0;
+
       virtual int precedenceJson(const temporary_terms_t &temporary_terms) const;
 
       //! Writes the output for an external function, ensuring that the external function is called as few times as possible using temporary terms
@@ -612,6 +615,7 @@ public:
   };
   void prepareForDerivation() override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
   bool containsExternalFunction() const override;
   void collectVARLHSVariable(set<expr_t> &result) const override;
@@ -692,6 +696,7 @@ public:
   VariableNode(DataTree &datatree_arg, int idx_arg, int symb_id_arg, int lag_arg);
   void prepareForDerivation() override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
   bool containsExternalFunction() const override;
   void collectVARLHSVariable(set<expr_t> &result) const override;
@@ -804,6 +809,7 @@ public:
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
   bool containsExternalFunction() const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
@@ -928,6 +934,7 @@ public:
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
   bool containsExternalFunction() const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
@@ -1084,6 +1091,7 @@ public:
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
   bool containsExternalFunction() const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
@@ -1190,6 +1198,7 @@ protected:
   int getIndxInTefTerms(int the_symb_id, const deriv_node_temp_terms_t &tef_terms) const noexcept(false);
   //! Helper function to write output arguments of any given external function
   void writeExternalFunctionArguments(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
+  void writeJsonASTExternalFunctionArguments(ostream &output) const;
   void writeJsonExternalFunctionArguments(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
   /*! Returns a predicate that tests whether an other ExprNode is an external
     function which is computed by the same external function call (i.e. it has
@@ -1203,6 +1212,7 @@ public:
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
                                      bool is_matlab, NodeTreeReference tr) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override = 0;
+  void writeJsonAST(ostream &output) const override = 0;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic = true) const override = 0;
   bool containsExternalFunction() const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
@@ -1306,6 +1316,7 @@ public:
   ExternalFunctionNode(DataTree &datatree_arg, int idx_arg, int symb_id_arg,
                        const vector<expr_t> &arguments_arg);
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
@@ -1351,6 +1362,7 @@ public:
                                      vector< vector<temporary_terms_t>> &v_temporary_terms,
                                      int equation) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
   void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
@@ -1395,6 +1407,7 @@ public:
                                      vector< vector<temporary_terms_t>> &v_temporary_terms,
                                      int equation) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
   void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
@@ -1501,6 +1514,7 @@ public:
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   expr_t substituteStaticAuxiliaryVariable() const override;
+  void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
 };
 
@@ -1599,6 +1613,7 @@ public:
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   expr_t substituteStaticAuxiliaryVariable() const override;
+  void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
 };
 
