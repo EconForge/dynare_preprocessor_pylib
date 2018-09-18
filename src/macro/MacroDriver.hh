@@ -165,7 +165,7 @@ private:
   vector<env_t> func_env;
 
   //! Stack used to keep track of (possibly nested) loops
-  //! First element is loop variable name
+  //! First element is loop variable name(s)
   //! Second is the array over which iteration is done
   //! Third is subscript to be used by next call of iter_loop() (beginning with 0) */
   stack<tuple<vector<string>, shared_ptr<ArrayMV>, int>> loop_stack;

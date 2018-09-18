@@ -228,7 +228,7 @@ comma_expr : %empty
            ;
 
 tuple_comma_expr : %empty
-                   { $$ = vector<MacroValuePtr>{}; } // Empty array
+                   { $$ = vector<MacroValuePtr>{}; } // Empty tuple
                  | expr COMMA
                    { $$ = vector<MacroValuePtr>{$1}; }
                  | expr COMMA expr
