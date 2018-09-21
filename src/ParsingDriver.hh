@@ -323,6 +323,9 @@ public:
   void use_dll();
   //! the modelis block decomposed
   void block();
+  //! the model is decomposed according to the linearity of its equations
+  void linear_decomposition();
+
   //! the model is stored in a binary file
   void byte_code();
   //! the static model is not computed
@@ -673,6 +676,9 @@ public:
   void conditional_forecast_paths();
   //! Plot conditional forecast statement
   void plot_conditional_forecast(const string &periods = "");
+  //! Deterministic conditional forecast statement
+  void det_cond_forecast_linear_decomposition(const string &plan);
+  void det_cond_forecast_linear_decomposition(const string &plan, const string &dset);
   //! Smoother on calibrated models
   void calib_smoother();
   //! Extended path

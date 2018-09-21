@@ -67,6 +67,8 @@ public:
   DynamicModel ramsey_FOC_equations_dynamic_model;
   //! A copy of the original model, used to test model linearity under ramsey problem
   DynamicModel orig_ramsey_dynamic_model;
+  //! A copy of the Dynamic model, containing only the non-linear equations w.r. to endogenous variables
+  DynamicModel non_linear_equations_dynamic_model;
   //! Epilogue model, as declared in the "epilogue" block
   Epilogue epilogue;
   //! Static model, as derived from the "model" block when leads and lags have been removed
@@ -99,6 +101,9 @@ public:
     if empty, means that the transformation must be applied to all endos
     with a lead */
   vector<string> differentiate_forward_vars_subset;
+
+  //! Is the model is block-decomposed according the linear and the non-linear equations
+  bool linear_decomposition;
 
   //! Are nonstationary variables present ?
   bool nonstationary_variables;

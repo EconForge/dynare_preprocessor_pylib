@@ -95,6 +95,21 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
+
+class DetCondForecast : public Statement
+{
+private:
+  const OptionsList options_list;
+  const SymbolList symbol_list;
+  const bool linear_decomposition;
+public:
+  DetCondForecast(const SymbolList &symbol_list_arg,
+                  const OptionsList &options_list_arg,
+                  const bool linear_decompositiontion_arg);
+  //virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+};
+
 class ModelInfoStatement : public Statement
 {
 private:

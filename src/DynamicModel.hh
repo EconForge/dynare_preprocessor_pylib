@@ -118,7 +118,7 @@ private:
   //! Writes the Block reordred structure of the model in M output
   void writeModelEquationsOrdered_M(const string &basename) const;
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
-  void writeModelEquationsCode_Block(const string &basename, const map_idx_t &map_idx) const;
+  void writeModelEquationsCode_Block(const string &basename, const map_idx_t &map_idx, const bool linear_decomposition) const;
   //! Writes the code of the model in virtual machine bytecode
   void writeModelEquationsCode(const string &basename, const map_idx_t &map_idx) const;
 
@@ -280,9 +280,9 @@ public:
     \param no_tmp_terms if true, no temporary terms will be computed in the dynamic files
   */
   void computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, int paramsDerivsOrder,
-                     const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode, const bool nopreprocessoroutput);
+                     const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode, const bool nopreprocessoroutput, bool linear_decomposition);
   //! Writes model initialization and lead/lag incidence matrix to output
-  void writeOutput(ostream &output, const string &basename, bool block, bool byte_code, bool use_dll, int order, bool estimation_present, bool compute_xrefs, bool julia) const;
+  void writeOutput(ostream &output, const string &basename, bool block, bool linear_decomposition, bool byte_code, bool use_dll, int order, bool estimation_present, bool compute_xrefs, bool julia) const;
 
   //! Write JSON AST
   void writeJsonAST(ostream &output) const;
@@ -351,15 +351,20 @@ public:
 
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &basename,
-                                   const int &num, int &u_count_int, bool &file_open, bool is_two_boundaries) const;
+                                   const int &num, int &u_count_int, bool &file_open, bool is_two_boundaries, const bool linear_decomposition) const;
   //! Writes dynamic model file
-  void writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, int order, bool julia) const;
+  void writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, int order, bool julia) const;
   //! Writes file containing parameters derivatives
   void writeParamsDerivativesFile(const string &basename, bool julia) const;
 
   //! Converts to static model (only the equations)
   /*! It assumes that the static model given in argument has just been allocated */
   void toStatic(StaticModel &static_model) const;
+
+  
+  //! Converts to nonlinear model (only the equations)
+  /*! It assumes that the nonlinear model given in argument has just been allocated */
+  void toNonlinearPart(DynamicModel &non_linear_equations_dynamic_model) const;
 
   //! Find endogenous variables not used in model
   set<int> findUnusedEndogenous();

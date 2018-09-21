@@ -772,6 +772,12 @@ ParsingDriver::block()
 }
 
 void
+ParsingDriver::linear_decomposition()
+{
+  mod_file->linear_decomposition = true;
+}
+
+void
 ParsingDriver::no_static()
 {
   mod_file->no_static = true;
@@ -2403,6 +2409,23 @@ ParsingDriver::conditional_forecast_paths()
 {
   mod_file->addStatement(make_unique<ConditionalForecastPathsStatement>(det_shocks, mod_file->symbol_table));
   det_shocks.clear();
+}
+
+void
+ParsingDriver::det_cond_forecast_linear_decomposition(const string & plan)
+{
+  symbol_list.clear();
+  symbol_list.addSymbol(plan);
+  mod_file->addStatement(make_unique<DetCondForecast>(symbol_list, options_list, mod_file->linear_decomposition));
+}
+
+void
+ParsingDriver::det_cond_forecast_linear_decomposition(const string &plan, const string &dset)
+{
+  symbol_list.clear();
+  symbol_list.addSymbol(plan);
+  symbol_list.addSymbol(dset);
+  mod_file->addStatement(make_unique<DetCondForecast>(symbol_list, options_list, mod_file->linear_decomposition));
 }
 
 void
