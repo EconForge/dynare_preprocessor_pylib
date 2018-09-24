@@ -261,6 +261,79 @@ MacroDriver::iter_loop()  noexcept(false)
 }
 
 void
+MacroDriver::init_comprehension(const vector<string> &names, MacroValuePtr value)
+{
+  auto mv = dynamic_pointer_cast<ArrayMV>(value);
+  if (!mv)
+    throw MacroValue::TypeError("In a comprehension, the expression after the 'in' keyword must be an  array");
+  comprehension_stack.emplace(names, move(mv), 0);
+}
+
+int
+MacroDriver::get_comprehension_iter_nb() const
+{
+  assert(!comprehension_stack.empty());
+
+  auto &mv = get<1>(comprehension_stack.top());
+  return mv->values.size();
+}
+
+
+void
+MacroDriver::iter_comprehension()
+{
+  assert(!comprehension_stack.empty());
+
+  int &i = get<2>(comprehension_stack.top());
+  auto &mv = get<1>(comprehension_stack.top());
+  vector<string> &names = get<0>(comprehension_stack.top());
+
+  assert(i <= static_cast<int>(mv->values.size()));
+
+  if (i == static_cast<int>(mv->values.size()))
+    comprehension_stack.pop();
+  else
+    {
+      if (names.size() == 1)
+        env[names.at(0)] = mv->values[i++];
+      else
+        {
+          auto tmv = dynamic_pointer_cast<TupleMV>(mv->values[i++]);
+          if (!tmv)
+             throw MacroValue::TypeError("The expression after the 'in' keyword must be an array expression of tuples");
+          if (tmv->values.size() != names.size())
+            {
+              cerr << "Error in comprehension loop: tuple in array contains " << tmv->length()
+                   << " elements while you are assigning to " << names.size() << " variables."
+                   << endl;
+              exit(EXIT_FAILURE);
+            }
+
+          for (auto &name: names)
+            {
+              auto idx = &name - &names[0];
+              env[name] = tmv->values.at(idx);
+            }
+        }
+    }
+}
+
+void
+MacroDriver::possibly_add_comprehension_element(vector<MacroValuePtr> &v, MacroValuePtr test_expr) const
+{
+  auto ival = dynamic_pointer_cast<IntMV>(test_expr);
+  if (!ival)
+    throw MacroValue::TypeError("In a comprehension, the expression after the 'if' must evaluate to an integer");
+  if (ival->value)
+    {
+      assert(!comprehension_stack.empty());
+      const int &i = get<2>(comprehension_stack.top());
+      auto &mv = get<1>(comprehension_stack.top());
+      v.push_back(mv->values.at(i-1));
+    }
+}
+
+void
 MacroDriver::begin_if(const MacroValuePtr &value) noexcept(false)
 {
   auto ival = dynamic_pointer_cast<IntMV>(value);

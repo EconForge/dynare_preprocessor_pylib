@@ -55,6 +55,7 @@ using token = Macro::parser::token;
 %x FOR_BODY
 %x THEN_BODY
 %x ELSE_BODY
+%x COMPREHENSION_CLAUSE
 
 %{
 // Increments location counter for every token read
@@ -238,6 +239,17 @@ CONT \\\\
                               yylval->build<string>(yytext + 1).pop_back();
                               return token::STRING;
                             }
+<STMT,EXPR>;                {
+                              comprehension_clause_tmp.erase();
+                              nested_comprehension_nb = 0;
+                              // Save start condition (either STMT or EXPR)
+                              comprehension_start_condition = YY_START;
+                              // Save location
+                              comprehension_clause_loc_tmp = *yylloc;
+                              BEGIN(COMPREHENSION_CLAUSE);
+                              return token::SEMICOLON;
+                            }
+<EXPR>@                     { return token::ATSIGN; } // Used for separation of repeated comprehension clauses
 
 <STMT>line                  { return token::LINE; }
 <STMT>define                { return token::DEFINE; }
@@ -263,7 +275,22 @@ CONT \\\\
                               return token::NAME;
                             }
 
-<EXPR><<EOF>>               { driver.error(*yylloc, "Unexpected end of file while parsing a macro expression"); }
+<EXPR><<EOF>>               {
+                              if (!is_comprehension_context)
+                                driver.error(*yylloc, "Unexpected end of file while parsing a macro expression");
+                              else
+                                {
+                                  if (--comprehension_iter_nb > 0)
+                                    new_comprehension_clause_buffer(yylloc);
+                                  else
+                                    {
+                                      restore_context(yylloc);
+
+                                      BEGIN(comprehension_start_condition);
+                                      return token::RBRACKET;
+                                    }
+                                }
+                            }
 <STMT><<EOF>>               { driver.error(*yylloc, "Unexpected end of file while parsing a macro statement"); }
 
 <FOR_BODY>{EOL}             { yylloc->lines(1); yylloc->step(); for_body_tmp.append(yytext); }
@@ -385,6 +412,39 @@ CONT \\\\
                                 }
                             }
 
+<COMPREHENSION_CLAUSE>{EOL} { driver.error(*yylloc, "Unexpected line break in comprehension"); }
+<COMPREHENSION_CLAUSE><<EOF>>   { driver.error(*yylloc, "Unexpected end of file in comprehension"); }
+<COMPREHENSION_CLAUSE>[^\[\]]   { comprehension_clause_tmp.append(yytext); yylloc->step(); }
+<COMPREHENSION_CLAUSE>\[    { nested_comprehension_nb++; comprehension_clause_tmp.append(yytext); yylloc->step(); }
+<COMPREHENSION_CLAUSE>\]    {
+                              yylloc->step();
+                              if (nested_comprehension_nb)
+                                {
+                                  nested_comprehension_nb--;
+                                  comprehension_clause_tmp.append(yytext);
+                                }
+                              else
+                                {
+                                  int comprehension_iter_nb_tmp = driver.get_comprehension_iter_nb();
+                                  comprehension_clause_tmp.append(" @ ");
+
+                                  if (comprehension_iter_nb_tmp > 0)
+                                    {
+                                      // Save old buffer state and location
+                                      save_context(yylloc);
+
+                                      is_comprehension_context = true;
+                                      comprehension_iter_nb = comprehension_iter_nb_tmp;
+                                      comprehension_clause = comprehension_clause_tmp;
+                                      comprehension_clause_loc = comprehension_clause_loc_tmp;
+
+                                      new_comprehension_clause_buffer(yylloc);
+                                    }
+
+                                  BEGIN(EXPR);
+                                }
+                            }
+
 <INITIAL><<EOF>>            {
                               // Quit lexer if end of main file
                               if (context_stack.empty())
@@ -444,7 +504,9 @@ void
 MacroFlex::save_context(Macro::parser::location_type *yylloc)
 {
   context_stack.push(ScanContext(input, YY_CURRENT_BUFFER, *yylloc, is_for_context,
-                                 for_body, for_body_loc));
+                                 for_body, for_body_loc, is_comprehension_context,
+                                 comprehension_clause, comprehension_clause_loc,
+                                 comprehension_start_condition, comprehension_iter_nb));
 }
 
 void
@@ -456,10 +518,15 @@ MacroFlex::restore_context(Macro::parser::location_type *yylloc)
   is_for_context = context_stack.top().is_for_context;
   for_body = context_stack.top().for_body;
   for_body_loc = context_stack.top().for_body_loc;
+  if (!is_comprehension_context)
+    output_line(yylloc); // Dump @#line instruction
+  is_comprehension_context = context_stack.top().is_comprehension_context;
+  comprehension_clause = context_stack.top().comprehension_clause;
+  comprehension_clause_loc = context_stack.top().comprehension_clause_loc;
+  comprehension_start_condition = context_stack.top().comprehension_start_condition;
+  comprehension_iter_nb = context_stack.top().comprehension_iter_nb;
   // Remove top of stack
   context_stack.pop();
-  // Dump @#line instruction
-  output_line(yylloc);
 }
 
 void
@@ -553,6 +620,17 @@ MacroFlex::new_loop_body_buffer(Macro::parser::location_type *yylloc)
   *yylloc = for_body_loc;
   yylloc->begin.filename = yylloc->end.filename = new string(*for_body_loc.begin.filename);
   output_line(yylloc);
+  yy_switch_to_buffer(yy_create_buffer(input, YY_BUF_SIZE));
+}
+
+void
+MacroFlex::new_comprehension_clause_buffer(Macro::parser::location_type *yylloc)
+{
+  input = new stringstream(comprehension_clause);
+  *yylloc = comprehension_clause_loc;
+  yylloc->begin.filename = yylloc->end.filename = new string(*comprehension_clause_loc.begin.filename);
+  is_for_context = false;
+  for_body.clear();
   yy_switch_to_buffer(yy_create_buffer(input, YY_BUF_SIZE));
 }
 

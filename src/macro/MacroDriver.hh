@@ -60,12 +60,27 @@ private:
     const bool is_for_context;
     const string for_body;
     const Macro::parser::location_type for_body_loc;
+    const bool is_comprehension_context;
+    const string comprehension_clause;
+    const Macro::parser::location_type comprehension_clause_loc;
+    const int comprehension_start_condition;
+    const int comprehension_iter_nb;
     ScanContext(istream *input_arg, struct yy_buffer_state *buffer_arg,
                 Macro::parser::location_type &yylloc_arg, bool is_for_context_arg,
                 string for_body_arg,
-                Macro::parser::location_type &for_body_loc_arg) :
+                Macro::parser::location_type &for_body_loc_arg,
+                bool is_comprehension_context_arg,
+                string comprehension_clause_arg,
+                Macro::parser::location_type &comprehension_clause_loc_arg,
+                int comprehension_start_condition_arg,
+                int comprehension_iter_nb_arg) :
       input(input_arg), buffer(buffer_arg), yylloc(yylloc_arg), is_for_context(is_for_context_arg),
-      for_body(move(for_body_arg)), for_body_loc(for_body_loc_arg)
+      for_body(move(for_body_arg)), for_body_loc(for_body_loc_arg),
+      is_comprehension_context{is_comprehension_context_arg},
+      comprehension_clause{comprehension_clause_arg},
+      comprehension_clause_loc{comprehension_clause_loc_arg},
+      comprehension_start_condition{comprehension_start_condition_arg},
+      comprehension_iter_nb{comprehension_iter_nb_arg}
     {
     }
   };
@@ -114,6 +129,13 @@ private:
   //! Set to true while parsing an IF statement (only the statement, not the body)
   bool reading_if_statement;
 
+  bool is_comprehension_context{false};
+  int comprehension_iter_nb{0};
+  int comprehension_start_condition;
+  int nested_comprehension_nb{0};
+  string comprehension_clause, comprehension_clause_tmp;
+  Macro::parser::location_type comprehension_clause_loc, comprehension_clause_loc_tmp;
+
   //! Output the @#line declaration
   void output_line(Macro::parser::location_type *yylloc) const;
 
@@ -140,6 +162,9 @@ private:
 
   //! Initialise a new flex buffer with the loop body
   void new_loop_body_buffer(Macro::parser::location_type *yylloc);
+
+  //! Initialize a new flex buffer with the comprehension conditional clause
+  void new_comprehension_clause_buffer(Macro::parser::location_type *yylloc);
 
 public:
   MacroFlex(istream *in, ostream *out, bool no_line_macro_arg, vector<string> path_arg);
@@ -169,6 +194,8 @@ private:
   //! Second is the array over which iteration is done
   //! Third is subscript to be used by next call of iter_loop() (beginning with 0) */
   stack<tuple<vector<string>, shared_ptr<ArrayMV>, int>> loop_stack;
+
+  stack<tuple<vector<string>, shared_ptr<ArrayMV>, int>> comprehension_stack;
 public:
   //! Exception thrown when value of an unknown variable is requested
   class UnknownVariable
@@ -238,6 +265,11 @@ public:
   /*! Returns false if iteration is no more possible (end of loop);
       in that case it destroys the pointer given to init_loop() */
   bool iter_loop() noexcept(false);
+
+  void init_comprehension(const vector<string> &names, MacroValuePtr value);
+  void iter_comprehension();
+  void possibly_add_comprehension_element(vector<MacroValuePtr> &v, MacroValuePtr test_expr) const;
+  int get_comprehension_iter_nb() const;
 
   //! Begins an @#if statement
   void begin_if(const MacroValuePtr &value) noexcept(false);

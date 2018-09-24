@@ -68,6 +68,7 @@ class MacroDriver;
 
 %token COMMA DEFINE LINE FOR IN IF ECHO_DIR ERROR IFDEF IFNDEF POWER
 %token LPAREN RPAREN LBRACKET RBRACKET EQUAL EOL LENGTH ECHOMACROVARS SAVE
+%token SEMICOLON ATSIGN
 
 %token <int> INTEGER
 %token <string> NAME STRING
@@ -88,7 +89,7 @@ class MacroDriver;
 
 %type <vector<string>> comma_name
 %type <MacroValuePtr> expr
-%type <vector<MacroValuePtr>> comma_expr tuple_comma_expr
+%type <vector<MacroValuePtr>> comma_expr tuple_comma_expr comprehension_clause
 %%
 
 %start statement_list_or_nothing;
@@ -217,6 +218,24 @@ expr : INTEGER
        { TYPERR_CATCH($$ = $1->set_intersection($3), @$); }
      | expr POWER expr
        { TYPERR_CATCH($$ = $1->power($3), @$); }
+     | LBRACKET NAME IN expr SEMICOLON
+       {
+         driver.init_comprehension(vector<string>{$2}, $4);
+         driver.iter_comprehension();
+       }
+       comprehension_clause RBRACKET
+       {
+         $$ = make_shared<ArrayMV>($7);
+       }
+     | LBRACKET LPAREN comma_name RPAREN IN expr SEMICOLON
+       {
+         driver.init_comprehension($3, $6);
+         driver.iter_comprehension();
+       }
+       comprehension_clause RBRACKET
+       {
+         $$ = make_shared<ArrayMV>($9);
+       }
      ;
 
 comma_expr : %empty
@@ -236,6 +255,23 @@ tuple_comma_expr : %empty
                  | tuple_comma_expr COMMA expr
                    { $1.push_back($3); $$ = $1; }
                  ;
+
+/* The lexer will repeat the comprehension clause as many times as there are
+   elements in the set to be filtered. It also adds a dummy at-sign (@) at the
+   end of every repetition (for making parsing of repetitions unambiguous). */
+comprehension_clause : expr ATSIGN
+                       {
+                         $$ = vector<MacroValuePtr>{};
+                         driver.possibly_add_comprehension_element($$, $1);
+                         driver.iter_comprehension();
+                       }
+                     | comprehension_clause expr ATSIGN
+                       {
+                         $$ = $1;
+                         driver.possibly_add_comprehension_element($$, $2);
+                         driver.iter_comprehension();
+                       }
+                     ;
 
 %%
 
