@@ -323,7 +323,7 @@ MacroDriver::possibly_add_comprehension_element(vector<MacroValuePtr> &v, MacroV
 {
   auto ival = dynamic_pointer_cast<IntMV>(test_expr);
   if (!ival)
-    throw MacroValue::TypeError("In a comprehension, the expression after the 'if' must evaluate to an integer");
+    throw MacroValue::TypeError("In a comprehension, the expression after the semicolon must evaluate to an integer");
   if (ival->value)
     {
       assert(!comprehension_stack.empty());

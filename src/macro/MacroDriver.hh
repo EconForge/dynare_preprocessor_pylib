@@ -129,11 +129,17 @@ private:
   //! Set to true while parsing an IF statement (only the statement, not the body)
   bool reading_if_statement;
 
+  //! Set to true while parsing the comprehension in a new buffer
   bool is_comprehension_context{false};
+  //! Counter for the current comprehension
   int comprehension_iter_nb{0};
+  //! The lexer start condition (EXPR or STMT) before entering the comprehension
   int comprehension_start_condition;
+  //! Number of nested comprehensions, used during the construction of the new lexer buffer
   int nested_comprehension_nb{0};
+  //! Temporary stores for the new lexer buffer
   string comprehension_clause, comprehension_clause_tmp;
+  //! Stores for the location of the comprehension clause
   Macro::parser::location_type comprehension_clause_loc, comprehension_clause_loc_tmp;
 
   //! Output the @#line declaration
@@ -266,9 +272,13 @@ public:
       in that case it destroys the pointer given to init_loop() */
   bool iter_loop() noexcept(false);
 
+  //! Initializes the evaluation of a comprehension
   void init_comprehension(const vector<string> &names, MacroValuePtr value);
+  //! Iterates during the evaluation of the comprehension
   void iter_comprehension();
+  //! Helper to construct the value corresponding to the comprehension
   void possibly_add_comprehension_element(vector<MacroValuePtr> &v, MacroValuePtr test_expr) const;
+  //! Returns the size of the set over which the current comprehension iterates
   int get_comprehension_iter_nb() const;
 
   //! Begins an @#if statement
