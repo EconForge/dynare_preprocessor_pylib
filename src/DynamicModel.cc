@@ -3640,6 +3640,11 @@ DynamicModel::fillVarModelTable() const
   var_model_table.setRhs(rhsr);
   var_model_table.setLhsExprT(lhs_expr_tr);
   var_model_table.setNonstationary(nonstationaryr);
+
+  // Fill AR Matrix
+  map<string, map<tuple<int, int, int>, expr_t>> ARr;
+  fillAutoregressiveMatrix(ARr, false);
+  var_model_table.setAR(ARr);
 }
 
 void
@@ -3707,11 +3712,6 @@ DynamicModel::fillVarModelTableFromOrigModel(StaticModel &static_model) const
   var_model_table.setDiff(diff);
   var_model_table.setMaxLags(lags);
   var_model_table.setOrigDiffVar(orig_diff_var);
-
-  // Fill AR Matrix
-  map<string, map<tuple<int, int, int>, expr_t>> ARr;
-  fillAutoregressiveMatrix(ARr, false);
-  var_model_table.setAR(ARr);
 }
 
 void
