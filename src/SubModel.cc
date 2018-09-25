@@ -504,8 +504,7 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
           int eqn, lag, lhs_symb_id;
           tie (eqn, lag, lhs_symb_id) = it.first;
           int colidx = (int) distance(lhs.begin(), find(lhs.begin(), lhs.end(), lhs_symb_id));
-          ar_output << "    ar(" << eqn + 1 << ", " << colidx + 1 << ", " << lag
-                    << ") = ";
+          ar_output << "    ar(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
           it.second->writeOutput(ar_output, ExprNodeOutputType::matlabDynamicModel);
           ar_output << ";" << endl;
         }
