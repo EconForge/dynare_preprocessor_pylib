@@ -796,7 +796,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
                           , const bool nopreprocessoroutput
                           ) const
 {
-  bool hasModelChanged = !dynamic_model.isChecksumMatching(basename);
+  bool hasModelChanged = !dynamic_model.isChecksumMatching(basename, block);
   if (!check_model_changes)
     hasModelChanged = true;
 

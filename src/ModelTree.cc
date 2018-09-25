@@ -1325,9 +1325,7 @@ ModelTree::writeModelLocalVariableTemporaryTerms(const temporary_terms_t &tto, c
   temporary_terms_t tt2;
   for (auto it : tt)
     {
-      if (isCOutput(output_type))
-        output << "double ";
-      else if (isJuliaOutput(output_type))
+      if (isJuliaOutput(output_type))
         output << "    @inbounds const ";
 
       it.first->writeOutput(output, output_type, tto, temporary_terms_idxs, tef_terms);
@@ -1357,9 +1355,7 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt,
       if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != nullptr)
         (*it)->writeExternalFunctionOutput(output, output_type, tt2, tt_idxs, tef_terms);
 
-      if (isCOutput(output_type))
-        output << "double ";
-      else if (isJuliaOutput(output_type))
+      if (isJuliaOutput(output_type))
         output << "    @inbounds ";
 
       (*it)->writeOutput(output, output_type, tt, tt_idxs, tef_terms);

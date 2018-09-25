@@ -642,7 +642,7 @@ public:
   //! Returns true if a parameter was used in the model block with a lead or lag
   bool ParamUsedWithLeadLag() const;
 
-  bool isChecksumMatching(const string &basename) const;
+  bool isChecksumMatching(const string &basename, bool block) const;
 };
 
 //! Classes to re-order derivatives for various sparse storage formats

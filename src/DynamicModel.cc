@@ -1538,6 +1538,8 @@ DynamicModel::writeDynamicCFile(const string &basename, const int order) const
   string filename_mex = basename + "/model/src/dynamic_mex.c";
   ofstream mDynamicModelFile, mDynamicMexFile;
 
+  int ntt = temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size() + temporary_terms_g2.size() + temporary_terms_g3.size();
+
   mDynamicModelFile.open(filename, ios::out | ios::binary);
   if (!mDynamicModelFile.is_open())
     {
@@ -1570,8 +1572,12 @@ DynamicModel::writeDynamicCFile(const string &basename, const int order) const
   writePowerDerivCHeader(mDynamicModelFile);
   writeNormcdfCHeader(mDynamicModelFile);
 
+  mDynamicModelFile << endl;
+
   // Writing the function body
   writeDynamicModel(mDynamicModelFile, true, false);
+
+  mDynamicModelFile << endl;
 
   writePowerDeriv(mDynamicModelFile);
   writeNormcdf(mDynamicModelFile);
@@ -1592,73 +1598,83 @@ DynamicModel::writeDynamicCFile(const string &basename, const int order) const
                   << " * Warning : this file is generated automatically by Dynare" << endl
                   << " *           from model file (.mod)" << endl
                   << endl
-                  << " */" << endl << endl
-                  << "#include \"mex.h\"" << endl << endl
-                  << "void Dynamic(double *y, double *x, int nb_row_x, double *params, double *steady_state, int it_, double *residual, double *g1, double *v2, double *v3);" << endl
+                  << " */" << endl
+                  << endl
+                  << "#include <stdlib.h>" << endl
+                  << "#include \"mex.h\"" << endl
+                  << endl
+                  << "const int ntt = " << ntt << ";" << endl
+                  << "void dynamic_resid_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T);" << endl
+                  << "void dynamic_resid(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *residual);" << endl
+                  << "void dynamic_g1_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T);" << endl
+                  << "void dynamic_g1(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *g1);" << endl
+                  << "void dynamic_g2_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T);" << endl
+                  << "void dynamic_g2(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *v2);" << endl
+                  << "void dynamic_g3_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T);" << endl
+                  << "void dynamic_g3(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *v3);" << endl
                   << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
                   << "{" << endl
-                  << "  double *y, *x, *params, *steady_state;" << endl
-                  << "  double *residual, *g1, *v2, *v3;" << endl
-                  << "  int nb_row_x, it_;" << endl
-                  << endl
                   << "  /* Check that no derivatives of higher order than computed are being requested */" << endl
                   << "  if (nlhs > " << order + 1 << ")" << endl
                   << "    mexErrMsgTxt(\"Derivatives of higher order than computed have been requested\");" << endl
                   << "  /* Create a pointer to the input matrix y. */" << endl
-                  << "  y = mxGetPr(prhs[0]);" << endl
+                  << "  double *y = mxGetPr(prhs[0]);" << endl
                   << endl
                   << "  /* Create a pointer to the input matrix x. */" << endl
-                  << "  x = mxGetPr(prhs[1]);" << endl
+                  << "  double *x = mxGetPr(prhs[1]);" << endl
                   << endl
                   << "  /* Create a pointer to the input matrix params. */" << endl
-                  << "  params = mxGetPr(prhs[2]);" << endl
+                  << "  double *params = mxGetPr(prhs[2]);" << endl
                   << endl
                   << "  /* Create a pointer to the input matrix steady_state. */" << endl
-                  << "  steady_state = mxGetPr(prhs[3]);" << endl
+                  << "  double *steady_state = mxGetPr(prhs[3]);" << endl
                   << endl
                   << "  /* Fetch time index */" << endl
-                  << "  it_ = (int) mxGetScalar(prhs[4]) - 1;" << endl
+                  << "  int it_ = (int) mxGetScalar(prhs[4]) - 1;" << endl
                   << endl
                   << "  /* Gets number of rows of matrix x. */" << endl
-                  << "  nb_row_x = mxGetM(prhs[1]);" << endl
+                  << "  int nb_row_x = mxGetM(prhs[1]);" << endl
                   << endl
-                  << "  residual = NULL;" << endl
+                  << "  double *T = (double *) malloc(sizeof(double)*ntt);"
+                  << endl
                   << "  if (nlhs >= 1)" << endl
                   << "  {" << endl
                   << "     /* Set the output pointer to the output matrix residual. */" << endl
                   << "     plhs[0] = mxCreateDoubleMatrix(" << equations.size() << ",1, mxREAL);" << endl
-                  << "     /* Create a C pointer to a copy of the output matrix residual. */" << endl
-                  << "     residual = mxGetPr(plhs[0]);" << endl
+                  << "     double *residual = mxGetPr(plhs[0]);" << endl
+                  << "     dynamic_resid_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
+                  << "     dynamic_resid(y, x, nb_row_x, params, steady_state, it_, T, residual);" << endl
                   << "  }" << endl
                   << endl
-                  << "  g1 = NULL;" << endl
                   << "  if (nlhs >= 2)" << endl
                   << "  {" << endl
                   << "     /* Set the output pointer to the output matrix g1. */" << endl
                   << "     plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << dynJacobianColsNbr << ", mxREAL);" << endl
-                  << "     /* Create a C pointer to a copy of the output matrix g1. */" << endl
-                  << "     g1 = mxGetPr(plhs[1]);" << endl
+                  << "     double *g1 = mxGetPr(plhs[1]);" << endl
+                  << "     dynamic_g1_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
+                  << "     dynamic_g1(y, x, nb_row_x, params, steady_state, it_, T, g1);" << endl
                   << "  }" << endl
                   << endl
-                  << "  v2 = NULL;" << endl
                   << " if (nlhs >= 3)" << endl
                   << "  {" << endl
                   << "     /* Set the output pointer to the output matrix v2. */" << endl
                   << "     plhs[2] = mxCreateDoubleMatrix(" << NNZDerivatives[1] << ", " << 3
                   << ", mxREAL);" << endl
-                  << "     v2 = mxGetPr(plhs[2]);" << endl
+                  << "     double *v2 = mxGetPr(plhs[2]);" << endl
+                  << "     dynamic_g2_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
+                  << "     dynamic_g2(y, x, nb_row_x, params, steady_state, it_, T, v2);" << endl
                   << "  }" << endl
                   << endl
-                  << "  v3 = NULL;" << endl
                   << " if (nlhs >= 4)" << endl
                   << "  {" << endl
                   << "     /* Set the output pointer to the output matrix v3. */" << endl
                   << "     plhs[3] = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 3 << ", mxREAL);" << endl
-                  << "     v3 = mxGetPr(plhs[3]);" << endl
+                  << "     double *v3 = mxGetPr(plhs[3]);" << endl
+                  << "     dynamic_g3_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
+                  << "     dynamic_g3(y, x, nb_row_x, params, steady_state, it_, T, v3);" << endl
                   << "  }" << endl
                   << endl
-                  << "  /* Call the C subroutines. */" << endl
-                  << "  Dynamic(y, x, nb_row_x, params, steady_state, it_, residual, g1, v2, v3);" << endl
+                  << " free(T);"
                   << "}" << endl;
   mDynamicMexFile.close();
 }
@@ -2579,40 +2595,46 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
     }
   else if (output_type == ExprNodeOutputType::CDynamicModel)
     {
-      DynamicOutput << "void Dynamic(double *y, double *x, int nb_row_x, double *params, double *steady_state, int it_, double *residual, double *g1, double *v2, double *v3)" << endl
+      DynamicOutput << "void dynamic_resid_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T)" << endl
+                    << "{" << endl
+                    << model_tt_output.str()
+                    << "}" << endl
+                    << endl
+                    << "void dynamic_resid(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *residual)" << endl
                     << "{" << endl
                     << "  double lhs, rhs;" << endl
-                    << endl
-                    << "  /* Residual equations */" << endl
-                    << model_tt_output.str()
                     << model_output.str()
-                    << "  /* Jacobian  */" << endl
-                    << "  if (g1 == NULL)" << endl
-                    << "    return;" << endl
+                    << "}" << endl
                     << endl
+                    << "void dynamic_g1_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T)" << endl
+                    << "{" << endl
                     << jacobian_tt_output.str()
+                    << "}" << endl
+                    << endl
+                    << "void dynamic_g1(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *g1)" << endl
+                    << "{" << endl
                     << jacobian_output.str()
-                    << endl;
-
-      if (second_derivatives.size())
-        DynamicOutput << "  /* Hessian for endogenous and exogenous variables */" << endl
-                      << "  if (v2 == NULL)" << endl
-                      << "    return;" << endl
-                      << endl
-                      << hessian_tt_output.str()
-                      << hessian_output.str()
-                      << endl;
-
-      if (third_derivatives.size())
-        DynamicOutput << "  /* Third derivatives for endogenous and exogenous variables */" << endl
-                      << "  if (v3 == NULL)" << endl
-                      << "    return;" << endl
-                      << endl
-                      << third_derivatives_tt_output.str()
-                      << third_derivatives_output.str()
-                      << endl;
-
-      DynamicOutput << "}" << endl << endl;
+                    << "}" << endl
+                    << endl
+                    << "void dynamic_g2_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T)" << endl
+                    << "{" << endl
+                    << hessian_tt_output.str()
+                    << "}" << endl
+                    << endl
+                    << "void dynamic_g2(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *v2)" << endl
+                    << "{" << endl
+                    << hessian_output.str()
+                    << "}" << endl
+                    << endl
+                    << "void dynamic_g3_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T)" << endl
+                    << "{" << endl
+                    << third_derivatives_tt_output.str()
+                    << "}" << endl
+                    << endl
+                    << "void dynamic_g3(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *v3)" << endl
+                    << "{" << endl
+                    << third_derivatives_output.str()
+                    << "}" << endl;
     }
   else
     {
@@ -6021,7 +6043,7 @@ DynamicModel::dynamicOnlyEquationsNbr() const
 }
 
 bool
-DynamicModel::isChecksumMatching(const string &basename) const
+DynamicModel::isChecksumMatching(const string &basename, bool block) const
 {
   boost::crc_32_type result;
 
@@ -6033,7 +6055,7 @@ DynamicModel::isChecksumMatching(const string &basename) const
            << equation_tag.second.first
            << equation_tag.second.second;
 
-  ExprNodeOutputType buffer_type = ExprNodeOutputType::CDynamicModel;
+  ExprNodeOutputType buffer_type = block ? ExprNodeOutputType::matlabDynamicModelSparse : ExprNodeOutputType::CDynamicModel;
 
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {

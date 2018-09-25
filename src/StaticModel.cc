@@ -1615,37 +1615,36 @@ StaticModel::writeStaticModel(const string &basename,
     }
   else if (output_type == ExprNodeOutputType::CStaticModel)
     {
-      StaticOutput << "void Static(double *y, double *x, int nb_row_x, double *params, double *residual, double *g1, double *v2)" << endl
+      StaticOutput << "void static_resid_tt(const double *y, const double *x, int nb_row_x, const double *params, double *T)" << endl
+                   << "{" << endl
+                   << model_tt_output.str()
+                   << "}" << endl
+                   << endl
+                   << "void static_resid(const double *y, const double *x, int nb_row_x, const double *params, const double *T, double *residual)" << endl
                    << "{" << endl
                    << "  double lhs, rhs;" << endl
-                   << endl
-                   << "  /* Residual equations */" << endl
-                   << model_tt_output.str()
                    << model_output.str()
-                   << "  /* Jacobian  */" << endl
-                   << "  if (g1 == NULL)" << endl
-                   << "    return;" << endl
+                   << "}" << endl
                    << endl
+                   << "void static_g1_tt(const double *y, const double *x, int nb_row_x, const double *params, double *T)" << endl
+                   << "{" << endl
                    << jacobian_tt_output.str()
+                   << "}" << endl
+                   << endl
+                   << "void static_g1(const double *y, const double *x, int nb_row_x, const double *params, const double *T, double *g1)" << endl
+                   << "{" << endl
                    << jacobian_output.str()
-                   << endl;
-
-      if (second_derivatives.size())
-        StaticOutput << "  /* Hessian for endogenous and exogenous variables */" << endl
-                     << "  if (v2 == NULL)" << endl
-                     << "    return;" << endl
-                     << endl
-                     << hessian_tt_output.str()
-                     << hessian_output.str()
-                     << endl;
-      if (third_derivatives.size())
-        StaticOutput << "  /* Third derivatives for endogenous and exogenous variables */" << endl
-                     << "  if (v3 == NULL)" << endl
-                     << "    return;" << endl
-                     << endl
-                     << third_derivatives_tt_output.str()
-                     << third_derivatives_output.str()
-                     << endl;
+                   << "}" << endl
+                   << endl
+                   << "void static_g2_tt(const double *y, const double *x, int nb_row_x, const double *params, double *T)" << endl
+                   << "{" << endl
+                   << hessian_tt_output.str()
+                   << "}" << endl
+                   << endl
+                   << "void static_g2(const double *y, const double *x, int nb_row_x, const double *params, const double *T, double *v2)" << endl
+                   << "{" << endl
+                   << hessian_output.str()
+                   << "}" << endl;
     }
   else
     {
@@ -1866,6 +1865,8 @@ StaticModel::writeStaticCFile(const string &basename) const
   string filename = basename + "/model/src/static.c";
   string filename_mex = basename + "/model/src/static_mex.c";
 
+  int ntt = temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size() + temporary_terms_g2.size() + temporary_terms_g3.size();
+
   ofstream output;
   output.open(filename, ios::out | ios::binary);
   if (!output.is_open())
@@ -1900,9 +1901,12 @@ StaticModel::writeStaticCFile(const string &basename) const
   writePowerDerivCHeader(output);
   writeNormcdfCHeader(output);
 
+  output << endl;
+
   // Writing the function body
   writeStaticModel(output, true, false);
-  output << "}" << endl << endl;
+
+  output << endl;
 
   writePowerDeriv(output);
   writeNormcdf(output);
@@ -1922,57 +1926,64 @@ StaticModel::writeStaticCFile(const string &basename) const
          << " *" << endl
          << " * Warning : this file is generated automatically by Dynare" << endl
          << " *           from model file (.mod)" << endl << endl
-         << " */" << endl << endl
-         << "#include \"mex.h\"" << endl << endl
-         << "void Static(double *y, double *x, int nb_row_x, double *params, double *residual, double *g1, double *v2);" << endl
+         << " */" << endl
+         << endl
+         << "#include <stdlib.h>" << endl
+         << "#include \"mex.h\"" << endl
+         << endl
+         << "const int ntt = " << ntt << ";" << endl
+         << "void static_resid_tt(const double *y, const double *x, int nb_row_x, const double *params, double *T);" << endl
+         << "void static_resid(const double *y, const double *x, int nb_row_x, const double *params, const double *T, double *residual);" << endl
+         << "void static_g1_tt(const double *y, const double *x, int nb_row_x, const double *params, double *T);" << endl
+         << "void static_g1(const double *y, const double *x, int nb_row_x, const double *params, const double *T, double *g1);" << endl
+         << "void static_g2_tt(const double *y, const double *x, int nb_row_x, const double *params, double *T);" << endl
+         << "void static_g2(const double *y, const double *x, int nb_row_x, const double *params, const double *T, double *v2);" << endl
          << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
          << "{" << endl
-         << "  double *y, *x, *params;" << endl
-         << "  double *residual, *g1, *v2;" << endl
-         << "  int nb_row_x;" << endl
-         << endl
          << "  /* Create a pointer to the input matrix y. */" << endl
-         << "  y = mxGetPr(prhs[0]);" << endl
+         << "  double *y = mxGetPr(prhs[0]);" << endl
          << endl
          << "  /* Create a pointer to the input matrix x. */" << endl
-         << "  x = mxGetPr(prhs[1]);" << endl
+         << "  double *x = mxGetPr(prhs[1]);" << endl
          << endl
          << "  /* Create a pointer to the input matrix params. */" << endl
-         << "  params = mxGetPr(prhs[2]);" << endl
+         << "  double *params = mxGetPr(prhs[2]);" << endl
          << endl
          << "  /* Gets number of rows of matrix x. */" << endl
-         << "  nb_row_x = mxGetM(prhs[1]);" << endl
+         << "  int nb_row_x = mxGetM(prhs[1]);" << endl
          << endl
-         << "  residual = NULL;" << endl
+         << "  double *T = (double *) malloc(sizeof(double)*ntt);"
+         << endl
          << "  if (nlhs >= 1)" << endl
          << "    {" << endl
          << "      /* Set the output pointer to the output matrix residual. */" << endl
          << "      plhs[0] = mxCreateDoubleMatrix(" << equations.size() << ",1, mxREAL);" << endl
-         << "      /* Create a C pointer to a copy of the output matrix residual. */" << endl
-         << "      residual = mxGetPr(plhs[0]);" << endl
+         << "      double *residual = mxGetPr(plhs[0]);" << endl
+         << "      static_resid_tt(y, x, nb_row_x, params, T);" << endl
+         << "      static_resid(y, x, nb_row_x, params, T, residual);" << endl
          << "    }" << endl
          << endl
-         << "  g1 = NULL;" << endl
          << "  if (nlhs >= 2)" << endl
          << "    {" << endl
          << "      /* Set the output pointer to the output matrix g1. */" << endl
          << "      plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << symbol_table.endo_nbr() << ", mxREAL);" << endl
-         << "      /* Create a C pointer to a copy of the output matrix g1. */" << endl
-         << "      g1 = mxGetPr(plhs[1]);" << endl
+         << "      double *g1 = mxGetPr(plhs[1]);" << endl
+         << "      static_g1_tt(y, x, nb_row_x, params, T);" << endl
+         << "      static_g1(y, x, nb_row_x, params, T, g1);" << endl
          << "    }" << endl
          << endl
-         << "  v2 = NULL;" << endl
          << "  if (nlhs >= 3)" << endl
          << "    {" << endl
          << "      /* Set the output pointer to the output matrix v2. */" << endl
          << "      plhs[2] = mxCreateDoubleMatrix(" << NNZDerivatives[1] << ", " << 3
          << ", mxREAL);" << endl
-         << "      v2 = mxGetPr(plhs[2]);" << endl
+         << "      double *v2 = mxGetPr(plhs[2]);" << endl
+         << "      static_g2_tt(y, x, nb_row_x, params, T);" << endl
+         << "      static_g2(y, x, nb_row_x, params, T, v2);" << endl
          << "    }" << endl
          << endl
-         << "  /* Call the C subroutines. */" << endl
-         << "  Static(y, x, nb_row_x, params, residual, g1, v2);" << endl
-         << "}" << endl << endl;
+         << "  free(T);" << endl
+         << "}" << endl;
   output.close();
 }
 
