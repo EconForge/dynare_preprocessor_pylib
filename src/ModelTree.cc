@@ -1106,7 +1106,7 @@ ModelTree::computeThirdDerivatives(const set<int> &vars)
 }
 
 void
-ModelTree::computeTemporaryTerms(bool is_matlab)
+ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
 {
   map<expr_t, pair<int, NodeTreeReference>> reference_count;
   temporary_terms.clear();
@@ -1128,6 +1128,11 @@ ModelTree::computeTemporaryTerms(bool is_matlab)
       temporary_terms_mlv[v] = local_variables_table.find(used_local_var)->second;
       reference_count[v] = { ExprNode::min_cost(is_matlab)+1, NodeTreeReference::residuals };
     }
+
+  /* When option notmpterms is set, we only need to process model local
+     variables (and turn them into temporary terms); no need to go further */
+  if (no_tmp_terms)
+    return;
 
   map<NodeTreeReference, temporary_terms_t> temp_terms_map;
   temp_terms_map[NodeTreeReference::residuals] = temporary_terms_res;

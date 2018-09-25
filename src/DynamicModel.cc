@@ -4286,12 +4286,11 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
         }
     }
   else
-    if (!no_tmp_terms)
-      {
-        computeTemporaryTerms(!use_dll);
-        if (bytecode)
-          computeTemporaryTermsMapping();
-      }
+    {
+      computeTemporaryTerms(!use_dll, no_tmp_terms);
+      if (bytecode && !no_tmp_terms)
+        computeTemporaryTermsMapping();
+    }
 }
 
 void

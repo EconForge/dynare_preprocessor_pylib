@@ -1139,12 +1139,9 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
     }
   else
     {
-      if (!no_tmp_terms)
-        {
-          computeTemporaryTerms(true);
-          if (bytecode)
-            computeTemporaryTermsMapping(temporary_terms, map_idx);
-        }
+      computeTemporaryTerms(true, no_tmp_terms);
+      if (bytecode && !no_tmp_terms)
+        computeTemporaryTermsMapping(temporary_terms, map_idx);
     }
 }
 
