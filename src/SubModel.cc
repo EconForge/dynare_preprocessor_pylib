@@ -262,6 +262,9 @@ TrendComponentModelTable::getOrigDiffVar(const string &name_arg) const
 void
 TrendComponentModelTable::writeOutput(const string &basename, ostream &output) const
 {
+  if (names.empty())
+    return;
+
   string filename = "+" + basename + "/trend_component_ar_ec.m";
   ofstream ar_ec_output;
   ar_ec_output.open(filename, ios::out | ios::binary);
@@ -426,6 +429,9 @@ VarModelTable::getSymbolListAndOrder() const
 void
 VarModelTable::writeOutput(const string &basename, ostream &output) const
 {
+  if (names.empty())
+    return;
+
   string filename = "+" + basename + "/var_ar.m";
   ofstream ar_output;
   ar_output.open(filename, ios::out | ios::binary);
