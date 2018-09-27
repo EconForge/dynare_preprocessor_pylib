@@ -6064,7 +6064,7 @@ void
 DynamicModel::writeJsonAST(ostream &output) const
 {
   vector<pair<string, string>> eqtags;
-  output << "\"Abstract Syntax Tree\":[" << endl;
+  output << "\"abstract_syntax_tree\":[" << endl;
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
       if (eq != 0)
