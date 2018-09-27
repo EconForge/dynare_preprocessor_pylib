@@ -450,13 +450,12 @@ ConditionalForecastPathsStatement::checkPass(ModFileStructure &mod_file_struct, 
       for (auto elem : elems)
         // Period1 < Period2, as enforced in ParsingDriver::add_period()
         this_path_length = max(this_path_length, elem.period2);
-      if (path_length == -1)
-        path_length = this_path_length;
-      else if (path_length != this_path_length)
-        {
-          cerr << "conditional_forecast_paths: all constrained paths must have the same length!" << endl;
-          exit(EXIT_FAILURE);
-        }
+      path_length = max(this_path_length, path_length);
+      //      else if (path_length != this_path_length)
+      //        {
+      //          cerr << "conditional_forecast_paths: all constrained paths must have the same length!" << endl;
+      //          exit(EXIT_FAILURE);
+      //        }
     }
 }
 
@@ -465,7 +464,7 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
 {
   assert(path_length > 0);
   output << "constrained_vars_ = [];" << endl
-         << "constrained_paths_ = zeros(" << paths.size() << ", " << path_length << ");" << endl;
+         << "constrained_paths_ = NaN(" << paths.size() << ", " << path_length << ");" << endl;
 
   int k = 1;
   for (auto it = paths.begin();
@@ -475,7 +474,6 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
         output << "constrained_vars_ = " << symbol_table.getTypeSpecificID(it->first) + 1 << ";" << endl;
       else
         output << "constrained_vars_ = [constrained_vars_; " << symbol_table.getTypeSpecificID(it->first) + 1 << "];" << endl;
-
       const vector<AbstractShocksStatement::DetShockElement> &elems = it->second;
       for (auto elem : elems)
         for (int j = elem.period1; j <= elem.period2; j++)
