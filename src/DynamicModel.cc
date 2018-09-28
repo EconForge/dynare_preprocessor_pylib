@@ -1043,7 +1043,7 @@ DynamicModel::writeModelEquationsCode(const string &basename, const map_idx_t &m
 }
 
 void
-DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_idx_t &map_idx) const
+DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_idx_t &map_idx, const bool linear_decomposition) const
 {
   struct Uff_l
   {
@@ -1068,10 +1068,12 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
   deriv_node_temp_terms_t tef_terms;
   vector<int> feedback_variables;
   bool file_open = false;
-
+  string main_name;
   boost::filesystem::create_directories(basename + "/model/bytecode");
-
-  string main_name = basename + "/model/bytecode/dynamic.cod";
+  if (linear_decomposition)
+    main_name = basename + "/model/bytecode/non_linear.cod";
+  else
+    main_name = basename + "/model/bytecode/dynamic.cod";
   code_file.open(main_name, ios::out | ios::binary | ios::ate);
   if (!code_file.is_open())
     {
@@ -1104,7 +1106,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
           || simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
         {
           Write_Inf_To_Bin_File_Block(basename, block, u_count_int, file_open,
-                                      simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE);
+                                      simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE, linear_decomposition);
           file_open = true;
         }
       map<pair<int, pair<int, int>>, expr_t> tmp_block_endo_derivative;
@@ -1187,13 +1189,16 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
                                );
       fbeginblock.write(code_file, instruction_number);
 
+      if (linear_decomposition)
+        compileTemporaryTerms(code_file, instruction_number, temporary_terms, map_idx, true, false);
+
       // The equations
       for (i = 0; i < (int) block_size; i++)
         {
           //The Temporary terms
           temporary_terms_t tt2;
           tt2.clear();
-          if (v_temporary_terms[block][i].size())
+          if (v_temporary_terms[block][i].size() && !linear_decomposition)
             {
               for (auto it : v_temporary_terms[block][i])
                 {
@@ -1715,11 +1720,17 @@ DynamicModel::setNonZeroHessianEquations(map<int, string> &eqs)
 
 void
 DynamicModel::Write_Inf_To_Bin_File_Block(const string &basename, const int &num,
-                                          int &u_count_int, bool &file_open, bool is_two_boundaries) const
+                                          int &u_count_int, bool &file_open, bool is_two_boundaries, const bool linear_decomposition) const
 {
   int j;
   std::ofstream SaveCode;
-  string filename = basename + "/model/bytecode/dynamic.bin";
+  string filename;
+
+  if (!linear_decomposition)
+    filename = basename + "/model/bytecode/dynamic.bin";
+  else
+    filename = basename + "/model/bytecode/non_linear.bin";
+
   if (file_open)
     SaveCode.open(filename, ios::out | ios::in | ios::binary | ios::ate);
   else
@@ -2814,7 +2825,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
 }
 
 void
-DynamicModel::writeOutput(ostream &output, const string &basename, bool block_decomposition, bool byte_code, bool use_dll, int order, bool estimation_present, bool compute_xrefs, bool julia) const
+DynamicModel::writeOutput(ostream &output, const string &basename, bool block_decomposition, bool linear_decomposition, bool byte_code, bool use_dll, int order, bool estimation_present, bool compute_xrefs, bool julia) const
 {
   /* Writing initialisation for M_.lead_lag_incidence matrix
      M_.lead_lag_incidence is a matrix with as many columns as there are
@@ -2956,7 +2967,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
         }
 
   //In case of sparse model, writes the block_decomposition structure of the model
-  if (block_decomposition)
+  if (block_decomposition || linear_decomposition)
     {
       vector<int> state_equ;
       int count_lead_lag_incidence = 0;
@@ -4179,7 +4190,7 @@ DynamicModel::substitutePacExpectation()
 void
 DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, int paramsDerivsOrder,
                             const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll,
-                            bool bytecode, const bool nopreprocessoroutput)
+                            bool bytecode, const bool nopreprocessoroutput, bool linear_decomposition)
 {
   assert(jacobianExo || !(hessian || thirdDerivatives || paramsDerivsOrder));
 
@@ -4203,8 +4214,15 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
 
   // Launch computations
   if (!nopreprocessoroutput)
-    cout << "Computing dynamic model derivatives:" << endl
-         << " - order 1" << endl;
+    {
+      if (linear_decomposition)
+        cout << "Computing nonlinear dynamic model derivatives:" << endl
+             << " - order 1" << endl;
+      else
+        cout << "Computing dynamic model derivatives:" << endl
+             << " - order 1" << endl;
+    }
+
   computeJacobian(vars);
 
   if (hessian)
@@ -4231,13 +4249,51 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
       computeThirdDerivatives(vars);
     }
 
+  jacob_map_t contemporaneous_jacobian, static_jacobian;
+  map<pair<int, pair<int, int> >, expr_t> first_order_endo_derivatives;
+  // for each block contains pair<Size, Feddback_variable>
+  vector<pair<int, int> > blocks;
+  vector<unsigned int> n_static, n_forward, n_backward, n_mixed;
+
+  if (linear_decomposition)
+    {
+      map<pair<int, pair<int, int>>, expr_t> first_order_endo_derivatives = collect_first_order_derivatives_endogenous();
+      is_equation_linear = equationLinear(first_order_endo_derivatives);
+
+      evaluateAndReduceJacobian(eval_context, contemporaneous_jacobian, static_jacobian, dynamic_jacobian, cutoff, false);
+
+      if (!computeNaturalNormalization())
+        computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian, dynamic_jacobian);
+
+      lag_lead_vector_t equation_lag_lead, variable_lag_lead;
+
+      blocks = select_non_linear_equations_and_variables(is_equation_linear, dynamic_jacobian, equation_reordered, variable_reordered,
+                                                         inv_equation_reordered, inv_variable_reordered,
+                                                         equation_lag_lead, variable_lag_lead,
+                                                         n_static, n_forward, n_backward, n_mixed);
+
+      equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, variable_reordered, equation_reordered, 0);
+      prologue = 0;
+      epilogue = 0;
+
+      block_type_firstequation_size_mfs = reduceBlocksAndTypeDetermination(dynamic_jacobian, blocks, equation_type_and_normalized_equation, variable_reordered, equation_reordered, n_static, n_forward, n_backward, n_mixed, block_col_type, linear_decomposition);
+
+      computeChainRuleJacobian(blocks_derivatives);
+
+      blocks_linear = BlockLinear(blocks_derivatives, variable_reordered);
+
+      collect_block_first_order_derivatives();
+
+      collectBlockVariables();
+
+      global_temporary_terms = true;
+      if (!no_tmp_terms)
+        computeTemporaryTermsOrdered();
+
+    }
+
   if (block)
     {
-      vector<unsigned int> n_static, n_forward, n_backward, n_mixed;
-      jacob_map_t contemporaneous_jacobian, static_jacobian;
-
-      // for each block contains pair<Size, Feddback_variable>
-      vector<pair<int, int>> blocks;
 
       evaluateAndReduceJacobian(eval_context, contemporaneous_jacobian, static_jacobian, dynamic_jacobian, cutoff, false);
 
@@ -4245,7 +4301,7 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
 
       computePrologueAndEpilogue(static_jacobian, equation_reordered, variable_reordered);
 
-      map<pair<int, pair<int, int>>, expr_t> first_order_endo_derivatives = collect_first_order_derivatives_endogenous();
+      first_order_endo_derivatives = collect_first_order_derivatives_endogenous();
 
       equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, variable_reordered, equation_reordered, mfs);
 
@@ -4256,7 +4312,7 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
 
       computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, dynamic_jacobian, equation_reordered, variable_reordered, blocks, equation_type_and_normalized_equation, false, true, mfs, inv_equation_reordered, inv_variable_reordered, equation_lag_lead, variable_lag_lead, n_static, n_forward, n_backward, n_mixed);
 
-      block_type_firstequation_size_mfs = reduceBlocksAndTypeDetermination(dynamic_jacobian, blocks, equation_type_and_normalized_equation, variable_reordered, equation_reordered, n_static, n_forward, n_backward, n_mixed, block_col_type);
+      block_type_firstequation_size_mfs = reduceBlocksAndTypeDetermination(dynamic_jacobian, blocks, equation_type_and_normalized_equation, variable_reordered, equation_reordered, n_static, n_forward, n_backward, n_mixed, block_col_type, linear_decomposition);
 
       printBlockDecomposition(blocks);
 
@@ -4685,12 +4741,16 @@ DynamicModel::collectBlockVariables()
 }
 
 void
-DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, int order, bool julia) const
+DynamicModel::writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, int order, bool julia) const
 {
   if (block && bytecode)
-    writeModelEquationsCode_Block(basename, map_idx);
+    writeModelEquationsCode_Block(basename, map_idx, linear_decomposition);
   else if (!block && bytecode)
-    writeModelEquationsCode(basename, map_idx);
+    {
+      if (linear_decomposition)
+        writeModelEquationsCode_Block(basename, map_idx, linear_decomposition);
+      writeModelEquationsCode(basename, map_idx);
+    }
   else if (block && !bytecode)
     writeSparseDynamicMFile(basename);
   else if (use_dll)
@@ -4889,6 +4949,15 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model, const boo
   equations.clear();
   for (auto & neweq : neweqs)
     addEquation(neweq, -1);
+}
+
+void
+DynamicModel::toNonlinearPart(DynamicModel &non_linear_equations_dynamic_model) const
+{
+  // Convert model local variables (need to be done first)
+  for (map<int, expr_t>::const_iterator it = local_variables_table.begin();
+       it != local_variables_table.end(); it++)
+    non_linear_equations_dynamic_model.AddLocalVariable(it->first, it->second);
 }
 
 void

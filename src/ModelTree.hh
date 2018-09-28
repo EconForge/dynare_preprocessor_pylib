@@ -171,6 +171,9 @@ protected:
 
   //! the file containing the model and the derivatives code
   ofstream code_file;
+  
+  //! Vector indicating if the equation is linear in endogenous variable (true) or not (false)
+  vector<bool> is_equation_linear;
 
   //! Computes 1st derivatives
   /*! \param vars the derivation IDs w.r. to which compute the derivatives */
@@ -250,11 +253,17 @@ protected:
     If no matching is found with a zero cutoff close to zero an error message is printout.
   */
   void computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian, double cutoff, jacob_map_t &static_jacobian, dynamic_jacob_map_t &dynamic_jacobian);
-
+  //! Try to find a natural normalization if all equations are matched to an endogenous variable on the LHS
+  bool computeNaturalNormalization();
   //! Try to normalized each unnormalized equation (matched endogenous variable only on the LHS)
   void computeNormalizedEquations(multimap<int, int> &endo2eqs) const;
   //! Evaluate the jacobian and suppress all the elements below the cutoff
   void evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_map_t &contemporaneous_jacobian, jacob_map_t &static_jacobian, dynamic_jacob_map_t &dynamic_jacobian, double cutoff, bool verbose);
+  //! Select and reorder the non linear equations of the model
+  vector<pair<int, int> > select_non_linear_equations_and_variables(vector<bool> is_equation_linear, const dynamic_jacob_map_t &dynamic_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered,
+                                                                    vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered,
+                                                                    lag_lead_vector_t &equation_lag_lead, lag_lead_vector_t &variable_lag_lead,
+                                                                    vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed);
   //! Search the equations and variables belonging to the prologue and the epilogue of the model
   void computePrologueAndEpilogue(const jacob_map_t &static_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered);
   //! Determine the type of each equation of model and try to normalized the unnormalized equation using computeNormalizedEquations
@@ -262,9 +271,11 @@ protected:
   //! Compute the block decomposition and for a non-recusive block find the minimum feedback set
   void computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const dynamic_jacob_map_t &dynamic_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered, vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_, bool select_feedback_variable, int mfs, vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered, lag_lead_vector_t &equation_lag_lead, lag_lead_vector_t &variable_lag_lead_t, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed) const;
   //! Reduce the number of block merging the same type equation in the prologue and the epilogue and determine the type of each block
-  block_type_firstequation_size_mfs_t reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_jacobian, vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed, vector<pair< pair<int, int>, pair<int, int>>> &block_col_type);
+  block_type_firstequation_size_mfs_t reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_jacobian, vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed, vector<pair< pair<int, int>, pair<int, int>>> &block_col_type, bool linear_decomposition);
   //! Determine the maximum number of lead and lag for the endogenous variable in a bloc
   void getVariableLeadLagByBlock(const dynamic_jacob_map_t &dynamic_jacobian, const vector<int> &components_set, int nb_blck_sim, lag_lead_vector_t &equation_lead_lag, lag_lead_vector_t &variable_lead_lag, const vector<int> &equation_reordered, const vector<int> &variable_reordered) const;
+  //! For each equation determine if it is linear or not
+  vector<bool> equationLinear(map<pair<int, pair<int, int> >, expr_t> first_order_endo_derivatives) const;
   //! Print an abstract of the block structure of the model
   void printBlockDecomposition(const vector<pair<int, int>> &blocks) const;
   //! Determine for each block if it is linear or not

@@ -683,6 +683,58 @@ ForecastStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
+DetCondForecast::DetCondForecast(const SymbolList &symbol_list_arg,
+                                 const OptionsList &options_list_arg,
+                                 const bool linear_decomposition_arg) :
+     options_list(options_list_arg),
+     symbol_list(symbol_list_arg),
+     linear_decomposition(linear_decomposition_arg)
+{
+
+}
+
+void
+DetCondForecast::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  options_list.writeOutput(output);
+  if (linear_decomposition)
+    {
+      output << "first_order_solution_to_compute = 1;" << endl;
+      output << "if exist('oo_')" << endl;
+      output << "  if isfield(oo_, 'dr')" << endl;
+      output << "    if isfield(oo_.dr, 'ghx') && isfield(oo_.dr, 'ghu') && isfield(oo_.dr, 'state_var') && isfield(oo_.dr, 'order_var')" << endl;
+      output << "      first_order_solution_to_compute = 0;" << endl;
+      output << "    end;" << endl;
+      output << "  end;" << endl;
+      output << "end;" << endl;
+      output << "if first_order_solution_to_compute" << endl;
+      output << " fprintf('%s','Computing the first order solution ...');" << endl;
+      output << " options_.nograph = 1;" << endl;
+      output << " options_.order = 1;" << endl;
+      output << " options_.noprint = 1;" << endl;
+      output << " options_.nocorr = 1;" << endl;
+      output << " options_.nomoments = 1;" << endl;
+      output << " options_.nodecomposition = 1;" << endl;
+      output << " options_.nofunctions = 1;" << endl;
+      output << " options_.irf = 0;" << endl;
+      output << " tmp_periods = options_.periods;" << endl;
+      output << " options_.periods = 0;" << endl;
+      output << " var_list_ = char();" << endl;
+      output << " info = stoch_simul(var_list_);" << endl;
+      output << " fprintf('%s\\n','done');" << endl;
+      output << " options_.periods = tmp_periods;" << endl;
+      output << "end;" << endl;
+    }
+  vector<string> symbols = symbol_list.get_symbols();
+  if (symbols.size() > 0)
+    output << symbols[1] << " = det_cond_forecast(" ;
+  for (unsigned int i = 0; i < symbols.size() - 1; i++)
+    output << symbols[i] << ", ";
+  if (symbols.size() > 0)
+    output << symbols[symbols.size() - 1];
+  output << ");" << endl;
+}
+
 RamseyModelStatement::RamseyModelStatement(OptionsList options_list_arg) :
   options_list(move(options_list_arg))
 {

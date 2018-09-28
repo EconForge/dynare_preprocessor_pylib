@@ -43,6 +43,8 @@ ModFile::ModFile(WarningConsolidation &warnings_arg)
                                        trend_component_model_table, var_model_table),
     orig_ramsey_dynamic_model(symbol_table, num_constants, external_functions_table,
                               trend_component_model_table, var_model_table),
+    non_linear_equations_dynamic_model(symbol_table, num_constants, external_functions_table,
+                  trend_component_model_table, var_model_table),
     epilogue(symbol_table, num_constants, external_functions_table,
              trend_component_model_table, var_model_table),
     static_model(symbol_table, num_constants, external_functions_table),
@@ -191,9 +193,20 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
-  if (use_dll && (block || byte_code))
+  if (use_dll && (block || byte_code || linear_decomposition))
     {
-      cerr << "ERROR: In 'model' block, 'use_dll' option is not compatible with 'block' or 'bytecode'" << endl;
+      cerr << "ERROR: In 'model' block, 'use_dll' option is not compatible with 'block', 'bytecode' or 'linear_decomposition'" << endl;
+      exit(EXIT_FAILURE);
+    }
+  if (block && linear_decomposition)
+    {
+      cerr << "ERROR: In 'model' block, 'block' option is not compatible with 'linear_decomposition'" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (!byte_code && linear_decomposition)
+    {
+      cerr << "ERROR: For the moment in 'model' block, 'linear_decomposition' option is compatible only with 'bytecode' option" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -683,6 +696,12 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
 
       // Compute static model and its derivatives
       dynamic_model.toStatic(static_model);
+	  if (linear_decomposition)
+        {
+          dynamic_model.cloneDynamic(non_linear_equations_dynamic_model);
+          non_linear_equations_dynamic_model.set_cutoff_to_zero();
+          non_linear_equations_dynamic_model.computingPass(true, false, false, 0, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput, linear_decomposition);
+        }
       if (!no_static)
         {
           if (mod_file_struct.stoch_simul_present
@@ -707,7 +726,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
           || mod_file_struct.calib_smoother_present)
         {
           if (mod_file_struct.perfect_foresight_solver_present)
-            dynamic_model.computingPass(true, false, false, 0, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput);
+            dynamic_model.computingPass(true, false, false, 0, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput, linear_decomposition);
           else
             {
               if (mod_file_struct.stoch_simul_present
@@ -732,13 +751,13 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
               int paramsDerivsOrder = 0;
               if (mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation)
                 paramsDerivsOrder = params_derivs_order;
-              dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput);
+              dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput, linear_decomposition);
               if (linear && mod_file_struct.ramsey_model_present)
-                orig_ramsey_dynamic_model.computingPass(true, true, false, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput);
+                orig_ramsey_dynamic_model.computingPass(true, true, false, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput, linear_decomposition);
             }
         }
       else // No computing task requested, compute derivatives up to 2nd order by default
-        dynamic_model.computingPass(true, true, false, 0, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput);
+        dynamic_model.computingPass(true, true, false, 0, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput, linear_decomposition);
 
       map<int, string> eqs;
       if (mod_file_struct.ramsey_model_present)
@@ -764,7 +783,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
   for (auto & statement : statements)
     statement->computingPass();
 
-  epilogue.computingPass(true, true, false, 0, global_eval_context, true, false, false, false, true);
+  epilogue.computingPass(true, true, false, 0, global_eval_context, true, false, false, false, true, false);
 }
 
 void
@@ -903,7 +922,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 
   mOutputFile << "options_.block=" << block << ";" << endl
               << "options_.bytecode=" << byte_code << ";" << endl
-              << "options_.use_dll=" << use_dll << ";" << endl;
+              << "options_.use_dll=" << use_dll << ";" << endl
+              << "options_.linear_decomposition=" << linear_decomposition << ";" << endl;
 
   if (parallel_local_files.size() > 0)
     {
@@ -992,7 +1012,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 
   if (dynamic_model.equation_number() > 0)
     {
-      dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll, mod_file_struct.order_option, mod_file_struct.estimation_present, compute_xrefs, false);
+      if (linear_decomposition)
+        non_linear_equations_dynamic_model.writeOutput(mOutputFile, basename, block, true, byte_code, use_dll, mod_file_struct.order_option, mod_file_struct.estimation_present, compute_xrefs, false);
+      dynamic_model.writeOutput(mOutputFile, basename, block, false, byte_code, use_dll, mod_file_struct.order_option, mod_file_struct.estimation_present, compute_xrefs, false);
       if (!no_static)
         static_model.writeOutput(mOutputFile, block);
     }
@@ -1066,7 +1088,14 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
               static_model.writeParamsDerivativesFile(basename, false);
             }
 
-          dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll, mod_file_struct.order_option, false);
+          if (linear_decomposition)
+            {
+              non_linear_equations_dynamic_model.writeDynamicFile(basename, block, linear_decomposition, byte_code, use_dll, mod_file_struct.order_option, false);
+              non_linear_equations_dynamic_model.writeParamsDerivativesFile(basename, false);
+            }
+
+          dynamic_model.writeDynamicFile(basename, block, false, byte_code, use_dll, mod_file_struct.order_option, false);
+
           dynamic_model.writeParamsDerivativesFile(basename, false);
         }
 
@@ -1179,7 +1208,7 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output, 
 
   if (dynamic_model.equation_number() > 0)
     {
-      dynamic_model.writeOutput(jlOutputFile, basename, false, false, false,
+      dynamic_model.writeOutput(jlOutputFile, basename, false, false, false, false,
                                 mod_file_struct.order_option,
                                 mod_file_struct.estimation_present, false, true);
       if (!no_static)
@@ -1187,7 +1216,7 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output, 
           static_model.writeStaticFile(basename, false, false, false, true);
           static_model.writeParamsDerivativesFile(basename, true);
         }
-      dynamic_model.writeDynamicFile(basename, block, byte_code, use_dll,
+      dynamic_model.writeDynamicFile(basename, block, linear_decomposition, byte_code, use_dll,
                                      mod_file_struct.order_option, true);
       dynamic_model.writeParamsDerivativesFile(basename, true);
     }
