@@ -103,7 +103,7 @@ public:
   vector<string> differentiate_forward_vars_subset;
 
   //! Is the model is block-decomposed according the linear and the non-linear equations
-  bool linear_decomposition;
+  bool linear_decomposition{false};
 
   //! Are nonstationary variables present ?
   bool nonstationary_variables;
