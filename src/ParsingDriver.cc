@@ -80,10 +80,10 @@ ParsingDriver::reset_data_tree()
 void
 ParsingDriver::reset_current_external_function_options()
 {
-  current_external_function_options.nargs = eExtFunSetDefaultNargs;
-  current_external_function_options.firstDerivSymbID = eExtFunNotSet;
-  current_external_function_options.secondDerivSymbID = eExtFunNotSet;
-  current_external_function_id = eExtFunNotSet;
+  current_external_function_options.nargs = ExternalFunctionsTable::defaultNargs;
+  current_external_function_options.firstDerivSymbID = ExternalFunctionsTable::IDNotSet;
+  current_external_function_options.secondDerivSymbID = ExternalFunctionsTable::IDNotSet;
+  current_external_function_id = ExternalFunctionsTable::IDNotSet;
 }
 
 unique_ptr<ModFile>
@@ -2858,7 +2858,7 @@ ParsingDriver::external_function_option(const string &name_option, const string 
   else if (name_option == "first_deriv_provided")
     {
       if (opt.empty())
-        current_external_function_options.firstDerivSymbID = eExtFunSetButNoNameProvided;
+        current_external_function_options.firstDerivSymbID = ExternalFunctionsTable::IDSetButNoNameProvided;
       else
         {
           declare_symbol(opt, SymbolType::externalFunction, "", {});
@@ -2868,7 +2868,7 @@ ParsingDriver::external_function_option(const string &name_option, const string 
   else if (name_option == "second_deriv_provided")
     {
       if (opt.empty())
-        current_external_function_options.secondDerivSymbID = eExtFunSetButNoNameProvided;
+        current_external_function_options.secondDerivSymbID = ExternalFunctionsTable::IDSetButNoNameProvided;
       else
         {
           declare_symbol(opt, SymbolType::externalFunction, "", {});
@@ -2884,15 +2884,15 @@ ParsingDriver::external_function_option(const string &name_option, const string 
 void
 ParsingDriver::external_function()
 {
-  if (current_external_function_id == eExtFunNotSet)
+  if (current_external_function_id == ExternalFunctionsTable::IDNotSet)
     error("The 'name' option must be passed to external_function().");
 
   if (current_external_function_options.secondDerivSymbID >= 0
-      && current_external_function_options.firstDerivSymbID  == eExtFunNotSet)
+      && current_external_function_options.firstDerivSymbID  == ExternalFunctionsTable::IDNotSet)
     error("If the second derivative is provided to the external_function command, the first derivative must also be provided.");
 
-  if (current_external_function_options.secondDerivSymbID == eExtFunSetButNoNameProvided
-      && current_external_function_options.firstDerivSymbID  != eExtFunSetButNoNameProvided)
+  if (current_external_function_options.secondDerivSymbID == ExternalFunctionsTable::IDSetButNoNameProvided
+      && current_external_function_options.firstDerivSymbID  != ExternalFunctionsTable::IDSetButNoNameProvided)
     error("If the second derivative is provided in the top-level function, the first derivative must also be provided in that function.");
 
   mod_file->external_functions_table.addExternalFunction(current_external_function_id, current_external_function_options, true);
@@ -2992,7 +2992,7 @@ ParsingDriver::add_model_var_or_external_function(const string &function_name, b
           error("Using a derivative of an external function (" + function_name + ") in the model block is currently not allowed.");
 
         if (in_model_block || parsing_epilogue)
-          if (mod_file->external_functions_table.getNargs(symb_id) == eExtFunNotSet)
+          if (mod_file->external_functions_table.getNargs(symb_id) == ExternalFunctionsTable::IDNotSet)
             error("Before using " + function_name
                   +"() in the model block, you must first declare it via the external_function() statement");
           else if ((int) (stack_external_function_args.top().size()) != mod_file->external_functions_table.getNargs(symb_id))

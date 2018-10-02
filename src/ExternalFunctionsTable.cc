@@ -37,14 +37,14 @@ ExternalFunctionsTable::addExternalFunction(int symb_id, const external_function
 
   // Change options to be saved so the table is consistent
   external_function_options external_function_options_chng = external_function_options_arg;
-  if (external_function_options_arg.firstDerivSymbID  == eExtFunSetButNoNameProvided)
+  if (external_function_options_arg.firstDerivSymbID  == IDSetButNoNameProvided)
     external_function_options_chng.firstDerivSymbID = symb_id;
 
-  if (external_function_options_arg.secondDerivSymbID == eExtFunSetButNoNameProvided)
+  if (external_function_options_arg.secondDerivSymbID == IDSetButNoNameProvided)
     external_function_options_chng.secondDerivSymbID = symb_id;
 
   if (!track_nargs)
-    external_function_options_chng.nargs = eExtFunNotSet;
+    external_function_options_chng.nargs = IDNotSet;
 
   // Ensure 1st & 2nd deriv option consistency
   if (external_function_options_chng.secondDerivSymbID == symb_id
@@ -57,15 +57,15 @@ ExternalFunctionsTable::addExternalFunction(int symb_id, const external_function
 
   if ((external_function_options_chng.secondDerivSymbID != symb_id
        && external_function_options_chng.firstDerivSymbID  == symb_id)
-      && external_function_options_chng.secondDerivSymbID != eExtFunNotSet)
+      && external_function_options_chng.secondDerivSymbID != IDNotSet)
     {
       cerr << "ERROR: If the first derivative is provided by the top-level function, the "
            << "second derivative cannot be provided by any other external function." << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (external_function_options_chng.secondDerivSymbID != eExtFunNotSet
-      && external_function_options_chng.firstDerivSymbID == eExtFunNotSet)
+  if (external_function_options_chng.secondDerivSymbID != IDNotSet
+      && external_function_options_chng.firstDerivSymbID == IDNotSet)
     {
       cerr << "ERROR: If the second derivative is provided, the first derivative must also be provided." << endl;
       exit(EXIT_FAILURE);
@@ -73,7 +73,7 @@ ExternalFunctionsTable::addExternalFunction(int symb_id, const external_function
 
   if (external_function_options_chng.secondDerivSymbID == external_function_options_chng.firstDerivSymbID
       && external_function_options_chng.firstDerivSymbID != symb_id
-      && external_function_options_chng.firstDerivSymbID != eExtFunNotSet)
+      && external_function_options_chng.firstDerivSymbID != IDNotSet)
     {
       cerr << "ERROR: If the Jacobian and Hessian are provided by the same function, that "
            << "function must be the top-level function." << endl;
@@ -84,7 +84,7 @@ ExternalFunctionsTable::addExternalFunction(int symb_id, const external_function
   if (exists(symb_id))
     {
       bool ok_to_overwrite = false;
-      if (getNargs(symb_id) == eExtFunNotSet) // implies that the information stored about this function is not important
+      if (getNargs(symb_id) == IDNotSet) // implies that the information stored about this function is not important
         ok_to_overwrite = true;
 
       if (!ok_to_overwrite) // prevents multiple non-compatible calls to external_function(name=funcname)

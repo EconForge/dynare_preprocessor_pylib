@@ -7515,7 +7515,7 @@ ExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCode, unsign
                                                     deriv_node_temp_terms_t &tef_terms) const
 {
   int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
-  assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
+  assert(first_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
   for (auto argument : arguments)
     argument->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs, temporary_terms,
@@ -7526,7 +7526,7 @@ ExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCode, unsign
       tef_terms[{ symb_id, arguments }] = (int) tef_terms.size();
       int indx = getIndxInTefTerms(symb_id, tef_terms);
       int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
-      assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
+      assert(second_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
       unsigned int nb_output_arguments = 0;
       if (symb_id == first_deriv_symb_id
@@ -7618,7 +7618,7 @@ ExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutpu
                                                   deriv_node_temp_terms_t &tef_terms) const
 {
   int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
-  assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
+  assert(first_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
   for (auto argument : arguments)
     argument->writeExternalFunctionOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
@@ -7628,7 +7628,7 @@ ExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutpu
       tef_terms[{ symb_id, arguments }] = (int) tef_terms.size();
       int indx = getIndxInTefTerms(symb_id, tef_terms);
       int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
-      assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
+      assert(second_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
       if (isCOutput(output_type))
         {
@@ -7695,7 +7695,7 @@ ExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> &efout,
                                                       const bool isdynamic) const
 {
   int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
-  assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
+  assert(first_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
   for (auto argument : arguments)
     argument->writeJsonExternalFunctionOutput(efout, temporary_terms, tef_terms, isdynamic);
@@ -7705,7 +7705,7 @@ ExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> &efout,
       tef_terms[{ symb_id, arguments }] = (int) tef_terms.size();
       int indx = getIndxInTefTerms(symb_id, tef_terms);
       int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
-      assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
+      assert(second_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
       stringstream ef;
       ef << "{\"external_function\": {"
@@ -7826,14 +7826,14 @@ FirstDerivExternalFunctionNode::writeJsonOutput(ostream &output,
     }
 
   const int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
-  assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
+  assert(first_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
   const int tmpIndx = inputIndex - 1;
 
   if (first_deriv_symb_id == symb_id)
     output << "TEFD_" << getIndxInTefTerms(symb_id, tef_terms)
            << "[" << tmpIndx << "]";
-  else if (first_deriv_symb_id == eExtFunNotSet)
+  else if (first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
     output << "TEFD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex;
   else
     output << "TEFD_def_" << getIndxInTefTerms(first_deriv_symb_id, tef_terms)
@@ -7861,14 +7861,14 @@ FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType 
     return;
 
   const int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
-  assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
+  assert(first_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
   const int tmpIndx = inputIndex - 1 + ARRAY_SUBSCRIPT_OFFSET(output_type);
 
   if (first_deriv_symb_id == symb_id)
     output << "TEFD_" << getIndxInTefTerms(symb_id, tef_terms)
            << LEFT_ARRAY_SUBSCRIPT(output_type) << tmpIndx << RIGHT_ARRAY_SUBSCRIPT(output_type);
-  else if (first_deriv_symb_id == eExtFunNotSet)
+  else if (first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
     {
       if (isCOutput(output_type))
         output << "*";
@@ -7903,7 +7903,7 @@ FirstDerivExternalFunctionNode::compile(ostream &CompileCode, unsigned int &inst
       return;
     }
   int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
-  assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
+  assert(first_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
   if (!lhs_rhs)
     {
@@ -7925,7 +7925,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
 {
   assert(output_type != ExprNodeOutputType::matlabOutsideModel);
   int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
-  assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
+  assert(first_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
   /* For a node with derivs provided by the user function, call the method
      on the non-derived node */
@@ -7941,7 +7941,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
     return;
 
   if (isCOutput(output_type))
-    if (first_deriv_symb_id == eExtFunNotSet)
+    if (first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
       {
         stringstream ending;
         ending << "_tefd_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex;
@@ -8002,7 +8002,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
       }
   else
     {
-      if (first_deriv_symb_id == eExtFunNotSet)
+      if (first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
         output << "TEFD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex << " = jacob_element('"
                << datatree.symbol_table.getName(symb_id) << "'," << inputIndex << ",{";
       else
@@ -8014,7 +8014,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
 
       writeExternalFunctionArguments(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 
-      if (first_deriv_symb_id == eExtFunNotSet)
+      if (first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
         output << "}";
       output << ");" << endl;
     }
@@ -8027,7 +8027,7 @@ FirstDerivExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> &
                                                                 const bool isdynamic) const
 {
   int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
-  assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
+  assert(first_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
   /* For a node with derivs provided by the user function, call the method
      on the non-derived node */
@@ -8042,7 +8042,7 @@ FirstDerivExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> &
     return;
 
   stringstream ef;
-  if (first_deriv_symb_id == eExtFunNotSet)
+  if (first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
     ef << "{\"first_deriv_external_function\": {"
        << "\"external_function_term\": \"TEFD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex << "\""
        << ", \"analytic_derivative\": false"
@@ -8069,14 +8069,14 @@ FirstDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCo
                                                               deriv_node_temp_terms_t &tef_terms) const
 {
   int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
-  assert(first_deriv_symb_id != eExtFunSetButNoNameProvided);
+  assert(first_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
   if (first_deriv_symb_id == symb_id || alreadyWrittenAsTefTerm(first_deriv_symb_id, tef_terms))
     return;
 
   unsigned int nb_add_input_arguments = compileExternalFunctionArguments(CompileCode, instruction_number, lhs_rhs, temporary_terms,
                                                                          map_idx, dynamic, steady_dynamic, tef_terms);
-  if (first_deriv_symb_id == eExtFunNotSet)
+  if (first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
     {
       unsigned int nb_input_arguments = 0;
       unsigned int nb_output_arguments = 1;
@@ -8095,7 +8095,7 @@ FirstDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCo
       tef_terms[{ first_deriv_symb_id, arguments }] = (int) tef_terms.size();
       int indx = getIndxInTefTerms(symb_id, tef_terms);
       int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
-      assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
+      assert(second_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
       unsigned int nb_output_arguments = 1;
 
@@ -8215,7 +8215,7 @@ SecondDerivExternalFunctionNode::writeJsonOutput(ostream &output,
     }
 
   const int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
-  assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
+  assert(second_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
   const int tmpIndex1 = inputIndex1 - 1;
   const int tmpIndex2 = inputIndex2 - 1;
@@ -8223,7 +8223,7 @@ SecondDerivExternalFunctionNode::writeJsonOutput(ostream &output,
   if (second_deriv_symb_id == symb_id)
     output << "TEFDD_" << getIndxInTefTerms(symb_id, tef_terms)
            << "[" << tmpIndex1 << "," << tmpIndex2 << "]";
-  else if (second_deriv_symb_id == eExtFunNotSet)
+  else if (second_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
     output << "TEFDD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex1 << "_" << inputIndex2;
   else
     output << "TEFDD_def_" << getIndxInTefTerms(second_deriv_symb_id, tef_terms)
@@ -8251,7 +8251,7 @@ SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType
     return;
 
   const int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
-  assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
+  assert(second_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
   const int tmpIndex1 = inputIndex1 - 1 + ARRAY_SUBSCRIPT_OFFSET(output_type);
   const int tmpIndex2 = inputIndex2 - 1 + ARRAY_SUBSCRIPT_OFFSET(output_type);
@@ -8265,7 +8265,7 @@ SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType
     else
       output << "TEFDD_" << getIndxInTefTerms(symb_id, tef_terms)
              << LEFT_ARRAY_SUBSCRIPT(output_type) << tmpIndex1 << "," << tmpIndex2 << RIGHT_ARRAY_SUBSCRIPT(output_type);
-  else if (second_deriv_symb_id == eExtFunNotSet)
+  else if (second_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
     {
       if (isCOutput(output_type))
         output << "*";
@@ -8289,7 +8289,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
 {
   assert(output_type != ExprNodeOutputType::matlabOutsideModel);
   int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
-  assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
+  assert(second_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
   /* For a node with derivs provided by the user function, call the method
      on the non-derived node */
@@ -8305,7 +8305,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
     return;
 
   if (isCOutput(output_type))
-    if (second_deriv_symb_id == eExtFunNotSet)
+    if (second_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
       {
         stringstream ending;
         ending << "_tefdd_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex1 << "_" << inputIndex2;
@@ -8368,7 +8368,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
       }
   else
     {
-      if (second_deriv_symb_id == eExtFunNotSet)
+      if (second_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
         output << "TEFDD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex1 << "_" << inputIndex2
                << " = hess_element('" << datatree.symbol_table.getName(symb_id) << "',"
                << inputIndex1 << "," << inputIndex2 << ",{";
@@ -8381,7 +8381,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
 
       writeExternalFunctionArguments(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 
-      if (second_deriv_symb_id == eExtFunNotSet)
+      if (second_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
         output << "}";
       output << ");" << endl;
     }
@@ -8394,7 +8394,7 @@ SecondDerivExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> 
                                                                  const bool isdynamic) const
 {
   int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
-  assert(second_deriv_symb_id != eExtFunSetButNoNameProvided);
+  assert(second_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
   /* For a node with derivs provided by the user function, call the method
      on the non-derived node */
@@ -8409,7 +8409,7 @@ SecondDerivExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> 
     return;
 
   stringstream ef;
-  if (second_deriv_symb_id == eExtFunNotSet)
+  if (second_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
     ef << "{\"second_deriv_external_function\": {"
        << "\"external_function_term\": \"TEFDD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex1 << "_" << inputIndex2 << "\""
        << ", \"analytic_derivative\": false"
