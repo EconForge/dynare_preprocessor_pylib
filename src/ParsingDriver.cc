@@ -1184,7 +1184,7 @@ ParsingDriver::add_restriction_equation_nbr(const string &eq_nbr)
   svar_equation_nbr = stoi(eq_nbr);
   svar_left_handside = true;
   // reinitialize restriction type that must be set from the first restriction element
-  svar_restriction_type = ParsingDriver::NOT_SET;
+  svar_restriction_type = SvarRestrictionType::NOT_SET;
 }
 
 void
@@ -1247,23 +1247,23 @@ ParsingDriver::add_restriction_element(expr_t value, const string &variable, con
   int symb_id = mod_file->symbol_table.getID(variable);
 
   int current_lag = stoi(lag);
-  if (svar_restriction_type == ParsingDriver::NOT_SET)
+  if (svar_restriction_type == SvarRestrictionType::NOT_SET)
     {
       if (current_lag == 0)
         {
-          svar_restriction_type = ParsingDriver::Qi_TYPE;
+          svar_restriction_type = SvarRestrictionType::Qi_TYPE;
           ++svar_Qi_restriction_nbr[svar_equation_nbr];
         }
       else
         {
-          svar_restriction_type = ParsingDriver::Ri_TYPE;
+          svar_restriction_type = SvarRestrictionType::Ri_TYPE;
           ++svar_Ri_restriction_nbr[svar_equation_nbr];
         }
     }
   else
     {
-      if ((svar_restriction_type == Qi_TYPE && current_lag > 0)
-          || (svar_restriction_type == Ri_TYPE && current_lag == 0))
+      if ((svar_restriction_type == SvarRestrictionType::Qi_TYPE && current_lag > 0)
+          || (svar_restriction_type == SvarRestrictionType::Ri_TYPE && current_lag == 0))
         error("SVAR_IDENTIFICATION: a single restrictions must affect either Qi or Ri, but not both");
     }
   SvarIdentificationStatement::svar_identification_restriction new_restriction;

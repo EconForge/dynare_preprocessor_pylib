@@ -200,7 +200,7 @@ private:
   //! Stores undeclared model variables
   set<string> undeclared_model_vars;
   //! Temporary storage for restriction type
-  enum SvarRestrictionType
+  enum class SvarRestrictionType
     {
       NOT_SET,
       Qi_TYPE,
