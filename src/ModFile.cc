@@ -983,7 +983,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   // When check_model_changes is true, don't force compile if MEX is fresher than source
   if (use_dll)
     {
-#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
+#if defined(_WIN32) || defined(__CYGWIN32__)
       if (msvc)
         // MATLAB/Windows + Microsoft Visual C++
         mOutputFile << "dyn_mex('msvc', '" << basename << "', " << !check_model_changes << ")" <<  endl;

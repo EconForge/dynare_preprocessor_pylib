@@ -1881,7 +1881,7 @@ StaticModel::writeStaticCFile(const string &basename) const
          << " * Warning : this file is generated automatically by Dynare" << endl
          << " *           from model file (.mod)" << endl << endl
          << " */" << endl
-#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
+#if defined(_WIN32) || defined(__CYGWIN32__)
          << "#ifdef _MSC_VER" << endl
          << "#define _USE_MATH_DEFINES" << endl
          << "#endif" << endl

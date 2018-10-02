@@ -42,7 +42,7 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
            WarningConsolidation &warnings_arg, bool nostrict, bool stochastic, bool check_model_changes,
            bool minimal_workspace, bool compute_xrefs, FileOutputType output_mode,
            LanguageOutputType lang, int params_derivs_order, bool transform_unary_ops
-#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
+#if defined(_WIN32) || defined(__CYGWIN32__)
            , bool cygwin, bool msvc, bool mingw
 #endif
            , JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple
@@ -59,7 +59,7 @@ usage()
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test]"
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=julia]"
        << " [params_derivs_order=0|1|2] [transform_unary_ops]"
-#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
+#if defined(_WIN32) || defined(__CYGWIN32__)
        << " [cygwin] [msvc] [mingw]"
 #endif
        << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] [nopathchange] [nopreprocessoroutput]"
@@ -99,7 +99,7 @@ main(int argc, char **argv)
   bool console = false;
   bool nograph = false;
   bool nointeractive = false;
-#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
+#if defined(_WIN32) || defined(__CYGWIN32__)
   bool cygwin = false;
   bool msvc = false;
   bool mingw = false;
@@ -180,7 +180,7 @@ main(int argc, char **argv)
         nograph = true;
       else if (!strcmp(argv[arg], "nointeractive"))
         nointeractive = true;
-#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
+#if defined(_WIN32) || defined(__CYGWIN32__)
       else if (!strcmp(argv[arg], "cygwin"))
         cygwin = true;
       else if (!strcmp(argv[arg], "msvc"))
@@ -401,7 +401,7 @@ main(int argc, char **argv)
         no_tmp_terms, no_log, no_warn, warn_uninit, console, nograph, nointeractive,
         parallel, config_file, warnings, nostrict, stochastic, check_model_changes, minimal_workspace,
         compute_xrefs, output_mode, language, params_derivs_order, transform_unary_ops
-#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
+#if defined(_WIN32) || defined(__CYGWIN32__)
         , cygwin, msvc, mingw
 #endif
         , json, json_output_mode, onlyjson, jsonderivsimple, nopreprocessoroutput

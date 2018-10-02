@@ -759,7 +759,7 @@ DataTree::writePowerDeriv(ostream &output) const
 void
 DataTree::writeNormcdfCHeader(ostream &output) const
 {
-#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
+#if defined(_WIN32) || defined(__CYGWIN32__)
   if (isTrinaryOpUsed(TrinaryOpcode::normcdf))
     output << "#ifdef _MSC_VER" << endl
            << "double normcdf(double);" << endl
@@ -770,7 +770,7 @@ DataTree::writeNormcdfCHeader(ostream &output) const
 void
 DataTree::writeNormcdf(ostream &output) const
 {
-#if defined(_WIN32) || defined(__CYGWIN32__) || defined(__MINGW32__)
+#if defined(_WIN32) || defined(__CYGWIN32__)
   if (isTrinaryOpUsed(TrinaryOpcode::normcdf))
     output << endl
            << "#ifdef _MSC_VER" << endl
