@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _STEADY_STATE_MODEL_HH
-#define _STEADY_STATE_MODEL_HH
+#ifndef _MODEL_EQUATION_BLOCK_HH
+#define _MODEL_EQUATION_BLOCK_HH
 
 #include "DataTree.hh"
 #include "Statement.hh"
