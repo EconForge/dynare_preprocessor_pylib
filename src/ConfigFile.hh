@@ -86,7 +86,7 @@ class Cluster
 {
   friend class ConfigFile;
 public:
-  Cluster(member_nodes_t member_nodes_arg);
+  explicit Cluster(member_nodes_t member_nodes_arg);
 
 protected:
   member_nodes_t member_nodes;

@@ -56,7 +56,7 @@ private:
   static MatrixForm determineMatrixForm(const matrix_t &matrix) noexcept(false);
 
 public:
-  SigmaeStatement(matrix_t matrix_arg) noexcept(false);
+  explicit SigmaeStatement(matrix_t matrix_arg) noexcept(false);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
 };
 

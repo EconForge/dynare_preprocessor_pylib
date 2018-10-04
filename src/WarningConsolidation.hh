@@ -34,7 +34,7 @@ private:
   bool no_warn;
 
 public:
-  WarningConsolidation(bool no_warn_arg) : no_warn(no_warn_arg)
+  explicit WarningConsolidation(bool no_warn_arg) : no_warn(no_warn_arg)
   {
   };
   ~WarningConsolidation()

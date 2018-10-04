@@ -46,7 +46,7 @@ public:
   {
   public:
     const string message;
-    TypeError(string message_arg) : message{move(message_arg)}
+    explicit TypeError(string message_arg) : message{move(message_arg)}
     {
     };
   };
@@ -117,7 +117,7 @@ public:
 class IntMV : public MacroValue
 {
 public:
-  IntMV(int value_arg);
+  explicit IntMV(int value_arg);
   
   //! Underlying integer value
   const int value;
@@ -155,7 +155,7 @@ public:
 class StringMV : public MacroValue
 {
 public:
-  StringMV(string value_arg);
+  explicit StringMV(string value_arg);
   //! Underlying string value
   const string value;
   
@@ -188,7 +188,7 @@ public:
 class ArrayMV : public MacroValue
 {
 public:
-  ArrayMV(vector<MacroValuePtr> values_arg);
+  explicit ArrayMV(vector<MacroValuePtr> values_arg);
 
   //! Underlying vector
   const vector<MacroValuePtr> values;
@@ -229,7 +229,7 @@ public:
 class TupleMV : public MacroValue
 {
 public:
-  TupleMV(vector<MacroValuePtr> values_arg);
+  explicit TupleMV(vector<MacroValuePtr> values_arg);
 
   //! Underlying vector
   const vector<MacroValuePtr> values;

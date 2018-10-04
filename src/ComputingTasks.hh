@@ -34,7 +34,7 @@ class SteadyStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  SteadyStatement(OptionsList options_list_arg);
+  explicit SteadyStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -45,7 +45,7 @@ class CheckStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  CheckStatement(OptionsList options_list_arg);
+  explicit CheckStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -56,7 +56,7 @@ class SimulStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  SimulStatement(OptionsList options_list_arg);
+  explicit SimulStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -67,7 +67,7 @@ class PerfectForesightSetupStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  PerfectForesightSetupStatement(OptionsList options_list_arg);
+  explicit PerfectForesightSetupStatement(OptionsList options_list_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -77,7 +77,7 @@ class PerfectForesightSolverStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  PerfectForesightSolverStatement(OptionsList options_list_arg);
+  explicit PerfectForesightSolverStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -115,7 +115,7 @@ class ModelInfoStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  ModelInfoStatement(OptionsList options_list_arg);
+  explicit ModelInfoStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -188,7 +188,7 @@ class VarEstimationStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  VarEstimationStatement(OptionsList options_list_arg);
+  explicit VarEstimationStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
 };
@@ -210,7 +210,7 @@ class RamseyModelStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  RamseyModelStatement(OptionsList options_list_arg);
+  explicit RamseyModelStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -270,7 +270,7 @@ class RplotStatement : public Statement
 private:
   const SymbolList symbol_list;
 public:
-  RplotStatement(SymbolList symbol_list_arg);
+  explicit RplotStatement(SymbolList symbol_list_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -288,7 +288,7 @@ class PeriodsStatement : public Statement
 private:
   const int periods;
 public:
-  PeriodsStatement(int periods_arg);
+  explicit PeriodsStatement(int periods_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -298,7 +298,7 @@ class DsampleStatement : public Statement
 private:
   const int val1, val2;
 public:
-  DsampleStatement(int val1_arg);
+  explicit DsampleStatement(int val1_arg);
   DsampleStatement(int val1_arg, int val2_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -322,7 +322,7 @@ class DynareSensitivityStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  DynareSensitivityStatement(OptionsList options_list_arg);
+  explicit DynareSensitivityStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -388,7 +388,7 @@ class OsrParamsBoundsStatement : public Statement
 private:
   const vector<OsrParams> osr_params_list;
 public:
-  OsrParamsBoundsStatement(vector<OsrParams> osr_params_list_arg);
+  explicit OsrParamsBoundsStatement(vector<OsrParams> osr_params_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -566,7 +566,7 @@ class SBVARStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  SBVARStatement(OptionsList options_list_arg);
+  explicit SBVARStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -577,7 +577,7 @@ class MSSBVAREstimationStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  MSSBVAREstimationStatement(OptionsList options_list_arg);
+  explicit MSSBVAREstimationStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -588,7 +588,7 @@ class MSSBVARSimulationStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  MSSBVARSimulationStatement(OptionsList options_list_arg);
+  explicit MSSBVARSimulationStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -599,7 +599,7 @@ class MSSBVARComputeMDDStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  MSSBVARComputeMDDStatement(OptionsList options_list_arg);
+  explicit MSSBVARComputeMDDStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -610,7 +610,7 @@ class MSSBVARComputeProbabilitiesStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  MSSBVARComputeProbabilitiesStatement(OptionsList options_list_arg);
+  explicit MSSBVARComputeProbabilitiesStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -634,7 +634,7 @@ class MSSBVARForecastStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  MSSBVARForecastStatement(OptionsList options_list_arg);
+  explicit MSSBVARForecastStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -645,7 +645,7 @@ class MSSBVARVarianceDecompositionStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  MSSBVARVarianceDecompositionStatement(OptionsList options_list_arg);
+  explicit MSSBVARVarianceDecompositionStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -656,7 +656,7 @@ class IdentificationStatement : public Statement
 private:
   OptionsList options_list;
 public:
-  IdentificationStatement(const OptionsList &options_list_arg);
+  explicit IdentificationStatement(const OptionsList &options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -700,7 +700,7 @@ class WriteLatexSteadyStateModelStatement : public Statement
 private:
   const SteadyStateModel &steady_state_model;
 public:
-  WriteLatexSteadyStateModelStatement(const SteadyStateModel &steady_state_model_arg);
+  explicit WriteLatexSteadyStateModelStatement(const SteadyStateModel &steady_state_model_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -756,7 +756,7 @@ class ConditionalForecastStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  ConditionalForecastStatement(OptionsList options_list_arg);
+  explicit ConditionalForecastStatement(OptionsList options_list_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -791,7 +791,7 @@ class ExtendedPathStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  ExtendedPathStatement(OptionsList options_list_arg);
+  explicit ExtendedPathStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -835,7 +835,7 @@ private:
   const OptionsList options_list;
   map <pair<int, int >, double > restriction_map;
 public:
-  MarkovSwitchingStatement(OptionsList options_list_arg);
+  explicit MarkovSwitchingStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeCOutput(ostream &output, const string &basename) override;
@@ -847,7 +847,7 @@ class SvarStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  SvarStatement(OptionsList options_list_arg);
+  explicit SvarStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -866,7 +866,7 @@ class SetTimeStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  SetTimeStatement(OptionsList options_list_arg);
+  explicit SetTimeStatement(OptionsList options_list_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -876,7 +876,7 @@ class EstimationDataStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  EstimationDataStatement(OptionsList options_list_arg);
+  explicit EstimationDataStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -1150,7 +1150,7 @@ class Smoother2histvalStatement : public Statement
 private:
   const OptionsList options_list;
 public:
-  Smoother2histvalStatement(OptionsList options_list_arg);
+  explicit Smoother2histvalStatement(OptionsList options_list_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };

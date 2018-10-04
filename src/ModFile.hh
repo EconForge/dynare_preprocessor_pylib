@@ -44,7 +44,7 @@ using namespace std;
 class ModFile
 {
 public:
-  ModFile(WarningConsolidation &warnings_arg);
+  explicit ModFile(WarningConsolidation &warnings_arg);
   //! Symbol table
   SymbolTable symbol_table;
   //! External Functions table

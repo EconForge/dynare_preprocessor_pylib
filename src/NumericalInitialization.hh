@@ -129,7 +129,7 @@ class InitvalFileStatement : public Statement
 private:
   const string filename;
 public:
-  InitvalFileStatement(string filename_arg);
+  explicit InitvalFileStatement(string filename_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -139,7 +139,7 @@ class HistvalFileStatement : public Statement
 private:
   const string filename;
 public:
-  HistvalFileStatement(string filename_arg);
+  explicit HistvalFileStatement(string filename_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -165,7 +165,7 @@ class SaveParamsAndSteadyStateStatement : public Statement
 private:
   const string filename;
 public:
-  SaveParamsAndSteadyStateStatement(string filename_arg);
+  explicit SaveParamsAndSteadyStateStatement(string filename_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };

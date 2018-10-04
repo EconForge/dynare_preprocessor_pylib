@@ -208,7 +208,7 @@ public:
   {
   public:
     const string name;
-    UnknownVariable(string name_arg) : name(move(name_arg))
+    explicit UnknownVariable(string name_arg) : name(move(name_arg))
     {
     }
   };

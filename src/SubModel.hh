@@ -48,7 +48,7 @@ private:
   map<string, map<tuple<int, int, int>, expr_t>> AR; // AR: name -> (eqn, lag, lhs_symb_id) -> expr_t
   map<string, map<tuple<int, int, int>, expr_t>> EC; // EC: name -> (eqn, lag, col) -> expr_t
 public:
-  TrendComponentModelTable(SymbolTable &symbol_table_arg);
+  explicit TrendComponentModelTable(SymbolTable &symbol_table_arg);
 
   //! Add a trend component model
   void addTrendComponentModel(string name_arg, vector<string> eqtags_arg,
@@ -124,7 +124,7 @@ private:
   map<string, vector<expr_t>> lhs_expr_t;
   map<string, map<tuple<int, int, int>, expr_t>> AR; // AR: name -> (eqn, lag, lhs_symb_id) -> param_expr_t
 public:
-  VarModelTable(SymbolTable &symbol_table_arg);
+  explicit VarModelTable(SymbolTable &symbol_table_arg);
 
   //! Add a VAR model
   void addVarModel(string name, vector<string> eqtags,

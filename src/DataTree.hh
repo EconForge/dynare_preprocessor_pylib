@@ -131,7 +131,7 @@ public:
   {
   public:
     string name;
-    LocalVariableException(string name_arg) : name(move(name_arg))
+    explicit LocalVariableException(string name_arg) : name(move(name_arg))
     {
     }
   };
@@ -279,7 +279,7 @@ public:
   {
   public:
     string name;
-    TrendException(string name_arg) : name(move(name_arg))
+    explicit TrendException(string name_arg) : name(move(name_arg))
     {
     }
   };
@@ -306,7 +306,7 @@ public:
   public:
     //! Symbol ID
     int id;
-    UnknownLocalVariableException(int id_arg) : id(id_arg)
+    explicit UnknownLocalVariableException(int id_arg) : id(id_arg)
     {
     }
   };

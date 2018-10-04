@@ -308,7 +308,7 @@ class TagWithoutArgument
 protected:
   uint8_t op_code;
 public:
-  inline
+  inline explicit
   TagWithoutArgument(uint8_t op_code_arg) : op_code(op_code_arg)
   {
   };
@@ -327,7 +327,7 @@ protected:
   uint8_t op_code;
   T1 arg1;
 public:
-  inline
+  inline explicit
   TagWithOneArgument(uint8_t op_code_arg) : op_code(op_code_arg)
   {
   };
@@ -351,7 +351,7 @@ protected:
   T1 arg1;
   T2 arg2;
 public:
-  inline
+  inline explicit
   TagWithTwoArguments(uint8_t op_code_arg) : op_code(op_code_arg)
   {
   };
@@ -376,7 +376,7 @@ protected:
   T2 arg2;
   T3 arg3;
 public:
-  inline
+  inline explicit
   TagWithThreeArguments(uint8_t op_code_arg) : op_code(op_code_arg)
   {
   };
@@ -402,7 +402,7 @@ protected:
   T3 arg3;
   T4 arg4;
 public:
-  inline
+  inline explicit
   TagWithFourArguments(uint8_t op_code_arg) : op_code(op_code_arg)
   {
   };
@@ -488,7 +488,7 @@ public:
   FDIMT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FDIMT)
   {
   };
-  inline
+  inline explicit
   FDIMT_(unsigned int size_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FDIMT, size_arg)
   {
   };
@@ -506,7 +506,7 @@ public:
   FDIMST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FDIMST)
   {
   };
-  inline
+  inline explicit
   FDIMST_(const unsigned int size_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FDIMST, size_arg)
   {
   };
@@ -524,7 +524,7 @@ public:
   FLDC_() : TagWithOneArgument<double>::TagWithOneArgument(FLDC)
   {
   };
-  inline
+  inline explicit
   FLDC_(const double value_arg) : TagWithOneArgument<double>::TagWithOneArgument(FLDC, value_arg)
   {
   };
@@ -542,7 +542,7 @@ public:
   FLDU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDU)
   {
   };
-  inline
+  inline explicit
   FLDU_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDU, pos_arg)
   {
   };
@@ -560,7 +560,7 @@ public:
   FLDSU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDSU)
   {
   };
-  inline
+  inline explicit
   FLDSU_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDSU, pos_arg)
   {
   };
@@ -578,7 +578,7 @@ public:
   FLDR_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDR)
   {
   };
-  inline
+  inline explicit
   FLDR_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDR, pos_arg)
   {
   };
@@ -596,7 +596,7 @@ public:
   FLDT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDT)
   {
   };
-  inline
+  inline explicit
   FLDT_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDT, pos_arg)
   {
   };
@@ -614,7 +614,7 @@ public:
   FLDST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDST)
   {
   };
-  inline
+  inline explicit
   FLDST_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDST, pos_arg)
   {
   };
@@ -632,7 +632,7 @@ public:
   FSTPT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPT)
   {
   };
-  inline
+  inline explicit
   FSTPT_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPT, pos_arg)
   {
   };
@@ -650,7 +650,7 @@ public:
   FSTPST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPST)
   {
   };
-  inline
+  inline explicit
   FSTPST_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPST, pos_arg)
   {
   };
@@ -668,7 +668,7 @@ public:
   FSTPR_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPR)
   {
   };
-  inline
+  inline explicit
   FSTPR_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPR, pos_arg)
   {
   };
@@ -686,7 +686,7 @@ public:
   FSTPU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPU)
   {
   };
-  inline
+  inline explicit
   FSTPU_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPU, pos_arg)
   {
   };
@@ -704,7 +704,7 @@ public:
   FSTPSU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPSU)
   {
   };
-  inline
+  inline explicit
   FSTPSU_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPSU, pos_arg)
   {
   };
@@ -722,7 +722,7 @@ public:
   FSTPG_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPG, 0)
   {
   };
-  inline
+  inline explicit
   FSTPG_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPG, pos_arg)
   {
   };
@@ -796,7 +796,7 @@ public:
   FUNARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument(FUNARY)
   {
   };
-  inline
+  inline explicit
   FUNARY_(uint8_t op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument(FUNARY, op_type_arg)
   {
   };
@@ -814,7 +814,7 @@ public:
   FBINARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument(FBINARY)
   {
   };
-  inline
+  inline explicit
   FBINARY_(const int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument(FBINARY, op_type_arg)
   {
   };
@@ -832,7 +832,7 @@ public:
   FTRINARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument(FTRINARY)
   {
   };
-  inline
+  inline explicit
   FTRINARY_(const int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument(FTRINARY, op_type_arg)
   {
   };
@@ -850,7 +850,7 @@ public:
   FOK_() : TagWithOneArgument<int>::TagWithOneArgument(FOK)
   {
   };
-  inline
+  inline explicit
   FOK_(const int arg_arg) : TagWithOneArgument<int>::TagWithOneArgument(FOK, arg_arg)
   {
   };
@@ -868,7 +868,7 @@ public:
   FJMPIFEVAL_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FJMPIFEVAL)
   {
   };
-  inline
+  inline explicit
   FJMPIFEVAL_(unsigned int arg_pos) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FJMPIFEVAL, arg_pos)
   {
   };
@@ -886,7 +886,7 @@ public:
   FJMP_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FJMP)
   {
   };
-  inline
+  inline explicit
   FJMP_(unsigned int arg_pos) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FJMP, arg_pos)
   {
   };
@@ -904,7 +904,7 @@ public:
   FLDTEF_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDTEF)
   {
   };
-  inline
+  inline explicit
   FLDTEF_(unsigned int number) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FLDTEF, number)
   {
   };
@@ -922,7 +922,7 @@ public:
   FSTPTEF_() : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPTEF)
   {
   };
-  inline
+  inline explicit
   FSTPTEF_(unsigned int number) : TagWithOneArgument<unsigned int>::TagWithOneArgument(FSTPTEF, number)
   {
   };

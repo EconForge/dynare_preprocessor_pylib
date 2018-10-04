@@ -167,7 +167,7 @@ public:
   public:
     //! Symbol name
     string name;
-    UnknownSymbolNameException(string name_arg) : name(move(name_arg))
+    explicit UnknownSymbolNameException(string name_arg) : name(move(name_arg))
     {
     }
   };
@@ -177,7 +177,7 @@ public:
   public:
     //! Symbol ID
     int id;
-    UnknownSymbolIDException(int id_arg) : id(id_arg)
+    explicit UnknownSymbolIDException(int id_arg) : id(id_arg)
     {
     }
   };
@@ -220,7 +220,7 @@ public:
                                                                          orig_lead_lag(orig_lead_lag_arg)
     {
     }
-    SearchFailedException(int symb_id_arg) : symb_id(symb_id_arg)
+    explicit SearchFailedException(int symb_id_arg) : symb_id(symb_id_arg)
     {
     }
   };
