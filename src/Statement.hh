@@ -132,8 +132,15 @@ public:
 class Statement
 {
 public:
+  Statement() = default;
   virtual
   ~Statement();
+
+  Statement(const Statement &) = delete;
+  Statement(Statement &&) = delete;
+  Statement & operator=(const Statement &) = delete;
+  Statement & operator=(Statement &&) = delete;
+
   //! Do some internal check, and fill the ModFileStructure class
   /*! Don't forget to update ComputingTasks.hh, Shocks.hh and
     NumericalInitialization.hh if you modify the signature of this

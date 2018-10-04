@@ -175,6 +175,11 @@ private:
 public:
   MacroFlex(istream *in, ostream *out, bool no_line_macro_arg, vector<string> path_arg);
 
+  MacroFlex(const MacroFlex &) = delete;
+  MacroFlex(MacroFlex &&) = delete;
+  MacroFlex & operator=(const MacroFlex &) = delete;
+  MacroFlex & operator=(MacroFlex &&) = delete;
+
   //! The main lexing function
   Macro::parser::token_type lex(Macro::parser::semantic_type *yylval,
                                 Macro::parser::location_type *yylloc,
@@ -203,6 +208,12 @@ private:
 
   stack<tuple<vector<string>, shared_ptr<ArrayMV>, int>> comprehension_stack;
 public:
+  MacroDriver() = default;
+  MacroDriver(const MacroDriver &) = delete;
+  MacroDriver(MacroDriver &&) = delete;
+  MacroDriver & operator=(const MacroDriver &) = delete;
+  MacroDriver & operator=(MacroDriver &&) = delete;
+
   //! Exception thrown when value of an unknown variable is requested
   class UnknownVariable
   {

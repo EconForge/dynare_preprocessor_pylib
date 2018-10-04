@@ -123,6 +123,11 @@ public:
   virtual
   ~DataTree();
 
+  DataTree(const DataTree &) = delete;
+  DataTree(DataTree &&) = delete;
+  DataTree & operator=(const DataTree &) = delete;
+  DataTree & operator=(DataTree &&) = delete;
+
   //! Some predefined constants
   expr_t Zero, One, Two, MinusOne, NaN, Infinity, MinusInfinity, Pi;
 
