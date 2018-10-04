@@ -320,7 +320,7 @@ public:
   };
 };
 
-template < class T1 >
+template<typename T1>
 class TagWithOneArgument
 {
 protected:
@@ -343,7 +343,7 @@ public:
   };
 };
 
-template < class T1, class T2 >
+template<typename T1, typename T2>
 class TagWithTwoArguments
 {
 protected:
@@ -367,7 +367,7 @@ public:
   };
 };
 
-template < class T1, class T2, class T3 >
+template<typename T1, typename T2, typename T3>
 class TagWithThreeArguments
 {
 protected:
@@ -392,7 +392,7 @@ public:
   };
 };
 
-template < class T1, class T2, class T3, class T4 >
+template<typename T1, typename T2, typename T3, typename T4>
 class TagWithFourArguments
 {
 protected:
