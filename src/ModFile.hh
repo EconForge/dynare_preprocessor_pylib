@@ -79,22 +79,22 @@ public:
   StaticModel diff_static_model;
 
   //! Option linear
-  bool linear;
+  bool linear{false};
 
   //! Is the model block decomposed?
-  bool block;
+  bool block{false};
 
   //! Is the model stored in bytecode format (byte_code=true) or in a M-file (byte_code=false)
-  bool byte_code;
+  bool byte_code{false};
 
   //! Is the model stored in a MEX file ? (option "use_dll" of "model")
-  bool use_dll;
+  bool use_dll{false};
 
   //! Is the static model have to computed (no_static=false) or not (no_static=true). Option of 'model'
-  bool no_static;
+  bool no_static{false};
 
   //! Is the 'differentiate_forward_vars' option used?
-  bool differentiate_forward_vars;
+  bool differentiate_forward_vars{false};
 
   /*! If the 'differentiate_forward_vars' option is used, contains the set of
     endogenous with respect to which to do the transformation;
@@ -106,14 +106,14 @@ public:
   bool linear_decomposition{false};
 
   //! Are nonstationary variables present ?
-  bool nonstationary_variables;
+  bool nonstationary_variables{false};
 
   //! Global evaluation context
   /*! Filled using initval blocks and parameters initializations */
   eval_context_t global_eval_context;
 
   //! Parameter used with lead/lag
-  bool param_used_with_lead_lag;
+  bool param_used_with_lead_lag{false};
 
   //! Stores the list of extra files to be transefered during a parallel run
   /*! (i.e. option parallel_local_files of model block) */

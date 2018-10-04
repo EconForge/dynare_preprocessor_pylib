@@ -28,9 +28,9 @@
 InitParamStatement::InitParamStatement(int symb_id_arg,
                                        const expr_t param_value_arg,
                                        const SymbolTable &symbol_table_arg) :
-  symb_id(symb_id_arg),
-  param_value(param_value_arg),
-  symbol_table(symbol_table_arg)
+  symb_id{symb_id_arg},
+  param_value{param_value_arg},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -98,9 +98,9 @@ InitParamStatement::fillEvalContext(eval_context_t &eval_context) const
 InitOrEndValStatement::InitOrEndValStatement(init_values_t init_values_arg,
                                              const SymbolTable &symbol_table_arg,
                                              const bool &all_values_required_arg) :
-  init_values(move(init_values_arg)),
-  symbol_table(symbol_table_arg),
-  all_values_required(all_values_required_arg)
+  init_values{move(init_values_arg)},
+  symbol_table{symbol_table_arg},
+  all_values_required{all_values_required_arg}
 {
 }
 
@@ -188,7 +188,7 @@ InitOrEndValStatement::writeJsonInitValues(ostream &output) const
 InitValStatement::InitValStatement(const init_values_t &init_values_arg,
                                    const SymbolTable &symbol_table_arg,
                                    const bool &all_values_required_arg) :
-  InitOrEndValStatement(init_values_arg, symbol_table_arg, all_values_required_arg)
+  InitOrEndValStatement{init_values_arg, symbol_table_arg, all_values_required_arg}
 {
 }
 
@@ -252,7 +252,7 @@ InitValStatement::writeOutputPostInit(ostream &output) const
 EndValStatement::EndValStatement(const init_values_t &init_values_arg,
                                  const SymbolTable &symbol_table_arg,
                                  const bool &all_values_required_arg) :
-  InitOrEndValStatement(init_values_arg, symbol_table_arg, all_values_required_arg)
+  InitOrEndValStatement{init_values_arg, symbol_table_arg, all_values_required_arg}
 {
 }
 
@@ -307,10 +307,10 @@ HistValStatement::HistValStatement(hist_values_t hist_values_arg,
                                    const hist_vals_wrong_lag_t hist_vals_wrong_lag_arg,
                                    const SymbolTable &symbol_table_arg,
                                    const bool &all_values_required_arg) :
-  hist_values(move(hist_values_arg)),
-  hist_vals_wrong_lag(hist_vals_wrong_lag_arg),
-  symbol_table(symbol_table_arg),
-  all_values_required(all_values_required_arg)
+  hist_values{move(hist_values_arg)},
+  hist_vals_wrong_lag{hist_vals_wrong_lag_arg},
+  symbol_table{symbol_table_arg},
+  all_values_required{all_values_required_arg}
 {
 }
 
@@ -429,7 +429,7 @@ HistValStatement::writeJsonOutput(ostream &output) const
 }
 
 InitvalFileStatement::InitvalFileStatement(string filename_arg) :
-  filename(move(filename_arg))
+  filename{move(filename_arg)}
 {
 }
 
@@ -452,7 +452,7 @@ InitvalFileStatement::writeJsonOutput(ostream &output) const
 }
 
 HistvalFileStatement::HistvalFileStatement(string filename_arg) :
-  filename(move(filename_arg))
+  filename{move(filename_arg)}
 {
 }
 
@@ -472,8 +472,8 @@ HistvalFileStatement::writeJsonOutput(ostream &output) const
 
 HomotopyStatement::HomotopyStatement(homotopy_values_t homotopy_values_arg,
                                      const SymbolTable &symbol_table_arg) :
-  homotopy_values(move(homotopy_values_arg)),
-  symbol_table(symbol_table_arg)
+  homotopy_values{move(homotopy_values_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -530,7 +530,7 @@ HomotopyStatement::writeJsonOutput(ostream &output) const
 }
 
 SaveParamsAndSteadyStateStatement::SaveParamsAndSteadyStateStatement(string filename_arg) :
-  filename(move(filename_arg))
+  filename{move(filename_arg)}
 {
 }
 
@@ -551,7 +551,7 @@ SaveParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
 LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const string &filename,
                                                                      const SymbolTable &symbol_table_arg,
                                                                      WarningConsolidation &warnings) :
-  symbol_table(symbol_table_arg)
+  symbol_table{symbol_table_arg}
 {
   cout << "Reading " << filename << "." << endl;
 

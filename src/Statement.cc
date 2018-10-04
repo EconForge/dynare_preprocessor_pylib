@@ -21,8 +21,7 @@
 #include <boost/xpressive/xpressive.hpp>
 #include <utility>
 
-ModFileStructure::ModFileStructure() :
-  dsge_var_calibrated("")
+ModFileStructure::ModFileStructure()
 {
 }
 
@@ -55,7 +54,7 @@ Statement::computingPass()
 }
 
 NativeStatement::NativeStatement(string native_statement_arg) :
-  native_statement(move(native_statement_arg))
+  native_statement{move(native_statement_arg)}
 {
 }
 
@@ -81,7 +80,7 @@ NativeStatement::writeJsonOutput(ostream &output) const
 }
 
 VerbatimStatement::VerbatimStatement(string verbatim_statement_arg) :
-  verbatim_statement(move(verbatim_statement_arg))
+  verbatim_statement{move(verbatim_statement_arg)}
 {
 }
 

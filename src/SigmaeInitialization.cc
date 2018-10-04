@@ -22,8 +22,8 @@
 #include "SigmaeInitialization.hh"
 
 SigmaeStatement::SigmaeStatement(matrix_t matrix_arg) noexcept(false) :
-  matrix(move(matrix_arg)),
-  matrix_form(determineMatrixForm(matrix))
+  matrix{move(matrix_arg)},
+  matrix_form{determineMatrixForm(matrix)}
 {
 }
 

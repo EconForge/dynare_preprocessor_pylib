@@ -97,7 +97,7 @@ class ConditionalForecastPathsStatement : public Statement
 private:
   const AbstractShocksStatement::det_shocks_t paths;
   const SymbolTable &symbol_table;
-  int path_length;
+  int path_length{-1};
 public:
   ConditionalForecastPathsStatement(AbstractShocksStatement::det_shocks_t paths_arg,
                                     const SymbolTable &symbol_table_arg);

@@ -172,7 +172,7 @@ class ExprNode
       const int idx;
 
       //! Is the data member non_null_derivatives initialized ?
-      bool preparedForDerivation;
+      bool preparedForDerivation{false};
 
       //! Set of derivation IDs with respect to which the derivative is potentially non-null
       set<int> non_null_derivatives;

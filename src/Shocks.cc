@@ -28,10 +28,10 @@ AbstractShocksStatement::AbstractShocksStatement(bool mshocks_arg,
                                                  bool overwrite_arg,
                                                  det_shocks_t det_shocks_arg,
                                                  const SymbolTable &symbol_table_arg) :
-  mshocks(mshocks_arg),
-  overwrite(overwrite_arg),
-  det_shocks(move(det_shocks_arg)),
-  symbol_table(symbol_table_arg)
+  mshocks{mshocks_arg},
+  overwrite{overwrite_arg},
+  det_shocks{move(det_shocks_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -101,11 +101,11 @@ ShocksStatement::ShocksStatement(bool overwrite_arg,
                                  covar_and_corr_shocks_t covar_shocks_arg,
                                  covar_and_corr_shocks_t corr_shocks_arg,
                                  const SymbolTable &symbol_table_arg) :
-  AbstractShocksStatement(false, overwrite_arg, det_shocks_arg, symbol_table_arg),
-  var_shocks(move(var_shocks_arg)),
-  std_shocks(move(std_shocks_arg)),
-  covar_shocks(move(covar_shocks_arg)),
-  corr_shocks(move(corr_shocks_arg))
+  AbstractShocksStatement{false, overwrite_arg, det_shocks_arg, symbol_table_arg},
+  var_shocks{move(var_shocks_arg)},
+  std_shocks{move(std_shocks_arg)},
+  covar_shocks{move(covar_shocks_arg)},
+  corr_shocks{move(corr_shocks_arg)}
 {
 }
 
@@ -415,7 +415,7 @@ ShocksStatement::has_calibrated_measurement_errors() const
 MShocksStatement::MShocksStatement(bool overwrite_arg,
                                    const det_shocks_t &det_shocks_arg,
                                    const SymbolTable &symbol_table_arg) :
-  AbstractShocksStatement(true, overwrite_arg, det_shocks_arg, symbol_table_arg)
+  AbstractShocksStatement{true, overwrite_arg, det_shocks_arg, symbol_table_arg}
 {
 }
 
@@ -434,9 +434,8 @@ MShocksStatement::writeOutput(ostream &output, const string &basename, bool mini
 
 ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(AbstractShocksStatement::det_shocks_t paths_arg,
                                                                      const SymbolTable &symbol_table_arg) :
-  paths(move(paths_arg)),
-  symbol_table(symbol_table_arg),
-  path_length(-1)
+  paths{move(paths_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -487,7 +486,7 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
 
 MomentCalibration::MomentCalibration(constraints_t constraints_arg,
                                      const SymbolTable &symbol_table_arg)
-  : constraints(move(constraints_arg)), symbol_table(symbol_table_arg)
+  : constraints{move(constraints_arg)}, symbol_table{symbol_table_arg}
 {
 }
 
@@ -529,7 +528,7 @@ MomentCalibration::writeJsonOutput(ostream &output) const
 IrfCalibration::IrfCalibration(constraints_t constraints_arg,
                                const SymbolTable &symbol_table_arg,
                                OptionsList options_list_arg)
-  : constraints(move(constraints_arg)), symbol_table(symbol_table_arg), options_list(move(options_list_arg))
+  : constraints{move(constraints_arg)}, symbol_table{symbol_table_arg}, options_list{move(options_list_arg)}
 {
 }
 
@@ -577,7 +576,7 @@ IrfCalibration::writeJsonOutput(ostream &output) const
 }
 
 ShockGroupsStatement::ShockGroupsStatement(group_t shock_groups_arg, string name_arg)
-  : shock_groups(move(shock_groups_arg)), name(move(name_arg))
+  : shock_groups{move(shock_groups_arg)}, name{move(name_arg)}
 {
 }
 

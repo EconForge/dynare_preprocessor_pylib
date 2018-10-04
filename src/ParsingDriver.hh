@@ -260,11 +260,11 @@ private:
   void clear_VAR_storage();
 
   //! True when parsing the epilogue block
-  bool parsing_epilogue;
+  bool parsing_epilogue{false};
 
 public:
   ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) :
-    warnings(warnings_arg), nostrict(nostrict_arg), parsing_epilogue(false) { };
+    warnings{warnings_arg}, nostrict{nostrict_arg} { };
 
   //! Starts parsing, and constructs the MOD file representation
   unique_ptr<ModFile> parse(istream &in, bool debug);

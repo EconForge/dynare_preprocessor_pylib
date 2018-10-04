@@ -1134,10 +1134,7 @@ ModelTree::BlockLinear(const blocks_derivatives_t &blocks_derivatives, const vec
 ModelTree::ModelTree(SymbolTable &symbol_table_arg,
                      NumericalConstants &num_constants_arg,
                      ExternalFunctionsTable &external_functions_table_arg) :
-  DataTree(symbol_table_arg, num_constants_arg, external_functions_table_arg),
-  cutoff(1e-15),
-  mfs(0)
-
+  DataTree{symbol_table_arg, num_constants_arg, external_functions_table_arg}
 {
   for (int & NNZDerivative : NNZDerivatives)
     NNZDerivative = 0;

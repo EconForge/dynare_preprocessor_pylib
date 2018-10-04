@@ -32,8 +32,7 @@
 StaticModel::StaticModel(SymbolTable &symbol_table_arg,
                          NumericalConstants &num_constants_arg,
                          ExternalFunctionsTable &external_functions_table_arg) :
-  ModelTree(symbol_table_arg, num_constants_arg, external_functions_table_arg),
-  global_temporary_terms(true)
+  ModelTree{symbol_table_arg, num_constants_arg, external_functions_table_arg}
 {
 }
 

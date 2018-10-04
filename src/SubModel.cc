@@ -22,7 +22,7 @@
 #include "SubModel.hh"
 
 TrendComponentModelTable::TrendComponentModelTable(SymbolTable &symbol_table_arg) :
-  symbol_table(symbol_table_arg)
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -401,7 +401,7 @@ TrendComponentModelTable::writeJsonOutput(ostream &output) const
 }
 
 VarModelTable::VarModelTable(SymbolTable &symbol_table_arg) :
-  symbol_table(symbol_table_arg)
+  symbol_table{symbol_table_arg}
 {
 }
 

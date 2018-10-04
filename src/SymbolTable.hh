@@ -167,7 +167,7 @@ public:
   public:
     //! Symbol name
     string name;
-    explicit UnknownSymbolNameException(string name_arg) : name(move(name_arg))
+    explicit UnknownSymbolNameException(string name_arg) : name{move(name_arg)}
     {
     }
   };
@@ -177,7 +177,7 @@ public:
   public:
     //! Symbol ID
     int id;
-    explicit UnknownSymbolIDException(int id_arg) : id(id_arg)
+    explicit UnknownSymbolIDException(int id_arg) : id{id_arg}
     {
     }
   };
@@ -187,7 +187,7 @@ public:
   public:
     int tsid;
     SymbolType type;
-    UnknownTypeSpecificIDException(int tsid_arg, SymbolType type_arg) : tsid(tsid_arg), type(type_arg)
+    UnknownTypeSpecificIDException(int tsid_arg, SymbolType type_arg) : tsid{tsid_arg}, type{type_arg}
     {
     }
   };
@@ -199,7 +199,7 @@ public:
     string name;
     //! Was the previous declaration done with the same symbol type ?
     bool same_type;
-    AlreadyDeclaredException(string name_arg, bool same_type_arg) : name(move(name_arg)), same_type(same_type_arg)
+    AlreadyDeclaredException(string name_arg, bool same_type_arg) : name{move(name_arg)}, same_type{same_type_arg}
     {
     }
   };
@@ -216,11 +216,11 @@ public:
   {
   public:
     int orig_symb_id, orig_lead_lag, symb_id;
-    SearchFailedException(int orig_symb_id_arg, int orig_lead_lag_arg) : orig_symb_id(orig_symb_id_arg),
-                                                                         orig_lead_lag(orig_lead_lag_arg)
+    SearchFailedException(int orig_symb_id_arg, int orig_lead_lag_arg) : orig_symb_id{orig_symb_id_arg},
+                                                                         orig_lead_lag{orig_lead_lag_arg}
     {
     }
-    explicit SearchFailedException(int symb_id_arg) : symb_id(symb_id_arg)
+    explicit SearchFailedException(int symb_id_arg) : symb_id{symb_id_arg}
     {
     }
   };

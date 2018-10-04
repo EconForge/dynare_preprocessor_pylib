@@ -30,7 +30,7 @@
 #include "DataTree.hh"
 #include "ModFile.hh"
 
-ExprNode::ExprNode(DataTree &datatree_arg, int idx_arg) : datatree{datatree_arg}, idx{idx_arg}, preparedForDerivation{false}
+ExprNode::ExprNode(DataTree &datatree_arg, int idx_arg) : datatree{datatree_arg}, idx{idx_arg}
 {
 }
 
@@ -317,8 +317,8 @@ ExprNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
 }
 
 NumConstNode::NumConstNode(DataTree &datatree_arg, int idx_arg, int id_arg) :
-  ExprNode(datatree_arg, idx_arg),
-  id(id_arg)
+  ExprNode{datatree_arg, idx_arg},
+  id{id_arg}
 {
 }
 
@@ -712,10 +712,10 @@ NumConstNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, c
 }
 
 VariableNode::VariableNode(DataTree &datatree_arg, int idx_arg, int symb_id_arg, int lag_arg) :
-  ExprNode(datatree_arg, idx_arg),
-  symb_id(symb_id_arg),
-  type(datatree.symbol_table.getType(symb_id_arg)),
-  lag(lag_arg)
+  ExprNode{datatree_arg, idx_arg},
+  symb_id{symb_id_arg},
+  type{datatree.symbol_table.getType(symb_id_arg)},
+  lag{lag_arg}
 {
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
   assert(type != SymbolType::externalFunction
@@ -2011,14 +2011,14 @@ VariableNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, c
 }
 
 UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, int idx_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, string adl_param_name_arg, vector<int> adl_lags_arg) :
-  ExprNode(datatree_arg, idx_arg),
-  arg(arg_arg),
-  expectation_information_set(expectation_information_set_arg),
-  param1_symb_id(param1_symb_id_arg),
-  param2_symb_id(param2_symb_id_arg),
-  op_code(op_code_arg),
-  adl_param_name(move(adl_param_name_arg)),
-  adl_lags(move(adl_lags_arg))
+  ExprNode{datatree_arg, idx_arg},
+  arg{arg_arg},
+  expectation_information_set{expectation_information_set_arg},
+  param1_symb_id{param1_symb_id_arg},
+  param2_symb_id{param2_symb_id_arg},
+  op_code{op_code_arg},
+  adl_param_name{move(adl_param_name_arg)},
+  adl_lags{move(adl_lags_arg)}
 {
 }
 
@@ -3762,11 +3762,11 @@ UnaryOpNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, co
 
 BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, int idx_arg, const expr_t arg1_arg,
                            BinaryOpcode op_code_arg, const expr_t arg2_arg, int powerDerivOrder_arg) :
-  ExprNode(datatree_arg, idx_arg),
-  arg1(arg1_arg),
-  arg2(arg2_arg),
-  op_code(op_code_arg),
-  powerDerivOrder(powerDerivOrder_arg)
+  ExprNode{datatree_arg, idx_arg},
+  arg1{arg1_arg},
+  arg2{arg2_arg},
+  op_code{op_code_arg},
+  powerDerivOrder{powerDerivOrder_arg}
 {
   assert(powerDerivOrder >= 0);
 }
@@ -5864,11 +5864,11 @@ BinaryOpNode::substituteStaticAuxiliaryDefinition() const
 
 TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, int idx_arg, const expr_t arg1_arg,
                              TrinaryOpcode op_code_arg, const expr_t arg2_arg, const expr_t arg3_arg) :
-  ExprNode(datatree_arg, idx_arg),
-  arg1(arg1_arg),
-  arg2(arg2_arg),
-  arg3(arg3_arg),
-  op_code(op_code_arg)
+  ExprNode{datatree_arg, idx_arg},
+  arg1{arg1_arg},
+  arg2{arg2_arg},
+  arg3{arg3_arg},
+  op_code{op_code_arg}
 {
 }
 
@@ -6804,9 +6804,9 @@ AbstractExternalFunctionNode::AbstractExternalFunctionNode(DataTree &datatree_ar
                                                            int idx_arg,
                                                            int symb_id_arg,
                                                            vector<expr_t> arguments_arg) :
-  ExprNode(datatree_arg, idx_arg),
-  symb_id(symb_id_arg),
-  arguments(move(arguments_arg))
+  ExprNode{datatree_arg, idx_arg},
+  symb_id{symb_id_arg},
+  arguments{move(arguments_arg)}
 {
 }
 
@@ -7440,7 +7440,7 @@ ExternalFunctionNode::ExternalFunctionNode(DataTree &datatree_arg,
                                            int idx_arg,
                                            int symb_id_arg,
                                            const vector<expr_t> &arguments_arg) :
-  AbstractExternalFunctionNode(datatree_arg, idx_arg, symb_id_arg, arguments_arg)
+  AbstractExternalFunctionNode{datatree_arg, idx_arg, symb_id_arg, arguments_arg}
 {
 }
 
@@ -7770,8 +7770,8 @@ FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree &datatre
                                                                int top_level_symb_id_arg,
                                                                const vector<expr_t> &arguments_arg,
                                                                int inputIndex_arg) :
-  AbstractExternalFunctionNode(datatree_arg, idx_arg, top_level_symb_id_arg, arguments_arg),
-  inputIndex(inputIndex_arg)
+  AbstractExternalFunctionNode{datatree_arg, idx_arg, top_level_symb_id_arg, arguments_arg},
+  inputIndex{inputIndex_arg}
 {
 }
 
@@ -8163,9 +8163,9 @@ SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datat
                                                                  const vector<expr_t> &arguments_arg,
                                                                  int inputIndex1_arg,
                                                                  int inputIndex2_arg) :
-  AbstractExternalFunctionNode(datatree_arg, idx_arg, top_level_symb_id_arg, arguments_arg),
-  inputIndex1(inputIndex1_arg),
-  inputIndex2(inputIndex2_arg)
+  AbstractExternalFunctionNode{datatree_arg, idx_arg, top_level_symb_id_arg, arguments_arg},
+  inputIndex1{inputIndex1_arg},
+  inputIndex2{inputIndex2_arg}
 {
 }
 
@@ -8503,7 +8503,7 @@ SecondDerivExternalFunctionNode::sameTefTermPredicate() const
 VarExpectationNode::VarExpectationNode(DataTree &datatree_arg,
                                        int idx_arg,
                                        string model_name_arg) :
-  ExprNode(datatree_arg, idx_arg),
+  ExprNode{datatree_arg, idx_arg},
   model_name{move(model_name_arg)}
 {
 }
@@ -8969,8 +8969,8 @@ VarExpectationNode::writeJsonOutput(ostream &output,
 PacExpectationNode::PacExpectationNode(DataTree &datatree_arg,
                                        int idx_arg,
                                        string model_name_arg) :
-  ExprNode(datatree_arg, idx_arg),
-  model_name(move(model_name_arg))
+  ExprNode{datatree_arg, idx_arg},
+  model_name{move(model_name_arg)}
 {
 }
 

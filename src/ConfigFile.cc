@@ -53,19 +53,19 @@ SlaveNode::SlaveNode(string computerName_arg, string port_arg, int minCpuNbr_arg
                      string password_arg, string remoteDrive_arg, string remoteDirectory_arg,
                      string dynarePath_arg, string matlabOctavePath_arg, bool singleCompThread_arg, int numberOfThreadsPerJob_arg,
                      string operatingSystem_arg) :
-  computerName(move(computerName_arg)),
-  port(move(port_arg)),
-  minCpuNbr(minCpuNbr_arg),
-  maxCpuNbr(maxCpuNbr_arg),
-  userName(move(userName_arg)),
-  password(move(password_arg)),
-  remoteDrive(move(remoteDrive_arg)),
-  remoteDirectory(move(remoteDirectory_arg)),
-  dynarePath(move(dynarePath_arg)),
-  matlabOctavePath(move(matlabOctavePath_arg)),
-  singleCompThread(singleCompThread_arg),
-  numberOfThreadsPerJob(numberOfThreadsPerJob_arg),
-  operatingSystem(move(operatingSystem_arg))
+  computerName{move(computerName_arg)},
+  port{move(port_arg)},
+  minCpuNbr{minCpuNbr_arg},
+  maxCpuNbr{maxCpuNbr_arg},
+  userName{move(userName_arg)},
+  password{move(password_arg)},
+  remoteDrive{move(remoteDrive_arg)},
+  remoteDirectory{move(remoteDirectory_arg)},
+  dynarePath{move(dynarePath_arg)},
+  matlabOctavePath{move(matlabOctavePath_arg)},
+  singleCompThread{singleCompThread_arg},
+  numberOfThreadsPerJob{numberOfThreadsPerJob_arg},
+  operatingSystem{move(operatingSystem_arg)}
 {
   if (computerName.empty())
     {
@@ -82,7 +82,7 @@ SlaveNode::SlaveNode(string computerName_arg, string port_arg, int minCpuNbr_arg
 }
 
 Cluster::Cluster(member_nodes_t  member_nodes_arg) :
-  member_nodes(move(member_nodes_arg))
+  member_nodes{move(member_nodes_arg)}
 {
   if (member_nodes.empty())
     {
@@ -93,8 +93,8 @@ Cluster::Cluster(member_nodes_t  member_nodes_arg) :
 
 ConfigFile::ConfigFile(bool parallel_arg, bool parallel_test_arg,
                        bool parallel_slave_open_mode_arg, string cluster_name_arg) :
-  parallel(parallel_arg), parallel_test(parallel_test_arg),
-  parallel_slave_open_mode(parallel_slave_open_mode_arg), cluster_name(move(cluster_name_arg))
+  parallel{parallel_arg}, parallel_test{parallel_test_arg},
+  parallel_slave_open_mode{parallel_slave_open_mode_arg}, cluster_name{move(cluster_name_arg)}
 {
 }
 

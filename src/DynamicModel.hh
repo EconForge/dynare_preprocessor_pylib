@@ -60,24 +60,24 @@ private:
 
   //! Maximum lag and lead over all types of variables (positive values)
   /*! Set by computeDerivIDs() */
-  int max_lag, max_lead;
+  int max_lag{0}, max_lead{0};
   //! Maximum lag and lead over endogenous variables (positive values)
   /*! Set by computeDerivIDs() */
-  int max_endo_lag, max_endo_lead;
+  int max_endo_lag{0}, max_endo_lead{0};
   //! Maximum lag and lead over exogenous variables (positive values)
   /*! Set by computeDerivIDs() */
-  int max_exo_lag, max_exo_lead;
+  int max_exo_lag{0}, max_exo_lead{0};
   //! Maximum lag and lead over deterministic exogenous variables (positive values)
   /*! Set by computeDerivIDs() */
-  int max_exo_det_lag, max_exo_det_lead;
+  int max_exo_det_lag{0}, max_exo_det_lead{0};
   //! Maximum lag and lead over all types of variables (positive values) of original model
-  int max_lag_orig, max_lead_orig;
+  int max_lag_orig{0}, max_lead_orig{0};
   //! Maximum lag and lead over endogenous variables (positive values) of original model
-  int max_endo_lag_orig, max_endo_lead_orig;
+  int max_endo_lag_orig{0}, max_endo_lead_orig{0};
   //! Maximum lag and lead over exogenous variables (positive values) of original model
-  int max_exo_lag_orig, max_exo_lead_orig;
+  int max_exo_lag_orig{0}, max_exo_lead_orig{0};
   //! Maximum lag and lead over deterministic exogenous variables (positive values) of original model
-  int max_exo_det_lag_orig, max_exo_det_lead_orig;
+  int max_exo_det_lag_orig{0}, max_exo_det_lead_orig{0};
 
   //! Cross reference information
   map<int, ExprNode::EquationInfo> xrefs;
@@ -91,7 +91,7 @@ private:
 
   //! Number of columns of dynamic jacobian
   /*! Set by computeDerivID()s and computeDynJacobianCols() */
-  int dynJacobianColsNbr;
+  int dynJacobianColsNbr{0};
   //! Temporary terms for block decomposed models
   vector< vector<temporary_terms_t>> v_temporary_terms;
 
@@ -182,7 +182,7 @@ private:
 
 private:
   //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
-  bool global_temporary_terms;
+  bool global_temporary_terms{true};
 
   //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
   equation_type_and_normalized_equation_t equation_type_and_normalized_equation;

@@ -29,9 +29,9 @@
 DataTree::DataTree(SymbolTable &symbol_table_arg,
                    NumericalConstants &num_constants_arg,
                    ExternalFunctionsTable &external_functions_table_arg) :
-  symbol_table(symbol_table_arg),
-  num_constants(num_constants_arg),
-  external_functions_table(external_functions_table_arg)
+  symbol_table{symbol_table_arg},
+  num_constants{num_constants_arg},
+  external_functions_table{external_functions_table_arg}
 {
   Zero = AddNonNegativeConstant("0");
   One = AddNonNegativeConstant("1");

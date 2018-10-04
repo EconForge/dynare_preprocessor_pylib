@@ -131,7 +131,7 @@ public:
   {
   public:
     string name;
-    explicit LocalVariableException(string name_arg) : name(move(name_arg))
+    explicit LocalVariableException(string name_arg) : name{move(name_arg)}
     {
     }
   };
@@ -279,7 +279,7 @@ public:
   {
   public:
     string name;
-    explicit TrendException(string name_arg) : name(move(name_arg))
+    explicit TrendException(string name_arg) : name{move(name_arg)}
     {
     }
   };

@@ -32,7 +32,7 @@ using namespace std;
 #include <utility>
 
 SteadyStatement::SteadyStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -62,7 +62,7 @@ SteadyStatement::writeJsonOutput(ostream &output) const
 }
 
 CheckStatement::CheckStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -92,7 +92,7 @@ CheckStatement::writeJsonOutput(ostream &output) const
 }
 
 ModelInfoStatement::ModelInfoStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -122,7 +122,7 @@ ModelInfoStatement::writeJsonOutput(ostream &output) const
 }
 
 SimulStatement::SimulStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -153,7 +153,7 @@ SimulStatement::writeJsonOutput(ostream &output) const
 }
 
 PerfectForesightSetupStatement::PerfectForesightSetupStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -211,8 +211,8 @@ PerfectForesightSolverStatement::writeJsonOutput(ostream &output) const
 
 PriorPosteriorFunctionStatement::PriorPosteriorFunctionStatement(const bool prior_func_arg,
                                                                  OptionsList options_list_arg) :
-  prior_func(prior_func_arg),
-  options_list(move(options_list_arg))
+  prior_func{prior_func_arg},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -381,7 +381,7 @@ PacModelStatement::getPacModelInfoForPacExpectation() const
 }
 
 VarEstimationStatement::VarEstimationStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -413,12 +413,12 @@ VarRestrictionsStatement::VarRestrictionsStatement(string var_model_name_arg,
                                                    const SymbolTable &symbol_table_arg) :
   var_model_name{move(var_model_name_arg)},
   var_map{move(var_map_arg)},
-  exclusion_restrictions(move(exclusion_restrictions_arg)),
-  equation_restrictions(move(equation_restrictions_arg)),
-  crossequation_restrictions(move(crossequation_restrictions_arg)),
-  covariance_number_restriction(move(covariance_number_restriction_arg)),
-  covariance_pair_restriction(move(covariance_pair_restriction_arg)),
-  symbol_table(symbol_table_arg)
+  exclusion_restrictions{move(exclusion_restrictions_arg)},
+  equation_restrictions{move(equation_restrictions_arg)},
+  crossequation_restrictions{move(crossequation_restrictions_arg)},
+  covariance_number_restriction{move(covariance_number_restriction_arg)},
+  covariance_pair_restriction{move(covariance_pair_restriction_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -580,8 +580,8 @@ VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, b
 
 StochSimulStatement::StochSimulStatement(SymbolList symbol_list_arg,
                                          OptionsList options_list_arg) :
-  symbol_list(move(symbol_list_arg)),
-  options_list(move(options_list_arg))
+  symbol_list{move(symbol_list_arg)},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -653,8 +653,8 @@ StochSimulStatement::writeJsonOutput(ostream &output) const
 
 ForecastStatement::ForecastStatement(SymbolList symbol_list_arg,
                                      OptionsList options_list_arg) :
-  symbol_list(move(symbol_list_arg)),
-  options_list(move(options_list_arg))
+  symbol_list{move(symbol_list_arg)},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -684,11 +684,11 @@ ForecastStatement::writeJsonOutput(ostream &output) const
 }
 
 DetCondForecast::DetCondForecast(const SymbolList &symbol_list_arg,
-                                 const OptionsList &options_list_arg,
+                                 OptionsList options_list_arg,
                                  const bool linear_decomposition_arg) :
-     options_list(options_list_arg),
-     symbol_list(symbol_list_arg),
-     linear_decomposition(linear_decomposition_arg)
+  options_list{move(options_list_arg)},
+  symbol_list{symbol_list_arg},
+  linear_decomposition{linear_decomposition_arg}
 {
 
 }
@@ -736,7 +736,7 @@ DetCondForecast::writeOutput(ostream &output, const string &basename, bool minim
 }
 
 RamseyModelStatement::RamseyModelStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -803,8 +803,8 @@ RamseyModelStatement::writeJsonOutput(ostream &output) const
 }
 
 RamseyConstraintsStatement::RamseyConstraintsStatement(const SymbolTable &symbol_table_arg, constraints_t constraints_arg) :
-  symbol_table(symbol_table_arg),
-  constraints(move(constraints_arg))
+  symbol_table{symbol_table_arg},
+  constraints{move(constraints_arg)}
 {
 }
 
@@ -888,9 +888,9 @@ RamseyConstraintsStatement::writeJsonOutput(ostream &output) const
 RamseyPolicyStatement::RamseyPolicyStatement(const SymbolTable &symbol_table_arg,
                                              vector<string> ramsey_policy_list_arg,
                                              OptionsList options_list_arg) :
-  symbol_table(symbol_table_arg),
-  ramsey_policy_list(move(ramsey_policy_list_arg)),
-  options_list(move(options_list_arg))
+  symbol_table{symbol_table_arg},
+  ramsey_policy_list{move(ramsey_policy_list_arg)},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -994,8 +994,8 @@ RamseyPolicyStatement::writeJsonOutput(ostream &output) const
 
 DiscretionaryPolicyStatement::DiscretionaryPolicyStatement(SymbolList symbol_list_arg,
                                                            OptionsList options_list_arg) :
-  symbol_list(move(symbol_list_arg)),
-  options_list(move(options_list_arg))
+  symbol_list{move(symbol_list_arg)},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -1071,8 +1071,8 @@ DiscretionaryPolicyStatement::writeJsonOutput(ostream &output) const
 
 EstimationStatement::EstimationStatement(SymbolList symbol_list_arg,
                                          OptionsList options_list_arg) :
-  symbol_list(move(symbol_list_arg)),
-  options_list(move(options_list_arg))
+  symbol_list{move(symbol_list_arg)},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -1192,7 +1192,7 @@ EstimationStatement::writeJsonOutput(ostream &output) const
 }
 
 DynareSensitivityStatement::DynareSensitivityStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -1240,7 +1240,7 @@ DynareSensitivityStatement::writeJsonOutput(ostream &output) const
 }
 
 RplotStatement::RplotStatement(SymbolList symbol_list_arg) :
-  symbol_list(move(symbol_list_arg))
+  symbol_list{move(symbol_list_arg)}
 {
 }
 
@@ -1281,7 +1281,7 @@ UnitRootVarsStatement::writeJsonOutput(ostream &output) const
          << "\"steady_state.nocheck\": 1}";
 }
 
-PeriodsStatement::PeriodsStatement(int periods_arg) : periods(periods_arg)
+PeriodsStatement::PeriodsStatement(int periods_arg) : periods{periods_arg}
 {
 }
 
@@ -1298,11 +1298,11 @@ PeriodsStatement::writeJsonOutput(ostream &output) const
          << "\"periods\": " << periods << "}";
 }
 
-DsampleStatement::DsampleStatement(int val1_arg) : val1(val1_arg), val2(-1)
+DsampleStatement::DsampleStatement(int val1_arg) : val1{val1_arg}, val2{-1}
 {
 }
 
-DsampleStatement::DsampleStatement(int val1_arg, int val2_arg) : val1(val1_arg), val2(val2_arg)
+DsampleStatement::DsampleStatement(int val1_arg, int val2_arg) : val1{val1_arg}, val2{val2_arg}
 {
 }
 
@@ -1325,8 +1325,8 @@ DsampleStatement::writeJsonOutput(ostream &output) const
 
 EstimatedParamsStatement::EstimatedParamsStatement(vector<EstimationParams> estim_params_list_arg,
                                                    const SymbolTable &symbol_table_arg) :
-  estim_params_list(move(estim_params_list_arg)),
-  symbol_table(symbol_table_arg)
+  estim_params_list{move(estim_params_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -1498,9 +1498,9 @@ EstimatedParamsStatement::writeJsonOutput(ostream &output) const
 EstimatedParamsInitStatement::EstimatedParamsInitStatement(vector<EstimationParams> estim_params_list_arg,
                                                            const SymbolTable &symbol_table_arg,
                                                            const bool use_calibration_arg) :
-  estim_params_list(move(estim_params_list_arg)),
-  symbol_table(symbol_table_arg),
-  use_calibration(use_calibration_arg)
+  estim_params_list{move(estim_params_list_arg)},
+  symbol_table{symbol_table_arg},
+  use_calibration{use_calibration_arg}
 {
 }
 
@@ -1605,8 +1605,8 @@ EstimatedParamsInitStatement::writeJsonOutput(ostream &output) const
 
 EstimatedParamsBoundsStatement::EstimatedParamsBoundsStatement(vector<EstimationParams> estim_params_list_arg,
                                                                const SymbolTable &symbol_table_arg) :
-  estim_params_list(move(estim_params_list_arg)),
-  symbol_table(symbol_table_arg)
+  estim_params_list{move(estim_params_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -1724,8 +1724,8 @@ EstimatedParamsBoundsStatement::writeJsonOutput(ostream &output) const
 
 ObservationTrendsStatement::ObservationTrendsStatement(trend_elements_t trend_elements_arg,
                                                        const SymbolTable &symbol_table_arg) :
-  trend_elements(move(trend_elements_arg)),
-  symbol_table(symbol_table_arg)
+  trend_elements{move(trend_elements_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -1773,8 +1773,8 @@ ObservationTrendsStatement::writeJsonOutput(ostream &output) const
 }
 
 OsrParamsStatement::OsrParamsStatement(SymbolList symbol_list_arg, const SymbolTable &symbol_table_arg) :
-  symbol_list(move(symbol_list_arg)),
-  symbol_table(symbol_table_arg)
+  symbol_list{move(symbol_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -1812,13 +1812,13 @@ OsrParamsStatement::writeJsonOutput(ostream &output) const
 
 OsrStatement::OsrStatement(SymbolList symbol_list_arg,
                            OptionsList options_list_arg) :
-  symbol_list(move(symbol_list_arg)),
-  options_list(move(options_list_arg))
+  symbol_list{move(symbol_list_arg)},
+  options_list{move(options_list_arg)}
 {
 }
 
 OsrParamsBoundsStatement::OsrParamsBoundsStatement(vector<OsrParams> osr_params_list_arg) :
-  osr_params_list(move(osr_params_list_arg))
+  osr_params_list{move(osr_params_list_arg)}
 {
 }
 
@@ -1927,9 +1927,9 @@ OsrStatement::writeJsonOutput(ostream &output) const
 OptimWeightsStatement::OptimWeightsStatement(var_weights_t var_weights_arg,
                                              covar_weights_t covar_weights_arg,
                                              const SymbolTable &symbol_table_arg) :
-  var_weights(move(var_weights_arg)),
-  covar_weights(move(covar_weights_arg)),
-  symbol_table(symbol_table_arg)
+  var_weights{move(var_weights_arg)},
+  covar_weights{move(covar_weights_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -2006,8 +2006,8 @@ OptimWeightsStatement::writeJsonOutput(ostream &output) const
 
 DynaSaveStatement::DynaSaveStatement(SymbolList symbol_list_arg,
                                      string filename_arg) :
-  symbol_list(move(symbol_list_arg)),
-  filename(move(filename_arg))
+  symbol_list{move(symbol_list_arg)},
+  filename{move(filename_arg)}
 {
 }
 
@@ -2062,8 +2062,8 @@ DynaTypeStatement::writeJsonOutput(ostream &output) const
 
 ModelComparisonStatement::ModelComparisonStatement(filename_list_t filename_list_arg,
                                                    OptionsList options_list_arg) :
-  filename_list(move(filename_list_arg)),
-  options_list(move(options_list_arg))
+  filename_list{move(filename_list_arg)},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -2165,8 +2165,8 @@ PlannerObjectiveStatement::writeJsonOutput(ostream &output) const
 }
 
 BVARDensityStatement::BVARDensityStatement(int maxnlags_arg, OptionsList options_list_arg) :
-  maxnlags(maxnlags_arg),
-  options_list(move(options_list_arg))
+  maxnlags{maxnlags_arg},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -2196,8 +2196,8 @@ BVARDensityStatement::writeJsonOutput(ostream &output) const
 }
 
 BVARForecastStatement::BVARForecastStatement(int nlags_arg, OptionsList options_list_arg) :
-  nlags(nlags_arg),
-  options_list(move(options_list_arg))
+  nlags{nlags_arg},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -2227,7 +2227,7 @@ BVARForecastStatement::writeJsonOutput(ostream &output) const
 }
 
 SBVARStatement::SBVARStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -2257,7 +2257,7 @@ SBVARStatement::writeJsonOutput(ostream &output) const
 }
 
 MSSBVAREstimationStatement::MSSBVAREstimationStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -2338,7 +2338,7 @@ MSSBVARSimulationStatement::writeJsonOutput(ostream &output) const
 }
 
 MSSBVARComputeMDDStatement::MSSBVARComputeMDDStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -2369,7 +2369,7 @@ MSSBVARComputeMDDStatement::writeJsonOutput(ostream &output) const
 }
 
 MSSBVARComputeProbabilitiesStatement::MSSBVARComputeProbabilitiesStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -2409,8 +2409,8 @@ MSSBVARComputeProbabilitiesStatement::writeJsonOutput(ostream &output) const
 
 MSSBVARIrfStatement::MSSBVARIrfStatement(SymbolList symbol_list_arg,
                                          OptionsList options_list_arg) :
-  symbol_list(move(symbol_list_arg)),
-  options_list(move(options_list_arg))
+  symbol_list{move(symbol_list_arg)},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -2472,7 +2472,7 @@ MSSBVARIrfStatement::writeJsonOutput(ostream &output) const
 }
 
 MSSBVARForecastStatement::MSSBVARForecastStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -2510,7 +2510,7 @@ MSSBVARForecastStatement::writeJsonOutput(ostream &output) const
 }
 
 MSSBVARVarianceDecompositionStatement::MSSBVARVarianceDecompositionStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -2565,9 +2565,9 @@ MSSBVARVarianceDecompositionStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-IdentificationStatement::IdentificationStatement(const OptionsList &options_list_arg)
+IdentificationStatement::IdentificationStatement(OptionsList options_list_arg)
+  : options_list{move(options_list_arg)}
 {
-  options_list = options_list_arg;
   if (options_list.num_options.find("max_dim_cova_group") != options_list.num_options.end())
     if (stoi(options_list.num_options["max_dim_cova_group"]) == 0)
       {
@@ -2617,8 +2617,8 @@ IdentificationStatement::writeJsonOutput(ostream &output) const
 }
 
 WriteLatexDynamicModelStatement::WriteLatexDynamicModelStatement(const DynamicModel &dynamic_model_arg, bool write_equation_tags_arg) :
-  dynamic_model(dynamic_model_arg),
-  write_equation_tags(write_equation_tags_arg)
+  dynamic_model{dynamic_model_arg},
+  write_equation_tags{write_equation_tags_arg}
 {
 }
 
@@ -2653,8 +2653,8 @@ WriteLatexStaticModelStatement::writeJsonOutput(ostream &output) const
 }
 
 WriteLatexOriginalModelStatement::WriteLatexOriginalModelStatement(const DynamicModel &original_model_arg, bool write_equation_tags_arg) :
-  original_model(original_model_arg),
-  write_equation_tags(write_equation_tags_arg)
+  original_model{original_model_arg},
+  write_equation_tags{write_equation_tags_arg}
 {
 }
 
@@ -2671,7 +2671,7 @@ WriteLatexOriginalModelStatement::writeJsonOutput(ostream &output) const
 }
 
 WriteLatexSteadyStateModelStatement::WriteLatexSteadyStateModelStatement(const SteadyStateModel &steady_state_model_arg) :
-  steady_state_model(steady_state_model_arg)
+  steady_state_model{steady_state_model_arg}
 {
 }
 
@@ -2695,8 +2695,8 @@ WriteLatexSteadyStateModelStatement::writeJsonOutput(ostream &output) const
 
 ShockDecompositionStatement::ShockDecompositionStatement(SymbolList symbol_list_arg,
                                                          OptionsList options_list_arg) :
-  symbol_list(move(symbol_list_arg)),
-  options_list(move(options_list_arg))
+  symbol_list{move(symbol_list_arg)},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -2727,8 +2727,8 @@ ShockDecompositionStatement::writeJsonOutput(ostream &output) const
 
 RealtimeShockDecompositionStatement::RealtimeShockDecompositionStatement(SymbolList symbol_list_arg,
                                                                          OptionsList options_list_arg) :
-  symbol_list(move(symbol_list_arg)),
-  options_list(move(options_list_arg))
+  symbol_list{move(symbol_list_arg)},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -2742,8 +2742,8 @@ RealtimeShockDecompositionStatement::writeOutput(ostream &output, const string &
 
 PlotShockDecompositionStatement::PlotShockDecompositionStatement(SymbolList symbol_list_arg,
                                                                  OptionsList options_list_arg) :
-  symbol_list(move(symbol_list_arg)),
-  options_list(move(options_list_arg))
+  symbol_list{move(symbol_list_arg)},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -2758,8 +2758,8 @@ PlotShockDecompositionStatement::writeOutput(ostream &output, const string &base
 
 InitialConditionDecompositionStatement::InitialConditionDecompositionStatement(SymbolList symbol_list_arg,
                                                                                OptionsList options_list_arg) :
-  symbol_list(move(symbol_list_arg)),
-  options_list(move(options_list_arg))
+  symbol_list{move(symbol_list_arg)},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -2773,7 +2773,7 @@ InitialConditionDecompositionStatement::writeOutput(ostream &output, const strin
 }
 
 ConditionalForecastStatement::ConditionalForecastStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -2797,8 +2797,8 @@ ConditionalForecastStatement::writeJsonOutput(ostream &output) const
 }
 
 PlotConditionalForecastStatement::PlotConditionalForecastStatement(int periods_arg, SymbolList symbol_list_arg) :
-  periods(periods_arg),
-  symbol_list(move(symbol_list_arg))
+  periods{periods_arg},
+  symbol_list{move(symbol_list_arg)}
 {
 }
 
@@ -2826,15 +2826,15 @@ PlotConditionalForecastStatement::writeJsonOutput(ostream &output) const
 }
 
 SvarIdentificationStatement::SvarIdentificationStatement(svar_identification_restrictions_t restrictions_arg,
-                                                         const bool &upper_cholesky_present_arg,
-                                                         const bool &lower_cholesky_present_arg,
-                                                         const bool &constants_exclusion_present_arg,
+                                                         bool upper_cholesky_present_arg,
+                                                         bool lower_cholesky_present_arg,
+                                                         bool constants_exclusion_present_arg,
                                                          const SymbolTable &symbol_table_arg) :
-  restrictions(move(restrictions_arg)),
-  upper_cholesky_present(upper_cholesky_present_arg),
-  lower_cholesky_present(lower_cholesky_present_arg),
-  constants_exclusion_present(constants_exclusion_present_arg),
-  symbol_table(symbol_table_arg)
+  restrictions{move(restrictions_arg)},
+  upper_cholesky_present{upper_cholesky_present_arg},
+  lower_cholesky_present{lower_cholesky_present_arg},
+  constants_exclusion_present{constants_exclusion_present_arg},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -2972,7 +2972,7 @@ SvarIdentificationStatement::writeJsonOutput(ostream &output) const
 }
 
 MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
   auto it_num = options_list.num_options.find("ms.restrictions");
   if (it_num != options_list.num_options.end())
@@ -3234,7 +3234,7 @@ MarkovSwitchingStatement::writeJsonOutput(ostream &output) const
 }
 
 SvarStatement::SvarStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -3324,7 +3324,7 @@ SvarGlobalIdentificationCheckStatement::writeJsonOutput(ostream &output) const
 }
 
 SetTimeStatement::SetTimeStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -3347,7 +3347,7 @@ SetTimeStatement::writeJsonOutput(ostream &output) const
 }
 
 EstimationDataStatement::EstimationDataStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -3401,9 +3401,9 @@ SubsamplesStatement::SubsamplesStatement(string name1_arg,
                                          string name2_arg,
                                          subsample_declaration_map_t subsample_declaration_map_arg,
                                          const SymbolTable &symbol_table_arg) :
-  name1(move(name1_arg)),
-  name2(move(name2_arg)),
-  subsample_declaration_map(subsample_declaration_map_arg),
+  name1{move(name1_arg)},
+  name2{move(name2_arg)},
+  subsample_declaration_map{subsample_declaration_map_arg},
   symbol_table{symbol_table_arg}
 {
 }
@@ -3499,10 +3499,10 @@ SubsamplesEqualStatement::SubsamplesEqualStatement(string to_name1_arg,
                                                    string from_name1_arg,
                                                    string from_name2_arg,
                                                    const SymbolTable &symbol_table_arg) :
-  to_name1(move(to_name1_arg)),
-  to_name2(move(to_name2_arg)),
-  from_name1(move(from_name1_arg)),
-  from_name2(move(from_name2_arg)),
+  to_name1{move(to_name1_arg)},
+  to_name2{move(to_name2_arg)},
+  from_name1{move(from_name1_arg)},
+  from_name2{move(from_name2_arg)},
   symbol_table{symbol_table_arg}
 {
 }
@@ -3573,8 +3573,8 @@ JointPriorStatement::JointPriorStatement(vector<string> joint_parameters_arg,
                                          PriorDistributions prior_shape_arg,
                                          OptionsList options_list_arg) :
   joint_parameters{move(joint_parameters_arg)},
-  prior_shape(prior_shape_arg),
-  options_list(move(options_list_arg))
+  prior_shape{prior_shape_arg},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -3736,11 +3736,11 @@ BasicPriorStatement::BasicPriorStatement(string name_arg,
                                          PriorDistributions prior_shape_arg,
                                          expr_t variance_arg,
                                          OptionsList options_list_arg) :
-  name(move(name_arg)),
-  subsample_name(move(subsample_name_arg)),
-  prior_shape(prior_shape_arg),
-  variance(variance_arg),
-  options_list(move(options_list_arg))
+  name{move(name_arg)},
+  subsample_name{move(subsample_name_arg)},
+  prior_shape{prior_shape_arg},
+  variance{variance_arg},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -4081,7 +4081,7 @@ CorrPriorStatement::CorrPriorStatement(string name_arg1, string name_arg2,
                                        OptionsList options_list_arg,
                                        const SymbolTable &symbol_table_arg) :
   BasicPriorStatement{move(name_arg1), move(subsample_name_arg), prior_shape_arg, variance_arg, move(options_list_arg)},
-  name1(move(name_arg2)),
+  name1{move(name_arg2)},
   symbol_table{symbol_table_arg}
 {
 }
@@ -4164,14 +4164,14 @@ PriorEqualStatement::PriorEqualStatement(string to_declaration_type_arg,
                                          string from_name2_arg,
                                          string from_subsample_name_arg,
                                          const SymbolTable &symbol_table_arg) :
-  to_declaration_type(move(to_declaration_type_arg)),
-  to_name1(move(to_name1_arg)),
-  to_name2(move(to_name2_arg)),
-  to_subsample_name(move(to_subsample_name_arg)),
-  from_declaration_type(move(from_declaration_type_arg)),
-  from_name1(move(from_name1_arg)),
-  from_name2(move(from_name2_arg)),
-  from_subsample_name(move(from_subsample_name_arg)),
+  to_declaration_type{move(to_declaration_type_arg)},
+  to_name1{move(to_name1_arg)},
+  to_name2{move(to_name2_arg)},
+  to_subsample_name{move(to_subsample_name_arg)},
+  from_declaration_type{move(from_declaration_type_arg)},
+  from_name1{move(from_name1_arg)},
+  from_name2{move(from_name2_arg)},
+  from_subsample_name{move(from_subsample_name_arg)},
   symbol_table{symbol_table_arg}
 {
 }
@@ -4278,9 +4278,9 @@ BasicOptionsStatement::~BasicOptionsStatement()
 BasicOptionsStatement::BasicOptionsStatement(string name_arg,
                                              string subsample_name_arg,
                                              OptionsList options_list_arg) :
-  name(move(name_arg)),
-  subsample_name(move(subsample_name_arg)),
-  options_list(move(options_list_arg))
+  name{move(name_arg)},
+  subsample_name{move(subsample_name_arg)},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -4527,14 +4527,14 @@ OptionsEqualStatement::OptionsEqualStatement(string to_declaration_type_arg,
                                              string from_name2_arg,
                                              string from_subsample_name_arg,
                                              const SymbolTable &symbol_table_arg) :
-  to_declaration_type(move(to_declaration_type_arg)),
-  to_name1(move(to_name1_arg)),
-  to_name2(move(to_name2_arg)),
-  to_subsample_name(move(to_subsample_name_arg)),
-  from_declaration_type(move(from_declaration_type_arg)),
-  from_name1(move(from_name1_arg)),
-  from_name2(move(from_name2_arg)),
-  from_subsample_name(move(from_subsample_name_arg)),
+  to_declaration_type{move(to_declaration_type_arg)},
+  to_name1{move(to_name1_arg)},
+  to_name2{move(to_name2_arg)},
+  to_subsample_name{move(to_subsample_name_arg)},
+  from_declaration_type{move(from_declaration_type_arg)},
+  from_name1{move(from_name1_arg)},
+  from_name2{move(from_name2_arg)},
+  from_subsample_name{move(from_subsample_name_arg)},
   symbol_table{symbol_table_arg}
 {
 }
@@ -4637,7 +4637,7 @@ OptionsEqualStatement::writeOutput(ostream &output, const string &basename, bool
 
 CalibSmootherStatement::CalibSmootherStatement(SymbolList symbol_list_arg,
                                                OptionsList options_list_arg)
-  : symbol_list(move(symbol_list_arg)), options_list(move(options_list_arg))
+  : symbol_list{move(symbol_list_arg)}, options_list{move(options_list_arg)}
 {
 }
 
@@ -4678,7 +4678,7 @@ CalibSmootherStatement::writeJsonOutput(ostream &output) const
 }
 
 ExtendedPathStatement::ExtendedPathStatement(OptionsList options_list_arg)
-  : options_list(move(options_list_arg))
+  : options_list{move(options_list_arg)}
 {
 }
 
@@ -4740,7 +4740,7 @@ ModelDiagnosticsStatement::writeJsonOutput(ostream &output) const
 }
 
 Smoother2histvalStatement::Smoother2histvalStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -4765,8 +4765,8 @@ Smoother2histvalStatement::writeJsonOutput(ostream &output) const
 
 GMMEstimationStatement::GMMEstimationStatement(SymbolList symbol_list_arg,
                                                OptionsList options_list_arg) :
-  symbol_list(move(symbol_list_arg)),
-  options_list(move(options_list_arg))
+  symbol_list{move(symbol_list_arg)},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -4798,8 +4798,8 @@ GMMEstimationStatement::writeJsonOutput(ostream &output) const
 
 SMMEstimationStatement::SMMEstimationStatement(SymbolList symbol_list_arg,
                                                OptionsList options_list_arg) :
-  symbol_list(move(symbol_list_arg)),
-  options_list(move(options_list_arg))
+  symbol_list{move(symbol_list_arg)},
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -4832,9 +4832,9 @@ SMMEstimationStatement::writeJsonOutput(ostream &output) const
 GenerateIRFsStatement::GenerateIRFsStatement(OptionsList options_list_arg,
                                              vector<string> generate_irf_names_arg,
                                              vector<map<string, double>> generate_irf_elements_arg) :
-  options_list(move(options_list_arg)),
-  generate_irf_names(move(generate_irf_names_arg)),
-  generate_irf_elements(move(generate_irf_elements_arg))
+  options_list{move(options_list_arg)},
+  generate_irf_names{move(generate_irf_names_arg)},
+  generate_irf_elements{move(generate_irf_elements_arg)}
 {
 }
 

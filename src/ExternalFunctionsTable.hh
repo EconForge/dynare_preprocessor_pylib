@@ -37,7 +37,7 @@ public:
   public:
     //! Symbol ID
     int id;
-    explicit UnknownExternalFunctionSymbolIDException(int id_arg) : id(id_arg)
+    explicit UnknownExternalFunctionSymbolIDException(int id_arg) : id{id_arg}
     {
     }
   };

@@ -106,7 +106,7 @@ private:
 
 protected:
   //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
-  bool global_temporary_terms;
+  bool global_temporary_terms{true};
 
   //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
   equation_type_and_normalized_equation_t equation_type_and_normalized_equation;

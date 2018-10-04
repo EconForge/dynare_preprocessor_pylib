@@ -97,7 +97,7 @@ private:
   //! The paths to search when looking for .mod files
   vector<string> path;
   //! True iff current context is the body of a loop
-  bool is_for_context;
+  bool is_for_context{false};
   //! If current context is the body of a loop, contains the string of the loop body
   string for_body;
   //! If current context is the body of a loop, contains the location of the beginning of the body
@@ -112,7 +112,7 @@ private:
   //! Temporary variable used in FOR_BODY mode. Keeps track of number of nested @#for/@#endfor
   int nested_for_nb;
   //! Set to true while parsing a FOR statement (only the statement, not the loop body)
-  bool reading_for_statement;
+  bool reading_for_statement{false};
 
   //! Temporary variable used in THEN_BODY and ELSE_BODY modes. Keeps track of number of nested @#if
   int nested_if_nb;
@@ -127,7 +127,7 @@ private:
   //! Temporary variable used in ELSE_BODY mode
   Macro::parser::location_type else_body_loc_tmp;
   //! Set to true while parsing an IF statement (only the statement, not the body)
-  bool reading_if_statement;
+  bool reading_if_statement{false};
 
   //! Set to true while parsing the comprehension in a new buffer
   bool is_comprehension_context{false};
@@ -208,7 +208,7 @@ public:
   {
   public:
     const string name;
-    explicit UnknownVariable(string name_arg) : name(move(name_arg))
+    explicit UnknownVariable(string name_arg) : name{move(name_arg)}
     {
     }
   };

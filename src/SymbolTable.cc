@@ -28,13 +28,13 @@
 AuxVarInfo::AuxVarInfo(int symb_id_arg, AuxVarType type_arg, int orig_symb_id_arg, int orig_lead_lag_arg,
                        int equation_number_for_multiplier_arg, int information_set_arg,
                        expr_t expr_node_arg) :
-  symb_id(symb_id_arg),
-  type(type_arg),
-  orig_symb_id(orig_symb_id_arg),
-  orig_lead_lag(orig_lead_lag_arg),
-  equation_number_for_multiplier(equation_number_for_multiplier_arg),
-  information_set(information_set_arg),
-  expr_node(expr_node_arg)
+  symb_id{symb_id_arg},
+  type{type_arg},
+  orig_symb_id{orig_symb_id_arg},
+  orig_lead_lag{orig_lead_lag_arg},
+  equation_number_for_multiplier{equation_number_for_multiplier_arg},
+  information_set{information_set_arg},
+  expr_node{expr_node_arg}
 {
 }
 

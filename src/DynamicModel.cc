@@ -36,19 +36,9 @@ DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
                            ExternalFunctionsTable &external_functions_table_arg,
                            TrendComponentModelTable &trend_component_model_table_arg,
                            VarModelTable &var_model_table_arg) :
-  ModelTree(symbol_table_arg, num_constants_arg, external_functions_table_arg),
-  trend_component_model_table(trend_component_model_table_arg),
-  var_model_table(var_model_table_arg),
-  max_lag(0), max_lead(0),
-  max_endo_lag(0), max_endo_lead(0),
-  max_exo_lag(0), max_exo_lead(0),
-  max_exo_det_lag(0), max_exo_det_lead(0),
-  max_lag_orig(0), max_lead_orig(0),
-  max_endo_lag_orig(0), max_endo_lead_orig(0),
-  max_exo_lag_orig(0), max_exo_lead_orig(0),
-  max_exo_det_lag_orig(0), max_exo_det_lead_orig(0),
-  dynJacobianColsNbr(0),
-  global_temporary_terms(true)
+  ModelTree{symbol_table_arg, num_constants_arg, external_functions_table_arg},
+  trend_component_model_table{trend_component_model_table_arg},
+  var_model_table{var_model_table_arg}
 {
 }
 

@@ -104,7 +104,7 @@ private:
   const bool linear_decomposition;
 public:
   DetCondForecast(const SymbolList &symbol_list_arg,
-                  const OptionsList &options_list_arg,
+                  OptionsList options_list_arg,
                   const bool linear_decompositiontion_arg);
   //virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
@@ -656,7 +656,7 @@ class IdentificationStatement : public Statement
 private:
   OptionsList options_list;
 public:
-  explicit IdentificationStatement(const OptionsList &options_list_arg);
+  explicit IdentificationStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -820,9 +820,9 @@ private:
   int getMaxLag() const;
 public:
   SvarIdentificationStatement(svar_identification_restrictions_t restrictions_arg,
-                              const bool &upper_cholesky_present_arg,
-                              const bool &lower_cholesky_present_arg,
-                              const bool &constants_exclusion_present_arg,
+                              bool upper_cholesky_present_arg,
+                              bool lower_cholesky_present_arg,
+                              bool constants_exclusion_present_arg,
                               const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;

@@ -481,9 +481,7 @@ CONT \\\\
 %%
 
 MacroFlex::MacroFlex(istream* in, ostream* out, bool no_line_macro_arg, vector<string> path_arg)
-  : MacroFlexLexer(in, out), input(in), no_line_macro(no_line_macro_arg), path(path_arg),
-    is_for_context(false),
-    reading_for_statement(false), reading_if_statement(false)
+  : MacroFlexLexer{in, out}, input{in}, no_line_macro{no_line_macro_arg}, path{path_arg}
 {
 }
 
