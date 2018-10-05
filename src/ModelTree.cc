@@ -1256,36 +1256,34 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
       reference_count[v] = { ExprNode::min_cost(is_matlab)+1, NodeTreeReference::residuals };
     }
 
-  /* When option notmpterms is set, we only need to process model local
-     variables (and turn them into temporary terms); no need to go further */
-  if (no_tmp_terms)
-    return;
-
   map<NodeTreeReference, temporary_terms_t> temp_terms_map;
   temp_terms_map[NodeTreeReference::residuals] = temporary_terms_res;
   temp_terms_map[NodeTreeReference::firstDeriv] = temporary_terms_g1;
   temp_terms_map[NodeTreeReference::secondDeriv] = temporary_terms_g2;
   temp_terms_map[NodeTreeReference::thirdDeriv] = temporary_terms_g3;
 
-  for (auto & equation : equations)
-    equation->computeTemporaryTerms(reference_count,
-                                 temp_terms_map,
-                                 is_matlab, NodeTreeReference::residuals);
+  if (!no_tmp_terms)
+    {
+      for (auto & equation : equations)
+        equation->computeTemporaryTerms(reference_count,
+                                        temp_terms_map,
+                                        is_matlab, NodeTreeReference::residuals);
 
-  for (auto & first_derivative : first_derivatives)
-    first_derivative.second->computeTemporaryTerms(reference_count,
-                                      temp_terms_map,
-                                      is_matlab, NodeTreeReference::firstDeriv);
+      for (auto & first_derivative : first_derivatives)
+        first_derivative.second->computeTemporaryTerms(reference_count,
+                                                       temp_terms_map,
+                                                       is_matlab, NodeTreeReference::firstDeriv);
 
-  for (auto & second_derivative : second_derivatives)
-    second_derivative.second->computeTemporaryTerms(reference_count,
-                                      temp_terms_map,
-                                      is_matlab, NodeTreeReference::secondDeriv);
+      for (auto & second_derivative : second_derivatives)
+        second_derivative.second->computeTemporaryTerms(reference_count,
+                                                        temp_terms_map,
+                                                        is_matlab, NodeTreeReference::secondDeriv);
 
-  for (auto & third_derivative : third_derivatives)
-    third_derivative.second->computeTemporaryTerms(reference_count,
-                                      temp_terms_map,
-                                      is_matlab, NodeTreeReference::thirdDeriv);
+      for (auto & third_derivative : third_derivatives)
+        third_derivative.second->computeTemporaryTerms(reference_count,
+                                                       temp_terms_map,
+                                                       is_matlab, NodeTreeReference::thirdDeriv);
+    }
 
   for (map<NodeTreeReference, temporary_terms_t>::const_iterator it = temp_terms_map.begin();
        it != temp_terms_map.end(); it++)
@@ -1301,8 +1299,8 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
        it != temporary_terms_mlv.end(); it++)
     temporary_terms_idxs[it->first] = idx++;
 
-  for (auto temporary_terms_re : temporary_terms_res)
-    temporary_terms_idxs[temporary_terms_re] = idx++;
+  for (auto it : temporary_terms_res)
+    temporary_terms_idxs[it] = idx++;
 
   for (auto it : temporary_terms_g1)
     temporary_terms_idxs[it] = idx++;
