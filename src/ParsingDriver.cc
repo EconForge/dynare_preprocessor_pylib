@@ -2132,10 +2132,10 @@ ParsingDriver::run_model_comparison()
 void
 ParsingDriver::begin_planner_objective()
 {
-  planner_objective_statement = make_unique<PlannerObjectiveStatement>(mod_file->symbol_table,
-                                                                       mod_file->num_constants,
-                                                                       mod_file->external_functions_table);
-  set_current_data_tree(&planner_objective_statement->getPlannerObjective());
+  planner_objective = make_unique<StaticModel>(mod_file->symbol_table,
+                                               mod_file->num_constants,
+                                               mod_file->external_functions_table);
+  set_current_data_tree(planner_objective.get());
 }
 
 void
@@ -2145,7 +2145,7 @@ ParsingDriver::end_planner_objective(expr_t expr)
   expr_t eq = model_tree->AddEqual(expr, model_tree->Zero);
   model_tree->addEquation(eq, location.begin.line);
 
-  mod_file->addStatement(move(planner_objective_statement));
+  mod_file->addStatement(make_unique<PlannerObjectiveStatement>(*planner_objective));
 
   reset_data_tree();
 }

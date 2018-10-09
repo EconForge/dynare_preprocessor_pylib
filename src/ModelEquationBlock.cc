@@ -31,6 +31,28 @@ SteadyStateModel::SteadyStateModel(SymbolTable &symbol_table_arg,
 {
 }
 
+SteadyStateModel::SteadyStateModel(const SteadyStateModel &m) :
+  DataTree {m},
+  static_model {m.static_model}
+{
+  for (const auto &it : m.def_table)
+    def_table.push_back(make_pair(it.first, it.second->cloneDynamic(*this)));
+}
+
+SteadyStateModel &
+SteadyStateModel::operator=(const SteadyStateModel &m)
+{
+  DataTree::operator=(m);
+
+  assert(&static_model == &m.static_model);
+
+  def_table.clear();
+  for (const auto &it : m.def_table)
+    def_table.push_back(make_pair(it.first, it.second->cloneDynamic(*this)));
+
+  return *this;
+}
+
 void
 SteadyStateModel::addDefinition(int symb_id, expr_t expr)
 {
@@ -275,6 +297,30 @@ Epilogue::Epilogue(SymbolTable &symbol_table_arg,
   DynamicModel{symbol_table_arg, num_constants_arg, external_functions_table_arg,
                trend_component_model_table_arg, var_model_table_arg}
 {
+}
+
+Epilogue::Epilogue(const Epilogue &m) :
+  DynamicModel {m},
+  endogs {m.endogs},
+  exogs {m.exogs}
+{
+  for (const auto &it : m.def_table)
+    def_table.push_back(make_pair(it.first, it.second->cloneDynamic(*this)));
+}
+
+Epilogue &
+Epilogue::operator=(const Epilogue &m)
+{
+  DynamicModel::operator=(m);
+
+  endogs = m.endogs;
+  exogs = m.exogs;
+
+  def_table.clear();
+  for (const auto &it : m.def_table)
+    def_table.push_back(make_pair(it.first, it.second->cloneDynamic(*this)));
+
+  return *this;
 }
 
 void

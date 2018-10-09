@@ -367,7 +367,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   // - except adl and diff which we always want expanded
   dynamic_model.substituteAdl();
   dynamic_model.setLeadsLagsOrig();
-  dynamic_model.cloneDynamic(original_model);
+  original_model = dynamic_model;
 
   if (nostrict)
     {
@@ -457,7 +457,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   if (nonstationary_variables)
     {
       dynamic_model.detrendEquations();
-      dynamic_model.cloneDynamic(trend_dynamic_model);
+      trend_dynamic_model = dynamic_model;
       dynamic_model.removeTrendVariableFromEquations();
     }
 
@@ -485,8 +485,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
         we have to call computeDerivIDs (in computeRamseyPolicyFOCs and computingPass)
       */
       if (linear)
-        dynamic_model.cloneDynamic(orig_ramsey_dynamic_model);
-      dynamic_model.cloneDynamic(ramsey_FOC_equations_dynamic_model);
+        orig_ramsey_dynamic_model = dynamic_model;
+      ramsey_FOC_equations_dynamic_model = dynamic_model;
       ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(planner_objective, nopreprocessoroutput);
       ramsey_FOC_equations_dynamic_model.replaceMyEquations(dynamic_model);
       mod_file_struct.ramsey_eq_nbr = dynamic_model.equation_number() - mod_file_struct.orig_eq_nbr;
@@ -696,7 +696,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
       dynamic_model.toStatic(static_model);
 	  if (linear_decomposition)
         {
-          dynamic_model.cloneDynamic(non_linear_equations_dynamic_model);
+          non_linear_equations_dynamic_model = dynamic_model;
           non_linear_equations_dynamic_model.set_cutoff_to_zero();
           non_linear_equations_dynamic_model.computingPass(true, false, false, 0, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput, linear_decomposition);
         }

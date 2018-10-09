@@ -40,6 +40,12 @@ public:
                    NumericalConstants &num_constants_arg,
                    ExternalFunctionsTable &external_functions_table_arg,
                    const StaticModel &static_model_arg);
+
+  SteadyStateModel(const SteadyStateModel &m);
+  SteadyStateModel(SteadyStateModel &&) = delete;
+  SteadyStateModel & operator=(const SteadyStateModel &m);
+  SteadyStateModel & operator=(SteadyStateModel &&) = delete;
+
   //! Add an expression of the form "var = expr;"
   void addDefinition(int symb_id, expr_t expr);
   //! Add an expression of the form "[ var1, var2, ... ] = expr;"
@@ -75,6 +81,11 @@ public:
            ExternalFunctionsTable &external_functions_table_arg,
            TrendComponentModelTable &trend_component_model_table_arg,
            VarModelTable &var_model_table_arg);
+
+  Epilogue(const Epilogue &m);
+  Epilogue(Epilogue &&) = delete;
+  Epilogue & operator=(const Epilogue &m);
+  Epilogue & operator=(Epilogue &&) = delete;
 
   //! Add an expression of the form "var = expr;"
   void addDefinition(int symb_id, expr_t expr);

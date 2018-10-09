@@ -32,6 +32,148 @@
 
 using namespace MFS;
 
+void
+ModelTree::copyHelper(const ModelTree &m)
+{
+  auto f = [this](expr_t e) { return e->cloneDynamic(*this); };
+
+  // Equations
+  for (const auto & it : m.equations)
+    equations.push_back(dynamic_cast<BinaryOpNode *>(f(it)));
+  for (const auto & it : m.aux_equations)
+    aux_equations.push_back(dynamic_cast<BinaryOpNode *>(f(it)));
+
+  // Derivatives
+  for (const auto & it : m.first_derivatives)
+    first_derivatives[it.first] = f(it.second);
+  for (const auto & it : m.second_derivatives)
+    second_derivatives[it.first] = f(it.second);
+  for (const auto & it : m.third_derivatives)
+    third_derivatives[it.first] = f(it.second);
+  for (const auto & it : m.residuals_params_derivatives)
+    residuals_params_derivatives[it.first] = f(it.second);
+  for (const auto & it : m.residuals_params_second_derivatives)
+    residuals_params_second_derivatives[it.first] = f(it.second);
+  for (const auto & it : m.jacobian_params_derivatives)
+    jacobian_params_derivatives[it.first] = f(it.second);
+  for (const auto & it : m.jacobian_params_second_derivatives)
+    jacobian_params_second_derivatives[it.first] = f(it.second);
+  for (const auto & it : m.hessian_params_derivatives)
+    hessian_params_derivatives[it.first] = f(it.second);
+
+  // Temporary terms
+  for (const auto & it : m.temporary_terms)
+    temporary_terms.insert(f(it));
+  for (const auto & it : m.temporary_terms_mlv)
+    temporary_terms_mlv[f(it.first)] = f(it.second);
+  for (const auto & it : m.temporary_terms_res)
+    temporary_terms_res.insert(f(it));
+  for (const auto & it : m.temporary_terms_g1)
+    temporary_terms_g1.insert(f(it));
+  for (const auto & it : m.temporary_terms_g2)
+    temporary_terms_g2.insert(f(it));
+  for (const auto & it : m.temporary_terms_g3)
+    temporary_terms_g3.insert(f(it));
+  for (const auto & it : m.temporary_terms_idxs)
+    temporary_terms_idxs[f(it.first)] = it.second;
+  for (const auto & it : m.params_derivs_temporary_terms)
+    params_derivs_temporary_terms.insert(f(it));
+  for (const auto & it : m.params_derivs_temporary_terms_res)
+    params_derivs_temporary_terms_res.insert(f(it));
+  for (const auto & it : m.params_derivs_temporary_terms_g1)
+    params_derivs_temporary_terms_g1.insert(f(it));
+  for (const auto & it : m.params_derivs_temporary_terms_res2)
+    params_derivs_temporary_terms_res2.insert(f(it));
+  for (const auto & it : m.params_derivs_temporary_terms_g12)
+    params_derivs_temporary_terms_g12.insert(f(it));
+  for (const auto & it : m.params_derivs_temporary_terms_g2)
+    params_derivs_temporary_terms_g2.insert(f(it));
+  for (const auto & it : m.params_derivs_temporary_terms_idxs)
+    params_derivs_temporary_terms_idxs[f(it.first)] = it.second;
+
+  // Other stuff
+  for (const auto & it : m.trend_symbols_map)
+    trend_symbols_map[it.first] = f(it.second);
+  for (const auto & it : m.nonstationary_symbols_map)
+    nonstationary_symbols_map[it.first] = make_pair(it.second.first, f(it.second.second));
+}
+
+ModelTree::ModelTree(const ModelTree &m) :
+  DataTree {m},
+  equations_lineno {m.equations_lineno},
+  equation_tags {m.equation_tags},
+  NNZDerivatives {m.NNZDerivatives},
+  equation_reordered {m.equation_reordered},
+  variable_reordered {m.variable_reordered},
+  inv_equation_reordered {m.inv_equation_reordered},
+  inv_variable_reordered {m.inv_variable_reordered},
+  is_equation_linear {m.is_equation_linear},
+  endo2eq {m.endo2eq},
+  epilogue {m.epilogue},
+  prologue {m.prologue},
+  block_lag_lead {m.block_lag_lead},
+  cutoff {m.cutoff},
+  mfs {m.mfs}
+{
+  copyHelper(m);
+}
+
+ModelTree &
+ModelTree::operator=(const ModelTree &m)
+{
+  DataTree::operator=(m);
+
+  equations.clear();
+  equations_lineno = m.equations_lineno;
+  aux_equations.clear();
+  equation_tags = m.equation_tags;
+  NNZDerivatives = m.NNZDerivatives;
+
+  first_derivatives.clear();
+  second_derivatives.clear();
+  third_derivatives.clear();
+  residuals_params_derivatives.clear();
+  residuals_params_second_derivatives.clear();
+  jacobian_params_derivatives.clear();
+  jacobian_params_second_derivatives.clear();
+  hessian_params_derivatives.clear();
+
+  temporary_terms.clear();
+  temporary_terms_mlv.clear();
+  temporary_terms_res.clear();
+  temporary_terms_g1.clear();
+  temporary_terms_g2.clear();
+  temporary_terms_g3.clear();
+  temporary_terms_idxs.clear();
+  params_derivs_temporary_terms.clear();
+  params_derivs_temporary_terms_res.clear();
+  params_derivs_temporary_terms_g1.clear();
+  params_derivs_temporary_terms_res2.clear();
+  params_derivs_temporary_terms_g12.clear();
+  params_derivs_temporary_terms_g2.clear();
+  params_derivs_temporary_terms_idxs.clear();
+
+  trend_symbols_map.clear();
+  nonstationary_symbols_map.clear();
+
+  equation_reordered = m.equation_reordered;
+  variable_reordered = m.variable_reordered;
+  inv_equation_reordered = m.inv_equation_reordered;
+  inv_variable_reordered = m.inv_variable_reordered;
+  is_equation_linear = m.is_equation_linear;
+  endo2eq = m.endo2eq;
+  epilogue = m.epilogue;
+  prologue = m.prologue;
+  block_lag_lead = m.block_lag_lead;
+  cutoff = m.cutoff;
+  mfs = m.mfs;
+
+  copyHelper(m);
+
+  return *this;
+}
+
+
 bool
 ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, bool verbose)
 {
@@ -1133,8 +1275,9 @@ ModelTree::BlockLinear(const blocks_derivatives_t &blocks_derivatives, const vec
 
 ModelTree::ModelTree(SymbolTable &symbol_table_arg,
                      NumericalConstants &num_constants_arg,
-                     ExternalFunctionsTable &external_functions_table_arg) :
-  DataTree{symbol_table_arg, num_constants_arg, external_functions_table_arg}
+                     ExternalFunctionsTable &external_functions_table_arg,
+                     bool is_dynamic_arg) :
+  DataTree {symbol_table_arg, num_constants_arg, external_functions_table_arg, is_dynamic_arg}
 {
   for (int & NNZDerivative : NNZDerivatives)
     NNZDerivative = 0;

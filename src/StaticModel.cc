@@ -29,11 +29,138 @@
 
 #include "StaticModel.hh"
 
+void
+StaticModel::copyHelper(const StaticModel &m)
+{
+  auto f = [this](expr_t e) { return e->cloneDynamic(*this); };
+
+  auto convert_vector_tt = [this,f](vector<temporary_terms_t> vtt)
+    {
+      vector<temporary_terms_t> vtt2;
+      for (const auto &tt : vtt)
+        {
+          temporary_terms_t tt2;
+          for (const auto &it : tt)
+            tt2.insert(f(it));
+          vtt2.push_back(tt2);
+        }
+      return vtt2;
+    };
+
+  for (const auto &it : m.v_temporary_terms)
+    v_temporary_terms.push_back(convert_vector_tt(it));
+  for (const auto &it : m.v_temporary_terms_local)
+    v_temporary_terms_local.push_back(convert_vector_tt(it));
+
+  for (const auto &it : m.first_chain_rule_derivatives)
+    first_chain_rule_derivatives[it.first] = f(it.second);
+
+  for (const auto &it : m.equation_type_and_normalized_equation)
+    equation_type_and_normalized_equation.push_back(make_pair(it.first, f(it.second)));
+
+  for (const auto &it : m.blocks_derivatives)
+    {
+      block_derivatives_equation_variable_laglead_nodeid_t v;
+      for (const auto &it2 : it)
+        v.push_back(make_pair(it2.first, make_pair(it2.second.first, f(it2.second.second))));
+      blocks_derivatives.push_back(v);
+    }
+
+  for (const auto &it : m.dynamic_jacobian)
+    dynamic_jacobian[it.first] = f(it.second);
+
+  auto convert_derivative_t = [this,f](derivative_t dt)
+    {
+      derivative_t dt2;
+      for (const auto &it : dt)
+        dt2[it.first] = f(it.second);
+      return dt2;
+    };
+  for (const auto &it : m.derivative_endo)
+    derivative_endo.push_back(convert_derivative_t(it));
+  for (const auto &it : m.derivative_other_endo)
+    derivative_other_endo.push_back(convert_derivative_t(it));
+  for (const auto &it : m.derivative_exo)
+    derivative_exo.push_back(convert_derivative_t(it));
+  for (const auto &it : m.derivative_exo_det)
+    derivative_exo_det.push_back(convert_derivative_t(it));
+}
+
 StaticModel::StaticModel(SymbolTable &symbol_table_arg,
                          NumericalConstants &num_constants_arg,
                          ExternalFunctionsTable &external_functions_table_arg) :
   ModelTree{symbol_table_arg, num_constants_arg, external_functions_table_arg}
 {
+}
+
+StaticModel::StaticModel(const StaticModel &m) :
+  ModelTree {m},
+  v_temporary_terms_inuse {m.v_temporary_terms_inuse},
+  map_idx {m.map_idx},
+  map_idx2 {m.map_idx2},
+  global_temporary_terms {m.global_temporary_terms},
+  block_type_firstequation_size_mfs {m.block_type_firstequation_size_mfs},
+  blocks_linear {m.blocks_linear},
+  other_endo_block {m.other_endo_block},
+  exo_block {m.exo_block},
+  exo_det_block {m.exo_det_block},
+  block_col_type {m.block_col_type},
+  variable_block_lead_lag {m.variable_block_lead_lag},
+  equation_block {m.equation_block},
+  endo_max_leadlag_block {m.endo_max_leadlag_block},
+  other_endo_max_leadlag_block {m.other_endo_max_leadlag_block},
+  exo_max_leadlag_block {m.exo_max_leadlag_block},
+  exo_det_max_leadlag_block {m.exo_det_max_leadlag_block},
+  max_leadlag_block {m.max_leadlag_block}
+{
+  copyHelper(m);
+}
+
+StaticModel &
+StaticModel::operator=(const StaticModel &m)
+{
+  ModelTree::operator=(m);
+
+  v_temporary_terms.clear();
+  v_temporary_terms_local.clear();
+
+  v_temporary_terms_inuse = m.v_temporary_terms_inuse;
+
+  first_chain_rule_derivatives.clear();
+
+  map_idx = m.map_idx;
+  map_idx2 = m.map_idx2;
+  global_temporary_terms = m.global_temporary_terms;
+
+  equation_type_and_normalized_equation.clear();
+
+  block_type_firstequation_size_mfs = m.block_type_firstequation_size_mfs;
+
+  blocks_derivatives.clear();
+  dynamic_jacobian.clear();
+
+  blocks_linear = m.blocks_linear;
+
+  derivative_endo.clear();
+  derivative_other_endo.clear();
+  derivative_exo.clear();
+  derivative_exo_det.clear();
+
+  other_endo_block = m.other_endo_block;
+  exo_block = m.exo_block;
+  exo_det_block = m.exo_det_block;
+  block_col_type = m.block_col_type;
+  variable_block_lead_lag = m.variable_block_lead_lag;
+  equation_block = m.equation_block;
+  endo_max_leadlag_block = m.endo_max_leadlag_block;
+  other_endo_max_leadlag_block = m.other_endo_max_leadlag_block;
+  exo_max_leadlag_block = m.exo_max_leadlag_block;
+  exo_det_max_leadlag_block = m.exo_det_max_leadlag_block;
+  max_leadlag_block = m.max_leadlag_block;
+
+  copyHelper(m);
+
+  return *this;
 }
 
 void

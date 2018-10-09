@@ -254,15 +254,22 @@ private:
 
   void findPacExpectationEquationNumbers(vector<int> &eqnumber) const;
 
+  //! Internal helper for the copy constructor and assignment operator
+  /*! Copies all the structures that contain ExprNode*, by the converting the
+      pointers into their equivalent in the new tree */
+  void copyHelper(const DynamicModel &m);
+
 public:
   DynamicModel(SymbolTable &symbol_table_arg,
                NumericalConstants &num_constants_arg,
                ExternalFunctionsTable &external_functions_table_arg,
                TrendComponentModelTable &trend_component_model_table_arg,
                VarModelTable &var_model_table_arg);
-  //! Adds a variable node
-  /*! This implementation allows for non-zero lag */
-  VariableNode *AddVariable(int symb_id, int lag = 0) override;
+
+  DynamicModel(const DynamicModel &m);
+  DynamicModel(DynamicModel &&) = delete;
+  DynamicModel & operator=(const DynamicModel &m);
+  DynamicModel & operator=(DynamicModel &&) = delete;
 
   //! Compute cross references
   void computeXrefs();
@@ -373,10 +380,6 @@ public:
 
   //! Set the max leads/lags of the original model
   void setLeadsLagsOrig();
-
-  //! Copies a dynamic model (only the equations)
-  /*! It assumes that the dynamic model given in argument has just been allocated */
-  void cloneDynamic(DynamicModel &dynamic_model) const;
 
   //! Replaces model equations with derivatives of Lagrangian w.r.t. endogenous
   void computeRamseyPolicyFOCs(const StaticModel &static_model, const bool nopreprocessoroutput);

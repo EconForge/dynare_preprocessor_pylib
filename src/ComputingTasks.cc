@@ -2111,10 +2111,8 @@ ModelComparisonStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-PlannerObjectiveStatement::PlannerObjectiveStatement(SymbolTable &symbol_table,
-                                                     NumericalConstants &num_constants,
-                                                     ExternalFunctionsTable &external_functions_table) :
-  model_tree{symbol_table, num_constants, external_functions_table}
+PlannerObjectiveStatement::PlannerObjectiveStatement(const StaticModel &model_tree_arg) :
+  model_tree {model_tree_arg}
 {
 }
 
@@ -2132,8 +2130,8 @@ PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct, WarningC
   mod_file_struct.planner_objective_present = true;
 }
 
-StaticModel &
-PlannerObjectiveStatement::getPlannerObjective()
+const StaticModel &
+PlannerObjectiveStatement::getPlannerObjective() const
 {
   return model_tree;
 }

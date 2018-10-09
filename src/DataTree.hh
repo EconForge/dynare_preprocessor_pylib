@@ -45,6 +45,8 @@ public:
   NumericalConstants &num_constants;
   //! A reference to the external functions table
   ExternalFunctionsTable &external_functions_table;
+  //! Is it possible to use leads/lags on variable nodes?
+  const bool is_dynamic;
 
 protected:
   //! num_constant_id -> NumConstNode
@@ -92,9 +94,6 @@ protected:
   //! Stores the order of appearance of local variables in the model block. Needed following change in #563
   vector<int> local_variables_vector;
 
-  //! Internal implementation of AddVariable(), without the check on the lag
-  VariableNode *AddVariableInternal(int symb_id, int lag);
-
   //! Internal implementation of ParamUsedWithLeadLag()
   bool ParamUsedWithLeadLagInternal() const;
 
@@ -115,17 +114,21 @@ private:
   inline expr_t AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerDerivOrder = 0);
   inline expr_t AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t arg3);
 
+  //! Initializes the predefined constants, used only from the constructors
+  void initConstants();
+
 public:
   DataTree(SymbolTable &symbol_table_arg,
            NumericalConstants &num_constants_arg,
-           ExternalFunctionsTable &external_functions_table_arg);
+           ExternalFunctionsTable &external_functions_table_arg,
+           bool is_static_args = false);
 
   virtual
   ~DataTree();
 
-  DataTree(const DataTree &) = delete;
+  DataTree(const DataTree &d);
   DataTree(DataTree &&) = delete;
-  DataTree & operator=(const DataTree &) = delete;
+  DataTree & operator=(const DataTree &d);
   DataTree & operator=(DataTree &&) = delete;
 
   //! Some predefined constants
@@ -149,8 +152,7 @@ public:
   //! Adds a non-negative numerical constant (possibly Inf or NaN)
   expr_t AddNonNegativeConstant(const string &value);
   //! Adds a variable
-  /*! The default implementation of the method refuses any lag != 0 */
-  virtual VariableNode *AddVariable(int symb_id, int lag = 0);
+  VariableNode *AddVariable(int symb_id, int lag = 0);
   //! Adds "arg1+arg2" to model tree
   expr_t AddPlus(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1-arg2" to model tree

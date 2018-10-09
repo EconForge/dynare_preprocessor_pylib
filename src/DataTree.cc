@@ -26,12 +26,8 @@
 
 #include "DataTree.hh"
 
-DataTree::DataTree(SymbolTable &symbol_table_arg,
-                   NumericalConstants &num_constants_arg,
-                   ExternalFunctionsTable &external_functions_table_arg) :
-  symbol_table{symbol_table_arg},
-  num_constants{num_constants_arg},
-  external_functions_table{external_functions_table_arg}
+void
+DataTree::initConstants()
 {
   Zero = AddNonNegativeConstant("0");
   One = AddNonNegativeConstant("1");
@@ -46,7 +42,75 @@ DataTree::DataTree(SymbolTable &symbol_table_arg,
   Pi = AddNonNegativeConstant("3.141592653589793");
 }
 
+DataTree::DataTree(SymbolTable &symbol_table_arg,
+                   NumericalConstants &num_constants_arg,
+                   ExternalFunctionsTable &external_functions_table_arg,
+                   bool is_dynamic_arg) :
+  symbol_table{symbol_table_arg},
+  num_constants{num_constants_arg},
+  external_functions_table{external_functions_table_arg},
+  is_dynamic {is_dynamic_arg}
+{
+  initConstants();
+}
+
 DataTree::~DataTree() = default;
+
+DataTree::DataTree(const DataTree &d) :
+  symbol_table {d.symbol_table},
+  num_constants {d.num_constants},
+  external_functions_table {d.external_functions_table},
+  is_dynamic {d.is_dynamic},
+  local_variables_vector {d.local_variables_vector}
+{
+  // Constants must be initialized first because they are used in some Add* methods
+  initConstants();
+
+  for (const auto & it : d.node_list)
+    it->cloneDynamic(*this);
+
+  assert(node_list.size() == d.node_list.size());
+
+  for (const auto & it : d.local_variables_table)
+    local_variables_table[it.first] = it.second->cloneDynamic(*this);
+}
+
+DataTree &
+DataTree::operator=(const DataTree &d)
+{
+  assert (&symbol_table == &d.symbol_table);
+  assert (&num_constants == &d.num_constants);
+  assert (&external_functions_table == &d.external_functions_table);
+  assert (is_dynamic == d.is_dynamic);
+
+  num_const_node_map.clear();
+  variable_node_map.clear();
+  unary_op_node_map.clear();
+  binary_op_node_map.clear();
+  trinary_op_node_map.clear();
+  external_function_node_map.clear();
+  var_expectation_node_map.clear();
+  pac_expectation_node_map.clear();
+  first_deriv_external_function_node_map.clear();
+  second_deriv_external_function_node_map.clear();
+
+  node_list.clear();
+
+  // Constants must be initialized first because they are used in some Add* methods
+  initConstants();
+
+  for (const auto & it : d.node_list)
+    it->cloneDynamic(*this);
+
+  assert(node_list.size() == d.node_list.size());
+
+  local_variables_vector = d.local_variables_vector;
+
+  for (const auto & it : d.local_variables_table)
+    local_variables_table[it.first] = it.second->cloneDynamic(*this);
+
+  return *this;
+}
 
 expr_t
 DataTree::AddNonNegativeConstant(const string &value)
@@ -65,8 +129,14 @@ DataTree::AddNonNegativeConstant(const string &value)
 }
 
 VariableNode *
-DataTree::AddVariableInternal(int symb_id, int lag)
+DataTree::AddVariable(int symb_id, int lag)
 {
+  if (lag != 0 && !is_dynamic)
+    {
+      cerr << "Leads/lags not authorized in this DataTree" << endl;
+      exit(EXIT_FAILURE);
+    }
+
   auto it = variable_node_map.find({ symb_id, lag });
   if (it != variable_node_map.end())
     return it->second;
@@ -85,13 +155,6 @@ DataTree::ParamUsedWithLeadLagInternal() const
     if (symbol_table.getType(it.first.first) == SymbolType::parameter && it.first.second != 0)
       return true;
   return false;
-}
-
-VariableNode *
-DataTree::AddVariable(int symb_id, int lag)
-{
-  assert(lag == 0);
-  return AddVariableInternal(symb_id, lag);
 }
 
 expr_t

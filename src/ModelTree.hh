@@ -74,7 +74,7 @@ protected:
   vector<pair<int, pair<string, string>>> equation_tags;
 
   //! Number of non-zero derivatives
-  int NNZDerivatives[3];
+  array<int, 3> NNZDerivatives;
 
   using first_derivatives_t = map<pair<int, int>, expr_t>;
   //! First order derivatives
@@ -331,10 +331,24 @@ protected:
   virtual int getBlockInitialOtherEndogenousID(int block_number, int variable_number) const = 0;
   //! Initialize equation_reordered & variable_reordered
   void initializeVariablesAndEquations();
+
+private:
+  //! Internal helper for the copy constructor and assignment operator
+  /*! Copies all the structures that contain ExprNode*, by the converting the
+      pointers into their equivalent in the new tree */
+  void copyHelper(const ModelTree &m);
+
 public:
   ModelTree(SymbolTable &symbol_table_arg,
             NumericalConstants &num_constants_arg,
-            ExternalFunctionsTable &external_functions_table_arg);
+            ExternalFunctionsTable &external_functions_table_arg,
+            bool is_dynamic_arg = false);
+
+  ModelTree(const ModelTree &m);
+  ModelTree(ModelTree &&) = delete;
+  ModelTree & operator=(const ModelTree &m);
+  ModelTree & operator=(ModelTree &&) = delete;
+
   //! Absolute value under which a number is considered to be zero
   double cutoff{1e-15};
   //! Compute the minimum feedback set

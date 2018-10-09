@@ -104,7 +104,6 @@ private:
   //! Collecte the derivatives w.r. to endogenous of the block, to endogenous of previouys blocks and to exogenous
   void collect_block_first_order_derivatives();
 
-protected:
   //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
   bool global_temporary_terms{true};
 
@@ -159,10 +158,21 @@ protected:
 
   void writeStaticModel(ostream &DynamicOutput, bool use_dll, bool julia) const;
   void writeStaticModel(const string &dynamic_basename, bool use_dll, bool julia) const;
+
+  //! Internal helper for the copy constructor and assignment operator
+  /*! Copies all the structures that contain ExprNode*, by the converting the
+      pointers into their equivalent in the new tree */
+  void copyHelper(const StaticModel &m);
+
 public:
   StaticModel(SymbolTable &symbol_table_arg,
               NumericalConstants &num_constants,
               ExternalFunctionsTable &external_functions_table_arg);
+
+  StaticModel(const StaticModel &m);
+  StaticModel(StaticModel &&) = delete;
+  StaticModel & operator=(const StaticModel &m);
+  StaticModel & operator=(StaticModel &&) = delete;
 
   //! Writes information on block decomposition when relevant
   void writeOutput(ostream &output, bool block) const;
