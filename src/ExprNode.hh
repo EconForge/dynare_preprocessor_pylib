@@ -693,7 +693,6 @@ class VariableNode : public ExprNode
 private:
   //! Id from the symbol table
   const int symb_id;
-  const SymbolType type;
   //! A positive value is a lead, a negative is a lag
   const int lag;
   expr_t computeDerivative(int deriv_id) override;
@@ -717,11 +716,7 @@ public:
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
-  SymbolType
-  get_type() const
-  {
-    return type;
-  };
+  SymbolType get_type() const;
   int
   get_symb_id() const
   {

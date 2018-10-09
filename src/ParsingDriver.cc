@@ -369,14 +369,6 @@ ParsingDriver::declare_or_change_type(SymbolType new_type, const string &name)
       symb_id = mod_file->symbol_table.getID(name);
       mod_file->symbol_table.changeType(symb_id, new_type);
 
-      // change in equations in ModelTree
-      auto dm = make_unique<DynamicModel>(mod_file->symbol_table,
-                                          mod_file->num_constants,
-                                          mod_file->external_functions_table,
-                                          mod_file->trend_component_model_table,
-                                          mod_file->var_model_table);
-      mod_file->dynamic_model.updateAfterVariableChange(*dm);
-
       // remove error messages
       undeclared_model_vars.erase(name);
       for (auto it = undeclared_model_variable_errors.begin();
