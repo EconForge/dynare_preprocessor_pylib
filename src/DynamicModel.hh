@@ -180,7 +180,6 @@ private:
   */
   void substituteLeadLagInternal(AuxVarType type, bool deterministic_model, const vector<string> &subset);
 
-private:
   //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
   bool global_temporary_terms{true};
 
