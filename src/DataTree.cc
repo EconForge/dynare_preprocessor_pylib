@@ -67,12 +67,12 @@ DataTree::DataTree(const DataTree &d) :
   initConstants();
 
   for (const auto & it : d.node_list)
-    it->cloneDynamic(*this);
+    it->clone(*this);
 
   assert(node_list.size() == d.node_list.size());
 
   for (const auto & it : d.local_variables_table)
-    local_variables_table[it.first] = it.second->cloneDynamic(*this);
+    local_variables_table[it.first] = it.second->clone(*this);
 }
 
 DataTree &
@@ -100,14 +100,14 @@ DataTree::operator=(const DataTree &d)
   initConstants();
 
   for (const auto & it : d.node_list)
-    it->cloneDynamic(*this);
+    it->clone(*this);
 
   assert(node_list.size() == d.node_list.size());
 
   local_variables_vector = d.local_variables_vector;
 
   for (const auto & it : d.local_variables_table)
-    local_variables_table[it.first] = it.second->cloneDynamic(*this);
+    local_variables_table[it.first] = it.second->clone(*this);
 
   return *this;
 }

@@ -539,7 +539,7 @@ class ExprNode
       virtual expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) = 0;
 
       //! Add ExprNodes to the provided datatree
-      virtual expr_t cloneDynamic(DataTree &dynamic_datatree) const = 0;
+      virtual expr_t clone(DataTree &datatree) const = 0;
 
       //! Move a trend variable with lag/lead to time t by dividing/multiplying by its growth factor
       virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const = 0;
@@ -665,7 +665,7 @@ public:
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
-  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
+  expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
@@ -762,7 +762,7 @@ public:
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
-  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
+  expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
@@ -888,7 +888,7 @@ public:
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
-  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
+  expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
@@ -1036,7 +1036,7 @@ public:
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
-  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
+  expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   //! Function to write out the oPowerNode in expr_t terms as opposed to writing out the function itself
   expr_t unpackPowerDeriv() const;
@@ -1157,7 +1157,7 @@ public:
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
-  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
+  expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
@@ -1282,7 +1282,7 @@ public:
   virtual void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms, const string &ending) const;
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
-  expr_t cloneDynamic(DataTree &dynamic_datatree) const override = 0;
+  expr_t clone(DataTree &datatree) const override = 0;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
@@ -1340,7 +1340,7 @@ public:
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const override;
-  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
+  expr_t clone(DataTree &datatree) const override;
 };
 
 class FirstDerivExternalFunctionNode : public AbstractExternalFunctionNode
@@ -1383,7 +1383,7 @@ public:
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const override;
-  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
+  expr_t clone(DataTree &datatree) const override;
 };
 
 class SecondDerivExternalFunctionNode : public AbstractExternalFunctionNode
@@ -1428,7 +1428,7 @@ public:
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const override;
-  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
+  expr_t clone(DataTree &datatree) const override;
 };
 
 class VarExpectationNode : public ExprNode
@@ -1448,7 +1448,7 @@ public:
                                      vector< vector<temporary_terms_t>> &v_temporary_terms,
                                      int equation) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
-  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
+  expr_t clone(DataTree &datatree) const override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
   int maxEndoLag() const override;
@@ -1547,7 +1547,7 @@ public:
                                      vector< vector<temporary_terms_t>> &v_temporary_terms,
                                      int equation) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
-  expr_t cloneDynamic(DataTree &dynamic_datatree) const override;
+  expr_t clone(DataTree &datatree) const override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
   int maxEndoLag() const override;

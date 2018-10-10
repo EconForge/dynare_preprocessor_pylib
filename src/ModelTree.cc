@@ -35,7 +35,7 @@ using namespace MFS;
 void
 ModelTree::copyHelper(const ModelTree &m)
 {
-  auto f = [this](expr_t e) { return e->cloneDynamic(*this); };
+  auto f = [this](expr_t e) { return e->clone(*this); };
 
   // Equations
   for (const auto & it : m.equations)

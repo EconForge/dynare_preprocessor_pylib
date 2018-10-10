@@ -32,7 +32,7 @@
 void
 StaticModel::copyHelper(const StaticModel &m)
 {
-  auto f = [this](expr_t e) { return e->cloneDynamic(*this); };
+  auto f = [this](expr_t e) { return e->clone(*this); };
 
   auto convert_vector_tt = [this,f](vector<temporary_terms_t> vtt)
     {

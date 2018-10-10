@@ -34,7 +34,7 @@
 void
 DynamicModel::copyHelper(const DynamicModel &m)
 {
-  auto f = [this](const ExprNode *e) { return e->cloneDynamic(*this); };
+  auto f = [this](const ExprNode *e) { return e->clone(*this); };
 
   for (const auto &it : m.static_only_equations)
     static_only_equations.push_back(dynamic_cast<BinaryOpNode *>(f(it)));
@@ -5028,7 +5028,7 @@ DynamicModel::replaceMyEquations(DynamicModel &dynamic_model) const
 {
   dynamic_model.equations.clear();
   for (size_t i = 0; i < equations.size(); i++)
-    dynamic_model.addEquation(equations[i]->cloneDynamic(dynamic_model),
+    dynamic_model.addEquation(equations[i]->clone(dynamic_model),
                               equations_lineno[i]);
 }
 
@@ -5049,7 +5049,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model, const boo
 
   // Add Planner Objective to equations to include in computeDerivIDs
   assert(static_model.equations.size() == 1);
-  addEquation(static_model.equations[0]->cloneDynamic(*this), static_model.equations_lineno[0]);
+  addEquation(static_model.equations[0]->clone(*this), static_model.equations_lineno[0]);
 
   // Get max endo lead and max endo lag
   set<pair<int, int>> dynvars;
