@@ -2052,10 +2052,10 @@ void
 ModelTree::initializeVariablesAndEquations()
 {
   for (size_t j = 0; j < equations.size(); j++)
-    {
-      equation_reordered.push_back(j);
-      variable_reordered.push_back(j);
-    }
+    equation_reordered.push_back(j);
+
+  for (int j = 0; j < symbol_table.endo_nbr(); j++)
+    variable_reordered.push_back(j);
 }
 
 void
