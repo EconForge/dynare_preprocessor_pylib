@@ -26,6 +26,8 @@ using namespace std;
 
 #include "ModelTree.hh"
 
+class DynamicModel;
+
 //! Stores a static model, as derived from the "model" block when leads and lags have been removed
 class StaticModel : public ModelTree
 {
@@ -172,7 +174,15 @@ public:
   StaticModel(const StaticModel &m);
   StaticModel(StaticModel &&) = delete;
   StaticModel & operator=(const StaticModel &m);
-  StaticModel & operator=(StaticModel &&) = delete;
+  /* The move assignment operator is not explicitly deleted, otherwise the
+    static_cast from DynamicModel does not work. However it looks like this
+    operator will not be used in the end. See
+    https://en.cppreference.com/w/cpp/language/copy_initialization
+    With C++17, it should be possible to explicitly delete it */
+  //StaticModel & operator=(StaticModel &&) = delete;
+
+  //! Creates the static version of a dynamic model
+  explicit StaticModel(const DynamicModel &m);
 
   //! Writes information on block decomposition when relevant
   void writeOutput(ostream &output, bool block) const;

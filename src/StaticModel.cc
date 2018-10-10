@@ -28,6 +28,7 @@
 #include <boost/filesystem.hpp>
 
 #include "StaticModel.hh"
+#include "DynamicModel.hh"
 
 void
 StaticModel::copyHelper(const StaticModel &m)
@@ -161,6 +162,59 @@ StaticModel::operator=(const StaticModel &m)
   copyHelper(m);
 
   return *this;
+}
+
+StaticModel::StaticModel(const DynamicModel &m) :
+  ModelTree {m.symbol_table, m.num_constants, m.external_functions_table}
+{
+  // Convert model local variables (need to be done first)
+  for (int it : m.local_variables_vector)
+    AddLocalVariable(it, m.local_variables_table.find(it)->second->toStatic(*this));
+
+  // Convert equations
+  int static_only_index = 0;
+  for (int i = 0; i < static_cast<int>(m.equations.size()); i++)
+    {
+      // Detect if equation is marked [dynamic]
+      bool is_dynamic_only = false;
+      vector<pair<string, string>> eq_tags;
+      for (const auto & equation_tag : equation_tags)
+        if (equation_tag.first == i)
+          {
+            eq_tags.push_back(equation_tag.second);
+            if (equation_tag.second.first == "dynamic")
+              is_dynamic_only = true;
+          }
+
+      try
+        {
+          // If yes, replace it by an equation marked [static]
+          if (is_dynamic_only)
+            {
+              auto tuple = m.getStaticOnlyEquationsInfo();
+              auto static_only_equations = get<0>(tuple);
+              auto static_only_equations_lineno = get<1>(tuple);
+              auto static_only_equations_equation_tags = get<2>(tuple);
+
+              // With C++17, rather use structured bindings, as:
+              //auto [ static_only_equations, static_only_equations_lineno, static_only_equations_equation_tags ] = m.getStaticOnlyEquationsInfo();
+
+              addEquation(static_only_equations[static_only_index]->toStatic(*this), static_only_equations_lineno[static_only_index], static_only_equations_equation_tags[static_only_index]);
+              static_only_index++;
+            }
+          else
+            addEquation(m.equations[i]->toStatic(*this), m.equations_lineno[i], eq_tags);
+        }
+      catch (DataTree::DivisionByZeroException)
+        {
+          cerr << "...division by zero error encountred when converting equation " << i << " to static" << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+
+  // Convert auxiliary equations
+  for (auto aux_eq : m.aux_equations)
+    addAuxEquation(aux_eq->toStatic(*this));
 }
 
 void

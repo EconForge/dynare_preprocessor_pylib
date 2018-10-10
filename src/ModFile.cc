@@ -693,7 +693,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
         trend_dynamic_model.runTrendTest(global_eval_context);
 
       // Compute static model and its derivatives
-      dynamic_model.toStatic(static_model);
+      static_model = static_cast<StaticModel>(dynamic_model);
 	  if (linear_decomposition)
         {
           non_linear_equations_dynamic_model = dynamic_model;

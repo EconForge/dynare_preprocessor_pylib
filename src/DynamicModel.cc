@@ -5119,55 +5119,6 @@ DynamicModel::toNonlinearPart(DynamicModel &non_linear_equations_dynamic_model) 
     non_linear_equations_dynamic_model.AddLocalVariable(it->first, it->second);
 }
 
-void
-DynamicModel::toStatic(StaticModel &static_model) const
-{
-  /* Ensure that we are using the same symbol table, because at many places we manipulate
-     symbol IDs rather than strings */
-  assert(&symbol_table == &static_model.symbol_table);
-
-  // Convert model local variables (need to be done first)
-  for (int it : local_variables_vector)
-    static_model.AddLocalVariable(it, local_variables_table.find(it)->second->toStatic(static_model));
-
-  // Convert equations
-  int static_only_index = 0;
-  for (int i = 0; i < (int) equations.size(); i++)
-    {
-      // Detect if equation is marked [dynamic]
-      bool is_dynamic_only = false;
-      vector<pair<string, string>> eq_tags;
-      for (const auto & equation_tag : equation_tags)
-        if (equation_tag.first == i)
-          {
-            eq_tags.push_back(equation_tag.second);
-            if (equation_tag.second.first == "dynamic")
-              is_dynamic_only = true;
-          }
-
-      try
-        {
-          // If yes, replace it by an equation marked [static]
-          if (is_dynamic_only)
-            {
-              static_model.addEquation(static_only_equations[static_only_index]->toStatic(static_model), static_only_equations_lineno[static_only_index], static_only_equations_equation_tags[static_only_index]);
-              static_only_index++;
-            }
-          else
-            static_model.addEquation(equations[i]->toStatic(static_model), equations_lineno[i], eq_tags);
-        }
-      catch (DataTree::DivisionByZeroException)
-        {
-          cerr << "...division by zero error encountred when converting equation " << i << " to static" << endl;
-          exit(EXIT_FAILURE);
-        }
-    }
-
-  // Convert auxiliary equations
-  for (auto aux_equation : aux_equations)
-    static_model.addAuxEquation(aux_equation->toStatic(static_model));
-}
-
 bool
 DynamicModel::ParamUsedWithLeadLag() const
 {

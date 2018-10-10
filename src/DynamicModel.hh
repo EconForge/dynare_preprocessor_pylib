@@ -39,7 +39,7 @@ private:
   constexpr static double zero_band{1e-8};
 
   //! Stores equations declared as [static]
-  /*! They will be used in toStatic() to replace equations marked as [dynamic] */
+  /*! They will be used in the conversion to StaticModel to replace equations marked as [dynamic] */
   vector<BinaryOpNode *> static_only_equations;
 
   //! Stores line numbers of equations declared as [static]
@@ -363,11 +363,6 @@ public:
   //! Writes file containing parameters derivatives
   void writeParamsDerivativesFile(const string &basename, bool julia) const;
 
-  //! Converts to static model (only the equations)
-  /*! It assumes that the static model given in argument has just been allocated */
-  void toStatic(StaticModel &static_model) const;
-
-  
   //! Converts to nonlinear model (only the equations)
   /*! It assumes that the nonlinear model given in argument has just been allocated */
   void toNonlinearPart(DynamicModel &non_linear_equations_dynamic_model) const;
@@ -472,6 +467,8 @@ public:
 
   //! Fills eval context with values of model local variables and auxiliary variables
   void fillEvalContext(eval_context_t &eval_context) const;
+
+  auto getStaticOnlyEquationsInfo() const { return make_tuple(static_only_equations, static_only_equations_lineno, static_only_equations_equation_tags); };
 
   //! Return the number of blocks
   unsigned int
