@@ -148,6 +148,18 @@ DataTree::AddVariable(int symb_id, int lag)
   return p;
 }
 
+VariableNode *
+DataTree::getVariable(int symb_id, int lag) const
+{
+  auto it = variable_node_map.find({ symb_id, lag });
+  if (it == variable_node_map.end())
+    {
+      cerr << "DataTree::getVariable: unknown variable node for symb_id=" << symb_id << " and lag=" << lag << endl;
+      exit(EXIT_FAILURE);
+    }
+  return it->second;
+}
+
 bool
 DataTree::ParamUsedWithLeadLagInternal() const
 {

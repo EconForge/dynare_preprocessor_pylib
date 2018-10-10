@@ -219,9 +219,7 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model
         output << "[";
       for (size_t j = 0; j < symb_ids.size(); j++)
         {
-          auto it = variable_node_map.find({ symb_ids[j], 0 });
-          assert(it != variable_node_map.end());
-          dynamic_cast<ExprNode *>(it->second)->writeOutput(output, output_type);
+          getVariable(symb_ids[j])->ExprNode::writeOutput(output, output_type);
           if (j < symb_ids.size()-1)
             output << ",";
         }
@@ -269,11 +267,8 @@ SteadyStateModel::writeJsonSteadyStateFile(ostream &output, bool transformComput
         {
           if (j != 0)
             output << ",";
-          auto it =
-            variable_node_map.find({ symb_ids[j], 0 });
-          assert(it != variable_node_map.end());
           output << "\"";
-          dynamic_cast<ExprNode *>(it->second)->writeJsonOutput(output, {}, {}, false);
+          getVariable(symb_ids[j])->writeJsonOutput(output, {}, {}, false);
           output << "\"";
         }
       if (symb_ids.size() > 1)
@@ -401,11 +396,8 @@ Epilogue::writeEpilogueFile(const string &basename) const
   output << endl;
   for (const auto & it : def_table)
     {
-      auto node = variable_node_map.find({ it.first, 0 });
-      assert(node != variable_node_map.end());
-
       output << "    ";
-      dynamic_cast<ExprNode *>(node->second)->writeOutput(output, output_type);
+      getVariable(it.first)->ExprNode::writeOutput(output, output_type);
       output << " = ";
       it.second->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
       output << ";" << endl;

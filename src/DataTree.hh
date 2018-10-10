@@ -48,7 +48,7 @@ public:
   //! Is it possible to use leads/lags on variable nodes?
   const bool is_dynamic;
 
-protected:
+private:
   //! num_constant_id -> NumConstNode
   using num_const_node_map_t = map<int, NumConstNode *>;
   num_const_node_map_t num_const_node_map;
@@ -89,6 +89,7 @@ protected:
   using second_deriv_external_function_node_map_t = map<tuple<vector<expr_t>, int, int, int>, SecondDerivExternalFunctionNode *>;
   second_deriv_external_function_node_map_t second_deriv_external_function_node_map;
 
+protected:
   //! Stores local variables value (maps symbol ID to corresponding node)
   map<int, expr_t> local_variables_table;
   //! Stores the order of appearance of local variables in the model block. Needed following change in #563
@@ -153,6 +154,10 @@ public:
   expr_t AddNonNegativeConstant(const string &value);
   //! Adds a variable
   VariableNode *AddVariable(int symb_id, int lag = 0);
+  //! Gets a variable
+  /*! Same as AddVariable, except that it fails if the variable node has not
+      already been created */
+  VariableNode *getVariable(int symb_id, int lag = 0) const;
   //! Adds "arg1+arg2" to model tree
   expr_t AddPlus(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1-arg2" to model tree
