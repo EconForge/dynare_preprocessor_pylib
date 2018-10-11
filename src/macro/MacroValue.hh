@@ -41,6 +41,7 @@ using MacroValuePtr = shared_ptr<MacroValue>;
 class MacroValue
 {
 public:
+  virtual ~MacroValue() = default;
   //! Exception thrown when type error occurs in macro language
   class TypeError
   {
@@ -118,6 +119,7 @@ class IntMV : public MacroValue
 {
 public:
   explicit IntMV(int value_arg);
+  virtual ~IntMV() = default;
   
   //! Underlying integer value
   const int value;
@@ -156,6 +158,7 @@ class StringMV : public MacroValue
 {
 public:
   explicit StringMV(string value_arg);
+  virtual ~StringMV() = default;
   //! Underlying string value
   const string value;
   
@@ -175,6 +178,7 @@ class FuncMV : public MacroValue
 {
 public:
   FuncMV(vector<string> args, string body_arg);
+  virtual ~FuncMV() = default;
   //! Function args & body
   const vector<string> args;
   const string body;
@@ -189,6 +193,7 @@ class ArrayMV : public MacroValue
 {
 public:
   explicit ArrayMV(vector<MacroValuePtr> values_arg);
+  virtual ~ArrayMV() = default;
 
   //! Underlying vector
   const vector<MacroValuePtr> values;
@@ -230,6 +235,7 @@ class TupleMV : public MacroValue
 {
 public:
   explicit TupleMV(vector<MacroValuePtr> values_arg);
+  virtual ~TupleMV() = default;
 
   //! Underlying vector
   const vector<MacroValuePtr> values;

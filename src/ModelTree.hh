@@ -27,6 +27,7 @@ using namespace std;
 #include <deque>
 #include <map>
 #include <ostream>
+#include <array>
 
 #include "DataTree.hh"
 #include "ExtendedPreprocessorTypes.hh"

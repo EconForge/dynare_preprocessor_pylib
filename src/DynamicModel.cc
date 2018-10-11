@@ -39,7 +39,7 @@ DynamicModel::copyHelper(const DynamicModel &m)
   for (const auto &it : m.static_only_equations)
     static_only_equations.push_back(dynamic_cast<BinaryOpNode *>(f(it)));
 
-  auto convert_vector_tt = [this,f](vector<temporary_terms_t> vtt)
+  auto convert_vector_tt = [f](vector<temporary_terms_t> vtt)
     {
       vector<temporary_terms_t> vtt2;
       for (const auto &tt : vtt)
@@ -72,7 +72,7 @@ DynamicModel::copyHelper(const DynamicModel &m)
   for (const auto &it : m.dynamic_jacobian)
     dynamic_jacobian[it.first] = f(it.second);
 
-  auto convert_derivative_t = [this,f](derivative_t dt)
+  auto convert_derivative_t = [f](derivative_t dt)
     {
       derivative_t dt2;
       for (const auto &it : dt)

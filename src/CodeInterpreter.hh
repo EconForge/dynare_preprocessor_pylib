@@ -1484,7 +1484,7 @@ public:
                unsigned int det_exo_size_arg, unsigned int nb_col_det_exo_jacob_arg, unsigned int exo_size_arg, unsigned int nb_col_exo_jacob_arg, unsigned int other_endo_size_arg, unsigned int nb_col_other_endo_jacob_arg,
                const vector<unsigned int> &det_exogenous_arg, const vector<unsigned int> &exogenous_arg, const vector<unsigned int> &other_endogenous_arg) :
     size{static_cast<int>(size_arg)},
-    type{type_arg},
+    type{static_cast<uint8_t>(type_arg)},
     variable{variable_arg.begin()+first_element, variable_arg.begin()+(first_element+block_size)},
     equation{equation_arg.begin()+first_element, equation_arg.begin()+(first_element+block_size)},
     other_endogenous{other_endogenous_arg},
@@ -1509,7 +1509,7 @@ public:
                const vector<int> &variable_arg, const vector<int> &equation_arg,
                bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int &u_count_int_arg, int nb_col_jacob_arg) :
     size{static_cast<int>(size_arg)},
-    type{type_arg},
+    type{static_cast<uint8_t>(type_arg)},
     variable{variable_arg.begin()+first_element, variable_arg.begin()+(first_element+block_size)},
     equation{equation_arg.begin()+first_element, equation_arg.begin()+(first_element+block_size)},
     is_linear{is_linear_arg},
