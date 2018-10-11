@@ -1263,9 +1263,6 @@ RplotStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-UnitRootVarsStatement::UnitRootVarsStatement()
-= default;
-
 void
 UnitRootVarsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
@@ -3306,9 +3303,6 @@ SvarStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-SvarGlobalIdentificationCheckStatement::SvarGlobalIdentificationCheckStatement()
-= default;
-
 void
 SvarGlobalIdentificationCheckStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
@@ -3725,9 +3719,6 @@ JointPriorStatement::writeJsonOutput(ostream &output) const
     }
   output << "}";
 }
-
-BasicPriorStatement::~BasicPriorStatement()
-= default;
 
 BasicPriorStatement::BasicPriorStatement(string name_arg,
                                          string subsample_name_arg,
@@ -4270,9 +4261,6 @@ PriorEqualStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-BasicOptionsStatement::~BasicOptionsStatement()
-= default;
-
 BasicOptionsStatement::BasicOptionsStatement(string name_arg,
                                              string subsample_name_arg,
                                              OptionsList options_list_arg) :
@@ -4721,9 +4709,6 @@ ExtendedPathStatement::writeJsonOutput(ostream &output) const
     }
   output << "}";
 }
-
-ModelDiagnosticsStatement::ModelDiagnosticsStatement()
-= default;
 
 void
 ModelDiagnosticsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const

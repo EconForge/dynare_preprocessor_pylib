@@ -278,7 +278,6 @@ public:
 class UnitRootVarsStatement : public Statement
 {
 public:
-  UnitRootVarsStatement();
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -854,7 +853,6 @@ public:
 class SvarGlobalIdentificationCheckStatement : public Statement
 {
 public:
-  SvarGlobalIdentificationCheckStatement();
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -936,9 +934,6 @@ public:
 
 class BasicPriorStatement : public Statement
 {
-public:
-  
-  ~BasicPriorStatement() override;
 protected:
   const string name;
   const string subsample_name;
@@ -1046,9 +1041,6 @@ public:
 
 class BasicOptionsStatement : public Statement
 {
-public:
-  
-  ~BasicOptionsStatement() override;
 protected:
   const string name;
   const string subsample_name;
@@ -1138,7 +1130,6 @@ public:
 class ModelDiagnosticsStatement : public Statement
 {
 public:
-  ModelDiagnosticsStatement();
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };

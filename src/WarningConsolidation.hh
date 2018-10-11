@@ -37,8 +37,6 @@ public:
   explicit WarningConsolidation(bool no_warn_arg) : no_warn{no_warn_arg}
   {
   };
-  ~WarningConsolidation()
-  = default;;
 
   //! Add A Warning to the StringStream
   friend WarningConsolidation &operator<<(WarningConsolidation &wcc, const string &warning);

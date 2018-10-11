@@ -62,7 +62,6 @@ private:
   //! Map containing options provided to external_functions()
   external_function_table_type externalFunctionTable;
 public:
-  ExternalFunctionsTable();
   //! Adds an external function to the table as well as its derivative functions
   void addExternalFunction(int symb_id, const external_function_options &external_function_options_arg, bool track_nargs);
   //! See if the function exists in the External Functions Table

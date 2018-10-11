@@ -124,8 +124,7 @@ public:
            ExternalFunctionsTable &external_functions_table_arg,
            bool is_static_args = false);
 
-  virtual
-  ~DataTree();
+  virtual ~DataTree() = default;
 
   DataTree(const DataTree &d);
   DataTree(DataTree &&) = delete;

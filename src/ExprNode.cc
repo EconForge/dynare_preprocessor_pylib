@@ -34,9 +34,6 @@ ExprNode::ExprNode(DataTree &datatree_arg, int idx_arg) : datatree{datatree_arg}
 {
 }
 
-ExprNode::~ExprNode()
-= default;
-
 expr_t
 ExprNode::getDerivative(int deriv_id)
 {

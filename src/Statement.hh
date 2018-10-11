@@ -133,8 +133,7 @@ class Statement
 {
 public:
   Statement() = default;
-  virtual
-  ~Statement();
+  virtual ~Statement() = default;
 
   Statement(const Statement &) = delete;
   Statement(Statement &&) = delete;

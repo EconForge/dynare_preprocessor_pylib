@@ -25,9 +25,6 @@ ModFileStructure::ModFileStructure()
 {
 }
 
-Statement::~Statement()
-= default;
-
 void
 Statement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {

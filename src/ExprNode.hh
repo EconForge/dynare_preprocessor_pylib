@@ -207,8 +207,7 @@ class ExprNode
                                          const temporary_terms_idxs_t &temporary_terms_idxs) const;
     public:
       ExprNode(DataTree &datatree_arg, int idx_arg);
-      virtual
-      ~ExprNode();
+      virtual ~ExprNode() = default;
 
       ExprNode(const ExprNode &) = delete;
       ExprNode(ExprNode &&) = delete;

@@ -26,9 +26,6 @@
 #include "ExternalFunctionsTable.hh"
 #include "SymbolTable.hh"
 
-ExternalFunctionsTable::ExternalFunctionsTable()
-= default;
-
 void
 ExternalFunctionsTable::addExternalFunction(int symb_id, const external_function_options &external_function_options_arg, bool track_nargs)
 {

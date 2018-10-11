@@ -54,8 +54,6 @@ DataTree::DataTree(SymbolTable &symbol_table_arg,
   initConstants();
 }
 
-DataTree::~DataTree() = default;
-
 DataTree::DataTree(const DataTree &d) :
   symbol_table {d.symbol_table},
   num_constants {d.num_constants},
