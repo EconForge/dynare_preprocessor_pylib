@@ -532,7 +532,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       else if (trend_component_model_table.isExistingTrendComponentModelName(vems->aux_model_name))
         {
           max_lag = trend_component_model_table.getMaxLag(vems->aux_model_name) + 1;
-          lhs = trend_component_model_table.getLhs(vems->aux_model_name);
+          lhs = dynamic_model.getUndiffLHSForPac(vems->aux_model_name, diff_subst_table);
         }
       else
         {
