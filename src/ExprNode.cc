@@ -3486,6 +3486,73 @@ UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nod
   if (it == nodes.end())
     return buildSimilarUnaryOpNode(argsubst, datatree);
 
+  string unary_op = "";
+  switch (op_code)
+    {
+    case UnaryOpcode::exp:
+      unary_op = "exp";
+      break;
+    case UnaryOpcode::log:
+      unary_op = "log";
+      break;
+    case UnaryOpcode::log10:
+      unary_op = "log10";
+      break;
+    case UnaryOpcode::cos:
+      unary_op = "cos";
+      break;
+    case UnaryOpcode::sin:
+      unary_op = "sin";
+      break;
+    case UnaryOpcode::tan:
+      unary_op = "tan";
+      break;
+    case UnaryOpcode::acos:
+      unary_op = "acos";
+      break;
+    case UnaryOpcode::asin:
+      unary_op = "asin";
+      break;
+    case UnaryOpcode::atan:
+      unary_op = "atan";
+      break;
+    case UnaryOpcode::cosh:
+      unary_op = "cosh";
+      break;
+    case UnaryOpcode::sinh:
+      unary_op = "sinh";
+      break;
+    case UnaryOpcode::tanh:
+      unary_op = "tanh";
+      break;
+    case UnaryOpcode::acosh:
+      unary_op = "acosh";
+      break;
+    case UnaryOpcode::asinh:
+      unary_op = "asinh";
+      break;
+    case UnaryOpcode::atanh:
+      unary_op = "atanh";
+      break;
+    case UnaryOpcode::sqrt:
+      unary_op = "sqrt";
+      break;
+    case UnaryOpcode::abs:
+      unary_op = "abs";
+      break;
+    case UnaryOpcode::sign:
+      unary_op = "sign";
+      break;
+    case UnaryOpcode::erf:
+      unary_op = "erf";
+      break;
+    default:
+      {
+        cerr << "UnaryOpNode::substituteUnaryOpNodes: Shouldn't arrive here" << endl;
+        exit(EXIT_FAILURE);
+      }
+    }
+
   int base_aux_lag = 0;
   VariableNode *aux_var = nullptr;
   for (auto rit = it->second.rbegin(); rit != it->second.rend(); rit++)
@@ -3494,10 +3561,10 @@ UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nod
         int symb_id;
         auto *vn = dynamic_cast<VariableNode *>(argsubst);
         if (vn == nullptr)
-            symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, dynamic_cast<UnaryOpNode *>(rit->second));
+          symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, dynamic_cast<UnaryOpNode *>(rit->second), unary_op);
         else
-            symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, dynamic_cast<UnaryOpNode *>(rit->second),
-                                                                   vn->get_symb_id(), vn->get_lag());
+          symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, dynamic_cast<UnaryOpNode *>(rit->second), unary_op,
+                                                                 vn->get_symb_id(), vn->get_lag());
         aux_var = datatree.AddVariable(symb_id, 0);
         neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(aux_var,
                                                                         dynamic_cast<UnaryOpNode *>(rit->second))));

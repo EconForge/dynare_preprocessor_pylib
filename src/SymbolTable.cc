@@ -27,14 +27,15 @@
 
 AuxVarInfo::AuxVarInfo(int symb_id_arg, AuxVarType type_arg, int orig_symb_id_arg, int orig_lead_lag_arg,
                        int equation_number_for_multiplier_arg, int information_set_arg,
-                       expr_t expr_node_arg) :
+                       expr_t expr_node_arg, string unary_op_arg) :
   symb_id{symb_id_arg},
   type{type_arg},
   orig_symb_id{orig_symb_id_arg},
   orig_lead_lag{orig_lead_lag_arg},
   equation_number_for_multiplier{equation_number_for_multiplier_arg},
   information_set{information_set_arg},
-  expr_node{expr_node_arg}
+  expr_node{expr_node_arg},
+  unary_op{unary_op_arg}
 {
 }
 
@@ -360,6 +361,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
             if (aux_vars[i].get_orig_symb_id() >= 0)
               output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl
                      << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
+            output << "M_.aux_vars(" << i+1 << ").unary_op = '" << aux_vars[i].get_unary_op() << "';" << endl;
             break;
           case AuxVarType::multiplier:
             output << "M_.aux_vars(" << i+1 << ").eq_nbr = " << aux_vars[i].get_equation_number_for_multiplier() + 1 << ";" << endl;
@@ -489,6 +491,7 @@ SymbolTable::writeCOutput(ostream &output) const noexcept(false)
               if (aux_vars[i].get_orig_symb_id() >= 0)
                 output << "av[" << i << "].orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
                        << "av[" << i << "].orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
+              output << "av[" << i << "].unary_op = \"" << aux_vars[i].get_unary_op() << "\";" << endl;
               break;
             case AuxVarType::diff:
             case AuxVarType::diffLag:
@@ -593,6 +596,7 @@ SymbolTable::writeCCOutput(ostream &output) const noexcept(false)
           if (aux_vars[i].get_orig_symb_id() >= 0)
             output << "av" << i << ".orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
                    << "av" << i << ".orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
+          output << "av" << i << ".unary_op = \"" << aux_vars[i].get_unary_op() << "\";" << endl;
           break;
         case AuxVarType::diff:
         case AuxVarType::diffLag:
@@ -634,7 +638,7 @@ SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index, expr_t expr_arg) 
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, (endo ? AuxVarType::endoLead : AuxVarType::exoLead), 0, 0, 0, 0, expr_arg);
+  aux_vars.emplace_back(symb_id, (endo ? AuxVarType::endoLead : AuxVarType::exoLead), 0, 0, 0, 0, expr_arg, "");
 
   return symb_id;
 }
@@ -660,7 +664,7 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, (endo ? AuxVarType::endoLag : AuxVarType::exoLag), orig_symb_id, orig_lead_lag, 0, 0, expr_arg);
+  aux_vars.emplace_back(symb_id, (endo ? AuxVarType::endoLag : AuxVarType::exoLag), orig_symb_id, orig_lead_lag, 0, 0, expr_arg, "");
 
   return symb_id;
 }
@@ -708,7 +712,7 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t e
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::expectation, 0, 0, 0, information_set, expr_arg);
+  aux_vars.emplace_back(symb_id, AuxVarType::expectation, 0, 0, 0, information_set, expr_arg, "");
 
   return symb_id;
 }
@@ -731,7 +735,7 @@ SymbolTable::addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::diffLag, orig_symb_id, orig_lag, 0, 0, expr_arg);
+  aux_vars.emplace_back(symb_id, AuxVarType::diffLag, orig_symb_id, orig_lag, 0, 0, expr_arg, "");
 
   return symb_id;
 }
@@ -754,7 +758,7 @@ SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, i
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::diff, orig_symb_id, orig_lag, 0, 0, expr_arg);
+  aux_vars.emplace_back(symb_id, AuxVarType::diff, orig_symb_id, orig_lag, 0, 0, expr_arg, "");
 
   return symb_id;
 }
@@ -766,7 +770,7 @@ SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg) noexcept(false)
 }
 
 int
-SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) noexcept(false)
+SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op, int orig_symb_id, int orig_lag) noexcept(false)
 {
   ostringstream varname;
   int symb_id;
@@ -782,7 +786,7 @@ SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::unaryOp, orig_symb_id, orig_lag, 0, 0, expr_arg);
+  aux_vars.emplace_back(symb_id, AuxVarType::unaryOp, orig_symb_id, orig_lag, 0, 0, expr_arg, unary_op);
 
   return symb_id;
 }
@@ -804,7 +808,7 @@ SymbolTable::addVarModelEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag,
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::varModel, orig_symb_id, orig_lead_lag, 0, 0, expr_arg);
+  aux_vars.emplace_back(symb_id, AuxVarType::varModel, orig_symb_id, orig_lead_lag, 0, 0, expr_arg, "");
 
   return symb_id;
 }
@@ -826,7 +830,7 @@ SymbolTable::addMultiplierAuxiliaryVar(int index) noexcept(false)
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::multiplier, 0, 0, index, 0, nullptr);
+  aux_vars.emplace_back(symb_id, AuxVarType::multiplier, 0, 0, index, 0, nullptr, "");
   return symb_id;
 }
 
@@ -847,7 +851,7 @@ SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id, expr_t expr_arg) noexc
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::diffForward, orig_symb_id, 0, 0, 0, expr_arg);
+  aux_vars.emplace_back(symb_id, AuxVarType::diffForward, orig_symb_id, 0, 0, 0, expr_arg, "");
   return symb_id;
 }
 
@@ -1137,27 +1141,28 @@ SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
             case AuxVarType::exoLag:
             case AuxVarType::varModel:
               output << getTypeSpecificID(aux_var.get_orig_symb_id()) + 1 << ", "
-                     << aux_var.get_orig_lead_lag() << ", typemin(Int), string()";
+                     << aux_var.get_orig_lead_lag() << ", typemin(Int), string(), string()";
               break;
             case AuxVarType::unaryOp:
               if (aux_var.get_orig_symb_id() >= 0)
                 output << getTypeSpecificID(aux_var.get_orig_symb_id()) + 1 << ", " << aux_var.get_orig_lead_lag();
               else
                 output << "typemin(Int), typemin(Int)";
-              output << ", typemin(Int), string()";
+              output << ", typemin(Int), string(), "
+                     << "\"" << aux_var.get_unary_op() << "\"" << endl;
               break;
             case AuxVarType::diff:
             case AuxVarType::diffLag:
               if (aux_var.get_orig_symb_id() >= 0)
                 output << getTypeSpecificID(aux_var.get_orig_symb_id()) + 1 << ", "
-                       << aux_var.get_orig_lead_lag() << ", typemin(Int), string()";
+                       << aux_var.get_orig_lead_lag() << ", typemin(Int), string(), string()";
               break;
             case AuxVarType::multiplier:
               output << "typemin(Int), typemin(Int), " << aux_var.get_equation_number_for_multiplier() + 1
-                     << ", string()";
+                     << ", string(), string()";
               break;
             case AuxVarType::diffForward:
-              output << getTypeSpecificID(aux_var.get_orig_symb_id())+1 << ", typemin(Int), typemin(Int), string()";
+              output << getTypeSpecificID(aux_var.get_orig_symb_id())+1 << ", typemin(Int), typemin(Int), string(), string()";
               break;
             case AuxVarType::expectation:
               output << "typemin(Int), typemin(Int), typemin(Int), \"\\mathbb{E}_{t"
@@ -1167,7 +1172,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
               output << ")\"";
               break;
             default:
-              output << " typemin(Int), typemin(Int), typemin(Int), string()";
+              output << " typemin(Int), typemin(Int), typemin(Int), string(), string()";
             }
           output << ")" << endl;
         }

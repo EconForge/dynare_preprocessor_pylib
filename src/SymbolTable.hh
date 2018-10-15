@@ -61,8 +61,9 @@ private:
   int equation_number_for_multiplier; //!< Stores the original constraint equation number associated with this aux var. Only used for avMultiplier.
   int information_set; //! Argument of expectation operator. Only used for avExpectation.
   expr_t expr_node; //! Auxiliary variable definition
+  string unary_op; //! Used with AuxUnaryOp
 public:
-  AuxVarInfo(int symb_id_arg, AuxVarType type_arg, int orig_symb_id, int orig_lead_lag, int equation_number_for_multiplier_arg, int information_set_arg, expr_t expr_node_arg);
+  AuxVarInfo(int symb_id_arg, AuxVarType type_arg, int orig_symb_id, int orig_lead_lag, int equation_number_for_multiplier_arg, int information_set_arg, expr_t expr_node_arg, string unary_op_arg);
   int
   get_symb_id() const
   {
@@ -102,6 +103,11 @@ public:
   get_expr_node() const
   {
     return expr_node;
+  };
+  string
+  get_unary_op() const
+  {
+    return unary_op;
   };
 };
 
@@ -304,7 +310,7 @@ public:
   //! Takes care of timing between diff statements
   int addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) noexcept(false);
   //! An Auxiliary variable for a unary op
-  int addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id = -1, int orig_lag = 0) noexcept(false);
+  int addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op, int orig_symb_id = -1, int orig_lag = 0) noexcept(false);
   //! Returns the number of auxiliary variables
   int
   AuxVarsSize() const
