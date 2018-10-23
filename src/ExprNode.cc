@@ -359,7 +359,11 @@ NumConstNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 void
 NumConstNode::writeJsonAST(ostream &output) const
 {
-  output << "{\"node_type\" : \"NumConstNode\", \"value\" : " << datatree.num_constants.get(id) << "}";
+  output << "{\"node_type\" : \"NumConstNode\", \"value\" : ";
+  double testval = datatree.num_constants.getDouble(id);
+  if (testval < 1.0 && testval > -1.0 && testval != 0.0)
+    output << "0";
+  output << datatree.num_constants.get(id) << "}";
 }
 
 void
