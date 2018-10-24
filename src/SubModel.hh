@@ -42,7 +42,7 @@ private:
   map<string, vector<string>> eqtags, target_eqtags;
   map<string, vector<int>> eqnums, target_eqnums, nontarget_eqnums, max_lags, lhs, target_lhs, nontarget_lhs, orig_diff_var;
   map<string, vector<set<pair<int, int>>>> rhs;
-  map<string, vector<bool>> diff, nonstationary;
+  map<string, vector<bool>> diff;
   map<string, vector<expr_t>> lhs_expr_t;
   map<string, vector<int>> target_vars;
   map<string, map<tuple<int, int, int>, expr_t>> AR; // AR: name -> (eqn, lag, lhs_symb_id) -> expr_t
@@ -72,13 +72,12 @@ public:
   vector<int> getOrigDiffVar(const string &name_arg) const;
   map<string, vector<int>> getNonTargetEqNums() const;
   vector<int> getNonTargetEqNums(const string &name_arg) const;
-  vector<bool> getNonstationary(const string &name_arg) const;
   vector<int> getNontrendLhs(const string &name_arg) const;
   vector<int> getTargetLhs(const string &name_arg) const;
 
   void setVals(map<string, vector<int>> eqnums_arg, map<string, vector<int>> target_eqnums_arg,
                map<string, vector<int>> lhs_arg,
-               map<string, vector<expr_t>> lhs_expr_t_arg, map<string, vector<bool>> nonstationary_arg);
+               map<string, vector<expr_t>> lhs_expr_t_arg);
   void setRhs(map<string, vector<set<pair<int, int>>>> rhs_arg);
   void setMaxLags(map<string, vector<int>> max_lags_arg);
   void setDiff(map<string, vector<bool>> diff_arg);
@@ -120,7 +119,7 @@ private:
   map<string, vector<string>> eqtags;
   map<string, vector<int>> eqnums, max_lags, lhs, orig_diff_var;
   map<string, vector<set<pair<int, int>>>> rhs;
-  map<string, vector<bool>> diff, nonstationary;
+  map<string, vector<bool>> diff;
   map<string, vector<expr_t>> lhs_expr_t;
   map<string, map<tuple<int, int, int>, expr_t>> AR; // AR: name -> (eqn, lag, lhs_symb_id) -> param_expr_t
 public:
@@ -136,11 +135,11 @@ public:
   map<string, vector<string>> getEqTags() const;
   vector<string> getEqTags(const string &name_arg) const;
   map<string, vector<int>> getEqNums() const;
+  vector<bool> getDiff(const string &name_arg) const;
   vector<int> getEqNums(const string &name_arg) const;
   vector<int> getMaxLags(const string &name_arg) const;
   int getMaxLag(const string &name_arg) const;
   vector<int> getLhs(const string &name_arg) const;
-  vector<bool> getNonstationary(const string &name_arg) const;
   map<string, pair<SymbolList, int>> getSymbolListAndOrder() const;
   vector<set<pair<int, int>>> getRhs(const string &name_arg) const;
   vector<expr_t> getLhsExprT(const string &name_arg) const;
@@ -149,7 +148,6 @@ public:
   void setLhs(map<string, vector<int>> lhs_arg);
   void setRhs(map<string, vector<set<pair<int, int>>>> rhs_arg);
   void setLhsExprT(map<string, vector<expr_t>> lhs_expr_t_arg);
-  void setNonstationary(map<string, vector<bool>> nonstationary_arg);
   void setDiff(map<string, vector<bool>> diff_arg);
   void setMaxLags(map<string, vector<int>> max_lags_arg);
   void setOrigDiffVar(map<string, vector<int>> orig_diff_var_arg);

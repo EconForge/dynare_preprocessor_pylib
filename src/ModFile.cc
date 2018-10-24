@@ -423,13 +423,15 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
              {
                max_lag = trend_component_model_table.getMaxLag(aux_model_name) + 1;
                lhs = dynamic_model.getUndiffLHSForPac(aux_model_name, diff_subst_table);
-               nonstationary = trend_component_model_table.getNonstationary(aux_model_name);
+               // All lhs variables in a trend component model are nonstationary
+               nonstationary.insert(nonstationary.end(), trend_component_model_table.getDiff(aux_model_name).size(), true);
              }
            else if (var_model_table.isExistingVarModelName(aux_model_name))
              {
                max_lag = var_model_table.getMaxLag(aux_model_name);
                lhs = var_model_table.getLhs(aux_model_name);
-               nonstationary = var_model_table.getNonstationary(aux_model_name);
+               // nonstationary variables in a VAR are those that are in diff
+               nonstationary = var_model_table.getDiff(aux_model_name);
              }
            else
              {

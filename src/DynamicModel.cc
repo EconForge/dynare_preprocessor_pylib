@@ -3771,7 +3771,6 @@ DynamicModel::fillVarModelTable() const
 {
   map<string, vector<int>> eqnums, lhsr;
   map<string, vector<expr_t>> lhs_expr_tr;
-  map<string, vector<bool>> nonstationaryr;
   map<string, vector<set<pair<int, int>>>> rhsr;
   map<string, vector<string>> eqtags = var_model_table.getEqTags();
 
@@ -3780,7 +3779,6 @@ DynamicModel::fillVarModelTable() const
       vector<int> eqnumber, lhs;
       vector<expr_t> lhs_expr_t;
       vector<set<pair<int, int>>> rhs;
-      vector<bool> nonstationary;
 
       for (const auto & eqtag : it.second)
         {
@@ -3799,17 +3797,6 @@ DynamicModel::fillVarModelTable() const
               cerr << "ERROR: equation tag '" << eqtag << "' not found" << endl;
               exit(EXIT_FAILURE);
             }
-
-          bool nonstationary_bool = false;
-          for (const auto & equation_tag : equation_tags)
-            if (equation_tag.first == eqn)
-              if (equation_tag.second.first == "data_type"
-                  && equation_tag.second.second == "nonstationary")
-                {
-                  nonstationary_bool = true;
-                  break;
-                }
-          nonstationary.push_back(nonstationary_bool);
 
           equations[eqn]->get_arg1()->collectDynamicVariables(SymbolType::endogenous, lhs_set);
           equations[eqn]->get_arg1()->collectDynamicVariables(SymbolType::exogenous, lhs_tmp_set);
@@ -3852,13 +3839,11 @@ DynamicModel::fillVarModelTable() const
       lhsr[it.first] = lhs;
       lhs_expr_tr[it.first] = lhs_expr_t;
       rhsr[it.first] = rhs;
-      nonstationaryr[it.first] = nonstationary;
     }
   var_model_table.setEqNums(eqnums);
   var_model_table.setLhs(lhsr);
   var_model_table.setRhs(rhsr);
   var_model_table.setLhsExprT(lhs_expr_tr);
-  var_model_table.setNonstationary(nonstationaryr);
 
   // Fill AR Matrix
   map<string, map<tuple<int, int, int>, expr_t>> ARr;
@@ -3955,7 +3940,6 @@ DynamicModel::fillTrendComponentModelTable() const
 {
   map<string, vector<int>> eqnums, trend_eqnums, lhsr;
   map<string, vector<expr_t>> lhs_expr_tr;
-  map<string, vector<bool>> nonstationaryr;
   map<string, vector<set<pair<int, int>>>> rhsr;
   map<string, vector<string>> eqtags = trend_component_model_table.getEqTags();
   map<string, vector<string>> trend_eqtags = trend_component_model_table.getTargetEqTags();
@@ -3988,7 +3972,6 @@ DynamicModel::fillTrendComponentModelTable() const
       vector<int> eqnumber, lhs;
       vector<expr_t> lhs_expr_t;
       vector<set<pair<int, int>>> rhs;
-      vector<bool> nonstationary;
 
       for (const auto & eqtag : it.second)
         {
@@ -4007,17 +3990,6 @@ DynamicModel::fillTrendComponentModelTable() const
               cerr << "ERROR: equation tag '" << eqtag << "' not found" << endl;
               exit(EXIT_FAILURE);
             }
-
-          bool nonstationary_bool = false;
-          for (const auto & equation_tag : equation_tags)
-            if (equation_tag.first == eqn)
-              if (equation_tag.second.first == "data_type"
-                  && equation_tag.second.second == "nonstationary")
-                {
-                  nonstationary_bool = true;
-                  break;
-                }
-          nonstationary.push_back(nonstationary_bool);
 
           equations[eqn]->get_arg1()->collectDynamicVariables(SymbolType::endogenous, lhs_set);
           equations[eqn]->get_arg1()->collectDynamicVariables(SymbolType::exogenous, lhs_tmp_set);
@@ -4060,10 +4032,9 @@ DynamicModel::fillTrendComponentModelTable() const
       lhsr[it.first] = lhs;
       lhs_expr_tr[it.first] = lhs_expr_t;
       rhsr[it.first] = rhs;
-      nonstationaryr[it.first] = nonstationary;
     }
   trend_component_model_table.setRhs(rhsr);
-  trend_component_model_table.setVals(eqnums, trend_eqnums, lhsr, lhs_expr_tr, nonstationaryr);
+  trend_component_model_table.setVals(eqnums, trend_eqnums, lhsr, lhs_expr_tr);
 }
 
 void

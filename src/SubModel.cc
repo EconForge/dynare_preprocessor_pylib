@@ -43,14 +43,12 @@ TrendComponentModelTable::addTrendComponentModel(string name_arg,
 
 void
 TrendComponentModelTable::setVals(map<string, vector<int>> eqnums_arg, map<string, vector<int>> target_eqnums_arg,
-                                  map<string, vector<int>> lhs_arg,
-                                  map<string, vector<expr_t>> lhs_expr_t_arg, map<string, vector<bool>> nonstationary_arg)
+                                  map<string, vector<int>> lhs_arg, map<string, vector<expr_t>> lhs_expr_t_arg)
 {
   eqnums = move(eqnums_arg);
   target_eqnums = move(target_eqnums_arg);
   lhs = move(lhs_arg);
   lhs_expr_t = move(lhs_expr_t_arg);
-  nonstationary = move(nonstationary_arg);
 
   for (const auto &it : eqnums)
     {
@@ -147,13 +145,6 @@ TrendComponentModelTable::checkModelName(const string &name_arg) const
            << " is not a recognized equation tag of a trend component model equation" << endl;
       exit(EXIT_FAILURE);
     }
-}
-
-vector<bool>
-TrendComponentModelTable::getNonstationary(const string &name_arg) const
-{
-  checkModelName(name_arg);
-  return nonstationary.find(name_arg)->second;
 }
 
 vector<int>
@@ -317,8 +308,8 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
         output << (it >= 0 ? symbol_table.getTypeSpecificID(it) + 1 : -1) << " ";
       output << "];" << endl
              << "M_.trend_component." << name << ".nonstationary = [";
-      for (auto it : nonstationary.at(name))
-        output << (it ? "true" : "false") << " ";
+      for (size_t i = 0; i < diff.at(name).size(); i++)
+        output << "true ";
       output << "];" << endl;
       int i = 1;
       for (const auto &it : rhs.at(name))
@@ -473,13 +464,10 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
       for (const auto &it : diff.at(name))
         output << (it ? "true" : "false") << " ";
       output << "];" << endl
+             << "M_.var." << name << ".nonstationary = M_.var." << name << ".diff;" << endl
              << "M_.var." << name << ".orig_diff_var = [";
       for (auto it : orig_diff_var.at(name))
         output << (it >= 0 ? symbol_table.getTypeSpecificID(it) + 1 : -1) << " ";
-      output << "];" << endl
-             << "M_.var." << name << ".nonstationary = [";
-      for (auto it : nonstationary.at(name))
-        output << (it ? "true" : "false") << " ";
       output << "];" << endl;
       int i = 1;
       for (const auto &it : rhs.at(name))
@@ -590,16 +578,17 @@ VarModelTable::setLhsExprT(map<string, vector<expr_t>> lhs_expr_t_arg)
   lhs_expr_t = move(lhs_expr_t_arg);
 }
 
-void
-VarModelTable::setNonstationary(map<string, vector<bool>> nonstationary_arg)
-{
-  nonstationary = move(nonstationary_arg);
-}
-
 map<string, vector<int>>
 VarModelTable::getEqNums() const
 {
   return eqnums;
+}
+
+vector<bool>
+VarModelTable::getDiff(const string &name_arg) const
+{
+  checkModelName(name_arg);
+  return diff.find(name_arg)->second;
 }
 
 vector<int>
@@ -654,13 +643,6 @@ VarModelTable::getLhs(const string &name_arg) const
 {
   checkModelName(name_arg);
   return lhs.find(name_arg)->second;
-}
-
-vector<bool>
-VarModelTable::getNonstationary(const string &name_arg) const
-{
-  checkModelName(name_arg);
-  return nonstationary.find(name_arg)->second;
 }
 
 vector<set<pair<int, int>>>
