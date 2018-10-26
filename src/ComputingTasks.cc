@@ -2174,7 +2174,7 @@ PlannerObjectiveStatement::computingPass()
 void
 PlannerObjectiveStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  model_tree.writeStaticFile(basename + ".objective", false, false, false, false);
+  model_tree.writeStaticFile(basename + ".objective", false, false, false, "", {}, {}, false);
 }
 
 void

@@ -32,13 +32,10 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
       bool nograph, bool nointeractive, bool parallel, ConfigFile &config_file,
       WarningConsolidation &warnings, bool nostrict, bool stochastic, bool check_model_changes,
       bool minimal_workspace, bool compute_xrefs, FileOutputType output_mode,
-      LanguageOutputType language, int params_derivs_order, bool transform_unary_ops
-#if defined(_WIN32) || defined(__CYGWIN32__)
-      , bool cygwin, bool msvc, bool mingw
-#endif
-      , JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple
-      , bool nopreprocessoroutput
-      )
+      LanguageOutputType language, int params_derivs_order, bool transform_unary_ops,
+      JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple,
+      bool nopreprocessoroutput, const string &mexext, const boost::filesystem::path &matlabroot,
+      const boost::filesystem::path &dynareroot)
 {
   ParsingDriver p(warnings, nostrict);
 
@@ -72,12 +69,8 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
     mod_file->writeExternalFiles(basename, output_mode, language, nopreprocessoroutput);
   else
     mod_file->writeOutputFiles(basename, clear_all, clear_global, no_log, no_warn, console, nograph,
-                               nointeractive, config_file, check_model_changes, minimal_workspace, compute_xrefs
-#if defined(_WIN32) || defined(__CYGWIN32__)
-                               , cygwin, msvc, mingw
-#endif
-                               , nopreprocessoroutput
-                               );
+                               nointeractive, config_file, check_model_changes, minimal_workspace, compute_xrefs,
+                               nopreprocessoroutput, mexext, matlabroot, dynareroot);
 
   if (!nopreprocessoroutput)
     cout << "Preprocessing completed." << endl;

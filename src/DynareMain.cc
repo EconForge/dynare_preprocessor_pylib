@@ -28,6 +28,9 @@
 #endif
 
 #include <unistd.h>
+
+#include <boost/filesystem.hpp>
+
 #include "ParsingDriver.hh"
 #include "ExtendedPreprocessorTypes.hh"
 #include "ConfigFile.hh"
@@ -41,13 +44,10 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
            bool nograph, bool nointeractive, bool parallel, ConfigFile &config_file,
            WarningConsolidation &warnings_arg, bool nostrict, bool stochastic, bool check_model_changes,
            bool minimal_workspace, bool compute_xrefs, FileOutputType output_mode,
-           LanguageOutputType lang, int params_derivs_order, bool transform_unary_ops
-#if defined(_WIN32) || defined(__CYGWIN32__)
-           , bool cygwin, bool msvc, bool mingw
-#endif
-           , JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple
-           , bool nopreprocessoroutput
-           );
+           LanguageOutputType lang, int params_derivs_order, bool transform_unary_ops,
+           JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple,
+           bool nopreprocessoroutput, const string &mexext, const boost::filesystem::path &matlabroot,
+           const boost::filesystem::path &dynareroot);
 
 void main1(string &modfile, string &basename, string &modfiletxt, bool debug, bool save_macro, string &save_macro_file,
            bool no_line_macro, bool no_empty_line_macro, map<string, string> &defines, vector<string> &path, stringstream &macro_output);
@@ -59,10 +59,8 @@ usage()
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test]"
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=julia]"
        << " [params_derivs_order=0|1|2] [transform_unary_ops]"
-#if defined(_WIN32) || defined(__CYGWIN32__)
-       << " [cygwin] [msvc] [mingw]"
-#endif
        << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] [nopathchange] [nopreprocessoroutput]"
+       << " [dll=matlab|octave] [matlabroot=path]"
        << endl;
   exit(EXIT_FAILURE);
 }
@@ -99,11 +97,6 @@ main(int argc, char **argv)
   bool console = false;
   bool nograph = false;
   bool nointeractive = false;
-#if defined(_WIN32) || defined(__CYGWIN32__)
-  bool cygwin = false;
-  bool msvc = false;
-  bool mingw = false;
-#endif
   string parallel_config_file;
   bool parallel = false;
   string cluster_name;
@@ -124,6 +117,11 @@ main(int argc, char **argv)
   bool jsonderivsimple = false;
   LanguageOutputType language{LanguageOutputType::matlab};
   bool nopreprocessoroutput = false;
+  string mexext;
+  boost::filesystem::path matlabroot;
+  boost::filesystem::path dynareroot{argv[0]};
+  dynareroot = dynareroot.parent_path();
+  dynareroot = dynareroot / ".." / "..";
 
   // Parse options
   for (int arg = 2; arg < argc; arg++)
@@ -180,14 +178,6 @@ main(int argc, char **argv)
         nograph = true;
       else if (!strcmp(argv[arg], "nointeractive"))
         nointeractive = true;
-#if defined(_WIN32) || defined(__CYGWIN32__)
-      else if (!strcmp(argv[arg], "cygwin"))
-        cygwin = true;
-      else if (!strcmp(argv[arg], "msvc"))
-        msvc = true;
-      else if (!strcmp(argv[arg], "mingw"))
-        mingw = true;
-#endif
       else if (strlen(argv[arg]) >= 8 && !strncmp(argv[arg], "conffile", 8))
         {
           if (strlen(argv[arg]) <= 9 || argv[arg][8] != '=')
@@ -332,6 +322,28 @@ main(int argc, char **argv)
               usage();
             }
         }
+      else if (strlen(argv[arg]) >= 6 && !strncmp(argv[arg], "mexext", 6))
+        {
+          string s{argv[arg]};
+          if (s.length() <= 7 || s.at(6) != '=')
+            {
+              cerr << "Incorrect syntax for mexext option" << endl;
+              usage();
+            }
+          s.erase(0, 7);
+          mexext = s;
+        }
+      else if (strlen(argv[arg]) >= 10 && !strncmp(argv[arg], "matlabroot", 10))
+        {
+          string s{argv[arg]};
+          if (s.length() <= 11 || s.at(10) != '=')
+            {
+              cerr << "Incorrect syntax for matlabroot option" << endl;
+              usage();
+            }
+          s.erase(0, 11);
+          matlabroot = boost::filesystem::path{s};
+        }
       else
         {
           cerr << "Unknown option: " << argv[arg] << endl;
@@ -400,12 +412,9 @@ main(int argc, char **argv)
   main2(macro_output, basename, debug, clear_all, clear_global,
         no_tmp_terms, no_log, no_warn, warn_uninit, console, nograph, nointeractive,
         parallel, config_file, warnings, nostrict, stochastic, check_model_changes, minimal_workspace,
-        compute_xrefs, output_mode, language, params_derivs_order, transform_unary_ops
-#if defined(_WIN32) || defined(__CYGWIN32__)
-        , cygwin, msvc, mingw
-#endif
-        , json, json_output_mode, onlyjson, jsonderivsimple, nopreprocessoroutput
-        );
+        compute_xrefs, output_mode, language, params_derivs_order, transform_unary_ops,
+        json, json_output_mode, onlyjson, jsonderivsimple, nopreprocessoroutput,
+        mexext, matlabroot, dynareroot);
 
   return EXIT_SUCCESS;
 }

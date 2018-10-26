@@ -23,6 +23,8 @@
 using namespace std;
 
 #include <fstream>
+
+#include <boost/filesystem.hpp>
 #include <boost/crc.hpp>
 
 #include "StaticModel.hh"
@@ -359,7 +361,7 @@ public:
   void Write_Inf_To_Bin_File_Block(const string &basename,
                                    const int &num, int &u_count_int, bool &file_open, bool is_two_boundaries, const bool linear_decomposition) const;
   //! Writes dynamic model file
-  void writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, int order, bool julia) const;
+  void writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, const string &mexext, const boost::filesystem::path &matlabroot, const boost::filesystem::path &dynareroot, int order, bool julia) const;
   //! Writes file containing parameters derivatives
   void writeParamsDerivativesFile(const string &basename, bool julia) const;
 

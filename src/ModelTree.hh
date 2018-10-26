@@ -29,6 +29,8 @@ using namespace std;
 #include <ostream>
 #include <array>
 
+#include <boost/filesystem.hpp>
+
 #include "DataTree.hh"
 #include "ExtendedPreprocessorTypes.hh"
 
@@ -338,6 +340,10 @@ private:
   /*! Copies all the structures that contain ExprNode*, by the converting the
       pointers into their equivalent in the new tree */
   void copyHelper(const ModelTree &m);
+  //! Returns the name of the MATLAB architecture given the extension used for MEX files
+  static string matlab_arch(const string &mexext);
+  //! Compiles the MEX file
+  static void compileDll(const string &basename, const string &static_or_dynamic, const string &mexext, const boost::filesystem::path &matlabroot, const boost::filesystem::path &dynareroot);
 
 public:
   ModelTree(SymbolTable &symbol_table_arg,

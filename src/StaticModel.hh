@@ -24,6 +24,8 @@ using namespace std;
 
 #include <fstream>
 
+#include <boost/filesystem.hpp>
+
 #include "ModelTree.hh"
 
 class DynamicModel;
@@ -201,7 +203,7 @@ public:
                                    int &u_count_int, bool &file_open) const;
 
   //! Writes static model file
-  void writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, bool julia) const;
+  void writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, const string &mexext, const boost::filesystem::path &matlabroot, const boost::filesystem::path &dynareroot, bool julia) const;
 
   //! Write JSON Output (used by PlannerObjectiveStatement)
   void writeJsonOutput(ostream &output) const;

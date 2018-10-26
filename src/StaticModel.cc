@@ -25,8 +25,6 @@
 #include <cerrno>
 #include <algorithm>
 
-#include <boost/filesystem.hpp>
-
 #include "StaticModel.hh"
 #include "DynamicModel.hh"
 
@@ -2061,11 +2059,6 @@ StaticModel::writeStaticCFile(const string &basename) const
          << " * Warning : this file is generated automatically by Dynare" << endl
          << " *           from model file (.mod)" << endl << endl
          << " */" << endl
-#if defined(_WIN32) || defined(__CYGWIN32__)
-         << "#ifdef _MSC_VER" << endl
-         << "#define _USE_MATH_DEFINES" << endl
-         << "#endif" << endl
-#endif
          << "#include <math.h>" << endl;
 
   if (external_functions_table.get_total_number_of_unique_model_block_external_functions())
@@ -2079,7 +2072,6 @@ StaticModel::writeStaticCFile(const string &basename) const
 
   // Write function definition if BinaryOpcode::powerDeriv is used
   writePowerDerivCHeader(output);
-  writeNormcdfCHeader(output);
 
   output << endl;
 
@@ -2089,7 +2081,6 @@ StaticModel::writeStaticCFile(const string &basename) const
   output << endl;
 
   writePowerDeriv(output);
-  writeNormcdf(output);
   output.close();
 
   output.open(filename_mex, ios::out | ios::binary);
@@ -2174,7 +2165,7 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
 }
 
 void
-StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, bool julia) const
+StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, const string &mexext, const boost::filesystem::path &matlabroot, const boost::filesystem::path &dynareroot, bool julia) const
 {
   if (block && bytecode)
     writeModelEquationsCode_Block(basename, map_idx, map_idx2);
@@ -2186,7 +2177,10 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, 
       writeStaticBlockMFSFile(basename);
     }
   else if (use_dll)
-    writeStaticCFile(basename);
+    {
+      writeStaticCFile(basename);
+      compileDll(basename, "static", mexext, matlabroot, dynareroot);
+    }
   else if (julia)
     writeStaticJuliaFile(basename);
   else

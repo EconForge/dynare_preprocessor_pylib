@@ -789,12 +789,10 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
 void
 ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_log, bool no_warn,
                           bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
-                          bool check_model_changes, bool minimal_workspace, bool compute_xrefs
-#if defined(_WIN32) || defined(__CYGWIN32__)
-                          , bool cygwin, bool msvc, bool mingw
-#endif
-                          , const bool nopreprocessoroutput
-                          ) const
+                          bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
+                          const bool nopreprocessoroutput, const string &mexext,
+                          const boost::filesystem::path &matlabroot,
+                          const boost::filesystem::path &dynareroot) const
 {
   bool hasModelChanged = !dynamic_model.isChecksumMatching(basename, block);
   if (!check_model_changes)
@@ -955,32 +953,6 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
                 << "  error('DYNARE: Can''t find bytecode DLL. Please compile it or remove the ''bytecode'' option.')" << endl
                 << "end" << endl;
 
-  // Compile the dynamic MEX file for use_dll option
-  // When check_model_changes is true, don't force compile if MEX is fresher than source
-  if (use_dll)
-    {
-#if defined(_WIN32) || defined(__CYGWIN32__)
-      if (msvc)
-        // MATLAB/Windows + Microsoft Visual C++
-        mOutputFile << "dyn_mex('msvc', '" << basename << "', " << !check_model_changes << ")" <<  endl;
-      else if (cygwin)
-        // MATLAB/Windows + Cygwin g++
-        mOutputFile << "dyn_mex('cygwin', '" << basename << "', " << !check_model_changes << ")" << endl;
-      else if (mingw)
-        // MATLAB/Windows + MinGW g++
-        mOutputFile << "dyn_mex('mingw', '" << basename << "', " << !check_model_changes << ")" << endl;
-      else
-        mOutputFile << "if isoctave" << endl
-                    << "    dyn_mex('', '" << basename << "', " << !check_model_changes << ")" << endl
-                    << "else" << endl
-                    << "    error('When using the USE_DLL option on Matlab, you must give the ''cygwin'', ''msvc'', or ''mingw'' option to the ''dynare'' command')" << endl
-                    << "end" << endl;
-#else
-      // other configurations
-      mOutputFile << "dyn_mex('', '" << basename << "', " << !check_model_changes << ")" << endl;
-#endif
-    }
-
   mOutputFile << "M_.orig_eq_nbr = " << mod_file_struct.orig_eq_nbr << ";" << endl
               << "M_.eq_nbr = " << dynamic_model.equation_number() << ";" << endl
               << "M_.ramsey_eq_nbr = " << mod_file_struct.ramsey_eq_nbr << ";" << endl
@@ -1060,17 +1032,17 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
         {
           if (!no_static)
             {
-              static_model.writeStaticFile(basename, block, byte_code, use_dll, false);
+              static_model.writeStaticFile(basename, block, byte_code, use_dll, mexext, matlabroot, dynareroot, false);
               static_model.writeParamsDerivativesFile(basename, false);
             }
 
           if (linear_decomposition)
             {
-              non_linear_equations_dynamic_model.writeDynamicFile(basename, block, linear_decomposition, byte_code, use_dll, mod_file_struct.order_option, false);
+              non_linear_equations_dynamic_model.writeDynamicFile(basename, block, linear_decomposition, byte_code, use_dll, mexext, matlabroot, dynareroot, mod_file_struct.order_option, false);
               non_linear_equations_dynamic_model.writeParamsDerivativesFile(basename, false);
             }
 
-          dynamic_model.writeDynamicFile(basename, block, false, byte_code, use_dll, mod_file_struct.order_option, false);
+          dynamic_model.writeDynamicFile(basename, block, false, byte_code, use_dll, mexext, matlabroot, dynareroot, mod_file_struct.order_option, false);
 
           dynamic_model.writeParamsDerivativesFile(basename, false);
         }
@@ -1189,11 +1161,11 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output, 
                                 mod_file_struct.estimation_present, false, true);
       if (!no_static)
         {
-          static_model.writeStaticFile(basename, false, false, false, true);
+          static_model.writeStaticFile(basename, false, false, false, "", {}, {}, true);
           static_model.writeParamsDerivativesFile(basename, true);
         }
       dynamic_model.writeDynamicFile(basename, block, linear_decomposition, byte_code, use_dll,
-                                     mod_file_struct.order_option, true);
+                                     "", {}, {}, mod_file_struct.order_option, true);
       dynamic_model.writeParamsDerivativesFile(basename, true);
     }
   steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present, true);

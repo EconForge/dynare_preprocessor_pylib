@@ -2308,3 +2308,115 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
     }
   output << endl << "]" << endl;
 }
+
+string
+ModelTree::matlab_arch(const string &mexext)
+{
+  if (mexext == "mexglx")
+    return "glnx86";
+  else if (mexext == "mexa64")
+    return "glnxa64";
+  if (mexext == "mexw32")
+    return "win32";
+  else if (mexext == "mexw64")
+    return "win64";
+  else if (mexext == "mexmaci")
+    return "maci";
+  else if (mexext == "mexmaci64")
+    return "maci64";
+  else
+    {
+      cerr << "ERROR: 'mexext' option to preprocessor incorrectly set, needed with 'use_dll'" << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
+ModelTree::compileDll(const string &basename, const string &static_or_dynamic, const string &mexext, const boost::filesystem::path &matlabroot, const boost::filesystem::path &dynareroot)
+{
+  const string opt_flags = "-O3 -g0 --param ira-max-conflict-table-size=1 -fno-forward-propagate -fno-gcse -fno-dce -fno-dse -fno-tree-fre -fno-tree-pre -fno-tree-cselim -fno-tree-dse -fno-tree-dce -fno-tree-pta -fno-gcse-after-reload";
+
+  boost::filesystem::path compiler;
+  ostringstream flags;
+  string libs;
+
+  if (mexext == "mex")
+    {
+      // Octave
+      compiler = matlabroot / "bin" / "mkoctfile";
+      flags << "--mex";
+    }
+  else
+    {
+      // MATLAB
+      compiler = "gcc";
+      string arch = matlab_arch(mexext);
+      auto include_dir = matlabroot / "extern" / "include";
+      flags << "-I " << include_dir;
+      auto bin_dir = matlabroot / "bin" / arch;
+      flags << " -L " << bin_dir;
+      flags << " -fexceptions -DNDEBUG";
+      libs = "-lmex -lmx -lmat -lmwlapack -lmwblas";
+      if (mexext == "mexglx" || mexext == "mexa64")
+        {
+          // GNU/Linux
+          flags << " -D_GNU_SOURCE -fPIC -pthread"
+                << " -shared -Wl,--no-undefined -Wl,-rpath-link," << bin_dir;
+          libs += " -lm -lstdc++";
+
+          if (mexext == "mexglx")
+            flags << " -D_FILE_OFFSET_BITS=64 -m32";
+          else
+            flags << " -fno-omit-frame-pointer";
+        }
+      else if (mexext == "mexw32" || mexext == "mexw64")
+        {
+          // Windows
+          flags << " -static-libgcc -static-libstdc++ -shared";
+          // Put the MinGW environment shipped with Dynare in the path
+          boost::filesystem::path mingwpath = dynareroot / (string{"mingw"} + (mexext == "mexw32" ? "32" : "64")) / "bin";
+          string newpath = "PATH=" + mingwpath.string() + ';' + string{getenv("PATH")};
+          if (putenv(const_cast<char *>(newpath.c_str())) != 0)
+            {
+              cerr << "Can't set PATH" << endl;
+              exit(EXIT_FAILURE);
+            }
+          }
+      else
+        {
+          // macOS
+          string archs = (mexext == "maci" ? "i386" : "x86_64");
+          flags << " -fno-common -arch " << archs << " -mmacosx-version-min=10.7 -Wl,-twolevel_namespace -undefined error -bundle";
+          libs += " -lm -lstdc++";
+        }
+    }
+
+  auto model_dir = boost::filesystem::path{basename} / "model" / "src";
+  boost::filesystem::path main_src{model_dir / (static_or_dynamic + ".c")},
+    mex_src{model_dir / (static_or_dynamic + "_mex.c")};
+
+  boost::filesystem::path mex_dir{"+" + basename};
+  boost::filesystem::path binary{mex_dir / (static_or_dynamic + "." + mexext)};
+
+  ostringstream cmd;
+
+#ifdef _WIN32
+  /* On Windows, system() hands the command over to "cmd.exe /C". We need to
+     enclose the whole command line within double quotes if we want the inner
+     quotes to be correctly handled. See "cmd /?" for more details. */
+  cmd << '"';
+#endif
+  cmd << compiler << " " << opt_flags << " " << flags.str() << " " << main_src << " " << mex_src << " -o " << binary << " " << libs;
+
+#ifdef _WIN32
+  cmd << '"';
+#endif
+
+  cout << "Compiling " << static_or_dynamic << " MEX..." << endl << cmd.str() << endl;
+
+  if (system(cmd.str().c_str()))
+    {
+      cerr << "Compilation failed" << endl;
+      exit(EXIT_FAILURE);
+    }
+}

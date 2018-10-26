@@ -27,8 +27,6 @@
 #include <iterator>
 #include <numeric>
 
-#include <boost/filesystem.hpp>
-
 #include "DynamicModel.hh"
 
 void
@@ -1738,11 +1736,6 @@ DynamicModel::writeDynamicCFile(const string &basename, const int order) const
                     << " * Warning : this file is generated automatically by Dynare" << endl
                     << " *           from model file (.mod)" << endl
                     << " */" << endl
-#if defined(_WIN32) || defined(__CYGWIN32__)
-                    << "#ifdef _MSC_VER" << endl
-                    << "#define _USE_MATH_DEFINES" << endl
-                    << "#endif" << endl
-#endif
                     << "#include <math.h>" << endl;
 
   if (external_functions_table.get_total_number_of_unique_model_block_external_functions())
@@ -1756,7 +1749,6 @@ DynamicModel::writeDynamicCFile(const string &basename, const int order) const
 
   // Write function definition if BinaryOpcode::powerDeriv is used
   writePowerDerivCHeader(mDynamicModelFile);
-  writeNormcdfCHeader(mDynamicModelFile);
 
   mDynamicModelFile << endl;
 
@@ -1766,7 +1758,6 @@ DynamicModel::writeDynamicCFile(const string &basename, const int order) const
   mDynamicModelFile << endl;
 
   writePowerDeriv(mDynamicModelFile);
-  writeNormcdf(mDynamicModelFile);
   mDynamicModelFile.close();
 
   mDynamicMexFile.open(filename_mex, ios::out | ios::binary);
@@ -4920,7 +4911,7 @@ DynamicModel::collectBlockVariables()
 }
 
 void
-DynamicModel::writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, int order, bool julia) const
+DynamicModel::writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, const string &mexext, const boost::filesystem::path &matlabroot, const boost::filesystem::path &dynareroot, int order, bool julia) const
 {
   if (block && bytecode)
     writeModelEquationsCode_Block(basename, map_idx, linear_decomposition);
@@ -4933,7 +4924,10 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool linear_d
   else if (block && !bytecode)
     writeSparseDynamicMFile(basename);
   else if (use_dll)
-    writeDynamicCFile(basename, order);
+    {
+      writeDynamicCFile(basename, order);
+      compileDll(basename, "dynamic", mexext, matlabroot, dynareroot);
+    }
   else if (julia)
     writeDynamicJuliaFile(basename);
   else

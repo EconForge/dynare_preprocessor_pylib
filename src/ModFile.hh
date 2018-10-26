@@ -162,12 +162,8 @@ public:
   */
   void writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_log, bool no_warn,
                         bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
-                        bool check_model_changes, bool minimal_workspace, bool compute_xrefs
-#if defined(_WIN32) || defined(__CYGWIN32__)
-                        , bool cygwin, bool msvc, bool mingw
-#endif
-                        , const bool nopreprocessoroutput
-                        ) const;
+                        bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
+                        const bool nopreprocessoroutput, const string &mexext, const boost::filesystem::path &matlabroot, const boost::filesystem::path &dynareroot) const;
   void writeExternalFiles(const string &basename, FileOutputType output, LanguageOutputType language, const bool nopreprocessoroutput) const;
   void writeExternalFilesJulia(const string &basename, FileOutputType output, const bool nopreprocessoroutput) const;
 
