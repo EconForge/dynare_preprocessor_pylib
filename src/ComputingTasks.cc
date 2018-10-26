@@ -1393,8 +1393,8 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, b
 {
   output << "estim_params_.var_exo = zeros(0, 10);" << endl
          << "estim_params_.var_endo = zeros(0, 10);" << endl
-         << "estim_params_.corrx = zeros(0, 10);" << endl
-         << "estim_params_.corrn = zeros(0, 10);" << endl
+         << "estim_params_.corrx = zeros(0, 11);" << endl
+         << "estim_params_.corrn = zeros(0, 11);" << endl
          << "estim_params_.param_vals = zeros(0, 10);" << endl;
 
   for (const auto & it : estim_params_list)
@@ -1420,7 +1420,7 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, b
             output << "estim_params_.corrx = [estim_params_.corrx; ";
           else if (symb_type == SymbolType::endogenous)
             output << "estim_params_.corrn = [estim_params_.corrn; ";
-          output << symb_id << " " << symbol_table.getTypeSpecificID(it.name2)+1;
+          output << symb_id << ", " << symbol_table.getTypeSpecificID(it.name2)+1;
           break;
         }
       output << ", ";
