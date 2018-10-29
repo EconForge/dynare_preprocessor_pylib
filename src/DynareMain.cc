@@ -60,7 +60,7 @@ usage()
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=julia]"
        << " [params_derivs_order=0|1|2] [transform_unary_ops]"
        << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] [nopathchange] [nopreprocessoroutput]"
-       << " [dll=matlab|octave] [matlabroot=path]"
+       << " [mexext=<extension>] [matlabroot=<path>]"
        << endl;
   exit(EXIT_FAILURE);
 }
