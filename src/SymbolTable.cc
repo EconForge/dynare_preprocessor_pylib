@@ -1080,7 +1080,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
   if (endo_nbr() > 0)
     for (int id = 0; id < endo_nbr(); id++)
       output << "              DynareModel.Endo(\""
-             << getName(endo_ids[id]) << "\", \""
+             << getName(endo_ids[id]) << "\", raw\""
              << getTeXName(endo_ids[id]) << "\", \""
              << getLongName(endo_ids[id]) << "\")" << endl;
   output << "             ]" << endl;
@@ -1091,7 +1091,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
   if (exo_nbr() > 0)
     for (int id = 0; id < exo_nbr(); id++)
       output << "             DynareModel.Exo(\""
-             << getName(exo_ids[id]) << "\", \""
+             << getName(exo_ids[id]) << "\", raw\""
              << getTeXName(exo_ids[id]) << "\", \""
              << getLongName(exo_ids[id]) << "\")" << endl;
   output << "            ]" << endl;
@@ -1104,7 +1104,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
       if (exo_det_nbr() > 0)
         for (int id = 0; id < exo_det_nbr(); id++)
           output << "                 DynareModel.ExoDet(\""
-                 << getName(exo_det_ids[id]) << "\", \""
+                 << getName(exo_det_ids[id]) << "\", raw\""
                  << getTeXName(exo_det_ids[id]) << "\", \""
                  << getLongName(exo_det_ids[id]) << "\")" << endl;
       output << "                ]" << endl;
@@ -1116,7 +1116,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
   if (param_nbr() > 0)
     for (int id = 0; id < param_nbr(); id++)
       output << "               DynareModel.Param(\""
-             << getName(param_ids[id]) << "\", \""
+             << getName(param_ids[id]) << "\", raw\""
              << getTeXName(param_ids[id]) << "\", \""
              << getLongName(param_ids[id]) << "\")" << endl;
   output << "              ]" << endl;
