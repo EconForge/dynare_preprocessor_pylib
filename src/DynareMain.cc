@@ -126,141 +126,140 @@ main(int argc, char **argv)
   // Parse options
   for (int arg = 2; arg < argc; arg++)
     {
-      if (!strcmp(argv[arg], "debug"))
+      string s{argv[arg]};
+
+      if (s == "debug")
         debug = true;
-      else if (!strcmp(argv[arg], "noclearall"))
+      else if (s == "noclearall")
         clear_all = false;
-      else if (strlen(argv[arg]) >= 19 && !strncmp(argv[arg], "params_derivs_order", 19))
+      else if (s.substr(0, 19) == "params_derivs_order")
         {
-          if (strlen(argv[arg]) >= 22 || argv[arg][19] != '='
-              || !(argv[arg][20] == '0' || argv[arg][20] == '1' || argv[arg][20] == '2'))
+          if (s.length() > 21 || s.at(19) != '='
+              || !(s.at(20) == '0' || s.at(20) == '1' || s.at(20) == '2'))
             {
               cerr << "Incorrect syntax for params_derivs_order option" << endl;
               usage();
             }
-          params_derivs_order = atoi(argv[arg] + 20);
+          params_derivs_order = stoi(s.substr(20));
         }
-      else if (!strcmp(argv[arg], "onlyclearglobals"))
+      else if (s == "onlyclearglobals")
         {
           clear_all = false;
           clear_global = true;
         }
-      else if (!strcmp(argv[arg], "onlymacro"))
+      else if (s == "onlymacro")
         only_macro = true;
-      else if (strlen(argv[arg]) >= 9 && !strncmp(argv[arg], "savemacro", 9))
+      else if (s.substr(0, 9) == "savemacro")
         {
           save_macro = true;
-          if (strlen(argv[arg]) > 9)
+          if (s.length() > 9)
             {
-              if (strlen(argv[arg]) == 10 || argv[arg][9] != '=')
+              if (s.length() == 10 || s.at(9) != '=')
                 {
                   cerr << "Incorrect syntax for savemacro option" << endl;
                   usage();
                 }
-              save_macro_file = string(argv[arg] + 10);
+              save_macro_file = s.substr(10);
             }
         }
-      else if (!strcmp(argv[arg], "nolinemacro"))
+      else if (s == "nolinemacro")
         no_line_macro = true;
-      else if (!strcmp(argv[arg], "noemptylinemacro"))
+      else if (s == "noemptylinemacro")
         no_empty_line_macro = true;
-      else if (!strcmp(argv[arg], "notmpterms"))
+      else if (s == "notmpterms")
         no_tmp_terms = true;
-      else if (!strcmp(argv[arg], "nolog"))
+      else if (s == "nolog")
         no_log = true;
-      else if (!strcmp(argv[arg], "nowarn"))
+      else if (s == "nowarn")
         no_warn = true;
-      else if (!strcmp(argv[arg], "warn_uninit"))
+      else if (s == "warn_uninit")
         warn_uninit = true;
-      else if (!strcmp(argv[arg], "console"))
+      else if (s == "console")
         console = true;
-      else if (!strcmp(argv[arg], "nograph"))
+      else if (s == "nograph")
         nograph = true;
-      else if (!strcmp(argv[arg], "nointeractive"))
+      else if (s == "nointeractive")
         nointeractive = true;
-      else if (strlen(argv[arg]) >= 8 && !strncmp(argv[arg], "conffile", 8))
+      else if (s.substr(0, 8) == "conffile")
         {
-          if (strlen(argv[arg]) <= 9 || argv[arg][8] != '=')
+          if (s.length() <= 9 || s.at(8) != '=')
             {
               cerr << "Incorrect syntax for conffile option" << endl;
               usage();
             }
-          parallel_config_file = string(argv[arg] + 9);
+          parallel_config_file = s.substr(9);
         }
-      else if (!strcmp(argv[arg], "parallel_slave_open_mode"))
+      else if (s == "parallel_slave_open_mode")
         parallel_slave_open_mode = true;
-      else if (!strcmp(argv[arg], "parallel_test"))
+      else if (s == "parallel_test")
         parallel_test = true;
-      else if (!strcmp(argv[arg], "nostrict"))
+      else if (s == "nostrict")
         nostrict = true;
-      else if (!strcmp(argv[arg], "stochastic"))
+      else if (s == "stochastic")
         stochastic = true;
-      else if (!strcmp(argv[arg], "fast"))
+      else if (s == "fast")
         check_model_changes = true;
-      else if (!strcmp(argv[arg], "minimal_workspace"))
+      else if (s == "minimal_workspace")
         minimal_workspace = true;
-      else if (!strcmp(argv[arg], "compute_xrefs"))
+      else if (s == "compute_xrefs")
         compute_xrefs = true;
-      else if (!strcmp(argv[arg], "transform_unary_ops"))
+      else if (s == "transform_unary_ops")
         transform_unary_ops = true;
-      else if (strlen(argv[arg]) >= 8 && !strncmp(argv[arg], "parallel", 8))
+      else if (s.substr(0, 8) == "parallel")
         {
           parallel = true;
-          if (strlen(argv[arg]) > 8)
+          if (s.length() > 8)
             {
-              if (strlen(argv[arg]) == 9 || argv[arg][8] != '=')
+              if (s.length() == 9 || s.at(8) != '=')
                 {
                   cerr << "Incorrect syntax for parallel option" << endl;
                   usage();
                 }
-              cluster_name = string(argv[arg] + 9);
+              cluster_name = s.substr(9);
             }
         }
-      else if (strlen(argv[arg]) >= 2 && !strncmp(argv[arg], "-D", 2))
+      else if (s.substr(0, 2) == "-D")
         {
-          if (strlen(argv[arg]) == 2)
+          if (s.length() == 2)
             {
               cerr << "Incorrect syntax for command line define: the defined variable "
                    << "must not be separated from -D by whitespace." << endl;
               usage();
             }
 
-          size_t equal_index = string(argv[arg]).find('=');
+          auto equal_index = s.find('=');
           if (equal_index != string::npos)
-            {
-              string key = string(argv[arg]).erase(equal_index).erase(0, 2);
-              defines[key] = string(argv[arg]).erase(0, equal_index+1);
-            }
+            defines[s.substr(2, equal_index)] = s.substr(equal_index+1);
           else
-            {
-              string key = string(argv[arg]).erase(0, 2);
-              defines[key] = "1";
-            }
+            defines[s.substr(2)] = "1";
         }
-      else if (strlen(argv[arg]) >= 2 && !strncmp(argv[arg], "-I", 2))
+      else if (s.substr(0, 2) == "-I")
         {
-          if (strlen(argv[arg]) == 2)
+          if (s.length() == 2)
             {
               cerr << "Incorrect syntax for command line define: the defined variable "
                    << "must not be separated from -I by whitespace." << endl;
               usage();
             }
-          path.push_back(string(argv[arg]).erase(0, 2));
+          path.push_back(s.substr(2));
         }
-      else if (strlen(argv[arg]) >= 6 && !strncmp(argv[arg], "output", 6))
+      else if (s.substr(0, 6) == "output")
         {
-          if (strlen(argv[arg]) <= 7 || argv[arg][6] != '=')
+          if (s.length() <= 7 || s.at(6) != '=')
             {
               cerr << "Incorrect syntax for output option" << endl;
               usage();
             }
-          if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 7, "dynamic", 7))
+
+          s.erase(0, 7);
+
+          if (s == "dynamic")
             output_mode = FileOutputType::dynamic;
-          else if (strlen(argv[arg]) ==  12 && !strncmp(argv[arg] + 7, "first", 5))
+          else if (s == "first")
             output_mode = FileOutputType::first;
-          else if (strlen(argv[arg]) == 13 && !strncmp(argv[arg] + 7, "second", 6))
+          else if (s == "second")
             output_mode = FileOutputType::second;
-          else if (strlen(argv[arg]) == 12 && !strncmp(argv[arg] + 7, "third", 5))
+          else if (s == "third")
             output_mode = FileOutputType::third;
           else
             {
@@ -268,23 +267,25 @@ main(int argc, char **argv)
               usage();
             }
         }
-      else if (strlen(argv[arg]) >= 8 && !strncmp(argv[arg], "language", 8))
+      else if (s.substr(0, 8) == "language")
         {
-          if (strlen(argv[arg]) <= 9 || argv[arg][8] != '=')
+          if (s.length() <= 9 || s.at(8) != '=')
             {
               cerr << "Incorrect syntax for language option" << endl;
               usage();
             }
 
-          if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 9, "julia", 5))
+          s.erase(0, 9);
+
+          if (s == "julia")
             language = LanguageOutputType::julia;
           else
             {
               // we don't want temp terms in external functions (except Julia)
               no_tmp_terms = true;
-              if (strlen(argv[arg]) == 13 && !strncmp(argv[arg] + 9, "cuda", 4))
+              if (s == "cuda")
                 language = LanguageOutputType::cuda;
-              else if (strlen(argv[arg]) == 15 && !strncmp(argv[arg] + 9, "python", 6))
+              else if (s == "python")
                 language = LanguageOutputType::python;
               else
                 {
@@ -293,28 +294,31 @@ main(int argc, char **argv)
                 }
             }
         }
-      else if (!strcmp(argv[arg], "jsonstdout"))
+      else if (s == "jsonstdout")
         json_output_mode = JsonFileOutputType::standardout;
-      else if (!strcmp(argv[arg], "onlyjson"))
+      else if (s == "onlyjson")
         onlyjson = true;
-      else if (!strcmp(argv[arg], "nopreprocessoroutput"))
+      else if (s == "nopreprocessoroutput")
         nopreprocessoroutput = true;
-      else if (!strcmp(argv[arg], "jsonderivsimple"))
+      else if (s == "jsonderivsimple")
         jsonderivsimple = true;
-      else if (strlen(argv[arg]) >= 4 && !strncmp(argv[arg], "json", 4))
+      else if (s.substr(0, 4) == "json")
         {
-          if (strlen(argv[arg]) <= 5 || argv[arg][4] != '=')
+          if (s.length() <= 5 || s.at(4) != '=')
             {
               cerr << "Incorrect syntax for json option" << endl;
               usage();
             }
-          if (strlen(argv[arg]) == 10 && !strncmp(argv[arg] + 5, "parse", 5))
+
+          s.erase(0, 5);
+
+          if (s == "parse")
             json = JsonOutputPointType::parsing;
-          else if (strlen(argv[arg]) ==  10 && !strncmp(argv[arg] + 5, "check", 5))
+          else if (s == "check")
             json = JsonOutputPointType::checkpass;
-          else if (strlen(argv[arg]) == 14 && !strncmp(argv[arg] + 5, "transform", 9))
+          else if (s == "transform")
             json = JsonOutputPointType::transformpass;
-          else if (strlen(argv[arg]) == 12 && !strncmp(argv[arg] + 5, "compute", 7))
+          else if (s == "compute")
             json = JsonOutputPointType::computingpass;
           else
             {
@@ -322,31 +326,27 @@ main(int argc, char **argv)
               usage();
             }
         }
-      else if (strlen(argv[arg]) >= 6 && !strncmp(argv[arg], "mexext", 6))
+      else if (s.substr(0, 6) == "mexext")
         {
-          string s{argv[arg]};
           if (s.length() <= 7 || s.at(6) != '=')
             {
               cerr << "Incorrect syntax for mexext option" << endl;
               usage();
             }
-          s.erase(0, 7);
-          mexext = s;
+          mexext = s.substr(7);
         }
-      else if (strlen(argv[arg]) >= 10 && !strncmp(argv[arg], "matlabroot", 10))
+      else if (s.substr(0, 10) == "matlabroot")
         {
-          string s{argv[arg]};
           if (s.length() <= 11 || s.at(10) != '=')
             {
               cerr << "Incorrect syntax for matlabroot option" << endl;
               usage();
             }
-          s.erase(0, 11);
-          matlabroot = boost::filesystem::path{s};
+          matlabroot = boost::filesystem::path{s.substr(11)};
         }
       else
         {
-          cerr << "Unknown option: " << argv[arg] << endl;
+          cerr << "Unknown option: " << s << endl;
           usage();
         }
     }
