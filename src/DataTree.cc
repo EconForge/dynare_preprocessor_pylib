@@ -172,11 +172,6 @@ DataTree::AddPlus(expr_t iArg1, expr_t iArg2)
 {
   if (iArg1 != Zero && iArg2 != Zero)
     {
-      // Simplify x+(-y) in x-y
-      auto *uarg2 = dynamic_cast<UnaryOpNode *>(iArg2);
-      if (uarg2 != nullptr && uarg2->get_op_code() == UnaryOpcode::uminus)
-        return AddMinus(iArg1, uarg2->get_arg());
-
       // To treat commutativity of "+"
       // Nodes iArg1 and iArg2 are sorted by index
       if (iArg1->idx > iArg2->idx)
@@ -185,6 +180,12 @@ DataTree::AddPlus(expr_t iArg1, expr_t iArg2)
           iArg1 = iArg2;
           iArg2 = tmp;
         }
+
+      // Simplify x+(-y) in x-y
+      auto *uarg2 = dynamic_cast<UnaryOpNode *>(iArg2);
+      if (uarg2 != nullptr && uarg2->get_op_code() == UnaryOpcode::uminus)
+        return AddMinus(iArg1, uarg2->get_arg());
+
       return AddBinaryOp(iArg1, BinaryOpcode::plus, iArg2);
     }
   else if (iArg1 != Zero)
