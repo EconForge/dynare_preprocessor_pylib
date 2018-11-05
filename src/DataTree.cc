@@ -172,19 +172,20 @@ DataTree::AddPlus(expr_t iArg1, expr_t iArg2)
 {
   if (iArg1 != Zero && iArg2 != Zero)
     {
+      // Simplify x+(-y) in x-y
+      auto uarg2 = dynamic_cast<UnaryOpNode *>(iArg2);
+      if (uarg2 != nullptr && uarg2->get_op_code() == UnaryOpcode::uminus)
+        return AddMinus(iArg1, uarg2->get_arg());
+
+      // Simplify (-x)+y in y-x
+      auto uarg1 = dynamic_cast<UnaryOpNode *>(iArg1);
+      if (uarg1 != nullptr && uarg1->get_op_code() == UnaryOpcode::uminus)
+        return AddMinus(iArg2, uarg1->get_arg());
+
       // To treat commutativity of "+"
       // Nodes iArg1 and iArg2 are sorted by index
       if (iArg1->idx > iArg2->idx)
-        {
-          expr_t tmp = iArg1;
-          iArg1 = iArg2;
-          iArg2 = tmp;
-        }
-
-      // Simplify x+(-y) in x-y
-      auto *uarg2 = dynamic_cast<UnaryOpNode *>(iArg2);
-      if (uarg2 != nullptr && uarg2->get_op_code() == UnaryOpcode::uminus)
-        return AddMinus(iArg1, uarg2->get_arg());
+        swap(iArg1, iArg2);
 
       return AddBinaryOp(iArg1, BinaryOpcode::plus, iArg2);
     }
@@ -239,11 +240,7 @@ DataTree::AddTimes(expr_t iArg1, expr_t iArg2)
       // To treat commutativity of "*"
       // Nodes iArg1 and iArg2 are sorted by index
       if (iArg1->idx > iArg2->idx)
-        {
-          expr_t tmp = iArg1;
-          iArg1 = iArg2;
-          iArg2 = tmp;
-        }
+        swap(iArg1, iArg2);
       return AddBinaryOp(iArg1, BinaryOpcode::times, iArg2);
     }
   else if (iArg1 != Zero && iArg1 != One && iArg2 == One)
