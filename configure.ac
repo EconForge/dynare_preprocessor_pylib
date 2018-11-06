@@ -30,23 +30,22 @@ AX_CXX_COMPILE_STDCXX_14
 AC_CANONICAL_HOST
 case ${host_os} in
   *mingw32*)
-    # On mingw32, we don't want dynamic libgcc
-    # Note that static-libstdc++ is only supported since GCC 4.5 (but generates no error on older versions)
-    LDFLAGS="$LDFLAGS -static-libgcc -static-libstdc++ -static-libgfortran"
-    have_windows="yes"
+    # On Windows, we don't want dynamic linking
+    AM_LDFLAGS="-static"
+    AC_SUBST([AM_LDFLAGS])
     ;;
   *cygwin*)
     AC_MSG_WARN([You are compiling for the Cygwin target. This means that the preprocessor will])
     AC_MSG_WARN([not run from MATLAB unless you add the Cygwin DLL to the path.])
     AC_MSG_WARN([This is probably not what you want. Consider using a MinGW cross-compiler.])
-    have_windows="yes"
     ;;
 esac
 
 # Use C++ for testing headers
 AC_LANG([C++])
 
-CXXFLAGS="$CXXFLAGS -Wall -Wno-parentheses"
+AM_CXXFLAGS="-Wall -Wno-parentheses"
+AC_SUBST([AM_CXXFLAGS])
 
 # If default 'ar' is not available, try to find one with a host prefix (see ticket #145)
 AC_CHECK_PROGS([AR], [ar ${host_alias}-ar])
