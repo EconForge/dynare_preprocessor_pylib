@@ -35,7 +35,7 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
       LanguageOutputType language, int params_derivs_order, bool transform_unary_ops,
       JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple,
       bool nopreprocessoroutput, const string &mexext, const boost::filesystem::path &matlabroot,
-      const boost::filesystem::path &dynareroot)
+      const boost::filesystem::path &dynareroot, bool onlymodel)
 {
   ParsingDriver p(warnings, nostrict);
 
@@ -70,7 +70,7 @@ main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear
   else
     mod_file->writeOutputFiles(basename, clear_all, clear_global, no_log, no_warn, console, nograph,
                                nointeractive, config_file, check_model_changes, minimal_workspace, compute_xrefs,
-                               nopreprocessoroutput, mexext, matlabroot, dynareroot);
+                               nopreprocessoroutput, mexext, matlabroot, dynareroot, onlymodel);
 
   if (!nopreprocessoroutput)
     cout << "Preprocessing completed." << endl;

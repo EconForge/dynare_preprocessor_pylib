@@ -47,7 +47,7 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
            LanguageOutputType lang, int params_derivs_order, bool transform_unary_ops,
            JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple,
            bool nopreprocessoroutput, const string &mexext, const boost::filesystem::path &matlabroot,
-           const boost::filesystem::path &dynareroot);
+           const boost::filesystem::path &dynareroot, bool onlymodel);
 
 void main1(string &modfile, string &basename, string &modfiletxt, bool debug, bool save_macro, string &save_macro_file,
            bool no_line_macro, bool no_empty_line_macro, map<string, string> &defines, vector<string> &path, stringstream &macro_output);
@@ -60,7 +60,7 @@ usage()
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=julia]"
        << " [params_derivs_order=0|1|2] [transform_unary_ops]"
        << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] [nopathchange] [nopreprocessoroutput]"
-       << " [mexext=<extension>] [matlabroot=<path>]"
+       << " [mexext=<extension>] [matlabroot=<path>] [onlymodel]"
        << endl;
   exit(EXIT_FAILURE);
 }
@@ -122,6 +122,7 @@ main(int argc, char **argv)
   boost::filesystem::path dynareroot{argv[0]};
   dynareroot = dynareroot.parent_path();
   dynareroot = dynareroot / ".." / "..";
+  bool onlymodel = false;
 
   // Parse options
   for (int arg = 2; arg < argc; arg++)
@@ -344,6 +345,8 @@ main(int argc, char **argv)
             }
           matlabroot = boost::filesystem::path{s.substr(11)};
         }
+      else if (s == "onlymodel")
+        onlymodel = true;
       else
         {
           cerr << "Unknown option: " << s << endl;
@@ -414,7 +417,7 @@ main(int argc, char **argv)
         parallel, config_file, warnings, nostrict, stochastic, check_model_changes, minimal_workspace,
         compute_xrefs, output_mode, language, params_derivs_order, transform_unary_ops,
         json, json_output_mode, onlyjson, jsonderivsimple, nopreprocessoroutput,
-        mexext, matlabroot, dynareroot);
+        mexext, matlabroot, dynareroot, onlymodel);
 
   return EXIT_SUCCESS;
 }

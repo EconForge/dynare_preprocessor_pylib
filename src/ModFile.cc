@@ -28,6 +28,7 @@
 #include "ModFile.hh"
 #include "ConfigFile.hh"
 #include "ComputingTasks.hh"
+#include "Shocks.hh"
 
 ModFile::ModFile(WarningConsolidation &warnings_arg)
   : var_model_table{symbol_table},
@@ -792,7 +793,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
                           bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
                           const bool nopreprocessoroutput, const string &mexext,
                           const boost::filesystem::path &matlabroot,
-                          const boost::filesystem::path &dynareroot) const
+                          const boost::filesystem::path &dynareroot, bool onlymodel) const
 {
   bool hasModelChanged = !dynamic_model.isChecksumMatching(basename, block);
   if (!check_model_changes)
@@ -865,7 +866,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
               << "%" << endl
               << "% Some global variables initialization" << endl
               << "%" << endl;
-  config_file.writeHooks(mOutputFile);
+  if (!onlymodel)
+    config_file.writeHooks(mOutputFile);
   mOutputFile << "global_initialization;" << endl
               << "diary off;" << endl;
   if (!no_log)
@@ -946,7 +948,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   mOutputFile << ";" << endl
               << "M_.hessian_eq_zero = isempty(M_.nonzero_hessian_eqs);" << endl;
 
-  config_file.writeCluster(mOutputFile);
+  if (!onlymodel)
+    config_file.writeCluster(mOutputFile);
 
   if (byte_code)
     mOutputFile << "if exist('bytecode') ~= 3" << endl
@@ -967,57 +970,71 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
         static_model.writeOutput(mOutputFile, block);
     }
 
-  for (auto &statement : statements)
-    {
-      statement->writeOutput(mOutputFile, basename, minimal_workspace);
+  if (onlymodel)
+    for (auto &statement : statements)
+      {
+        auto *ips = dynamic_cast<InitParamStatement *>(statement.get());
+        if (ips != nullptr)
+          ips->writeOutput(mOutputFile, basename, minimal_workspace);
 
-      /* Special treatment for initval block: insert initial values for the
-         auxiliary variables and initialize exo det */
-      auto ivs = dynamic_cast<InitValStatement *>(statement.get());
-      if (ivs != nullptr)
+        auto *ss = dynamic_cast<ShocksStatement *>(statement.get());
+        if (ss != nullptr)
+          ss->writeOutput(mOutputFile, basename, minimal_workspace);
+      }
+  else
+    {
+      for (auto &statement : statements)
         {
-          static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
-          ivs->writeOutputPostInit(mOutputFile);
+          statement->writeOutput(mOutputFile, basename, minimal_workspace);
+
+          /* Special treatment for initval block: insert initial values for the
+             auxiliary variables and initialize exo det */
+          auto ivs = dynamic_cast<InitValStatement *>(statement.get());
+          if (ivs != nullptr)
+            {
+              static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
+              ivs->writeOutputPostInit(mOutputFile);
+            }
+
+          // Special treatment for endval block: insert initial values for the auxiliary variables
+          auto evs = dynamic_cast<EndValStatement *>(statement.get());
+          if (evs != nullptr)
+            static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
+
+          // Special treatment for load params and steady state statement: insert initial values for the auxiliary variables
+          auto lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(statement.get());
+          if (lpass && !no_static)
+            static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
         }
 
-      // Special treatment for endval block: insert initial values for the auxiliary variables
-      auto evs = dynamic_cast<EndValStatement *>(statement.get());
-      if (evs != nullptr)
-        static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
+      mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl
+                  << "if exist('estim_params_', 'var') == 1" << endl
+                  << "  save('" << basename << "_results.mat', 'estim_params_', '-append');" << endl << "end" << endl
+                  << "if exist('bayestopt_', 'var') == 1" << endl
+                  << "  save('" << basename << "_results.mat', 'bayestopt_', '-append');" << endl << "end" << endl
+                  << "if exist('dataset_', 'var') == 1" << endl
+                  << "  save('" << basename << "_results.mat', 'dataset_', '-append');" << endl << "end" << endl
+                  << "if exist('estimation_info', 'var') == 1" << endl
+                  << "  save('" << basename << "_results.mat', 'estimation_info', '-append');" << endl << "end" << endl
+                  << "if exist('dataset_info', 'var') == 1" << endl
+                  << "  save('" << basename << "_results.mat', 'dataset_info', '-append');" << endl << "end" << endl
+                  << "if exist('oo_recursive_', 'var') == 1" << endl
+                  << "  save('" << basename << "_results.mat', 'oo_recursive_', '-append');" << endl << "end" << endl;
 
-      // Special treatment for load params and steady state statement: insert initial values for the auxiliary variables
-      auto lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(statement.get());
-      if (lpass && !no_static)
-        static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
-    }
+      config_file.writeEndParallel(mOutputFile);
 
-  mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl
-              << "if exist('estim_params_', 'var') == 1" << endl
-              << "  save('" << basename << "_results.mat', 'estim_params_', '-append');" << endl << "end" << endl
-              << "if exist('bayestopt_', 'var') == 1" << endl
-              << "  save('" << basename << "_results.mat', 'bayestopt_', '-append');" << endl << "end" << endl
-              << "if exist('dataset_', 'var') == 1" << endl
-              << "  save('" << basename << "_results.mat', 'dataset_', '-append');" << endl << "end" << endl
-              << "if exist('estimation_info', 'var') == 1" << endl
-              << "  save('" << basename << "_results.mat', 'estimation_info', '-append');" << endl << "end" << endl
-              << "if exist('dataset_info', 'var') == 1" << endl
-              << "  save('" << basename << "_results.mat', 'dataset_info', '-append');" << endl << "end" << endl
-              << "if exist('oo_recursive_', 'var') == 1" << endl
-              << "  save('" << basename << "_results.mat', 'oo_recursive_', '-append');" << endl << "end" << endl;
+      mOutputFile << endl << endl
+                  << "disp(['Total computing time : ' dynsec2hms(toc(tic0)) ]);" << endl;
 
-  config_file.writeEndParallel(mOutputFile);
+      if (!no_warn)
+        {
+          if (warnings.countWarnings() > 0)
+            mOutputFile << "disp('Note: " << warnings.countWarnings() << " warning(s) encountered in the preprocessor')" << endl;
 
-  mOutputFile << endl << endl
-              << "disp(['Total computing time : ' dynsec2hms(toc(tic0)) ]);" << endl;
-
-  if (!no_warn)
-    {
-      if (warnings.countWarnings() > 0)
-        mOutputFile << "disp('Note: " << warnings.countWarnings() << " warning(s) encountered in the preprocessor')" << endl;
-
-      mOutputFile << "if ~isempty(lastwarn)" << endl
-                  << "  disp('Note: warning(s) encountered in MATLAB/Octave code')" << endl
-                  << "end" << endl;
+          mOutputFile << "if ~isempty(lastwarn)" << endl
+                      << "  disp('Note: warning(s) encountered in MATLAB/Octave code')" << endl
+                      << "end" << endl;
+        }
     }
 
   if (!no_log)
