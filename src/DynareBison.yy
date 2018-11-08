@@ -34,6 +34,12 @@ class ParsingDriver;
 %code requires {
 #include "ExprNode.hh"
 #include "CodeInterpreter.hh"
+
+/* Bison 3.2 passes semantic types through a macro, and commas in parametric
+   types are interpreted as macro arguments, leading to a compilation error.
+   Use type aliases to workaround the problem. */
+using pair_2strings = pair<string,string>;
+using tuple_4strings = tuple<string,string,string,string>;
 }
 
 %parse-param { ParsingDriver &driver }
@@ -177,14 +183,15 @@ class ParsingDriver;
 %type <string> range vec_value_w_inf vec_value_1_w_inf
 %type <string> integer_range signed_integer_range
 %type <string> sub_sampling_options list_sub_sampling_option
-%type <pair<string,string>> named_var_elem subsamples_eq_opt calibration_range integer_range_w_inf
-%type <vector<pair<string,string>>> named_var named_var_1
 %type <SymbolType> change_type_arg
 %type <vector<string>> vec_str vec_str_1
 %type <vector<string>> change_type_var_list
 %type <vector<int>> vec_int_elem vec_int_1 vec_int vec_int_number
 %type <PriorDistributions> prior_pdf prior_distribution
-%type <tuple<string,string,string,string>> prior_eq_opt options_eq_opt
+// The following types use aliases, see comment above in the file
+%type <pair_2strings> named_var_elem subsamples_eq_opt calibration_range integer_range_w_inf
+%type <vector<pair_2strings>> named_var named_var_1
+%type <tuple_4strings> prior_eq_opt options_eq_opt
 %%
 
 %start statement_list;
