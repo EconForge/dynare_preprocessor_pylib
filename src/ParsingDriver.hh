@@ -556,6 +556,8 @@ public:
   void sampling_options_string(const string &name, const string &value);
   //! Adds an sampling option (numeric value)
   void sampling_options_num(const string &name, const string &value);
+  //! Adds an sampling option (vec_str value)
+  void sampling_options_vec_str(const string &name, vector<string> value);
   //! Check that no observed variable has yet be defined
   void check_varobs();
   //! Add a new observed variable

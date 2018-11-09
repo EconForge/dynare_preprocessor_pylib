@@ -2186,6 +2186,8 @@ list_sampling_option : QUOTED_STRING COMMA QUOTED_STRING
                        { driver.sampling_options_string($1, $3); }
                      | QUOTED_STRING COMMA signed_number
                        { driver.sampling_options_num($1, $3); }
+                     | QUOTED_STRING COMMA vec_str
+                       { driver.sampling_options_vec_str($1, $3); }
                      | QUOTED_STRING COMMA '(' sub_sampling_options ')'
                        { driver.sampling_options_string($1, '(' + $4 + ')'); }
                      ;
