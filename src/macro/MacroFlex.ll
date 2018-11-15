@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
 /*
- * Copyright (C) 2008-2018 Dynare Team
+ * Copyright (C) 2008-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -72,8 +72,6 @@ CONT \\\\
   // Reset location before reading token
   yylloc->step();
 %}
-
-<STMT,EXPR,FOR_BODY,THEN_BODY,ELSE_BODY>["/"]["/"].*
 
 <INITIAL>^{SPC}*@#{SPC}*includepath{SPC}+\"([^\"\r\n:;|<>]*){1}(:[^\"\r\n:;|<>]*)*\"{SPC}*{EOL} {
                               yylloc->lines(1);
