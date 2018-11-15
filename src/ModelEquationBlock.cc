@@ -382,7 +382,7 @@ Epilogue::writeEpilogueFile(const string &basename) const
   for (auto symb_id : exogs)
     output << symbol_table.getName(symb_id) << " = ds." << symbol_table.getName(symb_id) << ".data;" << endl;
   output << endl
-         << "for epilogue_it__ = epilogue_loop_begin_idx__::epilogue_loop_end_idx__" << endl;
+         << "for epilogue_it__ = epilogue_loop_begin_idx__:epilogue_loop_end_idx__" << endl;
 
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temporary_terms;
