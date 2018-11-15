@@ -218,8 +218,8 @@ StaticModel::StaticModel(const DynamicModel &m) :
 void
 StaticModel::compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, map_idx_t &map_idx, temporary_terms_t temporary_terms) const
 {
-  auto it = first_derivatives.find({ eq, getDerivID(symbol_table.getID(SymbolType::endogenous, symb_id), 0) });
-  if (it != first_derivatives.end())
+  auto it = derivatives[1].find({ eq, getDerivID(symbol_table.getID(SymbolType::endogenous, symb_id), 0) });
+  if (it != derivatives[1].end())
     (it->second)->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
   else
     {
@@ -247,7 +247,6 @@ StaticModel::computeTemporaryTermsOrdered()
   map<expr_t, pair<int, int>> first_occurence;
   map<expr_t, int> reference_count;
   BinaryOpNode *eq_node;
-  first_derivatives_t::const_iterator it;
   first_chain_rule_derivatives_t::const_iterator it_chr;
   ostringstream tmp_s;
   v_temporary_terms.clear();
@@ -627,23 +626,23 @@ StaticModel::writeModelEquationsCode(const string &basename, map_idx_t map_idx) 
   fjmp_if_eval.write(code_file, instruction_number);
   int prev_instruction_number = instruction_number;
 
-  vector<vector<pair<int, int>>> derivatives;
-  derivatives.resize(symbol_table.endo_nbr());
+  vector<vector<pair<int, int>>> my_derivatives;
+  my_derivatives.resize(symbol_table.endo_nbr());
   count_u = symbol_table.endo_nbr();
-  for (const auto & first_derivative : first_derivatives)
+  for (const auto & first_derivative : derivatives[1])
     {
-      int deriv_id = first_derivative.first.second;
+      int deriv_id = first_derivative.first[1];
       if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
         {
           expr_t d1 = first_derivative.second;
-          unsigned int eq = first_derivative.first.first;
+          unsigned int eq = first_derivative.first[0];
           int symb = getSymbIDByDerivID(deriv_id);
           unsigned int var = symbol_table.getTypeSpecificID(symb);
           FNUMEXPR_ fnumexpr(FirstEndoDerivative, eq, var);
           fnumexpr.write(code_file, instruction_number);
-          if (!derivatives[eq].size())
-            derivatives[eq].clear();
-          derivatives[eq].emplace_back(var, count_u);
+          if (!my_derivatives[eq].size())
+            my_derivatives[eq].clear();
+          my_derivatives[eq].emplace_back(var, count_u);
 
           d1->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
 
@@ -656,10 +655,10 @@ StaticModel::writeModelEquationsCode(const string &basename, map_idx_t map_idx) 
     {
       FLDR_ fldr(i);
       fldr.write(code_file, instruction_number);
-      if (derivatives[i].size())
+      if (my_derivatives[i].size())
         {
-          for (vector<pair<int, int>>::const_iterator it = derivatives[i].begin();
-               it != derivatives[i].end(); it++)
+          for (vector<pair<int, int>>::const_iterator it = my_derivatives[i].begin();
+               it != my_derivatives[i].end(); it++)
             {
               FLDSU_ fldsu(it->second);
               fldsu.write(code_file, instruction_number);
@@ -667,7 +666,7 @@ StaticModel::writeModelEquationsCode(const string &basename, map_idx_t map_idx) 
               fldsv.write(code_file, instruction_number);
               FBINARY_ fbinary{static_cast<int>(BinaryOpcode::times)};
               fbinary.write(code_file, instruction_number);
-              if (it != derivatives[i].begin())
+              if (it != my_derivatives[i].begin())
                 {
                   FBINARY_ fbinary{static_cast<int>(BinaryOpcode::plus)};
                   fbinary.write(code_file, instruction_number);
@@ -697,20 +696,20 @@ StaticModel::writeModelEquationsCode(const string &basename, map_idx_t map_idx) 
   tt3.clear();
 
   // The Jacobian if we have to solve the block determinsitic bloc
-  for (const auto & first_derivative : first_derivatives)
+  for (const auto & first_derivative : derivatives[1])
     {
-      int deriv_id = first_derivative.first.second;
+      int deriv_id = first_derivative.first[1];
       if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
         {
           expr_t d1 = first_derivative.second;
-          unsigned int eq = first_derivative.first.first;
+          unsigned int eq = first_derivative.first[0];
           int symb = getSymbIDByDerivID(deriv_id);
           unsigned int var = symbol_table.getTypeSpecificID(symb);
           FNUMEXPR_ fnumexpr(FirstEndoDerivative, eq, var);
           fnumexpr.write(code_file, instruction_number);
-          if (!derivatives[eq].size())
-            derivatives[eq].clear();
-          derivatives[eq].emplace_back(var, count_u);
+          if (!my_derivatives[eq].size())
+            my_derivatives[eq].clear();
+          my_derivatives[eq].emplace_back(var, count_u);
 
           d1->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
           FSTPG2_ fstpg2(eq, var);
@@ -1201,12 +1200,12 @@ map<pair<int, pair<int, int >>, expr_t>
 StaticModel::collect_first_order_derivatives_endogenous()
 {
   map<pair<int, pair<int, int >>, expr_t> endo_derivatives;
-  for (auto & first_derivative : first_derivatives)
+  for (auto & first_derivative : derivatives[1])
     {
-      if (getTypeByDerivID(first_derivative.first.second) == SymbolType::endogenous)
+      if (getTypeByDerivID(first_derivative.first[1]) == SymbolType::endogenous)
         {
-          int eq = first_derivative.first.first;
-          int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(first_derivative.first.second));
+          int eq = first_derivative.first[0];
+          int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(first_derivative.first[1]));
           int lag = 0;
           endo_derivatives[{ eq, { var, lag } }] = first_derivative.second;
         }
@@ -1248,7 +1247,6 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
   if (!nopreprocessoroutput)
     cout << "Computing static model derivatives:" << endl
          << " - order 1" << endl;
-  first_derivatives.clear();
 
   computeJacobian(vars);
 
@@ -1470,7 +1468,7 @@ StaticModel::writeStaticMatlabCompatLayer(const string &basename) const
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
-  int ntt = temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size() + temporary_terms_g2.size() + temporary_terms_g3.size();
+  int ntt = temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size();
 
   output << "function [residual, g1, g2, g3] = static(y, x, params)" << endl
          << "    T = NaN(" << ntt << ", 1);" << endl
@@ -1526,11 +1524,11 @@ StaticModel::writeStaticModel(const string &basename,
   writeModelLocalVariableTemporaryTerms(temp_term_union, temporary_terms_mlv,
                                         model_tt_output, output_type, tef_terms);
 
-  writeTemporaryTerms(temporary_terms_res,
+  writeTemporaryTerms(temporary_terms_derivatives[0],
                       temp_term_union,
                       temporary_terms_idxs,
                       model_tt_output, output_type, tef_terms);
-  temp_term_union.insert(temporary_terms_res.begin(), temporary_terms_res.end());
+  temp_term_union.insert(temporary_terms_derivatives[0].begin(), temporary_terms_derivatives[0].end());
 
   writeModelEquations(model_output, output_type, temp_term_union);
 
@@ -1539,18 +1537,18 @@ StaticModel::writeStaticModel(const string &basename,
   int hessianColsNbr = JacobianColsNbr*JacobianColsNbr;
 
   // Write Jacobian w.r. to endogenous only
-  if (!first_derivatives.empty())
+  if (!derivatives[1].empty())
     {
-      writeTemporaryTerms(temporary_terms_g1,
+      writeTemporaryTerms(temporary_terms_derivatives[1],
                           temp_term_union,
                           temporary_terms_idxs,
                           jacobian_tt_output, output_type, tef_terms);
-      temp_term_union.insert(temporary_terms_g1.begin(), temporary_terms_g1.end());
+      temp_term_union.insert(temporary_terms_derivatives[1].begin(), temporary_terms_derivatives[1].end());
     }
-  for (const auto & first_derivative : first_derivatives)
+  for (const auto & first_derivative : derivatives[1])
     {
       int eq, var;
-      tie(eq, var) = first_derivative.first;
+      tie(eq, var) = vectorToTuple<2>(first_derivative.first);
       expr_t d1 = first_derivative.second;
       int symb_id = getSymbIDByDerivID(var);
 
@@ -1563,19 +1561,19 @@ StaticModel::writeStaticModel(const string &basename,
 
   int g2ncols = symbol_table.endo_nbr() * symbol_table.endo_nbr();
   // Write Hessian w.r. to endogenous only (only if 2nd order derivatives have been computed)
-  if (!second_derivatives.empty())
+  if (!derivatives[2].empty())
     {
-      writeTemporaryTerms(temporary_terms_g2,
+      writeTemporaryTerms(temporary_terms_derivatives[2],
                           temp_term_union,
                           temporary_terms_idxs,
                           hessian_tt_output, output_type, tef_terms);
-      temp_term_union.insert(temporary_terms_g2.begin(), temporary_terms_g2.end());
+      temp_term_union.insert(temporary_terms_derivatives[2].begin(), temporary_terms_derivatives[2].end());
 
       int k = 0; // Keep the line of a 2nd derivative in v2
-      for (const auto & second_derivative : second_derivatives)
+      for (const auto & second_derivative : derivatives[2])
         {
           int eq, var1, var2;
-          tie(eq, var1, var2) = second_derivative.first;
+          tie(eq, var1, var2) = vectorToTuple<3>(second_derivative.first);
           expr_t d2 = second_derivative.second;
 
           int symb_id1 = getSymbIDByDerivID(var1);
@@ -1634,19 +1632,19 @@ StaticModel::writeStaticModel(const string &basename,
     }
 
   // Writing third derivatives
-  if (!third_derivatives.empty())
+  if (!derivatives[3].empty())
     {
-      writeTemporaryTerms(temporary_terms_g3,
+      writeTemporaryTerms(temporary_terms_derivatives[3],
                           temp_term_union,
                           temporary_terms_idxs,
                           third_derivatives_tt_output, output_type, tef_terms);
-      temp_term_union.insert(temporary_terms_g3.begin(), temporary_terms_g3.end());
+      temp_term_union.insert(temporary_terms_derivatives[3].begin(), temporary_terms_derivatives[3].end());
 
       int k = 0; // Keep the line of a 3rd derivative in v3
-      for (const auto & third_derivative : third_derivatives)
+      for (const auto & third_derivative : derivatives[3])
         {
           int eq, var1, var2, var3;
-          tie(eq, var1, var2, var3) = third_derivative.first;
+          tie(eq, var1, var2, var3) = vectorToTuple<4>(third_derivative.first);
           expr_t d3 = third_derivative.second;
 
           int id1 = getSymbIDByDerivID(var1);
@@ -1731,7 +1729,7 @@ StaticModel::writeStaticModel(const string &basename,
                  << "  residual = real(residual)+imag(residual).^2;" << endl
                  << "end";
       writeStaticModelHelper(basename, "static_resid", "residual", "static_resid_tt",
-                             temporary_terms_mlv.size() + temporary_terms_res.size(),
+                             temporary_terms_mlv.size() + temporary_terms_derivatives[0].size(),
                              "", init_output, end_output,
                              model_output, model_tt_output);
 
@@ -1744,7 +1742,7 @@ StaticModel::writeStaticModel(const string &basename,
                  << "    g1 = real(g1)+2*imag(g1);" << endl
                  << "end";
       writeStaticModelHelper(basename, "static_g1", "g1", "static_g1_tt",
-                             temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size(),
+                             temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size(),
                              "static_resid_tt",
                              init_output, end_output,
                              jacobian_output, jacobian_tt_output);
@@ -1754,16 +1752,16 @@ StaticModel::writeStaticModel(const string &basename,
       init_output.clear();
       end_output.str(string());
       end_output.clear();
-      if (second_derivatives.size())
+      if (derivatives[2].size())
         {
-          init_output << "v2 = zeros(" << NNZDerivatives[1] << ",3);";
+          init_output << "v2 = zeros(" << NNZDerivatives[2] << ",3);";
           end_output << "g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << equations.size() << "," << g2ncols << ");";
         }
       else
         init_output << "g2 = sparse([],[],[]," << equations.size() << "," << g2ncols << ");";
       writeStaticModelHelper(basename, "static_g2", "g2", "static_g2_tt",
-                             temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size()
-                             + temporary_terms_g2.size(),
+                             temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size()
+                             + temporary_terms_derivatives[2].size(),
                              "static_g1_tt",
                              init_output, end_output,
                              hessian_output, hessian_tt_output);
@@ -1774,16 +1772,16 @@ StaticModel::writeStaticModel(const string &basename,
       end_output.str(string());
       end_output.clear();
       int ncols = hessianColsNbr * JacobianColsNbr;
-      if (third_derivatives.size())
+      if (derivatives[3].size())
         {
-          init_output << "v3 = zeros(" << NNZDerivatives[2] << ",3);";
+          init_output << "v3 = zeros(" << NNZDerivatives[3] << ",3);";
           end_output << "g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");";
         }
       else
         init_output << "g3 = sparse([],[],[]," << nrows << "," << ncols << ");";
       writeStaticModelHelper(basename, "static_g3", "g3", "static_g3_tt",
-                             temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size()
-                             + temporary_terms_g2.size() + temporary_terms_g3.size(),
+                             temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size()
+                             + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size(),
                              "static_g2_tt",
                              init_output, end_output,
                              third_derivatives_output, third_derivatives_tt_output);
@@ -1888,15 +1886,15 @@ StaticModel::writeStaticModel(const string &basename,
 
       // Write the number of temporary terms
       output << "tmp_nbr = zeros(Int,4)" << endl
-             << "tmp_nbr[1] = " << temporary_terms_mlv.size() + temporary_terms_res.size() << "# Number of temporary terms for the residuals" << endl
-             << "tmp_nbr[2] = " << temporary_terms_g1.size() << "# Number of temporary terms for g1 (jacobian)" << endl
-             << "tmp_nbr[3] = " << temporary_terms_g2.size() << "# Number of temporary terms for g2 (hessian)" << endl
-             << "tmp_nbr[4] = " << temporary_terms_g3.size() << "# Number of temporary terms for g3 (third order derivates)" << endl << endl;
+             << "tmp_nbr[1] = " << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() << "# Number of temporary terms for the residuals" << endl
+             << "tmp_nbr[2] = " << temporary_terms_derivatives[1].size() << "# Number of temporary terms for g1 (jacobian)" << endl
+             << "tmp_nbr[3] = " << temporary_terms_derivatives[2].size() << "# Number of temporary terms for g2 (hessian)" << endl
+             << "tmp_nbr[4] = " << temporary_terms_derivatives[3].size() << "# Number of temporary terms for g3 (third order derivates)" << endl << endl;
 
       // staticResidTT!
       output << "function staticResidTT!(T::Vector{Float64}," << endl
              << "                        y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
-             << "    @assert length(T) >= " << temporary_terms_mlv.size() + temporary_terms_res.size()  << endl
+             << "    @assert length(T) >= " << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size()  << endl
              << model_tt_output.str()
              << "    return nothing" << endl
              << "end" << endl << endl;
@@ -1932,7 +1930,7 @@ StaticModel::writeStaticModel(const string &basename,
       output << "function staticG1!(T::Vector{Float64}, g1::Matrix{Float64}," << endl
              << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T1_flag::Bool, T0_flag::Bool)" << endl
              << "    @assert length(T) >= "
-             << temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size() << endl
+             << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() << endl
              << "    @assert size(g1) == (" << equations.size() << ", " << symbol_table.endo_nbr() << ")" << endl
              << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
              << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
@@ -1962,7 +1960,7 @@ StaticModel::writeStaticModel(const string &basename,
       output << "function staticG2!(T::Vector{Float64}, g2::Matrix{Float64}," << endl
              << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
              << "    @assert length(T) >= "
-             << temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size() + temporary_terms_g2.size() << endl
+             << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() << endl
              << "    @assert size(g2) == (" << equations.size() << ", " << g2ncols << ")" << endl
              << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
              << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
@@ -1990,7 +1988,7 @@ StaticModel::writeStaticModel(const string &basename,
       output << "function staticG3!(T::Vector{Float64}, g3::Matrix{Float64}," << endl
              << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T3_flag::Bool, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
              << "    @assert length(T) >= "
-             << temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size() + temporary_terms_g2.size() + temporary_terms_g3.size() << endl
+             << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size() << endl
              << "    @assert size(g3) == (" << nrows << ", " << ncols << ")" << endl
              << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
              << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
@@ -2043,7 +2041,7 @@ StaticModel::writeStaticCFile(const string &basename) const
   string filename = basename + "/model/src/static.c";
   string filename_mex = basename + "/model/src/static_mex.c";
 
-  int ntt = temporary_terms_mlv.size() + temporary_terms_res.size() + temporary_terms_g1.size() + temporary_terms_g2.size() + temporary_terms_g3.size();
+  int ntt = temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size();
 
   ofstream output;
   output.open(filename, ios::out | ios::binary);
@@ -2146,7 +2144,7 @@ StaticModel::writeStaticCFile(const string &basename) const
          << "  if (nlhs >= 3)" << endl
          << "    {" << endl
          << "      /* Set the output pointer to the output matrix v2. */" << endl
-         << "      plhs[2] = mxCreateDoubleMatrix(" << NNZDerivatives[1] << ", " << 3
+         << "      plhs[2] = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 3
          << ", mxREAL);" << endl
          << "      double *v2 = mxGetPr(plhs[2]);" << endl
          << "      static_g2_tt(y, x, nb_row_x, params, T);" << endl
@@ -2250,10 +2248,10 @@ void
 StaticModel::writeOutput(ostream &output, bool block) const
 {
   output << "M_.static_tmp_nbr = zeros(4,1); % Number of temporaries used for the static model" <<endl
-         << "M_.static_tmp_nbr(1) = " << temporary_terms_res.size() << "; % Number of temporaries used for the evaluation of the residuals" << endl
-         << "M_.static_tmp_nbr(2) = " << temporary_terms_g1.size() << "; % Number of temporaries used for the evaluation of g1 (jacobian)" << endl
-         << "M_.static_tmp_nbr(3) = " << temporary_terms_g2.size() << "; % Number of temporaries used for the evaluation of g2 (hessian)" << endl
-         << "M_.static_tmp_nbr(4) = " << temporary_terms_g3.size() << "; % Number of temporaries used for the evaluation of g3 (third order derivatives)" << endl;
+         << "M_.static_tmp_nbr(1) = " << temporary_terms_derivatives[0].size() << "; % Number of temporaries used for the evaluation of the residuals" << endl
+         << "M_.static_tmp_nbr(2) = " << temporary_terms_derivatives[1].size() << "; % Number of temporaries used for the evaluation of g1 (jacobian)" << endl
+         << "M_.static_tmp_nbr(3) = " << temporary_terms_derivatives[2].size() << "; % Number of temporaries used for the evaluation of g2 (hessian)" << endl
+         << "M_.static_tmp_nbr(4) = " << temporary_terms_derivatives[3].size() << "; % Number of temporaries used for the evaluation of g3 (third order derivatives)" << endl;
 
   if (!block)
     return;
@@ -2290,12 +2288,12 @@ StaticModel::writeOutput(ostream &output, bool block) const
   output << "];\n";
 
   map<pair<int, int>,  int>  row_incidence;
-  for (const auto & first_derivative : first_derivatives)
+  for (const auto & first_derivative : derivatives[1])
     {
-      int deriv_id = first_derivative.first.second;
+      int deriv_id = first_derivative.first[1];
       if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
         {
-          int eq = first_derivative.first.first;
+          int eq = first_derivative.first[0];
           int symb = getSymbIDByDerivID(deriv_id);
           int var = symbol_table.getTypeSpecificID(symb);
           //int lag = getLagByDerivID(deriv_id);
@@ -2444,7 +2442,7 @@ StaticModel::computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives)
               int eqr = it_l.second.first;
               int varr = it_l.second.second;
               if (Deriv_type == 0)
-                first_chain_rule_derivatives[{ eqr, { varr, lag } }] = first_derivatives[{ eqr, getDerivID(symbol_table.getID(SymbolType::endogenous, varr), lag) }];
+                first_chain_rule_derivatives[{ eqr, { varr, lag } }] = derivatives[1][{ eqr, getDerivID(symbol_table.getID(SymbolType::endogenous, varr), lag) }];
               else if (Deriv_type == 1)
                 first_chain_rule_derivatives[{ eqr, { varr, lag } }] = (equation_type_and_normalized_equation[eqr].second)->getChainRuleDerivative(getDerivID(symbol_table.getID(SymbolType::endogenous, varr), lag), recursive_variables);
               else if (Deriv_type == 2)
@@ -2505,10 +2503,10 @@ StaticModel::collect_block_first_order_derivatives()
   derivative_endo = vector<derivative_t>(nb_blocks);
   endo_max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
   max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
-  for (auto & first_derivative : first_derivatives)
+  for (auto & first_derivative : derivatives[1])
     {
-      int eq = first_derivative.first.first;
-      int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(first_derivative.first.second));
+      int eq = first_derivative.first[0];
+      int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(first_derivative.first[1]));
       int lag = 0;
       int block_eq = equation_2_block[eq];
       int block_var = variable_2_block[var];
@@ -2518,10 +2516,10 @@ StaticModel::collect_block_first_order_derivatives()
       endo_max_leadlag_block[block_eq] = { 0, 0 };
       derivative_t tmp_derivative;
       lag_var_t lag_var;
-      if (getTypeByDerivID(first_derivative.first.second) == SymbolType::endogenous && block_eq == block_var)
+      if (getTypeByDerivID(first_derivative.first[1]) == SymbolType::endogenous && block_eq == block_var)
         {
           tmp_derivative = derivative_endo[block_eq];
-          tmp_derivative[{ lag, { eq, var } }] = first_derivatives[{ eq, getDerivID(symbol_table.getID(SymbolType::endogenous, var), lag) }];
+          tmp_derivative[{ lag, { eq, var } }] = derivatives[1][{ eq, getDerivID(symbol_table.getID(SymbolType::endogenous, var), lag) }];
           derivative_endo[block_eq] = tmp_derivative;
         }
     }
@@ -2642,11 +2640,7 @@ StaticModel::writeJsonAuxVarRecursiveDefinitions(ostream &output) const
 void
 StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) const
 {
-  if (!residuals_params_derivatives.size()
-      && !residuals_params_second_derivatives.size()
-      && !jacobian_params_derivatives.size()
-      && !jacobian_params_second_derivatives.size()
-      && !hessian_params_derivatives.size())
+  if (!params_derivatives.size())
     return;
 
   ExprNodeOutputType output_type = (julia ? ExprNodeOutputType::juliaStaticModel : ExprNodeOutputType::matlabStaticModel);
@@ -2663,10 +2657,10 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
 
   writeTemporaryTerms(params_derivs_temporary_terms, {}, params_derivs_temporary_terms_idxs, model_output, output_type, tef_terms);
 
-  for (const auto & residuals_params_derivative : residuals_params_derivatives)
+  for (const auto & residuals_params_derivative : params_derivatives.find({ 0, 1 })->second)
     {
       int eq, param;
-      tie(eq, param) = residuals_params_derivative.first;
+      tie(eq, param) = vectorToTuple<2>(residuals_params_derivative.first);
       expr_t d1 = residuals_params_derivative.second;
 
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
@@ -2678,10 +2672,10 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
       jacobian_output << ";" << endl;
     }
 
-  for (const auto & jacobian_params_derivative : jacobian_params_derivatives)
+  for (const auto & jacobian_params_derivative : params_derivatives.find({ 1, 1 })->second)
     {
       int eq, var, param;
-      tie(eq, var, param) = jacobian_params_derivative.first;
+      tie(eq, var, param) = vectorToTuple<3>(jacobian_params_derivative.first);
       expr_t d2 = jacobian_params_derivative.second;
 
       int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
@@ -2695,10 +2689,10 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
     }
 
   int i = 1;
-  for (const auto &it : residuals_params_second_derivatives)
+  for (const auto &it : params_derivatives.find({ 0, 2 })->second)
     {
       int eq, param1, param2;
-      tie(eq, param1, param2) = it.first;
+      tie(eq, param1, param2) = vectorToTuple<3>(it.first);
       expr_t d2 = it.second;
 
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
@@ -2719,10 +2713,10 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
     }
 
   i = 1;
-  for (const auto &it : jacobian_params_second_derivatives)
+  for (const auto &it : params_derivatives.find({ 1, 2 })->second)
     {
       int eq, var, param1, param2;
-      tie(eq, var, param1, param2) = it.first;
+      tie(eq, var, param1, param2) = vectorToTuple<4>(it.first);
       expr_t d2 = it.second;
 
       int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
@@ -2746,10 +2740,10 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
     }
 
   i = 1;
-  for (const auto &it : hessian_params_derivatives)
+  for (const auto &it : params_derivatives.find({ 2, 1 })->second)
     {
       int eq, var1, var2, param;
-      tie(eq, var1, var2, param) = it.first;
+      tie(eq, var1, var2, param) = vectorToTuple<4>(it.first);
       expr_t d2 = it.second;
 
       int var1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var1)) + 1;
@@ -2836,13 +2830,13 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
                        << symbol_table.param_nbr() << ");" << endl
                        << hessian_output.str()
                        << "if nargout >= 3" << endl
-                       << "rpp = zeros(" << residuals_params_second_derivatives.size() << ",4);" << endl
+                       << "rpp = zeros(" << params_derivatives.find({ 0, 2 })->second.size() << ",4);" << endl
                        << hessian1_output.str()
-                       << "gpp = zeros(" << jacobian_params_second_derivatives.size() << ",5);" << endl
+                       << "gpp = zeros(" << params_derivatives.find({ 1, 2 })->second.size() << ",5);" << endl
                        << third_derivs_output.str()
                        << "end" << endl
                        << "if nargout >= 5" << endl
-                       << "hp = zeros(" << hessian_params_derivatives.size() << ",5);" << endl
+                       << "hp = zeros(" << params_derivatives.find({ 2, 1 })->second.size() << ",5);" << endl
                        << third_derivs1_output.str()
                        << "end" << endl
                        << "end" << endl;
@@ -2863,11 +2857,11 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
                      << "gp = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ", "
                      << symbol_table.param_nbr() << ");" << endl
                      << hessian_output.str()
-                     << "rpp = zeros(" << residuals_params_second_derivatives.size() << ",4);" << endl
+                     << "rpp = zeros(" << params_derivatives.find({ 0, 2 })->second.size() << ",4);" << endl
                      << hessian1_output.str()
-                     << "gpp = zeros(" << jacobian_params_second_derivatives.size() << ",5);" << endl
+                     << "gpp = zeros(" << params_derivatives.find({ 1, 2 })->second.size() << ",5);" << endl
                      << third_derivs_output.str()
-                     << "hp = zeros(" << hessian_params_derivatives.size() << ",5);" << endl
+                     << "hp = zeros(" << params_derivatives.find({ 2, 1 })->second.size() << ",5);" << endl
                      << third_derivs1_output.str()
                      << "(rp, gp, rpp, gpp, hp)" << endl
                      << "end" << endl
@@ -2892,14 +2886,14 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
   ostringstream third_derivatives_output;  // Used for storing third order derivatives equations
 
   deriv_node_temp_terms_t tef_terms;
-  temporary_terms_t temp_term_union = temporary_terms_res;
+  temporary_terms_t temp_term_union = temporary_terms_derivatives[0];
   temporary_terms_t temp_term_union_m_1;
 
   string concat = "";
 
   writeJsonModelLocalVariables(model_local_vars_output, tef_terms);
 
-  writeJsonTemporaryTerms(temporary_terms_res, temp_term_union_m_1, model_output, tef_terms, concat);
+  writeJsonTemporaryTerms(temporary_terms_derivatives[0], temp_term_union_m_1, model_output, tef_terms, concat);
   model_output << ", ";
   writeJsonModelEquations(model_output, true);
 
@@ -2909,21 +2903,21 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
 
   // Write Jacobian w.r. to endogenous only
   temp_term_union_m_1 = temp_term_union;
-  temp_term_union.insert(temporary_terms_g1.begin(), temporary_terms_g1.end());
+  temp_term_union.insert(temporary_terms_derivatives[1].begin(), temporary_terms_derivatives[1].end());
   concat = "jacobian";
   writeJsonTemporaryTerms(temp_term_union, temp_term_union_m_1, jacobian_output, tef_terms, concat);
   jacobian_output << ", \"jacobian\": {"
                   << "  \"nrows\": " << nrows
                   << ", \"ncols\": " << JacobianColsNbr
                   << ", \"entries\": [";
-  for (auto it = first_derivatives.begin();
-       it != first_derivatives.end(); it++)
+  for (auto it = derivatives[1].begin();
+       it != derivatives[1].end(); it++)
     {
-      if (it != first_derivatives.begin())
+      if (it != derivatives[1].begin())
         jacobian_output << ", ";
 
       int eq, var;
-      tie(eq, var) = it->first;
+      tie(eq, var) = vectorToTuple<2>(it->first);
       int symb_id = getSymbIDByDerivID(var);
       int col = symbol_table.getTypeSpecificID(symb_id);
       expr_t d1 = it->second;
@@ -2947,21 +2941,21 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
   int g2ncols = symbol_table.endo_nbr() * symbol_table.endo_nbr();
   // Write Hessian w.r. to endogenous only (only if 2nd order derivatives have been computed)
   temp_term_union_m_1 = temp_term_union;
-  temp_term_union.insert(temporary_terms_g2.begin(), temporary_terms_g2.end());
+  temp_term_union.insert(temporary_terms_derivatives[2].begin(), temporary_terms_derivatives[2].end());
   concat = "hessian";
   writeJsonTemporaryTerms(temp_term_union, temp_term_union_m_1, hessian_output, tef_terms, concat);
   hessian_output << ", \"hessian\": {"
                  << "  \"nrows\": " << equations.size()
                  << ", \"ncols\": " << g2ncols
                  << ", \"entries\": [";
-  for (auto it = second_derivatives.begin();
-       it != second_derivatives.end(); it++)
+  for (auto it = derivatives[2].begin();
+       it != derivatives[2].end(); it++)
     {
-      if (it != second_derivatives.begin())
+      if (it != derivatives[2].begin())
         hessian_output << ", ";
 
       int eq, var1, var2;
-      tie(eq, var1, var2) = it->first;
+      tie(eq, var1, var2) = vectorToTuple<3>(it->first);
       int symb_id1 = getSymbIDByDerivID(var1);
       int symb_id2 = getSymbIDByDerivID(var2);
       expr_t d2 = it->second;
@@ -2994,21 +2988,21 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
 
   // Writing third derivatives
   temp_term_union_m_1 = temp_term_union;
-  temp_term_union.insert(temporary_terms_g3.begin(), temporary_terms_g3.end());
+  temp_term_union.insert(temporary_terms_derivatives[3].begin(), temporary_terms_derivatives[3].end());
   concat = "third_derivatives";
   writeJsonTemporaryTerms(temp_term_union, temp_term_union_m_1, third_derivatives_output, tef_terms, concat);
   third_derivatives_output << ", \"third_derivative\": {"
                            << "  \"nrows\": " << equations.size()
                            << ", \"ncols\": " << hessianColsNbr * JacobianColsNbr
                            << ", \"entries\": [";
-  for (auto it = third_derivatives.begin();
-       it != third_derivatives.end(); it++)
+  for (auto it = derivatives[3].begin();
+       it != derivatives[3].end(); it++)
     {
-      if (it != third_derivatives.begin())
+      if (it != derivatives[3].begin())
         third_derivatives_output << ", ";
 
       int eq, var1, var2, var3;
-      tie(eq, var1, var2, var3) = it->first;
+      tie(eq, var1, var2, var3) = vectorToTuple<4>(it->first);
       expr_t d3 = it->second;
 
       if (writeDetails)
@@ -3062,11 +3056,7 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
 void
 StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) const
 {
-  if (!residuals_params_derivatives.size()
-      && !residuals_params_second_derivatives.size()
-      && !jacobian_params_derivatives.size()
-      && !jacobian_params_second_derivatives.size()
-      && !hessian_params_derivatives.size())
+  if (!params_derivatives.size())
     return;
 
   ostringstream model_local_vars_output;   // Used for storing model local vars
@@ -3087,14 +3077,14 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                   << "  \"neqs\": " << equations.size()
                   << ", \"nparamcols\": " << symbol_table.param_nbr()
                   << ", \"entries\": [";
-  for (auto it = residuals_params_derivatives.begin();
-       it != residuals_params_derivatives.end(); it++)
+  auto &rp = params_derivatives.find({ 0, 1 })->second;
+  for (auto it = rp.begin(); it != rp.end(); it++)
     {
-      if (it != residuals_params_derivatives.begin())
+      if (it != rp.begin())
         jacobian_output << ", ";
 
       int eq, param;
-      tie(eq, param) = it->first;
+      tie(eq, param) = vectorToTuple<2>(it->first);
       expr_t d1 = it->second;
 
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
@@ -3114,19 +3104,20 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
       jacobian_output << "\"}" << endl;
     }
   jacobian_output << "]}";
+
   hessian_output << "\"deriv_jacobian_wrt_params\": {"
                  << "  \"neqs\": " << equations.size()
                  << ", \"nvarcols\": " << symbol_table.endo_nbr()
                  << ", \"nparamcols\": " << symbol_table.param_nbr()
                  << ", \"entries\": [";
-  for (auto it = jacobian_params_derivatives.begin();
-       it != jacobian_params_derivatives.end(); it++)
+  auto &gp = params_derivatives.find({ 1, 1 })->second;
+  for (auto it = gp.begin(); it != gp.end(); it++)
     {
-      if (it != jacobian_params_derivatives.begin())
+      if (it != gp.begin())
         hessian_output << ", ";
 
       int eq, var, param;
-      tie(eq, var, param) = it->first;
+      tie(eq, var, param) = vectorToTuple<3>(it->first);
       expr_t d2 = it->second;
 
       int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
@@ -3154,14 +3145,14 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                   << ", \"nparam1cols\": " << symbol_table.param_nbr()
                   << ", \"nparam2cols\": " << symbol_table.param_nbr()
                   << ", \"entries\": [";
-  for (auto it = residuals_params_second_derivatives.begin();
-       it != residuals_params_second_derivatives.end(); ++it)
+  auto &rpp = params_derivatives.find({ 0, 2 })->second;
+  for (auto it = rpp.begin(); it != rpp.end(); ++it)
     {
-      if (it != residuals_params_second_derivatives.begin())
+      if (it != rpp.begin())
         hessian1_output << ", ";
 
       int eq, param1, param2;
-      tie(eq, param1, param2) = it->first;
+      tie(eq, param1, param2) = vectorToTuple<3>(it->first);
       expr_t d2 = it->second;
 
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
@@ -3184,20 +3175,21 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
       hessian1_output << "\"}" << endl;
     }
   hessian1_output << "]}";
+
   third_derivs_output << "\"second_deriv_jacobian_wrt_params\": {"
                       << "  \"neqs\": " << equations.size()
                       << ", \"nvarcols\": " << symbol_table.endo_nbr()
                       << ", \"nparam1cols\": " << symbol_table.param_nbr()
                       << ", \"nparam2cols\": " << symbol_table.param_nbr()
                       << ", \"entries\": [";
-  for (auto it = jacobian_params_second_derivatives.begin();
-       it != jacobian_params_second_derivatives.end(); ++it)
+  auto &gpp = params_derivatives.find({ 1, 2 })->second;
+  for (auto it = gpp.begin(); it != gpp.end(); ++it)
     {
-      if (it != jacobian_params_second_derivatives.begin())
+      if (it != gpp.begin())
         third_derivs_output << ", ";
 
       int eq, var, param1, param2;
-      tie(eq, var, param1, param2) = it->first;
+      tie(eq, var, param1, param2) = vectorToTuple<4>(it->first);
       expr_t d2 = it->second;
 
       int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
@@ -3229,14 +3221,14 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                        << ", \"nvar2cols\": " << symbol_table.endo_nbr()
                        << ", \"nparamcols\": " << symbol_table.param_nbr()
                        << ", \"entries\": [";
-  for (auto it = hessian_params_derivatives.begin();
-       it != hessian_params_derivatives.end(); ++it)
+  auto &hp = params_derivatives.find({ 2, 1 })->second;
+  for (auto it = hp.begin(); it != hp.end(); ++it)
     {
-      if (it != hessian_params_derivatives.begin())
+      if (it != hp.begin())
         third_derivs1_output << ", ";
 
       int eq, var1, var2, param;
-      tie(eq, var1, var2, param) = it->first;
+      tie(eq, var1, var2, param) = vectorToTuple<4>(it->first);
       expr_t d2 = it->second;
 
       int var1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var1)) + 1;

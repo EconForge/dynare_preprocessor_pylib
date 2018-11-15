@@ -34,6 +34,17 @@ using namespace std;
 #include "DataTree.hh"
 #include "ExtendedPreprocessorTypes.hh"
 
+// Helper to convert a vector into a tuple
+template <typename T, size_t... Indices>
+auto vectorToTupleHelper(const vector<T>& v, index_sequence<Indices...>) {
+  return make_tuple(v[Indices]...);
+}
+template <size_t N, typename T>
+auto vectorToTuple(const vector<T>& v) {
+  assert(v.size() >= N);
+  return vectorToTupleHelper(v, make_index_sequence<N>());
+}
+
 //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
 using equation_type_and_normalized_equation_t = vector<pair<EquationType, expr_t >>;
 
@@ -76,87 +87,44 @@ protected:
   //! Stores equation tags
   vector<pair<int, pair<string, string>>> equation_tags;
 
+  //! Stores derivatives
+  /*! Index 0 is not used, index 1 contains first derivatives, ...
+     For each derivation order, stores a map whose key is a vector of integer: the
+     first integer is the equation index, the remaining ones are the derivation
+     IDs of variables */
+  vector<map<vector<int>, expr_t>> derivatives;
+
   //! Number of non-zero derivatives
-  array<int, 3> NNZDerivatives;
+  /*! Index 0 is not used, index 1 contains number of non-zero first
+    derivatives, ... */
+  vector<int> NNZDerivatives;
 
-  using first_derivatives_t = map<pair<int, int>, expr_t>;
-  //! First order derivatives
-  /*! First index is equation number, second is variable w.r. to which is computed the derivative.
-    Only non-null derivatives are stored in the map.
-    Variable indices are those of the getDerivID() method.
-  */
-  first_derivatives_t first_derivatives;
-
-  using second_derivatives_t = map<tuple<int, int, int>, expr_t>;
-  //! Second order derivatives
-  /*! First index is equation number, second and third are variables w.r. to which is computed the derivative.
-    Only non-null derivatives are stored in the map.
-    Contains only second order derivatives where var1 >= var2 (for obvious symmetry reasons).
-    Variable indices are those of the getDerivID() method.
-  */
-  second_derivatives_t second_derivatives;
-
-  using third_derivatives_t = map<tuple<int, int, int, int>, expr_t>;
-  //! Third order derivatives
-  /*! First index is equation number, second, third and fourth are variables w.r. to which is computed the derivative.
-    Only non-null derivatives are stored in the map.
-    Contains only third order derivatives where var1 >= var2 >= var3 (for obvious symmetry reasons).
-    Variable indices are those of the getDerivID() method.
-  */
-  third_derivatives_t third_derivatives;
-
-  //! Derivatives of the residuals w.r. to parameters
-  /*! First index is equation number, second is parameter.
-    Only non-null derivatives are stored in the map.
-    Parameter indices are those of the getDerivID() method.
-  */
-  first_derivatives_t residuals_params_derivatives;
-
-  //! Second derivatives of the residuals w.r. to parameters
-  /*! First index is equation number, second and third indeces are parameters.
-    Only non-null derivatives are stored in the map.
-    Parameter indices are those of the getDerivID() method.
-  */
-  second_derivatives_t residuals_params_second_derivatives;
-
-  //! Derivatives of the jacobian w.r. to parameters
-  /*! First index is equation number, second is endo/exo/exo_det variable, and third is parameter.
-    Only non-null derivatives are stored in the map.
-    Variable and parameter indices are those of the getDerivID() method.
-  */
-  second_derivatives_t jacobian_params_derivatives;
-
-  //! Second derivatives of the jacobian w.r. to parameters
-  /*! First index is equation number, second is endo/exo/exo_det variable, and third and fourth are parameters.
-    Only non-null derivatives are stored in the map.
-    Variable and parameter indices are those of the getDerivID() method.
-  */
-  third_derivatives_t jacobian_params_second_derivatives;
-
-  //! Derivatives of the hessian w.r. to parameters
-  /*! First index is equation number, first and second are endo/exo/exo_det variable, and third is parameter.
-    Only non-null derivatives are stored in the map.
-    Variable and parameter indices are those of the getDerivID() method.
-  */
-  third_derivatives_t hessian_params_derivatives;
+  //! Derivatives with respect to parameters
+  /*! The key of the outer map is a pair (derivation order w.r.t. endogenous,
+  derivation order w.r.t. parameters). For e.g., { 1, 2 } corresponds to the jacobian
+  differentiated twice w.r.t. to parameters.
+  In inner maps, the vector of integers consists of: the equation index, then
+  the derivation IDs of endogenous, then the IDs of parameters */
+  map<pair<int,int>, map<vector<int>, expr_t>> params_derivatives;
 
   //! Temporary terms for the static/dynamic file (those which will be noted T[x])
   temporary_terms_t temporary_terms;
+
+  //! Temporary terms for model local variables
   map<expr_t, expr_t, ExprNodeLess> temporary_terms_mlv;
-  temporary_terms_t temporary_terms_res;
-  temporary_terms_t temporary_terms_g1;
-  temporary_terms_t temporary_terms_g2;
-  temporary_terms_t temporary_terms_g3;
+
+  //! Temporary terms for residuals and derivatives
+  /*! Index 0 is temp. terms of residuals, index 1 for first derivatives, ... */
+  vector<temporary_terms_t> temporary_terms_derivatives;
 
   temporary_terms_idxs_t temporary_terms_idxs;
 
   //! Temporary terms for the file containing parameters derivatives
   temporary_terms_t params_derivs_temporary_terms;
-  temporary_terms_t params_derivs_temporary_terms_res;
-  temporary_terms_t params_derivs_temporary_terms_g1;
-  temporary_terms_t params_derivs_temporary_terms_res2;
-  temporary_terms_t params_derivs_temporary_terms_g12;
-  temporary_terms_t params_derivs_temporary_terms_g2;
+
+  //! Temporary terms for parameter derivatives, under a disaggregated form
+  /*! The pair of integers is to be interpreted as in param_derivatives */
+  map<pair<int,int>, temporary_terms_t> params_derivs_temporary_terms_split;
 
   temporary_terms_idxs_t params_derivs_temporary_terms_idxs;
 
@@ -384,8 +352,8 @@ public:
   /*! Writes either (i+1,j+1) or [i+j*no_eq] */
   void jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const;
   //! Helper for writing the sparse Hessian or third derivatives in MATLAB and C
-  /*! If order=2, writes either v2(i+1,j+1) or v2[i+j*NNZDerivatives[1]]
-    If order=3, writes either v3(i+1,j+1) or v3[i+j*NNZDerivatives[2]] */
+  /*! If order=2, writes either v2(i+1,j+1) or v2[i+j*NNZDerivatives[2]]
+    If order=3, writes either v3(i+1,j+1) or v3[i+j*NNZDerivatives[3]] */
   void sparseHelper(int order, ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const;
   inline static std::string
   c_Equation_Type(int type)
