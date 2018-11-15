@@ -74,7 +74,7 @@ CONT \\\\
 %}
 
  // Ignore inline comments
-<STMT>\/{2}.*
+<STMT,EXPR,FOR_BODY,THEN_BODY,ELSE_BODY>\/{2}.*
 
 <INITIAL>^{SPC}*@#{SPC}*includepath{SPC}+\"([^\"\r\n:;|<>]*){1}(:[^\"\r\n:;|<>]*)*\"{SPC}*{EOL} {
                               yylloc->lines(1);
