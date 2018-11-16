@@ -2508,7 +2508,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;
 
-  writeModelLocalVariableTemporaryTerms(temp_term_union,
+  writeModelLocalVariableTemporaryTerms(temp_term_union, temporary_terms_idxs,
                                         model_tt_output, output_type, tef_terms);
 
   writeTemporaryTerms(temporary_terms_derivatives[0],
@@ -4400,9 +4400,6 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
       if (!nopreprocessoroutput)
         cout << " - derivatives of Jacobian/Hessian w.r. to parameters" << endl;
       computeParamsDerivatives(paramsDerivsOrder);
-
-      if (!no_tmp_terms)
-        computeParamsDerivativesTemporaryTerms();
     }
 
   if (thirdDerivatives)
@@ -4509,6 +4506,11 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
       computeTemporaryTerms(!use_dll, no_tmp_terms);
       if (bytecode && !no_tmp_terms)
         computeTemporaryTermsMapping();
+
+      /* Must be called after computeTemporaryTerms(), because it depends on
+         temporary_terms_mlv to be filled */
+      if (paramsDerivsOrder > 0 && !no_tmp_terms)
+        computeParamsDerivativesTemporaryTerms();
     }
 }
 
@@ -5375,8 +5377,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
     return;
 
   ExprNodeOutputType output_type = (julia ? ExprNodeOutputType::juliaDynamicModel : ExprNodeOutputType::matlabDynamicModel);
-  ostringstream model_local_vars_output;   // Used for storing model local vars
-  ostringstream model_output;              // Used for storing model temp vars and equations
+  ostringstream tt_output;              // Used for storing model temp vars and equations
   ostringstream jacobian_output;           // Used for storing jacobian equations
   ostringstream hessian_output;            // Used for storing Hessian equations
   ostringstream hessian1_output;           // Used for storing Hessian equations
@@ -5386,7 +5387,8 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
   temporary_terms_t temp_term_union;
   deriv_node_temp_terms_t tef_terms;
 
-  writeTemporaryTerms(params_derivs_temporary_terms, temp_term_union, params_derivs_temporary_terms_idxs, model_output, output_type, tef_terms);
+  writeModelLocalVariableTemporaryTerms(temp_term_union, params_derivs_temporary_terms_idxs, tt_output, output_type, tef_terms);
+  writeTemporaryTerms(params_derivs_temporary_terms, temp_term_union, params_derivs_temporary_terms_idxs, tt_output, output_type, tef_terms);
 
   for (const auto & residuals_params_derivative : params_derivatives.find({ 0, 1 })->second)
     {
@@ -5398,7 +5400,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
 
       jacobian_output << "rp" << LEFT_ARRAY_SUBSCRIPT(output_type) << eq+1 << ", " << param_col
                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
-      d1->writeOutput(jacobian_output, output_type, params_derivs_temporary_terms, params_derivs_temporary_terms_idxs, tef_terms);
+      d1->writeOutput(jacobian_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
       jacobian_output << ";" << endl;
     }
 
@@ -5413,7 +5415,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
 
       hessian_output << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type) << eq+1 << ", " << var_col
                      << ", " << param_col << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
-      d2->writeOutput(hessian_output, output_type, params_derivs_temporary_terms, params_derivs_temporary_terms_idxs, tef_terms);
+      d2->writeOutput(hessian_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
       hessian_output << ";" << endl;
     }
 
@@ -5435,7 +5437,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
                       << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-      d2->writeOutput(hessian1_output, output_type, params_derivs_temporary_terms, params_derivs_temporary_terms_idxs, tef_terms);
+      d2->writeOutput(hessian1_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
       hessian1_output << ";" << endl;
 
       i++;
@@ -5462,7 +5464,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                           << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
                           << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
                           << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-      d2->writeOutput(third_derivs_output, output_type, params_derivs_temporary_terms, params_derivs_temporary_terms_idxs, tef_terms);
+      d2->writeOutput(third_derivs_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
       third_derivs_output << ";" << endl;
 
       i++;
@@ -5489,7 +5491,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                            << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
                            << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
                            << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-      d2->writeOutput(third_derivs1_output, output_type, params_derivs_temporary_terms, params_derivs_temporary_terms_idxs, tef_terms);
+      d2->writeOutput(third_derivs1_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
       third_derivs1_output << ";" << endl;
 
       i++;
@@ -5509,8 +5511,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
       // Check that we don't have more than 32 nested parenthesis because Matlab does not suppor this. See Issue #1201
       map<string, string> tmp_paren_vars;
       bool message_printed = false;
-      fixNestedParenthesis(model_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(model_local_vars_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(tt_output, tmp_paren_vars, message_printed);
       fixNestedParenthesis(jacobian_output, tmp_paren_vars, message_printed);
       fixNestedParenthesis(hessian_output, tmp_paren_vars, message_printed);
       fixNestedParenthesis(hessian1_output, tmp_paren_vars, message_printed);
@@ -5561,8 +5562,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                        << "% Warning : this file is generated automatically by Dynare" << endl
                        << "%           from model file (.mod)" << endl << endl
                        << "T = NaN(" << params_derivs_temporary_terms_idxs.size() << ",1);" << endl
-                       << model_local_vars_output.str()
-                       << model_output.str()
+                       << tt_output.str()
                        << "rp = zeros(" << equations.size() << ", "
                        << symbol_table.param_nbr() << ");" << endl
                        << jacobian_output.str()
@@ -5589,8 +5589,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                      << "export params_derivs" << endl << endl
                      << "function params_derivs(y, x, paramssteady_state, it_, "
                      << "ss_param_deriv, ss_param_2nd_deriv)" << endl
-                     << model_local_vars_output.str()
-                     << model_output.str()
+                     << tt_output.str()
                      << "rp = zeros(" << equations.size() << ", "
                      << symbol_table.param_nbr() << ");" << endl
                      << jacobian_output.str()

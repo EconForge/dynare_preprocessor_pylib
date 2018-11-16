@@ -1432,6 +1432,7 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
 
 void
 ModelTree::writeModelLocalVariableTemporaryTerms(temporary_terms_t &temp_term_union,
+                                                 const temporary_terms_idxs_t &tt_idxs,
                                                  ostream &output, ExprNodeOutputType output_type,
                                                  deriv_node_temp_terms_t &tef_terms) const
 {
@@ -1444,9 +1445,9 @@ ModelTree::writeModelLocalVariableTemporaryTerms(temporary_terms_t &temp_term_un
       if (isJuliaOutput(output_type))
         output << "    @inbounds const ";
 
-      it.first->writeOutput(output, output_type, tto, temporary_terms_idxs, tef_terms);
+      it.first->writeOutput(output, output_type, tto, tt_idxs, tef_terms);
       output << " = ";
-      it.second->writeOutput(output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
+      it.second->writeOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
 
       if (isCOutput(output_type) || isMatlabOutput(output_type))
         output << ";";
@@ -2184,6 +2185,9 @@ ModelTree::computeParamsDerivativesTemporaryTerms()
   params_derivs_temporary_terms_split[{ 2, 1 }] = temp_terms_map[NodeTreeReference::hessianParamsDeriv];
 
   int idx = 0;
+  for (auto &it : temporary_terms_mlv)
+    params_derivs_temporary_terms_idxs[it.first] = idx++;
+
   for (auto tt : params_derivs_temporary_terms_split[{ 0, 1 }])
     params_derivs_temporary_terms_idxs[tt] = idx++;
 

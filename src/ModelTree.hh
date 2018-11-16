@@ -121,6 +121,9 @@ protected:
   temporary_terms_idxs_t temporary_terms_idxs;
 
   //! Temporary terms for the file containing parameters derivatives
+  /*! However does not contain the TT related to model local variables.
+      TODO: this variable should probably be removed, it is essentially the
+      same information as in params_derivs_temporary_terms_split */
   temporary_terms_t params_derivs_temporary_terms;
 
   //! Temporary terms for parameter derivatives, under a disaggregated form
@@ -176,6 +179,7 @@ protected:
   //! Tests if string contains more than 32 nested parens, Issue #1201
   bool testNestedParenthesis(const string &str) const;
   void writeModelLocalVariableTemporaryTerms(temporary_terms_t &temp_term_union,
+                                             const temporary_terms_idxs_t &tt_idxs,
                                              ostream &output, ExprNodeOutputType output_type,
                                              deriv_node_temp_terms_t &tef_terms) const;
   //! Writes model equations
