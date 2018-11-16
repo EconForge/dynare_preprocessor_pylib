@@ -2508,16 +2508,13 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;
 
-  for (auto it : temporary_terms_mlv)
-    temp_term_union.insert(it.first);
-  writeModelLocalVariableTemporaryTerms(temp_term_union, temporary_terms_mlv,
+  writeModelLocalVariableTemporaryTerms(temp_term_union,
                                         model_tt_output, output_type, tef_terms);
 
   writeTemporaryTerms(temporary_terms_derivatives[0],
                       temp_term_union,
                       temporary_terms_idxs,
                       model_tt_output, output_type, tef_terms);
-  temp_term_union.insert(temporary_terms_derivatives[0].begin(), temporary_terms_derivatives[0].end());
 
   writeModelEquations(model_output, output_type, temp_term_union);
 
@@ -2531,7 +2528,6 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
                           temp_term_union,
                           temporary_terms_idxs,
                           jacobian_tt_output, output_type, tef_terms);
-      temp_term_union.insert(temporary_terms_derivatives[1].begin(), temporary_terms_derivatives[1].end());
 
       for (const auto & first_derivative : derivatives[1])
         {
@@ -2554,7 +2550,6 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
                           temp_term_union,
                           temporary_terms_idxs,
                           hessian_tt_output, output_type, tef_terms);
-      temp_term_union.insert(temporary_terms_derivatives[2].begin(), temporary_terms_derivatives[2].end());
 
       int k = 0; // Keep the line of a 2nd derivative in v2
       for (const auto & second_derivative : derivatives[2])
@@ -2623,7 +2618,6 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
                           temp_term_union,
                           temporary_terms_idxs,
                           third_derivatives_tt_output, output_type, tef_terms);
-      temp_term_union.insert(temporary_terms_derivatives[3].begin(), temporary_terms_derivatives[3].end());
 
       int k = 0; // Keep the line of a 3rd derivative in v3
       for (const auto & third_derivative : derivatives[3])
@@ -5389,9 +5383,10 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
   ostringstream third_derivs_output;       // Used for storing third order derivatives equations
   ostringstream third_derivs1_output;      // Used for storing third order derivatives equations
 
+  temporary_terms_t temp_term_union;
   deriv_node_temp_terms_t tef_terms;
 
-  writeTemporaryTerms(params_derivs_temporary_terms, {}, params_derivs_temporary_terms_idxs, model_output, output_type, tef_terms);
+  writeTemporaryTerms(params_derivs_temporary_terms, temp_term_union, params_derivs_temporary_terms_idxs, model_output, output_type, tef_terms);
 
   for (const auto & residuals_params_derivative : params_derivatives.find({ 0, 1 })->second)
     {

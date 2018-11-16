@@ -1519,16 +1519,13 @@ StaticModel::writeStaticModel(const string &basename,
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;
 
-  for (auto it : temporary_terms_mlv)
-    temp_term_union.insert(it.first);
-  writeModelLocalVariableTemporaryTerms(temp_term_union, temporary_terms_mlv,
+  writeModelLocalVariableTemporaryTerms(temp_term_union,
                                         model_tt_output, output_type, tef_terms);
 
   writeTemporaryTerms(temporary_terms_derivatives[0],
                       temp_term_union,
                       temporary_terms_idxs,
                       model_tt_output, output_type, tef_terms);
-  temp_term_union.insert(temporary_terms_derivatives[0].begin(), temporary_terms_derivatives[0].end());
 
   writeModelEquations(model_output, output_type, temp_term_union);
 
@@ -1543,20 +1540,20 @@ StaticModel::writeStaticModel(const string &basename,
                           temp_term_union,
                           temporary_terms_idxs,
                           jacobian_tt_output, output_type, tef_terms);
-      temp_term_union.insert(temporary_terms_derivatives[1].begin(), temporary_terms_derivatives[1].end());
-    }
-  for (const auto & first_derivative : derivatives[1])
-    {
-      int eq, var;
-      tie(eq, var) = vectorToTuple<2>(first_derivative.first);
-      expr_t d1 = first_derivative.second;
-      int symb_id = getSymbIDByDerivID(var);
 
-      jacobianHelper(jacobian_output, eq, symbol_table.getTypeSpecificID(symb_id), output_type);
-      jacobian_output << "=";
-      d1->writeOutput(jacobian_output, output_type,
-                      temp_term_union, temporary_terms_idxs, tef_terms);
-      jacobian_output << ";" << endl;
+      for (const auto & first_derivative : derivatives[1])
+        {
+          int eq, var;
+          tie(eq, var) = vectorToTuple<2>(first_derivative.first);
+          expr_t d1 = first_derivative.second;
+          int symb_id = getSymbIDByDerivID(var);
+
+          jacobianHelper(jacobian_output, eq, symbol_table.getTypeSpecificID(symb_id), output_type);
+          jacobian_output << "=";
+          d1->writeOutput(jacobian_output, output_type,
+                          temp_term_union, temporary_terms_idxs, tef_terms);
+          jacobian_output << ";" << endl;
+        }
     }
 
   int g2ncols = symbol_table.endo_nbr() * symbol_table.endo_nbr();
@@ -1567,7 +1564,6 @@ StaticModel::writeStaticModel(const string &basename,
                           temp_term_union,
                           temporary_terms_idxs,
                           hessian_tt_output, output_type, tef_terms);
-      temp_term_union.insert(temporary_terms_derivatives[2].begin(), temporary_terms_derivatives[2].end());
 
       int k = 0; // Keep the line of a 2nd derivative in v2
       for (const auto & second_derivative : derivatives[2])
@@ -1638,7 +1634,6 @@ StaticModel::writeStaticModel(const string &basename,
                           temp_term_union,
                           temporary_terms_idxs,
                           third_derivatives_tt_output, output_type, tef_terms);
-      temp_term_union.insert(temporary_terms_derivatives[3].begin(), temporary_terms_derivatives[3].end());
 
       int k = 0; // Keep the line of a 3rd derivative in v3
       for (const auto & third_derivative : derivatives[3])
@@ -2653,9 +2648,10 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
   ostringstream third_derivs_output;       // Used for storing third order derivatives equations
   ostringstream third_derivs1_output;      // Used for storing third order derivatives equations
 
+  temporary_terms_t temp_term_union;
   deriv_node_temp_terms_t tef_terms;
 
-  writeTemporaryTerms(params_derivs_temporary_terms, {}, params_derivs_temporary_terms_idxs, model_output, output_type, tef_terms);
+  writeTemporaryTerms(params_derivs_temporary_terms, temp_term_union, params_derivs_temporary_terms_idxs, tt_output, output_type, tef_terms);
 
   for (const auto & residuals_params_derivative : params_derivatives.find({ 0, 1 })->second)
     {

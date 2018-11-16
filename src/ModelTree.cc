@@ -1361,17 +1361,18 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
   temporary_terms_derivatives.clear();
   temporary_terms_derivatives.resize(4);
 
-  // Collect all model local variables appearing in equations. See #101
-  // All used model local variables are automatically set as temporary variables
+  /* Collect all model local variables appearing in equations (and only those,
+     because printing unused model local variables can lead to a crash,
+     see Dynare/dynare#101).
+     Then store them in a dedicated structure (temporary_terms_mlv), that will
+     be treated as the rest of temporary terms. */
   set<int> used_local_vars;
   for (auto & equation : equations)
     equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
-
   for (int used_local_var : used_local_vars)
     {
       VariableNode *v = AddVariable(used_local_var);
       temporary_terms_mlv[v] = local_variables_table.find(used_local_var)->second;
-      reference_count[v] = { ExprNode::min_cost(is_matlab)+1, NodeTreeReference::residuals };
     }
 
   map<NodeTreeReference, temporary_terms_t> temp_terms_map;
@@ -1413,9 +1414,8 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
   temporary_terms_derivatives[3] = temp_terms_map[NodeTreeReference::thirdDeriv];
 
   int idx = 0;
-  for (map<expr_t, expr_t, ExprNodeLess>::const_iterator it = temporary_terms_mlv.begin();
-       it != temporary_terms_mlv.end(); it++)
-    temporary_terms_idxs[it->first] = idx++;
+  for (auto &it : temporary_terms_mlv)
+    temporary_terms_idxs[it.first] = idx++;
 
   for (auto it : temporary_terms_derivatives[0])
     temporary_terms_idxs[it] = idx++;
@@ -1431,56 +1431,57 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
 }
 
 void
-ModelTree::writeModelLocalVariableTemporaryTerms(const temporary_terms_t &tto, const map<expr_t, expr_t, ExprNodeLess> &tt,
+ModelTree::writeModelLocalVariableTemporaryTerms(temporary_terms_t &temp_term_union,
                                                  ostream &output, ExprNodeOutputType output_type,
                                                  deriv_node_temp_terms_t &tef_terms) const
 {
-  temporary_terms_t tt2;
-  for (auto it : tt)
+  temporary_terms_t tto;
+  for (auto it : temporary_terms_mlv)
+    tto.insert(it.first);
+
+  for (auto &it : temporary_terms_mlv)
     {
       if (isJuliaOutput(output_type))
         output << "    @inbounds const ";
 
       it.first->writeOutput(output, output_type, tto, temporary_terms_idxs, tef_terms);
       output << " = ";
-      it.second->writeOutput(output, output_type, tt2, temporary_terms_idxs, tef_terms);
+      it.second->writeOutput(output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
 
       if (isCOutput(output_type) || isMatlabOutput(output_type))
         output << ";";
       output << endl;
 
-      // Insert current node into tt2
-      tt2.insert(it.first);
+      /* We put in temp_term_union the VariableNode corresponding to the MLV,
+         not its definition, so that when equations use the MLV,
+         T(XXX) is printed instead of the MLV name */
+      temp_term_union.insert(it.first);
     }
 }
 
 void
 ModelTree::writeTemporaryTerms(const temporary_terms_t &tt,
-                               const temporary_terms_t &ttm1,
+                               temporary_terms_t &temp_term_union,
                                const temporary_terms_idxs_t &tt_idxs,
                                ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const
 {
-  // Local var used to keep track of temp nodes already written
-  temporary_terms_t tt2 = ttm1;
-  for (auto it = tt.begin();
-       it != tt.end(); it++)
+  for (auto it : tt)
     {
-      if (dynamic_cast<AbstractExternalFunctionNode *>(*it) != nullptr)
-        (*it)->writeExternalFunctionOutput(output, output_type, tt2, tt_idxs, tef_terms);
+      if (dynamic_cast<AbstractExternalFunctionNode *>(it) != nullptr)
+        it->writeExternalFunctionOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
 
       if (isJuliaOutput(output_type))
         output << "    @inbounds ";
 
-      (*it)->writeOutput(output, output_type, tt, tt_idxs, tef_terms);
+      it->writeOutput(output, output_type, tt, tt_idxs, tef_terms);
       output << " = ";
-      (*it)->writeOutput(output, output_type, tt2, tt_idxs, tef_terms);
+      it->writeOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
 
       if (isCOutput(output_type) || isMatlabOutput(output_type))
         output << ";";
       output << endl;
 
-      // Insert current node into tt2
-      tt2.insert(*it);
+      temp_term_union.insert(it);
     }
 }
 

@@ -107,10 +107,11 @@ protected:
   the derivation IDs of endogenous, then the IDs of parameters */
   map<pair<int,int>, map<vector<int>, expr_t>> params_derivatives;
 
-  //! Temporary terms for the static/dynamic file (those which will be noted T[x])
+  //! Storage for temporary terms in block/bytecode mode
   temporary_terms_t temporary_terms;
 
-  //! Temporary terms for model local variables
+  //! Used model local variables, that will be treated as temporary terms
+  /*! See the comments in ModelTree::computeTemporaryTerms() */
   map<expr_t, expr_t, ExprNodeLess> temporary_terms_mlv;
 
   //! Temporary terms for residuals and derivatives
@@ -164,7 +165,7 @@ protected:
   //! Computes temporary terms for the file containing parameters derivatives
   void computeParamsDerivativesTemporaryTerms();
   //! Writes temporary terms
-  void writeTemporaryTerms(const temporary_terms_t &tt, const temporary_terms_t &ttm1, const temporary_terms_idxs_t &tt_idxs, ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const;
+  void writeTemporaryTerms(const temporary_terms_t &tt, temporary_terms_t &temp_term_union, const temporary_terms_idxs_t &tt_idxs, ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const;
   void writeJsonTemporaryTerms(const temporary_terms_t &tt, const temporary_terms_t &ttm1, ostream &output, deriv_node_temp_terms_t &tef_terms, string &concat) const;
   //! Compiles temporary terms
   void compileTemporaryTerms(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, map_idx_t map_idx, bool dynamic, bool steady_dynamic) const;
@@ -174,7 +175,7 @@ protected:
   void fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_paren_vars, bool &message_printed) const;
   //! Tests if string contains more than 32 nested parens, Issue #1201
   bool testNestedParenthesis(const string &str) const;
-  void writeModelLocalVariableTemporaryTerms(const temporary_terms_t &tto, const map<expr_t, expr_t, ExprNodeLess> &tt,
+  void writeModelLocalVariableTemporaryTerms(temporary_terms_t &temp_term_union,
                                              ostream &output, ExprNodeOutputType output_type,
                                              deriv_node_temp_terms_t &tef_terms) const;
   //! Writes model equations
