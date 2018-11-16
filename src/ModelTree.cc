@@ -75,9 +75,7 @@ ModelTree::copyHelper(const ModelTree &m)
   for (const auto & it : m.temporary_terms_idxs)
     temporary_terms_idxs[f(it.first)] = it.second;
   for (const auto & it : m.params_derivs_temporary_terms)
-    params_derivs_temporary_terms.insert(f(it));
-  for (const auto & it : m.params_derivs_temporary_terms_split)
-    params_derivs_temporary_terms_split[it.first] = convert_temporary_terms_t(it.second);
+    params_derivs_temporary_terms[it.first] = convert_temporary_terms_t(it.second);
   for (const auto & it : m.params_derivs_temporary_terms_idxs)
     params_derivs_temporary_terms_idxs[f(it.first)] = it.second;
 
@@ -126,7 +124,6 @@ ModelTree::operator=(const ModelTree &m)
   temporary_terms_mlv.clear();
   temporary_terms_derivatives.clear();
   params_derivs_temporary_terms.clear();
-  params_derivs_temporary_terms_split.clear();
   params_derivs_temporary_terms_idxs.clear();
 
   trend_symbols_map.clear();
@@ -2141,13 +2138,15 @@ void
 ModelTree::computeParamsDerivativesTemporaryTerms()
 {
   map<expr_t, pair<int, NodeTreeReference >> reference_count;
-  params_derivs_temporary_terms.clear();
   map<NodeTreeReference, temporary_terms_t> temp_terms_map;
-  temp_terms_map[NodeTreeReference::residualsParamsDeriv] = params_derivs_temporary_terms_split[{ 0, 1 }];
-  temp_terms_map[NodeTreeReference::jacobianParamsDeriv] = params_derivs_temporary_terms_split[{ 1, 1 }];
-  temp_terms_map[NodeTreeReference::residualsParamsSecondDeriv] = params_derivs_temporary_terms_split[{ 0, 2 }];
-  temp_terms_map[NodeTreeReference::jacobianParamsSecondDeriv] = params_derivs_temporary_terms_split[{ 1, 2 }];
-  temp_terms_map[NodeTreeReference::hessianParamsDeriv] = params_derivs_temporary_terms_split[{ 2, 1}];
+  temp_terms_map[NodeTreeReference::residualsParamsDeriv] = params_derivs_temporary_terms[{ 0, 1 }];
+  temp_terms_map[NodeTreeReference::jacobianParamsDeriv] = params_derivs_temporary_terms[{ 1, 1 }];
+  temp_terms_map[NodeTreeReference::residualsParamsSecondDeriv] = params_derivs_temporary_terms[{ 0, 2 }];
+  temp_terms_map[NodeTreeReference::jacobianParamsSecondDeriv] = params_derivs_temporary_terms[{ 1, 2 }];
+  temp_terms_map[NodeTreeReference::hessianParamsDeriv] = params_derivs_temporary_terms[{ 2, 1}];
+
+  /* The temp terms should be constructed in the same order as the for loops in
+     {Static,Dynamic}Model::write{Json,}ParamsDerivativesFile() */
 
   for (const auto &residuals_params_derivative : params_derivatives[{ 0, 1 }])
     residuals_params_derivative.second->computeTemporaryTerms(reference_count,
@@ -2174,33 +2173,29 @@ ModelTree::computeParamsDerivativesTemporaryTerms()
                                      temp_terms_map,
                                      true, NodeTreeReference::hessianParamsDeriv);
 
-  for (map<NodeTreeReference, temporary_terms_t>::const_iterator it = temp_terms_map.begin();
-       it != temp_terms_map.end(); it++)
-    params_derivs_temporary_terms.insert(it->second.begin(), it->second.end());
-
-  params_derivs_temporary_terms_split[{ 0, 1 }] = temp_terms_map[NodeTreeReference::residualsParamsDeriv];
-  params_derivs_temporary_terms_split[{ 1, 1 }] = temp_terms_map[NodeTreeReference::jacobianParamsDeriv];
-  params_derivs_temporary_terms_split[{ 0, 2 }] = temp_terms_map[NodeTreeReference::residualsParamsSecondDeriv];
-  params_derivs_temporary_terms_split[{ 1, 2 }] = temp_terms_map[NodeTreeReference::jacobianParamsSecondDeriv];
-  params_derivs_temporary_terms_split[{ 2, 1 }] = temp_terms_map[NodeTreeReference::hessianParamsDeriv];
+  params_derivs_temporary_terms[{ 0, 1 }] = temp_terms_map[NodeTreeReference::residualsParamsDeriv];
+  params_derivs_temporary_terms[{ 1, 1 }] = temp_terms_map[NodeTreeReference::jacobianParamsDeriv];
+  params_derivs_temporary_terms[{ 0, 2 }] = temp_terms_map[NodeTreeReference::residualsParamsSecondDeriv];
+  params_derivs_temporary_terms[{ 1, 2 }] = temp_terms_map[NodeTreeReference::jacobianParamsSecondDeriv];
+  params_derivs_temporary_terms[{ 2, 1 }] = temp_terms_map[NodeTreeReference::hessianParamsDeriv];
 
   int idx = 0;
   for (auto &it : temporary_terms_mlv)
     params_derivs_temporary_terms_idxs[it.first] = idx++;
 
-  for (auto tt : params_derivs_temporary_terms_split[{ 0, 1 }])
+  for (auto tt : params_derivs_temporary_terms[{ 0, 1 }])
     params_derivs_temporary_terms_idxs[tt] = idx++;
 
-  for (auto tt : params_derivs_temporary_terms_split[{ 1, 1 }])
+  for (auto tt : params_derivs_temporary_terms[{ 1, 1 }])
     params_derivs_temporary_terms_idxs[tt] = idx++;
 
-  for (auto tt : params_derivs_temporary_terms_split[{ 0, 2 }])
+  for (auto tt : params_derivs_temporary_terms[{ 0, 2 }])
     params_derivs_temporary_terms_idxs[tt] = idx++;
 
-  for (auto tt : params_derivs_temporary_terms_split[{ 1, 2 }])
+  for (auto tt : params_derivs_temporary_terms[{ 1, 2 }])
     params_derivs_temporary_terms_idxs[tt] = idx++;
 
-  for (auto tt : params_derivs_temporary_terms_split[{ 2, 1 }])
+  for (auto tt : params_derivs_temporary_terms[{ 2, 1 }])
     params_derivs_temporary_terms_idxs[tt] = idx++;
 }
 

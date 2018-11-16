@@ -120,15 +120,9 @@ protected:
 
   temporary_terms_idxs_t temporary_terms_idxs;
 
-  //! Temporary terms for the file containing parameters derivatives
-  /*! However does not contain the TT related to model local variables.
-      TODO: this variable should probably be removed, it is essentially the
-      same information as in params_derivs_temporary_terms_split */
-  temporary_terms_t params_derivs_temporary_terms;
-
   //! Temporary terms for parameter derivatives, under a disaggregated form
   /*! The pair of integers is to be interpreted as in param_derivatives */
-  map<pair<int,int>, temporary_terms_t> params_derivs_temporary_terms_split;
+  map<pair<int,int>, temporary_terms_t> params_derivs_temporary_terms;
 
   temporary_terms_idxs_t params_derivs_temporary_terms_idxs;
 

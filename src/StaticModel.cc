@@ -2653,7 +2653,8 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
   deriv_node_temp_terms_t tef_terms;
 
   writeModelLocalVariableTemporaryTerms(temp_term_union, params_derivs_temporary_terms_idxs, tt_output, output_type, tef_terms);
-  writeTemporaryTerms(params_derivs_temporary_terms, temp_term_union, params_derivs_temporary_terms_idxs, tt_output, output_type, tef_terms);
+  for (auto it : { make_pair(0,1), make_pair(1,1), make_pair(0,2), make_pair(1,2), make_pair(2,1) })
+    writeTemporaryTerms(params_derivs_temporary_terms.find(it)->second, temp_term_union, params_derivs_temporary_terms_idxs, tt_output, output_type, tef_terms);
 
   for (const auto & residuals_params_derivative : params_derivatives.find({ 0, 1 })->second)
     {
@@ -3065,9 +3066,11 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
   deriv_node_temp_terms_t tef_terms;
   writeJsonModelLocalVariables(model_local_vars_output, tef_terms);
 
-  temporary_terms_t temp_terms_empty;
+  temporary_terms_t temp_term_union;
   string concat = "all";
-  writeJsonTemporaryTerms(params_derivs_temporary_terms, temp_terms_empty, model_output, tef_terms, concat);
+  for (auto it : { make_pair(0,1), make_pair(1,1), make_pair(0,2), make_pair(1,2), make_pair(2,1) })
+    writeJsonTemporaryTerms(params_derivs_temporary_terms.find(it)->second, temp_term_union, model_output, tef_terms, concat);
+
   jacobian_output << "\"deriv_wrt_params\": {"
                   << "  \"neqs\": " << equations.size()
                   << ", \"nparamcols\": " << symbol_table.param_nbr()
@@ -3095,7 +3098,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
       jacobian_output << ", \"param\": \"" << symbol_table.getName(getSymbIDByDerivID(param)) << "\"";
 
       jacobian_output << ", \"val\": \"";
-      d1->writeJsonOutput(jacobian_output, params_derivs_temporary_terms, tef_terms);
+      d1->writeJsonOutput(jacobian_output, temp_term_union, tef_terms);
       jacobian_output << "\"}" << endl;
     }
   jacobian_output << "]}";
@@ -3130,7 +3133,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
       hessian_output << ", \"var_col\": " << var_col
                      << ", \"param_col\": " << param_col
                      << ", \"val\": \"";
-      d2->writeJsonOutput(hessian_output, params_derivs_temporary_terms, tef_terms);
+      d2->writeJsonOutput(hessian_output, temp_term_union, tef_terms);
       hessian_output << "\"}" << endl;
     }
   hessian_output << "]}";
@@ -3166,7 +3169,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                         << ", \"param2\": \"" << symbol_table.getName(getSymbIDByDerivID(param2)) << "\"";
 
       hessian1_output << ", \"val\": \"";
-      d2->writeJsonOutput(hessian1_output, params_derivs_temporary_terms, tef_terms);
+      d2->writeJsonOutput(hessian1_output, temp_term_union, tef_terms);
       hessian1_output << "\"}" << endl;
     }
   hessian1_output << "]}";
@@ -3205,7 +3208,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                             << ", \"param2\": \"" << symbol_table.getName(getSymbIDByDerivID(param2)) << "\"";
 
       third_derivs_output << ", \"val\": \"";
-      d2->writeJsonOutput(third_derivs_output, params_derivs_temporary_terms, tef_terms);
+      d2->writeJsonOutput(third_derivs_output, temp_term_union, tef_terms);
       third_derivs_output << "\"}" << endl;
     }
   third_derivs_output << "]}" << endl;
@@ -3245,7 +3248,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                              << ", \"param1\": \"" << symbol_table.getName(getSymbIDByDerivID(param)) << "\"";
 
       third_derivs1_output << ", \"val\": \"";
-      d2->writeJsonOutput(third_derivs1_output, params_derivs_temporary_terms, tef_terms);
+      d2->writeJsonOutput(third_derivs1_output, temp_term_union, tef_terms);
       third_derivs1_output << "\"}" << endl;
     }
   third_derivs1_output << "]}" << endl;
