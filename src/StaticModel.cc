@@ -1635,7 +1635,7 @@ StaticModel::writeStaticModel(const string &basename,
               }
         }
 
-      if (output_type != ExprNodeOutputType::juliaDynamicModel)
+      if (output_type != ExprNodeOutputType::juliaStaticModel)
         hessian_output << col0_output.str() << col1_output.str() << col2_output.str();
     }
 
@@ -1718,7 +1718,7 @@ StaticModel::writeStaticModel(const string &basename,
           k += k2;
         }
 
-      if (output_type != ExprNodeOutputType::juliaDynamicModel)
+      if (output_type != ExprNodeOutputType::juliaStaticModel)
         third_derivatives_output << col0_output.str() << col1_output.str() << col2_output.str();
     }
 
