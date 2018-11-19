@@ -2551,6 +2551,13 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
                           temporary_terms_idxs,
                           hessian_tt_output, output_type, tef_terms);
 
+      /* When creating the sparse matrix (in MATLAB or C mode), since storage
+         is in column-major order, output the first column, then the second,
+         then the third. This gives a significant performance boost in use_dll
+         mode (at both compilation and runtime), because it facilitates memory
+         accesses and expression reusage. */
+      ostringstream col0_output, col1_output, col2_output;
+
       int k = 0; // Keep the line of a 2nd derivative in v2
       for (const auto & second_derivative : derivatives[2])
         {
@@ -2574,16 +2581,16 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
             }
           else
             {
-              sparseHelper(2, hessian_output, k, 0, output_type);
-              hessian_output << "=" << eq + 1 << ";" << endl;
+              sparseHelper(2, col0_output, k, 0, output_type);
+              col0_output << "=" << eq + 1 << ";" << endl;
 
-              sparseHelper(2, hessian_output, k, 1, output_type);
-              hessian_output << "=" << col_nb + 1 << ";" << endl;
+              sparseHelper(2, col1_output, k, 1, output_type);
+              col1_output << "=" << col_nb + 1 << ";" << endl;
 
-              sparseHelper(2, hessian_output, k, 2, output_type);
-              hessian_output << "=";
-              d2->writeOutput(hessian_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
-              hessian_output << ";" << endl;
+              sparseHelper(2, col2_output, k, 2, output_type);
+              col2_output << "=";
+              d2->writeOutput(col2_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
+              col2_output << ";" << endl;
 
               k++;
             }
@@ -2595,20 +2602,23 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
                              << for_sym.str() << endl;
             else
               {
-                sparseHelper(2, hessian_output, k, 0, output_type);
-                hessian_output << "=" << eq + 1 << ";" << endl;
+                sparseHelper(2, col0_output, k, 0, output_type);
+                col0_output << "=" << eq + 1 << ";" << endl;
 
-                sparseHelper(2, hessian_output, k, 1, output_type);
-                hessian_output << "=" << col_nb_sym + 1 << ";" << endl;
+                sparseHelper(2, col1_output, k, 1, output_type);
+                col1_output << "=" << col_nb_sym + 1 << ";" << endl;
 
-                sparseHelper(2, hessian_output, k, 2, output_type);
-                hessian_output << "=";
-                sparseHelper(2, hessian_output, k-1, 2, output_type);
-                hessian_output << ";" << endl;
+                sparseHelper(2, col2_output, k, 2, output_type);
+                col2_output << "=";
+                sparseHelper(2, col2_output, k-1, 2, output_type);
+                col2_output << ";" << endl;
 
                 k++;
               }
         }
+
+      if (output_type != ExprNodeOutputType::juliaDynamicModel)
+        hessian_output << col0_output.str() << col1_output.str() << col2_output.str();
     }
 
   // Writing third derivatives
@@ -2618,6 +2628,9 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
                           temp_term_union,
                           temporary_terms_idxs,
                           third_derivatives_tt_output, output_type, tef_terms);
+
+      // See comment above for 2nd order
+      ostringstream col0_output, col1_output, col2_output;
 
       int k = 0; // Keep the line of a 3rd derivative in v3
       for (const auto & third_derivative : derivatives[3])
@@ -2643,16 +2656,16 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
             }
           else
             {
-              sparseHelper(3, third_derivatives_output, k, 0, output_type);
-              third_derivatives_output << "=" << eq + 1 << ";" << endl;
+              sparseHelper(3, col0_output, k, 0, output_type);
+              col0_output << "=" << eq + 1 << ";" << endl;
 
-              sparseHelper(3, third_derivatives_output, k, 1, output_type);
-              third_derivatives_output << "=" << ref_col + 1 << ";" << endl;
+              sparseHelper(3, col1_output, k, 1, output_type);
+              col1_output << "=" << ref_col + 1 << ";" << endl;
 
-              sparseHelper(3, third_derivatives_output, k, 2, output_type);
-              third_derivatives_output << "=";
-              d3->writeOutput(third_derivatives_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
-              third_derivatives_output << ";" << endl;
+              sparseHelper(3, col2_output, k, 2, output_type);
+              col2_output << "=";
+              d3->writeOutput(col2_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
+              col2_output << ";" << endl;
             }
 
           // Compute the column numbers for the 5 other permutations of (id1,id2,id3)
@@ -2672,21 +2685,24 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
                                          << for_sym.str() << endl;
               else
                 {
-                  sparseHelper(3, third_derivatives_output, k+k2, 0, output_type);
-                  third_derivatives_output << "=" << eq + 1 << ";" << endl;
+                  sparseHelper(3, col0_output, k+k2, 0, output_type);
+                  col0_output << "=" << eq + 1 << ";" << endl;
 
-                  sparseHelper(3, third_derivatives_output, k+k2, 1, output_type);
-                  third_derivatives_output << "=" << col + 1 << ";" << endl;
+                  sparseHelper(3, col1_output, k+k2, 1, output_type);
+                  col1_output << "=" << col + 1 << ";" << endl;
 
-                  sparseHelper(3, third_derivatives_output, k+k2, 2, output_type);
-                  third_derivatives_output << "=";
-                  sparseHelper(3, third_derivatives_output, k, 2, output_type);
-                  third_derivatives_output << ";" << endl;
+                  sparseHelper(3, col2_output, k+k2, 2, output_type);
+                  col2_output << "=";
+                  sparseHelper(3, col2_output, k, 2, output_type);
+                  col2_output << ";" << endl;
 
                   k2++;
                 }
           k += k2;
         }
+
+      if (output_type != ExprNodeOutputType::juliaDynamicModel)
+        third_derivatives_output << col0_output.str() << col1_output.str() << col2_output.str();
     }
 
   if (output_type == ExprNodeOutputType::matlabDynamicModel)
