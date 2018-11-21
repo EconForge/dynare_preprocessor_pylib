@@ -31,9 +31,8 @@
 class MacroDriver;
 }
 
-%parse-param { MacroDriver &driver }
+%param { MacroDriver &driver }
 %parse-param { ostream &out }
-%lex-param { MacroDriver &driver }
 
 %locations
 %initial-action

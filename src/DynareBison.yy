@@ -42,8 +42,7 @@ using pair_2strings = pair<string,string>;
 using tuple_4strings = tuple<string,string,string,string>;
 }
 
-%parse-param { ParsingDriver &driver }
-%lex-param { ParsingDriver &driver }
+%param { ParsingDriver &driver }
 
 %locations
 %initial-action
