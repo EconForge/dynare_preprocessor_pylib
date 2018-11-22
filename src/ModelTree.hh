@@ -91,7 +91,8 @@ protected:
   /*! Index 0 is not used, index 1 contains first derivatives, ...
      For each derivation order, stores a map whose key is a vector of integer: the
      first integer is the equation index, the remaining ones are the derivation
-     IDs of variables */
+     IDs of variables (in non-decreasing order, to avoid storing symmetric
+     elements several times) */
   vector<map<vector<int>, expr_t>> derivatives;
 
   //! Number of non-zero derivatives
@@ -104,7 +105,7 @@ protected:
   derivation order w.r.t. parameters). For e.g., { 1, 2 } corresponds to the jacobian
   differentiated twice w.r.t. to parameters.
   In inner maps, the vector of integers consists of: the equation index, then
-  the derivation IDs of endogenous, then the IDs of parameters */
+  the derivation IDs of endogenous (in non-decreasing order), then the IDs of parameters */
   map<pair<int,int>, map<vector<int>, expr_t>> params_derivatives;
 
   //! Storage for temporary terms in block/bytecode mode
@@ -144,15 +145,10 @@ protected:
   //! Vector indicating if the equation is linear in endogenous variable (true) or not (false)
   vector<bool> is_equation_linear;
 
-  //! Computes 1st derivatives
-  /*! \param vars the derivation IDs w.r. to which compute the derivatives */
-  void computeJacobian(const set<int> &vars);
-  //! Computes 2nd derivatives
-  /*! \param vars the derivation IDs w.r. to which derive the 1st derivatives */
-  void computeHessian(const set<int> &vars);
-  //! Computes 3rd derivatives
-  /*! \param vars the derivation IDs w.r. to which derive the 2nd derivatives */
-  void computeThirdDerivatives(const set<int> &vars);
+  //! Computes derivatives
+  /*! \param order the derivation order
+      \param vars the derivation IDs w.r.t. which compute the derivatives */
+  void computeDerivatives(int order, const set<int> &vars);
   //! Computes derivatives of the Jacobian and Hessian w.r. to parameters
   void computeParamsDerivatives(int paramsDerivsOrder);
   //! Write derivative of an equation w.r. to a variable

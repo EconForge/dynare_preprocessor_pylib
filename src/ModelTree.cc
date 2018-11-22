@@ -1276,77 +1276,45 @@ ModelTree::writeDerivative(ostream &output, int eq, int symb_id, int lag,
 }
 
 void
-ModelTree::computeJacobian(const set<int> &vars)
+ModelTree::computeDerivatives(int order, const set<int> &vars)
 {
+  assert (order >= 1);
+
+  // Do not shrink the vectors, since they have a minimal size of 4 (see constructor)
+  derivatives.resize(max(static_cast<size_t>(order), derivatives.size()));
+  NNZDerivatives.resize(max(static_cast<size_t>(order), NNZDerivatives.size()), 0);
+
+  // First-order derivatives
   for (int var : vars)
-    {
-      for (int eq = 0; eq < (int) equations.size(); eq++)
+    for (int eq = 0; eq < (int) equations.size(); eq++)
+      {
+        expr_t d1 = equations[eq]->getDerivative(var);
+        if (d1 == Zero)
+          continue;
+        derivatives[1][{ eq, var }] = d1;
+        ++NNZDerivatives[1];
+      }
+
+  // Higher-order derivatives
+  for (int o = 2; o <= order; o++)
+    for (const auto &it : derivatives[o-1])
+      for (int var : vars)
         {
-          expr_t d1 = equations[eq]->getDerivative(var);
-          if (d1 == Zero)
+          if (it.first.back() > var)
             continue;
-          derivatives[1][{ eq, var }] = d1;
-          ++NNZDerivatives[1];
+
+          expr_t d = it.second->getDerivative(var);
+          if (d == Zero)
+            continue;
+
+          vector<int> indices{it.first};
+          indices.push_back(var);
+          // At this point, indices of endogenous variables are sorted in non-decreasing order
+          derivatives[o][indices] = d;
+          do
+            NNZDerivatives[o]++;
+          while (next_permutation(next(indices.begin()), indices.end()));
         }
-    }
-}
-
-void
-ModelTree::computeHessian(const set<int> &vars)
-{
-  for (const auto &it : derivatives[1])
-    {
-      int eq, var1;
-      tie(eq, var1) = vectorToTuple<2>(it.first);
-      expr_t d1 = it.second;
-
-      // Store only second derivatives with var2 <= var1
-      for (int var2 : vars)
-        {
-          if (var2 > var1)
-            continue;
-
-          expr_t d2 = d1->getDerivative(var2);
-          if (d2 == Zero)
-            continue;
-          derivatives[2][{ eq, var1, var2 }] = d2;
-          if (var2 == var1)
-            ++NNZDerivatives[2];
-          else
-            NNZDerivatives[2] += 2;
-        }
-    }
-}
-
-void
-ModelTree::computeThirdDerivatives(const set<int> &vars)
-{
-  for (const auto &it : derivatives[2])
-    {
-      int eq, var1, var2;
-      tie(eq, var1, var2) = vectorToTuple<3>(it.first);
-      // By construction, var2 <= var1
-
-      expr_t d2 = it.second;
-
-      // Store only third derivatives such that var3 <= var2 <= var1
-      for (int var3 : vars)
-        {
-          if (var3 > var2)
-            continue;
-
-          expr_t d3 = d2->getDerivative(var3);
-          if (d3 == Zero)
-            continue;
-          derivatives[3][{ eq, var1, var2, var3 }] = d3;
-          if (var3 == var2 && var2 == var1)
-            ++NNZDerivatives[3];
-          else if (var3 == var2 || var2 == var1)
-            NNZDerivatives[3] += 3;
-          else
-            NNZDerivatives[3] += 6;
-        }
-    }
 }
 
 void

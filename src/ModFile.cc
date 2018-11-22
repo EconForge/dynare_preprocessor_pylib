@@ -701,7 +701,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
         {
           non_linear_equations_dynamic_model = dynamic_model;
           non_linear_equations_dynamic_model.set_cutoff_to_zero();
-          non_linear_equations_dynamic_model.computingPass(true, false, false, 0, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput, linear_decomposition);
+          non_linear_equations_dynamic_model.computingPass(true, 1, 0, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput, linear_decomposition);
         }
       if (!no_static)
         {
@@ -711,13 +711,14 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
               || mod_file_struct.calib_smoother_present)
             static_model.set_cutoff_to_zero();
 
-          const bool static_hessian = mod_file_struct.identification_present
-            || mod_file_struct.estimation_analytic_derivation;
+          int derivsOrder = 1;
           int paramsDerivsOrder = 0;
           if (mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation)
-            paramsDerivsOrder = params_derivs_order;
-          static_model.computingPass(global_eval_context, no_tmp_terms, static_hessian,
-                                     false, paramsDerivsOrder, block, byte_code, nopreprocessoroutput);
+            {
+              derivsOrder = 2;
+              paramsDerivsOrder = params_derivs_order;
+            }
+          static_model.computingPass(derivsOrder, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, byte_code, nopreprocessoroutput);
         }
       // Set things to compute for dynamic model
       if (mod_file_struct.perfect_foresight_solver_present || mod_file_struct.check_present
@@ -727,7 +728,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
           || mod_file_struct.calib_smoother_present)
         {
           if (mod_file_struct.perfect_foresight_solver_present)
-            dynamic_model.computingPass(true, false, false, 0, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput, linear_decomposition);
+            dynamic_model.computingPass(true, 1, 0, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput, linear_decomposition);
           else
             {
               if (mod_file_struct.stoch_simul_present
@@ -740,25 +741,21 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
                   cerr << "ERROR: Incorrect order option..." << endl;
                   exit(EXIT_FAILURE);
                 }
-              bool hessian = mod_file_struct.order_option >= 2
-                || mod_file_struct.identification_present
-                || mod_file_struct.estimation_analytic_derivation
-                || linear
-                || output == FileOutputType::second
-                || output == FileOutputType::third;
-              bool thirdDerivatives = mod_file_struct.order_option == 3
-                || mod_file_struct.estimation_analytic_derivation
-                || output == FileOutputType::third;
+              int derivsOrder = mod_file_struct.order_option;
+              if (mod_file_struct.identification_present || linear || output == FileOutputType::second)
+                derivsOrder = max(derivsOrder, 2);
+              if (mod_file_struct.estimation_analytic_derivation || output == FileOutputType::third)
+                derivsOrder = max(derivsOrder, 3);
               int paramsDerivsOrder = 0;
               if (mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation)
                 paramsDerivsOrder = params_derivs_order;
-              dynamic_model.computingPass(true, hessian, thirdDerivatives, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput, linear_decomposition);
+              dynamic_model.computingPass(true, derivsOrder, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput, linear_decomposition);
               if (linear && mod_file_struct.ramsey_model_present)
-                orig_ramsey_dynamic_model.computingPass(true, true, false, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput, linear_decomposition);
+                orig_ramsey_dynamic_model.computingPass(true, 2, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput, linear_decomposition);
             }
         }
       else // No computing task requested, compute derivatives up to 2nd order by default
-        dynamic_model.computingPass(true, true, false, 0, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput, linear_decomposition);
+        dynamic_model.computingPass(true, 2, 0, global_eval_context, no_tmp_terms, block, use_dll, byte_code, nopreprocessoroutput, linear_decomposition);
 
       map<int, string> eqs;
       if (mod_file_struct.ramsey_model_present)
@@ -784,7 +781,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
   for (auto & statement : statements)
     statement->computingPass();
 
-  epilogue.computingPass(true, true, false, 0, global_eval_context, true, false, false, false, true, false);
+  epilogue.computingPass(true, 2, 0, global_eval_context, true, false, false, false, true, false);
 }
 
 void

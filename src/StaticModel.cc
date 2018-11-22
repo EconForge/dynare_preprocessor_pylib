@@ -1214,7 +1214,7 @@ StaticModel::collect_first_order_derivatives_endogenous()
 }
 
 void
-StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms, bool hessian, bool thirdDerivatives, int paramsDerivsOrder, bool block, bool bytecode, const bool nopreprocessoroutput)
+StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool bytecode, bool nopreprocessoroutput)
 {
   initializeVariablesAndEquations();
 
@@ -1233,9 +1233,9 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
 
   equations.clear();
   copy(neweqs.begin(), neweqs.end(), back_inserter(equations));
-  // Compute derivatives w.r. to all endogenous, and possibly exogenous and exogenous deterministic
-  set<int> vars;
 
+  // Compute derivatives w.r. to all endogenous
+  set<int> vars;
   for (int i = 0; i < symbol_table.endo_nbr(); i++)
     {
       int id = symbol_table.getID(SymbolType::endogenous, i);
@@ -1245,29 +1245,14 @@ StaticModel::computingPass(const eval_context_t &eval_context, bool no_tmp_terms
 
   // Launch computations
   if (!nopreprocessoroutput)
-    cout << "Computing static model derivatives:" << endl
-         << " - order 1" << endl;
+    cout << "Computing static model derivatives (order " << derivsOrder << ")." << endl;
 
-  computeJacobian(vars);
-
-  if (hessian)
-    {
-      if (!nopreprocessoroutput)
-        cout << " - order 2" << endl;
-      computeHessian(vars);
-    }
-
-  if (thirdDerivatives)
-    {
-      if (!nopreprocessoroutput)
-        cout << " - order 3" << endl;
-      computeThirdDerivatives(vars);
-    }
+  computeDerivatives(derivsOrder, vars);
 
   if (paramsDerivsOrder > 0)
     {
       if (!nopreprocessoroutput)
-        cout << " - derivatives of Jacobian/Hessian w.r. to parameters" << endl;
+        cout << "Computing static model derivatives w.r.t. parameters (order " << paramsDerivsOrder << ")." << endl;
       computeParamsDerivatives(paramsDerivsOrder);
     }
 

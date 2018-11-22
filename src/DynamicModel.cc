@@ -4367,11 +4367,11 @@ DynamicModel::substitutePacExpectation()
 }
 
 void
-DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivatives, int paramsDerivsOrder,
+DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsOrder,
                             const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll,
-                            bool bytecode, const bool nopreprocessoroutput, bool linear_decomposition)
+                            bool bytecode, bool nopreprocessoroutput, bool linear_decomposition)
 {
-  assert(jacobianExo || !(hessian || thirdDerivatives || paramsDerivsOrder));
+  assert(jacobianExo || (derivsOrder < 2 && paramsDerivsOrder == 0));
 
   initializeVariablesAndEquations();
 
@@ -4393,36 +4393,16 @@ DynamicModel::computingPass(bool jacobianExo, bool hessian, bool thirdDerivative
 
   // Launch computations
   if (!nopreprocessoroutput)
-    {
-      if (linear_decomposition)
-        cout << "Computing nonlinear dynamic model derivatives:" << endl
-             << " - order 1" << endl;
-      else
-        cout << "Computing dynamic model derivatives:" << endl
-             << " - order 1" << endl;
-    }
+    cout << "Computing " << (linear_decomposition ? "nonlinear " : "")
+         << "dynamic model derivatives (order " << derivsOrder << ")." << endl;
 
-  computeJacobian(vars);
-
-  if (hessian)
-    {
-      if (!nopreprocessoroutput)
-        cout << " - order 2" << endl;
-      computeHessian(vars);
-    }
+  computeDerivatives(derivsOrder, vars);
 
   if (paramsDerivsOrder > 0)
     {
       if (!nopreprocessoroutput)
-        cout << " - derivatives of Jacobian/Hessian w.r. to parameters" << endl;
+        cout << "Computing dynamic model derivatives w.r.t. parameters (order " << paramsDerivsOrder << ")." << endl;
       computeParamsDerivatives(paramsDerivsOrder);
-    }
-
-  if (thirdDerivatives)
-    {
-      if (!nopreprocessoroutput)
-        cout << " - order 3" << endl;
-      computeThirdDerivatives(vars);
     }
 
   jacob_map_t contemporaneous_jacobian, static_jacobian;

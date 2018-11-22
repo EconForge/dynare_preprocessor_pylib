@@ -193,10 +193,10 @@ public:
   /*!
     \param eval_context evaluation context for normalization
     \param no_tmp_terms if true, no temporary terms will be computed in the static files
-    \param hessian whether 2nd derivatives w.r. to exo, exo_det and endo should be computed
-    \param paramsDerivsOrder order of derivatives w.r. to a pair (endo/exo/exo_det, parameter) to be computed
+    \param derivsOrder order of derivation with respect to endogenous
+    \param paramsDerivsOrder order of derivatives w.r. to a pair (endogenous, parameter) to be computed
   */
-  void computingPass(const eval_context_t &eval_context, bool no_tmp_terms, bool hessian, bool thirdDerivatices, int paramsDerivsOrder, bool block, bool bytecode, const bool nopreprocessoroutput);
+  void computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool bytecode, bool nopreprocessoroutput);
 
   //! Adds informations for simulation in a binary file for a block decomposed model
   void Write_Inf_To_Bin_File_Block(const string &basename, const int &num,
