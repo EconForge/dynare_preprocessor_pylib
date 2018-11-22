@@ -2033,73 +2033,51 @@ ModelTree::sparseHelper(int order, ostream &output, int row_nb, int col_nb, Expr
 void
 ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
 {
-  if (!(paramsDerivsOrder == 1 || paramsDerivsOrder == 2))
-    return;
+  assert(paramsDerivsOrder >= 1);
+
   set<int> deriv_id_set;
   addAllParamDerivId(deriv_id_set);
 
+  // First-order derivatives w.r.t. params
   for (int param : deriv_id_set)
     {
       for (int eq = 0; eq < (int) equations.size(); eq++)
         {
-          expr_t d1 = equations[eq]->getDerivative(param);
-          if (d1 == Zero)
+          expr_t d = equations[eq]->getDerivative(param);
+          if (d == Zero)
             continue;
-          params_derivatives[{ 0, 1 }][{ eq, param }] = d1;
+          params_derivatives[{ 0, 1 }][{ eq, param }] = d;
         }
 
-      if (paramsDerivsOrder == 2)
-        for (const auto &it : params_derivatives[{ 0, 1 }])
+      for (int endoOrd = 1; endoOrd < (int) derivatives.size(); endoOrd++)
+        for (const auto &it : derivatives[endoOrd])
           {
-            int eq, param1;
-            tie(eq, param1) = vectorToTuple<2>(it.first);
-            expr_t d1 = it.second;
-
-            expr_t d2 = d1->getDerivative(param);
-            if (d2 == Zero)
+            expr_t d = it.second->getDerivative(param);
+            if (d == Zero)
               continue;
-            params_derivatives[{ 0, 2 }][{ eq, param1, param }] = d2;
+            vector<int> indices{it.first};
+            indices.push_back(param);
+            params_derivatives[{ endoOrd, 1 }][indices] = d;
           }
-
-      for (const auto &it : derivatives[1])
-        {
-          int eq, var;
-          tie(eq, var) = vectorToTuple<2>(it.first);
-          expr_t d1 = it.second;
-
-          expr_t d2 = d1->getDerivative(param);
-          if (d2 == Zero)
-            continue;
-          params_derivatives[{ 1, 1 }][{ eq, var, param }] = d2;
-        }
-
-      if (paramsDerivsOrder == 2)
-        {
-          for (const auto &it : params_derivatives[{ 1, 1 }])
-            {
-              int eq, var, param1;
-              tie(eq, var, param1) = vectorToTuple<3>(it.first);
-              expr_t d1 = it.second;
-
-              expr_t d2 = d1->getDerivative(param);
-              if (d2 == Zero)
-                continue;
-              params_derivatives[{ 1, 2 }][{ eq, var, param1, param }] = d2;
-            }
-
-          for (const auto &it : derivatives[2])
-            {
-              int eq, var1, var2;
-              tie(eq, var1, var2) = vectorToTuple<3>(it.first);
-              expr_t d1 = it.second;
-
-              expr_t d2 = d1->getDerivative(param);
-              if (d2 == Zero)
-                continue;
-              params_derivatives[{ 2, 1 }][{ eq, var1, var2, param }] = d2;
-            }
-        }
     }
+
+  // Higher-order derivatives w.r.t. parameters
+  for (int endoOrd = 0; endoOrd < (int) derivatives.size(); endoOrd++)
+    for (int paramOrd = 2; paramOrd <= paramsDerivsOrder; paramOrd++)
+      for (const auto &it : params_derivatives[{ endoOrd, paramOrd-1 }])
+        for (int param : deriv_id_set)
+          {
+            if (it.first.back() > param)
+              continue;
+
+            expr_t d = it.second->getDerivative(param);
+            if (d == Zero)
+              continue;
+            vector<int> indices{it.first};
+            indices.push_back(param);
+            // At this point, indices of both endogenous and parameters are sorted in non-decreasing order
+            params_derivatives[{ endoOrd, paramOrd }][indices] = d;
+          }
 }
 
 void

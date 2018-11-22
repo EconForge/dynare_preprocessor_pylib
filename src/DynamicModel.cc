@@ -5438,6 +5438,22 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
       hessian1_output << ";" << endl;
 
       i++;
+
+      if (param1 != param2)
+        {
+          // Treat symmetric elements
+          hessian1_output << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                          << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                          << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                          << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
+                          << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                          << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
+                          << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                          << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                          << "=rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i-1 << ",4"
+                          << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
+          i++;
+        }
     }
 
   i = 1;
@@ -5465,6 +5481,24 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
       third_derivs_output << ";" << endl;
 
       i++;
+
+      if (param1 != param2)
+        {
+          // Treat symmetric elements
+          third_derivs_output << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                              << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                              << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                              << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << endl
+                              << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                              << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
+                              << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                              << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
+                              << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
+                              << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                              << "=gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i-1 << ",5"
+                              << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
+          i++;
+        }
     }
 
   i = 1;

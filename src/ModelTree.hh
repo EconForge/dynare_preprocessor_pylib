@@ -105,7 +105,8 @@ protected:
   derivation order w.r.t. parameters). For e.g., { 1, 2 } corresponds to the jacobian
   differentiated twice w.r.t. to parameters.
   In inner maps, the vector of integers consists of: the equation index, then
-  the derivation IDs of endogenous (in non-decreasing order), then the IDs of parameters */
+  the derivation IDs of endogenous (in non-decreasing order),
+  then the IDs of parameters (in non-decreasing order)*/
   map<pair<int,int>, map<vector<int>, expr_t>> params_derivatives;
 
   //! Storage for temporary terms in block/bytecode mode
