@@ -86,6 +86,17 @@ ModelTree::copyHelper(const ModelTree &m)
     nonstationary_symbols_map[it.first] = make_pair(it.second.first, f(it.second.second));
 }
 
+ModelTree::ModelTree(SymbolTable &symbol_table_arg,
+                     NumericalConstants &num_constants_arg,
+                     ExternalFunctionsTable &external_functions_table_arg,
+                     bool is_dynamic_arg) :
+  DataTree {symbol_table_arg, num_constants_arg, external_functions_table_arg, is_dynamic_arg},
+  derivatives(4),
+  NNZDerivatives(4, 0),
+  temporary_terms_derivatives(4)
+{
+}
+
 ModelTree::ModelTree(const ModelTree &m) :
   DataTree {m},
   equations_lineno {m.equations_lineno},
@@ -1244,17 +1255,6 @@ ModelTree::BlockLinear(const blocks_derivatives_t &blocks_derivatives, const vec
       ;
     }
   return (blocks_linear);
-}
-
-ModelTree::ModelTree(SymbolTable &symbol_table_arg,
-                     NumericalConstants &num_constants_arg,
-                     ExternalFunctionsTable &external_functions_table_arg,
-                     bool is_dynamic_arg) :
-  DataTree {symbol_table_arg, num_constants_arg, external_functions_table_arg, is_dynamic_arg},
-  derivatives(4),
-  NNZDerivatives(4, 0),
-  temporary_terms_derivatives(4)
-{
 }
 
 int
