@@ -37,7 +37,9 @@ class ParsingDriver;
 
 /* Bison 3.2 passes semantic types through a macro, and commas in parametric
    types are interpreted as macro arguments, leading to a compilation error.
-   Use type aliases to workaround the problem. */
+   Use type aliases to workaround the problem.
+   This bug has been fixed in Bison 3.2.2, so we can remove the workaround
+   at some point. */
 using pair_2strings = pair<string,string>;
 using tuple_4strings = tuple<string,string,string,string>;
 }
