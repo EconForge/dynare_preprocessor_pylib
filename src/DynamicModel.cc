@@ -5526,6 +5526,24 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
       third_derivs1_output << ";" << endl;
 
       i++;
+
+      if (var1 != var2)
+        {
+          // Treat symmetric elements
+          third_derivs1_output << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                               << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                               << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                               << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var2_col << ";" << endl
+                               << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                               << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var1_col << ";" << endl
+                               << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                               << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
+                               << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
+                               << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                               << "=hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i-1 << ",5"
+                               << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
+          i++;
+        }
     }
 
   string filename = julia ? basename + "DynamicParamsDerivs.jl" : packageDir(basename) + "/dynamic_params_derivs.m";
