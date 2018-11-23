@@ -474,7 +474,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       prev_var = 999999999;
       prev_lag = -9999999;
       count_col_exo_det = 0;
-      for (const auto &it : tmp_block_exo_derivative)
+      for (const auto &it : tmp_block_exo_det_derivative)
         {
           int lag = get<0>(it.first);
           unsigned int var = get<1>(it.first);
