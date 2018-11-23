@@ -46,16 +46,16 @@ auto vectorToTuple(const vector<T>& v) {
 }
 
 //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
-using equation_type_and_normalized_equation_t = vector<pair<EquationType, expr_t >>;
+using equation_type_and_normalized_equation_t = vector<pair<EquationType, expr_t>>;
 
 //! Vector describing variables: max_lag in the block, max_lead in the block
 using lag_lead_vector_t = vector<pair< int, int>>;
 
-//! for each block contains pair< pair<Simulation_Type, first_equation>, pair < Block_Size, Recursive_part_Size >>
-using block_type_firstequation_size_mfs_t = vector<pair< pair< BlockSimulationType, int>, pair<int, int>>>;
+//! for each block contains tuple<Simulation_Type, first_equation, Block_Size, Recursive_part_Size>
+using block_type_firstequation_size_mfs_t = vector<tuple<BlockSimulationType, int, int, int>>;
 
-//! for a block contains derivatives pair< pair<block_equation_number, block_variable_number> , pair<lead_lag, expr_t>>
-using block_derivatives_equation_variable_laglead_nodeid_t = vector< pair<pair<int, int>, pair< int, expr_t >>>;
+//! for a block contains derivatives tuple<block_equation_number, block_variable_number, lead_lag, expr_t>
+using block_derivatives_equation_variable_laglead_nodeid_t = vector<tuple<int, int, int, expr_t>>;
 
 //! for all blocks derivatives description
 using blocks_derivatives_t = vector<block_derivatives_equation_variable_laglead_nodeid_t>;
@@ -194,7 +194,7 @@ protected:
 
   //! Sparse matrix of double to store the values of the Jacobian
   /*! First index is lag, second index is equation number, third index is endogenous type specific ID */
-  using dynamic_jacob_map_t = map<pair<int, pair<int, int>>, expr_t>;
+  using dynamic_jacob_map_t = map<tuple<int, int, int>, expr_t>;
 
   //! Normalization of equations
   /*! Maps endogenous type specific IDs to equation numbers */
@@ -234,15 +234,15 @@ protected:
   //! Search the equations and variables belonging to the prologue and the epilogue of the model
   void computePrologueAndEpilogue(const jacob_map_t &static_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered);
   //! Determine the type of each equation of model and try to normalized the unnormalized equation using computeNormalizedEquations
-  equation_type_and_normalized_equation_t equationTypeDetermination(const map<pair<int, pair<int, int>>, expr_t> &first_order_endo_derivatives, const vector<int> &Index_Var_IM, const vector<int> &Index_Equ_IM, int mfs) const;
+  equation_type_and_normalized_equation_t equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives, const vector<int> &Index_Var_IM, const vector<int> &Index_Equ_IM, int mfs) const;
   //! Compute the block decomposition and for a non-recusive block find the minimum feedback set
   void computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const dynamic_jacob_map_t &dynamic_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered, vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_, bool select_feedback_variable, int mfs, vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered, lag_lead_vector_t &equation_lag_lead, lag_lead_vector_t &variable_lag_lead_t, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed) const;
   //! Reduce the number of block merging the same type equation in the prologue and the epilogue and determine the type of each block
-  block_type_firstequation_size_mfs_t reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_jacobian, vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed, vector<pair< pair<int, int>, pair<int, int>>> &block_col_type, bool linear_decomposition);
+  block_type_firstequation_size_mfs_t reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_jacobian, vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed, vector<tuple<int, int, int, int>> &block_col_type, bool linear_decomposition);
   //! Determine the maximum number of lead and lag for the endogenous variable in a bloc
   void getVariableLeadLagByBlock(const dynamic_jacob_map_t &dynamic_jacobian, const vector<int> &components_set, int nb_blck_sim, lag_lead_vector_t &equation_lead_lag, lag_lead_vector_t &variable_lead_lag, const vector<int> &equation_reordered, const vector<int> &variable_reordered) const;
   //! For each equation determine if it is linear or not
-  vector<bool> equationLinear(map<pair<int, pair<int, int> >, expr_t> first_order_endo_derivatives) const;
+  vector<bool> equationLinear(map<tuple<int, int, int>, expr_t> first_order_endo_derivatives) const;
   //! Print an abstract of the block structure of the model
   void printBlockDecomposition(const vector<pair<int, int>> &blocks) const;
   //! Determine for each block if it is linear or not

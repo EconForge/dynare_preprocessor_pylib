@@ -42,7 +42,7 @@ private:
 
   vector<temporary_terms_inuse_t> v_temporary_terms_inuse;
 
-  using first_chain_rule_derivatives_t = map< pair< int, pair< int, int>>, expr_t>;
+  using first_chain_rule_derivatives_t = map<tuple<int, int, int>, expr_t>;
   first_chain_rule_derivatives_t first_chain_rule_derivatives;
 
   //! Writes static model file (standard Matlab version)
@@ -99,11 +99,11 @@ private:
   //! Compute the column indices of the static Jacobian
   void computeStatJacobianCols();
   //! return a map on the block jacobian
-  map<pair<pair<int, pair<int, int>>, pair<int, int>>, int> get_Derivatives(int block);
+  map<tuple<int, int, int, int, int>, int> get_Derivatives(int block);
   //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
   void computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives);
   //! Collect only the first derivatives
-  map<pair<int, pair<int, int>>, expr_t> collect_first_order_derivatives_endogenous();
+  map<tuple<int, int, int>, expr_t> collect_first_order_derivatives_endogenous();
 
   //! Collecte the derivatives w.r. to endogenous of the block, to endogenous of previouys blocks and to exogenous
   void collect_block_first_order_derivatives();
@@ -126,24 +126,18 @@ private:
   //! Vector indicating if the block is linear in endogenous variable (true) or not (false)
   vector<bool> blocks_linear;
 
-  //! Map the derivatives for a block pair<lag, make_pair(make_pair(eq, var)), expr_t>
-  using derivative_t = map<pair< int, pair<int, int>>, expr_t>;
+  //! Map the derivatives for a block tuple<lag, eq, var>
+  using derivative_t = map<tuple<int, int, int>, expr_t>;
   //! Vector of derivative for each blocks
   vector<derivative_t> derivative_endo, derivative_other_endo, derivative_exo, derivative_exo_det;
 
   //!List for each block and for each lag-leag all the other endogenous variables and exogenous variables
   using var_t = set<int>;
   using lag_var_t = map<int, var_t>;
-  vector<lag_var_t> other_endo_block, exo_block, exo_det_block;
 
   //! for each block described the number of static, forward, backward and mixed variables in the block
-  /*! pair< pair<static, forward>, pair<backward,mixed>> */
-  vector<pair< pair<int, int>, pair<int, int>>> block_col_type;
-
-  //! List for each variable its block number and its maximum lag and lead inside the block
-  vector<pair<int, pair<int, int>>> variable_block_lead_lag;
-  //! List for each equation its block number
-  vector<int> equation_block;
+  /*! tuple<static, forward, backward, mixed> */
+  vector<tuple<int, int, int, int>> block_col_type;
 
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
   vector<pair<int, int>> endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
@@ -246,19 +240,19 @@ public:
   BlockSimulationType
   getBlockSimulationType(int block_number) const override
   {
-    return (block_type_firstequation_size_mfs[block_number].first.first);
+    return (get<0>(block_type_firstequation_size_mfs[block_number]));
   };
   //! Return the first equation number of a block
   unsigned int
   getBlockFirstEquation(int block_number) const override
   {
-    return (block_type_firstequation_size_mfs[block_number].first.second);
+    return (get<1>(block_type_firstequation_size_mfs[block_number]));
   };
   //! Return the size of the block block_number
   unsigned int
   getBlockSize(int block_number) const override
   {
-    return (block_type_firstequation_size_mfs[block_number].second.first);
+    return (get<2>(block_type_firstequation_size_mfs[block_number]));
   };
   //! Return the number of exogenous variable in the block block_number
   unsigned int
@@ -276,7 +270,7 @@ public:
   unsigned int
   getBlockMfs(int block_number) const override
   {
-    return (block_type_firstequation_size_mfs[block_number].second.second);
+    return (get<3>(block_type_firstequation_size_mfs[block_number]));
   };
   //! Return the maximum lag in a block
   unsigned int
@@ -294,37 +288,37 @@ public:
   EquationType
   getBlockEquationType(int block_number, int equation_number) const override
   {
-    return (equation_type_and_normalized_equation[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]].first);
+    return (equation_type_and_normalized_equation[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].first);
   };
   //! Return true if the equation has been normalized
   bool
   isBlockEquationRenormalized(int block_number, int equation_number) const override
   {
-    return (equation_type_and_normalized_equation[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]].first == E_EVALUATE_S);
+    return (equation_type_and_normalized_equation[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].first == E_EVALUATE_S);
   };
   //! Return the expr_t of the equation equation_number belonging to the block block_number
   expr_t
   getBlockEquationExpr(int block_number, int equation_number) const override
   {
-    return (equations[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]]);
+    return (equations[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]]);
   };
   //! Return the expr_t of the renormalized equation equation_number belonging to the block block_number
   expr_t
   getBlockEquationRenormalizedExpr(int block_number, int equation_number) const override
   {
-    return (equation_type_and_normalized_equation[equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]].second);
+    return (equation_type_and_normalized_equation[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].second);
   };
   //! Return the original number of equation equation_number belonging to the block block_number
   int
   getBlockEquationID(int block_number, int equation_number) const override
   {
-    return (equation_reordered[block_type_firstequation_size_mfs[block_number].first.second+equation_number]);
+    return (equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]);
   };
   //! Return the original number of variable variable_number belonging to the block block_number
   int
   getBlockVariableID(int block_number, int variable_number) const override
   {
-    return (variable_reordered[block_type_firstequation_size_mfs[block_number].first.second+variable_number]);
+    return (variable_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+variable_number]);
   };
   //! Return the original number of the exogenous variable varexo_number belonging to the block block_number
   int
@@ -336,13 +330,13 @@ public:
   int
   getBlockInitialEquationID(int block_number, int equation_number) const override
   {
-    return ((int) inv_equation_reordered[equation_number] - (int) block_type_firstequation_size_mfs[block_number].first.second);
+    return ((int) inv_equation_reordered[equation_number] - (int) get<1>(block_type_firstequation_size_mfs[block_number]));
   };
   //! Return the position of variable_number in the block number belonging to the block block_number
   int
   getBlockInitialVariableID(int block_number, int variable_number) const override
   {
-    return ((int) inv_variable_reordered[variable_number] - (int) block_type_firstequation_size_mfs[block_number].first.second);
+    return ((int) inv_variable_reordered[variable_number] - (int) get<1>(block_type_firstequation_size_mfs[block_number]));
   };
   //! Return the position of variable_number in the block number belonging to the block block_number
   int

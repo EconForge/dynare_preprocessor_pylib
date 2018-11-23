@@ -185,7 +185,7 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
 #if 1
   bool check = checked_edmonds_maximum_cardinality_matching(g, &mate_map[0]);
 #else // Alternative way to compute normalization, by giving an initial matching using natural normalizations
-  fill(mate_map.begin(), mate_map.end(), graph_traits<BipartiteGraph>::null_vertex());
+  fill(mate_map.begin(), mate_map.end(), boost::graph_traits<BipartiteGraph>::null_vertex());
 
   multimap<int, int> natural_endo2eqs;
   computeNormalizedEquations(natural_endo2eqs);
@@ -201,15 +201,14 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
       put(&mate_map[0], n+j, i);
     }
 
-  edmonds_augmenting_path_finder<BipartiteGraph, size_t *, property_map<BipartiteGraph, vertex_index_t>::type> augmentor(g, &mate_map[0], get(vertex_index, g));
-  bool not_maximum_yet = true;
-  while (not_maximum_yet)
+  boost::edmonds_augmenting_path_finder<BipartiteGraph, int *, boost::property_map<BipartiteGraph, boost::vertex_index_t>::type> augmentor(g, &mate_map[0], get(boost::vertex_index, g));
+  while (augmentor.augment_matching())
     {
-      not_maximum_yet = augmentor.augment_matching();
-    }
+    };
+
   augmentor.get_current_matching(&mate_map[0]);
 
-  bool check = maximum_cardinality_matching_verifier<BipartiteGraph, size_t *, property_map<BipartiteGraph, vertex_index_t>::type>::verify_matching(g, &mate_map[0], get(vertex_index, g));
+  bool check = boost::maximum_cardinality_matching_verifier<BipartiteGraph, int *, boost::property_map<BipartiteGraph, boost::vertex_index_t>::type>::verify_matching(g, &mate_map[0], get(boost::vertex_index, g));
 #endif
 
   assert(check);
@@ -222,7 +221,7 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
 
   // Create the resulting map, by copying the n first elements of mate_map, and substracting n to them
   endo2eq.resize(equations.size());
-  transform(mate_map.begin(), mate_map.begin() + n, endo2eq.begin(), bind2nd(minus<int>(), n));
+  transform(mate_map.begin(), mate_map.begin() + n, endo2eq.begin(), [=](int i) { return i-n; });
 
 #ifdef DEBUG
   multimap<int, int> natural_endo2eqs;
@@ -237,9 +236,9 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
 
       n1++;
 
-      pair<multimap<int, int>::const_iterator, multimap<int, int>::const_iterator> x = natural_endo2eqs.equal_range(i);
-      if (find_if(x.first, x.second, compose1(bind2nd(equal_to<int>(), endo2eq[i]), select2nd<multimap<int, int>::value_type>())) == x.second)
-        cout << "Natural normalization of variable " << symbol_table.getName(symbol_table.getID(eEndogenous, i))
+      auto x = natural_endo2eqs.equal_range(i);
+      if (find_if(x.first, x.second, [=](auto y) { return y.second == endo2eq[i]; }) == x.second)
+        cout << "Natural normalization of variable " << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, i))
              << " not used." << endl;
       else
         n2++;
@@ -274,9 +273,9 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
   //jacob_map normalized_contemporaneous_jacobian;
   jacob_map_t normalized_contemporaneous_jacobian(contemporaneous_jacobian);
   vector<double> max_val(n, 0.0);
-  for (jacob_map_t::const_iterator iter = contemporaneous_jacobian.begin(); iter != contemporaneous_jacobian.end(); iter++)
-    if (fabs(iter->second) > max_val[iter->first.first])
-      max_val[iter->first.first] = fabs(iter->second);
+  for (const auto &it : contemporaneous_jacobian)
+    if (fabs(it.second) > max_val[it.first.first])
+      max_val[it.first.first] = fabs(it.second);
 
   for (auto & iter : normalized_contemporaneous_jacobian)
     iter.second /= max_val[iter.first.first];
@@ -324,22 +323,22 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
       if (check)
         {
           // Update the jacobian matrix
-          for (jacob_map_t::const_iterator it = tmp_normalized_contemporaneous_jacobian.begin(); it != tmp_normalized_contemporaneous_jacobian.end(); it++)
+          for (const auto &it : tmp_normalized_contemporaneous_jacobian)
             {
-              if (static_jacobian.find({ it->first.first, it->first.second }) == static_jacobian.end())
-                static_jacobian[{ it->first.first, it->first.second }] = 0;
-              if (dynamic_jacobian.find({ 0, { it->first.first, it->first.second } }) == dynamic_jacobian.end())
-                dynamic_jacobian[{ 0, { it->first.first, it->first.second } }] = nullptr;
-              if (contemporaneous_jacobian.find({ it->first.first, it->first.second }) == contemporaneous_jacobian.end())
-                contemporaneous_jacobian[{ it->first.first, it->first.second }] = 0;
+              if (static_jacobian.find({ it.first.first, it.first.second }) == static_jacobian.end())
+                static_jacobian[{ it.first.first, it.first.second }] = 0;
+              if (dynamic_jacobian.find({ 0, it.first.first, it.first.second }) == dynamic_jacobian.end())
+                dynamic_jacobian[{ 0, it.first.first, it.first.second }] = nullptr;
+              if (contemporaneous_jacobian.find({ it.first.first, it.first.second }) == contemporaneous_jacobian.end())
+                contemporaneous_jacobian[{ it.first.first, it.first.second }] = 0;
               try
                 {
-                  if (derivatives[1].find({ it->first.first, getDerivID(symbol_table.getID(SymbolType::endogenous, it->first.second), 0) }) == derivatives[1].end())
-                    derivatives[1][{ it->first.first, getDerivID(symbol_table.getID(SymbolType::endogenous, it->first.second), 0) }] = Zero;
+                  if (derivatives[1].find({ it.first.first, getDerivID(symbol_table.getID(SymbolType::endogenous, it.first.second), 0) }) == derivatives[1].end())
+                    derivatives[1][{ it.first.first, getDerivID(symbol_table.getID(SymbolType::endogenous, it.first.second), 0) }] = Zero;
                 }
               catch (DataTree::UnknownDerivIDException &e)
                 {
-                  cerr << "The variable " << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, it->first.second))
+                  cerr << "The variable " << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, it.first.second))
                        << " does not appear at the current period (i.e. with no lead and no lag); this case is not handled by the 'block' option of the 'model' block." << endl;
                   exit(EXIT_FAILURE);
                 }
@@ -382,14 +381,13 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
 {
   int nb_elements_contemparenous_Jacobian = 0;
   set<vector<int>> jacobian_elements_to_delete;
-  for (auto it = derivatives[1].begin();
-       it != derivatives[1].end(); it++)
+  for (const auto &it : derivatives[1])
     {
-      int deriv_id = it->first[1];
+      int deriv_id = it.first[1];
       if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
         {
-          expr_t Id = it->second;
-          int eq = it->first[0];
+          expr_t Id = it.second;
+          int eq = it.first[0];
           int symb = getSymbIDByDerivID(deriv_id);
           int var = symbol_table.getTypeSpecificID(symb);
           int lag = getLagByDerivID(deriv_id);
@@ -426,7 +424,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
                 static_jacobian[{ eq, var }] += val;
               else
                 static_jacobian[{ eq, var }] = val;
-              dynamic_jacobian[{ lag, { eq, var } }] = Id;
+              dynamic_jacobian[{ lag, eq, var }] = Id;
             }
         }
     }
@@ -452,17 +450,17 @@ ModelTree::select_non_linear_equations_and_variables(vector<bool> is_equation_li
   /*equation_reordered.resize(equations.size());
   variable_reordered.resize(equations.size());*/
   unsigned int num = 0;
-  for (vector<int>::const_iterator it = endo2eq.begin(); it != endo2eq.end(); it++)
-    if (!is_equation_linear[*it])
+  for (auto it : endo2eq)
+    if (!is_equation_linear[it])
       num++;
   vector<int> endo2block = vector<int>(endo2eq.size(), 1);
   vector<pair<set<int>, pair<set<int>, vector<int> > > > components_set(num);
   int i = 0, j = 0;
-  for (vector<int>::const_iterator it = endo2eq.begin(); it != endo2eq.end(); it++, j++)
+  for (auto it : endo2eq)
     {
-      if (!is_equation_linear[*it])
+      if (!is_equation_linear[it])
         {
-          equation_reordered[i] = *it;
+          equation_reordered[i] = it;
           variable_reordered[i] = j;
           endo2block[j] = 0;
           components_set[endo2block[j]].first.insert(i);
@@ -477,6 +475,7 @@ ModelTree::select_non_linear_equations_and_variables(vector<bool> is_equation_li
           cout.flush();
           */
           i++;
+          j++;
         }
     }
 /*  for (unsigned int j = 0; j < is_equation_linear.size() ; j++)
@@ -501,9 +500,9 @@ ModelTree::select_non_linear_equations_and_variables(vector<bool> is_equation_li
     }
   cout.flush();
   int nb_endo = is_equation_linear.size();
-  vector<pair<int, int> > blocks = vector<pair<int, int> >(1, make_pair(i, i));
-  inv_equation_reordered = vector<int>(nb_endo);
-  inv_variable_reordered = vector<int>(nb_endo);
+  vector<pair<int, int>> blocks(1, make_pair(i, i));
+  inv_equation_reordered.resize(nb_endo);
+  inv_variable_reordered.resize(nb_endo);
   for (int i = 0; i < nb_endo; i++)
     {
       inv_variable_reordered[variable_reordered[i]] = i;
@@ -528,7 +527,7 @@ ModelTree::computeNaturalNormalization()
         if (result.size() == 1 && result.begin()->second == 0)
           {
             //check if the endogenous variable has not been already used in an other match !
-             vector<int>::iterator it = find(endo2eq.begin(), endo2eq.end(), result.begin()->first);
+             auto it = find(endo2eq.begin(), endo2eq.end(), result.begin()->first);
              if (it == endo2eq.end())
                endo2eq[result.begin()->first] = eq;
              else
@@ -547,15 +546,15 @@ ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian_arg, ve
   vector<int> eq2endo(equations.size(), 0);
   equation_reordered.resize(equations.size());
   variable_reordered.resize(equations.size());
-  bool *IM;
   int n = equations.size();
-  IM = (bool *) calloc(n*n, sizeof(bool));
+  vector<bool> IM(n*n);
   int i = 0;
-  for (vector<int>::const_iterator it = endo2eq.begin(); it != endo2eq.end(); it++, i++)
+  for (auto it : endo2eq)
     {
-      eq2endo[*it] = i;
+      eq2endo[it] = i;
       equation_reordered[i] = i;
-      variable_reordered[*it] = i;
+      variable_reordered[it] = i;
+      i++;
     }
   if (cutoff == 0)
     {
@@ -657,11 +656,10 @@ ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian_arg, ve
         }
       epilogue = tmp_epilogue;
     }
-  free(IM);
 }
 
 equation_type_and_normalized_equation_t
-ModelTree::equationTypeDetermination(const map<pair<int, pair<int, int>>, expr_t> &first_order_endo_derivatives, const vector<int> &Index_Var_IM, const vector<int> &Index_Equ_IM, int mfs) const
+ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives, const vector<int> &Index_Var_IM, const vector<int> &Index_Equ_IM, int mfs) const
 {
   expr_t lhs;
   BinaryOpNode *eq_node;
@@ -674,7 +672,7 @@ ModelTree::equationTypeDetermination(const map<pair<int, pair<int, int>>, expr_t
       eq_node = equations[eq];
       lhs = eq_node->get_arg1();
       Equation_Simulation_Type = E_SOLVE;
-      auto derivative = first_order_endo_derivatives.find({ eq, { var, 0 } });
+      auto derivative = first_order_endo_derivatives.find({ eq, var, 0 });
       pair<bool, expr_t> res;
       if (derivative != first_order_endo_derivatives.end())
         {
@@ -683,9 +681,7 @@ ModelTree::equationTypeDetermination(const map<pair<int, pair<int, int>>, expr_t
           auto d_endo_variable = result.find({ var, 0 });
           //Determine whether the equation could be evaluated rather than to be solved
           if (lhs->isVariableNodeEqualTo(SymbolType::endogenous, Index_Var_IM[i], 0) && derivative->second->isNumConstNodeEqualTo(1))
-            {
-              Equation_Simulation_Type = E_EVALUATE;
-            }
+            Equation_Simulation_Type = E_EVALUATE;
           else
             {
               vector<pair<int, pair<expr_t, expr_t>>> List_of_Op_RHS;
@@ -704,7 +700,7 @@ ModelTree::equationTypeDetermination(const map<pair<int, pair<int, int>>, expr_t
         }
       V_Equation_Simulation_Type[eq] = { Equation_Simulation_Type, dynamic_cast<BinaryOpNode *>(res.second) };
     }
-  return (V_Equation_Simulation_Type);
+  return V_Equation_Simulation_Type;
 }
 
 void
@@ -734,9 +730,8 @@ ModelTree::getVariableLeadLagByBlock(const dynamic_jacob_map_t &dynamic_jacobian
     }
   for (const auto & it : dynamic_jacobian)
     {
-      int lag = it.first.first;
-      int j_1 = it.first.second.first;
-      int i_1 = it.first.second.second;
+      int lag, j_1, i_1;
+      tie(lag, j_1, i_1) = it.first;
       if (variable_blck[i_1] == equation_blck[j_1])
         {
           if (lag > variable_lead_lag[i_1].second)
@@ -786,12 +781,12 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
     }
   else
     tmp_normalized_contemporaneous_jacobian = static_jacobian;
-  for (jacob_map_t::const_iterator it = tmp_normalized_contemporaneous_jacobian.begin(); it != tmp_normalized_contemporaneous_jacobian.end(); it++)
-    if (reverse_equation_reordered[it->first.first] >= (int) prologue && reverse_equation_reordered[it->first.first] < (int) (nb_var - epilogue)
-        && reverse_variable_reordered[it->first.second] >= (int) prologue && reverse_variable_reordered[it->first.second] < (int) (nb_var - epilogue)
-        && it->first.first != endo2eq[it->first.second])
-      add_edge(vertex(reverse_equation_reordered[endo2eq[it->first.second]]-prologue, G2),
-               vertex(reverse_equation_reordered[it->first.first]-prologue, G2),
+  for (const auto &it : tmp_normalized_contemporaneous_jacobian)
+    if (reverse_equation_reordered[it.first.first] >= (int) prologue && reverse_equation_reordered[it.first.first] < (int) (nb_var - epilogue)
+        && reverse_variable_reordered[it.first.second] >= (int) prologue && reverse_variable_reordered[it.first.second] < (int) (nb_var - epilogue)
+        && it.first.first != endo2eq[it.first.second])
+      add_edge(vertex(reverse_equation_reordered[endo2eq[it.first.second]]-prologue, G2),
+               vertex(reverse_equation_reordered[it.first.first]-prologue, G2),
                G2);
 
   vector<int> endo2block(num_vertices(G2)), discover_time(num_vertices(G2));
@@ -832,12 +827,12 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   //   - first set = equations belonging to the block,
   //   - second set = the feeback variables,
   //   - third vector = the reordered non-feedback variables.
-  vector<pair<set<int>, pair<set<int>, vector<int>>>> components_set(num);
+  vector<tuple<set<int>, set<int>, vector<int>>> components_set(num);
   for (unsigned int i = 0; i < endo2block.size(); i++)
     {
       endo2block[i] = unordered2ordered[endo2block[i]];
       blocks[endo2block[i]].first++;
-      components_set[endo2block[i]].first.insert(i);
+      get<0>(components_set[endo2block[i]]).insert(i);
     }
 
   getVariableLeadLagByBlock(dynamic_jacobian, endo2block, num, equation_lag_lead, variable_lag_lead, equation_reordered, variable_reordered);
@@ -885,12 +880,12 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
 
   for (int i = 0; i < num; i++)
     {
-      AdjacencyList_t G = extract_subgraph(G2, components_set[i].first);
+      AdjacencyList_t G = extract_subgraph(G2, get<0>(components_set[i]));
       set<int> feed_back_vertices;
       //Print(G);
       AdjacencyList_t G1 = Minimal_set_of_feedback_vertex(feed_back_vertices, G);
       auto v_index = get(boost::vertex_index, G);
-      components_set[i].second.first = feed_back_vertices;
+      get<1>(components_set[i]) = feed_back_vertices;
       blocks[i].second = feed_back_vertices.size();
       vector<int> Reordered_Vertice;
       Reorder_the_recursive_variables(G, feed_back_vertices, Reordered_Vertice);
@@ -898,7 +893,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
       //First we have the recursive equations conditional on feedback variables
       for (int j = 0; j < 4; j++)
         {
-          for (int & its : Reordered_Vertice)
+          for (int its : Reordered_Vertice)
             {
               bool something_done = false;
               if      (j == 2 && variable_lag_lead[tmp_variable_reordered[its +prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[its +prologue]].second != 0)
@@ -929,7 +924,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
                 }
             }
         }
-      components_set[i].second.second = Reordered_Vertice;
+      get<2>(components_set[i]) = Reordered_Vertice;
       //Second we have the equations related to the feedback variables
       for (int j = 0; j < 4; j++)
         {
@@ -978,8 +973,8 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
         n_static[prologue+num+i]++;
     }
 
-  inv_equation_reordered = vector<int>(nb_var);
-  inv_variable_reordered = vector<int>(nb_var);
+  inv_equation_reordered.resize(nb_var);
+  inv_variable_reordered.resize(nb_var);
   for (int i = 0; i < nb_var; i++)
     {
       inv_variable_reordered[variable_reordered[i]] = i;
@@ -1017,7 +1012,7 @@ ModelTree::printBlockDecomposition(const vector<pair<int, int>> &blocks) const
 }
 
 block_type_firstequation_size_mfs_t
-ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_jacobian, vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed, vector<pair< pair<int, int>, pair<int, int>>> &block_col_type, bool linear_decomposition)
+ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_jacobian, vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &variable_reordered, const vector<int> &equation_reordered, vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed, vector<tuple<int, int, int, int>> &block_col_type, bool linear_decomposition)
 {
   int i = 0;
   int count_equ = 0, blck_count_simult = 0;
@@ -1063,7 +1058,7 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
               auto it1 = find(variable_reordered.begin()+first_count_equ, variable_reordered.begin()+(first_count_equ+Blck_Size), curr_variable);
               if (linear_decomposition)
                 {
-                  if (dynamic_jacobian.find(make_pair(curr_lag, make_pair(equation_reordered[count_equ], curr_variable))) != dynamic_jacobian.end())
+                  if (dynamic_jacobian.find({ curr_lag, equation_reordered[count_equ], curr_variable }) != dynamic_jacobian.end())
                     {
                       if (curr_lag > Lead)
                         Lead = curr_lag;
@@ -1074,7 +1069,7 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
               else
                 {
                   if (it1 != variable_reordered.begin()+(first_count_equ+Blck_Size))
-                    if (dynamic_jacobian.find({ curr_lag, { equation_reordered[count_equ], curr_variable } }) != dynamic_jacobian.end())
+                    if (dynamic_jacobian.find({ curr_lag, equation_reordered[count_equ], curr_variable }) != dynamic_jacobian.end())
                       {
                         if (curr_lag > Lead)
                           Lead = curr_lag;
@@ -1121,17 +1116,17 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
           if (i > 0)
             {
               bool is_lead = false, is_lag = false;
-              int c_Size = (block_type_size_mfs[block_type_size_mfs.size()-1]).second.first;
-              int first_equation = (block_type_size_mfs[block_type_size_mfs.size()-1]).first.second;
+              int c_Size = get<2>(block_type_size_mfs[block_type_size_mfs.size()-1]);
+              int first_equation = get<1>(block_type_size_mfs[block_type_size_mfs.size()-1]);
               if (c_Size > 0 && ((prev_Type ==  EVALUATE_FORWARD && Simulation_Type == EVALUATE_FORWARD && !is_lead)
                                  || (prev_Type ==  EVALUATE_BACKWARD && Simulation_Type == EVALUATE_BACKWARD && !is_lag)))
                 {
                   for (int j = first_equation; j < first_equation+c_Size; j++)
                     {
-                      auto it = dynamic_jacobian.find({ -1, { equation_reordered[eq], variable_reordered[j] } });
+                      auto it = dynamic_jacobian.find({ -1, equation_reordered[eq], variable_reordered[j] });
                       if (it != dynamic_jacobian.end())
                         is_lag = true;
-                      it = dynamic_jacobian.find({ +1, { equation_reordered[eq], variable_reordered[j] } });
+                      it = dynamic_jacobian.find({ +1, equation_reordered[eq], variable_reordered[j] });
                       if (it != dynamic_jacobian.end())
                         is_lead = true;
                     }
@@ -1140,55 +1135,55 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
                   || (prev_Type ==  EVALUATE_BACKWARD && Simulation_Type == EVALUATE_BACKWARD && !is_lag))
                 {
                   //merge the current block with the previous one
-                  BlockSimulationType c_Type = (block_type_size_mfs[block_type_size_mfs.size()-1]).first.first;
+                  BlockSimulationType c_Type = get<0>(block_type_size_mfs[block_type_size_mfs.size()-1]);
                   c_Size++;
-                  block_type_size_mfs[block_type_size_mfs.size()-1] = { { c_Type, first_equation }, { c_Size, c_Size } };
+                  block_type_size_mfs[block_type_size_mfs.size()-1] = { c_Type, first_equation, c_Size, c_Size };
                   if (block_lag_lead[block_type_size_mfs.size()-1].first > Lag)
                     Lag = block_lag_lead[block_type_size_mfs.size()-1].first;
                   if (block_lag_lead[block_type_size_mfs.size()-1].second > Lead)
                     Lead = block_lag_lead[block_type_size_mfs.size()-1].second;
                   block_lag_lead[block_type_size_mfs.size()-1] = { Lag, Lead };
-                  pair< pair< unsigned int, unsigned int>, pair<unsigned int, unsigned int>> tmp = block_col_type[block_col_type.size()-1];
-                  block_col_type[block_col_type.size()-1] = { { tmp.first.first+l_n_static, tmp.first.second+l_n_forward }, { tmp.second.first+l_n_backward, tmp.second.second+l_n_mixed } };
+                  auto tmp = block_col_type[block_col_type.size()-1];
+                  block_col_type[block_col_type.size()-1] = { get<0>(tmp)+l_n_static, get<1>(tmp)+l_n_forward, get<2>(tmp)+l_n_backward, get<3>(tmp)+l_n_mixed };
                 }
               else
                 {
-                  block_type_size_mfs.emplace_back(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size));
+                  block_type_size_mfs.emplace_back(Simulation_Type, eq, Blck_Size, MFS_Size);
                   block_lag_lead.emplace_back(Lag, Lead);
-                  block_col_type.emplace_back(make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed));
+                  block_col_type.emplace_back(l_n_static, l_n_forward, l_n_backward, l_n_mixed);
                 }
             }
           else
             {
-              block_type_size_mfs.emplace_back(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size));
+              block_type_size_mfs.emplace_back(Simulation_Type, eq, Blck_Size, MFS_Size);
               block_lag_lead.emplace_back(Lag, Lead);
-              block_col_type.emplace_back(make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed));
+              block_col_type.emplace_back(l_n_static, l_n_forward, l_n_backward, l_n_mixed);
             }
         }
       else
         {
-          block_type_size_mfs.emplace_back(make_pair(Simulation_Type, eq), make_pair(Blck_Size, MFS_Size));
+          block_type_size_mfs.emplace_back(Simulation_Type, eq, Blck_Size, MFS_Size);
           block_lag_lead.emplace_back(Lag, Lead);
-          block_col_type.emplace_back(make_pair(l_n_static, l_n_forward), make_pair(l_n_backward, l_n_mixed));
+          block_col_type.emplace_back(l_n_static, l_n_forward, l_n_backward, l_n_mixed);
         }
       prev_Type = Simulation_Type;
       eq += Blck_Size;
     }
-  return (block_type_size_mfs);
+  return block_type_size_mfs;
 }
 
 vector<bool>
-ModelTree::equationLinear(map<pair<int, pair<int, int> >, expr_t> first_order_endo_derivatives) const
+ModelTree::equationLinear(map<tuple<int, int, int>, expr_t> first_order_endo_derivatives) const
 {
   vector<bool> is_linear(symbol_table.endo_nbr(), true);
-  for (map<pair<int, pair<int, int> >, expr_t>::const_iterator it = first_order_endo_derivatives.begin(); it != first_order_endo_derivatives.end(); it++)
+  for (const auto &it : first_order_endo_derivatives)
     {
-       expr_t Id = it->second;
-       set<pair<int, int> > endogenous;
+       expr_t Id = it.second;
+       set<pair<int, int>> endogenous;
        Id->collectEndogenous(endogenous);
        if (endogenous.size() > 0)
          {
-           int eq = it->first.first;
+           int eq = get<0>(it.first);
            is_linear[eq] = false;
          }
     }
@@ -1208,12 +1203,12 @@ ModelTree::BlockLinear(const blocks_derivatives_t &blocks_derivatives, const vec
       int first_variable_position = getBlockFirstEquation(block);
       if (simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
         {
-          for (block_derivatives_equation_variable_laglead_nodeid_t::const_iterator it = derivatives_block.begin(); it != derivatives_block.end(); it++)
+          for (const auto &it : derivatives_block)
             {
-              int lag = it->second.first;
+              int lag = get<2>(it);
               if (lag == 0)
                 {
-                  expr_t Id = it->second.second;
+                  expr_t Id = get<3>(it);
                   set<pair<int, int>> endogenous;
                   Id->collectEndogenous(endogenous);
                   if (endogenous.size() > 0)
@@ -1232,10 +1227,10 @@ ModelTree::BlockLinear(const blocks_derivatives_t &blocks_derivatives, const vec
         }
       else if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
         {
-          for (block_derivatives_equation_variable_laglead_nodeid_t::const_iterator it = derivatives_block.begin(); it != derivatives_block.end(); it++)
+          for (const auto &it : derivatives_block)
             {
-              int lag = it->second.first;
-              expr_t Id = it->second.second; //
+              int lag = get<2>(it);
+              expr_t Id = get<3>(it); //
               set<pair<int, int>> endogenous;
               Id->collectEndogenous(endogenous);
               if (endogenous.size() > 0)
@@ -1254,7 +1249,7 @@ ModelTree::BlockLinear(const blocks_derivatives_t &blocks_derivatives, const vec
     the_end:
       ;
     }
-  return (blocks_linear);
+  return blocks_linear;
 }
 
 int
