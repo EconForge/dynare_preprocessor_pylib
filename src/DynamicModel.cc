@@ -4243,7 +4243,7 @@ DynamicModel::walkPacParameters()
       pair<int, int> lhs (-1, -1);
       pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars;
       set<pair<int, pair<int, int>>> ar_params_and_vars;
-      set<pair<int, pair<pair<int, int>, double>>> non_optim_params_vars_and_scaling_factor;
+      vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants;
 
       if (equation->containsPacExpectation())
         {
@@ -4271,12 +4271,12 @@ DynamicModel::walkPacParameters()
             {
               optim_share_index = *(optim_share.begin());
               optim_part->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
-              non_optim_part->getPacNonOptimizingPart(non_optim_params_vars_and_scaling_factor);
+              non_optim_vars_params_and_constants = non_optim_part->getPacNonOptimizingPart();
             }
           equation->addParamInfoToPac(lhs,
                                       optim_share_index,
                                       ec_params_and_vars, ar_params_and_vars,
-                                      non_optim_params_vars_and_scaling_factor);
+                                      non_optim_vars_params_and_constants);
         }
     }
 }

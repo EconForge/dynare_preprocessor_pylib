@@ -675,13 +675,7 @@ NumConstNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
 }
 
 void
-NumConstNode::getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
-                                      &params_vars_and_scaling_factor) const
-{
-}
-
-void
-NumConstNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg)
+NumConstNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants)
 {
 }
 
@@ -1952,23 +1946,6 @@ VariableNode::isParamTimesEndogExpr() const
 }
 
 void
-VariableNode::getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
-                                      &params_vars_and_scaling_factor) const
-{
-  if (get_type() != SymbolType::endogenous
-      && get_type() != SymbolType::exogenous)
-    {
-      cerr << "ERROR VariableNode::getPacNonOptimizingPart: Error in parsing PAC equation"
-           << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  params_vars_and_scaling_factor.emplace(make_pair(-1,
-                                                   make_pair(make_pair(symb_id, lag),
-                                                             1.0)));
-}
-
-void
 VariableNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                                    set<pair<int, pair<int, int>>> &ar_params_and_vars) const
 {
@@ -1982,7 +1959,7 @@ VariableNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
 }
 
 void
-VariableNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg)
+VariableNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants)
 {
 }
 
@@ -3767,12 +3744,6 @@ UnaryOpNode::isParamTimesEndogExpr() const
   return arg->isParamTimesEndogExpr();
 }
 
-void
-UnaryOpNode::getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
-                                     &params_vars_and_scaling_factor) const
-{
-  arg->getPacNonOptimizingPart(params_vars_and_scaling_factor);
-}
 
 void
 UnaryOpNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
@@ -3790,9 +3761,9 @@ UnaryOpNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
 }
 
 void
-UnaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg)
+UnaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants)
 {
-  arg->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, params_vars_and_scaling_factor_arg);
+  arg->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
 }
 
 void
@@ -5570,83 +5541,6 @@ BinaryOpNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<i
   arg2->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
 }
 
-void
-BinaryOpNode::getPacNonOptimizingPartHelper(const expr_t arg1, const expr_t arg2,
-                                            set<pair<int, pair<pair<int, int>, double>>>
-                                            &params_vars_and_scaling_factor) const
-{
-  eval_context_t ec;
-  set<int> params;
-  set<pair<int, int>> vars;
-  arg1->collectDynamicVariables(SymbolType::endogenous, vars);
-  arg1->collectDynamicVariables(SymbolType::exogenous, vars);
-
-  if (vars.size() == 0)
-    return;
-
-  if (vars.size() > 1)
-    {
-      cerr << "ERROR BinaryOpNode::getPacNonOptimizingPartHelper: Error in parsing PAC equation"
-           << endl;
-      exit(EXIT_FAILURE);
-    }
-  ec[(*(vars.begin())).first] = 1.0;
-
-  arg2->collectVariables(SymbolType::parameter, params);
-  if (params.size() > 1)
-    {
-      cerr << "ERROR BinaryOpNode::getPacNonOptimizingPartHelper: 2 Error in parsing PAC equation"
-           << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  int param_idx;
-  if (params.size() == 1)
-    {
-      param_idx = *(params.begin());
-      ec[param_idx] = 1.0;
-    }
-  else
-    param_idx = -1;
-
-  double scaling_factor = 1.0;
-  try
-    {
-      scaling_factor = this->eval(ec);
-    }
-  catch (...)
-    {
-    }
-
-  params_vars_and_scaling_factor.emplace(param_idx,
-                                         make_pair(*(vars.begin()), scaling_factor));
-}
-
-void
-BinaryOpNode::getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
-                                      &params_vars_and_scaling_factor) const
-{
-  if (op_code == BinaryOpcode::times
-    || op_code == BinaryOpcode::divide)
-    {
-      size_t orig_size = params_vars_and_scaling_factor.size();
-      getPacNonOptimizingPartHelper(arg1, arg2, params_vars_and_scaling_factor);
-      if (orig_size == params_vars_and_scaling_factor.size())
-        getPacNonOptimizingPartHelper(arg2, arg1, params_vars_and_scaling_factor);
-      if (orig_size == params_vars_and_scaling_factor.size())
-        {
-          cerr << "ERROR BinaryOpNode::getPacNonOptimizingPart: Error in parsing PAC equation"
-               << endl;
-          exit(EXIT_FAILURE);
-        }
-    }
-  else
-    {
-      arg1->getPacNonOptimizingPart(params_vars_and_scaling_factor);
-      arg2->getPacNonOptimizingPart(params_vars_and_scaling_factor);
-    }
-}
-
 bool
 BinaryOpNode::isParamTimesEndogExpr() const
 {
@@ -5895,10 +5789,10 @@ BinaryOpNode::getPacLHS(pair<int, int> &lhs)
 }
 
 void
-BinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg)
+BinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants)
 {
-  arg1->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, params_vars_and_scaling_factor_arg);
-  arg2->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, params_vars_and_scaling_factor_arg);
+  arg1->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
+  arg2->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
 }
 
 void
@@ -6791,15 +6685,6 @@ TrinaryOpNode::isParamTimesEndogExpr() const
 }
 
 void
-TrinaryOpNode::getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
-                                       &params_vars_and_scaling_factor) const
-{
-  arg1->getPacNonOptimizingPart(params_vars_and_scaling_factor);
-  arg2->getPacNonOptimizingPart(params_vars_and_scaling_factor);
-  arg3->getPacNonOptimizingPart(params_vars_and_scaling_factor);
-}
-
-void
 TrinaryOpNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                                     set<pair<int, pair<int, int>>> &ar_params_and_vars) const
 {
@@ -6819,11 +6704,11 @@ TrinaryOpNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
 }
 
 void
-TrinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg)
+TrinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants)
 {
-  arg1->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, params_vars_and_scaling_factor_arg);
-  arg2->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, params_vars_and_scaling_factor_arg);
-  arg3->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, params_vars_and_scaling_factor_arg);
+  arg1->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
+  arg2->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
+  arg3->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
 }
 
 void
@@ -7345,15 +7230,6 @@ AbstractExternalFunctionNode::isParamTimesEndogExpr() const
 }
 
 void
-AbstractExternalFunctionNode::getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
-                                                      &params_vars_and_scaling_factor) const
-{
-  cerr << "ERROR AbstractExternalFunctionNode::getPacNonOptimizingPart(: Error in parsing PAC equation"
-       << endl;
-  exit(EXIT_FAILURE);
-}
-
-void
 AbstractExternalFunctionNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                                                    set<pair<int, pair<int, int>>> &ar_params_and_vars) const
 {
@@ -7371,10 +7247,10 @@ AbstractExternalFunctionNode::getPacOptimizingShareAndExprNodes(set<int> &optim_
 }
 
 void
-AbstractExternalFunctionNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg)
+AbstractExternalFunctionNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants)
 {
   for (auto argument : arguments)
-    argument->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, params_vars_and_scaling_factor_arg);
+    argument->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
 }
 
 void
@@ -8974,15 +8850,6 @@ VarExpectationNode::isParamTimesEndogExpr() const
 }
 
 void
-VarExpectationNode::getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
-                                            &params_vars_and_scaling_factor) const
-{
-  cerr << "ERROR VarExpectationNode::getPacNonOptimizingPart(: Error in parsing PAC equation"
-       << endl;
-  exit(EXIT_FAILURE);
-}
-
-void
 VarExpectationNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                                          set<pair<int, pair<int, int>>> &ar_params_and_vars) const
 {
@@ -8996,7 +8863,7 @@ VarExpectationNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
 }
 
 void
-VarExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg)
+VarExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants)
 {
 }
 
@@ -9146,45 +9013,45 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << it->second.second;
     }
   output << "];" << endl;
-  if (!params_vars_and_scaling_factor.empty())
+  if (!non_optim_vars_params_and_constants.empty())
     {
       output << "M_.pac." << model_name << ".non_optimizing_behaviour.params = [";
-      for (auto it = params_vars_and_scaling_factor.begin();
-           it != params_vars_and_scaling_factor.end(); it++)
+      for (auto it = non_optim_vars_params_and_constants.begin();
+           it != non_optim_vars_params_and_constants.end(); ++it)
         {
-          if (it != params_vars_and_scaling_factor.begin())
+          if (it != non_optim_vars_params_and_constants.begin())
             output << " ";
-          if (it->first >= 0)
-            output << datatree.symbol_table.getTypeSpecificID(it->first) + 1;
+          if (get<2>(*it) >= 0)
+            output << datatree.symbol_table.getTypeSpecificID(get<2>(*it)) + 1;
           else
             output << "NaN";
         }
       output << "];"
              << "M_.pac." << model_name << ".non_optimizing_behaviour.vars = [";
-      for (auto it = params_vars_and_scaling_factor.begin();
-           it != params_vars_and_scaling_factor.end(); it++)
+      for (auto it = non_optim_vars_params_and_constants.begin();
+           it != non_optim_vars_params_and_constants.end(); ++it)
         {
-          if (it != params_vars_and_scaling_factor.begin())
+          if (it != non_optim_vars_params_and_constants.begin())
             output << " ";
-          output << datatree.symbol_table.getTypeSpecificID(it->second.first.first) + 1;
+          output << datatree.symbol_table.getTypeSpecificID(get<0>(*it)) + 1;
         }
       output << "];" << endl
              << "M_.pac." << model_name << ".non_optimizing_behaviour.lags = [";
-      for (auto it = params_vars_and_scaling_factor.begin();
-           it != params_vars_and_scaling_factor.end(); it++)
+      for (auto it = non_optim_vars_params_and_constants.begin();
+           it != non_optim_vars_params_and_constants.end(); ++it)
         {
-          if (it != params_vars_and_scaling_factor.begin())
+          if (it != non_optim_vars_params_and_constants.begin())
             output << " ";
-          output << it->second.first.second;
+          output << get<1>(*it);
         }
       output << "];" << endl
              << "M_.pac." << model_name << ".non_optimizing_behaviour.scaling_factor = [";
-      for (auto it = params_vars_and_scaling_factor.begin();
-           it != params_vars_and_scaling_factor.end(); it++)
+      for (auto it = non_optim_vars_params_and_constants.begin();
+           it != non_optim_vars_params_and_constants.end(); ++it)
         {
-          if (it != params_vars_and_scaling_factor.begin())
+          if (it != non_optim_vars_params_and_constants.begin())
             output << " ";
-          output << it->second.second;
+          output << get<3>(*it);
         }
       output << "];" << endl;
     }
@@ -9551,12 +9418,6 @@ PacExpectationNode::isParamTimesEndogExpr() const
 }
 
 void
-PacExpectationNode::getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
-                                            &params_vars_and_scaling_factor) const
-{
-}
-
-void
 PacExpectationNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                                          set<pair<int, pair<int, int>>> &ar_params_and_vars) const
 {
@@ -9570,7 +9431,7 @@ PacExpectationNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
 }
 
 void
-PacExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg)
+PacExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants_arg)
 {
   if (lhs_arg.first == -1)
     {
@@ -9588,7 +9449,7 @@ PacExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_a
   optim_share_index = optim_share_arg;
   ar_params_and_vars = ar_params_and_vars_arg;
   ec_params_and_vars = ec_params_and_vars_arg;
-  params_vars_and_scaling_factor = params_vars_and_scaling_factor_arg;
+  non_optim_vars_params_and_constants = non_optim_vars_params_and_constants_arg;
 }
 
 
@@ -9668,4 +9529,138 @@ PacExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, con
   subst_table[const_cast<PacExpectationNode *>(this)] = dynamic_cast<BinaryOpNode *>(subExpr);
 
   return subExpr;
+}
+
+void
+ExprNode::decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign) const
+{
+  terms.emplace_back(const_cast<ExprNode *>(this), current_sign);
+}
+
+void
+UnaryOpNode::decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign) const
+{
+  if (op_code == UnaryOpcode::uminus)
+    arg->decomposeAdditiveTerms(terms, -current_sign);
+  else
+    ExprNode::decomposeAdditiveTerms(terms, current_sign);
+}
+
+void
+BinaryOpNode::decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign) const
+{
+  if (op_code == BinaryOpcode::plus || op_code == BinaryOpcode::minus)
+    {
+      arg1->decomposeAdditiveTerms(terms, current_sign);
+      if (op_code == BinaryOpcode::plus)
+        arg2->decomposeAdditiveTerms(terms, current_sign);
+      else
+        arg2->decomposeAdditiveTerms(terms, -current_sign);
+    }
+  else
+    ExprNode::decomposeAdditiveTerms(terms, current_sign);
+}
+
+tuple<int, int, int, double>
+ExprNode::matchVariableTimesConstantTimesParam() const
+{
+  int variable_id = -1, lag = 0, param_id = -1;
+  double constant = 1.0;
+  matchVTCTPHelper(variable_id, lag, param_id, constant, false);
+  if (variable_id == -1)
+    throw MatchFailureException{"No variable in this expression"};
+  return make_tuple(variable_id, lag, param_id, constant);
+}
+
+void
+ExprNode::matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const
+{
+  throw MatchFailureException{"Expression not allowed in linear combination of variables"};
+}
+
+void
+NumConstNode::matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const
+{
+  double myvalue = eval({});
+  if (at_denominator)
+    constant /= myvalue;
+  else
+    constant *= myvalue;
+}
+
+void
+VariableNode::matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const
+{
+  if (at_denominator)
+    throw MatchFailureException{"A variable or parameter cannot appear at denominator"};
+
+  SymbolType type = get_type();
+  if (type == SymbolType::endogenous || type == SymbolType::exogenous)
+    {
+      if (var_id != -1)
+        throw MatchFailureException{"More than one variable in this expression"};
+      var_id = symb_id;
+      lag = this->lag;
+    }
+  else if (type == SymbolType::parameter)
+    {
+      if (param_id != -1)
+        throw MatchFailureException{"More than one parameter in this expression"};
+      param_id = symb_id;
+    }
+  else
+    throw MatchFailureException{"Symbol " + datatree.symbol_table.getName(symb_id) + " not allowed here"};
+}
+
+void
+UnaryOpNode::matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const
+{
+  if (op_code == UnaryOpcode::uminus)
+    {
+      constant = -constant;
+      arg->matchVTCTPHelper(var_id, lag, param_id, constant, at_denominator);
+    }
+  else
+    throw MatchFailureException{"Operator not allowed in this expression"};
+}
+
+void
+BinaryOpNode::matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const
+{
+  if (op_code == BinaryOpcode::times || op_code == BinaryOpcode::divide)
+    {
+      arg1->matchVTCTPHelper(var_id, lag, param_id, constant, at_denominator);
+      if (op_code == BinaryOpcode::times)
+        arg2->matchVTCTPHelper(var_id, lag, param_id, constant, at_denominator);
+      else
+        arg2->matchVTCTPHelper(var_id, lag, param_id, constant, !at_denominator);
+    }
+  else
+    throw MatchFailureException{"Operator not allowed in this expression"};
+}
+
+vector<tuple<int, int, int, double>>
+ExprNode::getPacNonOptimizingPart() const
+{
+  vector<pair<expr_t, int>> terms;
+  decomposeAdditiveTerms(terms);
+
+  vector<tuple<int, int, int, double>> result;
+
+  for (const auto &it : terms)
+    try
+      {
+        expr_t term = it.first;
+        int sign = it.second;
+        auto m = term->matchVariableTimesConstantTimesParam();
+        get<3>(m) *= sign;
+        result.push_back(m);
+      }
+    catch (MatchFailureException &e)
+      {
+        cerr << "ExprNode::getPacNonOptimizingPart: Error in parsing PAC equation: "
+             << e.message << endl;
+        exit(EXIT_FAILURE);
+      }
+    return result;
 }

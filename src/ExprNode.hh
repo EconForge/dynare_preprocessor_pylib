@@ -205,6 +205,10 @@ class ExprNode
       bool checkIfTemporaryTermThenWrite(ostream &output, ExprNodeOutputType output_type,
                                          const temporary_terms_t &temporary_terms,
                                          const temporary_terms_idxs_t &temporary_terms_idxs) const;
+
+      // Internal helper for matchVariableTimesConstantTimesParam()
+      virtual void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const;
+
     public:
       ExprNode(DataTree &datatree_arg, int idx_arg);
       virtual ~ExprNode() = default;
@@ -556,9 +560,11 @@ class ExprNode
       virtual void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                                         set<pair<int, pair<int, int>>> &params_and_vars) const = 0;
 
-      //! Fills info for non optimizing part of PAC equation
-      virtual void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
-                                           &params_vars_and_scaling_factor) const = 0;
+      //! Analyzes the non optimizing part of PAC equation
+      /*! Returns a list of (variable_id, lag, param_id, constant)
+          corresponding to the terms in the expression. When there is no
+          parameter in a term, param_id == -1 */
+      vector<tuple<int, int, int, double>> getPacNonOptimizingPart() const;
       //! Returns true if expression is of the form:
       //! param * (endog op endog op ...) + param * (endog op endog op ...) + ...
       virtual bool isParamTimesEndogExpr() const = 0;
@@ -570,7 +576,7 @@ class ExprNode
                                                      expr_t &optim_part,
                                                      expr_t &non_optim_part) const = 0;
       //! Adds PAC equation param info to pac_expectation
-      virtual void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) = 0;
+      virtual void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) = 0;
 
       //! Fills var_model info for pac_expectation node
       virtual void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) = 0;
@@ -587,7 +593,33 @@ class ExprNode
 
       //! Fills map
       virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const = 0;
-    };
+
+      //! Decompose an expression into its additive terms
+      /*! Returns a list of terms, with their sign (either 1 or -1, depending
+        on whether the terms appears with a plus or a minus).
+        The current_sign argument should normally be left to 1.
+        If current_sign == -1, then all signs are inverted */
+      virtual void decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign = 1) const;
+
+      // Matches an expression of the form variable*constant*parameter
+      /* Returns a tuple (variable_id, lag, param_id, constant).
+         The variable must be an exogenous or an endogenous.
+         The constant is optional (in which case 1 is returned); there can be
+         several multiplicative constants; constants can also appear at the
+         denominator (i.e. after a divide sign).
+         The parameter is optional (in which case param_id == -1).
+         If the expression is not of the expected form, throws a
+         MatchFailureException */
+      tuple<int, int, int, double> matchVariableTimesConstantTimesParam() const;
+
+      //! Exception thrown by matchVariableTimesConstantTimesParam when matching fails
+      class MatchFailureException
+      {
+      public:
+        const string message;
+        MatchFailureException(string message_arg) : message{move(message_arg)} {};
+      };
+};
 
 //! Object used to compare two nodes (using their indexes)
 /*! Note that in this ordering, a subexpression is always less than the
@@ -667,13 +699,11 @@ public:
   expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
+  void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) override;
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
-  void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
-                               &params_vars_and_scaling_factor) const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
@@ -683,6 +713,7 @@ public:
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   expr_t substituteStaticAuxiliaryVariable() const override;
+  void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
 };
 
 //! Symbol or variable node
@@ -764,13 +795,11 @@ public:
   expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
+  void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) override;
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
-  void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
-                               &params_vars_and_scaling_factor) const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
@@ -781,6 +810,7 @@ public:
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
   expr_t substituteStaticAuxiliaryVariable() const override;
+  void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
 };
 
 //! Unary operator node
@@ -890,13 +920,11 @@ public:
   expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
+  void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) override;
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
-  void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
-                               &params_vars_and_scaling_factor) const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
@@ -907,6 +935,8 @@ public:
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
   expr_t substituteStaticAuxiliaryVariable() const override;
+  void decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign) const override;
+  void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
 };
 
 //! Binary operator node
@@ -984,11 +1014,6 @@ public:
   {
     return powerDerivOrder;
   }
-  void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
-                               &params_vars_and_scaling_factor) const override;
-  void getPacNonOptimizingPartHelper(const expr_t arg1, const expr_t arg2,
-                                     set<pair<int, pair<pair<int, int>, double>>>
-                                     &params_vars_and_scaling_factor) const;
   void getPacOptimizingPartHelper(const expr_t arg1, const expr_t arg2,
                                   int lhs_orig_symb_id,
                                   pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
@@ -1044,7 +1069,7 @@ public:
   //! Returns the non-zero hand-side of an equation (that must have a hand side equal to zero)
   expr_t getNonZeroPartofEquation() const;
   bool isInStaticForm() const override;
-  void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
+  void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) override;
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
   void fillAutoregressiveRowHelper(expr_t arg1, expr_t arg2,
                                    int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const;
@@ -1066,6 +1091,8 @@ public:
   expr_t substituteStaticAuxiliaryVariable() const override;
   //! Substitute auxiliary variables by their expression in static model auxiliary variable definition
   expr_t substituteStaticAuxiliaryDefinition() const;
+  void decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign) const override;
+  void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
 };
 
 //! Trinary operator node
@@ -1159,13 +1186,11 @@ public:
   expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
+  void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) override;
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
-  void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
-                               &params_vars_and_scaling_factor) const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
@@ -1284,13 +1309,11 @@ public:
   expr_t clone(DataTree &datatree) const override = 0;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
+  void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) override;
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
-  void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
-                               &params_vars_and_scaling_factor) const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
@@ -1497,13 +1520,11 @@ public:
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
+  void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) override;
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
-  void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
-                               &params_vars_and_scaling_factor) const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
@@ -1532,7 +1553,7 @@ private:
   int optim_share_index;
   pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars;
   set<pair<int, pair<int, int>>> ar_params_and_vars;
-  set<pair<int, pair<pair<int, int>, double>>> params_vars_and_scaling_factor;
+  vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants;
 public:
   PacExpectationNode(DataTree &datatree_arg, int idx_arg, string model_name);
   void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
@@ -1596,13 +1617,11 @@ public:
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, set<pair<int, pair<pair<int, int>, double>>> &params_vars_and_scaling_factor_arg) override;
+  void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) override;
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
-  void getPacNonOptimizingPart(set<pair<int, pair<pair<int, int>, double>>>
-                               &params_vars_and_scaling_factor) const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
   void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
