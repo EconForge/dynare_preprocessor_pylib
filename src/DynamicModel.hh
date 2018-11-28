@@ -180,7 +180,7 @@ private:
     \param[in] deterministic_model whether we are in a deterministic model (only for exogenous leads/lags)
     \param[in] subset variables to which to apply the transformation (only for diff of forward vars)
   */
-  void substituteLeadLagInternal(AuxVarType type, bool deterministic_model, const vector<string> &subset);
+  void substituteLeadLagInternal(AuxVarType type, bool deterministic_model, const vector<string> &subset, bool nopreprocessoroutput);
 
   //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
   bool global_temporary_terms{true};
@@ -412,20 +412,20 @@ public:
 
   //! Transforms the model by removing all leads greater or equal than 2 on endos
   /*! Note that this can create new lags on endos and exos */
-  void substituteEndoLeadGreaterThanTwo(bool deterministic_model);
+  void substituteEndoLeadGreaterThanTwo(bool deterministic_model, bool nopreprocessoroutput);
 
   //! Transforms the model by removing all lags greater or equal than 2 on endos
-  void substituteEndoLagGreaterThanTwo(bool deterministic_model);
+  void substituteEndoLagGreaterThanTwo(bool deterministic_model, bool nopreprocessoroutput);
 
   //! Transforms the model by removing all leads on exos
   /*! Note that this can create new lags on endos and exos */
-  void substituteExoLead(bool deterministic_model);
+  void substituteExoLead(bool deterministic_model, bool nopreprocessoroutput);
 
   //! Transforms the model by removing all lags on exos
-  void substituteExoLag(bool deterministic_model);
+  void substituteExoLag(bool deterministic_model, bool nopreprocessoroutput);
 
   //! Transforms the model by removing all UnaryOpcode::expectation
-  void substituteExpectation(bool partial_information_model);
+  void substituteExpectation(bool partial_information_model, bool nopreprocessoroutput);
 
   //! Transforms the model by decreasing the lead/lag of predetermined variables in model equations by one
   void transformPredeterminedVariables();
@@ -437,16 +437,16 @@ public:
   void substituteAdl();
 
   //! Creates aux vars for all unary operators
-  void substituteUnaryOps(StaticModel &static_model);
+  void substituteUnaryOps(StaticModel &static_model, bool nopreprocessoroutput);
 
   //! Creates aux vars for certain unary operators: originally implemented for support of VARs
-  void substituteUnaryOps(StaticModel &static_model, set<string> &eq_tags);
+  void substituteUnaryOps(StaticModel &static_model, set<string> &eq_tags, bool nopreprocessoroutput);
 
   //! Creates aux vars for certain unary operators: originally implemented for support of VARs
-  void substituteUnaryOps(StaticModel &static_model, vector<int> &eqnumbers);
+  void substituteUnaryOps(StaticModel &static_model, vector<int> &eqnumbers, bool nopreprocessoroutput);
 
   //! Substitutes diff operator
-  void substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table);
+  void substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table, bool nopreprocessoroutput);
 
   //! Substitute VarExpectation operators
   void substituteVarExpectation(const map<string, expr_t> &subst_table);
@@ -464,7 +464,7 @@ public:
   //! Transforms the model by creating aux vars for the diff of forward vars
   /*! If subset is empty, does the transformation for all fwrd vars; otherwise
     restrict it to the vars in subset */
-  void differentiateForwardVars(const vector<string> &subset);
+  void differentiateForwardVars(const vector<string> &subset, bool nopreprocessoroutput);
 
   //! Fills eval context with values of model local variables and auxiliary variables
   void fillEvalContext(eval_context_t &eval_context) const;

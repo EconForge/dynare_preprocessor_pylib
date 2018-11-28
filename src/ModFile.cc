@@ -392,14 +392,14 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       eqtags.insert(it1);
 
   if (transform_unary_ops)
-    dynamic_model.substituteUnaryOps(diff_static_model);
+    dynamic_model.substituteUnaryOps(diff_static_model, nopreprocessoroutput);
   else
     // substitute only those unary ops that appear in auxiliary model equations
-    dynamic_model.substituteUnaryOps(diff_static_model, eqtags);
+    dynamic_model.substituteUnaryOps(diff_static_model, eqtags, nopreprocessoroutput);
 
   // Create auxiliary variable and equations for Diff operators that appear in VAR equations
   ExprNode::subst_table_t diff_subst_table;
-  dynamic_model.substituteDiff(diff_static_model, diff_subst_table);
+  dynamic_model.substituteDiff(diff_static_model, diff_subst_table, nopreprocessoroutput);
 
   // Fill Trend Component Model Table
   dynamic_model.fillTrendComponentModelTable();
@@ -455,7 +455,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
     dynamic_model.transformPredeterminedVariables();
 
   // Create auxiliary vars for Expectation operator
-  dynamic_model.substituteExpectation(mod_file_struct.partial_information);
+  dynamic_model.substituteExpectation(mod_file_struct.partial_information, nopreprocessoroutput);
 
   if (nonstationary_variables)
     {
@@ -578,22 +578,22 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       || stochastic )
     {
       // In stochastic models, create auxiliary vars for leads and lags greater than 2, on both endos and exos
-      dynamic_model.substituteEndoLeadGreaterThanTwo(false);
-      dynamic_model.substituteExoLead(false);
-      dynamic_model.substituteEndoLagGreaterThanTwo(false);
-      dynamic_model.substituteExoLag(false);
+      dynamic_model.substituteEndoLeadGreaterThanTwo(false, nopreprocessoroutput);
+      dynamic_model.substituteExoLead(false, nopreprocessoroutput);
+      dynamic_model.substituteEndoLagGreaterThanTwo(false, nopreprocessoroutput);
+      dynamic_model.substituteExoLag(false, nopreprocessoroutput);
     }
   else
     {
       // In deterministic models, create auxiliary vars for leads and lags endogenous greater than 2, only on endos (useless on exos)
-      dynamic_model.substituteEndoLeadGreaterThanTwo(true);
-      dynamic_model.substituteEndoLagGreaterThanTwo(true);
+      dynamic_model.substituteEndoLeadGreaterThanTwo(true, nopreprocessoroutput);
+      dynamic_model.substituteEndoLagGreaterThanTwo(true, nopreprocessoroutput);
     }
 
   dynamic_model.updateVarAndTrendModel();
 
   if (differentiate_forward_vars)
-    dynamic_model.differentiateForwardVars(differentiate_forward_vars_subset);
+    dynamic_model.differentiateForwardVars(differentiate_forward_vars_subset, nopreprocessoroutput);
 
   if (mod_file_struct.dsge_var_estimated || !mod_file_struct.dsge_var_calibrated.empty())
     try
