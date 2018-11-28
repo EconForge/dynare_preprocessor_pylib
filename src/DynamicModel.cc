@@ -649,8 +649,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
           EquationType equ_type = getBlockEquationType(block, i);
           string sModel = symbol_table.getName(symbol_table.getID(SymbolType::endogenous, variable_ID));
           eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
-          lhs = eq_node->get_arg1();
-          rhs = eq_node->get_arg2();
+          lhs = eq_node->arg1;
+          rhs = eq_node->arg2;
           tmp_output.str("");
           lhs->writeOutput(tmp_output, local_output_type, local_temporary_terms, {});
           switch (simulation_type)
@@ -677,8 +677,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
                       output << endl << "    ";
                       tmp_output.str("");
                       eq_node = (BinaryOpNode *) getBlockEquationRenormalizedExpr(block, i);
-                      lhs = eq_node->get_arg1();
-                      rhs = eq_node->get_arg2();
+                      lhs = eq_node->arg1;
+                      rhs = eq_node->arg2;
                       lhs->writeOutput(output, local_output_type, local_temporary_terms, {});
                       output << " = ";
                       rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
@@ -1415,16 +1415,16 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
               if (equ_type == E_EVALUATE)
                 {
                   eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
-                  lhs = eq_node->get_arg1();
-                  rhs = eq_node->get_arg2();
+                  lhs = eq_node->arg1;
+                  rhs = eq_node->arg2;
                   rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
                   lhs->compile(code_file, instruction_number, true, temporary_terms, map_idx, true, false);
                 }
               else if (equ_type == E_EVALUATE_S)
                 {
                   eq_node = (BinaryOpNode *) getBlockEquationRenormalizedExpr(block, i);
-                  lhs = eq_node->get_arg1();
-                  rhs = eq_node->get_arg2();
+                  lhs = eq_node->arg1;
+                  rhs = eq_node->arg2;
                   rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
                   lhs->compile(code_file, instruction_number, true, temporary_terms, map_idx, true, false);
                 }
@@ -1445,8 +1445,8 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
               FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
               fnumexpr.write(code_file, instruction_number);
               eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
-              lhs = eq_node->get_arg1();
-              rhs = eq_node->get_arg2();
+              lhs = eq_node->arg1;
+              rhs = eq_node->arg2;
               lhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
               rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
 
@@ -3681,7 +3681,7 @@ DynamicModel::updateVarAndTrendModel() const
           for (auto eqn : it.second)
             {
               set<pair<int, int>> rhs_set;
-              equations[eqn]->get_arg2()->collectDynamicVariables(SymbolType::endogenous, rhs_set);
+              equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_set);
               rhs.push_back(rhs_set);
 
               if (i == 1)
@@ -3695,7 +3695,7 @@ DynamicModel::updateVarAndTrendModel() const
                     catch (...)
                       {
                       }
-                  int trend_var_symb_id = equations[eqn]->get_arg2()->findTargetVariable(lhs_symb_id);
+                  int trend_var_symb_id = equations[eqn]->arg2->findTargetVariable(lhs_symb_id);
                   if (trend_var_symb_id >= 0)
                     {
                       if (symbol_table.isAuxiliaryVariable(trend_var_symb_id))
@@ -3764,9 +3764,9 @@ DynamicModel::fillVarModelTable() const
               exit(EXIT_FAILURE);
             }
 
-          equations[eqn]->get_arg1()->collectDynamicVariables(SymbolType::endogenous, lhs_set);
-          equations[eqn]->get_arg1()->collectDynamicVariables(SymbolType::exogenous, lhs_tmp_set);
-          equations[eqn]->get_arg1()->collectDynamicVariables(SymbolType::parameter, lhs_tmp_set);
+          equations[eqn]->arg1->collectDynamicVariables(SymbolType::endogenous, lhs_set);
+          equations[eqn]->arg1->collectDynamicVariables(SymbolType::exogenous, lhs_tmp_set);
+          equations[eqn]->arg1->collectDynamicVariables(SymbolType::parameter, lhs_tmp_set);
 
           if (lhs_set.size() != 1 || !lhs_tmp_set.empty())
             {
@@ -3788,10 +3788,10 @@ DynamicModel::fillVarModelTable() const
           lhs.push_back(itlhs->first);
           lhs_set.clear();
           set<expr_t> lhs_expr_t_set;
-          equations[eqn]->get_arg1()->collectVARLHSVariable(lhs_expr_t_set);
+          equations[eqn]->arg1->collectVARLHSVariable(lhs_expr_t_set);
           lhs_expr_t.push_back(*(lhs_expr_t_set.begin()));
 
-          equations[eqn]->get_arg2()->collectDynamicVariables(SymbolType::endogenous, rhs_set);
+          equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_set);
           for (const auto & itrhs : rhs_set)
             if (itrhs.second > 0)
               {
@@ -3830,7 +3830,7 @@ DynamicModel::fillVarModelTableFromOrigModel(StaticModel &static_model) const
       for (auto eqn : it.second)
         {
           // ensure no leads in equations
-          if (equations[eqn]->get_arg2()->VarMinLag() <= 0)
+          if (equations[eqn]->arg2->VarMinLag() <= 0)
             {
               cerr << "ERROR in VAR model Equation (#" << eqn << "). "
                    << "Leaded exogenous variables "
@@ -3840,14 +3840,14 @@ DynamicModel::fillVarModelTableFromOrigModel(StaticModel &static_model) const
             }
 
           // save lhs variables
-          equations[eqn]->get_arg1()->collectVARLHSVariable(lhs);
+          equations[eqn]->arg1->collectVARLHSVariable(lhs);
 
-          equations[eqn]->get_arg1()->countDiffs() > 0 ?
+          equations[eqn]->arg1->countDiffs() > 0 ?
             diff_vec.push_back(true) : diff_vec.push_back(false);
           if (diff_vec.back())
             {
               set<pair<int, int>> diff_set;
-              equations[eqn]->get_arg1()->collectDynamicVariables(SymbolType::endogenous, diff_set);
+              equations[eqn]->arg1->collectDynamicVariables(SymbolType::endogenous, diff_set);
 
               if (diff_set.size() != 1)
                 {
@@ -3874,7 +3874,7 @@ DynamicModel::fillVarModelTableFromOrigModel(StaticModel &static_model) const
 
       vector<int> max_lag;
       for (auto eqn : it.second)
-        max_lag.push_back(equations[eqn]->get_arg2()->VarMaxLag(static_model, lhs_static));
+        max_lag.push_back(equations[eqn]->arg2->VarMaxLag(static_model, lhs_static));
       lags[it.first] = max_lag;
       diff[it.first] = diff_vec;
       orig_diff_var[it.first] = orig_diff_var_vec;
@@ -3896,7 +3896,7 @@ DynamicModel::fillAutoregressiveMatrix(map<string, map<tuple<int, int, int>, exp
       vector<int> lhs = is_trend_component_model ?
         trend_component_model_table.getLhs(it.first) : var_model_table.getLhs(it.first);
       for (auto eqn : it.second)
-        equations[eqn]->get_arg2()->fillAutoregressiveRow(i++, lhs, AR);
+        equations[eqn]->arg2->fillAutoregressiveRow(i++, lhs, AR);
       ARr[it.first] = AR;
     }
 }
@@ -3957,9 +3957,9 @@ DynamicModel::fillTrendComponentModelTable() const
               exit(EXIT_FAILURE);
             }
 
-          equations[eqn]->get_arg1()->collectDynamicVariables(SymbolType::endogenous, lhs_set);
-          equations[eqn]->get_arg1()->collectDynamicVariables(SymbolType::exogenous, lhs_tmp_set);
-          equations[eqn]->get_arg1()->collectDynamicVariables(SymbolType::parameter, lhs_tmp_set);
+          equations[eqn]->arg1->collectDynamicVariables(SymbolType::endogenous, lhs_set);
+          equations[eqn]->arg1->collectDynamicVariables(SymbolType::exogenous, lhs_tmp_set);
+          equations[eqn]->arg1->collectDynamicVariables(SymbolType::parameter, lhs_tmp_set);
 
           if (lhs_set.size() != 1 || !lhs_tmp_set.empty())
             {
@@ -3981,10 +3981,10 @@ DynamicModel::fillTrendComponentModelTable() const
           lhs.push_back(itlhs->first);
           lhs_set.clear();
           set<expr_t> lhs_expr_t_set;
-          equations[eqn]->get_arg1()->collectVARLHSVariable(lhs_expr_t_set);
+          equations[eqn]->arg1->collectVARLHSVariable(lhs_expr_t_set);
           lhs_expr_t.push_back(*(lhs_expr_t_set.begin()));
 
-          equations[eqn]->get_arg2()->collectDynamicVariables(SymbolType::endogenous, rhs_set);
+          equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_set);
           for (const auto & itrhs : rhs_set)
             if (itrhs.second > 0)
               {
@@ -4026,7 +4026,7 @@ DynamicModel::fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, exp
       i = 0;
       for (auto eqn : it.second)
         if (find(nontrend_eqnums.begin(), nontrend_eqnums.end(), eqn) != nontrend_eqnums.end())
-          equations[eqn]->get_arg2()->fillErrorCorrectionRow(i++, parsed_undiff_nontrend_lhs, trend_lhs, EC);
+          equations[eqn]->arg2->fillErrorCorrectionRow(i++, parsed_undiff_nontrend_lhs, trend_lhs, EC);
       ECr[it.first] = EC;
     }
 }
@@ -4044,7 +4044,7 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel(StaticModel &static_mode
       for (auto eqn : it.second)
         {
           // ensure no leads in equations
-          if (equations[eqn]->get_arg2()->VarMinLag() <= 0)
+          if (equations[eqn]->arg2->VarMinLag() <= 0)
             {
               cerr << "ERROR in trend component model Equation (#" << eqn << "). "
                    << "Leaded exogenous variables "
@@ -4054,14 +4054,14 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel(StaticModel &static_mode
             }
 
           // save lhs variables
-          equations[eqn]->get_arg1()->collectVARLHSVariable(lhs);
+          equations[eqn]->arg1->collectVARLHSVariable(lhs);
 
-          equations[eqn]->get_arg1()->countDiffs() > 0 ?
+          equations[eqn]->arg1->countDiffs() > 0 ?
             diff_vec.push_back(true) : diff_vec.push_back(false);
           if (diff_vec.back())
             {
               set<pair<int, int>> diff_set;
-              equations[eqn]->get_arg1()->collectDynamicVariables(SymbolType::endogenous, diff_set);
+              equations[eqn]->arg1->collectDynamicVariables(SymbolType::endogenous, diff_set);
 
               if (diff_set.size() != 1)
                 {
@@ -4088,7 +4088,7 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel(StaticModel &static_mode
 
       vector<int> max_lag;
       for (auto eqn : it.second)
-        max_lag.push_back(equations[eqn]->get_arg2()->VarMaxLag(static_model, lhs_static));
+        max_lag.push_back(equations[eqn]->arg2->VarMaxLag(static_model, lhs_static));
       lags[it.first] = max_lag;
       diff[it.first] = diff_vec;
       orig_diff_var[it.first] = orig_diff_var_vec;
@@ -4224,12 +4224,12 @@ DynamicModel::getUndiffLHSForPac(const string &aux_model_name,
       if (printerr)
         { // we have undiffed something like diff(x), hence x is not in diff_subst_table
           lhs_expr_t.at(i) = node;
-          lhs.at(i) = dynamic_cast<VariableNode *>(node)->get_symb_id();
+          lhs.at(i) = dynamic_cast<VariableNode *>(node)->symb_id;
         }
       else
         {
           lhs_expr_t.at(i) = const_cast<expr_t>(it1->first);
-          lhs.at(i) = const_cast<VariableNode *>(it1->second)->get_symb_id();
+          lhs.at(i) = const_cast<VariableNode *>(it1->second)->symb_id;
         }
     }
   return lhs;
@@ -4262,11 +4262,11 @@ DynamicModel::walkPacParameters()
               {
               }
 
-          equation->get_arg2()->getPacOptimizingShareAndExprNodes(optim_share,
-                                                                  optim_part,
-                                                                  non_optim_part);
+          equation->arg2->getPacOptimizingShareAndExprNodes(optim_share,
+                                                            optim_part,
+                                                            non_optim_part);
           if (optim_part == nullptr)
-            equation->get_arg2()->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
+            equation->arg2->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
           else
             {
               optim_share_index = *(optim_share.begin());
@@ -4288,7 +4288,7 @@ DynamicModel::getPacMaxLag(const string &pac_model_name) const
     if (equation->containsPacExpectation(pac_model_name))
       {
         set<pair<int, int>> endogs;
-        equation->get_arg1()->collectDynamicVariables(SymbolType::endogenous, endogs);
+        equation->arg1->collectDynamicVariables(SymbolType::endogenous, endogs);
         if (endogs.size() != 1)
           {
             cerr << "The LHS of the PAC equation may only be comprised of one endogenous variable"
@@ -5296,8 +5296,8 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context
         || symbol_table.getType(it->first.first) == SymbolType::logTrend)
       for (int eq = 0; eq < (int) equations.size(); eq++)
         {
-          expr_t homogeneq = AddMinus(equations[eq]->get_arg1(),
-                                      equations[eq]->get_arg2());
+          expr_t homogeneq = AddMinus(equations[eq]->arg1,
+                                      equations[eq]->arg2);
 
           // Do not run the test if the term inside the log is zero
           if (fabs(homogeneq->eval(eval_context)) > zero_band)
@@ -6007,13 +6007,13 @@ DynamicModel::fillEvalContext(eval_context_t &eval_context) const
   // First, auxiliary variables
   for (auto aux_equation : aux_equations)
     {
-      assert(aux_equation->get_op_code() == BinaryOpcode::equal);
-      auto *auxvar = dynamic_cast<VariableNode *>(aux_equation->get_arg1());
+      assert(aux_equation->op_code == BinaryOpcode::equal);
+      auto *auxvar = dynamic_cast<VariableNode *>(aux_equation->arg1);
       assert(auxvar != nullptr);
       try
         {
-          double val = aux_equation->get_arg2()->eval(eval_context);
-          eval_context[auxvar->get_symb_id()] = val;
+          double val = aux_equation->arg2->eval(eval_context);
+          eval_context[auxvar->symb_id] = val;
         }
       catch (ExprNode::EvalException &e)
         {
@@ -6060,7 +6060,7 @@ void
 DynamicModel::addStaticOnlyEquation(expr_t eq, int lineno, const vector<pair<string, string>> &eq_tags)
 {
   auto *beq = dynamic_cast<BinaryOpNode *>(eq);
-  assert(beq != nullptr && beq->get_op_code() == BinaryOpcode::equal);
+  assert(beq != nullptr && beq->op_code == BinaryOpcode::equal);
 
   vector<pair<string, string>> soe_eq_tags;
   for (const auto & eq_tag : eq_tags)
@@ -6107,8 +6107,8 @@ DynamicModel::isChecksumMatching(const string &basename, bool block) const
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
       BinaryOpNode *eq_node = equations[eq];
-      expr_t lhs = eq_node->get_arg1();
-      expr_t rhs = eq_node->get_arg2();
+      expr_t lhs = eq_node->arg1;
+      expr_t rhs = eq_node->arg2;
 
       // Test if the right hand side of the equation is empty.
       double vrhs = 1.0;

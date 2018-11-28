@@ -638,19 +638,15 @@ struct ExprNodeLess
 /*! The constant is necessarily non-negative (this is enforced at the NumericalConstants class level) */
 class NumConstNode : public ExprNode
 {
-private:
+public:
   //! Id from numerical constants table
   const int id;
+private:
   expr_t computeDerivative(int deriv_id) override;
 protected:
   void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
 public:
   NumConstNode(DataTree &datatree_arg, int idx_arg, int id_arg);
-  int
-  get_id() const
-  {
-    return id;
-  };
   void prepareForDerivation() override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
@@ -721,11 +717,12 @@ public:
 class VariableNode : public ExprNode
 {
   friend class UnaryOpNode;
-private:
+public:
   //! Id from the symbol table
   const int symb_id;
   //! A positive value is a lead, a negative is a lag
   const int lag;
+private:
   expr_t computeDerivative(int deriv_id) override;
 protected:
   void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
@@ -750,16 +747,6 @@ public:
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   SymbolType get_type() const;
-  int
-  get_symb_id() const
-  {
-    return symb_id;
-  };
-  int
-  get_lag() const
-  {
-    return lag;
-  };
   pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t>>>  &List_of_Op_RHS) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
@@ -820,7 +807,7 @@ class UnaryOpNode : public ExprNode
 {
 protected:
   void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
-private:
+public:
   const expr_t arg;
   //! Stores the information set. Only used for expectation operator
   const int expectation_information_set;
@@ -829,6 +816,7 @@ private:
   const UnaryOpcode op_code;
   const string adl_param_name;
   const vector<int> adl_lags;
+private:
   expr_t computeDerivative(int deriv_id) override;
   int cost(int cost, bool is_matlab) const override;
   int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const override;
@@ -869,18 +857,6 @@ public:
   static double eval_opcode(UnaryOpcode op_code, double v) noexcept(false);
   double eval(const eval_context_t &eval_context) const noexcept(false) override;
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
-  //! Returns operand
-  expr_t
-  get_arg() const
-  {
-    return (arg);
-  };
-  //! Returns op code
-  UnaryOpcode
-  get_op_code() const
-  {
-    return (op_code);
-  };
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t>>>  &List_of_Op_RHS) const override;
@@ -947,17 +923,18 @@ class BinaryOpNode : public ExprNode
 {
 protected:
   void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
-private:
+public:
   const expr_t arg1, arg2;
   const BinaryOpcode op_code;
+  const int powerDerivOrder;
+  const string adlparam;
+private:
   expr_t computeDerivative(int deriv_id) override;
   int cost(int cost, bool is_matlab) const override;
   int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const override;
   int cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
   //! Returns the derivative of this node if darg1 and darg2 are the derivatives of the arguments
   expr_t composeDerivatives(expr_t darg1, expr_t darg2);
-  const int powerDerivOrder;
-  const string adlparam;
 public:
   BinaryOpNode(DataTree &datatree_arg, int idx_arg, const expr_t arg1_arg,
                BinaryOpcode op_code_arg, const expr_t arg2_arg, int powerDerivOrder);
@@ -996,29 +973,6 @@ public:
   double eval(const eval_context_t &eval_context) const noexcept(false) override;
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const;
-  //! Returns first operand
-  expr_t
-  get_arg1() const
-  {
-    return (arg1);
-  };
-  //! Returns second operand
-  expr_t
-  get_arg2() const
-  {
-    return (arg2);
-  };
-  //! Returns op code
-  BinaryOpcode
-  get_op_code() const
-  {
-    return (op_code);
-  };
-  int
-  get_power_deriv_order() const
-  {
-    return powerDerivOrder;
-  }
   void getPacOptimizingPartHelper(const expr_t arg1, const expr_t arg2,
                                   int lhs_orig_symb_id,
                                   pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
@@ -1103,9 +1057,10 @@ public:
 class TrinaryOpNode : public ExprNode
 {
   friend class ModelTree;
-private:
+public:
   const expr_t arg1, arg2, arg3;
   const TrinaryOpcode op_code;
+private:
   expr_t computeDerivative(int deriv_id) override;
   int cost(int cost, bool is_matlab) const override;
   int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const override;
@@ -1210,6 +1165,9 @@ public:
 //! External function node
 class AbstractExternalFunctionNode : public ExprNode
 {
+public:
+  const int symb_id;
+  const vector<expr_t> arguments;
 private:
   expr_t computeDerivative(int deriv_id) override;
   virtual expr_t composeDerivatives(const vector<expr_t> &dargs) = 0;
@@ -1218,8 +1176,6 @@ protected:
   class UnknownFunctionNameAndArgs
   {
   };
-  const int symb_id;
-  const vector<expr_t> arguments;
   //! Returns true if the given external function has been written as a temporary term
   bool alreadyWrittenAsTefTerm(int the_symb_id, const deriv_node_temp_terms_t &tef_terms) const;
   //! Returns the index in the tef_terms map of this external function
@@ -1371,8 +1327,9 @@ public:
 
 class FirstDerivExternalFunctionNode : public AbstractExternalFunctionNode
 {
-private:
+public:
   const int inputIndex;
+private:
   expr_t composeDerivatives(const vector<expr_t> &dargs) override;
 protected:
   function<bool (expr_t)> sameTefTermPredicate() const override;
@@ -1414,9 +1371,10 @@ public:
 
 class SecondDerivExternalFunctionNode : public AbstractExternalFunctionNode
 {
-private:
+public:
   const int inputIndex1;
   const int inputIndex2;
+private:
   expr_t composeDerivatives(const vector<expr_t> &dargs) override;
 protected:
   function<bool (expr_t)> sameTefTermPredicate() const override;
@@ -1459,9 +1417,8 @@ public:
 
 class VarExpectationNode : public ExprNode
 {
-private:
-  const string model_name;
 public:
+  const string model_name;
   VarExpectationNode(DataTree &datatree_arg, int idx_arg, string model_name_arg);
   void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
                                      map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
@@ -1544,8 +1501,9 @@ public:
 
 class PacExpectationNode : public ExprNode
 {
-private:
+public:
   const string model_name;
+private:
   string var_model_name;
   int growth_symb_id;
   bool stationary_vars_present, nonstationary_vars_present;

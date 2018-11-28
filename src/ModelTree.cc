@@ -358,16 +358,16 @@ ModelTree::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
 {
   for (size_t i = 0; i < equations.size(); i++)
     {
-      auto *lhs = dynamic_cast<VariableNode *>(equations[i]->get_arg1());
+      auto *lhs = dynamic_cast<VariableNode *>(equations[i]->arg1);
       if (lhs == nullptr)
         continue;
 
-      int symb_id = lhs->get_symb_id();
+      int symb_id = lhs->symb_id;
       if (symbol_table.getType(symb_id) != SymbolType::endogenous)
         continue;
 
       set<pair<int, int>> endo;
-      equations[i]->get_arg2()->collectEndogenous(endo);
+      equations[i]->arg2->collectEndogenous(endo);
       if (endo.find({ symbol_table.getTypeSpecificID(symb_id), 0 }) != endo.end())
         continue;
 
@@ -521,7 +521,7 @@ ModelTree::computeNaturalNormalization()
     if (!is_equation_linear[eq])
       {
         BinaryOpNode *eq_node = equations[eq];
-        expr_t lhs = eq_node->get_arg1();
+        expr_t lhs = eq_node->arg1;
         result.clear();
         lhs->collectDynamicVariables(SymbolType::endogenous, result);
         if (result.size() == 1 && result.begin()->second == 0)
@@ -670,7 +670,7 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
       int eq = Index_Equ_IM[i];
       int var = Index_Var_IM[i];
       eq_node = equations[eq];
-      lhs = eq_node->get_arg1();
+      lhs = eq_node->arg1;
       Equation_Simulation_Type = E_SOLVE;
       auto derivative = first_order_endo_derivatives.find({ eq, var, 0 });
       pair<bool, expr_t> res;
@@ -1716,8 +1716,8 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type,
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
       BinaryOpNode *eq_node = equations[eq];
-      expr_t lhs = eq_node->get_arg1();
-      expr_t rhs = eq_node->get_arg2();
+      expr_t lhs = eq_node->arg1;
+      expr_t rhs = eq_node->arg2;
 
       // Test if the right hand side of the equation is empty.
       double vrhs = 1.0;
@@ -1774,8 +1774,8 @@ ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_n
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
       BinaryOpNode *eq_node = equations[eq];
-      expr_t lhs = eq_node->get_arg1();
-      expr_t rhs = eq_node->get_arg2();
+      expr_t lhs = eq_node->arg1;
+      expr_t rhs = eq_node->arg2;
       FNUMEXPR_ fnumexpr(ModelEquation, eq);
       fnumexpr.write(code_file, instruction_number);
       // Test if the right hand side of the equation is empty.
@@ -1935,7 +1935,7 @@ void
 ModelTree::addEquation(expr_t eq, int lineno)
 {
   auto *beq = dynamic_cast<BinaryOpNode *>(eq);
-  assert(beq != nullptr && beq->get_op_code() == BinaryOpcode::equal);
+  assert(beq != nullptr && beq->op_code == BinaryOpcode::equal);
 
   equations.push_back(beq);
   equations_lineno.push_back(lineno);
@@ -1954,7 +1954,7 @@ void
 ModelTree::addAuxEquation(expr_t eq)
 {
   auto *beq = dynamic_cast<BinaryOpNode *>(eq);
-  assert(beq != nullptr && beq->get_op_code() == BinaryOpcode::equal);
+  assert(beq != nullptr && beq->op_code == BinaryOpcode::equal);
 
   aux_equations.push_back(beq);
 }
@@ -2162,8 +2162,8 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
         output << ", ";
 
       BinaryOpNode *eq_node = equations[eq];
-      expr_t lhs = eq_node->get_arg1();
-      expr_t rhs = eq_node->get_arg2();
+      expr_t lhs = eq_node->arg1;
+      expr_t rhs = eq_node->arg2;
 
       if (residuals)
         {

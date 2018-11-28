@@ -1863,22 +1863,22 @@ VariableNode::replaceTrendVar() const
 expr_t
 VariableNode::detrend(int symb_id, bool log_trend, expr_t trend) const
 {
-  if (get_symb_id() != symb_id)
+  if (this->symb_id != symb_id)
     return const_cast<VariableNode *>(this);
 
   if (log_trend)
     {
-      if (get_lag() == 0)
+      if (lag == 0)
         return datatree.AddPlus(const_cast<VariableNode *>(this), trend);
       else
-        return datatree.AddPlus(const_cast<VariableNode *>(this), trend->decreaseLeadsLags(-1*get_lag()));
+        return datatree.AddPlus(const_cast<VariableNode *>(this), trend->decreaseLeadsLags(-lag));
     }
   else
     {
-      if (get_lag() == 0)
+      if (lag == 0)
         return datatree.AddTimes(const_cast<VariableNode *>(this), trend);
       else
-        return datatree.AddTimes(const_cast<VariableNode *>(this), trend->decreaseLeadsLags(-1*get_lag()));
+        return datatree.AddTimes(const_cast<VariableNode *>(this), trend->decreaseLeadsLags(-lag));
     }
 }
 
@@ -1891,7 +1891,7 @@ VariableNode::countDiffs() const
 expr_t
 VariableNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
 {
-  if ((get_type() != SymbolType::trend && get_type() != SymbolType::logTrend) || get_lag() == 0)
+  if ((get_type() != SymbolType::trend && get_type() != SymbolType::logTrend) || lag == 0)
     return const_cast<VariableNode *>(this);
 
   map<int, expr_t>::const_iterator it = trend_symbols_map.find(symb_id);
@@ -1899,18 +1899,18 @@ VariableNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
   bool log_trend = get_type() == SymbolType::logTrend;
   expr_t trend = it->second;
 
-  if (get_lag() > 0)
+  if (lag > 0)
     {
       expr_t growthFactorSequence = trend->decreaseLeadsLags(-1);
       if (log_trend)
         {
-          for (int i = 1; i < get_lag(); i++)
+          for (int i = 1; i < lag; i++)
             growthFactorSequence = datatree.AddPlus(growthFactorSequence, trend->decreaseLeadsLags(-1*(i+1)));
           return datatree.AddPlus(noTrendLeadLagNode, growthFactorSequence);
         }
       else
         {
-          for (int i = 1; i < get_lag(); i++)
+          for (int i = 1; i < lag; i++)
             growthFactorSequence = datatree.AddTimes(growthFactorSequence, trend->decreaseLeadsLags(-1*(i+1)));
           return datatree.AddTimes(noTrendLeadLagNode, growthFactorSequence);
         }
@@ -1920,13 +1920,13 @@ VariableNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
       expr_t growthFactorSequence = trend;
       if (log_trend)
         {
-          for (int i = 1; i < abs(get_lag()); i++)
+          for (int i = 1; i < abs(lag); i++)
             growthFactorSequence = datatree.AddPlus(growthFactorSequence, trend->decreaseLeadsLags(i));
           return datatree.AddMinus(noTrendLeadLagNode, growthFactorSequence);
         }
       else
         {
-          for (int i = 1; i < abs(get_lag()); i++)
+          for (int i = 1; i < abs(lag); i++)
             growthFactorSequence = datatree.AddTimes(growthFactorSequence, trend->decreaseLeadsLags(i));
           return datatree.AddDivide(noTrendLeadLagNode, growthFactorSequence);
         }
@@ -3411,12 +3411,12 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
        rit != it->second.rend(); rit++)
     {
       expr_t argsubst = dynamic_cast<UnaryOpNode *>(rit->second)->
-          get_arg()->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
+          arg->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
       auto *vn = dynamic_cast<VariableNode *>(argsubst);
       if (rit == it->second.rbegin())
         {
           if (vn != nullptr)
-            symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst, vn->get_symb_id(), vn->get_lag());
+            symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst, vn->symb_id, vn->lag);
           else
             symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
 
@@ -3437,10 +3437,10 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
             {
               if (i == last_arg_max_lag)
                 symb_id = datatree.symbol_table.addDiffLagAuxiliaryVar(argsubst->idx, argsubst,
-                                                                       last_aux_var->get_symb_id(), last_aux_var->get_lag());
+                                                                       last_aux_var->symb_id, last_aux_var->lag);
               else
                 symb_id = datatree.symbol_table.addDiffLagAuxiliaryVar(new_aux_var->idx, new_aux_var,
-                                                                       last_aux_var->get_symb_id(), last_aux_var->get_lag());
+                                                                       last_aux_var->symb_id, last_aux_var->lag);
 
               new_aux_var = datatree.AddVariable(symb_id, 0);
               neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(new_aux_var,
@@ -3545,7 +3545,7 @@ UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nod
           symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, dynamic_cast<UnaryOpNode *>(rit->second), unary_op);
         else
           symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, dynamic_cast<UnaryOpNode *>(rit->second), unary_op,
-                                                                 vn->get_symb_id(), vn->get_lag());
+                                                                 vn->symb_id, vn->lag);
         aux_var = datatree.AddVariable(symb_id, 0);
         neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(aux_var,
                                                                         dynamic_cast<UnaryOpNode *>(rit->second))));
@@ -5450,10 +5450,10 @@ BinaryOpNode::findTargetVariableHelper(const expr_t arg1, const expr_t arg2,
   if (endogs.size() == 2)
     {
       auto *testarg2 = dynamic_cast<BinaryOpNode *>(arg2);
-      if (testarg2 != nullptr && testarg2->get_op_code() == BinaryOpcode::minus)
+      if (testarg2 != nullptr && testarg2->op_code == BinaryOpcode::minus)
         {
-          auto *test_arg1 = dynamic_cast<VariableNode *>(testarg2->get_arg1());
-          auto *test_arg2 = dynamic_cast<VariableNode *>(testarg2->get_arg2());
+          auto *test_arg1 = dynamic_cast<VariableNode *>(testarg2->arg1);
+          auto *test_arg2 = dynamic_cast<VariableNode *>(testarg2->arg2);
           if (test_arg1 != nullptr && test_arg2 != nullptr )
             if (findTargetVariableHelper1(lhs_symb_id, endogs.begin()->first))
               return endogs.rbegin()->first;
@@ -5495,10 +5495,10 @@ BinaryOpNode::getPacOptimizingPartHelper(const expr_t arg1, const expr_t arg2,
   else if (endogs.size() >= 2)
     {
       auto *testarg2 = dynamic_cast<BinaryOpNode *>(arg2);
-      if (testarg2 != nullptr && testarg2->get_op_code() == BinaryOpcode::minus)
+      if (testarg2 != nullptr && testarg2->op_code == BinaryOpcode::minus)
         {
-          auto *test_arg1 = dynamic_cast<VariableNode *>(testarg2->get_arg1());
-          auto *test_arg2 = dynamic_cast<VariableNode *>(testarg2->get_arg2());
+          auto *test_arg1 = dynamic_cast<VariableNode *>(testarg2->arg1);
+          auto *test_arg2 = dynamic_cast<VariableNode *>(testarg2->arg2);
           if (test_arg1 != nullptr && test_arg2 != nullptr)
             {
               vector<int> endog_ids;
@@ -5712,7 +5712,7 @@ BinaryOpNode::fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
 
   BinaryOpNode *multiplicandr = dynamic_cast<BinaryOpNode *>(arg2);
   if (multiplicandr == nullptr
-      || multiplicandr->get_op_code() != BinaryOpcode::minus)
+      || multiplicandr->op_code != BinaryOpcode::minus)
     return;
 
   arg2->collectDynamicVariables(SymbolType::endogenous, endogs);

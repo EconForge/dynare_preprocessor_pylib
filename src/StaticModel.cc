@@ -455,8 +455,8 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
           EquationType equ_type = getBlockEquationType(block, i);
           string sModel = symbol_table.getName(symbol_table.getID(SymbolType::endogenous, variable_ID));
           eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
-          lhs = eq_node->get_arg1();
-          rhs = eq_node->get_arg2();
+          lhs = eq_node->arg1;
+          rhs = eq_node->arg2;
           tmp_output.str("");
           lhs->writeOutput(tmp_output, local_output_type, local_temporary_terms, {});
           switch (simulation_type)
@@ -483,8 +483,8 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
                       output << endl << "  ";
                       tmp_output.str("");
                       eq_node = (BinaryOpNode *) getBlockEquationRenormalizedExpr(block, i);
-                      lhs = eq_node->get_arg1();
-                      rhs = eq_node->get_arg2();
+                      lhs = eq_node->arg1;
+                      rhs = eq_node->arg2;
                       lhs->writeOutput(output, local_output_type, local_temporary_terms, {});
                       output << " = ";
                       rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
@@ -830,16 +830,16 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
               if (equ_type == E_EVALUATE)
                 {
                   eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
-                  lhs = eq_node->get_arg1();
-                  rhs = eq_node->get_arg2();
+                  lhs = eq_node->arg1;
+                  rhs = eq_node->arg2;
                   rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
                   lhs->compile(code_file, instruction_number, true, temporary_terms, map_idx, false, false);
                 }
               else if (equ_type == E_EVALUATE_S)
                 {
                   eq_node = (BinaryOpNode *) getBlockEquationRenormalizedExpr(block, i);
-                  lhs = eq_node->get_arg1();
-                  rhs = eq_node->get_arg2();
+                  lhs = eq_node->arg1;
+                  rhs = eq_node->arg2;
                   rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
                   lhs->compile(code_file, instruction_number, true, temporary_terms, map_idx, false, false);
                 }
@@ -858,8 +858,8 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
               FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
               fnumexpr.write(code_file, instruction_number);
               eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
-              lhs = eq_node->get_arg1();
-              rhs = eq_node->get_arg2();
+              lhs = eq_node->arg1;
+              rhs = eq_node->arg2;
               lhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
               rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
 
@@ -1022,16 +1022,16 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
               if (equ_type == E_EVALUATE)
                 {
                   eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
-                  lhs = eq_node->get_arg1();
-                  rhs = eq_node->get_arg2();
+                  lhs = eq_node->arg1;
+                  rhs = eq_node->arg2;
                   rhs->compile(code_file, instruction_number, false, tt2, map_idx2[block], false, false);
                   lhs->compile(code_file, instruction_number, true, tt2, map_idx2[block], false, false);
                 }
               else if (equ_type == E_EVALUATE_S)
                 {
                   eq_node = (BinaryOpNode *) getBlockEquationRenormalizedExpr(block, i);
-                  lhs = eq_node->get_arg1();
-                  rhs = eq_node->get_arg2();
+                  lhs = eq_node->arg1;
+                  rhs = eq_node->arg2;
                   rhs->compile(code_file, instruction_number, false, tt2, map_idx2[block], false, false);
                   lhs->compile(code_file, instruction_number, true, tt2, map_idx2[block], false, false);
                 }
@@ -1050,8 +1050,8 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
               FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
               fnumexpr.write(code_file, instruction_number);
               eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
-              lhs = eq_node->get_arg1();
-              rhs = eq_node->get_arg2();
+              lhs = eq_node->arg1;
+              rhs = eq_node->arg2;
               lhs->compile(code_file, instruction_number, false, tt2, map_idx2[block], false, false);
               rhs->compile(code_file, instruction_number, false, tt2, map_idx2[block], false, false);
 
@@ -2589,9 +2589,9 @@ StaticModel::writeJsonAuxVarRecursiveDefinitions(ostream &output) const
   for (auto aux_equation : aux_equations)
     {
       output << ", {\"lhs\": \"";
-      aux_equation->get_arg1()->writeJsonOutput(output, temporary_terms, tef_terms, false);
+      aux_equation->arg1->writeJsonOutput(output, temporary_terms, tef_terms, false);
       output << "\", \"rhs\": \"";
-      dynamic_cast<BinaryOpNode *>(aux_equation->substituteStaticAuxiliaryDefinition())->get_arg2()->writeJsonOutput(output, temporary_terms, tef_terms, false);
+      dynamic_cast<BinaryOpNode *>(aux_equation->substituteStaticAuxiliaryDefinition())->arg2->writeJsonOutput(output, temporary_terms, tef_terms, false);
       output << "\"}";
     }
 }

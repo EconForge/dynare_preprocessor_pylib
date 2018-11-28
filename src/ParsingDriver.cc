@@ -2944,7 +2944,7 @@ ParsingDriver::is_there_one_integer_argument() const
         }
     }
   else
-    if (unaryNode->get_op_code() != UnaryOpcode::uminus)
+    if (unaryNode->op_code != UnaryOpcode::uminus)
       return { false, 0 };
     else
       {
