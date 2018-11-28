@@ -1184,14 +1184,17 @@ public:
 class VarExpectationModelStatement : public Statement
 {
 public:
-  const string model_name, variable, aux_model_name, horizon;
+  const string model_name;
+  const expr_t expression;
+  const string aux_model_name, horizon;
   const expr_t discount;
   const SymbolTable &symbol_table;
   // List of generated auxiliary param ids, in variable-major order
   vector<int> aux_params_ids; // TODO: move this to some new VarModelTable object
-
+private:
+  vector<tuple<int, int, double>> vars_params_constants;
 public:
-  VarExpectationModelStatement(string model_name_arg, string variable_arg, string aux_model_name_arg,
+  VarExpectationModelStatement(string model_name_arg, expr_t expression_arg, string aux_model_name_arg,
                                string horizon_arg, expr_t discount_arg, const SymbolTable &symbol_table_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;

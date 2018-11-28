@@ -560,11 +560,12 @@ class ExprNode
       virtual void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                                         set<pair<int, pair<int, int>>> &params_and_vars) const = 0;
 
-      //! Analyzes the non optimizing part of PAC equation
+      //! Matches a linear combination of variables, where scalars can be constant*parameter
       /*! Returns a list of (variable_id, lag, param_id, constant)
           corresponding to the terms in the expression. When there is no
-          parameter in a term, param_id == -1 */
-      vector<tuple<int, int, int, double>> getPacNonOptimizingPart() const;
+          parameter in a term, param_id == -1.
+          Can throw a MatchFailureException. */
+      vector<tuple<int, int, int, double>> matchLinearCombinationOfVariables() const;
       //! Returns true if expression is of the form:
       //! param * (endog op endog op ...) + param * (endog op endog op ...) + ...
       virtual bool isParamTimesEndogExpr() const = 0;

@@ -9640,7 +9640,7 @@ BinaryOpNode::matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &con
 }
 
 vector<tuple<int, int, int, double>>
-ExprNode::getPacNonOptimizingPart() const
+ExprNode::matchLinearCombinationOfVariables() const
 {
   vector<pair<expr_t, int>> terms;
   decomposeAdditiveTerms(terms);
@@ -9648,19 +9648,12 @@ ExprNode::getPacNonOptimizingPart() const
   vector<tuple<int, int, int, double>> result;
 
   for (const auto &it : terms)
-    try
-      {
-        expr_t term = it.first;
-        int sign = it.second;
-        auto m = term->matchVariableTimesConstantTimesParam();
-        get<3>(m) *= sign;
-        result.push_back(m);
-      }
-    catch (MatchFailureException &e)
-      {
-        cerr << "ExprNode::getPacNonOptimizingPart: Error in parsing PAC equation: "
-             << e.message << endl;
-        exit(EXIT_FAILURE);
-      }
-    return result;
+    {
+      expr_t term = it.first;
+      int sign = it.second;
+      auto m = term->matchVariableTimesConstantTimesParam();
+      get<3>(m) *= sign;
+      result.push_back(m);
+    }
+  return result;
 }

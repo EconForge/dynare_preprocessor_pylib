@@ -309,6 +309,8 @@ public:
   map<pair<int, int>, double> covariance_number_restriction;
   map<pair<int, int>, pair<int, int>> covariance_pair_restriction;
 
+  //! Temporary storage for "expression" option of VAR_EXPECTATION_MODEL
+  expr_t var_expectation_model_expression{nullptr};
   //! Temporary storage for discount option of VAR_EXPECTATION_MODEL
   expr_t var_expectation_model_discount{nullptr};
 

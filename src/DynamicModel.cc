@@ -4271,7 +4271,16 @@ DynamicModel::walkPacParameters()
             {
               optim_share_index = *(optim_share.begin());
               optim_part->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
-              non_optim_vars_params_and_constants = non_optim_part->getPacNonOptimizingPart();
+              try
+                {
+                  non_optim_vars_params_and_constants = non_optim_part->matchLinearCombinationOfVariables();
+                }
+              catch (ExprNode::MatchFailureException &e)
+                {
+                  cerr << "Error in parsing non-optimizing agents part of PAC equation: "
+                       << e.message << endl;
+                  exit(EXIT_FAILURE);
+                }
             }
           equation->addParamInfoToPac(lhs,
                                       optim_share_index,

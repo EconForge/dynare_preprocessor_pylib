@@ -3348,10 +3348,14 @@ void
 ParsingDriver::var_expectation_model()
 {
   auto it = options_list.string_options.find("variable");
-  if (it == options_list.string_options.end())
-    error("You must pass the variable option to the var_expectation_model statement.");
-  auto variable = it->second;
-  check_symbol_is_endogenous(variable);
+  if (it == options_list.string_options.end() && !var_expectation_model_expression)
+    error("You must pass either the 'variable' or the 'expression' option to the var_expectation_model statement.");
+  if (it != options_list.string_options.end())
+    {
+      if (var_expectation_model_expression)
+        error("You can't pass both the 'variable' or the 'expression' options to the var_expectation_model statement.");
+      var_expectation_model_expression = data_tree->AddVariable(mod_file->symbol_table.getID(it->second));
+    }
 
   it = options_list.string_options.find("auxiliary_model_name");
   if (it == options_list.string_options.end())
@@ -3379,9 +3383,18 @@ ParsingDriver::var_expectation_model()
   else
     var_expectation_model_discount = data_tree->One;
 
-  mod_file->addStatement(make_unique<VarExpectationModelStatement>(model_name, variable, var_model_name, horizon,
-                                                                   var_expectation_model_discount, mod_file->symbol_table));
+  try
+    {
+      mod_file->addStatement(make_unique<VarExpectationModelStatement>(model_name, var_expectation_model_expression,
+                                                                       var_model_name, horizon,
+                                                                       var_expectation_model_discount, mod_file->symbol_table));
+    }
+  catch (ExprNode::MatchFailureException &e)
+    {
+      error("expression in var_expectation_model is not of the expected form: " + e.message);
+    }
 
   options_list.clear();
   var_expectation_model_discount = nullptr;
+  var_expectation_model_expression = nullptr;
 }

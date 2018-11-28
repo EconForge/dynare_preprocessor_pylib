@@ -4915,15 +4915,24 @@ GenerateIRFsStatement::writeJsonOutput(ostream &output) const
 }
 
 VarExpectationModelStatement::VarExpectationModelStatement(string model_name_arg,
-                                                           string variable_arg,
+                                                           expr_t expression_arg,
                                                            string aux_model_name_arg,
                                                            string horizon_arg,
                                                            expr_t discount_arg,
                                                            const SymbolTable &symbol_table_arg) :
-  model_name{move(model_name_arg)}, variable{move(variable_arg)},
+  model_name{move(model_name_arg)}, expression{expression_arg},
   aux_model_name{move(aux_model_name_arg)}, horizon{move(horizon_arg)},
   discount{discount_arg}, symbol_table{symbol_table_arg}
 {
+  auto vpc = expression->matchLinearCombinationOfVariables();
+  for (const auto &it : vpc)
+    {
+      if (get<1>(it) != 0)
+        throw ExprNode::MatchFailureException{"lead/lags are not allowed"};
+      if (symbol_table.getType(get<0>(it)) != SymbolType::endogenous)
+        throw ExprNode::MatchFailureException{"Variable is not an endogenous"};
+      vars_params_constants.emplace_back(get<0>(it), get<2>(it), get<3>(it));
+    }
 }
 
 void
@@ -4931,9 +4940,28 @@ VarExpectationModelStatement::writeOutput(ostream &output, const string &basenam
 {
   string mstruct = "M_.var_expectation." + model_name;
   output << mstruct << ".auxiliary_model_name = '" << aux_model_name << "';" << endl
-         << mstruct << ".horizon = " << horizon << ';' << endl
-         << mstruct << ".variable = '" << variable << "';" << endl
-         << mstruct << ".variable_id = " << symbol_table.getTypeSpecificID(variable)+1 << ";" << endl;
+         << mstruct << ".horizon = " << horizon << ';' << endl;
+
+  ostringstream vars_list, params_list, constants_list;
+  for (auto it = vars_params_constants.begin(); it != vars_params_constants.end(); ++it)
+    {
+      if (it != vars_params_constants.begin())
+        {
+          vars_list << ", ";
+          params_list << ", ";
+          constants_list << ", ";
+        }
+      vars_list << symbol_table.getTypeSpecificID(get<0>(*it))+1;
+      if (get<1>(*it) == -1)
+        params_list << "NaN";
+      else
+        params_list << symbol_table.getTypeSpecificID(get<1>(*it))+1;
+      constants_list << get<2>(*it);
+    }
+  output << mstruct << ".expr.vars = [ " << vars_list.str() << " ];" << endl
+         << mstruct << ".expr.params = [ " << params_list.str() << " ];" << endl
+         << mstruct << ".expr.constants = [ " << constants_list.str() << " ];" << endl;
+
   auto disc_var = dynamic_cast<const VariableNode *>(discount);
   if (disc_var)
     output << mstruct << ".discount_index = " << symbol_table.getTypeSpecificID(disc_var->symb_id) + 1 << ';' << endl;
@@ -4954,7 +4982,9 @@ VarExpectationModelStatement::writeJsonOutput(ostream &output) const
 {
   output << "{\"statementName\": \"var_expectation_model\","
          << "\"model_name\": \"" << model_name << "\", "
-         << "\"variable\": \"" << variable << "\", "
+         << "\"expression\": \"";
+  expression->writeOutput(output);
+  output << "\", "
          << "\"auxiliary_model_name\": \"" << aux_model_name << "\", "
          << "\"horizon\": \"" << horizon << "\", "
          << "\"discount\": \"";
