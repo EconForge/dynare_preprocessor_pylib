@@ -642,6 +642,8 @@ private:
   //! Id from numerical constants table
   const int id;
   expr_t computeDerivative(int deriv_id) override;
+protected:
+  void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
 public:
   NumConstNode(DataTree &datatree_arg, int idx_arg, int id_arg);
   int
@@ -713,7 +715,6 @@ public:
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   expr_t substituteStaticAuxiliaryVariable() const override;
-  void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
 };
 
 //! Symbol or variable node
@@ -726,6 +727,8 @@ private:
   //! A positive value is a lead, a negative is a lag
   const int lag;
   expr_t computeDerivative(int deriv_id) override;
+protected:
+  void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
 public:
   VariableNode(DataTree &datatree_arg, int idx_arg, int symb_id_arg, int lag_arg);
   void prepareForDerivation() override;
@@ -810,12 +813,13 @@ public:
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
   expr_t substituteStaticAuxiliaryVariable() const override;
-  void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
 };
 
 //! Unary operator node
 class UnaryOpNode : public ExprNode
 {
+protected:
+  void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
 private:
   const expr_t arg;
   //! Stores the information set. Only used for expectation operator
@@ -936,12 +940,13 @@ public:
   //! Substitute auxiliary variables by their expression in static model
   expr_t substituteStaticAuxiliaryVariable() const override;
   void decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign) const override;
-  void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
 };
 
 //! Binary operator node
 class BinaryOpNode : public ExprNode
 {
+protected:
+  void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
 private:
   const expr_t arg1, arg2;
   const BinaryOpcode op_code;
@@ -1092,7 +1097,6 @@ public:
   //! Substitute auxiliary variables by their expression in static model auxiliary variable definition
   expr_t substituteStaticAuxiliaryDefinition() const;
   void decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign) const override;
-  void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
 };
 
 //! Trinary operator node
