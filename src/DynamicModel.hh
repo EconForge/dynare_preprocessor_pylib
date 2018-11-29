@@ -437,16 +437,16 @@ public:
   void substituteAdl();
 
   //! Creates aux vars for all unary operators
-  void substituteUnaryOps(StaticModel &static_model, bool nopreprocessoroutput);
+  void substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, bool nopreprocessoroutput);
 
   //! Creates aux vars for certain unary operators: originally implemented for support of VARs
-  void substituteUnaryOps(StaticModel &static_model, set<string> &eq_tags, bool nopreprocessoroutput);
+  void substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, set<string> &eq_tags, bool nopreprocessoroutput);
 
   //! Creates aux vars for certain unary operators: originally implemented for support of VARs
-  void substituteUnaryOps(StaticModel &static_model, vector<int> &eqnumbers, bool nopreprocessoroutput);
+  void substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, vector<int> &eqnumbers, bool nopreprocessoroutput);
 
   //! Substitutes diff operator
-  void substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table, bool nopreprocessoroutput);
+  void substituteDiff(StaticModel &static_model, diff_table_t &diff_table, ExprNode::subst_table_t &diff_subst_table, bool nopreprocessoroutput);
 
   //! Substitute VarExpectation operators
   void substituteVarExpectation(const map<string, expr_t> &subst_table);

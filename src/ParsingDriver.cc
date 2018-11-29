@@ -3383,16 +3383,9 @@ ParsingDriver::var_expectation_model()
   else
     var_expectation_model_discount = data_tree->One;
 
-  try
-    {
-      mod_file->addStatement(make_unique<VarExpectationModelStatement>(model_name, var_expectation_model_expression,
-                                                                       var_model_name, horizon,
-                                                                       var_expectation_model_discount, mod_file->symbol_table));
-    }
-  catch (ExprNode::MatchFailureException &e)
-    {
-      error("expression in var_expectation_model is not of the expected form: " + e.message);
-    }
+  mod_file->addStatement(make_unique<VarExpectationModelStatement>(model_name, var_expectation_model_expression,
+                                                                   var_model_name, horizon,
+                                                                   var_expectation_model_discount, mod_file->symbol_table));
 
   options_list.clear();
   var_expectation_model_discount = nullptr;

@@ -421,8 +421,11 @@ var_expectation_model_options_list : var_expectation_model_option
 
 var_expectation_model_option : VARIABLE EQUAL symbol
                                { driver.option_str("variable", $3); }
-                             | EXPRESSION EQUAL expression
-                               { driver.var_expectation_model_expression = $3; }
+                             | EXPRESSION EQUAL { driver.begin_model(); } hand_side
+                               {
+                                 driver.var_expectation_model_expression = $4;
+                                 driver.reset_data_tree();
+                               }
                              | AUXILIARY_MODEL_NAME EQUAL symbol
                                { driver.option_str("auxiliary_model_name", $3); }
                              | HORIZON EQUAL INT_NUMBER

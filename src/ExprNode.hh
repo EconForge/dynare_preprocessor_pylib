@@ -411,7 +411,7 @@ class ExprNode
       */
       virtual expr_t decreaseLeadsLags(int n) const = 0;
 
-      //! Type for the substitution map used in the process of creating auxiliary vars for leads >= 2
+      //! Type for the substitution map used in the process of creating auxiliary vars
       using subst_table_t = map<const ExprNode *, const VariableNode *>;
 
       //! Type for the substitution map used in the process of substituting adl expressions

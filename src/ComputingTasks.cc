@@ -4924,14 +4924,51 @@ VarExpectationModelStatement::VarExpectationModelStatement(string model_name_arg
   aux_model_name{move(aux_model_name_arg)}, horizon{move(horizon_arg)},
   discount{discount_arg}, symbol_table{symbol_table_arg}
 {
-  auto vpc = expression->matchLinearCombinationOfVariables();
-  for (const auto &it : vpc)
+}
+
+void
+VarExpectationModelStatement::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, ExprNode::subst_table_t &subst_table)
+{
+  vector<BinaryOpNode *> neweqs;
+  expression = expression->substituteUnaryOpNodes(static_datatree, nodes, subst_table, neweqs);
+  if (neweqs.size() > 0)
     {
-      if (get<1>(it) != 0)
-        throw ExprNode::MatchFailureException{"lead/lags are not allowed"};
-      if (symbol_table.getType(get<0>(it)) != SymbolType::endogenous)
-        throw ExprNode::MatchFailureException{"Variable is not an endogenous"};
-      vars_params_constants.emplace_back(get<0>(it), get<2>(it), get<3>(it));
+      cerr << "ERROR: the 'expression' option of var_expectation_model contains a variable with a unary operator that is not present in the VAR model" << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
+VarExpectationModelStatement::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, ExprNode::subst_table_t &subst_table)
+{
+  vector<BinaryOpNode *> neweqs;
+  expression = expression->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
+  if (neweqs.size() > 0)
+    {
+      cerr << "ERROR: the 'expression' option of var_expectation_model contains a diff'd variable that is not present in the VAR model" << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
+VarExpectationModelStatement::matchExpression()
+{
+  try
+    {
+      auto vpc = expression->matchLinearCombinationOfVariables();
+      for (const auto &it : vpc)
+        {
+          if (get<1>(it) != 0)
+            throw ExprNode::MatchFailureException{"lead/lags are not allowed"};
+          if (symbol_table.getType(get<0>(it)) != SymbolType::endogenous)
+            throw ExprNode::MatchFailureException{"Variable is not an endogenous"};
+          vars_params_constants.emplace_back(get<0>(it), get<2>(it), get<3>(it));
+        }
+    }
+  catch (ExprNode::MatchFailureException &e)
+    {
+      cerr << "ERROR: expression in var_expectation_model is not of the expected form: " << e.message << endl;
+      exit(EXIT_FAILURE);
     }
 }
 
@@ -4941,6 +4978,12 @@ VarExpectationModelStatement::writeOutput(ostream &output, const string &basenam
   string mstruct = "M_.var_expectation." + model_name;
   output << mstruct << ".auxiliary_model_name = '" << aux_model_name << "';" << endl
          << mstruct << ".horizon = " << horizon << ';' << endl;
+
+  if (!vars_params_constants.size())
+    {
+      cerr << "ERROR: VarExpectationModelStatement::writeOutput: matchExpression() has not been called" << endl;
+      exit(EXIT_FAILURE);
+    }
 
   ostringstream vars_list, params_list, constants_list;
   for (auto it = vars_params_constants.begin(); it != vars_params_constants.end(); ++it)

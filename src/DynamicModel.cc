@@ -5802,27 +5802,25 @@ DynamicModel::findPacExpectationEquationNumbers(vector<int> &eqnumbers) const
 }
 
 void
-DynamicModel::substituteUnaryOps(StaticModel &static_model, bool nopreprocessoroutput)
+DynamicModel::substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, bool nopreprocessoroutput)
 {
   vector<int> eqnumbers(equations.size());
   iota(eqnumbers.begin(), eqnumbers.end(), 0);
-  substituteUnaryOps(static_model, eqnumbers, nopreprocessoroutput);
+  substituteUnaryOps(static_model, nodes, subst_table, eqnumbers, nopreprocessoroutput);
 }
 
 void
-DynamicModel::substituteUnaryOps(StaticModel &static_model, set<string> &var_model_eqtags, bool nopreprocessoroutput)
+DynamicModel::substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, set<string> &var_model_eqtags, bool nopreprocessoroutput)
 {
   vector<int> eqnumbers;
   getEquationNumbersFromTags(eqnumbers, var_model_eqtags);
   findPacExpectationEquationNumbers(eqnumbers);
-  substituteUnaryOps(static_model, eqnumbers, nopreprocessoroutput);
+  substituteUnaryOps(static_model, nodes, subst_table, eqnumbers, nopreprocessoroutput);
 }
 
 void
-DynamicModel::substituteUnaryOps(StaticModel &static_model, vector<int> &eqnumbers, bool nopreprocessoroutput)
+DynamicModel::substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, vector<int> &eqnumbers, bool nopreprocessoroutput)
 {
-  diff_table_t nodes;
-
   // Find matching unary ops that may be outside of diffs (i.e., those with different lags)
   set<int> used_local_vars;
   for (int eqnumber : eqnumbers)
@@ -5837,7 +5835,6 @@ DynamicModel::substituteUnaryOps(StaticModel &static_model, vector<int> &eqnumbe
     equations[eqnumber]->findUnaryOpNodesForAuxVarCreation(static_model, nodes);
 
   // Substitute in model local variables
-  ExprNode::subst_table_t subst_table;
   vector<BinaryOpNode *> neweqs;
   for (auto & it : local_variables_table)
     it.second = it.second->substituteUnaryOpNodes(static_model, nodes, subst_table, neweqs);
@@ -5862,14 +5859,13 @@ DynamicModel::substituteUnaryOps(StaticModel &static_model, vector<int> &eqnumbe
 }
 
 void
-DynamicModel::substituteDiff(StaticModel &static_model, ExprNode::subst_table_t &diff_subst_table, bool nopreprocessoroutput)
+DynamicModel::substituteDiff(StaticModel &static_model, diff_table_t &diff_table, ExprNode::subst_table_t &diff_subst_table, bool nopreprocessoroutput)
 {
   set<int> used_local_vars;
   for (const auto & equation : equations)
     equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
 
   // Only substitute diffs in model local variables that appear in VAR equations
-  diff_table_t diff_table;
   for (auto & it : local_variables_table)
     if (used_local_vars.find(it.first) != used_local_vars.end())
       it.second->findDiffNodes(static_model, diff_table);
