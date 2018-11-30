@@ -1315,17 +1315,12 @@ ModelTree::computeDerivatives(int order, const set<int> &vars)
 void
 ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
 {
-  map<expr_t, pair<int, NodeTreeReference>> reference_count;
-  temporary_terms.clear();
-  temporary_terms_mlv.clear();
-  temporary_terms_derivatives.clear();
-  temporary_terms_derivatives.resize(4);
-
   /* Collect all model local variables appearing in equations (and only those,
      because printing unused model local variables can lead to a crash,
      see Dynare/dynare#101).
      Then store them in a dedicated structure (temporary_terms_mlv), that will
      be treated as the rest of temporary terms. */
+  temporary_terms_mlv.clear();
   set<int> used_local_vars;
   for (auto & equation : equations)
     equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
@@ -1335,59 +1330,44 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
       temporary_terms_mlv[v] = local_variables_table.find(used_local_var)->second;
     }
 
-  map<NodeTreeReference, temporary_terms_t> temp_terms_map;
-  temp_terms_map[NodeTreeReference::residuals] = temporary_terms_derivatives[0];
-  temp_terms_map[NodeTreeReference::firstDeriv] = temporary_terms_derivatives[1];
-  temp_terms_map[NodeTreeReference::secondDeriv] = temporary_terms_derivatives[2];
-  temp_terms_map[NodeTreeReference::thirdDeriv] = temporary_terms_derivatives[3];
-
+  // Compute the temporary terms in equations and derivatives
+  map<pair<int, int>, temporary_terms_t> temp_terms_map;
   if (!no_tmp_terms)
     {
+      map<expr_t, pair<int, pair<int, int>>> reference_count;
+
       for (auto & equation : equations)
-        equation->computeTemporaryTerms(reference_count,
+        equation->computeTemporaryTerms({ 0, 0 },
                                         temp_terms_map,
-                                        is_matlab, NodeTreeReference::residuals);
+                                        reference_count,
+                                        is_matlab);
 
-      for (auto & first_derivative : derivatives[1])
-        first_derivative.second->computeTemporaryTerms(reference_count,
-                                                       temp_terms_map,
-                                                       is_matlab, NodeTreeReference::firstDeriv);
-
-      for (auto & second_derivative : derivatives[2])
-        second_derivative.second->computeTemporaryTerms(reference_count,
-                                                        temp_terms_map,
-                                                        is_matlab, NodeTreeReference::secondDeriv);
-
-      for (auto & third_derivative : derivatives[3])
-        third_derivative.second->computeTemporaryTerms(reference_count,
-                                                       temp_terms_map,
-                                                       is_matlab, NodeTreeReference::thirdDeriv);
+      for (int order = 1; order < (int) derivatives.size(); order++)
+        for (const auto &it : derivatives[order])
+          it.second->computeTemporaryTerms({ 0, order },
+                                           temp_terms_map,
+                                           reference_count,
+                                           is_matlab);
     }
 
-  for (map<NodeTreeReference, temporary_terms_t>::const_iterator it = temp_terms_map.begin();
-       it != temp_terms_map.end(); it++)
-      temporary_terms.insert(it->second.begin(), it->second.end());
+  // Fill the (now obsolete) temporary_terms structure
+  temporary_terms.clear();
+  for (const auto &it : temp_terms_map)
+    temporary_terms.insert(it.second.begin(), it.second.end());
 
-  temporary_terms_derivatives[0] = temp_terms_map[NodeTreeReference::residuals];
-  temporary_terms_derivatives[1] = temp_terms_map[NodeTreeReference::firstDeriv];
-  temporary_terms_derivatives[2] = temp_terms_map[NodeTreeReference::secondDeriv];
-  temporary_terms_derivatives[3] = temp_terms_map[NodeTreeReference::thirdDeriv];
+  // Fill the new structure
+  temporary_terms_derivatives.clear();
+  temporary_terms_derivatives.resize(derivatives.size());
+  for (int order = 0; order < (int) derivatives.size(); order++)
+    temporary_terms_derivatives[order] = move(temp_terms_map[{ 0, order }]);
 
+  // Compute indices in MATLAB/Julia vector
   int idx = 0;
   for (auto &it : temporary_terms_mlv)
     temporary_terms_idxs[it.first] = idx++;
-
-  for (auto it : temporary_terms_derivatives[0])
-    temporary_terms_idxs[it] = idx++;
-
-  for (auto it : temporary_terms_derivatives[1])
-    temporary_terms_idxs[it] = idx++;
-
-  for (auto it : temporary_terms_derivatives[2])
-    temporary_terms_idxs[it] = idx++;
-
-  for (auto it : temporary_terms_derivatives[3])
-    temporary_terms_idxs[it] = idx++;
+  for (int order = 0; order < (int) derivatives.size(); order++)
+    for (const auto &it : temporary_terms_derivatives[order])
+      temporary_terms_idxs[it] = idx++;
 }
 
 void
@@ -2078,66 +2058,24 @@ ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
 void
 ModelTree::computeParamsDerivativesTemporaryTerms()
 {
-  map<expr_t, pair<int, NodeTreeReference >> reference_count;
-  map<NodeTreeReference, temporary_terms_t> temp_terms_map;
-  temp_terms_map[NodeTreeReference::residualsParamsDeriv] = params_derivs_temporary_terms[{ 0, 1 }];
-  temp_terms_map[NodeTreeReference::jacobianParamsDeriv] = params_derivs_temporary_terms[{ 1, 1 }];
-  temp_terms_map[NodeTreeReference::residualsParamsSecondDeriv] = params_derivs_temporary_terms[{ 0, 2 }];
-  temp_terms_map[NodeTreeReference::jacobianParamsSecondDeriv] = params_derivs_temporary_terms[{ 1, 2 }];
-  temp_terms_map[NodeTreeReference::hessianParamsDeriv] = params_derivs_temporary_terms[{ 2, 1}];
+  map<expr_t, pair<int, pair<int, int>>> reference_count;
 
   /* The temp terms should be constructed in the same order as the for loops in
      {Static,Dynamic}Model::write{Json,}ParamsDerivativesFile() */
-
-  for (const auto &residuals_params_derivative : params_derivatives[{ 0, 1 }])
-    residuals_params_derivative.second->computeTemporaryTerms(reference_count,
-                                      temp_terms_map,
-                                      true, NodeTreeReference::residualsParamsDeriv);
-
-  for (const auto &jacobian_params_derivative : params_derivatives[{ 1, 1 }])
-    jacobian_params_derivative.second->computeTemporaryTerms(reference_count,
-                                      temp_terms_map,
-                                      true, NodeTreeReference::jacobianParamsDeriv);
-
-  for (const auto &it : params_derivatives[{ 0, 2 }])
-    it.second->computeTemporaryTerms(reference_count,
-                                     temp_terms_map,
-                                     true, NodeTreeReference::residualsParamsSecondDeriv);
-
-  for (const auto &it : params_derivatives[{ 1, 2 }])
-    it.second->computeTemporaryTerms(reference_count,
-                                     temp_terms_map,
-                                     true, NodeTreeReference::jacobianParamsSecondDeriv);
-
-  for (const auto &it : params_derivatives[{ 2, 1 }])
-    it.second->computeTemporaryTerms(reference_count,
-                                     temp_terms_map,
-                                     true, NodeTreeReference::hessianParamsDeriv);
-
-  params_derivs_temporary_terms[{ 0, 1 }] = temp_terms_map[NodeTreeReference::residualsParamsDeriv];
-  params_derivs_temporary_terms[{ 1, 1 }] = temp_terms_map[NodeTreeReference::jacobianParamsDeriv];
-  params_derivs_temporary_terms[{ 0, 2 }] = temp_terms_map[NodeTreeReference::residualsParamsSecondDeriv];
-  params_derivs_temporary_terms[{ 1, 2 }] = temp_terms_map[NodeTreeReference::jacobianParamsSecondDeriv];
-  params_derivs_temporary_terms[{ 2, 1 }] = temp_terms_map[NodeTreeReference::hessianParamsDeriv];
+  params_derivs_temporary_terms.clear();
+  for (const auto &it : params_derivatives)
+    for (const auto &it2 : it.second)
+      it2.second->computeTemporaryTerms(it.first,
+                                        params_derivs_temporary_terms,
+                                        reference_count,
+                                        true);
 
   int idx = 0;
   for (auto &it : temporary_terms_mlv)
     params_derivs_temporary_terms_idxs[it.first] = idx++;
-
-  for (auto tt : params_derivs_temporary_terms[{ 0, 1 }])
-    params_derivs_temporary_terms_idxs[tt] = idx++;
-
-  for (auto tt : params_derivs_temporary_terms[{ 1, 1 }])
-    params_derivs_temporary_terms_idxs[tt] = idx++;
-
-  for (auto tt : params_derivs_temporary_terms[{ 0, 2 }])
-    params_derivs_temporary_terms_idxs[tt] = idx++;
-
-  for (auto tt : params_derivs_temporary_terms[{ 1, 2 }])
-    params_derivs_temporary_terms_idxs[tt] = idx++;
-
-  for (auto tt : params_derivs_temporary_terms[{ 2, 1 }])
-    params_derivs_temporary_terms_idxs[tt] = idx++;
+  for (const auto &it : params_derivs_temporary_terms)
+    for (const auto &tt : it.second)
+      params_derivs_temporary_terms_idxs[tt] = idx++;
 }
 
 bool

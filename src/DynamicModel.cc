@@ -5349,8 +5349,8 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
   deriv_node_temp_terms_t tef_terms;
 
   writeModelLocalVariableTemporaryTerms(temp_term_union, params_derivs_temporary_terms_idxs, tt_output, output_type, tef_terms);
-  for (auto it : { make_pair(0,1), make_pair(1,1), make_pair(0,2), make_pair(1,2), make_pair(2,1) })
-    writeTemporaryTerms(params_derivs_temporary_terms.find(it)->second, temp_term_union, params_derivs_temporary_terms_idxs, tt_output, output_type, tef_terms);
+  for (const auto &it : params_derivs_temporary_terms)
+    writeTemporaryTerms(it.second, temp_term_union, params_derivs_temporary_terms_idxs, tt_output, output_type, tef_terms);
 
   for (const auto & residuals_params_derivative : params_derivatives.find({ 0, 1 })->second)
     {
@@ -6553,8 +6553,8 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
 
   temporary_terms_t temp_term_union;
   string concat = "all";
-  for (auto it : { make_pair(0,1), make_pair(1,1), make_pair(0,2), make_pair(1,2), make_pair(2,1) })
-    writeJsonTemporaryTerms(params_derivs_temporary_terms.find(it)->second, temp_term_union, model_output, tef_terms, concat);
+  for (const auto &it : params_derivs_temporary_terms)
+    writeJsonTemporaryTerms(it.second, temp_term_union, model_output, tef_terms, concat);
 
   jacobian_output << "\"deriv_wrt_params\": {"
                   << "  \"neqs\": " << equations.size()

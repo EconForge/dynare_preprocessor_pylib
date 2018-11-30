@@ -120,12 +120,14 @@ protected:
   /*! Index 0 is temp. terms of residuals, index 1 for first derivatives, ... */
   vector<temporary_terms_t> temporary_terms_derivatives;
 
+  //! Stores, for each temporary term, its index in the MATLAB/Julia vector
   temporary_terms_idxs_t temporary_terms_idxs;
 
   //! Temporary terms for parameter derivatives, under a disaggregated form
   /*! The pair of integers is to be interpreted as in param_derivatives */
   map<pair<int,int>, temporary_terms_t> params_derivs_temporary_terms;
 
+  //! Stores, for each temporary term in param. derivs, its index in the MATLAB/Julia vector
   temporary_terms_idxs_t params_derivs_temporary_terms_idxs;
 
   //! Trend variables and their growth factors

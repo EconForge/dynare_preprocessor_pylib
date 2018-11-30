@@ -257,46 +257,6 @@ enum class PriorDistributions
     weibull = 8
   };
 
-enum class NodeTreeReference
-  {
-    residuals,
-    firstDeriv,
-    secondDeriv,
-    thirdDeriv,
-    residualsParamsDeriv,
-    jacobianParamsDeriv,
-    residualsParamsSecondDeriv,
-    jacobianParamsSecondDeriv,
-    hessianParamsDeriv
-  };
-
-/*! Lists elements of the NodeTreeReference enum that come “before” the argument.
-    Used in AbstractExternalFunctionNode::computeTemporaryTerms */
-inline auto
-nodeTreeReferencesBefore(NodeTreeReference tr)
-{
-  vector<NodeTreeReference> v;
-
-  // Should be same order as the one appearing in ModelTree::computeTemporaryTerms()
-  for (auto tr2 : { NodeTreeReference::residuals, NodeTreeReference::firstDeriv, NodeTreeReference::secondDeriv, NodeTreeReference::thirdDeriv })
-    if (tr == tr2)
-      return v;
-    else
-      v.push_back(tr2);
-  v.clear();
-
-  // Should be same order as the one appearing in ModelTree::computeParamsDerivativesTemporaryTerms()
-  for (auto tr2 : { NodeTreeReference::residualsParamsDeriv, NodeTreeReference::jacobianParamsDeriv, NodeTreeReference::residualsParamsSecondDeriv,
-        NodeTreeReference::jacobianParamsSecondDeriv, NodeTreeReference::hessianParamsDeriv})
-    if (tr == tr2)
-      return v;
-    else
-      v.push_back(tr2);
-
-  cerr << "nodeTreeReferencesBelow: impossible case" << endl;
-  exit(EXIT_FAILURE);
-}
-
 struct Block_contain_type
 {
   int Equation, Variable, Own_Derivative;

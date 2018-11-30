@@ -86,7 +86,7 @@ ExprNode::cost(const temporary_terms_t &temp_terms_map, bool is_matlab) const
 }
 
 int
-ExprNode::cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const
+ExprNode::cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const
 {
   // For a terminal node, the cost is null
   return 0;
@@ -146,9 +146,10 @@ ExprNode::collectExogenous(set<pair<int, int>> &result) const
 }
 
 void
-ExprNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
-                                map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                bool is_matlab, NodeTreeReference tr) const
+ExprNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
+                                map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                                map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                bool is_matlab) const
 {
   // Nothing to do for a terminal node
 }
@@ -2169,7 +2170,7 @@ UnaryOpNode::computeDerivative(int deriv_id)
 }
 
 int
-UnaryOpNode::cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const
+UnaryOpNode::cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const
 {
   // For a temporary term, the cost is null
   for (const auto & it : temp_terms_map)
@@ -2295,17 +2296,18 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
 }
 
 void
-UnaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
-                                   map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                   bool is_matlab, NodeTreeReference tr) const
+UnaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
+                                   map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                                   map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                   bool is_matlab) const
 {
   expr_t this2 = const_cast<UnaryOpNode *>(this);
 
   auto it = reference_count.find(this2);
   if (it == reference_count.end())
     {
-      reference_count[this2] = { 1, tr };
-      arg->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
+      reference_count[this2] = { 1, derivOrder };
+      arg->computeTemporaryTerms(derivOrder, temp_terms_map, reference_count, is_matlab);
     }
   else
     {
@@ -4057,7 +4059,7 @@ BinaryOpNode::precedenceJson(const temporary_terms_t &temporary_terms) const
 }
 
 int
-BinaryOpNode::cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const
+BinaryOpNode::cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const
 {
   // For a temporary term, the cost is null
   for (const auto & it : temp_terms_map)
@@ -4142,9 +4144,10 @@ BinaryOpNode::cost(int cost, bool is_matlab) const
 }
 
 void
-BinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
-                                    map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                    bool is_matlab, NodeTreeReference tr) const
+BinaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
+                                    map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                                    map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                    bool is_matlab) const
 {
   expr_t this2 = const_cast<BinaryOpNode *>(this);
   auto it = reference_count.find(this2);
@@ -4152,9 +4155,9 @@ BinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &r
     {
       // If this node has never been encountered, set its ref count to one,
       //  and travel through its children
-      reference_count[this2] = { 1, tr };
-      arg1->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
-      arg2->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
+      reference_count[this2] = { 1, derivOrder };
+      arg1->computeTemporaryTerms(derivOrder, temp_terms_map, reference_count, is_matlab);
+      arg2->computeTemporaryTerms(derivOrder, temp_terms_map, reference_count, is_matlab);
     }
   else
     {
@@ -5964,7 +5967,7 @@ TrinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_
 }
 
 int
-TrinaryOpNode::cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const
+TrinaryOpNode::cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const
 {
   // For a temporary term, the cost is null
   for (const auto & it : temp_terms_map)
@@ -6016,9 +6019,10 @@ TrinaryOpNode::cost(int cost, bool is_matlab) const
 }
 
 void
-TrinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
-                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const
+TrinaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
+                                     map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                                     map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                     bool is_matlab) const
 {
   expr_t this2 = const_cast<TrinaryOpNode *>(this);
   auto it = reference_count.find(this2);
@@ -6026,10 +6030,10 @@ TrinaryOpNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &
     {
       // If this node has never been encountered, set its ref count to one,
       //  and travel through its children
-      reference_count[this2] = { 1, tr };
-      arg1->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
-      arg2->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
-      arg3->computeTemporaryTerms(reference_count, temp_terms_map, is_matlab, tr);
+      reference_count[this2] = { 1, derivOrder };
+      arg1->computeTemporaryTerms(derivOrder, temp_terms_map, reference_count, is_matlab);
+      arg2->computeTemporaryTerms(derivOrder, temp_terms_map, reference_count, is_matlab);
+      arg3->computeTemporaryTerms(derivOrder, temp_terms_map, reference_count, is_matlab);
     }
   else
     {
@@ -7118,9 +7122,10 @@ AbstractExternalFunctionNode::getIndxInTefTerms(int the_symb_id, const deriv_nod
 }
 
 void
-AbstractExternalFunctionNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
-                                            map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                            bool is_matlab, NodeTreeReference tr) const
+AbstractExternalFunctionNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
+                                                    map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                                                    map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                                    bool is_matlab) const
 {
   /* All external function nodes are declared as temporary terms.
 
@@ -7133,18 +7138,17 @@ AbstractExternalFunctionNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTr
      corresponding to the same external function call is present in that
      previous level. */
 
-  for (auto tr2 : nodeTreeReferencesBefore(tr))
+  for (auto &tt : temp_terms_map)
     {
-      auto it = find_if(temp_terms_map[tr2].cbegin(), temp_terms_map[tr2].cend(),
-                        sameTefTermPredicate());
-      if (it != temp_terms_map[tr2].cend())
+      auto it = find_if(tt.second.cbegin(), tt.second.cend(), sameTefTermPredicate());
+      if (it != tt.second.cend())
         {
-          temp_terms_map[tr2].insert(const_cast<AbstractExternalFunctionNode *>(this));
+          tt.second.insert(const_cast<AbstractExternalFunctionNode *>(this));
           return;
         }
     }
 
-  temp_terms_map[tr].insert(const_cast<AbstractExternalFunctionNode *>(this));
+  temp_terms_map[derivOrder].insert(const_cast<AbstractExternalFunctionNode *>(this));
 }
 
 bool
@@ -8460,9 +8464,10 @@ VarExpectationNode::VarExpectationNode(DataTree &datatree_arg,
 }
 
 void
-VarExpectationNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
-                                          map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                          bool is_matlab, NodeTreeReference tr) const
+VarExpectationNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
+                                          map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                                          map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                          bool is_matlab) const
 {
   cerr << "VarExpectationNode::computeTemporaryTerms not implemented." << endl;
   exit(EXIT_FAILURE);
@@ -8917,11 +8922,12 @@ PacExpectationNode::PacExpectationNode(DataTree &datatree_arg,
 }
 
 void
-PacExpectationNode::computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
-                                          map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                          bool is_matlab, NodeTreeReference tr) const
+PacExpectationNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
+                                          map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                                          map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                          bool is_matlab) const
 {
-  temp_terms_map[tr].insert(const_cast<PacExpectationNode *>(this));
+  temp_terms_map[derivOrder].insert(const_cast<PacExpectationNode *>(this));
 }
 
 void

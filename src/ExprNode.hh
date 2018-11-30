@@ -188,7 +188,7 @@ class ExprNode
       /*! Nodes included in temporary_terms are considered having a null cost */
       virtual int cost(int cost, bool is_matlab) const;
       virtual int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const;
-      virtual int cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const;
+      virtual int cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const;
 
       //! For creating equation cross references
       struct EquationInfo
@@ -237,11 +237,26 @@ class ExprNode
       /*! Equals 100 for constants, variables, unary ops, and temporary terms */
       virtual int precedence(ExprNodeOutputType output_t, const temporary_terms_t &temporary_terms) const;
 
-      //! Fills temporary_terms set, using reference counts
-      /*! A node will be marked as a temporary term if it is referenced at least two times (i.e. has at least two parents), and has a computing cost (multiplied by reference count) greater to datatree.min_cost */
-      virtual void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
-                                         map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                         bool is_matlab, NodeTreeReference tr) const;
+      //! Compute temporary terms in this expression
+      /*!
+        \param[in] derivOrder the derivation order (first w.r.t. endo/exo,
+                   second w.r.t. params)
+        \param[out] temp_terms_map the computed temporary terms, associated
+                    with their derivation order
+        \param[out] reference_count a temporary structure, used to count
+                    references to each node (integer in outer pair is the
+                    reference count, the inner pair is the derivation order)
+        \param[in] is_matlab whether we are in a MATLAB context, since that
+                    affects the cost of each operator
+
+        A node will be marked as a temporary term if it is referenced at least
+        two times (i.e. has at least two parents), and has a computing cost
+        (multiplied by reference count) greater to datatree.min_cost
+      */
+      virtual void computeTemporaryTerms(const pair<int, int> &derivOrder,
+                                         map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                                         map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                         bool is_matlab) const;
 
       //! Writes output of node, using a Txxx notation for nodes in temporary_terms, and specifiying the set of already written external functions
       /*!
@@ -249,8 +264,8 @@ class ExprNode
         \param[in] output_type the type of output (MATLAB, C, LaTeX...)
         \param[in] temporary_terms the nodes that are marked as temporary terms
         \param[in] a map from temporary_terms to integers indexes (in the
-                   MATLAB or Julia vector of temporary terms); can be empty
-                   when writing C or MATLAB with block decomposition)
+                   MATLAB, C or Julia vector of temporary terms); can be empty
+                   when writing MATLAB with block decomposition)
         \param[in] tef_terms the set of already written external function nodes
       */
       virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const = 0;
@@ -821,15 +836,16 @@ private:
   expr_t computeDerivative(int deriv_id) override;
   int cost(int cost, bool is_matlab) const override;
   int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const override;
-  int cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
+  int cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
   //! Returns the derivative of this node if darg is the derivative of the argument
   expr_t composeDerivatives(expr_t darg, int deriv_id);
 public:
   UnaryOpNode(DataTree &datatree_arg, int idx_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, string adl_param_name_arg, vector<int> adl_lags_arg);
   void prepareForDerivation() override;
-  void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
-                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const override;
+  void computeTemporaryTerms(const pair<int, int> &derivOrder,
+                             map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                             map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                             bool is_matlab) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
@@ -933,7 +949,7 @@ private:
   expr_t computeDerivative(int deriv_id) override;
   int cost(int cost, bool is_matlab) const override;
   int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const override;
-  int cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
+  int cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
   //! Returns the derivative of this node if darg1 and darg2 are the derivatives of the arguments
   expr_t composeDerivatives(expr_t darg1, expr_t darg2);
 public:
@@ -942,9 +958,10 @@ public:
   void prepareForDerivation() override;
   int precedenceJson(const temporary_terms_t &temporary_terms) const override;
   int precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const override;
-  void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
-                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const override;
+  void computeTemporaryTerms(const pair<int, int> &derivOrder,
+                             map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                             map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                             bool is_matlab) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
@@ -1065,7 +1082,7 @@ private:
   expr_t computeDerivative(int deriv_id) override;
   int cost(int cost, bool is_matlab) const override;
   int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const override;
-  int cost(const map<NodeTreeReference, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
+  int cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
   //! Returns the derivative of this node if darg1, darg2 and darg3 are the derivatives of the arguments
   expr_t composeDerivatives(expr_t darg1, expr_t darg2, expr_t darg3);
 public:
@@ -1073,9 +1090,10 @@ public:
                 TrinaryOpcode op_code_arg, const expr_t arg2_arg, const expr_t arg3_arg);
   void prepareForDerivation() override;
   int precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const override;
-  void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
-                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const override;
+  void computeTemporaryTerms(const pair<int, int> &derivOrder,
+                             map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                             map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                             bool is_matlab) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
@@ -1193,9 +1211,10 @@ public:
   AbstractExternalFunctionNode(DataTree &datatree_arg, int idx_arg, int symb_id_arg,
                                vector<expr_t> arguments_arg);
   void prepareForDerivation() override;
-  void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
-                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const override;
+  void computeTemporaryTerms(const pair<int, int> &derivOrder,
+                             map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                             map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                             bool is_matlab) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override = 0;
   void writeJsonAST(ostream &output) const override = 0;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic = true) const override = 0;
@@ -1421,9 +1440,10 @@ class VarExpectationNode : public ExprNode
 public:
   const string model_name;
   VarExpectationNode(DataTree &datatree_arg, int idx_arg, string model_name_arg);
-  void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
-                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const override;
+  void computeTemporaryTerms(const pair<int, int> &derivOrder,
+                             map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                             map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                             bool is_matlab) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
@@ -1519,9 +1539,10 @@ private:
   vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants;
 public:
   PacExpectationNode(DataTree &datatree_arg, int idx_arg, string model_name);
-  void computeTemporaryTerms(map<expr_t, pair<int, NodeTreeReference>> &reference_count,
-                                     map<NodeTreeReference, temporary_terms_t> &temp_terms_map,
-                                     bool is_matlab, NodeTreeReference tr) const override;
+  void computeTemporaryTerms(const pair<int, int> &derivOrder,
+                             map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                             map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                             bool is_matlab) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void computeTemporaryTerms(map<expr_t, int> &reference_count,
                                      temporary_terms_t &temporary_terms,
