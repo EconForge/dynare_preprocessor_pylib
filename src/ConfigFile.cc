@@ -109,7 +109,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
       string defaultConfigFile;
       // Test OS and try to open default file
 #if defined(_WIN32) || defined(__CYGWIN32__)
-      if (getenv("APPDATA") == NULL)
+      if (getenv("APPDATA") == nullptr)
         {
           if (parallel || parallel_test)
             cerr << "ERROR: ";

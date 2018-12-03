@@ -165,8 +165,8 @@ ExprNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
   // Nothing to do for a terminal node
 }
 
-pair<int, expr_t >
-ExprNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
+pair<int, expr_t>
+ExprNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const
 {
   /* nothing to do */
   return { 0, nullptr };
@@ -410,8 +410,8 @@ NumConstNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &
 {
 }
 
-pair<int, expr_t >
-NumConstNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
+pair<int, expr_t>
+NumConstNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const
 {
   /* return the numercial constant */
   return { 0, datatree.AddNonNegativeConstant(datatree.num_constants.get(id)) };
@@ -1278,7 +1278,7 @@ VariableNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &
 }
 
 pair<int, expr_t>
-VariableNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
+VariableNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const
 {
   /* The equation has to be normalized with respect to the current endogenous variable ascribed to it.
      The two input arguments are :
@@ -2953,9 +2953,9 @@ UnaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &r
 }
 
 pair<int, expr_t>
-UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
+UnaryOpNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const
 {
-  pair<bool, expr_t > res = arg->normalizeEquation(var_endo, List_of_Op_RHS);
+  pair<bool, expr_t> res = arg->normalizeEquation(var_endo, List_of_Op_RHS);
   int is_endogenous_present = res.first;
   expr_t New_expr_t = res.second;
 
@@ -2968,55 +2968,55 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_
       switch (op_code)
         {
         case UnaryOpcode::uminus:
-          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::uminus), make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::uminus), nullptr, nullptr);
           return { 1, nullptr };
         case UnaryOpcode::exp:
-          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::log), make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::log), nullptr, nullptr);
           return { 1, nullptr };
         case UnaryOpcode::log:
-          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::exp), make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::exp), nullptr, nullptr);
           return { 1, nullptr };
         case UnaryOpcode::log10:
-          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::power), make_pair(nullptr, datatree.AddNonNegativeConstant("10")));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::power), nullptr, datatree.AddNonNegativeConstant("10"));
           return { 1, nullptr };
         case UnaryOpcode::cos:
-          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::acos), make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::acos), nullptr, nullptr);
           return { 1, nullptr };
         case UnaryOpcode::sin:
-          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::asin), make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::asin), nullptr, nullptr);
           return { 1, nullptr };
         case UnaryOpcode::tan:
-          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::atan), make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::atan), nullptr, nullptr);
           return { 1, nullptr };
         case UnaryOpcode::acos:
-          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::cos), make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::cos), nullptr, nullptr);
           return { 1, nullptr };
         case UnaryOpcode::asin:
-          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::sin), make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::sin), nullptr, nullptr);
           return { 1, nullptr };
         case UnaryOpcode::atan:
-          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::tan), make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::tan), nullptr, nullptr);
           return { 1, nullptr };
         case UnaryOpcode::cosh:
-          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::acosh), make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::acosh), nullptr, nullptr);
           return { 1, nullptr };
         case UnaryOpcode::sinh:
-          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::asinh), make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::asinh), nullptr, nullptr);
           return { 1, nullptr };
         case UnaryOpcode::tanh:
-          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::atanh), make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::atanh), nullptr, nullptr);
           return { 1, nullptr };
         case UnaryOpcode::acosh:
-          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::cosh), make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::cosh), nullptr, nullptr);
           return { 1, nullptr };
         case UnaryOpcode::asinh:
-          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::sinh), make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::sinh), nullptr, nullptr);
           return { 1, nullptr };
         case UnaryOpcode::atanh:
-          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::tanh), make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::tanh), nullptr, nullptr);
           return { 1, nullptr };
         case UnaryOpcode::sqrt:
-          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::power), make_pair(nullptr, datatree.Two));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::power), nullptr, datatree.Two);
           return { 1, nullptr };
         case UnaryOpcode::abs:
           return { 2, nullptr };
@@ -4798,21 +4798,18 @@ BinaryOpNode::Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const
 }
 
 pair<int, expr_t>
-BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
+BinaryOpNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const
 {
   /* Checks if the current value of the endogenous variable related to the equation
      is present in the arguments of the binary operator. */
-  vector<pair<int, pair<expr_t, expr_t>>> List_of_Op_RHS1, List_of_Op_RHS2;
-  int is_endogenous_present_1, is_endogenous_present_2;
-  pair<int, expr_t> res;
-  expr_t expr_t_1, expr_t_2;
-  res = arg1->normalizeEquation(var_endo, List_of_Op_RHS1);
-  is_endogenous_present_1 = res.first;
-  expr_t_1 = res.second;
+  vector<tuple<int, expr_t, expr_t>> List_of_Op_RHS1, List_of_Op_RHS2;
+  pair<int, expr_t> res = arg1->normalizeEquation(var_endo, List_of_Op_RHS1);
+  int is_endogenous_present_1 = res.first;
+  expr_t expr_t_1 = res.second;
 
   res = arg2->normalizeEquation(var_endo, List_of_Op_RHS2);
-  is_endogenous_present_2 = res.first;
-  expr_t_2 = res.second;
+  int is_endogenous_present_2 = res.first;
+  expr_t expr_t_2 = res.second;
 
   /* If the two expressions contains the current value of the endogenous variable associated to the equation
      the equation could not be normalized and the process is given-up.*/
@@ -4825,46 +4822,38 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
     {
       if (op_code == BinaryOpcode::equal)       /* The end of the normalization process :
                                       All the operations needed to normalize the equation are applied. */
-        {
-          pair<int, pair<expr_t, expr_t>> it;
-          int oo = List_of_Op_RHS1.size();
-          for (int i = 0; i < oo; i++)
-            {
-              it = List_of_Op_RHS1.back();
-              List_of_Op_RHS1.pop_back();
-              if (it.second.first && !it.second.second) /*Binary operator*/
-                expr_t_2 = Compute_RHS(expr_t_2, (BinaryOpNode *) it.second.first, it.first, 1);
-              else if (it.second.second && !it.second.first) /*Binary operator*/
-                expr_t_2 = Compute_RHS(it.second.second, expr_t_2, it.first, 1);
-              else if (it.second.second && it.second.first) /*Binary operator*/
-                expr_t_2 = Compute_RHS(it.second.first, it.second.second, it.first, 1);
-              else                                                                                 /*Unary operator*/
-                expr_t_2 = Compute_RHS((UnaryOpNode *) expr_t_2, (UnaryOpNode *) it.second.first, it.first, 0);
-            }
-        }
+        for (int i = 0; i < (int) List_of_Op_RHS1.size(); i++)
+          {
+            tuple<int, expr_t, expr_t> it = List_of_Op_RHS1.back();
+            List_of_Op_RHS1.pop_back();
+            if (get<1>(it) && !get<2>(it)) /*Binary operator*/
+              expr_t_2 = Compute_RHS(expr_t_2, (BinaryOpNode *) get<1>(it), get<0>(it), 1);
+            else if (get<2>(it) && !get<1>(it)) /*Binary operator*/
+              expr_t_2 = Compute_RHS(get<2>(it), expr_t_2, get<0>(it), 1);
+            else if (get<2>(it) && get<1>(it)) /*Binary operator*/
+              expr_t_2 = Compute_RHS(get<1>(it), get<2>(it), get<0>(it), 1);
+            else /*Unary operator*/
+              expr_t_2 = Compute_RHS((UnaryOpNode *) expr_t_2, (UnaryOpNode *) get<1>(it), get<0>(it), 0);
+          }
       else
         List_of_Op_RHS = List_of_Op_RHS1;
     }
   else if (is_endogenous_present_2)
     {
       if (op_code == BinaryOpcode::equal)
-        {
-          int oo = List_of_Op_RHS2.size();
-          for (int i = 0; i < oo; i++)
-            {
-              pair<int, pair<expr_t, expr_t>> it;
-              it = List_of_Op_RHS2.back();
-              List_of_Op_RHS2.pop_back();
-              if (it.second.first && !it.second.second) /*Binary operator*/
-                expr_t_1 = Compute_RHS((BinaryOpNode *) expr_t_1, (BinaryOpNode *) it.second.first, it.first, 1);
-              else if (it.second.second && !it.second.first) /*Binary operator*/
-                expr_t_1 = Compute_RHS((BinaryOpNode *) it.second.second, (BinaryOpNode *) expr_t_1, it.first, 1);
-              else if (it.second.second && it.second.first) /*Binary operator*/
-                expr_t_1 = Compute_RHS(it.second.first, it.second.second, it.first, 1);
-              else
-                expr_t_1 = Compute_RHS((UnaryOpNode *) expr_t_1, (UnaryOpNode *) it.second.first, it.first, 0);
-            }
-        }
+        for (int i = 0; i < (int) List_of_Op_RHS2.size(); i++)
+          {
+            tuple<int, expr_t, expr_t> it = List_of_Op_RHS2.back();
+            List_of_Op_RHS2.pop_back();
+            if (get<1>(it) && !get<2>(it)) /*Binary operator*/
+              expr_t_1 = Compute_RHS((BinaryOpNode *) expr_t_1, (BinaryOpNode *) get<1>(it), get<0>(it), 1);
+            else if (get<2>(it) && !get<1>(it)) /*Binary operator*/
+              expr_t_1 = Compute_RHS((BinaryOpNode *) get<2>(it), (BinaryOpNode *) expr_t_1, get<0>(it), 1);
+            else if (get<2>(it) && get<1>(it)) /*Binary operator*/
+              expr_t_1 = Compute_RHS(get<1>(it), get<2>(it), get<0>(it), 1);
+            else
+              expr_t_1 = Compute_RHS((UnaryOpNode *) expr_t_1, (UnaryOpNode *) get<1>(it), get<0>(it), 0);
+          }
       else
         List_of_Op_RHS = List_of_Op_RHS2;
     }
@@ -4873,39 +4862,39 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
     case BinaryOpcode::plus:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), make_pair(datatree.AddPlus(expr_t_1, expr_t_2), nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), datatree.AddPlus(expr_t_1, expr_t_2), nullptr);
           return { 0, datatree.AddPlus(expr_t_1, expr_t_2) };
         }
       else if (is_endogenous_present_1 && is_endogenous_present_2)
         return { 1, nullptr };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), make_pair(expr_t_1, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), expr_t_1, nullptr);
           return { 1, expr_t_1 };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), make_pair(expr_t_2, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), expr_t_2, nullptr);
           return { 1, expr_t_2 };
         }
       break;
     case BinaryOpcode::minus:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), make_pair(datatree.AddMinus(expr_t_1, expr_t_2), nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), datatree.AddMinus(expr_t_1, expr_t_2), nullptr);
           return { 0, datatree.AddMinus(expr_t_1, expr_t_2) };
         }
       else if (is_endogenous_present_1 && is_endogenous_present_2)
         return { 1, nullptr };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::uminus), make_pair(nullptr, nullptr));
-          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), make_pair(expr_t_1, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::uminus), nullptr, nullptr);
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), expr_t_1, nullptr);
           return { 1, expr_t_1 };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::plus), make_pair(expr_t_2, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::plus), expr_t_2, nullptr);
           return { 1, datatree.AddUMinus(expr_t_2) };
         }
       break;
@@ -4914,12 +4903,12 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
         return { 0, datatree.AddTimes(expr_t_1, expr_t_2) };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::divide), make_pair(expr_t_1, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::divide), expr_t_1, nullptr);
           return { 1, expr_t_1 };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::divide), make_pair(expr_t_2, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::divide), expr_t_2, nullptr);
           return { 1, expr_t_2 };
         }
       else
@@ -4930,12 +4919,12 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
         return { 0, datatree.AddDivide(expr_t_1, expr_t_2) };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::divide), make_pair(nullptr, expr_t_1));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::divide), nullptr, expr_t_1);
           return { 1, expr_t_1 };
         }
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::times), make_pair(expr_t_2, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::times), expr_t_2, nullptr);
           return { 1, expr_t_2 };
         }
       else
@@ -4946,16 +4935,16 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr
         return { 0, datatree.AddPower(expr_t_1, expr_t_2) };
       else if (is_endogenous_present_1 && !is_endogenous_present_2)
         {
-          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::power), make_pair(datatree.AddDivide(datatree.One, expr_t_2), nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::power), datatree.AddDivide(datatree.One, expr_t_2), nullptr);
           return { 1, nullptr };
         }
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
           /* we have to nomalize a^f(X) = RHS */
           /* First computes the ln(RHS)*/
-          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::log), make_pair(nullptr, nullptr));
+          List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::log), nullptr, nullptr);
           /* Second  computes f(X) = ln(RHS) / ln(a)*/
-          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::divide), make_pair(nullptr, datatree.AddLog(expr_t_1)));
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::divide), nullptr, datatree.AddLog(expr_t_1));
           return { 1, nullptr };
         }
       break;
@@ -6320,7 +6309,7 @@ TrinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> 
 }
 
 pair<int, expr_t>
-TrinaryOpNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
+TrinaryOpNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const
 {
   pair<int, expr_t> res = arg1->normalizeEquation(var_endo, List_of_Op_RHS);
   bool is_endogenous_present_1 = res.first;
@@ -7281,7 +7270,7 @@ AbstractExternalFunctionNode::getEndosAndMaxLags(map<string, int> &model_endos_a
 }
 
 pair<int, expr_t>
-AbstractExternalFunctionNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>>  &List_of_Op_RHS) const
+AbstractExternalFunctionNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const
 {
   vector<pair<bool, expr_t>> V_arguments;
   vector<expr_t> V_expr_t;
@@ -8667,8 +8656,8 @@ VarExpectationNode::compile(ostream &CompileCode, unsigned int &instruction_numb
   exit(EXIT_FAILURE);
 }
 
-pair<int, expr_t >
-VarExpectationNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
+pair<int, expr_t>
+VarExpectationNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const
 {
   cerr << "VarExpectationNode::normalizeEquation not implemented." << endl;
   exit(EXIT_FAILURE);
@@ -9221,8 +9210,8 @@ PacExpectationNode::countDiffs() const
   return 0;
 }
 
-pair<int, expr_t >
-PacExpectationNode::normalizeEquation(int var_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const
+pair<int, expr_t>
+PacExpectationNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const
 {
   //COME BACK
   return { 0, const_cast<PacExpectationNode *>(this) };

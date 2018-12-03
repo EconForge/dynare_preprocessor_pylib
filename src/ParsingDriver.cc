@@ -706,7 +706,7 @@ ParsingDriver::homotopy_val(const string &name, expr_t val1, expr_t val2)
       && type != SymbolType::exogenousDet)
     error("homotopy_val: " + name + " should be a parameter or exogenous variable");
 
-  homotopy_values.emplace_back(symb_id, make_pair(val1, val2));
+  homotopy_values.emplace_back(symb_id, val1, val2);
 }
 
 void

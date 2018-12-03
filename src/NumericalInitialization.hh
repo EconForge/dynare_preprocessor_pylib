@@ -149,7 +149,7 @@ class HomotopyStatement : public Statement
 public:
   //! Stores the declarations of homotopy_setup
   /*! Order matter so we use a vector. First expr_t can be NULL if no initial value given. */
-  using homotopy_values_t = vector<pair<int, pair<expr_t, expr_t>>>;
+  using homotopy_values_t = vector<tuple<int, expr_t, expr_t>>;
 private:
   const homotopy_values_t homotopy_values;
   const SymbolTable &symbol_table;

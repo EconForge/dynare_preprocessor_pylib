@@ -386,7 +386,7 @@ class ExprNode
       //  virtual void computeXrefs(set<int> &param, set<int> &endo, set<int> &exo, set<int> &exo_det) const = 0;
       virtual void computeXrefs(EquationInfo &ei) const = 0;
       //! Try to normalize an equation linear in its endogenous variable
-      virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t>>> &List_of_Op_RHS) const = 0;
+      virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const = 0;
 
       //! Returns the maximum lead of endogenous in this expression
       /*! Always returns a non-negative value */
@@ -675,7 +675,7 @@ public:
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t>>>  &List_of_Op_RHS) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -763,7 +763,7 @@ public:
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   SymbolType get_type() const;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t>>>  &List_of_Op_RHS) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -876,7 +876,7 @@ public:
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t>>>  &List_of_Op_RHS) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -998,7 +998,7 @@ public:
   void getPacLHS(pair<int, int> &lhs);
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t>>>  &List_of_Op_RHS) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -1124,7 +1124,7 @@ public:
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t>>>  &List_of_Op_RHS) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -1249,7 +1249,7 @@ public:
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override = 0;
   expr_t toStatic(DataTree &static_datatree) const override = 0;
   void computeXrefs(EquationInfo &ei) const override = 0;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t>>>  &List_of_Op_RHS) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -1483,7 +1483,7 @@ public:
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t>>>  &List_of_Op_RHS) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
   void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
                        const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
@@ -1582,7 +1582,7 @@ public:
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<pair<int, pair<expr_t, expr_t>>>  &List_of_Op_RHS) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
   void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
                        const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,

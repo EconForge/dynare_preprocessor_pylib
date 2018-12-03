@@ -487,15 +487,15 @@ HomotopyStatement::writeOutput(ostream &output, const string &basename, bool min
 
   for (const auto & homotopy_value : homotopy_values)
     {
-      const int &symb_id = homotopy_value.first;
-      const expr_t expression1 = homotopy_value.second.first;
-      const expr_t expression2 = homotopy_value.second.second;
+      int symb_id;
+      expr_t expression1, expression2;
+      tie(symb_id, expression1, expression2) = homotopy_value;
 
       const SymbolType type = symbol_table.getType(symb_id);
       const int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
 
       output << "options_.homotopy_values = vertcat(options_.homotopy_values, [ " << static_cast<int>(type) << ", " << tsid << ", ";
-      if (expression1 != nullptr)
+      if (expression1)
         expression1->writeOutput(output);
       else
         output << "NaN";
@@ -511,18 +511,23 @@ HomotopyStatement::writeJsonOutput(ostream &output) const
   output << "{\"statementName\": \"homotopy\", "
          << "\"values\": [";
   for (auto it = homotopy_values.begin();
-       it != homotopy_values.end(); it++)
+       it != homotopy_values.end(); ++it)
     {
       if (it != homotopy_values.begin())
         output << ", ";
-      output << "{\"name\": \"" << symbol_table.getName(it->first) << "\""
+
+      int symb_id;
+      expr_t expression1, expression2;
+      tie(symb_id, expression1, expression2) = *it;
+
+      output << "{\"name\": \"" << symbol_table.getName(symb_id) << "\""
              << ", \"initial_value\": \"";
-      if (it->second.first != NULL)
-        it->second.first->writeJsonOutput(output, {}, {});
+      if (expression1)
+        expression1->writeJsonOutput(output, {}, {});
       else
         output << "NaN";
       output << "\", \"final_value\": \"";
-      it->second.second->writeJsonOutput(output, {}, {});
+      expression2->writeJsonOutput(output, {}, {});
       output << "\"}";
     }
   output << "]"

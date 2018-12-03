@@ -684,7 +684,7 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
             Equation_Simulation_Type = E_EVALUATE;
           else
             {
-              vector<pair<int, pair<expr_t, expr_t>>> List_of_Op_RHS;
+              vector<tuple<int, expr_t, expr_t>> List_of_Op_RHS;
               res =  equations[eq]->normalizeEquation(var, List_of_Op_RHS);
               if (mfs == 2)
                 {
