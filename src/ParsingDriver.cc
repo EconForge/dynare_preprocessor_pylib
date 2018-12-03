@@ -672,7 +672,7 @@ ParsingDriver::hist_val(const string &name, const string &lag, expr_t rhs)
   if (nostrict)
     if (!mod_file->symbol_table.exists(name))
       {
-        warning("discarding '" + name + "' as it was not recognized in the histavl block");
+        warning("discarding '" + name + "' as it was not recognized in the histval block");
         return;
       }
 
