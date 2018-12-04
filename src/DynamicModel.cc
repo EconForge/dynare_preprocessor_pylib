@@ -5637,25 +5637,25 @@ DynamicModel::writeLatexOriginalFile(const string &basename, const bool write_eq
 void
 DynamicModel::substituteEndoLeadGreaterThanTwo(bool deterministic_model, bool nopreprocessoroutput)
 {
-  substituteLeadLagInternal(AuxVarType::endoLead, deterministic_model, vector<string>(), nopreprocessoroutput);
+  substituteLeadLagInternal(AuxVarType::endoLead, deterministic_model, {}, nopreprocessoroutput);
 }
 
 void
 DynamicModel::substituteEndoLagGreaterThanTwo(bool deterministic_model, bool nopreprocessoroutput)
 {
-  substituteLeadLagInternal(AuxVarType::endoLag, deterministic_model, vector<string>(), nopreprocessoroutput);
+  substituteLeadLagInternal(AuxVarType::endoLag, deterministic_model, {}, nopreprocessoroutput);
 }
 
 void
 DynamicModel::substituteExoLead(bool deterministic_model, bool nopreprocessoroutput)
 {
-  substituteLeadLagInternal(AuxVarType::exoLead, deterministic_model, vector<string>(), nopreprocessoroutput);
+  substituteLeadLagInternal(AuxVarType::exoLead, deterministic_model, {}, nopreprocessoroutput);
 }
 
 void
 DynamicModel::substituteExoLag(bool deterministic_model, bool nopreprocessoroutput)
 {
-  substituteLeadLagInternal(AuxVarType::exoLag, deterministic_model, vector<string>(), nopreprocessoroutput);
+  substituteLeadLagInternal(AuxVarType::exoLag, deterministic_model, {}, nopreprocessoroutput);
 }
 
 void
