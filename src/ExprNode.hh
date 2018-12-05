@@ -518,7 +518,7 @@ class ExprNode
       //! Returns true if the expression contains one or several exogenous variable
       virtual bool containsExogenous() const = 0;
 
-      //! Returns the number of diffs present
+      //! Returns the maximum number of nested diffs in the expression
       virtual int countDiffs() const = 0;
 
       //! Return true if the nodeID is a variable withe a type equal to type_arg, a specific variable id aqual to varfiable_id and a lag equal to lag_arg and false otherwise

@@ -5323,7 +5323,7 @@ BinaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &no
 int
 BinaryOpNode::countDiffs() const
 {
-  return arg1->countDiffs() + arg2->countDiffs();
+  return max(arg1->countDiffs(), arg2->countDiffs());
 }
 
 expr_t
@@ -6585,7 +6585,7 @@ TrinaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &n
 int
 TrinaryOpNode::countDiffs() const
 {
-  return arg1->countDiffs() + arg2->countDiffs() + arg3->countDiffs();
+  return max(arg1->countDiffs(), max(arg2->countDiffs(), arg3->countDiffs()));
 }
 
 expr_t
@@ -7069,7 +7069,7 @@ AbstractExternalFunctionNode::countDiffs() const
 {
   int ndiffs = 0;
   for (auto argument : arguments)
-    ndiffs += argument->countDiffs();
+    ndiffs = max(ndiffs, argument->countDiffs());
   return ndiffs;
 }
 
