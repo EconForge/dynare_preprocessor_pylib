@@ -404,13 +404,21 @@ class ExprNode
       /*! Always returns a non-negative value */
       virtual int maxExoLag() const = 0;
 
-      //! Returns the relative period of the most forward term in this expression
-      /*! A negative value means that the expression contains only lagged variables */
+      //! Returns the maximum lead of endo/exo/exodet in this expression
+      /*! A negative value means that the expression contains only lagged
+          variables. */
       virtual int maxLead() const = 0;
 
-      //! Returns the relative period of the most backward term in this expression
-      /*! A negative value means that the expression contains only leaded variables */
+      //! Returns the maximum lag of endo/exo/exodet in this expression
+      /*! A negative value means that the expression contains only leaded
+          variables. */
       virtual int maxLag() const = 0;
+
+      //! Returns the maximum lag of endo/exo/exodet, as if diffs were expanded
+      /*! This function behaves as maxLag(), except that it treats diff()
+          differently. For e.g., on diff(diff(x(-1))), maxLag() returns 1 while
+          maxLagWithDiffsExpanded() returns 3. */
+      virtual int maxLagWithDiffsExpanded() const = 0;
 
       //! Get Max lag of var associated with Pac model
       //! Takes account of undiffed LHS variables in calculating the max lag
@@ -683,6 +691,7 @@ public:
   int maxExoLag() const override;
   int maxLead() const override;
   int maxLag() const override;
+  int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
   int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
   int PacMaxLag(int lhs_symb_id) const override;
@@ -771,6 +780,7 @@ public:
   int maxExoLag() const override;
   int maxLead() const override;
   int maxLag() const override;
+  int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
   int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
   int PacMaxLag(int lhs_symb_id) const override;
@@ -884,6 +894,7 @@ public:
   int maxExoLag() const override;
   int maxLead() const override;
   int maxLag() const override;
+  int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
   int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
   int PacMaxLag(int lhs_symb_id) const override;
@@ -1006,6 +1017,7 @@ public:
   int maxExoLag() const override;
   int maxLead() const override;
   int maxLag() const override;
+  int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
   int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
   int PacMaxLag(int lhs_symb_id) const override;
@@ -1132,6 +1144,7 @@ public:
   int maxExoLag() const override;
   int maxLead() const override;
   int maxLag() const override;
+  int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
   int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
   int PacMaxLag(int lhs_symb_id) const override;
@@ -1257,6 +1270,7 @@ public:
   int maxExoLag() const override;
   int maxLead() const override;
   int maxLag() const override;
+  int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
   int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
   int PacMaxLag(int lhs_symb_id) const override;
@@ -1459,6 +1473,7 @@ public:
   int maxExoLag() const override;
   int maxLead() const override;
   int maxLag() const override;
+  int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
   int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
   int PacMaxLag(int lhs_symb_id) const override;
@@ -1558,6 +1573,7 @@ public:
   int maxExoLag() const override;
   int maxLead() const override;
   int maxLag() const override;
+  int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
   int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
   int PacMaxLag(int lhs_symb_id) const override;

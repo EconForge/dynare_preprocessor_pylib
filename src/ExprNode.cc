@@ -476,6 +476,12 @@ NumConstNode::maxLag() const
   return 0;
 }
 
+int
+NumConstNode::maxLagWithDiffsExpanded() const
+{
+  return 0;
+}
+
 expr_t
 NumConstNode::undiff() const
 {
@@ -1480,8 +1486,8 @@ VariableNode::maxLead() const
   switch (get_type())
     {
     case SymbolType::endogenous:
-      return lag;
     case SymbolType::exogenous:
+    case SymbolType::exogenousDet:
       return lag;
     case SymbolType::modelLocalVariable:
       return datatree.getLocalVariable(symb_id)->maxLead();
@@ -1515,11 +1521,27 @@ VariableNode::maxLag() const
   switch (get_type())
     {
     case SymbolType::endogenous:
-      return -lag;
     case SymbolType::exogenous:
+    case SymbolType::exogenousDet:
       return -lag;
     case SymbolType::modelLocalVariable:
       return datatree.getLocalVariable(symb_id)->maxLag();
+    default:
+      return 0;
+    }
+}
+
+int
+VariableNode::maxLagWithDiffsExpanded() const
+{
+  switch (get_type())
+    {
+    case SymbolType::endogenous:
+    case SymbolType::exogenous:
+    case SymbolType::exogenousDet:
+      return -lag;
+    case SymbolType::modelLocalVariable:
+      return datatree.getLocalVariable(symb_id)->maxLagWithDiffsExpanded();
     default:
       return 0;
     }
@@ -3211,9 +3233,15 @@ UnaryOpNode::maxLead() const
 int
 UnaryOpNode::maxLag() const
 {
-  if (op_code == UnaryOpcode::diff)
-    return arg->maxLag() + 1;
   return arg->maxLag();
+}
+
+int
+UnaryOpNode::maxLagWithDiffsExpanded() const
+{
+  if (op_code == UnaryOpcode::diff)
+    return arg->maxLagWithDiffsExpanded() + 1;
+  return arg->maxLagWithDiffsExpanded();
 }
 
 expr_t
@@ -3230,7 +3258,7 @@ UnaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
   auto it = static_lhs.find(this->toStatic(static_datatree));
   if (it == static_lhs.end())
     return 0;
-  return arg->maxLag() - arg->countDiffs();
+  return arg->maxLag();
 }
 
 int
@@ -3333,7 +3361,7 @@ UnaryOpNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_t
     return;
 
   expr_t sthis = this->toStatic(static_datatree);
-  int arg_max_lag = -arg->maxLag();
+  int arg_max_lag = -arg->maxLagWithDiffsExpanded();
   // TODO: implement recursive expression comparison, ensuring that the difference in the lags is constant across nodes
   auto it = nodes.find(sthis);
   if (it != nodes.end())
@@ -3357,7 +3385,7 @@ UnaryOpNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) 
     return;
 
   expr_t sthis = this->toStatic(static_datatree);
-  int arg_max_lag = -arg->maxLag();
+  int arg_max_lag = -arg->maxLagWithDiffsExpanded();
   // TODO: implement recursive expression comparison, ensuring that the difference in the lags is constant across nodes
   auto it = diff_table.find(sthis);
   if (it != diff_table.end())
@@ -3393,7 +3421,7 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
   expr_t sthis = dynamic_cast<UnaryOpNode *>(this->toStatic(static_datatree));
   auto it = diff_table.find(sthis);
   int symb_id;
-  if (it == diff_table.end() || it->second[-arg->maxLag()] != this)
+  if (it == diff_table.end() || it->second[-arg->maxLagWithDiffsExpanded()] != this)
     {
       // diff does not appear in VAR equations
       // so simply create aux var and return
@@ -5130,6 +5158,12 @@ BinaryOpNode::maxLag() const
   return max(arg1->maxLag(), arg2->maxLag());
 }
 
+int
+BinaryOpNode::maxLagWithDiffsExpanded() const
+{
+  return max(arg1->maxLagWithDiffsExpanded(), arg2->maxLagWithDiffsExpanded());
+}
+
 expr_t
 BinaryOpNode::undiff() const
 {
@@ -6411,6 +6445,13 @@ TrinaryOpNode::maxLag() const
   return max(arg1->maxLag(), max(arg2->maxLag(), arg3->maxLag()));
 }
 
+int
+TrinaryOpNode::maxLagWithDiffsExpanded() const
+{
+  return max(arg1->maxLagWithDiffsExpanded(),
+             max(arg2->maxLagWithDiffsExpanded(), arg3->maxLagWithDiffsExpanded()));
+}
+
 expr_t
 TrinaryOpNode::undiff() const
 {
@@ -6899,6 +6940,15 @@ AbstractExternalFunctionNode::maxLag() const
   int val = 0;
   for (auto argument : arguments)
     val = max(val, argument->maxLag());
+  return val;
+}
+
+int
+AbstractExternalFunctionNode::maxLagWithDiffsExpanded() const
+{
+  int val = 0;
+  for (auto argument : arguments)
+    val = max(val, argument->maxLagWithDiffsExpanded());
   return val;
 }
 
@@ -8547,6 +8597,13 @@ VarExpectationNode::maxLag() const
   exit(EXIT_FAILURE);
 }
 
+int
+VarExpectationNode::maxLagWithDiffsExpanded() const
+{
+  cerr << "VarExpectationNode::maxLagWithDiffsExpanded not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
 expr_t
 VarExpectationNode::undiff() const
 {
@@ -9102,6 +9159,12 @@ PacExpectationNode::maxLead() const
 
 int
 PacExpectationNode::maxLag() const
+{
+  return 0;
+}
+
+int
+PacExpectationNode::maxLagWithDiffsExpanded() const
 {
   return 0;
 }
