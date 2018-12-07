@@ -354,18 +354,12 @@ public:
   void initval_file(const string &filename);
   //! Declares an endogenous variable
   void declare_endogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
-  //! Declares an endogenous variable in the epilogue block
-  void declare_epilogue_endogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
   //! Declares an exogenous variable
   void declare_exogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
-  //! Declares an exogenous variable in the epilogue block
-  void declare_epilogue_exogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
   //! Declares an exogenous deterministic variable
   void declare_exogenous_det(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
   //! Declares a parameter
   void declare_parameter(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
-  //! Declare a parameter in the epilogue block
-  void declare_epilogue_parameter(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
   //! Declares a VAR variable and adds to symbol_list
   void declare_var_endogenous(const string &name);
   //! Declares a model local variable

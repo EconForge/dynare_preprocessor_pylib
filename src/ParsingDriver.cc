@@ -202,14 +202,6 @@ ParsingDriver::declare_endogenous(const string &name, const string &tex_name, co
 }
 
 void
-ParsingDriver::declare_epilogue_endogenous(const string &name,
-                                           const string &tex_name,
-                                           const vector<pair<string, string>> &partition_value)
-{
-  declare_symbol(name, SymbolType::endogenousEpilogue, tex_name, partition_value);
-}
-
-void
 ParsingDriver::declare_var_endogenous(const string &name)
 {
   if (mod_file->symbol_table.exists(name))
@@ -239,25 +231,9 @@ ParsingDriver::declare_exogenous_det(const string &name, const string &tex_name,
 }
 
 void
-ParsingDriver::declare_epilogue_exogenous(const string &name,
-                                          const string &tex_name,
-                                          const vector<pair<string, string>> &partition_value)
-{
-  declare_symbol(name, SymbolType::exogenousEpilogue, tex_name, partition_value);
-}
-
-void
 ParsingDriver::declare_parameter(const string &name, const string &tex_name, const vector<pair<string, string>> &partition_value)
 {
   declare_symbol(name, SymbolType::parameter, tex_name, partition_value);
-}
-
-void
-ParsingDriver::declare_epilogue_parameter(const string &name,
-                                          const string &tex_name,
-                                          const vector<pair<string, string>> &partition_value)
-{
-  declare_symbol(name, SymbolType::parameterEpilogue, tex_name, partition_value);
 }
 
 void
@@ -859,16 +835,7 @@ ParsingDriver::end_epilogue()
 void
 ParsingDriver::add_epilogue_equal(const string &varname, expr_t expr)
 {
-  int id;
-  try
-    {
-      id = mod_file->symbol_table.getID(varname);
-    }
-  catch (SymbolTable::UnknownSymbolNameException &e)
-    {
-      error("Variable " + varname + " used in the epilogue block but was not declared.");
-    }
-  mod_file->epilogue.addDefinition(id, expr);
+  mod_file->epilogue.addDefinition(varname, expr);
 }
 
 void

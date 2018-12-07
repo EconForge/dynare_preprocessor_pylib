@@ -755,9 +755,6 @@ VariableNode::prepareForDerivation()
       break;
     case SymbolType::externalFunction:
     case SymbolType::endogenousVAR:
-    case SymbolType::endogenousEpilogue:
-    case SymbolType::exogenousEpilogue:
-    case SymbolType::parameterEpilogue:
       cerr << "VariableNode::prepareForDerivation: impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -791,9 +788,6 @@ VariableNode::computeDerivative(int deriv_id)
       exit(EXIT_FAILURE);
     case SymbolType::externalFunction:
     case SymbolType::endogenousVAR:
-    case SymbolType::endogenousEpilogue:
-    case SymbolType::exogenousEpilogue:
-    case SymbolType::parameterEpilogue:
       cerr << "VariableNode::computeDerivative: Impossible case!" << endl;
       exit(EXIT_FAILURE);
     }
@@ -860,15 +854,6 @@ VariableNode::writeJsonAST(ostream &output) const
     case SymbolType::endogenousVAR:
       output << "endogenousVAR";
       break;
-    case SymbolType::endogenousEpilogue:
-      output << "endogenousEpilogue";
-      break;
-    case SymbolType::exogenousEpilogue:
-      output << "exogenousEpilogue";
-      break;
-    case SymbolType::parameterEpilogue:
-      output << "parameterEpilogue";
-      break;
     }
   output << "\", \"lag\" : " << lag << "}";
 }
@@ -927,7 +912,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   switch (type)
     {
     case SymbolType::parameter:
-    case SymbolType::parameterEpilogue:
       if (output_type == ExprNodeOutputType::matlabOutsideModel)
         output << "M_.params" << "(" << tsid + 1 << ")";
       else
@@ -999,11 +983,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case ExprNodeOutputType::epilogueFile:
-          output << datatree.symbol_table.getName(symb_id)
-                 << LEFT_ARRAY_SUBSCRIPT(output_type) << "epilogue_it__";
-          if (lag != 0)
-            output << lag;
-          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          output << "dseries__." << datatree.symbol_table.getName(symb_id);
+            if (lag != 0)
+            output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << endl;
@@ -1059,11 +1041,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case ExprNodeOutputType::epilogueFile:
-          output << datatree.symbol_table.getName(symb_id)
-                 << LEFT_ARRAY_SUBSCRIPT(output_type) << "epilogue_it__";
+          output << "dseries__." << datatree.symbol_table.getName(symb_id);
           if (lag != 0)
-            output << lag;
-          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
+            output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << endl;
@@ -1119,24 +1099,14 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case ExprNodeOutputType::epilogueFile:
-          output << datatree.symbol_table.getName(symb_id)
-                 << LEFT_ARRAY_SUBSCRIPT(output_type) << "epilogue_it__";
+          output << "dseries__." << datatree.symbol_table.getName(symb_id);
           if (lag != 0)
-            output << lag;
-          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
+            output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << endl;
           exit(EXIT_FAILURE);
         }
-      break;
-    case SymbolType::endogenousEpilogue:
-    case SymbolType::exogenousEpilogue:
-      output << datatree.symbol_table.getName(symb_id)
-             << LEFT_ARRAY_SUBSCRIPT(output_type) << "epilogue_it__";
-      if (lag != 0)
-        output << lag;
-      output << RIGHT_ARRAY_SUBSCRIPT(output_type);
       break;
     case SymbolType::externalFunction:
     case SymbolType::trend:
@@ -1364,9 +1334,6 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recur
       exit(EXIT_FAILURE);
     case SymbolType::externalFunction:
     case SymbolType::endogenousVAR:
-    case SymbolType::endogenousEpilogue:
-    case SymbolType::exogenousEpilogue:
-    case SymbolType::parameterEpilogue:
       cerr << "VariableNode::getChainRuleDerivative: Impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -1405,9 +1372,6 @@ VariableNode::computeXrefs(EquationInfo &ei) const
     case SymbolType::unusedEndogenous:
     case SymbolType::externalFunction:
     case SymbolType::endogenousVAR:
-    case SymbolType::endogenousEpilogue:
-    case SymbolType::exogenousEpilogue:
-    case SymbolType::parameterEpilogue:
       break;
     }
 }
