@@ -70,7 +70,7 @@ class Epilogue : public DynamicModel
 {
 private:
   //! Associates a set of symbol IDs (the variable(s) assigned in a given statement) to an expression (their assigned value)
-  vector<pair<string, expr_t>> def_table;
+  vector<pair<int, expr_t>> def_table;
 public:
   Epilogue(SymbolTable &symbol_table_arg,
            NumericalConstants &num_constants_arg,
@@ -84,7 +84,7 @@ public:
   Epilogue & operator=(Epilogue &&) = delete;
 
   //! Add an expression of the form "var = expr;"
-  void addDefinition(string varname, expr_t expr);
+  void addDefinition(int symb_id, expr_t expr);
 
   //! Checks that no variable is declared twice
   void checkPass(WarningConsolidation &warnings) const;

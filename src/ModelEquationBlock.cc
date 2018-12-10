@@ -314,9 +314,9 @@ Epilogue::operator=(const Epilogue &m)
 }
 
 void
-Epilogue::addDefinition(string varname, expr_t expr)
+Epilogue::addDefinition(int symb_id, expr_t expr)
 {
-  def_table.emplace_back(varname, expr);
+  def_table.emplace_back(symb_id, expr);
 }
 
 void
@@ -325,7 +325,7 @@ Epilogue::checkPass(WarningConsolidation &warnings) const
   if (def_table.size() == 0)
     return;
 
-  vector<string> so_far_defined;
+  vector<int> so_far_defined;
   for (const auto & it : def_table)
     if (find(so_far_defined.begin(), so_far_defined.end(), it.first) != so_far_defined.end())
       {
@@ -366,7 +366,7 @@ Epilogue::writeEpilogueFile(const string &basename) const
   output << endl;
   for (const auto & it : def_table)
     {
-      output << "dseries__." << it.first << " = ";
+      output << "dseries__." << symbol_table.getName(it.first) << " = ";
       it.second->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
       output << ";" << endl;
     }

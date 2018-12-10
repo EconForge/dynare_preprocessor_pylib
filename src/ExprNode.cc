@@ -755,6 +755,7 @@ VariableNode::prepareForDerivation()
       break;
     case SymbolType::externalFunction:
     case SymbolType::endogenousVAR:
+    case SymbolType::epilogue:
       cerr << "VariableNode::prepareForDerivation: impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -788,6 +789,7 @@ VariableNode::computeDerivative(int deriv_id)
       exit(EXIT_FAILURE);
     case SymbolType::externalFunction:
     case SymbolType::endogenousVAR:
+    case SymbolType::epilogue:
       cerr << "VariableNode::computeDerivative: Impossible case!" << endl;
       exit(EXIT_FAILURE);
     }
@@ -853,6 +855,9 @@ VariableNode::writeJsonAST(ostream &output) const
       break;
     case SymbolType::endogenousVAR:
       output << "endogenousVAR";
+      break;
+    case SymbolType::epilogue:
+      output << "epilogue";
       break;
     }
   output << "\", \"lag\" : " << lag << "}";
@@ -1108,6 +1113,19 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           exit(EXIT_FAILURE);
         }
       break;
+    case SymbolType::epilogue:
+      if (output_type == ExprNodeOutputType::epilogueFile)
+        {
+          output << "dseries__." << datatree.symbol_table.getName(symb_id);
+          if (lag != 0)
+            output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          break;
+        }
+      else
+        {
+          cerr << "VariableNode::writeOutput: Impossible case" << endl;
+          exit(EXIT_FAILURE);
+        }
     case SymbolType::externalFunction:
     case SymbolType::trend:
     case SymbolType::logTrend:
@@ -1334,6 +1352,7 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recur
       exit(EXIT_FAILURE);
     case SymbolType::externalFunction:
     case SymbolType::endogenousVAR:
+    case SymbolType::epilogue:
       cerr << "VariableNode::getChainRuleDerivative: Impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -1372,6 +1391,7 @@ VariableNode::computeXrefs(EquationInfo &ei) const
     case SymbolType::unusedEndogenous:
     case SymbolType::externalFunction:
     case SymbolType::endogenousVAR:
+    case SymbolType::epilogue:
       break;
     }
 }

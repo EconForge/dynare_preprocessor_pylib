@@ -152,7 +152,8 @@ enum class SymbolType
     statementDeclaredVariable = 14, //!< Local variable assigned within a Statement (see subsample statement for example)
     logTrend = 15,                 //!< Log-trend variable
     unusedEndogenous = 16,
-    endogenousVAR = 17             //!< Variables declared in a var_model statement
+    endogenousVAR = 17,            //!< Variables declared in a var_model statement
+    epilogue = 18                  //!< Variables created in epilogue block
   };
 
 enum ExpressionType
