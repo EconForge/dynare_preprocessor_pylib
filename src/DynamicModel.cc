@@ -121,6 +121,7 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   max_exo_det_lead {m.max_exo_det_lead},
   max_lag_orig {m.max_lag_orig},
   max_lead_orig {m.max_lead_orig},
+  max_lag_with_diffs_expanded_orig {m.max_lag_with_diffs_expanded_orig},
   max_endo_lag_orig {m.max_endo_lag_orig},
   max_endo_lead_orig {m.max_endo_lead_orig},
   max_exo_lag_orig {m.max_exo_lag_orig},
@@ -181,6 +182,7 @@ DynamicModel::operator=(const DynamicModel &m)
   max_exo_det_lead = m.max_exo_det_lead;
   max_lag_orig = m.max_lag_orig;
   max_lead_orig = m.max_lead_orig;
+  max_lag_with_diffs_expanded_orig = m.max_lag_with_diffs_expanded_orig;
   max_endo_lag_orig = m.max_endo_lag_orig;
   max_endo_lead_orig = m.max_endo_lead_orig;
   max_exo_lag_orig = m.max_exo_lag_orig;
@@ -3036,6 +3038,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
          << modstruct << "orig_maximum_exo_det_lead = " << max_exo_det_lead_orig << ";" << endl
          << modstruct << "orig_maximum_lag = " << max_lag_orig << ";" << endl
          << modstruct << "orig_maximum_lead = " << max_lead_orig << ";" << endl
+         << modstruct << "orig_maximum_lag_with_diffs_expanded = " << max_lag_with_diffs_expanded_orig << ";" << endl
          << modstruct << "lead_lag_incidence = [";
   // Loop on endogenous variables
   int nstatic = 0,
@@ -5086,6 +5089,9 @@ DynamicModel::setLeadsLagsOrig()
       equation->collectDynamicVariables(SymbolType::endogenous, dynvars);
       equation->collectDynamicVariables(SymbolType::exogenous, dynvars);
       equation->collectDynamicVariables(SymbolType::exogenousDet, dynvars);
+
+      max_lag_with_diffs_expanded_orig = max(equation->maxLagWithDiffsExpanded(),
+                                             max_lag_with_diffs_expanded_orig);
     }
 
     for (const auto & dynvar : dynvars)

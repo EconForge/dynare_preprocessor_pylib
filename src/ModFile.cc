@@ -498,23 +498,6 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       mod_file_struct.ramsey_eq_nbr = dynamic_model.equation_number() - mod_file_struct.orig_eq_nbr;
     }
 
-  // Workaround for #1193
-  if (!mod_file_struct.hist_vals_wrong_lag.empty())
-    {
-      bool err = false;
-      for (map<int, int>::const_iterator it = mod_file_struct.hist_vals_wrong_lag.begin();
-           it != mod_file_struct.hist_vals_wrong_lag.end(); it++)
-          if (dynamic_model.minLagForSymbol(it->first) > it->second - 1)
-            {
-              cerr << "ERROR: histval: variable " << symbol_table.getName(it->first)
-                   << " does not appear in the model with the lag " << it->second - 1
-                   << " (see the reference manual for the timing convention in 'histval')" << endl;
-              err = true;
-            }
-      if (err)
-        exit(EXIT_FAILURE);
-    }
-
   /* Handle var_expectation_model statements: collect information about them,
      create the new corresponding parameters, and the expressions to replace
      the var_expectation statements.

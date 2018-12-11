@@ -107,15 +107,12 @@ public:
     Maps pairs (symbol_id, lag) to expr_t
   */
   using hist_values_t = map<pair<int, int>, expr_t>;
-  using hist_vals_wrong_lag_t = map<int, int>;
 private:
   const hist_values_t hist_values;
-  const hist_vals_wrong_lag_t hist_vals_wrong_lag;
   const SymbolTable &symbol_table;
   const bool all_values_required;
 public:
   HistValStatement(hist_values_t hist_values_arg,
-                   const hist_vals_wrong_lag_t hist_vals_wrong_lag_arg,
                    const SymbolTable &symbol_table_arg,
                    const bool &all_values_required_arg);
   //! Workaround for trac ticket #157

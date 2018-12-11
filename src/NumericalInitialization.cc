@@ -304,11 +304,9 @@ EndValStatement::writeJsonOutput(ostream &output) const
 }
 
 HistValStatement::HistValStatement(hist_values_t hist_values_arg,
-                                   const hist_vals_wrong_lag_t hist_vals_wrong_lag_arg,
                                    const SymbolTable &symbol_table_arg,
                                    const bool &all_values_required_arg) :
   hist_values{move(hist_values_arg)},
-  hist_vals_wrong_lag{hist_vals_wrong_lag_arg},
   symbol_table{symbol_table_arg},
   all_values_required{all_values_required_arg}
 {
@@ -322,10 +320,9 @@ HistValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
       set<int> unused_endo = symbol_table.getEndogenous();
       set<int> unused_exo = symbol_table.getExogenous();
 
-      set<int>::iterator sit;
       for (const auto & hist_value : hist_values)
         {
-          sit = unused_endo.find(hist_value.first.first);
+          auto sit = unused_endo.find(hist_value.first.first);
           if (sit != unused_endo.end())
             unused_endo.erase(sit);
 
@@ -353,7 +350,6 @@ HistValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
       if (unused_endo.size() > 0 || unused_exo.size() > 0)
         exit(EXIT_FAILURE);
     }
-  mod_file_struct.hist_vals_wrong_lag = hist_vals_wrong_lag;
 }
 
 void
@@ -362,9 +358,13 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
   output << "%" << endl
          << "% HISTVAL instructions" << endl
          << "%" << endl
-         << "M_.endo_histval = zeros(M_.endo_nbr,M_.maximum_lag);" << endl
-         << "M_.exo_histval = zeros(M_.exo_nbr,M_.maximum_lag);" << endl
-         << "M_.exo_det_histval = zeros(M_.exo_det_nbr,M_.maximum_lag);" << endl;
+         << "M_.histval_dseries = dseries(zeros(M_.orig_maximum_lag_with_diffs_expanded, M_.orig_endo_nbr"
+         << (symbol_table.exo_nbr() > 0 ? "+M_.exo_nbr" : "")
+         << (symbol_table.exo_det_nbr() > 0 ? "+M_.exo_det_nbr" : "")
+         << "), dates(sprintf('%dY', -M_.orig_maximum_lag_with_diffs_expanded+1)), [ M_.endo_names(1:M_.orig_endo_nbr); "
+         << (symbol_table.exo_nbr() > 0 ? "M_.exo_names; " : "")
+         << (symbol_table.exo_det_nbr() > 0 ? "M_.exo_det_names; " : "")
+         << "]);" << endl;
 
   for (const auto & hist_value : hist_values)
     {
@@ -372,42 +372,20 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
       int lag = hist_value.first.second;
       const expr_t expression = hist_value.second;
 
-      SymbolType type = symbol_table.getType(symb_id);
-
-      // For a lag greater than 1 on endo, or for any exo, lookup for auxiliary variable
-      if ((type == SymbolType::endogenous && lag < 0) || type == SymbolType::exogenous)
-        {
-          try
-            {
-              // This function call must remain the 1st statement in this block
-              symb_id = symbol_table.searchAuxiliaryVars(symb_id, lag);
-              lag = 0;
-              type = SymbolType::endogenous;
-            }
-          catch (SymbolTable::SearchFailedException &e)
-            {
-              if (type == SymbolType::endogenous)
-                {
-                  cerr << "HISTVAL: internal error of Dynare, please contact the developers";
-                  exit(EXIT_FAILURE);
-                }
-              // We don't fail for exogenous, because they are not replaced by
-              // auxiliary variables in deterministic mode.
-            }
-        }
-
-      int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
-
-      if (type == SymbolType::endogenous)
-        output << "M_.endo_histval( " << tsid << ", M_.maximum_lag + " << lag << ") = ";
-      else if (type == SymbolType::exogenous)
-        output << "M_.exo_histval( " << tsid << ", M_.maximum_lag + " << lag << ") = ";
-      else if (type == SymbolType::exogenousDet)
-        output << "M_.exo_det_histval( " << tsid << ", M_.maximum_lag + " << lag << ") = ";
-
+      output << "M_.histval_dseries{'" << symbol_table.getName(symb_id) << "'}(dates('" << lag << "Y'))=";
       expression->writeOutput(output);
       output << ";" << endl;
     }
+
+  output << "if exist(['+' M_.fname '/dynamic_set_auxiliary_series'])" << endl
+       << "  eval(['M_.histval_dseries = ' M_.fname '.dynamic_set_auxiliary_series(M_.histval_dseries, []);']);" << endl
+       << "end" << endl
+       << "M_.endo_histval = M_.histval_dseries{M_.endo_names{:}}(dates(sprintf('%dY', 1-M_.maximum_lag)):dates('0Y')).data';" << endl;
+
+  if (symbol_table.exo_nbr() > 0)
+    output << "M_.exo_histval = M_.histval_dseries{M_.exo_names{:}}(dates(sprintf('%dY', 1-M_.maximum_lag)):dates('0Y')).data';" << endl;
+  if (symbol_table.exo_det_nbr() > 0)
+    output << "M_.exo_det_histval = M_.histval_dseries{M_.exo_det_names{:}}(dates(sprintf('%dY', 1-M_.maximum_lag)):dates('0Y')).data';" << endl;
 }
 
 void

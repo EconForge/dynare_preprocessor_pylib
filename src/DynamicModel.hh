@@ -73,7 +73,7 @@ private:
   /*! Set by computeDerivIDs() */
   int max_exo_det_lag{0}, max_exo_det_lead{0};
   //! Maximum lag and lead over all types of variables (positive values) of original model
-  int max_lag_orig{0}, max_lead_orig{0};
+  int max_lag_orig{0}, max_lead_orig{0}, max_lag_with_diffs_expanded_orig{0};
   //! Maximum lag and lead over endogenous variables (positive values) of original model
   int max_endo_lag_orig{0}, max_endo_lead_orig{0};
   //! Maximum lag and lead over exogenous variables (positive values) of original model

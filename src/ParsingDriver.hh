@@ -173,8 +173,6 @@ private:
   InitOrEndValStatement::init_values_t init_values;
   //! Temporary storage for histval blocks
   HistValStatement::hist_values_t hist_values;
-  //! Temporary storage for histval blocks
-  HistValStatement::hist_vals_wrong_lag_t hist_vals_wrong_lag;
   //! Temporary storage for homotopy_setup blocks
   HomotopyStatement::homotopy_values_t homotopy_values;
   //! Temporary storage for moment_calibration
