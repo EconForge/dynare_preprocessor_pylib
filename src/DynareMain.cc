@@ -20,6 +20,9 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <vector>
+#include <string>
+#include <regex>
 
 #include <cstdlib>
 #include <cstring>
@@ -65,6 +68,29 @@ usage()
   exit(EXIT_FAILURE);
 }
 
+vector<string>
+parse_options_line(const string &modfiletxt)
+{
+  // Looks for an options list in the first line of the mod file
+
+  vector<string> options;
+  auto pos = modfiletxt.find('\n');
+  string first_line{modfiletxt.substr(0, pos)};
+
+  regex pat{"^\\s*//\\s*--\\+\\s*options:([^\\+]*)\\+--"};
+  smatch matches;
+  if (regex_search(first_line, matches, pat))
+    if (matches.size() > 1 && matches[1].matched)
+      {
+        regex pat2{"([^,\\s]+)"};
+        string s{matches[1]};
+        for (sregex_iterator p(s.begin(), s.end(), pat2);
+             p != sregex_iterator{}; ++p)
+          options.push_back((*p)[1]);
+      }
+  return options;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -81,6 +107,44 @@ main(int argc, char **argv)
       usage();
     }
 
+  /* Construct basename (i.e. remove file extension if there is one) and put
+     contents of mod-file into a buffer */
+  string basename = argv[1];
+  string modfile, modfiletxt;
+  size_t fsc = basename.find_first_of(';');
+  if (fsc != string::npos)
+    {
+      // If a semicolon is found in argv[1], treat it as the text of the modfile
+      modfile = "mod_file_passed_as_string.mod";
+      basename = "mod_file_passed_as_string";
+      modfiletxt = argv[1];
+    }
+  else
+    {
+      // If a semicolon is NOT found in argv[1], treat it as the name of the modfile
+      modfile = argv[1];
+      size_t pos = basename.find_last_of('.');
+      if (pos != string::npos)
+        basename.erase(pos);
+
+      ifstream modfile(argv[1], ios::binary);
+      if (modfile.fail())
+        {
+          cerr << "ERROR: Could not open file: " << argv[1] << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      stringstream buffer;
+      buffer << modfile.rdbuf();
+      modfiletxt = buffer.str();
+    }
+
+  // Create options list, using first line of mod-file and command line
+  vector<string> options = parse_options_line(modfiletxt);
+  for (int arg = 2; arg < argc; arg++)
+    options.push_back(argv[arg]);
+
+  // Parse options
   bool clear_all = true;
   bool clear_global = false;
   bool save_macro = false;
@@ -124,11 +188,8 @@ main(int argc, char **argv)
   dynareroot = dynareroot / ".." / "..";
   bool onlymodel = false;
 
-  // Parse options
-  for (int arg = 2; arg < argc; arg++)
+  for (auto s : options)
     {
-      string s{argv[arg]};
-
       if (s == "debug")
         debug = true;
       else if (s == "noclearall")
@@ -357,37 +418,6 @@ main(int argc, char **argv)
   if (!nopreprocessoroutput)
     cout << "Starting preprocessing of the model file ..." << endl;
 
-  // Construct basename (i.e. remove file extension if there is one)
-  string basename = argv[1];
-  string modfile, modfiletxt;
-  size_t fsc = basename.find_first_of(';');
-  if (fsc != string::npos)
-    {
-      // If a semicolon is found in argv[1], treat it as the text of the modfile
-      modfile = "mod_file_passed_as_string.mod";
-      basename = "mod_file_passed_as_string";
-      modfiletxt = argv[1];
-    }
-  else
-    {
-      // If a semicolon is NOT found in argv[1], treat it as the name of the modfile
-      modfile = argv[1];
-      size_t pos = basename.find_last_of('.');
-      if (pos != string::npos)
-        basename.erase(pos);
-
-      ifstream modfile(argv[1], ios::binary);
-      if (modfile.fail())
-        {
-          cerr << "ERROR: Could not open file: " << argv[1] << endl;
-          exit(EXIT_FAILURE);
-        }
-
-      stringstream buffer;
-      buffer << modfile.rdbuf();
-      modfiletxt = buffer.str();
-    }
-
   WarningConsolidation warnings(no_warn);
 
   // Process config file
@@ -399,9 +429,8 @@ main(int argc, char **argv)
   // If Include option was passed to the [paths] block of the config file, add
   // it to paths before macroprocessing
   vector<string> config_include_paths = config_file.getIncludePaths();
-  for (vector<string>::const_iterator it = config_include_paths.begin();
-       it != config_include_paths.end(); it++)
-    path.push_back(*it);
+  for (const auto &it : config_include_paths)
+    path.push_back(it);
 
   // Do macro processing
   stringstream macro_output;
