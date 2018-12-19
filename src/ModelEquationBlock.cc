@@ -372,12 +372,15 @@ Epilogue::writeEpilogueFile(const string &basename) const
       it.second->collectVariables(SymbolType::endogenous, used_symbols);
       it.second->collectVariables(SymbolType::exogenous, used_symbols);
       it.second->collectVariables(SymbolType::epilogue, used_symbols);
-      output << "simul_begin_date = dseries__." << symbol_table.getName(*(used_symbols.begin())) << ".firstobservedperiod;" << endl;
-      for (auto it1 = next(used_symbols.begin()); it1 != used_symbols.end(); it1++)
-        output << "if simul_begin_date < dseries__." << symbol_table.getName(*it1) << ".firstobservedperiod" << endl
-               << "    simul_begin_date = dseries__." << symbol_table.getName(*it1) << ".firstobservedperiod;" << endl
-               << "end" << endl;
-      output << "simul_begin_date = simul_begin_date + " << max_lag << " + 1;" << endl
+
+      output << "simul_begin_date = firstobservedperiod(dseries__{";
+      for (auto it1 = used_symbols.begin(); it1 != used_symbols.end(); it1++)
+        {
+          if (it1 != used_symbols.begin())
+            output << ", ";
+          output << "'" << symbol_table.getName(*it1) << "'";
+        }
+      output << "}) + " << max_lag << " + 1;" << endl
              << "if ~dseries__.exist('" << symbol_table.getName(it.first) << "')" << endl
              << "    dseries__ = [dseries__ dseries(NaN(dseries__.nobs,1), dseries__.firstdate, '" << symbol_table.getName(it.first)<< "')];" << endl
              << "end" << endl
