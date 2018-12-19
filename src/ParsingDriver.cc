@@ -830,9 +830,14 @@ ParsingDriver::end_epilogue()
 }
 
 void
-ParsingDriver::add_epilogue_equal(const string &name, expr_t expr)
+ParsingDriver::add_epilogue_variable(const string &name)
 {
   declare_symbol(name, SymbolType::epilogue, "", {});
+}
+
+void
+ParsingDriver::add_epilogue_equal(const string &name, expr_t expr)
+{
   mod_file->epilogue.addDefinition(mod_file->symbol_table.getID(name), expr);
 }
 

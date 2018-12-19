@@ -989,8 +989,10 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           break;
         case ExprNodeOutputType::epilogueFile:
           output << "dseries__." << datatree.symbol_table.getName(symb_id);
-            if (lag != 0)
-            output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
+          if (lag != 0)
+            output << lag;
+          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << endl;
@@ -1047,8 +1049,10 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           break;
         case ExprNodeOutputType::epilogueFile:
           output << "dseries__." << datatree.symbol_table.getName(symb_id);
+          output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
           if (lag != 0)
-            output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
+            output << lag;
+          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << endl;
@@ -1105,8 +1109,10 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           break;
         case ExprNodeOutputType::epilogueFile:
           output << "dseries__." << datatree.symbol_table.getName(symb_id);
+          output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
           if (lag != 0)
-            output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
+            output << lag;
+          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << endl;
@@ -1117,8 +1123,10 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       if (output_type == ExprNodeOutputType::epilogueFile)
         {
           output << "dseries__." << datatree.symbol_table.getName(symb_id);
+          output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
           if (lag != 0)
-            output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
+            output << lag;
+          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         }
       else
@@ -1523,6 +1531,7 @@ VariableNode::maxLagWithDiffsExpanded() const
     case SymbolType::endogenous:
     case SymbolType::exogenous:
     case SymbolType::exogenousDet:
+    case SymbolType::epilogue:
       return -lag;
     case SymbolType::modelLocalVariable:
       return datatree.getLocalVariable(symb_id)->maxLagWithDiffsExpanded();

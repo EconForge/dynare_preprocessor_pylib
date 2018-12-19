@@ -421,8 +421,10 @@ public:
   void end_homotopy();
   //! Begin epilogue block
   void begin_epilogue();
-  //! Endepilogue block
+  //! End epilogue block
   void end_epilogue();
+  //! Add epilogue variable
+  void add_epilogue_variable(const string &varname);
   //! Add equation in epilogue block
   void add_epilogue_equal(const string &varname, expr_t expr);
   //! Begin a model block
