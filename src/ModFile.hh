@@ -137,17 +137,17 @@ public:
   void addStatementAtFront(unique_ptr<Statement> st);
   //! Evaluate all the statements
   /*! \param warn_uninit Should a warning be displayed for uninitialized endogenous/exogenous/parameters ? */
-  void evalAllExpressions(bool warn_uninit, const bool nopreprocessoroutput);
+  void evalAllExpressions(bool warn_uninit);
   //! Do some checking and fills mod_file_struct
   /*! \todo add check for number of equations and endogenous if ramsey_policy is present */
   void checkPass(bool nostrict, bool stochastic);
   //! Perform some transformations on the model (creation of auxiliary vars and equations)
   /*! \param compute_xrefs if true, equation cross references will be computed */
-  void transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const bool nopreprocessoroutput, const bool transform_unary_ops);
+  void transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const bool transform_unary_ops);
   //! Execute computations
   /*! \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
   /*! \param params_derivs_order compute this order of derivs wrt parameters */
-  void computingPass(bool no_tmp_terms, FileOutputType output, int params_derivs_order, const bool nopreprocessoroutput);
+  void computingPass(bool no_tmp_terms, FileOutputType output, int params_derivs_order);
   //! Writes Matlab/Octave output files
   /*!
     \param basename The base name used for writing output files. Should be the name of the mod file without its extension
@@ -163,17 +163,17 @@ public:
   void writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_log, bool no_warn,
                         bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
                         bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
-                        const bool nopreprocessoroutput, const string &mexext, const boost::filesystem::path &matlabroot,
+                        const string &mexext, const boost::filesystem::path &matlabroot,
                         const boost::filesystem::path &dynareroot, bool onlymodel) const;
-  void writeExternalFiles(const string &basename, FileOutputType output, LanguageOutputType language, const bool nopreprocessoroutput) const;
-  void writeExternalFilesJulia(const string &basename, FileOutputType output, const bool nopreprocessoroutput) const;
+  void writeExternalFiles(const string &basename, FileOutputType output, LanguageOutputType language) const;
+  void writeExternalFilesJulia(const string &basename, FileOutputType output) const;
 
   void computeChecksum();
   //! Write JSON representation of ModFile object
   //! Initially created to enable Julia to work with .mod files
   //! Potentially outputs ModFile after the various parts of processing (parsing, checkPass, transformPass, computingPass)
   //! Allows user of other host language platforms (python, fortran, etc) to provide support for dynare .mod files
-  void writeJsonOutput(const string &basename, JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, const bool nopreprocessoroutput, bool jsonderivsimple = false);
+  void writeJsonOutput(const string &basename, JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple = false);
 };
 
 #endif // ! MOD_FILE_HH

@@ -34,7 +34,7 @@ main2(stringstream &in, const string &basename, bool debug, bool clear_all, bool
       bool minimal_workspace, bool compute_xrefs, FileOutputType output_mode,
       LanguageOutputType language, int params_derivs_order, bool transform_unary_ops,
       JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple,
-      bool nopreprocessoroutput, const string &mexext, const boost::filesystem::path &matlabroot,
+      const string &mexext, const boost::filesystem::path &matlabroot,
       const boost::filesystem::path &dynareroot, bool onlymodel)
 {
   ParsingDriver p(warnings, nostrict);
@@ -44,34 +44,33 @@ main2(stringstream &in, const string &basename, bool debug, bool clear_all, bool
   // Do parsing and construct internal representation of mod file
   unique_ptr<ModFile> mod_file = p.parse(in, debug);
   if (json == JsonOutputPointType::parsing)
-    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, nopreprocessoroutput);
+    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
 
   // Run checking pass
   mod_file->checkPass(nostrict, stochastic);
   if (json == JsonOutputPointType::checkpass)
-    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, nopreprocessoroutput);
+    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
 
   // Perform transformations on the model (creation of auxiliary vars and equations)
-  mod_file->transformPass(nostrict, stochastic, compute_xrefs || json == JsonOutputPointType::transformpass, nopreprocessoroutput, transform_unary_ops);
+  mod_file->transformPass(nostrict, stochastic, compute_xrefs || json == JsonOutputPointType::transformpass, transform_unary_ops);
   if (json == JsonOutputPointType::transformpass)
-    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, nopreprocessoroutput);
+    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
 
   // Evaluate parameters initialization, initval, endval and pounds
-  mod_file->evalAllExpressions(warn_uninit, nopreprocessoroutput);
+  mod_file->evalAllExpressions(warn_uninit);
 
   // Do computations
-  mod_file->computingPass(no_tmp_terms, output_mode, params_derivs_order, nopreprocessoroutput);
+  mod_file->computingPass(no_tmp_terms, output_mode, params_derivs_order);
   if (json == JsonOutputPointType::computingpass)
-    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, nopreprocessoroutput, jsonderivsimple);
+    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, jsonderivsimple);
 
   // Write outputs
   if (output_mode != FileOutputType::none)
-    mod_file->writeExternalFiles(basename, output_mode, language, nopreprocessoroutput);
+    mod_file->writeExternalFiles(basename, output_mode, language);
   else
     mod_file->writeOutputFiles(basename, clear_all, clear_global, no_log, no_warn, console, nograph,
                                nointeractive, config_file, check_model_changes, minimal_workspace, compute_xrefs,
-                               nopreprocessoroutput, mexext, matlabroot, dynareroot, onlymodel);
+                               mexext, matlabroot, dynareroot, onlymodel);
 
-  if (!nopreprocessoroutput)
-    cout << "Preprocessing completed." << endl;
+  cout << "Preprocessing completed." << endl;
 }

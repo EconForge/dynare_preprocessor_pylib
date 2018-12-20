@@ -4347,7 +4347,7 @@ DynamicModel::substitutePacExpectation()
 void
 DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsOrder,
                             const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll,
-                            bool bytecode, bool nopreprocessoroutput, bool linear_decomposition)
+                            bool bytecode, bool linear_decomposition)
 {
   assert(jacobianExo || (derivsOrder < 2 && paramsDerivsOrder == 0));
 
@@ -4370,16 +4370,14 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
     }
 
   // Launch computations
-  if (!nopreprocessoroutput)
-    cout << "Computing " << (linear_decomposition ? "nonlinear " : "")
-         << "dynamic model derivatives (order " << derivsOrder << ")." << endl;
+  cout << "Computing " << (linear_decomposition ? "nonlinear " : "")
+       << "dynamic model derivatives (order " << derivsOrder << ")." << endl;
 
   computeDerivatives(derivsOrder, vars);
 
   if (paramsDerivsOrder > 0)
     {
-      if (!nopreprocessoroutput)
-        cout << "Computing dynamic model derivatives w.r.t. parameters (order " << paramsDerivsOrder << ")." << endl;
+      cout << "Computing dynamic model derivatives w.r.t. parameters (order " << paramsDerivsOrder << ")." << endl;
       computeParamsDerivatives(paramsDerivsOrder);
     }
 
@@ -4439,8 +4437,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
       equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, variable_reordered, equation_reordered, mfs);
 
-      if (!nopreprocessoroutput)
-        cout << "Finding the optimal block decomposition of the model ..." << endl;
+      cout << "Finding the optimal block decomposition of the model ..." << endl;
 
       lag_lead_vector_t equation_lag_lead, variable_lag_lead;
 
@@ -4958,7 +4955,7 @@ DynamicModel::replaceMyEquations(DynamicModel &dynamic_model) const
 }
 
 void
-DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model, const bool nopreprocessoroutput)
+DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
 {
   // Add aux LM to constraints in equations
   // equation[i]->lhs = rhs becomes equation[i]->MULT_(i+1)*(lhs-rhs) = 0
@@ -4969,8 +4966,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model, const boo
       assert(substeq != nullptr);
       equations[i] = substeq;
     }
-  if (!nopreprocessoroutput)
-    cout << "Ramsey Problem: added " << i << " Multipliers." << endl;
+  cout << "Ramsey Problem: added " << i << " Multipliers." << endl;
 
   // Add Planner Objective to equations to include in computeDerivIDs
   assert(static_model.equations.size() == 1);
@@ -5641,31 +5637,31 @@ DynamicModel::writeLatexOriginalFile(const string &basename, const bool write_eq
 }
 
 void
-DynamicModel::substituteEndoLeadGreaterThanTwo(bool deterministic_model, bool nopreprocessoroutput)
+DynamicModel::substituteEndoLeadGreaterThanTwo(bool deterministic_model)
 {
-  substituteLeadLagInternal(AuxVarType::endoLead, deterministic_model, {}, nopreprocessoroutput);
+  substituteLeadLagInternal(AuxVarType::endoLead, deterministic_model, {});
 }
 
 void
-DynamicModel::substituteEndoLagGreaterThanTwo(bool deterministic_model, bool nopreprocessoroutput)
+DynamicModel::substituteEndoLagGreaterThanTwo(bool deterministic_model)
 {
-  substituteLeadLagInternal(AuxVarType::endoLag, deterministic_model, {}, nopreprocessoroutput);
+  substituteLeadLagInternal(AuxVarType::endoLag, deterministic_model, {});
 }
 
 void
-DynamicModel::substituteExoLead(bool deterministic_model, bool nopreprocessoroutput)
+DynamicModel::substituteExoLead(bool deterministic_model)
 {
-  substituteLeadLagInternal(AuxVarType::exoLead, deterministic_model, {}, nopreprocessoroutput);
+  substituteLeadLagInternal(AuxVarType::exoLead, deterministic_model, {});
 }
 
 void
-DynamicModel::substituteExoLag(bool deterministic_model, bool nopreprocessoroutput)
+DynamicModel::substituteExoLag(bool deterministic_model)
 {
-  substituteLeadLagInternal(AuxVarType::exoLag, deterministic_model, {}, nopreprocessoroutput);
+  substituteLeadLagInternal(AuxVarType::exoLag, deterministic_model, {});
 }
 
 void
-DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_model, const vector<string> &subset, bool nopreprocessoroutput)
+DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_model, const vector<string> &subset)
 {
   ExprNode::subst_table_t subst_table;
   vector<BinaryOpNode *> neweqs;
@@ -5743,7 +5739,7 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
   //  - lag variables from lower lag to higher lag
   copy(neweqs.begin(), neweqs.end(), back_inserter(aux_equations));
 
-  if (!nopreprocessoroutput && neweqs.size() > 0)
+  if (neweqs.size() > 0)
     {
       cout << "Substitution of ";
       switch (type)
@@ -5808,24 +5804,24 @@ DynamicModel::findPacExpectationEquationNumbers(vector<int> &eqnumbers) const
 }
 
 void
-DynamicModel::substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, bool nopreprocessoroutput)
+DynamicModel::substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table)
 {
   vector<int> eqnumbers(equations.size());
   iota(eqnumbers.begin(), eqnumbers.end(), 0);
-  substituteUnaryOps(static_model, nodes, subst_table, eqnumbers, nopreprocessoroutput);
+  substituteUnaryOps(static_model, nodes, subst_table, eqnumbers);
 }
 
 void
-DynamicModel::substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, set<string> &var_model_eqtags, bool nopreprocessoroutput)
+DynamicModel::substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, set<string> &var_model_eqtags)
 {
   vector<int> eqnumbers;
   getEquationNumbersFromTags(eqnumbers, var_model_eqtags);
   findPacExpectationEquationNumbers(eqnumbers);
-  substituteUnaryOps(static_model, nodes, subst_table, eqnumbers, nopreprocessoroutput);
+  substituteUnaryOps(static_model, nodes, subst_table, eqnumbers);
 }
 
 void
-DynamicModel::substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, vector<int> &eqnumbers, bool nopreprocessoroutput)
+DynamicModel::substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, vector<int> &eqnumbers)
 {
   // Find matching unary ops that may be outside of diffs (i.e., those with different lags)
   set<int> used_local_vars;
@@ -5860,12 +5856,12 @@ DynamicModel::substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes,
 
   copy(neweqs.begin(), neweqs.end(), back_inserter(aux_equations));
 
-  if (!nopreprocessoroutput && subst_table.size() > 0)
+  if (subst_table.size() > 0)
     cout << "Substitution of Unary Ops: added " << neweqs.size() << " auxiliary variables and equations." << endl;
 }
 
 void
-DynamicModel::substituteDiff(StaticModel &static_model, diff_table_t &diff_table, ExprNode::subst_table_t &diff_subst_table, bool nopreprocessoroutput)
+DynamicModel::substituteDiff(StaticModel &static_model, diff_table_t &diff_table, ExprNode::subst_table_t &diff_subst_table)
 {
   set<int> used_local_vars;
   for (const auto & equation : equations)
@@ -5922,12 +5918,12 @@ DynamicModel::substituteDiff(StaticModel &static_model, diff_table_t &diff_table
 
   copy(neweqs.begin(), neweqs.end(), back_inserter(aux_equations));
 
-  if (!nopreprocessoroutput && diff_subst_table.size() > 0)
+  if (diff_subst_table.size() > 0)
     cout << "Substitution of Diff operator: added " << neweqs.size() << " auxiliary variables and equations." << endl;
 }
 
 void
-DynamicModel::substituteExpectation(bool partial_information_model, bool nopreprocessoroutput)
+DynamicModel::substituteExpectation(bool partial_information_model)
 {
   ExprNode::subst_table_t subst_table;
   vector<BinaryOpNode *> neweqs;
@@ -5951,7 +5947,7 @@ DynamicModel::substituteExpectation(bool partial_information_model, bool noprepr
   // Add the new set of equations at the *beginning* of aux_equations
   copy(neweqs.rbegin(), neweqs.rend(), front_inserter(aux_equations));
 
-  if (!nopreprocessoroutput && subst_table.size() > 0)
+  if (subst_table.size() > 0)
     {
       if (partial_information_model)
         cout << "Substitution of Expectation operator: added " << subst_table.size() << " auxiliary variables and " << neweqs.size() << " auxiliary equations." << endl;
@@ -6007,9 +6003,9 @@ DynamicModel::removeTrendVariableFromEquations()
 }
 
 void
-DynamicModel::differentiateForwardVars(const vector<string> &subset, bool nopreprocessoroutput)
+DynamicModel::differentiateForwardVars(const vector<string> &subset)
 {
-  substituteLeadLagInternal(AuxVarType::diffForward, true, subset, nopreprocessoroutput);
+  substituteLeadLagInternal(AuxVarType::diffForward, true, subset);
 }
 
 void

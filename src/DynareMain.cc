@@ -49,7 +49,7 @@ void main2(stringstream &in, const string &basename, bool debug, bool clear_all,
            bool minimal_workspace, bool compute_xrefs, FileOutputType output_mode,
            LanguageOutputType lang, int params_derivs_order, bool transform_unary_ops,
            JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple,
-           bool nopreprocessoroutput, const string &mexext, const boost::filesystem::path &matlabroot,
+           const string &mexext, const boost::filesystem::path &matlabroot,
            const boost::filesystem::path &dynareroot, bool onlymodel);
 
 void main1(const string &filename, const string &basename, istream &modfile, bool debug, bool save_macro, string &save_macro_file,
@@ -159,7 +159,6 @@ main(int argc, char **argv)
   bool onlyjson = false;
   bool jsonderivsimple = false;
   LanguageOutputType language{LanguageOutputType::matlab};
-  bool nopreprocessoroutput = false;
   string mexext;
   boost::filesystem::path matlabroot;
   boost::filesystem::path dynareroot{argv[0]};
@@ -340,7 +339,7 @@ main(int argc, char **argv)
       else if (s == "onlyjson")
         onlyjson = true;
       else if (s == "nopreprocessoroutput")
-        nopreprocessoroutput = true;
+        cout.rdbuf(nullptr);
       else if (s == "jsonderivsimple")
         jsonderivsimple = true;
       else if (s.substr(0, 4) == "json")
@@ -394,8 +393,7 @@ main(int argc, char **argv)
         }
     }
 
-  if (!nopreprocessoroutput)
-    cout << "Starting preprocessing of the model file ..." << endl;
+  cout << "Starting preprocessing of the model file ..." << endl;
 
   // Construct basename (i.e. remove file extension if there is one)
   string basename = argv[1];
@@ -430,7 +428,7 @@ main(int argc, char **argv)
         no_tmp_terms, no_log, no_warn, warn_uninit, console, nograph, nointeractive,
         parallel, config_file, warnings, nostrict, stochastic, check_model_changes, minimal_workspace,
         compute_xrefs, output_mode, language, params_derivs_order, transform_unary_ops,
-        json, json_output_mode, onlyjson, jsonderivsimple, nopreprocessoroutput,
+        json, json_output_mode, onlyjson, jsonderivsimple,
         mexext, matlabroot, dynareroot, onlymodel);
 
   return EXIT_SUCCESS;

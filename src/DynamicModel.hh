@@ -180,7 +180,7 @@ private:
     \param[in] deterministic_model whether we are in a deterministic model (only for exogenous leads/lags)
     \param[in] subset variables to which to apply the transformation (only for diff of forward vars)
   */
-  void substituteLeadLagInternal(AuxVarType type, bool deterministic_model, const vector<string> &subset, bool nopreprocessoroutput);
+  void substituteLeadLagInternal(AuxVarType type, bool deterministic_model, const vector<string> &subset);
 
   //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
   bool global_temporary_terms{true};
@@ -287,7 +287,7 @@ public:
     \param no_tmp_terms if true, no temporary terms will be computed in the dynamic files
   */
   void computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsOrder,
-                     const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode, bool nopreprocessoroutput, bool linear_decomposition);
+                     const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode, bool linear_decomposition);
   //! Writes model initialization and lead/lag incidence matrix to output
   void writeOutput(ostream &output, const string &basename, bool block, bool linear_decomposition, bool byte_code, bool use_dll, int order, bool estimation_present, bool compute_xrefs, bool julia) const;
 
@@ -377,7 +377,7 @@ public:
   void setLeadsLagsOrig();
 
   //! Replaces model equations with derivatives of Lagrangian w.r.t. endogenous
-  void computeRamseyPolicyFOCs(const StaticModel &static_model, const bool nopreprocessoroutput);
+  void computeRamseyPolicyFOCs(const StaticModel &static_model);
   //! Replaces the model equations in dynamic_model with those in this model
   void replaceMyEquations(DynamicModel &dynamic_model) const;
 
@@ -412,20 +412,20 @@ public:
 
   //! Transforms the model by removing all leads greater or equal than 2 on endos
   /*! Note that this can create new lags on endos and exos */
-  void substituteEndoLeadGreaterThanTwo(bool deterministic_model, bool nopreprocessoroutput);
+  void substituteEndoLeadGreaterThanTwo(bool deterministic_model);
 
   //! Transforms the model by removing all lags greater or equal than 2 on endos
-  void substituteEndoLagGreaterThanTwo(bool deterministic_model, bool nopreprocessoroutput);
+  void substituteEndoLagGreaterThanTwo(bool deterministic_model);
 
   //! Transforms the model by removing all leads on exos
   /*! Note that this can create new lags on endos and exos */
-  void substituteExoLead(bool deterministic_model, bool nopreprocessoroutput);
+  void substituteExoLead(bool deterministic_model);
 
   //! Transforms the model by removing all lags on exos
-  void substituteExoLag(bool deterministic_model, bool nopreprocessoroutput);
+  void substituteExoLag(bool deterministic_model);
 
   //! Transforms the model by removing all UnaryOpcode::expectation
-  void substituteExpectation(bool partial_information_model, bool nopreprocessoroutput);
+  void substituteExpectation(bool partial_information_model);
 
   //! Transforms the model by decreasing the lead/lag of predetermined variables in model equations by one
   void transformPredeterminedVariables();
@@ -437,16 +437,16 @@ public:
   void substituteAdl();
 
   //! Creates aux vars for all unary operators
-  void substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, bool nopreprocessoroutput);
+  void substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table);
 
   //! Creates aux vars for certain unary operators: originally implemented for support of VARs
-  void substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, set<string> &eq_tags, bool nopreprocessoroutput);
+  void substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, set<string> &eq_tags);
 
   //! Creates aux vars for certain unary operators: originally implemented for support of VARs
-  void substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, vector<int> &eqnumbers, bool nopreprocessoroutput);
+  void substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, vector<int> &eqnumbers);
 
   //! Substitutes diff operator
-  void substituteDiff(StaticModel &static_model, diff_table_t &diff_table, ExprNode::subst_table_t &diff_subst_table, bool nopreprocessoroutput);
+  void substituteDiff(StaticModel &static_model, diff_table_t &diff_table, ExprNode::subst_table_t &diff_subst_table);
 
   //! Substitute VarExpectation operators
   void substituteVarExpectation(const map<string, expr_t> &subst_table);
@@ -464,7 +464,7 @@ public:
   //! Transforms the model by creating aux vars for the diff of forward vars
   /*! If subset is empty, does the transformation for all fwrd vars; otherwise
     restrict it to the vars in subset */
-  void differentiateForwardVars(const vector<string> &subset, bool nopreprocessoroutput);
+  void differentiateForwardVars(const vector<string> &subset);
 
   //! Fills eval context with values of model local variables and auxiliary variables
   void fillEvalContext(eval_context_t &eval_context) const;

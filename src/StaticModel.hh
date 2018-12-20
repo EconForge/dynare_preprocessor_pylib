@@ -190,7 +190,7 @@ public:
     \param derivsOrder order of derivation with respect to endogenous
     \param paramsDerivsOrder order of derivatives w.r. to a pair (endogenous, parameter) to be computed
   */
-  void computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool bytecode, bool nopreprocessoroutput);
+  void computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool bytecode);
 
   //! Adds informations for simulation in a binary file for a block decomposed model
   void Write_Inf_To_Bin_File_Block(const string &basename, const int &num,

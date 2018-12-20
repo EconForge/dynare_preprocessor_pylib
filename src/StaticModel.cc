@@ -1186,7 +1186,7 @@ StaticModel::collect_first_order_derivatives_endogenous()
 }
 
 void
-StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool bytecode, bool nopreprocessoroutput)
+StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool bytecode)
 {
   initializeVariablesAndEquations();
 
@@ -1216,15 +1216,13 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
     }
 
   // Launch computations
-  if (!nopreprocessoroutput)
-    cout << "Computing static model derivatives (order " << derivsOrder << ")." << endl;
+  cout << "Computing static model derivatives (order " << derivsOrder << ")." << endl;
 
   computeDerivatives(derivsOrder, vars);
 
   if (paramsDerivsOrder > 0)
     {
-      if (!nopreprocessoroutput)
-        cout << "Computing static model derivatives w.r.t. parameters (order " << paramsDerivsOrder << ")." << endl;
+      cout << "Computing static model derivatives w.r.t. parameters (order " << paramsDerivsOrder << ")." << endl;
       computeParamsDerivatives(paramsDerivsOrder);
     }
 
@@ -1246,8 +1244,7 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
 
       equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, variable_reordered, equation_reordered, mfs);
 
-      if (!nopreprocessoroutput)
-        cout << "Finding the optimal block decomposition of the model ..." << endl;
+      cout << "Finding the optimal block decomposition of the model ..." << endl;
 
       lag_lead_vector_t equation_lag_lead, variable_lag_lead;
 
