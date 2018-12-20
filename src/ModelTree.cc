@@ -2236,6 +2236,7 @@ ModelTree::compileDll(const string &basename, const string &static_or_dynamic, c
       else
         {
           // macOS
+          compiler = "/usr/local/bin/gcc-7";
           string archs = (mexext == "maci" ? "i386" : "x86_64");
           flags << " -fno-common -arch " << archs << " -mmacosx-version-min=10.7 -Wl,-twolevel_namespace -undefined error -bundle";
           libs += " -lm -lstdc++";
