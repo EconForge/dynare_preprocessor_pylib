@@ -378,7 +378,7 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
     }
 
   output << "if exist(['+' M_.fname '/dynamic_set_auxiliary_series'])" << endl
-       << "  eval(['M_.histval_dseries = ' M_.fname '.dynamic_set_auxiliary_series(M_.histval_dseries, []);']);" << endl
+       << "  eval(['M_.histval_dseries = ' M_.fname '.dynamic_set_auxiliary_series(M_.histval_dseries, M_.params);']);" << endl
        << "end" << endl
          << "M_.endo_histval = M_.histval_dseries{M_.endo_names{:}}(dates(sprintf('%dY', 1-M_.maximum_lag)):dates('0Y')).data';" << endl
          << "M_.endo_histval(isnan(M_.endo_histval)) = 0;" << endl; // Ensure that lead aux variables do not have a NaN
