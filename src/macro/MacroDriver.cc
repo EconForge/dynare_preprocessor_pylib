@@ -27,12 +27,12 @@
 #include "MacroDriver.hh"
 
 void
-MacroDriver::parse(const string &f, const string &fb, const string &modfiletxt,
+MacroDriver::parse(const string &file_arg, const string &basename_arg, istream &modfile,
                    ostream &out, bool debug, bool no_line_macro_arg, map<string, string> defines,
                    vector<string> path)
 {
-  file = f;
-  basename = fb;
+  file = file_arg;
+  basename = basename_arg;
   no_line_macro = no_line_macro_arg;
 
   /*
@@ -55,7 +55,7 @@ MacroDriver::parse(const string &f, const string &fb, const string &modfiletxt,
         else
           file_with_endl << "@#define " << define.first << " = \"" << define.second << "\"" << endl;
       }
-  file_with_endl << modfiletxt << endl;
+  file_with_endl << modfile.rdbuf() << endl;
 
   lexer = make_unique<MacroFlex>(&file_with_endl, &out, no_line_macro, path);
   lexer->set_debug(debug);

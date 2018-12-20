@@ -27,9 +27,9 @@
 #include "ExtendedPreprocessorTypes.hh"
 
 void
-main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear_global,
+main2(stringstream &in, const string &basename, bool debug, bool clear_all, bool clear_global,
       bool no_tmp_terms, bool no_log, bool no_warn, bool warn_uninit, bool console,
-      bool nograph, bool nointeractive, bool parallel, ConfigFile &config_file,
+      bool nograph, bool nointeractive, bool parallel, const ConfigFile &config_file,
       WarningConsolidation &warnings, bool nostrict, bool stochastic, bool check_model_changes,
       bool minimal_workspace, bool compute_xrefs, FileOutputType output_mode,
       LanguageOutputType language, int params_derivs_order, bool transform_unary_ops,

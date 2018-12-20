@@ -226,7 +226,7 @@ public:
 
   //! Starts parsing a file, returns output in out
   /*! \param no_line_macro should we omit the @#line statements ? */
-  void parse(const string &f, const string &fb, const string &modfiletxt, ostream &out, bool debug, bool no_line_macro_arg,
+  void parse(const string &file_arg, const string &basename_arg, istream &modfile, ostream &out, bool debug, bool no_line_macro_arg,
              map<string, string> defines, vector<string> path);
 
   //! Name of main file being parsed

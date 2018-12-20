@@ -42,9 +42,9 @@
    Splitting main() in two parts was necessary because ParsingDriver.h and MacroDriver.h can't be
    included simultaneously (because of Bison limitations).
 */
-void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool clear_global,
+void main2(stringstream &in, const string &basename, bool debug, bool clear_all, bool clear_global,
            bool no_tmp_terms, bool no_log, bool no_warn, bool warn_uninit, bool console,
-           bool nograph, bool nointeractive, bool parallel, ConfigFile &config_file,
+           bool nograph, bool nointeractive, bool parallel, const ConfigFile &config_file,
            WarningConsolidation &warnings_arg, bool nostrict, bool stochastic, bool check_model_changes,
            bool minimal_workspace, bool compute_xrefs, FileOutputType output_mode,
            LanguageOutputType lang, int params_derivs_order, bool transform_unary_ops,
@@ -52,8 +52,8 @@ void main2(stringstream &in, string &basename, bool debug, bool clear_all, bool 
            bool nopreprocessoroutput, const string &mexext, const boost::filesystem::path &matlabroot,
            const boost::filesystem::path &dynareroot, bool onlymodel);
 
-void main1(string &modfile, string &basename, string &modfiletxt, bool debug, bool save_macro, string &save_macro_file,
-           bool no_line_macro, bool no_empty_line_macro, map<string, string> &defines, vector<string> &path, stringstream &macro_output);
+void main1(const string &filename, const string &basename, istream &modfile, bool debug, bool save_macro, string &save_macro_file,
+           bool no_line_macro, bool no_empty_line_macro, const map<string, string> &defines, const vector<string> &path, stringstream &macro_output);
 
 void
 usage()
@@ -68,14 +68,14 @@ usage()
   exit(EXIT_FAILURE);
 }
 
+/* Looks for an options list in the first line of the mod file (but rewind
+   the input stream afterwards */
 vector<string>
-parse_options_line(const string &modfiletxt)
+parse_options_line(istream &modfile)
 {
-  // Looks for an options list in the first line of the mod file
-
   vector<string> options;
-  auto pos = modfiletxt.find('\n');
-  string first_line{modfiletxt.substr(0, pos)};
+  string first_line;
+  getline(modfile, first_line);
 
   regex pat{"^\\s*//\\s*--\\+\\s*options:([^\\+]*)\\+--"};
   smatch matches;
@@ -88,6 +88,9 @@ parse_options_line(const string &modfiletxt)
              p != sregex_iterator{}; ++p)
           options.push_back((*p)[1]);
       }
+
+  modfile.seekg(0);
+
   return options;
 }
 
@@ -107,40 +110,16 @@ main(int argc, char **argv)
       usage();
     }
 
-  /* Construct basename (i.e. remove file extension if there is one) and put
-     contents of mod-file into a buffer */
-  string basename = argv[1];
-  string modfile, modfiletxt;
-  size_t fsc = basename.find_first_of(';');
-  if (fsc != string::npos)
+  string filename = argv[1];
+  ifstream modfile(filename, ios::binary);
+  if (modfile.fail())
     {
-      // If a semicolon is found in argv[1], treat it as the text of the modfile
-      modfile = "mod_file_passed_as_string.mod";
-      basename = "mod_file_passed_as_string";
-      modfiletxt = argv[1];
-    }
-  else
-    {
-      // If a semicolon is NOT found in argv[1], treat it as the name of the modfile
-      modfile = argv[1];
-      size_t pos = basename.find_last_of('.');
-      if (pos != string::npos)
-        basename.erase(pos);
-
-      ifstream modfile(argv[1], ios::binary);
-      if (modfile.fail())
-        {
-          cerr << "ERROR: Could not open file: " << argv[1] << endl;
-          exit(EXIT_FAILURE);
-        }
-
-      stringstream buffer;
-      buffer << modfile.rdbuf();
-      modfiletxt = buffer.str();
+      cerr << "ERROR: Could not open file: " << argv[1] << endl;
+      exit(EXIT_FAILURE);
     }
 
   // Create options list, using first line of mod-file and command line
-  vector<string> options = parse_options_line(modfiletxt);
+  vector<string> options = parse_options_line(modfile);
   for (int arg = 2; arg < argc; arg++)
     options.push_back(argv[arg]);
 
@@ -418,6 +397,12 @@ main(int argc, char **argv)
   if (!nopreprocessoroutput)
     cout << "Starting preprocessing of the model file ..." << endl;
 
+  // Construct basename (i.e. remove file extension if there is one)
+  string basename = argv[1];
+  size_t pos = basename.find_last_of('.');
+  if (pos != string::npos)
+    basename.erase(pos);
+
   WarningConsolidation warnings(no_warn);
 
   // Process config file
@@ -434,7 +419,7 @@ main(int argc, char **argv)
 
   // Do macro processing
   stringstream macro_output;
-  main1(modfile, basename, modfiletxt, debug, save_macro, save_macro_file, no_line_macro, no_empty_line_macro,
+  main1(filename, basename, modfile, debug, save_macro, save_macro_file, no_line_macro, no_empty_line_macro,
         defines, path, macro_output);
 
   if (only_macro)

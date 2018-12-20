@@ -27,13 +27,13 @@ bool compareNewline (int i, int j) {
 }
 
 void
-main1(string &modfile, string &basename, string &modfiletxt, bool debug, bool save_macro, string &save_macro_file,
-      bool no_line_macro, bool no_empty_line_macro, map<string, string> &defines, vector<string> &path, stringstream &macro_output)
+main1(const string &filename, const string &basename, istream &modfile, bool debug, bool save_macro, string &save_macro_file,
+      bool no_line_macro, bool no_empty_line_macro, const map<string, string> &defines, const vector<string> &path, stringstream &macro_output)
 {
   // Do macro processing
   MacroDriver m;
 
-  m.parse(modfile, basename, modfiletxt, macro_output, debug, no_line_macro, defines, path);
+  m.parse(filename, basename, modfile, macro_output, debug, no_line_macro, defines, path);
   if (save_macro)
     {
       if (save_macro_file.empty())
