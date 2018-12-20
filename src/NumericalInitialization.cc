@@ -358,10 +358,12 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
   output << "%" << endl
          << "% HISTVAL instructions" << endl
          << "%" << endl
-         << "M_.histval_dseries = dseries(zeros(M_.orig_maximum_lag_with_diffs_expanded, M_.orig_endo_nbr+sum([M_.aux_vars.type]==6)"
+         << "M_.histval_dseries = dseries(zeros(M_.orig_maximum_lag_with_diffs_expanded, M_.orig_endo_nbr"
+         << (symbol_table.AuxVarsSize() > 0 ? "+sum([M_.aux_vars.type]==6)" : "")
          << (symbol_table.exo_nbr() > 0 ? "+M_.exo_nbr" : "")
          << (symbol_table.exo_det_nbr() > 0 ? "+M_.exo_det_nbr" : "")
-         << "), dates(sprintf('%dY', -M_.orig_maximum_lag_with_diffs_expanded+1)), [ M_.endo_names(1:M_.orig_endo_nbr); M_.endo_names([M_.aux_vars(find([M_.aux_vars.type]==6)).endo_index]); "
+         << "), dates(sprintf('%dY', -M_.orig_maximum_lag_with_diffs_expanded+1)), [ M_.endo_names(1:M_.orig_endo_nbr); "
+         << (symbol_table.AuxVarsSize() > 0 ? "M_.endo_names([M_.aux_vars(find([M_.aux_vars.type]==6)).endo_index]); " : "")
          << (symbol_table.exo_nbr() > 0 ? "M_.exo_names; " : "")
          << (symbol_table.exo_det_nbr() > 0 ? "M_.exo_det_names; " : "")
          << "]);" << endl;
