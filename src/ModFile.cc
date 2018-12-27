@@ -962,6 +962,24 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   if (onlymodel)
     for (auto &statement : statements)
       {
+        /* Special treatment for initval block: insert initial values for the
+           auxiliary variables and initialize exo det */
+        auto *ivs = dynamic_cast<InitValStatement *>(statement.get());
+        if (ivs != nullptr)
+          {
+            ivs->writeOutput(mOutputFile, basename, minimal_workspace);
+            static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
+            ivs->writeOutputPostInit(mOutputFile);
+          }
+
+        // Special treatment for endval block: insert initial values for the auxiliary variables
+        auto *evs = dynamic_cast<EndValStatement *>(statement.get());
+        if (evs != nullptr)
+          {
+            evs->writeOutput(mOutputFile, basename, minimal_workspace);
+            static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
+          }
+
         auto *ips = dynamic_cast<InitParamStatement *>(statement.get());
         if (ips != nullptr)
           ips->writeOutput(mOutputFile, basename, minimal_workspace);
