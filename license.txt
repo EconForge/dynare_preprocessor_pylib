@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: Dynare-preprocessor
-Upstream-Contact: Dynare Team, whose members in 2018 are:
+Upstream-Contact: Dynare Team, whose members in 2019 are:
                   Stéphane Adjemian <stephane.adjemian@univ-lemans.fr>
                   Houtan Bastani <houtan@dynare.org>
                   Michel Juillard <michel.juillard@mjui.fr>
@@ -13,7 +13,7 @@ Upstream-Contact: Dynare Team, whose members in 2018 are:
 Source: http://www.dynare.org
 
 Files: *
-Copyright: 1996-2018 Dynare Team
+Copyright: 1996-2019 Dynare Team
 License: GPL-3+
 
 Files: m4/ax_boost_base.m4
