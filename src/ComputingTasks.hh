@@ -107,7 +107,7 @@ public:
                   OptionsList options_list_arg,
                   const bool linear_decompositiontion_arg);
   //virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
 };
 
 class ModelInfoStatement : public Statement
