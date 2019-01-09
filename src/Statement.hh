@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2017 Dynare Team
+ * Copyright (C) 2006-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -68,6 +68,8 @@ public:
   bool svar_identification_present{false};
   //! Whether an identification statement is present or the identification option of dynare_sensitivity statement is equal to one
   bool identification_present{false};
+  //! Whether a sensitivity statement is present
+  bool sensitivity_present{false};
   //! Whether the option analytic_derivation is given to estimation
   bool estimation_analytic_derivation{false};
   //! Whether the option partial_information is given to stoch_simul/estimation/osr/ramsey_policy
