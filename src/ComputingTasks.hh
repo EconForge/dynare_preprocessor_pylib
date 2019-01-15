@@ -103,7 +103,7 @@ private:
   const SymbolList symbol_list;
   const bool linear_decomposition;
 public:
-  DetCondForecast(const SymbolList &symbol_list_arg,
+  DetCondForecast(SymbolList symbol_list_arg,
                   OptionsList options_list_arg,
                   const bool linear_decompositiontion_arg);
   //virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);

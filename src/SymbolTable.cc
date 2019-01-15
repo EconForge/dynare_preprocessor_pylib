@@ -22,6 +22,7 @@
 #include <iostream>
 #include <cassert>
 #include <boost/algorithm/string/replace.hpp>
+#include <utility>
 
 #include "SymbolTable.hh"
 
@@ -35,7 +36,7 @@ AuxVarInfo::AuxVarInfo(int symb_id_arg, AuxVarType type_arg, int orig_symb_id_ar
   equation_number_for_multiplier{equation_number_for_multiplier_arg},
   information_set{information_set_arg},
   expr_node{expr_node_arg},
-  unary_op{unary_op_arg}
+  unary_op{move(unary_op_arg)}
 {
 }
 

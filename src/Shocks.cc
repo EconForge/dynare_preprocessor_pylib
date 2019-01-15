@@ -45,11 +45,11 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
       int id = symbol_table.getTypeSpecificID(det_shock.first) + 1;
       bool exo_det = (symbol_table.getType(det_shock.first) == SymbolType::exogenousDet);
 
-      for (size_t i = 0; i < det_shock.second.size(); i++)
+      for (const auto &it : det_shock.second)
         {
-          const int &period1 = det_shock.second[i].period1;
-          const int &period2 = det_shock.second[i].period2;
-          const expr_t value = det_shock.second[i].value;
+          const int &period1 = it.period1;
+          const int &period2 = it.period2;
+          const expr_t value = it.value;
 
           output << "M_.det_shocks = [ M_.det_shocks;" << endl
                  << "struct('exo_det'," << (int) exo_det

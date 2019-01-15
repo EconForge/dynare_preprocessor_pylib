@@ -3333,9 +3333,9 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               tmp_s.str("");
             }
           vector<int> inter_state_var;
-          for (auto it_l = local_state_var.begin(); it_l != local_state_var.end(); ++it_l)
+          for (int & it_l : local_state_var)
             for (auto it = state_var.begin(); it != state_var.end(); ++it)
-              if (*it == *it_l)
+              if (*it == it_l)
                 inter_state_var.push_back(it - state_var.begin()+1);
           output << "block_structure.block(" << block+1 << ").sorted_col_dr_ghx = [";
           for (int it : inter_state_var)

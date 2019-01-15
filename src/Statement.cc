@@ -21,10 +21,6 @@
 #include <boost/xpressive/xpressive.hpp>
 #include <utility>
 
-ModFileStructure::ModFileStructure()
-{
-}
-
 void
 Statement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
@@ -120,9 +116,8 @@ OptionsList::writeOutput(ostream &output) const
       if (vector_int_option.second.size() > 1)
         {
           output << "[";
-          for (auto viit = vector_int_option.second.begin();
-               viit != vector_int_option.second.end(); viit++)
-            output << *viit << ";";
+          for (int viit : vector_int_option.second)
+            output << viit << ";";
           output << "];" << endl;
         }
       else
@@ -135,9 +130,8 @@ OptionsList::writeOutput(ostream &output) const
       if (vector_str_option.second.size() > 1)
         {
           output << "{";
-          for (auto viit = vector_str_option.second.begin();
-               viit != vector_str_option.second.end(); viit++)
-            output << "'" << *viit << "';";
+          for (const auto & viit : vector_str_option.second)
+            output << "'" << viit << "';";
           output << "};" << endl;
         }
       else
@@ -181,9 +175,8 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
       if (vector_int_option.second.size() > 1)
         {
           output << "[";
-          for (auto viit = vector_int_option.second.begin();
-               viit != vector_int_option.second.end(); viit++)
-            output << *viit << ";";
+          for (int viit : vector_int_option.second)
+            output << viit << ";";
           output << "];" << endl;
         }
       else
@@ -196,9 +189,8 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
       if (vector_str_option.second.size() > 1)
         {
           output << "{";
-          for (auto viit = vector_str_option.second.begin();
-               viit != vector_str_option.second.end(); viit++)
-            output << "'" << *viit << "';";
+          for (const auto & viit : vector_str_option.second)
+            output << "'" << viit << "';";
           output << "};" << endl;
         }
       else

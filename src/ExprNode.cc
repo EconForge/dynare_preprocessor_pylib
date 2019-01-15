@@ -5729,7 +5729,7 @@ BinaryOpNode::fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
   if (tmp.size() != 0)
     return;
 
-  BinaryOpNode *multiplicandr = dynamic_cast<BinaryOpNode *>(arg2);
+  auto *multiplicandr = dynamic_cast<BinaryOpNode *>(arg2);
   if (multiplicandr == nullptr
       || multiplicandr->op_code != BinaryOpcode::minus)
     return;

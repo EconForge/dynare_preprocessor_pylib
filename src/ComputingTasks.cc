@@ -683,11 +683,11 @@ ForecastStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-DetCondForecast::DetCondForecast(const SymbolList &symbol_list_arg,
+DetCondForecast::DetCondForecast(SymbolList symbol_list_arg,
                                  OptionsList options_list_arg,
                                  const bool linear_decomposition_arg) :
   options_list{move(options_list_arg)},
-  symbol_list{symbol_list_arg},
+  symbol_list{move(symbol_list_arg)},
   linear_decomposition{linear_decomposition_arg}
 {
 
@@ -3427,7 +3427,7 @@ SubsamplesStatement::SubsamplesStatement(string name1_arg,
                                          const SymbolTable &symbol_table_arg) :
   name1{move(name1_arg)},
   name2{move(name2_arg)},
-  subsample_declaration_map{subsample_declaration_map_arg},
+  subsample_declaration_map{move(subsample_declaration_map_arg)},
   symbol_table{symbol_table_arg}
 {
 }

@@ -121,7 +121,7 @@ main(int argc, char **argv)
   // Create options list, using first line of mod-file and command line
   vector<string> options = parse_options_line(modfile);
   for (int arg = 2; arg < argc; arg++)
-    options.push_back(argv[arg]);
+    options.emplace_back(argv[arg]);
 
   // Parse options
   bool clear_all = true;

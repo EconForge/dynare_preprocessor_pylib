@@ -31,7 +31,7 @@
 class ModFileStructure
 {
 public:
-  ModFileStructure();
+  ModFileStructure() = default;
   //! Whether check is present
   bool check_present{false};
   //! Whether steady is present
