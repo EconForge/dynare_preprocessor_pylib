@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2018 Dynare Team
+ * Copyright (C) 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -269,7 +269,7 @@ main(int argc, char **argv)
 
           auto equal_index = s.find('=');
           if (equal_index != string::npos)
-            defines[s.substr(2, equal_index)] = s.substr(equal_index+1);
+            defines[s.substr(2, equal_index-2)] = s.substr(equal_index+1);
           else
             defines[s.substr(2)] = "1";
         }
