@@ -1469,7 +1469,7 @@ EstimatedParamsStatement::writeJsonOutput(ostream &output) const
           break;
         }
 
-      output << ", \"initval\": \"";
+      output << ", \"init_val\": \"";
       it->init_val->writeJsonOutput(output, {}, {});
       output << "\", \"lower_bound\": \"";
       it->low_bound->writeJsonOutput(output, {}, {});

@@ -233,7 +233,7 @@ InitValStatement::writeOutput(ostream &output, const string &basename, bool mini
 void
 InitValStatement::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"init_val\", \"vals\": [";
+  output << "{\"statementName\": \"initval\", \"vals\": [";
   writeJsonInitValues(output);
   output << "]}";
 }
