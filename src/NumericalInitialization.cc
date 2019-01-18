@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2017 Dynare Team
+ * Copyright (C) 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -298,7 +298,7 @@ EndValStatement::writeOutput(ostream &output, const string &basename, bool minim
 void
 EndValStatement::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"end_val\", \"vals\": [";
+  output << "{\"statementName\": \"endval\", \"vals\": [";
   writeJsonInitValues(output);
   output << "]}";
 }
@@ -394,7 +394,7 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
 void
 HistValStatement::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"hist_val\", \"vals\": [";
+  output << "{\"statementName\": \"histval\", \"vals\": [";
   for (auto it = hist_values.begin();
        it != hist_values.end(); it++)
     {
