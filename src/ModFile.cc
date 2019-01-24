@@ -419,9 +419,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
          {
            vector<int> lhs;
            vector<bool> nonstationary;
-           int growth_symb_id, max_lag;
+           int growth_symb_id, growth_lag, max_lag;
            string aux_model_name, pac_model_name;
-           tie ( pac_model_name, aux_model_name, growth_symb_id ) =
+           tie ( pac_model_name, aux_model_name, growth_symb_id, growth_lag ) =
              pms->getPacModelInfoForPacExpectation();
            if (trend_component_model_table.isExistingTrendComponentModelName(aux_model_name))
              {
@@ -447,7 +447,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
            dynamic_model.walkPacParameters();
            int pac_max_lag = original_model.getPacMaxLag(pac_model_name);
            dynamic_model.fillPacExpectationVarInfo(pac_model_name, lhs, max_lag,
-                                                   pac_max_lag, nonstationary, growth_symb_id);
+                                                   pac_max_lag, nonstationary, growth_symb_id, growth_lag);
            dynamic_model.substitutePacExpectation();
          }
      }

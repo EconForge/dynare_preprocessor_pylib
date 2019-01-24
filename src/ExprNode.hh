@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Dynare Team
+ * Copyright (C) 2007-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -526,6 +526,9 @@ class ExprNode
       //! Returns true if the expression contains one or several exogenous variable
       virtual bool containsExogenous() const = 0;
 
+      //! Returns true if the expression contains one or several parameters
+      virtual bool containsParameter() const = 0;
+
       //! Returns the maximum number of nested diffs in the expression
       virtual int countDiffs() const = 0;
 
@@ -603,7 +606,7 @@ class ExprNode
       virtual void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) = 0;
 
       //! Fills var_model info for pac_expectation node
-      virtual void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) = 0;
+      virtual void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) = 0;
 
       //! Fills the AR matrix structure
       virtual void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const = 0;
@@ -715,6 +718,7 @@ public:
   bool isNumConstNodeEqualTo(double value) const override;
   bool containsEndogenous() const override;
   bool containsExogenous() const override;
+  bool containsParameter() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
@@ -723,7 +727,7 @@ public:
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) override;
-  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
@@ -804,6 +808,7 @@ public:
   bool isNumConstNodeEqualTo(double value) const override;
   bool containsEndogenous() const override;
   bool containsExogenous() const override;
+  bool containsParameter() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
@@ -812,7 +817,7 @@ public:
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) override;
-  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
@@ -921,6 +926,7 @@ public:
   bool isNumConstNodeEqualTo(double value) const override;
   bool containsEndogenous() const override;
   bool containsExogenous() const override;
+  bool containsParameter() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
@@ -929,7 +935,7 @@ public:
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) override;
-  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
@@ -1045,6 +1051,7 @@ public:
   bool isNumConstNodeEqualTo(double value) const override;
   bool containsEndogenous() const override;
   bool containsExogenous() const override;
+  bool containsParameter() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
@@ -1059,7 +1066,7 @@ public:
   expr_t getNonZeroPartofEquation() const;
   bool isInStaticForm() const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) override;
-  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRowHelper(expr_t arg1, expr_t arg2,
                                    int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
@@ -1170,6 +1177,7 @@ public:
   bool isNumConstNodeEqualTo(double value) const override;
   bool containsEndogenous() const override;
   bool containsExogenous() const override;
+  bool containsParameter() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
@@ -1178,7 +1186,7 @@ public:
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) override;
-  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
@@ -1295,6 +1303,7 @@ public:
   bool isNumConstNodeEqualTo(double value) const override;
   bool containsEndogenous() const override;
   bool containsExogenous() const override;
+  bool containsParameter() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms, const string &ending) const;
@@ -1304,7 +1313,7 @@ public:
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) override;
-  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
@@ -1508,6 +1517,7 @@ public:
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   bool containsEndogenous() const override;
   bool containsExogenous() const override;
+  bool containsParameter() const override;
   int countDiffs() const override;
   bool isNumConstNodeEqualTo(double value) const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
@@ -1518,7 +1528,7 @@ public:
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) override;
-  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
@@ -1541,7 +1551,7 @@ public:
   const string model_name;
 private:
   string var_model_name;
-  int growth_symb_id;
+  int growth_symb_id, growth_lag;
   bool stationary_vars_present, nonstationary_vars_present;
   vector<int> lhs;
   pair<int, int> lhs_pac_var;
@@ -1608,6 +1618,7 @@ public:
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   bool containsEndogenous() const override;
   bool containsExogenous() const override;
+  bool containsParameter() const override;
   int countDiffs() const override;
   bool isNumConstNodeEqualTo(double value) const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
@@ -1618,7 +1629,7 @@ public:
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants) override;
-  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg) override;
+  void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;

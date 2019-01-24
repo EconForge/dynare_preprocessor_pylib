@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2018 Dynare Team
+ * Copyright (C) 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -4318,11 +4318,11 @@ DynamicModel::fillPacExpectationVarInfo(string &pac_model_name,
                                         int max_lag,
                                         int pac_max_lag,
                                         vector<bool> &nonstationary,
-                                        int growth_symb_id)
+                                        int growth_symb_id, int growth_lag)
 {
   for (size_t i = 0; i < equations.size(); i++)
     equations[i]->fillPacExpectationVarInfo(pac_model_name, lhs, max_lag,
-                                            pac_max_lag, nonstationary, growth_symb_id, i);
+                                            pac_max_lag, nonstationary, growth_symb_id, growth_lag, i);
 }
 
 void

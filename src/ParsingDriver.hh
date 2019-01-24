@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2018 Dynare Team
+ * Copyright (C) 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -253,6 +253,10 @@ private:
   unique_ptr<ModFile> mod_file;
 
   WarningConsolidation &warnings;
+
+  //! Temporary storage for growth declared in pac_model
+  int pac_growth_symb_id = -1;
+  int pac_growth_lag = 0;
 
   bool nostrict;
 
@@ -727,6 +731,8 @@ public:
   expr_t add_pac_expectation(const string &var_model_name);
   //! Creates pac_model statement
   void pac_model();
+  //! Adds growth for pac
+  void set_pac_growth(const string &name, int lag = 0);
   //! Writes token "diff(arg1)" to model tree
   expr_t add_diff(expr_t arg1);
   //! Writes token "adl(arg1, lag)" to model tree

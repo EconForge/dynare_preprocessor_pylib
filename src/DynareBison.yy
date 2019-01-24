@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /*
- * Copyright (C) 2003-2018 Dynare Team
+ * Copyright (C) 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -3130,7 +3130,9 @@ o_file : FILE EQUAL filename { driver.option_str("file", $3); };
 o_pac_name : MODEL_NAME EQUAL symbol { driver.option_str("pac.model_name", $3); };
 o_pac_aux_model_name : AUXILIARY_MODEL_NAME EQUAL symbol { driver.option_str("pac.aux_model_name", $3); };
 o_pac_discount : DISCOUNT EQUAL symbol { driver.option_str("pac.discount", $3); };
-o_pac_growth : GROWTH EQUAL symbol { driver.option_str("pac.growth", $3); };
+o_pac_growth : GROWTH EQUAL symbol { driver.set_pac_growth($3, 0); }
+             | GROWTH EQUAL symbol '(' MINUS INT_NUMBER ')' { driver.set_pac_growth($3, stoi($6)); }
+             ;
 o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var.model_name", $3); };
 o_var_order : ORDER EQUAL INT_NUMBER { driver.option_num("var.order", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };

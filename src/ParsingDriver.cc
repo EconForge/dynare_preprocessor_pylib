@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2018 Dynare Team
+ * Copyright (C) 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -2625,16 +2625,19 @@ ParsingDriver::pac_model()
     error("You must pass the discount option to the pac_model statement.");
   auto discount = it->second;
 
-  string growth;
-  it = options_list.string_options.find("pac.growth");
-  if (it != options_list.string_options.end())
-    growth = it->second;
-
-  mod_file->addStatement(make_unique<PacModelStatement>(name, aux_model_name, discount, growth,
+  mod_file->addStatement(make_unique<PacModelStatement>(name, aux_model_name, discount,
+                                                        pac_growth_symb_id, pac_growth_lag,
                                                         mod_file->symbol_table));
-
-  symbol_list.clear();
+  pac_growth_symb_id = -1;
+  pac_growth_lag = 0;
   options_list.clear();
+}
+
+void
+ParsingDriver::set_pac_growth(const string &name, int lag)
+{
+  pac_growth_symb_id = mod_file->symbol_table.getID(name);
+  pac_growth_lag = -lag;
 }
 
 expr_t

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2018 Dynare Team
+ * Copyright (C) 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -351,7 +351,7 @@ public:
                                  int max_lag,
                                  int pac_max_lag,
                                  vector<bool> &nonstationary,
-                                 int growth_symb_id);
+                                 int growth_symb_id, int growth_lag);
 
   //! Substitutes pac_expectation operator
   void substitutePacExpectation();

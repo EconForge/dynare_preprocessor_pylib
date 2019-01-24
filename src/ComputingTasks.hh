@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2018 Dynare Team
+ * Copyright (C) 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -140,20 +140,21 @@ private:
   const string name;
   const string aux_model_name;
   const string discount;
-  const string growth;
+  const int growth_symb_id, growth_lag;
   const SymbolTable &symbol_table;
   vector<int> lhs;
 public:
   PacModelStatement(string name_arg,
                     string aux_model_name_arg,
                     string discount_arg,
-                    string growth_arg,
+                    int growth_symb_id_arg,
+                    int growth_lag_arg,
                     const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
   void fillUndiffedLHS(vector<int> &lhs);
-  tuple<string, string, int> getPacModelInfoForPacExpectation() const;
+  tuple<string, string, int, int> getPacModelInfoForPacExpectation() const;
 };
 
 class VarRestrictionsStatement : public Statement

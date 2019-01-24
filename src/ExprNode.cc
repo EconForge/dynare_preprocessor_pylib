@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Dynare Team
+ * Copyright (C) 2007-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -638,6 +638,12 @@ NumConstNode::containsExogenous() const
   return false;
 }
 
+bool
+NumConstNode::containsParameter() const
+{
+  return false;
+}
+
 expr_t
 NumConstNode::replaceTrendVar() const
 {
@@ -687,7 +693,7 @@ NumConstNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pa
 }
 
 void
-NumConstNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
+NumConstNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
 {
 }
 
@@ -1865,6 +1871,12 @@ VariableNode::containsExogenous() const
   return (get_type() == SymbolType::exogenous || get_type() == SymbolType::exogenousDet);
 }
 
+bool
+VariableNode::containsParameter() const
+{
+  return get_type() == SymbolType::parameter ? true : false;
+}
+
 expr_t
 VariableNode::replaceTrendVar() const
 {
@@ -1980,7 +1992,7 @@ VariableNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pa
 }
 
 void
-VariableNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
+VariableNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
 {
 }
 
@@ -3729,6 +3741,12 @@ UnaryOpNode::containsExogenous() const
   return arg->containsExogenous();
 }
 
+bool
+UnaryOpNode::containsParameter() const
+{
+  return arg->containsParameter();
+}
+
 expr_t
 UnaryOpNode::replaceTrendVar() const
 {
@@ -3790,9 +3808,9 @@ UnaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pai
 }
 
 void
-UnaryOpNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
+UnaryOpNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
 {
-  arg->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
+  arg->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
 }
 
 bool
@@ -5407,6 +5425,12 @@ BinaryOpNode::containsExogenous() const
   return (arg1->containsExogenous() || arg2->containsExogenous());
 }
 
+bool
+BinaryOpNode::containsParameter() const
+{
+  return (arg1->containsParameter() || arg2->containsParameter());
+}
+
 expr_t
 BinaryOpNode::replaceTrendVar() const
 {
@@ -5815,10 +5839,10 @@ BinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pa
 }
 
 void
-BinaryOpNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
+BinaryOpNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
 {
-  arg1->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
-  arg2->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
+  arg1->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
+  arg2->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
 }
 
 bool
@@ -6670,6 +6694,12 @@ TrinaryOpNode::containsExogenous() const
   return (arg1->containsExogenous() || arg2->containsExogenous() || arg3->containsExogenous());
 }
 
+bool
+TrinaryOpNode::containsParameter() const
+{
+  return (arg1->containsParameter() || arg2->containsParameter() || arg3->containsParameter());
+}
+
 expr_t
 TrinaryOpNode::replaceTrendVar() const
 {
@@ -6739,11 +6769,11 @@ TrinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, p
 }
 
 void
-TrinaryOpNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
+TrinaryOpNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
 {
-  arg1->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
-  arg2->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
-  arg3->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
+  arg1->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
+  arg2->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
+  arg3->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
 }
 
 bool
@@ -7223,6 +7253,15 @@ AbstractExternalFunctionNode::containsExogenous() const
   return false;
 }
 
+bool
+AbstractExternalFunctionNode::containsParameter() const
+{
+  for (auto argument : arguments)
+    if (argument->containsParameter())
+      return true;
+  return false;
+}
+
 expr_t
 AbstractExternalFunctionNode::replaceTrendVar() const
 {
@@ -7290,10 +7329,10 @@ AbstractExternalFunctionNode::addParamInfoToPac(pair<int, int> &lhs_arg, int opt
 }
 
 void
-AbstractExternalFunctionNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
+AbstractExternalFunctionNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
 {
   for (auto argument : arguments)
-    argument->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, equation_number_arg);
+    argument->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
 }
 
 bool
@@ -8828,6 +8867,13 @@ VarExpectationNode::containsExogenous() const
 }
 
 bool
+VarExpectationNode::containsParameter() const
+{
+  cerr << "VarExpectationNode::containsParameter not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+bool
 VarExpectationNode::isNumConstNodeEqualTo(double value) const
 {
   return false;
@@ -8912,7 +8958,7 @@ VarExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_a
 }
 
 void
-VarExpectationNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
+VarExpectationNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
 {
 }
 
@@ -9372,6 +9418,12 @@ PacExpectationNode::containsExogenous() const
 }
 
 bool
+PacExpectationNode::containsParameter() const
+{
+  return false;
+}
+
+bool
 PacExpectationNode::isNumConstNodeEqualTo(double value) const
 {
   return false;
@@ -9505,7 +9557,7 @@ PacExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_a
 
 
 void
-PacExpectationNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int equation_number_arg)
+PacExpectationNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
 {
   if (model_name != model_name_arg)
     return;
@@ -9514,6 +9566,7 @@ PacExpectationNode::fillPacExpectationVarInfo(string &model_name_arg, vector<int
   max_lag = max_lag_arg;
   pac_max_lag = pac_max_lag_arg;
   growth_symb_id = growth_symb_id_arg;
+  growth_lag = growth_lag_arg;
   equation_number = equation_number_arg;
 
   for (vector<bool>::const_iterator it = nonstationary_arg.begin();
@@ -9574,7 +9627,7 @@ PacExpectationNode::substitutePacExpectation(map<const PacExpectationNode *, con
                                                            SymbolType::parameter);
       subExpr = datatree.AddPlus(subExpr,
                                  datatree.AddTimes(datatree.AddVariable(growth_param_index),
-                                                   datatree.AddVariable(growth_symb_id)));
+                                                   datatree.AddVariable(growth_symb_id, growth_lag)));
     }
 
   subst_table[const_cast<PacExpectationNode *>(this)] = dynamic_cast<BinaryOpNode *>(subExpr);
