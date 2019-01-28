@@ -526,9 +526,6 @@ class ExprNode
       //! Returns true if the expression contains one or several exogenous variable
       virtual bool containsExogenous() const = 0;
 
-      //! Returns true if the expression contains one or several parameters
-      virtual bool containsParameter() const = 0;
-
       //! Returns the maximum number of nested diffs in the expression
       virtual int countDiffs() const = 0;
 
@@ -724,7 +721,6 @@ public:
   bool isNumConstNodeEqualTo(double value) const override;
   bool containsEndogenous() const override;
   bool containsExogenous() const override;
-  bool containsParameter() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
@@ -816,7 +812,6 @@ public:
   bool isNumConstNodeEqualTo(double value) const override;
   bool containsEndogenous() const override;
   bool containsExogenous() const override;
-  bool containsParameter() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
@@ -936,7 +931,6 @@ public:
   bool isNumConstNodeEqualTo(double value) const override;
   bool containsEndogenous() const override;
   bool containsExogenous() const override;
-  bool containsParameter() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
@@ -1063,7 +1057,6 @@ public:
   bool isNumConstNodeEqualTo(double value) const override;
   bool containsEndogenous() const override;
   bool containsExogenous() const override;
-  bool containsParameter() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
@@ -1191,7 +1184,6 @@ public:
   bool isNumConstNodeEqualTo(double value) const override;
   bool containsEndogenous() const override;
   bool containsExogenous() const override;
-  bool containsParameter() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
@@ -1319,7 +1311,6 @@ public:
   bool isNumConstNodeEqualTo(double value) const override;
   bool containsEndogenous() const override;
   bool containsExogenous() const override;
-  bool containsParameter() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms, const string &ending) const;
@@ -1535,7 +1526,6 @@ public:
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   bool containsEndogenous() const override;
   bool containsExogenous() const override;
-  bool containsParameter() const override;
   int countDiffs() const override;
   bool isNumConstNodeEqualTo(double value) const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
@@ -1638,7 +1628,6 @@ public:
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   bool containsEndogenous() const override;
   bool containsExogenous() const override;
-  bool containsParameter() const override;
   int countDiffs() const override;
   bool isNumConstNodeEqualTo(double value) const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;

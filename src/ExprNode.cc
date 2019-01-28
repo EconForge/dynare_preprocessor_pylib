@@ -638,12 +638,6 @@ NumConstNode::containsExogenous() const
   return false;
 }
 
-bool
-NumConstNode::containsParameter() const
-{
-  return false;
-}
-
 expr_t
 NumConstNode::replaceTrendVar() const
 {
@@ -1881,12 +1875,6 @@ bool
 VariableNode::containsExogenous() const
 {
   return (get_type() == SymbolType::exogenous || get_type() == SymbolType::exogenousDet);
-}
-
-bool
-VariableNode::containsParameter() const
-{
-  return get_type() == SymbolType::parameter ? true : false;
 }
 
 expr_t
@@ -3768,12 +3756,6 @@ UnaryOpNode::containsExogenous() const
   return arg->containsExogenous();
 }
 
-bool
-UnaryOpNode::containsParameter() const
-{
-  return arg->containsParameter();
-}
-
 expr_t
 UnaryOpNode::replaceTrendVar() const
 {
@@ -5465,12 +5447,6 @@ BinaryOpNode::containsExogenous() const
   return (arg1->containsExogenous() || arg2->containsExogenous());
 }
 
-bool
-BinaryOpNode::containsParameter() const
-{
-  return (arg1->containsParameter() || arg2->containsParameter());
-}
-
 expr_t
 BinaryOpNode::replaceTrendVar() const
 {
@@ -6764,12 +6740,6 @@ TrinaryOpNode::containsExogenous() const
   return (arg1->containsExogenous() || arg2->containsExogenous() || arg3->containsExogenous());
 }
 
-bool
-TrinaryOpNode::containsParameter() const
-{
-  return (arg1->containsParameter() || arg2->containsParameter() || arg3->containsParameter());
-}
-
 expr_t
 TrinaryOpNode::replaceTrendVar() const
 {
@@ -7336,15 +7306,6 @@ AbstractExternalFunctionNode::containsExogenous() const
 {
   for (auto argument : arguments)
     if (argument->containsExogenous())
-      return true;
-  return false;
-}
-
-bool
-AbstractExternalFunctionNode::containsParameter() const
-{
-  for (auto argument : arguments)
-    if (argument->containsParameter())
       return true;
   return false;
 }
@@ -8970,13 +8931,6 @@ VarExpectationNode::containsExogenous() const
 }
 
 bool
-VarExpectationNode::containsParameter() const
-{
-  cerr << "VarExpectationNode::containsParameter not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-bool
 VarExpectationNode::isNumConstNodeEqualTo(double value) const
 {
   return false;
@@ -9528,12 +9482,6 @@ PacExpectationNode::containsEndogenous() const
 
 bool
 PacExpectationNode::containsExogenous() const
-{
-  return false;
-}
-
-bool
-PacExpectationNode::containsParameter() const
 {
   return false;
 }
