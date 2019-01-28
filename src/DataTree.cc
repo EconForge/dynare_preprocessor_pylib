@@ -357,29 +357,41 @@ DataTree::AddExp(expr_t iArg1)
 expr_t
 DataTree::AddLog(expr_t iArg1)
 {
-  if (iArg1 != Zero && iArg1 != One)
-    return AddUnaryOp(UnaryOpcode::log, iArg1);
-  else if (iArg1 == One)
+  if (iArg1 == One)
     return Zero;
-  else
+
+  if (iArg1 == Zero)
     {
       cerr << "ERROR: log(0) not defined!" << endl;
       exit(EXIT_FAILURE);
     }
+
+  // Try to simplify log(1/x) into -log(x)
+  auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
+  if (barg1 && barg1->op_code == BinaryOpcode::divide && barg1->arg1 == One)
+    return AddUMinus(AddLog(barg1->arg2));
+
+  return AddUnaryOp(UnaryOpcode::log, iArg1);
 }
 
 expr_t
 DataTree::AddLog10(expr_t iArg1)
 {
-  if (iArg1 != Zero && iArg1 != One)
-    return AddUnaryOp(UnaryOpcode::log10, iArg1);
-  else if (iArg1 == One)
+  if (iArg1 == One)
     return Zero;
-  else
+
+  if (iArg1 == Zero)
     {
       cerr << "ERROR: log10(0) not defined!" << endl;
       exit(EXIT_FAILURE);
     }
+
+  // Try to simplify log10(1/x) into -log10(x)
+  auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
+  if (barg1 && barg1->op_code == BinaryOpcode::divide && barg1->arg1 == One)
+    return AddUMinus(AddLog10(barg1->arg2));
+
+  return AddUnaryOp(UnaryOpcode::log10, iArg1);
 }
 
 expr_t
