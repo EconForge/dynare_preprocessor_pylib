@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2018 Dynare Team
+ * Copyright (C) 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1919,6 +1919,29 @@ ModelTree::addEquation(expr_t eq, int lineno)
 
   equations.push_back(beq);
   equations_lineno.push_back(lineno);
+}
+
+void
+ModelTree::simplifyEquations()
+{
+  size_t last_subst_table_size = 0;
+  map<expr_t, expr_t> subst_table;
+  findConstantEquations(subst_table);
+  while (subst_table.size() != last_subst_table_size)
+    {
+      last_subst_table_size = subst_table.size();
+      for (auto & equation : equations)
+        equation = dynamic_cast<BinaryOpNode *>(equation->replaceVarsInEquation(subst_table));
+      subst_table.clear();
+      findConstantEquations(subst_table);
+    }
+}
+
+void
+ModelTree::findConstantEquations(map<expr_t, expr_t> &subst_table) const
+{
+  for (auto & equation : equations)
+    equation->findConstantEquations(subst_table);
 }
 
 void

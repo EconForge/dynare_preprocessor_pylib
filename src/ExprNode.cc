@@ -719,6 +719,18 @@ NumConstNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, c
 {
 }
 
+void
+NumConstNode::findConstantEquations(map<expr_t, expr_t> &table) const
+{
+  return;
+}
+
+expr_t
+NumConstNode::replaceVarsInEquation(map<expr_t, expr_t> &table) const
+{
+  return const_cast<NumConstNode *>(this);
+}
+
 VariableNode::VariableNode(DataTree &datatree_arg, int idx_arg, int symb_id_arg, int lag_arg) :
   ExprNode{datatree_arg, idx_arg},
   symb_id{symb_id_arg},
@@ -2021,6 +2033,21 @@ VariableNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<i
 void
 VariableNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const
 {
+}
+
+void
+VariableNode::findConstantEquations(map<expr_t, expr_t> &table) const
+{
+  return;
+}
+
+expr_t
+VariableNode::replaceVarsInEquation(map<expr_t, expr_t> &table) const
+{
+  for (auto & it : table)
+    if (dynamic_cast<VariableNode *>(it.first)->symb_id == symb_id)
+      return dynamic_cast<NumConstNode *>(it.second);
+  return const_cast<VariableNode *>(this);
 }
 
 UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, int idx_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, string adl_param_name_arg, vector<int> adl_lags_arg) :
@@ -3845,6 +3872,19 @@ void
 UnaryOpNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const
 {
   arg->fillErrorCorrectionRow(eqn, nontrend_lhs, trend_lhs, EC);
+}
+
+void
+UnaryOpNode::findConstantEquations(map<expr_t, expr_t> &table) const
+{
+  arg->findConstantEquations(table);
+}
+
+expr_t
+UnaryOpNode::replaceVarsInEquation(map<expr_t, expr_t> &table) const
+{
+  expr_t argsubst =  arg->replaceVarsInEquation(table);
+  return buildSimilarUnaryOpNode(argsubst, datatree);
 }
 
 BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, int idx_arg, const expr_t arg1_arg,
@@ -5814,6 +5854,36 @@ BinaryOpNode::fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
 }
 
 void
+BinaryOpNode::findConstantEquations(map<expr_t, expr_t> &table) const
+{
+  if (op_code == BinaryOpcode::equal)
+    if (dynamic_cast<VariableNode *>(arg1) != nullptr && dynamic_cast<NumConstNode *>(arg2) != nullptr)
+      table[arg1] = arg2;
+    else if (dynamic_cast<VariableNode *>(arg2) != nullptr && dynamic_cast<NumConstNode *>(arg1) != nullptr)
+      table[arg2] = arg1;
+  else
+    {
+      arg1->findConstantEquations(table);
+      arg2->findConstantEquations(table);
+    }
+}
+
+expr_t
+BinaryOpNode::replaceVarsInEquation(map<expr_t, expr_t> &table) const
+{
+  if (op_code == BinaryOpcode::equal)
+    for (auto & it : table)
+      if ((dynamic_cast<VariableNode *>(it.first) == arg1
+           && dynamic_cast<NumConstNode *>(it.second) == arg2)
+          || (dynamic_cast<VariableNode *>(it.first) == arg2
+              && dynamic_cast<NumConstNode *>(it.second) == arg1))
+        return const_cast<BinaryOpNode *>(this);
+  expr_t arg1subst = arg1->replaceVarsInEquation(table);
+  expr_t arg2subst = arg2->replaceVarsInEquation(table);
+  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+}
+
+void
 BinaryOpNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const
 {
   fillErrorCorrectionRowHelper(arg1, arg2, eqn, nontrend_lhs, trend_lhs, EC);
@@ -6817,6 +6887,23 @@ TrinaryOpNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, 
   arg3->fillErrorCorrectionRow(eqn, nontrend_lhs, trend_lhs, EC);
 }
 
+void
+TrinaryOpNode::findConstantEquations(map<expr_t, expr_t> &table) const
+{
+  arg1->findConstantEquations(table);
+  arg2->findConstantEquations(table);
+  arg3->findConstantEquations(table);
+}
+
+expr_t
+TrinaryOpNode::replaceVarsInEquation(map<expr_t, expr_t> &table) const
+{
+  expr_t arg1subst = arg1->replaceVarsInEquation(table);
+  expr_t arg2subst = arg2->replaceVarsInEquation(table);
+  expr_t arg3subst = arg3->replaceVarsInEquation(table);
+  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+}
+
 AbstractExternalFunctionNode::AbstractExternalFunctionNode(DataTree &datatree_arg,
                                                            int idx_arg,
                                                            int symb_id_arg,
@@ -7460,6 +7547,22 @@ AbstractExternalFunctionNode::fillErrorCorrectionRow(int eqn, const vector<int> 
 {
   cerr << "External functions not supported in Trend Component Models" << endl;
   exit(EXIT_FAILURE);
+}
+
+void
+AbstractExternalFunctionNode::findConstantEquations(map<expr_t, expr_t> &table) const
+{
+  for (auto argument : arguments)
+    argument->findConstantEquations(table);
+}
+
+expr_t
+AbstractExternalFunctionNode::replaceVarsInEquation(map<expr_t, expr_t> &table) const
+{
+  vector<expr_t> arguments_subst;
+  for (auto argument : arguments)
+    arguments_subst.push_back(argument->replaceVarsInEquation(table));
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
 ExternalFunctionNode::ExternalFunctionNode(DataTree &datatree_arg,
@@ -8983,6 +9086,18 @@ VarExpectationNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_
 }
 
 void
+VarExpectationNode::findConstantEquations(map<expr_t, expr_t> &table) const
+{
+  return;
+}
+
+expr_t
+VarExpectationNode::replaceVarsInEquation(map<expr_t, expr_t> &table) const
+{
+  return const_cast<VarExpectationNode *>(this);
+}
+
+void
 VarExpectationNode::writeJsonAST(ostream &output) const
 {
   output << "{\"node_type\" : \"VarExpectationNode\", "
@@ -9494,6 +9609,18 @@ PacExpectationNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_
 {
   cerr << "Pac Expectation not supported in Trend Component Models" << endl;
   exit(EXIT_FAILURE);
+}
+
+void
+PacExpectationNode::findConstantEquations(map<expr_t, expr_t> &table) const
+{
+  return;
+}
+
+expr_t
+PacExpectationNode::replaceVarsInEquation(map<expr_t, expr_t> &table) const
+{
+  return const_cast<PacExpectationNode *>(this);
 }
 
 void

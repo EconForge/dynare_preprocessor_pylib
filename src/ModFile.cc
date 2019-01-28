@@ -370,6 +370,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   dynamic_model.setLeadsLagsOrig();
   original_model = dynamic_model;
 
+  dynamic_model.simplifyEquations();
+
   if (nostrict)
     {
       set<int> unusedEndogs = dynamic_model.findUnusedEndogenous();
