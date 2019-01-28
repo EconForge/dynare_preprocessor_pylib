@@ -366,11 +366,10 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
 {
   // Save the original model (must be done before any model transformations by preprocessor)
   // - except adl and diff which we always want expanded
+  dynamic_model.simplifyEquations();
   dynamic_model.substituteAdl();
   dynamic_model.setLeadsLagsOrig();
   original_model = dynamic_model;
-
-  dynamic_model.simplifyEquations();
 
   if (nostrict)
     {
