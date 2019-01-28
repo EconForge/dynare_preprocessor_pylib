@@ -2636,6 +2636,8 @@ ParsingDriver::pac_model()
 void
 ParsingDriver::set_pac_growth(const string &name, int lag)
 {
+  if (!mod_file->symbol_table.exists(name))
+    error("Unknown symbol used in pac_growth option: " + name + "\n");
   pac_growth_symb_id = mod_file->symbol_table.getID(name);
   pac_growth_lag = -lag;
 }
