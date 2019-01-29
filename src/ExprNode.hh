@@ -34,6 +34,7 @@ using namespace std;
 #include "SymbolList.hh"
 
 class DataTree;
+class NumConstNode;
 class VariableNode;
 class UnaryOpNode;
 class BinaryOpNode;
@@ -613,10 +614,10 @@ class ExprNode
                                           map<tuple<int, int, int>, expr_t> &EC) const = 0;
 
       //! Finds equations where a variable is equal to a constant
-      virtual void findConstantEquations(map<expr_t, expr_t> &table) const = 0;
+      virtual void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const = 0;
 
       //! Replaces variables found in findConstantEquations() with their constant values
-      virtual expr_t replaceVarsInEquation(map<expr_t, expr_t> &table) const = 0;
+      virtual expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const = 0;
 
       //! Returns true if PacExpectationNode encountered
       virtual bool containsPacExpectation(const string &pac_model_name = "") const = 0;
@@ -732,8 +733,8 @@ public:
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
-  void findConstantEquations(map<expr_t, expr_t> &table) const override;
-  expr_t replaceVarsInEquation(map<expr_t, expr_t> &table) const override;
+  void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
+  expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
@@ -823,8 +824,8 @@ public:
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
-  void findConstantEquations(map<expr_t, expr_t> &table) const override;
-  expr_t replaceVarsInEquation(map<expr_t, expr_t> &table) const override;
+  void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
+  expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
@@ -942,8 +943,8 @@ public:
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
-  void findConstantEquations(map<expr_t, expr_t> &table) const override;
-  expr_t replaceVarsInEquation(map<expr_t, expr_t> &table) const override;
+  void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
+  expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
@@ -1079,8 +1080,8 @@ public:
                                     int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs,
                                     map<tuple<int, int, int>, expr_t> &AR) const;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
-  void findConstantEquations(map<expr_t, expr_t> &table) const override;
-  expr_t replaceVarsInEquation(map<expr_t, expr_t> &table) const override;
+  void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
+  expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
@@ -1195,8 +1196,8 @@ public:
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
-  void findConstantEquations(map<expr_t, expr_t> &table) const override;
-  expr_t replaceVarsInEquation(map<expr_t, expr_t> &table) const override;
+  void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
+  expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
@@ -1323,8 +1324,8 @@ public:
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
-  void findConstantEquations(map<expr_t, expr_t> &table) const override;
-  expr_t replaceVarsInEquation(map<expr_t, expr_t> &table) const override;
+  void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
+  expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
@@ -1539,8 +1540,8 @@ public:
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
-  void findConstantEquations(map<expr_t, expr_t> &table) const override;
-  expr_t replaceVarsInEquation(map<expr_t, expr_t> &table) const override;
+  void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
+  expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
@@ -1641,8 +1642,8 @@ public:
   void fillPacExpectationVarInfo(string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const override;
-  void findConstantEquations(map<expr_t, expr_t> &table) const override;
-  expr_t replaceVarsInEquation(map<expr_t, expr_t> &table) const override;
+  void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
+  expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;

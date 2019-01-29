@@ -714,13 +714,13 @@ NumConstNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, c
 }
 
 void
-NumConstNode::findConstantEquations(map<expr_t, expr_t> &table) const
+NumConstNode::findConstantEquations(map<VariableNode *, NumConstNode *> &table) const
 {
   return;
 }
 
 expr_t
-NumConstNode::replaceVarsInEquation(map<expr_t, expr_t> &table) const
+NumConstNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
   return const_cast<NumConstNode *>(this);
 }
@@ -2024,17 +2024,17 @@ VariableNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, c
 }
 
 void
-VariableNode::findConstantEquations(map<expr_t, expr_t> &table) const
+VariableNode::findConstantEquations(map<VariableNode *, NumConstNode *> &table) const
 {
   return;
 }
 
 expr_t
-VariableNode::replaceVarsInEquation(map<expr_t, expr_t> &table) const
+VariableNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
   for (auto & it : table)
-    if (dynamic_cast<VariableNode *>(it.first)->symb_id == symb_id)
-      return dynamic_cast<NumConstNode *>(it.second);
+    if (it.first->symb_id == symb_id)
+      return it.second;
   return const_cast<VariableNode *>(this);
 }
 
@@ -3857,13 +3857,13 @@ UnaryOpNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, co
 }
 
 void
-UnaryOpNode::findConstantEquations(map<expr_t, expr_t> &table) const
+UnaryOpNode::findConstantEquations(map<VariableNode *, NumConstNode *> &table) const
 {
   arg->findConstantEquations(table);
 }
 
 expr_t
-UnaryOpNode::replaceVarsInEquation(map<expr_t, expr_t> &table) const
+UnaryOpNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
   expr_t argsubst =  arg->replaceVarsInEquation(table);
   return buildSimilarUnaryOpNode(argsubst, datatree);
@@ -5830,13 +5830,13 @@ BinaryOpNode::fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
 }
 
 void
-BinaryOpNode::findConstantEquations(map<expr_t, expr_t> &table) const
+BinaryOpNode::findConstantEquations(map<VariableNode *, NumConstNode *> &table) const
 {
   if (op_code == BinaryOpcode::equal)
     if (dynamic_cast<VariableNode *>(arg1) != nullptr && dynamic_cast<NumConstNode *>(arg2) != nullptr)
-      table[arg1] = arg2;
+      table[dynamic_cast<VariableNode *>(arg1)] = dynamic_cast<NumConstNode *>(arg2);
     else if (dynamic_cast<VariableNode *>(arg2) != nullptr && dynamic_cast<NumConstNode *>(arg1) != nullptr)
-      table[arg2] = arg1;
+      table[dynamic_cast<VariableNode *>(arg2)] = dynamic_cast<NumConstNode *>(arg1);
   else
     {
       arg1->findConstantEquations(table);
@@ -5845,7 +5845,7 @@ BinaryOpNode::findConstantEquations(map<expr_t, expr_t> &table) const
 }
 
 expr_t
-BinaryOpNode::replaceVarsInEquation(map<expr_t, expr_t> &table) const
+BinaryOpNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
   if (op_code == BinaryOpcode::equal)
     for (auto & it : table)
@@ -6858,7 +6858,7 @@ TrinaryOpNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, 
 }
 
 void
-TrinaryOpNode::findConstantEquations(map<expr_t, expr_t> &table) const
+TrinaryOpNode::findConstantEquations(map<VariableNode *, NumConstNode *> &table) const
 {
   arg1->findConstantEquations(table);
   arg2->findConstantEquations(table);
@@ -6866,7 +6866,7 @@ TrinaryOpNode::findConstantEquations(map<expr_t, expr_t> &table) const
 }
 
 expr_t
-TrinaryOpNode::replaceVarsInEquation(map<expr_t, expr_t> &table) const
+TrinaryOpNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
   expr_t arg1subst = arg1->replaceVarsInEquation(table);
   expr_t arg2subst = arg2->replaceVarsInEquation(table);
@@ -7511,14 +7511,14 @@ AbstractExternalFunctionNode::fillErrorCorrectionRow(int eqn, const vector<int> 
 }
 
 void
-AbstractExternalFunctionNode::findConstantEquations(map<expr_t, expr_t> &table) const
+AbstractExternalFunctionNode::findConstantEquations(map<VariableNode *, NumConstNode *> &table) const
 {
   for (auto argument : arguments)
     argument->findConstantEquations(table);
 }
 
 expr_t
-AbstractExternalFunctionNode::replaceVarsInEquation(map<expr_t, expr_t> &table) const
+AbstractExternalFunctionNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
   vector<expr_t> arguments_subst;
   for (auto argument : arguments)
@@ -9040,13 +9040,13 @@ VarExpectationNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_
 }
 
 void
-VarExpectationNode::findConstantEquations(map<expr_t, expr_t> &table) const
+VarExpectationNode::findConstantEquations(map<VariableNode *, NumConstNode *> &table) const
 {
   return;
 }
 
 expr_t
-VarExpectationNode::replaceVarsInEquation(map<expr_t, expr_t> &table) const
+VarExpectationNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
   return const_cast<VarExpectationNode *>(this);
 }
@@ -9560,13 +9560,13 @@ PacExpectationNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_
 }
 
 void
-PacExpectationNode::findConstantEquations(map<expr_t, expr_t> &table) const
+PacExpectationNode::findConstantEquations(map<VariableNode *, NumConstNode *> &table) const
 {
   return;
 }
 
 expr_t
-PacExpectationNode::replaceVarsInEquation(map<expr_t, expr_t> &table) const
+PacExpectationNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
   return const_cast<PacExpectationNode *>(this);
 }

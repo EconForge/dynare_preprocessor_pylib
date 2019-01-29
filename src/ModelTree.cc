@@ -1925,7 +1925,7 @@ void
 ModelTree::simplifyEquations()
 {
   size_t last_subst_table_size = 0;
-  map<expr_t, expr_t> subst_table;
+  map<VariableNode *, NumConstNode *> subst_table;
   findConstantEquations(subst_table);
   while (subst_table.size() != last_subst_table_size)
     {
@@ -1938,7 +1938,7 @@ ModelTree::simplifyEquations()
 }
 
 void
-ModelTree::findConstantEquations(map<expr_t, expr_t> &subst_table) const
+ModelTree::findConstantEquations(map<VariableNode *, NumConstNode *> &subst_table) const
 {
   for (auto & equation : equations)
     equation->findConstantEquations(subst_table);

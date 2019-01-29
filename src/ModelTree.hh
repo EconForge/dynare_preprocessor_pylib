@@ -352,7 +352,7 @@ public:
   //! Simplify model equations: if a variable is equal to a constant, replace that variable elsewhere in the model
   void simplifyEquations();
   //! Find equations where variable is equal to a constant
-  void findConstantEquations(map<expr_t, expr_t> &subst_table) const;
+  void findConstantEquations(map<VariableNode *, NumConstNode *> &subst_table) const;
 
   void jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const;
   //! Helper for writing the sparse Hessian or third derivatives in MATLAB and C
