@@ -5849,10 +5849,7 @@ BinaryOpNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) 
 {
   if (op_code == BinaryOpcode::equal)
     for (auto & it : table)
-      if ((dynamic_cast<VariableNode *>(it.first) == arg1
-           && dynamic_cast<NumConstNode *>(it.second) == arg2)
-          || (dynamic_cast<VariableNode *>(it.first) == arg2
-              && dynamic_cast<NumConstNode *>(it.second) == arg1))
+      if ((it.first == arg1 && it.second == arg2) || (it.first == arg2 && it.second == arg1))
         return const_cast<BinaryOpNode *>(this);
   expr_t arg1subst = arg1->replaceVarsInEquation(table);
   expr_t arg2subst = arg2->replaceVarsInEquation(table);
