@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Dynare Team
+ * Copyright (C) 2018-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -148,7 +148,7 @@ TrendComponentModelTable::checkModelName(const string &name_arg) const
 }
 
 vector<int>
-TrendComponentModelTable::getNontrendLhs(const string &name_arg) const
+TrendComponentModelTable::getNonTargetLhs(const string &name_arg) const
 {
   checkModelName(name_arg);
   return nontarget_lhs.find(name_arg)->second;
@@ -331,7 +331,7 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
       output << "];" << endl;
 
       vector<int> target_lhs_vec = getTargetLhs(name);
-      vector<int> nontarget_lhs_vec = getNontrendLhs(name);
+      vector<int> nontarget_lhs_vec = getNonTargetLhs(name);
 
       ar_ec_output << "if strcmp(model_name, '" << name << "')" << endl
                 << "    % AR" << endl
@@ -347,7 +347,7 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
         }
       ar_ec_output << endl
                    << "    % EC" << endl
-                   << "    ec = zeros(" << nontarget_lhs_vec.size() << ", " << nontarget_lhs_vec.size() << ", 1);" << endl;
+                   << "    ec = zeros(" << nontarget_lhs_vec.size() << ", " << target_lhs_vec.size() << ", 1);" << endl;
       for (const auto & it : EC.at(name))
         {
           int eqn, lag, colidx;

@@ -3897,7 +3897,7 @@ DynamicModel::fillAutoregressiveMatrix(map<string, map<tuple<int, int, int>, exp
       int i = 0;
       map<tuple<int, int, int>, expr_t> AR;
       vector<int> lhs = is_trend_component_model ?
-        trend_component_model_table.getLhs(it.first) : var_model_table.getLhs(it.first);
+        trend_component_model_table.getNonTargetLhs(it.first) : var_model_table.getLhs(it.first);
       for (auto eqn : it.second)
         equations[eqn]->arg2->fillAutoregressiveRow(i++, lhs, AR);
       ARr[it.first] = AR;
@@ -4014,22 +4014,22 @@ DynamicModel::fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, exp
     {
       int i = 0;
       map<tuple<int, int, int>, expr_t> EC;
-      vector<int> trend_lhs = trend_component_model_table.getTargetLhs(it.first);
-      vector<int> nontrend_eqnums = trend_component_model_table.getNonTargetEqNums(it.first);
-      vector<int> undiff_nontrend_lhs = getUndiffLHSForPac(it.first, diff_subst_table);
-      vector<int> parsed_undiff_nontrend_lhs;
+      vector<int> target_lhs = trend_component_model_table.getTargetLhs(it.first);
+      vector<int> nontarget_eqnums = trend_component_model_table.getNonTargetEqNums(it.first);
+      vector<int> undiff_nontarget_lhs = getUndiffLHSForPac(it.first, diff_subst_table);
+      vector<int> parsed_undiff_nontarget_lhs;
 
       for (auto eqn : it.second)
         {
-          if (find(nontrend_eqnums.begin(), nontrend_eqnums.end(), eqn) != nontrend_eqnums.end())
-            parsed_undiff_nontrend_lhs.push_back(undiff_nontrend_lhs.at(i));
+          if (find(nontarget_eqnums.begin(), nontarget_eqnums.end(), eqn) != nontarget_eqnums.end())
+            parsed_undiff_nontarget_lhs.push_back(undiff_nontarget_lhs.at(i));
           i++;
         }
 
       i = 0;
       for (auto eqn : it.second)
-        if (find(nontrend_eqnums.begin(), nontrend_eqnums.end(), eqn) != nontrend_eqnums.end())
-          equations[eqn]->arg2->fillErrorCorrectionRow(i++, parsed_undiff_nontrend_lhs, trend_lhs, EC);
+        if (find(nontarget_eqnums.begin(), nontarget_eqnums.end(), eqn) != nontarget_eqnums.end())
+          equations[eqn]->arg2->fillErrorCorrectionRow(i++, parsed_undiff_nontarget_lhs, target_lhs, EC);
       ECr[it.first] = EC;
     }
 }

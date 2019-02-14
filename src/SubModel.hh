@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Dynare Team
+ * Copyright (C) 2018-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -72,7 +72,7 @@ public:
   vector<int> getOrigDiffVar(const string &name_arg) const;
   map<string, vector<int>> getNonTargetEqNums() const;
   vector<int> getNonTargetEqNums(const string &name_arg) const;
-  vector<int> getNontrendLhs(const string &name_arg) const;
+  vector<int> getNonTargetLhs(const string &name_arg) const;
   vector<int> getTargetLhs(const string &name_arg) const;
 
   void setVals(map<string, vector<int>> eqnums_arg, map<string, vector<int>> target_eqnums_arg,

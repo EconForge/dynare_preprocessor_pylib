@@ -5715,13 +5715,28 @@ BinaryOpNode::fillAutoregressiveRowHelper(expr_t arg1, expr_t arg2,
     return;
 
   set<pair<int, int>> endogs, tmp;
-  arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
-  if (endogs.size() != 1)
-    return;
-
   arg1->collectDynamicVariables(SymbolType::endogenous, tmp);
   arg1->collectDynamicVariables(SymbolType::exogenous, tmp);
   if (tmp.size() != 0)
+    return;
+
+  arg1->collectDynamicVariables(SymbolType::parameter, tmp);
+  if (tmp.size() != 1)
+    return;
+
+  auto *vn = dynamic_cast<VariableNode *>(arg2);
+  if (vn == nullptr)
+    return;
+
+  arg2->collectDynamicVariables(SymbolType::exogenous, endogs);
+  if (endogs.size() != 0)
+    {
+      cerr << "BinaryOpNode::fillAutoregressiveRowHelper: do not currently support param*exog;" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
+  if (endogs.size() != 1)
     return;
 
   int lhs_symb_id = endogs.begin()->first;
@@ -5734,7 +5749,9 @@ BinaryOpNode::fillAutoregressiveRowHelper(expr_t arg1, expr_t arg2,
       lag = -1 * datatree.symbol_table.getOrigLeadLagForDiffAuxVar(lhs_symb_id);
       lhs_symb_id = orig_lhs_symb_id;
     }
-
+  else
+    if (find(lhs.begin(), lhs.end(), lhs_symb_id) == lhs.end())
+      return;
 
   if (AR.find(make_tuple(eqn, -lag, lhs_symb_id)) != AR.end())
     {
@@ -5756,8 +5773,8 @@ BinaryOpNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<i
 void
 BinaryOpNode::fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
                                            int eqn,
-                                           const vector<int> &nontrend_lhs,
-                                           const vector<int> &trend_lhs,
+                                           const vector<int> &nontarget_lhs,
+                                           const vector<int> &target_lhs,
                                            map<tuple<int, int, int>, expr_t> &EC) const
 {
   if (op_code != BinaryOpcode::times)
@@ -5769,9 +5786,12 @@ BinaryOpNode::fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
   if (tmp.size() != 0)
     return;
 
-  auto *multiplicandr = dynamic_cast<BinaryOpNode *>(arg2);
-  if (multiplicandr == nullptr
-      || multiplicandr->op_code != BinaryOpcode::minus)
+  arg1->collectDynamicVariables(SymbolType::parameter, tmp);
+  if (tmp.size() != 1)
+    return;
+
+  auto *bopn = dynamic_cast<BinaryOpNode *>(arg2);
+  if (bopn == nullptr || bopn->op_code != BinaryOpcode::minus)
     return;
 
   arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
@@ -5781,12 +5801,21 @@ BinaryOpNode::fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
   arg2->collectDynamicVariables(SymbolType::exogenous, endogs);
   arg2->collectDynamicVariables(SymbolType::parameter, endogs);
   if (endogs.size() != 2)
-    return;
+    {
+      cerr << "ERROR in model; expecting param*endog or param*(endog-endog)" << endl;
+      exit(EXIT_FAILURE);
+    }
 
-  int endog1, lag1, endog2, lag2;
-  tie(endog1, lag1) = *endogs.begin();
-  tie(endog2, lag2) = *next(endogs.begin(), 1);
-  int orig_endog1 = endog1;
+  auto *vn1 = dynamic_cast<VariableNode *>(bopn->arg1);
+  auto *vn2 = dynamic_cast<VariableNode *>(bopn->arg2);
+  if (vn1 == nullptr || vn2 == nullptr)
+    {
+      cerr << "ERROR in model; expecting param*endog or param*(endog-endog)" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  int endog1 = vn1->symb_id;
+  int endog2 = vn2->symb_id;
   int orig_endog2 = endog2;
 
   bool isauxvar1 = datatree.symbol_table.isAuxiliaryVariable(endog1);
@@ -5799,21 +5828,13 @@ BinaryOpNode::fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
 
   int max_lag = 0;
   int colidx = -1;
-  if (find(nontrend_lhs.begin(), nontrend_lhs.end(), endog1) != nontrend_lhs.end())
+  if (find(nontarget_lhs.begin(), nontarget_lhs.end(), endog1) != nontarget_lhs.end()
+      && find(target_lhs.begin(), target_lhs.end(), endog2) != target_lhs.end())
     {
-      colidx = (int) distance(nontrend_lhs.begin(), find(nontrend_lhs.begin(), nontrend_lhs.end(), endog1));
-      int tmp_lag = lag2;
+      colidx = (int) distance(target_lhs.begin(), find(target_lhs.begin(), target_lhs.end(), endog2));
+      int tmp_lag = vn2->lag;
       if (isauxvar2)
         tmp_lag = -1 * datatree.symbol_table.getOrigLeadLagForDiffAuxVar(orig_endog2);
-      if (tmp_lag < max_lag)
-        max_lag = tmp_lag;
-    }
-  else if (find(nontrend_lhs.begin(), nontrend_lhs.end(), endog2) != nontrend_lhs.end())
-    {
-      colidx = (int) distance(nontrend_lhs.begin(), find(nontrend_lhs.begin(), nontrend_lhs.end(), endog2));
-      int tmp_lag = lag1;
-      if (isauxvar1)
-        tmp_lag = -1 * datatree.symbol_table.getOrigLeadLagForDiffAuxVar(orig_endog1);
       if (tmp_lag < max_lag)
         max_lag = tmp_lag;
     }
