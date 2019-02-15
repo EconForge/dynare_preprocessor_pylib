@@ -5826,7 +5826,7 @@ BinaryOpNode::fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
   endog2 = isauxvar2 ?
     datatree.symbol_table.getOrigSymbIdForDiffAuxVar(endog2) : endog2;
 
-  int max_lag = 0;
+  int max_lag = vn2->lag;
   int colidx = -1;
   if (find(nontarget_lhs.begin(), nontarget_lhs.end(), endog1) != nontarget_lhs.end()
       && find(target_lhs.begin(), target_lhs.end(), endog2) != target_lhs.end())

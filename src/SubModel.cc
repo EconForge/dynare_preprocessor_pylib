@@ -113,13 +113,6 @@ TrendComponentModelTable::setAR(map<string, map<tuple<int, int, int>, expr_t>> A
 void
 TrendComponentModelTable::setEC(map<string, map<tuple<int, int, int>, expr_t>> EC_arg)
 {
-  for (const auto & itmap1 : EC_arg)
-    for (const auto &itmap2 : itmap1.second)
-      if (get<1>(itmap2.first) != 1)
-        {
-          cerr << "Error in EC component: lag must be equal to 1" << endl;
-          exit(EXIT_FAILURE);
-        }
   EC = move(EC_arg);
 }
 
@@ -345,14 +338,19 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
           it.second->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
           ar_ec_output << ";" << endl;
         }
+
+      int ec_lag = 0;
+      for (const auto & it : EC.at(name))
+        if (get<1>(it.first) > ec_lag)
+          ec_lag = get<1>(it.first);
       ar_ec_output << endl
                    << "    % EC" << endl
-                   << "    ec = zeros(" << nontarget_lhs_vec.size() << ", " << target_lhs_vec.size() << ", 1);" << endl;
+                   << "    ec = zeros(" << nontarget_lhs_vec.size() << ", " << target_lhs_vec.size() << ", " << ec_lag << ");" << endl;
       for (const auto & it : EC.at(name))
         {
           int eqn, lag, colidx;
           tie (eqn, lag, colidx) = it.first;
-          ar_ec_output << "    ec(" << eqn + 1 << ", " << colidx + 1 << ", 1) = ";
+          ar_ec_output << "    ec(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
           it.second->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
           ar_ec_output << ";" << endl;
         }
