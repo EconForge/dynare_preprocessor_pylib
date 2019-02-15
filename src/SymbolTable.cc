@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2018 Dynare Team
+ * Copyright (C) 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -379,6 +379,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
             break;
           case AuxVarType::diff:
           case AuxVarType::diffLag:
+          case AuxVarType::diffLead:
             if (aux_vars[i].get_orig_symb_id() >= 0)
               output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl
                      << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
@@ -496,6 +497,7 @@ SymbolTable::writeCOutput(ostream &output) const noexcept(false)
               break;
             case AuxVarType::diff:
             case AuxVarType::diffLag:
+            case AuxVarType::diffLead:
               if (aux_vars[i].get_orig_symb_id() >= 0)
                 output << "av[" << i << "].orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
                        << "av[" << i << "].orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
@@ -601,6 +603,7 @@ SymbolTable::writeCCOutput(ostream &output) const noexcept(false)
           break;
         case AuxVarType::diff:
         case AuxVarType::diffLag:
+        case AuxVarType::diffLead:
           if (aux_vars[i].get_orig_symb_id() >= 0)
             output << "av" << i << ".orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
                    << "av" << i << ".orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
@@ -742,6 +745,29 @@ SymbolTable::addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id
 }
 
 int
+SymbolTable::addDiffLeadAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lead) noexcept(false)
+{
+  ostringstream varname;
+  int symb_id;
+
+  varname << "AUX_DIFF_LEAD_" << index;
+
+  try
+    {
+      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
+    }
+  catch (AlreadyDeclaredException &e)
+    {
+      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  aux_vars.emplace_back(symb_id, AuxVarType::diffLead, orig_symb_id, orig_lead, 0, 0, expr_arg, "");
+
+  return symb_id;
+}
+
+int
 SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) noexcept(false)
 {
   ostringstream varname;
@@ -873,7 +899,8 @@ SymbolTable::getOrigSymbIdForAuxVar(int aux_var_symb_id) const noexcept(false)
     if ((aux_var.get_type() == AuxVarType::endoLag
          || aux_var.get_type() == AuxVarType::exoLag
          || aux_var.get_type() == AuxVarType::diff
-         || aux_var.get_type() == AuxVarType::diffLag)
+         || aux_var.get_type() == AuxVarType::diffLag
+         || aux_var.get_type() == AuxVarType::diffLead)
         && aux_var.get_symb_id() == aux_var_symb_id)
       return aux_var.get_orig_symb_id();
   throw UnknownSymbolIDException(aux_var_symb_id);
@@ -884,7 +911,7 @@ SymbolTable::getOrigLeadLagForDiffAuxVar(int diff_aux_var_symb_id) const noexcep
 {
   int lag = 0;
   for (const auto & aux_var : aux_vars)
-    if (aux_var.get_type() == AuxVarType::diffLag
+    if ((aux_var.get_type() == AuxVarType::diffLag || aux_var.get_type() == AuxVarType::diffLead)
         && aux_var.get_symb_id() == diff_aux_var_symb_id)
       lag += 1 + getOrigLeadLagForDiffAuxVar(aux_var.get_orig_symb_id());
   return lag;
@@ -898,7 +925,7 @@ SymbolTable::getOrigSymbIdForDiffAuxVar(int diff_aux_var_symb_id) const noexcept
     if (aux_var.get_symb_id() == diff_aux_var_symb_id)
       if (aux_var.get_type() == AuxVarType::diff)
         orig_symb_id = diff_aux_var_symb_id;
-      else if (aux_var.get_type() == AuxVarType::diffLag)
+      else if (aux_var.get_type() == AuxVarType::diffLag || aux_var.get_type() == AuxVarType::diffLead)
         orig_symb_id = getOrigSymbIdForDiffAuxVar(aux_var.get_orig_symb_id());
   return orig_symb_id;
 }
@@ -1154,6 +1181,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
               break;
             case AuxVarType::diff:
             case AuxVarType::diffLag:
+            case AuxVarType::diffLead:
               if (aux_var.get_orig_symb_id() >= 0)
                 output << getTypeSpecificID(aux_var.get_orig_symb_id()) + 1 << ", "
                        << aux_var.get_orig_lead_lag() << ", typemin(Int), string(), string()";

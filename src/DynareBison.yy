@@ -163,7 +163,7 @@ class ParsingDriver;
 %token NUMBER_OF_POSTERIOR_DRAWS_AFTER_PERTURBATION MAX_NUMBER_OF_STAGES
 %token RANDOM_FUNCTION_CONVERGENCE_CRITERION RANDOM_PARAMETER_CONVERGENCE_CRITERION
 %token CENTERED_MOMENTS AUTOLAG RECURSIVE_ORDER_ESTIMATION BARTLETT_KERNEL_LAG WEIGHTING_MATRIX PENALIZED_ESTIMATOR VERBOSE
-%token SIMULATION_MULTIPLE SEED BOUNDED_SHOCK_SUPPORT EQTAGS
+%token SIMULATION_MULTIPLE SEED BOUNDED_SHOCK_SUPPORT EQTAGS STEADY_STATE_GROWTH
 %token ANALYTICAL_GIRF IRF_IN_PERCENT EMAS_GIRF EMAS_DROP EMAS_TOLF EMAS_MAX_ITER
 
 %token <vector<string>> SYMBOL_VEC
@@ -398,6 +398,7 @@ pac_model_options : o_pac_name
                   | o_pac_aux_model_name
                   | o_pac_discount
                   | o_pac_growth
+                  | o_pac_steady_state_growth
                   ;
 
 var_expectation_model : VAR_EXPECTATION_MODEL '(' var_expectation_model_options_list ')' ';'
@@ -3133,6 +3134,9 @@ o_pac_discount : DISCOUNT EQUAL symbol { driver.option_str("pac.discount", $3); 
 o_pac_growth : GROWTH EQUAL symbol { driver.set_pac_growth($3, 0); }
              | GROWTH EQUAL symbol '(' MINUS INT_NUMBER ')' { driver.set_pac_growth($3, stoi($6)); }
              ;
+o_pac_steady_state_growth : STEADY_STATE_GROWTH EQUAL signed_number { driver.set_pac_steady_state_growth($3); }
+                          | STEADY_STATE_GROWTH EQUAL symbol { driver.set_pac_steady_state_growth($3); }
+                          ;
 o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var.model_name", $3); };
 o_var_order : ORDER EQUAL INT_NUMBER { driver.option_num("var.order", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };

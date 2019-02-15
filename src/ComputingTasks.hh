@@ -136,11 +136,12 @@ public:
 
 class PacModelStatement : public Statement
 {
-private:
-  const string name;
-  const string aux_model_name;
-  const string discount;
+public:
+  const string name, aux_model_name, discount;
   const int growth_symb_id, growth_lag;
+private:
+  const double steady_state_growth_rate_number;
+  const int steady_state_growth_rate_symb_id;
   const SymbolTable &symbol_table;
   vector<int> lhs;
 public:
@@ -149,12 +150,13 @@ public:
                     string discount_arg,
                     int growth_symb_id_arg,
                     int growth_lag_arg,
+                    double steady_state_growth_rate_number_arg,
+                    int steady_state_growth_rate_symb_id_arg,
                     const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
   void fillUndiffedLHS(vector<int> &lhs);
-  tuple<string, string, int, int> getPacModelInfoForPacExpectation() const;
 };
 
 class VarRestrictionsStatement : public Statement

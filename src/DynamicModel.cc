@@ -3615,6 +3615,15 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
     output << "-1";
   output << "];" << endl;
 
+  // Write Pac Model Consistent Expectation parameter info
+  for (auto & it : pac_mce_alpha_symb_ids)
+    {
+      output << modstruct << "pac." << it.first << ".mce_alpha_idxs = [";
+      for (auto it : it.second)
+        output << symbol_table.getTypeSpecificID(it) + 1 << " ";
+      output << "];" << endl;
+    }
+
   // Write PacExpectationInfo
   for (auto it : pac_expectation_info)
     it->ExprNode::writeOutput(output, ExprNodeOutputType::matlabDynamicModel);
@@ -4312,8 +4321,128 @@ DynamicModel::getPacMaxLag(const string &pac_model_name) const
   return 0;
 }
 
+int
+DynamicModel::getPacTargetSymbId(const string &pac_model_name) const
+{
+  for (auto & equation : equations)
+    if (equation->containsPacExpectation(pac_model_name))
+      {
+        pair<int, int> lhs (-1, -1);
+        equation->getPacLHS(lhs);
+        int lhs_symb_id = lhs.first;
+        int lhs_orig_symb_id = lhs_symb_id;
+        if (symbol_table.isAuxiliaryVariable(lhs_symb_id))
+          try
+            {
+              lhs_orig_symb_id = symbol_table.getOrigSymbIdForAuxVar(lhs_symb_id);
+            }
+          catch (...)
+            {
+            }
+        return equation->arg2->getPacTargetSymbId(lhs_symb_id, lhs_orig_symb_id);
+      }
+  return -1;
+}
+
+int
+DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int pac_target_symb_id,
+                                                       int discount_symb_id, int pac_max_lag_m,
+                                                       ExprNode::subst_table_t &diff_subst_table)
+{
+  int mce_symb_id;
+  try
+    {
+      mce_symb_id = symbol_table.addSymbol("mce_Z_" + name, SymbolType::endogenous);
+    }
+  catch (SymbolTable::AlreadyDeclaredException &e)
+    {
+      cerr << "Variable name needed by PAC (mce_Z_" << name << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  expr_t A = One;
+  expr_t fp = Zero;
+  expr_t beta = AddVariable(discount_symb_id);
+  for (int i = 1; i <= pac_max_lag_m; i++)
+    try
+      {
+        int alpha_i_symb_id = symbol_table.addSymbol("mce_alpha_" + name + "_" + to_string(i),
+                                                     SymbolType::parameter);
+        pac_mce_alpha_symb_ids[name].push_back(alpha_i_symb_id);
+        A = AddPlus(A, AddVariable(alpha_i_symb_id));
+        fp = AddPlus(fp,
+                     AddTimes(AddTimes(AddVariable(alpha_i_symb_id),
+                                       AddPower(beta, AddPossiblyNegativeConstant(i))),
+                              AddVariable(mce_symb_id, i)));
+
+      }
+    catch (SymbolTable::AlreadyDeclaredException &e)
+      {
+        cerr << "Variable name needed by PAC (mce_alpha_" << name << "_" << i << ")" << endl;
+        exit(EXIT_FAILURE);
+      }
+
+  // Add diff nodes and eqs for pac_target_symb_id
+  int neqs = 0;
+  const VariableNode *target_base_diff_node;
+  expr_t diff_node_to_search = AddDiff(AddVariable(pac_target_symb_id));
+  ExprNode::subst_table_t::const_iterator sit = diff_subst_table.find(diff_node_to_search);
+  if (sit != diff_subst_table.end())
+    target_base_diff_node = sit->second;
+  else
+    {
+      int symb_id = symbol_table.addDiffAuxiliaryVar(diff_node_to_search->idx, diff_node_to_search);
+      target_base_diff_node = AddVariable(symb_id);
+      addEquation(dynamic_cast<BinaryOpNode *>(AddEqual((expr_t) target_base_diff_node,
+                                                        AddMinus(AddVariable(pac_target_symb_id),
+                                                                 AddVariable(pac_target_symb_id, -1)))), -1);
+      neqs++;
+    }
+
+  map<int, VariableNode *> target_aux_var_to_add;
+  const VariableNode *last_aux_var = target_base_diff_node;
+  for (int i = 1; i <= pac_max_lag_m - 1; i++, neqs++)
+    {
+      expr_t this_diff_node = AddDiff(AddVariable(pac_target_symb_id, i));
+      int symb_id = symbol_table.addDiffLeadAuxiliaryVar(this_diff_node->idx, this_diff_node,
+                                                         last_aux_var->symb_id, last_aux_var->lag);
+      VariableNode *current_aux_var = AddVariable(symb_id);
+      addEquation(dynamic_cast<BinaryOpNode *>(AddEqual(current_aux_var,
+                                                        AddVariable(last_aux_var->symb_id, 1))), -1);
+      last_aux_var = current_aux_var;
+      target_aux_var_to_add[i] = current_aux_var;
+    }
+
+  expr_t fs = Zero;
+  for (int k = 1; k <= pac_max_lag_m - 1; k++)
+    {
+      expr_t ssum = Zero;
+      for (int j = k+1; j <= pac_max_lag_m; j++)
+        {
+          int alpha_j_symb_id = -1;
+          string varname = "mce_alpha_" + name + "_" + to_string(j);
+          try
+            {
+              alpha_j_symb_id = symbol_table.getID(varname);
+            }
+          catch (SymbolTable::UnknownSymbolNameException &e)
+            {
+              alpha_j_symb_id = symbol_table.addSymbol(varname, SymbolType::parameter);
+            }
+          ssum = AddPlus(ssum,
+                         AddTimes(AddVariable(alpha_j_symb_id), AddPower(beta, AddPossiblyNegativeConstant(j))));
+        }
+      fs = AddPlus(fs, AddTimes(ssum, target_aux_var_to_add[k]));
+    }
+  addEquation(AddEqual(AddVariable(mce_symb_id),
+                       AddMinus(AddTimes(A, AddMinus((expr_t) target_base_diff_node, fs)), fp)), -1);
+  neqs++;
+  cout << "Pac Model Consistent Expectation: added " << neqs << " auxiliary variables and equations." << endl;
+  return mce_symb_id;
+}
+
 void
-DynamicModel::fillPacExpectationVarInfo(string &pac_model_name,
+DynamicModel::fillPacExpectationVarInfo(const string &pac_model_name,
                                         vector<int> &lhs,
                                         int max_lag,
                                         int pac_max_lag,
@@ -4326,15 +4455,34 @@ DynamicModel::fillPacExpectationVarInfo(string &pac_model_name,
 }
 
 void
-DynamicModel::substitutePacExpectation()
+DynamicModel::substitutePacExpectation(const string & name, int model_consistent_expectation_symb_id)
 {
   map<const PacExpectationNode *, const BinaryOpNode *> subst_table;
   for (auto & it : local_variables_table)
-    it.second = it.second->substitutePacExpectation(subst_table);
+    it.second = it.second->substitutePacExpectation(name, model_consistent_expectation_symb_id, subst_table);
 
   for (auto & equation : equations)
     {
-      auto *substeq = dynamic_cast<BinaryOpNode *>(equation->substitutePacExpectation(subst_table));
+      auto *substeq = dynamic_cast<BinaryOpNode *>(equation->substitutePacExpectation(name, model_consistent_expectation_symb_id, subst_table));
+      assert(substeq != nullptr);
+      equation = substeq;
+    }
+
+  for (map<const PacExpectationNode *, const BinaryOpNode *>::const_iterator it = subst_table.begin();
+       it != subst_table.end(); it++)
+    pac_expectation_info.insert(const_cast<PacExpectationNode *>(it->first));
+}
+
+void
+DynamicModel::substitutePacExpectation(const string & name)
+{
+  map<const PacExpectationNode *, const BinaryOpNode *> subst_table;
+  for (auto & it : local_variables_table)
+    it.second = it.second->substitutePacExpectation(name, subst_table);
+
+  for (auto & equation : equations)
+    {
+      auto *substeq = dynamic_cast<BinaryOpNode *>(equation->substitutePacExpectation(name, subst_table));
       assert(substeq != nullptr);
       equation = substeq;
     }

@@ -346,15 +346,18 @@ public:
   //! Get Pac equation parameter info
   void walkPacParameters();
   //! Add var_model info to pac_expectation nodes
-  void fillPacExpectationVarInfo(string &pac_model_name,
+  void fillPacExpectationVarInfo(const string &pac_model_name,
                                  vector<int> &lhs,
                                  int max_lag,
                                  int pac_max_lag,
                                  vector<bool> &nonstationary,
                                  int growth_symb_id, int growth_lag);
 
-  //! Substitutes pac_expectation operator
-  void substitutePacExpectation();
+  //! Substitutes pac_expectation operator with expectation based on auxiliary model
+  void substitutePacExpectation(const string & name);
+
+  //! Substitute pac_expectation operator with model consistent expectation
+  void substitutePacExpectation(const string & name, int model_consistent_expectation_symb_id);
 
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &basename,
@@ -453,6 +456,15 @@ public:
 
   //! Return max lag of pac equation
   int getPacMaxLag(const string &pac_model_name) const;
+
+  //! Return target of the pac equation
+  int getPacTargetSymbId(const string &pac_model_name) const;
+
+  //! Add model consistent expectation equation for pac model
+  int addPacModelConsistentExpectationEquation(const string & name, int pac_target_symb_id, int discount, int pac_max_lag_m, ExprNode::subst_table_t &diff_subst_table);
+
+  //! store symb_ids for alphas created in addPacModelConsistentExpectationEquation
+  map<string, vector<int>> pac_mce_alpha_symb_ids;
 
   //! Table to undiff LHS variables for pac vector z
   vector<int> getUndiffLHSForPac(const string &aux_model_name,

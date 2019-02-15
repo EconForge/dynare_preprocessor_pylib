@@ -257,6 +257,8 @@ private:
   //! Temporary storage for growth declared in pac_model
   int pac_growth_symb_id = -1;
   int pac_growth_lag = 0;
+  double pac_steady_state_growth_rate_number = -1;
+  int pac_steady_state_growth_rate_symb_id = -1;
 
   bool nostrict;
 
@@ -733,6 +735,8 @@ public:
   void pac_model();
   //! Adds growth for pac
   void set_pac_growth(const string &name, int lag = 0);
+  //! Adds steady state growth for pac
+  void set_pac_steady_state_growth(const string &name_or_number);
   //! Writes token "diff(arg1)" to model tree
   expr_t add_diff(expr_t arg1);
   //! Writes token "adl(arg1, lag)" to model tree

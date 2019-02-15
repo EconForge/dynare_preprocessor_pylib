@@ -2615,10 +2615,27 @@ ParsingDriver::pac_model()
     error("You must pass the model_name option to the pac_model statement.");
   auto name = it->second;
 
+  if (pac_growth_symb_id < 0)
+    error("You must pass the growth option to the pac_model statement");
+
+  string aux_model_name = "";
   it = options_list.string_options.find("pac.aux_model_name");
-  if (it == options_list.string_options.end())
-    error("You must pass the auxiliary_model_name option to the pac_model statement.");
-  auto aux_model_name = it->second;
+  if (it != options_list.string_options.end())
+    if (pac_steady_state_growth_rate_number >= 0 || pac_steady_state_growth_rate_symb_id >= 0)
+      {
+        pac_steady_state_growth_rate_number = -1;
+        pac_steady_state_growth_rate_symb_id = -1;
+        warning("when aux_model_name is used in the pac_model statement, steady_state_growth is ignored");
+      }
+    else
+      aux_model_name = it->second;
+  else
+    if (pac_steady_state_growth_rate_number < 0 && pac_steady_state_growth_rate_symb_id < 0)
+      error("when aux_model_name is not passed to the pac_model statement, you must pass steady_state_growth_rate");
+    else if (mod_file->symbol_table.getType(pac_growth_symb_id) == SymbolType::parameter
+             && (pac_steady_state_growth_rate_number >= 0
+                 || pac_steady_state_growth_rate_symb_id != pac_growth_symb_id))
+      error("when aux_model_name is not passed to the pac_model statement, steady_state_growth must be a parameter equal to growth");
 
   it = options_list.string_options.find("pac.discount");
   if (it == options_list.string_options.end())
@@ -2627,9 +2644,13 @@ ParsingDriver::pac_model()
 
   mod_file->addStatement(make_unique<PacModelStatement>(name, aux_model_name, discount,
                                                         pac_growth_symb_id, pac_growth_lag,
+                                                        pac_steady_state_growth_rate_number,
+                                                        pac_steady_state_growth_rate_symb_id,
                                                         mod_file->symbol_table));
   pac_growth_symb_id = -1;
   pac_growth_lag = 0;
+  pac_steady_state_growth_rate_number = -1;
+  pac_steady_state_growth_rate_symb_id = -1;
   options_list.clear();
 }
 
@@ -2640,6 +2661,21 @@ ParsingDriver::set_pac_growth(const string &name, int lag)
     error("Unknown symbol used in pac_growth option: " + name + "\n");
   pac_growth_symb_id = mod_file->symbol_table.getID(name);
   pac_growth_lag = -lag;
+}
+
+void
+ParsingDriver::set_pac_steady_state_growth(const string &name_or_number)
+{
+  try
+    {
+      pac_steady_state_growth_rate_number = stod(name_or_number);
+    }
+  catch (...)
+    {
+      if (!mod_file->symbol_table.exists(name_or_number))
+        error("Unknown symbol used in pac_steady_state_growth option: " + name_or_number + "\n");
+      pac_steady_state_growth_rate_symb_id = mod_file->symbol_table.getID(name_or_number);
+    }
 }
 
 expr_t

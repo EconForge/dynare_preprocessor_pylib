@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2018 Dynare Team
+ * Copyright (C) 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -47,7 +47,8 @@ enum class AuxVarType
     varModel = 7,    //!< Variable for var_model with order > abs(min_lag()) present in model
     diff = 8,        //!< Variable for Diff operator
     diffLag = 9,     //!< Variable for timing between Diff operators
-    unaryOp = 10     //!< Variable for allowing the undiff operator to work when diff was taken of unary op, eg diff(log(x))
+    diffLead = 10,   //!< Variable for timing between Diff operators
+    unaryOp = 11     //!< Variable for allowing the undiff operator to work when diff was taken of unary op, eg diff(log(x))
   };
 
 //! Information on some auxiliary variables
@@ -309,6 +310,8 @@ public:
   int addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) noexcept(false);
   //! Takes care of timing between diff statements
   int addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) noexcept(false);
+  //! Takes care of timing between diff statements
+  int addDiffLeadAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lead) noexcept(false);
   //! An Auxiliary variable for a unary op
   int addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op, int orig_symb_id = -1, int orig_lag = 0) noexcept(false);
   //! Returns the number of auxiliary variables

@@ -418,38 +418,48 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       auto pms = dynamic_cast<PacModelStatement *>(statement.get());
       if (pms != nullptr)
          {
+           int max_lag;
            vector<int> lhs;
            vector<bool> nonstationary;
-           int growth_symb_id, growth_lag, max_lag;
-           string aux_model_name, pac_model_name;
-           tie ( pac_model_name, aux_model_name, growth_symb_id, growth_lag ) =
-             pms->getPacModelInfoForPacExpectation();
-           if (trend_component_model_table.isExistingTrendComponentModelName(aux_model_name))
+           if (trend_component_model_table.isExistingTrendComponentModelName(pms->aux_model_name))
              {
-               max_lag = trend_component_model_table.getMaxLag(aux_model_name) + 1;
-               lhs = dynamic_model.getUndiffLHSForPac(aux_model_name, diff_subst_table);
+               max_lag = trend_component_model_table.getMaxLag(pms->aux_model_name) + 1;
+               lhs = dynamic_model.getUndiffLHSForPac(pms->aux_model_name, diff_subst_table);
                // All lhs variables in a trend component model are nonstationary
-               nonstationary.insert(nonstationary.end(), trend_component_model_table.getDiff(aux_model_name).size(), true);
+               nonstationary.insert(nonstationary.end(), trend_component_model_table.getDiff(pms->aux_model_name).size(), true);
              }
-           else if (var_model_table.isExistingVarModelName(aux_model_name))
+           else if (var_model_table.isExistingVarModelName(pms->aux_model_name))
              {
-               max_lag = var_model_table.getMaxLag(aux_model_name);
-               lhs = var_model_table.getLhs(aux_model_name);
+               max_lag = var_model_table.getMaxLag(pms->aux_model_name);
+               lhs = var_model_table.getLhs(pms->aux_model_name);
                // nonstationary variables in a VAR are those that are in diff
-               nonstationary = var_model_table.getDiff(aux_model_name);
+               nonstationary = var_model_table.getDiff(pms->aux_model_name);
              }
+           else if (pms->aux_model_name == "")
+             max_lag = 0;
            else
              {
-               cerr << "Error: aux_model_name not recognized as VAR model or Trend Component model"
-                    << endl;
+               cerr << "Error: aux_model_name not recognized as VAR model or Trend Component model" << endl;
                exit(EXIT_FAILURE);
              }
            pms->fillUndiffedLHS(lhs);
            dynamic_model.walkPacParameters();
-           int pac_max_lag = original_model.getPacMaxLag(pac_model_name);
-           dynamic_model.fillPacExpectationVarInfo(pac_model_name, lhs, max_lag,
-                                                   pac_max_lag, nonstationary, growth_symb_id, growth_lag);
-           dynamic_model.substitutePacExpectation();
+           int pac_max_lag_m = original_model.getPacMaxLag(pms->name);
+           if (pms->aux_model_name == "")
+             {
+               int pac_target_symb_id = dynamic_model.getPacTargetSymbId(pms->name);
+               int model_consistent_expectation_symb_id =
+                 dynamic_model.addPacModelConsistentExpectationEquation(pms->name, pac_target_symb_id,
+                                                                        symbol_table.getID(pms->discount), pac_max_lag_m,
+                                                                        diff_subst_table);
+               dynamic_model.substitutePacExpectation(pms->name, model_consistent_expectation_symb_id);
+             }
+           else
+             {
+               dynamic_model.fillPacExpectationVarInfo(pms->name, lhs, max_lag,
+                                                       pac_max_lag_m, nonstationary, pms->growth_symb_id, pms->growth_lag);
+               dynamic_model.substitutePacExpectation(pms->name);
+             }
          }
      }
 

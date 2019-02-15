@@ -262,12 +262,16 @@ PacModelStatement::PacModelStatement(string name_arg,
                                      string discount_arg,
                                      int growth_symb_id_arg,
                                      int growth_lag_arg,
+                                     double steady_state_growth_rate_number_arg,
+                                     int steady_state_growth_rate_symb_id_arg,
                                      const SymbolTable &symbol_table_arg) :
   name{move(name_arg)},
   aux_model_name{move(aux_model_name_arg)},
   discount{move(discount_arg)},
   growth_symb_id{growth_symb_id_arg},
   growth_lag{growth_lag_arg},
+  steady_state_growth_rate_number{steady_state_growth_rate_number_arg},
+  steady_state_growth_rate_symb_id{steady_state_growth_rate_symb_id_arg},
   symbol_table{symbol_table_arg}
 {
 }
@@ -306,7 +310,12 @@ void
 PacModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "M_.pac." << name << ".auxiliary_model_name = '" << aux_model_name << "';" << endl
-         << "M_.pac." << name << ".discount_index = " << symbol_table.getTypeSpecificID(discount) + 1 << ";" << endl;
+         << "M_.pac." << name << ".discount_index = " << symbol_table.getTypeSpecificID(discount) + 1 << ";" << endl
+         << "M_.pac." << name << ".steady_state_growth_rate = ";
+  if (steady_state_growth_rate_symb_id < 0)
+    output << steady_state_growth_rate_number << ";" << endl;
+  else
+    output << symbol_table.getTypeSpecificID(steady_state_growth_rate_symb_id) + 1 << ";" << endl;
 
   if (growth_symb_id >= 0)
     {
@@ -397,12 +406,6 @@ PacModelStatement::writeJsonOutput(ostream &output) const
              << "\"growth_type\": " << "\"" << growth_type << "\"" << endl;
     }
   output << "}";
-}
-
-tuple<string, string, int, int>
-PacModelStatement::getPacModelInfoForPacExpectation() const
-{
-  return { name, aux_model_name, growth_symb_id, growth_lag };
 }
 
 VarEstimationStatement::VarEstimationStatement(OptionsList options_list_arg) :
