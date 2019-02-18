@@ -2615,9 +2615,6 @@ ParsingDriver::pac_model()
     error("You must pass the model_name option to the pac_model statement.");
   auto name = it->second;
 
-  if (pac_growth_symb_id < 0)
-    error("You must pass the growth option to the pac_model statement");
-
   string aux_model_name = "";
   it = options_list.string_options.find("pac.aux_model_name");
   if (it != options_list.string_options.end())
@@ -2632,7 +2629,7 @@ ParsingDriver::pac_model()
   else
     if (pac_steady_state_growth_rate_number < 0 && pac_steady_state_growth_rate_symb_id < 0)
       error("when aux_model_name is not passed to the pac_model statement, you must pass steady_state_growth_rate");
-    else if (mod_file->symbol_table.getType(pac_growth_symb_id) == SymbolType::parameter
+    else if (pac_growth_symb_id >= 0 && mod_file->symbol_table.getType(pac_growth_symb_id) == SymbolType::parameter
              && (pac_steady_state_growth_rate_number >= 0
                  || pac_steady_state_growth_rate_symb_id != pac_growth_symb_id))
       error("when aux_model_name is not passed to the pac_model statement, steady_state_growth must be a parameter equal to growth");
