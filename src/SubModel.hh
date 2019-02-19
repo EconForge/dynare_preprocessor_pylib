@@ -46,7 +46,7 @@ private:
   map<string, vector<expr_t>> lhs_expr_t;
   map<string, vector<int>> target_vars;
   map<string, map<tuple<int, int, int>, expr_t>> AR; // AR: name -> (eqn, lag, lhs_symb_id) -> expr_t
-  map<string, map<tuple<int, int, int>, expr_t>> EC; // EC: name -> (eqn, lag, col) -> expr_t
+  map<string, map<tuple<int, int, int>, expr_t>> A0, A0star; // EC: name -> (eqn, lag, col) -> expr_t
 public:
   explicit TrendComponentModelTable(SymbolTable &symbol_table_arg);
 
@@ -84,7 +84,8 @@ public:
   void setOrigDiffVar(map<string, vector<int>> orig_diff_var_arg);
   void setTargetVar(map<string, vector<int>> target_vars_arg);
   void setAR(map<string, map<tuple<int, int, int>, expr_t>> AR_arg);
-  void setEC(map<string, map<tuple<int, int, int>, expr_t>> EC_arg);
+  void setA0(map<string, map<tuple<int, int, int>, expr_t>> A0_arg,
+             map<string, map<tuple<int, int, int>, expr_t>> A0star_arg);
 
   //! Write output of this class
   void writeOutput(const string &basename, ostream &output) const;

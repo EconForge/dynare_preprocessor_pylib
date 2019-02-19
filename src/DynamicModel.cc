@@ -4016,13 +4016,14 @@ DynamicModel::fillTrendComponentModelTable() const
 }
 
 void
-DynamicModel::fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ECr,
+DynamicModel::fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, expr_t>> &A0r,
+                                       map<string, map<tuple<int, int, int>, expr_t>> &A0starr,
                                        ExprNode::subst_table_t &diff_subst_table) const
 {
   for (const auto & it : trend_component_model_table.getEqNums())
     {
       int i = 0;
-      map<tuple<int, int, int>, expr_t> EC;
+      map<tuple<int, int, int>, expr_t> A0, A0star;
       vector<int> target_lhs = trend_component_model_table.getTargetLhs(it.first);
       vector<int> nontarget_eqnums = trend_component_model_table.getNonTargetEqNums(it.first);
       vector<int> undiff_nontarget_lhs = getUndiffLHSForPac(it.first, diff_subst_table);
@@ -4038,8 +4039,9 @@ DynamicModel::fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, exp
       i = 0;
       for (auto eqn : it.second)
         if (find(nontarget_eqnums.begin(), nontarget_eqnums.end(), eqn) != nontarget_eqnums.end())
-          equations[eqn]->arg2->fillErrorCorrectionRow(i++, parsed_undiff_nontarget_lhs, target_lhs, EC);
-      ECr[it.first] = EC;
+          equations[eqn]->arg2->fillErrorCorrectionRow(i++, parsed_undiff_nontarget_lhs, target_lhs, A0, A0star);
+      A0r[it.first] = A0;
+      A0starr[it.first] = A0star;
     }
 }
 
@@ -4113,11 +4115,11 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel(StaticModel &static_mode
 void
 DynamicModel::fillTrendComponentmodelTableAREC(ExprNode::subst_table_t &diff_subst_table) const
 {
-  map<string, map<tuple<int, int, int>, expr_t>> ARr, ECr;
+  map<string, map<tuple<int, int, int>, expr_t>> ARr, A0r, A0starr;
   fillAutoregressiveMatrix(ARr, true);
   trend_component_model_table.setAR(ARr);
-  fillErrorComponentMatrix(ECr, diff_subst_table);
-  trend_component_model_table.setEC(ECr);
+  fillErrorComponentMatrix(A0r, A0starr, diff_subst_table);
+  trend_component_model_table.setA0(A0r, A0starr);
 }
 
 void

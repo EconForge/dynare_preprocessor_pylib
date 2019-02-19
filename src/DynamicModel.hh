@@ -323,7 +323,7 @@ public:
   void fillAutoregressiveMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ARr, bool is_trend_component_model) const;
 
   //! Fill Error Component Matrix for trend_component_model
-  void fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ECr, ExprNode::subst_table_t &diff_subst_table) const;
+  void fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, expr_t>> &A0r, map<string, map<tuple<int, int, int>, expr_t>> &A0starr, ExprNode::subst_table_t &diff_subst_table) const;
 
   //! Fill the Trend Component Model Table
   void fillTrendComponentModelTable() const;

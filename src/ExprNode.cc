@@ -722,7 +722,7 @@ NumConstNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<i
 }
 
 void
-NumConstNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const
+NumConstNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const
 {
 }
 
@@ -2045,7 +2045,7 @@ VariableNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<i
 }
 
 void
-VariableNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const
+VariableNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const
 {
 }
 
@@ -3891,9 +3891,9 @@ UnaryOpNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<in
 }
 
 void
-UnaryOpNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const
+UnaryOpNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const
 {
-  arg->fillErrorCorrectionRow(eqn, nontrend_lhs, trend_lhs, EC);
+  arg->fillErrorCorrectionRow(eqn, nontrend_lhs, trend_lhs, A0, A0star);
 }
 
 void
@@ -5857,7 +5857,8 @@ BinaryOpNode::fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
                                            int eqn,
                                            const vector<int> &nontarget_lhs,
                                            const vector<int> &target_lhs,
-                                           map<tuple<int, int, int>, expr_t> &EC) const
+                                           map<tuple<int, int, int>, expr_t> &A0,
+                                           map<tuple<int, int, int>, expr_t> &A0star) const
 {
   if (op_code != BinaryOpcode::times)
     return;
@@ -5872,64 +5873,130 @@ BinaryOpNode::fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
   if (tmp.size() != 1)
     return;
 
+  auto *vn = dynamic_cast<VariableNode *>(arg2);
   auto *bopn = dynamic_cast<BinaryOpNode *>(arg2);
-  if (bopn == nullptr || bopn->op_code != BinaryOpcode::minus)
+  if ((bopn == nullptr || bopn->op_code != BinaryOpcode::minus)
+      && vn == nullptr)
     return;
 
-  arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
-  if (endogs.size() != 2)
-    return;
-
-  arg2->collectDynamicVariables(SymbolType::exogenous, endogs);
-  arg2->collectDynamicVariables(SymbolType::parameter, endogs);
-  if (endogs.size() != 2)
+  if (bopn != nullptr)
     {
-      cerr << "ERROR in model; expecting param*endog or param*(endog-endog)" << endl;
-      exit(EXIT_FAILURE);
-    }
+      arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
+      if (endogs.size() != 2)
+        return;
 
-  auto *vn1 = dynamic_cast<VariableNode *>(bopn->arg1);
-  auto *vn2 = dynamic_cast<VariableNode *>(bopn->arg2);
-  if (vn1 == nullptr || vn2 == nullptr)
-    {
-      cerr << "ERROR in model; expecting param*endog or param*(endog-endog)" << endl;
-      exit(EXIT_FAILURE);
-    }
+      arg2->collectDynamicVariables(SymbolType::exogenous, endogs);
+      arg2->collectDynamicVariables(SymbolType::parameter, endogs);
+      if (endogs.size() != 2)
+        {
+          cerr << "ERROR in model; expecting param*endog or param*(endog-endog)" << endl;
+          exit(EXIT_FAILURE);
+        }
 
-  int endog1 = vn1->symb_id;
-  int endog2 = vn2->symb_id;
-  int orig_endog2 = endog2;
+      auto *vn1 = dynamic_cast<VariableNode *>(bopn->arg1);
+      auto *vn2 = dynamic_cast<VariableNode *>(bopn->arg2);
+      if (vn1 == nullptr || vn2 == nullptr)
+        {
+          cerr << "ERROR in model; expecting param*endog or param*(endog-endog)" << endl;
+          exit(EXIT_FAILURE);
+        }
 
-  bool isauxvar1 = datatree.symbol_table.isAuxiliaryVariable(endog1);
-  endog1 = isauxvar1 ?
-    datatree.symbol_table.getOrigSymbIdForDiffAuxVar(endog1) : endog1;
+      int endog1 = vn1->symb_id;
+      int endog2 = vn2->symb_id;
+      int orig_endog1 = endog1;
+      int orig_endog2 = endog2;
 
-  bool isauxvar2 = datatree.symbol_table.isAuxiliaryVariable(endog2);
-  endog2 = isauxvar2 ?
-    datatree.symbol_table.getOrigSymbIdForDiffAuxVar(endog2) : endog2;
+      bool isauxvar1 = datatree.symbol_table.isAuxiliaryVariable(endog1);
+      endog1 = isauxvar1 ?
+        datatree.symbol_table.getOrigSymbIdForDiffAuxVar(endog1) : endog1;
 
-  int max_lag = vn2->lag;
-  int colidx = -1;
-  if (find(nontarget_lhs.begin(), nontarget_lhs.end(), endog1) != nontarget_lhs.end()
-      && find(target_lhs.begin(), target_lhs.end(), endog2) != target_lhs.end())
-    {
-      colidx = (int) distance(target_lhs.begin(), find(target_lhs.begin(), target_lhs.end(), endog2));
-      int tmp_lag = vn2->lag;
-      if (isauxvar2)
-        tmp_lag = -1 * datatree.symbol_table.getOrigLeadLagForDiffAuxVar(orig_endog2);
-      if (tmp_lag < max_lag)
-        max_lag = tmp_lag;
+      bool isauxvar2 = datatree.symbol_table.isAuxiliaryVariable(endog2);
+      endog2 = isauxvar2 ?
+        datatree.symbol_table.getOrigSymbIdForDiffAuxVar(endog2) : endog2;
+
+      int A0_max_lag = vn1->lag;
+      int A0star_max_lag = vn2->lag;
+      int A0_colidx = -1;
+      int A0star_colidx = -1;
+      if (find(nontarget_lhs.begin(), nontarget_lhs.end(), endog1) != nontarget_lhs.end()
+          && find(target_lhs.begin(), target_lhs.end(), endog2) != target_lhs.end())
+        {
+          A0_colidx = (int) distance(nontarget_lhs.begin(), find(nontarget_lhs.begin(), nontarget_lhs.end(), endog1));
+          int tmp_lag = vn1->lag;
+          if (isauxvar1)
+            tmp_lag = -1 * datatree.symbol_table.getOrigLeadLagForDiffAuxVar(orig_endog1);
+          if (tmp_lag < A0_max_lag)
+            A0_max_lag = tmp_lag;
+
+          A0star_colidx = (int) distance(target_lhs.begin(), find(target_lhs.begin(), target_lhs.end(), endog2));
+          tmp_lag = vn2->lag;
+          if (isauxvar2)
+            tmp_lag = -1 * datatree.symbol_table.getOrigLeadLagForDiffAuxVar(orig_endog2);
+          if (tmp_lag < A0star_max_lag)
+            A0star_max_lag = tmp_lag;
+        }
+      else
+        return;
+
+      if (A0.find(make_tuple(eqn, -A0_max_lag, A0_colidx)) != A0.end())
+        {
+          cerr << "BinaryOpNode::fillErrorCorrectionRowHelper: Error filling A0 matrix: "
+               << "lag/symb_id encountered more than once in equtaion" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      if (A0star.find(make_tuple(eqn, -A0star_max_lag, A0star_colidx)) != A0star.end())
+        {
+          cerr << "BinaryOpNode::fillErrorCorrectionRowHelper: Error filling A0star matrix: "
+               << "lag/symb_id encountered more than once in equtaion" << endl;
+          exit(EXIT_FAILURE);
+        }
+      A0[make_tuple(eqn, -A0_max_lag, A0_colidx)] = arg1;
+      A0star[make_tuple(eqn, -A0star_max_lag, A0star_colidx)] = arg1;
     }
   else
-    return;
-
-  if (EC.find(make_tuple(eqn, -max_lag, colidx)) != EC.end())
     {
-      cerr << "BinaryOpNode::fillErrorCorrectionRowHelper: Error filling EC matrix: "
-           << "lag/symb_id encountered more than once in equtaion" << endl;
-      exit(EXIT_FAILURE);
+      arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
+      if (endogs.size() != 1)
+        return;
+
+      arg2->collectDynamicVariables(SymbolType::exogenous, endogs);
+      arg2->collectDynamicVariables(SymbolType::parameter, endogs);
+      if (endogs.size() != 1)
+        {
+          cerr << "ERROR in model; expecting param*endog or param*(endog-endog)" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      int endog1 = vn->symb_id;
+      int orig_endog1 = endog1;
+
+      bool isauxvar1 = datatree.symbol_table.isAuxiliaryVariable(endog1);
+      endog1 = isauxvar1 ?
+        datatree.symbol_table.getOrigSymbIdForDiffAuxVar(endog1) : endog1;
+
+      int max_lag = vn->lag;
+      int colidx = -1;
+      if (find(nontarget_lhs.begin(), nontarget_lhs.end(), endog1) != nontarget_lhs.end())
+        {
+          colidx = (int) distance(nontarget_lhs.begin(), find(nontarget_lhs.begin(), nontarget_lhs.end(), endog1));
+          int tmp_lag = vn->lag;
+          if (isauxvar1)
+            tmp_lag = -1 * datatree.symbol_table.getOrigLeadLagForDiffAuxVar(orig_endog1);
+          if (tmp_lag < max_lag)
+            max_lag = tmp_lag;
+        }
+      else
+        return;
+
+      if (A0.find(make_tuple(eqn, -max_lag, colidx)) != A0.end())
+        {
+          cerr << "BinaryOpNode::fillErrorCorrectionRowHelper: Error filling A0 matrix: "
+               << "lag/symb_id encountered more than once in equtaion" << endl;
+          exit(EXIT_FAILURE);
+        }
+      A0[make_tuple(eqn, -max_lag, colidx)] = arg1;
     }
-  EC[make_tuple(eqn, -max_lag, colidx)] = arg1;
 }
 
 void
@@ -5960,12 +6027,14 @@ BinaryOpNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) 
 }
 
 void
-BinaryOpNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const
+BinaryOpNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const
 {
-  fillErrorCorrectionRowHelper(arg1, arg2, eqn, nontrend_lhs, trend_lhs, EC);
-  fillErrorCorrectionRowHelper(arg2, arg1, eqn, nontrend_lhs, trend_lhs, EC);
-  arg1->fillErrorCorrectionRow(eqn, nontrend_lhs, trend_lhs, EC);
-  arg2->fillErrorCorrectionRow(eqn, nontrend_lhs, trend_lhs, EC);
+  int A0size = A0.size();
+  fillErrorCorrectionRowHelper(arg1, arg2, eqn, nontrend_lhs, trend_lhs, A0, A0star);
+  if (A0size == A0.size())
+    fillErrorCorrectionRowHelper(arg2, arg1, eqn, nontrend_lhs, trend_lhs, A0, A0star);
+  arg1->fillErrorCorrectionRow(eqn, nontrend_lhs, trend_lhs, A0, A0star);
+  arg2->fillErrorCorrectionRow(eqn, nontrend_lhs, trend_lhs, A0, A0star);
 }
 
 void
@@ -6974,11 +7043,11 @@ TrinaryOpNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<
 }
 
 void
-TrinaryOpNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const
+TrinaryOpNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const
 {
-  arg1->fillErrorCorrectionRow(eqn, nontrend_lhs, trend_lhs, EC);
-  arg2->fillErrorCorrectionRow(eqn, nontrend_lhs, trend_lhs, EC);
-  arg3->fillErrorCorrectionRow(eqn, nontrend_lhs, trend_lhs, EC);
+  arg1->fillErrorCorrectionRow(eqn, nontrend_lhs, trend_lhs, A0, A0star);
+  arg2->fillErrorCorrectionRow(eqn, nontrend_lhs, trend_lhs, A0, A0star);
+  arg3->fillErrorCorrectionRow(eqn, nontrend_lhs, trend_lhs, A0, A0star);
 }
 
 void
@@ -7651,7 +7720,7 @@ AbstractExternalFunctionNode::fillAutoregressiveRow(int eqn, const vector<int> &
 }
 
 void
-AbstractExternalFunctionNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const
+AbstractExternalFunctionNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const
 {
   cerr << "External functions not supported in Trend Component Models" << endl;
   exit(EXIT_FAILURE);
@@ -9193,7 +9262,7 @@ VarExpectationNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<t
 }
 
 void
-VarExpectationNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const
+VarExpectationNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const
 {
   cerr << "Var Expectation not supported in Trend Component Models" << endl;
   exit(EXIT_FAILURE);
@@ -9719,7 +9788,7 @@ PacExpectationNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<t
 }
 
 void
-PacExpectationNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &EC) const
+PacExpectationNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const
 {
   cerr << "Pac Expectation not supported in Trend Component Models" << endl;
   exit(EXIT_FAILURE);
