@@ -382,7 +382,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
         }
     }
 
-  // Get all equation tags associated with VARs and Pac Models
+  // Get all equation tags associated with VARs and Trend Component Models
   set<string> eqtags;
   for (auto const & it : trend_component_model_table.getEqTags())
     for (auto & it1 : it.second)
