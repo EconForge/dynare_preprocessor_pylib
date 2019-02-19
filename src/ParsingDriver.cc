@@ -2634,6 +2634,10 @@ ParsingDriver::pac_model()
                  || pac_steady_state_growth_rate_symb_id != pac_growth_symb_id))
       error("when aux_model_name is not passed to the pac_model statement, steady_state_growth must be a parameter equal to growth");
 
+  if (pac_steady_state_growth_rate_symb_id >= 0
+      && mod_file->symbol_table.getType(pac_steady_state_growth_rate_symb_id) != SymbolType::parameter)
+    error("pac_model: steady_state_growth accepts either a number or a parameter");
+
   it = options_list.string_options.find("pac.discount");
   if (it == options_list.string_options.end())
     error("You must pass the discount option to the pac_model statement.");
