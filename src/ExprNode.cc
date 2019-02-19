@@ -6029,7 +6029,7 @@ BinaryOpNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) 
 void
 BinaryOpNode::fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const
 {
-  int A0size = A0.size();
+  size_t A0size = A0.size();
   fillErrorCorrectionRowHelper(arg1, arg2, eqn, nontrend_lhs, trend_lhs, A0, A0star);
   if (A0size == A0.size())
     fillErrorCorrectionRowHelper(arg2, arg1, eqn, nontrend_lhs, trend_lhs, A0, A0star);
