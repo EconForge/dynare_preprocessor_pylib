@@ -3618,9 +3618,40 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   // Write Pac Model Consistent Expectation parameter info
   for (auto & it : pac_mce_alpha_symb_ids)
     {
-      output << modstruct << "pac." << it.first << ".mce_alpha_idxs = [";
+      output << modstruct << "pac." << it.first.first << ".equations." << it.first.second << ".mce.alpha = [";
       for (auto it : it.second)
         output << symbol_table.getTypeSpecificID(it) + 1 << " ";
+      output << "];" << endl;
+    }
+
+  // Write Pac Model Consistent Expectation Z1 info
+  for (auto & it : pac_mce_z1_symb_ids)
+    output << modstruct << "pac." << it.first.first << ".equations." << it.first.second << ".mce.z1 = "
+           << symbol_table.getTypeSpecificID(it.second) + 1 << ";" << endl;
+
+  // Write Pac lag info
+  for (auto & it : pac_eqtag_and_lag)
+    output << modstruct << "pac." << it.first.first << ".equations." << it.second.first << ".max_lag = " << it.second.second << ";" << endl;
+
+  map <string, vector<pair<string, string>> > mymap;
+  mymap.insert(pair<string,vector<pair<string,string>> >("A", vector<pair<string,string>>()));
+  mymap["A"].push_back(make_pair("A","BB"));
+  mymap["A"].push_back(make_pair("C", "DD"));
+
+  // Write Pac equation tag info
+  map<string, vector<pair<string, string>>> for_writing;
+  for (auto & it : pac_eqtag_and_lag)
+    {
+      if (for_writing.find(it.first.first) == for_writing.end())
+        for_writing.insert(pair<string,vector<pair<string,string>> >(it.first.first, vector<pair<string,string>>()));
+      for_writing[it.first.first].push_back(make_pair(it.first.second, it.second.first));
+    }
+
+  for (auto & it : for_writing)
+    {
+      output << modstruct << "pac." << it.first << ".tag_map = [";
+      for (auto & it1 : it.second)
+        output << "{'" << it1.first << "', '" << it1.second << "'};" ;
       output << "];" << endl;
     }
 
@@ -4250,8 +4281,9 @@ DynamicModel::getUndiffLHSForPac(const string &aux_model_name,
 }
 
 void
-DynamicModel::walkPacParameters()
+DynamicModel::walkPacParameters(const string &name, map<pair<string, string>, pair<string, int>> &eqtag_and_lag)
 {
+  int i = 0;
   for (auto & equation : equations)
     {
       pair<int, int> lhs (-1, -1);
@@ -4296,16 +4328,33 @@ DynamicModel::walkPacParameters()
                   exit(EXIT_FAILURE);
                 }
             }
-          equation->addParamInfoToPac(lhs,
+
+          string eqtag = "";
+          for (auto & tag : equation_tags)
+            if (tag.first == (&equation - &equations[0]))
+              if (tag.second.first == "name")
+                {
+                  eqtag = tag.second.second;
+                  break;
+                }
+          if (eqtag == "")
+            {
+              cerr << "Every equation with a pac expectation must have been assigned an equation tag name" << endl;
+              exit(EXIT_FAILURE);
+            }
+          string eq = "eq" + to_string(i++);
+          equation->addParamInfoToPac(eq,
+                                      lhs,
                                       optim_share_index,
                                       ec_params_and_vars, ar_params_and_vars,
                                       non_optim_vars_params_and_constants);
+          eqtag_and_lag[make_pair(name, eqtag)] = make_pair(eq, 0);
         }
     }
 }
 
-int
-DynamicModel::getPacMaxLag(const string &pac_model_name) const
+void
+DynamicModel::getPacMaxLag(const string &pac_model_name, map<pair<string, string>, pair<string, int>> &eqtag_and_lag) const
 {
   for (auto & equation : equations)
     if (equation->containsPacExpectation(pac_model_name))
@@ -4318,9 +4367,18 @@ DynamicModel::getPacMaxLag(const string &pac_model_name) const
                  << endl;
             exit(EXIT_FAILURE);
           }
-        return equation->PacMaxLag((*(endogs.begin())).first);
+
+        string eqtag = "";
+        for (auto & tag : equation_tags)
+          if (tag.first == (&equation - &equations[0]))
+            if (tag.second.first == "name")
+              {
+                eqtag = tag.second.second;
+                break;
+              }
+        string eq = eqtag_and_lag[make_pair(pac_model_name, eqtag)].first;
+        eqtag_and_lag[make_pair(pac_model_name, eqtag)] = make_pair(eq, equation->PacMaxLag((*(endogs.begin())).first));
       }
-  return 0;
 }
 
 int
@@ -4346,133 +4404,122 @@ DynamicModel::getPacTargetSymbId(const string &pac_model_name) const
   return -1;
 }
 
-int
+void
 DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int pac_target_symb_id,
-                                                       int discount_symb_id, int pac_max_lag_m,
+                                                       int discount_symb_id, const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
                                                        ExprNode::subst_table_t &diff_subst_table)
 {
-  int mce_symb_id;
-  try
-    {
-      mce_symb_id = symbol_table.addSymbol("mce_Z_" + name, SymbolType::endogenous);
-    }
-  catch (SymbolTable::AlreadyDeclaredException &e)
-    {
-      cerr << "Variable name needed by PAC (mce_Z_" << name << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  expr_t A = One;
-  expr_t fp = Zero;
-  expr_t beta = AddVariable(discount_symb_id);
-  for (int i = 1; i <= pac_max_lag_m; i++)
-    try
-      {
-        int alpha_i_symb_id = symbol_table.addSymbol("mce_alpha_" + name + "_" + to_string(i),
-                                                     SymbolType::parameter);
-        pac_mce_alpha_symb_ids[name].push_back(alpha_i_symb_id);
-        A = AddPlus(A, AddVariable(alpha_i_symb_id));
-        fp = AddPlus(fp,
-                     AddTimes(AddTimes(AddVariable(alpha_i_symb_id),
-                                       AddPower(beta, AddPossiblyNegativeConstant(i))),
-                              AddVariable(mce_symb_id, i)));
-
-      }
-    catch (SymbolTable::AlreadyDeclaredException &e)
-      {
-        cerr << "Variable name needed by PAC (mce_alpha_" << name << "_" << i << ")" << endl;
-        exit(EXIT_FAILURE);
-      }
-
-  // Add diff nodes and eqs for pac_target_symb_id
+  pac_eqtag_and_lag.insert(eqtag_and_lag.begin(), eqtag_and_lag.end());
   int neqs = 0;
-  const VariableNode *target_base_diff_node;
-  expr_t diff_node_to_search = AddDiff(AddVariable(pac_target_symb_id));
-  ExprNode::subst_table_t::const_iterator sit = diff_subst_table.find(diff_node_to_search);
-  if (sit != diff_subst_table.end())
-    target_base_diff_node = sit->second;
-  else
+  for (auto & it : eqtag_and_lag)
     {
-      int symb_id = symbol_table.addDiffAuxiliaryVar(diff_node_to_search->idx, diff_node_to_search);
-      target_base_diff_node = AddVariable(symb_id);
-      addEquation(dynamic_cast<BinaryOpNode *>(AddEqual((expr_t) target_base_diff_node,
-                                                        AddMinus(AddVariable(pac_target_symb_id),
-                                                                 AddVariable(pac_target_symb_id, -1)))), -1);
-      neqs++;
-    }
-
-  map<int, VariableNode *> target_aux_var_to_add;
-  const VariableNode *last_aux_var = target_base_diff_node;
-  for (int i = 1; i <= pac_max_lag_m - 1; i++, neqs++)
-    {
-      expr_t this_diff_node = AddDiff(AddVariable(pac_target_symb_id, i));
-      int symb_id = symbol_table.addDiffLeadAuxiliaryVar(this_diff_node->idx, this_diff_node,
-                                                         last_aux_var->symb_id, last_aux_var->lag);
-      VariableNode *current_aux_var = AddVariable(symb_id);
-      addEquation(dynamic_cast<BinaryOpNode *>(AddEqual(current_aux_var,
-                                                        AddVariable(last_aux_var->symb_id, 1))), -1);
-      last_aux_var = current_aux_var;
-      target_aux_var_to_add[i] = current_aux_var;
-    }
-
-  expr_t fs = Zero;
-  for (int k = 1; k <= pac_max_lag_m - 1; k++)
-    {
-      expr_t ssum = Zero;
-      for (int j = k+1; j <= pac_max_lag_m; j++)
+      string eqtag = it.second.first;
+      int pac_max_lag_m = it.second.second;
+      string append_to_name = name + "_" + eqtag;
+      int mce_z1_symb_id;
+      try
         {
-          int alpha_j_symb_id = -1;
-          string varname = "mce_alpha_" + name + "_" + to_string(j);
-          try
-            {
-              alpha_j_symb_id = symbol_table.getID(varname);
-            }
-          catch (SymbolTable::UnknownSymbolNameException &e)
-            {
-              alpha_j_symb_id = symbol_table.addSymbol(varname, SymbolType::parameter);
-            }
-          ssum = AddPlus(ssum,
-                         AddTimes(AddVariable(alpha_j_symb_id), AddPower(beta, AddPossiblyNegativeConstant(j))));
+          mce_z1_symb_id = symbol_table.addSymbol("mce_Z1_" + append_to_name, SymbolType::endogenous);
         }
-      fs = AddPlus(fs, AddTimes(ssum, target_aux_var_to_add[k]));
+      catch (SymbolTable::AlreadyDeclaredException &e)
+        {
+          cerr << "Variable name needed by PAC (mce_Z1_" << append_to_name << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      expr_t A = One;
+      expr_t fp = Zero;
+      expr_t beta = AddVariable(discount_symb_id);
+      for (int i = 1; i <= pac_max_lag_m; i++)
+        try
+          {
+            int alpha_i_symb_id = symbol_table.addSymbol("mce_alpha_" + append_to_name + "_" + to_string(i),
+                                                         SymbolType::parameter);
+            pac_mce_alpha_symb_ids[make_pair(name, eqtag)].push_back(alpha_i_symb_id);
+            A = AddPlus(A, AddVariable(alpha_i_symb_id));
+            fp = AddPlus(fp,
+                         AddTimes(AddTimes(AddVariable(alpha_i_symb_id),
+                                           AddPower(beta, AddPossiblyNegativeConstant(i))),
+                                  AddVariable(mce_z1_symb_id, i)));
+
+          }
+        catch (SymbolTable::AlreadyDeclaredException &e)
+          {
+            cerr << "Variable name needed by PAC (mce_alpha_" << append_to_name << "_" << i << ")" << endl;
+            exit(EXIT_FAILURE);
+          }
+
+      // Add diff nodes and eqs for pac_target_symb_id
+      const VariableNode *target_base_diff_node;
+      expr_t diff_node_to_search = AddDiff(AddVariable(pac_target_symb_id));
+      ExprNode::subst_table_t::const_iterator sit = diff_subst_table.find(diff_node_to_search);
+      if (sit != diff_subst_table.end())
+        target_base_diff_node = sit->second;
+      else
+        {
+          int symb_id = symbol_table.addDiffAuxiliaryVar(diff_node_to_search->idx, diff_node_to_search);
+          target_base_diff_node = AddVariable(symb_id);
+          addEquation(dynamic_cast<BinaryOpNode *>(AddEqual((expr_t) target_base_diff_node,
+                                                            AddMinus(AddVariable(pac_target_symb_id),
+                                                                     AddVariable(pac_target_symb_id, -1)))), -1);
+          neqs++;
+        }
+
+      map<int, VariableNode *> target_aux_var_to_add;
+      const VariableNode *last_aux_var = target_base_diff_node;
+      for (int i = 1; i <= pac_max_lag_m - 1; i++, neqs++)
+        {
+          expr_t this_diff_node = AddDiff(AddVariable(pac_target_symb_id, i));
+          int symb_id = symbol_table.addDiffLeadAuxiliaryVar(this_diff_node->idx, this_diff_node,
+                                                             last_aux_var->symb_id, last_aux_var->lag);
+          VariableNode *current_aux_var = AddVariable(symb_id);
+          addEquation(dynamic_cast<BinaryOpNode *>(AddEqual(current_aux_var,
+                                                            AddVariable(last_aux_var->symb_id, 1))), -1);
+          last_aux_var = current_aux_var;
+          target_aux_var_to_add[i] = current_aux_var;
+        }
+
+      expr_t fs = Zero;
+      for (int k = 1; k <= pac_max_lag_m - 1; k++)
+        {
+          expr_t ssum = Zero;
+          for (int j = k+1; j <= pac_max_lag_m; j++)
+            {
+              int alpha_j_symb_id = -1;
+              string varname = "mce_alpha_" + append_to_name + "_" + to_string(j);
+              try
+                {
+                  alpha_j_symb_id = symbol_table.getID(varname);
+                }
+              catch (SymbolTable::UnknownSymbolNameException &e)
+                {
+                  alpha_j_symb_id = symbol_table.addSymbol(varname, SymbolType::parameter);
+                }
+              ssum = AddPlus(ssum,
+                             AddTimes(AddVariable(alpha_j_symb_id), AddPower(beta, AddPossiblyNegativeConstant(j))));
+            }
+          fs = AddPlus(fs, AddTimes(ssum, target_aux_var_to_add[k]));
+        }
+      addEquation(AddEqual(AddVariable(mce_z1_symb_id),
+                           AddMinus(AddTimes(A, AddMinus((expr_t) target_base_diff_node, fs)), fp)), -1);
+      neqs++;
+      pac_mce_z1_symb_ids[make_pair(name, eqtag)] = mce_z1_symb_id;
     }
-  addEquation(AddEqual(AddVariable(mce_symb_id),
-                       AddMinus(AddTimes(A, AddMinus((expr_t) target_base_diff_node, fs)), fp)), -1);
-  neqs++;
-  cout << "Pac Model Consistent Expectation: added " << neqs << " auxiliary variables and equations." << endl;
-  return mce_symb_id;
+    cout << "Pac Model Consistent Expectation: added " << neqs << " auxiliary variables and equations." << endl;
 }
 
 void
 DynamicModel::fillPacExpectationVarInfo(const string &pac_model_name,
                                         vector<int> &lhs,
                                         int max_lag,
-                                        int pac_max_lag,
-                                        vector<bool> &nonstationary,
+                                        const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
+                                        const vector<bool> &nonstationary,
                                         int growth_symb_id, int growth_lag)
 {
+  pac_eqtag_and_lag.insert(eqtag_and_lag.begin(), eqtag_and_lag.end());
   for (size_t i = 0; i < equations.size(); i++)
     equations[i]->fillPacExpectationVarInfo(pac_model_name, lhs, max_lag,
-                                            pac_max_lag, nonstationary, growth_symb_id, growth_lag, i);
-}
-
-void
-DynamicModel::substitutePacExpectation(const string & name, int model_consistent_expectation_symb_id)
-{
-  map<const PacExpectationNode *, const BinaryOpNode *> subst_table;
-  for (auto & it : local_variables_table)
-    it.second = it.second->substitutePacExpectation(name, model_consistent_expectation_symb_id, subst_table);
-
-  for (auto & equation : equations)
-    {
-      auto *substeq = dynamic_cast<BinaryOpNode *>(equation->substitutePacExpectation(name, model_consistent_expectation_symb_id, subst_table));
-      assert(substeq != nullptr);
-      equation = substeq;
-    }
-
-  for (map<const PacExpectationNode *, const BinaryOpNode *>::const_iterator it = subst_table.begin();
-       it != subst_table.end(); it++)
-    pac_expectation_info.insert(const_cast<PacExpectationNode *>(it->first));
+                                            nonstationary, growth_symb_id, growth_lag, i);
 }
 
 void
@@ -4480,11 +4527,15 @@ DynamicModel::substitutePacExpectation(const string & name)
 {
   map<const PacExpectationNode *, const BinaryOpNode *> subst_table;
   for (auto & it : local_variables_table)
-    it.second = it.second->substitutePacExpectation(name, subst_table);
+    it.second = pac_mce_z1_symb_ids.empty() ?
+      it.second->substitutePacExpectation(name, subst_table) :
+      it.second->substitutePacExpectation(name, pac_mce_z1_symb_ids, subst_table);
 
   for (auto & equation : equations)
     {
-      auto *substeq = dynamic_cast<BinaryOpNode *>(equation->substitutePacExpectation(name, subst_table));
+      auto *substeq = pac_mce_z1_symb_ids.empty() ?
+        dynamic_cast<BinaryOpNode *>(equation->substitutePacExpectation(name, subst_table)) :
+        dynamic_cast<BinaryOpNode *>(equation->substitutePacExpectation(name, pac_mce_z1_symb_ids, subst_table));
       assert(substeq != nullptr);
       equation = substeq;
     }

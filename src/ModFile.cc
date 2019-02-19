@@ -400,7 +400,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
     // substitute only those unary ops that appear in auxiliary model equations
     dynamic_model.substituteUnaryOps(diff_static_model, unary_ops_nodes, unary_ops_subst_table, eqtags);
 
-  // Create auxiliary variable and equations for Diff operators that appear in VAR equations
+  // Create auxiliary variable and equations for Diff operators
   diff_table_t diff_table;
   ExprNode::subst_table_t diff_subst_table;
   dynamic_model.substituteDiff(diff_static_model, diff_table, diff_subst_table);
@@ -443,23 +443,20 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
                exit(EXIT_FAILURE);
              }
            pms->fillUndiffedLHS(lhs);
-           dynamic_model.walkPacParameters();
-           int pac_max_lag_m = original_model.getPacMaxLag(pms->name);
+           map<pair<string, string>, pair<string, int>> eqtag_and_lag;
+           dynamic_model.walkPacParameters(pms->name, eqtag_and_lag);
+           original_model.getPacMaxLag(pms->name, eqtag_and_lag);
            if (pms->aux_model_name == "")
              {
                int pac_target_symb_id = dynamic_model.getPacTargetSymbId(pms->name);
-               int model_consistent_expectation_symb_id =
-                 dynamic_model.addPacModelConsistentExpectationEquation(pms->name, pac_target_symb_id,
-                                                                        symbol_table.getID(pms->discount), pac_max_lag_m,
-                                                                        diff_subst_table);
-               dynamic_model.substitutePacExpectation(pms->name, model_consistent_expectation_symb_id);
+               dynamic_model.addPacModelConsistentExpectationEquation(pms->name, pac_target_symb_id,
+                                                                      symbol_table.getID(pms->discount), eqtag_and_lag,
+                                                                      diff_subst_table);
              }
            else
-             {
-               dynamic_model.fillPacExpectationVarInfo(pms->name, lhs, max_lag,
-                                                       pac_max_lag_m, nonstationary, pms->growth_symb_id, pms->growth_lag);
-               dynamic_model.substitutePacExpectation(pms->name);
-             }
+             dynamic_model.fillPacExpectationVarInfo(pms->name, lhs, max_lag,
+                                                     eqtag_and_lag, nonstationary, pms->growth_symb_id, pms->growth_lag);
+           dynamic_model.substitutePacExpectation(pms->name);
          }
      }
 

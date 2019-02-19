@@ -601,7 +601,7 @@ NumConstNode::substitutePacExpectation(const string & name, map<const PacExpecta
 }
 
 expr_t
-NumConstNode::substitutePacExpectation(const string & name, int mce_symb_id,
+NumConstNode::substitutePacExpectation(const string &name, const map<pair<string, string>, int> &eqtag_and_symb_id,
                                        map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
   return const_cast<NumConstNode *>(this);
@@ -695,12 +695,12 @@ NumConstNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
 }
 
 void
-NumConstNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants)
+NumConstNode::addParamInfoToPac(string eqtag_arg, pair<int, int> lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars_arg, set<pair<int, pair<int, int>>> ar_params_and_vars_arg, vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants)
 {
 }
 
 void
-NumConstNode::fillPacExpectationVarInfo(const string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
+NumConstNode::fillPacExpectationVarInfo(const string &model_name_arg, vector<int> lhs_arg, int max_lag_arg, const vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
 {
 }
 
@@ -1642,7 +1642,7 @@ VariableNode::substitutePacExpectation(const string & name, map<const PacExpecta
 }
 
 expr_t
-VariableNode::substitutePacExpectation(const string & name, int mce_symb_id,
+VariableNode::substitutePacExpectation(const string &name, const map<pair<string, string>, int> &eqtag_and_symb_id,
                                        map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
   return const_cast<VariableNode *>(this);
@@ -2013,12 +2013,12 @@ VariableNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
 }
 
 void
-VariableNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants)
+VariableNode::addParamInfoToPac(string eqtag_arg, pair<int, int> lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars_arg, set<pair<int, pair<int, int>>> ar_params_and_vars_arg, vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants)
 {
 }
 
 void
-VariableNode::fillPacExpectationVarInfo(const string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
+VariableNode::fillPacExpectationVarInfo(const string &model_name_arg, vector<int> lhs_arg, int max_lag_arg, const vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
 {
 }
 
@@ -3649,10 +3649,10 @@ UnaryOpNode::substitutePacExpectation(const string & name, map<const PacExpectat
 }
 
 expr_t
-UnaryOpNode::substitutePacExpectation(const string & name, int mce_symb_id,
+UnaryOpNode::substitutePacExpectation(const string &name, const map<pair<string, string>, int> &eqtag_and_symb_id,
                                       map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
-  expr_t argsubst = arg->substitutePacExpectation(name, mce_symb_id, subst_table);
+  expr_t argsubst = arg->substitutePacExpectation(name, eqtag_and_symb_id, subst_table);
   return buildSimilarUnaryOpNode(argsubst, datatree);
 }
 
@@ -3851,15 +3851,15 @@ UnaryOpNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
 }
 
 void
-UnaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants)
+UnaryOpNode::addParamInfoToPac(string eqtag_arg, pair<int, int> lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars_arg, set<pair<int, pair<int, int>>> ar_params_and_vars_arg, vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants)
 {
-  arg->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
+  arg->addParamInfoToPac(eqtag_arg, lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
 }
 
 void
-UnaryOpNode::fillPacExpectationVarInfo(const string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
+UnaryOpNode::fillPacExpectationVarInfo(const string &model_name_arg, vector<int> lhs_arg, int max_lag_arg, const vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
 {
-  arg->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
+  arg->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
 }
 
 bool
@@ -5475,11 +5475,11 @@ BinaryOpNode::substitutePacExpectation(const string & name, map<const PacExpecta
 }
 
 expr_t
-BinaryOpNode::substitutePacExpectation(const string & name, int mce_symb_id,
+BinaryOpNode::substitutePacExpectation(const string &name, const map<pair<string, string>, int> &eqtag_and_symb_id,
                                        map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
-  expr_t arg1subst = arg1->substitutePacExpectation(name, mce_symb_id, subst_table);
-  expr_t arg2subst = arg2->substitutePacExpectation(name, mce_symb_id, subst_table);
+  expr_t arg1subst = arg1->substitutePacExpectation(name, eqtag_and_symb_id, subst_table);
+  expr_t arg2subst = arg2->substitutePacExpectation(name, eqtag_and_symb_id, subst_table);
   return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
 }
 
@@ -6047,17 +6047,17 @@ BinaryOpNode::getPacLHS(pair<int, int> &lhs)
 }
 
 void
-BinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants)
+BinaryOpNode::addParamInfoToPac(string eqtag_arg, pair<int, int> lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars_arg, set<pair<int, pair<int, int>>> ar_params_and_vars_arg, vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants)
 {
-  arg1->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
-  arg2->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
+  arg1->addParamInfoToPac(eqtag_arg, lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
+  arg2->addParamInfoToPac(eqtag_arg, lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
 }
 
 void
-BinaryOpNode::fillPacExpectationVarInfo(const string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
+BinaryOpNode::fillPacExpectationVarInfo(const string &model_name_arg, vector<int> lhs_arg, int max_lag_arg, const vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
 {
-  arg1->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
-  arg2->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
+  arg1->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
+  arg2->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
 }
 
 bool
@@ -6885,12 +6885,12 @@ TrinaryOpNode::substitutePacExpectation(const string & name, map<const PacExpect
 }
 
 expr_t
-TrinaryOpNode::substitutePacExpectation(const string & name, int mce_symb_id,
+TrinaryOpNode::substitutePacExpectation(const string &name, const map<pair<string, string>, int> &eqtag_and_symb_id,
                                         map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
-  expr_t arg1subst = arg1->substitutePacExpectation(name, mce_symb_id, subst_table);
-  expr_t arg2subst = arg2->substitutePacExpectation(name, mce_symb_id, subst_table);
-  expr_t arg3subst = arg2->substitutePacExpectation(name, mce_symb_id, subst_table);
+  expr_t arg1subst = arg1->substitutePacExpectation(name, eqtag_and_symb_id, subst_table);
+  expr_t arg2subst = arg2->substitutePacExpectation(name, eqtag_and_symb_id, subst_table);
+  expr_t arg3subst = arg2->substitutePacExpectation(name, eqtag_and_symb_id, subst_table);
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
 
@@ -6994,19 +6994,19 @@ TrinaryOpNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
 }
 
 void
-TrinaryOpNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants)
+TrinaryOpNode::addParamInfoToPac(string eqtag_arg, pair<int, int> lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars_arg, set<pair<int, pair<int, int>>> ar_params_and_vars_arg, vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants)
 {
-  arg1->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
-  arg2->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
-  arg3->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
+  arg1->addParamInfoToPac(eqtag_arg, lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
+  arg2->addParamInfoToPac(eqtag_arg, lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
+  arg3->addParamInfoToPac(eqtag_arg, lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
 }
 
 void
-TrinaryOpNode::fillPacExpectationVarInfo(const string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
+TrinaryOpNode::fillPacExpectationVarInfo(const string &model_name_arg, vector<int> lhs_arg, int max_lag_arg, const vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
 {
-  arg1->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
-  arg2->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
-  arg3->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
+  arg1->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
+  arg2->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
+  arg3->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
 }
 
 bool
@@ -7419,12 +7419,12 @@ AbstractExternalFunctionNode::substitutePacExpectation(const string & name, map<
 }
 
 expr_t
-AbstractExternalFunctionNode::substitutePacExpectation(const string & name, int mce_symb_id,
+AbstractExternalFunctionNode::substitutePacExpectation(const string &name, const map<pair<string, string>, int> &eqtag_and_symb_id,
                                                        map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
    vector<expr_t> arguments_subst;
   for (auto argument : arguments)
-    arguments_subst.push_back(argument->substitutePacExpectation(name, mce_symb_id, subst_table));
+    arguments_subst.push_back(argument->substitutePacExpectation(name, eqtag_and_symb_id, subst_table));
   return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
@@ -7586,17 +7586,17 @@ AbstractExternalFunctionNode::getPacOptimizingShareAndExprNodes(set<int> &optim_
 }
 
 void
-AbstractExternalFunctionNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants)
+AbstractExternalFunctionNode::addParamInfoToPac(string eqtag_arg, pair<int, int> lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars_arg, set<pair<int, pair<int, int>>> ar_params_and_vars_arg, vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants)
 {
   for (auto argument : arguments)
-    argument->addParamInfoToPac(lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
+    argument->addParamInfoToPac(eqtag_arg, lhs_arg, optim_share_arg, ec_params_and_vars_arg, ar_params_and_vars_arg, non_optim_vars_params_and_constants);
 }
 
 void
-AbstractExternalFunctionNode::fillPacExpectationVarInfo(const string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
+AbstractExternalFunctionNode::fillPacExpectationVarInfo(const string &model_name_arg, vector<int> lhs_arg, int max_lag_arg, const vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
 {
   for (auto argument : arguments)
-    argument->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, pac_max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
+    argument->fillPacExpectationVarInfo(model_name_arg, lhs_arg, max_lag_arg, nonstationary_arg, growth_symb_id_arg, growth_lag_arg, equation_number_arg);
 }
 
 bool
@@ -9126,7 +9126,7 @@ VarExpectationNode::substitutePacExpectation(const string & name, map<const PacE
 }
 
 expr_t
-VarExpectationNode::substitutePacExpectation(const string & name, int mce_symb_id,
+VarExpectationNode::substitutePacExpectation(const string &name, const map<pair<string, string>, int> &eqtag_and_symb_id,
                                              map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
   return const_cast<VarExpectationNode *>(this);
@@ -9239,12 +9239,12 @@ VarExpectationNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
 }
 
 void
-VarExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants)
+VarExpectationNode::addParamInfoToPac(string eqtag_arg, pair<int, int> lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars_arg, set<pair<int, pair<int, int>>> ar_params_and_vars_arg, vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants)
 {
 }
 
 void
-VarExpectationNode::fillPacExpectationVarInfo(const string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
+VarExpectationNode::fillPacExpectationVarInfo(const string &model_name_arg, vector<int> lhs_arg, int max_lag_arg, const vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
 {
 }
 
@@ -9353,29 +9353,30 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       return;
     }
 
-  output << "M_.pac." << model_name << ".lhs_var = "
-         << datatree.symbol_table.getTypeSpecificID(lhs_pac_var.first) + 1 << ";" << endl
-         << "M_.pac." << model_name << ".max_lag = " << pac_max_lag << ";" << endl;
+  string substruct = model_name + ".equations." + eqtag + ".";
+
+  output << "M_.pac." << substruct << "lhs_var = "
+         << datatree.symbol_table.getTypeSpecificID(lhs_pac_var.first) + 1 << ";" << endl;
 
   if (growth_symb_id >= 0)
-    output << "M_.pac." << model_name << ".growth_neutrality_param_index = "
+    output << "M_.pac." << substruct << "growth_neutrality_param_index = "
            << datatree.symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl;
 
   if (optim_share_index >= 0)
-    output << "M_.pac." << model_name << ".share_of_optimizing_agents_index = "
+    output << "M_.pac." << substruct << "share_of_optimizing_agents_index = "
            << datatree.symbol_table.getTypeSpecificID(optim_share_index) + 1 << ";" << endl;
 
-  output << "M_.pac." << model_name << ".ec.params = "
+  output << "M_.pac." << substruct << "ec.params = "
          << datatree.symbol_table.getTypeSpecificID(ec_params_and_vars.first) + 1 << ";" << endl
-         << "M_.pac." << model_name << ".ec.vars = [";
+         << "M_.pac." << substruct << "ec.vars = [";
   for (auto it : ec_params_and_vars.second.first)
       output << datatree.symbol_table.getTypeSpecificID(it) + 1 << " ";
   output << "];" << endl
-         << "M_.pac." << model_name << ".ec.isendo = [";
+         << "M_.pac." << substruct << "ec.isendo = [";
   for (auto it : ec_params_and_vars.second.second)
     output << (it ? "true" : "false") << " ";
   output << "];" << endl
-         << "M_.pac." << model_name << ".ar.params = [";
+         << "M_.pac." << substruct << "ar.params = [";
   for (auto it = ar_params_and_vars.begin();
        it != ar_params_and_vars.end(); it++)
     {
@@ -9384,7 +9385,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << datatree.symbol_table.getTypeSpecificID(it->first) + 1;
     }
   output << "];" << endl
-         << "M_.pac." << model_name << ".ar.vars = [";
+         << "M_.pac." << substruct << "ar.vars = [";
   for (auto it = ar_params_and_vars.begin();
        it != ar_params_and_vars.end(); it++)
     {
@@ -9393,7 +9394,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << datatree.symbol_table.getTypeSpecificID(it->second.first) + 1;
     }
   output << "];" << endl
-         << "M_.pac." << model_name << ".ar.lags = [";
+         << "M_.pac." << substruct << "ar.lags = [";
   for (auto it = ar_params_and_vars.begin();
        it != ar_params_and_vars.end(); it++)
     {
@@ -9404,7 +9405,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   output << "];" << endl;
   if (!non_optim_vars_params_and_constants.empty())
     {
-      output << "M_.pac." << model_name << ".non_optimizing_behaviour.params = [";
+      output << "M_.pac." << substruct << "non_optimizing_behaviour.params = [";
       for (auto it = non_optim_vars_params_and_constants.begin();
            it != non_optim_vars_params_and_constants.end(); ++it)
         {
@@ -9416,7 +9417,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output << "NaN";
         }
       output << "];"
-             << "M_.pac." << model_name << ".non_optimizing_behaviour.vars = [";
+             << "M_.pac." << substruct << "non_optimizing_behaviour.vars = [";
       for (auto it = non_optim_vars_params_and_constants.begin();
            it != non_optim_vars_params_and_constants.end(); ++it)
         {
@@ -9425,7 +9426,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << datatree.symbol_table.getTypeSpecificID(get<0>(*it)) + 1;
         }
       output << "];" << endl
-             << "M_.pac." << model_name << ".non_optimizing_behaviour.lags = [";
+             << "M_.pac." << substruct << "non_optimizing_behaviour.lags = [";
       for (auto it = non_optim_vars_params_and_constants.begin();
            it != non_optim_vars_params_and_constants.end(); ++it)
         {
@@ -9434,7 +9435,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << get<1>(*it);
         }
       output << "];" << endl
-             << "M_.pac." << model_name << ".non_optimizing_behaviour.scaling_factor = [";
+             << "M_.pac." << substruct << "non_optimizing_behaviour.scaling_factor = [";
       for (auto it = non_optim_vars_params_and_constants.begin();
            it != non_optim_vars_params_and_constants.end(); ++it)
         {
@@ -9444,7 +9445,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         }
       output << "];" << endl;
     }
-  output << "M_.pac." << model_name << ".h0_param_indices = [";
+  output << "M_.pac." << substruct << "h0_param_indices = [";
   for (auto it = h0_indices.begin();
        it != h0_indices.end(); it++)
     {
@@ -9453,7 +9454,7 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << datatree.symbol_table.getTypeSpecificID(*it) + 1;
     }
   output << "];" << endl
-         << "M_.pac." << model_name << ".h1_param_indices = [";
+         << "M_.pac." << substruct << "h1_param_indices = [";
   for (auto it = h1_indices.begin();
        it != h1_indices.end(); it++)
     {
@@ -9844,8 +9845,14 @@ PacExpectationNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
 }
 
 void
-PacExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars_arg, set<pair<int, pair<int, int>>> &ar_params_and_vars_arg, const vector<tuple<int, int, int, double>> &non_optim_vars_params_and_constants_arg)
+PacExpectationNode::addParamInfoToPac(string eqtag_arg, pair<int, int> lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars_arg, set<pair<int, pair<int, int>>> ar_params_and_vars_arg, vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants_arg)
 {
+  if (eqtag_arg == "")
+    {
+      cerr << "Pac Expectation: every equation with a pac_expectation operator must have been assigned an equation tag name" << endl;
+      exit(EXIT_FAILURE);
+    }
+
   if (lhs_arg.first == -1)
     {
       cerr << "Pac Expectation: error in obtaining LHS varibale." << endl;
@@ -9858,23 +9865,23 @@ PacExpectationNode::addParamInfoToPac(pair<int, int> &lhs_arg, int optim_share_a
       exit(EXIT_FAILURE);
     }
 
-  lhs_pac_var = lhs_arg;
-  optim_share_index = optim_share_arg;
-  ar_params_and_vars = ar_params_and_vars_arg;
-  ec_params_and_vars = ec_params_and_vars_arg;
-  non_optim_vars_params_and_constants = non_optim_vars_params_and_constants_arg;
+  eqtag = move(eqtag_arg);
+  lhs_pac_var = move(lhs_arg);
+  optim_share_index = move(optim_share_arg);
+  ar_params_and_vars = move(ar_params_and_vars_arg);
+  ec_params_and_vars = move(ec_params_and_vars_arg);
+  non_optim_vars_params_and_constants = move(non_optim_vars_params_and_constants_arg);
 }
 
 
 void
-PacExpectationNode::fillPacExpectationVarInfo(const string &model_name_arg, vector<int> &lhs_arg, int max_lag_arg, int pac_max_lag_arg, vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
+PacExpectationNode::fillPacExpectationVarInfo(const string &model_name_arg, vector<int> lhs_arg, int max_lag_arg, const vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag_arg, int equation_number_arg)
 {
   if (model_name != model_name_arg)
     return;
 
-  lhs = lhs_arg;
+  lhs = move(lhs_arg);
   max_lag = max_lag_arg;
-  pac_max_lag = pac_max_lag_arg;
   growth_symb_id = growth_symb_id_arg;
   growth_lag = growth_lag_arg;
   equation_number = equation_number_arg;
@@ -9949,13 +9956,18 @@ PacExpectationNode::substitutePacExpectation(const string & name, map<const PacE
 }
 
 expr_t
-PacExpectationNode::substitutePacExpectation(const string & name, int mce_symb_id,
-                                             map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
+PacExpectationNode::substitutePacExpectation(const string &name, const map<pair<string, string>, int> &eqtag_and_symb_id, map<const PacExpectationNode *, const BinaryOpNode *> &subst_table)
 {
   if (model_name != name)
     return const_cast<PacExpectationNode *>(this);
 
-  expr_t subExpr = datatree.AddVariable(mce_symb_id);
+  if (eqtag == "")
+    {
+      cerr << "Dynare internal error: eqtag should have been assigned already" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  expr_t subExpr = datatree.AddVariable(eqtag_and_symb_id.at(make_pair(model_name, eqtag)));
   subst_table[const_cast<PacExpectationNode *>(this)] = dynamic_cast<BinaryOpNode *>(subExpr);
   return subExpr;
 }
