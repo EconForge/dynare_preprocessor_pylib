@@ -3671,53 +3671,53 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       tie(lhs_pac_var, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants) = pit.second;
       string substruct = pit.first.first + ".equations." + pit.first.second + ".";
 
-      output << "M_.pac." << substruct << "lhs_var = "
+      output << modstruct << "pac." << substruct << "lhs_var = "
              << symbol_table.getTypeSpecificID(lhs_pac_var.first) + 1 << ";" << endl;
 
       if (optim_share_index >= 0)
-        output << "M_.pac." << substruct << "share_of_optimizing_agents_index = "
+        output << modstruct << "pac." << substruct << "share_of_optimizing_agents_index = "
                << symbol_table.getTypeSpecificID(optim_share_index) + 1 << ";" << endl;
 
-      output << "M_.pac." << substruct << "ec.params = "
+      output << modstruct << "pac." << substruct << "ec.params = "
              << symbol_table.getTypeSpecificID(ec_params_and_vars.first) + 1 << ";" << endl
-             << "M_.pac." << substruct << "ec.vars = [";
+             << modstruct << "pac." << substruct << "ec.vars = [";
       for (auto it : ec_params_and_vars.second.first)
         output << symbol_table.getTypeSpecificID(it) + 1 << " ";
       output << "];" << endl
-             << "M_.pac." << substruct << "ec.isendo = [";
+             << modstruct << "pac." << substruct << "ec.isendo = [";
       for (auto it : ec_params_and_vars.second.second)
         output << (it ? "true" : "false") << " ";
       output << "];" << endl
-             << "M_.pac." << substruct << "ar.params = [";
+             << modstruct << "pac." << substruct << "ar.params = [";
       for (auto & it : ar_params_and_vars)
         output << symbol_table.getTypeSpecificID(it.first) + 1 << " ";
       output << "];" << endl
-             << "M_.pac." << substruct << "ar.vars = [";
+             << modstruct << "pac." << substruct << "ar.vars = [";
       for (auto & it : ar_params_and_vars)
         output << symbol_table.getTypeSpecificID(it.second.first) + 1 << " ";
       output << "];" << endl
-             << "M_.pac." << substruct << "ar.lags = [";
+             << modstruct << "pac." << substruct << "ar.lags = [";
       for (auto & it : ar_params_and_vars)
         output << it.second.second << " ";
       output << "];" << endl;
       if (!non_optim_vars_params_and_constants.empty())
         {
-          output << "M_.pac." << substruct << "non_optimizing_behavior.params = [";
+          output << modstruct << "pac." << substruct << "non_optimizing_behavior.params = [";
           for (auto & it : non_optim_vars_params_and_constants)
             if (get<2>(it) >= 0)
               output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
             else
               output << "NaN ";
           output << "];" << endl
-                 << "M_.pac." << substruct << "non_optimizing_behavior.vars = [";
+                 << modstruct << "pac." << substruct << "non_optimizing_behavior.vars = [";
           for (auto & it : non_optim_vars_params_and_constants)
             output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
           output << "];" << endl
-                 << "M_.pac." << substruct << "non_optimizing_behavior.lags = [";
+                 << modstruct << "pac." << substruct << "non_optimizing_behavior.lags = [";
           for (auto & it : non_optim_vars_params_and_constants)
             output << get<1>(it) << " ";
           output << "];" << endl
-                 << "M_.pac." << substruct << "non_optimizing_behavior.scaling_factor = [";
+                 << modstruct << "pac." << substruct << "non_optimizing_behavior.scaling_factor = [";
           for (auto & it : non_optim_vars_params_and_constants)
             output << get<3>(it) << " ";
           output << "];" << endl;
@@ -3726,7 +3726,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
 
   for (auto & it : pac_h0_indices)
     {
-      output << "M_.pac." << it.first.first << ".equations." << it.first.second << ".h0_param_indices = [";
+      output << modstruct << "pac." << it.first.first << ".equations." << it.first.second << ".h0_param_indices = [";
       for (auto it1 : it.second)
         output << symbol_table.getTypeSpecificID(it1) + 1 << " ";
       output << "];" << endl;
@@ -3734,7 +3734,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
 
   for (auto & it : pac_h1_indices)
     {
-      output << "M_.pac." << it.first.first << ".equations." << it.first.second << ".h1_param_indices = [";
+      output << modstruct << "pac." << it.first.first << ".equations." << it.first.second << ".h1_param_indices = [";
       for (auto it1 : it.second)
         output << symbol_table.getTypeSpecificID(it1) + 1 << " ";
       output << "];" << endl;
