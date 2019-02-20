@@ -421,8 +421,10 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
            int max_lag;
            vector<int> lhs;
            vector<bool> nonstationary;
+           string aux_model_type = "";
            if (trend_component_model_table.isExistingTrendComponentModelName(pms->aux_model_name))
              {
+               aux_model_type = "trend_component";
                max_lag = trend_component_model_table.getMaxLag(pms->aux_model_name) + 1;
                lhs = dynamic_model.getUndiffLHSForPac(pms->aux_model_name, diff_subst_table);
                // All lhs variables in a trend component model are nonstationary
@@ -430,6 +432,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
              }
            else if (var_model_table.isExistingVarModelName(pms->aux_model_name))
              {
+               aux_model_type = "var";
                max_lag = var_model_table.getMaxLag(pms->aux_model_name);
                lhs = var_model_table.getLhs(pms->aux_model_name);
                // nonstationary variables in a VAR are those that are in diff
@@ -449,7 +452,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
              dynamic_model.addPacModelConsistentExpectationEquation(pms->name, symbol_table.getID(pms->discount),
                                                                     eqtag_and_lag, diff_subst_table);
            else
-             dynamic_model.fillPacModelInfo(pms->name, lhs, max_lag,
+             dynamic_model.fillPacModelInfo(pms->name, lhs, max_lag, aux_model_type,
                                             eqtag_and_lag, nonstationary, pms->growth_symb_id, pms->growth_lag);
            dynamic_model.substitutePacExpectation(pms->name);
          }

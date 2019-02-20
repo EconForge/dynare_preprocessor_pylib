@@ -346,6 +346,7 @@ public:
   void fillPacModelInfo(const string &pac_model_name,
                         vector<int> lhs,
                         int max_lag,
+                        string aux_model_type,
                         const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
                         const vector<bool> &nonstationary,
                         int growth_symb_id, int growth_lag);
@@ -476,8 +477,8 @@ public:
   map<pair<string, string>, expr_t> pac_expectation_substitution;
 
   //! Store info about pac models:
-  //! pac_model_name -> (lhsvars, growth_param_index)
-  map<string, pair<vector<int>, int>> pac_model_info;
+  //! pac_model_name -> (lhsvars, growth_param_index, aux_model_type)
+  map<string, tuple<vector<int>, int, string>> pac_model_info;
 
   //! Store info about pac models specific to the equation they appear in
   //! (pac_model_name, standardized_eqtag) ->

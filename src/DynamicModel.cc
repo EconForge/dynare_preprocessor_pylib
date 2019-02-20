@@ -3657,6 +3657,8 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       if (growth_param_index >= 0)
         output << modstruct << "pac." << it.first << ".growth_neutrality_param_index = "
                << symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl;
+
+      output << modstruct << "pac." << it.first << ".auxiliary_model_type = '" << get<2>(it.second) << "';" << endl;
     }
 
   for (auto & pit : pac_equation_info)
@@ -4606,6 +4608,7 @@ void
 DynamicModel::fillPacModelInfo(const string &pac_model_name,
                                vector<int> lhs,
                                int max_lag,
+                               string aux_model_type,
                                const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
                                const vector<bool> &nonstationary,
                                int growth_symb_id, int growth_lag)
@@ -4675,7 +4678,7 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
 
       pac_expectation_substitution[make_pair(pac_model_name, eqtag)] = subExpr;
     }
-  pac_model_info[pac_model_name] = make_tuple(move(lhs), growth_param_index);
+  pac_model_info[pac_model_name] = make_tuple(move(lhs), growth_param_index, move(aux_model_type));
 }
 
 void
