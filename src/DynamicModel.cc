@@ -3647,16 +3647,16 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
 
   for (auto & it : pac_model_info)
     {
-      int growth_param_index = get<6>(it.second);
-      if (growth_param_index >= 0)
-        output << modstruct << "pac." << it.first << ".growth_neutrality_param_index = "
-               << symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl;
-
       vector<int> lhs = get<0>(it.second);
       output << modstruct << "pac." << it.first << ".lhs = [";
       for (auto it : lhs)
         output << it + 1 << " ";
       output << "];" << endl;
+
+      int growth_param_index = get<1>(it.second);
+      if (growth_param_index >= 0)
+        output << modstruct << "pac." << it.first << ".growth_neutrality_param_index = "
+               << symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl;
     }
 
   for (auto & pit : pac_equation_info)
@@ -4604,7 +4604,7 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int 
 
 void
 DynamicModel::fillPacModelInfo(const string &pac_model_name,
-                               vector<int> &lhs,
+                               vector<int> lhs,
                                int max_lag,
                                const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
                                const vector<bool> &nonstationary,
@@ -4624,12 +4624,12 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
         stationary_vars_present = true;
 
   int growth_param_index = -1;
-   if (growth_symb_id >= 0)
-     growth_param_index = symbol_table.addSymbol(pac_model_name +
-                                                 "_pac_growth_neutrality_correction",
-                                                 SymbolType::parameter);
+  if (growth_symb_id >= 0)
+    growth_param_index = symbol_table.addSymbol(pac_model_name +
+                                                "_pac_growth_neutrality_correction",
+                                                SymbolType::parameter);
 
-   for (auto pac_models_and_eqtags : pac_eqtag_and_lag)
+  for (auto pac_models_and_eqtags : pac_eqtag_and_lag)
     {
       if (pac_models_and_eqtags.first.first != pac_model_name)
         continue;
@@ -4675,10 +4675,7 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
 
       pac_expectation_substitution[make_pair(pac_model_name, eqtag)] = subExpr;
     }
-
-  pac_model_info[pac_model_name] = make_tuple(lhs, max_lag,
-                                              nonstationary_vars_present, stationary_vars_present,
-                                              growth_symb_id, growth_lag, growth_param_index);
+  pac_model_info[pac_model_name] = make_tuple(move(lhs), growth_param_index);
 }
 
 void

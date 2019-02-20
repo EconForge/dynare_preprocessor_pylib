@@ -344,7 +344,7 @@ public:
   void walkPacParameters(const string &name, map<pair<string, string>, pair<string, int>> &eqtag_and_lag);
   //! Add var_model info to pac_expectation nodes
   void fillPacModelInfo(const string &pac_model_name,
-                        vector<int> &lhs,
+                        vector<int> lhs,
                         int max_lag,
                         const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
                         const vector<bool> &nonstationary,
@@ -476,8 +476,8 @@ public:
   map<pair<string, string>, expr_t> pac_expectation_substitution;
 
   //! Store info about pac models:
-  //! pac_model_name -> (lhsvars, max_lag, nonstationary_vars_present, stationary_vars_present, growth_symb_id, growth_lag, growth_param_index)
-  map<string, tuple<vector<int>, int, bool, bool, int, int, int>> pac_model_info;
+  //! pac_model_name -> (lhsvars, growth_param_index)
+  map<string, pair<vector<int>, int>> pac_model_info;
 
   //! Store info about pac models specific to the equation they appear in
   //! (pac_model_name, standardized_eqtag) ->
