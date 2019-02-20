@@ -233,9 +233,6 @@ private:
   //! Used for var_expectation and var_model
   map<string, set<int>> var_expectation_functions_to_write;
 
-  //! Used for pac_expectation operator
-  set<const PacExpectationNode *> pac_expectation_info; // PacExpectationNode pointers
-
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
   vector<pair<int, int>> endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
 
@@ -346,15 +343,15 @@ public:
   //! Get Pac equation parameter info
   void walkPacParameters(const string &name, map<pair<string, string>, pair<string, int>> &eqtag_and_lag);
   //! Add var_model info to pac_expectation nodes
-  void fillPacExpectationVarInfo(const string &pac_model_name,
-                                 vector<int> &lhs,
-                                 int max_lag,
-                                 const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
-                                 const vector<bool> &nonstationary,
-                                 int growth_symb_id, int growth_lag);
+  void fillPacModelInfo(const string &pac_model_name,
+                        vector<int> &lhs,
+                        int max_lag,
+                        const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
+                        const vector<bool> &nonstationary,
+                        int growth_symb_id, int growth_lag);
 
   //! Substitutes pac_expectation operator with expectation based on auxiliary model
-  void substitutePacExpectation(const string & name);
+  void substitutePacExpectation(const string & pac_model_name);
 
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &basename,
@@ -458,14 +455,35 @@ public:
   int getPacTargetSymbId(const string &pac_model_name) const;
 
   //! Add model consistent expectation equation for pac model
-  void addPacModelConsistentExpectationEquation(const string & name, int pac_target_symb_id, int discount, const map<pair<string, string>, pair<string, int>> &eqtag_and_lag, ExprNode::subst_table_t &diff_subst_table);
+  void addPacModelConsistentExpectationEquation(const string & name, int discount,
+                                                const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
+                                                ExprNode::subst_table_t &diff_subst_table);
 
   //! store symb_ids for alphas created in addPacModelConsistentExpectationEquation
+  //! (pac_model_name, standardized_eqtag) -> mce_alpha_symb_id
   map<pair<string, string>, vector<int>> pac_mce_alpha_symb_ids;
+  //! store symb_ids for h0, h1 parameters
+  //! (pac_model_name, standardized_eqtag) -> parameter symb_ids
+  map<pair<string, string>, vector<int>> pac_h0_indices, pac_h1_indices;
   //! store symb_ids for z1s created in addPacModelConsistentExpectationEquation
+  //! (pac_model_name, standardized_eqtag) -> mce_z1_symb_id
   map<pair<string, string>, int> pac_mce_z1_symb_ids;
   //! Store lag info for pac equations
+  //! (pac_model_name, equation_tag) -> (standardized_eqtag, lag)
   map<pair<string, string>, pair<string, int>> pac_eqtag_and_lag;
+
+  //! (pac_model_name, equation_tag) -> expr_t
+  map<pair<string, string>, expr_t> pac_expectation_substitution;
+
+  //! Store info about pac models:
+  //! pac_model_name -> (lhsvars, max_lag, nonstationary_vars_present, stationary_vars_present, growth_symb_id, growth_lag, growth_param_index)
+  map<string, tuple<vector<int>, int, bool, bool, int, int, int>> pac_model_info;
+
+  //! Store info about pac models specific to the equation they appear in
+  //! (pac_model_name, standardized_eqtag) ->
+  //!     (lhs, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants)
+  map<pair<string, string>,
+      tuple<pair<int, int>, int, set<pair<int, pair<int, int>>>, pair<int, pair<vector<int>, vector<bool>>>, vector<tuple<int, int, int, double>>>> pac_equation_info;
 
   //! Table to undiff LHS variables for pac vector z
   vector<int> getUndiffLHSForPac(const string &aux_model_name,

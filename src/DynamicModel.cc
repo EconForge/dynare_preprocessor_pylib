@@ -85,9 +85,6 @@ DynamicModel::copyHelper(const DynamicModel &m)
     derivative_exo.push_back(convert_derivative_t(it));
   for (const auto &it : m.derivative_exo_det)
     derivative_exo_det.push_back(convert_derivative_t(it));
-
-  for (const auto &it : m.pac_expectation_info)
-    pac_expectation_info.insert(dynamic_cast<const PacExpectationNode *>(f(it)));
 }
 
 
@@ -230,8 +227,6 @@ DynamicModel::operator=(const DynamicModel &m)
   variable_block_lead_lag = m.variable_block_lead_lag;
   equation_block = m.equation_block;
   var_expectation_functions_to_write = m.var_expectation_functions_to_write;
-
-  pac_expectation_info.clear();
 
   endo_max_leadlag_block = m.endo_max_leadlag_block;
   other_endo_max_leadlag_block = m.other_endo_max_leadlag_block;
@@ -3633,11 +3628,6 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   for (auto & it : pac_eqtag_and_lag)
     output << modstruct << "pac." << it.first.first << ".equations." << it.second.first << ".max_lag = " << it.second.second << ";" << endl;
 
-  map <string, vector<pair<string, string>> > mymap;
-  mymap.insert(pair<string,vector<pair<string,string>> >("A", vector<pair<string,string>>()));
-  mymap["A"].push_back(make_pair("A","BB"));
-  mymap["A"].push_back(make_pair("C", "DD"));
-
   // Write Pac equation tag info
   map<string, vector<pair<string, string>>> for_writing;
   for (auto & it : pac_eqtag_and_lag)
@@ -3655,9 +3645,98 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       output << "];" << endl;
     }
 
-  // Write PacExpectationInfo
-  for (auto it : pac_expectation_info)
-    it->ExprNode::writeOutput(output, ExprNodeOutputType::matlabDynamicModel);
+  for (auto & it : pac_model_info)
+    {
+      int growth_param_index = get<6>(it.second);
+      if (growth_param_index >= 0)
+        output << modstruct << "pac." << it.first << ".growth_neutrality_param_index = "
+               << symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl;
+
+      vector<int> lhs = get<0>(it.second);
+      output << modstruct << "pac." << it.first << ".lhs = [";
+      for (auto it : lhs)
+        output << it + 1 << " ";
+      output << "];" << endl;
+    }
+
+  for (auto & pit : pac_equation_info)
+    {
+      pair<int, int> lhs_pac_var;
+      int optim_share_index;
+      set<pair<int, pair<int, int>>> ar_params_and_vars;
+      pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars;
+      vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants;
+      tie(lhs_pac_var, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants) = pit.second;
+      string substruct = pit.first.first + ".equations." + pit.first.second + ".";
+
+      output << "M_.pac." << substruct << "lhs_var = "
+             << symbol_table.getTypeSpecificID(lhs_pac_var.first) + 1 << ";" << endl;
+
+      if (optim_share_index >= 0)
+        output << "M_.pac." << substruct << "share_of_optimizing_agents_index = "
+               << symbol_table.getTypeSpecificID(optim_share_index) + 1 << ";" << endl;
+
+      output << "M_.pac." << substruct << "ec.params = "
+             << symbol_table.getTypeSpecificID(ec_params_and_vars.first) + 1 << ";" << endl
+             << "M_.pac." << substruct << "ec.vars = [";
+      for (auto it : ec_params_and_vars.second.first)
+        output << symbol_table.getTypeSpecificID(it) + 1 << " ";
+      output << "];" << endl
+             << "M_.pac." << substruct << "ec.isendo = [";
+      for (auto it : ec_params_and_vars.second.second)
+        output << (it ? "true" : "false") << " ";
+      output << "];" << endl
+             << "M_.pac." << substruct << "ar.params = [";
+      for (auto & it : ar_params_and_vars)
+        output << symbol_table.getTypeSpecificID(it.first) + 1 << " ";
+      output << "];" << endl
+             << "M_.pac." << substruct << "ar.vars = [";
+      for (auto & it : ar_params_and_vars)
+        output << symbol_table.getTypeSpecificID(it.second.first) + 1 << " ";
+      output << "];" << endl
+             << "M_.pac." << substruct << "ar.lags = [";
+      for (auto & it : ar_params_and_vars)
+        output << it.second.second << " ";
+      output << "];" << endl;
+      if (!non_optim_vars_params_and_constants.empty())
+        {
+          output << "M_.pac." << substruct << "non_optimizing_behavior.params = [";
+          for (auto & it : non_optim_vars_params_and_constants)
+            if (get<2>(it) >= 0)
+              output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
+            else
+              output << "NaN ";
+          output << "];" << endl
+                 << "M_.pac." << substruct << "non_optimizing_behavior.vars = [";
+          for (auto & it : non_optim_vars_params_and_constants)
+            output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
+          output << "];" << endl
+                 << "M_.pac." << substruct << "non_optimizing_behavior.lags = [";
+          for (auto & it : non_optim_vars_params_and_constants)
+            output << get<1>(it) << " ";
+          output << "];" << endl
+                 << "M_.pac." << substruct << "non_optimizing_behavior.scaling_factor = [";
+          for (auto & it : non_optim_vars_params_and_constants)
+            output << get<3>(it) << " ";
+          output << "];" << endl;
+        }
+    }
+
+  for (auto & it : pac_h0_indices)
+    {
+      output << "M_.pac." << it.first.first << ".equations." << it.first.second << ".h0_param_indices = [";
+      for (auto it1 : it.second)
+        output << symbol_table.getTypeSpecificID(it1) + 1 << " ";
+      output << "];" << endl;
+    }
+
+  for (auto & it : pac_h1_indices)
+    {
+      output << "M_.pac." << it.first.first << ".equations." << it.first.second << ".h1_param_indices = [";
+      for (auto it1 : it.second)
+        output << symbol_table.getTypeSpecificID(it1) + 1 << " ";
+      output << "];" << endl;
+    }
 }
 
 map<tuple<int, int, int>, expr_t>
@@ -4297,7 +4376,9 @@ DynamicModel::walkPacParameters(const string &name, map<pair<string, string>, pa
           set<int> optim_share;
           expr_t optim_part = nullptr;
           expr_t non_optim_part = nullptr;
-          equation->getPacLHS(lhs);
+          set<pair<int, int>> lhss;
+          equation->arg1->collectDynamicVariables(SymbolType::endogenous, lhss);
+          lhs = *(lhss.begin());
           int lhs_orig_symb_id = lhs.first;
           if (symbol_table.isAuxiliaryVariable(lhs_orig_symb_id))
             try
@@ -4342,12 +4423,20 @@ DynamicModel::walkPacParameters(const string &name, map<pair<string, string>, pa
               cerr << "Every equation with a pac expectation must have been assigned an equation tag name" << endl;
               exit(EXIT_FAILURE);
             }
+          if (lhs.first == -1)
+            {
+              cerr << "walkPacParameters: error obtaining LHS varibale." << endl;
+              exit(EXIT_FAILURE);
+            }
+          if (ec_params_and_vars.second.first.empty() || ar_params_and_vars.empty())
+            {
+              cerr << "walkPacParameters: error obtaining RHS parameters." << endl;
+              exit(EXIT_FAILURE);
+            }
           string eq = "eq" + to_string(i++);
-          equation->addParamInfoToPac(eq,
-                                      lhs,
-                                      optim_share_index,
-                                      ec_params_and_vars, ar_params_and_vars,
-                                      non_optim_vars_params_and_constants);
+          pac_equation_info[make_pair(name, eq)] = make_tuple(lhs, optim_share_index,
+                                                              ar_params_and_vars, ec_params_and_vars,
+                                                              non_optim_vars_params_and_constants);
           eqtag_and_lag[make_pair(name, eqtag)] = make_pair(eq, 0);
         }
     }
@@ -4388,7 +4477,9 @@ DynamicModel::getPacTargetSymbId(const string &pac_model_name) const
     if (equation->containsPacExpectation(pac_model_name))
       {
         pair<int, int> lhs (-1, -1);
-        equation->getPacLHS(lhs);
+        set<pair<int, int>> lhss;
+        equation->arg1->collectDynamicVariables(SymbolType::endogenous, lhss);
+        lhs = *(lhss.begin());
         int lhs_symb_id = lhs.first;
         int lhs_orig_symb_id = lhs_symb_id;
         if (symbol_table.isAuxiliaryVariable(lhs_symb_id))
@@ -4405,17 +4496,19 @@ DynamicModel::getPacTargetSymbId(const string &pac_model_name) const
 }
 
 void
-DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int pac_target_symb_id,
-                                                       int discount_symb_id, const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
+DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int discount_symb_id,
+                                                       const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
                                                        ExprNode::subst_table_t &diff_subst_table)
 {
+  int pac_target_symb_id = getPacTargetSymbId(name);
   pac_eqtag_and_lag.insert(eqtag_and_lag.begin(), eqtag_and_lag.end());
   int neqs = 0;
   for (auto & it : eqtag_and_lag)
     {
-      string eqtag = it.second.first;
+      string eqtag = it.first.second;
+      string standard_eqtag = it.second.first;
       int pac_max_lag_m = it.second.second;
-      string append_to_name = name + "_" + eqtag;
+      string append_to_name = name + "_" + standard_eqtag;
       int mce_z1_symb_id;
       try
         {
@@ -4435,7 +4528,7 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int 
           {
             int alpha_i_symb_id = symbol_table.addSymbol("mce_alpha_" + append_to_name + "_" + to_string(i),
                                                          SymbolType::parameter);
-            pac_mce_alpha_symb_ids[make_pair(name, eqtag)].push_back(alpha_i_symb_id);
+            pac_mce_alpha_symb_ids[make_pair(name, standard_eqtag)].push_back(alpha_i_symb_id);
             A = AddPlus(A, AddVariable(alpha_i_symb_id));
             fp = AddPlus(fp,
                          AddTimes(AddTimes(AddVariable(alpha_i_symb_id),
@@ -4503,46 +4596,106 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int 
       addEquation(AddEqual(AddVariable(mce_z1_symb_id),
                            AddMinus(AddTimes(A, AddMinus((expr_t) target_base_diff_node, fs)), fp)), -1);
       neqs++;
-      pac_mce_z1_symb_ids[make_pair(name, eqtag)] = mce_z1_symb_id;
+      pac_mce_z1_symb_ids[make_pair(name, standard_eqtag)] = mce_z1_symb_id;
+      pac_expectation_substitution[make_pair(name, eqtag)] = AddVariable(mce_z1_symb_id);
     }
     cout << "Pac Model Consistent Expectation: added " << neqs << " auxiliary variables and equations." << endl;
 }
 
 void
-DynamicModel::fillPacExpectationVarInfo(const string &pac_model_name,
-                                        vector<int> &lhs,
-                                        int max_lag,
-                                        const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
-                                        const vector<bool> &nonstationary,
-                                        int growth_symb_id, int growth_lag)
+DynamicModel::fillPacModelInfo(const string &pac_model_name,
+                               vector<int> &lhs,
+                               int max_lag,
+                               const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
+                               const vector<bool> &nonstationary,
+                               int growth_symb_id, int growth_lag)
 {
   pac_eqtag_and_lag.insert(eqtag_and_lag.begin(), eqtag_and_lag.end());
-  for (size_t i = 0; i < equations.size(); i++)
-    equations[i]->fillPacExpectationVarInfo(pac_model_name, lhs, max_lag,
-                                            nonstationary, growth_symb_id, growth_lag, i);
+
+  bool stationary_vars_present = false;
+  bool nonstationary_vars_present = false;
+  for (auto it : nonstationary)
+    if (nonstationary_vars_present && stationary_vars_present)
+      break;
+    else
+      if (it)
+        nonstationary_vars_present = true;
+      else
+        stationary_vars_present = true;
+
+  int growth_param_index = -1;
+   if (growth_symb_id >= 0)
+     growth_param_index = symbol_table.addSymbol(pac_model_name +
+                                                 "_pac_growth_neutrality_correction",
+                                                 SymbolType::parameter);
+
+   for (auto pac_models_and_eqtags : pac_eqtag_and_lag)
+    {
+      if (pac_models_and_eqtags.first.first != pac_model_name)
+        continue;
+      string eqtag = pac_models_and_eqtags.first.second;
+      string standard_eqtag = pac_models_and_eqtags.second.first;
+      expr_t subExpr = Zero;
+      if (stationary_vars_present)
+        for (int i = 1; i < max_lag + 1; i++)
+          for (auto lhsit : lhs)
+            {
+              stringstream param_name_h0;
+              param_name_h0 << "h0_" << pac_model_name
+                            << "_" << standard_eqtag
+                            << "_var_" << symbol_table.getName(lhsit)
+                            << "_lag_" << i;
+              int new_param_symb_id = symbol_table.addSymbol(param_name_h0.str(), SymbolType::parameter);
+              pac_h0_indices[make_pair(pac_model_name, standard_eqtag)].push_back(new_param_symb_id);
+              subExpr = AddPlus(subExpr,
+                                AddTimes(AddVariable(new_param_symb_id),
+                                         AddVariable(lhsit, -i)));
+            }
+
+      if (nonstationary_vars_present)
+        for (int i = 1; i < max_lag + 1; i++)
+          for (auto lhsit : lhs)
+            {
+              stringstream param_name_h1;
+              param_name_h1 << "h1_" << pac_model_name
+                            << "_" << standard_eqtag
+                            << "_var_" << symbol_table.getName(lhsit)
+                            << "_lag_" << i;
+              int new_param_symb_id = symbol_table.addSymbol(param_name_h1.str(), SymbolType::parameter);
+              pac_h1_indices[make_pair(pac_model_name, standard_eqtag)].push_back(new_param_symb_id);
+              subExpr = AddPlus(subExpr,
+                                AddTimes(AddVariable(new_param_symb_id),
+                                         AddVariable(lhsit, -i)));
+            }
+
+      if (growth_symb_id >= 0)
+        subExpr = AddPlus(subExpr,
+                          AddTimes(AddVariable(growth_param_index),
+                                   AddVariable(growth_symb_id, growth_lag)));
+
+      pac_expectation_substitution[make_pair(pac_model_name, eqtag)] = subExpr;
+    }
+
+  pac_model_info[pac_model_name] = make_tuple(lhs, max_lag,
+                                              nonstationary_vars_present, stationary_vars_present,
+                                              growth_symb_id, growth_lag, growth_param_index);
 }
 
 void
-DynamicModel::substitutePacExpectation(const string & name)
+DynamicModel::substitutePacExpectation(const string & pac_model_name)
 {
-  map<const PacExpectationNode *, const BinaryOpNode *> subst_table;
-  for (auto & it : local_variables_table)
-    it.second = pac_mce_z1_symb_ids.empty() ?
-      it.second->substitutePacExpectation(name, subst_table) :
-      it.second->substitutePacExpectation(name, pac_mce_z1_symb_ids, subst_table);
-
-  for (auto & equation : equations)
-    {
-      auto *substeq = pac_mce_z1_symb_ids.empty() ?
-        dynamic_cast<BinaryOpNode *>(equation->substitutePacExpectation(name, subst_table)) :
-        dynamic_cast<BinaryOpNode *>(equation->substitutePacExpectation(name, pac_mce_z1_symb_ids, subst_table));
-      assert(substeq != nullptr);
-      equation = substeq;
-    }
-
-  for (map<const PacExpectationNode *, const BinaryOpNode *>::const_iterator it = subst_table.begin();
-       it != subst_table.end(); it++)
-    pac_expectation_info.insert(const_cast<PacExpectationNode *>(it->first));
+  for (auto & it : pac_expectation_substitution)
+    if (it.first.first == pac_model_name)
+      for (auto & equation : equations)
+        for (auto & tag : equation_tags)
+          if (tag.first == (&equation - &equations[0]))
+            if (tag.second.first == "name" && tag.second.second == it.first.second)
+              {
+                auto *substeq = dynamic_cast<BinaryOpNode *>(equation->substitutePacExpectation(pac_model_name, it.second));
+                assert(substeq != nullptr);
+                equation = substeq;
+                break;
+              }
 }
 
 void

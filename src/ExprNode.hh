@@ -566,11 +566,7 @@ class ExprNode
       virtual expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
 
       //! Substitute pac_expectation operator
-      virtual expr_t substitutePacExpectation(const string & name, map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) = 0;
-
-      //! Substitute pac_expectation operator with model consistent expectation
-      virtual expr_t substitutePacExpectation(const string & name, const map<pair<string, string>, int> &eqtag_and_symb_id,
-                                              map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) = 0;
+      virtual expr_t substitutePacExpectation(const string & name, expr_t subexpr) = 0;
 
       //! Add ExprNodes to the provided datatree
       virtual expr_t clone(DataTree &datatree) const = 0;
@@ -607,11 +603,6 @@ class ExprNode
       virtual void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
                                                      expr_t &optim_part,
                                                      expr_t &non_optim_part) const = 0;
-      //! Adds PAC equation param info to pac_expectation
-      virtual void addParamInfoToPac(string eqtag_arg, pair<int, int> lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars_arg, set<pair<int, pair<int, int>>> params_and_vars_arg, vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants) = 0;
-
-      //! Fills var_model info for pac_expectation node
-      virtual void fillPacExpectationVarInfo(const string &model_name_arg, vector<int> lhs_arg, int max_lag_arg, const vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) = 0;
 
       //! Fills the AR matrix structure
       virtual void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const = 0;
@@ -725,9 +716,7 @@ public:
   int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substitutePacExpectation(const string & name, map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
-  expr_t substitutePacExpectation(const string & name, const map<pair<string, string>, int> &eqtag_and_symb_id,
-                                  map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
+  expr_t substitutePacExpectation(const string & name, expr_t subexpr) override;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
@@ -740,8 +729,6 @@ public:
   expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void addParamInfoToPac(string eqtag_arg, pair<int, int> lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars_arg, set<pair<int, pair<int, int>>> params_and_vars_arg, vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants) override;
-  void fillPacExpectationVarInfo(const string &model_name_arg, vector<int> lhs_arg, int max_lag_arg, const vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
@@ -819,9 +806,7 @@ public:
   int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substitutePacExpectation(const string & name, map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
-  expr_t substitutePacExpectation(const string & name, const map<pair<string, string>, int> &eqtag_and_symb_id,
-                                  map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
+  expr_t substitutePacExpectation(const string & name, expr_t subexpr) override;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
@@ -834,8 +819,6 @@ public:
   expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void addParamInfoToPac(string eqtag_arg, pair<int, int> lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars_arg, set<pair<int, pair<int, int>>> params_and_vars_arg, vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants) override;
-  void fillPacExpectationVarInfo(const string &model_name_arg, vector<int> lhs_arg, int max_lag_arg, const vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
@@ -941,9 +924,7 @@ public:
   int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substitutePacExpectation(const string & name, map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
-  expr_t substitutePacExpectation(const string & name, const map<pair<string, string>, int> &eqtag_and_symb_id,
-                                  map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
+  expr_t substitutePacExpectation(const string & name, expr_t subexpr) override;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
@@ -956,8 +937,6 @@ public:
   expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void addParamInfoToPac(string eqtag_arg, pair<int, int> lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars_arg, set<pair<int, pair<int, int>>> params_and_vars_arg, vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants) override;
-  void fillPacExpectationVarInfo(const string &model_name_arg, vector<int> lhs_arg, int max_lag_arg, const vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
@@ -1036,7 +1015,6 @@ public:
                                   int lhs_orig_symb_id,
                                   pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                                   set<pair<int, pair<int, int>>> &ar_params_and_vars) const;
-  void getPacLHS(pair<int, int> &lhs);
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
@@ -1070,9 +1048,7 @@ public:
   int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substitutePacExpectation(const string & name, map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
-  expr_t substitutePacExpectation(const string & name, const map<pair<string, string>, int> &eqtag_and_symb_id,
-                                  map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
+  expr_t substitutePacExpectation(const string & name, expr_t subexpr) override;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
@@ -1091,8 +1067,6 @@ public:
   //! Returns the non-zero hand-side of an equation (that must have a hand side equal to zero)
   expr_t getNonZeroPartofEquation() const;
   bool isInStaticForm() const override;
-  void addParamInfoToPac(string eqtag_arg, pair<int, int> lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars_arg, set<pair<int, pair<int, int>>> ar_params_and_vars_arg, vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants) override;
-  void fillPacExpectationVarInfo(const string &model_name_arg, vector<int> lhs_arg, int max_lag_arg, const vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRowHelper(expr_t arg1, expr_t arg2,
                                    int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
@@ -1200,9 +1174,7 @@ public:
   int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substitutePacExpectation(const string & name, map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
-  expr_t substitutePacExpectation(const string & name, const map<pair<string, string>, int> &eqtag_and_symb_id,
-                                  map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
+  expr_t substitutePacExpectation(const string & name, expr_t subexpr) override;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
@@ -1215,8 +1187,6 @@ public:
   expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void addParamInfoToPac(string eqtag_arg, pair<int, int> lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars_arg, set<pair<int, pair<int, int>>> params_and_vars_arg, vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants) override;
-  void fillPacExpectationVarInfo(const string &model_name_arg, vector<int> lhs_arg, int max_lag_arg, const vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
@@ -1329,9 +1299,7 @@ public:
   int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substitutePacExpectation(const string & name, map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
-  expr_t substitutePacExpectation(const string & name, const map<pair<string, string>, int> &eqtag_and_symb_id,
-                                  map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
+  expr_t substitutePacExpectation(const string & name, expr_t subexpr) override;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const = 0;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
@@ -1346,8 +1314,6 @@ public:
   expr_t clone(DataTree &datatree) const override = 0;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void addParamInfoToPac(string eqtag_arg, pair<int, int> lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars_arg, set<pair<int, pair<int, int>>> params_and_vars_arg, vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants) override;
-  void fillPacExpectationVarInfo(const string &model_name_arg, vector<int> lhs_arg, int max_lag_arg, const vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
@@ -1543,9 +1509,7 @@ public:
   int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substitutePacExpectation(const string & name, map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
-  expr_t substitutePacExpectation(const string & name, const map<pair<string, string>, int> &eqtag_and_symb_id,
-                                  map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
+  expr_t substitutePacExpectation(const string & name, expr_t subexpr) override;
   pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
   void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
@@ -1565,8 +1529,6 @@ public:
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void addParamInfoToPac(string eqtag_arg, pair<int, int> lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars_arg, set<pair<int, pair<int, int>>> params_and_vars_arg, vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants) override;
-  void fillPacExpectationVarInfo(const string &model_name_arg, vector<int> lhs_arg, int max_lag_arg, const vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
@@ -1589,19 +1551,6 @@ class PacExpectationNode : public ExprNode
 {
 public:
   const string model_name;
-private:
-  string var_model_name, eqtag;
-  int growth_symb_id, growth_lag;
-  bool stationary_vars_present, nonstationary_vars_present;
-  vector<int> lhs;
-  pair<int, int> lhs_pac_var;
-  int max_lag;
-  vector<int> h0_indices, h1_indices;
-  int growth_param_index, equation_number;
-  int optim_share_index;
-  pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars;
-  set<pair<int, pair<int, int>>> ar_params_and_vars;
-  vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants;
 public:
   PacExpectationNode(DataTree &datatree_arg, int idx_arg, string model_name);
   void computeTemporaryTerms(const pair<int, int> &derivOrder,
@@ -1648,9 +1597,7 @@ public:
   int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substitutePacExpectation(const string & name, map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
-  expr_t substitutePacExpectation(const string & name, const map<pair<string, string>, int> &eqtag_and_symb_id,
-                                  map<const PacExpectationNode *, const BinaryOpNode *> &subst_table) override;
+  expr_t substitutePacExpectation(const string & name, expr_t subexpr) override;
   pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
   void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
@@ -1670,8 +1617,6 @@ public:
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void addParamInfoToPac(string eqtag_arg, pair<int, int> lhs_arg, int optim_share_arg, pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars_arg, set<pair<int, pair<int, int>>> params_and_vars_arg, vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants) override;
-  void fillPacExpectationVarInfo(const string &model_name_arg, vector<int> lhs_arg, int max_lag_arg, const vector<bool> &nonstationary_arg, int growth_symb_id_arg, int growth_lag, int equation_number_arg) override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;

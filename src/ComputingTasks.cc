@@ -301,21 +301,16 @@ PacModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolida
 }
 
 void
-PacModelStatement::fillUndiffedLHS(vector<int> &lhs_arg)
-{
-  lhs = lhs_arg;
-}
-
-void
 PacModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "M_.pac." << name << ".auxiliary_model_name = '" << aux_model_name << "';" << endl
-         << "M_.pac." << name << ".discount_index = " << symbol_table.getTypeSpecificID(discount) + 1 << ";" << endl
-         << "M_.pac." << name << ".steady_state_growth_rate = ";
-  if (steady_state_growth_rate_symb_id < 0)
-    output << steady_state_growth_rate_number << ";" << endl;
-  else
-    output << symbol_table.getTypeSpecificID(steady_state_growth_rate_symb_id) + 1 << ";" << endl;
+         << "M_.pac." << name << ".discount_index = " << symbol_table.getTypeSpecificID(discount) + 1 << ";" << endl;
+  if (steady_state_growth_rate_symb_id < 0 && steady_state_growth_rate_number > 0)
+    output << "M_.pac." << name << ".steady_state_growth_rate = "
+           << steady_state_growth_rate_number << ";" << endl;
+  else if (steady_state_growth_rate_symb_id >= 0)
+    output << "M_.pac." << name << ".steady_state_growth_rate = "
+           << symbol_table.getTypeSpecificID(steady_state_growth_rate_symb_id) + 1 << ";" << endl;
 
   if (growth_symb_id >= 0)
     {
@@ -364,14 +359,6 @@ PacModelStatement::writeOutput(ostream &output, const string &basename, bool min
             }
         }
     }
-  output << "M_.pac." << name << ".lhs = [";
-  for (auto it = lhs.begin(); it !=lhs.end(); it++)
-    {
-      if (it != lhs.begin())
-        output << " ";
-      output << *it + 1;
-    }
-  output << "];" << endl;
 }
 
 void

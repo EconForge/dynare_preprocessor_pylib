@@ -442,20 +442,15 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
                cerr << "Error: aux_model_name not recognized as VAR model or Trend Component model" << endl;
                exit(EXIT_FAILURE);
              }
-           pms->fillUndiffedLHS(lhs);
            map<pair<string, string>, pair<string, int>> eqtag_and_lag;
            dynamic_model.walkPacParameters(pms->name, eqtag_and_lag);
            original_model.getPacMaxLag(pms->name, eqtag_and_lag);
            if (pms->aux_model_name == "")
-             {
-               int pac_target_symb_id = dynamic_model.getPacTargetSymbId(pms->name);
-               dynamic_model.addPacModelConsistentExpectationEquation(pms->name, pac_target_symb_id,
-                                                                      symbol_table.getID(pms->discount), eqtag_and_lag,
-                                                                      diff_subst_table);
-             }
+             dynamic_model.addPacModelConsistentExpectationEquation(pms->name, symbol_table.getID(pms->discount),
+                                                                    eqtag_and_lag, diff_subst_table);
            else
-             dynamic_model.fillPacExpectationVarInfo(pms->name, lhs, max_lag,
-                                                     eqtag_and_lag, nonstationary, pms->growth_symb_id, pms->growth_lag);
+             dynamic_model.fillPacModelInfo(pms->name, lhs, max_lag,
+                                            eqtag_and_lag, nonstationary, pms->growth_symb_id, pms->growth_lag);
            dynamic_model.substitutePacExpectation(pms->name);
          }
      }
