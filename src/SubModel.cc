@@ -274,10 +274,6 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
       for (auto it : eqnums.at(name))
         output << it + 1 << " ";
       output << "];" << endl
-             << "M_.trend_component." << name << ".target_eqn = [";
-      for (auto it : target_eqnums.at(name))
-        output << it + 1 << " ";
-      output << "];" << endl
              << "M_.trend_component." << name << ".targets = [";
       for (auto it : eqnums.at(name))
         if (find(target_eqnums.at(name).begin(), target_eqnums.at(name).end(), it)
@@ -323,6 +319,29 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
       output << "M_.trend_component." << name << ".target_vars = [";
       for (auto it : target_vars.at(name))
         output << (it >= 0 ? symbol_table.getTypeSpecificID(it) + 1 : -1) << " ";
+      output << "];" << endl;
+
+      vector<string> target_eqtags_vec = target_eqtags.at(name);
+      output << "M_.trend_component." << name << ".target_eqtags = {";
+      for (auto it : target_eqtags_vec)
+        output << "'" << it << "';";
+      output << "};" << endl;
+
+      vector<string> eqtags_vec = eqtags.at(name);
+      output << "M_.trend_component." << name << ".target_eqn = [";
+      for (auto it : target_eqtags_vec)
+        {
+          int i = 0;
+          for (auto it1 : eqtags_vec)
+            {
+              i++;
+              if (it == it1)
+                {
+                  output << i << " ";
+                  break;
+                }
+            }
+        }
       output << "];" << endl;
 
       vector<int> target_lhs_vec = getTargetLhs(name);
