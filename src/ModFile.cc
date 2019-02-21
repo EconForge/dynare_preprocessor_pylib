@@ -421,7 +421,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
            int max_lag;
            vector<int> lhs;
            vector<bool> nonstationary;
-           string aux_model_type = "";
+           string aux_model_type;
            if (trend_component_model_table.isExistingTrendComponentModelName(pms->aux_model_name))
              {
                aux_model_type = "trend_component";
