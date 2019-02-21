@@ -36,7 +36,7 @@ SteadyStateModel::SteadyStateModel(const SteadyStateModel &m) :
   static_model {m.static_model}
 {
   for (const auto &it : m.def_table)
-    def_table.push_back({it.first, it.second->clone(*this)});
+    def_table.emplace_back(it.first, it.second->clone(*this));
 }
 
 SteadyStateModel &
@@ -48,7 +48,7 @@ SteadyStateModel::operator=(const SteadyStateModel &m)
 
   def_table.clear();
   for (const auto &it : m.def_table)
-    def_table.push_back({it.first, it.second->clone(*this)});
+    def_table.emplace_back(it.first, it.second->clone(*this));
 
   return *this;
 }
@@ -298,7 +298,7 @@ Epilogue::Epilogue(const Epilogue &m) :
   DynamicModel {m}
 {
   for (const auto &it : m.def_table)
-    def_table.push_back({it.first, it.second->clone(*this)});
+    def_table.emplace_back(it.first, it.second->clone(*this));
 }
 
 Epilogue &
@@ -308,7 +308,7 @@ Epilogue::operator=(const Epilogue &m)
 
   def_table.clear();
   for (const auto &it : m.def_table)
-    def_table.push_back({it.first, it.second->clone(*this)});
+    def_table.emplace_back(it.first, it.second->clone(*this));
 
   return *this;
 }

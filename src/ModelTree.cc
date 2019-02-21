@@ -411,7 +411,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
             {
               if (verbose)
                 cout << "the coefficient related to variable " << var << " with lag " << lag << " in equation " << eq << " is equal to " << val << " and is set to 0 in the incidence matrix (size=" << symbol_table.endo_nbr() << ")" << endl;
-              jacobian_elements_to_delete.insert({ eq, deriv_id });
+              jacobian_elements_to_delete.emplace(eq, deriv_id);
             }
           else
             {

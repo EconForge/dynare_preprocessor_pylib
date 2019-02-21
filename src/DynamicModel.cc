@@ -57,7 +57,7 @@ DynamicModel::copyHelper(const DynamicModel &m)
     first_chain_rule_derivatives[it.first] = f(it.second);
 
   for (const auto &it : m.equation_type_and_normalized_equation)
-    equation_type_and_normalized_equation.push_back({it.first, f(it.second)});
+    equation_type_and_normalized_equation.emplace_back(it.first, f(it.second));
 
   for (const auto &it : m.blocks_derivatives)
     {
@@ -4464,7 +4464,7 @@ DynamicModel::getPacMaxLag(const string &pac_model_name, map<pair<string, string
                 break;
               }
         string eq = eqtag_and_lag[{pac_model_name, eqtag}].first;
-        eqtag_and_lag[{pac_model_name, eqtag}] = {eq, equation->PacMaxLag((*(endogs.begin())).first)};
+        eqtag_and_lag[{pac_model_name, eqtag}] = {eq, equation->PacMaxLag(endogs.begin()->first)};
       }
 }
 

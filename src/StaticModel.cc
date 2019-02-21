@@ -55,7 +55,7 @@ StaticModel::copyHelper(const StaticModel &m)
     first_chain_rule_derivatives[it.first] = f(it.second);
 
   for (const auto &it : m.equation_type_and_normalized_equation)
-    equation_type_and_normalized_equation.push_back({it.first, f(it.second)});
+    equation_type_and_normalized_equation.emplace_back(it.first, f(it.second));
 
   for (const auto &it : m.blocks_derivatives)
     {
