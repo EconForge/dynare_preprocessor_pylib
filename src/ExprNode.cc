@@ -5772,12 +5772,12 @@ BinaryOpNode::fillAutoregressiveRowHelper(expr_t arg1, expr_t arg2,
     if (find(lhs.begin(), lhs.end(), lhs_symb_id) == lhs.end())
       return;
 
-  if (AR.find(make_tuple(eqn, -lag, lhs_symb_id)) != AR.end())
+  if (AR.find({eqn, -lag, lhs_symb_id}) != AR.end())
     {
       cerr << "BinaryOpNode::fillAutoregressiveRowHelper: Error filling AR matrix: lag/symb_id encountered more than once in equtaion" << endl;
       exit(EXIT_FAILURE);
     }
-  AR[make_tuple(eqn, -lag, lhs_symb_id)] = arg1;
+  AR[{eqn, -lag, lhs_symb_id}] = arg1;
 }
 
 void
@@ -5875,21 +5875,21 @@ BinaryOpNode::fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
       else
         return;
 
-      if (A0.find(make_tuple(eqn, -A0_max_lag, A0_colidx)) != A0.end())
+      if (A0.find({eqn, -A0_max_lag, A0_colidx}) != A0.end())
         {
           cerr << "BinaryOpNode::fillErrorCorrectionRowHelper: Error filling A0 matrix: "
                << "lag/symb_id encountered more than once in equtaion" << endl;
           exit(EXIT_FAILURE);
         }
 
-      if (A0star.find(make_tuple(eqn, -A0star_max_lag, A0star_colidx)) != A0star.end())
+      if (A0star.find({eqn, -A0star_max_lag, A0star_colidx}) != A0star.end())
         {
           cerr << "BinaryOpNode::fillErrorCorrectionRowHelper: Error filling A0star matrix: "
                << "lag/symb_id encountered more than once in equtaion" << endl;
           exit(EXIT_FAILURE);
         }
-      A0[make_tuple(eqn, -A0_max_lag, A0_colidx)] = arg1;
-      A0star[make_tuple(eqn, -A0star_max_lag, A0star_colidx)] = arg1;
+      A0[{eqn, -A0_max_lag, A0_colidx}] = arg1;
+      A0star[{eqn, -A0star_max_lag, A0star_colidx}] = arg1;
     }
   else
     {
@@ -5926,13 +5926,13 @@ BinaryOpNode::fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
       else
         return;
 
-      if (A0.find(make_tuple(eqn, -max_lag, colidx)) != A0.end())
+      if (A0.find({eqn, -max_lag, colidx}) != A0.end())
         {
           cerr << "BinaryOpNode::fillErrorCorrectionRowHelper: Error filling A0 matrix: "
                << "lag/symb_id encountered more than once in equtaion" << endl;
           exit(EXIT_FAILURE);
         }
-      A0[make_tuple(eqn, -max_lag, colidx)] = arg1;
+      A0[{eqn, -max_lag, colidx}] = arg1;
     }
 }
 
@@ -9624,7 +9624,7 @@ ExprNode::matchVariableTimesConstantTimesParam() const
   matchVTCTPHelper(variable_id, lag, param_id, constant, false);
   if (variable_id == -1)
     throw MatchFailureException{"No variable in this expression"};
-  return make_tuple(variable_id, lag, param_id, constant);
+  return {variable_id, lag, param_id, constant};
 }
 
 void

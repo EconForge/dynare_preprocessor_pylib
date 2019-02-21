@@ -1493,7 +1493,7 @@ ParsingDriver::var_model()
         error("You cannot pass the order option when passing equation tags to the var_model statement");
     }
 
-  mod_file->var_model_table.addVarModel(name, eqtags, make_pair(symbol_list, order));
+  mod_file->var_model_table.addVarModel(name, eqtags, {symbol_list, order});
   symbol_list.clear();
   options_list.clear();
   var_map[its->second] = symbol_list.getSymbols();

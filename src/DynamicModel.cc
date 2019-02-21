@@ -57,7 +57,7 @@ DynamicModel::copyHelper(const DynamicModel &m)
     first_chain_rule_derivatives[it.first] = f(it.second);
 
   for (const auto &it : m.equation_type_and_normalized_equation)
-    equation_type_and_normalized_equation.push_back(make_pair(it.first, f(it.second)));
+    equation_type_and_normalized_equation.push_back({it.first, f(it.second)});
 
   for (const auto &it : m.blocks_derivatives)
     {
@@ -3634,7 +3634,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
     {
       if (for_writing.find(it.first.first) == for_writing.end())
         for_writing.insert(pair<string,vector<pair<string,string>> >(it.first.first, vector<pair<string,string>>()));
-      for_writing[it.first.first].push_back(make_pair(it.first.second, it.second.first));
+      for_writing[it.first.first].push_back({it.first.second, it.second.first});
     }
 
   for (auto & it : for_writing)
@@ -4436,10 +4436,10 @@ DynamicModel::walkPacParameters(const string &name, map<pair<string, string>, pa
               exit(EXIT_FAILURE);
             }
           string eq = "eq" + to_string(i++);
-          pac_equation_info[make_pair(name, eq)] = make_tuple(lhs, optim_share_index,
-                                                              ar_params_and_vars, ec_params_and_vars,
-                                                              non_optim_vars_params_and_constants);
-          eqtag_and_lag[make_pair(name, eqtag)] = make_pair(eq, 0);
+          pac_equation_info[{name, eq}] = {lhs, optim_share_index,
+                                           ar_params_and_vars, ec_params_and_vars,
+                                           non_optim_vars_params_and_constants};
+          eqtag_and_lag[{name, eqtag}] = {eq, 0};
         }
     }
 }
@@ -4467,8 +4467,8 @@ DynamicModel::getPacMaxLag(const string &pac_model_name, map<pair<string, string
                 eqtag = tag.second.second;
                 break;
               }
-        string eq = eqtag_and_lag[make_pair(pac_model_name, eqtag)].first;
-        eqtag_and_lag[make_pair(pac_model_name, eqtag)] = make_pair(eq, equation->PacMaxLag((*(endogs.begin())).first));
+        string eq = eqtag_and_lag[{pac_model_name, eqtag}].first;
+        eqtag_and_lag[{pac_model_name, eqtag}] = {eq, equation->PacMaxLag((*(endogs.begin())).first)};
       }
 }
 
@@ -4530,7 +4530,7 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int 
           {
             int alpha_i_symb_id = symbol_table.addSymbol("mce_alpha_" + append_to_name + "_" + to_string(i),
                                                          SymbolType::parameter);
-            pac_mce_alpha_symb_ids[make_pair(name, standard_eqtag)].push_back(alpha_i_symb_id);
+            pac_mce_alpha_symb_ids[{name, standard_eqtag}].push_back(alpha_i_symb_id);
             A = AddPlus(A, AddVariable(alpha_i_symb_id));
             fp = AddPlus(fp,
                          AddTimes(AddTimes(AddVariable(alpha_i_symb_id),
@@ -4598,8 +4598,8 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int 
       addEquation(AddEqual(AddVariable(mce_z1_symb_id),
                            AddMinus(AddTimes(A, AddMinus((expr_t) target_base_diff_node, fs)), fp)), -1);
       neqs++;
-      pac_mce_z1_symb_ids[make_pair(name, standard_eqtag)] = mce_z1_symb_id;
-      pac_expectation_substitution[make_pair(name, eqtag)] = AddVariable(mce_z1_symb_id);
+      pac_mce_z1_symb_ids[{name, standard_eqtag}] = mce_z1_symb_id;
+      pac_expectation_substitution[{name, eqtag}] = AddVariable(mce_z1_symb_id);
     }
     cout << "Pac Model Consistent Expectation: added " << neqs << " auxiliary variables and equations." << endl;
 }
@@ -4649,7 +4649,7 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
                             << "_var_" << symbol_table.getName(lhsit)
                             << "_lag_" << i;
               int new_param_symb_id = symbol_table.addSymbol(param_name_h0.str(), SymbolType::parameter);
-              pac_h0_indices[make_pair(pac_model_name, standard_eqtag)].push_back(new_param_symb_id);
+              pac_h0_indices[{pac_model_name, standard_eqtag}].push_back(new_param_symb_id);
               subExpr = AddPlus(subExpr,
                                 AddTimes(AddVariable(new_param_symb_id),
                                          AddVariable(lhsit, -i)));
@@ -4665,7 +4665,7 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
                             << "_var_" << symbol_table.getName(lhsit)
                             << "_lag_" << i;
               int new_param_symb_id = symbol_table.addSymbol(param_name_h1.str(), SymbolType::parameter);
-              pac_h1_indices[make_pair(pac_model_name, standard_eqtag)].push_back(new_param_symb_id);
+              pac_h1_indices[{pac_model_name, standard_eqtag}].push_back(new_param_symb_id);
               subExpr = AddPlus(subExpr,
                                 AddTimes(AddVariable(new_param_symb_id),
                                          AddVariable(lhsit, -i)));
@@ -4676,9 +4676,9 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
                           AddTimes(AddVariable(growth_param_index),
                                    AddVariable(growth_symb_id, growth_lag)));
 
-      pac_expectation_substitution[make_pair(pac_model_name, eqtag)] = subExpr;
+      pac_expectation_substitution[{pac_model_name, eqtag}] = subExpr;
     }
-  pac_model_info[pac_model_name] = make_tuple(move(lhs), growth_param_index, move(aux_model_type));
+  pac_model_info[pac_model_name] = {move(lhs), growth_param_index, move(aux_model_type)};
 }
 
 void

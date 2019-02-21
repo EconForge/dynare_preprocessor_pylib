@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2018 Dynare Team
+ * Copyright (C) 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -55,7 +55,7 @@ StaticModel::copyHelper(const StaticModel &m)
     first_chain_rule_derivatives[it.first] = f(it.second);
 
   for (const auto &it : m.equation_type_and_normalized_equation)
-    equation_type_and_normalized_equation.push_back(make_pair(it.first, f(it.second)));
+    equation_type_and_normalized_equation.push_back({it.first, f(it.second)});
 
   for (const auto &it : m.blocks_derivatives)
     {

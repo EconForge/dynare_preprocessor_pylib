@@ -83,7 +83,7 @@ ModelTree::copyHelper(const ModelTree &m)
   for (const auto & it : m.trend_symbols_map)
     trend_symbols_map[it.first] = f(it.second);
   for (const auto & it : m.nonstationary_symbols_map)
-    nonstationary_symbols_map[it.first] = make_pair(it.second.first, f(it.second.second));
+    nonstationary_symbols_map[it.first] = {it.second.first, f(it.second.second)};
 }
 
 ModelTree::ModelTree(SymbolTable &symbol_table_arg,
@@ -500,7 +500,7 @@ ModelTree::select_non_linear_equations_and_variables(vector<bool> is_equation_li
     }
   cout.flush();
   int nb_endo = is_equation_linear.size();
-  vector<pair<int, int>> blocks(1, make_pair(i, i));
+  vector<pair<int, int>> blocks(1, {i, i});
   inv_equation_reordered.resize(nb_endo);
   inv_variable_reordered.resize(nb_endo);
   for (int i = 0; i < nb_endo; i++)
