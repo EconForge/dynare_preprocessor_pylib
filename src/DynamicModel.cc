@@ -4547,7 +4547,7 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int 
       // Add diff nodes and eqs for pac_target_symb_id
       const VariableNode *target_base_diff_node;
       expr_t diff_node_to_search = AddDiff(AddVariable(pac_target_symb_id));
-      ExprNode::subst_table_t::const_iterator sit = diff_subst_table.find(diff_node_to_search);
+      auto sit = diff_subst_table.find(diff_node_to_search);
       if (sit != diff_subst_table.end())
         target_base_diff_node = sit->second;
       else
