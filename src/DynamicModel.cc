@@ -3633,8 +3633,8 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   for (auto & it : pac_eqtag_and_lag)
     {
       if (for_writing.find(it.first.first) == for_writing.end())
-        for_writing.insert(pair<string,vector<pair<string,string>> >(it.first.first, vector<pair<string,string>>()));
-      for_writing[it.first.first].push_back({it.first.second, it.second.first});
+        for_writing.emplace(it.first.first, vector<pair<string, string>>());
+      for_writing[it.first.first].emplace_back(it.first.second, it.second.first);
     }
 
   for (auto & it : for_writing)
