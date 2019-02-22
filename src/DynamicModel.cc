@@ -3698,22 +3698,22 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       output << "];" << endl;
       if (!non_optim_vars_params_and_constants.empty())
         {
-          output << modstruct << "pac." << substruct << "non_optimizing_behavior.params = [";
+          output << modstruct << "pac." << substruct << "non_optimizing_behaviour.params = [";
           for (auto & it : non_optim_vars_params_and_constants)
             if (get<2>(it) >= 0)
               output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
             else
               output << "NaN ";
           output << "];" << endl
-                 << modstruct << "pac." << substruct << "non_optimizing_behavior.vars = [";
+                 << modstruct << "pac." << substruct << "non_optimizing_behaviour.vars = [";
           for (auto & it : non_optim_vars_params_and_constants)
             output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
           output << "];" << endl
-                 << modstruct << "pac." << substruct << "non_optimizing_behavior.lags = [";
+                 << modstruct << "pac." << substruct << "non_optimizing_behaviour.lags = [";
           for (auto & it : non_optim_vars_params_and_constants)
             output << get<1>(it) << " ";
           output << "];" << endl
-                 << modstruct << "pac." << substruct << "non_optimizing_behavior.scaling_factor = [";
+                 << modstruct << "pac." << substruct << "non_optimizing_behaviour.scaling_factor = [";
           for (auto & it : non_optim_vars_params_and_constants)
             output << get<3>(it) << " ";
           output << "];" << endl;
