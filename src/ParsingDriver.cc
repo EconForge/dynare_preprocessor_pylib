@@ -2628,7 +2628,7 @@ ParsingDriver::pac_model()
       aux_model_name = it->second;
   else
     if (pac_steady_state_growth_rate_number < 0 && pac_steady_state_growth_rate_symb_id < 0)
-      error("when aux_model_name is not passed to the pac_model statement, you must pass steady_state_growth_rate");
+      error("when aux_model_name is not passed to the pac_model statement, you must pass steady_state_growth option");
     else if (pac_growth_symb_id >= 0 && mod_file->symbol_table.getType(pac_growth_symb_id) == SymbolType::parameter
              && (pac_steady_state_growth_rate_number >= 0
                  || pac_steady_state_growth_rate_symb_id != pac_growth_symb_id))
