@@ -47,8 +47,8 @@ enum class AuxVarType
     varModel = 7,    //!< Variable for var_model with order > abs(min_lag()) present in model
     diff = 8,        //!< Variable for Diff operator
     diffLag = 9,     //!< Variable for timing between Diff operators
-    diffLead = 10,   //!< Variable for timing between Diff operators
-    unaryOp = 11     //!< Variable for allowing the undiff operator to work when diff was taken of unary op, eg diff(log(x))
+    unaryOp = 10,    //!< Variable for allowing the undiff operator to work when diff was taken of unary op, eg diff(log(x))
+    diffLead = 11    //!< Variable for timing between Diff operators
   };
 
 //! Information on some auxiliary variables
