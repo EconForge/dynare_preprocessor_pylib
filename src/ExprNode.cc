@@ -8775,8 +8775,14 @@ VarExpectationNode::maxLag() const
 int
 VarExpectationNode::maxLagWithDiffsExpanded() const
 {
-  cerr << "VarExpectationNode::maxLagWithDiffsExpanded not implemented." << endl;
-  exit(EXIT_FAILURE);
+  /* This node will be substituted by lagged variables, so in theory we should
+     return a strictly positive value. But from here this value is not easy to
+     compute.
+     We return 0, because currently this function is only called from
+     DynamicModel::setLeadsLagsOrig(), and the maximum lag will nevertheless be
+     correctly computed because the maximum lag of the VAR will be taken into
+     account via the corresponding equations. */
+  return 0;
 }
 
 expr_t
@@ -9238,6 +9244,7 @@ PacExpectationNode::maxLag() const
 int
 PacExpectationNode::maxLagWithDiffsExpanded() const
 {
+  // Same comment as in VarExpectationNode::maxLagWithDiffsExpanded()
   return 0;
 }
 
