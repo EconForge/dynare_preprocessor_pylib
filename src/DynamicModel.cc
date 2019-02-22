@@ -3718,6 +3718,9 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
             output << get<3>(it) << " ";
           output << "];" << endl;
         }
+      // Create empty h0 and h1 substructures that will be overwritten later if not empty
+      output << modstruct << "pac." << substruct << "h0_param_indices = [];" << endl
+             << modstruct << "pac." << substruct << "h1_param_indices = [];" << endl;
     }
 
   for (auto & it : pac_h0_indices)
