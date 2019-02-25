@@ -2627,12 +2627,12 @@ ParsingDriver::pac_model()
     else
       aux_model_name = it->second;
   else
-    if (pac_steady_state_growth_rate_number < 0 && pac_steady_state_growth_rate_symb_id < 0)
-      error("when aux_model_name is not passed to the pac_model statement, you must pass steady_state_growth option");
-    else if (pac_growth_symb_id >= 0 && mod_file->symbol_table.getType(pac_growth_symb_id) == SymbolType::parameter
-             && (pac_steady_state_growth_rate_number >= 0
-                 || pac_steady_state_growth_rate_symb_id != pac_growth_symb_id))
-      error("when aux_model_name is not passed to the pac_model statement, steady_state_growth must be a parameter equal to growth");
+    if (pac_growth_symb_id >= 0 && mod_file->symbol_table.getType(pac_growth_symb_id) == SymbolType::parameter
+        && (pac_steady_state_growth_rate_number >= 0 || pac_steady_state_growth_rate_symb_id >=0))
+      warning("If growth option is constant, steady_state_growth is ignored");
+    else if (pac_growth_symb_id >= 0 && mod_file->symbol_table.getType(pac_growth_symb_id) != SymbolType::parameter
+             && (pac_steady_state_growth_rate_number < 0 || pac_steady_state_growth_rate_symb_id < 0))
+      error("The steady state growth rate of the target must be provided (steady_state_growth option) if option growth is not constant");
 
   if (pac_steady_state_growth_rate_symb_id >= 0
       && mod_file->symbol_table.getType(pac_steady_state_growth_rate_symb_id) != SymbolType::parameter)
