@@ -1029,6 +1029,7 @@ public:
   int VarMinLag() const override;
   int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
   int PacMaxLag(int lhs_symb_id) const override;
+  int getPacTargetSymbIdHelper(int lhs_symb_id, int undiff_lhs_symb_id, const set<pair<int, int>> & endogs) const;
   int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;

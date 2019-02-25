@@ -5198,12 +5198,10 @@ BinaryOpNode::PacMaxLag(int lhs_symb_id) const
 }
 
 int
-BinaryOpNode::getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const
+BinaryOpNode::getPacTargetSymbIdHelper(int lhs_symb_id, int undiff_lhs_symb_id, const set<pair<int, int>> & endogs) const
 {
-  set<pair<int, int>> endogs;
-  arg1->collectDynamicVariables(SymbolType::endogenous, endogs);
-  arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
-  int ret_symb_id = -1;
+  int target_symb_id = -1;
+  bool found_lagged_lhs = false;
   for (auto & it : endogs)
     {
       int id = it.first;
@@ -5216,18 +5214,37 @@ BinaryOpNode::getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const
           {
             break;
           }
+      if (id == lhs_symb_id || id == undiff_lhs_symb_id)
+        found_lagged_lhs = true;
       if (id != lhs_symb_id && id != undiff_lhs_symb_id)
-        if (ret_symb_id < 0)
-          ret_symb_id = it.first;
-        else
-          {
-            cerr << "Error: Pac model is of wrong format: endogenous vars found: "
-                 << datatree.symbol_table.getName(ret_symb_id) << ", "
-                 << datatree.symbol_table.getName(it.first) << endl;
-            exit(EXIT_FAILURE);
-          }
+        if (target_symb_id < 0)
+          target_symb_id = it.first;
     }
-  return ret_symb_id;
+  if (!found_lagged_lhs)
+    target_symb_id = -1;
+  return target_symb_id;
+}
+
+int
+BinaryOpNode::getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const
+{
+  set<pair<int, int>> endogs;
+  arg1->collectDynamicVariables(SymbolType::endogenous, endogs);
+  int target_symb_id = getPacTargetSymbIdHelper(lhs_symb_id, undiff_lhs_symb_id, endogs);
+  if (target_symb_id >= 0)
+    return target_symb_id;
+
+  endogs.clear();
+  arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
+  target_symb_id = getPacTargetSymbIdHelper(lhs_symb_id, undiff_lhs_symb_id, endogs);
+
+  if (target_symb_id < 0)
+    {
+      cerr << "Error finding target variable in PAC equation" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  return target_symb_id;
 }
 
 expr_t
