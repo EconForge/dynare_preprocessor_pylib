@@ -455,6 +455,9 @@ public:
   //! Return target of the pac equation
   int getPacTargetSymbId(const string &pac_model_name) const;
 
+  //! Declare Z1 variables before creating aux vars so it comes right after the endo names declared by the user
+  void declarePacModelConsistentExpectationEndogs(const string &name);
+
   //! Add model consistent expectation equation for pac model
   void addPacModelConsistentExpectationEquation(const string & name, int discount,
                                                 const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,

@@ -4496,6 +4496,41 @@ DynamicModel::getPacTargetSymbId(const string &pac_model_name) const
   return -1;
 }
 
+
+void
+DynamicModel::declarePacModelConsistentExpectationEndogs(const string &name)
+{
+  int i = 0;
+  for (auto & equation : equations)
+    if (equation->containsPacExpectation())
+      {
+        string eqtag = "";
+        for (auto & tag : equation_tags)
+          if (tag.first == (&equation - &equations[0]))
+            if (tag.second.first == "name")
+              {
+                eqtag = tag.second.second;
+                break;
+              }
+        if (eqtag == "")
+          {
+            cerr << "Every equation with a pac expectation must have been assigned an equation tag name" << endl;
+            exit(EXIT_FAILURE);
+          }
+        string standard_eqtag = "eq" + to_string(i++);
+        try
+          {
+            pac_mce_z1_symb_ids[{name, standard_eqtag}] =
+              symbol_table.addSymbol("mce_Z1_" + name + "_" + standard_eqtag, SymbolType::endogenous);
+          }
+        catch (SymbolTable::AlreadyDeclaredException &e)
+          {
+            cerr << "Variable name needed by PAC (mce_Z1_" << name << "_" << standard_eqtag << endl;
+            exit(EXIT_FAILURE);
+          }
+      }
+}
+
 void
 DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int discount_symb_id,
                                                        const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
@@ -4510,16 +4545,12 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int 
       string standard_eqtag = it.second.first;
       int pac_max_lag_m = it.second.second + 1;
       string append_to_name = name + "_" + standard_eqtag;
-      int mce_z1_symb_id;
-      try
+      if (pac_mce_z1_symb_ids.find({name, standard_eqtag}) == pac_mce_z1_symb_ids.end())
         {
-          mce_z1_symb_id = symbol_table.addSymbol("mce_Z1_" + append_to_name, SymbolType::endogenous);
-        }
-      catch (SymbolTable::AlreadyDeclaredException &e)
-        {
-          cerr << "Variable name needed by PAC (mce_Z1_" << append_to_name << endl;
+          cerr << "Error finding pac MCE Z1 symb id" << endl;
           exit(EXIT_FAILURE);
         }
+      int mce_z1_symb_id = pac_mce_z1_symb_ids[{name, standard_eqtag}];
 
       expr_t A = One;
       expr_t fp = Zero;
@@ -4597,7 +4628,6 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int 
       addEquation(AddEqual(AddVariable(mce_z1_symb_id),
                            AddMinus(AddTimes(A, AddMinus((expr_t) target_base_diff_node, fs)), fp)), -1);
       neqs++;
-      pac_mce_z1_symb_ids[{name, standard_eqtag}] = mce_z1_symb_id;
       pac_expectation_substitution[{name, eqtag}] = AddVariable(mce_z1_symb_id);
     }
     cout << "Pac Model Consistent Expectation: added " << neqs << " auxiliary variables and equations." << endl;

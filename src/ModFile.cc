@@ -367,6 +367,12 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   // Save the original model (must be done before any model transformations by preprocessor)
   // - except adl and diff which we always want expanded
   dynamic_model.simplifyEquations();
+  for (auto & statement : statements)
+    {
+      auto pms = dynamic_cast<PacModelStatement *>(statement.get());
+      if (pms != nullptr && pms->aux_model_name == "")
+        dynamic_model.declarePacModelConsistentExpectationEndogs(pms->name);
+    }
   dynamic_model.substituteAdl();
   dynamic_model.setLeadsLagsOrig();
   original_model = dynamic_model;
