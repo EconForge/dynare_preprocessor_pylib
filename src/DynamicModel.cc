@@ -4508,7 +4508,7 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int 
     {
       string eqtag = it.first.second;
       string standard_eqtag = it.second.first;
-      int pac_max_lag_m = it.second.second;
+      int pac_max_lag_m = it.second.second + 1;
       string append_to_name = name + "_" + standard_eqtag;
       int mce_z1_symb_id;
       try
