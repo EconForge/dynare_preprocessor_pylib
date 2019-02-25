@@ -379,7 +379,7 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
       output << ";" << endl;
     }
 
-  output << "if exist(['+' M_.fname '/dynamic_set_auxiliary_series'])" << endl
+  output << "if exist(['+' M_.fname '/dynamic_set_auxiliary_series.m'])" << endl
        << "  eval(['M_.histval_dseries = ' M_.fname '.dynamic_set_auxiliary_series(M_.histval_dseries, M_.params);']);" << endl
        << "end" << endl
          << "M_.endo_histval = M_.histval_dseries{M_.endo_names{:}}(dates(sprintf('%dY', 1-M_.maximum_lag)):dates('0Y')).data';" << endl
