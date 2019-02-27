@@ -597,13 +597,6 @@ class ExprNode
       //! param * (endog op endog op ...) + param * (endog op endog op ...) + ...
       virtual bool isParamTimesEndogExpr() const = 0;
 
-      //! Finds the share of optimizing agents in the PAC equation,
-      //! the expr node associated with it,
-      //! and the expr node associated with the non-optimizing part
-      virtual void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
-                                                     expr_t &optim_part,
-                                                     expr_t &non_optim_part) const = 0;
-
       //! Fills the AR matrix structure
       virtual void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const = 0;
 
@@ -736,9 +729,6 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
-  void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
-                                         expr_t &optim_part,
-                                         expr_t &non_optim_part) const override;
   bool isParamTimesEndogExpr() const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
@@ -826,9 +816,6 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
-  void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
-                                         expr_t &optim_part,
-                                         expr_t &non_optim_part) const override;
   bool isParamTimesEndogExpr() const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
@@ -944,9 +931,6 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
-  void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
-                                         expr_t &optim_part,
-                                         expr_t &non_optim_part) const override;
   bool isParamTimesEndogExpr() const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
@@ -1080,9 +1064,14 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
-  void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
-                                         expr_t &optim_part,
-                                         expr_t &non_optim_part) const override;
+
+  //! Finds the share of optimizing agents in the PAC equation,
+  //! the expr node associated with it,
+  //! and the expr node associated with the non-optimizing part
+  tuple<int, expr_t, expr_t, expr_t> getPacOptimizingShareAndExprNodes(int lhs_symb_id, int lhs_orig_symb_id) const;
+  pair<int, expr_t> getPacOptimizingShareAndExprNodesHelper(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id) const;
+  expr_t getPacNonOptimizingPart(BinaryOpNode *bopn, int optim_share) const;
+  bool getPacNonOptimizingPartHelper(BinaryOpNode *bopn, int optim_share) const;
   bool isParamTimesEndogExpr() const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
@@ -1195,9 +1184,6 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
-  void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
-                                         expr_t &optim_part,
-                                         expr_t &non_optim_part) const override;
   bool isParamTimesEndogExpr() const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
@@ -1322,9 +1308,6 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
-  void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
-                                         expr_t &optim_part,
-                                         expr_t &non_optim_part) const override;
   bool isParamTimesEndogExpr() const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
@@ -1537,9 +1520,6 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
-  void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
-                                         expr_t &optim_part,
-                                         expr_t &non_optim_part) const override;
   bool isParamTimesEndogExpr() const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
@@ -1625,9 +1605,6 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                             set<pair<int, pair<int, int>>> &params_and_vars) const override;
-  void getPacOptimizingShareAndExprNodes(set<int> &optim_share,
-                                         expr_t &optim_part,
-                                         expr_t &non_optim_part) const override;
   bool isParamTimesEndogExpr() const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;

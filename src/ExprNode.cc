@@ -680,13 +680,6 @@ NumConstNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<i
 {
 }
 
-void
-NumConstNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
-                                                expr_t &optim_part,
-                                                expr_t &non_optim_part) const
-{
-}
-
 bool
 NumConstNode::isVarModelReferenced(const string &model_info_name) const
 {
@@ -1978,13 +1971,6 @@ VariableNode::isParamTimesEndogExpr() const
 void
 VariableNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                                    set<pair<int, pair<int, int>>> &ar_params_and_vars) const
-{
-}
-
-void
-VariableNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
-                                                expr_t &optim_part,
-                                                expr_t &non_optim_part) const
 {
 }
 
@@ -3798,14 +3784,6 @@ UnaryOpNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<in
                                   set<pair<int, pair<int, int>>> &ar_params_and_vars) const
 {
   arg->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
-}
-
-void
-UnaryOpNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
-                                               expr_t &optim_part,
-                                               expr_t &non_optim_part) const
-{
-  arg->getPacOptimizingShareAndExprNodes(optim_share, optim_part, non_optim_part);
 }
 
 bool
@@ -5678,67 +5656,122 @@ BinaryOpNode::isParamTimesEndogExpr() const
   return false;
 }
 
-void
-BinaryOpNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
-                                                expr_t &optim_part,
-                                                expr_t &non_optim_part) const
+bool
+BinaryOpNode::getPacNonOptimizingPartHelper(BinaryOpNode *bopn, int optim_share) const
 {
-  if (optim_part != nullptr && non_optim_part != nullptr)
-    return;
+  set<int> params;
+  bopn->collectVariables(SymbolType::parameter, params);
+  if (params.size() == 1 && *(params.begin()) == optim_share)
+    return true;
+  return false;
+}
 
-  if (op_code == BinaryOpcode::times)
+expr_t
+BinaryOpNode::getPacNonOptimizingPart(BinaryOpNode *bopn, int optim_share) const
+{
+  auto a1 = dynamic_cast<BinaryOpNode *>(bopn->arg1);
+  auto a2 = dynamic_cast<BinaryOpNode *>(bopn->arg2);
+  if (a1 == nullptr && a2 == nullptr)
+    return nullptr;
+
+  if (a1 != nullptr)
+    if (getPacNonOptimizingPartHelper(a1, optim_share))
+      return bopn->arg2;
+
+  if (a2 != nullptr)
+    if (getPacNonOptimizingPartHelper(a2, optim_share))
+      return bopn->arg1;
+
+  return nullptr;
+}
+
+pair<int, expr_t>
+BinaryOpNode::getPacOptimizingShareAndExprNodesHelper(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id) const
+{
+  int optim_param_symb_id = -1;
+  expr_t optim_part = nullptr;
+  set<pair<int, int>> endogs;
+  bopn->collectDynamicVariables(SymbolType::endogenous, endogs);
+  int target_symb_id = getPacTargetSymbIdHelper(lhs_symb_id, lhs_orig_symb_id, endogs);
+  if (target_symb_id >= 0)
     {
-      auto *test_arg1 = dynamic_cast<VariableNode *>(arg1);
-      auto *test_arg2 = dynamic_cast<VariableNode *>(arg2);
-
-      set<int> params1, params2;
-      arg1->collectVariables(SymbolType::parameter, params1);
-      arg2->collectVariables(SymbolType::parameter, params2);
-
-      if (dynamic_cast<NumConstNode *>(arg1) != nullptr
-          || dynamic_cast<NumConstNode *>(arg2) != nullptr)
+      set<int> params;
+      if (bopn->arg1->isParamTimesEndogExpr() && !bopn->arg2->isParamTimesEndogExpr())
         {
-          cerr << "Error: Please do not use hard-coded parameter values in the PAC equation"
-               << endl;
-          exit(EXIT_FAILURE);
+          optim_part = bopn->arg1;
+          bopn->arg2->collectVariables(SymbolType::parameter, params);
+          optim_param_symb_id = *(params.begin());
         }
+      else if (bopn->arg2->isParamTimesEndogExpr() && !bopn->arg1->isParamTimesEndogExpr())
+        {
+          optim_part = bopn->arg2;
+          bopn->arg1->collectVariables(SymbolType::parameter, params);
+          optim_param_symb_id = *(params.begin());
+        }
+    }
+  return {optim_param_symb_id, optim_part};
+}
 
-      if (optim_part == nullptr)
-        if (test_arg1 != nullptr || test_arg2 != nullptr)
-          if (params1.size() == 1 || params2.size() == 1)
-            if (arg2->isParamTimesEndogExpr())
-              {
-                // arg1 is the share of optimizing agents
-                optim_part = arg2;
-                optim_share.emplace(*(params1.begin()));
-              }
-            else if (arg1->isParamTimesEndogExpr())
-              {
-                optim_part = arg1;
-                optim_share.emplace(*(params2.begin()));
-              }
+tuple<int, expr_t, expr_t, expr_t>
+BinaryOpNode::getPacOptimizingShareAndExprNodes(int lhs_symb_id, int lhs_orig_symb_id) const
+{
+  vector<pair<expr_t, int>> terms;
+  decomposeAdditiveTerms(terms, 1);
+  for (auto & it : terms)
+    if (dynamic_cast<PacExpectationNode *>(it.first) != nullptr)
+      // if the pac_expectation operator is additive in the expression
+      // there are no optimizing shares
+      return {-1, nullptr, nullptr, nullptr};
 
-      if (non_optim_part == nullptr)
-        if (params1.size() == 1 &&
-            arg1 == datatree.AddMinus(datatree.One, datatree.AddVariable(*(params1.begin()))))
-            // arg1 is the non-optimizing share
-            non_optim_part = arg2;
-        else if (params2.size() == 1 &&
-                 arg2 == datatree.AddMinus(datatree.One, datatree.AddVariable(*(params2.begin()))))
-            non_optim_part = arg1;
-    }
-  else if (op_code == BinaryOpcode::plus)
+  int optim_share;
+  expr_t optim_part, non_optim_part, additive_part;
+  optim_part = non_optim_part = additive_part = nullptr;
+
+  for (auto it = terms.begin(); it != terms.end(); it++)
     {
-      arg1->getPacOptimizingShareAndExprNodes(optim_share, optim_part, non_optim_part);
-      arg2->getPacOptimizingShareAndExprNodes(optim_share, optim_part, non_optim_part);
+      auto bopn = dynamic_cast<BinaryOpNode *>(it->first);
+      if (bopn != nullptr)
+        {
+          tie(optim_share, optim_part) =
+            getPacOptimizingShareAndExprNodesHelper(bopn, lhs_symb_id, lhs_orig_symb_id);
+          if (optim_share >= 0 && optim_part != nullptr)
+            {
+              terms.erase(it);
+              break;
+            }
+        }
     }
-  else if (op_code == BinaryOpcode::divide)
-    return;
-  else
+
+  if (optim_part == nullptr)
+    return {-1, nullptr, nullptr, nullptr};
+
+  for (auto it = terms.begin(); it != terms.end(); it++)
     {
-      cerr << "Notation error in PAC equation" << endl;
-      exit(EXIT_FAILURE);
+      auto bopn = dynamic_cast<BinaryOpNode *>(it->first);
+      if (bopn != nullptr)
+        {
+          non_optim_part = getPacNonOptimizingPart(bopn, optim_share);
+          if (non_optim_part != nullptr)
+            {
+              terms.erase(it);
+              break;
+            }
+        }
     }
+
+  if (non_optim_part == nullptr)
+    return {-1, nullptr, nullptr, nullptr};
+
+  if (non_optim_part != nullptr)
+    {
+      additive_part = datatree.Zero;
+      for (auto it : terms)
+        additive_part = datatree.AddPlus(additive_part, it.first);
+      if (additive_part == datatree.Zero)
+        additive_part = nullptr;
+    }
+
+  return {optim_share, optim_part, non_optim_part, additive_part};
 }
 
 void
@@ -6904,16 +6937,6 @@ TrinaryOpNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<
   arg3->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
 }
 
-void
-TrinaryOpNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
-                                                 expr_t &optim_part,
-                                                 expr_t &non_optim_part) const
-{
-  arg1->getPacOptimizingShareAndExprNodes(optim_share, optim_part, non_optim_part);
-  arg2->getPacOptimizingShareAndExprNodes(optim_share, optim_part, non_optim_part);
-  arg3->getPacOptimizingShareAndExprNodes(optim_share, optim_part, non_optim_part);
-}
-
 bool
 TrinaryOpNode::isVarModelReferenced(const string &model_info_name) const
 {
@@ -7468,15 +7491,6 @@ AbstractExternalFunctionNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<in
 {
   for (auto argument : arguments)
     argument->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
-}
-
-void
-AbstractExternalFunctionNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
-                                                                expr_t &optim_part,
-                                                                expr_t &non_optim_part) const
-{
-  for (auto argument : arguments)
-    argument->getPacOptimizingShareAndExprNodes(optim_share, optim_part, non_optim_part);
 }
 
 bool
@@ -9110,13 +9124,6 @@ VarExpectationNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<ve
 {
 }
 
-void
-VarExpectationNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
-                                                      expr_t &optim_part,
-                                                      expr_t &non_optim_part) const
-{
-}
-
 expr_t
 VarExpectationNode::substituteStaticAuxiliaryVariable() const
 {
@@ -9592,13 +9599,6 @@ PacExpectationNode::isParamTimesEndogExpr() const
 void
 PacExpectationNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
                                          set<pair<int, pair<int, int>>> &ar_params_and_vars) const
-{
-}
-
-void
-PacExpectationNode::getPacOptimizingShareAndExprNodes(set<int> &optim_share,
-                                                      expr_t &optim_part,
-                                                      expr_t &non_optim_part) const
 {
 }
 
