@@ -3709,6 +3709,21 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           for (auto & it : non_optim_vars_params_and_constants)
             output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
           output << "];" << endl
+                 << modstruct << "pac." << substruct << "non_optimizing_behaviour.type = [";
+          for (auto & it : non_optim_vars_params_and_constants)
+            switch (symbol_table.getType(get<0>(it)))
+              {
+              case SymbolType::endogenous:
+                output << "1 ";
+                break;
+              case SymbolType::exogenous:
+                output << "0 ";
+                break;
+              default:
+                cerr << "expecting endogenous or exogenous" << endl;
+                exit(EXIT_FAILURE);
+              }
+          output << "];" << endl
                  << modstruct << "pac." << substruct << "non_optimizing_behaviour.lags = [";
           for (auto & it : non_optim_vars_params_and_constants)
             output << get<1>(it) << " ";
