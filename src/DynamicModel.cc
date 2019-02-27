@@ -3709,15 +3709,15 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           for (auto & it : non_optim_vars_params_and_constants)
             output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
           output << "];" << endl
-                 << modstruct << "pac." << substruct << "non_optimizing_behaviour.type = [";
+                 << modstruct << "pac." << substruct << "non_optimizing_behaviour.isendo = [";
           for (auto & it : non_optim_vars_params_and_constants)
             switch (symbol_table.getType(get<0>(it)))
               {
               case SymbolType::endogenous:
-                output << "1 ";
+                output << "true ";
                 break;
               case SymbolType::exogenous:
-                output << "0 ";
+                output << "false ";
                 break;
               default:
                 cerr << "expecting endogenous or exogenous" << endl;
