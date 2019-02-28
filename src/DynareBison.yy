@@ -388,7 +388,7 @@ trend_component_model_options : o_trend_component_model_name
                               | o_trend_component_model_eq_tags
                               ;
 
-pac_model : PAC_MODEL '(' pac_model_options_list ')' ';' { driver.pac_model(); } ;
+pac_model : PAC_MODEL '(' { driver.begin_pac_model(); } pac_model_options_list ')' ';' { driver.pac_model(); };
 
 pac_model_options_list : pac_model_options_list COMMA pac_model_options
                        | pac_model_options
@@ -3131,9 +3131,7 @@ o_file : FILE EQUAL filename { driver.option_str("file", $3); };
 o_pac_name : MODEL_NAME EQUAL symbol { driver.option_str("pac.model_name", $3); };
 o_pac_aux_model_name : AUXILIARY_MODEL_NAME EQUAL symbol { driver.option_str("pac.aux_model_name", $3); };
 o_pac_discount : DISCOUNT EQUAL symbol { driver.option_str("pac.discount", $3); };
-o_pac_growth : GROWTH EQUAL symbol { driver.set_pac_growth($3, 0); }
-             | GROWTH EQUAL symbol '(' MINUS INT_NUMBER ')' { driver.set_pac_growth($3, stoi($6)); }
-             ;
+o_pac_growth : GROWTH { driver.begin_pac_growth(); } EQUAL hand_side { driver.set_pac_growth($4); };
 o_pac_steady_state_growth : STEADY_STATE_GROWTH EQUAL signed_number { driver.set_pac_steady_state_growth($3); }
                           | STEADY_STATE_GROWTH EQUAL symbol { driver.set_pac_steady_state_growth($3); }
                           ;

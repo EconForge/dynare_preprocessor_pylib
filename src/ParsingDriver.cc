@@ -2608,6 +2608,22 @@ ParsingDriver::add_pac_expectation(const string &var_model_name)
 }
 
 void
+ParsingDriver::begin_pac_growth()
+{
+  set_current_data_tree(&mod_file->dynamic_model);
+}
+
+void
+ParsingDriver::begin_pac_model()
+{
+  parsing_pac_model = true;
+  pac_growth = nullptr;
+  pac_steady_state_growth_rate_number = -1;
+  pac_steady_state_growth_rate_symb_id = -1;
+  options_list.clear();
+}
+
+void
 ParsingDriver::pac_model()
 {
   OptionsList::string_options_t::const_iterator it = options_list.string_options.find("pac.model_name");
@@ -2626,13 +2642,6 @@ ParsingDriver::pac_model()
       }
     else
       aux_model_name = it->second;
-  else
-    if (pac_growth_symb_id >= 0 && mod_file->symbol_table.getType(pac_growth_symb_id) == SymbolType::parameter
-        && (pac_steady_state_growth_rate_number >= 0 || pac_steady_state_growth_rate_symb_id >=0))
-      warning("If growth option is constant, steady_state_growth is ignored");
-    else if (pac_growth_symb_id >= 0 && mod_file->symbol_table.getType(pac_growth_symb_id) != SymbolType::parameter
-             && (pac_steady_state_growth_rate_number < 0 || pac_steady_state_growth_rate_symb_id < 0))
-      error("The steady state growth rate of the target must be provided (steady_state_growth option) if option growth is not constant");
 
   if (pac_steady_state_growth_rate_symb_id >= 0
       && mod_file->symbol_table.getType(pac_steady_state_growth_rate_symb_id) != SymbolType::parameter)
@@ -2644,24 +2653,18 @@ ParsingDriver::pac_model()
   auto discount = it->second;
 
   mod_file->addStatement(make_unique<PacModelStatement>(name, aux_model_name, discount,
-                                                        pac_growth_symb_id, pac_growth_lag,
+                                                        pac_growth,
                                                         pac_steady_state_growth_rate_number,
                                                         pac_steady_state_growth_rate_symb_id,
                                                         mod_file->symbol_table));
-  pac_growth_symb_id = -1;
-  pac_growth_lag = 0;
-  pac_steady_state_growth_rate_number = -1;
-  pac_steady_state_growth_rate_symb_id = -1;
-  options_list.clear();
+  parsing_pac_model = false;
 }
 
 void
-ParsingDriver::set_pac_growth(const string &name, int lag)
+ParsingDriver::set_pac_growth(expr_t pac_growth_arg)
 {
-  if (!mod_file->symbol_table.exists(name))
-    error("Unknown symbol used in pac_growth option: " + name + "\n");
-  pac_growth_symb_id = mod_file->symbol_table.getID(name);
-  pac_growth_lag = -lag;
+  pac_growth = pac_growth_arg;
+  reset_data_tree();
 }
 
 void
@@ -2981,7 +2984,7 @@ ParsingDriver::add_model_var_or_external_function(const string &function_name, b
   expr_t nid;
   if (mod_file->symbol_table.exists(function_name))
     if (mod_file->symbol_table.getType(function_name) != SymbolType::externalFunction)
-      if (!in_model_block && !parsing_epilogue)
+      if (!in_model_block && !parsing_epilogue && !parsing_pac_model)
         {
           if (stack_external_function_args.top().size() > 0)
             error(string("Symbol ") + function_name + string(" cannot take arguments."));

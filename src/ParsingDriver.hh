@@ -255,8 +255,7 @@ private:
   WarningConsolidation &warnings;
 
   //! Temporary storage for growth declared in pac_model
-  int pac_growth_symb_id = -1;
-  int pac_growth_lag = 0;
+  expr_t pac_growth;
   double pac_steady_state_growth_rate_number = -1;
   int pac_steady_state_growth_rate_symb_id = -1;
 
@@ -270,6 +269,9 @@ private:
 
   //! True when parsing the epilogue block
   bool parsing_epilogue{false};
+
+  //! True when parsing pac_model statement
+  bool parsing_pac_model{false};
 
 public:
   ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) :
@@ -732,9 +734,11 @@ public:
   //! Writes token "PAC_EXPECTATION(model_name, discount, growth)" to model tree
   expr_t add_pac_expectation(const string &var_model_name);
   //! Creates pac_model statement
+  void begin_pac_growth();
+  void begin_pac_model();
   void pac_model();
   //! Adds growth for pac
-  void set_pac_growth(const string &name, int lag = 0);
+  void set_pac_growth(expr_t pac_growth_arg);
   //! Adds steady state growth for pac
   void set_pac_steady_state_growth(const string &name_or_number);
   //! Writes token "diff(arg1)" to model tree

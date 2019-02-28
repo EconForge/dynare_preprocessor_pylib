@@ -260,44 +260,76 @@ PriorPosteriorFunctionStatement::writeJsonOutput(ostream &output) const
 PacModelStatement::PacModelStatement(string name_arg,
                                      string aux_model_name_arg,
                                      string discount_arg,
-                                     int growth_symb_id_arg,
-                                     int growth_lag_arg,
+                                     expr_t growth_arg,
                                      double steady_state_growth_rate_number_arg,
                                      int steady_state_growth_rate_symb_id_arg,
                                      const SymbolTable &symbol_table_arg) :
   name{move(name_arg)},
   aux_model_name{move(aux_model_name_arg)},
   discount{move(discount_arg)},
-  growth_symb_id{growth_symb_id_arg},
-  growth_lag{growth_lag_arg},
+  growth{growth_arg},
   steady_state_growth_rate_number{steady_state_growth_rate_number_arg},
   steady_state_growth_rate_symb_id{steady_state_growth_rate_symb_id_arg},
   symbol_table{symbol_table_arg}
 {
+  growth_symb_id = -1;
+  growth_lag = 0;
 }
 
 void
 PacModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  mod_file_struct.pac_params.insert(symbol_table.getID(discount));
-  if (growth_symb_id >= 0)
+  if (growth == nullptr)
+    return;
+
+  VariableNode *vn = dynamic_cast<VariableNode *>(growth);
+  if (vn != nullptr)
     {
-      switch (symbol_table.getType(growth_symb_id))
-        {
-        case SymbolType::endogenous:
-        case SymbolType::exogenous:
-        case SymbolType::parameter:
-          break;
-        default:
+      mod_file_struct.pac_params.insert(vn->symb_id);
+      mod_file_struct.pac_params.insert(vn->lag);
+    }
+
+  UnaryOpNode *uon = dynamic_cast<UnaryOpNode *>(growth);
+  if (uon != nullptr)
+    if (uon->op_code == UnaryOpcode::diff)
+      {
+        VariableNode *uonvn = dynamic_cast<VariableNode *>(uon->arg);
+        UnaryOpNode *uon1 = dynamic_cast<UnaryOpNode *>(uon->arg);
+        while (uonvn == nullptr && uon1 != nullptr)
           {
-            cerr << "ERROR: The Expression passed to the growth option of pac_model must be an "
-                 << "endogenous (lagged or not), exogenous (lagged or not), or parameter" << endl;
+            uonvn = dynamic_cast<VariableNode *>(uon1->arg);
+            uon1 = dynamic_cast<UnaryOpNode *>(uon1->arg);
+          }
+        if (uonvn == nullptr)
+          {
+            cerr << "Pac growth parameter must be either a variable or a diff unary op of a variable" << endl;
             exit(EXIT_FAILURE);
           }
-        }
-      mod_file_struct.pac_params.insert(growth_symb_id);
-      mod_file_struct.pac_params.insert(growth_lag);
+         mod_file_struct.pac_params.insert(uonvn->symb_id);
+         mod_file_struct.pac_params.insert(uonvn->lag);
+      }
+
+  if (vn == nullptr && uon == nullptr)
+    {
+      cerr << "Pac growth parameter must be either a variable or a diff unary op of a variable" << endl;
+      exit(EXIT_FAILURE);
     }
+}
+
+void
+PacModelStatement::overwriteGrowth(expr_t new_growth)
+{
+  if (new_growth == nullptr || growth == nullptr)
+    return;
+
+  growth = new_growth;
+  VariableNode *vn = dynamic_cast<VariableNode *>(growth);
+  if (vn == nullptr)
+    {
+      cerr << "PacModelStatement::overwriteGrowth: Internal Dynare error: should not arrive here" << endl;
+    }
+  growth_symb_id = vn->symb_id;
+  growth_lag = vn->lag;
 }
 
 void

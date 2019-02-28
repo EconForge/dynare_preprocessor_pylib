@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2018 Dynare Team
+ * Copyright (C) 2006-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -130,6 +130,7 @@ private:
   void writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType json_output_mode, bool transformpass, bool computingpass) const;
   void writeJsonComputingPassOutput(const string &basename, JsonFileOutputType json_output_mode, bool jsonderivsimple) const;
   void writeJsonFileHelper(const string &fname, ostringstream &output) const;
+  vector<expr_t> pac_growth;
 public:
   //! Add a statement
   void addStatement(unique_ptr<Statement> st);

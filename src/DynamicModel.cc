@@ -6303,7 +6303,7 @@ DynamicModel::substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes,
 }
 
 void
-DynamicModel::substituteDiff(StaticModel &static_model, diff_table_t &diff_table, ExprNode::subst_table_t &diff_subst_table)
+DynamicModel::substituteDiff(StaticModel &static_model, diff_table_t &diff_table, ExprNode::subst_table_t &diff_subst_table, vector<expr_t> &pac_growth)
 {
   set<int> used_local_vars;
   for (const auto & equation : equations)
@@ -6353,6 +6353,10 @@ DynamicModel::substituteDiff(StaticModel &static_model, diff_table_t &diff_table
       assert(substeq != nullptr);
       equation = substeq;
     }
+
+  for (auto & it : pac_growth)
+    if (it != nullptr)
+      it = it->substituteDiff(static_model, diff_table, diff_subst_table, neweqs);
 
   // Add new equations
   for (auto & neweq : neweqs)

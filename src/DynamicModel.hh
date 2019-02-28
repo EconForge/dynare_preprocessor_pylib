@@ -444,7 +444,7 @@ public:
   void substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, vector<int> &eqnumbers);
 
   //! Substitutes diff operator
-  void substituteDiff(StaticModel &static_model, diff_table_t &diff_table, ExprNode::subst_table_t &diff_subst_table);
+  void substituteDiff(StaticModel &static_model, diff_table_t &diff_table, ExprNode::subst_table_t &diff_subst_table, vector<expr_t> &pac_growth);
 
   //! Substitute VarExpectation operators
   void substituteVarExpectation(const map<string, expr_t> &subst_table);

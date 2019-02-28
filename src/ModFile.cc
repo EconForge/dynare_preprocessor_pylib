@@ -370,8 +370,13 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   for (auto & statement : statements)
     {
       auto pms = dynamic_cast<PacModelStatement *>(statement.get());
-      if (pms != nullptr && pms->aux_model_name == "")
-        dynamic_model.declarePacModelConsistentExpectationEndogs(pms->name);
+      if (pms != nullptr)
+        {
+          if (pms->growth != nullptr)
+            pac_growth.push_back(pms->growth);
+          if (pms->aux_model_name == "")
+            dynamic_model.declarePacModelConsistentExpectationEndogs(pms->name);
+        }
     }
   dynamic_model.substituteAdl();
   dynamic_model.setLeadsLagsOrig();
@@ -409,7 +414,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   // Create auxiliary variable and equations for Diff operators
   diff_table_t diff_table;
   ExprNode::subst_table_t diff_subst_table;
-  dynamic_model.substituteDiff(diff_static_model, diff_table, diff_subst_table);
+  dynamic_model.substituteDiff(diff_static_model, diff_table, diff_subst_table, pac_growth);
 
   // Fill Trend Component Model Table
   dynamic_model.fillTrendComponentModelTable();
@@ -419,11 +424,15 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   original_model.fillVarModelTableFromOrigModel(diff_static_model);
 
   // Pac Model
+  int i = 0;
   for (auto & statement : statements)
     {
       auto pms = dynamic_cast<PacModelStatement *>(statement.get());
       if (pms != nullptr)
          {
+           if (pms->growth != nullptr)
+             pms->overwriteGrowth(pac_growth.at(i++));
+
            int max_lag;
            vector<int> lhs;
            vector<bool> nonstationary;
