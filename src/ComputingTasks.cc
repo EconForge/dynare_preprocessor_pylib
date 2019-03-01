@@ -268,6 +268,7 @@ PacModelStatement::PacModelStatement(string name_arg,
   aux_model_name{move(aux_model_name_arg)},
   discount{move(discount_arg)},
   growth{growth_arg},
+  original_growth{growth_arg},
   steady_state_growth_rate_number{steady_state_growth_rate_number_arg},
   steady_state_growth_rate_symb_id{steady_state_growth_rate_symb_id_arg},
   symbol_table{symbol_table_arg}
@@ -369,7 +370,10 @@ PacModelStatement::writeOutput(ostream &output, const string &basename, bool min
           int aux_symb_id = symbol_table.searchAuxiliaryVars(growth_symb_id, growth_lag);
           output << "M_.pac." << name << ".growth_index = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
                  << "M_.pac." << name << ".growth_lag = 0;" << endl
-                 << "M_.pac." << name << ".growth_type = '" << growth_type << "';" << endl;
+                 << "M_.pac." << name << ".growth_type = '" << growth_type << "';" << endl
+                 << "M_.pac." << name << ".growth_str = '";
+          original_growth->writeJsonOutput(output, {}, {}, true);
+          output << "';" << endl;
         }
       catch (...)
         {
@@ -380,14 +384,20 @@ PacModelStatement::writeOutput(ostream &output, const string &basename, bool min
               int aux_symb_id = symbol_table.searchAuxiliaryVars(growth_symb_id, tmp_growth_lag);
               output << "M_.pac." << name << ".growth_index = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
                      << "M_.pac." << name << ".growth_lag = -1;" << endl
-                     << "M_.pac." << name << ".growth_type = '" << growth_type << "';" << endl;
+                     << "M_.pac." << name << ".growth_type = '" << growth_type << "';" << endl
+                     << "M_.pac." << name << ".growth_str = '";
+              original_growth->writeJsonOutput(output, {}, {}, true);
+              output << "';" << endl;
             }
           catch (...)
             {
               // case when there is no aux var for the variable
               output << "M_.pac." << name << ".growth_index = " << symbol_table.getTypeSpecificID(growth_symb_id) + 1 << ";" << endl
                      << "M_.pac." << name << ".growth_lag = " << growth_lag << ";" << endl
-                     << "M_.pac." << name << ".growth_type = '" << growth_type << "';" << endl;
+                     << "M_.pac." << name << ".growth_type = '" << growth_type << "';" << endl
+                     << "M_.pac." << name << ".growth_str = '";
+              original_growth->writeJsonOutput(output, {}, {}, true);
+              output << "';" << endl;
             }
         }
     }
@@ -422,7 +432,10 @@ PacModelStatement::writeJsonOutput(ostream &output) const
       output << ","
              << "\"growth_index\": " << symbol_table.getTypeSpecificID(growth_symb_id) + 1 << ","
              << "\"growth_lag\": " << growth_lag << ","
-             << "\"growth_type\": " << "\"" << growth_type << "\"" << endl;
+             << "\"growth_type\": \"" << growth_type << "\"," << endl
+             << "\"growth_str\": \"";
+      original_growth->writeJsonOutput(output, {}, {}, true);
+      output << "\"" << endl;
     }
   output << "}";
 }

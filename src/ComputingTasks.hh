@@ -138,7 +138,7 @@ class PacModelStatement : public Statement
 {
 public:
   const string name, aux_model_name, discount;
-  expr_t growth;
+  expr_t growth, original_growth;
 private:
   const double steady_state_growth_rate_number;
   const int steady_state_growth_rate_symb_id;
