@@ -2634,14 +2634,15 @@ ParsingDriver::pac_model()
   string aux_model_name = "";
   it = options_list.string_options.find("pac.aux_model_name");
   if (it != options_list.string_options.end())
-    if (pac_steady_state_growth_rate_number >= 0 || pac_steady_state_growth_rate_symb_id >= 0)
-      {
-        pac_steady_state_growth_rate_number = -1;
-        pac_steady_state_growth_rate_symb_id = -1;
-        warning("when aux_model_name is used in the pac_model statement, steady_state_growth is ignored");
-      }
-    else
+    {
       aux_model_name = it->second;
+      if (pac_steady_state_growth_rate_number >= 0 || pac_steady_state_growth_rate_symb_id >= 0)
+        {
+          pac_steady_state_growth_rate_number = -1;
+          pac_steady_state_growth_rate_symb_id = -1;
+          warning("when aux_model_name is used in the pac_model statement, steady_state_growth is ignored");
+        }
+    }
 
   if (pac_steady_state_growth_rate_symb_id >= 0
       && mod_file->symbol_table.getType(pac_steady_state_growth_rate_symb_id) != SymbolType::parameter)
