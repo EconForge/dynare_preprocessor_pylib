@@ -2631,6 +2631,19 @@ ParsingDriver::pac_model()
     error("You must pass the model_name option to the pac_model statement.");
   auto name = it->second;
 
+  bool pac_growth_is_param = false;
+  if (pac_growth != nullptr && dynamic_cast<VariableNode *>(pac_growth) != nullptr)
+    {
+      set<int> params;
+      pac_growth->collectVariables(SymbolType::parameter, params);
+      if (params.size() == 1)
+        pac_growth_is_param = true;
+      pac_growth->collectVariables(SymbolType::endogenous, params);
+      pac_growth->collectVariables(SymbolType::exogenous, params);
+      if (params.size() != 1)
+        pac_growth_is_param = false;
+    }
+
   string aux_model_name = "";
   it = options_list.string_options.find("pac.aux_model_name");
   if (it != options_list.string_options.end())
@@ -2643,6 +2656,13 @@ ParsingDriver::pac_model()
           warning("when aux_model_name is used in the pac_model statement, steady_state_growth is ignored");
         }
     }
+  else
+    if (pac_growth_is_param
+        && (pac_steady_state_growth_rate_number >= 0 || pac_steady_state_growth_rate_symb_id >=0))
+      warning("If growth option is constant, steady_state_growth is ignored");
+    else if (pac_growth != nullptr && !pac_growth_is_param
+             && (pac_steady_state_growth_rate_number < 0 || pac_steady_state_growth_rate_symb_id < 0))
+      error("The steady state growth rate of the target must be provided (steady_state_growth option) if option growth is not constant");
 
   if (pac_steady_state_growth_rate_symb_id >= 0
       && mod_file->symbol_table.getType(pac_steady_state_growth_rate_symb_id) != SymbolType::parameter)
