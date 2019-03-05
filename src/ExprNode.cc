@@ -3489,6 +3489,12 @@ UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nod
   if (it == nodes.end())
     return buildSimilarUnaryOpNode(argsubst, datatree);
 
+  if (arg->maxLead() > 0)
+    {
+      cerr << "Cannot substitue unary operations that contain leads" << endl;
+      exit(EXIT_FAILURE);
+    }
+
   string unary_op = "";
   switch (op_code)
     {
