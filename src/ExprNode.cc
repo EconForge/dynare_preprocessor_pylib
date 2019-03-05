@@ -674,12 +674,6 @@ NumConstNode::isParamTimesEndogExpr() const
   return false;
 }
 
-void
-NumConstNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                                   set<pair<int, pair<int, int>>> &ar_params_and_vars) const
-{
-}
-
 bool
 NumConstNode::isVarModelReferenced(const string &model_info_name) const
 {
@@ -1966,12 +1960,6 @@ bool
 VariableNode::isParamTimesEndogExpr() const
 {
   return false;
-}
-
-void
-VariableNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                                   set<pair<int, pair<int, int>>> &ar_params_and_vars) const
-{
 }
 
 bool
@@ -3778,14 +3766,6 @@ UnaryOpNode::isParamTimesEndogExpr() const
   return arg->isParamTimesEndogExpr();
 }
 
-
-void
-UnaryOpNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                                  set<pair<int, pair<int, int>>> &ar_params_and_vars) const
-{
-  arg->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
-}
-
 bool
 UnaryOpNode::isVarModelReferenced(const string &model_info_name) const
 {
@@ -5549,7 +5529,7 @@ BinaryOpNode::findTargetVariable(int lhs_symb_id) const
     retval = arg2->findTargetVariable(lhs_symb_id);
   return retval;
 }
-
+/*
 void
 BinaryOpNode::getPacOptimizingPartHelper(const expr_t arg1, const expr_t arg2,
                                          int lhs_orig_symb_id,
@@ -5563,6 +5543,7 @@ BinaryOpNode::getPacOptimizingPartHelper(const expr_t arg1, const expr_t arg2,
 
   set<pair<int, int>> endogs;
   arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
+  arg2->collectDynamicVariables(SymbolType::exogenous, endogs);
   if (endogs.size() == 1)
     ar_params_and_vars.emplace(*(params.begin()), *(endogs.begin()));
   else if (endogs.size() >= 2)
@@ -5578,6 +5559,7 @@ BinaryOpNode::getPacOptimizingPartHelper(const expr_t arg1, const expr_t arg2,
               vector<bool> order;
               endogs.clear();
               test_arg1->collectDynamicVariables(SymbolType::endogenous, endogs);
+              test_arg1->collectDynamicVariables(SymbolType::exogenous, endogs);
               endog_ids.push_back(endogs.begin()->first);
               if (endogs.begin()->first == lhs_orig_symb_id)
                 order.push_back(true);
@@ -5586,6 +5568,7 @@ BinaryOpNode::getPacOptimizingPartHelper(const expr_t arg1, const expr_t arg2,
 
               endogs.clear();
               test_arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
+              test_arg2->collectDynamicVariables(SymbolType::exogenous, endogs);
               endog_ids.push_back(endogs.begin()->first);
               if (endogs.begin()->first == lhs_orig_symb_id)
                 order.push_back(true);
@@ -5597,21 +5580,137 @@ BinaryOpNode::getPacOptimizingPartHelper(const expr_t arg1, const expr_t arg2,
         }
     }
 }
+*/
+
+pair<int, vector<pair<int,bool>>>
+BinaryOpNode::getPacEC(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id) const
+{
+  pair<int, vector<pair<int,bool>>> ec_params_and_vars = {-1, vector<pair<int, bool>>()};
+  int optim_param_symb_id = -1;
+  expr_t optim_part = nullptr;
+  set<pair<int, int>> endogs;
+  bopn->collectDynamicVariables(SymbolType::endogenous, endogs);
+  int target_symb_id = getPacTargetSymbIdHelper(lhs_symb_id, lhs_orig_symb_id, endogs);
+  if (target_symb_id >= 0 && bopn->isParamTimesEndogExpr())
+    {
+      optim_part = bopn->arg2;
+      auto vn = dynamic_cast<VariableNode *>(bopn->arg1);
+      if (vn == nullptr || datatree.symbol_table.getType(vn->symb_id) != SymbolType::parameter)
+        {
+          optim_part = bopn->arg1;
+          vn = dynamic_cast<VariableNode *>(bopn->arg2);
+        }
+      if (vn == nullptr || datatree.symbol_table.getType(vn->symb_id) != SymbolType::parameter)
+        return ec_params_and_vars;
+      optim_param_symb_id = vn->symb_id;
+    }
+  if (optim_param_symb_id >= 0)
+    {
+      endogs.clear();
+      optim_part->collectDynamicVariables(SymbolType::endogenous, endogs);
+      optim_part->collectDynamicVariables(SymbolType::exogenous, endogs);
+      vector<pair<int,bool>> symb_ids;
+      for (const auto & it : endogs)
+        {
+          int id = it.first;
+          bool istarget = false;
+          while (datatree.symbol_table.isAuxiliaryVariable(id))
+            try
+              {
+                id = datatree.symbol_table.getOrigSymbIdForAuxVar(id);
+              }
+            catch (...)
+              {
+                break;
+              }
+          if (id == lhs_symb_id || id == lhs_orig_symb_id)
+            istarget = true;
+          symb_ids.push_back({it.first, istarget});
+        }
+      ec_params_and_vars = make_pair(optim_param_symb_id, symb_ids);
+    }
+  return ec_params_and_vars;
+}
 
 void
-BinaryOpNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                                   set<pair<int, pair<int, int>>> &ar_params_and_vars) const
+BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
+                         pair<int, vector<pair<int,bool>>> &ec_params_and_vars,
+                         set<pair<int, pair<int, int>>> &ar_params_and_vars,
+                         vector<tuple<int, int, int, double>> &additive_vars_params_and_constants) const
 {
-  if (op_code == BinaryOpcode::times)
+  vector<pair<expr_t, int>> terms;
+  decomposeAdditiveTerms(terms, 1);
+  for (auto it = terms.begin(); it != terms.end(); it++)
     {
-      int orig_ar_params_and_vars_size = ar_params_and_vars.size();
-      getPacOptimizingPartHelper(arg1, arg2, lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
-      if ((int)ar_params_and_vars.size() == orig_ar_params_and_vars_size && ec_params_and_vars.second.first.empty())
-        getPacOptimizingPartHelper(arg2, arg1, lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
+      auto bopn = dynamic_cast<BinaryOpNode *>(it->first);
+      if (bopn != nullptr)
+        {
+          ec_params_and_vars = getPacEC(bopn, lhs_symb_id, lhs_orig_symb_id);
+          if (ec_params_and_vars.first >= 0)
+            {
+              terms.erase(it);
+              break;
+            }
+        }
     }
 
-  arg1->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
-  arg2->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
+  if (ec_params_and_vars.first < 0)
+    {
+      cerr << "Error finding EC part of PAC equation" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  for (const auto & it : terms)
+    {
+      auto bopn = dynamic_cast<BinaryOpNode *>(it.first);
+      if (bopn != nullptr)
+        {
+          auto vn1 = dynamic_cast<VariableNode *>(bopn->arg1);
+          auto vn2 = dynamic_cast<VariableNode *>(bopn->arg2);
+          if (vn1 && vn2)
+            {
+              int pid, vid, lag;
+              pid = vid = lag = -1;
+              if (datatree.symbol_table.getType(vn1->symb_id) == SymbolType::parameter
+                  && (datatree.symbol_table.getType(vn2->symb_id) == SymbolType::endogenous
+                      || datatree.symbol_table.getType(vn2->symb_id) == SymbolType::exogenous))
+                {
+                  pid = vn1->symb_id;
+                  vid = vn2->symb_id;
+                  lag = vn2->lag;
+                }
+              else if (datatree.symbol_table.getType(vn2->symb_id) == SymbolType::parameter
+                       && (datatree.symbol_table.getType(vn1->symb_id) == SymbolType::endogenous
+                           || datatree.symbol_table.getType(vn1->symb_id) == SymbolType::exogenous))
+                {
+                  pid = vn2->symb_id;
+                  vid = vn1->symb_id;
+                  lag = vn1->lag;
+                }
+              if (pid > 0 && vid > 0)
+                {
+                  int vidorig = vid;
+                  while (datatree.symbol_table.isAuxiliaryVariable(vid))
+                    try
+                      {
+                        vid = datatree.symbol_table.getOrigSymbIdForAuxVar(vid);
+                      }
+                    catch (...)
+                      {
+                        break;
+                      }
+                  if (vid == lhs_symb_id || vid == lhs_orig_symb_id)
+                    ar_params_and_vars.insert({pid, {vidorig, lag}});
+                  else
+                    {
+                      auto m = it.first->matchVariableTimesConstantTimesParam();
+                      get<3>(m) *= it.second;
+                      additive_vars_params_and_constants.push_back(m);
+                    }
+                }
+            }
+        }
+    }
 }
 
 bool
@@ -6928,15 +7027,6 @@ TrinaryOpNode::isParamTimesEndogExpr() const
     || arg3->isParamTimesEndogExpr();
 }
 
-void
-TrinaryOpNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                                    set<pair<int, pair<int, int>>> &ar_params_and_vars) const
-{
-  arg1->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
-  arg2->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
-  arg3->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
-}
-
 bool
 TrinaryOpNode::isVarModelReferenced(const string &model_info_name) const
 {
@@ -7483,14 +7573,6 @@ bool
 AbstractExternalFunctionNode::isParamTimesEndogExpr() const
 {
   return false;
-}
-
-void
-AbstractExternalFunctionNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                                                   set<pair<int, pair<int, int>>> &ar_params_and_vars) const
-{
-  for (auto argument : arguments)
-    argument->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
 }
 
 bool
@@ -9118,12 +9200,6 @@ VarExpectationNode::isParamTimesEndogExpr() const
   return false;
 }
 
-void
-VarExpectationNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                                         set<pair<int, pair<int, int>>> &ar_params_and_vars) const
-{
-}
-
 expr_t
 VarExpectationNode::substituteStaticAuxiliaryVariable() const
 {
@@ -9594,12 +9670,6 @@ bool
 PacExpectationNode::isParamTimesEndogExpr() const
 {
   return false;
-}
-
-void
-PacExpectationNode::getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                                         set<pair<int, pair<int, int>>> &ar_params_and_vars) const
-{
 }
 
 expr_t

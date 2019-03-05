@@ -583,10 +583,6 @@ class ExprNode
       //! Returns true if model_info_name is referenced by a VarExpectationNode
       virtual bool isVarModelReferenced(const string &model_info_name) const = 0;
 
-      //! Fills parameter information rerhs_symblated to PAC equation
-      virtual void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                                        set<pair<int, pair<int, int>>> &params_and_vars) const = 0;
-
       //! Matches a linear combination of variables, where scalars can be constant*parameter
       /*! Returns a list of (variable_id, lag, param_id, constant)
           corresponding to the terms in the expression. When there is no
@@ -727,8 +723,6 @@ public:
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
-  void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                            set<pair<int, pair<int, int>>> &params_and_vars) const override;
   bool isParamTimesEndogExpr() const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
@@ -814,8 +808,6 @@ public:
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
-  void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                            set<pair<int, pair<int, int>>> &params_and_vars) const override;
   bool isParamTimesEndogExpr() const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
@@ -929,8 +921,6 @@ public:
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
-  void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                            set<pair<int, pair<int, int>>> &params_and_vars) const override;
   bool isParamTimesEndogExpr() const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
@@ -995,10 +985,6 @@ public:
   double eval(const eval_context_t &eval_context) const noexcept(false) override;
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const;
-  void getPacOptimizingPartHelper(const expr_t arg1, const expr_t arg2,
-                                  int lhs_orig_symb_id,
-                                  pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                                  set<pair<int, pair<int, int>>> &ar_params_and_vars) const;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
@@ -1062,8 +1048,11 @@ public:
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
-  void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                            set<pair<int, pair<int, int>>> &params_and_vars) const override;
+  pair<int, vector<pair<int,bool>>> getPacEC(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id) const;
+  void getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
+                  pair<int, vector<pair<int,bool>>> &ec_params_and_vars,
+                  set<pair<int, pair<int, int>>> &ar_params_and_vars,
+                  vector<tuple<int, int, int, double>> &additive_vars_params_and_constants) const;
 
   //! Finds the share of optimizing agents in the PAC equation,
   //! the expr node associated with it,
@@ -1182,8 +1171,6 @@ public:
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
-  void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                            set<pair<int, pair<int, int>>> &params_and_vars) const override;
   bool isParamTimesEndogExpr() const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
@@ -1306,8 +1293,6 @@ public:
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
-  void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                            set<pair<int, pair<int, int>>> &params_and_vars) const override;
   bool isParamTimesEndogExpr() const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
@@ -1518,8 +1503,6 @@ public:
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
-  void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                            set<pair<int, pair<int, int>>> &params_and_vars) const override;
   bool isParamTimesEndogExpr() const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
@@ -1603,8 +1586,6 @@ public:
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
-  void getPacOptimizingPart(int lhs_orig_symb_id, pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                            set<pair<int, pair<int, int>>> &params_and_vars) const override;
   bool isParamTimesEndogExpr() const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;

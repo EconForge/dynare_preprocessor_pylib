@@ -3662,7 +3662,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       pair<int, int> lhs_pac_var;
       int optim_share_index;
       set<pair<int, pair<int, int>>> ar_params_and_vars;
-      pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars;
+      pair<int, vector<pair<int,bool>>> ec_params_and_vars;
       vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants, additive_vars_params_and_constants;
       tie(lhs_pac_var, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants) = pit.second;
       string substruct = pit.first.first + ".equations." + pit.first.second + ".";
@@ -3677,12 +3677,30 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       output << modstruct << "pac." << substruct << "ec.params = "
              << symbol_table.getTypeSpecificID(ec_params_and_vars.first) + 1 << ";" << endl
              << modstruct << "pac." << substruct << "ec.vars = [";
-      for (auto it : ec_params_and_vars.second.first)
-        output << symbol_table.getTypeSpecificID(it) + 1 << " ";
+      for (auto it : ec_params_and_vars.second)
+        output << symbol_table.getTypeSpecificID(it.first) + 1 << " ";
+      output << "];" << endl
+             << modstruct << "pac." << substruct << "ec.istarget = [";
+      for (auto it : ec_params_and_vars.second)
+        if (it.second)
+          output << "true ";
+        else
+          output << "false ";
       output << "];" << endl
              << modstruct << "pac." << substruct << "ec.isendo = [";
-      for (auto it : ec_params_and_vars.second.second)
-        output << (it ? "true" : "false") << " ";
+      for (auto it : ec_params_and_vars.second)
+        switch (symbol_table.getType(it.first))
+          {
+          case SymbolType::endogenous:
+            output << "true ";
+            break;
+          case SymbolType::exogenous:
+            output << "false ";
+            break;
+          default:
+            cerr << "expecting endogenous or exogenous" << endl;
+            exit(EXIT_FAILURE);
+          }
       output << "];" << endl
              << modstruct << "pac." << substruct << "ar.params = [";
       for (auto & it : ar_params_and_vars)
@@ -4419,7 +4437,7 @@ DynamicModel::walkPacParameters(const string &name, map<pair<string, string>, pa
   for (auto & equation : equations)
     {
       pair<int, int> lhs (-1, -1);
-      pair<int, pair<vector<int>, vector<bool>>> ec_params_and_vars;
+      pair<int, vector<pair<int,bool>>> ec_params_and_vars;
       set<pair<int, pair<int, int>>> ar_params_and_vars;
       vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants, additive_vars_params_and_constants;
 
@@ -4451,10 +4469,24 @@ DynamicModel::walkPacParameters(const string &name, map<pair<string, string>, pa
             arg2->getPacOptimizingShareAndExprNodes(lhs_symb_id, lhs_orig_symb_id);
 
           if (optim_part == nullptr)
-            equation->arg2->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
+            {
+              auto bopn = dynamic_cast<BinaryOpNode *>(equation->arg2);
+              if (bopn == nullptr)
+                {
+                  cerr << "Error in PAC equation" << endl;
+                  exit(EXIT_FAILURE);
+                }
+              bopn->getPacAREC(lhs_symb_id, lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars, additive_vars_params_and_constants);
+            }
           else
             {
-              optim_part->getPacOptimizingPart(lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars);
+              auto bopn = dynamic_cast<BinaryOpNode *>(optim_part);
+              if (bopn == nullptr)
+                {
+                  cerr << "Error in PAC equation" << endl;
+                  exit(EXIT_FAILURE);
+                }
+              bopn->getPacAREC(lhs_symb_id, lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars, additive_vars_params_and_constants);
               try
                 {
                   non_optim_vars_params_and_constants = non_optim_part->matchLinearCombinationOfVariables();
@@ -4487,7 +4519,7 @@ DynamicModel::walkPacParameters(const string &name, map<pair<string, string>, pa
               cerr << "walkPacParameters: error obtaining LHS varibale." << endl;
               exit(EXIT_FAILURE);
             }
-          if (ec_params_and_vars.second.first.empty() || ar_params_and_vars.empty())
+          if (ec_params_and_vars.second.empty() || ar_params_and_vars.empty())
             {
               cerr << "walkPacParameters: error obtaining RHS parameters." << endl;
               exit(EXIT_FAILURE);
