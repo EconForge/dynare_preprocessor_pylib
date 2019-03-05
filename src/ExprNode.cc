@@ -5529,58 +5529,6 @@ BinaryOpNode::findTargetVariable(int lhs_symb_id) const
     retval = arg2->findTargetVariable(lhs_symb_id);
   return retval;
 }
-/*
-void
-BinaryOpNode::getPacOptimizingPartHelper(const expr_t arg1, const expr_t arg2,
-                                         int lhs_orig_symb_id,
-                                         pair<int, pair<vector<int>, vector<bool>>> &ec_params_and_vars,
-                                         set<pair<int, pair<int, int>>> &ar_params_and_vars) const
-{
-  set<int> params;
-  arg1->collectVariables(SymbolType::parameter, params);
-  if (params.size() != 1)
-    return;
-
-  set<pair<int, int>> endogs;
-  arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
-  arg2->collectDynamicVariables(SymbolType::exogenous, endogs);
-  if (endogs.size() == 1)
-    ar_params_and_vars.emplace(*(params.begin()), *(endogs.begin()));
-  else if (endogs.size() >= 2)
-    {
-      auto *testarg2 = dynamic_cast<BinaryOpNode *>(arg2);
-      if (testarg2 != nullptr && testarg2->op_code == BinaryOpcode::minus)
-        {
-          auto *test_arg1 = dynamic_cast<VariableNode *>(testarg2->arg1);
-          auto *test_arg2 = dynamic_cast<VariableNode *>(testarg2->arg2);
-          if (test_arg1 != nullptr && test_arg2 != nullptr)
-            {
-              vector<int> endog_ids;
-              vector<bool> order;
-              endogs.clear();
-              test_arg1->collectDynamicVariables(SymbolType::endogenous, endogs);
-              test_arg1->collectDynamicVariables(SymbolType::exogenous, endogs);
-              endog_ids.push_back(endogs.begin()->first);
-              if (endogs.begin()->first == lhs_orig_symb_id)
-                order.push_back(true);
-              else
-                order.push_back(false);
-
-              endogs.clear();
-              test_arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
-              test_arg2->collectDynamicVariables(SymbolType::exogenous, endogs);
-              endog_ids.push_back(endogs.begin()->first);
-              if (endogs.begin()->first == lhs_orig_symb_id)
-                order.push_back(true);
-              else
-                order.push_back(false);
-
-              ec_params_and_vars = make_pair(*(params.begin()), make_pair(endog_ids, order));
-            }
-        }
-    }
-}
-*/
 
 pair<int, vector<pair<int,bool>>>
 BinaryOpNode::getPacEC(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id) const
