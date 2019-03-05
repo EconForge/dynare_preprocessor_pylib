@@ -336,6 +336,9 @@ DataTree::AddPowerDeriv(expr_t iArg1, expr_t iArg2, int powerDerivOrder)
 expr_t
 DataTree::AddDiff(expr_t iArg1)
 {
+  if (iArg1->maxLead() > 0)
+    // Issue #21: always substitute diffs with lags
+    return AddMinus(iArg1, iArg1->decreaseLeadsLags(1));
   return AddUnaryOp(UnaryOpcode::diff, iArg1);
 }
 
