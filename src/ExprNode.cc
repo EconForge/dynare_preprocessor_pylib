@@ -3491,7 +3491,7 @@ UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nod
 
   if (arg->maxLead() > 0)
     {
-      cerr << "Cannot substitue unary operations that contain leads" << endl;
+      cerr << "Cannot substitute unary operations that contain leads" << endl;
       exit(EXIT_FAILURE);
     }
 
