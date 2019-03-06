@@ -1308,7 +1308,6 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
   output << ", ";
   dynamic_model.writeJsonOutput(output);
 
-
   if (!statements.empty()
       || !var_model_table.empty()
       || !trend_component_model_table.empty())
@@ -1349,6 +1348,27 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
     {
       original_model_output << "{";
       original_model.writeJsonOriginalModelOutput(original_model_output);
+      if (!statements.empty() || !var_model_table.empty() || !trend_component_model_table.empty())
+        {
+          original_model_output << endl << ", \"statements\": [";
+          if (!var_model_table.empty())
+            {
+              var_model_table.writeJsonOutput(original_model_output);
+              original_model_output << ", ";
+            }
+          if (!trend_component_model_table.empty())
+            {
+              trend_component_model_table.writeJsonOutput(original_model_output);
+              original_model_output << ", ";
+            }
+          int i = 0;
+          for (const auto & it : statements)
+            {
+              original_model_output << (i++ > 0 ? "," : "") << endl;
+              it->writeJsonOutput(original_model_output);
+            }
+          original_model_output << "]" << endl;
+        }
       original_model_output << "}" << endl;
     }
 
