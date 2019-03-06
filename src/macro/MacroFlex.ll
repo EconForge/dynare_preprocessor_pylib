@@ -213,22 +213,22 @@ CONT \\\\
 <STMT,EXPR>:                { return token::COLON; }
 <STMT,EXPR>,                { return token::COMMA; }
 <STMT,EXPR>=                { return token::EQUAL; }
-<STMT,EXPR>[!]              { return token::EXCLAMATION; }
+<STMT,EXPR>!                { return token::EXCLAMATION; }
 <STMT,EXPR>"||"             { return token::LOGICAL_OR; }
 <STMT,EXPR>&&               { return token::LOGICAL_AND; }
-<STMT,EXPR>"|"              { return token::UNION; }
-<STMT,EXPR>"&"              { return token::INTERSECTION; }
-<STMT,EXPR>"^"              { return token::POWER; }
-<STMT,EXPR>"<="             { return token::LESS_EQUAL; }
-<STMT,EXPR>">="             { return token::GREATER_EQUAL; }
-<STMT,EXPR>"<"              { return token::LESS; }
-<STMT,EXPR>">"              { return token::GREATER; }
-<STMT,EXPR>"=="             { return token::EQUAL_EQUAL; }
-<STMT,EXPR>"!="             { return token::EXCLAMATION_EQUAL; }
-<STMT,EXPR>[+]              { return token::PLUS; }
-<STMT,EXPR>[-]              { return token::MINUS; }
-<STMT,EXPR>[*]              { return token::TIMES; }
-<STMT,EXPR>[/]              { return token::DIVIDE; }
+<STMT,EXPR>\|               { return token::UNION; }
+<STMT,EXPR>&                { return token::INTERSECTION; }
+<STMT,EXPR>\^               { return token::POWER; }
+<STMT,EXPR><=               { return token::LESS_EQUAL; }
+<STMT,EXPR>>=               { return token::GREATER_EQUAL; }
+<STMT,EXPR><                { return token::LESS; }
+<STMT,EXPR>>                { return token::GREATER; }
+<STMT,EXPR>==               { return token::EQUAL_EQUAL; }
+<STMT,EXPR>!=               { return token::EXCLAMATION_EQUAL; }
+<STMT,EXPR>\+               { return token::PLUS; }
+<STMT,EXPR>-                { return token::MINUS; }
+<STMT,EXPR>\*               { return token::TIMES; }
+<STMT,EXPR>\/               { return token::DIVIDE; }
 <STMT,EXPR>in               { return token::IN; }
 <STMT,EXPR>length           { return token::LENGTH; }
 
@@ -267,7 +267,7 @@ CONT \\\\
 <STMT>echo                  { return token::ECHO_DIR; }
 <STMT>error                 { return token::ERROR; }
 
-<STMT,EXPR>[A-Za-z_][A-Za-z0-9_]* {
+<STMT,EXPR>[a-z_][a-z0-9_]* {
                               yylval->build<string>(yytext);
                               return token::NAME;
                             }

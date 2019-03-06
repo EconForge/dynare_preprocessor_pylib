@@ -71,7 +71,7 @@ string eofbuff;
 #define YY_USER_ACTION location_increment(yylloc, yytext);
 %}
 
-DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2]))
+DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 
 %%
  /* Code put at the beginning of yylex() */
@@ -93,12 +93,11 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
                 }
 
  /* spaces, tabs and carriage returns are ignored */
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,DATES_STATEMENT,LINE1,LINE2,LINE3>[ \t\r\f]+  { yylloc->step(); }
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,DATES_STATEMENT,LINE1,LINE2,LINE3>[\n]+       { yylloc->step(); }
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,DATES_STATEMENT,LINE1,LINE2,LINE3>[[:space:]]+  { yylloc->step(); }
 
  /* Comments */
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,DATES_STATEMENT>["%"].*
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,DATES_STATEMENT>["/"]["/"].*
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,DATES_STATEMENT>%.*
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,DATES_STATEMENT>"//".*
 <INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,DATES_STATEMENT>"/*"   {comment_caller = YY_START; BEGIN COMMENT;}
 
 <COMMENT>"*/"        {BEGIN comment_caller;}
@@ -682,7 +681,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>emas_max_iter {return token::EMAS_MAX_ITER; }
 <DYNARE_STATEMENT>variable {return token::VARIABLE;}
 
-<DYNARE_STATEMENT>[\$][^$]*[\$] {
+<DYNARE_STATEMENT>\$[^$]*\$ {
   strtok(yytext+1, "$");
   yylval->build<string>(yytext + 1);
   return token::TEX_NAME;
@@ -771,9 +770,9 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>variances {return token::VARIANCES;}
 <DYNARE_STATEMENT>equations {return token::EQUATIONS;}
 
-<DYNARE_STATEMENT>[\.] {return Dynare::parser::token_type (yytext[0]);}
-<DYNARE_STATEMENT>[\\] {return Dynare::parser::token_type (yytext[0]);}
-<DYNARE_STATEMENT>[\'] {return Dynare::parser::token_type (yytext[0]);}
+<DYNARE_STATEMENT>\. {return Dynare::parser::token_type (yytext[0]);}
+<DYNARE_STATEMENT>\\ {return Dynare::parser::token_type (yytext[0]);}
+<DYNARE_STATEMENT>\' {return Dynare::parser::token_type (yytext[0]);}
 
 <DYNARE_BLOCK>use_dll {return token::USE_DLL;}
 <DYNARE_BLOCK>block {return token::BLOCK;}
@@ -786,27 +785,27 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>linear {return token::LINEAR;}
 
-<DYNARE_STATEMENT,DYNARE_BLOCK>[,] {return token::COMMA;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>[:] {return Dynare::parser::token_type (yytext[0]);}
+<DYNARE_STATEMENT,DYNARE_BLOCK>, {return token::COMMA;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>: {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_STATEMENT,DYNARE_BLOCK>[\(\)] {return Dynare::parser::token_type (yytext[0]);}
-<DYNARE_STATEMENT,DYNARE_BLOCK>[\[] {return Dynare::parser::token_type (yytext[0]);}
-<DYNARE_STATEMENT,DYNARE_BLOCK>[\]] {
+<DYNARE_STATEMENT,DYNARE_BLOCK>\[ {return Dynare::parser::token_type (yytext[0]);}
+<DYNARE_STATEMENT,DYNARE_BLOCK>\] {
   if (sigma_e)
     sigma_e = 0;
   return Dynare::parser::token_type (yytext[0]);
 }
-<DYNARE_STATEMENT,DYNARE_BLOCK>[+] {return token::PLUS;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>[-] {return token::MINUS;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>[*] {return token::TIMES;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>[/] {return token::DIVIDE;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>[=] {return token::EQUAL;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>[<] {return token::LESS;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>[>] {return token::GREATER;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>">=" {return token::GREATER_EQUAL;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>"<=" {return token::LESS_EQUAL;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>"==" {return token::EQUAL_EQUAL;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>"!=" {return token::EXCLAMATION_EQUAL;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>[\^] {return token::POWER;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>\+ {return token::PLUS;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>-  {return token::MINUS;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>\* {return token::TIMES;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>\/ {return token::DIVIDE;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>= {return token::EQUAL;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>< {return token::LESS;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>> {return token::GREATER;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>>= {return token::GREATER_EQUAL;}
+<DYNARE_STATEMENT,DYNARE_BLOCK><= {return token::LESS_EQUAL;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>== {return token::EQUAL_EQUAL;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>!= {return token::EXCLAMATION_EQUAL;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>\^ {return token::POWER;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>exp {return token::EXP;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>log {return token::LOG;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>log10 {return token::LOG10;}
@@ -883,12 +882,12 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
 <DYNARE_STATEMENT>use_shock_groups {return token::USE_SHOCK_GROUPS;}
 <DYNARE_STATEMENT>colormap {return token::COLORMAP;}
 
-<DYNARE_STATEMENT,DYNARE_BLOCK>[A-Za-z_][A-Za-z0-9_]* {
+<DYNARE_STATEMENT,DYNARE_BLOCK>[a-z_][a-z0-9_]* {
   yylval->build<string>(yytext);
   return token::NAME;
 }
 
-<DYNARE_STATEMENT,DYNARE_BLOCK>((([0-9]*\.[0-9]+)|([0-9]+\.))([edED][-+]?[0-9]+)?)|([0-9]+[edED][-+]?[0-9]+) {
+<DYNARE_STATEMENT,DYNARE_BLOCK>((([0-9]*\.[0-9]+)|([0-9]+\.))([ed][-+]?[0-9]+)?)|([0-9]+[ed][-+]?[0-9]+) {
   yylval->build<string>(yytext);
   return token::FLOAT_NUMBER;
 }
@@ -909,9 +908,9 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
                     }
 <DATES_STATEMENT>.  { yylval->as<string>().append(yytext); }
 
-<DYNARE_BLOCK>\|[eE] { return token::PIPE_E; }
-<DYNARE_BLOCK>\|[xX] { return token::PIPE_X; }
-<DYNARE_BLOCK>\|[pP] { return token::PIPE_P; }
+<DYNARE_BLOCK>\|e { return token::PIPE_E; }
+<DYNARE_BLOCK>\|x { return token::PIPE_X; }
+<DYNARE_BLOCK>\|p { return token::PIPE_P; }
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>\'[^\']+\' {
   yylval->build<string>(yytext + 1).pop_back();
@@ -946,7 +945,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
     element in initval (in which case Dynare recognizes the matrix name as an external
     function symbol), and may want to modify the matrix later with Matlab statements.
  */
-<INITIAL>[A-Za-z_][A-Za-z0-9_]* {
+<INITIAL>[a-z_][a-z0-9_]* {
   if (driver.symbol_exists_and_is_not_modfile_local_or_external_function(yytext))
     {
       BEGIN DYNARE_STATEMENT;
@@ -964,7 +963,7 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
  /* For joint prior statement, match [symbol, symbol, ...]
    If no match, begin native and push everything back on stack
  */
-<INITIAL>\[([[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*,{1}[[:space:]]*)*([[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*){1}\] {
+<INITIAL>\[([[:space:]]*[a-z_][a-z0-9_]*[[:space:]]*,{1}[[:space:]]*)*([[:space:]]*[a-z_][a-z0-9_]*[[:space:]]*){1}\] {
   string yytextcpy = string(yytext);
   yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), '['), yytextcpy.end());
   yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), ']'), yytextcpy.end());
@@ -1003,8 +1002,8 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
   \'[^\'\n]*\'                |
   \"[^\"\n]*\"                |
   \.{1,2}                     |
-  "*"                         |
-  "/"                         { yymore(); eofbuff = string(yytext); }
+  \*                          |
+  \/                          { yymore(); eofbuff = string(yytext); }
   \.{3,}[[:space:]]*\n        { driver.add_native_remove_charset(yytext, "\n"); }
   \n                          {
                                 if (strlen(yytext) > 1)
@@ -1015,10 +1014,10 @@ DATE -?[0-9]+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4][0-9]|5[0-2
                                 driver.add_native(eofbuff);
                                 yyterminate();
                               }
-  \.{3,}[[:space:]]*"%".*\n   |
- "%"[^\n]*                    { driver.add_native_remove_charset(yytext, "%"); }
+  \.{3,}[[:space:]]*%.*\n     |
+  %[^\n]*                     { driver.add_native_remove_charset(yytext, "%"); }
   \.{3,}[[:space:]]*"//".*\n  |
- "//"[^\n]*                   { driver.add_native_remove_charset(yytext, "//"); }
+  "//"[^\n]*                  { driver.add_native_remove_charset(yytext, "//"); }
   \.{3,}[[:space:]]*"/*"      {
                                 driver.add_native_remove_charset(yytext, "/*");
                                 BEGIN NATIVE_COMMENT;
