@@ -5634,6 +5634,9 @@ BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
   for (const auto & it : terms)
     {
       auto bopn = dynamic_cast<BinaryOpNode *>(it.first);
+      auto pen = dynamic_cast<PacExpectationNode *>(it.first);
+      if (pen)
+        continue;
       if (bopn != nullptr)
         {
           auto vn1 = dynamic_cast<VariableNode *>(bopn->arg1);
@@ -5680,6 +5683,12 @@ BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
                     }
                 }
             }
+        }
+      else
+        {
+          auto m = it.first->matchVariableTimesConstantTimesParam();
+          get<3>(m) *= it.second;
+          additive_vars_params_and_constants.push_back(m);
         }
     }
 }
