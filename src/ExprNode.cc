@@ -5567,7 +5567,7 @@ BinaryOpNode::getPacEC(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id
       for (const auto & it : endogs)
         {
           int id = it.first;
-          bool istarget = false;
+          bool istarget = true;
           while (datatree.symbol_table.isAuxiliaryVariable(id))
             try
               {
@@ -5578,7 +5578,7 @@ BinaryOpNode::getPacEC(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id
                 break;
               }
           if (id == lhs_symb_id || id == lhs_orig_symb_id)
-            istarget = true;
+            istarget = false;
           symb_ids.push_back({it.first, istarget});
         }
       ec_params_and_vars = make_pair(optim_param_symb_id, symb_ids);
