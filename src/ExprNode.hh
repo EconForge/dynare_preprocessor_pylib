@@ -1048,9 +1048,9 @@ public:
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
-  pair<int, vector<pair<int,bool>>> getPacEC(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id) const;
+  pair<int, vector<tuple<int, bool, int>>> getPacEC(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id) const;
   void getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
-                  pair<int, vector<pair<int,bool>>> &ec_params_and_vars,
+                  pair<int, vector<tuple<int, bool, int>>> &ec_params_and_vars,
                   set<pair<int, pair<int, int>>> &ar_params_and_vars,
                   vector<tuple<int, int, int, double>> &additive_vars_params_and_constants) const;
 

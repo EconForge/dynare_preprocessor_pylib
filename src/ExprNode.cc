@@ -5536,10 +5536,10 @@ BinaryOpNode::findTargetVariable(int lhs_symb_id) const
   return retval;
 }
 
-pair<int, vector<pair<int,bool>>>
+pair<int, vector<tuple<int, bool, int>>>
 BinaryOpNode::getPacEC(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id) const
 {
-  pair<int, vector<pair<int,bool>>> ec_params_and_vars = {-1, vector<pair<int, bool>>()};
+  pair<int, vector<tuple<int, bool, int>>> ec_params_and_vars = {-1, vector<tuple<int, bool, int>>()};
   int optim_param_symb_id = -1;
   expr_t optim_part = nullptr;
   set<pair<int, int>> endogs;
@@ -5563,10 +5563,27 @@ BinaryOpNode::getPacEC(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id
       endogs.clear();
       optim_part->collectDynamicVariables(SymbolType::endogenous, endogs);
       optim_part->collectDynamicVariables(SymbolType::exogenous, endogs);
-      vector<pair<int,bool>> symb_ids;
-      for (const auto & it : endogs)
+      if (endogs.size() != 2)
         {
-          int id = it.first;
+          cerr << "Error getting EC part of PAC equation" << endl;
+          exit(EXIT_FAILURE);
+        }
+      vector<pair<expr_t, int>> terms;
+      vector<tuple<int, bool, int>> ordered_symb_ids;
+      optim_part->decomposeAdditiveTerms(terms, 1);
+      for (const auto & it : terms)
+        {
+          int scale = it.second;
+          auto vn = dynamic_cast<VariableNode *>(it.first);
+          if (!vn
+              || !(datatree.symbol_table.getType(vn->symb_id) == SymbolType::endogenous
+                   || datatree.symbol_table.getType(vn->symb_id) == SymbolType::exogenous))
+            {
+              cerr << "Problem with error component portion of PAC equation" << endl;
+              exit(EXIT_FAILURE);
+            }
+          int id = vn->symb_id;
+          int orig_id = id;
           bool istarget = true;
           while (datatree.symbol_table.isAuxiliaryVariable(id))
             try
@@ -5579,16 +5596,16 @@ BinaryOpNode::getPacEC(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id
               }
           if (id == lhs_symb_id || id == lhs_orig_symb_id)
             istarget = false;
-          symb_ids.push_back({it.first, istarget});
+          ordered_symb_ids.push_back({orig_id, istarget, scale});
         }
-      ec_params_and_vars = make_pair(optim_param_symb_id, symb_ids);
+      ec_params_and_vars = make_pair(optim_param_symb_id, ordered_symb_ids);
     }
   return ec_params_and_vars;
 }
 
 void
 BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
-                         pair<int, vector<pair<int,bool>>> &ec_params_and_vars,
+                         pair<int, vector<tuple<int, bool, int>>> &ec_params_and_vars,
                          set<pair<int, pair<int, int>>> &ar_params_and_vars,
                          vector<tuple<int, int, int, double>> &additive_vars_params_and_constants) const
 {

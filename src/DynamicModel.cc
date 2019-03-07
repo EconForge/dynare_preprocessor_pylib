@@ -3662,7 +3662,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       pair<int, int> lhs_pac_var;
       int optim_share_index;
       set<pair<int, pair<int, int>>> ar_params_and_vars;
-      pair<int, vector<pair<int,bool>>> ec_params_and_vars;
+      pair<int, vector<tuple<int, bool, int>>> ec_params_and_vars;
       vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants, additive_vars_params_and_constants;
       tie(lhs_pac_var, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants) = pit.second;
       string substruct = pit.first.first + ".equations." + pit.first.second + ".";
@@ -3678,15 +3678,19 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
              << symbol_table.getTypeSpecificID(ec_params_and_vars.first) + 1 << ";" << endl
              << modstruct << "pac." << substruct << "ec.vars = [";
       for (auto it : ec_params_and_vars.second)
-        output << symbol_table.getTypeSpecificID(it.first) + 1 << " ";
+        output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
       output << "];" << endl
              << modstruct << "pac." << substruct << "ec.istarget = [";
       for (auto it : ec_params_and_vars.second)
-        output << (it.second ? "true " : "false ");
+        output << (get<1>(it) ? "true " : "false ");
+      output << "];" << endl
+             << modstruct << "pac." << substruct << "ec.scale = [";
+      for (auto it : ec_params_and_vars.second)
+        output << get<2>(it) << " ";
       output << "];" << endl
              << modstruct << "pac." << substruct << "ec.isendo = [";
       for (auto it : ec_params_and_vars.second)
-        switch (symbol_table.getType(it.first))
+        switch (symbol_table.getType(get<0>(it)))
           {
           case SymbolType::endogenous:
             output << "true ";
@@ -4434,7 +4438,7 @@ DynamicModel::walkPacParameters(const string &name, map<pair<string, string>, pa
   for (auto & equation : equations)
     {
       pair<int, int> lhs (-1, -1);
-      pair<int, vector<pair<int,bool>>> ec_params_and_vars;
+      pair<int, vector<tuple<int, bool, int>>> ec_params_and_vars;
       set<pair<int, pair<int, int>>> ar_params_and_vars;
       vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants, additive_vars_params_and_constants;
 
