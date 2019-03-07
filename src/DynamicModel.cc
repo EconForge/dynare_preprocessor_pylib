@@ -3682,10 +3682,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       output << "];" << endl
              << modstruct << "pac." << substruct << "ec.istarget = [";
       for (auto it : ec_params_and_vars.second)
-        if (it.second)
-          output << "true ";
-        else
-          output << "false ";
+        output << (it.second ? "true " : "false ");
       output << "];" << endl
              << modstruct << "pac." << substruct << "ec.isendo = [";
       for (auto it : ec_params_and_vars.second)
