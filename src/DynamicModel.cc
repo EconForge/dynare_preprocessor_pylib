@@ -3663,8 +3663,8 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       int optim_share_index;
       set<pair<int, pair<int, int>>> ar_params_and_vars;
       pair<int, vector<tuple<int, bool, int>>> ec_params_and_vars;
-      vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants, additive_vars_params_and_constants;
-      tie(lhs_pac_var, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants) = pit.second;
+      vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants;
+      tie(lhs_pac_var, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants) = pit.second;
       string substruct = pit.first.first + ".equations." + pit.first.second + ".";
 
       output << modstruct << "pac." << substruct << "lhs_var = "
@@ -3786,6 +3786,43 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           output << "];" << endl
                  << modstruct << "pac." << substruct << "additive.scaling_factor = [";
           for (auto & it : additive_vars_params_and_constants)
+            output << get<3>(it) << " ";
+          output << "];" << endl;
+        }
+      if (!optim_additive_vars_params_and_constants.empty())
+        {
+          output << modstruct << "pac." << substruct << "optim_eq_additive.params = [";
+          for (auto & it : optim_additive_vars_params_and_constants)
+            if (get<2>(it) >= 0)
+              output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
+            else
+              output << "NaN ";
+          output << "];" << endl
+                 << modstruct << "pac." << substruct << "optim_eq_additive.vars = [";
+          for (auto & it : optim_additive_vars_params_and_constants)
+            output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
+          output << "];" << endl
+                 << modstruct << "pac." << substruct << "optim_eq_additive.isendo = [";
+          for (auto & it : optim_additive_vars_params_and_constants)
+            switch (symbol_table.getType(get<0>(it)))
+              {
+              case SymbolType::endogenous:
+                output << "true ";
+                break;
+              case SymbolType::exogenous:
+                output << "false ";
+                break;
+              default:
+                cerr << "expecting endogenous or exogenous" << endl;
+                exit(EXIT_FAILURE);
+              }
+          output << "];" << endl
+                 << modstruct << "pac." << substruct << "optim_eq_additive.lags = [";
+          for (auto & it : optim_additive_vars_params_and_constants)
+            output << get<1>(it) << " ";
+          output << "];" << endl
+                 << modstruct << "pac." << substruct << "optim_eq_additive.scaling_factor = [";
+          for (auto & it : optim_additive_vars_params_and_constants)
             output << get<3>(it) << " ";
           output << "];" << endl;
         }
@@ -4440,7 +4477,7 @@ DynamicModel::walkPacParameters(const string &name, map<pair<string, string>, pa
       pair<int, int> lhs (-1, -1);
       pair<int, vector<tuple<int, bool, int>>> ec_params_and_vars;
       set<pair<int, pair<int, int>>> ar_params_and_vars;
-      vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants, additive_vars_params_and_constants;
+      vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants, optim_additive_vars_params_and_constants, additive_vars_params_and_constants;
 
       if (equation->containsPacExpectation())
         {
@@ -4492,7 +4529,7 @@ DynamicModel::walkPacParameters(const string &name, map<pair<string, string>, pa
                 {
                   non_optim_vars_params_and_constants = non_optim_part->matchLinearCombinationOfVariables();
                   if (additive_part != nullptr)
-                    additive_vars_params_and_constants = additive_part->matchLinearCombinationOfVariables();
+                    optim_additive_vars_params_and_constants = additive_part->matchLinearCombinationOfVariables();
                 }
               catch (ExprNode::MatchFailureException &e)
                 {
@@ -4529,7 +4566,8 @@ DynamicModel::walkPacParameters(const string &name, map<pair<string, string>, pa
           pac_equation_info[{name, eq}] = {lhs, optim_share_index,
                                            ar_params_and_vars, ec_params_and_vars,
                                            non_optim_vars_params_and_constants,
-                                           additive_vars_params_and_constants};
+                                           additive_vars_params_and_constants,
+                                           optim_additive_vars_params_and_constants};
           eqtag_and_lag[{name, eqtag}] = {eq, 0};
         }
     }

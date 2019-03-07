@@ -487,7 +487,7 @@ public:
   //! (pac_model_name, standardized_eqtag) ->
   //!     (lhs, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants)
   map<pair<string, string>,
-      tuple<pair<int, int>, int, set<pair<int, pair<int, int>>>, pair<int, vector<tuple<int, bool, int>>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>>> pac_equation_info;
+      tuple<pair<int, int>, int, set<pair<int, pair<int, int>>>, pair<int, vector<tuple<int, bool, int>>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>>> pac_equation_info;
 
   //! Table to undiff LHS variables for pac vector z
   vector<int> getUndiffLHSForPac(const string &aux_model_name,
