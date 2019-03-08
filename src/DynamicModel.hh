@@ -485,7 +485,7 @@ public:
 
   //! Store info about pac models specific to the equation they appear in
   //! (pac_model_name, standardized_eqtag) ->
-  //!     (lhs, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants)
+  //!     (lhs, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants)
   map<pair<string, string>,
       tuple<pair<int, int>, int, set<pair<int, pair<int, int>>>, pair<int, vector<tuple<int, bool, int>>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>>> pac_equation_info;
 
