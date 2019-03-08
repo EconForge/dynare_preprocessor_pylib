@@ -271,10 +271,10 @@ PacModelStatement::PacModelStatement(string name_arg,
   original_growth{growth_arg},
   steady_state_growth_rate_number{steady_state_growth_rate_number_arg},
   steady_state_growth_rate_symb_id{steady_state_growth_rate_symb_id_arg},
-  symbol_table{symbol_table_arg}
+  symbol_table{symbol_table_arg},
+  growth_symb_id{-1},
+  growth_lag{0}
 {
-  growth_symb_id = -1;
-  growth_lag = 0;
 }
 
 void
