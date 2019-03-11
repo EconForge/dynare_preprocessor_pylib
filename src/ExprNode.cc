@@ -5596,7 +5596,7 @@ BinaryOpNode::getPacEC(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id
               }
           if (id == lhs_symb_id || id == lhs_orig_symb_id)
             istarget = false;
-          ordered_symb_ids.push_back({orig_id, istarget, scale});
+          ordered_symb_ids.emplace_back(orig_id, istarget, scale);
         }
       ec_params_and_vars = make_pair(optim_param_symb_id, ordered_symb_ids);
     }
