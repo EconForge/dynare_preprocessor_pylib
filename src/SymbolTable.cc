@@ -241,6 +241,8 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
             output << "};" << endl;
             if (it->first == "status")
               output << "M_ = set_observed_exogenous_variables(M_);" << endl;
+            if (it->first == "used")
+              output << "M_ = set_exogenous_variables_for_simulation(M_);" << endl;
           }
     }
 
