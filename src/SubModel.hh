@@ -118,7 +118,7 @@ private:
   set<string> names;
   map<string, pair<SymbolList, int>> symbol_list_and_order;
   map<string, vector<string>> eqtags;
-  map<string, vector<int>> eqnums, max_lags, lhs, orig_diff_var;
+  map<string, vector<int>> eqnums, max_lags, lhs, lhs_orig_symb_ids, orig_diff_var;
   map<string, vector<set<pair<int, int>>>> rhs;
   map<string, vector<bool>> diff;
   map<string, vector<expr_t>> lhs_expr_t;
@@ -141,6 +141,7 @@ public:
   vector<int> getMaxLags(const string &name_arg) const;
   int getMaxLag(const string &name_arg) const;
   vector<int> getLhs(const string &name_arg) const;
+  vector<int> getLhsOrigIds(const string &name_arg) const;
   map<string, pair<SymbolList, int>> getSymbolListAndOrder() const;
   vector<set<pair<int, int>>> getRhs(const string &name_arg) const;
   vector<expr_t> getLhsExprT(const string &name_arg) const;

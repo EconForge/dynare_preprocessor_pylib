@@ -4043,9 +4043,7 @@ DynamicModel::fillVarModelTable() const
   var_model_table.setLhsExprT(lhs_expr_tr);
 
   // Fill AR Matrix
-  map<string, map<tuple<int, int, int>, expr_t>> ARr;
-  fillAutoregressiveMatrix(ARr, false);
-  var_model_table.setAR(ARr);
+  var_model_table.setAR(fillAutoregressiveMatrixForVAR());
 }
 
 void
@@ -4115,17 +4113,32 @@ DynamicModel::fillVarModelTableFromOrigModel(StaticModel &static_model) const
   var_model_table.setOrigDiffVar(orig_diff_var);
 }
 
-void
-DynamicModel::fillAutoregressiveMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ARr, bool is_trend_component_model) const
+map<string, map<tuple<int, int, int>, expr_t>>
+DynamicModel::fillAutoregressiveMatrixForVAR() const
 {
-  auto eqnums = is_trend_component_model ?
-    trend_component_model_table.getNonTargetEqNums() : var_model_table.getEqNums();
-  for (const auto & it : eqnums)
+  map<string, map<tuple<int, int, int>, expr_t>> ARr;
+  for (const auto & it : var_model_table.getEqNums())
     {
       int i = 0;
       map<tuple<int, int, int>, expr_t> AR;
-      vector<int> lhs = is_trend_component_model ?
-        trend_component_model_table.getNonTargetLhs(it.first) : var_model_table.getLhs(it.first);
+      for (auto eqn : it.second)
+        {
+          auto *bopn = dynamic_cast<BinaryOpNode *>(equations[eqn]->arg2);
+          bopn->fillAutoregressiveRowForVAR(i++, var_model_table.getLhsOrigIds(it.first), AR);
+        }
+      ARr[it.first] = AR;
+    }
+  return ARr;
+}
+
+void
+DynamicModel::fillAutoregressiveMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ARr) const
+{
+  for (const auto & it : trend_component_model_table.getNonTargetEqNums())
+    {
+      int i = 0;
+      map<tuple<int, int, int>, expr_t> AR;
+      vector<int> lhs = trend_component_model_table.getNonTargetLhs(it.first);
       for (auto eqn : it.second)
         equations[eqn]->arg2->fillAutoregressiveRow(i++, lhs, AR);
       ARr[it.first] = AR;
@@ -4335,7 +4348,7 @@ void
 DynamicModel::fillTrendComponentmodelTableAREC(ExprNode::subst_table_t &diff_subst_table) const
 {
   map<string, map<tuple<int, int, int>, expr_t>> ARr, A0r, A0starr;
-  fillAutoregressiveMatrix(ARr, true);
+  fillAutoregressiveMatrix(ARr);
   trend_component_model_table.setAR(ARr);
   fillErrorComponentMatrix(A0r, A0starr, diff_subst_table);
   trend_component_model_table.setA0(A0r, A0starr);

@@ -316,8 +316,11 @@ public:
   //! Set the equations that have non-zero second derivatives
   void setNonZeroHessianEquations(map<int, string> &eqs);
 
-  //! Fill Autoregressive Matrix for var_model/trend_component_model
-  void fillAutoregressiveMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ARr, bool is_trend_component_model) const;
+  //! Fill Autoregressive Matrix for trend_component_model
+  void fillAutoregressiveMatrix(map<string, map<tuple<int, int, int>, expr_t>> &ARr) const;
+
+  //! Fill Autoregressive Matrix for var_model
+  map<string, map<tuple<int, int, int>, expr_t>> fillAutoregressiveMatrixForVAR() const;
 
   //! Fill Error Component Matrix for trend_component_model
   void fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, expr_t>> &A0r, map<string, map<tuple<int, int, int>, expr_t>> &A0starr, ExprNode::subst_table_t &diff_subst_table) const;

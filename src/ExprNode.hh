@@ -1041,6 +1041,7 @@ public:
   void fillAutoregressiveRowHelper(expr_t arg1, expr_t arg2,
                                    int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const override;
+  void fillAutoregressiveRowForVAR(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const;
   void fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
                                     int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs,
                                     map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const;

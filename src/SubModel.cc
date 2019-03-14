@@ -520,7 +520,7 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
           i++;
         }
 
-      vector<int> lhs = getLhs(name);
+      vector<int> lhs = getLhsOrigIds(name);
       ar_output << "if strcmp(model_name, '" << name << "')" << endl
                 << "    ar = zeros(" << lhs.size() << ", " << lhs.size() << ", " << getMaxLag(name) << ");" << endl;
       for (const auto & it : AR.at(name))
@@ -600,6 +600,26 @@ void
 VarModelTable::setLhs(map<string, vector<int>> lhs_arg)
 {
   lhs = move(lhs_arg);
+  for (auto it : lhs)
+    {
+      vector<int> lhsvec;
+      for (auto ids : it.second)
+        {
+          int lhs_last_orig_symb_id = ids;
+          int lhs_orig_symb_id = ids;
+          if (symbol_table.isAuxiliaryVariable(lhs_orig_symb_id))
+            try
+            {
+              lhs_last_orig_symb_id = lhs_orig_symb_id;
+              lhs_orig_symb_id = symbol_table.getOrigSymbIdForAuxVar(lhs_orig_symb_id);
+            }
+            catch (...)
+              {
+              }
+          lhsvec.emplace_back(lhs_last_orig_symb_id);
+        }
+      lhs_orig_symb_ids[it.first] = lhsvec;
+    }
 }
 
 void
@@ -679,6 +699,13 @@ VarModelTable::getLhs(const string &name_arg) const
 {
   checkModelName(name_arg);
   return lhs.find(name_arg)->second;
+}
+
+vector<int>
+VarModelTable::getLhsOrigIds(const string &name_arg) const
+{
+  checkModelName(name_arg);
+  return lhs_orig_symb_ids.find(name_arg)->second;
 }
 
 vector<set<pair<int, int>>>

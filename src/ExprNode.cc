@@ -5919,6 +5919,74 @@ BinaryOpNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<i
 }
 
 void
+BinaryOpNode::fillAutoregressiveRowForVAR(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const
+{
+  vector<pair<expr_t, int>> terms;
+  decomposeAdditiveTerms(terms, 1);
+  for (const auto & it : terms)
+    {
+      auto bopn = dynamic_cast<BinaryOpNode *>(it.first);
+      if (bopn != nullptr)
+        {
+          auto vn1 = dynamic_cast<VariableNode *>(bopn->arg1);
+          auto vn2 = dynamic_cast<VariableNode *>(bopn->arg2);
+          if (vn1 && vn2)
+            {
+              int vid, lag;
+              VariableNode *param;
+              vid = -1;
+              if (datatree.symbol_table.getType(vn1->symb_id) == SymbolType::parameter
+                  && (datatree.symbol_table.getType(vn2->symb_id) == SymbolType::endogenous
+                      || datatree.symbol_table.getType(vn2->symb_id) == SymbolType::exogenous))
+                {
+                  param = vn1;
+                  vid = vn2->symb_id;
+                  lag = vn2->lag;
+                }
+              else if (datatree.symbol_table.getType(vn2->symb_id) == SymbolType::parameter
+                       && (datatree.symbol_table.getType(vn1->symb_id) == SymbolType::endogenous
+                           || datatree.symbol_table.getType(vn1->symb_id) == SymbolType::exogenous))
+                {
+                  param = vn2;
+                  vid = vn1->symb_id;
+                  lag = vn1->lag;
+                }
+              if (vid >= 0)
+                {
+                  int vidineq = vid;
+                  while (datatree.symbol_table.isAuxiliaryVariable(vid))
+                    try
+                      {
+                        vid = datatree.symbol_table.getOrigSymbIdForAuxVar(vid);
+                      }
+                    catch (...)
+                      {
+                        break;
+                      }
+
+                  if (vidineq != vid)
+                    {
+                      vid = datatree.symbol_table.getOrigSymbIdForDiffAuxVar(vidineq);
+                      lag = -datatree.symbol_table.getOrigLeadLagForDiffAuxVar(vidineq);
+                    }
+
+                  if (find(lhs.begin(), lhs.end(), vid) == lhs.end())
+                    continue;
+
+                  if (AR.find({eqn, lag, vid}) != AR.end())
+                    {
+                      cerr << "BinaryOpNode::fillAutoregressiveRow: Error filling AR matrix: "
+                           << "lag/symb_id encountered more than once in equtaion" << endl;
+                      exit(EXIT_FAILURE);
+                    }
+                  AR[{eqn, -lag, vid}] = param;
+                }
+            }
+        }
+    }
+}
+
+void
 BinaryOpNode::fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
                                            int eqn,
                                            const vector<int> &nontarget_lhs,
