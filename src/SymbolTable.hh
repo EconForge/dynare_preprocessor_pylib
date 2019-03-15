@@ -408,6 +408,8 @@ public:
   bool isAuxiliaryVariable(int symb_id) const;
   //! Is a given symbol an auxiliary variable but not a Lagrange multiplier
   bool isAuxiliaryVariableButNotMultiplier(int symb_id) const;
+  //! Is a given symbol a diff, diff lead, or diff lag auxiliary variable
+  bool isDiffAuxiliaryVariable(int symb_id) const;
   //! Get list of endogenous variables without aux vars
   set <int> getOrigEndogenous() const;
 };

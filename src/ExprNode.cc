@@ -5872,21 +5872,10 @@ BinaryOpNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<i
                 }
               if (vid >= 0)
                 {
-                  int vidineq = vid;
-                  while (datatree.symbol_table.isAuxiliaryVariable(vid))
-                    try
-                      {
-                        vid = datatree.symbol_table.getOrigSymbIdForAuxVar(vid);
-                      }
-                    catch (...)
-                      {
-                        break;
-                      }
-
-                  if (vidineq != vid)
+                  if (datatree.symbol_table.isDiffAuxiliaryVariable(vid))
                     {
-                      vid = datatree.symbol_table.getOrigSymbIdForDiffAuxVar(vidineq);
-                      lag = -datatree.symbol_table.getOrigLeadLagForDiffAuxVar(vidineq);
+                      lag = -datatree.symbol_table.getOrigLeadLagForDiffAuxVar(vid);
+                      vid = datatree.symbol_table.getOrigSymbIdForDiffAuxVar(vid);
                     }
 
                   if (find(lhs.begin(), lhs.end(), vid) == lhs.end())
