@@ -9179,7 +9179,9 @@ VarExpectationNode::writeJsonOutput(ostream &output,
                                     const deriv_node_temp_terms_t &tef_terms,
                                     const bool isdynamic) const
 {
-  output << "var_expectation(" << model_name << ')';
+  output << "var_expectation("
+         << "model_name = " << model_name
+         << ")";
 }
 
 PacExpectationNode::PacExpectationNode(DataTree &datatree_arg,
