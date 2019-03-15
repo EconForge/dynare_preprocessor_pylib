@@ -5661,7 +5661,7 @@ BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
                   vid = vn1->symb_id;
                   lag = vn1->lag;
                 }
-              if (pid > 0 && vid > 0)
+              if (pid >= 0 && vid >= 0)
                 {
                   int vidorig = vid;
                   while (datatree.symbol_table.isAuxiliaryVariable(vid))
