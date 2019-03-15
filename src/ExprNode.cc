@@ -9588,9 +9588,7 @@ PacExpectationNode::writeJsonOutput(ostream &output,
                                     const deriv_node_temp_terms_t &tef_terms,
                                     const bool isdynamic) const
 {
-  output << "pac_expectation("
-         << "model_name = " << model_name
-         << ")";
+  output << "pac_expectation(" << model_name << ')';
 }
 
 bool
