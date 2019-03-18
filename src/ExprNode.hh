@@ -181,8 +181,8 @@ class ExprNode
       //! Used for caching of first order derivatives (when non-null)
       map<int, expr_t> derivatives;
 
-      const static int min_cost_matlab{40*90};
-      const static int min_cost_c{40*4};
+      constexpr static int min_cost_matlab{40*90};
+      constexpr static int min_cost_c{40*4};
       inline static int min_cost(bool is_matlab) { return(is_matlab ? min_cost_matlab : min_cost_c); };
 
       //! Cost of computing current node

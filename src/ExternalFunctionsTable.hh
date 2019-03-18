@@ -53,11 +53,11 @@ public:
   };
   using external_function_table_type = map<int, external_function_options>;
   //! Symbol ID used when no external function exists that calculates the derivative
-  const static int IDNotSet = -1;
+  constexpr static int IDNotSet = -1;
   //! Symbol ID used when the derivative is obtained from the top-level function
-  const static int IDSetButNoNameProvided = -2;
+  constexpr static int IDSetButNoNameProvided = -2;
   //! Default number of arguments when nargs is not specified
-  const static int defaultNargs = 1;
+  constexpr static int defaultNargs = 1;
 private:
   //! Map containing options provided to external_functions()
   external_function_table_type externalFunctionTable;

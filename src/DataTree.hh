@@ -106,7 +106,7 @@ protected:
   static string packageDir(const string &package);
 
 private:
-  const static int constants_precision{16};
+  constexpr static int constants_precision{16};
 
   //! The list of nodes
   vector<unique_ptr<ExprNode>> node_list;
