@@ -5844,53 +5844,39 @@ BinaryOpNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<i
   decomposeAdditiveTerms(terms, 1);
   for (const auto & it : terms)
     {
-      auto bopn = dynamic_cast<BinaryOpNode *>(it.first);
-      if (bopn != nullptr)
+      int vid, lag, param_id;
+      double constant;
+      try
         {
-          auto vn1 = dynamic_cast<VariableNode *>(bopn->arg1);
-          auto vn2 = dynamic_cast<VariableNode *>(bopn->arg2);
-          if (vn1 && vn2)
-            {
-              int vid, lag;
-              VariableNode *param;
-              vid = -1;
-              if (datatree.symbol_table.getType(vn1->symb_id) == SymbolType::parameter
-                  && (datatree.symbol_table.getType(vn2->symb_id) == SymbolType::endogenous
-                      || datatree.symbol_table.getType(vn2->symb_id) == SymbolType::exogenous))
-                {
-                  param = vn1;
-                  vid = vn2->symb_id;
-                  lag = vn2->lag;
-                }
-              else if (datatree.symbol_table.getType(vn2->symb_id) == SymbolType::parameter
-                       && (datatree.symbol_table.getType(vn1->symb_id) == SymbolType::endogenous
-                           || datatree.symbol_table.getType(vn1->symb_id) == SymbolType::exogenous))
-                {
-                  param = vn2;
-                  vid = vn1->symb_id;
-                  lag = vn1->lag;
-                }
-              if (vid >= 0)
-                {
-                  if (datatree.symbol_table.isDiffAuxiliaryVariable(vid))
-                    {
-                      lag = -datatree.symbol_table.getOrigLeadLagForDiffAuxVar(vid);
-                      vid = datatree.symbol_table.getOrigSymbIdForDiffAuxVar(vid);
-                    }
-
-                  if (find(lhs.begin(), lhs.end(), vid) == lhs.end())
-                    continue;
-
-                  if (AR.find({eqn, lag, vid}) != AR.end())
-                    {
-                      cerr << "BinaryOpNode::fillAutoregressiveRow: Error filling AR matrix: "
-                           << "lag/symb_id encountered more than once in equtaion" << endl;
-                      exit(EXIT_FAILURE);
-                    }
-                  AR[{eqn, -lag, vid}] = param;
-                }
-            }
+          tie(vid, lag, param_id, constant) = it.first->matchVariableTimesConstantTimesParam();
+          constant *= it.second;
         }
+      catch (MatchFailureException &e)
+        {
+          continue;
+        }
+
+      if (datatree.symbol_table.isDiffAuxiliaryVariable(vid))
+        {
+          lag = -datatree.symbol_table.getOrigLeadLagForDiffAuxVar(vid);
+          vid = datatree.symbol_table.getOrigSymbIdForDiffAuxVar(vid);
+        }
+
+      if (find(lhs.begin(), lhs.end(), vid) == lhs.end())
+        continue;
+
+      if (AR.find({eqn, -lag, vid}) != AR.end())
+        {
+          cerr << "BinaryOpNode::fillAutoregressiveRow: Error filling AR matrix: "
+               << "lag/symb_id encountered more than once in equation" << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (constant != 1 || param_id == -1)
+        {
+          cerr << "BinaryOpNode::fillAutoregressiveRow: autoregressive terms must be of the form 'parameter*lagged_variable" << endl;
+          exit(EXIT_FAILURE);
+        }
+      AR[{eqn, -lag, vid}] = datatree.AddVariable(param_id);
     }
 }
 
