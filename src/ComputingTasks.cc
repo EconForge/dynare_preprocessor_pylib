@@ -657,12 +657,12 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 
   // Fill in mod_file_struct.partial_information
   it = options_list.num_options.find("partial_information");
-  if (it != options_list.num_options.end() && it->second == "1")
+  if (it != options_list.num_options.end() && it->second == "true")
     mod_file_struct.partial_information = true;
 
   // Option k_order_solver (implicit when order >= 3)
   it = options_list.num_options.find("k_order_solver");
-  if ((it != options_list.num_options.end() && it->second == "1")
+  if ((it != options_list.num_options.end() && it->second == "true")
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
 
@@ -685,9 +685,9 @@ StochSimulStatement::writeOutput(ostream &output, const string &basename, bool m
   // Ensure that order 3 implies k_order (#844)
   auto it = options_list.num_options.find("order");
   auto it1 = options_list.num_options.find("k_order_solver");
-  if ((it1 != options_list.num_options.end() && it1->second == "1")
+  if ((it1 != options_list.num_options.end() && it1->second == "true")
       || (it != options_list.num_options.end() && stoi(it->second) >= 3))
-    output << "options_.k_order_solver = 1;" << endl;
+    output << "options_.k_order_solver = true;" << endl;
 
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
@@ -769,13 +769,13 @@ DetCondForecast::writeOutput(ostream &output, const string &basename, bool minim
       output << "end;" << endl;
       output << "if first_order_solution_to_compute" << endl;
       output << " fprintf('%s','Computing the first order solution ...');" << endl;
-      output << " options_.nograph = 1;" << endl;
+      output << " options_.nograph = true;" << endl;
       output << " options_.order = 1;" << endl;
-      output << " options_.noprint = 1;" << endl;
-      output << " options_.nocorr = 1;" << endl;
-      output << " options_.nomoments = 1;" << endl;
-      output << " options_.nodecomposition = 1;" << endl;
-      output << " options_.nofunctions = 1;" << endl;
+      output << " options_.noprint = true;" << endl;
+      output << " options_.nocorr = true;" << endl;
+      output << " options_.nomoments = true;" << endl;
+      output << " options_.nodecomposition = true;" << endl;
+      output << " options_.nofunctions = true;" << endl;
       output << " options_.irf = 0;" << endl;
       output << " tmp_periods = options_.periods;" << endl;
       output << " options_.periods = 0;" << endl;
@@ -822,12 +822,12 @@ RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
 
   // Fill in mod_file_struct.partial_information
   it = options_list.num_options.find("partial_information");
-  if (it != options_list.num_options.end() && it->second == "1")
+  if (it != options_list.num_options.end() && it->second == "true")
     mod_file_struct.partial_information = true;
 
   // Option k_order_solver (implicit when order >= 3)
   it = options_list.num_options.find("k_order_solver");
-  if ((it != options_list.num_options.end() && it->second == "1")
+  if ((it != options_list.num_options.end() && it->second == "true")
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
 }
@@ -842,11 +842,11 @@ RamseyModelStatement::writeOutput(ostream &output, const string &basename, bool 
   // Ensure that order 3 implies k_order (#844)
   auto it = options_list.num_options.find("order");
   auto it1 = options_list.num_options.find("k_order_solver");
-  if ((it1 != options_list.num_options.end() && it1->second == "1")
+  if ((it1 != options_list.num_options.end() && it1->second == "true")
       || (it != options_list.num_options.end() && stoi(it->second) >= 3))
-    output << "options_.k_order_solver = 1;" << endl;
+    output << "options_.k_order_solver = true;" << endl;
 
-  output << "options_.ramsey_policy = 1;" << endl;
+  output << "options_.ramsey_policy = true;" << endl;
   options_list.writeOutput(output);
 }
 
@@ -980,12 +980,12 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 
   // Fill in mod_file_struct.partial_information
   it = options_list.num_options.find("partial_information");
-  if (it != options_list.num_options.end() && it->second == "1")
+  if (it != options_list.num_options.end() && it->second == "true")
     mod_file_struct.partial_information = true;
 
   // Option k_order_solver (implicit when order >= 3)
   it = options_list.num_options.find("k_order_solver");
-  if ((it != options_list.num_options.end() && it->second == "1")
+  if ((it != options_list.num_options.end() && it->second == "true")
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
 }
@@ -1014,9 +1014,9 @@ RamseyPolicyStatement::writeOutput(ostream &output, const string &basename, bool
   // Ensure that order 3 implies k_order (#844)
   auto it = options_list.num_options.find("order");
   auto it1 = options_list.num_options.find("k_order_solver");
-  if ((it1 != options_list.num_options.end() && it1->second == "1")
+  if ((it1 != options_list.num_options.end() && it1->second == "true")
       || (it != options_list.num_options.end() && stoi(it->second) >= 3))
-    output << "options_.k_order_solver = 1;" << endl;
+    output << "options_.k_order_solver = true;" << endl;
 
   options_list.writeOutput(output);
   output << "var_list_ = {";
@@ -1087,12 +1087,12 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
 
   // Fill in mod_file_struct.partial_information
   it = options_list.num_options.find("partial_information");
-  if (it != options_list.num_options.end() && it->second == "1")
+  if (it != options_list.num_options.end() && it->second == "true")
     mod_file_struct.partial_information = true;
 
   // Option k_order_solver (implicit when order >= 3)
   it = options_list.num_options.find("k_order_solver");
-  if ((it != options_list.num_options.end() && it->second == "1")
+  if ((it != options_list.num_options.end() && it->second == "true")
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
 }
@@ -1103,9 +1103,9 @@ DiscretionaryPolicyStatement::writeOutput(ostream &output, const string &basenam
   // Ensure that order 3 implies k_order (#844)
   auto it = options_list.num_options.find("order");
   auto it1 = options_list.num_options.find("k_order_solver");
-  if ((it1 != options_list.num_options.end() && it1->second == "1")
+  if ((it1 != options_list.num_options.end() && it1->second == "true")
       || (it != options_list.num_options.end() && stoi(it->second) >= 3))
-    output << "options_.k_order_solver = 1;" << endl;
+    output << "options_.k_order_solver = true;" << endl;
 
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
@@ -1158,7 +1158,7 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 
   // Fill in mod_file_struct.partial_information
   it = options_list.num_options.find("partial_information");
-  if (it != options_list.num_options.end() && it->second == "1")
+  if (it != options_list.num_options.end() && it->second == "true")
     mod_file_struct.partial_information = true;
 
   // Fill in mod_file_struct.estimation_analytic_derivation
@@ -1178,7 +1178,7 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 
   // Fill in mod_file_struct.bayesian_irf_present
   it = options_list.num_options.find("bayesian_irf");
-  if (it != options_list.num_options.end() && it->second == "1")
+  if (it != options_list.num_options.end() && it->second == "true")
     mod_file_struct.bayesian_irf_present = true;
 
   it = options_list.num_options.find("dsge_varlag");
@@ -1223,12 +1223,12 @@ EstimationStatement::writeOutput(ostream &output, const string &basename, bool m
   if (it == options_list.num_options.end())
     output << "options_.order = 1;" << endl;
   else if (stoi(it->second) == 2)
-    output << "options_.particle.status = 1;" << endl;
+    output << "options_.particle.status = true;" << endl;
 
   // Do not check for the steady state in diffuse filter mode (#400)
   it = options_list.num_options.find("diffuse_filter");
-  if (it != options_list.num_options.end() && it->second == "1")
-    output << "options_.steadystate.nocheck = 1;" << endl;
+  if (it != options_list.num_options.end() && it->second == "true")
+    output << "options_.steadystate.nocheck = true;" << endl;
 
   symbol_list.writeOutput("var_list_", output);
   output << "oo_recursive_=dynare_estimation(var_list_);" << endl;
@@ -1971,12 +1971,12 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation 
 
   // Fill in mod_file_struct.partial_information
   it = options_list.num_options.find("partial_information");
-  if (it != options_list.num_options.end() && it->second == "1")
+  if (it != options_list.num_options.end() && it->second == "true")
     mod_file_struct.partial_information = true;
 
   // Option k_order_solver (implicit when order >= 3)
   it = options_list.num_options.find("k_order_solver");
-  if ((it != options_list.num_options.end() && it->second == "1")
+  if ((it != options_list.num_options.end() && it->second == "true")
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
 }
@@ -1987,9 +1987,9 @@ OsrStatement::writeOutput(ostream &output, const string &basename, bool minimal_
   // Ensure that order 3 implies k_order (#844)
   auto it = options_list.num_options.find("order");
   auto it1 = options_list.num_options.find("k_order_solver");
-  if ((it1 != options_list.num_options.end() && it1->second == "1")
+  if ((it1 != options_list.num_options.end() && it1->second == "true")
       || (it != options_list.num_options.end() && stoi(it->second) >= 3))
-    output << "options_.k_order_solver = 1;" << endl;
+    output << "options_.k_order_solver = true;" << endl;
 
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
@@ -4733,7 +4733,7 @@ CalibSmootherStatement::writeOutput(ostream &output, const string &basename, boo
   if (it == options_list.string_options.end())
     output << "options_.parameter_set = 'calibration';" << endl;
   symbol_list.writeOutput("var_list_", output);
-  output << "options_.smoother = 1;" << endl
+  output << "options_.smoother = true;" << endl
          << "options_.order = 1;" << endl
          << "[oo_, M_, options_, bayestopt_] = evaluate_smoother(options_.parameter_set, var_list_, M_, oo_, options_, bayestopt_, estim_params_);" << endl;
 }

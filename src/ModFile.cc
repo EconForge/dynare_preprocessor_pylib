@@ -889,16 +889,16 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
     mOutputFile << "diary('" << basename << ".log');" << endl;
 
   if (minimal_workspace)
-    mOutputFile << "options_.minimal_workspace = 1;" << endl;
+    mOutputFile << "options_.minimal_workspace = true;" << endl;
 
   if (console)
-    mOutputFile << "options_.console_mode = 1;" << endl
-                << "options_.nodisplay = 1;" << endl;
+    mOutputFile << "options_.console_mode = true;" << endl
+                << "options_.nodisplay = true;" << endl;
   if (nograph)
-    mOutputFile << "options_.nograph = 1;" << endl;
+    mOutputFile << "options_.nograph = true;" << endl;
 
   if (nointeractive)
-    mOutputFile << "options_.nointeractive = 1;" << endl;
+    mOutputFile << "options_.nointeractive = true;" << endl;
 
   if (param_used_with_lead_lag)
     mOutputFile << "M_.parameter_used_with_lead_lag = true;" << endl;
@@ -926,18 +926,18 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
                 << "M_.Correlation_matrix_ME = 1;" << endl;
 
   // May be later modified by a shocks block
-  mOutputFile << "M_.sigma_e_is_diagonal = 1;" << endl;
+  mOutputFile << "M_.sigma_e_is_diagonal = true;" << endl;
 
   // Initialize M_.det_shocks
   mOutputFile << "M_.det_shocks = [];" << endl;
 
-  if (linear == 1)
-    mOutputFile << "options_.linear = 1;" << endl;
+  auto to_matlab_logical = [](bool m) { return m ? "true" : "false"; };
 
-  mOutputFile << "options_.block=" << block << ";" << endl
-              << "options_.bytecode=" << byte_code << ";" << endl
-              << "options_.use_dll=" << use_dll << ";" << endl
-              << "options_.linear_decomposition=" << linear_decomposition << ";" << endl;
+  mOutputFile << "options_.linear = " << to_matlab_logical(linear) << ";" << endl
+              << "options_.block = " << to_matlab_logical(block) << ";" << endl
+              << "options_.bytecode = " << to_matlab_logical(byte_code) << ";" << endl
+              << "options_.use_dll = " << to_matlab_logical(use_dll) << ";" << endl
+              << "options_.linear_decomposition = " << to_matlab_logical(linear_decomposition) << ";" << endl;
 
   if (parallel_local_files.size() > 0)
     {

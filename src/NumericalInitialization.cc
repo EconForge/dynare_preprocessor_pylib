@@ -225,7 +225,7 @@ InitValStatement::writeOutput(ostream &output, const string &basename, bool mini
          << "% INITVAL instructions" << endl
          << "%" << endl;
   // Writing initval block to set initial values for variables
-  output << "options_.initval_file = 0;" << endl;
+  output << "options_.initval_file = false;" << endl;
 
   writeInitValues(output);
 }
@@ -420,7 +420,7 @@ InitvalFileStatement::writeOutput(ostream &output, const string &basename, bool 
   output << "%" << endl
          << "% INITVAL_FILE statement" << endl
          << "%" << endl
-         << "options_.initval_file = 1;" << endl
+         << "options_.initval_file = true;" << endl
          << "initvalf('" << filename << "');" << endl;
 }
 

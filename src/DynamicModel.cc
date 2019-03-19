@@ -3124,9 +3124,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   /* Say if static and dynamic models differ (because of [static] and [dynamic]
      equation tags) */
   output << modstruct << "static_and_dynamic_models_differ = "
-         << (static_only_equations.size() > 0 ?
-             (julia ? "true" : "1") :
-             (julia ? "false" : "0"))
+         << (static_only_equations.size() > 0 ? "true" :"false")
          << ";" << endl;
 
   vector<int> state_var;
