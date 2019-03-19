@@ -165,6 +165,9 @@ class ParsingDriver;
 %token CENTERED_MOMENTS AUTOLAG RECURSIVE_ORDER_ESTIMATION BARTLETT_KERNEL_LAG WEIGHTING_MATRIX PENALIZED_ESTIMATOR VERBOSE
 %token SIMULATION_MULTIPLE SEED BOUNDED_SHOCK_SUPPORT EQTAGS STEADY_STATE_GROWTH
 %token ANALYTICAL_GIRF IRF_IN_PERCENT EMAS_GIRF EMAS_DROP EMAS_TOLF EMAS_MAX_ITER
+%token NO_IDENTIFICATION_STRENGTH NO_IDENTIFICATION_REDUCEDFORM NO_IDENTIFICATION_MOMENTS
+%token NO_IDENTIFICATION_MINIMAL NO_IDENTIFICATION_SPECTRUM NORMALIZE_JACOBIANS GRID_NBR
+%token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -2231,6 +2234,19 @@ identification_option : o_ar
                       | o_prior_trunc
                       | o_analytic_derivation
                       | o_analytic_derivation_mode
+                      | o_tex
+                      | o_no_identification_strength
+                      | o_no_identification_reducedform
+                      | o_no_identification_moments
+                      | o_no_identification_minimal
+                      | o_no_identification_spectrum
+                      | o_normalize_jacobians
+                      | o_grid_nbr
+                      | o_tol_rank
+                      | o_tol_deriv
+                      | o_tol_sv
+                      | o_checks_via_subsets
+                      | o_max_dim_subsets_groups
                       ;
 
 model_comparison : MODEL_COMPARISON mc_filename_list ';'
@@ -3717,6 +3733,20 @@ o_emas_girf : EMAS_GIRF { driver.option_num("irf_opt.ergodic_mean_irf", "1"); };
 o_emas_drop : EMAS_DROP EQUAL INT_NUMBER { driver.option_num("irf_opt.EM.drop", $3); };
 o_emas_tolf : EMAS_TOLF EQUAL non_negative_number { driver.option_num("irf_opt.EM.tolf", $3); };
 o_emas_max_iter : EMAS_MAX_ITER EQUAL INT_NUMBER { driver.option_num("irf_opt.EM.iter", $3); };
+
+// Some options to "identification"
+o_no_identification_strength : NO_IDENTIFICATION_STRENGTH { driver.option_num("no_identification_strength", "true"); };
+o_no_identification_reducedform : NO_IDENTIFICATION_REDUCEDFORM { driver.option_num("no_identification_reducedform", "true"); };
+o_no_identification_moments : NO_IDENTIFICATION_MOMENTS { driver.option_num("no_identification_moments", "true"); };
+o_no_identification_minimal : NO_IDENTIFICATION_MINIMAL { driver.option_num("no_identification_minimal", "true"); };
+o_no_identification_spectrum : NO_IDENTIFICATION_SPECTRUM { driver.option_num("no_identification_spectrum", "true"); };
+o_normalize_jacobians : NORMALIZE_JACOBIANS EQUAL INT_NUMBER { driver.option_num("normalize_jacobians", $3); };
+o_grid_nbr : GRID_NBR EQUAL INT_NUMBER { driver.option_num("grid_nbr", $3); };
+o_tol_rank : TOL_RANK EQUAL non_negative_number { driver.option_num("tol_rank", $3); };
+o_tol_deriv : TOL_DERIV EQUAL non_negative_number { driver.option_num("tol_deriv", $3); };
+o_tol_sv : TOL_SV EQUAL non_negative_number { driver.option_num("tol_sv", $3); };
+o_checks_via_subsets : CHECKS_VIA_SUBSETS EQUAL INT_NUMBER { driver.option_num("checks_via_subsets", $3); };
+o_max_dim_subsets_groups : MAX_DIM_SUBSETS_GROUPS EQUAL INT_NUMBER { driver.option_num("max_dim_subsets_groups", $3); };
 
 range : symbol ':' symbol
         { $$ = $1 + ':' + $3; }
