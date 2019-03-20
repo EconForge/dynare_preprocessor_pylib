@@ -412,6 +412,11 @@ public:
   bool isDiffAuxiliaryVariable(int symb_id) const;
   //! Get list of endogenous variables without aux vars
   set <int> getOrigEndogenous() const;
+  //! Returns the original symbol corresponding to this variable
+  /* If symb_id is not an auxiliary var, returns symb_id. Otherwise,
+     repeatedly call getOrigSymbIDForAuxVar() until an original
+     (non-auxiliary) variable is found. */
+  int getUltimateOrigSymbID(int symb_id) const;
 };
 
 inline void

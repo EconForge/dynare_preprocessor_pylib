@@ -1277,3 +1277,18 @@ SymbolTable::writeJsonVarVector(ostream &output, const vector<int> &varvec) cons
     }
   output << "]" << endl;
 }
+
+int
+SymbolTable::getUltimateOrigSymbID(int symb_id) const
+{
+  while (isAuxiliaryVariable(symb_id))
+    try
+      {
+        symb_id = getOrigSymbIdForAuxVar(symb_id);
+      }
+    catch (UnknownSymbolIDException &)
+      {
+        break;
+      }
+  return symb_id;
+}
