@@ -680,6 +680,18 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <DYNARE_STATEMENT>emas_tolf {return token::EMAS_TOLF; }
 <DYNARE_STATEMENT>emas_max_iter {return token::EMAS_MAX_ITER; }
 <DYNARE_STATEMENT>variable {return token::VARIABLE;}
+<DYNARE_STATEMENT>no_identification_strength {return token::NO_IDENTIFICATION_STRENGTH;}
+<DYNARE_STATEMENT>no_identification_reducedform {return token::NO_IDENTIFICATION_REDUCEDFORM;}
+<DYNARE_STATEMENT>no_identification_moments {return token::NO_IDENTIFICATION_MOMENTS;}
+<DYNARE_STATEMENT>no_identification_minimal {return token::NO_IDENTIFICATION_MINIMAL;}
+<DYNARE_STATEMENT>no_identification_spectrum {return token::NO_IDENTIFICATION_SPECTRUM;}
+<DYNARE_STATEMENT>normalize_jacobians {return token::NORMALIZE_JACOBIANS;}
+<DYNARE_STATEMENT>grid_nbr {return token::GRID_NBR;}
+<DYNARE_STATEMENT>tol_rank {return token::TOL_RANK;}
+<DYNARE_STATEMENT>tol_deriv {return token::TOL_DERIV;}
+<DYNARE_STATEMENT>tol_sv {return token::TOL_SV;}
+<DYNARE_STATEMENT>checks_via_subsets {return token::CHECKS_VIA_SUBSETS;}
+<DYNARE_STATEMENT>max_dim_subsets_groups {return token::MAX_DIM_SUBSETS_GROUPS;}
 
 <DYNARE_STATEMENT>\$[^$]*\$ {
   strtok(yytext+1, "$");
