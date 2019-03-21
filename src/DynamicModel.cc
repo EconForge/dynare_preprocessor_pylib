@@ -5609,30 +5609,22 @@ DynamicModel::setLeadsLagsOrig()
       int lag = dynvar.second;
       SymbolType type = symbol_table.getType(dynvar.first);
 
-      if (max_lead_orig < lag)
-        max_lead_orig= lag;
-      else if (-max_lag_orig > lag)
-        max_lag_orig = -lag;
+      max_lead_orig = max(lag, max_lead_orig);
+      max_lag_orig = max(-lag, max_lag_orig);
 
       switch (type)
         {
         case SymbolType::endogenous:
-          if (max_endo_lead_orig < lag)
-            max_endo_lead_orig = lag;
-          else if (-max_endo_lag_orig > lag)
-            max_endo_lag_orig = -lag;
+          max_endo_lead_orig = max(lag, max_endo_lead_orig);
+          max_endo_lag_orig = max(-lag, max_endo_lag_orig);
           break;
         case SymbolType::exogenous:
-          if (max_exo_lead_orig < lag)
-            max_exo_lead_orig = lag;
-          else if (-max_exo_lag_orig > lag)
-            max_exo_lag_orig = -lag;
+          max_exo_lead_orig = max(lag, max_exo_lead_orig);
+          max_exo_lag_orig = max(-lag, max_exo_lag_orig);
           break;
         case SymbolType::exogenousDet:
-          if (max_exo_det_lead_orig < lag)
-            max_exo_det_lead_orig = lag;
-          else if (-max_exo_det_lag_orig > lag)
-            max_exo_det_lag_orig = -lag;
+          max_exo_det_lead_orig = max(lag, max_exo_det_lead_orig);
+          max_exo_det_lag_orig = max(-lag, max_exo_det_lag_orig);
           break;
         default:
           break;
@@ -5669,30 +5661,25 @@ DynamicModel::computeDerivIDs()
          We don't want these to be affected by lead/lags on parameters: they
          are accepted for facilitating variable flipping, but are simply
          ignored. */
-      if (max_lead < lag && type != SymbolType::parameter)
-        max_lead = lag;
-      else if (-max_lag > lag && type != SymbolType::parameter)
-        max_lag = -lag;
+      if (type != SymbolType::parameter)
+        {
+          max_lead = max(lag, max_lead);
+          max_lag = max(-lag, max_lag);
+        }
 
       switch (type)
         {
         case SymbolType::endogenous:
-          if (max_endo_lead < lag)
-            max_endo_lead = lag;
-          else if (-max_endo_lag > lag)
-            max_endo_lag = -lag;
+          max_endo_lead = max(lag, max_endo_lead);
+          max_endo_lag = max(-lag, max_endo_lag);
           break;
         case SymbolType::exogenous:
-          if (max_exo_lead < lag)
-            max_exo_lead = lag;
-          else if (-max_exo_lag > lag)
-            max_exo_lag = -lag;
+          max_exo_lead = max(lag, max_exo_lead);
+          max_exo_lag = max(-lag, max_exo_lag);
           break;
         case SymbolType::exogenousDet:
-          if (max_exo_det_lead < lag)
-            max_exo_det_lead = lag;
-          else if (-max_exo_det_lag > lag)
-            max_exo_det_lag = -lag;
+          max_exo_det_lead = max(lag, max_exo_det_lead);
+          max_exo_det_lag = max(-lag, max_exo_det_lag);
           break;
         default:
           break;
