@@ -589,14 +589,17 @@ class ExprNode
           parameter in a term, param_id == -1.
           Can throw a MatchFailureException. */
       vector<tuple<int, int, int, double>> matchLinearCombinationOfVariables() const;
+
+      pair<int, vector<tuple<int, int, int, double>>> matchParamTimesLinearCombinationOfVariables() const;
+
       //! Returns true if expression is of the form:
       //! param * (endog op endog op ...) + param * (endog op endog op ...) + ...
       virtual bool isParamTimesEndogExpr() const = 0;
 
       //! Fills the EC matrix structure
-      virtual void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs,
-                                          map<tuple<int, int, int>, expr_t> &A0,
-                                          map<tuple<int, int, int>, expr_t> &A0star) const = 0;
+      void fillErrorCorrectionRow(int eqn, const vector<int> &nontarget_lhs, const vector<int> &target_lhs,
+                                  map<tuple<int, int, int>, expr_t> &A0,
+                                  map<tuple<int, int, int>, expr_t> &A0star) const;
 
       //! Finds equations where a variable is equal to a constant
       virtual void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const = 0;
@@ -715,7 +718,6 @@ public:
   expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
@@ -799,7 +801,6 @@ public:
   expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
@@ -911,7 +912,6 @@ public:
   expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
@@ -1033,10 +1033,6 @@ public:
   expr_t getNonZeroPartofEquation() const;
   bool isInStaticForm() const override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const;
-  void fillErrorCorrectionRowHelper(expr_t arg1, expr_t arg2,
-                                    int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs,
-                                    map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const;
-  void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
@@ -1158,7 +1154,6 @@ public:
   expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
@@ -1279,7 +1274,6 @@ public:
   expr_t clone(DataTree &datatree) const override = 0;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
@@ -1488,7 +1482,6 @@ public:
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
@@ -1570,7 +1563,6 @@ public:
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
   expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void fillErrorCorrectionRow(int eqn, const vector<int> &nontrend_lhs, const vector<int> &trend_lhs, map<tuple<int, int, int>, expr_t> &A0, map<tuple<int, int, int>, expr_t> &A0star) const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
