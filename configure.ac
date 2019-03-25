@@ -56,10 +56,10 @@ AM_PROG_AR
 AM_PROG_LEX
 # Hack to get lex include dir, ticket #575
 AC_PATH_PROG([LEXPATH], [$LEX])
-AC_SUBST([LEXINC], [`eval "echo $LEXPATH | sed 's|\(.*\)$LEX$|\1../include|'"`])
+AC_SUBST([LEXINC], [$(eval "echo $LEXPATH | sed 's|\(.*\)$LEX$|\1../include|'")])
 
 AC_CHECK_PROG([YACC], [bison], [bison])
-if test "x$YACC" = "x"; then
+if test -z "$YACC"; then
   unset YACC # AM_MISSING_PROG needs an unset variable: an empty variable won't do
   AM_MISSING_PROG([YACC], [bison])
 fi
@@ -80,18 +80,18 @@ CPPFLAGS="$CPPFLAGS_SAVED"
 AC_DEFINE([BOOST_NO_HASH], [], [Don't use deprecated STL hash structures])
 
 AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen])
-AM_CONDITIONAL([HAVE_DOXYGEN], [test "x$DOXYGEN" != "x"])
+AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
 
 AC_CHECK_PROG([PDFLATEX], [pdflatex], [pdflatex])
-AM_CONDITIONAL([HAVE_PDFLATEX], [test "x$PDFLATEX" != "x"])
+AM_CONDITIONAL([HAVE_PDFLATEX], [test -n "$PDFLATEX"])
 
 AC_CHECK_PROG([BIBTEX], [bibtex], [bibtex])
-AM_CONDITIONAL([HAVE_BIBTEX], [test "x$BIBTEX" != "x"])
+AM_CONDITIONAL([HAVE_BIBTEX], [test -n "$BIBTEX"])
 
-if test "x$PDFLATEX" != "x" -a "x$BIBTEX" != "x"; then
+if test -n "$PDFLATEX" -a -n "$BIBTEX"; then
   AX_LATEX_CLASS([beamer], [ax_latex_have_beamer])
 fi
-AM_CONDITIONAL([HAVE_BEAMER], [test "x$ax_latex_have_beamer" = "xyes"])
+AM_CONDITIONAL([HAVE_BEAMER], [test "$ax_latex_have_beamer" = yes])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
@@ -101,14 +101,14 @@ AC_CONFIG_FILES([Makefile
                  doc/macroprocessor/Makefile
 ])
 
-if test "x$DOXYGEN" != "x"; then
+if test -n "$DOXYGEN"; then
   BUILD_DYNARE_PREPROC_DOC="yes"
 else
   BUILD_DYNARE_PREPROC_DOC="no (missing doxygen)"
 fi
 
 
-if test "x$PDFLATEX" != "x" -a "x$ax_latex_have_beamer" = "xyes"; then
+if test -n "$PDFLATEX" -a "$ax_latex_have_beamer" = yes; then
   BUILD_BEAMER_DOC="yes"
 else
   BUILD_BEAMER_DOC="no (missing one of: pdflatex, beamer)"
