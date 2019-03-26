@@ -1716,11 +1716,12 @@ DynamicModel::writeDynamicCFile(const string &basename, const int order) const
                     << " */" << endl
                     << "#include <math.h>" << endl;
 
+  mDynamicModelFile << "#include <stdlib.h>" << endl;
+
   if (external_functions_table.get_total_number_of_unique_model_block_external_functions())
     // External Matlab function, implies Dynamic function will call mex
-    mDynamicModelFile << "#include \"mex.h\"" << endl;
-  else
-    mDynamicModelFile << "#include <stdlib.h>" << endl;
+    mDynamicModelFile << "#include <uchar.h>" << endl // For MATLAB ≤ R2011a
+                      << "#include \"mex.h\"" << endl;
 
   mDynamicModelFile << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
                     << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
@@ -1756,6 +1757,7 @@ DynamicModel::writeDynamicCFile(const string &basename, const int order) const
                   << " */" << endl
                   << endl
                   << "#include <stdlib.h>" << endl
+                  << "#include <uchar.h>" << endl // For MATLAB ≤ R2011a
                   << "#include \"mex.h\"" << endl
                   << endl
                   << "const int ntt = " << ntt << ";" << endl

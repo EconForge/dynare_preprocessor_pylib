@@ -2026,11 +2026,12 @@ StaticModel::writeStaticCFile(const string &basename) const
          << " */" << endl
          << "#include <math.h>" << endl;
 
+  output << "#include <stdlib.h>" << endl;
+
   if (external_functions_table.get_total_number_of_unique_model_block_external_functions())
     // External Matlab function, implies Static function will call mex
-    output << "#include \"mex.h\"" << endl;
-  else
-    output << "#include <stdlib.h>" << endl;
+    output << "#include <uchar.h>" << endl // For MATLAB ≤ R2011a
+           << "#include \"mex.h\"" << endl;
 
   output << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
          << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
@@ -2065,6 +2066,7 @@ StaticModel::writeStaticCFile(const string &basename) const
          << " */" << endl
          << endl
          << "#include <stdlib.h>" << endl
+         << "#include <uchar.h>" << endl // For MATLAB ≤ R2011a
          << "#include \"mex.h\"" << endl
          << endl
          << "const int ntt = " << ntt << ";" << endl
