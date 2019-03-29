@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2017 Dynare Team
+ * Copyright (C) 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -482,6 +482,32 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
             output << ";" << endl;
           }
     }
+}
+
+void
+ConditionalForecastPathsStatement::writeJsonOutput(ostream &output) const
+{
+  output << "{\"statementName\": \"conditional_forecast_paths\""
+         << ", \"paths\": [";
+  for (auto it = paths.begin(); it != paths.end(); it++)
+    {
+      if (it != paths.begin())
+        output << ", ";
+      output << "{\"var\": \"" << symbol_table.getName(it->first) << "\", "
+             << "\"values\": [";
+      for (auto it1 = it->second.begin(); it1 != it->second.end(); it1++)
+        {
+          if (it1 != it->second.begin())
+            output << ", ";
+          output << "{\"period1\": " << it1->period1 << ", "
+                 << "\"period2\": " << it1->period2 << ", "
+                 << "\"value\": \"";
+          it1->value->writeJsonOutput(output, {}, {});
+          output << "\"}";
+        }
+      output << "]}";
+    }
+  output << "]}";
 }
 
 MomentCalibration::MomentCalibration(constraints_t constraints_arg,
