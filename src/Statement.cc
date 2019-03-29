@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2018 Dynare Team
+ * Copyright (C) 2006-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -256,10 +256,11 @@ OptionsList::writeJsonOutput(ostream &output) const
     }
 
   for (auto it = symbol_list_options.begin();
-       it != symbol_list_options.end(); it++)
+       it != symbol_list_options.end();)
     {
-      output << "\""<< it->first << "\":";
+      output << "\""<< it->first << "\": {";
       it->second.writeJsonOutput(output);
+      output << "}";
       it++;
       if (it != symbol_list_options.end()
           || !vector_int_options.empty())
@@ -288,7 +289,6 @@ OptionsList::writeJsonOutput(ostream &output) const
       if (it != vector_int_options.end())
         output << ", ";
     }
-
 
   for (auto it = vector_str_options.begin();
        it != vector_str_options.end();)
