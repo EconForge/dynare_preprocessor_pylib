@@ -55,9 +55,9 @@ void
 NativeStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   using namespace boost::xpressive;
-  string date_regex = "(-?\\d+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4]\\d|5[0-2])))";
-  sregex regex_lookbehind = sregex::compile("(?<!\\$|\\d|[a-zA-Z_]|\\')" + date_regex);
-  sregex regex_dollar = sregex::compile("(\\$)"+date_regex);
+  string date_regex = R"((-?\d+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[Ww]([1-9]{1}|[1-4]\d|5[0-2]))))";
+  sregex regex_lookbehind = sregex::compile(R"((?<!\$|\d|[a-zA-Z_]|\'))" + date_regex);
+  sregex regex_dollar = sregex::compile(R"((\$))"+date_regex);
 
   string ns = regex_replace(native_statement, regex_lookbehind, "dates('$&')");
   ns = regex_replace(ns, regex_dollar, "$2"); //replace $DATE with DATE
@@ -67,8 +67,8 @@ NativeStatement::writeOutput(ostream &output, const string &basename, bool minim
 void
 NativeStatement::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"native\""
-         << ", \"string\": \"" << native_statement << "\""
+  output << R"({"statementName": "native")"
+         << R"(, "string": ")" << native_statement << R"(")"
          << "}";
 }
 
@@ -86,8 +86,8 @@ VerbatimStatement::writeOutput(ostream &output, const string &basename, bool min
 void
 VerbatimStatement::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"verbatim\""
-         << ", \"string\": \"" << verbatim_statement << "\""
+  output << R"({"statementName": "verbatim")"
+         << R"(, "string": ")" << verbatim_statement << R"(")"
          << "}";
 }
 
@@ -204,11 +204,11 @@ OptionsList::writeJsonOutput(ostream &output) const
   if (getNumberOfOptions() == 0)
     return;
 
-  output << "\"options\": {";
+  output << R"("options": {)";
   for (auto it = num_options.begin();
        it != num_options.end();)
     {
-      output << "\""<< it->first << "\": " << it->second;
+      output << R"(")"<< it->first << R"(": )" << it->second;
       it++;
       if (it != num_options.end()
           || !(paired_num_options.empty()
@@ -222,7 +222,7 @@ OptionsList::writeJsonOutput(ostream &output) const
   for (auto it = paired_num_options.begin();
        it != paired_num_options.end();)
     {
-      output << "\""<< it->first << "\": [" << it->second.first << " " << it->second.second << "]";
+      output << R"(")"<< it->first << R"(": [)" << it->second.first << " " << it->second.second << "]";
       it++;
       if (it != paired_num_options.end()
           || !(string_options.empty()
@@ -235,7 +235,7 @@ OptionsList::writeJsonOutput(ostream &output) const
   for (auto it = string_options.begin();
        it != string_options.end();)
     {
-      output << "\""<< it->first << "\": \"" << it->second << "\"";
+      output << R"(")"<< it->first << R"(": ")" << it->second << R"(")";
       it++;
       if (it != string_options.end()
           || !(date_options.empty()
@@ -247,7 +247,7 @@ OptionsList::writeJsonOutput(ostream &output) const
   for (auto it = date_options.begin();
        it != date_options.end();)
     {
-      output << "\""<< it->first << "\": \"" << it->second << "\"";
+      output << R"(")"<< it->first << R"(": ")" << it->second << R"(")";
       it++;
       if (it != date_options.end()
           || !(symbol_list_options.empty()
@@ -258,7 +258,7 @@ OptionsList::writeJsonOutput(ostream &output) const
   for (auto it = symbol_list_options.begin();
        it != symbol_list_options.end();)
     {
-      output << "\""<< it->first << "\": {";
+      output << R"(")"<< it->first << R"(": {)";
       it->second.writeJsonOutput(output);
       output << "}";
       it++;
@@ -270,7 +270,7 @@ OptionsList::writeJsonOutput(ostream &output) const
   for (auto it = vector_int_options.begin();
        it != vector_int_options.end();)
     {
-      output << "\""<< it->first << "\": [";
+      output << R"(")"<< it->first << R"(": [)";
       if (it->second.size() > 1)
         {
           for (auto viit = it->second.begin();
@@ -293,13 +293,13 @@ OptionsList::writeJsonOutput(ostream &output) const
   for (auto it = vector_str_options.begin();
        it != vector_str_options.end();)
     {
-      output << "\""<< it->first << "\": [";
+      output << R"(")"<< it->first << R"(": [)";
       if (it->second.size() > 1)
         {
           for (auto viit = it->second.begin();
                viit != it->second.end();)
             {
-              output << "\"" << *viit << "\"";
+              output << R"(")" << *viit << R"(")";
               viit++;
               if (viit != it->second.end())
                 output << ", ";

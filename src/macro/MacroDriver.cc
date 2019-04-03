@@ -53,7 +53,7 @@ MacroDriver::parse(const string &file_arg, const string &basename_arg, istream &
           // If the input is an array. Issue #1578
           file_with_endl << "@#define " << define.first << " = " << define.second << endl;
         else
-          file_with_endl << "@#define " << define.first << " = \"" << define.second << "\"" << endl;
+          file_with_endl << "@#define " << define.first << R"( = ")" << define.second << R"(")" << endl;
       }
   file_with_endl << modfile.rdbuf() << endl;
 
@@ -65,7 +65,7 @@ MacroDriver::parse(const string &file_arg, const string &basename_arg, istream &
 
   // Output first @#line statement
   if (!no_line_macro)
-    out << "@#line \"" << file << "\" 1" << endl;
+    out << R"(@#line ")" << file << R"(" 1)" << endl;
 
   // Launch macro-processing
   parser.parse();
@@ -88,7 +88,7 @@ MacroDriver::replace_vars_in_str(const string &s) const
   smatch name;
   string name_str ("[A-Za-z_][A-Za-z0-9_]*");
   regex name_regex (name_str);                               // Matches NAME
-  regex macro_regex ("@\\s*\\{\\s*" + name_str + "\\s*\\}"); // Matches @{NAME} with potential whitespace
+  regex macro_regex (R"(@\s*\{\s*)" + name_str + R"(\s*\})"); // Matches @{NAME} with potential whitespace
   for(sregex_iterator it = sregex_iterator(s.begin(), s.end(), macro_regex);
       it != std::sregex_iterator(); ++it)
     {
@@ -412,7 +412,7 @@ MacroDriver::printvars(const Macro::parser::location_type &l, const bool tostdou
 
   stringstream intomfile;
   if (!no_line_macro)
-    intomfile << "@#line \"" << file << "\" " << l.begin.line << endl;
+    intomfile << R"(@#line ")" << file << R"(" )" << l.begin.line << endl;
 
   for (const auto & it : env)
     intomfile<< "options_.macrovars_line_" << l.begin.line << "." << it.first << " = " << it.second->print() << ";" << endl;

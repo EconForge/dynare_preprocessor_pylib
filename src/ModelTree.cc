@@ -1434,7 +1434,7 @@ ModelTree::writeJsonTemporaryTerms(const temporary_terms_t &tt, const temporary_
   bool wrote_term = false;
   temporary_terms_t tt2 = ttm1;
 
-  output << "\"external_functions_temporary_terms_" << concat << "\": [";
+  output << R"("external_functions_temporary_terms_)" << concat << R"(": [)";
   for (auto it : tt)
     if (ttm1.find(it) == ttm1.end())
       {
@@ -1458,19 +1458,19 @@ ModelTree::writeJsonTemporaryTerms(const temporary_terms_t &tt, const temporary_
   tt2 = ttm1;
   wrote_term = false;
   output << "]"
-         << ", \"temporary_terms_" << concat << "\": [";
+         << R"(, "temporary_terms_)" << concat << R"(": [)";
   for (auto it = tt.begin();
        it != tt.end(); it++)
     if (ttm1.find(*it) == ttm1.end())
       {
         if (wrote_term)
           output << ", ";
-        output << "{\"temporary_term\": \"";
+        output << R"({"temporary_term": ")";
         (*it)->writeJsonOutput(output, tt, tef_terms);
-        output << "\""
-               << ", \"value\": \"";
+        output << R"(")"
+               << R"(, "value": ")";
         (*it)->writeJsonOutput(output, tt2, tef_terms);
-        output << "\"}" << endl;
+        output << R"("})" << endl;
         wrote_term = true;
 
         // Insert current node into tt2
@@ -1647,7 +1647,7 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, deriv_node_temp_terms_t
   for (auto equation : equations)
     equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
 
-  output << "\"model_local_variables\": [";
+  output << R"("model_local_variables": [)";
   bool printed = false;
   for (int it : local_variables_vector)
     if (used_local_vars.find(it) != used_local_vars.end())
@@ -1673,10 +1673,10 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, deriv_node_temp_terms_t
 
         /* We append underscores to avoid name clashes with "g1" or "oo_" (see
            also VariableNode::writeOutput) */
-        output << "{\"variable\": \"" << symbol_table.getName(id) << "__\""
-               << ", \"value\": \"";
+        output << R"({"variable": ")" << symbol_table.getName(id) << R"(__")"
+               << R"(, "value": ")";
         value->writeJsonOutput(output, tt, tef_terms);
-        output << "\"}" << endl;
+        output << R"("})" << endl;
       }
   output << "]";
 }
@@ -1800,7 +1800,7 @@ ModelTree::Write_Inf_To_Bin_File(const string &filename,
     SaveCode.open(filename, ios::out | ios::binary);
   if (!SaveCode.is_open())
     {
-      cerr << "Error : Can't open file \"" << filename << "\" for writing" << endl;
+      cerr << R"(Error : Can't open file ")" << filename << R"(" for writing)" << endl;
       exit(EXIT_FAILURE);
     }
   u_count_int = 0;
@@ -1852,24 +1852,24 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
       exit(EXIT_FAILURE);
     }
 
-  output << "\\documentclass[10pt,a4paper]{article}" << endl
-         << "\\usepackage[landscape]{geometry}" << endl
-         << "\\usepackage{fullpage}" << endl
-         << "\\usepackage{amsfonts}" << endl
-         << "\\usepackage{breqn}" << endl
-         << "\\begin{document}" << endl
-         << "\\footnotesize" << endl;
+  output << R"(\documentclass[10pt,a4paper]{article})" << endl
+         << R"(\usepackage[landscape]{geometry})" << endl
+         << R"(\usepackage{fullpage})" << endl
+         << R"(\usepackage{amsfonts})" << endl
+         << R"(\usepackage{breqn})" << endl
+         << R"(\begin{document})" << endl
+         << R"(\footnotesize)" << endl;
 
   // Write model local variables
   for (int id : local_variables_vector)
     {
       expr_t value = local_variables_table.find(id)->second;
 
-      content_output << "\\begin{dmath*}" << endl
+      content_output << R"(\begin{dmath*})" << endl
                      << symbol_table.getTeXName(id) << " = ";
       // Use an empty set for the temporary terms
       value->writeOutput(content_output, output_type);
-      content_output << endl << "\\end{dmath*}" << endl;
+      content_output << endl << R"(\end{dmath*})" << endl;
     }
 
   for (int eq = 0; eq < (int) equations.size(); eq++)
@@ -1882,7 +1882,7 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
             if (equation_tag.first == eq)
               {
                 if (!wrote_eq_tag)
-                  content_output << "\\noindent[";
+                  content_output << R"(\noindent[)";
                 else
                   content_output << ", ";
 
@@ -1898,14 +1898,14 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
             content_output << "]";
         }
 
-      content_output << "\\begin{dmath}" << endl;
+      content_output << R"(\begin{dmath})" << endl;
       // Here it is necessary to cast to superclass ExprNode, otherwise the overloaded writeOutput() method is not found
       dynamic_cast<ExprNode *>(equations[eq])->writeOutput(content_output, output_type);
-      content_output << endl << "\\end{dmath}" << endl;
+      content_output << endl << R"(\end{dmath})" << endl;
     }
 
-  output << "\\include{" << content_basename << "}" << endl
-         << "\\end{document}" << endl;
+  output << R"(\include{)" << content_basename << "}" << endl
+         << R"(\end{document})" << endl;
 
   output.close();
   content_output.close();
@@ -2114,9 +2114,9 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
   vector<pair<string, string>> eqtags;
   temporary_terms_t tt_empty;
   if (residuals)
-    output << endl << "\"residuals\":[" << endl;
+    output << endl << R"("residuals":[)" << endl;
   else
-    output << endl << "\"model\":[" << endl;
+    output << endl << R"("model":[)" << endl;
   for (int eq = 0; eq < (int) equations.size(); eq++)
     {
       if (eq > 0)
@@ -2128,22 +2128,22 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
 
       if (residuals)
         {
-          output << "{\"residual\": {"
-                 << "\"lhs\": \"";
+          output << R"({"residual": {)"
+                 << R"("lhs": ")";
           lhs->writeJsonOutput(output, temporary_terms, {});
-          output << "\"";
+          output << R"(")";
 
-          output << ", \"rhs\": \"";
+          output << R"(, "rhs": ")";
           rhs->writeJsonOutput(output, temporary_terms, {});
-          output << "\"";
+          output << R"(")";
           try
             {
               // Test if the right hand side of the equation is empty.
               if (rhs->eval(eval_context_t()) != 0)
                 {
-                  output << ", \"rhs\": \"";
+                  output << R"(, "rhs": ")";
                   rhs->writeJsonOutput(output, temporary_terms, {});
-                  output << "\"";
+                  output << R"(")";
                 }
             }
           catch (ExprNode::EvalException &e)
@@ -2153,12 +2153,12 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
         }
       else
         {
-          output << "{\"lhs\": \"";
+          output << R"({"lhs": ")";
           lhs->writeJsonOutput(output, tt_empty, {});
-          output << "\", \"rhs\": \"";
+          output << R"(", "rhs": ")";
           rhs->writeJsonOutput(output, tt_empty, {});
-          output << "\""
-                 << ", \"line\": " << equations_lineno[eq];
+          output << R"(")"
+                 << R"(, "line": )" << equations_lineno[eq];
 
           for (const auto & equation_tag : equation_tags)
             if (equation_tag.first == eq)
@@ -2166,13 +2166,13 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
 
           if (!eqtags.empty())
             {
-              output << ", \"tags\": {";
+              output << R"(, "tags": {)";
               int i = 0;
               for (vector<pair<string, string>>::const_iterator it = eqtags.begin(); it != eqtags.end(); it++, i++)
                 {
                   if (i != 0)
                     output << ", ";
-                  output << "\"" << it->first << "\": \"" << it->second << "\"";
+                  output << R"(")" << it->first << R"(": ")" << it->second << R"(")";
                 }
               output << "}";
               eqtags.clear();

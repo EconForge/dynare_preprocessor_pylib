@@ -64,7 +64,7 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
       size_t pos = 0;
       while ((pos = final_tex_name.find('_', pos)) != string::npos)
         {
-          final_tex_name.insert(pos, "\\");
+          final_tex_name.insert(pos, R"(\)");
           pos += 2;
         }
     }
@@ -375,7 +375,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
             output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl;
             break;
           case AuxVarType::expectation:
-            output << "M_.aux_vars(" << i+1 << ").orig_expr = '\\mathbb{E}_{t"
+            output << "M_.aux_vars(" << i+1 << R"().orig_expr = '\mathbb{E}_{t)"
                    << (aux_vars[i].get_information_set() < 0 ? "" : "+")
                    << aux_vars[i].get_information_set() << "}(";
             aux_vars[i].get_expr_node()->writeOutput(output, ExprNodeOutputType::latexDynamicModel);
@@ -440,7 +440,7 @@ SymbolTable::writeCOutput(ostream &output) const noexcept(false)
     {
       output << "char *exo_names[" << exo_nbr() << "];" << endl;
       for (int id = 0; id < exo_nbr(); id++)
-        output << "exo_names[" << id << "] = \"" << getName(exo_ids[id]) << "\";" << endl;
+        output << "exo_names[" << id << R"(] = ")" << getName(exo_ids[id]) << R"(";)" << endl;
     }
 
   output << endl
@@ -449,7 +449,7 @@ SymbolTable::writeCOutput(ostream &output) const noexcept(false)
     {
       output << "char *exo_det_names[" << exo_det_nbr() << "];" << endl;
       for (int id = 0; id < exo_det_nbr(); id++)
-        output << "exo_det_names[" << id << "] = \"" << getName(exo_det_ids[id]) << "\";" << endl;
+        output << "exo_det_names[" << id << R"(] = ")" << getName(exo_det_ids[id]) << R"(";)" << endl;
     }
 
   output << endl
@@ -458,7 +458,7 @@ SymbolTable::writeCOutput(ostream &output) const noexcept(false)
     {
       output << "char *endo_names[" << endo_nbr() << "];" << endl;
       for (int id = 0; id < endo_nbr(); id++)
-        output << "endo_names[" << id << "] = \"" << getName(endo_ids[id]) << "\";" << endl;
+        output << "endo_names[" << id << R"(] = ")" << getName(endo_ids[id]) << R"(";)" << endl;
     }
 
   output << endl
@@ -467,7 +467,7 @@ SymbolTable::writeCOutput(ostream &output) const noexcept(false)
     {
       output << "char *param_names[" << param_nbr() << "];" << endl;
       for (int id = 0; id < param_nbr(); id++)
-        output << "param_names[" << id << "] = \"" << getName(param_ids[id]) << "\";" << endl;
+        output << "param_names[" << id << R"(] = ")" << getName(param_ids[id]) << R"(";)" << endl;
     }
 
   // Write the auxiliary variable table
@@ -497,7 +497,7 @@ SymbolTable::writeCOutput(ostream &output) const noexcept(false)
               if (aux_vars[i].get_orig_symb_id() >= 0)
                 output << "av[" << i << "].orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
                        << "av[" << i << "].orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
-              output << "av[" << i << "].unary_op = \"" << aux_vars[i].get_unary_op() << "\";" << endl;
+              output << "av[" << i << R"(].unary_op = ")" << aux_vars[i].get_unary_op() << R"(";)" << endl;
               break;
             case AuxVarType::diff:
             case AuxVarType::diffLag:
@@ -562,22 +562,22 @@ SymbolTable::writeCCOutput(ostream &output) const noexcept(false)
   output << endl
          << "exo_nbr = " << exo_nbr() << ";" << endl;
   for (int id = 0; id < exo_nbr(); id++)
-    output << "exo_names[\"" << getName(exo_ids[id]) << "\"] = " << id << ";" << endl;
+    output << R"(exo_names[")" << getName(exo_ids[id]) << R"("] = )" << id << ";" << endl;
 
   output << endl
          << "exo_det_nbr = " << exo_det_nbr() << ";" << endl;
   for (int id = 0; id < exo_det_nbr(); id++)
-    output << "exo_det_names[\"" << getName(exo_det_ids[id]) << "\"] = " << id << " ;" << endl;
+    output << R"(exo_det_names[")" << getName(exo_det_ids[id]) << R"("] = )" << id << " ;" << endl;
 
   output << endl
          << "endo_nbr = " << endo_nbr() << ";" << endl;
   for (int id = 0; id < endo_nbr(); id++)
-    output << "endo_names[\"" << getName(endo_ids[id]) << "\"] = " << id << ";" << endl;
+    output << R"(endo_names[")" << getName(endo_ids[id]) << R"("] = )" << id << ";" << endl;
 
   output << endl
          << "param_nbr = " << param_nbr() << ";" << endl;
   for (int id = 0; id < param_nbr(); id++)
-    output << "param_names[\"" << getName(param_ids[id]) << "\"] = " << id << ";" << endl;
+    output << R"(param_names[")" << getName(param_ids[id]) << R"("] = )" << id << ";" << endl;
 
   // Write the auxiliary variable table
   for (int i = 0; i < (int) aux_vars.size(); i++)
@@ -603,7 +603,7 @@ SymbolTable::writeCCOutput(ostream &output) const noexcept(false)
           if (aux_vars[i].get_orig_symb_id() >= 0)
             output << "av" << i << ".orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id()) << ";" << endl
                    << "av" << i << ".orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
-          output << "av" << i << ".unary_op = \"" << aux_vars[i].get_unary_op() << "\";" << endl;
+          output << "av" << i << R"(.unary_op = ")" << aux_vars[i].get_unary_op() << R"(";)" << endl;
           break;
         case AuxVarType::diff:
         case AuxVarType::diffLag:
@@ -1123,10 +1123,10 @@ SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
          << "model_.endo = [" << endl;
   if (endo_nbr() > 0)
     for (int id = 0; id < endo_nbr(); id++)
-      output << "              DynareModel.Endo(\""
-             << getName(endo_ids[id]) << "\", raw\""
-             << getTeXName(endo_ids[id]) << "\", \""
-             << getLongName(endo_ids[id]) << "\")" << endl;
+      output << R"(              DynareModel.Endo(")"
+             << getName(endo_ids[id]) << R"(", raw")"
+             << getTeXName(endo_ids[id]) << R"(", ")"
+             << getLongName(endo_ids[id]) << R"("))" << endl;
   output << "             ]" << endl;
   output << "model_.endo_nbr = " << endo_nbr() << ";" << endl;
 
@@ -1134,10 +1134,10 @@ SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
          << "model_.exo = [" << endl;
   if (exo_nbr() > 0)
     for (int id = 0; id < exo_nbr(); id++)
-      output << "             DynareModel.Exo(\""
-             << getName(exo_ids[id]) << "\", raw\""
-             << getTeXName(exo_ids[id]) << "\", \""
-             << getLongName(exo_ids[id]) << "\")" << endl;
+      output << R"(             DynareModel.Exo(")"
+             << getName(exo_ids[id]) << R"(", raw")"
+             << getTeXName(exo_ids[id]) << R"(", ")"
+             << getLongName(exo_ids[id]) << R"("))" << endl;
   output << "            ]" << endl;
   output << "model_.exo_nbr = " << exo_nbr() << ";" << endl;
 
@@ -1147,10 +1147,10 @@ SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
              << "model_.exo_det = [" << endl;
       if (exo_det_nbr() > 0)
         for (int id = 0; id < exo_det_nbr(); id++)
-          output << "                 DynareModel.ExoDet(\""
-                 << getName(exo_det_ids[id]) << "\", raw\""
-                 << getTeXName(exo_det_ids[id]) << "\", \""
-                 << getLongName(exo_det_ids[id]) << "\")" << endl;
+          output << R"(                 DynareModel.ExoDet(")"
+                 << getName(exo_det_ids[id]) << R"(", raw")"
+                 << getTeXName(exo_det_ids[id]) << R"(", ")"
+                 << getLongName(exo_det_ids[id]) << R"("))" << endl;
       output << "                ]" << endl;
       output << "model_.exo_det_nbr = " << exo_det_nbr() << ";" << endl;
     }
@@ -1159,10 +1159,10 @@ SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
          << "model_.param = [" << endl;
   if (param_nbr() > 0)
     for (int id = 0; id < param_nbr(); id++)
-      output << "               DynareModel.Param(\""
-             << getName(param_ids[id]) << "\", raw\""
-             << getTeXName(param_ids[id]) << "\", \""
-             << getLongName(param_ids[id]) << "\")" << endl;
+      output << R"(               DynareModel.Param(")"
+             << getName(param_ids[id]) << R"(", raw")"
+             << getTeXName(param_ids[id]) << R"(", ")"
+             << getLongName(param_ids[id]) << R"("))" << endl;
   output << "              ]" << endl;
   output << "model_.param_nbr = " << param_nbr() << ";" << endl;
 
@@ -1193,7 +1193,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
               else
                 output << "typemin(Int), typemin(Int)";
               output << ", typemin(Int), string(), "
-                     << "\"" << aux_var.get_unary_op() << "\"" << endl;
+                     << R"(")" << aux_var.get_unary_op() << R"(")" << endl;
               break;
             case AuxVarType::diff:
             case AuxVarType::diffLag:
@@ -1210,11 +1210,11 @@ SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
               output << getTypeSpecificID(aux_var.get_orig_symb_id())+1 << ", typemin(Int), typemin(Int), string(), string()";
               break;
             case AuxVarType::expectation:
-              output << "typemin(Int), typemin(Int), typemin(Int), \"\\mathbb{E}_{t"
+              output << R"(typemin(Int), typemin(Int), typemin(Int), "\mathbb{E}_{t)"
                      << (aux_var.get_information_set() < 0 ? "" : "+")
                      << aux_var.get_information_set() << "}(";
               aux_var.get_expr_node()->writeOutput(output, ExprNodeOutputType::latexDynamicModel);
-              output << ")\"";
+              output << R"lit()")lit";
               break;
             default:
               output << " typemin(Int), typemin(Int), typemin(Int), string(), string()";
@@ -1248,16 +1248,16 @@ SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
 void
 SymbolTable::writeJsonOutput(ostream &output) const
 {
-  output << "\"endogenous\": ";
+  output << R"("endogenous": )";
   writeJsonVarVector(output, endo_ids);
 
-  output << ", \"exogenous\":";
+  output << R"(, "exogenous":)";
   writeJsonVarVector(output, exo_ids);
 
-  output << ", \"exogenous_deterministic\": ";
+  output << R"(, "exogenous_deterministic": )";
   writeJsonVarVector(output, exo_det_ids);
 
-  output << ", \"parameters\": ";
+  output << R"(, "parameters": )";
   writeJsonVarVector(output, param_ids);
 }
 
@@ -1270,9 +1270,9 @@ SymbolTable::writeJsonVarVector(ostream &output, const vector<int> &varvec) cons
       if (i != 0)
         output << ", ";
       output << "{"
-             << "\"name\":\"" << getName(varvec[i]) << "\", "
-             << "\"texName\":\"" << boost::replace_all_copy(getTeXName(varvec[i]), "\\", "\\\\") << "\", "
-             << "\"longName\":\"" << boost::replace_all_copy(getLongName(varvec[i]), "\\", "\\\\") << "\"}"
+             << R"("name":")" << getName(varvec[i]) << R"(", )"
+             << R"("texName":")" << boost::replace_all_copy(getTeXName(varvec[i]), R"(\)", R"(\\)") << R"(", )"
+             << R"("longName":")" << boost::replace_all_copy(getLongName(varvec[i]), R"(\)", R"(\\)") << R"("})"
              << endl;
     }
   output << "]" << endl;

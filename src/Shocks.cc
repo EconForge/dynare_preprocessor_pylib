@@ -70,24 +70,24 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
 void
 AbstractShocksStatement::writeJsonDetShocks(ostream &output) const
 {
-  output << "\"deterministic_shocks\": [";
+  output << R"("deterministic_shocks": [)";
   for (auto it = det_shocks.begin();
        it != det_shocks.end(); it++)
     {
       if (it != det_shocks.begin())
         output << ", ";
-      output << "{\"var\": \"" << symbol_table.getName(it->first) << "\", "
-             << "\"values\": [";
+      output << R"({"var": ")" << symbol_table.getName(it->first) << R"(", )"
+             << R"("values": [)";
       for (auto it1 = it->second.begin();
            it1 != it->second.end(); it1++)
         {
           if (it1 != it->second.begin())
             output << ", ";
-          output << "{\"period1\": " << it1->period1 << ", "
-                 << "\"period2\": " << it1->period2 << ", "
-                 << "\"value\": \"";
+          output << R"({"period1": )" << it1->period1 << ", "
+                 << R"("period2": )" << it1->period2 << ", "
+                 << R"("value": ")";
           it1->value->writeJsonOutput(output, {}, {});
-          output << "\"}";
+          output << R"("})";
         }
       output << "]}";
     }
@@ -153,8 +153,8 @@ ShocksStatement::writeOutput(ostream &output, const string &basename, bool minim
 void
 ShocksStatement::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"shocks\""
-         << ", \"overwrite\": ";
+  output << R"({"statementName": "shocks")"
+         << R"(, "overwrite": )";
   if (overwrite)
     output << "true";
   else
@@ -164,52 +164,52 @@ ShocksStatement::writeJsonOutput(ostream &output) const
       output << ", ";
       writeJsonDetShocks(output);
     }
-  output<< ", \"variance\": [";
+  output<< R"(, "variance": [)";
   for (auto it = var_shocks.begin(); it != var_shocks.end(); it++)
     {
       if (it != var_shocks.begin())
         output << ", ";
-      output << "{\"name\": \"" << symbol_table.getName(it->first) << "\", "
-             << "\"variance\": \"";
+      output << R"({"name": ")" << symbol_table.getName(it->first) << R"(", )"
+             << R"("variance": ")";
       it->second->writeJsonOutput(output, {}, {});
-      output << "\"}";
+      output << R"("})";
     }
   output << "]"
-         << ", \"stderr\": [";
+         << R"(, "stderr": [)";
   for (auto it = std_shocks.begin(); it != std_shocks.end(); it++)
     {
       if (it != std_shocks.begin())
         output << ", ";
-      output << "{\"name\": \"" << symbol_table.getName(it->first) << "\", "
-             << "\"stderr\": \"";
+      output << R"({"name": ")" << symbol_table.getName(it->first) << R"(", )"
+             << R"("stderr": ")";
       it->second->writeJsonOutput(output, {}, {});
-      output << "\"}";
+      output << R"("})";
     }
   output << "]"
-         << ", \"covariance\": [";
+         << R"(, "covariance": [)";
   for (auto it = covar_shocks.begin(); it != covar_shocks.end(); it++)
     {
       if (it != covar_shocks.begin())
         output << ", ";
       output << "{"
-             << "\"name\": \"" << symbol_table.getName(it->first.first) << "\", "
-             << "\"name2\": \"" << symbol_table.getName(it->first.second) << "\", "
-             << "\"covariance\": \"";
+             << R"("name": ")" << symbol_table.getName(it->first.first) << R"(", )"
+             << R"("name2": ")" << symbol_table.getName(it->first.second) << R"(", )"
+             << R"("covariance": ")";
       it->second->writeJsonOutput(output, {}, {});
-      output << "\"}";
+      output << R"("})";
     }
   output << "]"
-         << ", \"correlation\": [";
+         << R"(, "correlation": [)";
   for (auto it = corr_shocks.begin(); it != corr_shocks.end(); it++)
     {
       if (it != corr_shocks.begin())
         output << ", ";
       output << "{"
-             << "\"name\": \"" << symbol_table.getName(it->first.first) << "\", "
-             << "\"name2\": \"" << symbol_table.getName(it->first.second) << "\", "
-             << "\"correlation\": \"";
+             << R"("name": ")" << symbol_table.getName(it->first.first) << R"(", )"
+             << R"("name2": ")" << symbol_table.getName(it->first.second) << R"(", )"
+             << R"("correlation": ")";
       it->second->writeJsonOutput(output, {}, {});
-      output << "\"}";
+      output << R"("})";
     }
   output << "]"
          << "}";
@@ -487,23 +487,23 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
 void
 ConditionalForecastPathsStatement::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"conditional_forecast_paths\""
-         << ", \"paths\": [";
+  output << R"({"statementName": "conditional_forecast_paths")"
+         << R"(, "paths": [)";
   for (auto it = paths.begin(); it != paths.end(); it++)
     {
       if (it != paths.begin())
         output << ", ";
-      output << "{\"var\": \"" << symbol_table.getName(it->first) << "\", "
-             << "\"values\": [";
+      output << R"({"var": ")" << symbol_table.getName(it->first) << R"(", )"
+             << R"("values": [)";
       for (auto it1 = it->second.begin(); it1 != it->second.end(); it1++)
         {
           if (it1 != it->second.begin())
             output << ", ";
-          output << "{\"period1\": " << it1->period1 << ", "
-                 << "\"period2\": " << it1->period2 << ", "
-                 << "\"value\": \"";
+          output << R"({"period1": )" << it1->period1 << ", "
+                 << R"("period2": )" << it1->period2 << ", "
+                 << R"("value": ")";
           it1->value->writeJsonOutput(output, {}, {});
-          output << "\"}";
+          output << R"("})";
         }
       output << "]}";
     }
@@ -534,17 +534,17 @@ MomentCalibration::writeOutput(ostream &output, const string &basename, bool min
 void
 MomentCalibration::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"moment_calibration\""
-         << ", \"moment_calibration_criteria\": [";
+  output << R"({"statementName": "moment_calibration")"
+         << R"(, "moment_calibration_criteria": [)";
   for (auto it = constraints.begin(); it != constraints.end(); it++)
     {
       if (it != constraints.begin())
         output << ", ";
-      output << "{\"endogenous1\": \"" << symbol_table.getName(it->endo1) << "\""
-             << ", \"endogenous2\": \"" << symbol_table.getName(it->endo2) << "\""
-             << ", \"lags\": \"" << it->lags << "\""
-             << ", \"lower_bound\": \"" << it->lower_bound << "\""
-             << ", \"upper_bound\": \"" << it->upper_bound << "\""
+      output << R"({"endogenous1": ")" << symbol_table.getName(it->endo1) << R"(")"
+             << R"(, "endogenous2": ")" << symbol_table.getName(it->endo2) << R"(")"
+             << R"(, "lags": ")" << it->lags << R"(")"
+             << R"(, "lower_bound": ")" << it->lower_bound << R"(")"
+             << R"(, "upper_bound": ")" << it->upper_bound << R"(")"
              << "}";
     }
   output << "]"
@@ -578,23 +578,23 @@ IrfCalibration::writeOutput(ostream &output, const string &basename, bool minima
 void
 IrfCalibration::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"irf_calibration\"";
+  output << R"({"statementName": "irf_calibration")";
   if (options_list.getNumberOfOptions())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
     }
 
-  output << ", \"irf_restrictions\": [";
+  output << R"(, "irf_restrictions": [)";
   for (auto it = constraints.begin(); it != constraints.end(); it++)
     {
       if (it != constraints.begin())
         output << ", ";
-      output << "{\"endogenous\": \"" << symbol_table.getName(it->endo) << "\""
-             << ", \"exogenous\": \"" << symbol_table.getName(it->exo) << "\""
-             << ", \"periods\": \"" << it->periods << "\""
-             << ", \"lower_bound\": \"" << it->lower_bound << "\""
-             << ", \"upper_bound\": \"" << it->upper_bound << "\""
+      output << R"({"endogenous": ")" << symbol_table.getName(it->endo) << R"(")"
+             << R"(, "exogenous": ")" << symbol_table.getName(it->exo) << R"(")"
+             << R"(, "periods": ")" << it->periods << R"(")"
+             << R"(, "lower_bound": ")" << it->lower_bound << R"(")"
+             << R"(, "upper_bound": ")" << it->upper_bound << R"(")"
              << "}";
     }
   output << "]"

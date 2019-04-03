@@ -407,19 +407,19 @@ TrendComponentModelTable::writeJsonOutput(ostream &output) const
     {
       if (name != *(names.begin()))
         output << ", ";
-      output << "{\"statementName\": \"trend_component_model\","
-             << "\"model_name\": \"" << name << "\","
-             << "\"eqtags\": [";
+      output << R"({"statementName": "trend_component_model",)"
+             << R"("model_name": ")" << name << R"(",)"
+             << R"("eqtags": [)";
       for (const auto &it : eqtags.at(name))
         {
-          output << "\"" << it << "\"";
+          output << R"(")" << it << R"(")";
           if (&it != &eqtags.at(name).back())
             output << ", ";
         }
-      output << "], \"target_eqtags\": [";
+      output << R"(], "target_eqtags": [)";
       for (const auto &it : target_eqtags.at(name))
         {
-          output << "\"" << it << "\"";
+          output << R"(")" << it << R"(")";
           if (&it != &target_eqtags.at(name).back())
             output << ", ";
         }
@@ -547,21 +547,21 @@ VarModelTable::writeJsonOutput(ostream &output) const
     {
       if (name != *(names.begin()))
         output << ", ";
-      output << "{\"statementName\": \"var_model\","
-             << "\"model_name\": \"" << name << "\",";
+      output << R"({"statementName": "var_model",)"
+             << R"("model_name": ")" << name << R"(",)";
       if (symbol_list_and_order.empty())
         {
-          output << "\"eqtags\": [";
+          output << R"("eqtags": [)";
           for (const auto &it : eqtags.at(name))
             {
-              output << "\"" << it << "\"";
+              output << R"(")" << it << R"(")";
               if (&it != &eqtags.at(name).back())
                 output << ", ";
             }
           output << "]";
         }
       else
-        output << "\"order\": \"" << symbol_list_and_order.at(name).second << "\"";
+        output << R"("order": ")" << symbol_list_and_order.at(name).second << R"(")";
       output << "}";
     }
 }

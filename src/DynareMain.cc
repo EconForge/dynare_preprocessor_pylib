@@ -77,12 +77,12 @@ parse_options_line(istream &modfile)
   string first_line;
   getline(modfile, first_line);
 
-  regex pat{"^\\s*//\\s*--\\+\\s*options:([^\\+]*)\\+--"};
+  regex pat{R"(^\s*//\s*--\+\s*options:([^\+]*)\+--)"};
   smatch matches;
   if (regex_search(first_line, matches, pat))
     if (matches.size() > 1 && matches[1].matched)
       {
-        regex pat2{"([^,\\s]+)"};
+        regex pat2{R"(([^,\s]+))"};
         string s{matches[1]};
         for (sregex_iterator p(s.begin(), s.end(), pat2);
              p != sregex_iterator{}; ++p)

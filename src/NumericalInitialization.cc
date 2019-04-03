@@ -67,9 +67,9 @@ InitParamStatement::writeJuliaOutput(ostream &output, const string &basename)
 void
 InitParamStatement::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"param_init\", \"name\": \"" << symbol_table.getName(symb_id) << "\", " << "\"value\": \"";
+  output << R"({"statementName": "param_init", "name": ")" << symbol_table.getName(symb_id) << R"(", )" << R"("value": ")";
   param_value->writeJsonOutput(output, {}, {});
-  output << "\"}";
+  output << R"("})";
 }
 
 void
@@ -179,9 +179,9 @@ InitOrEndValStatement::writeJsonInitValues(ostream &output) const
     {
       if (it != init_values.begin())
         output << ", ";
-      output << "{\"name\": \"" << symbol_table.getName(it->first) << "\", " << "\"value\": \"";
+      output << R"({"name": ")" << symbol_table.getName(it->first) << R"(", )" << R"("value": ")";
       it->second->writeJsonOutput(output, {}, {});
-      output << "\"}";
+      output << R"("})";
     }
 }
 
@@ -233,7 +233,7 @@ InitValStatement::writeOutput(ostream &output, const string &basename, bool mini
 void
 InitValStatement::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"initval\", \"vals\": [";
+  output << R"({"statementName": "initval", "vals": [)";
   writeJsonInitValues(output);
   output << "]}";
 }
@@ -298,7 +298,7 @@ EndValStatement::writeOutput(ostream &output, const string &basename, bool minim
 void
 EndValStatement::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"endval\", \"vals\": [";
+  output << R"({"statementName": "endval", "vals": [)";
   writeJsonInitValues(output);
   output << "]}";
 }
@@ -394,17 +394,17 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
 void
 HistValStatement::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"histval\", \"vals\": [";
+  output << R"({"statementName": "histval", "vals": [)";
   for (auto it = hist_values.begin();
        it != hist_values.end(); it++)
     {
       if (it != hist_values.begin())
         output << ", ";
-      output << "{ \"name\": \"" << symbol_table.getName(it->first.first) << "\""
-             << ", \"lag\": " << it->first.second
-             << ", \"value\": \"";
+      output << R"({ "name": ")" << symbol_table.getName(it->first.first) << R"(")"
+             << R"(, "lag": )" << it->first.second
+             << R"(, "value": ")";
       it->second->writeJsonOutput(output, {}, {});
-      output << "\"}";
+      output << R"("})";
     }
   output << "]}";
 }
@@ -427,8 +427,8 @@ InitvalFileStatement::writeOutput(ostream &output, const string &basename, bool 
 void
 InitvalFileStatement::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"init_val_file\""
-         << ", \"filename\": \"" << filename << "\""
+  output << R"({"statementName": "init_val_file")"
+         << R"(, "filename": ")" << filename << R"(")"
          << "}";
 }
 
@@ -446,8 +446,8 @@ HistvalFileStatement::writeOutput(ostream &output, const string &basename, bool 
 void
 HistvalFileStatement::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"hist_val_file\""
-         << ", \"filename\": \"" << filename << "\""
+  output << R"({"statementName": "hist_val_file")"
+         << R"(, "filename": ")" << filename << R"(")"
          << "}";
 }
 
@@ -489,8 +489,8 @@ HomotopyStatement::writeOutput(ostream &output, const string &basename, bool min
 void
 HomotopyStatement::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"homotopy\", "
-         << "\"values\": [";
+  output << R"({"statementName": "homotopy", )"
+         << R"("values": [)";
   for (auto it = homotopy_values.begin();
        it != homotopy_values.end(); ++it)
     {
@@ -501,15 +501,15 @@ HomotopyStatement::writeJsonOutput(ostream &output) const
       expr_t expression1, expression2;
       tie(symb_id, expression1, expression2) = *it;
 
-      output << "{\"name\": \"" << symbol_table.getName(symb_id) << "\""
-             << ", \"initial_value\": \"";
+      output << R"({"name": ")" << symbol_table.getName(symb_id) << R"(")"
+             << R"(, "initial_value": ")";
       if (expression1)
         expression1->writeJsonOutput(output, {}, {});
       else
         output << "NaN";
-      output << "\", \"final_value\": \"";
+      output << R"(", "final_value": ")";
       expression2->writeJsonOutput(output, {}, {});
-      output << "\"}";
+      output << R"("})";
     }
   output << "]"
          << "}";
@@ -529,8 +529,8 @@ SaveParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &ba
 void
 SaveParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"save_params_and_steady_state\""
-         << ", \"filename\": \"" << filename << "\""
+  output << R"({"statementName": "save_params_and_steady_state")"
+         << R"(, "filename": ")" << filename << R"(")"
          << "}";
 }
 
@@ -601,15 +601,15 @@ LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &ba
 void
 LoadParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
 {
-  output << "{\"statementName\": \"load_params_and_steady_state\""
-         << "\"values\": [";
+  output << R"({"statementName": "load_params_and_steady_state")"
+         << R"("values": [)";
   for (auto it = content.begin();
        it != content.end(); it++)
     {
       if (it != content.begin())
         output << ", ";
-      output << "{\"name\": \"" << symbol_table.getName(it->first) << "\""
-             << ", \"value\": \"" << it->second << "\"}";
+      output << R"({"name": ")" << symbol_table.getName(it->first) << R"(")"
+             << R"(, "value": ")" << it->second << R"("})";
     }
   output << "]"
          << "}";

@@ -845,7 +845,7 @@ DataTree::writePowerDeriv(ostream &output) const
 string
 DataTree::packageDir(const string &package)
 {
-  regex pat{"\\."};
+  regex pat{R"(\.)"};
   string dirname = "+" + regex_replace(package, pat, "/+");
   boost::filesystem::create_directories(dirname);
   return dirname;

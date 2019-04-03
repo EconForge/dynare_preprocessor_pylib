@@ -42,13 +42,13 @@ SymbolList::writeOutput(const string &varname, ostream &output) const
 void
 SymbolList::writeJsonOutput(ostream &output) const
 {
-  output << "\"symbol_list\": [";
+  output << R"("symbol_list": [)";
   for (auto it = symbols.begin();
        it != symbols.end(); ++it)
     {
       if (it != symbols.begin())
         output << ",";
-      output << "\"" << *it << "\"";
+      output << R"(")" << *it << R"(")";
     }
   output << "]";
 }

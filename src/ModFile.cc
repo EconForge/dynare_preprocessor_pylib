@@ -301,7 +301,7 @@ ModFile::checkPass(bool nostrict, bool stochastic)
           || dynamic_model.isBinaryOpUsed(BinaryOpcode::lessEqual)
           || dynamic_model.isBinaryOpUsed(BinaryOpcode::equalEqual)
           || dynamic_model.isBinaryOpUsed(BinaryOpcode::different)))
-    warnings << "WARNING: you are using a function (max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) which is unsuitable for a stochastic context; see the reference manual, section about \"Expressions\", for more details." << endl;
+    warnings << R"(WARNING: you are using a function (max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) which is unsuitable for a stochastic context; see the reference manual, section about "Expressions", for more details.)" << endl;
 
   if (linear
       && (dynamic_model.isUnaryOpUsed(UnaryOpcode::sign)
@@ -944,7 +944,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
       mOutputFile << "options_.parallel_info.local_files = {" << endl;
       for (const auto & parallel_local_file : parallel_local_files)
         {
-          size_t j = parallel_local_file.find_last_of("/\\");
+          size_t j = parallel_local_file.find_last_of(R"(/\)");
           if (j == string::npos)
             mOutputFile << "'', '" << parallel_local_file << "';" << endl;
           else
@@ -1158,10 +1158,10 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "using SteadyState" << endl << endl
                << "using " << basename << "Static" << endl
                << "using " << basename << "Dynamic" << endl
-               << "if isfile(\"" << basename << "SteadyState.jl"  "\")" << endl
+               << R"(if isfile(")" << basename << R"(SteadyState.jl"))" << endl
                << "    using " << basename << "SteadyState" << endl
                << "end" << endl
-               << "if isfile(\"" << basename << "SteadyState2.jl"  "\")" << endl
+               << R"(if isfile(")" << basename << R"(SteadyState2.jl"))" << endl
                << "    using " << basename << "SteadyState2" << endl
                << "end" << endl << endl
                << "export model_, options_, oo_" << endl;
@@ -1169,20 +1169,20 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
   // Write Output
   jlOutputFile << endl
                << "oo_ = dynare_output()" << endl
-               << "oo_.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl;
+               << R"(oo_.dynare_version = ")" << PACKAGE_VERSION << R"(")" << endl;
 
   // Write Options
   jlOutputFile << endl
                << "options_ = dynare_options()" << endl
-               << "options_.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl;
+               << R"(options_.dynare_version = ")" << PACKAGE_VERSION << R"(")" << endl;
   if (linear == 1)
     jlOutputFile << "options_.linear = true" << endl;
 
   // Write Model
   jlOutputFile << endl
                << "model_ = dynare_model()" << endl
-               << "model_.fname = \"" << basename << "\"" << endl
-               << "model_.dynare_version = \"" << PACKAGE_VERSION << "\"" << endl
+               << R"(model_.fname = ")" << basename << R"(")" << endl
+               << R"(model_.dynare_version = ")" << PACKAGE_VERSION << R"(")" << endl
                << "model_.sigma_e = zeros(Float64, " << symbol_table.exo_nbr() << ", "
                << symbol_table.exo_nbr() << ")" << endl
                << "model_.correlation_matrix = ones(Float64, " << symbol_table.exo_nbr() << ", "
@@ -1229,19 +1229,19 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
                << "model_.dynamic = " << basename << "Dynamic.dynamic!" << endl
                << "model_.temporaries.static = " << basename << "Static.tmp_nbr" << endl
                << "model_.temporaries.dynamic = " << basename << "Dynamic.tmp_nbr" << endl
-               << "if isfile(\"" << basename << "SteadyState.jl"  "\")" << endl
+               << R"(if isfile(")" << basename << R"(SteadyState.jl"))" << endl
                << "    model_.user_written_analytical_steady_state = true" << endl
                << "    model_.steady_state = " << basename << "SteadyState.steady_state!" << endl
                << "end" << endl
-               << "if isfile(\"" << basename << "SteadyState2.jl"  "\")" << endl
+               << R"(if isfile(")" << basename << R"(SteadyState2.jl"))" << endl
                << "    model_.analytical_steady_state = true" << endl
                << "    model_.steady_state = " << basename << "SteadyState2.steady_state!" << endl
                << "end" << endl
-               << "if isfile(\"" << basename << "StaticParamsDerivs.jl"  "\")" << endl
+               << R"(if isfile(")" << basename << R"(StaticParamsDerivs.jl"))" << endl
                << "    using " << basename << "StaticParamsDerivs" << endl
                << "    model_.static_params_derivs = " << basename << "StaticParamsDerivs.params_derivs" << endl
                << "end" << endl
-               << "if isfile(\"" << basename << "DynamicParamsDerivs.jl"  "\")" << endl
+               << R"(if isfile(")" << basename << R"(DynamicParamsDerivs.jl"))" << endl
                << "    using " << basename << "DynamicParamsDerivs" << endl
                << "    model_.dynamic_params_derivs = " << basename << "DynamicParamsDerivs.params_derivs" << endl
                << "end" << endl
@@ -1312,7 +1312,7 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
       || !var_model_table.empty()
       || !trend_component_model_table.empty())
     {
-      output << ", \"statements\": [";
+      output << R"(, "statements": [)";
       if (!var_model_table.empty())
         {
           var_model_table.writeJsonOutput(output);
@@ -1350,7 +1350,7 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
       original_model.writeJsonOriginalModelOutput(original_model_output);
       if (!statements.empty() || !var_model_table.empty() || !trend_component_model_table.empty())
         {
-          original_model_output << endl << ", \"statements\": [";
+          original_model_output << endl << R"(, "statements": [)";
           if (!var_model_table.empty())
             {
               var_model_table.writeJsonOutput(original_model_output);
@@ -1381,14 +1381,14 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
   if (json_output_mode == JsonFileOutputType::standardout)
     {
       if (transformpass || computingpass)
-        cout << "\"transformed_modfile\": ";
+        cout << R"("transformed_modfile": )";
       else
-        cout << "\"modfile\": ";
+        cout << R"("modfile": )";
       cout << output.str();
       if (!original_model_output.str().empty())
-        cout << ", \"original_model\": " << original_model_output.str();
+        cout << R"(, "original_model": )" << original_model_output.str();
       if (!steady_state_model_output.str().empty())
-        cout << ", \"steady_state_model\": " << steady_state_model_output.str();
+        cout << R"(, "steady_state_model": )" << steady_state_model_output.str();
     }
   else
     {
@@ -1492,14 +1492,14 @@ ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType
 
   if (json_output_mode == JsonFileOutputType::standardout)
     {
-      cout << ", \"static_model\": " << static_output.str() << endl
-           << ", \"dynamic_model\": " << dynamic_output.str() << endl;
+      cout << R"(, "static_model": )" << static_output.str() << endl
+           << R"(, "dynamic_model": )" << dynamic_output.str() << endl;
 
       if (!static_paramsd_output.str().empty())
-        cout << ", \"static_params_deriv\": " << static_paramsd_output.str() << endl;
+        cout << R"(, "static_params_deriv": )" << static_paramsd_output.str() << endl;
 
       if (!dynamic_paramsd_output.str().empty())
-        cout << ", \"dynamic_params_deriv\": " << dynamic_paramsd_output.str() << endl;
+        cout << R"(, "dynamic_params_deriv": )" << dynamic_paramsd_output.str() << endl;
     }
   else
     {
