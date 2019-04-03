@@ -5710,7 +5710,7 @@ BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
         }
       else
         // This is a residual additive term
-        additive_vars_params_and_constants.push_back({ vid, lag, pid, constant});
+        additive_vars_params_and_constants.emplace_back(vid, lag, pid, constant);
     }
 }
 

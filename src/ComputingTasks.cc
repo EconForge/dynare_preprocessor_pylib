@@ -283,19 +283,19 @@ PacModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolida
   if (growth == nullptr)
     return;
 
-  VariableNode *vn = dynamic_cast<VariableNode *>(growth);
+  auto *vn = dynamic_cast<VariableNode *>(growth);
   if (vn != nullptr)
     {
       mod_file_struct.pac_params.insert(vn->symb_id);
       mod_file_struct.pac_params.insert(vn->lag);
     }
 
-  UnaryOpNode *uon = dynamic_cast<UnaryOpNode *>(growth);
+  auto *uon = dynamic_cast<UnaryOpNode *>(growth);
   if (uon != nullptr)
     if (uon->op_code == UnaryOpcode::diff)
       {
-        VariableNode *uonvn = dynamic_cast<VariableNode *>(uon->arg);
-        UnaryOpNode *uon1 = dynamic_cast<UnaryOpNode *>(uon->arg);
+        auto *uonvn = dynamic_cast<VariableNode *>(uon->arg);
+        auto *uon1 = dynamic_cast<UnaryOpNode *>(uon->arg);
         while (uonvn == nullptr && uon1 != nullptr)
           {
             uonvn = dynamic_cast<VariableNode *>(uon1->arg);
@@ -324,7 +324,7 @@ PacModelStatement::overwriteGrowth(expr_t new_growth)
     return;
 
   growth = new_growth;
-  VariableNode *vn = dynamic_cast<VariableNode *>(growth);
+  auto *vn = dynamic_cast<VariableNode *>(growth);
   if (vn == nullptr)
     {
       cerr << "PacModelStatement::overwriteGrowth: Internal Dynare error: should not arrive here" << endl;
