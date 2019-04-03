@@ -2865,6 +2865,16 @@ ConditionalForecastStatement::ConditionalForecastStatement(OptionsList options_l
 }
 
 void
+ConditionalForecastStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  if (options_list.string_options.find("parameter_set") == options_list.string_options.end())
+    {
+      cerr << "ERROR: You must pass the `parameter_set` option to conditional_forecast" << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
 ConditionalForecastStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_cond_fcst_");
