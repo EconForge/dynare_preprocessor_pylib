@@ -28,11 +28,7 @@ using namespace std;
 #include <map>
 #include <ostream>
 #include <array>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#include <boost/filesystem.hpp>
-#pragma GCC diagnostic pop
+#include <filesystem>
 
 #include "DataTree.hh"
 #include "ExtendedPreprocessorTypes.hh"
@@ -312,7 +308,7 @@ private:
   //! Returns the name of the MATLAB architecture given the extension used for MEX files
   static string matlab_arch(const string &mexext);
   //! Compiles the MEX file
-  static void compileDll(const string &basename, const string &static_or_dynamic, const string &mexext, const boost::filesystem::path &matlabroot, const boost::filesystem::path &dynareroot);
+  static void compileDll(const string &basename, const string &static_or_dynamic, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot);
 
 public:
   ModelTree(SymbolTable &symbol_table_arg,

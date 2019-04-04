@@ -132,7 +132,7 @@ SteadyStateModel::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
 void
 SteadyStateModel::writeLatexSteadyStateFile(const string &basename) const
 {
-  boost::filesystem::create_directories(basename + "/latex");
+  filesystem::create_directories(basename + "/latex");
 
   ofstream output, content_output;
   string filename = basename + "/latex/steady_state.tex";

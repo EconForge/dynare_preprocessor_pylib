@@ -131,6 +131,10 @@ private:
   void writeJsonComputingPassOutput(const string &basename, JsonFileOutputType json_output_mode, bool jsonderivsimple) const;
   void writeJsonFileHelper(const string &fname, ostringstream &output) const;
   vector<expr_t> pac_growth;
+  /* Generate a random temporary path. Equivalent to
+     boost::filesystem::unique_path(). Both are insecure, but currently there
+     is no better portable solution. Maybe in a later C++ standard? */
+  static filesystem::path unique_path();
 public:
   //! Add a statement
   void addStatement(unique_ptr<Statement> st);
@@ -164,8 +168,8 @@ public:
   void writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_log, bool no_warn,
                         bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
                         bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
-                        const string &mexext, const boost::filesystem::path &matlabroot,
-                        const boost::filesystem::path &dynareroot, bool onlymodel) const;
+                        const string &mexext, const filesystem::path &matlabroot,
+                        const filesystem::path &dynareroot, bool onlymodel) const;
   void writeExternalFiles(const string &basename, FileOutputType output, LanguageOutputType language) const;
   void writeExternalFilesJulia(const string &basename, FileOutputType output) const;
 

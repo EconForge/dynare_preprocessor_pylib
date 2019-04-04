@@ -1845,7 +1845,7 @@ ModelTree::Write_Inf_To_Bin_File(const string &filename,
 void
 ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_basename, ExprNodeOutputType output_type, const bool write_equation_tags) const
 {
-  boost::filesystem::create_directories(mod_basename + "/latex");
+  filesystem::create_directories(mod_basename + "/latex");
 
   ofstream output, content_output;
   string filename = mod_basename + "/latex/" + latex_basename + ".tex";
@@ -2212,11 +2212,11 @@ ModelTree::matlab_arch(const string &mexext)
 }
 
 void
-ModelTree::compileDll(const string &basename, const string &static_or_dynamic, const string &mexext, const boost::filesystem::path &matlabroot, const boost::filesystem::path &dynareroot)
+ModelTree::compileDll(const string &basename, const string &static_or_dynamic, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot)
 {
   const string opt_flags = "-O3 -g0 --param ira-max-conflict-table-size=1 -fno-forward-propagate -fno-gcse -fno-dce -fno-dse -fno-tree-fre -fno-tree-pre -fno-tree-cselim -fno-tree-dse -fno-tree-dce -fno-tree-pta -fno-gcse-after-reload";
 
-  boost::filesystem::path compiler;
+  filesystem::path compiler;
   ostringstream flags;
   string libs;
 
@@ -2254,7 +2254,7 @@ ModelTree::compileDll(const string &basename, const string &static_or_dynamic, c
           // Windows
           flags << " -static-libgcc -static-libstdc++ -shared";
           // Put the MinGW environment shipped with Dynare in the path
-          boost::filesystem::path mingwpath = dynareroot / (string{"mingw"} + (mexext == "mexw32" ? "32" : "64")) / "bin";
+          filesystem::path mingwpath = dynareroot / (string{"mingw"} + (mexext == "mexw32" ? "32" : "64")) / "bin";
           string newpath = "PATH=" + mingwpath.string() + ';' + string{getenv("PATH")};
           if (putenv(const_cast<char *>(newpath.c_str())) != 0)
             {
@@ -2272,12 +2272,12 @@ ModelTree::compileDll(const string &basename, const string &static_or_dynamic, c
         }
     }
 
-  auto model_dir = boost::filesystem::path{basename} / "model" / "src";
-  boost::filesystem::path main_src{model_dir / (static_or_dynamic + ".c")},
+  auto model_dir = filesystem::path{basename} / "model" / "src";
+  filesystem::path main_src{model_dir / (static_or_dynamic + ".c")},
     mex_src{model_dir / (static_or_dynamic + "_mex.c")};
 
-  boost::filesystem::path mex_dir{"+" + basename};
-  boost::filesystem::path binary{mex_dir / (static_or_dynamic + "." + mexext)};
+  filesystem::path mex_dir{"+" + basename};
+  filesystem::path binary{mex_dir / (static_or_dynamic + "." + mexext)};
 
   ostringstream cmd;
 

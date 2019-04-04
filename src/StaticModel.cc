@@ -556,7 +556,7 @@ StaticModel::writeModelEquationsCode(const string &basename, map_idx_t map_idx) 
   unsigned int instruction_number = 0;
   bool file_open = false;
 
-  boost::filesystem::create_directories(basename + "/model/bytecode");
+  filesystem::create_directories(basename + "/model/bytecode");
 
   string main_name = basename + "/model/bytecode/static.cod";
   code_file.open(main_name, ios::out | ios::binary | ios::ate);
@@ -733,7 +733,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
   deriv_node_temp_terms_t tef_terms;
   bool file_open = false;
 
-  boost::filesystem::create_directories(basename + "/model/bytecode");
+  filesystem::create_directories(basename + "/model/bytecode");
 
   string main_name = basename + "/model/bytecode/static.cod";
   code_file.open(main_name, ios::out | ios::binary | ios::ate);
@@ -1889,7 +1889,7 @@ void
 StaticModel::writeStaticCFile(const string &basename) const
 {
   // Writing comments and function definition command
-  boost::filesystem::create_directories(basename + "/model/src");
+  filesystem::create_directories(basename + "/model/src");
   string filename = basename + "/model/src/static.c";
   string filename_mex = basename + "/model/src/static_mex.c";
 
@@ -2027,7 +2027,7 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
 }
 
 void
-StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, const string &mexext, const boost::filesystem::path &matlabroot, const boost::filesystem::path &dynareroot, bool julia) const
+StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const
 {
   if (block && bytecode)
     writeModelEquationsCode_Block(basename, map_idx, map_idx2);

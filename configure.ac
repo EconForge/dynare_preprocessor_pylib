@@ -66,8 +66,6 @@ fi
 
 # We need 1.36 because of unordered_{set,hash} used by Dynare++
 AX_BOOST_BASE([1.36], [], [AC_MSG_ERROR([Can't find Boost >= 1.36])])
-AX_BOOST_SYSTEM
-AX_BOOST_FILESYSTEM
 
 CPPFLAGS_SAVED="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $BOOST_CPPFLAGS"

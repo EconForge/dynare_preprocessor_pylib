@@ -18,11 +18,7 @@
  */
 
 #include <iostream>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#include <boost/filesystem.hpp>
-#pragma GCC diagnostic pop
+#include <filesystem>
 
 #include "ParsingDriver.hh"
 #include "ModFile.hh"
@@ -37,12 +33,12 @@ main2(stringstream &in, const string &basename, bool debug, bool clear_all, bool
       bool minimal_workspace, bool compute_xrefs, FileOutputType output_mode,
       LanguageOutputType language, int params_derivs_order, bool transform_unary_ops,
       JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple,
-      const string &mexext, const boost::filesystem::path &matlabroot,
-      const boost::filesystem::path &dynareroot, bool onlymodel)
+      const string &mexext, const filesystem::path &matlabroot,
+      const filesystem::path &dynareroot, bool onlymodel)
 {
   ParsingDriver p(warnings, nostrict);
 
-  boost::filesystem::remove_all(basename + "/model/json");
+  filesystem::remove_all(basename + "/model/json");
 
   // Do parsing and construct internal representation of mod file
   unique_ptr<ModFile> mod_file = p.parse(in, debug);

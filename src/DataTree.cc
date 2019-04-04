@@ -22,10 +22,7 @@
 #include <iostream>
 #include <regex>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#include <boost/filesystem.hpp>
-#pragma GCC diagnostic pop
+#include <filesystem>
 
 #include "DataTree.hh"
 
@@ -890,6 +887,6 @@ DataTree::packageDir(const string &package)
 {
   regex pat{R"(\.)"};
   string dirname = "+" + regex_replace(package, pat, "/+");
-  boost::filesystem::create_directories(dirname);
+  filesystem::create_directories(dirname);
   return dirname;
 }

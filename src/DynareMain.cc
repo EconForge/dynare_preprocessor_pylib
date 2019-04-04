@@ -23,6 +23,7 @@
 #include <vector>
 #include <string>
 #include <regex>
+#include <filesystem>
 
 #include <cstdlib>
 
@@ -31,11 +32,6 @@
 #endif
 
 #include <unistd.h>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#include <boost/filesystem.hpp>
-#pragma GCC diagnostic pop
 
 #include "ParsingDriver.hh"
 #include "ExtendedPreprocessorTypes.hh"
@@ -52,8 +48,8 @@ void main2(stringstream &in, const string &basename, bool debug, bool clear_all,
            bool minimal_workspace, bool compute_xrefs, FileOutputType output_mode,
            LanguageOutputType lang, int params_derivs_order, bool transform_unary_ops,
            JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple,
-           const string &mexext, const boost::filesystem::path &matlabroot,
-           const boost::filesystem::path &dynareroot, bool onlymodel);
+           const string &mexext, const filesystem::path &matlabroot,
+           const filesystem::path &dynareroot, bool onlymodel);
 
 void main1(const string &filename, const string &basename, istream &modfile, bool debug, bool save_macro, string &save_macro_file,
            bool no_line_macro, bool no_empty_line_macro, const vector<pair<string, string>> &defines, const vector<string> &path, stringstream &macro_output);
@@ -167,8 +163,8 @@ main(int argc, char **argv)
   bool jsonderivsimple = false;
   LanguageOutputType language{LanguageOutputType::matlab};
   string mexext;
-  boost::filesystem::path matlabroot;
-  boost::filesystem::path dynareroot{argv[0]};
+  filesystem::path matlabroot;
+  filesystem::path dynareroot{argv[0]};
   dynareroot = dynareroot.parent_path();
   dynareroot = dynareroot / ".." / "..";
   bool onlymodel = false;
@@ -382,7 +378,7 @@ main(int argc, char **argv)
               cerr << "Incorrect syntax for matlabroot option" << endl;
               usage();
             }
-          matlabroot = boost::filesystem::path{s.substr(11)};
+          matlabroot = filesystem::path{s.substr(11)};
         }
       else if (s == "onlymodel")
         onlymodel = true;

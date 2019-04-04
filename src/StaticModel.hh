@@ -23,11 +23,7 @@
 using namespace std;
 
 #include <fstream>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#include <boost/filesystem.hpp>
-#pragma GCC diagnostic pop
+#include <filesystem>
 
 #include "ModelTree.hh"
 
@@ -200,7 +196,7 @@ public:
                                    int &u_count_int, bool &file_open) const;
 
   //! Writes static model file
-  void writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, const string &mexext, const boost::filesystem::path &matlabroot, const boost::filesystem::path &dynareroot, bool julia) const;
+  void writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const;
 
   //! Write JSON Output (used by PlannerObjectiveStatement)
   void writeJsonOutput(ostream &output) const;

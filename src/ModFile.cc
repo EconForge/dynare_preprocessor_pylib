@@ -22,11 +22,9 @@
 #include <fstream>
 #include <typeinfo>
 #include <cassert>
+#include <random>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#include <boost/filesystem.hpp>
-#pragma GCC diagnostic pop
+#include <filesystem>
 
 #include "ModFile.hh"
 #include "ConfigFile.hh"
@@ -843,8 +841,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
                           bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
                           bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
                           const string &mexext,
-                          const boost::filesystem::path &matlabroot,
-                          const boost::filesystem::path &dynareroot, bool onlymodel) const
+                          const filesystem::path &matlabroot,
+                          const filesystem::path &dynareroot, bool onlymodel) const
 {
   bool hasModelChanged = !dynamic_model.isChecksumMatching(basename, block);
   if (!check_model_changes)
@@ -858,21 +856,21 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
          preprocessor is not able to recreate it afterwards (presumably because
          MATLAB maintains some sort of lock on it). The workaround is to rename
          it before deleting it. */
-      if (boost::filesystem::exists("+" + basename))
+      if (filesystem::exists("+" + basename))
 	{
-	  auto tmp = boost::filesystem::unique_path();
-	  boost::filesystem::rename("+" + basename, tmp);
-	  boost::filesystem::remove_all(tmp);
+	  auto tmp = unique_path();
+	  filesystem::rename("+" + basename, tmp);
+	  filesystem::remove_all(tmp);
 	}
-      boost::filesystem::remove_all(basename + "/model/src");
-      boost::filesystem::remove_all(basename + "/model/bytecode");
+      filesystem::remove_all(basename + "/model/src");
+      filesystem::remove_all(basename + "/model/bytecode");
     }
 
   ofstream mOutputFile;
 
   if (basename.size())
     {
-      boost::filesystem::create_directory("+" + basename);
+      filesystem::create_directory("+" + basename);
       string fname = "+" + basename + "/driver.m";
       mOutputFile.open(fname, ios::out | ios::binary);
       if (!mOutputFile.is_open())
@@ -1438,7 +1436,7 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
 
       if (basename.size())
         {
-          boost::filesystem::create_directories(basename + "/model/json");
+          filesystem::create_directories(basename + "/model/json");
           string fname{basename + "/model/json/modfile.json"};
           jsonOutputFile.open(fname, ios::out | ios::binary);
           if (!jsonOutputFile.is_open())
@@ -1545,7 +1543,7 @@ ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType
     }
   else
     {
-      boost::filesystem::create_directories(basename + "/model/json");
+      filesystem::create_directories(basename + "/model/json");
 
       writeJsonFileHelper(basename + "/model/json/static.json", static_output);
       writeJsonFileHelper(basename + "/model/json/dynamic.json", dynamic_output);
@@ -1570,4 +1568,25 @@ ModFile::writeJsonFileHelper(const string &fname, ostringstream &output) const
     }
   jsonOutput << output.str();
   jsonOutput.close();
+}
+
+filesystem::path
+ModFile::unique_path()
+{
+  filesystem::path path;
+  string possible_characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  random_device rd;
+  mt19937 generator(rd());
+  uniform_int_distribution<int> distribution{0, static_cast<int>(possible_characters.size())-1};
+  do
+    {
+      constexpr int rand_length = 10;
+      string rand_str(rand_length, '\0');
+      for (auto &dis : rand_str)
+        dis = possible_characters[distribution(generator)];
+      path = filesystem::temp_directory_path() / rand_str;
+    }
+  while (filesystem::exists(path));
+
+  return path;
 }

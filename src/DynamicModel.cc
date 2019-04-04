@@ -965,7 +965,7 @@ DynamicModel::writeModelEquationsCode(const string &basename, const map_idx_t &m
   unsigned int instruction_number = 0;
   bool file_open = false;
 
-  boost::filesystem::create_directories(basename + "/model/bytecode");
+  filesystem::create_directories(basename + "/model/bytecode");
 
   string main_name = basename + "/model/bytecode/dynamic.cod";
   code_file.open(main_name, ios::out | ios::binary | ios::ate);
@@ -1233,7 +1233,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
   vector<int> feedback_variables;
   bool file_open = false;
   string main_name;
-  boost::filesystem::create_directories(basename + "/model/bytecode");
+  filesystem::create_directories(basename + "/model/bytecode");
   if (linear_decomposition)
     main_name = basename + "/model/bytecode/non_linear.cod";
   else
@@ -1692,7 +1692,7 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
 void
 DynamicModel::writeDynamicCFile(const string &basename, const int order) const
 {
-  boost::filesystem::create_directories(basename + "/model/src");
+  filesystem::create_directories(basename + "/model/src");
   string filename = basename + "/model/src/dynamic.c";
   string filename_mex = basename + "/model/src/dynamic_mex.c";
   ofstream mDynamicModelFile, mDynamicMexFile;
@@ -3378,7 +3378,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       if (estimation_present)
         {
           ofstream KF_index_file;
-          boost::filesystem::create_directories(basename + "/model/bytecode");
+          filesystem::create_directories(basename + "/model/bytecode");
           string main_name = basename + "/model/bytecode/kfi";
           KF_index_file.open(main_name, ios::out | ios::binary | ios::ate);
           int n_obs = symbol_table.observedVariablesNbr();
@@ -5343,7 +5343,7 @@ DynamicModel::collectBlockVariables()
 }
 
 void
-DynamicModel::writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, const string &mexext, const boost::filesystem::path &matlabroot, const boost::filesystem::path &dynareroot, int order, bool julia) const
+DynamicModel::writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, int order, bool julia) const
 {
   if (block && bytecode)
     writeModelEquationsCode_Block(basename, map_idx, linear_decomposition);
@@ -6702,7 +6702,7 @@ DynamicModel::isChecksumMatching(const string &basename, bool block) const
       result.process_bytes(private_buffer, strlen(private_buffer));
     }
 
-  bool basename_dir_exists = !boost::filesystem::create_directory(basename);
+  bool basename_dir_exists = !filesystem::create_directory(basename);
 
   // check whether basename directory exist. If not, create it.
   // If it does, read old checksum if it exist
