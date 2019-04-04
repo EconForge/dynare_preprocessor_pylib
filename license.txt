@@ -24,7 +24,7 @@ Copyright: 2008-2009 Thomas Porschberg <thomas@randspringer.de>
            2008-2009 Michael Tindal
            2008 Daniel Casimiro <dan.casimiro@gmail.com>
            2009 Roman Rybalko <libtorrent@romanr.info>
-License: permissive-autoconf
+License: FSFAP
 
 Files: m4/ax_cxx_compile_stdcxx.m4
        m4/ax_cxx_compile_stdcxx_14.m4
@@ -34,7 +34,7 @@ Copyright: 2008 Benjamin Kosnik <bkoz@redhat.com>
            2014, 2015 Google Inc.; contributed by Alexey Sokolov <sokolov@google.com>
            2015 Paul Norman <penorman@mac.com>
            2015 Moritz Klammler <moritz@klammler.eu>
-License: permissive-autoconf
+License: FSFAP
 
 Files: m4/ax_latex_class.m4 m4/ax_tex_test.m4
 Copyright: 2008 Boretti Mathieu <boretti@eig.unige.ch>
@@ -110,7 +110,7 @@ License: LGPL-3+
  You should have received a copy of the GNU Lesser General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-License: permissive-autoconf
+License: FSFAP
  Copying and distribution of this file, with or without modification, are
  permitted in any medium without royalty provided the copyright notice
  and this notice are preserved. This file is offered as-is, without any
