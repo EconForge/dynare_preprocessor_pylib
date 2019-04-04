@@ -34,6 +34,7 @@ Copyright: 2008 Benjamin Kosnik <bkoz@redhat.com>
            2014, 2015 Google Inc.; contributed by Alexey Sokolov <sokolov@google.com>
            2015 Paul Norman <penorman@mac.com>
            2015 Moritz Klammler <moritz@klammler.eu>
+           2016 Krzesimir Nowak <qdlacz@gmail.com>
 License: FSFAP
 
 Files: m4/ax_latex_class.m4 m4/ax_tex_test.m4
