@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2017 Dynare Team
+ * Copyright (C) 2015-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -47,7 +47,10 @@ main1(const string &filename, const string &basename, istream &modfile, bool deb
 
       string str (macro_output.str());
       if (no_empty_line_macro)
-        str.erase(unique(str.begin(), str.end(), compareNewline), str.end());
+        {
+          str.erase(0, str.find_first_not_of('\n'));
+          str.erase(unique(str.begin(), str.end(), compareNewline), str.end());
+        }
       macro_output_file << str;
       macro_output_file.close();
     }
