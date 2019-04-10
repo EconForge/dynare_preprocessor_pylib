@@ -74,19 +74,23 @@ vector<string>
 parse_options_line(istream &modfile)
 {
   vector<string> options;
-  string first_line;
-  getline(modfile, first_line);
-
+  string first_nonempty_line;
   regex pat{R"(^\s*//\s*--\+\s*options:([^\+]*)\+--)"};
   smatch matches;
-  if (regex_search(first_line, matches, pat))
-    if (matches.size() > 1 && matches[1].matched)
+
+  while (getline(modfile, first_nonempty_line))
+    if (first_nonempty_line != "")
       {
-        regex pat2{R"(([^,\s]+))"};
-        string s{matches[1]};
-        for (sregex_iterator p(s.begin(), s.end(), pat2);
-             p != sregex_iterator{}; ++p)
-          options.push_back((*p)[1]);
+        if (regex_search(first_nonempty_line, matches, pat))
+          if (matches.size() > 1 && matches[1].matched)
+            {
+              regex pat2{R"(([^,\s]+))"};
+              string s{matches[1]};
+              for (sregex_iterator p(s.begin(), s.end(), pat2);
+                   p != sregex_iterator{}; ++p)
+                options.push_back((*p)[1]);
+            }
+        break;
       }
 
   modfile.seekg(0);
