@@ -35,26 +35,43 @@ MacroDriver::parse(const string &file_arg, const string &basename_arg, istream &
   basename = basename_arg;
   no_line_macro = no_line_macro_arg;
 
+  if (!defines.empty())
+    {
+      /*
+         Parse commandline defines separately so as not to impact the line numbers in the original .mod file
+         The result of the code in this conditional is to modify the `env` variable
+       */
+      stringstream commandline_defines;
+      for (auto & define : defines)
+        try
+          {
+            stoi(define.second);
+            commandline_defines << "@#define " << define.first << " = " << define.second << endl;
+          }
+        catch (const invalid_argument &)
+          {
+            if (!define.second.empty() && define.second.at(0) == '[' && define.second.at(define.second.length()-1) == ']')
+              // If the input is an array. Issue #1578
+              commandline_defines << "@#define " << define.first << " = " << define.second << endl;
+            else
+              commandline_defines << "@#define " << define.first << R"( = ")" << define.second << R"(")" << endl;
+          }
+
+      stringstream defines_out;
+      lexer = make_unique<MacroFlex>(&commandline_defines, &defines_out, no_line_macro, path);
+      lexer->set_debug(debug);
+
+      Macro::parser defines_parser(*this, defines_out);
+      defines_parser.set_debug_level(debug);
+      defines_parser.parse();
+    }
+
   /*
     Copy the file into a stringstream, and add an extra end-of-line. This is a
     workaround for trac ticket #73: with this workaround, MOD files ending with
     an @#endif or an @#endfor - but no newline - no longer trigger an error.
   */
   stringstream file_with_endl;
-  for (auto & define : defines)
-    try
-      {
-        stoi(define.second);
-        file_with_endl << "@#define " << define.first << " = " << define.second << endl;
-      }
-    catch (const invalid_argument &)
-      {
-        if (!define.second.empty() && define.second.at(0) == '[' && define.second.at(define.second.length()-1) == ']')
-          // If the input is an array. Issue #1578
-          file_with_endl << "@#define " << define.first << " = " << define.second << endl;
-        else
-          file_with_endl << "@#define " << define.first << R"( = ")" << define.second << R"(")" << endl;
-      }
   file_with_endl << modfile.rdbuf() << endl;
 
   lexer = make_unique<MacroFlex>(&file_with_endl, &out, no_line_macro, path);
