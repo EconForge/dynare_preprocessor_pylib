@@ -28,7 +28,7 @@ bool compareNewline (int i, int j) {
 
 void
 main1(const string &filename, const string &basename, istream &modfile, bool debug, bool save_macro, string &save_macro_file,
-      bool no_line_macro, bool no_empty_line_macro, const map<string, string> &defines, const vector<string> &path, stringstream &macro_output)
+      bool no_line_macro, bool no_empty_line_macro, const vector<pair<string, string>> &defines, const vector<string> &path, stringstream &macro_output)
 {
   // Do macro processing
   MacroDriver m;

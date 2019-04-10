@@ -53,7 +53,7 @@ void main2(stringstream &in, const string &basename, bool debug, bool clear_all,
            const boost::filesystem::path &dynareroot, bool onlymodel);
 
 void main1(const string &filename, const string &basename, istream &modfile, bool debug, bool save_macro, string &save_macro_file,
-           bool no_line_macro, bool no_empty_line_macro, const map<string, string> &defines, const vector<string> &path, stringstream &macro_output);
+           bool no_line_macro, bool no_empty_line_macro, const vector<pair<string, string>> &defines, const vector<string> &path, stringstream &macro_output);
 
 void
 usage()
@@ -151,7 +151,7 @@ main(int argc, char **argv)
   bool minimal_workspace = false;
   bool compute_xrefs = false;
   bool transform_unary_ops = false;
-  map<string, string> defines;
+  vector<pair<string, string>> defines;
   vector<string> path;
   FileOutputType output_mode{FileOutputType::none};
   JsonOutputPointType json{JsonOutputPointType::nojson};
@@ -269,9 +269,9 @@ main(int argc, char **argv)
 
           auto equal_index = s.find('=');
           if (equal_index != string::npos)
-            defines[s.substr(2, equal_index-2)] = s.substr(equal_index+1);
+            defines.emplace_back(s.substr(2, equal_index-2), s.substr(equal_index+1));
           else
-            defines[s.substr(2)] = "1";
+            defines.emplace_back(s.substr(2), "1");
         }
       else if (s.substr(0, 2) == "-I")
         {

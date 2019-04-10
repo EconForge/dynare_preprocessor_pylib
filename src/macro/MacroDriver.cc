@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 Dynare Team
+ * Copyright (C) 2008-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -28,7 +28,7 @@
 
 void
 MacroDriver::parse(const string &file_arg, const string &basename_arg, istream &modfile,
-                   ostream &out, bool debug, bool no_line_macro_arg, map<string, string> defines,
+                   ostream &out, bool debug, bool no_line_macro_arg, const vector<pair<string, string>> &defines,
                    vector<string> path)
 {
   file = file_arg;
