@@ -2827,6 +2827,23 @@ RealtimeShockDecompositionStatement::writeOutput(ostream &output, const string &
   output << "oo_ = realtime_shock_decomposition(M_,oo_,options_,var_list_,bayestopt_,estim_params_);" << endl;
 }
 
+void
+RealtimeShockDecompositionStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "realtime_shock_decomposition")";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 PlotShockDecompositionStatement::PlotShockDecompositionStatement(SymbolList symbol_list_arg,
                                                                  OptionsList options_list_arg) :
   symbol_list{move(symbol_list_arg)},
@@ -2843,6 +2860,23 @@ PlotShockDecompositionStatement::writeOutput(ostream &output, const string &base
   output << "plot_shock_decomposition(M_, oo_, options_, var_list_);" << endl;
 }
 
+void
+PlotShockDecompositionStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "plot_shock_decomposition")";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 InitialConditionDecompositionStatement::InitialConditionDecompositionStatement(SymbolList symbol_list_arg,
                                                                                OptionsList options_list_arg) :
   symbol_list{move(symbol_list_arg)},
@@ -2857,6 +2891,23 @@ InitialConditionDecompositionStatement::writeOutput(ostream &output, const strin
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
   output << "oo_ = initial_condition_decomposition(M_, oo_, options_, var_list_, bayestopt_, estim_params_);" << endl;
+}
+
+void
+InitialConditionDecompositionStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "initial_condition_decomposition")";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 ConditionalForecastStatement::ConditionalForecastStatement(OptionsList options_list_arg) :

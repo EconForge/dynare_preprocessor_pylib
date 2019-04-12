@@ -727,6 +727,7 @@ public:
   RealtimeShockDecompositionStatement(SymbolList symbol_list_arg,
                                       OptionsList options_list_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class PlotShockDecompositionStatement : public Statement
@@ -738,6 +739,7 @@ public:
   PlotShockDecompositionStatement(SymbolList symbol_list_arg,
                                   OptionsList options_list_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class InitialConditionDecompositionStatement : public Statement
@@ -749,6 +751,7 @@ public:
   InitialConditionDecompositionStatement(SymbolList symbol_list_arg,
                                          OptionsList options_list_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class ConditionalForecastStatement : public Statement
