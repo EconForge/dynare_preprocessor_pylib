@@ -635,3 +635,38 @@ ShockGroupsStatement::writeOutput(ostream &output, const string &basename, bool 
         }
     }
 }
+
+void
+ShockGroupsStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "shock_groups", "name": ")" << name << R"(", "groups": {)";
+  bool unique_label = true;
+  bool printed_group = false;
+  for (auto it = shock_groups.begin(); it != shock_groups.end(); it++, unique_label = true)
+    {
+      for (auto it1 = it+1; it1 != shock_groups.end(); it1++)
+        if (it->name == it1->name)
+          {
+            unique_label = false;
+            break;
+          }
+
+      if (unique_label)
+        {
+          if (printed_group)
+            output << ", ";
+          else
+            printed_group = true;
+          output << R"("group_name": ")" << it->name << R"(",)"
+                 << R"("shocks": [)";
+          for (auto it1 = it->list.begin(); it1 != it->list.end(); it1++)
+            {
+              if (it1 != it->list.begin())
+                output << ", ";
+              output << R"(")" << *it1 << R"(")";
+            }
+          output << "]";
+        }
+    }
+  output << "}}";
+}
