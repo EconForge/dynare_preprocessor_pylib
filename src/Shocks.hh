@@ -159,7 +159,6 @@ public:
   using group_t = vector<Group>;
 private:
   group_t shock_groups;
-  vector<string> group_names;
   string name;
 public:
   ShockGroupsStatement(group_t shock_groups_arg, string name_arg);
