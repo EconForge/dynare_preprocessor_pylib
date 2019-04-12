@@ -1459,15 +1459,8 @@ void
 StaticModel::writeStaticModel(const string &basename,
                               ostream &StaticOutput, bool use_dll, bool julia) const
 {
-  ostringstream model_tt_output;             // Used for storing model temp vars
-  ostringstream model_output;                // Used for storing model equations
-  ostringstream jacobian_tt_output;          // Used for storing jacobian temp vars
-  ostringstream jacobian_output;             // Used for storing jacobian equations
-  ostringstream hessian_tt_output;           // Used for storing Hessian temp vars
-  ostringstream hessian_output;              // Used for storing Hessian equations
-  ostringstream third_derivatives_tt_output; // Used for storing third order derivatives temp terms
-  ostringstream third_derivatives_output;    // Used for storing third order derivatives equations
-  ostringstream for_sym;
+  vector<ostringstream> d_output(derivatives.size());  // Derivatives output (at all orders, including 0=residual)
+  vector<ostringstream> tt_output(derivatives.size()); // Temp terms output (at all orders)
 
   ExprNodeOutputType output_type = (use_dll ? ExprNodeOutputType::CStaticModel :
                                     julia ? ExprNodeOutputType::juliaStaticModel : ExprNodeOutputType::matlabStaticModel);
@@ -1476,18 +1469,20 @@ StaticModel::writeStaticModel(const string &basename,
   temporary_terms_t temp_term_union;
 
   writeModelLocalVariableTemporaryTerms(temp_term_union, temporary_terms_idxs,
-                                        model_tt_output, output_type, tef_terms);
+                                        tt_output[0], output_type, tef_terms);
 
   writeTemporaryTerms(temporary_terms_derivatives[0],
                       temp_term_union,
                       temporary_terms_idxs,
-                      model_tt_output, output_type, tef_terms);
+                      tt_output[0], output_type, tef_terms);
 
-  writeModelEquations(model_output, output_type, temp_term_union);
+  writeModelEquations(d_output[0], output_type, temp_term_union);
 
   int nrows = equations.size();
   int JacobianColsNbr = symbol_table.endo_nbr();
   int hessianColsNbr = JacobianColsNbr*JacobianColsNbr;
+
+  auto getJacobCol = [this](int var) { return symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)); };;
 
   // Write Jacobian w.r. to endogenous only
   if (!derivatives[1].empty())
@@ -1495,200 +1490,147 @@ StaticModel::writeStaticModel(const string &basename,
       writeTemporaryTerms(temporary_terms_derivatives[1],
                           temp_term_union,
                           temporary_terms_idxs,
-                          jacobian_tt_output, output_type, tef_terms);
+                          tt_output[1], output_type, tef_terms);
 
       for (const auto & first_derivative : derivatives[1])
         {
           int eq, var;
           tie(eq, var) = vectorToTuple<2>(first_derivative.first);
           expr_t d1 = first_derivative.second;
-          int symb_id = getSymbIDByDerivID(var);
 
-          jacobianHelper(jacobian_output, eq, symbol_table.getTypeSpecificID(symb_id), output_type);
-          jacobian_output << "=";
-          d1->writeOutput(jacobian_output, output_type,
+          jacobianHelper(d_output[1], eq, getJacobCol(var), output_type);
+          d_output[1] << "=";
+          d1->writeOutput(d_output[1], output_type,
                           temp_term_union, temporary_terms_idxs, tef_terms);
-          jacobian_output << ";" << endl;
+          d_output[1] << ";" << endl;
         }
     }
 
-  int g2ncols = symbol_table.endo_nbr() * symbol_table.endo_nbr();
-  // Write Hessian w.r. to endogenous only (only if 2nd order derivatives have been computed)
-  if (!derivatives[2].empty())
-    {
-      writeTemporaryTerms(temporary_terms_derivatives[2],
-                          temp_term_union,
-                          temporary_terms_idxs,
-                          hessian_tt_output, output_type, tef_terms);
+  // Write derivatives for order ≥ 2
+  for (size_t i = 2; i < derivatives.size(); i++)
+    if (!derivatives[i].empty())
+      {
+        writeTemporaryTerms(temporary_terms_derivatives[i],
+                            temp_term_union,
+                            temporary_terms_idxs,
+                            tt_output[i], output_type, tef_terms);
 
-      /* When creating the sparse matrix (in MATLAB or C mode), since storage
-         is in column-major order, output the first column, then the second,
-         then the third. This gives a significant performance boost in use_dll
-         mode (at both compilation and runtime), because it facilitates memory
-         accesses and expression reusage. */
-      ostringstream col0_output, col1_output, col2_output;
+        /* When creating the sparse matrix (in MATLAB or C mode), since storage
+           is in column-major order, output the first column, then the second,
+           then the third. This gives a significant performance boost in use_dll
+           mode (at both compilation and runtime), because it facilitates memory
+           accesses and expression reusage. */
+        ostringstream col0_output, col1_output, col2_output;
 
-      int k = 0; // Keep the line of a 2nd derivative in v2
-      for (const auto & second_derivative : derivatives[2])
-        {
-          int eq, var1, var2;
-          tie(eq, var1, var2) = vectorToTuple<3>(second_derivative.first);
-          expr_t d2 = second_derivative.second;
+        int k = 0; // Current line index in the 3-column matrix
+        for (const auto &dit : derivatives[i])
+          {
+            const vector<int> &vidx = dit.first;
+            expr_t d = dit.second;
+            int eq = vidx[0];
 
-          int symb_id1 = getSymbIDByDerivID(var1);
-          int symb_id2 = getSymbIDByDerivID(var2);
+            int col_idx = 0;
+            for (size_t j = 1; j < vidx.size(); j++)
+              {
+                col_idx *= JacobianColsNbr;
+                col_idx += getJacobCol(vidx[j]);
+              }
 
-          int tsid1 = symbol_table.getTypeSpecificID(symb_id1);
-          int tsid2 = symbol_table.getTypeSpecificID(symb_id2);
-
-          int col_nb = tsid1*symbol_table.endo_nbr()+tsid2;
-          int col_nb_sym = tsid2*symbol_table.endo_nbr()+tsid1;
-
-          if (output_type == ExprNodeOutputType::juliaStaticModel)
-            {
-              for_sym << "g2[" << eq + 1 << "," << col_nb + 1 << "]";
-              hessian_output << "  @inbounds " << for_sym.str() << " = ";
-              d2->writeOutput(hessian_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
-              hessian_output << endl;
-            }
-          else
-            {
-              sparseHelper(2, col0_output, k, 0, output_type);
-              col0_output << "=" << eq + 1 << ";" << endl;
-
-              sparseHelper(2, col1_output, k, 1, output_type);
-              col1_output << "=" << col_nb + 1 << ";" << endl;
-
-              sparseHelper(2, col2_output, k, 2, output_type);
-              col2_output << "=";
-              d2->writeOutput(col2_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
-              col2_output << ";" << endl;
-
-              k++;
-            }
-
-          // Treating symetric elements
-          if (symb_id1 != symb_id2)
             if (output_type == ExprNodeOutputType::juliaStaticModel)
-              hessian_output << "  @inbounds g2[" << eq + 1 << "," << col_nb_sym + 1 << "] = "
-                             << for_sym.str() << endl;
+              {
+                d_output[i] << "    @inbounds " << "g" << i << "[" << eq + 1 << "," << col_idx + 1 << "] = ";
+                d->writeOutput(d_output[i], output_type, temp_term_union, temporary_terms_idxs, tef_terms);
+                d_output[i] << endl;
+              }
             else
               {
-                sparseHelper(2, col0_output, k, 0, output_type);
+                sparseHelper(i, col0_output, k, 0, output_type);
                 col0_output << "=" << eq + 1 << ";" << endl;
 
-                sparseHelper(2, col1_output, k, 1, output_type);
-                col1_output << "=" << col_nb_sym + 1 << ";" << endl;
+                sparseHelper(i, col1_output, k, 1, output_type);
+                col1_output << "=" << col_idx + 1 << ";" << endl;
 
-                sparseHelper(2, col2_output, k, 2, output_type);
+                sparseHelper(i, col2_output, k, 2, output_type);
                 col2_output << "=";
-                sparseHelper(2, col2_output, k-1, 2, output_type);
+                d->writeOutput(col2_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
                 col2_output << ";" << endl;
 
                 k++;
               }
-        }
 
-      if (output_type != ExprNodeOutputType::juliaStaticModel)
-        hessian_output << col0_output.str() << col1_output.str() << col2_output.str();
-    }
+            // Output symetric elements, but only at order 2 and 3
+            if (i == 2 && vidx[1] != vidx[2])
+              {
+                int col_idx_sym = getJacobCol(vidx[2]) * JacobianColsNbr + getJacobCol(vidx[1]);
 
-  // Writing third derivatives
-  if (!derivatives[3].empty())
-    {
-      writeTemporaryTerms(temporary_terms_derivatives[3],
-                          temp_term_union,
-                          temporary_terms_idxs,
-                          third_derivatives_tt_output, output_type, tef_terms);
+                if (output_type == ExprNodeOutputType::juliaStaticModel)
+                  d_output[2] << "    @inbounds g2[" << eq + 1 << "," << col_idx_sym + 1 << "] = "
+                              << "g2[" << eq + 1 << "," << col_idx + 1 << "]" << endl;
+                else
+                  {
+                    sparseHelper(2, col0_output, k, 0, output_type);
+                    col0_output << "=" << eq + 1 << ";" << endl;
 
-      // See comment above for 2nd order
-      ostringstream col0_output, col1_output, col2_output;
+                    sparseHelper(2, col1_output, k, 1, output_type);
+                    col1_output << "=" << col_idx_sym + 1 << ";" << endl;
 
-      int k = 0; // Keep the line of a 3rd derivative in v3
-      for (const auto & third_derivative : derivatives[3])
-        {
-          int eq, var1, var2, var3;
-          tie(eq, var1, var2, var3) = vectorToTuple<4>(third_derivative.first);
-          expr_t d3 = third_derivative.second;
+                    sparseHelper(2, col2_output, k, 2, output_type);
+                    col2_output << "=";
+                    sparseHelper(2, col2_output, k-1, 2, output_type);
+                    col2_output << ";" << endl;
 
-          int id1 = getSymbIDByDerivID(var1);
-          int id2 = getSymbIDByDerivID(var2);
-          int id3 = getSymbIDByDerivID(var3);
+                    k++;
+                  }
+              }
+            if (i == 3)
+              {
+                // Use std::next_permutation() to explore all the permutations of the 3 indices
+                vector<int> idx3{getJacobCol(vidx[1]), getJacobCol(vidx[2]), getJacobCol(vidx[3])};
+                sort(idx3.begin(), idx3.end());
 
-          // Reference column number for the g3 matrix
-          int ref_col = id1 * hessianColsNbr + id2 * JacobianColsNbr + id3;
+                int k2 = 0; // Keeps the offset of the permutation relative to k
+                do
+                  {
+                    int col_idx_sym = idx3[0]*hessianColsNbr + idx3[1]*JacobianColsNbr + idx3[2];
+                    if (col_idx_sym != col_idx)
+                      if (output_type == ExprNodeOutputType::juliaStaticModel)
+                        d_output[3] << "    @inbounds g3[" << eq + 1 << "," << col_idx_sym + 1 << "] = "
+                                    << "g3[" << eq + 1 << "," << col_idx + 1 << "]" << endl;
+                      else
+                        {
+                          sparseHelper(3, col0_output, k+k2, 0, output_type);
+                          col0_output << "=" << eq + 1 << ";" << endl;
 
-          if (output_type == ExprNodeOutputType::juliaStaticModel)
-            {
-              for_sym << "g3[" << eq + 1 << "," << ref_col + 1 << "]";
-              third_derivatives_output << "  @inbounds " << for_sym.str() << " = ";
-              d3->writeOutput(third_derivatives_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
-              third_derivatives_output << endl;
-            }
-          else
-            {
-              sparseHelper(3, col0_output, k, 0, output_type);
-              col0_output << "=" << eq + 1 << ";" << endl;
+                          sparseHelper(3, col1_output, k+k2, 1, output_type);
+                          col1_output << "=" << col_idx_sym + 1 << ";" << endl;
 
-              sparseHelper(3, col1_output, k, 1, output_type);
-              col1_output << "=" << ref_col + 1 << ";" << endl;
+                          sparseHelper(3, col2_output, k+k2, 2, output_type);
+                          col2_output << "=";
+                          sparseHelper(3, col2_output, k-1, 2, output_type);
+                          col2_output << ";" << endl;
 
-              sparseHelper(3, col2_output, k, 2, output_type);
-              col2_output << "=";
-              d3->writeOutput(col2_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
-              col2_output << ";" << endl;
-            }
+                          k2++;
+                        }
+                  }
+                while (next_permutation(idx3.begin(), idx3.end()));
 
-          // Compute the column numbers for the 5 other permutations of (id1,id2,id3)
-          // and store them in a set (to avoid duplicates if two indexes are equal)
-          set<int> cols;
-          cols.insert(id1 * hessianColsNbr + id3 * JacobianColsNbr + id2);
-          cols.insert(id2 * hessianColsNbr + id1 * JacobianColsNbr + id3);
-          cols.insert(id2 * hessianColsNbr + id3 * JacobianColsNbr + id1);
-          cols.insert(id3 * hessianColsNbr + id1 * JacobianColsNbr + id2);
-          cols.insert(id3 * hessianColsNbr + id2 * JacobianColsNbr + id1);
-
-          int k2 = 1; // Keeps the offset of the permutation relative to k
-          for (int col : cols)
-            if (col != ref_col)
-              if (output_type == ExprNodeOutputType::juliaStaticModel)
-                third_derivatives_output << "  @inbounds g3[" << eq + 1 << "," << col + 1 << "] = "
-                                         << for_sym.str() << endl;
-              else
-                {
-                  sparseHelper(3, col0_output, k+k2, 0, output_type);
-                  col0_output << "=" << eq + 1 << ";" << endl;
-
-                  sparseHelper(3, col1_output, k+k2, 1, output_type);
-                  col1_output << "=" << col + 1 << ";" << endl;
-
-                  sparseHelper(3, col2_output, k+k2, 2, output_type);
-                  col2_output << "=";
-                  sparseHelper(3, col2_output, k, 2, output_type);
-                  col2_output << ";" << endl;
-
-                  k2++;
-                }
-          k += k2;
-        }
-
-      if (output_type != ExprNodeOutputType::juliaStaticModel)
-        third_derivatives_output << col0_output.str() << col1_output.str() << col2_output.str();
-    }
+                if (output_type != ExprNodeOutputType::juliaStaticModel)
+                  k += k2;
+              }
+          }
+        if (output_type != ExprNodeOutputType::juliaStaticModel)
+          d_output[i] << col0_output.str() << col1_output.str() << col2_output.str();
+      }
 
   if (output_type == ExprNodeOutputType::matlabStaticModel)
     {
       // Check that we don't have more than 32 nested parenthesis because Matlab does not suppor this. See Issue #1201
       map<string, string> tmp_paren_vars;
       bool message_printed = false;
-      fixNestedParenthesis(model_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(model_tt_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(jacobian_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(jacobian_tt_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(hessian_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(hessian_tt_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(third_derivatives_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(third_derivatives_tt_output, tmp_paren_vars, message_printed);
+      for (auto &it : tt_output)
+        fixNestedParenthesis(it, tmp_paren_vars, message_printed);
+      for (auto &it : d_output)
+        fixNestedParenthesis(it, tmp_paren_vars, message_printed);
 
       ostringstream init_output, end_output;
       init_output << "residual = zeros(" << equations.size() << ", 1);";
@@ -1698,12 +1640,10 @@ StaticModel::writeStaticModel(const string &basename,
       writeStaticModelHelper(basename, "static_resid", "residual", "static_resid_tt",
                              temporary_terms_mlv.size() + temporary_terms_derivatives[0].size(),
                              "", init_output, end_output,
-                             model_output, model_tt_output);
+                             d_output[0], tt_output[0]);
 
-      init_output.str(string());
-      init_output.clear();
-      end_output.str(string());
-      end_output.clear();
+      init_output.str("");
+      end_output.str("");
       init_output << "g1 = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ");";
       end_output << "if ~isreal(g1)" << endl
                  << "    g1 = real(g1)+2*imag(g1);" << endl
@@ -1712,82 +1652,64 @@ StaticModel::writeStaticModel(const string &basename,
                              temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size(),
                              "static_resid_tt",
                              init_output, end_output,
-                             jacobian_output, jacobian_tt_output);
+                             d_output[1], tt_output[1]);
       writeWrapperFunctions(basename, "g1");
 
-      init_output.str(string());
-      init_output.clear();
-      end_output.str(string());
-      end_output.clear();
-      if (derivatives[2].size())
+      // For order ≥ 2
+      int ncols = JacobianColsNbr;
+      int ntt = temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size();
+      for (size_t i = 2; i < derivatives.size(); i++)
         {
-          init_output << "v2 = zeros(" << NNZDerivatives[2] << ",3);";
-          end_output << "g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << equations.size() << "," << g2ncols << ");";
-        }
-      else
-        init_output << "g2 = sparse([],[],[]," << equations.size() << "," << g2ncols << ");";
-      writeStaticModelHelper(basename, "static_g2", "g2", "static_g2_tt",
-                             temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size()
-                             + temporary_terms_derivatives[2].size(),
-                             "static_g1_tt",
-                             init_output, end_output,
-                             hessian_output, hessian_tt_output);
-      writeWrapperFunctions(basename, "g2");
+          ncols *= JacobianColsNbr;
+          ntt += temporary_terms_derivatives[i].size();
+          string gname = "g" + to_string(i);
+          string vname = "v" + to_string(i);
+          string gprevname = "g" + to_string(i-1);
 
-      init_output.str(string());
-      init_output.clear();
-      end_output.str(string());
-      end_output.clear();
-      int ncols = hessianColsNbr * JacobianColsNbr;
-      if (derivatives[3].size())
-        {
-          init_output << "v3 = zeros(" << NNZDerivatives[3] << ",3);";
-          end_output << "g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");";
+          init_output.str("");
+          end_output.str("");
+          if (derivatives[i].size())
+            {
+              init_output << vname << " = zeros(" << NNZDerivatives[i] << ",3);";
+              end_output << gname << " = sparse("
+                         << vname << "(:,1),"
+                         << vname << "(:,2),"
+                         << vname << "(:,3),"
+                         << nrows << "," << ncols << ");";
+            }
+          else
+            init_output << gname << " = sparse([],[],[]," << nrows << "," << ncols << ");";
+          writeStaticModelHelper(basename, "static_" + gname, gname,
+                                 "static_" + gname + "_tt",
+                                 ntt,
+                                 "static_" + gprevname + "_tt",
+                                 init_output, end_output,
+                                 d_output[i], tt_output[i]);
+          if (i <= 3)
+            writeWrapperFunctions(basename, gname);
         }
-      else
-        init_output << "g3 = sparse([],[],[]," << nrows << "," << ncols << ");";
-      writeStaticModelHelper(basename, "static_g3", "g3", "static_g3_tt",
-                             temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size()
-                             + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size(),
-                             "static_g2_tt",
-                             init_output, end_output,
-                             third_derivatives_output, third_derivatives_tt_output);
-      writeWrapperFunctions(basename, "g3");
 
       writeStaticMatlabCompatLayer(basename);
     }
   else if (output_type == ExprNodeOutputType::CStaticModel)
     {
-      StaticOutput << "void static_resid_tt(const double *y, const double *x, int nb_row_x, const double *params, double *T)" << endl
-                   << "{" << endl
-                   << model_tt_output.str()
-                   << "}" << endl
-                   << endl
-                   << "void static_resid(const double *y, const double *x, int nb_row_x, const double *params, const double *T, double *residual)" << endl
-                   << "{" << endl
-                   << "  double lhs, rhs;" << endl
-                   << model_output.str()
-                   << "}" << endl
-                   << endl
-                   << "void static_g1_tt(const double *y, const double *x, int nb_row_x, const double *params, double *T)" << endl
-                   << "{" << endl
-                   << jacobian_tt_output.str()
-                   << "}" << endl
-                   << endl
-                   << "void static_g1(const double *y, const double *x, int nb_row_x, const double *params, const double *T, double *g1)" << endl
-                   << "{" << endl
-                   << jacobian_output.str()
-                   << "}" << endl
-                   << endl
-                   << "void static_g2_tt(const double *y, const double *x, int nb_row_x, const double *params, double *T)" << endl
-                   << "{" << endl
-                   << hessian_tt_output.str()
-                   << "}" << endl
-                   << endl
-                   << "void static_g2(const double *y, const double *x, int nb_row_x, const double *params, const double *T, double *v2)" << endl
-                   << "{" << endl
-                   << hessian_output.str()
-                   << "}" << endl;
+      for (size_t i = 0; i < d_output.size(); i++)
+        {
+          string funcname = i == 0 ? "resid" : "g" + to_string(i);
+          string argname = i == 0 ? "residual" : i == 1 ? "g1" : "v" + to_string(i);
+          StaticOutput << "void static_" << funcname << "_tt(const double *y, const double *x, int nb_row_x, const double *params, double *T)" << endl
+                       << "{" << endl
+                       << tt_output[i].str()
+                       << "}" << endl
+                       << endl
+                       << "void static_" << funcname << "(const double *y, const double *x, int nb_row_x, const double *params, const double *T, double *" << argname << ")" << endl
+                       << "{" << endl;
+          if (i == 0)
+            StaticOutput << "  double lhs, rhs;" << endl;
+          StaticOutput << d_output[i].str()
+                       << "}" << endl
+                       << endl;
+        }
     }
   else
     {
@@ -1862,7 +1784,7 @@ StaticModel::writeStaticModel(const string &basename,
       output << "function staticResidTT!(T::Vector{Float64}," << endl
              << "                        y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
              << "    @assert length(T) >= " << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size()  << endl
-             << model_tt_output.str()
+             << tt_output[0].str()
              << "    return nothing" << endl
              << "end" << endl << endl;
 
@@ -1876,7 +1798,7 @@ StaticModel::writeStaticModel(const string &basename,
              << "    if T0_flag" << endl
              << "        staticResidTT!(T, y, x, params)" << endl
              << "    end" << endl
-             << model_output.str()
+             << d_output[0].str()
              << "    if ~isreal(residual)" << endl
              << "        residual = real(residual)+imag(residual).^2;" << endl
              << "    end" << endl
@@ -1889,7 +1811,7 @@ StaticModel::writeStaticModel(const string &basename,
              << "    if T0_flag" << endl
              << "        staticResidTT!(T, y, x, params)" << endl
              << "    end" << endl
-             << jacobian_tt_output.str()
+             << tt_output[1].str()
              << "    return nothing" << endl
              << "end" << endl << endl;
 
@@ -1906,7 +1828,7 @@ StaticModel::writeStaticModel(const string &basename,
              << "        staticG1TT!(T, y, x, params, T0_flag)" << endl
              << "    end" << endl
              << "    fill!(g1, 0.0)" << endl
-             << jacobian_output.str()
+             << d_output[1].str()
              << "    if ~isreal(g1)" << endl
              << "        g1 = real(g1)+2*imag(g1);" << endl
              << "    end" << endl
@@ -1919,7 +1841,7 @@ StaticModel::writeStaticModel(const string &basename,
              << "    if T1_flag" << endl
              << "        staticG1TT!(T, y, x, params, TO_flag)" << endl
              << "    end" << endl
-             << hessian_tt_output.str()
+             << tt_output[2].str()
              << "    return nothing" << endl
              << "end" << endl << endl;
 
@@ -1928,7 +1850,7 @@ StaticModel::writeStaticModel(const string &basename,
              << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
              << "    @assert length(T) >= "
              << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() << endl
-             << "    @assert size(g2) == (" << equations.size() << ", " << g2ncols << ")" << endl
+             << "    @assert size(g2) == (" << equations.size() << ", " << hessianColsNbr << ")" << endl
              << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
              << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
              << "    @assert length(params) == " << symbol_table.param_nbr() << endl
@@ -1936,7 +1858,7 @@ StaticModel::writeStaticModel(const string &basename,
              << "        staticG2TT!(T, y, x, params, T1_flag, T0_flag)" << endl
              << "    end" << endl
              << "    fill!(g2, 0.0)" << endl
-             << hessian_output.str()
+             << d_output[2].str()
              << "    return nothing" << endl
              << "end" << endl << endl;
 
@@ -1946,7 +1868,7 @@ StaticModel::writeStaticModel(const string &basename,
              << "    if T2_flag" << endl
              << "        staticG2TT!(T, y, x, params, T1_flag, T0_flag)" << endl
              << "    end" << endl
-             << third_derivatives_tt_output.str()
+             << tt_output[3].str()
              << "    return nothing" << endl
              << "end" << endl << endl;
 
@@ -1964,7 +1886,7 @@ StaticModel::writeStaticModel(const string &basename,
              << "        staticG3TT!(T, y, x, params, T2_flag, T1_flag, T0_flag)" << endl
              << "    end" << endl
              << "    fill!(g3, 0.0)" << endl
-             << third_derivatives_output.str()
+             << d_output[3].str()
              << "    return nothing" << endl
              << "end" << endl << endl;
 
@@ -2069,7 +1991,6 @@ StaticModel::writeStaticCFile(const string &basename) const
          << "#include <uchar.h>" << endl // For MATLAB ≤ R2011a
          << R"(#include "mex.h")" << endl
          << endl
-         << "const int ntt = " << ntt << ";" << endl
          << "void static_resid_tt(const double *y, const double *x, int nb_row_x, const double *params, double *T);" << endl
          << "void static_resid(const double *y, const double *x, int nb_row_x, const double *params, const double *T, double *residual);" << endl
          << "void static_g1_tt(const double *y, const double *x, int nb_row_x, const double *params, double *T);" << endl
@@ -2090,7 +2011,7 @@ StaticModel::writeStaticCFile(const string &basename) const
          << "  /* Gets number of rows of matrix x. */" << endl
          << "  int nb_row_x = mxGetM(prhs[1]);" << endl
          << endl
-         << "  double *T = (double *) malloc(sizeof(double)*ntt);"
+         << "  double *T = (double *) malloc(sizeof(double)*" << ntt << ");"
          << endl
          << "  if (nlhs >= 1)" << endl
          << "    {" << endl
@@ -2216,11 +2137,10 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
 void
 StaticModel::writeOutput(ostream &output, bool block) const
 {
-  output << "M_.static_tmp_nbr = zeros(4,1); % Number of temporaries used for the static model" <<endl
-         << "M_.static_tmp_nbr(1) = " << temporary_terms_derivatives[0].size() << "; % Number of temporaries used for the evaluation of the residuals" << endl
-         << "M_.static_tmp_nbr(2) = " << temporary_terms_derivatives[1].size() << "; % Number of temporaries used for the evaluation of g1 (jacobian)" << endl
-         << "M_.static_tmp_nbr(3) = " << temporary_terms_derivatives[2].size() << "; % Number of temporaries used for the evaluation of g2 (hessian)" << endl
-         << "M_.static_tmp_nbr(4) = " << temporary_terms_derivatives[3].size() << "; % Number of temporaries used for the evaluation of g3 (third order derivatives)" << endl;
+  output << "M_.static_tmp_nbr = [";
+  for (size_t i = 0; i < temporary_terms_derivatives.size(); i++)
+    output << temporary_terms_derivatives[i].size() << "; ";
+  output << "];" << endl;
 
   if (!block)
     return;
@@ -2947,7 +2867,6 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
     }
   jacobian_output << "]}";
 
-  int g2ncols = symbol_table.endo_nbr() * symbol_table.endo_nbr();
   // Write Hessian w.r. to endogenous only (only if 2nd order derivatives have been computed)
   temp_term_union_m_1 = temp_term_union;
   temp_term_union.insert(temporary_terms_derivatives[2].begin(), temporary_terms_derivatives[2].end());
@@ -2955,7 +2874,7 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
   writeJsonTemporaryTerms(temp_term_union, temp_term_union_m_1, hessian_output, tef_terms, concat);
   hessian_output << R"(, "hessian": {)"
                  << R"(  "nrows": )" << equations.size()
-                 << R"(, "ncols": )" << g2ncols
+                 << R"(, "ncols": )" << hessianColsNbr
                  << R"(, "entries": [)";
   for (auto it = derivatives[2].begin();
        it != derivatives[2].end(); it++)

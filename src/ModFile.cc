@@ -750,7 +750,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
                   || mod_file_struct.ramsey_model_present || mod_file_struct.identification_present
                   || mod_file_struct.calib_smoother_present)
                 dynamic_model.set_cutoff_to_zero();
-              if (mod_file_struct.order_option < 1 || mod_file_struct.order_option > 3)
+              if (mod_file_struct.order_option < 1)
                 {
                   cerr << "ERROR: Incorrect order option..." << endl;
                   exit(EXIT_FAILURE);

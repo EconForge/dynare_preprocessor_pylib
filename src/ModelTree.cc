@@ -1276,12 +1276,12 @@ ModelTree::computeDerivatives(int order, const set<int> &vars)
   assert (order >= 1);
 
   // Do not shrink the vectors, since they have a minimal size of 4 (see constructor)
-  derivatives.resize(max(static_cast<size_t>(order), derivatives.size()));
-  NNZDerivatives.resize(max(static_cast<size_t>(order), NNZDerivatives.size()), 0);
+  derivatives.resize(max(static_cast<size_t>(order+1), derivatives.size()));
+  NNZDerivatives.resize(max(static_cast<size_t>(order+1), NNZDerivatives.size()), 0);
 
   // First-order derivatives
   for (int var : vars)
-    for (int eq = 0; eq < (int) equations.size(); eq++)
+    for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
       {
         expr_t d1 = equations[eq]->getDerivative(var);
         if (d1 == Zero)
@@ -1306,9 +1306,15 @@ ModelTree::computeDerivatives(int order, const set<int> &vars)
           indices.push_back(var);
           // At this point, indices of endogenous variables are sorted in non-decreasing order
           derivatives[o][indices] = d;
-          do
+          // We output symmetries at order ≤ 3
+          if (o <= 3)
+            {
+              do
+                NNZDerivatives[o]++;
+              while (next_permutation(next(indices.begin()), indices.end()));
+            }
+          else
             NNZDerivatives[o]++;
-          while (next_permutation(next(indices.begin()), indices.end()));
         }
 }
 

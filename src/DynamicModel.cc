@@ -1760,7 +1760,6 @@ DynamicModel::writeDynamicCFile(const string &basename, const int order) const
                   << "#include <uchar.h>" << endl // For MATLAB ≤ R2011a
                   << R"(#include "mex.h")" << endl
                   << endl
-                  << "const int ntt = " << ntt << ";" << endl
                   << "void dynamic_resid_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T);" << endl
                   << "void dynamic_resid(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *residual);" << endl
                   << "void dynamic_g1_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T);" << endl
@@ -1792,7 +1791,7 @@ DynamicModel::writeDynamicCFile(const string &basename, const int order) const
                   << "  /* Gets number of rows of matrix x. */" << endl
                   << "  int nb_row_x = mxGetM(prhs[1]);" << endl
                   << endl
-                  << "  double *T = (double *) malloc(sizeof(double)*ntt);"
+                  << "  double *T = (double *) malloc(sizeof(double)*" << ntt << ");"
                   << endl
                   << "  if (nlhs >= 1)" << endl
                   << "  {" << endl
@@ -2463,14 +2462,8 @@ DynamicModel::writeDynamicModel(const string &basename, bool use_dll, bool julia
 void
 DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, bool use_dll, bool julia) const
 {
-  ostringstream model_tt_output;             // Used for storing model temp vars
-  ostringstream model_output;                // Used for storing model equations
-  ostringstream jacobian_tt_output;          // Used for storing jacobian temp vars
-  ostringstream jacobian_output;             // Used for storing jacobian equations
-  ostringstream hessian_tt_output;           // Used for storing Hessian temp vars
-  ostringstream hessian_output;              // Used for storing Hessian equations
-  ostringstream third_derivatives_tt_output; // Used for storing third order derivatives temp terms
-  ostringstream third_derivatives_output;    // Used for storing third order derivatives equations
+  vector<ostringstream> d_output(derivatives.size());  // Derivatives output (at all orders, including 0=residual)
+  vector<ostringstream> tt_output(derivatives.size()); // Temp terms output (at all orders)
 
   ExprNodeOutputType output_type = (use_dll ? ExprNodeOutputType::CDynamicModel :
                                     julia ? ExprNodeOutputType::juliaDynamicModel : ExprNodeOutputType::matlabDynamicModel);
@@ -2479,14 +2472,14 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
   temporary_terms_t temp_term_union;
 
   writeModelLocalVariableTemporaryTerms(temp_term_union, temporary_terms_idxs,
-                                        model_tt_output, output_type, tef_terms);
+                                        tt_output[0], output_type, tef_terms);
 
   writeTemporaryTerms(temporary_terms_derivatives[0],
                       temp_term_union,
                       temporary_terms_idxs,
-                      model_tt_output, output_type, tef_terms);
+                      tt_output[0], output_type, tef_terms);
 
-  writeModelEquations(model_output, output_type, temp_term_union);
+  writeModelEquations(d_output[0], output_type, temp_term_union);
 
   int nrows = equations.size();
   int hessianColsNbr = dynJacobianColsNbr * dynJacobianColsNbr;
@@ -2497,7 +2490,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
       writeTemporaryTerms(temporary_terms_derivatives[1],
                           temp_term_union,
                           temporary_terms_idxs,
-                          jacobian_tt_output, output_type, tef_terms);
+                          tt_output[1], output_type, tef_terms);
 
       for (const auto & first_derivative : derivatives[1])
         {
@@ -2505,189 +2498,139 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
           tie(eq, var) = vectorToTuple<2>(first_derivative.first);
           expr_t d1 = first_derivative.second;
 
-          jacobianHelper(jacobian_output, eq, getDynJacobianCol(var), output_type);
-          jacobian_output << "=";
-          d1->writeOutput(jacobian_output, output_type,
+          jacobianHelper(d_output[1], eq, getDynJacobianCol(var), output_type);
+          d_output[1] << "=";
+          d1->writeOutput(d_output[1], output_type,
                           temp_term_union, temporary_terms_idxs, tef_terms);
-          jacobian_output << ";" << endl;
+          d_output[1] << ";" << endl;
         }
     }
 
-  // Writing Hessian
-  if (!derivatives[2].empty())
-    {
-      writeTemporaryTerms(temporary_terms_derivatives[2],
-                          temp_term_union,
-                          temporary_terms_idxs,
-                          hessian_tt_output, output_type, tef_terms);
+  // Write derivatives for order ≥ 2
+  for (size_t i = 2; i < derivatives.size(); i++)
+    if (!derivatives[i].empty())
+      {
+        writeTemporaryTerms(temporary_terms_derivatives[i],
+                            temp_term_union,
+                            temporary_terms_idxs,
+                            tt_output[i], output_type, tef_terms);
 
-      /* When creating the sparse matrix (in MATLAB or C mode), since storage
-         is in column-major order, output the first column, then the second,
-         then the third. This gives a significant performance boost in use_dll
-         mode (at both compilation and runtime), because it facilitates memory
-         accesses and expression reusage. */
-      ostringstream col0_output, col1_output, col2_output;
+        /* When creating the sparse matrix (in MATLAB or C mode), since storage
+           is in column-major order, output the first column, then the second,
+           then the third. This gives a significant performance boost in use_dll
+           mode (at both compilation and runtime), because it facilitates memory
+           accesses and expression reusage. */
+        ostringstream col0_output, col1_output, col2_output;
 
-      int k = 0; // Keep the line of a 2nd derivative in v2
-      for (const auto & second_derivative : derivatives[2])
-        {
-          int eq, var1, var2;
-          tie(eq, var1, var2) = vectorToTuple<3>(second_derivative.first);
-          expr_t d2 = second_derivative.second;
+        int k = 0; // Current line index in the 3-column matrix
+        for (const auto &dit : derivatives[i])
+          {
+            const vector<int> &vidx = dit.first;
+            expr_t d = dit.second;
+            int eq = vidx[0];
 
-          int id1 = getDynJacobianCol(var1);
-          int id2 = getDynJacobianCol(var2);
+            int col_idx = 0;
+            for (size_t j = 1; j < vidx.size(); j++)
+              {
+                col_idx *= dynJacobianColsNbr;
+                col_idx += getDynJacobianCol(vidx[j]);
+              }
 
-          int col_nb = id1 * dynJacobianColsNbr + id2;
-          int col_nb_sym = id2 * dynJacobianColsNbr + id1;
-
-          ostringstream for_sym;
-          if (output_type == ExprNodeOutputType::juliaDynamicModel)
-            {
-              for_sym << "g2[" << eq + 1 << "," << col_nb + 1 << "]";
-              hessian_output << "    @inbounds " << for_sym.str() << " = ";
-              d2->writeOutput(hessian_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
-              hessian_output << endl;
-            }
-          else
-            {
-              sparseHelper(2, col0_output, k, 0, output_type);
-              col0_output << "=" << eq + 1 << ";" << endl;
-
-              sparseHelper(2, col1_output, k, 1, output_type);
-              col1_output << "=" << col_nb + 1 << ";" << endl;
-
-              sparseHelper(2, col2_output, k, 2, output_type);
-              col2_output << "=";
-              d2->writeOutput(col2_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
-              col2_output << ";" << endl;
-
-              k++;
-            }
-
-          // Treating symetric elements
-          if (id1 != id2)
             if (output_type == ExprNodeOutputType::juliaDynamicModel)
-              hessian_output << "    @inbounds g2[" << eq + 1 << "," << col_nb_sym + 1 << "] = "
-                             << for_sym.str() << endl;
+              {
+                d_output[i] << "    @inbounds " << "g" << i << "[" << eq + 1 << "," << col_idx + 1 << "] = ";
+                d->writeOutput(d_output[i], output_type, temp_term_union, temporary_terms_idxs, tef_terms);
+                d_output[i] << endl;
+              }
             else
               {
-                sparseHelper(2, col0_output, k, 0, output_type);
+                sparseHelper(i, col0_output, k, 0, output_type);
                 col0_output << "=" << eq + 1 << ";" << endl;
 
-                sparseHelper(2, col1_output, k, 1, output_type);
-                col1_output << "=" << col_nb_sym + 1 << ";" << endl;
+                sparseHelper(i, col1_output, k, 1, output_type);
+                col1_output << "=" << col_idx + 1 << ";" << endl;
 
-                sparseHelper(2, col2_output, k, 2, output_type);
+                sparseHelper(i, col2_output, k, 2, output_type);
                 col2_output << "=";
-                sparseHelper(2, col2_output, k-1, 2, output_type);
+                d->writeOutput(col2_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
                 col2_output << ";" << endl;
 
                 k++;
               }
-        }
 
-      if (output_type != ExprNodeOutputType::juliaDynamicModel)
-        hessian_output << col0_output.str() << col1_output.str() << col2_output.str();
-    }
+            // Output symetric elements, but only at order 2 and 3
+            if (i == 2 && vidx[1] != vidx[2])
+              {
+                int col_idx_sym = getDynJacobianCol(vidx[2]) * dynJacobianColsNbr + getDynJacobianCol(vidx[1]);
 
-  // Writing third derivatives
-  if (!derivatives[3].empty())
-    {
-      writeTemporaryTerms(temporary_terms_derivatives[3],
-                          temp_term_union,
-                          temporary_terms_idxs,
-                          third_derivatives_tt_output, output_type, tef_terms);
+                if (output_type == ExprNodeOutputType::juliaDynamicModel)
+                  d_output[2] << "    @inbounds g2[" << eq + 1 << "," << col_idx_sym + 1 << "] = "
+                              << "g2[" << eq + 1 << "," << col_idx + 1 << "]" << endl;
+                else
+                  {
+                    sparseHelper(2, col0_output, k, 0, output_type);
+                    col0_output << "=" << eq + 1 << ";" << endl;
 
-      // See comment above for 2nd order
-      ostringstream col0_output, col1_output, col2_output;
+                    sparseHelper(2, col1_output, k, 1, output_type);
+                    col1_output << "=" << col_idx_sym + 1 << ";" << endl;
 
-      int k = 0; // Keep the line of a 3rd derivative in v3
-      for (const auto & third_derivative : derivatives[3])
-        {
-          int eq, var1, var2, var3;
-          tie(eq, var1, var2, var3) = vectorToTuple<4>(third_derivative.first);
-          expr_t d3 = third_derivative.second;
+                    sparseHelper(2, col2_output, k, 2, output_type);
+                    col2_output << "=";
+                    sparseHelper(2, col2_output, k-1, 2, output_type);
+                    col2_output << ";" << endl;
 
-          int id1 = getDynJacobianCol(var1);
-          int id2 = getDynJacobianCol(var2);
-          int id3 = getDynJacobianCol(var3);
+                    k++;
+                  }
+              }
+            if (i == 3)
+              {
+                // Use std::next_permutation() to explore all the permutations of the 3 indices
+                vector<int> idx3{getDynJacobianCol(vidx[1]), getDynJacobianCol(vidx[2]), getDynJacobianCol(vidx[3])};
+                sort(idx3.begin(), idx3.end());
 
-          // Reference column number for the g3 matrix
-          int ref_col = id1 * hessianColsNbr + id2 * dynJacobianColsNbr + id3;
+                int k2 = 0; // Keeps the offset of the permutation relative to k
+                do
+                  {
+                    int col_idx_sym = idx3[0]*hessianColsNbr + idx3[1]*dynJacobianColsNbr + idx3[2];
+                    if (col_idx_sym != col_idx)
+                      if (output_type == ExprNodeOutputType::juliaDynamicModel)
+                        d_output[3] << "    @inbounds g3[" << eq + 1 << "," << col_idx_sym + 1 << "] = "
+                                    << "g3[" << eq + 1 << "," << col_idx + 1 << "]" << endl;
+                      else
+                        {
+                          sparseHelper(3, col0_output, k+k2, 0, output_type);
+                          col0_output << "=" << eq + 1 << ";" << endl;
 
-          ostringstream for_sym;
-          if (output_type == ExprNodeOutputType::juliaDynamicModel)
-            {
-              for_sym << "g3[" << eq + 1 << "," << ref_col + 1 << "]";
-              third_derivatives_output << "    @inbounds " << for_sym.str() << " = ";
-              d3->writeOutput(third_derivatives_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
-              third_derivatives_output << endl;
-            }
-          else
-            {
-              sparseHelper(3, col0_output, k, 0, output_type);
-              col0_output << "=" << eq + 1 << ";" << endl;
+                          sparseHelper(3, col1_output, k+k2, 1, output_type);
+                          col1_output << "=" << col_idx_sym + 1 << ";" << endl;
 
-              sparseHelper(3, col1_output, k, 1, output_type);
-              col1_output << "=" << ref_col + 1 << ";" << endl;
+                          sparseHelper(3, col2_output, k+k2, 2, output_type);
+                          col2_output << "=";
+                          sparseHelper(3, col2_output, k-1, 2, output_type);
+                          col2_output << ";" << endl;
 
-              sparseHelper(3, col2_output, k, 2, output_type);
-              col2_output << "=";
-              d3->writeOutput(col2_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
-              col2_output << ";" << endl;
-            }
+                          k2++;
+                        }
+                  }
+                while (next_permutation(idx3.begin(), idx3.end()));
 
-          // Compute the column numbers for the 5 other permutations of (id1,id2,id3)
-          // and store them in a set (to avoid duplicates if two indexes are equal)
-          set<int> cols;
-          cols.insert(id1 * hessianColsNbr + id3 * dynJacobianColsNbr + id2);
-          cols.insert(id2 * hessianColsNbr + id1 * dynJacobianColsNbr + id3);
-          cols.insert(id2 * hessianColsNbr + id3 * dynJacobianColsNbr + id1);
-          cols.insert(id3 * hessianColsNbr + id1 * dynJacobianColsNbr + id2);
-          cols.insert(id3 * hessianColsNbr + id2 * dynJacobianColsNbr + id1);
-
-          int k2 = 1; // Keeps the offset of the permutation relative to k
-          for (int col : cols)
-            if (col != ref_col)
-              if (output_type == ExprNodeOutputType::juliaDynamicModel)
-                third_derivatives_output << "    @inbounds g3[" << eq + 1 << "," << col + 1 << "] = "
-                                         << for_sym.str() << endl;
-              else
-                {
-                  sparseHelper(3, col0_output, k+k2, 0, output_type);
-                  col0_output << "=" << eq + 1 << ";" << endl;
-
-                  sparseHelper(3, col1_output, k+k2, 1, output_type);
-                  col1_output << "=" << col + 1 << ";" << endl;
-
-                  sparseHelper(3, col2_output, k+k2, 2, output_type);
-                  col2_output << "=";
-                  sparseHelper(3, col2_output, k, 2, output_type);
-                  col2_output << ";" << endl;
-
-                  k2++;
-                }
-          k += k2;
-        }
-
-      if (output_type != ExprNodeOutputType::juliaDynamicModel)
-        third_derivatives_output << col0_output.str() << col1_output.str() << col2_output.str();
-    }
+                if (output_type != ExprNodeOutputType::juliaDynamicModel)
+                  k += k2;
+              }
+          }
+        if (output_type != ExprNodeOutputType::juliaDynamicModel)
+          d_output[i] << col0_output.str() << col1_output.str() << col2_output.str();
+      }
 
   if (output_type == ExprNodeOutputType::matlabDynamicModel)
     {
       // Check that we don't have more than 32 nested parenthesis because Matlab does not suppor this. See Issue #1201
       map<string, string> tmp_paren_vars;
       bool message_printed = false;
-      fixNestedParenthesis(model_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(model_tt_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(jacobian_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(jacobian_tt_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(hessian_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(hessian_tt_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(third_derivatives_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(third_derivatives_tt_output, tmp_paren_vars, message_printed);
+      for (auto &it : tt_output)
+        fixNestedParenthesis(it, tmp_paren_vars, message_printed);
+      for (auto &it : d_output)
+        fixNestedParenthesis(it, tmp_paren_vars, message_printed);
 
       ostringstream init_output, end_output;
       init_output << "residual = zeros(" << nrows << ", 1);";
@@ -2695,102 +2638,73 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
                               "dynamic_resid_tt",
                               temporary_terms_mlv.size() + temporary_terms_derivatives[0].size(),
                               "", init_output, end_output,
-                              model_output, model_tt_output);
+                              d_output[0], tt_output[0]);
 
-      init_output.str(string());
-      init_output.clear();
+      init_output.str("");
       init_output << "g1 = zeros(" << nrows << ", " << dynJacobianColsNbr << ");";
       writeDynamicModelHelper(basename, "dynamic_g1", "g1",
                               "dynamic_g1_tt",
                               temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size(),
                               "dynamic_resid_tt",
                               init_output, end_output,
-                              jacobian_output, jacobian_tt_output);
+                              d_output[1], tt_output[1]);
       writeWrapperFunctions(basename, "g1");
 
-      init_output.str(string());
-      init_output.clear();
-      if (derivatives[2].size())
+      // For order ≥ 2
+      int ncols = dynJacobianColsNbr;
+      int ntt = temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size();
+      for (size_t i = 2; i < derivatives.size(); i++)
         {
-          init_output << "v2 = zeros(" << NNZDerivatives[2] << ",3);";
-          end_output << "g2 = sparse(v2(:,1),v2(:,2),v2(:,3)," << nrows << "," << hessianColsNbr << ");";
-        }
-      else
-        init_output << "g2 = sparse([],[],[]," << nrows << "," << hessianColsNbr << ");";
-      writeDynamicModelHelper(basename, "dynamic_g2", "g2",
-                              "dynamic_g2_tt",
-                              temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size()
-                              + temporary_terms_derivatives[2].size(),
-                              "dynamic_g1_tt",
-                              init_output, end_output,
-                              hessian_output, hessian_tt_output);
-      writeWrapperFunctions(basename, "g2");
+          ncols *= dynJacobianColsNbr;
+          ntt += temporary_terms_derivatives[i].size();
+          string gname = "g" + to_string(i);
+          string vname = "v" + to_string(i);
+          string gprevname = "g" + to_string(i-1);
 
-      init_output.str(string());
-      init_output.clear();
-      end_output.str(string());
-      end_output.clear();
-      int ncols = hessianColsNbr * dynJacobianColsNbr;
-      if (derivatives[3].size())
-        {
-          init_output << "v3 = zeros(" << NNZDerivatives[3] << ",3);";
-          end_output << "g3 = sparse(v3(:,1),v3(:,2),v3(:,3)," << nrows << "," << ncols << ");";
+          init_output.str("");
+          end_output.str("");
+          if (derivatives[i].size())
+            {
+              init_output << vname << " = zeros(" << NNZDerivatives[i] << ",3);";
+              end_output << gname << " = sparse("
+                         << vname << "(:,1),"
+                         << vname << "(:,2),"
+                         << vname << "(:,3),"
+                         << nrows << "," << ncols << ");";
+            }
+          else
+            init_output << gname << " = sparse([],[],[]," << nrows << "," << ncols << ");";
+          writeDynamicModelHelper(basename, "dynamic_" + gname, gname,
+                                  "dynamic_" + gname + "_tt",
+                                  ntt,
+                                  "dynamic_" + gprevname + "_tt",
+                                  init_output, end_output,
+                                  d_output[i], tt_output[i]);
+          if (i <= 3)
+            writeWrapperFunctions(basename, gname);
         }
-      else
-        init_output << "g3 = sparse([],[],[]," << nrows << "," << ncols << ");";
-      writeDynamicModelHelper(basename, "dynamic_g3", "g3",
-                              "dynamic_g3_tt",
-                              temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size()
-                              + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size(),
-                              "dynamic_g2_tt",
-                              init_output, end_output,
-                              third_derivatives_output, third_derivatives_tt_output);
-      writeWrapperFunctions(basename, "g3");
 
       writeDynamicMatlabCompatLayer(basename);
     }
   else if (output_type == ExprNodeOutputType::CDynamicModel)
     {
-      DynamicOutput << "void dynamic_resid_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T)" << endl
-                    << "{" << endl
-                    << model_tt_output.str()
-                    << "}" << endl
-                    << endl
-                    << "void dynamic_resid(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *residual)" << endl
-                    << "{" << endl
-                    << "  double lhs, rhs;" << endl
-                    << model_output.str()
-                    << "}" << endl
-                    << endl
-                    << "void dynamic_g1_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T)" << endl
-                    << "{" << endl
-                    << jacobian_tt_output.str()
-                    << "}" << endl
-                    << endl
-                    << "void dynamic_g1(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *g1)" << endl
-                    << "{" << endl
-                    << jacobian_output.str()
-                    << "}" << endl
-                    << endl
-                    << "void dynamic_g2_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T)" << endl
-                    << "{" << endl
-                    << hessian_tt_output.str()
-                    << "}" << endl
-                    << endl
-                    << "void dynamic_g2(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *v2)" << endl
-                    << "{" << endl
-                    << hessian_output.str()
-                    << "}" << endl
-                    << endl
-                    << "void dynamic_g3_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T)" << endl
-                    << "{" << endl
-                    << third_derivatives_tt_output.str()
-                    << "}" << endl
-                    << endl
-                    << "void dynamic_g3(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *v3)" << endl
-                    << "{" << endl
-                    << third_derivatives_output.str()
-                    << "}" << endl;
+      for (size_t i = 0; i < d_output.size(); i++)
+        {
+          string funcname = i == 0 ? "resid" : "g" + to_string(i);
+          string argname = i == 0 ? "residual" : i == 1 ? "g1" : "v" + to_string(i);
+          DynamicOutput << "void dynamic_" << funcname << "_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T)" << endl
+                        << "{" << endl
+                        << tt_output[i].str()
+                        << "}" << endl
+                        << endl
+                        << "void dynamic_" << funcname << "(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *" << argname << ")" << endl
+                        << "{" << endl;
+          if (i == 0)
+            DynamicOutput << "  double lhs, rhs;" << endl;
+          DynamicOutput << d_output[i].str()
+                        << "}" << endl
+                        << endl;
+        }
     }
   else
     {
@@ -2866,7 +2780,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
       output << "function dynamicResidTT!(T::Vector{Float64}," << endl
              << "                         y::Vector{Float64}, x::Matrix{Float64}, "
              << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int)" << endl
-             << model_tt_output.str()
+             << tt_output[0].str()
              << "    return nothing" << endl
              << "end" << endl << endl;
 
@@ -2881,7 +2795,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
              << "    if T_flag" << endl
              << "        dynamicResidTT!(T, y, x, params, steady_state, it_)" << endl
              << "    end" << endl
-             << model_output.str()
+             << d_output[0].str()
              << "    return nothing" << endl
              << "end" << endl << endl;
 
@@ -2890,7 +2804,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
              << "                      y::Vector{Float64}, x::Matrix{Float64}, "
              << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int)" << endl
              << "    dynamicResidTT!(T, y, x, params, steady_state, it_)" << endl
-             << jacobian_tt_output.str()
+             << tt_output[1].str()
              << "    return nothing" << endl
              << "end" << endl << endl;
 
@@ -2907,7 +2821,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
              << "        dynamicG1TT!(T, y, x, params, steady_state, it_)" << endl
              << "    end" << endl
              << "    fill!(g1, 0.0)" << endl
-             << jacobian_output.str()
+             << d_output[1].str()
              << "    return nothing" << endl
              << "end" << endl << endl;
 
@@ -2916,7 +2830,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
              << "                      y::Vector{Float64}, x::Matrix{Float64}, "
              << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int)" << endl
              << "    dynamicG1TT!(T, y, x, params, steady_state, it_)" << endl
-             << hessian_tt_output.str()
+             << tt_output[2].str()
              << "    return nothing" << endl
              << "end" << endl << endl;
 
@@ -2932,7 +2846,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
              << "        dynamicG2TT!(T, y, x, params, steady_state, it_)" << endl
              << "    end" << endl
              << "    fill!(g2, 0.0)" << endl
-             << hessian_output.str()
+             << d_output[2].str()
              << "    return nothing" << endl
              << "end" << endl << endl;
 
@@ -2941,7 +2855,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
              << "                      y::Vector{Float64}, x::Matrix{Float64}, "
              << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int)" << endl
              << "    dynamicG2TT!(T, y, x, params, steady_state, it_)" << endl
-             << third_derivatives_tt_output.str()
+             << tt_output[3].str()
              << "    return nothing" << endl
              << "end" << endl << endl;
 
@@ -2959,7 +2873,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
              << "      dynamicG3TT!(T, y, x, params, steady_state, it_)" << endl
              << "    end" << endl
              << "    fill!(g3, 0.0)" << endl
-             << third_derivatives_output.str()
+             << d_output[3].str()
              << "    return nothing" << endl
              << "end" << endl << endl;
 
@@ -3096,11 +3010,12 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
          << modstruct << "nspred   = " << npred+nboth   << ";" << endl
          << modstruct << "ndynamic   = " << npred+nboth+nfwrd << ";" << endl;
   if (!julia)
-    output << modstruct << "dynamic_tmp_nbr = zeros(4,1); % Number of temporaries used for the dynamic model" << endl
-           << modstruct << "dynamic_tmp_nbr(1) = " << temporary_terms_derivatives[0].size() << "; % Number of temporaries used for the evaluation of the residuals" << endl
-           << modstruct << "dynamic_tmp_nbr(2) = " << temporary_terms_derivatives[1].size() << "; % Number of temporaries used for the evaluation of g1 (jacobian)" << endl
-           << modstruct << "dynamic_tmp_nbr(3) = " << temporary_terms_derivatives[2].size() << "; % Number of temporaries used for the evaluation of g2 (hessian)" << endl
-           << modstruct << "dynamic_tmp_nbr(4) = " << temporary_terms_derivatives[3].size() << "; % Number of temporaries used for the evaluation of g3 (third order derivatives)" << endl;
+    {
+      output << modstruct << "dynamic_tmp_nbr = [";
+      for (size_t i = 0; i < temporary_terms_derivatives.size(); i++)
+        output << temporary_terms_derivatives[i].size() << "; ";
+      output << "];" << endl;
+    }
 
   // Write equation tags
   if (julia)
@@ -3597,17 +3512,9 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
 
   // Write number of non-zero derivatives
   // Use -1 if the derivatives have not been computed
-  output << modstruct << (julia ? "nnzderivatives" : "NNZDerivatives")
-         << " = [" << NNZDerivatives[1] << "; ";
-  if (order > 1)
-    output << NNZDerivatives[2] << "; ";
-  else
-    output << "-1; ";
-
-  if (order > 2)
-    output << NNZDerivatives[3];
-  else
-    output << "-1";
+  output << modstruct << (julia ? "nnzderivatives" : "NNZDerivatives") << " = [";
+  for (int i = 1; i < static_cast<int>(NNZDerivatives.size()); i++)
+    output << (i > order ? -1 : NNZDerivatives[i]) << "; ";
   output << "];" << endl;
 
   // Write Pac Model Consistent Expectation parameter info
