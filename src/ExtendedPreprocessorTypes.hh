@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Dynare Team
+ * Copyright © 2014-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
