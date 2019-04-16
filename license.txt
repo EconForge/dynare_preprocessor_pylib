@@ -10,7 +10,7 @@ Upstream-Contact: Dynare Team, whose members in 2019 are:
                   Johannes Pfeifer <jpfeifer@gmx.de>
                   Marco Ratto <marco.ratto@ec.europa.eu>
                   Sébastien Villemot <sebastien@dynare.org>
-Source: http://www.dynare.org
+Source: https://www.dynare.org
 
 Files: *
 Copyright: 1996-2019 Dynare Team

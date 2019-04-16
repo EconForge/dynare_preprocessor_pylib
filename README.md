@@ -1,7 +1,7 @@
 <a name="logo"/>
 <div align="center">
-<a href="http://www.dynare.org/" target="_blank">
-<img src="http://www.dynare.org/img/dynare.png" alt="Dynare Logo"></img>
+<a href="https://www.dynare.org/" target="_blank">
+<img src="https://www.dynare.org/assets/images/logo/dlogo.svg" alt="Dynare Logo"></img>
 </a>
 </div>
 
@@ -9,7 +9,7 @@
 
 The Dynare Preprocessor defines the Dynare model language. It takes in a `.mod`
 file, computes the derivatives of the model represented therein, and produces
-Matlab/Octave, C, Julia, or JSON output.
+MATLAB/Octave, C, Julia, or JSON output.
 
 There is more to come here. For the moment, see the [Dynare
 repository](https://git.dynare.org/Dynare/dynare)
