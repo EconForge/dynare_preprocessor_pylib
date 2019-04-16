@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
 /*
- * Copyright (C) 2008-2017 Dynare Team
+ * Copyright © 2008-2017 Dynare Team
  *
  * This file is part of Dynare.
  *
