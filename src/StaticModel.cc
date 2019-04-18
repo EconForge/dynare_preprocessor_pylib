@@ -2815,14 +2815,11 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
   ostringstream third_derivatives_output;  // Used for storing third order derivatives equations
 
   deriv_node_temp_terms_t tef_terms;
-  temporary_terms_t temp_term_union = temporary_terms_derivatives[0];
-  temporary_terms_t temp_term_union_m_1;
-
-  string concat = "";
+  temporary_terms_t temp_term_union;
 
   writeJsonModelLocalVariables(model_local_vars_output, tef_terms);
 
-  writeJsonTemporaryTerms(temporary_terms_derivatives[0], temp_term_union_m_1, model_output, tef_terms, concat);
+  writeJsonTemporaryTerms(temporary_terms_derivatives[0], temp_term_union, model_output, tef_terms, "");
   model_output << ", ";
   writeJsonModelEquations(model_output, true);
 
@@ -2831,10 +2828,7 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
   int hessianColsNbr = JacobianColsNbr*JacobianColsNbr;
 
   // Write Jacobian w.r. to endogenous only
-  temp_term_union_m_1 = temp_term_union;
-  temp_term_union.insert(temporary_terms_derivatives[1].begin(), temporary_terms_derivatives[1].end());
-  concat = "jacobian";
-  writeJsonTemporaryTerms(temp_term_union, temp_term_union_m_1, jacobian_output, tef_terms, concat);
+  writeJsonTemporaryTerms(temporary_terms_derivatives[1], temp_term_union, jacobian_output, tef_terms, "jacobian");
   jacobian_output << R"(, "jacobian": {)"
                   << R"(  "nrows": )" << nrows
                   << R"(, "ncols": )" << JacobianColsNbr
@@ -2868,10 +2862,7 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
   jacobian_output << "]}";
 
   // Write Hessian w.r. to endogenous only (only if 2nd order derivatives have been computed)
-  temp_term_union_m_1 = temp_term_union;
-  temp_term_union.insert(temporary_terms_derivatives[2].begin(), temporary_terms_derivatives[2].end());
-  concat = "hessian";
-  writeJsonTemporaryTerms(temp_term_union, temp_term_union_m_1, hessian_output, tef_terms, concat);
+  writeJsonTemporaryTerms(temporary_terms_derivatives[2], temp_term_union, hessian_output, tef_terms, "hessian");
   hessian_output << R"(, "hessian": {)"
                  << R"(  "nrows": )" << equations.size()
                  << R"(, "ncols": )" << hessianColsNbr
@@ -2915,10 +2906,7 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
   hessian_output << "]}";
 
   // Writing third derivatives
-  temp_term_union_m_1 = temp_term_union;
-  temp_term_union.insert(temporary_terms_derivatives[3].begin(), temporary_terms_derivatives[3].end());
-  concat = "third_derivatives";
-  writeJsonTemporaryTerms(temp_term_union, temp_term_union_m_1, third_derivatives_output, tef_terms, concat);
+  writeJsonTemporaryTerms(temporary_terms_derivatives[3], temp_term_union, third_derivatives_output, tef_terms, "third_derivatives");
   third_derivatives_output << R"(, "third_derivative": {)"
                            << R"(  "nrows": )" << equations.size()
                            << R"(, "ncols": )" << hessianColsNbr * JacobianColsNbr
@@ -2999,9 +2987,8 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
   writeJsonModelLocalVariables(model_local_vars_output, tef_terms);
 
   temporary_terms_t temp_term_union;
-  string concat = "all";
   for (const auto &it : params_derivs_temporary_terms)
-    writeJsonTemporaryTerms(it.second, temp_term_union, model_output, tef_terms, concat);
+    writeJsonTemporaryTerms(it.second, temp_term_union, model_output, tef_terms, "all");
 
   jacobian_output << R"("deriv_wrt_params": {)"
                   << R"(  "neqs": )" << equations.size()

@@ -1433,55 +1433,52 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt,
 }
 
 void
-ModelTree::writeJsonTemporaryTerms(const temporary_terms_t &tt, const temporary_terms_t &ttm1, ostream &output,
-                                   deriv_node_temp_terms_t &tef_terms, string &concat) const
+ModelTree::writeJsonTemporaryTerms(const temporary_terms_t &tt,
+                                   temporary_terms_t &temp_term_union,
+                                   ostream &output,
+                                   deriv_node_temp_terms_t &tef_terms, const string &concat) const
 {
   // Local var used to keep track of temp nodes already written
   bool wrote_term = false;
-  temporary_terms_t tt2 = ttm1;
+  temporary_terms_t tt2 = temp_term_union;
 
   output << R"("external_functions_temporary_terms_)" << concat << R"(": [)";
   for (auto it : tt)
-    if (ttm1.find(it) == ttm1.end())
-      {
-        if (dynamic_cast<AbstractExternalFunctionNode *>(it) != nullptr)
-          {
-            if (wrote_term)
-              output << ", ";
-            vector<string> efout;
-            it->writeJsonExternalFunctionOutput(efout, tt2, tef_terms);
-            for (vector<string>::const_iterator it1 = efout.begin(); it1 != efout.end(); it1++)
-              {
-                if (it1 != efout.begin())
-                  output << ", ";
-                output << *it1;
-              }
-            wrote_term = true;
-          }
-        tt2.insert(it);
-      }
+    {
+      if (dynamic_cast<AbstractExternalFunctionNode *>(it) != nullptr)
+        {
+          if (wrote_term)
+            output << ", ";
+          vector<string> efout;
+          it->writeJsonExternalFunctionOutput(efout, tt2, tef_terms);
+          for (auto it1 = efout.begin(); it1 != efout.end(); ++it1)
+            {
+              if (it1 != efout.begin())
+                output << ", ";
+              output << *it1;
+            }
+          wrote_term = true;
+        }
+      tt2.insert(it);
+    }
 
-  tt2 = ttm1;
   wrote_term = false;
   output << "]"
          << R"(, "temporary_terms_)" << concat << R"(": [)";
-  for (auto it = tt.begin();
-       it != tt.end(); it++)
-    if (ttm1.find(*it) == ttm1.end())
-      {
-        if (wrote_term)
-          output << ", ";
-        output << R"({"temporary_term": ")";
-        (*it)->writeJsonOutput(output, tt, tef_terms);
-        output << R"(")"
-               << R"(, "value": ")";
-        (*it)->writeJsonOutput(output, tt2, tef_terms);
-        output << R"("})" << endl;
-        wrote_term = true;
+  for (const auto &it : tt)
+    {
+      if (wrote_term)
+        output << ", ";
+      output << R"({"temporary_term": ")";
+      it->writeJsonOutput(output, tt, tef_terms);
+      output << R"(")"
+             << R"(, "value": ")";
+      it->writeJsonOutput(output, temp_term_union, tef_terms);
+      output << R"("})" << endl;
+      wrote_term = true;
 
-        // Insert current node into tt2
-        tt2.insert(*it);
-      }
+      temp_term_union.insert(it);
+    }
   output << "]";
 }
 
