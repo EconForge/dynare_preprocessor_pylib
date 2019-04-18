@@ -1482,7 +1482,7 @@ StaticModel::writeStaticModel(const string &basename,
   int JacobianColsNbr = symbol_table.endo_nbr();
   int hessianColsNbr = JacobianColsNbr*JacobianColsNbr;
 
-  auto getJacobCol = [this](int var) { return symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)); };;
+  auto getJacobCol = [this](int var) { return symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)); };
 
   // Write Jacobian w.r. to endogenous only
   if (!derivatives[1].empty())
@@ -2808,165 +2808,94 @@ StaticModel::writeJsonOutput(ostream &output) const
 void
 StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) const
 {
-  ostringstream model_local_vars_output;   // Used for storing model local vars
-  ostringstream model_output;              // Used for storing model
-  ostringstream jacobian_output;           // Used for storing jacobian equations
-  ostringstream hessian_output;            // Used for storing Hessian equations
-  ostringstream third_derivatives_output;  // Used for storing third order derivatives equations
+  ostringstream model_local_vars_output;  // Used for storing model local vars
+  vector<ostringstream> d_output(derivatives.size());  // Derivatives output (at all orders, including 0=residual)
 
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;
 
   writeJsonModelLocalVariables(model_local_vars_output, tef_terms);
 
-  writeJsonTemporaryTerms(temporary_terms_derivatives[0], temp_term_union, model_output, tef_terms, "");
-  model_output << ", ";
-  writeJsonModelEquations(model_output, true);
+  writeJsonTemporaryTerms(temporary_terms_derivatives[0], temp_term_union, d_output[0], tef_terms, "");
+  d_output[0] << ", ";
+  writeJsonModelEquations(d_output[0], true);
 
-  int nrows = equations.size();
-  int JacobianColsNbr = symbol_table.endo_nbr();
-  int hessianColsNbr = JacobianColsNbr*JacobianColsNbr;
-
-  // Write Jacobian w.r. to endogenous only
-  writeJsonTemporaryTerms(temporary_terms_derivatives[1], temp_term_union, jacobian_output, tef_terms, "jacobian");
-  jacobian_output << R"(, "jacobian": {)"
-                  << R"(  "nrows": )" << nrows
-                  << R"(, "ncols": )" << JacobianColsNbr
+  auto getJacobCol = [this](int var) { return symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)); };
+  int ncols = symbol_table.endo_nbr();
+  for (size_t i = 1; i < derivatives.size(); i++)
+    {
+      string matrix_name = i == 1 ? "jacobian" : i == 2 ? "hessian" : i == 3 ? "third_derivative" : to_string(i) + "th_derivative";
+      writeJsonTemporaryTerms(temporary_terms_derivatives[i], temp_term_union, d_output[i], tef_terms, matrix_name);
+      temp_term_union.insert(temporary_terms_derivatives[i].begin(), temporary_terms_derivatives[i].end());
+      d_output[i] << R"(, ")" << matrix_name  << R"(": {)"
+                  << R"(  "nrows": )" << equations.size()
+                  << R"(, "ncols": )" << ncols
                   << R"(, "entries": [)";
-  for (auto it = derivatives[1].begin();
-       it != derivatives[1].end(); it++)
-    {
-      if (it != derivatives[1].begin())
-        jacobian_output << ", ";
 
-      int eq, var;
-      tie(eq, var) = vectorToTuple<2>(it->first);
-      int symb_id = getSymbIDByDerivID(var);
-      int col = symbol_table.getTypeSpecificID(symb_id);
-      expr_t d1 = it->second;
-
-      if (writeDetails)
-        jacobian_output << R"({"eq": )" << eq + 1;
-      else
-        jacobian_output << R"({"row": )" << eq + 1;
-
-      jacobian_output << R"(, "col": )" << col + 1;
-
-      if (writeDetails)
-        jacobian_output << R"(, "var": ")" << symbol_table.getName(symb_id) << R"(")";
-
-      jacobian_output << R"(, "val": ")";
-      d1->writeJsonOutput(jacobian_output, temp_term_union, tef_terms);
-      jacobian_output << R"("})" << endl;
-    }
-  jacobian_output << "]}";
-
-  // Write Hessian w.r. to endogenous only (only if 2nd order derivatives have been computed)
-  writeJsonTemporaryTerms(temporary_terms_derivatives[2], temp_term_union, hessian_output, tef_terms, "hessian");
-  hessian_output << R"(, "hessian": {)"
-                 << R"(  "nrows": )" << equations.size()
-                 << R"(, "ncols": )" << hessianColsNbr
-                 << R"(, "entries": [)";
-  for (auto it = derivatives[2].begin();
-       it != derivatives[2].end(); it++)
-    {
-      if (it != derivatives[2].begin())
-        hessian_output << ", ";
-
-      int eq, var1, var2;
-      tie(eq, var1, var2) = vectorToTuple<3>(it->first);
-      int symb_id1 = getSymbIDByDerivID(var1);
-      int symb_id2 = getSymbIDByDerivID(var2);
-      expr_t d2 = it->second;
-
-      int tsid1 = symbol_table.getTypeSpecificID(symb_id1);
-      int tsid2 = symbol_table.getTypeSpecificID(symb_id2);
-
-      int col = tsid1*symbol_table.endo_nbr()+tsid2;
-      int col_sym = tsid2*symbol_table.endo_nbr()+tsid1;
-
-      if (writeDetails)
-        hessian_output << R"({"eq": )" << eq + 1;
-      else
-        hessian_output << R"({"row": )" << eq + 1;
-
-      hessian_output << R"(, "col": [)" << col + 1;
-
-      if (writeDetails)
-        hessian_output << R"(, "var1": ")" << symbol_table.getName(symb_id1) << R"(")"
-                       << R"(, "var2": ")" << symbol_table.getName(symb_id2) << R"(")";
-
-      if (symb_id1 != symb_id2)
-        hessian_output << ", " <<  col_sym + 1;
-      hessian_output << "]"
-                     << R"(, "val": ")";
-      d2->writeJsonOutput(hessian_output, temp_term_union, tef_terms);
-      hessian_output << R"("})" << endl;
-    }
-  hessian_output << "]}";
-
-  // Writing third derivatives
-  writeJsonTemporaryTerms(temporary_terms_derivatives[3], temp_term_union, third_derivatives_output, tef_terms, "third_derivatives");
-  third_derivatives_output << R"(, "third_derivative": {)"
-                           << R"(  "nrows": )" << equations.size()
-                           << R"(, "ncols": )" << hessianColsNbr * JacobianColsNbr
-                           << R"(, "entries": [)";
-  for (auto it = derivatives[3].begin();
-       it != derivatives[3].end(); it++)
-    {
-      if (it != derivatives[3].begin())
-        third_derivatives_output << ", ";
-
-      int eq, var1, var2, var3;
-      tie(eq, var1, var2, var3) = vectorToTuple<4>(it->first);
-      expr_t d3 = it->second;
-
-      if (writeDetails)
-        third_derivatives_output << R"({"eq": )" << eq + 1;
-      else
-        third_derivatives_output << R"({"row": )" << eq + 1;
-
-      int id1 = getSymbIDByDerivID(var1);
-      int id2 = getSymbIDByDerivID(var2);
-      int id3 = getSymbIDByDerivID(var3);
-      set<int> cols;
-      cols.insert(id1 * hessianColsNbr + id2 * JacobianColsNbr + id3);
-      cols.insert(id1 * hessianColsNbr + id3 * JacobianColsNbr + id2);
-      cols.insert(id2 * hessianColsNbr + id1 * JacobianColsNbr + id3);
-      cols.insert(id2 * hessianColsNbr + id3 * JacobianColsNbr + id1);
-      cols.insert(id3 * hessianColsNbr + id1 * JacobianColsNbr + id2);
-      cols.insert(id3 * hessianColsNbr + id2 * JacobianColsNbr + id1);
-
-      third_derivatives_output << R"(, "col": [)";
-      for (auto it2 = cols.begin(); it2 != cols.end(); it2++)
+      for (auto it = derivatives[i].begin(); it != derivatives[i].end(); ++it)
         {
-          if (it2 != cols.begin())
-            third_derivatives_output << ", ";
-          third_derivatives_output << *it2 + 1;
+          if (it != derivatives[i].begin())
+            d_output[i] << ", ";
+
+          const vector<int> &vidx = it->first;
+          expr_t d = it->second;
+          int eq = vidx[0];
+
+          int col_idx = 0;
+          for (size_t j = 1; j < vidx.size(); j++)
+            {
+              col_idx *= symbol_table.endo_nbr();
+              col_idx += getJacobCol(vidx[j]);
+            }
+
+          if (writeDetails)
+            d_output[i] << R"({"eq": )" << eq + 1;
+          else
+            d_output[i] << R"({"row": )" << eq + 1;
+
+          d_output[i] << R"(, "col": )" << (i > 1 ? "[" : "") << col_idx + 1;
+
+          if (i == 2 && vidx[1] != vidx[2]) // Symmetric elements in hessian
+            {
+              int col_idx_sym = getJacobCol(vidx[2]) * symbol_table.endo_nbr() + getJacobCol(vidx[1]);
+              d_output[i] << ", " << col_idx_sym + 1;
+            }
+          if (i == 3) // Symmetric elements in 3rd derivative
+            {
+              vector<int> idx3{getJacobCol(vidx[1]), getJacobCol(vidx[2]), getJacobCol(vidx[3])};
+              sort(idx3.begin(), idx3.end());
+              do
+                {
+                  int col_idx_sym = (idx3[0]*symbol_table.endo_nbr() + idx3[1])*symbol_table.endo_nbr() + idx3[2];
+                  if (col_idx_sym != col_idx)
+                    d_output[i] << ", " << col_idx_sym+1;
+                }
+              while (next_permutation(idx3.begin(), idx3.end()));
+            }
+          if (i > 1)
+            d_output[i] << "]";
+
+          if (writeDetails)
+            for (size_t j = 1; j < vidx.size(); j++)
+              d_output[i] << R"(, "var)" << (i > 1 ? to_string(j) : "") << R"(": ")" << symbol_table.getName(getSymbIDByDerivID(vidx[j])) << R"(")";
+
+          d_output[i] << R"(, "val": ")";
+          d->writeJsonOutput(d_output[i], temp_term_union, tef_terms);
+          d_output[i] << R"("})" << endl;
         }
-      third_derivatives_output << "]";
+     d_output[i] << "]}";
 
-      if (writeDetails)
-        third_derivatives_output << R"(, "var1": ")" << symbol_table.getName(getSymbIDByDerivID(var1)) << R"(")"
-                                 << R"(, "var2": ")" << symbol_table.getName(getSymbIDByDerivID(var2)) << R"(")"
-                                 << R"(, "var3": ")" << symbol_table.getName(getSymbIDByDerivID(var3)) << R"(")";
-
-      third_derivatives_output << R"(, "val": ")";
-      d3->writeJsonOutput(third_derivatives_output, temp_term_union, tef_terms);
-      third_derivatives_output << R"("})" << endl;
+     ncols *= symbol_table.endo_nbr();
     }
-  third_derivatives_output << "]}";
 
   if (writeDetails)
     output << R"("static_model": {)";
   else
     output << R"("static_model_simple": {)";
-  output << model_local_vars_output.str()
-         << ", " << model_output.str()
-         << ", " << jacobian_output.str()
-         << ", " << hessian_output.str()
-         << ", " << third_derivatives_output.str()
-         << "}";
+  output << model_local_vars_output.str();
+  for (const auto &it : d_output)
+    output << ", " << it.str();
+  output << "}";
 }
 
 void
