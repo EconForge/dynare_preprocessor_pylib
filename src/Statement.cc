@@ -18,7 +18,10 @@
  */
 
 #include "Statement.hh"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <boost/xpressive/xpressive.hpp>
+#pragma GCC diagnostic pop
 #include <utility>
 
 void

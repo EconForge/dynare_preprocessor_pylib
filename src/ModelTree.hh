@@ -29,7 +29,10 @@ using namespace std;
 #include <ostream>
 #include <array>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <boost/filesystem.hpp>
+#pragma GCC diagnostic pop
 
 #include "DataTree.hh"
 #include "ExtendedPreprocessorTypes.hh"

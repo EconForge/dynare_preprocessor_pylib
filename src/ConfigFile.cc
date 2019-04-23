@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2017 Dynare Team
+ * Copyright © 2010-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -23,9 +23,13 @@
 #include <vector>
 
 #include "ConfigFile.hh"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/tokenizer.hpp>
+#pragma GCC diagnostic pop
 
 using namespace std;
 

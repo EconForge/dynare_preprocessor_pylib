@@ -32,7 +32,10 @@
 
 #include <unistd.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <boost/filesystem.hpp>
+#pragma GCC diagnostic pop
 
 #include "ParsingDriver.hh"
 #include "ExtendedPreprocessorTypes.hh"

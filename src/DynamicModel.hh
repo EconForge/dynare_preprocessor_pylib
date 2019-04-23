@@ -24,8 +24,11 @@ using namespace std;
 
 #include <fstream>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <boost/filesystem.hpp>
 #include <boost/crc.hpp>
+#pragma GCC diagnostic pop
 
 #include "StaticModel.hh"
 

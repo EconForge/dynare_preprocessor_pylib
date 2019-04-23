@@ -23,7 +23,10 @@
 #include <typeinfo>
 #include <cassert>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <boost/filesystem.hpp>
+#pragma GCC diagnostic pop
 
 #include "ModFile.hh"
 #include "ConfigFile.hh"

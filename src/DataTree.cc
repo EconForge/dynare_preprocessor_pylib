@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2018 Dynare Team
+ * Copyright © 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -22,7 +22,10 @@
 #include <iostream>
 #include <regex>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <boost/filesystem.hpp>
+#pragma GCC diagnostic pop
 
 #include "DataTree.hh"
 

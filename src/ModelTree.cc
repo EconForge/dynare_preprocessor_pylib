@@ -25,10 +25,13 @@
 
 #include "ModelTree.hh"
 #include "MinimumFeedbackSet.hh"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 #include <boost/graph/strong_components.hpp>
 #include <boost/graph/topological_sort.hpp>
+#pragma GCC diagnostic pop
 
 using namespace MFS;
 

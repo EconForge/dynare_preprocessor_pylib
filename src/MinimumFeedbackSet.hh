@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009-2010 Dynare Team
+ * Copyright © 2009-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -22,7 +22,11 @@
 
 #include <map>
 #include <vector>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <boost/graph/adjacency_list.hpp>
+#pragma GCC diagnostic pop
 
 using namespace std;
 

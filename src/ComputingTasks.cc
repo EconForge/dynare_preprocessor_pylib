@@ -26,9 +26,13 @@ using namespace std;
 #include "ComputingTasks.hh"
 #include "Statement.hh"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/tokenizer.hpp>
+#pragma GCC diagnostic pop
+
 #include <utility>
 
 SteadyStatement::SteadyStatement(OptionsList options_list_arg) :
