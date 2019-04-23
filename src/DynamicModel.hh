@@ -607,13 +607,13 @@ public:
   int
   getBlockInitialEquationID(int block_number, int equation_number) const override
   {
-    return ((int) inv_equation_reordered[equation_number] - (int) get<1>(block_type_firstequation_size_mfs[block_number]));
+    return (static_cast<int>(inv_equation_reordered[equation_number]) - static_cast<int>(get<1>(block_type_firstequation_size_mfs[block_number])));
   };
   //! Return the position of variable_number in the block number belonging to the block block_number
   int
   getBlockInitialVariableID(int block_number, int variable_number) const override
   {
-    return ((int) inv_variable_reordered[variable_number] - (int) get<1>(block_type_firstequation_size_mfs[block_number]));
+    return (static_cast<int>(inv_variable_reordered[variable_number]) - static_cast<int>(get<1>(block_type_firstequation_size_mfs[block_number])));
   };
   //! Return the block number containing the endogenous variable variable_number
   int

@@ -44,7 +44,7 @@ esac
 # Use C++ for testing headers
 AC_LANG([C++])
 
-AM_CXXFLAGS="-Wall -Wno-parentheses"
+AM_CXXFLAGS="-Wall -Wno-parentheses -Wold-style-cast"
 AC_SUBST([AM_CXXFLAGS])
 
 # If default 'ar' is not available, try to find one with a host prefix (see ticket #145)

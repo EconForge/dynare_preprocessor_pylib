@@ -354,7 +354,7 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
         {
           int eqn, lag, lhs_symb_id;
           tie (eqn, lag, lhs_symb_id) = it.first;
-          int colidx = (int) distance(nontarget_lhs_vec.begin(), find(nontarget_lhs_vec.begin(), nontarget_lhs_vec.end(), lhs_symb_id));
+          int colidx = static_cast<int>(distance(nontarget_lhs_vec.begin(), find(nontarget_lhs_vec.begin(), nontarget_lhs_vec.end(), lhs_symb_id)));
           ar_ec_output << "    AR(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
           it.second->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
           ar_ec_output << ";" << endl;
@@ -527,7 +527,7 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
         {
           int eqn, lag, lhs_symb_id;
           tie (eqn, lag, lhs_symb_id) = it.first;
-          int colidx = (int) distance(lhs.begin(), find(lhs.begin(), lhs.end(), lhs_symb_id));
+          int colidx = static_cast<int>(distance(lhs.begin(), find(lhs.begin(), lhs.end(), lhs_symb_id)));
           ar_output << "    ar(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
           it.second->writeOutput(ar_output, ExprNodeOutputType::matlabDynamicModel);
           ar_output << ";" << endl;

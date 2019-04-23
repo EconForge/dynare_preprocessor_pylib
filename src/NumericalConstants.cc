@@ -33,7 +33,7 @@ NumericalConstants::AddNonNegativeConstant(const string &iConst)
   if (iter != numConstantsIndex.end())
     return iter->second;
 
-  auto id = (int) mNumericalConstants.size();
+  auto id = static_cast<int>(mNumericalConstants.size());
   mNumericalConstants.push_back(iConst);
   numConstantsIndex[iConst] = id;
 
@@ -52,13 +52,13 @@ NumericalConstants::AddNonNegativeConstant(const string &iConst)
 string
 NumericalConstants::get(int ID) const
 {
-  assert(ID >= 0 && ID < (int) mNumericalConstants.size());
+  assert(ID >= 0 && ID < static_cast<int>(mNumericalConstants.size()));
   return mNumericalConstants[ID];
 }
 
 double
 NumericalConstants::getDouble(int ID) const
 {
-  assert(ID >= 0 && ID < (int) double_vals.size());
+  assert(ID >= 0 && ID < static_cast<int>(double_vals.size()));
   return (double_vals[ID]);
 }

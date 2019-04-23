@@ -297,7 +297,7 @@ DynamicModel::computeTemporaryTermsOrdered()
                 getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms,  i);
               else
                 {
-                  eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
+                  eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
                   eq_node->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms,  i);
                 }
             }
@@ -328,7 +328,7 @@ DynamicModel::computeTemporaryTermsOrdered()
                 getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms,  i);
               else
                 {
-                  eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
+                  eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
                   eq_node->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, i);
                 }
             }
@@ -355,7 +355,7 @@ DynamicModel::computeTemporaryTermsOrdered()
                 getBlockEquationRenormalizedExpr(block, i)->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
               else
                 {
-                  eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
+                  eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
                   eq_node->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
                 }
             }
@@ -579,7 +579,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
         {
           temporary_terms_t tt2;
-          for (int i = 0; i < (int) block_size; i++)
+          for (int i = 0; i < static_cast<int>(block_size); i++)
             {
               if (v_temporary_terms[block][i].size() && global_temporary_terms)
                 {
@@ -645,7 +645,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
           int equation_ID = getBlockEquationID(block, i);
           EquationType equ_type = getBlockEquationType(block, i);
           string sModel = symbol_table.getName(symbol_table.getID(SymbolType::endogenous, variable_ID));
-          eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
+          eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
           lhs = eq_node->arg1;
           rhs = eq_node->arg2;
           tmp_output.str("");
@@ -673,7 +673,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
                       rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
                       output << endl << "    ";
                       tmp_output.str("");
-                      eq_node = (BinaryOpNode *) getBlockEquationRenormalizedExpr(block, i);
+                      eq_node = static_cast<BinaryOpNode *>(getBlockEquationRenormalizedExpr(block, i));
                       lhs = eq_node->arg1;
                       rhs = eq_node->arg2;
                       lhs->writeOutput(output, local_output_type, local_temporary_terms, {});
@@ -1360,7 +1360,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
         compileTemporaryTerms(code_file, instruction_number, temporary_terms, map_idx, true, false);
 
       // The equations
-      for (i = 0; i < (int) block_size; i++)
+      for (i = 0; i < static_cast<int>(block_size); i++)
         {
           //The Temporary terms
           temporary_terms_t tt2;
@@ -1371,10 +1371,10 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
                   if (dynamic_cast<AbstractExternalFunctionNode *>(it) != nullptr)
                     it->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, true, false, tef_terms);
 
-                  FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find(it->idx)->second));
+                  FNUMEXPR_ fnumexpr(TemporaryTerm, static_cast<int>(map_idx.find(it->idx)->second));
                   fnumexpr.write(code_file, instruction_number);
                   it->compile(code_file, instruction_number, false, tt2, map_idx, true, false, tef_terms);
-                  FSTPT_ fstpt((int)(map_idx.find(it->idx)->second));
+                  FSTPT_ fstpt(static_cast<int>(map_idx.find(it->idx)->second));
                   fstpt.write(code_file, instruction_number);
                   // Insert current node into tt2
                   tt2.insert(it);
@@ -1411,7 +1411,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
               }
               if (equ_type == E_EVALUATE)
                 {
-                  eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
+                  eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
                   lhs = eq_node->arg1;
                   rhs = eq_node->arg2;
                   rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
@@ -1419,7 +1419,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
                 }
               else if (equ_type == E_EVALUATE_S)
                 {
-                  eq_node = (BinaryOpNode *) getBlockEquationRenormalizedExpr(block, i);
+                  eq_node = static_cast<BinaryOpNode *>(getBlockEquationRenormalizedExpr(block, i));
                   lhs = eq_node->arg1;
                   rhs = eq_node->arg2;
                   rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
@@ -1430,7 +1430,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
             case SOLVE_FORWARD_COMPLETE:
             case SOLVE_TWO_BOUNDARIES_COMPLETE:
             case SOLVE_TWO_BOUNDARIES_SIMPLE:
-              if (i < (int) block_recursive)
+              if (i < static_cast<int>(block_recursive))
                 goto evaluation;
               variable_ID = getBlockVariableID(block, i);
               equation_ID = getBlockEquationID(block, i);
@@ -1441,7 +1441,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
             end:
               FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
               fnumexpr.write(code_file, instruction_number);
-              eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
+              eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
               lhs = eq_node->arg1;
               rhs = eq_node->arg2;
               lhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
@@ -1498,12 +1498,12 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
                         continue;
                       if (!Uf[eqr].Ufl)
                         {
-                          Uf[eqr].Ufl = (Uff_l *) malloc(sizeof(Uff_l));
+                          Uf[eqr].Ufl = static_cast<Uff_l *>(malloc(sizeof(Uff_l)));
                           Uf[eqr].Ufl_First = Uf[eqr].Ufl;
                         }
                       else
                         {
-                          Uf[eqr].Ufl->pNext = (Uff_l *) malloc(sizeof(Uff_l));
+                          Uf[eqr].Ufl->pNext = static_cast<Uff_l *>(malloc(sizeof(Uff_l)));
                           Uf[eqr].Ufl = Uf[eqr].Ufl->pNext;
                         }
                       Uf[eqr].Ufl->pNext = nullptr;
@@ -1518,9 +1518,9 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
                       count_u++;
                     }
                 }
-              for (i = 0; i < (int) block_size; i++)
+              for (i = 0; i < static_cast<int>(block_size); i++)
                 {
-                  if (i >= (int) block_recursive)
+                  if (i >= static_cast<int>(block_recursive))
                     {
                       FLDR_ fldr(i-block_recursive);
                       fldr.write(code_file, instruction_number);
@@ -1938,12 +1938,12 @@ DynamicModel::Write_Inf_To_Bin_File_Block(const string &basename, const int &num
 
   if (is_two_boundaries)
     u_count_int += block_mfs;
-  for (j = block_recursive; j < (int) block_size; j++)
+  for (j = block_recursive; j < static_cast<int>(block_size); j++)
     {
       unsigned int varr = getBlockVariableID(num, j);
       SaveCode.write(reinterpret_cast<char *>(&varr), sizeof(varr));
     }
-  for (j = block_recursive; j < (int) block_size; j++)
+  for (j = block_recursive; j < static_cast<int>(block_size); j++)
     {
       unsigned int eqr = getBlockEquationID(num, j);
       SaveCode.write(reinterpret_cast<char *>(&eqr), sizeof(eqr));
@@ -4624,7 +4624,7 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int 
         {
           int symb_id = symbol_table.addDiffAuxiliaryVar(diff_node_to_search->idx, diff_node_to_search);
           target_base_diff_node = AddVariable(symb_id);
-          addEquation(dynamic_cast<BinaryOpNode *>(AddEqual((expr_t) target_base_diff_node,
+          addEquation(dynamic_cast<BinaryOpNode *>(AddEqual(const_cast<VariableNode *>(target_base_diff_node),
                                                             AddMinus(AddVariable(pac_target_symb_id),
                                                                      AddVariable(pac_target_symb_id, -1)))), -1);
           neqs++;
@@ -4666,7 +4666,7 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int 
           fs = AddPlus(fs, AddTimes(ssum, target_aux_var_to_add[k]));
         }
       addEquation(AddEqual(AddVariable(mce_z1_symb_id),
-                           AddMinus(AddTimes(A, AddMinus((expr_t) target_base_diff_node, fs)), fp)), -1);
+                           AddMinus(AddTimes(A, AddMinus(const_cast<VariableNode *>(target_base_diff_node), fs)), fp)), -1);
       neqs++;
       pac_expectation_substitution[{name, eqtag}] = AddVariable(mce_z1_symb_id);
     }
@@ -5383,7 +5383,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
   // Add aux LM to constraints in equations
   // equation[i]->lhs = rhs becomes equation[i]->MULT_(i+1)*(lhs-rhs) = 0
   int i;
-  for (i = 0; i < (int) equations.size(); i++)
+  for (i = 0; i < static_cast<int>(equations.size()); i++)
     {
       auto *substeq = dynamic_cast<BinaryOpNode *>(equations[i]->addMultipliersToConstraints(i));
       assert(substeq != nullptr);
@@ -5419,7 +5419,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
 
   // Create (modified) Lagrangian (so that we can take the derivative once at time t)
   expr_t lagrangian = Zero;
-  for (i = 0; i < (int) equations.size(); i++)
+  for (i = 0; i < static_cast<int>(equations.size()); i++)
     for (int lag = -max_eq_lag; lag <= max_eq_lead; lag++)
       {
         expr_t dfpower = nullptr;
@@ -5611,7 +5611,7 @@ DynamicModel::getTypeByDerivID(int deriv_id) const noexcept(false)
 int
 DynamicModel::getLagByDerivID(int deriv_id) const noexcept(false)
 {
-  if (deriv_id < 0 || deriv_id >= (int) inv_deriv_id_table.size())
+  if (deriv_id < 0 || deriv_id >= static_cast<int>(inv_deriv_id_table.size()))
     throw UnknownDerivIDException();
 
   return inv_deriv_id_table[deriv_id].second;
@@ -5620,7 +5620,7 @@ DynamicModel::getLagByDerivID(int deriv_id) const noexcept(false)
 int
 DynamicModel::getSymbIDByDerivID(int deriv_id) const noexcept(false)
 {
-  if (deriv_id < 0 || deriv_id >= (int) inv_deriv_id_table.size())
+  if (deriv_id < 0 || deriv_id >= static_cast<int>(inv_deriv_id_table.size()))
     throw UnknownDerivIDException();
 
   return inv_deriv_id_table[deriv_id].first;
@@ -5715,7 +5715,7 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context
        it != deriv_id_table.end(); it++)
     if (symbol_table.getType(it->first.first) == SymbolType::trend
         || symbol_table.getType(it->first.first) == SymbolType::logTrend)
-      for (int eq = 0; eq < (int) equations.size(); eq++)
+      for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
         {
           expr_t homogeneq = AddMinus(equations[eq]->arg1,
                                       equations[eq]->arg2);
@@ -6525,7 +6525,7 @@ DynamicModel::isChecksumMatching(const string &basename, bool block) const
 
   ExprNodeOutputType buffer_type = block ? ExprNodeOutputType::matlabDynamicModelSparse : ExprNodeOutputType::CDynamicModel;
 
-  for (int eq = 0; eq < (int) equations.size(); eq++)
+  for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     {
       BinaryOpNode *eq_node = equations[eq];
       expr_t lhs = eq_node->arg1;
@@ -6624,7 +6624,7 @@ DynamicModel::writeJsonAST(ostream &output) const
 {
   vector<pair<string, string>> eqtags;
   output << R"("abstract_syntax_tree":[)" << endl;
-  for (int eq = 0; eq < (int) equations.size(); eq++)
+  for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     {
       if (eq != 0)
         output << ", ";

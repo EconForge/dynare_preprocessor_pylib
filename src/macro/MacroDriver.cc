@@ -356,7 +356,7 @@ MacroDriver::begin_if(const MacroValuePtr &value) noexcept(false)
   auto ival = dynamic_pointer_cast<IntMV>(value);
   if (!ival)
     throw MacroValue::TypeError("Argument of @#if must be an integer");
-  last_if = (bool) ival->value;
+  last_if = static_cast<bool>(ival->value);
 }
 
 void

@@ -422,7 +422,7 @@ public:
 inline void
 SymbolTable::validateSymbID(int symb_id) const noexcept(false)
 {
-  if (symb_id < 0 || symb_id > (int) symbol_table.size())
+  if (symb_id < 0 || symb_id > static_cast<int>(symbol_table.size()))
     throw UnknownSymbolIDException(symb_id);
 }
 

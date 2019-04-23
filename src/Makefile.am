@@ -72,6 +72,8 @@ DynareFlex.cc FlexLexer.h: DynareFlex.ll
 	$(LEX) -o DynareFlex.cc DynareFlex.ll
 	cp $(LEXINC)/FlexLexer.h . || test -f ./FlexLexer.h
 
+dynare_m-DynareFlex.$(OBJEXT): CXXFLAGS += -Wno-old-style-cast
+
 DynareBison.cc DynareBison.hh location.hh stack.hh position.hh: DynareBison.yy
 	$(YACC) -W -o DynareBison.cc DynareBison.yy
 

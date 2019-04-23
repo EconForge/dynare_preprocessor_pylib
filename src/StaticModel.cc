@@ -269,7 +269,7 @@ StaticModel::computeTemporaryTermsOrdered()
             getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count_local, temporary_terms_l, first_occurence_local, block, v_temporary_terms_local,  i);
           else
             {
-              eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
+              eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
               eq_node->computeTemporaryTerms(reference_count_local, temporary_terms_l, first_occurence_local, block, v_temporary_terms_local,  i);
             }
         }
@@ -296,7 +296,7 @@ StaticModel::computeTemporaryTermsOrdered()
             getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms,  i);
           else
             {
-              eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
+              eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
               eq_node->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, i);
             }
         }
@@ -320,7 +320,7 @@ StaticModel::computeTemporaryTermsOrdered()
             getBlockEquationRenormalizedExpr(block, i)->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
           else
             {
-              eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
+              eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
               eq_node->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
             }
         }
@@ -329,7 +329,7 @@ StaticModel::computeTemporaryTermsOrdered()
           expr_t id = get<3>(it);
           id->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
         }
-      for (int i = 0; i < (int) getBlockSize(block); i++)
+      for (int i = 0; i < static_cast<int>(getBlockSize(block)); i++)
         for (const auto &it : v_temporary_terms[block][i])
           it->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
       v_temporary_terms_inuse[block] = temporary_terms_in_use;
@@ -454,7 +454,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
           int equation_ID = getBlockEquationID(block, i);
           EquationType equ_type = getBlockEquationType(block, i);
           string sModel = symbol_table.getName(symbol_table.getID(SymbolType::endogenous, variable_ID));
-          eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
+          eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
           lhs = eq_node->arg1;
           rhs = eq_node->arg2;
           tmp_output.str("");
@@ -482,7 +482,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
                       rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
                       output << endl << "  ";
                       tmp_output.str("");
-                      eq_node = (BinaryOpNode *) getBlockEquationRenormalizedExpr(block, i);
+                      eq_node = static_cast<BinaryOpNode *>(getBlockEquationRenormalizedExpr(block, i));
                       lhs = eq_node->arg1;
                       rhs = eq_node->arg2;
                       lhs->writeOutput(output, local_output_type, local_temporary_terms, {});
@@ -793,7 +793,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
       fjmp_if_eval.write(code_file, instruction_number);
       int prev_instruction_number = instruction_number;
 
-      for (i = 0; i < (int) block_size; i++)
+      for (i = 0; i < static_cast<int>(block_size); i++)
         {
           //The Temporary terms
           temporary_terms_t tt2;
@@ -804,10 +804,10 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
                   if (dynamic_cast<AbstractExternalFunctionNode *>(it) != nullptr)
                     it->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, false, false, tef_terms);
 
-                  FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find(it->idx)->second));
+                  FNUMEXPR_ fnumexpr(TemporaryTerm, static_cast<int>(map_idx.find(it->idx)->second));
                   fnumexpr.write(code_file, instruction_number);
                   it->compile(code_file, instruction_number, false, tt2, map_idx, false, false, tef_terms);
-                  FSTPST_ fstpst((int)(map_idx.find(it->idx)->second));
+                  FSTPST_ fstpst(static_cast<int>(map_idx.find(it->idx)->second));
                   fstpst.write(code_file, instruction_number);
                   // Insert current node into tt2
                   tt2.insert(it);
@@ -829,7 +829,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
               }
               if (equ_type == E_EVALUATE)
                 {
-                  eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
+                  eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
                   lhs = eq_node->arg1;
                   rhs = eq_node->arg2;
                   rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
@@ -837,7 +837,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
                 }
               else if (equ_type == E_EVALUATE_S)
                 {
-                  eq_node = (BinaryOpNode *) getBlockEquationRenormalizedExpr(block, i);
+                  eq_node = static_cast<BinaryOpNode *>(getBlockEquationRenormalizedExpr(block, i));
                   lhs = eq_node->arg1;
                   rhs = eq_node->arg2;
                   rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
@@ -846,7 +846,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
               break;
             case SOLVE_BACKWARD_COMPLETE:
             case SOLVE_FORWARD_COMPLETE:
-              if (i < (int) block_recursive)
+              if (i < static_cast<int>(block_recursive))
                 goto evaluation;
               variable_ID = getBlockVariableID(block, i);
               equation_ID = getBlockEquationID(block, i);
@@ -857,7 +857,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
             end:
               FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
               fnumexpr.write(code_file, instruction_number);
-              eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
+              eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
               lhs = eq_node->arg1;
               rhs = eq_node->arg2;
               lhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
@@ -905,12 +905,12 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
                     {
                       if (!Uf[eqr].Ufl)
                         {
-                          Uf[eqr].Ufl = (Uff_l *) malloc(sizeof(Uff_l));
+                          Uf[eqr].Ufl = static_cast<Uff_l *>(malloc(sizeof(Uff_l)));
                           Uf[eqr].Ufl_First = Uf[eqr].Ufl;
                         }
                       else
                         {
-                          Uf[eqr].Ufl->pNext = (Uff_l *) malloc(sizeof(Uff_l));
+                          Uf[eqr].Ufl->pNext = static_cast<Uff_l *>(malloc(sizeof(Uff_l)));
                           Uf[eqr].Ufl = Uf[eqr].Ufl->pNext;
                         }
                       Uf[eqr].Ufl->pNext = nullptr;
@@ -924,9 +924,9 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
                       count_u++;
                     }
                 }
-              for (i = 0; i < (int) block_size; i++)
+              for (i = 0; i < static_cast<int>(block_size); i++)
                 {
-                  if (i >= (int) block_recursive)
+                  if (i >= static_cast<int>(block_recursive))
                     {
                       FLDR_ fldr(i-block_recursive);
                       fldr.write(code_file, instruction_number);
@@ -984,7 +984,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
       temporary_terms_t tt2, tt3;
       deriv_node_temp_terms_t tef_terms2;
 
-      for (i = 0; i < (int) block_size; i++)
+      for (i = 0; i < static_cast<int>(block_size); i++)
         {
           if (v_temporary_terms_local[block].size())
             {
@@ -993,12 +993,12 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
                   if (dynamic_cast<AbstractExternalFunctionNode *>(it) != nullptr)
                     it->compileExternalFunctionOutput(code_file, instruction_number, false, tt3, map_idx2[block], false, false, tef_terms2);
 
-                  FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx2[block].find(it->idx)->second));
+                  FNUMEXPR_ fnumexpr(TemporaryTerm, static_cast<int>(map_idx2[block].find(it->idx)->second));
                   fnumexpr.write(code_file, instruction_number);
 
                   it->compile(code_file, instruction_number, false, tt3, map_idx2[block], false, false, tef_terms);
 
-                  FSTPST_ fstpst((int)(map_idx2[block].find(it->idx)->second));
+                  FSTPST_ fstpst(static_cast<int>(map_idx2[block].find(it->idx)->second));
                   fstpst.write(code_file, instruction_number);
                   // Insert current node into tt2
                   tt3.insert(it);
@@ -1021,7 +1021,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
               }
               if (equ_type == E_EVALUATE)
                 {
-                  eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
+                  eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
                   lhs = eq_node->arg1;
                   rhs = eq_node->arg2;
                   rhs->compile(code_file, instruction_number, false, tt2, map_idx2[block], false, false);
@@ -1029,7 +1029,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
                 }
               else if (equ_type == E_EVALUATE_S)
                 {
-                  eq_node = (BinaryOpNode *) getBlockEquationRenormalizedExpr(block, i);
+                  eq_node = static_cast<BinaryOpNode *>(getBlockEquationRenormalizedExpr(block, i));
                   lhs = eq_node->arg1;
                   rhs = eq_node->arg2;
                   rhs->compile(code_file, instruction_number, false, tt2, map_idx2[block], false, false);
@@ -1038,7 +1038,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
               break;
             case SOLVE_BACKWARD_COMPLETE:
             case SOLVE_FORWARD_COMPLETE:
-              if (i < (int) block_recursive)
+              if (i < static_cast<int>(block_recursive))
                 goto evaluation_l;
               variable_ID = getBlockVariableID(block, i);
               equation_ID = getBlockEquationID(block, i);
@@ -1049,7 +1049,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
             end_l:
               FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
               fnumexpr.write(code_file, instruction_number);
-              eq_node = (BinaryOpNode *) getBlockEquationExpr(block, i);
+              eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
               lhs = eq_node->arg1;
               rhs = eq_node->arg2;
               lhs->compile(code_file, instruction_number, false, tt2, map_idx2[block], false, false);
@@ -1155,12 +1155,12 @@ StaticModel::Write_Inf_To_Bin_File_Block(const string &basename, const int &num,
         }
     }
 
-  for (j = block_recursive; j < (int) block_size; j++)
+  for (j = block_recursive; j < static_cast<int>(block_size); j++)
     {
       unsigned int varr = getBlockVariableID(num, j);
       SaveCode.write(reinterpret_cast<char *>(&varr), sizeof(varr));
     }
-  for (j = block_recursive; j < (int) block_size; j++)
+  for (j = block_recursive; j < static_cast<int>(block_size); j++)
     {
       unsigned int eqr = getBlockEquationID(num, j);
       SaveCode.write(reinterpret_cast<char *>(&eqr), sizeof(eqr));
@@ -2106,7 +2106,7 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
 
   unsigned int nb_blocks = getNbBlocks();
 
-  for (int b = 0; b < (int) nb_blocks; b++)
+  for (int b = 0; b < static_cast<int>(nb_blocks); b++)
     {
 
       set<int> local_var;
@@ -2119,7 +2119,7 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
         {
           output << "      y_tmp = " << basename << ".block.static_" << b+1 << "(y, x, params);" << endl;
           ostringstream tmp;
-          for (int i = 0; i < (int) getBlockSize(b); i++)
+          for (int i = 0; i < static_cast<int>(getBlockSize(b)); i++)
             tmp << " " << getBlockVariableID(b, i)+1;
           output << "      var_index = [" << tmp.str() << "];" << endl
                  << "      residual  = y(var_index) - y_tmp(var_index);" << endl
@@ -2146,7 +2146,7 @@ StaticModel::writeOutput(ostream &output, bool block) const
     return;
 
   unsigned int nb_blocks = getNbBlocks();
-  for (int b = 0; b < (int) nb_blocks; b++)
+  for (int b = 0; b < static_cast<int>(nb_blocks); b++)
     {
       BlockSimulationType simulation_type = getBlockSimulationType(b);
       unsigned int block_size = getBlockSize(b);

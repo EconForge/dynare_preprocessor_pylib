@@ -108,7 +108,7 @@ SymbolTable::freeze() noexcept(false)
 
   frozen = true;
 
-  for (int i = 0; i < (int) symbol_table.size(); i++)
+  for (int i = 0; i < static_cast<int>(symbol_table.size()); i++)
     {
       int tsi;
       switch (getType(i))
@@ -168,22 +168,22 @@ SymbolTable::getID(SymbolType type, int tsid) const noexcept(false)
   switch (type)
     {
     case SymbolType::endogenous:
-      if (tsid < 0 || tsid >= (int) endo_ids.size())
+      if (tsid < 0 || tsid >= static_cast<int>(endo_ids.size()))
         throw UnknownTypeSpecificIDException(tsid, type);
       else
         return endo_ids[tsid];
     case SymbolType::exogenous:
-      if (tsid < 0 || tsid >= (int) exo_ids.size())
+      if (tsid < 0 || tsid >= static_cast<int>(exo_ids.size()))
         throw UnknownTypeSpecificIDException(tsid, type);
       else
         return exo_ids[tsid];
     case SymbolType::exogenousDet:
-      if (tsid < 0 || tsid >= (int) exo_det_ids.size())
+      if (tsid < 0 || tsid >= static_cast<int>(exo_det_ids.size()))
         throw UnknownTypeSpecificIDException(tsid, type);
       else
         return exo_det_ids[tsid];
     case SymbolType::parameter:
-      if (tsid < 0 || tsid >= (int) param_ids.size())
+      if (tsid < 0 || tsid >= static_cast<int>(param_ids.size()))
         throw UnknownTypeSpecificIDException(tsid, type);
       else
         return param_ids[tsid];
@@ -347,7 +347,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
   if (aux_vars.size() == 0)
     output << "M_.aux_vars = [];" << endl;
   else
-    for (int i = 0; i < (int) aux_vars.size(); i++)
+    for (int i = 0; i < static_cast<int>(aux_vars.size()); i++)
       {
         output << "M_.aux_vars(" << i+1 << ").endo_index = " << getTypeSpecificID(aux_vars[i].get_symb_id())+1 << ";" << endl
                << "M_.aux_vars(" << i+1 << ").type = " << aux_vars[i].get_type_id() << ";" << endl;
@@ -475,7 +475,7 @@ SymbolTable::writeCOutput(ostream &output) const noexcept(false)
   if (aux_vars.size() > 0)
     {
       output << "struct aux_vars_t *av[" << aux_vars.size() << "];" << endl;
-      for (int i = 0; i < (int) aux_vars.size(); i++)
+      for (int i = 0; i < static_cast<int>(aux_vars.size()); i++)
         {
           output << "av[" << i << "].endo_index = " << getTypeSpecificID(aux_vars[i].get_symb_id()) << ";" << endl
                  << "av[" << i << "].type = " << aux_vars[i].get_type_id() << ";" << endl;
@@ -580,7 +580,7 @@ SymbolTable::writeCCOutput(ostream &output) const noexcept(false)
     output << R"(param_names[")" << getName(param_ids[id]) << R"("] = )" << id << ";" << endl;
 
   // Write the auxiliary variable table
-  for (int i = 0; i < (int) aux_vars.size(); i++)
+  for (int i = 0; i < static_cast<int>(aux_vars.size()); i++)
     {
       output << "aux_vars_t av" << i << ";" << endl;
       output << "av" << i << ".endo_index = " << getTypeSpecificID(aux_vars[i].get_symb_id()) << ";" << endl
@@ -987,7 +987,7 @@ SymbolTable::addObservedVariable(int symb_id) noexcept(false)
 int
 SymbolTable::observedVariablesNbr() const
 {
-  return (int) varobs.size();
+  return static_cast<int>(varobs.size());
 }
 
 bool
@@ -1001,7 +1001,7 @@ SymbolTable::getObservedVariableIndex(int symb_id) const
 {
   auto it = find(varobs.begin(), varobs.end(), symb_id);
   assert(it != varobs.end());
-  return (int) (it - varobs.begin());
+  return static_cast<int>(it - varobs.begin());
 }
 
 void
@@ -1015,7 +1015,7 @@ SymbolTable::addObservedExogenousVariable(int symb_id) noexcept(false)
 int
 SymbolTable::observedExogenousVariablesNbr() const
 {
-  return (int) varexobs.size();
+  return static_cast<int>(varexobs.size());
 }
 
 bool
@@ -1029,7 +1029,7 @@ SymbolTable::getObservedExogenousVariableIndex(int symb_id) const
 {
   auto it = find(varexobs.begin(), varexobs.end(), symb_id);
   assert(it != varexobs.end());
-  return (int) (it - varexobs.begin());
+  return static_cast<int>(it - varexobs.begin());
 }
 
 vector <int>

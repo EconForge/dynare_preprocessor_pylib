@@ -52,9 +52,9 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
           const expr_t value = it.value;
 
           output << "M_.det_shocks = [ M_.det_shocks;" << endl
-                 << "struct('exo_det'," << (int) exo_det
+                 << "struct('exo_det'," << static_cast<int>(exo_det)
                  << ",'exo_id'," << id
-                 << ",'multiplicative'," << (int) mshocks
+                 << ",'multiplicative'," << static_cast<int>(mshocks)
                  << ",'periods'," << period1 << ":" << period2
                  << ",'value',";
           value->writeOutput(output);

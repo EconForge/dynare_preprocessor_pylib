@@ -1266,13 +1266,13 @@ public:
     memcpy(&function_type, code, sizeof(function_type)); code += sizeof(function_type);
     int size;
     memcpy(&size, code, sizeof(size)); code += sizeof(size);
-    char *name = (char *) mxMalloc((size+1)*sizeof(char));
+    char *name = static_cast<char *>(mxMalloc((size+1)*sizeof(char)));
     memcpy(name, code, size); code += size;
     name[size] = 0;
     func_name = name;
     mxFree(name);
     memcpy(&size, code, sizeof(size)); code += sizeof(size);
-    name = (char *) mxMalloc((size+1)*sizeof(char));
+    name = static_cast<char *>(mxMalloc((size+1)*sizeof(char)));
     memcpy(name, code, size); code += size;
     name[size] = 0;
     arg_func_name = name;
@@ -1699,7 +1699,7 @@ public:
       }
     Code_Size = CompiledCode.tellg();
     CompiledCode.seekg(std::ios::beg);
-    code = (uint8_t *) mxMalloc(Code_Size);
+    code = static_cast<uint8_t *>(mxMalloc(Code_Size));
     CompiledCode.seekg(0);
     CompiledCode.read(reinterpret_cast<char *>(code), Code_Size);
     CompiledCode.close();

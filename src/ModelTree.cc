@@ -371,7 +371,7 @@ ModelTree::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
       if (endo.find({ symbol_table.getTypeSpecificID(symb_id), 0 }) != endo.end())
         continue;
 
-      endo2eqs.emplace(symbol_table.getTypeSpecificID(symb_id), (int) i);
+      endo2eqs.emplace(symbol_table.getTypeSpecificID(symb_id), static_cast<int>(i));
       cout << "Endogenous " << symbol_table.getName(symb_id) << " normalized in equation " << (i+1) << endl;
     }
 }
@@ -517,7 +517,7 @@ ModelTree::computeNaturalNormalization()
   bool bool_result = true;
   set<pair<int, int> > result;
   endo2eq.resize(equations.size());
-  for (int eq = 0; eq < (int) equations.size(); eq++)
+  for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     if (!is_equation_linear[eq])
       {
         BinaryOpNode *eq_node = equations[eq];
@@ -621,7 +621,7 @@ ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian_arg, ve
     {
       int tmp_epilogue = epilogue;
       something_has_been_done = false;
-      for (int i = prologue; i < n - (int) epilogue; i++)
+      for (int i = prologue; i < n - static_cast<int>(epilogue); i++)
         {
           int nze = 0;
           for (int j = prologue; j < n - tmp_epilogue; j++)
@@ -712,12 +712,12 @@ ModelTree::getVariableLeadLagByBlock(const dynamic_jacob_map_t &dynamic_jacobian
   vector<int> variable_blck(nb_endo), equation_blck(nb_endo);
   for (int i = 0; i < nb_endo; i++)
     {
-      if (i < (int) prologue)
+      if (i < static_cast<int>(prologue))
         {
           variable_blck[variable_reordered[i]] = i;
           equation_blck[equation_reordered[i]] = i;
         }
-      else if (i < (int) (components_set.size() + prologue))
+      else if (i < static_cast<int>(components_set.size() + prologue))
         {
           variable_blck[variable_reordered[i]] = components_set[i-prologue] + prologue;
           equation_blck[equation_reordered[i]] = components_set[i-prologue] + prologue;
@@ -782,8 +782,8 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   else
     tmp_normalized_contemporaneous_jacobian = static_jacobian;
   for (const auto &it : tmp_normalized_contemporaneous_jacobian)
-    if (reverse_equation_reordered[it.first.first] >= (int) prologue && reverse_equation_reordered[it.first.first] < (int) (nb_var - epilogue)
-        && reverse_variable_reordered[it.first.second] >= (int) prologue && reverse_variable_reordered[it.first.second] < (int) (nb_var - epilogue)
+    if (reverse_equation_reordered[it.first.first] >= static_cast<int>(prologue) && reverse_equation_reordered[it.first.first] < static_cast<int>(nb_var - epilogue)
+        && reverse_variable_reordered[it.first.second] >= static_cast<int>(prologue) && reverse_variable_reordered[it.first.second] < static_cast<int>(nb_var - epilogue)
         && it.first.first != endo2eq[it.first.second])
       add_edge(vertex(reverse_equation_reordered[endo2eq[it.first.second]]-prologue, G2),
                vertex(reverse_equation_reordered[it.first.first]-prologue, G2),
@@ -863,7 +863,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   n_backward = vector<unsigned int>(prologue+num+epilogue, 0);
   n_mixed = vector<unsigned int>(prologue+num+epilogue, 0);
 
-  for (int i = 0; i < (int) prologue; i++)
+  for (int i = 0; i < static_cast<int>(prologue); i++)
     {
       if      (variable_lag_lead[tmp_variable_reordered[i]].first != 0 && variable_lag_lead[tmp_variable_reordered[i]].second != 0)
         n_mixed[i]++;
@@ -961,7 +961,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
         }
     }
 
-  for (int i = 0; i < (int) epilogue; i++)
+  for (int i = 0; i < static_cast<int>(epilogue); i++)
     {
       if      (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first != 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second != 0)
         n_mixed[prologue+num+i]++;
@@ -1025,21 +1025,21 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
   unsigned int l_n_forward = 0;
   unsigned int l_n_backward = 0;
   unsigned int l_n_mixed = 0;
-  for (i = 0; i < (int) (prologue+blocks.size()+epilogue); i++)
+  for (i = 0; i < static_cast<int>(prologue+blocks.size()+epilogue); i++)
     {
       int first_count_equ = count_equ;
-      if (i < (int) prologue)
+      if (i < static_cast<int>(prologue))
         {
           Blck_Size = 1;
           MFS_Size = 1;
         }
-      else if (i < (int) (prologue+blocks.size()))
+      else if (i < static_cast<int>(prologue+blocks.size()))
         {
           Blck_Size = blocks[blck_count_simult].first;
           MFS_Size = blocks[blck_count_simult].second;
           blck_count_simult++;
         }
-      else if (i < (int) (prologue+blocks.size()+epilogue))
+      else if (i < static_cast<int>(prologue+blocks.size()+epilogue))
         {
           Blck_Size = 1;
           MFS_Size = 1;
@@ -1348,7 +1348,7 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
                                         reference_count,
                                         is_matlab);
 
-      for (int order = 1; order < (int) derivatives.size(); order++)
+      for (int order = 1; order < static_cast<int>(derivatives.size()); order++)
         for (const auto &it : derivatives[order])
           it.second->computeTemporaryTerms({ 0, order },
                                            temp_terms_map,
@@ -1364,14 +1364,14 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
   // Fill the new structure
   temporary_terms_derivatives.clear();
   temporary_terms_derivatives.resize(derivatives.size());
-  for (int order = 0; order < (int) derivatives.size(); order++)
+  for (int order = 0; order < static_cast<int>(derivatives.size()); order++)
     temporary_terms_derivatives[order] = move(temp_terms_map[{ 0, order }]);
 
   // Compute indices in MATLAB/Julia vector
   int idx = 0;
   for (auto &it : temporary_terms_mlv)
     temporary_terms_idxs[it.first] = idx++;
-  for (int order = 0; order < (int) derivatives.size(); order++)
+  for (int order = 0; order < static_cast<int>(derivatives.size()); order++)
     for (const auto &it : temporary_terms_derivatives[order])
       temporary_terms_idxs[it] = idx++;
 }
@@ -1618,17 +1618,17 @@ ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_n
           it->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic, tef_terms);
         }
 
-      FNUMEXPR_ fnumexpr(TemporaryTerm, (int)(map_idx.find(it->idx)->second));
+      FNUMEXPR_ fnumexpr(TemporaryTerm, static_cast<int>(map_idx.find(it->idx)->second));
       fnumexpr.write(code_file, instruction_number);
       it->compile(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic, tef_terms);
       if (dynamic)
         {
-          FSTPT_ fstpt((int)(map_idx.find(it->idx)->second));
+          FSTPT_ fstpt(static_cast<int>(map_idx.find(it->idx)->second));
           fstpt.write(code_file, instruction_number);
         }
       else
         {
-          FSTPST_ fstpst((int)(map_idx.find(it->idx)->second));
+          FSTPST_ fstpst(static_cast<int>(map_idx.find(it->idx)->second));
           fstpst.write(code_file, instruction_number);
         }
       // Insert current node into tt2
@@ -1696,7 +1696,7 @@ void
 ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type,
                                const temporary_terms_t &temporary_terms) const
 {
-  for (int eq = 0; eq < (int) equations.size(); eq++)
+  for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     {
       BinaryOpNode *eq_node = equations[eq];
       expr_t lhs = eq_node->arg1;
@@ -1754,7 +1754,7 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type,
 void
 ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
 {
-  for (int eq = 0; eq < (int) equations.size(); eq++)
+  for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     {
       BinaryOpNode *eq_node = equations[eq];
       expr_t lhs = eq_node->arg1;
@@ -1827,9 +1827,9 @@ ModelTree::Write_Inf_To_Bin_File(const string &filename,
     }
   if (is_two_boundaries)
     u_count_int +=  symbol_table.endo_nbr();
-  for (j = 0; j < (int) symbol_table.endo_nbr(); j++)
+  for (j = 0; j < static_cast<int>(symbol_table.endo_nbr()); j++)
     SaveCode.write(reinterpret_cast<char *>(&j), sizeof(j));
-  for (j = 0; j < (int) symbol_table.endo_nbr(); j++)
+  for (j = 0; j < static_cast<int>(symbol_table.endo_nbr()); j++)
     SaveCode.write(reinterpret_cast<char *>(&j), sizeof(j));
   SaveCode.close();
 }
@@ -1875,7 +1875,7 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
       content_output << endl << R"(\end{dmath*})" << endl;
     }
 
-  for (int eq = 0; eq < (int) equations.size(); eq++)
+  for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     {
       content_output << "% Equation " << eq + 1 << endl;
       if (write_equation_tags)
@@ -2042,7 +2042,7 @@ ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
   // First-order derivatives w.r.t. params
   for (int param : deriv_id_set)
     {
-      for (int eq = 0; eq < (int) equations.size(); eq++)
+      for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
         {
           expr_t d = equations[eq]->getDerivative(param);
           if (d == Zero)
@@ -2050,7 +2050,7 @@ ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
           params_derivatives[{ 0, 1 }][{ eq, param }] = d;
         }
 
-      for (int endoOrd = 1; endoOrd < (int) derivatives.size(); endoOrd++)
+      for (int endoOrd = 1; endoOrd < static_cast<int>(derivatives.size()); endoOrd++)
         for (const auto &it : derivatives[endoOrd])
           {
             expr_t d = it.second->getDerivative(param);
@@ -2063,7 +2063,7 @@ ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
     }
 
   // Higher-order derivatives w.r.t. parameters
-  for (int endoOrd = 0; endoOrd < (int) derivatives.size(); endoOrd++)
+  for (int endoOrd = 0; endoOrd < static_cast<int>(derivatives.size()); endoOrd++)
     for (int paramOrd = 2; paramOrd <= paramsDerivsOrder; paramOrd++)
       for (const auto &it : params_derivatives[{ endoOrd, paramOrd-1 }])
         for (int param : deriv_id_set)
@@ -2120,7 +2120,7 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
     output << endl << R"("residuals":[)" << endl;
   else
     output << endl << R"("model":[)" << endl;
-  for (int eq = 0; eq < (int) equations.size(); eq++)
+  for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     {
       if (eq > 0)
         output << ", ";

@@ -4899,18 +4899,18 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>>
     {
       if (op_code == BinaryOpcode::equal)       /* The end of the normalization process :
                                       All the operations needed to normalize the equation are applied. */
-        for (int i = 0; i < (int) List_of_Op_RHS1.size(); i++)
+        for (int i = 0; i < static_cast<int>(List_of_Op_RHS1.size()); i++)
           {
             tuple<int, expr_t, expr_t> it = List_of_Op_RHS1.back();
             List_of_Op_RHS1.pop_back();
             if (get<1>(it) && !get<2>(it)) /*Binary operator*/
-              expr_t_2 = Compute_RHS(expr_t_2, (BinaryOpNode *) get<1>(it), get<0>(it), 1);
+              expr_t_2 = Compute_RHS(expr_t_2, static_cast<BinaryOpNode *>(get<1>(it)), get<0>(it), 1);
             else if (get<2>(it) && !get<1>(it)) /*Binary operator*/
               expr_t_2 = Compute_RHS(get<2>(it), expr_t_2, get<0>(it), 1);
             else if (get<2>(it) && get<1>(it)) /*Binary operator*/
               expr_t_2 = Compute_RHS(get<1>(it), get<2>(it), get<0>(it), 1);
             else /*Unary operator*/
-              expr_t_2 = Compute_RHS((UnaryOpNode *) expr_t_2, (UnaryOpNode *) get<1>(it), get<0>(it), 0);
+              expr_t_2 = Compute_RHS(static_cast<UnaryOpNode *>(expr_t_2), static_cast<UnaryOpNode *>(get<1>(it)), get<0>(it), 0);
           }
       else
         List_of_Op_RHS = List_of_Op_RHS1;
@@ -4918,18 +4918,18 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>>
   else if (is_endogenous_present_2)
     {
       if (op_code == BinaryOpcode::equal)
-        for (int i = 0; i < (int) List_of_Op_RHS2.size(); i++)
+        for (int i = 0; i < static_cast<int>(List_of_Op_RHS2.size()); i++)
           {
             tuple<int, expr_t, expr_t> it = List_of_Op_RHS2.back();
             List_of_Op_RHS2.pop_back();
             if (get<1>(it) && !get<2>(it)) /*Binary operator*/
-              expr_t_1 = Compute_RHS((BinaryOpNode *) expr_t_1, (BinaryOpNode *) get<1>(it), get<0>(it), 1);
+              expr_t_1 = Compute_RHS(static_cast<BinaryOpNode *>(expr_t_1), static_cast<BinaryOpNode *>(get<1>(it)), get<0>(it), 1);
             else if (get<2>(it) && !get<1>(it)) /*Binary operator*/
-              expr_t_1 = Compute_RHS((BinaryOpNode *) get<2>(it), (BinaryOpNode *) expr_t_1, get<0>(it), 1);
+              expr_t_1 = Compute_RHS(static_cast<BinaryOpNode *>(get<2>(it)), static_cast<BinaryOpNode *>(expr_t_1), get<0>(it), 1);
             else if (get<2>(it) && get<1>(it)) /*Binary operator*/
               expr_t_1 = Compute_RHS(get<1>(it), get<2>(it), get<0>(it), 1);
             else
-              expr_t_1 = Compute_RHS((UnaryOpNode *) expr_t_1, (UnaryOpNode *) get<1>(it), get<0>(it), 0);
+              expr_t_1 = Compute_RHS(static_cast<UnaryOpNode *>(expr_t_1), static_cast<UnaryOpNode *>(get<1>(it)), get<0>(it), 0);
           }
       else
         List_of_Op_RHS = List_of_Op_RHS2;
@@ -6910,7 +6910,7 @@ AbstractExternalFunctionNode::prepareForDerivation()
     argument->prepareForDerivation();
 
   non_null_derivatives = arguments.at(0)->non_null_derivatives;
-  for (int i = 1; i < (int) arguments.size(); i++)
+  for (int i = 1; i < static_cast<int>(arguments.size()); i++)
     set_union(non_null_derivatives.begin(),
               non_null_derivatives.end(),
               arguments.at(i)->non_null_derivatives.begin(),
@@ -7521,7 +7521,7 @@ expr_t
 ExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
 {
   vector<expr_t> dNodes;
-  for (int i = 0; i < (int) dargs.size(); i++)
+  for (int i = 0; i < static_cast<int>(dargs.size()); i++)
     dNodes.push_back(datatree.AddTimes(dargs.at(i),
                                        datatree.AddFirstDerivExternalFunction(symb_id, arguments, i+1)));
 
@@ -7596,7 +7596,7 @@ ExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCode, unsign
 
   if (!alreadyWrittenAsTefTerm(symb_id, tef_terms))
     {
-      tef_terms[{ symb_id, arguments }] = (int) tef_terms.size();
+      tef_terms[{ symb_id, arguments }] = static_cast<int>(tef_terms.size());
       int indx = getIndxInTefTerms(symb_id, tef_terms);
       int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
       assert(second_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
@@ -7698,7 +7698,7 @@ ExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutpu
 
   if (!alreadyWrittenAsTefTerm(symb_id, tef_terms))
     {
-      tef_terms[{ symb_id, arguments }] = (int) tef_terms.size();
+      tef_terms[{ symb_id, arguments }] = static_cast<int>(tef_terms.size());
       int indx = getIndxInTefTerms(symb_id, tef_terms);
       int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
       assert(second_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
@@ -7775,7 +7775,7 @@ ExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> &efout,
 
   if (!alreadyWrittenAsTefTerm(symb_id, tef_terms))
     {
-      tef_terms[{ symb_id, arguments }] = (int) tef_terms.size();
+      tef_terms[{ symb_id, arguments }] = static_cast<int>(tef_terms.size());
       int indx = getIndxInTefTerms(symb_id, tef_terms);
       int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
       assert(second_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
@@ -7866,7 +7866,7 @@ expr_t
 FirstDerivExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
 {
   vector<expr_t> dNodes;
-  for (int i = 0; i < (int) dargs.size(); i++)
+  for (int i = 0; i < static_cast<int>(dargs.size()); i++)
     dNodes.push_back(datatree.AddTimes(dargs.at(i),
                                        datatree.AddSecondDerivExternalFunction(symb_id, arguments, inputIndex, i+1)));
   expr_t theDeriv = datatree.Zero;
@@ -8054,7 +8054,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
       }
     else
       {
-        tef_terms[{ first_deriv_symb_id, arguments }] = (int) tef_terms.size();
+        tef_terms[{ first_deriv_symb_id, arguments }] = static_cast<int>(tef_terms.size());
         int indx = getIndxInTefTerms(first_deriv_symb_id, tef_terms);
         stringstream ending;
         ending << "_tefd_def_" << indx;
@@ -8080,7 +8080,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
                << datatree.symbol_table.getName(symb_id) << "'," << inputIndex << ",{";
       else
         {
-          tef_terms[{ first_deriv_symb_id, arguments }] = (int) tef_terms.size();
+          tef_terms[{ first_deriv_symb_id, arguments }] = static_cast<int>(tef_terms.size());
           output << "TEFD_def_" << getIndxInTefTerms(first_deriv_symb_id, tef_terms)
                  << " = " << datatree.symbol_table.getName(first_deriv_symb_id) << "(";
         }
@@ -8123,7 +8123,7 @@ FirstDerivExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> &
        << R"(, "value": ")" << datatree.symbol_table.getName(symb_id) << "(";
   else
     {
-      tef_terms[{ first_deriv_symb_id, arguments }] = (int) tef_terms.size();
+      tef_terms[{ first_deriv_symb_id, arguments }] = static_cast<int>(tef_terms.size());
       ef << R"({"first_deriv_external_function": {)"
          << R"("external_function_term": "TEFD_def_)" << getIndxInTefTerms(first_deriv_symb_id, tef_terms) << R"(")"
          << R"(, "analytic_derivative": true)"
@@ -8165,7 +8165,7 @@ FirstDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCo
     }
   else
     {
-      tef_terms[{ first_deriv_symb_id, arguments }] = (int) tef_terms.size();
+      tef_terms[{ first_deriv_symb_id, arguments }] = static_cast<int>(tef_terms.size());
       int indx = getIndxInTefTerms(symb_id, tef_terms);
       int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
       assert(second_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
@@ -8419,7 +8419,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
       }
     else
       {
-        tef_terms[{ second_deriv_symb_id, arguments }] = (int) tef_terms.size();
+        tef_terms[{ second_deriv_symb_id, arguments }] = static_cast<int>(tef_terms.size());
         int indx = getIndxInTefTerms(second_deriv_symb_id, tef_terms);
         stringstream ending;
         ending << "_tefdd_def_" << indx;
@@ -8447,7 +8447,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
                << inputIndex1 << "," << inputIndex2 << ",{";
       else
         {
-          tef_terms[{ second_deriv_symb_id, arguments }] = (int) tef_terms.size();
+          tef_terms[{ second_deriv_symb_id, arguments }] = static_cast<int>(tef_terms.size());
           output << "TEFDD_def_" << getIndxInTefTerms(second_deriv_symb_id, tef_terms)
                  << " = " << datatree.symbol_table.getName(second_deriv_symb_id) << "(";
         }
@@ -8491,7 +8491,7 @@ SecondDerivExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> 
        << R"(, "value": ")" << datatree.symbol_table.getName(symb_id) << "(";
   else
     {
-      tef_terms[{ second_deriv_symb_id, arguments }] = (int) tef_terms.size();
+      tef_terms[{ second_deriv_symb_id, arguments }] = static_cast<int>(tef_terms.size());
       ef << R"({"second_deriv_external_function": {)"
          << R"("external_function_term": "TEFDD_def_)" << getIndxInTefTerms(second_deriv_symb_id, tef_terms) << R"(")"
          << R"(, "analytic_derivative": true)"

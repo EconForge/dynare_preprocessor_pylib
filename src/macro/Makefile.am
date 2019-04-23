@@ -19,5 +19,7 @@ libmacro_a_CPPFLAGS = $(BOOST_CPPFLAGS) -I..
 MacroFlex.cc: MacroFlex.ll
 	$(LEX) -o MacroFlex.cc MacroFlex.ll
 
+libmacro_a-MacroFlex.$(OBJEXT): CXXFLAGS += -Wno-old-style-cast
+
 MacroBison.cc MacroBison.hh location.hh stack.hh position.hh: MacroBison.yy
 	$(YACC) -W -o MacroBison.cc MacroBison.yy

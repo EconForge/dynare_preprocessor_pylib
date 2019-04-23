@@ -3022,7 +3022,7 @@ ParsingDriver::add_model_var_or_external_function(const string &function_name, b
             model_error("Symbol " + function_name +
                         " is being treated as if it were a function (i.e., takes an argument that is not an integer).", "");
 
-          nid = add_model_variable(mod_file->symbol_table.getID(function_name), (int) rv.second);
+          nid = add_model_variable(mod_file->symbol_table.getID(function_name), static_cast<int>(rv.second));
           stack_external_function_args.pop();
           return nid;
       }
@@ -3037,7 +3037,7 @@ ParsingDriver::add_model_var_or_external_function(const string &function_name, b
           if (mod_file->external_functions_table.getNargs(symb_id) == ExternalFunctionsTable::IDNotSet)
             error("Before using " + function_name
                   +"() in the model block, you must first declare it via the external_function() statement");
-          else if ((int) (stack_external_function_args.top().size()) != mod_file->external_functions_table.getNargs(symb_id))
+          else if (static_cast<int>(stack_external_function_args.top().size()) != mod_file->external_functions_table.getNargs(symb_id))
             error("The number of arguments passed to " + function_name
                   +"() does not match those of a previous call or declaration of this function.");
       }
@@ -3058,7 +3058,7 @@ ParsingDriver::add_model_var_or_external_function(const string &function_name, b
             {
               // assume it's a lead/lagged variable
               declare_exogenous(function_name);
-              return add_model_variable(mod_file->symbol_table.getID(function_name), (int) rv.second);
+              return add_model_variable(mod_file->symbol_table.getID(function_name), static_cast<int>(rv.second));
             }
           else
             error("To use an external function (" + function_name +
@@ -3301,7 +3301,7 @@ ParsingDriver::smm_estimation()
 void
 ParsingDriver::prior_posterior_function(bool prior_func)
 {
-  mod_file->addStatement(make_unique<PriorPosteriorFunctionStatement>((bool) prior_func, options_list));
+  mod_file->addStatement(make_unique<PriorPosteriorFunctionStatement>(static_cast<bool>(prior_func), options_list));
   options_list.clear();
 }
 
