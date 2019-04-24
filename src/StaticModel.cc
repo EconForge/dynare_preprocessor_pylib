@@ -1952,8 +1952,14 @@ StaticModel::writeStaticCFile(const string &basename) const
 
   if (external_functions_table.get_total_number_of_unique_model_block_external_functions())
     // External Matlab function, implies Static function will call mex
-    output << "#include <uchar.h>" << endl // For MATLAB ≤ R2011a
-           << R"(#include "mex.h")" << endl;
+    output
+#ifndef __APPLE__
+      << "#include <uchar.h>" << endl // For MATLAB ≤ R2011a
+#else
+      << "typedef uint_least16_t char16_t;" << endl
+      << "typedef uint_least32_t char32_t;" << endl // uchar.h does not exist on macOS
+#endif
+      << R"(#include "mex.h")" << endl;
 
   output << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
          << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
@@ -1988,7 +1994,12 @@ StaticModel::writeStaticCFile(const string &basename) const
          << " */" << endl
          << endl
          << "#include <stdlib.h>" << endl
+#ifndef __APPLE__
          << "#include <uchar.h>" << endl // For MATLAB ≤ R2011a
+#else
+         << "typedef uint_least16_t char16_t;" << endl
+         << "typedef uint_least32_t char32_t;" << endl // uchar.h does not exist on macOS
+#endif
          << R"(#include "mex.h")" << endl
          << endl
          << "void static_resid_tt(const double *y, const double *x, int nb_row_x, const double *params, double *T);" << endl
