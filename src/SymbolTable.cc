@@ -248,6 +248,12 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
               output << "M_ = set_exogenous_variables_for_simulation(M_);" << endl;
           }
     }
+  else
+    {
+      output << "M_.exo_names = {};" << endl;
+      output << "M_.exo_names_tex = {};" << endl;
+      output << "M_.exo_names_long = {};" << endl;
+    }
 
   if (exo_det_nbr() > 0)
     {
@@ -338,6 +344,12 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
               }
             output << "};" << endl;
           }
+    }
+  else
+    {
+      output << "M_.param_names = {};" << endl;
+      output << "M_.param_names_tex = {};" << endl;
+      output << "M_.param_names_long = {};" << endl;
     }
 
   output << "M_.exo_det_nbr = " << exo_det_nbr() << ";" << endl
