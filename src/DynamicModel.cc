@@ -21,10 +21,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cassert>
-#include <cstdio>
-#include <cerrno>
 #include <algorithm>
-#include <iterator>
 #include <numeric>
 
 #include "DynamicModel.hh"

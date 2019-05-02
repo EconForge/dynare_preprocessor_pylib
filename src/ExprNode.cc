@@ -18,12 +18,9 @@
  */
 
 #include <iostream>
-#include <iterator>
 #include <algorithm>
-
 #include <cassert>
 #include <cmath>
-
 #include <utility>
 
 #include "ExprNode.hh"

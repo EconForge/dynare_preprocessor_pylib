@@ -20,10 +20,7 @@
 #ifndef _CODEINTERPRETER_HH
 #define _CODEINTERPRETER_HH
 //#define DEBUGL
-#include <iostream>
 
-#include <cstdlib>
-#include <cstdio>
 #include <fstream>
 #include <cstring>
 #include <utility>

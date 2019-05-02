@@ -19,9 +19,7 @@
 
 #include <cstdlib>
 #include <cassert>
-#include <cerrno>
 #include <cmath>
-#include <iostream>
 
 #include "NumericalConstants.hh"
 

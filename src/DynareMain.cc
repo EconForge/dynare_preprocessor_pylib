@@ -25,7 +25,7 @@
 #include <regex>
 
 #include <cstdlib>
-#include <cstring>
+
 #ifndef PACKAGE_VERSION
 # define PACKAGE_VERSION 4.
 #endif

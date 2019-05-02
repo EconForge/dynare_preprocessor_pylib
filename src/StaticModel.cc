@@ -21,8 +21,6 @@
 #include <cmath>
 #include <cstdlib>
 #include <cassert>
-#include <cstdio>
-#include <cerrno>
 #include <algorithm>
 
 #include "StaticModel.hh"
