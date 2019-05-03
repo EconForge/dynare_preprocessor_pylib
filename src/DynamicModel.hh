@@ -365,6 +365,10 @@ public:
   //! Writes file containing parameters derivatives
   void writeParamsDerivativesFile(const string &basename, bool julia) const;
 
+  //! Writes file containing coordinates of non-zero elements in the Jacobian
+  /*! Used by the perfect_foresight_stacked_jacobian MEX */
+  void writeDynamicJacobianNonZeroElts(const string &basename) const;
+
   //! Converts to nonlinear model (only the equations)
   /*! It assumes that the nonlinear model given in argument has just been allocated */
   void toNonlinearPart(DynamicModel &non_linear_equations_dynamic_model) const;

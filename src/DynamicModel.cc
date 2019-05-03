@@ -2925,6 +2925,47 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
 }
 
 void
+DynamicModel::writeDynamicJacobianNonZeroElts(const string &basename) const
+{
+  vector<pair<int, int>> nzij_pred, nzij_current, nzij_fwrd; // pairs (tsid, equation)
+  for (const auto &it : derivatives[1])
+    {
+      if (symbol_table.getType(getSymbIDByDerivID(it.first[1])) != SymbolType::endogenous)
+        continue;
+      int tsid = symbol_table.getTypeSpecificID(getSymbIDByDerivID(it.first[1]));
+      int lag = getLagByDerivID(it.first[1]);
+      if (lag == -1)
+        nzij_pred.emplace_back(tsid, it.first[0]);
+      else if (lag == 0)
+        nzij_current.emplace_back(tsid, it.first[0]);
+      else
+        nzij_fwrd.emplace_back(tsid, it.first[0]);
+    }
+  sort(nzij_pred.begin(), nzij_pred.end());
+  sort(nzij_current.begin(), nzij_current.end());
+  sort(nzij_fwrd.begin(), nzij_fwrd.end());
+
+  ofstream output{"+" + basename + "/dynamic_g1_nz.m", ios::out | ios::binary};
+  output << "function [nzij_pred, nzij_current, nzij_fwrd] = dynamic_g1_nz()" << endl
+         << "% Returns the coordinates of non-zero elements in the Jacobian, in column-major order, for each lead/lag (only for endogenous)" << endl;
+  auto print_nzij = [&output](const vector<pair<int, int>> &nzij, const string &name)    {
+      output << "  " << name << " = zeros(" << nzij.size() << ", 2, 'int32');" << endl;
+      int idx = 1;
+      for (const auto &it : nzij)
+        {
+          output << "  " << name << "(" << idx << ",1)=" << it.second+1 << ';'
+                 << " " << name << "(" << idx << ",2)=" << it.first+1 << ';' << endl;
+          idx++;
+        }
+    };
+  print_nzij(nzij_pred, "nzij_pred");
+  print_nzij(nzij_current, "nzij_current");
+  print_nzij(nzij_fwrd, "nzij_fwrd");
+  output << "end" << endl;
+  output.close();
+}
+
+void
 DynamicModel::writeOutput(ostream &output, const string &basename, bool block_decomposition, bool linear_decomposition, bool byte_code, bool use_dll, int order, bool estimation_present, bool compute_xrefs, bool julia) const
 {
   /* Writing initialisation for M_.lead_lag_incidence matrix

@@ -1101,6 +1101,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
           dynamic_model.writeDynamicFile(basename, block, false, byte_code, use_dll, mexext, matlabroot, dynareroot, mod_file_struct.order_option, false);
 
           dynamic_model.writeParamsDerivativesFile(basename, false);
+
+          dynamic_model.writeDynamicJacobianNonZeroElts(basename);
         }
 
       // Create steady state file
