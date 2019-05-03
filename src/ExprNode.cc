@@ -5681,33 +5681,56 @@ BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
       if (dynamic_cast<PacExpectationNode *>(it.first))
         continue;
 
-      int pid, vid, lag;
-      double constant;
+      pair<int, vector<tuple<int, int, int, double>>> m;
       try
         {
-          tie(vid, lag, pid, constant) = it.first->matchVariableTimesConstantTimesParam();
-          constant *= it.second;
+          m = {-1, {it.first->matchVariableTimesConstantTimesParam()}};
         }
       catch (MatchFailureException &e)
         {
-          cerr << "Unsupported expression in PAC equation" << endl;
-          exit(EXIT_FAILURE);
-        }
-
-      int vidorig = datatree.symbol_table.getUltimateOrigSymbID(vid);
-      if (vidorig == lhs_symb_id || vidorig == lhs_orig_symb_id)
-        {
-          // This is an autoregressive term
-          if (constant != 1 || pid == -1)
+          try
+             {
+               m = it.first->matchParamTimesLinearCombinationOfVariables();
+             }
+          catch (MatchFailureException &e)
             {
-              cerr << "BinaryOpNode::getPacAREC: autoregressive terms must be of the form 'parameter*lagged_variable" << endl;
+              cerr << "Unsupported expression in PAC equation" << endl;
               exit(EXIT_FAILURE);
             }
-          ar_params_and_vars.insert({pid, { vid, lag }});
         }
-      else
-        // This is a residual additive term
-        additive_vars_params_and_constants.emplace_back(vid, lag, pid, constant);
+
+      for (auto &t : m.second)
+        get<3>(t) *= it.second; // Update sign of constants
+
+      int vid, lag, pidtmp, pid = get<0>(m);
+      double constant;
+      for (auto &t : m.second)
+        {
+          tie(vid, lag, pidtmp, constant) = t;
+          if (pid == -1)
+            pid = pidtmp;
+          else
+            if (pidtmp >= 0)
+              {
+                cerr << "unexpected parameter found in PAC equation" << endl;
+                exit(EXIT_FAILURE);
+              }
+
+          int vidorig = datatree.symbol_table.getUltimateOrigSymbID(vid);
+          if (vidorig == lhs_symb_id || vidorig == lhs_orig_symb_id)
+            {
+              // This is an autoregressive term
+              if (constant != 1 || pid == -1)
+                {
+                  cerr << "BinaryOpNode::getPacAREC: autoregressive terms must be of the form 'parameter*lagged_variable" << endl;
+                  exit(EXIT_FAILURE);
+                }
+              ar_params_and_vars.insert({pid, { vid, lag }});
+            }
+          else
+            // This is a residual additive term
+            additive_vars_params_and_constants.emplace_back(vid, lag, pid, constant);
+        }
     }
 }
 
