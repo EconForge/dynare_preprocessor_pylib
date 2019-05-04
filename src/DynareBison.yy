@@ -3899,8 +3899,6 @@ symbol : NAME
          { $$ = $1; }
        | PRIOR
          { $$ = $1; }
-       | EXPECTATION
-         {  }
        ;
 
 
