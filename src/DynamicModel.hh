@@ -352,7 +352,7 @@ public:
                         string aux_model_type,
                         const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
                         const vector<bool> &nonstationary,
-                        int growth_symb_id, int growth_lag);
+                        expr_t growth);
 
   //! Substitutes pac_expectation operator with expectation based on auxiliary model
   void substitutePacExpectation(const string & pac_model_name);

@@ -4729,7 +4729,7 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
                                string aux_model_type,
                                const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
                                const vector<bool> &nonstationary,
-                               int growth_symb_id, int growth_lag)
+                               expr_t growth)
 {
   pac_eqtag_and_lag.insert(eqtag_and_lag.begin(), eqtag_and_lag.end());
 
@@ -4745,7 +4745,7 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
         stationary_vars_present = true;
 
   int growth_param_index = -1;
-  if (growth_symb_id >= 0)
+  if (growth != nullptr)
     growth_param_index = symbol_table.addSymbol(pac_model_name +
                                                 "_pac_growth_neutrality_correction",
                                                 SymbolType::parameter);
@@ -4789,10 +4789,9 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
                                          AddVariable(lhsit, -i)));
             }
 
-      if (growth_symb_id >= 0)
+      if (growth != nullptr)
         subExpr = AddPlus(subExpr,
-                          AddTimes(AddVariable(growth_param_index),
-                                   AddVariable(growth_symb_id, growth_lag)));
+                          AddTimes(AddVariable(growth_param_index), growth));
 
       pac_expectation_substitution[{pac_model_name, eqtag}] = subExpr;
     }

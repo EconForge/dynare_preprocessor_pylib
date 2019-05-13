@@ -143,9 +143,8 @@ private:
   const double steady_state_growth_rate_number;
   const int steady_state_growth_rate_symb_id;
   const SymbolTable &symbol_table;
+  vector<tuple<int, int, int, double>> growth_info;
 public:
-  int growth_symb_id;
-  int growth_lag;
   PacModelStatement(string name_arg,
                     string aux_model_name_arg,
                     string discount_arg,
@@ -153,7 +152,6 @@ public:
                     double steady_state_growth_rate_number_arg,
                     int steady_state_growth_rate_symb_id_arg,
                     const SymbolTable &symbol_table_arg);
-  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void overwriteGrowth(expr_t new_growth);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;

@@ -471,7 +471,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
                                                                     eqtag_and_lag, diff_subst_table);
            else
              dynamic_model.fillPacModelInfo(pms->name, lhs, max_lag, aux_model_type,
-                                            eqtag_and_lag, nonstationary, pms->growth_symb_id, pms->growth_lag);
+                                            eqtag_and_lag, nonstationary, pms->growth);
            dynamic_model.substitutePacExpectation(pms->name);
          }
      }

@@ -275,50 +275,8 @@ PacModelStatement::PacModelStatement(string name_arg,
   original_growth{growth_arg},
   steady_state_growth_rate_number{steady_state_growth_rate_number_arg},
   steady_state_growth_rate_symb_id{steady_state_growth_rate_symb_id_arg},
-  symbol_table{symbol_table_arg},
-  growth_symb_id{-1},
-  growth_lag{0}
+  symbol_table{symbol_table_arg}
 {
-}
-
-void
-PacModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
-{
-  if (growth == nullptr)
-    return;
-
-  auto *vn = dynamic_cast<VariableNode *>(growth);
-  if (vn != nullptr)
-    {
-      mod_file_struct.pac_params.insert(vn->symb_id);
-      mod_file_struct.pac_params.insert(vn->lag);
-    }
-
-  auto *uon = dynamic_cast<UnaryOpNode *>(growth);
-  if (uon != nullptr)
-    if (uon->op_code == UnaryOpcode::diff)
-      {
-        auto *uonvn = dynamic_cast<VariableNode *>(uon->arg);
-        auto *uon1 = dynamic_cast<UnaryOpNode *>(uon->arg);
-        while (uonvn == nullptr && uon1 != nullptr)
-          {
-            uonvn = dynamic_cast<VariableNode *>(uon1->arg);
-            uon1 = dynamic_cast<UnaryOpNode *>(uon1->arg);
-          }
-        if (uonvn == nullptr)
-          {
-            cerr << "Pac growth parameter must be either a variable or a diff unary op of a variable" << endl;
-            exit(EXIT_FAILURE);
-          }
-         mod_file_struct.pac_params.insert(uonvn->symb_id);
-         mod_file_struct.pac_params.insert(uonvn->lag);
-      }
-
-  if (vn == nullptr && uon == nullptr)
-    {
-      cerr << "Pac growth parameter must be either a variable or a diff unary op of a variable" << endl;
-      exit(EXIT_FAILURE);
-    }
 }
 
 void
@@ -326,15 +284,16 @@ PacModelStatement::overwriteGrowth(expr_t new_growth)
 {
   if (new_growth == nullptr || growth == nullptr)
     return;
-
   growth = new_growth;
-  auto *vn = dynamic_cast<VariableNode *>(growth);
-  if (vn == nullptr)
+  try
     {
-      cerr << "PacModelStatement::overwriteGrowth: Internal Dynare error: should not arrive here" << endl;
+      growth_info = growth->matchLinearCombinationOfVariables();
     }
-  growth_symb_id = vn->symb_id;
-  growth_lag = vn->lag;
+  catch (ExprNode::MatchFailureException &e)
+    {
+      cerr << "Pac growth must be a linear combination of varibles" << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -349,8 +308,20 @@ PacModelStatement::writeOutput(ostream &output, const string &basename, bool min
     output << "M_.pac." << name << ".steady_state_growth_rate = "
            << symbol_table.getTypeSpecificID(steady_state_growth_rate_symb_id) + 1 << ";" << endl;
 
-  if (growth_symb_id >= 0)
+  size_t nlc = growth_info.size();
+  output << "M_.pac." << name << ".growth_index = repmat(-1, " << nlc << ", 1);" << endl
+         << "M_.pac." << name << ".growth_lag = zeros(" << nlc << ", 1);" << endl
+         << "M_.pac." << name << ".growth_param_id = repmat(-1, " << nlc << ", 1);" << endl
+         << "M_.pac." << name << ".growth_constant = zeros(" << nlc << ", 1);" << endl
+         << "M_.pac." << name << ".growth_type = repmat({''}, " <<  nlc << ", 1);" << endl
+         << "M_.pac." << name << ".growth_part_str = repmat({''}, " <<  nlc << ", 1);" << endl;
+  int i = 0;
+  for (auto & it : growth_info)
     {
+      i++;
+      int growth_symb_id, growth_lag, param_id = -1;
+      double constant = 0;
+      tie(growth_symb_id, growth_lag, param_id, constant) = it;
       string growth_type;
       switch (symbol_table.getType(growth_symb_id))
         {
@@ -372,12 +343,8 @@ PacModelStatement::writeOutput(ostream &output, const string &basename, bool min
         {
           // case when this is not the highest lag of the growth variable
           int aux_symb_id = symbol_table.searchAuxiliaryVars(growth_symb_id, growth_lag);
-          output << "M_.pac." << name << ".growth_index = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
-                 << "M_.pac." << name << ".growth_lag = 0;" << endl
-                 << "M_.pac." << name << ".growth_type = '" << growth_type << "';" << endl
-                 << "M_.pac." << name << ".growth_str = '";
-          original_growth->writeJsonOutput(output, {}, {}, true);
-          output << "';" << endl;
+          output << "M_.pac." << name << ".growth_index(" << i << ") = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
+                 << "M_.pac." << name << ".growth_lag(" << i << ") = 0;" << endl;
         }
       catch (...)
         {
@@ -386,25 +353,25 @@ PacModelStatement::writeOutput(ostream &output, const string &basename, bool min
               // case when this is the highest lag of the growth variable
               int tmp_growth_lag = growth_lag + 1;
               int aux_symb_id = symbol_table.searchAuxiliaryVars(growth_symb_id, tmp_growth_lag);
-              output << "M_.pac." << name << ".growth_index = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
-                     << "M_.pac." << name << ".growth_lag = -1;" << endl
-                     << "M_.pac." << name << ".growth_type = '" << growth_type << "';" << endl
-                     << "M_.pac." << name << ".growth_str = '";
-              original_growth->writeJsonOutput(output, {}, {}, true);
-              output << "';" << endl;
+              output << "M_.pac." << name << ".growth_index(" << i << ") = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
+                     << "M_.pac." << name << ".growth_lag(" << i << ") = -1;" << endl;
             }
           catch (...)
             {
               // case when there is no aux var for the variable
-              output << "M_.pac." << name << ".growth_index = " << symbol_table.getTypeSpecificID(growth_symb_id) + 1 << ";" << endl
-                     << "M_.pac." << name << ".growth_lag = " << growth_lag << ";" << endl
-                     << "M_.pac." << name << ".growth_type = '" << growth_type << "';" << endl
-                     << "M_.pac." << name << ".growth_str = '";
-              original_growth->writeJsonOutput(output, {}, {}, true);
-              output << "';" << endl;
+              output << "M_.pac." << name << ".growth_index(" << i << ") = " << symbol_table.getTypeSpecificID(growth_symb_id) + 1 << ";" << endl
+                     << "M_.pac." << name << ".growth_lag(" << i << ") = " << growth_lag << ";" << endl;
             }
         }
+
+      output << "M_.pac." << name << ".growth_param_id(" << i << ") = "
+             << (param_id == -1 ? -1 : symbol_table.getTypeSpecificID(param_id)) + 1 << ";" << endl
+             << "M_.pac." << name << ".growth_constant(" << i << ") = " << constant << ";" << endl
+             << "M_.pac." << name << ".growth_type{" << i << "} = '" << growth_type << "';" << endl;
     }
+  output << "M_.pac." << name << ".growth_str = '";
+  original_growth->writeJsonOutput(output, {}, {}, true);
+  output << "';" << endl;
 }
 
 void
@@ -413,35 +380,10 @@ PacModelStatement::writeJsonOutput(ostream &output) const
   output << R"({"statementName": "pac_model",)"
          << R"("model_name": ")" << name << R"(",)"
          << R"("auxiliary_model_name": ")" << aux_model_name << R"(",)"
-         << R"("discount_index": )" << symbol_table.getTypeSpecificID(discount) + 1;
-
-  if (growth_symb_id >= 0)
-    {
-      string growth_type;
-      switch (symbol_table.getType(growth_symb_id))
-        {
-        case SymbolType::endogenous:
-          growth_type = "endogenous";
-          break;
-        case SymbolType::exogenous:
-          growth_type = "exogenous";
-          break;
-        case SymbolType::parameter:
-          growth_type = "parameter";
-          break;
-        default:
-          {
-          }
-        }
-      output << ","
-             << R"("growth_index": )" << symbol_table.getTypeSpecificID(growth_symb_id) + 1 << ","
-             << R"("growth_lag": )" << growth_lag << ","
-             << R"("growth_type": ")" << growth_type << R"(",)" << endl
-             << R"("growth_str": ")";
-      original_growth->writeJsonOutput(output, {}, {}, true);
-      output << R"(")" << endl;
-    }
-  output << "}";
+         << R"("discount_index": )" << symbol_table.getTypeSpecificID(discount) + 1
+         << R"("growth_str": ")";
+  original_growth->writeJsonOutput(output, {}, {}, true);
+  output << R"("})" << endl;
 }
 
 VarEstimationStatement::VarEstimationStatement(OptionsList options_list_arg) :
