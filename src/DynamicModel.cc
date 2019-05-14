@@ -3062,7 +3062,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
     {
       output << modstruct << "dynamic_tmp_nbr = [";
       for (size_t i = 0; i < temporary_terms_derivatives.size(); i++)
-        output << temporary_terms_derivatives[i].size() << "; ";
+        output << temporary_terms_derivatives[i].size() + (i == 0 ? temporary_terms_mlv.size() : 0) << "; ";
       output << "];" << endl;
     }
 
