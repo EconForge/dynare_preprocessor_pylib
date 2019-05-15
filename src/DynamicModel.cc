@@ -3093,6 +3093,18 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
          << (static_only_equations.size() > 0 ? "true" :"false")
          << ";" << endl;
 
+  // Say if model contains an external function call
+  bool has_external_function = false;
+  for (size_t eq = 0; eq < equations.size(); eq++)
+    if (equations[eq]->containsExternalFunction())
+      {
+        has_external_function = true;
+        break;
+      }
+  output << modstruct << "has_external_function = "
+         << (has_external_function ? "true" : "false")
+         << ';' << endl;
+
   vector<int> state_var;
   for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
     // Loop on periods
