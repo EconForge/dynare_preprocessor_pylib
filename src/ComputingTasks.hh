@@ -152,6 +152,7 @@ public:
                     double steady_state_growth_rate_number_arg,
                     int steady_state_growth_rate_symb_id_arg,
                     const SymbolTable &symbol_table_arg);
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void overwriteGrowth(expr_t new_growth);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;

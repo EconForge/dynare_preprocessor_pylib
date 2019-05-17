@@ -280,6 +280,13 @@ PacModelStatement::PacModelStatement(string name_arg,
 }
 
 void
+PacModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  if (growth)
+    growth->collectVariables(SymbolType::exogenous, mod_file_struct.pac_params);
+}
+
+void
 PacModelStatement::overwriteGrowth(expr_t new_growth)
 {
   if (new_growth == nullptr || growth == nullptr)
