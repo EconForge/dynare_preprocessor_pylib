@@ -291,15 +291,23 @@ PacModelStatement::overwriteGrowth(expr_t new_growth)
 {
   if (new_growth == nullptr || growth == nullptr)
     return;
+
   growth = new_growth;
+
   try
     {
       growth_info = growth->matchLinearCombinationOfVariables();
     }
   catch (ExprNode::MatchFailureException &e)
     {
-      cerr << "Pac growth must be a linear combination of varibles" << endl;
-      exit(EXIT_FAILURE);
+      auto gv = dynamic_cast<const VariableNode *>(growth);
+      if (gv)
+        growth_info.push_back({gv->symb_id, gv->lag, -1, 1});
+      else
+        {
+          cerr << "Pac growth must be a linear combination of varibles" << endl;
+          exit(EXIT_FAILURE);
+        }
     }
 }
 
