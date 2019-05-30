@@ -1,25 +1,30 @@
 noinst_LIBRARIES = libmacro.a
 
-BUILT_SOURCES = MacroBison.hh stack.hh position.hh location.hh MacroBison.cc MacroFlex.cc
+BUILT_SOURCES = Parser.hh stack.hh position.hh location.hh Parser.cc Tokenizer.cc
 
-# We don't put BUILT_SOURCES in libmacro_a_SOURCES, otherwise MacroBison.o and MacroFlex.o will be linked two times (Automake translates MacroFlex.ll and MacroBison.yy into their respective .o); so BUILT_SOURCES is in EXTRA_DIST
+# We don't put BUILT_SOURCES in libmacro_a_SOURCES, otherwise Parser.o and Tokenizer.o will be linked two times (Automake translates Tokenizer.ll and Parser.yy into their respective .o); so BUILT_SOURCES is in EXTRA_DIST
 libmacro_a_SOURCES = \
-	MacroFlex.ll \
-	MacroBison.yy \
-	MacroDriver.cc \
-	MacroDriver.hh \
-	MacroValue.cc \
-	MacroValue.hh
+	Tokenizer.ll \
+	Parser.yy \
+	ForwardDeclarationsAndEnums.hh \
+	Driver.cc \
+	Driver.hh \
+	Environment.cc \
+	Environment.hh \
+	Expressions.cc \
+	Expressions.hh \
+	Directives.cc \
+	Directives.hh
 
 EXTRA_DIST = $(BUILT_SOURCES)
 
 # The -I.. is for <FlexLexer.h>
 libmacro_a_CPPFLAGS = $(BOOST_CPPFLAGS) -I..
 
-MacroFlex.cc: MacroFlex.ll
-	$(LEX) -o MacroFlex.cc MacroFlex.ll
+Tokenizer.cc: Tokenizer.ll
+	$(LEX) -o Tokenizer.cc Tokenizer.ll
 
-libmacro_a-MacroFlex.$(OBJEXT): CXXFLAGS += -Wno-old-style-cast
+libmacro_a-Tokenizer.$(OBJEXT): CXXFLAGS += -Wno-old-style-cast
 
-MacroBison.cc MacroBison.hh location.hh stack.hh position.hh: MacroBison.yy
-	$(YACC) -W -o MacroBison.cc MacroBison.yy
+Parser.cc Parser.hh location.hh stack.hh position.hh: Parser.yy
+	$(YACC) -W -o Parser.cc Parser.yy

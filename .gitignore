@@ -33,9 +33,9 @@ TAGS
 /src/location.hh
 /src/position.hh
 /src/stack.hh
-/src/macro/MacroBison.cc
-/src/macro/MacroBison.hh
-/src/macro/MacroFlex.cc
+/src/macro/Parser.cc
+/src/macro/Parser.hh
+/src/macro/Tokenizer.cc
 /src/macro/location.hh
 /src/macro/position.hh
 /src/macro/stack.hh

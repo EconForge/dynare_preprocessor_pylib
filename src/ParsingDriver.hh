@@ -21,7 +21,7 @@
 #define _PARSING_DRIVER_HH
 
 #ifdef _MACRO_DRIVER_HH
-# error Impossible to include both ParsingDriver.hh and MacroDriver.hh
+# error Impossible to include both ParsingDriver.hh and macro/Driver.hh
 #endif
 
 #include <string>
