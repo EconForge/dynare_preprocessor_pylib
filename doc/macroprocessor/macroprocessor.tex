@@ -7,12 +7,44 @@
 
 \usetheme{Boadilla}
 
+\titlegraphic{\includegraphics{../logos/dlogo.png}}
+
 \title{The Dynare Macro Processor}
-\subtitle{Dynare Summer School 2018}
-\author{Sébastien Villemot and Houtan Bastani}
-%\pgfdeclareimage[height=0.6cm]{logo}{logo-ofce}
-\institute{CEPREMAP}
-\date{July 9, 2018}
+
+\author[S. Villemot, H.Bastani]{Sébastien Villemot \and Houtan Bastani}
+
+\institute[CEPREMAP]{\includegraphics[scale=0.15]{../logos/cepremap.jpg}}
+
+\date{28 June 2019}
+
+
+\setbeamertemplate{title page}
+{
+  \vbox{}
+  \begingroup
+    \centering
+    {\usebeamercolor[fg]{titlegraphic}\inserttitlegraphic\par}\vskip1em
+    \begin{beamercolorbox}[sep=8pt,center]{title}
+      \usebeamerfont{title}\inserttitle\par%
+      \ifx\insertsubtitle\@empty%
+      \else%
+        \vskip0.25em%
+        {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\insertsubtitle\par}%
+      \fi%
+    \end{beamercolorbox}%
+    \vskip1em\par
+    \begin{beamercolorbox}[sep=8pt,center]{author}
+      \usebeamerfont{author}\insertauthor
+    \end{beamercolorbox}
+    \begin{beamercolorbox}[sep=8pt,center]{institute}
+      \usebeamerfont{institute}\insertinstitute
+    \end{beamercolorbox}
+    \begin{beamercolorbox}[sep=8pt,center]{date}
+      \usebeamerfont{date}\insertdate
+    \end{beamercolorbox}
+  \endgroup
+  \vfill
+}
 
 \AtBeginSection[]
 {
@@ -26,6 +58,18 @@
 
 \begin{frame}
   \titlepage
+
+  \begin{columns}[T]
+    \column{0.2\textwidth}
+    \column{0.09\textwidth}
+
+    \ccbysa
+    \column{0.71\textwidth}
+    \tiny
+    Copyright © 2008--2019 Dynare Team \\
+    Licence: \href{http://creativecommons.org/licenses/by-sa/4.0/}{Creative
+      Commons Attribution-ShareAlike 4.0}
+  \end{columns}
 \end{frame}
 
 \begin{frame}
@@ -38,37 +82,38 @@
 \begin{frame}
   \frametitle{Motivation}
   \begin{itemize}
-  \item The \textbf{Dynare language} (used in MOD files) is well suited for many economic models
-  \item But it lacks some useful features such as:
+  \item The \textbf{Dynare language} (used in \texttt{.mod} files) is well suited for many economic models
     \begin{itemize}
-    \item a loop mechanism for automatically repeating similar blocks of equations (e.g. multi-country models)
-    \item an operator for indexed sums or products inside equations
-    \item a mechanism for splitting up large MOD files into smaller, modular files
-    \item the possibility of conditionally including some equations or some runtime commands
-  \end{itemize}
-  \item The \textbf{Dynare Macro-language} was specifically designed to address these issues
-  \item Being flexible and fairly general, it can also be helpful in other situations
+    \item It's a markup language that defines models
+    \item Lacks a programmatic element
+    \end{itemize}
+  \item The \textbf{Dynare macro language} adds a programmatic element to Dynare
+    \begin{itemize}
+    \item Introduces conditionals, loops, and other simple programmatic directives
+    \item Used to speed model development
+    \item Useful in various situations
+      \begin{itemize}
+      \item Multi-country models
+      \item Creation of modular \texttt{.mod} files
+      \item Variable flipping
+      \item Conditional inclusion of equations
+      \item ...among others
+      \end{itemize}
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Design of the macro-language}
+  \frametitle{Design of the macro language}
   \begin{itemize}
-  \item The Dynare Macro-language provides a new set of \textbf{macro-commands} which can be used in MOD files
-  \item Language features include:
-    \begin{itemize}
-    \item file inclusion
-    \item loops (\textit{for} structure)
-    \item conditional inclusion (\textit{if/else} structures)
-    \item expression substitution
-    \end{itemize}
-  \item The macro processor transforms a MOD file with macro-commands into a MOD file without macro-commands (doing text expansions/inclusions) and then feeds it to the Dynare parser
+  \item The Dynare macro language provides a new set of \textbf{macro commands} that can be used in \texttt{.mod} files
+  \item The macro processor transforms a \texttt{.mod} file with macro commands into a \texttt{.mod} file without macro commands (doing text expansions/inclusions) and then feeds it to the Dynare parser
   \item The key point to understand is that the macro processor only does \textbf{text substitution} (like the C preprocessor or the PHP language)
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Design of Dynare}
+  \frametitle{Dynare Flowchart}
   \includegraphics[width=0.95\linewidth]{new-design.pdf}
 \end{frame}
 
@@ -77,8 +122,8 @@
 \begin{frame}[fragile=singleslide]
   \frametitle{Macro Directives}
   \begin{itemize}
-  \item Directives begin with an at sign followed by a pound sign: \verb+@#+
-  \item A directive produces no output but gives instructions to the macro processor
+  \item Directives begin with:\verb+@#+
+  \item A directive gives instructions to the macro processor
   \item Main directives are:
     \begin{itemize}
     \item file inclusion: \verb+@#include+
@@ -95,64 +140,168 @@
 \frametitle{Variables}
 \begin{itemize}
 \item The macro processor has its own list of variables which are different than model variables and MATLAB/Octave variables
-\item There are 4 types of macro-variables:
+\item There are 6 types of macro-variables:
   \begin{itemize}
-  \item integer
-  \item string (declared between \textit{double} quotes)
-  \item integer array
-  \item string array
-  \end{itemize}
-\item Macro-Functions are also supported
-  \begin{itemize}
-  \item only accept string aruments
-  \item must evaluate to a string
-  \end{itemize}
-\item No boolean type:
-  \begin{itemize}
-  \item false is represented by integer zero
-  \item true is any non-zero integer
+  \item boolean
+  \item double
+  \item string
+  \item tuple
+  \item array
+  \item function
   \end{itemize}
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{Macro-expressions (1/2)}
+  \frametitle{Macro-expressions (1/8)}
+  \begin{itemize}
+    \item Macro-expressions are constructed using literals of the 6 basic types
+      described above, macro-variables, comprehensions, and standard operators.
+    \item Macro-expressions can be used in two places:
+      \begin{itemize}
+      \item inside macro directives; no special markup is required
+      \item in the body of the \texttt{.mod} file, between an at sign and curly braces (like \verb+@{expr}+); the macro processor will substitute the expression with its value
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{Macro-expressions (2/8): Boolean}
   It is possible to construct macro-expressions using standard operators.
-  \begin{block}{Operators on integers}
+  \begin{block}{Operators on booleans}
     \begin{itemize}
-    \item arithmetic operators: \texttt{+ - * /}
+    \item comparison operators: \texttt{== !=}
+    \item logical operators: \verb+&& || !+
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{Macro-expressions (3/8): Double}
+  \begin{block}{Operators on doubles}
+    \begin{itemize}
+    \item arithmetic operators: \texttt{+ - * / \^{}}
     \item comparison operators: \texttt{< > <= >= == !=}
     \item logical operators: \verb+&& || !+
-    \item integer ranges: \texttt{1:4} is equivalent to integer array \texttt{[1,2,3,4]}
+    \item integer ranges: \texttt{1:4} is equivalent to integer array \texttt{[1,2,3,4]}. NB  \texttt{[1:4]} is equivalent to an array containing one integer array \texttt{[[1,2,3,4]]}
     \end{itemize}
   \end{block}
 
+  \begin{block}{Functions for doubles}
+    \begin{itemize}
+    \item \texttt{min, max, exp, ln (or log), log10}
+    \item \texttt{sin, cos, tan, asin, acos, atan}
+    \item \texttt{sqrt, cbrt, sign, floor, ceil, trunc, mod}
+    \item \texttt{erf, erfc, normpdf, normcdf, gamma, lgamma, round}
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{Macro-expressions (4/8): String}
+  String literals have to be declared between \textit{double} quotes, e.g. \texttt{``string''}
   \begin{block}{Operators on character strings}
     \begin{itemize}
-    \item comparison operators: \texttt{== !=}
+    \item comparison operators: \texttt{< > <= >= == !=}
     \item concatenation: \texttt{+}
+    \item string length: \texttt{length()}
     \item extraction of substrings: if \texttt{s} is a string, then one can write \texttt{s[3]} or \texttt{s[4:6]}
     \end{itemize}
   \end{block}
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{Macro-expressions (2/2)}
+  \frametitle{Macro-expressions (5/8): Tuple}
+  Tuples are enclosed by parenthesis and elements separated by commas (like
+  \texttt{(a,b,c)} or \texttt{(1,2.2,c)}).
+  \begin{block}{Operators on tuples}
+    \begin{itemize}
+    \item comparison operators: \texttt{== !=}
+    \item functions: \texttt{length, empty}
+    \item testing membership in tuple: \texttt{in} operator \\ (example:
+      \texttt{"b" in ("a", "b", "c")} returns \texttt{1})
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{Macro-expressions (6/8): Array}
+  Arrays are enclosed by brackets, and their elements are separated by commas
+  (like \texttt{[1,[2,3],4]} or \texttt{[``US'', ``EA'']}).
   \begin{block}{Operators on arrays}
     \begin{itemize}
+    \item comparison operators: \texttt{== !=}
     \item dereferencing: if \texttt{v} is an array, then \texttt{v[2]} is its $2^{\textrm{nd}}$ element
     \item concatenation: \texttt{+}
+    \item functions: \texttt{sum, length, empty}
     \item difference \texttt{-}: returns the first operand from which the elements of the second operand have been removed
+    \item Cartesian product of two arrays: \texttt{*}
+    \item Cartesian product of one array \texttt{N} times: \texttt{\^{}N}
     \item extraction of sub-arrays: \textit{e.g.} \texttt{v[4:6]}
     \item testing membership of an array: \texttt{in} operator \\ (example:
       \texttt{"b" in ["a", "b", "c"]} returns \texttt{1})
     \end{itemize}
   \end{block}
+\end{frame}
 
-  Macro-expressions can be used in two places:
+\begin{frame}[fragile=singleslide]
+  \frametitle{Macro-expressions (7/8): Comprehension (1/3)}
+  Comprehensions are a shorthand way of creating arrays from other arrays. This is done by filtering, mapping, or filtering and mapping
+  \begin{block}{Filtering}
+    \begin{itemize}
+    \item Allows one to choose those elements from an array for which a condition holds
+    \item Syntax: \texttt{[variable/tuple IN array WHEN condition]}
+    \item Example: Choose even numbers from array
+      \begin{itemize}
+      \item Code: \texttt{@\{[ i in 1:5 when mod(i,2) == 0 ]\}}
+      \item Result: \texttt{[2, 4]}
+      \end{itemize}
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{Macro-expressions (7/8): Comprehension (2/3)}
+  \begin{block}{Mapping}
+    \begin{itemize}
+    \item Allows one to apply a transformation to every element of an array
+    \item Syntax: \texttt{[expr for variable/tuple IN array]}
+    \item Example: Square elements in array
+      \begin{itemize}
+      \item Code: \texttt{@\{[ i\^{}2 for i in 1:5 ]\}}
+      \item Result: \texttt{[1, 4, 9, 16, 25]}
+      \end{itemize}
+    \item Example: Reverse order of elements in array
+      \begin{itemize}
+      \item Code: \texttt{@\{[ (j,i) for (i,j) in (1:2)\^{}2 ]\}}
+      \item Result: \texttt{[(1, 1), (2, 1), (1, 2), (2, 2)]}
+      \end{itemize}
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{Macro-expressions (7/8): Comprehension (3/3)}
+  \begin{block}{Mapping and Filtering}
+    \begin{itemize}
+    \item Allows one to apply a transformation to the elements selected from an array
+    \item Syntax: \texttt{[expr for variable/tuple IN array WHEN condition]}
+    \item Example: Square odd numbers from array
+      \begin{itemize}
+      \item Code: \texttt{@\{[ i\^{}2 for i in 1:5 when mod(i,2) == 1 ]\}}
+      \item Result: \texttt{[1, 9, 25]}
+      \end{itemize}
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{Macro-expressions (8/8): Functions}
   \begin{itemize}
-  \item inside macro directives; no special markup is required
-  \item in the body of the MOD file, between an at sign and curly braces (like \verb+@{expr}+); the macro processor will substitute the expression with its value
+  \item Can take any number of arguments
+  \item Dynamic binding: is evaluated when invoked, not when defined
+  \item Can be included in expressions; valid operators depend on return type
   \end{itemize}
 \end{frame}
 
@@ -162,50 +311,50 @@
   The value of a macro-variable can be defined with the \verb+@#define+ directive.
 
   \begin{block}{Syntax}
-    \verb+@#define +\textit{variable\_name}\verb+ = +\textit{expression}\\
-    \verb+@#define +\textit{function\_name}(\textit{arg1}, [\textit{arg2}, ...])\verb+ = +\textit{string\_expression}
+    \verb+@#define +\textit{variable\_name}\verb+ = +\textit{expression}
   \end{block}
 
   \begin{block}{Examples}
 \begin{verbatim}
-@#define x = 5                   // Integer
-@#define y = "US"                // String
-@#define v = [ 1, 2, 4 ]         // Integer array
-@#define w = [ "US", "EA" ]      // String array
-@#define z = 3 + v[2]            // Equals 5
-@#define t = ("US" in w)         // Equals 1 (true)
-@#define s = "@{y}"              // Equals "US"
-@#define f(x) = " + @{x} + @{y}" // A function "f(x)" equal
-                                 // to " + @{x} + US"
+@#define x = 5              // Integer
+@#define y = "US"           // String
+@#define v = [ 1, 2, 4 ]    // Integer array
+@#define w = [ "US", "EA" ] // String array
+@#define z = 3 + v[2]       // Equals 5
+@#define t = ("US" in w)    // Equals 1 (true)
+@#define f(x) = " " + x + y // Function f with argument x
 \end{verbatim}
   \end{block}
+  NB: You can define macro variables on the dynare command line by using the \texttt{-D} option
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
   \frametitle{Expression substitution}
   \framesubtitle{Dummy example}
-  \begin{block}{Before macro-processing}
+  \begin{block}{Before macro processing}
 \begin{verbatim}
-@#define x = [ "B", "C" ]
+@#define x = 1
+@#define y = [ "B", "C" ]
 @#define i = 2
-@#define f(x) = " + @{x}"
+@#define f(x) = x + " + " + y[i]
+@#define i = 1
 
 model;
-  A = @{x[i] + f("D")};
+  A = @{y[i] + f("D")};
 end;
 \end{verbatim}
   \end{block}
-  \begin{block}{After macro-processing}
+  \begin{block}{After macro processing}
 \begin{verbatim}
 model;
-  A = C + D;
+  A = BD + B;
 end;
 \end{verbatim}
   \end{block}
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{Inclusion directive (1/2)}
+  \frametitle{Include directive (1/2)}
   \begin{itemize}
   \item This directive simply inserts the text of another file in its place
     \begin{block}{Syntax}
@@ -223,7 +372,7 @@ end;
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{Inclusion directive (2/2)}
+  \frametitle{Include directive (2/2)}
   \begin{itemize}
 \item The filename can be given by a macro-variable (useful in loops):
     \begin{block}{Example with variable}
@@ -232,9 +381,9 @@ end;
 @#include fname
 \end{verbatim}
     \end{block}
-  \item Files to include are searched for in current directory. Other directories can
-    be added with
-    \texttt{@includepath} directive, \texttt{-I} command line option or
+  \item Files to include are searched for in the current directory. Other directories can
+    be added with the
+    \verb+@#includepath+ directive, the \texttt{-I} command line option, or the
     \texttt{[paths]} section in config file.
   \end{itemize}
 \end{frame}
@@ -246,7 +395,7 @@ end;
 \verb+   +\textit{loop\_body} \\
 \verb+@#endfor+
   \end{block}
-  \begin{block}{Example: before macro-processing}
+  \begin{block}{Example: before macro processing}
     \small
 \begin{verbatim}
 model;
@@ -258,7 +407,7 @@ end;
     \normalsize
   \end{block}
 
-  \begin{block}{Example: after macro-processing}
+  \begin{block}{Example: after macro processing}
     \small
 \begin{verbatim}
 model;
@@ -271,7 +420,7 @@ end;
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{Conditional inclusion directives (1/2)}
+  \frametitle{Conditional directives (1/2)}
 
   \begin{columns}[T]
     \column{0.47\linewidth}
@@ -310,7 +459,7 @@ end;
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{Conditional inclusion directives (2/2)}
+  \frametitle{Conditional directives (2/2)}
 
   \begin{columns}[T]
     \column{0.47\linewidth}
@@ -341,12 +490,14 @@ There is also \verb+@#ifndef+, which is the opposite of \verb+@#ifdef+
 
   \begin{itemize}
   \item The echo directive will simply display a message on standard output
-  \item The error directive will display the message and make Dynare stop (only makes sense inside a conditional inclusion directive)
+  \item The error directive will display the message and make Dynare stop (only makes sense inside a conditional directive)
+  \item The echomacrovars directive will display all of the macro variables and their values
   \end{itemize}
 
   \begin{block}{Syntax}
 \verb+@#echo +\textit{string\_expr} \\
-\verb+@#error +\textit{string\_expr}
+\verb+@#error +\textit{string\_expr} \\
+\verb+@#echomacrovars +
   \end{block}
 
   \begin{block}{Examples}
@@ -358,14 +509,12 @@ There is also \verb+@#ifndef+, which is the opposite of \verb+@#ifdef+
 \end{frame}
 
 \begin{frame}
-  \frametitle{Saving the macro-expanded MOD file}
+  \frametitle{Macro-related command line options}
   \begin{itemize}
-  \item For \textbf{debugging or learning} purposes, it is possible to save the output of the macro processor
-  \item This output is a valid MOD file, obtained after processing the macro-commands of the original MOD file
-  \item Just add the \texttt{savemacro} option on the Dynare command line (after the name of your MOD file)
-  \item If MOD file is \texttt{filename.mod}, then the macro-expanded version will be saved in \texttt{filename-macroexp.mod}
-  \item You can specify the filename for the macro-expanded version with the syntax \texttt{savemacro=mymacroexp.mod}
-  \item To end processing when macro processing is finished, add the option \texttt{onlymacro} to the Dynare command line
+  \item \texttt{savemacro}: Useful for debugging or learning purposes, saves the output of the macro processor. If your \texttt{.mod} file is called \texttt{file.mod}, the output is saved to \texttt{file-macroexp.mod}.
+  \item \texttt{nolinemacro}: In the output of \texttt{savemacro}, don't print line numbers where the macro directives were placed.
+  \item \texttt{noemptylinemacro}: Remove empty lines in the output of \texttt{savemacro}.
+  \item \texttt{onlymacro}: Stops processing after the macro processing step.
   \end{itemize}
 \end{frame}
 
@@ -374,7 +523,7 @@ There is also \verb+@#ifndef+, which is the opposite of \verb+@#ifdef+
 \begin{frame}[fragile=singleslide]
   \frametitle{Modularization}
   \begin{itemize}
-  \item The \verb+@#include+ directive can be used to split MOD files into several modular components
+  \item The \verb+@#include+ directive can be used to split \texttt{.mod} files into several modular components
   \item Example setup:
     \begin{description}
     \item[\texttt{modeldesc.mod}:] contains variable declarations, model equations and shocks declarations
@@ -392,7 +541,7 @@ There is also \verb+@#ifndef+, which is the opposite of \verb+@#ifdef+
   \framesubtitle{Example: moving average}
   \begin{columns}[T]
     \column{0.47\linewidth}
-    \begin{block}{Before macro-processing}
+    \begin{block}{Before macro processing}
 \begin{verbatim}
 @#define window = 2
 
@@ -400,7 +549,7 @@ var x MA_x;
 ...
 model;
 ...
-MA_x = 1/@{2*window+1}*(
+MA_x = @{1/(2*window+1)}*(
 @#for i in -window:window
         +x(@{i})
 @#endfor
@@ -410,7 +559,7 @@ end;
 \end{verbatim}
     \end{block}
     \column{0.47\linewidth}
-    \begin{block}{After macro-processing}
+    \begin{block}{After macro processing}
 \begin{verbatim}
 var x MA_x;
 ...
@@ -432,7 +581,7 @@ end;
 
 \begin{frame}[fragile=singleslide]
   \frametitle{Multi-country models}
-  \framesubtitle{MOD file skeleton example}
+  \framesubtitle{\texttt{.mod} file skeleton example}
   \scriptsize
 \begin{verbatim}
 @#define countries = [ "US", "EA", "AS", "JP", "RC" ]
@@ -462,7 +611,7 @@ end;
 \begin{frame}
   \frametitle{Endogeneizing parameters (1/4)}
   \begin{itemize}
-  \item When doing the steady-state calibration of the model, it may be useful to consider a parameter as an endogenous (and vice-versa)
+  \item When calibrating the model it may be useful to consider a parameter as an endogenous (and vice-versa)
   \item Example:
     \begin{gather*}
       y = \left(\alpha^{\frac{1}{\xi}} \ell^{1-\frac{1}{\xi}} + (1-\alpha)^{\frac{1}{\xi}}k^{1-\frac{1}{\xi}}\right)^{\frac{\xi}{\xi - 1}} \\
@@ -554,7 +703,6 @@ end
   \begin{itemize}
   \item The loop is not unrolled
   \item MATLAB/Octave manages the iterations
-  \item Interesting when there are a lot of iterations
   \end{itemize}
 \end{frame}
 
@@ -580,17 +728,15 @@ rhos = [ 0.8, 0.9, 1];
   \frametitle{MATLAB/Octave loops vs macro processor loops (3/3)}
   \begin{block}{With a macro processor loop (case 2)}
 \begin{verbatim}
-@#for rho_val in [ "0.8", "0.9", "1"]
+@#for rho_val in [ 0.8, 0.9, 1]
   rho = @{rho_val};
   stoch_simul(order=1);
 @#endfor
 \end{verbatim}
   \end{block}
   \begin{itemize}
-  \item Advantage: shorter syntax, since list of values directly given in the loop construct
-  \item Note that values are given as character strings (the macro processor does not
-    know floating point values)
-  \item Inconvenient: can not reuse an array stored in a MATLAB/Octave variable
+  \item Shorter syntax, since list of values directly given in the loop construct
+  \item NB: Array not stored as MATLAB/Octave variable, hence cannot be used in MATLAB/Octave
   \end{itemize}
 \end{frame}
 
@@ -613,17 +759,6 @@ rhos = [ 0.8, 0.9, 1];
     \vfill
   \end{center}
   \vfill
-  \begin{columns}[T]
-    \column{0.2\textwidth}
-    \column{0.09\textwidth}
-
-    \ccbysa
-    \column{0.71\textwidth}
-    \tiny
-    Copyright © 2008--2017 Dynare Team \\
-    Licence: \href{http://creativecommons.org/licenses/by-sa/4.0/}{Creative
-      Commons Attribution-ShareAlike 4.0}
-    \end{columns}
   \end{frame}
 
 
