@@ -302,7 +302,7 @@ PacModelStatement::overwriteGrowth(expr_t new_growth)
     {
       auto gv = dynamic_cast<const VariableNode *>(growth);
       if (gv)
-        growth_info.push_back({gv->symb_id, gv->lag, -1, 1});
+        growth_info.emplace_back(gv->symb_id, gv->lag, -1, 1);
       else
         {
           cerr << "Pac growth must be a linear combination of varibles" << endl;
