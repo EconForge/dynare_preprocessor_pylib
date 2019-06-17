@@ -1309,13 +1309,9 @@ ModelTree::computeDerivatives(int order, const set<int> &vars)
           indices.push_back(var);
           // At this point, indices of endogenous variables are sorted in non-decreasing order
           derivatives[o][indices] = d;
-          // We output symmetries at order ≤ 3
-          if (o <= 3)
-            {
-              do
-                NNZDerivatives[o]++;
-              while (next_permutation(next(indices.begin()), indices.end()));
-            }
+          // We output symmetric elements at order = 2
+          if (o == 2 && indices[1] != indices[2])
+            NNZDerivatives[o] += 2;
           else
             NNZDerivatives[o]++;
         }

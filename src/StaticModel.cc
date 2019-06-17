@@ -1556,7 +1556,7 @@ StaticModel::writeStaticModel(const string &basename,
                 k++;
               }
 
-            // Output symetric elements, but only at order 2 and 3
+            // Output symetric elements at order 2
             if (i == 2 && vidx[1] != vidx[2])
               {
                 int col_idx_sym = getJacobCol(vidx[2]) * JacobianColsNbr + getJacobCol(vidx[1]);
@@ -1579,41 +1579,6 @@ StaticModel::writeStaticModel(const string &basename,
 
                     k++;
                   }
-              }
-            if (i == 3)
-              {
-                // Use std::next_permutation() to explore all the permutations of the 3 indices
-                vector<int> idx3{getJacobCol(vidx[1]), getJacobCol(vidx[2]), getJacobCol(vidx[3])};
-                sort(idx3.begin(), idx3.end());
-
-                int k2 = 0; // Keeps the offset of the permutation relative to k
-                do
-                  {
-                    int col_idx_sym = idx3[0]*hessianColsNbr + idx3[1]*JacobianColsNbr + idx3[2];
-                    if (col_idx_sym != col_idx)
-                      if (output_type == ExprNodeOutputType::juliaStaticModel)
-                        d_output[3] << "    @inbounds g3[" << eq + 1 << "," << col_idx_sym + 1 << "] = "
-                                    << "g3[" << eq + 1 << "," << col_idx + 1 << "]" << endl;
-                      else
-                        {
-                          sparseHelper(3, col0_output, k+k2, 0, output_type);
-                          col0_output << "=" << eq + 1 << ";" << endl;
-
-                          sparseHelper(3, col1_output, k+k2, 1, output_type);
-                          col1_output << "=" << col_idx_sym + 1 << ";" << endl;
-
-                          sparseHelper(3, col2_output, k+k2, 2, output_type);
-                          col2_output << "=";
-                          sparseHelper(3, col2_output, k-1, 2, output_type);
-                          col2_output << ";" << endl;
-
-                          k2++;
-                        }
-                  }
-                while (next_permutation(idx3.begin(), idx3.end()));
-
-                if (output_type != ExprNodeOutputType::juliaStaticModel)
-                  k += k2;
               }
           }
         if (output_type != ExprNodeOutputType::juliaStaticModel)
@@ -2868,18 +2833,6 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
             {
               int col_idx_sym = getJacobCol(vidx[2]) * symbol_table.endo_nbr() + getJacobCol(vidx[1]);
               d_output[i] << ", " << col_idx_sym + 1;
-            }
-          if (i == 3) // Symmetric elements in 3rd derivative
-            {
-              vector<int> idx3{getJacobCol(vidx[1]), getJacobCol(vidx[2]), getJacobCol(vidx[3])};
-              sort(idx3.begin(), idx3.end());
-              do
-                {
-                  int col_idx_sym = (idx3[0]*symbol_table.endo_nbr() + idx3[1])*symbol_table.endo_nbr() + idx3[2];
-                  if (col_idx_sym != col_idx)
-                    d_output[i] << ", " << col_idx_sym+1;
-                }
-              while (next_permutation(idx3.begin(), idx3.end()));
             }
           if (i > 1)
             d_output[i] << "]";
