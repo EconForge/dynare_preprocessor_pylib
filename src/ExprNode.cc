@@ -2964,8 +2964,14 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) noexcept(false)
     case UnaryOpcode::steadyState:
       return (v);
     case UnaryOpcode::steadyStateParamDeriv:
+      cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::steadyStateParamDeriv" << endl;
+      exit(EXIT_FAILURE);
     case UnaryOpcode::steadyStateParam2ndDeriv:
+      cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::steadyStateParam2ndDeriv" << endl;
+      exit(EXIT_FAILURE);
     case UnaryOpcode::expectation:
+      cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::expectation" << endl;
+      exit(EXIT_FAILURE);
     case UnaryOpcode::erf:
       return (erf(v));
     case UnaryOpcode::diff:
