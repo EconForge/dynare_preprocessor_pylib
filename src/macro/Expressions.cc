@@ -819,6 +819,8 @@ BinaryOp::eval()
     {
       throw StackTrace("binary operation", e.what(), location);
     }
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
 }
 
 BaseTypePtr
