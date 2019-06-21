@@ -757,6 +757,8 @@ UnaryOp::eval()
     {
       throw StackTrace("unary operation", e.what(), location);
     }
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
 }
 
 BaseTypePtr
@@ -844,6 +846,8 @@ TrinaryOp::eval()
     {
       throw StackTrace("trinary operation", e.what(), location);
     }
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
 }
 
 BaseTypePtr
@@ -1000,6 +1004,8 @@ UnaryOp::to_string() const noexcept
     case codes::UnaryOp::normcdf:
       return "normcdf(" + retval + ")";
     }
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
 }
 
 string
@@ -1075,6 +1081,8 @@ TrinaryOp::to_string() const noexcept
     case codes::TrinaryOp::normcdf:
       return "normcdf(" + arg1->to_string() + ", " + arg2->to_string() + ", " + arg3->to_string() + ")";
     }
+  // Suppress GCC warning
+  exit(EXIT_FAILURE);
 }
 
 string
