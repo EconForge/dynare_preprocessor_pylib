@@ -110,7 +110,7 @@ Environment::print(ostream &output, int line, bool save) const
     {
       output << (save ? "options_.macrovars_line_" + to_string(line) + "." : "  " );
       output << it.first << " = ";
-      getVariable(it.first)->eval()->print(output, true);
+      getVariable(it.first)->eval()->print(output, save);
       if (save)
         output << ";";
       output << endl;

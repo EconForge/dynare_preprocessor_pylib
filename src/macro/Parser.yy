@@ -82,7 +82,6 @@ using namespace macro;
 %left TIMES DIVIDE
 %precedence UMINUS UPLUS NOT
 %nonassoc POWER
- //%precedence LBRACKET
 
 %token <string> NAME TEXT QUOTED_STRING NUMBER EOL
 

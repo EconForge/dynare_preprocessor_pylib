@@ -913,7 +913,8 @@ Comprehension::eval()
           {
             auto mt2 = dynamic_pointer_cast<Tuple>(btp);
             if (mt->size() != mt2->size())
-              throw StackTrace("Comprehension", "The number of elements in the input set tuple are not the same as the number of elements in the output expression tuple", location);
+              throw StackTrace("Comprehension", "The number of elements in the input set tuple are not "
+                               "the same as the number of elements in the output expression tuple", location);
 
             for (size_t j = 0; j < mt->size(); j++)
               {
@@ -924,7 +925,8 @@ Comprehension::eval()
               }
           }
         else
-          throw StackTrace("Comprehension", "assigning to tuple in output expression but input expression does not contain tuples", location);
+          throw StackTrace("Comprehension", "assigning to tuple in output expression "
+                           "but input expression does not contain tuples", location);
 
       DoublePtr dp;
       BoolPtr bp;
@@ -1132,7 +1134,7 @@ String::print(ostream &output, bool matlab_output) const noexcept
 void
 Array::print(ostream &output, bool matlab_output) const noexcept
 {
-output << (matlab_output ? "{" : "[");
+  output << (matlab_output ? "{" : "[");
   for (auto it = arr.begin(); it != arr.end(); it++)
     {
       if (it != arr.begin())
