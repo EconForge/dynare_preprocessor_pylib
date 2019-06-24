@@ -110,9 +110,8 @@ CONT \\\\{SPC}*
 <expr,eval>\)              { return token::RPAREN; }
 <expr,eval>\[              { return token::LBRACKET; }
 <expr,eval>\]              { return token::RBRACKET; }
-<expr,eval>IN              { return token::IN; }
-<expr,eval>WHEN            { return token::WHEN; }
-<expr,eval>LENGTH          { return token::LENGTH; }
+<expr,eval>in              { return token::IN; }
+<expr,eval>when            { return token::WHEN; }
 
 <expr,eval>true            { return token::TRUE; }
 <expr,eval>false           { return token::FALSE; }
@@ -142,6 +141,7 @@ CONT \\\\{SPC}*
 <expr,eval>gamma           { return token::GAMMA; }
 <expr,eval>lgamma          { return token::LGAMMA; }
 <expr,eval>round           { return token::ROUND; }
+<expr,eval>length          { return token::LENGTH; }
 <expr,eval>normpdf         { return token::NORMPDF; }
 <expr,eval>normcdf         { return token::NORMCDF; }
 
