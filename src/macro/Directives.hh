@@ -137,9 +137,13 @@ namespace macro
 
   class EchoMacroVars : public Directive
   {
+  private:
+    bool save;
   public:
-    EchoMacroVars(Environment &env_arg, const Tokenizer::location location_arg) : Directive(env_arg, move(location_arg)) { }
-    inline void interpret(ostream &output, bool no_line_macro) override { env.print(); }
+    EchoMacroVars(bool save_arg,
+                  Environment &env_arg, const Tokenizer::location location_arg) :
+      Directive(env_arg, move(location_arg)), save{save_arg} { }
+    void interpret(ostream &output, bool no_line_macro) override;
   };
 
 

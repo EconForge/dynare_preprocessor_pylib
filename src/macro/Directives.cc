@@ -120,7 +120,7 @@ Echo::interpret(ostream &output, bool no_line_macro)
     {
       error(StackTrace("@#echo", e.what(), location));
     }
-  printLineInfo(output, no_line_macro);
+  printEndLineInfo(output, no_line_macro);
 }
 
 void
@@ -139,6 +139,16 @@ Error::interpret(ostream &output, bool no_line_macro)
     {
       error(StackTrace("@#error", e.what(), location));
     }
+}
+
+void
+EchoMacroVars::interpret(ostream &output, bool no_line_macro)
+{
+  if (save)
+    env.print(output, location.begin.line, true);
+  else
+    env.print(cout);
+  printEndLineInfo(output, no_line_macro);
 }
 
 void

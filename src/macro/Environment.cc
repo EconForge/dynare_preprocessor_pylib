@@ -101,32 +101,42 @@ Environment::isFunctionDefined(const string &name) const noexcept
 }
 
 void
-Environment::print() const
+Environment::print(ostream &output, int line, bool save) const
 {
-  if (!variables.empty())
+  if (!save && !variables.empty())
+    output << "Macro Variables:" << endl;
+
+  for (auto & it : variables)
     {
-      cout << "Macro Variables:" << endl;
-      for (auto & it : variables)
-        {
-          cout << "  " << it.first << " = ";
-          getVariable(it.first)->eval()->print(cout);
-          cout << endl;
-        }
+      output << (save ? "options_.macrovars_line_" + to_string(line) + "." : "  " );
+      output << it.first << " = ";
+      getVariable(it.first)->eval()->print(output, true);
+      if (save)
+        output << ";";
+      output << endl;
     }
 
-  if (!functions.empty())
+  if (!save && !functions.empty())
+    output << "Macro Functions:" << endl;
+
+  for (auto & it : functions)
     {
-      cout << "Macro Functions:" << endl;
-      for (auto & it : functions)
+      output << (save ? "options_.macrovars_line_" + to_string(line) + ".function." : "  " );
+      if (save)
         {
-          cout << "  ";
-          get<0>(it.second)->print(cout);
-          cout << " = ";
-          get<1>(it.second)->print(cout);
-          cout << endl;
+          get<0>(it.second)->printName(output);
+          output << " = '";
         }
+
+      get<0>(it.second)->print(output);
+      output << " = ";
+      get<1>(it.second)->print(output);
+
+      if (save)
+        output << "';";
+      output << endl;
     }
 
   if (parent)
-    parent->print();
+    parent->print(output, line, save);
 }

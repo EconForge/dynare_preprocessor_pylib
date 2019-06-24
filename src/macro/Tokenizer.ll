@@ -81,7 +81,7 @@ CONT \\\\{SPC}*
 <directive>endif           { BEGIN(end_line); return token::ENDIF; }
 <directive>for             { BEGIN(expr); return token::FOR; }
 <directive>endfor          { BEGIN(end_line); return token::ENDFOR; }
-<directive>echomacrovars   { BEGIN(end_line); return token::ECHOMACROVARS; }
+<directive>echomacrovars   { BEGIN(expr); return token::ECHOMACROVARS; }
 
 <expr,eval>\+              { return token::PLUS; }
 <expr,eval>-               { return token::MINUS; }
@@ -112,6 +112,7 @@ CONT \\\\{SPC}*
 <expr,eval>\]              { return token::RBRACKET; }
 <expr,eval>in              { return token::IN; }
 <expr,eval>when            { return token::WHEN; }
+<expr,eval>save            { return token::SAVE; }
 
 <expr,eval>true            { return token::TRUE; }
 <expr,eval>false           { return token::FALSE; }

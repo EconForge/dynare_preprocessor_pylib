@@ -114,7 +114,7 @@ namespace macro
     Expression(Environment &env_arg, const Tokenizer::location location_arg) :
       Node(env_arg, move(location_arg)) { }
     virtual string to_string() const noexcept = 0;
-    virtual void print(ostream &output) const noexcept = 0;
+    virtual void print(ostream &output, bool matlab_output = false) const noexcept = 0;
     virtual BaseTypePtr eval() = 0;
   };
 
@@ -193,7 +193,7 @@ namespace macro
       value{value_arg} { }
     inline codes::BaseType getType() const noexcept override { return codes::BaseType::Bool; }
     inline string to_string() const noexcept override { return value ? "true" : "false"; }
-    inline void print(ostream &output) const noexcept override { output << to_string(); }
+    inline void print(ostream &output, bool matlab_output = false) const noexcept override { output << to_string(); }
   public:
     operator bool() const { return value; }
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
@@ -225,7 +225,7 @@ namespace macro
       strs << setprecision(15) << value;
       return strs.str();
     }
-    inline void print(ostream &output) const noexcept override { output << to_string(); }
+    inline void print(ostream &output, bool matlab_output = false) const noexcept override { output << to_string(); }
   public:
     operator double() const { return value; }
     BaseTypePtr plus(const BaseTypePtr &bt) const override;
@@ -287,7 +287,7 @@ namespace macro
       value{move(value_arg)} { }
     inline codes::BaseType getType() const noexcept override { return codes::BaseType::String; }
     inline string to_string() const noexcept override { return value; }
-    inline void print(ostream &output) const noexcept override { output << R"(")" << value << R"(")"; }
+    void print(ostream &output, bool matlab_output = false) const noexcept override;
   public:
     operator string() const { return value; }
     BaseTypePtr plus(const BaseTypePtr &bt) const override;
@@ -311,7 +311,7 @@ namespace macro
       tup{move(tup_arg)} { }
     inline codes::BaseType getType() const noexcept override { return codes::BaseType::Tuple; }
     string to_string() const noexcept override;
-    void print(ostream &output) const noexcept override;
+    void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
   public:
     inline size_t size() const { return tup.size(); }
@@ -344,7 +344,7 @@ namespace macro
       range1{move(range1_arg)}, increment{move(increment_arg)}, range2{move(range2_arg)} { }
     inline codes::BaseType getType() const noexcept override { return codes::BaseType::Array; }
     string to_string() const noexcept override;
-    void print(ostream &output) const noexcept override;
+    void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
   private:
     BaseTypePtr evalArray();
@@ -382,7 +382,7 @@ namespace macro
         indices = make_shared<Array>(vector<ExpressionPtr>{indices_arg}, env);
     }
     inline string to_string() const noexcept override { return name; }
-    inline void print(ostream &output) const noexcept override { output << name; }
+    inline void print(ostream &output, bool matlab_output = false) const noexcept override { output << name; }
     BaseTypePtr eval() override;
   public:
     inline string getName() const noexcept { return name; }
@@ -401,9 +401,11 @@ namespace macro
              Environment &env_arg, const Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)), name{move(name_arg)}, args{move(args_arg)} { }
     string to_string() const noexcept override;
-    void print(ostream &output) const noexcept override;
+    inline void print(ostream &output, bool matlab_output = false) const noexcept override { printName(output); printArgs(output); }
     BaseTypePtr eval() override;
   public:
+    inline void printName(ostream &output) const noexcept { output << name; }
+    void printArgs(ostream &output) const noexcept;
     inline string getName() const { return name; }
     inline vector<ExpressionPtr> getArgs() const { return args; }
   };
@@ -420,7 +422,7 @@ namespace macro
             Environment &env_arg, const Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)), op_code{move(op_code_arg)}, arg{move(arg_arg)} { }
     string to_string() const noexcept override;
-    void print(ostream &output) const noexcept override;
+    void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
   };
 
@@ -438,7 +440,7 @@ namespace macro
       arg1{move(arg1_arg)}, arg2{move(arg2_arg)} { }
   public:
     string to_string() const noexcept override;
-    void print(ostream &output) const noexcept override;
+    void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
   };
 
@@ -455,7 +457,7 @@ namespace macro
       Expression(env_arg, move(location_arg)), op_code{move(op_code_arg)},
       arg1{move(arg1_arg)}, arg2{move(arg2_arg)}, arg3{move(arg3_arg)} { }
     string to_string() const noexcept override;
-    void print(ostream &output) const noexcept override;
+    void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
   };
 
@@ -472,7 +474,7 @@ namespace macro
       Expression(env_arg, move(location_arg)),
       c_vars{move(c_vars_arg)}, c_set{move(c_set_arg)}, c_when{move(c_when_arg)} { }
     string to_string() const noexcept override;
-    void print(ostream &output) const noexcept override;
+    void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
   };
 }

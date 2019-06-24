@@ -64,7 +64,7 @@ using namespace macro;
 %token FOR ENDFOR IF IFDEF IFNDEF ELSE ENDIF TRUE FALSE
 %token INCLUDE INCLUDEPATH DEFINE EQUAL D_ECHO ERROR
 %token COMMA LPAREN RPAREN LBRACKET RBRACKET WHEN
-%token BEGIN_EVAL END_EVAL ECHOMACROVARS
+%token BEGIN_EVAL END_EVAL ECHOMACROVARS SAVE
 
 %token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN
 %token SQRT CBRT SIGN MAX MIN FLOOR CEIL TRUNC SUM MOD
@@ -137,7 +137,9 @@ directive_one_line : INCLUDE expr
                    | ERROR expr
                      { $$ = make_shared<Error>($2, driver.env, @$); }
                    | ECHOMACROVARS
-                     { $$ = make_shared<EchoMacroVars>(driver.env, @$); }
+                     { $$ = make_shared<EchoMacroVars>(false, driver.env, @$); }
+                   | ECHOMACROVARS LPAREN SAVE RPAREN
+                     { $$ = make_shared<EchoMacroVars>(true, driver.env, @$); }
                    ;
 
 directive_multiline : for

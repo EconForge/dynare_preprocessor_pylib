@@ -1094,35 +1094,43 @@ Comprehension::to_string() const noexcept
 }
 
 void
-Array::print(ostream &output) const noexcept
+String::print(ostream &output, bool matlab_output) const noexcept
 {
-  output << "[";
+  output << (matlab_output ? "'" : R"(")");
+  output << value;
+  output << (matlab_output ? "'" : R"(")");
+}
+
+void
+Array::print(ostream &output, bool matlab_output) const noexcept
+{
+output << (matlab_output ? "{" : "[");
   for (auto it = arr.begin(); it != arr.end(); it++)
     {
       if (it != arr.begin())
         output << ", ";
-      (*it)->print(output);
+      (*it)->print(output, matlab_output);
     }
-  output << "]";
+  output << (matlab_output ? "}" : "]");
 }
 
 void
-Tuple::print(ostream &output) const noexcept
+Tuple::print(ostream &output, bool matlab_output) const noexcept
 {
-  output << "(";
+  output << (matlab_output ? "{" : "(");
   for (auto it = tup.begin(); it != tup.end(); it++)
     {
       if (it != tup.begin())
         output << ", ";
-      (*it)->print(output);
+      (*it)->print(output, matlab_output);
     }
-  output << ")";
+  output << (matlab_output ? "}" : ")");
 }
 
 void
-Function::print(ostream &output) const noexcept
+Function::printArgs(ostream &output) const noexcept
 {
-  output << name << "(";
+  output << "(";
   for (auto it = args.begin(); it != args.end(); it++)
     {
       if (it != args.begin())
@@ -1133,7 +1141,7 @@ Function::print(ostream &output) const noexcept
 }
 
 void
-UnaryOp::print(ostream &output) const noexcept
+UnaryOp::print(ostream &output, bool matlab_output) const noexcept
 {
   switch (op_code)
     {
@@ -1220,7 +1228,7 @@ UnaryOp::print(ostream &output) const noexcept
       break;
     }
 
-  arg->print(output);
+  arg->print(output, matlab_output);
 
   if (op_code != codes::UnaryOp::logical_not
       && op_code != codes::UnaryOp::unary_plus
@@ -1229,7 +1237,7 @@ UnaryOp::print(ostream &output) const noexcept
 }
 
 void
-BinaryOp::print(ostream &output) const noexcept
+BinaryOp::print(ostream &output, bool matlab_output) const noexcept
 {
   if (op_code == codes::BinaryOp::set_union
       || op_code == codes::BinaryOp::set_intersection
@@ -1257,14 +1265,14 @@ BinaryOp::print(ostream &output) const noexcept
         default:
           break;
         }
-      arg1->print(output);
+      arg1->print(output, matlab_output);
       output << ", ";
-      arg2->print(output);
+      arg2->print(output, matlab_output);
       output << ")";
       return;
     }
 
-  arg1->print(output);
+  arg1->print(output, matlab_output);
   switch(op_code)
     {
     case codes::BinaryOp::plus:
@@ -1317,11 +1325,11 @@ BinaryOp::print(ostream &output) const noexcept
       cerr << "macro::BinaryOp::print: Should not arrive here" << endl;
       exit(EXIT_FAILURE);
     }
-  arg2->print(output);
+  arg2->print(output, matlab_output);
 }
 
 void
-TrinaryOp::print(ostream &output) const noexcept
+TrinaryOp::print(ostream &output, bool matlab_output) const noexcept
 {
   switch(op_code)
     {
@@ -1332,23 +1340,23 @@ TrinaryOp::print(ostream &output) const noexcept
       output << "normcdf(";
       break;
     }
-  arg1->print(output);
+  arg1->print(output, matlab_output);
   output << ", ";
-  arg2->print(output);
+  arg2->print(output, matlab_output);
   output << ", ";
-  arg3->print(output);
+  arg3->print(output, matlab_output);
   output << ")";
 }
 
 void
-Comprehension::print(ostream &output) const noexcept
+Comprehension::print(ostream &output, bool matlab_output) const noexcept
 {
   output << "[";
-  c_vars->print(output);
+  c_vars->print(output, matlab_output);
   output << " in ";
-  c_set->print(output);
+  c_set->print(output, matlab_output);
   output << " when ";
-  c_when->print(output);
+  c_when->print(output, matlab_output);
   output << "]";
 }
 
