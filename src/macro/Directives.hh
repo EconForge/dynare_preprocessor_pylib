@@ -83,12 +83,12 @@ namespace macro
   {
   private:
     const ExpressionPtr expr;
-    string path;
+    vector<string> path;
   public:
     IncludePath(const ExpressionPtr expr_arg, Environment &env_arg, const Tokenizer::location location_arg) :
       Directive(env_arg, move(location_arg)), expr{move(expr_arg)} { }
     void interpret(ostream &output, bool no_line_macro) override;
-    inline string getPath() const { return path; }
+    inline vector<string> getPath() const { return path; }
   };
 
 

@@ -85,7 +85,10 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
 
       auto ipp = dynamic_pointer_cast<IncludePath>(statement);
       if (ipp)
-        paths.emplace_back(ipp->getPath());
+        {
+          auto p = ipp->getPath();
+          paths.insert(paths.end(), p.begin(), p.end());
+        }
 
       auto ip = dynamic_pointer_cast<Include>(statement);
       if (ip)

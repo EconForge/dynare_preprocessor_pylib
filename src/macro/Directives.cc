@@ -68,7 +68,14 @@ IncludePath::interpret(ostream &output, bool no_line_macro)
       StringPtr msp = dynamic_pointer_cast<String>(expr->eval());
       if (!msp)
         throw StackTrace("File name does not evaluate to a string");
-      path = *msp;
+      size_t last = 0;
+      size_t next = 0;
+      while ((next = static_cast<string>(*msp).find(":", last)) != string::npos)
+        {
+          path.push_back(static_cast<string>(*msp).substr(last, next-last));
+          last = next + 1;
+        }
+      path.push_back(static_cast<string>(*msp).substr(last));
     }
   catch (StackTrace &ex)
     {
