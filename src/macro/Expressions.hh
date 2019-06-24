@@ -370,17 +370,12 @@ namespace macro
   {
   private:
     const string name;
-    ArrayPtr indices; // for strings
+    ArrayPtr indices; // for strings/arrays
   public:
     Variable(const string name_arg,
              Environment &env_arg, const Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)), name{move(name_arg)} { }
-    inline void addIndexing(ExpressionPtr indices_arg)
-    {
-      indices = dynamic_pointer_cast<Array>(indices_arg);
-      if (!indices)
-        indices = make_shared<Array>(vector<ExpressionPtr>{indices_arg}, env);
-    }
+    inline void addIndexing(const vector<ExpressionPtr> indices_arg) { indices = make_shared<Array>(indices_arg, env); }
     inline string to_string() const noexcept override { return name; }
     inline void print(ostream &output, bool matlab_output = false) const noexcept override { output << name; }
     BaseTypePtr eval() override;

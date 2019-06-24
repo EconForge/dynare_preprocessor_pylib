@@ -300,7 +300,7 @@ expr : LPAREN expr RPAREN
        { $$ = make_shared<Array>($1, $3, driver.env, @$); }
      | LBRACKET comma_expr RBRACKET
        { $$ = make_shared<Array>($2, driver.env, @$); }
-     | symbol LBRACKET expr RBRACKET
+     | symbol LBRACKET comma_expr RBRACKET
        { $1->addIndexing($3); $$ = $1; }
      | LPAREN tuple_comma_expr RPAREN
        { $$ = make_shared<Tuple>($2, driver.env, @$); }

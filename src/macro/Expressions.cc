@@ -593,26 +593,55 @@ Variable::eval()
     {
       ArrayPtr map = dynamic_pointer_cast<Array>(indices->eval());
       vector<ExpressionPtr> index = map->getValue();
+      vector<int> ind;
+      double intpart;
+      for (auto it : index)
+        {
+          // Necessary to handle indexes like: y[1:2,2]
+          // In general this evaluates to [[1:2],2] but when subscripting we want to expand it to [1,2,2]
+          auto db = dynamic_pointer_cast<Double>(it);
+          if (db)
+            {
+              if (modf(*db, &intpart) != 0.0)
+                throw StackTrace("variable", "When indexing a variable you must pass an int or an int array", location);
+              ind.emplace_back(*db);
+            }
+          else if (dynamic_pointer_cast<Array>(it))
+            for (auto it1 : dynamic_pointer_cast<Array>(it)->getValue())
+              {
+                db = dynamic_pointer_cast<Double>(it1);
+                if (db)
+                  {
+                    if (modf(*db, &intpart) != 0.0)
+                      throw StackTrace("variable", "When indexing a variable you must pass an int or an int array", location);
+                    ind.emplace_back(*db);
+                  }
+                else
+                  throw StackTrace("variable", "You cannot index a variable with a nested array", location);
+              }
+          else
+            throw StackTrace("variable", "You can only index a variable with an int or an int array", location);
+        }
+
       switch (env.getType(name))
         {
         case codes::BaseType::Bool:
           throw StackTrace("variable", "You cannot index a boolean", location);
         case codes::BaseType::Double:
           throw StackTrace("variable", "You cannot index a double", location);
+        case codes::BaseType::Tuple:
+          throw StackTrace("variable", "You cannot index a tuple", location);
         case codes::BaseType::String:
           {
             string orig_string =
               dynamic_pointer_cast<String>(env.getVariable(name))->to_string();
             string retvals;
-            for (auto & it : index)
+            for (auto it : ind)
               try
                 {
-                  DoublePtr idx = dynamic_pointer_cast<Double>(it);
-                  if (!idx)
-                    throw StackTrace("variable", "indexing must be done with an int array", location);
-                  retvals += orig_string.substr(*idx - 1, 1);
+                  retvals += orig_string.substr(it - 1, 1);
                 }
-              catch (const std::out_of_range& oor)
+              catch (const std::out_of_range &ex)
                 {
                   throw StackTrace("variable", "Index out of range", location);
                 }
@@ -621,23 +650,22 @@ Variable::eval()
         case codes::BaseType::Array:
           {
             ArrayPtr ap = dynamic_pointer_cast<Array>(env.getVariable(name));
-            vector<ExpressionPtr> retval;
-            for (auto & it : index)
+            vector<BaseTypePtr> retval;
+            for (auto it : ind)
               try
                 {
-                  DoublePtr idx = dynamic_pointer_cast<Double>(it);
-                  if (!idx)
-                    throw StackTrace("variable", "indexing must be done with int array", location);
-                  retval.emplace_back(ap->at(*idx - 1)->eval());
+                  retval.emplace_back(ap->at(it - 1)->eval());
                 }
-              catch (const std::out_of_range& oor)
+              catch (const out_of_range &ex)
                 {
                   throw StackTrace("variable", "Index out of range", location);
                 }
-            return make_shared<Array>(retval, env);
+
+            if (retval.size() == 1)
+              return retval.at(0);
+            vector<ExpressionPtr> retvala(retval.begin(), retval.end());
+            return make_shared<Array>(retvala, env);
           }
-        case codes::BaseType::Tuple:
-          throw StackTrace("variable", "You cannot index a tuple", location);
         }
     }
   return env.getVariable(name)->eval();
