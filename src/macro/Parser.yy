@@ -152,10 +152,19 @@ directive_multiline : for
                       { $$ = $1; }
                     ;
 
-for : FOR { driver.pushContext(); } comma_name IN expr EOL statements ENDFOR
+for : FOR { driver.pushContext(); } NAME IN expr EOL statements ENDFOR
+      {
+        vector<VariablePtr> vvnp = {make_shared<Variable>($3, driver.env, @3)};
+        auto vdp = driver.popContext();
+        vdp.emplace_back(make_shared<TextNode>("\n", driver.env, @8));
+        $$ = make_shared<For>(vvnp, $5, vdp, driver.env, @$);
+      }
+    ;
+
+for : FOR { driver.pushContext(); } LPAREN comma_name RPAREN IN expr EOL statements ENDFOR
       {
         vector<VariablePtr> vvnp;
-        for (auto & it : $3)
+        for (auto & it : $4)
           {
             auto vnp = dynamic_pointer_cast<Variable>(it);
             if (!vnp)
@@ -163,8 +172,8 @@ for : FOR { driver.pushContext(); } comma_name IN expr EOL statements ENDFOR
             vvnp.push_back(vnp);
           }
         auto vdp = driver.popContext();
-        vdp.emplace_back(make_shared<TextNode>("\n", driver.env, @8));
-        $$ = make_shared<For>(vvnp, $5, vdp, driver.env, @$);
+        vdp.emplace_back(make_shared<TextNode>("\n", driver.env, @10));
+        $$ = make_shared<For>(vvnp, $7, vdp, driver.env, @$);
       }
     ;
 
