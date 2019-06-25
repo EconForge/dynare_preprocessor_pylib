@@ -616,11 +616,11 @@ Variable::eval()
                   }
                 else
                   throw StackTrace("variable", "You cannot index a variable with a "
-                                   nested array", location);
+                                   "nested array", location);
               }
           else
             throw StackTrace("variable", "You can only index a variable with an int or "
-                             an int array", location);
+                             "an int array", location);
         }
 
       switch (env.getType(name))
