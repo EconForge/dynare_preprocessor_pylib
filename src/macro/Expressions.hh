@@ -470,30 +470,5 @@ namespace macro
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
   };
-
-
-  class ArrayComprehension final : public Expression
-  {
-  private:
-    const ExpressionPtr c_expr, c_vars, c_set, c_when;
-  public:
-    ArrayComprehension(const ExpressionPtr c_expr_arg,
-                       const ExpressionPtr c_vars_arg,
-                       const ExpressionPtr c_set_arg,
-                       const ExpressionPtr c_when_arg,
-                       Environment &env_arg, const Tokenizer::location location_arg) :
-      Expression(env_arg, move(location_arg)),
-      c_expr{move(c_expr_arg)}, c_vars{move(c_vars_arg)},
-      c_set{move(c_set_arg)}, c_when{move(c_when_arg)} { }
-    ArrayComprehension(const ExpressionPtr c_expr_arg,
-                       const ExpressionPtr c_vars_arg,
-                       const ExpressionPtr c_set_arg,
-                       Environment &env_arg, const Tokenizer::location location_arg) :
-      Expression(env_arg, move(location_arg)),
-      c_expr{move(c_expr_arg)}, c_vars{move(c_vars_arg)}, c_set{move(c_set_arg)} { }
-    string to_string() const noexcept override;
-    void print(ostream &output, bool matlab_output = false) const noexcept override;
-    BaseTypePtr eval() override;
-  };
 }
 #endif
