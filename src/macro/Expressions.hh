@@ -468,7 +468,7 @@ namespace macro
                   Environment &env_arg, const Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)),
       c_vars{move(c_vars_arg)}, c_set{move(c_set_arg)}, c_when{move(c_when_arg)} { }
-    string to_string() const noexcept override;
+    inline string to_string() const noexcept override { return "[" + c_vars->to_string() + " in " + c_set->to_string() + " when " + c_when->to_string() + "]"; }
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
   };

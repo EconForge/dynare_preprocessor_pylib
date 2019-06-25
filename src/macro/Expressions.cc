@@ -1117,12 +1117,6 @@ TrinaryOp::to_string() const noexcept
   exit(EXIT_FAILURE);
 }
 
-string
-Comprehension::to_string() const noexcept
-{
-  return "[" + c_vars->to_string() + " in " + c_set->to_string() + " when " + c_when->to_string() + "]";
-}
-
 void
 String::print(ostream &output, bool matlab_output) const noexcept
 {
