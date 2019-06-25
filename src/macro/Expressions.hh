@@ -346,8 +346,6 @@ namespace macro
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
-  private:
-    BaseTypePtr evalArray();
   public:
     inline size_t size() const { return arr.size(); }
     inline vector<ExpressionPtr> getValue() const { return arr; }

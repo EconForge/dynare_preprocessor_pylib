@@ -565,12 +565,7 @@ Array::eval()
       increment = nullptr;
       range2 = nullptr;
     }
-  return evalArray();
-}
 
-BaseTypePtr
-Array::evalArray()
-{
   vector<ExpressionPtr> retval;
   for (const auto & it : arr)
     retval.emplace_back(it->eval());
