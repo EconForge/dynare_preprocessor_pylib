@@ -536,7 +536,8 @@ Array::eval()
       DoublePtr range1int = dynamic_pointer_cast<Double>(range1->eval());
       DoublePtr range2int = dynamic_pointer_cast<Double>(range2->eval());
       if (!range1int || !range2int)
-        throw StackTrace("To create an array from a range using the colon operator, both arguments must be doubles");
+        throw StackTrace("To create an array from a range using the colon operator, "
+                         "both arguments must be doubles");
 
       if (increment)
         {
@@ -598,7 +599,8 @@ Variable::eval()
           if (db)
             {
               if (modf(*db, &intpart) != 0.0)
-                throw StackTrace("variable", "When indexing a variable you must pass an int or an int array", location);
+                throw StackTrace("variable", "When indexing a variable you must pass "
+                                 "an int or an int array", location);
               ind.emplace_back(*db);
             }
           else if (dynamic_pointer_cast<Array>(it))
@@ -608,14 +610,17 @@ Variable::eval()
                 if (db)
                   {
                     if (modf(*db, &intpart) != 0.0)
-                      throw StackTrace("variable", "When indexing a variable you must pass an int or an int array", location);
+                      throw StackTrace("variable", "When indexing a variable you must pass "
+                                       "an int or an int array", location);
                     ind.emplace_back(*db);
                   }
                 else
-                  throw StackTrace("variable", "You cannot index a variable with a nested array", location);
+                  throw StackTrace("variable", "You cannot index a variable with a "
+                                   nested array", location);
               }
           else
-            throw StackTrace("variable", "You can only index a variable with an int or an int array", location);
+            throw StackTrace("variable", "You can only index a variable with an int or "
+                             an int array", location);
         }
 
       switch (env.getType(name))
@@ -889,7 +894,8 @@ ListComprehension::eval()
       vp = dynamic_pointer_cast<Variable>(c_vars);
       mt = dynamic_pointer_cast<Tuple>(c_vars);
       if ((!vp && !mt) || (vp && mt))
-        throw StackTrace("ListComprehension", "the output expression must be either a tuple or a variable", location);
+        throw StackTrace("ListComprehension", "the output expression must be either "
+                         "a tuple or a variable", location);
     }
   catch (StackTrace &ex)
     {
@@ -908,14 +914,16 @@ ListComprehension::eval()
           {
             auto mt2 = dynamic_pointer_cast<Tuple>(btp);
             if (mt->size() != mt2->size())
-              throw StackTrace("ListComprehension", "The number of elements in the input set tuple are not "
-                               "the same as the number of elements in the output expression tuple", location);
+              throw StackTrace("ListComprehension", "The number of elements in the "
+                               "input set tuple are not the same as the number of "
+                               "elements in the output expression tuple", location);
 
             for (size_t j = 0; j < mt->size(); j++)
               {
                 auto vp2 = dynamic_pointer_cast<Variable>(mt->at(j));
                 if (!vp2)
-                  throw StackTrace("ListComprehension", "Output expression tuple must be comprised of variable names", location);
+                  throw StackTrace("ListComprehension", "Output expression tuple must be "
+                                   "comprised of variable names", location);
                 env.define(vp2, mt2->at(j));
               }
           }
