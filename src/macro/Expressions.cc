@@ -948,6 +948,12 @@ Comprehension::eval()
   return make_shared<Array>(values, env);
 }
 
+BaseTypePtr
+ArrayComprehension::eval()
+{
+  return make_shared<Double>(1, env);
+}
+
 string
 Array::to_string() const noexcept
 {
@@ -1115,6 +1121,15 @@ TrinaryOp::to_string() const noexcept
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
+}
+
+string
+ArrayComprehension::to_string() const noexcept
+{
+  string retval = "[" + c_expr->to_string() + " for " + c_vars->to_string() + " in " + c_set->to_string();
+  if (c_when)
+    retval += " when " + c_when->to_string();
+  return retval + "]";
 }
 
 void
@@ -1381,6 +1396,23 @@ Comprehension::print(ostream &output, bool matlab_output) const noexcept
   c_set->print(output, matlab_output);
   output << " when ";
   c_when->print(output, matlab_output);
+  output << "]";
+}
+
+void
+ArrayComprehension::print(ostream &output, bool matlab_output) const noexcept
+{
+  output << "[";
+  c_expr->print(output, matlab_output);
+  output << " for ";
+  c_vars->print(output, matlab_output);
+  output << " in ";
+  c_set->print(output, matlab_output);
+  if (c_when)
+    {
+      output << " when ";
+      c_when->print(output, matlab_output);
+    }
   output << "]";
 }
 

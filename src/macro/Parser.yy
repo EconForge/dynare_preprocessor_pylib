@@ -305,6 +305,10 @@ expr : LPAREN expr RPAREN
        { $$ = make_shared<Tuple>($2, driver.env, @$); }
      | LBRACKET expr IN expr WHEN expr RBRACKET
        { $$ = make_shared<Comprehension>($2, $4, $6, driver.env, @$); }
+     | LBRACKET expr FOR expr IN expr RBRACKET
+       { $$ = make_shared<ArrayComprehension>($2, $4, $6, driver.env, @$); }
+     | LBRACKET expr FOR expr IN expr WHEN expr RBRACKET
+       { $$ = make_shared<ArrayComprehension>($2, $4, $6, $8, driver.env, @$); }
      | NOT expr
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::logical_not, $2, driver.env, @$); }
      | MINUS expr %prec UMINUS
