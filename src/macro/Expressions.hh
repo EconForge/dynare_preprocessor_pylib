@@ -116,6 +116,7 @@ namespace macro
     virtual string to_string() const noexcept = 0;
     virtual void print(ostream &output, bool matlab_output = false) const noexcept = 0;
     virtual BaseTypePtr eval() = 0;
+    virtual ExpressionPtr clone() const noexcept = 0;
   };
 
 
@@ -194,6 +195,7 @@ namespace macro
     inline codes::BaseType getType() const noexcept override { return codes::BaseType::Bool; }
     inline string to_string() const noexcept override { return value ? "true" : "false"; }
     inline void print(ostream &output, bool matlab_output = false) const noexcept override { output << to_string(); }
+    inline ExpressionPtr clone() const noexcept override { return make_shared<Bool>(value, env, location); }
   public:
     operator bool() const { return value; }
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
@@ -215,8 +217,8 @@ namespace macro
       BaseType(env_arg, move(location_arg)),
       value{strtod(value_arg.c_str(), nullptr)} { }
     Double(double value_arg,
-           Environment &env_arg) :
-      BaseType(env_arg),
+           Environment &env_arg, Tokenizer::location location_arg = Tokenizer::location()) :
+      BaseType(env_arg, move(location_arg)),
       value{value_arg} { }
     inline codes::BaseType getType() const noexcept override { return codes::BaseType::Double; }
     inline string to_string() const noexcept override
@@ -226,6 +228,7 @@ namespace macro
       return strs.str();
     }
     inline void print(ostream &output, bool matlab_output = false) const noexcept override { output << to_string(); }
+    inline ExpressionPtr clone() const noexcept override { return make_shared<Double>(value, env, location); }
   public:
     operator double() const { return value; }
     BaseTypePtr plus(const BaseTypePtr &bt) const override;
@@ -288,6 +291,7 @@ namespace macro
     inline codes::BaseType getType() const noexcept override { return codes::BaseType::String; }
     inline string to_string() const noexcept override { return value; }
     void print(ostream &output, bool matlab_output = false) const noexcept override;
+    inline ExpressionPtr clone() const noexcept override { return make_shared<String>(value, env, location); }
   public:
     operator string() const { return value; }
     BaseTypePtr plus(const BaseTypePtr &bt) const override;
@@ -313,6 +317,7 @@ namespace macro
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
+    ExpressionPtr clone() const noexcept override;
   public:
     inline size_t size() const { return tup.size(); }
     inline bool empty() const { return tup.empty(); }
@@ -346,6 +351,7 @@ namespace macro
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
+    ExpressionPtr clone() const noexcept override;
   public:
     inline size_t size() const { return arr.size(); }
     inline vector<ExpressionPtr> getValue() const { return arr; }
@@ -373,10 +379,14 @@ namespace macro
     Variable(const string name_arg,
              Environment &env_arg, const Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)), name{move(name_arg)} { }
+    Variable(const string name_arg, const ArrayPtr indices_arg,
+             Environment &env_arg, const Tokenizer::location location_arg) :
+      Expression(env_arg, move(location_arg)), name{move(name_arg)}, indices{move(indices_arg)} { }
     inline void addIndexing(const vector<ExpressionPtr> indices_arg) { indices = make_shared<Array>(indices_arg, env); }
     inline string to_string() const noexcept override { return name; }
     inline void print(ostream &output, bool matlab_output = false) const noexcept override { output << name; }
     BaseTypePtr eval() override;
+    inline ExpressionPtr clone() const noexcept override { return indices ? make_shared<Variable>(name, indices, env, location) : make_shared<Variable>(name, env, location); }
   public:
     inline string getName() const noexcept { return name; }
     inline codes::BaseType getType() const { return env.getType(name); }
@@ -396,6 +406,7 @@ namespace macro
     string to_string() const noexcept override;
     inline void print(ostream &output, bool matlab_output = false) const noexcept override { printName(output); printArgs(output); }
     BaseTypePtr eval() override;
+    ExpressionPtr clone() const noexcept override;
   public:
     inline void printName(ostream &output) const noexcept { output << name; }
     void printArgs(ostream &output) const noexcept;
@@ -417,6 +428,7 @@ namespace macro
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
+    inline ExpressionPtr clone() const noexcept override { return make_shared<UnaryOp>(op_code, arg->clone(), env, location); }
   };
 
 
@@ -435,6 +447,7 @@ namespace macro
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
+    inline ExpressionPtr clone() const noexcept override { return make_shared<BinaryOp>(op_code, arg1->clone(), arg2->clone(), env, location); }
   };
 
 
@@ -452,23 +465,51 @@ namespace macro
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
+    inline ExpressionPtr clone() const noexcept override { return make_shared<TrinaryOp>(op_code, arg1->clone(), arg2->clone(), arg3->clone(), env, location); }
   };
 
 
-  class Comprehension final : public Expression
+  class ListComprehension final : public Expression
   {
   private:
     const ExpressionPtr c_vars, c_set, c_when;
   public:
-    Comprehension(const ExpressionPtr c_vars_arg,
-                  const ExpressionPtr c_set_arg,
-                  const ExpressionPtr c_when_arg,
-                  Environment &env_arg, const Tokenizer::location location_arg) :
+    ListComprehension(const ExpressionPtr c_vars_arg,
+                      const ExpressionPtr c_set_arg,
+                      const ExpressionPtr c_when_arg,
+                      Environment &env_arg, const Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)),
       c_vars{move(c_vars_arg)}, c_set{move(c_set_arg)}, c_when{move(c_when_arg)} { }
     inline string to_string() const noexcept override { return "[" + c_vars->to_string() + " in " + c_set->to_string() + " when " + c_when->to_string() + "]"; }
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
+    inline ExpressionPtr clone() const noexcept override { return make_shared<ListComprehension>(c_vars->clone(), c_set->clone(), c_when->clone(), env, location); }
+  };
+
+
+  class ArrayComprehension final : public Expression
+  {
+  private:
+    const ExpressionPtr c_expr, c_vars, c_set, c_when;
+  public:
+    ArrayComprehension(const ExpressionPtr c_expr_arg,
+                       const ExpressionPtr c_vars_arg,
+                       const ExpressionPtr c_set_arg,
+                       const ExpressionPtr c_when_arg,
+                       Environment &env_arg, const Tokenizer::location location_arg) :
+      Expression(env_arg, move(location_arg)),
+      c_expr{move(c_expr_arg)}, c_vars{move(c_vars_arg)},
+      c_set{move(c_set_arg)}, c_when{move(c_when_arg)} { }
+    ArrayComprehension(const ExpressionPtr c_expr_arg,
+                       const ExpressionPtr c_vars_arg,
+                       const ExpressionPtr c_set_arg,
+                       Environment &env_arg, const Tokenizer::location location_arg) :
+      Expression(env_arg, move(location_arg)),
+      c_expr{move(c_expr_arg)}, c_vars{move(c_vars_arg)}, c_set{move(c_set_arg)} { }
+    string to_string() const noexcept override;
+    void print(ostream &output, bool matlab_output = false) const noexcept override;
+    BaseTypePtr eval() override;
+    inline ExpressionPtr clone() const noexcept override { return make_shared<ArrayComprehension>(c_expr->clone(), c_vars->clone(), c_set->clone(), c_when->clone(), env, location); }
   };
 }
 #endif

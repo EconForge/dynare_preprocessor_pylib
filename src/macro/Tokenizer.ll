@@ -111,6 +111,7 @@ CONT \\\\{SPC}*
 <expr,eval>\[              { return token::LBRACKET; }
 <expr,eval>\]              { return token::RBRACKET; }
 <expr,eval>in              { return token::IN; }
+<expr,eval>for             { return token::FOR; }
 <expr,eval>when            { return token::WHEN; }
 <expr,eval>save            { return token::SAVE; }
 
