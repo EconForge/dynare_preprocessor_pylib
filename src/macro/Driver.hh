@@ -115,4 +115,4 @@ namespace macro
     inline vector<DirectivePtr> popContext() { auto top = directive_stack.top(); directive_stack.pop(); return top; }
   };
 }
-#endif // ! MACRO_DRIVER_HH
+#endif

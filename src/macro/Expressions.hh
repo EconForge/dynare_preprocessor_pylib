@@ -55,11 +55,13 @@ namespace macro
       unsigned end_col = 0 < location.end.column ? location.end.column - 1 : 0;
 
       ss << prefix << ": "
-         << R"(")" << *location.begin.filename << R"(" line )" << location.begin.line << ", col " << location.begin.column;
+         << R"(")" << *location.begin.filename << R"(" line )" << location.begin.line
+         << ", col " << location.begin.column;
       if (location.end.filename
           && (!location.begin.filename
               || *location.begin.filename != *location.end.filename))
-        ss << R"( to ")" << location.end.filename << R"(")" << " line " << location.end.line << ", col " << end_col;
+        ss << R"( to ")" << location.end.filename << R"(")" << " line " << location.end.line
+           << ", col " << end_col;
       else if (location.begin.line < location.end.line)
         ss << " to line " << location.end.line << ", col " << end_col;
       else if (location.begin.column < end_col)
@@ -262,7 +264,10 @@ namespace macro
     inline DoublePtr atan() const override { return make_shared<Double>(std::atan(value), env); }
     inline DoublePtr sqrt() const override { return make_shared<Double>(std::sqrt(value), env); }
     inline DoublePtr cbrt() const override { return make_shared<Double>(std::cbrt(value), env); }
-    inline DoublePtr sign() const override { return make_shared<Double>((value > 0) ? 1. : ((value < 0) ? -1. : 0.), env); }
+    inline DoublePtr sign() const override
+    {
+      return make_shared<Double>((value > 0) ? 1. : ((value < 0) ? -1. : 0.), env);
+    }
     inline DoublePtr floor() const override { return make_shared<Double>(std::floor(value), env); }
     inline DoublePtr ceil() const override { return make_shared<Double>(std::ceil(value), env); }
     inline DoublePtr trunc() const override { return make_shared<Double>(std::trunc(value), env); }
@@ -271,9 +276,15 @@ namespace macro
     inline DoublePtr gamma() const override { return make_shared<Double>(std::tgamma(value), env); }
     inline DoublePtr lgamma() const override { return make_shared<Double>(std::lgamma(value), env); }
     inline DoublePtr round() const override { return make_shared<Double>(std::round(value), env); }
-    inline DoublePtr normpdf() const override { return normpdf(make_shared<Double>(0, env), make_shared<Double>(1, env)); }
+    inline DoublePtr normpdf() const override
+    {
+      return normpdf(make_shared<Double>(0, env), make_shared<Double>(1, env));
+    }
     DoublePtr normpdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const override;
-    inline DoublePtr normcdf() const override { return normcdf(make_shared<Double>(0, env), make_shared<Double>(1, env)); }
+    inline DoublePtr normcdf() const override
+    {
+      return normcdf(make_shared<Double>(0, env), make_shared<Double>(1, env));
+    }
     DoublePtr normcdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const override;
   };
 
@@ -380,11 +391,18 @@ namespace macro
     Variable(const string name_arg, const ArrayPtr indices_arg,
              Environment &env_arg, const Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)), name{move(name_arg)}, indices{move(indices_arg)} { }
-    inline void addIndexing(const vector<ExpressionPtr> indices_arg) { indices = make_shared<Array>(indices_arg, env); }
+    inline void addIndexing(const vector<ExpressionPtr> indices_arg)
+    {
+      indices = make_shared<Array>(indices_arg, env);
+    }
     inline string to_string() const noexcept override { return name; }
     inline void print(ostream &output, bool matlab_output = false) const noexcept override { output << name; }
     BaseTypePtr eval() override;
-    inline ExpressionPtr clone() const noexcept override { return indices ? make_shared<Variable>(name, indices, env, location) : make_shared<Variable>(name, env, location); }
+    inline ExpressionPtr clone() const noexcept override
+    {
+      return indices ? make_shared<Variable>(name, indices, env, location) :
+        make_shared<Variable>(name, env, location);
+    }
   public:
     inline string getName() const noexcept { return name; }
     inline codes::BaseType getType() const { return env.getType(name); }
@@ -402,7 +420,10 @@ namespace macro
              Environment &env_arg, const Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)), name{move(name_arg)}, args{move(args_arg)} { }
     string to_string() const noexcept override;
-    inline void print(ostream &output, bool matlab_output = false) const noexcept override { printName(output); printArgs(output); }
+    inline void print(ostream &output, bool matlab_output = false) const noexcept override
+    {
+      printName(output); printArgs(output);
+    }
     BaseTypePtr eval() override;
     ExpressionPtr clone() const noexcept override;
   public:
@@ -426,7 +447,10 @@ namespace macro
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
-    inline ExpressionPtr clone() const noexcept override { return make_shared<UnaryOp>(op_code, arg->clone(), env, location); }
+    inline ExpressionPtr clone() const noexcept override
+    {
+      return make_shared<UnaryOp>(op_code, arg->clone(), env, location);
+    }
   };
 
 
@@ -445,7 +469,10 @@ namespace macro
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
-    inline ExpressionPtr clone() const noexcept override { return make_shared<BinaryOp>(op_code, arg1->clone(), arg2->clone(), env, location); }
+    inline ExpressionPtr clone() const noexcept override
+    {
+      return make_shared<BinaryOp>(op_code, arg1->clone(), arg2->clone(), env, location);
+    }
   };
 
 
@@ -463,7 +490,10 @@ namespace macro
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
-    inline ExpressionPtr clone() const noexcept override { return make_shared<TrinaryOp>(op_code, arg1->clone(), arg2->clone(), arg3->clone(), env, location); }
+    inline ExpressionPtr clone() const noexcept override
+    {
+      return make_shared<TrinaryOp>(op_code, arg1->clone(), arg2->clone(), arg3->clone(), env, location);
+    }
   };
 
 
