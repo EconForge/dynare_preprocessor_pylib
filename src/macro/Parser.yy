@@ -248,7 +248,9 @@ symbol : NAME
          { $$ = make_shared<Variable>($1, driver.env, @$); }
        ;
 
-function : NAME LPAREN function_args RPAREN
+function : NAME LPAREN RPAREN
+           { $$ = make_shared<Function>($1, vector<ExpressionPtr>(), driver.env, @$); }
+         | NAME LPAREN function_args RPAREN
            { $$ = make_shared<Function>($1, $3, driver.env, @$); }
          ;
 
