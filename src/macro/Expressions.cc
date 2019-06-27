@@ -1102,7 +1102,7 @@ UnaryOp::to_string() const noexcept
 string
 BinaryOp::to_string() const noexcept
 {
-  string retval = arg1->to_string();
+  string retval = "(" + arg1->to_string();
   switch(op_code)
     {
     case codes::BinaryOp::plus:
@@ -1158,7 +1158,7 @@ BinaryOp::to_string() const noexcept
     case codes::BinaryOp::mod:
       return "mod(" + retval + ", " + arg2->to_string() + ")";
     }
-  return retval + arg2->to_string();
+  return retval + arg2->to_string() + ")";
 }
 
 string
@@ -1367,6 +1367,7 @@ BinaryOp::print(ostream &output, bool matlab_output) const noexcept
       return;
     }
 
+  output << "(";
   arg1->print(output, matlab_output);
   switch(op_code)
     {
@@ -1421,6 +1422,7 @@ BinaryOp::print(ostream &output, bool matlab_output) const noexcept
       exit(EXIT_FAILURE);
     }
   arg2->print(output, matlab_output);
+  output << ")";
 }
 
 void
