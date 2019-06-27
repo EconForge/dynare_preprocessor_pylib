@@ -23,9 +23,6 @@
 #include "ForwardDeclarationsAndEnums.hh"
 
 #include <map>
-#include <ostream>
-
-using namespace std;
 
 namespace macro
 {

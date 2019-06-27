@@ -29,8 +29,6 @@
 #include <sstream>
 #include <iomanip>
 
-using namespace std;
-
 namespace macro
 {
   class StackTrace final : public exception

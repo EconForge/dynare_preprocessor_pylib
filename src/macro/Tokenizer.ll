@@ -21,11 +21,6 @@
 %{
 #include "Driver.hh"
 
-#include <fstream>
-
-using namespace std;
-using namespace macro;
-
 // Announce to Flex the prototype we want for lexing function
 #define YY_DECL                                                \
   Tokenizer::parser::token_type                                \

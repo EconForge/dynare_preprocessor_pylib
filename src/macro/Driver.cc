@@ -20,7 +20,6 @@
 #include "Driver.hh"
 
 #include <fstream>
-#include <sstream>
 
 using namespace macro;
 

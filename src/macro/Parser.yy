@@ -29,10 +29,6 @@
 
 %code requires {
 namespace macro { class Driver; }
-#include <ostream>
-#include <vector>
-#include <string>
-using namespace std;
 }
 
 %param { macro::Driver &driver }
@@ -45,7 +41,6 @@ using namespace std;
 };
 
 %code requires {
-#include "Expressions.hh"
 #include "Directives.hh"
 using namespace macro;
 }

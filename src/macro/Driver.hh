@@ -30,8 +30,6 @@
 
 #include <stack>
 
-using namespace std;
-
 // Declare TokenizerFlexLexer class
 #ifndef __FLEX_LEXER_H
 # define yyFlexLexer TokenizerFlexLexer

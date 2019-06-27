@@ -22,8 +22,6 @@
 
 #include "Expressions.hh"
 
-using namespace std;
-
 namespace macro
 {
   class Directive : public Node

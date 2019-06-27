@@ -19,8 +19,6 @@
 
 #include "Expressions.hh"
 
-#include <math.h>
-
 using namespace macro;
 
 BoolPtr
