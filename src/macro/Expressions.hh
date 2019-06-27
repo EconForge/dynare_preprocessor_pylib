@@ -469,47 +469,41 @@ namespace macro
   };
 
 
-  class ListComprehension final : public Expression
+  class Comprehension final : public Expression
   {
-  private:
-    const ExpressionPtr c_vars, c_set, c_when;
-  public:
-    ListComprehension(const ExpressionPtr c_vars_arg,
-                      const ExpressionPtr c_set_arg,
-                      const ExpressionPtr c_when_arg,
-                      Environment &env_arg, const Tokenizer::location location_arg) :
-      Expression(env_arg, move(location_arg)),
-      c_vars{move(c_vars_arg)}, c_set{move(c_set_arg)}, c_when{move(c_when_arg)} { }
-    inline string to_string() const noexcept override { return "[" + c_vars->to_string() + " in " + c_set->to_string() + " when " + c_when->to_string() + "]"; }
-    void print(ostream &output, bool matlab_output = false) const noexcept override;
-    BaseTypePtr eval() override;
-    inline ExpressionPtr clone() const noexcept override { return make_shared<ListComprehension>(c_vars->clone(), c_set->clone(), c_when->clone(), env, location); }
-  };
-
-
-  class ArrayComprehension final : public Expression
-  {
+    /*
+     * Filter:       [c_vars IN c_set WHEN c_when]             => c_expr == nullptr
+     * Map:          [c_expr FOR c_vars IN c_set]              => c_when == nullptr
+     * Filter + Map: [c_expr FOR c_vars IN c_set WHEN c_when]  => all members assigned
+     */
   private:
     const ExpressionPtr c_expr, c_vars, c_set, c_when;
   public:
-    ArrayComprehension(const ExpressionPtr c_expr_arg,
-                       const ExpressionPtr c_vars_arg,
-                       const ExpressionPtr c_set_arg,
-                       const ExpressionPtr c_when_arg,
-                       Environment &env_arg, const Tokenizer::location location_arg) :
+    Comprehension(const ExpressionPtr c_expr_arg,
+                  const ExpressionPtr c_vars_arg,
+                  const ExpressionPtr c_set_arg,
+                  const ExpressionPtr c_when_arg,
+                  Environment &env_arg, const Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)),
       c_expr{move(c_expr_arg)}, c_vars{move(c_vars_arg)},
       c_set{move(c_set_arg)}, c_when{move(c_when_arg)} { }
-    ArrayComprehension(const ExpressionPtr c_expr_arg,
-                       const ExpressionPtr c_vars_arg,
-                       const ExpressionPtr c_set_arg,
-                       Environment &env_arg, const Tokenizer::location location_arg) :
+    Comprehension(const ExpressionPtr c_expr_arg,
+                  const ExpressionPtr c_vars_arg,
+                  const ExpressionPtr c_set_arg,
+                  Environment &env_arg, const Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)),
       c_expr{move(c_expr_arg)}, c_vars{move(c_vars_arg)}, c_set{move(c_set_arg)} { }
+    Comprehension(const bool filter_only_arg,
+                  const ExpressionPtr c_vars_arg,
+                  const ExpressionPtr c_set_arg,
+                  const ExpressionPtr c_when_arg,
+                  Environment &env_arg, const Tokenizer::location location_arg) :
+      Expression(env_arg, move(location_arg)),
+      c_vars{move(c_vars_arg)}, c_set{move(c_set_arg)}, c_when{move(c_when_arg)} { }
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval() override;
-    inline ExpressionPtr clone() const noexcept override { return make_shared<ArrayComprehension>(c_expr->clone(), c_vars->clone(), c_set->clone(), c_when->clone(), env, location); }
+    ExpressionPtr clone() const noexcept override;
   };
 }
 #endif

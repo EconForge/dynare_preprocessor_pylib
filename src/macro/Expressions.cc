@@ -881,78 +881,7 @@ TrinaryOp::eval()
 }
 
 BaseTypePtr
-ListComprehension::eval()
-{
-  ArrayPtr ap;
-  VariablePtr vp;
-  TuplePtr mt;
-  try
-    {
-      ap = dynamic_pointer_cast<Array>(c_set->eval());
-      if (!ap)
-        throw StackTrace("ListComprehension", "The input set must evaluate to an array", location);
-      vp = dynamic_pointer_cast<Variable>(c_vars);
-      mt = dynamic_pointer_cast<Tuple>(c_vars);
-      if ((!vp && !mt) || (vp && mt))
-        throw StackTrace("ListComprehension", "the output expression must be either "
-                         "a tuple or a variable", location);
-    }
-  catch (StackTrace &ex)
-    {
-      ex.push("ListComprehension: ", location);
-      throw;
-    }
-
-  vector<ExpressionPtr> values;
-  for (size_t i = 0; i < ap->size(); i++)
-    {
-      auto btp = dynamic_pointer_cast<BaseType>(ap->at(i));
-      if (vp)
-        env.define(vp, btp);
-      else
-        if (btp->getType() == codes::BaseType::Tuple)
-          {
-            auto mt2 = dynamic_pointer_cast<Tuple>(btp);
-            if (mt->size() != mt2->size())
-              throw StackTrace("ListComprehension", "The number of elements in the "
-                               "input set tuple are not the same as the number of "
-                               "elements in the output expression tuple", location);
-
-            for (size_t j = 0; j < mt->size(); j++)
-              {
-                auto vp2 = dynamic_pointer_cast<Variable>(mt->at(j));
-                if (!vp2)
-                  throw StackTrace("ListComprehension", "Output expression tuple must be "
-                                   "comprised of variable names", location);
-                env.define(vp2, mt2->at(j));
-              }
-          }
-        else
-          throw StackTrace("ListComprehension", "assigning to tuple in output expression "
-                           "but input expression does not contain tuples", location);
-
-      DoublePtr dp;
-      BoolPtr bp;
-      try
-        {
-          dp = dynamic_pointer_cast<Double>(c_when->eval());
-          bp = dynamic_pointer_cast<Bool>(c_when->eval());
-          if (!bp && !dp)
-            throw StackTrace("The condition must evaluate to a boolean or a double");
-        }
-      catch (StackTrace &ex)
-        {
-          ex.push("ListComprehension", location);
-          throw;
-        }
-      if ((bp && *bp) || (dp && *dp))
-        values.emplace_back(btp);
-    }
-  return make_shared<Array>(values, env);
-}
-
-BaseTypePtr
-ArrayComprehension::eval()
+Comprehension::eval()
 {
   ArrayPtr input_set;
   VariablePtr vp;
@@ -961,16 +890,16 @@ ArrayComprehension::eval()
     {
       input_set = dynamic_pointer_cast<Array>(c_set->eval());
       if (!input_set)
-        throw StackTrace("ArrayComprehension", "The input set must evaluate to an array", location);
+        throw StackTrace("Comprehension", "The input set must evaluate to an array", location);
       vp = dynamic_pointer_cast<Variable>(c_vars);
       mt = dynamic_pointer_cast<Tuple>(c_vars);
       if ((!vp && !mt) || (vp && mt))
-        throw StackTrace("ArrayComprehension", "the loop variables must be either "
+        throw StackTrace("Comprehension", "the loop variables must be either "
                          "a tuple or a variable", location);
     }
   catch (StackTrace &ex)
     {
-      ex.push("ArrayComprehension: ", location);
+      ex.push("Comprehension: ", location);
       throw;
     }
 
@@ -985,7 +914,7 @@ ArrayComprehension::eval()
           {
             auto mt2 = dynamic_pointer_cast<Tuple>(btp);
             if (mt->size() != mt2->size())
-              throw StackTrace("ArrayComprehension", "The number of elements in the input "
+              throw StackTrace("Comprehension", "The number of elements in the input "
                                " set tuple are not the same as the number of elements in "
                                "the output expression tuple", location);
 
@@ -993,17 +922,20 @@ ArrayComprehension::eval()
               {
                 auto vp2 = dynamic_pointer_cast<Variable>(mt->at(j));
                 if (!vp2)
-                  throw StackTrace("ArrayComprehension", "Output expression tuple must be "
+                  throw StackTrace("Comprehension", "Output expression tuple must be "
                                    "comprised of variable names", location);
                 env.define(vp2, mt2->at(j));
               }
           }
         else
-          throw StackTrace("ArrayComprehension", "assigning to tuple in output expression "
+          throw StackTrace("Comprehension", "assigning to tuple in output expression "
                            "but input expression does not contain tuples", location);
 
       if (!c_when)
-        values.emplace_back(c_expr->clone()->eval());
+        if (!c_expr)
+          throw StackTrace("Comp", "DINGDONG",location);
+        else
+          values.emplace_back(c_expr->clone()->eval());
       else
         {
           DoublePtr dp;
@@ -1017,11 +949,14 @@ ArrayComprehension::eval()
             }
           catch (StackTrace &ex)
             {
-              ex.push("ArrayComprehension", location);
+              ex.push("Comprehension", location);
               throw;
             }
           if ((bp && *bp) || (dp && *dp))
-            values.emplace_back(c_expr->clone()->eval());
+            if (c_expr)
+              values.emplace_back(c_expr->clone()->eval());
+            else
+              values.emplace_back(btp);
         }
     }
   return make_shared<Array>(values, env);
@@ -1054,6 +989,17 @@ Function::clone() const noexcept
   for (auto & it : args)
     args_copy.emplace_back(it->clone());
   return make_shared<Function>(name, args_copy, env, location);
+}
+
+ExpressionPtr
+Comprehension::clone() const noexcept
+{
+  if (c_expr && c_when)
+    return make_shared<Comprehension>(c_expr->clone(), c_vars->clone(), c_set->clone(), c_when->clone(), env, location);
+  else if (c_expr)
+    return make_shared<Comprehension>(c_expr->clone(), c_vars->clone(), c_set->clone(), env, location);
+  else
+    return make_shared<Comprehension>(true, c_vars->clone(), c_set->clone(), c_when->clone(), env, location);
 }
 
 string
@@ -1231,9 +1177,12 @@ TrinaryOp::to_string() const noexcept
 }
 
 string
-ArrayComprehension::to_string() const noexcept
+Comprehension::to_string() const noexcept
 {
-  string retval = "[" + c_expr->to_string() + " for " + c_vars->to_string() + " in " + c_set->to_string();
+  string retval = "[";
+  if (c_expr)
+    retval += c_expr->to_string() + " for ";
+  retval += c_vars->to_string() + " in " + c_set->to_string();
   if (c_when)
     retval += " when " + c_when->to_string();
   return retval + "]";
@@ -1495,23 +1444,14 @@ TrinaryOp::print(ostream &output, bool matlab_output) const noexcept
 }
 
 void
-ListComprehension::print(ostream &output, bool matlab_output) const noexcept
+Comprehension::print(ostream &output, bool matlab_output) const noexcept
 {
   output << "[";
-  c_vars->print(output, matlab_output);
-  output << " in ";
-  c_set->print(output, matlab_output);
-  output << " when ";
-  c_when->print(output, matlab_output);
-  output << "]";
-}
-
-void
-ArrayComprehension::print(ostream &output, bool matlab_output) const noexcept
-{
-  output << "[";
-  c_expr->print(output, matlab_output);
-  output << " for ";
+  if (c_expr)
+    {
+      c_expr->print(output, matlab_output);
+      output << " for ";
+    }
   c_vars->print(output, matlab_output);
   output << " in ";
   c_set->print(output, matlab_output);
