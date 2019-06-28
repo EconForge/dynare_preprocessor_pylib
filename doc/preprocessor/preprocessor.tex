@@ -1,36 +1,52 @@
 \documentclass{beamer}
-%\documentclass[draft]{beamer}
-%\documentclass[handout]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage[copyright]{ccicons}
 
-
-\mode<handout>
-{
-  \usepackage{pgfpages}
-  \pgfpagesuselayout{4 on 1}[a4paper,border shrink=3mm,landscape]
-  \usetheme{Madrid}
-  \usecolortheme{seagull}
-}
-
-\mode<beamer>
-{
-  \usetheme{Madrid}
-  \setbeamercovered{transparent}
-}
-
+\usetheme{Boadilla}
 
 \usepackage[english]{babel}
 \usepackage[utf8]{inputenc}
 
-\usepackage{times}
-\usepackage[copyright]{ccicons}
+\titlegraphic{\includegraphics{../logos/dlogo.png}}
 
 \title{The Dynare Preprocessor}
 
 \author[S. Villemot, H.Bastani]{Sébastien Villemot \and Houtan Bastani}
 
-\institute{CEPREMAP}
+\institute[CEPREMAP]{\includegraphics[scale=0.15]{../logos/cepremap.jpg}}
 
 \date{1 February 2017}
+
+\setbeamertemplate{title page}
+{
+  \vbox{}
+  \begingroup
+    \centering
+    {\usebeamercolor[fg]{titlegraphic}\inserttitlegraphic\par}\vskip1em
+    \begin{beamercolorbox}[sep=8pt,center]{title}
+      \usebeamerfont{title}\inserttitle\par%
+      \ifx\insertsubtitle\@empty%
+      \else%
+        \vskip0.25em%
+        {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\insertsubtitle\par}%
+      \fi%
+    \end{beamercolorbox}%
+    \vskip1em\par
+    \begin{beamercolorbox}[sep=8pt,center]{author}
+      \usebeamerfont{author}\insertauthor
+    \end{beamercolorbox}
+    \begin{beamercolorbox}[sep=8pt,center]{institute}
+      \usebeamerfont{institute}\insertinstitute
+    \end{beamercolorbox}
+    \begin{beamercolorbox}[sep=8pt,center]{date}
+      \usebeamerfont{date}\insertdate
+    \end{beamercolorbox}
+  \endgroup
+  \vfill
+}
 
 \AtBeginSection[]
 {
@@ -48,7 +64,7 @@
     \column{0.2\textwidth}
     \column{0.09\textwidth}
 
-    \ccbysa
+     \ccbysa
     \column{0.71\textwidth}
     \tiny
     Copyright © 2007--2017 Dynare Team \\
