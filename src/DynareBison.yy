@@ -84,7 +84,7 @@ class ParsingDriver;
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR EXPRESSION
 %token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME OSR_PARAMS_BOUNDS KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED
 %token <string> FLOAT_NUMBER DATES
-%token DEFAULT FIXED_POINT OPT_ALGO
+%token DEFAULT FIXED_POINT FLIP OPT_ALGO
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
 %token GAMMA_PDF GRAPH GRAPH_FORMAT CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
 %token HISTVAL HISTVAL_FILE HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID HYBRID ONE_SIDED_HP_FILTER
@@ -2828,6 +2828,8 @@ plot_shock_decomposition_option : o_use_shock_groups
                                 | o_psd_vintage
                                 | o_psd_plot_init_date
                                 | o_psd_plot_end_date
+                                | o_psd_diff
+                                | o_psd_flip
                                 ;
 
 initial_condition_decomposition_options_list : initial_condition_decomposition_option COMMA initial_condition_decomposition_options_list
@@ -2843,6 +2845,8 @@ initial_condition_decomposition_option : o_icd_type
                                        | o_nodisplay
                                        | o_graph_format
                                        | o_psd_fig_name
+                                       | o_icd_diff
+                                       | o_icd_flip
                                        ;
 
 homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END ';'
@@ -3368,6 +3372,10 @@ o_icd_write_xls : WRITE_XLS { driver.option_num("initial_condition_decomp.write_
 o_psd_write_xls : WRITE_XLS { driver.option_num("plot_shock_decomp.write_xls", "true"); };
 o_psd_realtime : REALTIME EQUAL INT_NUMBER { driver.option_num("plot_shock_decomp.realtime", $3); };
 o_psd_vintage : VINTAGE EQUAL INT_NUMBER { driver.option_num("plot_shock_decomp.vintage", $3); };
+o_psd_diff : DIFF { driver.option_num("plot_shock_decomp.diff", "true"); };
+o_icd_diff : DIFF { driver.option_num("initial_condition_decomp.diff", "true"); };
+o_psd_flip : FLIP { driver.option_num("plot_shock_decomp.flip", "true"); };
+o_icd_flip : FLIP { driver.option_num("initial_condition_decomp.flip", "true"); };
 o_bvar_prior_tau : BVAR_PRIOR_TAU EQUAL signed_number { driver.option_num("bvar_prior_tau", $3); };
 o_bvar_prior_decay : BVAR_PRIOR_DECAY EQUAL non_negative_number { driver.option_num("bvar_prior_decay", $3); };
 o_bvar_prior_lambda : BVAR_PRIOR_LAMBDA EQUAL signed_number { driver.option_num("bvar_prior_lambda", $3); };

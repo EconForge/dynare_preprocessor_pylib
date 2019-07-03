@@ -605,6 +605,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <DYNARE_STATEMENT>fast_realtime {return token::FAST_REALTIME; }
 <DYNARE_STATEMENT>save_realtime {return token::SAVE_REALTIME;}
 <DYNARE_STATEMENT>detail_plot {return token::DETAIL_PLOT;}
+<DYNARE_STATEMENT>flip {return token::FLIP;}
 <DYNARE_STATEMENT>interactive {return token::INTERACTIVE;}
 <DYNARE_STATEMENT>screen_shocks {return token::SCREEN_SHOCKS;}
 <DYNARE_STATEMENT>steadystate {return token::STEADYSTATE;}
