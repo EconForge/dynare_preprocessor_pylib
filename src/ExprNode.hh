@@ -572,7 +572,7 @@ class ExprNode
       virtual expr_t clone(DataTree &datatree) const = 0;
 
       //! Move a trend variable with lag/lead to time t by dividing/multiplying by its growth factor
-      virtual expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const = 0;
+      virtual expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const = 0;
 
       //! Returns true if the expression is in static form (no lead, no lag, no expectation, no STEADY_STATE)
       virtual bool isInStaticForm() const = 0;
@@ -716,7 +716,7 @@ public:
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
   expr_t clone(DataTree &datatree) const override;
-  expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
+  expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
@@ -799,7 +799,7 @@ public:
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
   expr_t clone(DataTree &datatree) const override;
-  expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
+  expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
@@ -910,7 +910,7 @@ public:
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
   expr_t clone(DataTree &datatree) const override;
-  expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
+  expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
@@ -1024,7 +1024,7 @@ public:
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
   expr_t clone(DataTree &datatree) const override;
-  expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
+  expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   //! Function to write out the oPowerNode in expr_t terms as opposed to writing out the function itself
   expr_t unpackPowerDeriv() const;
   //! Returns MULT_i*(lhs-rhs) = 0, creating multiplier MULT_i
@@ -1152,7 +1152,7 @@ public:
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
   expr_t clone(DataTree &datatree) const override;
-  expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
+  expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
@@ -1272,7 +1272,7 @@ public:
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
   expr_t clone(DataTree &datatree) const override = 0;
-  expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
+  expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
@@ -1480,7 +1480,7 @@ public:
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
-  expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
+  expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
@@ -1561,7 +1561,7 @@ public:
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
-  expr_t removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const override;
+  expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;

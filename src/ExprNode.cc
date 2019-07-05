@@ -752,7 +752,7 @@ NumConstNode::detrend(int symb_id, bool log_trend, expr_t trend) const
 }
 
 expr_t
-NumConstNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
+NumConstNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const
 {
   return const_cast<NumConstNode *>(this);
 }
@@ -1991,7 +1991,7 @@ VariableNode::countDiffs() const
 }
 
 expr_t
-VariableNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
+VariableNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const
 {
   if ((get_type() != SymbolType::trend && get_type() != SymbolType::logTrend) || lag == 0)
     return const_cast<VariableNode *>(this);
@@ -3830,7 +3830,7 @@ UnaryOpNode::detrend(int symb_id, bool log_trend, expr_t trend) const
 }
 
 expr_t
-UnaryOpNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
+UnaryOpNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const
 {
   expr_t argsubst = arg->removeTrendLeadLag(trend_symbols_map);
   return buildSimilarUnaryOpNode(argsubst, datatree);
@@ -5524,7 +5524,7 @@ BinaryOpNode::detrend(int symb_id, bool log_trend, expr_t trend) const
 }
 
 expr_t
-BinaryOpNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
+BinaryOpNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const
 {
   expr_t arg1subst = arg1->removeTrendLeadLag(trend_symbols_map);
   expr_t arg2subst = arg2->removeTrendLeadLag(trend_symbols_map);
@@ -6852,7 +6852,7 @@ TrinaryOpNode::detrend(int symb_id, bool log_trend, expr_t trend) const
 }
 
 expr_t
-TrinaryOpNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
+TrinaryOpNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const
 {
   expr_t arg1subst = arg1->removeTrendLeadLag(trend_symbols_map);
   expr_t arg2subst = arg2->removeTrendLeadLag(trend_symbols_map);
@@ -7383,7 +7383,7 @@ AbstractExternalFunctionNode::detrend(int symb_id, bool log_trend, expr_t trend)
 }
 
 expr_t
-AbstractExternalFunctionNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
+AbstractExternalFunctionNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const
 {
   vector<expr_t> arguments_subst;
   for (auto argument : arguments)
@@ -8985,7 +8985,7 @@ VarExpectationNode::detrend(int symb_id, bool log_trend, expr_t trend) const
 }
 
 expr_t
-VarExpectationNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
+VarExpectationNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const
 {
   cerr << "VarExpectationNode::removeTrendLeadLag not implemented." << endl;
   exit(EXIT_FAILURE);
@@ -9399,7 +9399,7 @@ PacExpectationNode::detrend(int symb_id, bool log_trend, expr_t trend) const
 }
 
 expr_t
-PacExpectationNode::removeTrendLeadLag(map<int, expr_t> trend_symbols_map) const
+PacExpectationNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const
 {
   return const_cast<PacExpectationNode *>(this);
 }
