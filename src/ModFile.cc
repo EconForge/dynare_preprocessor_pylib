@@ -758,8 +758,9 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
                   cerr << "ERROR: Incorrect order option..." << endl;
                   exit(EXIT_FAILURE);
                 }
-              int derivsOrder = mod_file_struct.order_option;
-              if (mod_file_struct.identification_present || linear || output == FileOutputType::second)
+              int derivsOrder = max(mod_file_struct.order_option,
+                                    mod_file_struct.identification_order + 1);
+              if (mod_file_struct.sensitivity_present || linear || output == FileOutputType::second)
                 derivsOrder = max(derivsOrder, 2);
               if (mod_file_struct.estimation_analytic_derivation || output == FileOutputType::third)
                 derivsOrder = max(derivsOrder, 3);

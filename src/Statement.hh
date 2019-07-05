@@ -68,6 +68,8 @@ public:
   bool svar_identification_present{false};
   //! Whether an identification statement is present or the identification option of dynare_sensitivity statement is equal to one
   bool identification_present{false};
+  //! The maximum of the “order” option in identification statements
+  int identification_order{0};
   //! Whether a sensitivity statement is present
   bool sensitivity_present{false};
   //! Whether the option analytic_derivation is given to estimation

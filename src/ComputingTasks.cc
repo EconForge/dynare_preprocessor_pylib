@@ -2635,6 +2635,22 @@ void
 IdentificationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   mod_file_struct.identification_present = true;
+  auto it = options_list.num_options.find("order");
+  if (it != options_list.num_options.end())
+    {
+      int order = stoi(it->second);
+      if (order < 1 || order > 2)
+        {
+          cerr << "ERROR: the order option of identification command must be either 1 or 2" << endl;
+
+          exit(EXIT_FAILURE);
+        }
+      mod_file_struct.identification_order = max(mod_file_struct.identification_order, order);
+
+    }
+  else
+    // The default value for order is 1 (which triggers 2nd order dynamic derivatives)
+    mod_file_struct.identification_order = max(mod_file_struct.identification_order, 1);
 }
 
 void

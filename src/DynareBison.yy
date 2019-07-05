@@ -2247,6 +2247,7 @@ identification_option : o_ar
                       | o_tol_sv
                       | o_checks_via_subsets
                       | o_max_dim_subsets_groups
+                      | o_order
                       ;
 
 model_comparison : MODEL_COMPARISON mc_filename_list ';'
