@@ -1965,29 +1965,23 @@ ModelTree::addAuxEquation(expr_t eq)
 }
 
 void
-ModelTree::addTrendVariables(vector<int> trend_vars, expr_t growth_factor) noexcept(false)
+ModelTree::addTrendVariables(const vector<int> &trend_vars, expr_t growth_factor) noexcept(false)
 {
-  while (!trend_vars.empty())
-    if (trend_symbols_map.find(trend_vars.back()) != trend_symbols_map.end())
-      throw TrendException(symbol_table.getName(trend_vars.back()));
+  for (int id : trend_vars)
+    if (trend_symbols_map.find(id) != trend_symbols_map.end())
+      throw TrendException(symbol_table.getName(id));
     else
-      {
-        trend_symbols_map[trend_vars.back()] = growth_factor;
-        trend_vars.pop_back();
-      }
+      trend_symbols_map[id] = growth_factor;
 }
 
 void
-ModelTree::addNonstationaryVariables(vector<int> nonstationary_vars, bool log_deflator, expr_t deflator) noexcept(false)
+ModelTree::addNonstationaryVariables(const vector<int> &nonstationary_vars, bool log_deflator, expr_t deflator) noexcept(false)
 {
-  while (!nonstationary_vars.empty())
-    if (nonstationary_symbols_map.find(nonstationary_vars.back()) != nonstationary_symbols_map.end())
-      throw TrendException(symbol_table.getName(nonstationary_vars.back()));
+  for (int id : nonstationary_vars)
+    if (nonstationary_symbols_map.find(id) != nonstationary_symbols_map.end())
+      throw TrendException(symbol_table.getName(id));
     else
-      {
-        nonstationary_symbols_map[nonstationary_vars.back()] = { log_deflator, deflator };
-        nonstationary_vars.pop_back();
-      }
+      nonstationary_symbols_map[id] = { log_deflator, deflator };
 }
 
 void

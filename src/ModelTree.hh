@@ -343,9 +343,9 @@ public:
   //! Returns the number of equations in the model
   int equation_number() const;
   //! Adds a trend variable with its growth factor
-  void addTrendVariables(vector<int> trend_vars, expr_t growth_factor) noexcept(false);
+  void addTrendVariables(const vector<int> &trend_vars, expr_t growth_factor) noexcept(false);
   //! Adds a nonstationary variables with their (common) deflator
-  void addNonstationaryVariables(vector<int> nonstationary_vars, bool log_deflator, expr_t deflator) noexcept(false);
+  void addNonstationaryVariables(const vector<int> &nonstationary_vars, bool log_deflator, expr_t deflator) noexcept(false);
   //! Is a given variable non-stationary?
   bool isNonstationary(int symb_id) const;
   void set_cutoff_to_zero();
