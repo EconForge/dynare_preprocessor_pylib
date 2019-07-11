@@ -619,8 +619,8 @@ void
 LoadParamsAndSteadyStateStatement::fillEvalContext(eval_context_t &eval_context) const
 {
   for (const auto & it : content)
-    /* We use strtod() instead of stod() because we want overflows and
-       underflows to respectively yield 0 and ±Inf. See also the comment in
+    /* We use strtod() instead of stod() because we want underflows and
+       overflows to respectively yield 0 and ±Inf. See also the comment in
        NumericalConstants.cc */
     eval_context[it.first] = strtod(it.second.c_str(), nullptr);
 }
