@@ -2380,7 +2380,7 @@ StaticModel::collect_block_first_order_derivatives()
 void
 StaticModel::writeLatexFile(const string &basename, bool write_equation_tags) const
 {
-  writeLatexModelFile(basename + "_static", ExprNodeOutputType::latexStaticModel, write_equation_tags);
+  writeLatexModelFile(basename, "static", ExprNodeOutputType::latexStaticModel, write_equation_tags);
 }
 
 void

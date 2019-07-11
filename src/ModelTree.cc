@@ -1834,12 +1834,13 @@ ModelTree::Write_Inf_To_Bin_File(const string &filename,
 }
 
 void
-ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output_type, const bool write_equation_tags) const
+ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_basename, ExprNodeOutputType output_type, const bool write_equation_tags) const
 {
+  boost::filesystem::create_directories(mod_basename + "/latex");
+
   ofstream output, content_output;
-  string filename = basename + ".tex";
-  string content_basename = basename + "_content";
-  string content_filename = content_basename + ".tex";
+  string filename = mod_basename + "/latex/" + latex_basename + ".tex";
+  string content_filename = mod_basename + "/latex/" + latex_basename + "_content" + ".tex";
   output.open(filename, ios::out | ios::binary);
   if (!output.is_open())
     {
@@ -1906,7 +1907,7 @@ ModelTree::writeLatexModelFile(const string &basename, ExprNodeOutputType output
       content_output << endl << R"(\end{dmath})" << endl;
     }
 
-  output << R"(\include{)" << content_basename << "}" << endl
+  output << R"(\include{)" << latex_basename + "_content" << "}" << endl
          << R"(\end{document})" << endl;
 
   output.close();

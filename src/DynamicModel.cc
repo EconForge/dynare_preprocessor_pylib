@@ -6062,13 +6062,13 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
 void
 DynamicModel::writeLatexFile(const string &basename, const bool write_equation_tags) const
 {
-  writeLatexModelFile(basename + "_dynamic", ExprNodeOutputType::latexDynamicModel, write_equation_tags);
+  writeLatexModelFile(basename, "dynamic", ExprNodeOutputType::latexDynamicModel, write_equation_tags);
 }
 
 void
 DynamicModel::writeLatexOriginalFile(const string &basename, const bool write_equation_tags) const
 {
-  writeLatexModelFile(basename + "_original", ExprNodeOutputType::latexDynamicModel, write_equation_tags);
+  writeLatexModelFile(basename, "original", ExprNodeOutputType::latexDynamicModel, write_equation_tags);
 }
 
 void

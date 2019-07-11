@@ -132,10 +132,11 @@ SteadyStateModel::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
 void
 SteadyStateModel::writeLatexSteadyStateFile(const string &basename) const
 {
+  boost::filesystem::create_directories(basename + "/latex");
+
   ofstream output, content_output;
-  string filename = basename + "_steady_state.tex";
-  string content_basename = basename + "_steady_state_content";
-  string content_filename = content_basename + ".tex";
+  string filename = basename + "/latex/steady_state.tex";
+  string content_filename = basename + "/latex/steady_state_content.tex";
 
   output.open(filename, ios::out | ios::binary);
   if (!output.is_open())
@@ -172,7 +173,7 @@ SteadyStateModel::writeLatexSteadyStateFile(const string &basename) const
 
   static_model.writeLatexAuxVarRecursiveDefinitions(content_output);
 
-  output << "\\include{" << content_basename << "}" << endl
+  output << "\\include{steady_state_content.tex}" << endl
          << "\\end{document}" << endl;
 
   output.close();
