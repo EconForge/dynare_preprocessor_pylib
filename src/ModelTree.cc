@@ -2226,7 +2226,7 @@ ModelTree::compileDll(const string &basename, const string &static_or_dynamic, c
       auto bin_dir = matlabroot / "bin" / arch;
       flags << " -L " << bin_dir;
       flags << " -fexceptions -DNDEBUG";
-      libs = "-lmex -lmx -lmat -lmwlapack -lmwblas";
+      libs = "-lmex -lmx";
       if (mexext == "mexglx" || mexext == "mexa64")
         {
           // GNU/Linux
