@@ -70,7 +70,7 @@ using namespace macro;
 %left EQUAL_EQUAL NOT_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
 %nonassoc IN
-%nonassoc COLON
+%left COLON
 %left UNION
 %left INTERSECTION
 %left PLUS MINUS
@@ -88,7 +88,7 @@ using namespace macro;
 %type <VariablePtr> symbol
 
 %type <vector<VariablePtr>> comma_name
-%type <vector<ExpressionPtr>> comma_expr function_args tuple_comma_expr
+%type <vector<ExpressionPtr>> comma_expr function_args tuple_comma_expr colon_expr
 
 %%
 
@@ -278,6 +278,12 @@ tuple_comma_expr : %empty
                    { $1.emplace_back($3); $$ = $1; }
                  ;
 
+colon_expr : expr COLON expr
+             { $$ = vector<ExpressionPtr>{$1, $3}; }
+           | colon_expr COLON expr
+             { $1.emplace_back($3); $$ = $1; }
+           ;
+
 expr : LPAREN expr RPAREN
        { $$ = $2; }
      | symbol
@@ -292,8 +298,15 @@ expr : LPAREN expr RPAREN
        { $$ = make_shared<Double>($1, driver.env, @$); }
      | QUOTED_STRING
        { $$ = make_shared<String>($1, driver.env, @$); }
-     | expr COLON expr
-       { $$ = make_shared<Array>($1, $3, driver.env, @$); }
+     | colon_expr
+       {
+         if ($1.size() == 2)
+           $$ = make_shared<Array>($1[0], $1[1], driver.env, @$);
+         else if ($1.size() == 3)
+           $$ = make_shared<Array>($1[0], $1[1], $1[2], driver.env, @$);
+         else
+           error(@$, "The colon operator only works with 2 or 3 arguments");
+       }
      | LBRACKET comma_expr RBRACKET
        { $$ = make_shared<Array>($2, driver.env, @$); }
      | symbol LBRACKET comma_expr RBRACKET

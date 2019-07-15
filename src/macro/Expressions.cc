@@ -531,38 +531,29 @@ Array::eval()
 {
   if (arr.empty() && range1 && range2)
     {
-      DoublePtr range1int = dynamic_pointer_cast<Double>(range1->eval());
-      DoublePtr range2int = dynamic_pointer_cast<Double>(range2->eval());
-      if (!range1int || !range2int)
+      DoublePtr range1dbl = dynamic_pointer_cast<Double>(range1->eval());
+      DoublePtr range2dbl = dynamic_pointer_cast<Double>(range2->eval());
+      if (!range1dbl || !range2dbl)
         throw StackTrace("To create an array from a range using the colon operator, "
-                         "both arguments must be doubles");
+                         "the arguments must evaluate to doubles");
 
+      DoublePtr incdbl = make_shared<Double>(1, env);
       if (increment)
         {
-          auto incrementp = dynamic_pointer_cast<Double>(increment->eval());
-          if (*incrementp == 0)
-            throw StackTrace("the increment cannot be equal to zero");
-
-          if (*range1int <= *range2int)
-            if (*incrementp < 0)
-              throw StackTrace("In this case the increment cannot be negative");
-            else
-              for (int i = *range1int; i <= *range2int; i += *incrementp)
-                arr.emplace_back(make_shared<Double>(i, env));
-          else
-            if (*incrementp > 0)
-              throw StackTrace("In this case the increment cannot be positive");
-            else
-              for (int i = *range1int; i >= *range2int; i += *incrementp)
-                arr.emplace_back(make_shared<Double>(i, env));
+          incdbl = dynamic_pointer_cast<Double>(increment->eval());
+          if (!incdbl)
+            throw StackTrace("To create an array from a range using the colon operator, "
+                             "the increment must evaluate to a double");
         }
-      else
-        for (int i = *range1int; i <= *range2int; i++)
+
+      if (*incdbl > 0 && *range1dbl < *range2dbl)
+        for (double i = *range1dbl; i <= *range2dbl; i += *incdbl)
+          arr.emplace_back(make_shared<Double>(i, env));
+      else if (*range1dbl > *range2dbl && *incdbl < 0)
+        for (double i = *range1dbl; i >= *range2dbl; i += *incdbl)
           arr.emplace_back(make_shared<Double>(i, env));
 
-      range1 = nullptr;
-      increment = nullptr;
-      range2 = nullptr;
+      range1 = increment = range2 = nullptr;
     }
 
   vector<ExpressionPtr> retval;
