@@ -9294,8 +9294,8 @@ PacExpectationNode::countDiffs() const
 pair<int, expr_t>
 PacExpectationNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const
 {
-  //COME BACK
-  return { 0, const_cast<PacExpectationNode *>(this) };
+  cerr << "PacExpectationNode::normalizeEquation not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 expr_t
