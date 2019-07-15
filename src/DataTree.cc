@@ -35,6 +35,7 @@ DataTree::initConstants()
   Zero = AddNonNegativeConstant("0");
   One = AddNonNegativeConstant("1");
   Two = AddNonNegativeConstant("2");
+  Three = AddNonNegativeConstant("3");
 
   MinusOne = AddUMinus(One);
 
@@ -515,6 +516,17 @@ DataTree::AddSqrt(expr_t iArg1)
     return AddUnaryOp(UnaryOpcode::sqrt, iArg1);
   else
     return Zero;
+}
+
+expr_t
+DataTree::AddCbrt(expr_t iArg1)
+{
+  if (iArg1 == Zero)
+    return Zero;
+  else if (iArg1 == One)
+    return One;
+  else
+    return AddUnaryOp(UnaryOpcode::cbrt, iArg1);
 }
 
 expr_t

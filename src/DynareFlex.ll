@@ -830,6 +830,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <DYNARE_STATEMENT,DYNARE_BLOCK>acos {return token::ACOS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>atan {return token::ATAN;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>sqrt {return token::SQRT;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>cbrt {return token::CBRT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>max {return token::MAX;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>min {return token::MIN;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>abs {return token::ABS;}

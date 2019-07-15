@@ -2171,6 +2171,10 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
     case UnaryOpcode::sqrt:
       t11 = datatree.AddPlus(this, this);
       return datatree.AddDivide(darg, t11);
+    case UnaryOpcode::cbrt:
+      t11 = datatree.AddPower(arg, datatree.AddDivide(datatree.Two, datatree.Three));
+      t12 = datatree.AddTimes(datatree.Three, t11);
+      return datatree.AddDivide(darg, t12);
     case UnaryOpcode::abs:
       t11 = datatree.AddSign(arg);
       return datatree.AddTimes(t11, darg);
@@ -2313,6 +2317,7 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
       case UnaryOpcode::atanh:
         return cost + 350;
       case UnaryOpcode::sqrt:
+      case UnaryOpcode::cbrt:
       case UnaryOpcode::abs:
         return cost + 570;
       case UnaryOpcode::steadyState:
@@ -2361,6 +2366,7 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
       case UnaryOpcode::atanh:
         return cost + 150;
       case UnaryOpcode::sqrt:
+      case UnaryOpcode::cbrt:
       case UnaryOpcode::abs:
         return cost + 90;
       case UnaryOpcode::steadyState:
@@ -2500,6 +2506,9 @@ UnaryOpNode::writeJsonAST(ostream &output) const
     case UnaryOpcode::sqrt:
       output << "sqrt";
       break;
+    case UnaryOpcode::cbrt:
+      output << "cbrt";
+      break;
     case UnaryOpcode::abs:
       output << "abs";
       break;
@@ -2617,6 +2626,9 @@ UnaryOpNode::writeJsonOutput(ostream &output,
       break;
     case UnaryOpcode::sqrt:
       output << "sqrt";
+      break;
+    case UnaryOpcode::cbrt:
+      output << "cbrt";
       break;
     case UnaryOpcode::abs:
       output << "abs";
@@ -2773,6 +2785,9 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       break;
     case UnaryOpcode::sqrt:
       output << "sqrt";
+      break;
+    case UnaryOpcode::cbrt:
+      output << "cbrt";
       break;
     case UnaryOpcode::abs:
       output << "abs";
@@ -2957,6 +2972,8 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) noexcept(false)
       return (atanh(v));
     case UnaryOpcode::sqrt:
       return (sqrt(v));
+    case UnaryOpcode::cbrt:
+      return (cbrt(v));
     case UnaryOpcode::abs:
       return (abs(v));
     case UnaryOpcode::sign:
@@ -3107,6 +3124,9 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>> 
         case UnaryOpcode::sqrt:
           List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::power), nullptr, datatree.Two);
           return { 1, nullptr };
+        case UnaryOpcode::cbrt:
+          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::power), nullptr, datatree.Three);
+          return { 1, nullptr };
         case UnaryOpcode::abs:
           return { 2, nullptr };
         case UnaryOpcode::sign:
@@ -3159,6 +3179,8 @@ UnaryOpNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>> 
           return { 0, datatree.AddAtanh(New_expr_t) };
         case UnaryOpcode::sqrt:
           return { 0, datatree.AddSqrt(New_expr_t) };
+        case UnaryOpcode::cbrt:
+          return { 0, datatree.AddCbrt(New_expr_t) };
         case UnaryOpcode::abs:
           return { 0, datatree.AddAbs(New_expr_t) };
         case UnaryOpcode::sign:
@@ -3222,6 +3244,8 @@ UnaryOpNode::buildSimilarUnaryOpNode(expr_t alt_arg, DataTree &alt_datatree) con
       return alt_datatree.AddAtanh(alt_arg);
     case UnaryOpcode::sqrt:
       return alt_datatree.AddSqrt(alt_arg);
+    case UnaryOpcode::cbrt:
+      return alt_datatree.AddCbrt(alt_arg);
     case UnaryOpcode::abs:
       return alt_datatree.AddAbs(alt_arg);
     case UnaryOpcode::sign:
@@ -3416,6 +3440,7 @@ UnaryOpNode::createAuxVarForUnaryOpNode() const
     case UnaryOpcode::asinh:
     case UnaryOpcode::atanh:
     case UnaryOpcode::sqrt:
+    case UnaryOpcode::cbrt:
     case UnaryOpcode::abs:
     case UnaryOpcode::sign:
     case UnaryOpcode::erf:
@@ -3626,6 +3651,9 @@ UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nod
       break;
     case UnaryOpcode::sqrt:
       unary_op = "sqrt";
+      break;
+    case UnaryOpcode::cbrt:
+      unary_op = "cbrt";
       break;
     case UnaryOpcode::abs:
       unary_op = "abs";

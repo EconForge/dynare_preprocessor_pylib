@@ -191,6 +191,7 @@ enum class UnaryOpcode
     asinh,
     atanh,
     sqrt,
+    cbrt,
     abs,
     sign,
     steadyState,

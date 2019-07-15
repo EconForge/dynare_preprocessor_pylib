@@ -127,7 +127,7 @@ class ParsingDriver;
 %precedence UMINUS UPLUS
 %nonassoc POWER
 %token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN ERF DIFF ADL AUXILIARY_MODEL_NAME
-%token SQRT NORMCDF NORMPDF STEADY_STATE EXPECTATION VAR_ESTIMATION
+%token SQRT CBRT NORMCDF NORMPDF STEADY_STATE EXPECTATION VAR_ESTIMATION
 /* GSA analysis */
 %token DYNARE_SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU MORRIS_NLIV
 %token MORRIS_NTRA NSAM LOAD_REDFORM LOAD_RMSE LOAD_STAB ALPHA2_STAB LOGTRANS_REDFORM THRESHOLD_REDFORM
@@ -800,6 +800,8 @@ expression : '(' expression ')'
              { $$ = driver.add_atan($3); }
            | SQRT '(' expression ')'
              { $$ = driver.add_sqrt($3); }
+           | CBRT '(' expression ')'
+             { $$ = driver.add_cbrt($3); }
            | ABS '(' expression ')'
              { $$ = driver.add_abs($3); }
            | SIGN '(' expression ')'

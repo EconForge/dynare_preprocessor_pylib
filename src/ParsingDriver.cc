@@ -2828,6 +2828,12 @@ ParsingDriver::add_sqrt(expr_t arg1)
 }
 
 expr_t
+ParsingDriver::add_cbrt(expr_t arg1)
+{
+  return data_tree->AddCbrt(arg1);
+}
+
+expr_t
 ParsingDriver::add_abs(expr_t arg1)
 {
   return data_tree->AddAbs(arg1);

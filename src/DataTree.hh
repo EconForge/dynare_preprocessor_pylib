@@ -132,7 +132,7 @@ public:
   DataTree & operator=(DataTree &&) = delete;
 
   //! Some predefined constants
-  expr_t Zero, One, Two, MinusOne, NaN, Infinity, MinusInfinity, Pi;
+  expr_t Zero, One, Two, Three, MinusOne, NaN, Infinity, MinusInfinity, Pi;
 
   //! Raised when a local parameter is declared twice
   class LocalVariableException
@@ -221,6 +221,8 @@ public:
   expr_t AddAtanh(expr_t iArg1);
   //! Adds "sqrt(arg)" to model tree
   expr_t AddSqrt(expr_t iArg1);
+  //! Adds "cbrt(arg)" to model tree
+  expr_t AddCbrt(expr_t iArg1);
   //! Adds "abs(arg)" to model tree
   expr_t AddAbs(expr_t iArg1);
   //! Adds "sign(arg)" to model tree
