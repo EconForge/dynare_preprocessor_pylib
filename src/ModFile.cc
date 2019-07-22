@@ -1020,6 +1020,10 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
         auto *eps = dynamic_cast<EstimatedParamsStatement *>(statement.get());
         if (eps != nullptr)
           eps->writeOutput(mOutputFile, basename, minimal_workspace);
+
+        auto *sgs = dynamic_cast<ShockGroupsStatement *>(statement.get());
+        if (sgs != nullptr)
+          sgs->writeOutput(mOutputFile, basename, minimal_workspace);
       }
   else
     {
