@@ -71,6 +71,7 @@ namespace macro
        cast_double,
        cast_string,
        cast_tuple,
+       cast_array,
        logical_not,
        unary_minus,
        unary_plus,

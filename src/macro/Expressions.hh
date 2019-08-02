@@ -184,6 +184,7 @@ namespace macro
     virtual DoublePtr cast_double() const { throw StackTrace("This type cannot be cast to a double"); }
     virtual StringPtr cast_string() const { throw StackTrace("This type cannot be cast to a string"); }
     virtual TuplePtr cast_tuple() const { throw StackTrace("This type cannot be cast to a tuple"); }
+    virtual ArrayPtr cast_array() const { throw StackTrace("This type cannot be cast to an array"); }
   };
 
 
@@ -212,6 +213,10 @@ namespace macro
     inline TuplePtr cast_tuple() const override
     {
       return make_shared<Tuple>(vector<ExpressionPtr>{make_shared<Bool>(value, env)}, env);
+    }
+    inline ArrayPtr cast_array() const override
+    {
+      return make_shared<Array>(vector<ExpressionPtr>{make_shared<Bool>(value, env)}, env);
     }
   };
 
@@ -304,6 +309,10 @@ namespace macro
     {
       return make_shared<Tuple>(vector<ExpressionPtr>{make_shared<Double>(value, env)}, env);
     }
+    inline ArrayPtr cast_array() const override
+    {
+      return make_shared<Array>(vector<ExpressionPtr>{make_shared<Double>(value, env)}, env);
+    }
   };
 
   class String final : public BaseType
@@ -335,6 +344,10 @@ namespace macro
     {
       return make_shared<Tuple>(vector<ExpressionPtr>{make_shared<String>(value, env)}, env);
     }
+    inline ArrayPtr cast_array() const override
+    {
+      return make_shared<Array>(vector<ExpressionPtr>{make_shared<String>(value, env)}, env);
+    }
   };
 
 
@@ -364,6 +377,7 @@ namespace macro
     DoublePtr cast_double() const override;
     inline StringPtr cast_string() const override { return make_shared<String>(this->to_string(), env); }
     inline TuplePtr cast_tuple() const override { return make_shared<Tuple>(tup, env); }
+    inline ArrayPtr cast_array() const override { return make_shared<Array>(tup, env); }
   };
 
 
@@ -409,6 +423,7 @@ namespace macro
     DoublePtr cast_double() const override;
     inline StringPtr cast_string() const override { return make_shared<String>(this->to_string(), env); }
     inline TuplePtr cast_tuple() const override { return make_shared<Tuple>(arr, env); }
+    inline ArrayPtr cast_array() const override { return make_shared<Array>(arr, env); }
   };
 
 
