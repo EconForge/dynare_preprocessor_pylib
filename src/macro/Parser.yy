@@ -65,7 +65,7 @@ using namespace macro;
 %token SQRT CBRT SIGN MAX MIN FLOOR CEIL TRUNC SUM MOD
 %token ERF ERFC GAMMA LGAMMA ROUND NORMPDF NORMCDF LENGTH
 
-%token INT
+%token INT DOUBLE
 
 %left OR
 %left AND
@@ -78,7 +78,7 @@ using namespace macro;
 %left PLUS MINUS
 %left TIMES DIVIDE
 %precedence UMINUS UPLUS NOT
-%precedence CAST_INT
+%precedence CAST_INT CAST_DOUBLE
 %nonassoc POWER
 
 %token <string> NAME TEXT QUOTED_STRING NUMBER EOL
@@ -324,6 +324,8 @@ expr : LPAREN expr RPAREN
        { $$ = make_shared<Comprehension>($2, $4, $6, $8, driver.env, @$); }
      | LPAREN INT RPAREN expr %prec CAST_INT
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_int, $4, driver.env, @$); }
+     | LPAREN DOUBLE RPAREN expr %prec CAST_DOUBLE
+       { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_double, $4, driver.env, @$); }
      | NOT expr
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::logical_not, $2, driver.env, @$); }
      | MINUS expr %prec UMINUS

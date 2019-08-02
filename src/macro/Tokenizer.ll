@@ -143,6 +143,7 @@ CONT \\\\{SPC}*
 <expr,eval>normcdf         { return token::NORMCDF; }
 
 <expr,eval>int             { return token::INT; }
+<expr,eval>double          { return token::DOUBLE; }
 
 <expr,eval>((([0-9]*\.[0-9]+)|([0-9]+\.))([ed][-+]?[0-9]+)?)|([0-9]+([ed][-+]?[0-9]+)?)|nan|inf {
   yylval->build<string>(yytext);

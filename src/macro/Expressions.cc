@@ -310,6 +310,19 @@ String::cast_int() const
     }
 }
 
+DoublePtr
+String::cast_double() const
+{
+  try
+    {
+      return make_shared<Double>(stod(value), env);
+    }
+  catch (...)
+    {
+      throw StackTrace(value + " cannot be converted to a double");
+    }
+}
+
 BaseTypePtr
 Array::plus(const BaseTypePtr &btp) const
 {
@@ -513,6 +526,14 @@ Array::cast_int() const
   return arr.at(0)->eval()->cast_int();
 }
 
+DoublePtr
+Array::cast_double() const
+{
+  if (arr.size() != 1)
+    throw StackTrace("Array must be of size 1 to be cast to a double");
+  return arr.at(0)->eval()->cast_double();
+}
+
 BoolPtr
 Tuple::is_equal(const BaseTypePtr &btp) const
 {
@@ -553,6 +574,14 @@ Tuple::cast_int() const
   if (tup.size() != 1)
     throw StackTrace("Tuple must be of size 1 to be cast to an int");
   return tup.at(0)->eval()->cast_int();
+}
+
+DoublePtr
+Tuple::cast_double() const
+{
+  if (tup.size() != 1)
+    throw StackTrace("Tuple must be of size 1 to be cast to a double");
+  return tup.at(0)->eval()->cast_double();
 }
 
 BaseTypePtr
@@ -740,6 +769,8 @@ UnaryOp::eval()
         {
         case codes::UnaryOp::cast_int:
           return argbt->cast_int();
+        case codes::UnaryOp::cast_double:
+          return argbt->cast_double();
         case codes::UnaryOp::logical_not:
           return argbt->logical_not();
         case codes::UnaryOp::unary_minus:
@@ -1062,6 +1093,8 @@ UnaryOp::to_string() const noexcept
     {
     case codes::UnaryOp::cast_int:
       return "(int)" + retval;
+    case codes::UnaryOp::cast_double:
+      return "(double)" + retval;
     case codes::UnaryOp::logical_not:
       return "!" + retval;
     case codes::UnaryOp::unary_minus:
@@ -1265,6 +1298,9 @@ UnaryOp::print(ostream &output, bool matlab_output) const noexcept
     case codes::UnaryOp::cast_int:
       output << "(int)";
       break;
+    case codes::UnaryOp::cast_double:
+      output << "(double)";
+      break;
     case codes::UnaryOp::logical_not:
       output << "!";
       break;
@@ -1351,6 +1387,7 @@ UnaryOp::print(ostream &output, bool matlab_output) const noexcept
   arg->print(output, matlab_output);
 
   if (op_code != codes::UnaryOp::cast_int
+      && op_code != codes::UnaryOp::cast_double
       && op_code != codes::UnaryOp::logical_not
       && op_code != codes::UnaryOp::unary_plus
       && op_code != codes::UnaryOp::unary_minus)
