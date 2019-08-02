@@ -297,6 +297,19 @@ String::is_equal(const BaseTypePtr &btp) const
   return make_shared<Bool>(value == btp2->value, env);
 }
 
+DoublePtr
+String::cast_int() const
+{
+  try
+    {
+      return make_shared<Double>(stoi(value), env);
+    }
+  catch (...)
+    {
+      throw StackTrace(value + " cannot be converted to an int");
+    }
+}
+
 BaseTypePtr
 Array::plus(const BaseTypePtr &btp) const
 {
@@ -492,6 +505,14 @@ Array::sum() const
   return make_shared<Double>(retval, env);
 }
 
+DoublePtr
+Array::cast_int() const
+{
+  if (arr.size() != 1)
+    throw StackTrace("Array must be of size 1 to be cast to an int");
+  return arr.at(0)->eval()->cast_int();
+}
+
 BoolPtr
 Tuple::is_equal(const BaseTypePtr &btp) const
 {
@@ -524,6 +545,14 @@ Tuple::contains(const BaseTypePtr &btp) const
         return make_shared<Bool>(true, env);
     }
   return make_shared<Bool>(false, env);
+}
+
+DoublePtr
+Tuple::cast_int() const
+{
+  if (tup.size() != 1)
+    throw StackTrace("Tuple must be of size 1 to be cast to an int");
+  return tup.at(0)->eval()->cast_int();
 }
 
 BaseTypePtr
@@ -709,6 +738,8 @@ UnaryOp::eval()
       auto argbt = arg->eval();
       switch (op_code)
         {
+        case codes::UnaryOp::cast_int:
+          return argbt->cast_int();
         case codes::UnaryOp::logical_not:
           return argbt->logical_not();
         case codes::UnaryOp::unary_minus:
@@ -1029,6 +1060,8 @@ UnaryOp::to_string() const noexcept
   string retval = arg->to_string();
   switch (op_code)
     {
+    case codes::UnaryOp::cast_int:
+      return "(int)" + retval;
     case codes::UnaryOp::logical_not:
       return "!" + retval;
     case codes::UnaryOp::unary_minus:
@@ -1229,6 +1262,9 @@ UnaryOp::print(ostream &output, bool matlab_output) const noexcept
 {
   switch (op_code)
     {
+    case codes::UnaryOp::cast_int:
+      output << "(int)";
+      break;
     case codes::UnaryOp::logical_not:
       output << "!";
       break;
@@ -1314,7 +1350,8 @@ UnaryOp::print(ostream &output, bool matlab_output) const noexcept
 
   arg->print(output, matlab_output);
 
-  if (op_code != codes::UnaryOp::logical_not
+  if (op_code != codes::UnaryOp::cast_int
+      && op_code != codes::UnaryOp::logical_not
       && op_code != codes::UnaryOp::unary_plus
       && op_code != codes::UnaryOp::unary_minus)
     output << ")";

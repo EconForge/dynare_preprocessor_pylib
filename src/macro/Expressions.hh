@@ -180,6 +180,7 @@ namespace macro
     virtual DoublePtr normpdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const { throw StackTrace("Operator `normpdf` does not exist for this type"); }
     virtual DoublePtr normcdf() const { throw StackTrace("Operator `normcdf` does not exist for this type"); }
     virtual DoublePtr normcdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const { throw StackTrace("Operator `normcdf` does not exist for this type"); }
+    virtual DoublePtr cast_int() const { throw StackTrace("This type cannot be cast to an integer"); }
   };
 
 
@@ -202,6 +203,7 @@ namespace macro
     BoolPtr logical_and(const BaseTypePtr &btp) const override;
     BoolPtr logical_or(const BaseTypePtr &btp) const override;
     BoolPtr logical_not() const override;
+    inline DoublePtr cast_int() const override { return value ? make_shared<Double>(1, env) : make_shared<Double>(0, env); }
   };
 
 
@@ -286,6 +288,7 @@ namespace macro
       return normcdf(make_shared<Double>(0, env), make_shared<Double>(1, env));
     }
     DoublePtr normcdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const override;
+    inline DoublePtr cast_int() const override { return make_shared<Double>(static_cast<int>(value), env); }
   };
 
   class String final : public BaseType
@@ -310,6 +313,7 @@ namespace macro
     BoolPtr is_greater_equal(const BaseTypePtr &btp) const override;
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
     inline DoublePtr length() const override { return make_shared<Double>(value.size(), env); }
+    inline DoublePtr cast_int() const override;
   };
 
 
@@ -335,6 +339,7 @@ namespace macro
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
     BoolPtr contains(const BaseTypePtr &btp) const override;
     inline DoublePtr length() const override { return make_shared<Double>(tup.size(), env); }
+    DoublePtr cast_int() const override;
   };
 
 
@@ -376,6 +381,7 @@ namespace macro
     BoolPtr contains(const BaseTypePtr &btp) const override;
     inline DoublePtr length() const override { return make_shared<Double>(arr.size(), env); }
     DoublePtr sum() const override;
+    DoublePtr cast_int() const override;
   };
 
 
