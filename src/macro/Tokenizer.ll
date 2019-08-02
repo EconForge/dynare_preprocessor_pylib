@@ -144,6 +144,7 @@ CONT \\\\{SPC}*
 
 <expr,eval>int             { return token::INT; }
 <expr,eval>double          { return token::DOUBLE; }
+<expr,eval>string          { return token::STRING; }
 
 <expr,eval>((([0-9]*\.[0-9]+)|([0-9]+\.))([ed][-+]?[0-9]+)?)|([0-9]+([ed][-+]?[0-9]+)?)|nan|inf {
   yylval->build<string>(yytext);

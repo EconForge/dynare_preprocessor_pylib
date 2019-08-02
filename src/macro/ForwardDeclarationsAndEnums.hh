@@ -69,6 +69,7 @@ namespace macro
       {
        cast_int,
        cast_double,
+       cast_string,
        logical_not,
        unary_minus,
        unary_plus,
