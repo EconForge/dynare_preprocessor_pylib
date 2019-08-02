@@ -1305,10 +1305,10 @@ UnaryOp::print(ostream &output, bool matlab_output) const noexcept
       output << "round(";
       break;
     case codes::UnaryOp::normpdf:
-      output << "normpdf";
+      output << "normpdf(";
       break;
     case codes::UnaryOp::normcdf:
-      output << "round(";
+      output << "normcdf(";
       break;
     }
 
