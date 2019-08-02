@@ -183,6 +183,7 @@ namespace macro
     virtual DoublePtr cast_int() const { throw StackTrace("This type cannot be cast to an integer"); }
     virtual DoublePtr cast_double() const { throw StackTrace("This type cannot be cast to a double"); }
     virtual StringPtr cast_string() const { throw StackTrace("This type cannot be cast to a string"); }
+    virtual TuplePtr cast_tuple() const { throw StackTrace("This type cannot be cast to a tuple"); }
   };
 
 
@@ -208,6 +209,10 @@ namespace macro
     inline DoublePtr cast_int() const override { return value ? make_shared<Double>(1, env) : make_shared<Double>(0, env); }
     inline DoublePtr cast_double() const override { return cast_int(); }
     inline StringPtr cast_string() const override { return make_shared<String>(this->to_string(), env); }
+    inline TuplePtr cast_tuple() const override
+    {
+      return make_shared<Tuple>(vector<ExpressionPtr>{make_shared<Bool>(value, env)}, env);
+    }
   };
 
 
@@ -295,6 +300,10 @@ namespace macro
     inline DoublePtr cast_int() const override { return make_shared<Double>(static_cast<int>(value), env); }
     inline DoublePtr cast_double() const override { return make_shared<Double>(value, env); }
     inline StringPtr cast_string() const override { return make_shared<String>(this->to_string(), env); }
+    inline TuplePtr cast_tuple() const override
+    {
+      return make_shared<Tuple>(vector<ExpressionPtr>{make_shared<Double>(value, env)}, env);
+    }
   };
 
   class String final : public BaseType
@@ -322,6 +331,10 @@ namespace macro
     inline DoublePtr cast_int() const override;
     inline DoublePtr cast_double() const override;
     inline StringPtr cast_string() const override { return make_shared<String>(value, env); }
+    inline TuplePtr cast_tuple() const override
+    {
+      return make_shared<Tuple>(vector<ExpressionPtr>{make_shared<String>(value, env)}, env);
+    }
   };
 
 
@@ -350,6 +363,7 @@ namespace macro
     DoublePtr cast_int() const override;
     DoublePtr cast_double() const override;
     inline StringPtr cast_string() const override { return make_shared<String>(this->to_string(), env); }
+    inline TuplePtr cast_tuple() const override { return make_shared<Tuple>(tup, env); }
   };
 
 
@@ -394,6 +408,7 @@ namespace macro
     DoublePtr cast_int() const override;
     DoublePtr cast_double() const override;
     inline StringPtr cast_string() const override { return make_shared<String>(this->to_string(), env); }
+    inline TuplePtr cast_tuple() const override { return make_shared<Tuple>(arr, env); }
   };
 
 

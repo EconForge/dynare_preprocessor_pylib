@@ -773,6 +773,8 @@ UnaryOp::eval()
           return argbt->cast_double();
         case codes::UnaryOp::cast_string:
           return argbt->cast_string();
+        case codes::UnaryOp::cast_tuple:
+          return argbt->cast_tuple();
         case codes::UnaryOp::logical_not:
           return argbt->logical_not();
         case codes::UnaryOp::unary_minus:
@@ -1099,6 +1101,8 @@ UnaryOp::to_string() const noexcept
       return "(double)" + retval;
     case codes::UnaryOp::cast_string:
       return "(string)" + retval;
+    case codes::UnaryOp::cast_tuple:
+      return "(tuple)" + retval;
     case codes::UnaryOp::logical_not:
       return "!" + retval;
     case codes::UnaryOp::unary_minus:
@@ -1308,6 +1312,9 @@ UnaryOp::print(ostream &output, bool matlab_output) const noexcept
     case codes::UnaryOp::cast_string:
       output << "(string)";
       break;
+    case codes::UnaryOp::cast_tuple:
+      output << "(tuple)";
+      break;
     case codes::UnaryOp::logical_not:
       output << "!";
       break;
@@ -1396,6 +1403,7 @@ UnaryOp::print(ostream &output, bool matlab_output) const noexcept
   if (op_code != codes::UnaryOp::cast_int
       && op_code != codes::UnaryOp::cast_double
       && op_code != codes::UnaryOp::cast_string
+      && op_code != codes::UnaryOp::cast_tuple
       && op_code != codes::UnaryOp::logical_not
       && op_code != codes::UnaryOp::unary_plus
       && op_code != codes::UnaryOp::unary_minus)

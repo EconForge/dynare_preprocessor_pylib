@@ -65,7 +65,7 @@ using namespace macro;
 %token SQRT CBRT SIGN MAX MIN FLOOR CEIL TRUNC SUM MOD
 %token ERF ERFC GAMMA LGAMMA ROUND NORMPDF NORMCDF LENGTH
 
-%token INT DOUBLE STRING
+%token INT DOUBLE STRING TUPLE
 
 %left OR
 %left AND
@@ -78,7 +78,7 @@ using namespace macro;
 %left PLUS MINUS
 %left TIMES DIVIDE
 %precedence UMINUS UPLUS NOT
-%precedence CAST_INT CAST_DOUBLE CAST_STRING
+%precedence CAST_INT CAST_DOUBLE CAST_STRING CAST_TUPLE
 %nonassoc POWER
 
 %token <string> NAME TEXT QUOTED_STRING NUMBER EOL
@@ -328,6 +328,8 @@ expr : LPAREN expr RPAREN
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_double, $4, driver.env, @$); }
      | LPAREN STRING RPAREN expr %prec CAST_STRING
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_string, $4, driver.env, @$); }
+     | LPAREN TUPLE RPAREN expr %prec CAST_TUPLE
+       { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_tuple, $4, driver.env, @$); }
      | NOT expr
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::logical_not, $2, driver.env, @$); }
      | MINUS expr %prec UMINUS
