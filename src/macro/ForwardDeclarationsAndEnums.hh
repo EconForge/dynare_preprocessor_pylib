@@ -67,6 +67,7 @@ namespace macro
 
     enum class UnaryOp
       {
+       cast_bool,
        cast_int,
        cast_double,
        cast_string,

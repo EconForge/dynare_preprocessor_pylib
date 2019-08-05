@@ -180,6 +180,7 @@ namespace macro
     virtual DoublePtr normpdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const { throw StackTrace("Operator `normpdf` does not exist for this type"); }
     virtual DoublePtr normcdf() const { throw StackTrace("Operator `normcdf` does not exist for this type"); }
     virtual DoublePtr normcdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const { throw StackTrace("Operator `normcdf` does not exist for this type"); }
+    virtual BoolPtr cast_bool() const { throw StackTrace("This type cannot be cast to a boolean"); }
     virtual DoublePtr cast_int() const { throw StackTrace("This type cannot be cast to an integer"); }
     virtual DoublePtr cast_double() const { throw StackTrace("This type cannot be cast to a double"); }
     virtual StringPtr cast_string() const { throw StackTrace("This type cannot be cast to a string"); }
@@ -207,6 +208,7 @@ namespace macro
     BoolPtr logical_and(const BaseTypePtr &btp) const override;
     BoolPtr logical_or(const BaseTypePtr &btp) const override;
     BoolPtr logical_not() const override;
+    inline BoolPtr cast_bool() const override { return make_shared<Bool>(value, env); }
     inline DoublePtr cast_int() const override { return value ? make_shared<Double>(1, env) : make_shared<Double>(0, env); }
     inline DoublePtr cast_double() const override { return cast_int(); }
     inline StringPtr cast_string() const override { return make_shared<String>(this->to_string(), env); }
@@ -302,6 +304,7 @@ namespace macro
       return normcdf(make_shared<Double>(0, env), make_shared<Double>(1, env));
     }
     DoublePtr normcdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const override;
+    inline BoolPtr cast_bool() const override { return make_shared<Bool>(static_cast<bool>(value), env); }
     inline DoublePtr cast_int() const override { return make_shared<Double>(static_cast<int>(value), env); }
     inline DoublePtr cast_double() const override { return make_shared<Double>(value, env); }
     inline StringPtr cast_string() const override { return make_shared<String>(this->to_string(), env); }
@@ -337,8 +340,9 @@ namespace macro
     BoolPtr is_greater_equal(const BaseTypePtr &btp) const override;
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
     inline DoublePtr length() const override { return make_shared<Double>(value.size(), env); }
-    inline DoublePtr cast_int() const override;
-    inline DoublePtr cast_double() const override;
+    BoolPtr cast_bool() const override;
+    DoublePtr cast_int() const override;
+    DoublePtr cast_double() const override;
     inline StringPtr cast_string() const override { return make_shared<String>(value, env); }
     inline TuplePtr cast_tuple() const override
     {
@@ -373,6 +377,7 @@ namespace macro
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
     BoolPtr contains(const BaseTypePtr &btp) const override;
     inline DoublePtr length() const override { return make_shared<Double>(tup.size(), env); }
+    BoolPtr cast_bool() const override;
     DoublePtr cast_int() const override;
     DoublePtr cast_double() const override;
     inline StringPtr cast_string() const override { return make_shared<String>(this->to_string(), env); }
@@ -419,6 +424,7 @@ namespace macro
     BoolPtr contains(const BaseTypePtr &btp) const override;
     inline DoublePtr length() const override { return make_shared<Double>(arr.size(), env); }
     DoublePtr sum() const override;
+    BoolPtr cast_bool() const override;
     DoublePtr cast_int() const override;
     DoublePtr cast_double() const override;
     inline StringPtr cast_string() const override { return make_shared<String>(this->to_string(), env); }
