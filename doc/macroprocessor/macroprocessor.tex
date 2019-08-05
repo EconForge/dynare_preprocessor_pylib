@@ -149,6 +149,15 @@
   \item array
   \item function
   \end{itemize}
+\item Variables/literals of the types listed above can be cast to other types
+  \begin{itemize}
+  \item \texttt{(bool) 3.9} $\rightarrow$ \texttt{true}
+  \item \texttt{(int) 3.9} $\rightarrow$ \texttt{3}
+  \item \texttt{(double) ``3.9''} $\rightarrow$ \texttt{3.9}
+  \item \texttt{(array) 3.9} $\rightarrow$ \texttt{[3.9]}
+  \item \texttt{(double) [3.9]} $\rightarrow$ \texttt{3.9}
+  \item \texttt{(double) [3.9, 3]} $\rightarrow$ \texttt{error}
+  \end{itemize}
 \end{itemize}
 \end{frame}
 
