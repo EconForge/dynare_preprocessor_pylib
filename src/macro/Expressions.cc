@@ -300,9 +300,23 @@ String::is_equal(const BaseTypePtr &btp) const
 BoolPtr
 String::cast_bool() const
 {
+  string tf = "true";
+  if (equal(value.begin(), value.end(), tf.begin(),
+            [] (const char& a, const char& b) { return (tolower(a) == tolower(b)); }))
+    return make_shared<Bool>(true, env);
+
+  tf = "false";
+  if (equal(value.begin(), value.end(), tf.begin(),
+            [] (const char& a, const char& b) { return (tolower(a) == tolower(b)); }))
+    return make_shared<Bool>(false, env);
+
   try
     {
-      return make_shared<Bool>(static_cast<bool>(stoi(value)), env);
+      size_t pos = 0;
+      double value_d = stod(value, &pos);
+      if (pos != value.length())
+        throw StackTrace("Entire string not converted");
+      return make_shared<Bool>(static_cast<bool>(value_d), env);
     }
   catch (...)
     {
