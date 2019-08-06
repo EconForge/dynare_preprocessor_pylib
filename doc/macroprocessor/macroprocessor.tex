@@ -151,11 +151,11 @@
   \end{itemize}
 \item Variables/literals of the types listed above can be cast to other types
   \begin{itemize}
-  \item \texttt{(bool) 3.9} $\rightarrow$ \texttt{true}
-  \item \texttt{(double) ``3.9''} $\rightarrow$ \texttt{3.9}
-  \item \texttt{(array) 3.9} $\rightarrow$ \texttt{[3.9]}
-  \item \texttt{(double) [3.9]} $\rightarrow$ \texttt{3.9}
-  \item \texttt{(double) [3.9, 3]} $\rightarrow$ \texttt{error}
+  \item \texttt{(bool) -1 \&\& (bool) 2} $\rightarrow$ \texttt{true}
+  \item \texttt{(double) ``3.1''} $\rightarrow$ \texttt{3.1}
+  \item \texttt{(array) 4} $\rightarrow$ \texttt{[4]}
+  \item \texttt{(double) [5]} $\rightarrow$ \texttt{5}
+  \item \texttt{(double) [6, 7]} $\rightarrow$ \texttt{error}
   \end{itemize}
 \end{itemize}
 \end{frame}
