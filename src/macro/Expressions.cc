@@ -706,7 +706,7 @@ Variable::eval()
                 {
                   retvals += orig_string.substr(it - 1, 1);
                 }
-              catch (const std::out_of_range &ex)
+              catch (const out_of_range &ex)
                 {
                   throw StackTrace("variable", "Index out of range", location);
                 }
