@@ -315,7 +315,11 @@ String::cast_double() const
 {
   try
     {
-      return make_shared<Double>(stod(value), env);
+      size_t pos = 0;
+      double value_d = stod(value, &pos);
+      if (pos != value.length())
+        throw StackTrace("Entire string not converted");
+      return make_shared<Double>(value_d, env);
     }
   catch (...)
     {
