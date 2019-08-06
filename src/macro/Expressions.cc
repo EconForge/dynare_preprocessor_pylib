@@ -306,7 +306,7 @@ String::cast_bool() const
     }
   catch (...)
     {
-      throw StackTrace(value + " cannot be converted to a boolean");
+      throw StackTrace(R"(")" + value + R"(" cannot be converted to a boolean)");
     }
 }
 
@@ -319,7 +319,7 @@ String::cast_int() const
     }
   catch (...)
     {
-      throw StackTrace(value + " cannot be converted to an int");
+      throw StackTrace(R"(")" + value + R"(" cannot be converted to an int)");
     }
 }
 
@@ -332,7 +332,7 @@ String::cast_double() const
     }
   catch (...)
     {
-      throw StackTrace(value + " cannot be converted to a double");
+      throw StackTrace(R"(")" + value + R"(" cannot be converted to a double)");
     }
 }
 
