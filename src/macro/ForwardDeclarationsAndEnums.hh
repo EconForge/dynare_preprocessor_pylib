@@ -31,8 +31,8 @@ namespace macro
   using BaseTypePtr = shared_ptr<BaseType>;
   class Bool;
   using BoolPtr = shared_ptr<Bool>;
-  class Double;
-  using DoublePtr = shared_ptr<Double>;
+  class Real;
+  using RealPtr = shared_ptr<Real>;
   class String;
   using StringPtr = shared_ptr<String>;
   class Tuple;
@@ -59,7 +59,7 @@ namespace macro
     enum class BaseType
       {
        Bool,
-       Double,
+       Real,
        String,
        Array,
        Tuple
@@ -68,7 +68,7 @@ namespace macro
     enum class UnaryOp
       {
        cast_bool,
-       cast_double,
+       cast_real,
        cast_string,
        cast_tuple,
        cast_array,

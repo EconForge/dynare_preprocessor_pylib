@@ -210,11 +210,11 @@ For::interpret(ostream &output, bool no_line_macro)
 void
 If::interpret(ostream &output, bool no_line_macro)
 {
-  DoublePtr dp;
+  RealPtr dp;
   BoolPtr bp;
   try
     {
-      dp = dynamic_pointer_cast<Double>(condition->eval());
+      dp = dynamic_pointer_cast<Real>(condition->eval());
       bp = dynamic_pointer_cast<Bool>(condition->eval());
       if (!bp && !dp)
         error(StackTrace("@#if", "The condition must evaluate to a boolean or a double", location));

@@ -143,7 +143,7 @@ CONT \\\\{SPC}*
 <expr,eval>normcdf         { return token::NORMCDF; }
 
 <expr,eval>bool            { return token::BOOL; }
-<expr,eval>double          { return token::DOUBLE; }
+<expr,eval>real            { return token::REAL; }
 <expr,eval>string          { return token::STRING; }
 <expr,eval>tuple           { return token::TUPLE; }
 <expr,eval>array           { return token::ARRAY; }

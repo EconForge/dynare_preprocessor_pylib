@@ -45,7 +45,7 @@ Bool::logical_and(const BaseTypePtr &btp) const
   if (btp2)
     return make_shared<Bool>(value && btp2->value, env);
 
-  auto btp3 = dynamic_pointer_cast<Double>(btp);
+  auto btp3 = dynamic_pointer_cast<Real>(btp);
   if (btp3)
     return make_shared<Bool>(value && *btp3, env);
 
@@ -59,7 +59,7 @@ Bool::logical_or(const BaseTypePtr &btp) const
   if (btp2)
     return make_shared<Bool>(value || btp2->value, env);
 
-  auto btp3 = dynamic_pointer_cast<Double>(btp);
+  auto btp3 = dynamic_pointer_cast<Real>(btp);
   if (btp3)
     return make_shared<Bool>(value || *btp3, env);
 
@@ -73,99 +73,99 @@ Bool::logical_not() const
 }
 
 BaseTypePtr
-Double::plus(const BaseTypePtr &btp) const
+Real::plus(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Double>(btp);
+  auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of + operator");
-  return make_shared<Double>(value + btp2->value, env);
+  return make_shared<Real>(value + btp2->value, env);
 }
 
 BaseTypePtr
-Double::minus(const BaseTypePtr &btp) const
+Real::minus(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Double>(btp);
+  auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of - operator");
-  return make_shared<Double>(value - btp2->value, env);
+  return make_shared<Real>(value - btp2->value, env);
 }
 
 BaseTypePtr
-Double::times(const BaseTypePtr &btp) const
+Real::times(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Double>(btp);
+  auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of * operator");
-  return make_shared<Double>(value * btp2->value, env);
+  return make_shared<Real>(value * btp2->value, env);
 }
 
 BaseTypePtr
-Double::divide(const BaseTypePtr &btp) const
+Real::divide(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Double>(btp);
+  auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of / operator");
-  return make_shared<Double>(value / btp2->value, env);
+  return make_shared<Real>(value / btp2->value, env);
 }
 
 BaseTypePtr
-Double::power(const BaseTypePtr &btp) const
+Real::power(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Double>(btp);
+  auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of ^ operator");
-  return make_shared<Double>(pow(value, btp2->value), env);
+  return make_shared<Real>(pow(value, btp2->value), env);
 }
 
 BoolPtr
-Double::is_less(const BaseTypePtr &btp) const
+Real::is_less(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Double>(btp);
+  auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of < operator");
   return make_shared<Bool>(isless(value, btp2->value), env);
 }
 
 BoolPtr
-Double::is_greater(const BaseTypePtr &btp) const
+Real::is_greater(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Double>(btp);
+  auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of > operator");
   return make_shared<Bool>(isgreater(value, btp2->value), env);
 }
 
 BoolPtr
-Double::is_less_equal(const BaseTypePtr &btp) const
+Real::is_less_equal(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Double>(btp);
+  auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of <= operator");
   return make_shared<Bool>(islessequal(value, btp2->value), env);
 }
 
 BoolPtr
-Double::is_greater_equal(const BaseTypePtr &btp) const
+Real::is_greater_equal(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Double>(btp);
+  auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of >= operator");
   return make_shared<Bool>(isgreaterequal(value, btp2->value), env);
 }
 
 BoolPtr
-Double::is_equal(const BaseTypePtr &btp) const
+Real::is_equal(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Double>(btp);
+  auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     return make_shared<Bool>(false, env);
   return make_shared<Bool>(value == btp2->value, env);
 }
 
 BoolPtr
-Double::logical_and(const BaseTypePtr &btp) const
+Real::logical_and(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Double>(btp);
+  auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (btp2)
     return make_shared<Bool>(value && btp2->value, env);
 
@@ -177,9 +177,9 @@ Double::logical_and(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-Double::logical_or(const BaseTypePtr &btp) const
+Real::logical_or(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Double>(btp);
+  auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     return make_shared<Bool>(value || btp2->value, env);
 
@@ -191,56 +191,56 @@ Double::logical_or(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-Double::logical_not() const
+Real::logical_not() const
 {
   return make_shared<Bool>(!value, env);
 }
 
-DoublePtr
-Double::max(const BaseTypePtr &btp) const
+RealPtr
+Real::max(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Double>(btp);
+  auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of `max` operator");
-  return make_shared<Double>(std::max(value, btp2->value), env);
+  return make_shared<Real>(std::max(value, btp2->value), env);
 }
 
-DoublePtr
-Double::min(const BaseTypePtr &btp) const
+RealPtr
+Real::min(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Double>(btp);
+  auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of `min` operator");
-  return make_shared<Double>(std::min(value, btp2->value), env);
+  return make_shared<Real>(std::min(value, btp2->value), env);
 }
 
-DoublePtr
-Double::mod(const BaseTypePtr &btp) const
+RealPtr
+Real::mod(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Double>(btp);
+  auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of `mod` operator");
-  return make_shared<Double>(std::fmod(value, btp2->value), env);
+  return make_shared<Real>(std::fmod(value, btp2->value), env);
 }
 
-DoublePtr
-Double::normpdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const
+RealPtr
+Real::normpdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const
 {
-  auto btp12 = dynamic_pointer_cast<Double>(btp1);
-  auto btp22 = dynamic_pointer_cast<Double>(btp2);
+  auto btp12 = dynamic_pointer_cast<Real>(btp1);
+  auto btp22 = dynamic_pointer_cast<Real>(btp2);
   if (!btp12 || !btp22)
     throw StackTrace("Type mismatch for operands of `normpdf` operator");
-  return make_shared<Double>((1/(btp22->value*std::sqrt(2*M_PI)*std::exp(pow((value-btp12->value)/btp22->value, 2)/2))), env);
+  return make_shared<Real>((1/(btp22->value*std::sqrt(2*M_PI)*std::exp(pow((value-btp12->value)/btp22->value, 2)/2))), env);
 }
 
-DoublePtr
-Double::normcdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const
+RealPtr
+Real::normcdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const
 {
-  auto btp12 = dynamic_pointer_cast<Double>(btp1);
-  auto btp22 = dynamic_pointer_cast<Double>(btp2);
+  auto btp12 = dynamic_pointer_cast<Real>(btp1);
+  auto btp22 = dynamic_pointer_cast<Real>(btp2);
   if (!btp12 || !btp22)
     throw StackTrace("Type mismatch for operands of `normpdf` operator");
-  return make_shared<Double>((0.5*(1+std::erf((value-btp12->value)/btp22->value/M_SQRT2))), env);
+  return make_shared<Real>((0.5*(1+std::erf((value-btp12->value)/btp22->value/M_SQRT2))), env);
 }
 
 BaseTypePtr
@@ -324,8 +324,8 @@ String::cast_bool() const
     }
 }
 
-DoublePtr
-String::cast_double() const
+RealPtr
+String::cast_real() const
 {
   try
     {
@@ -333,7 +333,7 @@ String::cast_double() const
       double value_d = stod(value, &pos);
       if (pos != value.length())
         throw StackTrace("Entire string not converted");
-      return make_shared<Double>(value_d, env);
+      return make_shared<Real>(value_d, env);
     }
   catch (...)
     {
@@ -391,14 +391,14 @@ Array::times(const BaseTypePtr &btp) const
     for (auto & itr : btp2->getValue())
       {
         vector<ExpressionPtr> new_tuple;
-        if (dynamic_pointer_cast<Double>(itl) || dynamic_pointer_cast<String>(itl))
+        if (dynamic_pointer_cast<Real>(itl) || dynamic_pointer_cast<String>(itl))
           new_tuple.push_back(itl);
         else if (dynamic_pointer_cast<Tuple>(itl))
           new_tuple = dynamic_pointer_cast<Tuple>(itl)->getValue();
         else
           throw StackTrace("Array::times: unsupported type on lhs");
 
-        if (dynamic_pointer_cast<Double>(itr) || dynamic_pointer_cast<String>(itr))
+        if (dynamic_pointer_cast<Real>(itr) || dynamic_pointer_cast<String>(itr))
           new_tuple.push_back(itr);
         else if (dynamic_pointer_cast<Tuple>(itr))
           for (auto & tit : dynamic_pointer_cast<Tuple>(itr)->getValue())
@@ -415,7 +415,7 @@ Array::times(const BaseTypePtr &btp) const
 BaseTypePtr
 Array::power(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Double>(btp);
+  auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("The second argument of the power operator (^) must be a double");
 
@@ -522,18 +522,18 @@ Array::contains(const BaseTypePtr &btp) const
   return make_shared<Bool>(false, env);
 }
 
-DoublePtr
+RealPtr
 Array::sum() const
 {
   double retval = 0;
   for (auto & v : arr)
     {
-      auto v2 = dynamic_pointer_cast<Double>(v);
+      auto v2 = dynamic_pointer_cast<Real>(v);
       if (!v2)
         throw StackTrace("Type mismatch for operands of in operator");
       retval += *v2;
     }
-  return make_shared<Double>(retval, env);
+  return make_shared<Real>(retval, env);
 }
 
 BoolPtr
@@ -544,12 +544,12 @@ Array::cast_bool() const
   return arr.at(0)->eval()->cast_bool();
 }
 
-DoublePtr
-Array::cast_double() const
+RealPtr
+Array::cast_real() const
 {
   if (arr.size() != 1)
     throw StackTrace("Array must be of size 1 to be cast to a double");
-  return arr.at(0)->eval()->cast_double();
+  return arr.at(0)->eval()->cast_real();
 }
 
 BoolPtr
@@ -594,12 +594,12 @@ Tuple::cast_bool() const
   return tup.at(0)->eval()->cast_bool();
 }
 
-DoublePtr
-Tuple::cast_double() const
+RealPtr
+Tuple::cast_real() const
 {
   if (tup.size() != 1)
     throw StackTrace("Tuple must be of size 1 to be cast to a double");
-  return tup.at(0)->eval()->cast_double();
+  return tup.at(0)->eval()->cast_real();
 }
 
 BaseTypePtr
@@ -607,16 +607,16 @@ Array::eval()
 {
   if (arr.empty() && range1 && range2)
     {
-      DoublePtr range1dbl = dynamic_pointer_cast<Double>(range1->eval());
-      DoublePtr range2dbl = dynamic_pointer_cast<Double>(range2->eval());
+      RealPtr range1dbl = dynamic_pointer_cast<Real>(range1->eval());
+      RealPtr range2dbl = dynamic_pointer_cast<Real>(range2->eval());
       if (!range1dbl || !range2dbl)
         throw StackTrace("To create an array from a range using the colon operator, "
                          "the arguments must evaluate to doubles");
 
-      DoublePtr incdbl = make_shared<Double>(1, env);
+      RealPtr incdbl = make_shared<Real>(1, env);
       if (increment)
         {
-          incdbl = dynamic_pointer_cast<Double>(increment->eval());
+          incdbl = dynamic_pointer_cast<Real>(increment->eval());
           if (!incdbl)
             throw StackTrace("To create an array from a range using the colon operator, "
                              "the increment must evaluate to a double");
@@ -624,10 +624,10 @@ Array::eval()
 
       if (*incdbl > 0 && *range1dbl < *range2dbl)
         for (double i = *range1dbl; i <= *range2dbl; i += *incdbl)
-          arr.emplace_back(make_shared<Double>(i, env));
+          arr.emplace_back(make_shared<Real>(i, env));
       else if (*range1dbl > *range2dbl && *incdbl < 0)
         for (double i = *range1dbl; i >= *range2dbl; i += *incdbl)
-          arr.emplace_back(make_shared<Double>(i, env));
+          arr.emplace_back(make_shared<Real>(i, env));
 
       range1 = increment = range2 = nullptr;
     }
@@ -660,7 +660,7 @@ Variable::eval()
         {
           // Necessary to handle indexes like: y[1:2,2]
           // In general this evaluates to [[1:2],2] but when subscripting we want to expand it to [1,2,2]
-          auto db = dynamic_pointer_cast<Double>(it);
+          auto db = dynamic_pointer_cast<Real>(it);
           if (db)
             {
               if (modf(*db, &intpart) != 0.0)
@@ -671,7 +671,7 @@ Variable::eval()
           else if (dynamic_pointer_cast<Array>(it))
             for (auto it1 : dynamic_pointer_cast<Array>(it)->getValue())
               {
-                db = dynamic_pointer_cast<Double>(it1);
+                db = dynamic_pointer_cast<Real>(it1);
                 if (db)
                   {
                     if (modf(*db, &intpart) != 0.0)
@@ -692,7 +692,7 @@ Variable::eval()
         {
         case codes::BaseType::Bool:
           throw StackTrace("variable", "You cannot index a boolean", location);
-        case codes::BaseType::Double:
+        case codes::BaseType::Real:
           throw StackTrace("variable", "You cannot index a double", location);
         case codes::BaseType::Tuple:
           throw StackTrace("variable", "You cannot index a tuple", location);
@@ -787,8 +787,8 @@ UnaryOp::eval()
         {
         case codes::UnaryOp::cast_bool:
           return argbt->cast_bool();
-        case codes::UnaryOp::cast_double:
-          return argbt->cast_double();
+        case codes::UnaryOp::cast_real:
+          return argbt->cast_real();
         case codes::UnaryOp::cast_string:
           return argbt->cast_string();
         case codes::UnaryOp::cast_tuple:
@@ -1013,11 +1013,11 @@ Comprehension::eval()
           values.emplace_back(c_expr->clone()->eval());
       else
         {
-          DoublePtr dp;
+          RealPtr dp;
           BoolPtr bp;
           try
             {
-              dp = dynamic_pointer_cast<Double>(c_when->eval());
+              dp = dynamic_pointer_cast<Real>(c_when->eval());
               bp = dynamic_pointer_cast<Bool>(c_when->eval());
               if (!bp && !dp)
                 throw StackTrace("The condition must evaluate to a boolean or a double");
@@ -1117,8 +1117,8 @@ UnaryOp::to_string() const noexcept
     {
     case codes::UnaryOp::cast_bool:
       return "(bool)" + retval;
-    case codes::UnaryOp::cast_double:
-      return "(double)" + retval;
+    case codes::UnaryOp::cast_real:
+      return "(real)" + retval;
     case codes::UnaryOp::cast_string:
       return "(string)" + retval;
     case codes::UnaryOp::cast_tuple:
@@ -1328,8 +1328,8 @@ UnaryOp::print(ostream &output, bool matlab_output) const noexcept
     case codes::UnaryOp::cast_bool:
       output << "(bool)";
       break;
-    case codes::UnaryOp::cast_double:
-      output << "(double)";
+    case codes::UnaryOp::cast_real:
+      output << "(real)";
       break;
     case codes::UnaryOp::cast_string:
       output << "(string)";
@@ -1426,7 +1426,7 @@ UnaryOp::print(ostream &output, bool matlab_output) const noexcept
   arg->print(output, matlab_output);
 
   if (op_code != codes::UnaryOp::cast_bool
-      && op_code != codes::UnaryOp::cast_double
+      && op_code != codes::UnaryOp::cast_real
       && op_code != codes::UnaryOp::cast_string
       && op_code != codes::UnaryOp::cast_tuple
       && op_code != codes::UnaryOp::cast_array

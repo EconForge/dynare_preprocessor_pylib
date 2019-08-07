@@ -143,7 +143,7 @@
 \item There are 6 types of macro-variables:
   \begin{itemize}
   \item boolean
-  \item double
+  \item real
   \item string
   \item tuple
   \item array
@@ -152,10 +152,10 @@
 \item Variables/literals of the types listed above can be cast to other types
   \begin{itemize}
   \item \texttt{(bool) -1 \&\& (bool) 2} $\rightarrow$ \texttt{true}
-  \item \texttt{(double) ``3.1''} $\rightarrow$ \texttt{3.1}
+  \item \texttt{(real) ``3.1''} $\rightarrow$ \texttt{3.1}
   \item \texttt{(array) 4} $\rightarrow$ \texttt{[4]}
-  \item \texttt{(double) [5]} $\rightarrow$ \texttt{5}
-  \item \texttt{(double) [6, 7]} $\rightarrow$ \texttt{error}
+  \item \texttt{(real) [5]} $\rightarrow$ \texttt{5}
+  \item \texttt{(real) [6, 7]} $\rightarrow$ \texttt{error}
   \end{itemize}
 \end{itemize}
 \end{frame}
@@ -186,8 +186,8 @@
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{Macro-expressions (3/8): Double}
-  \begin{block}{Operators on doubles}
+  \frametitle{Macro-expressions (3/8): Real}
+  \begin{block}{Operators on reals}
     \begin{itemize}
     \item arithmetic operators: \texttt{+ - * / \^{}}
     \item comparison operators: \texttt{< > <= >= == !=}
@@ -196,7 +196,7 @@
     \end{itemize}
   \end{block}
 
-  \begin{block}{Functions for doubles}
+  \begin{block}{Functions for reals}
     \begin{itemize}
     \item \texttt{min, max, exp, ln (or log), log10}
     \item \texttt{sin, cos, tan, asin, acos, atan}
