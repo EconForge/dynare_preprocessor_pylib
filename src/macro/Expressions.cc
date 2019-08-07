@@ -337,7 +337,7 @@ String::cast_real() const
     }
   catch (...)
     {
-      throw StackTrace(R"(")" + value + R"(" cannot be converted to a double)");
+      throw StackTrace(R"(")" + value + R"(" cannot be converted to a real)");
     }
 }
 
@@ -417,7 +417,7 @@ Array::power(const BaseTypePtr &btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
-    throw StackTrace("The second argument of the power operator (^) must be a double");
+    throw StackTrace("The second argument of the power operator (^) must be a real");
 
   auto retval = make_shared<Array>(arr, env);
   for (int i = 1; i < *btp2; i++)
@@ -548,7 +548,7 @@ RealPtr
 Array::cast_real() const
 {
   if (arr.size() != 1)
-    throw StackTrace("Array must be of size 1 to be cast to a double");
+    throw StackTrace("Array must be of size 1 to be cast to a real");
   return arr.at(0)->eval()->cast_real();
 }
 
@@ -598,7 +598,7 @@ RealPtr
 Tuple::cast_real() const
 {
   if (tup.size() != 1)
-    throw StackTrace("Tuple must be of size 1 to be cast to a double");
+    throw StackTrace("Tuple must be of size 1 to be cast to a real");
   return tup.at(0)->eval()->cast_real();
 }
 
@@ -611,7 +611,7 @@ Array::eval()
       RealPtr range2dbl = dynamic_pointer_cast<Real>(range2->eval());
       if (!range1dbl || !range2dbl)
         throw StackTrace("To create an array from a range using the colon operator, "
-                         "the arguments must evaluate to doubles");
+                         "the arguments must evaluate to reals");
 
       RealPtr incdbl = make_shared<Real>(1, env);
       if (increment)
@@ -619,7 +619,7 @@ Array::eval()
           incdbl = dynamic_pointer_cast<Real>(increment->eval());
           if (!incdbl)
             throw StackTrace("To create an array from a range using the colon operator, "
-                             "the increment must evaluate to a double");
+                             "the increment must evaluate to a real");
         }
 
       if (*incdbl > 0 && *range1dbl < *range2dbl)
@@ -693,7 +693,7 @@ Variable::eval()
         case codes::BaseType::Bool:
           throw StackTrace("variable", "You cannot index a boolean", location);
         case codes::BaseType::Real:
-          throw StackTrace("variable", "You cannot index a double", location);
+          throw StackTrace("variable", "You cannot index a real", location);
         case codes::BaseType::Tuple:
           throw StackTrace("variable", "You cannot index a tuple", location);
         case codes::BaseType::String:
@@ -1020,7 +1020,7 @@ Comprehension::eval()
               dp = dynamic_pointer_cast<Real>(c_when->eval());
               bp = dynamic_pointer_cast<Bool>(c_when->eval());
               if (!bp && !dp)
-                throw StackTrace("The condition must evaluate to a boolean or a double");
+                throw StackTrace("The condition must evaluate to a boolean or a real");
             }
           catch (StackTrace &ex)
             {
