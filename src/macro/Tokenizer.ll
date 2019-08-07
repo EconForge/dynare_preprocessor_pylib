@@ -141,7 +141,13 @@ CONT \\\\{SPC}*
 <expr,eval>length          { return token::LENGTH; }
 <expr,eval>normpdf         { return token::NORMPDF; }
 <expr,eval>normcdf         { return token::NORMCDF; }
+
 <expr,eval>isempty         { return token::ISEMPTY; }
+<expr,eval>isboolean       { return token::ISBOOLEAN; }
+<expr,eval>isreal          { return token::ISREAL; }
+<expr,eval>isstring        { return token::ISSTRING; }
+<expr,eval>istuple         { return token::ISTUPLE; }
+<expr,eval>isarray         { return token::ISARRAY; }
 
 <expr,eval>bool            { return token::BOOL; }
 <expr,eval>real            { return token::REAL; }

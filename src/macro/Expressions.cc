@@ -805,6 +805,16 @@ UnaryOp::eval()
           return argbt->length();
         case codes::UnaryOp::isempty:
           return argbt->isempty();
+        case codes::UnaryOp::isboolean:
+          return argbt->isboolean();
+        case codes::UnaryOp::isreal:
+          return argbt->isreal();
+        case codes::UnaryOp::isstring:
+          return argbt->isstring();
+        case codes::UnaryOp::istuple:
+          return argbt->istuple();
+        case codes::UnaryOp::isarray:
+          return argbt->isarray();
         case codes::UnaryOp::exp:
           return argbt->exp();
         case codes::UnaryOp::ln:
@@ -1137,6 +1147,16 @@ UnaryOp::to_string() const noexcept
       return "length(" + retval + ")";
     case codes::UnaryOp::isempty:
       return "isempty(" + retval + ")";
+    case codes::UnaryOp::isboolean:
+      return "isboolean(" + retval + ")";
+    case codes::UnaryOp::isreal:
+      return "isreal(" + retval + ")";
+    case codes::UnaryOp::isstring:
+      return "isstring(" + retval + ")";
+    case codes::UnaryOp::istuple:
+      return "istuple(" + retval + ")";
+    case codes::UnaryOp::isarray:
+      return "isarray(" + retval + ")";
     case codes::UnaryOp::exp:
       return "exp(" + retval + ")";
     case codes::UnaryOp::ln:
@@ -1358,6 +1378,21 @@ UnaryOp::print(ostream &output, bool matlab_output) const noexcept
       break;
     case codes::UnaryOp::isempty:
       output << "isempty(";
+      break;
+    case codes::UnaryOp::isboolean:
+      output << "isboolean(";
+      break;
+    case codes::UnaryOp::isreal:
+      output << "isreal(";
+      break;
+    case codes::UnaryOp::isstring:
+      output << "isstring(";
+      break;
+    case codes::UnaryOp::istuple:
+      output << "istuple(";
+      break;
+    case codes::UnaryOp::isarray:
+      output << "isarray(";
       break;
     case codes::UnaryOp::exp:
       output << "exp(";

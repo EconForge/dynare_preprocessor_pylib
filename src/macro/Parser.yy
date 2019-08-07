@@ -66,6 +66,7 @@ using namespace macro;
 %token ERF ERFC GAMMA LGAMMA ROUND NORMPDF NORMCDF LENGTH
 
 %token ISEMPTY
+%token ISBOOLEAN ISREAL ISSTRING ISTUPLE ISARRAY
 
 %token BOOL REAL STRING TUPLE ARRAY
 
@@ -344,6 +345,16 @@ expr : LPAREN expr RPAREN
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::length, $3, driver.env, @$); }
      | ISEMPTY LPAREN expr RPAREN
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::isempty, $3, driver.env, @$); }
+     | ISBOOLEAN LPAREN expr RPAREN
+       { $$ = make_shared<UnaryOp>(codes::UnaryOp::isboolean, $3, driver.env, @$); }
+     | ISREAL LPAREN expr RPAREN
+       { $$ = make_shared<UnaryOp>(codes::UnaryOp::isreal, $3, driver.env, @$); }
+     | ISSTRING LPAREN expr RPAREN
+       { $$ = make_shared<UnaryOp>(codes::UnaryOp::isstring, $3, driver.env, @$); }
+     | ISTUPLE LPAREN expr RPAREN
+       { $$ = make_shared<UnaryOp>(codes::UnaryOp::istuple, $3, driver.env, @$); }
+     | ISARRAY LPAREN expr RPAREN
+       { $$ = make_shared<UnaryOp>(codes::UnaryOp::isarray, $3, driver.env, @$); }
      | EXP LPAREN expr RPAREN
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::exp, $3, driver.env, @$); }
      | LOG LPAREN expr RPAREN
