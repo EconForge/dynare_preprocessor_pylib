@@ -76,6 +76,7 @@ namespace macro
        unary_minus,
        unary_plus,
        length,
+       isempty,
        exp,
        ln,
        log10,

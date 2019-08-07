@@ -803,6 +803,8 @@ UnaryOp::eval()
           return argbt->unary_plus();
         case codes::UnaryOp::length:
           return argbt->length();
+        case codes::UnaryOp::isempty:
+          return argbt->isempty();
         case codes::UnaryOp::exp:
           return argbt->exp();
         case codes::UnaryOp::ln:
@@ -1133,6 +1135,8 @@ UnaryOp::to_string() const noexcept
       return "+" + retval;
     case codes::UnaryOp::length:
       return "length(" + retval + ")";
+    case codes::UnaryOp::isempty:
+      return "isempty(" + retval + ")";
     case codes::UnaryOp::exp:
       return "exp(" + retval + ")";
     case codes::UnaryOp::ln:
@@ -1351,6 +1355,9 @@ UnaryOp::print(ostream &output, bool matlab_output) const noexcept
       break;
     case codes::UnaryOp::length:
       output << "length(";
+      break;
+    case codes::UnaryOp::isempty:
+      output << "isempty(";
       break;
     case codes::UnaryOp::exp:
       output << "exp(";

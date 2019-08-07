@@ -215,6 +215,7 @@
     \item comparison operators: \texttt{< > <= >= == !=}
     \item concatenation: \texttt{+}
     \item string length: \texttt{length()}
+    \item string emptiness: \texttt{isempty()}
     \item extraction of substrings: if \texttt{s} is a string, then one can write \texttt{s[3]} or \texttt{s[4:6]}
     \end{itemize}
   \end{block}
@@ -227,7 +228,7 @@
   \begin{block}{Operators on tuples}
     \begin{itemize}
     \item comparison operators: \texttt{== !=}
-    \item functions: \texttt{length, empty}
+    \item functions: \texttt{length, isempty}
     \item testing membership in tuple: \texttt{in} operator \\ (example:
       \texttt{"b" in ("a", "b", "c")} returns \texttt{1})
     \end{itemize}
@@ -243,7 +244,7 @@
     \item comparison operators: \texttt{== !=}
     \item dereferencing: if \texttt{v} is an array, then \texttt{v[2]} is its $2^{\textrm{nd}}$ element
     \item concatenation: \texttt{+}
-    \item functions: \texttt{sum, length, empty}
+    \item functions: \texttt{sum, length, isempty}
     \item difference \texttt{-}: returns the first operand from which the elements of the second operand have been removed
     \item Cartesian product of two arrays: \texttt{*}
     \item Cartesian product of one array \texttt{N} times: \texttt{\^{}N}

@@ -141,6 +141,7 @@ CONT \\\\{SPC}*
 <expr,eval>length          { return token::LENGTH; }
 <expr,eval>normpdf         { return token::NORMPDF; }
 <expr,eval>normcdf         { return token::NORMCDF; }
+<expr,eval>isempty         { return token::ISEMPTY; }
 
 <expr,eval>bool            { return token::BOOL; }
 <expr,eval>real            { return token::REAL; }

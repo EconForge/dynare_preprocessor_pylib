@@ -148,6 +148,7 @@ namespace macro
     virtual ArrayPtr set_intersection(const BaseTypePtr &btp) const { throw StackTrace("Operator & does not exist for this type"); }
     virtual BoolPtr contains(const BaseTypePtr &btp) const { throw StackTrace("Second argument of `in` operator must be an array"); }
     virtual RealPtr length() const { throw StackTrace("Operator `length` does not exist for this type"); }
+    virtual BoolPtr isempty() const { throw StackTrace("Operator `isempty` does not exist for this type"); }
     virtual RealPtr max(const BaseTypePtr &btp) const { throw StackTrace("Operator `max` does not exist for this type"); }
     virtual RealPtr min(const BaseTypePtr &btp) const { throw StackTrace("Operator `min` does not exist for this type"); }
     virtual RealPtr mod(const BaseTypePtr &btp) const { throw StackTrace("Operator `mod` does not exist for this type"); }
@@ -337,6 +338,7 @@ namespace macro
     BoolPtr is_greater_equal(const BaseTypePtr &btp) const override;
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
     inline RealPtr length() const override { return make_shared<Real>(value.size(), env); }
+    inline BoolPtr isempty() const override { return make_shared<Bool>(value.empty(), env); }
     BoolPtr cast_bool() const override;
     RealPtr cast_real() const override;
     inline StringPtr cast_string() const override { return make_shared<String>(value, env); }
@@ -373,6 +375,7 @@ namespace macro
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
     BoolPtr contains(const BaseTypePtr &btp) const override;
     inline RealPtr length() const override { return make_shared<Real>(tup.size(), env); }
+    inline BoolPtr isempty() const override { return make_shared<Bool>(empty(), env); }
     BoolPtr cast_bool() const override;
     RealPtr cast_real() const override;
     inline StringPtr cast_string() const override { return make_shared<String>(this->to_string(), env); }
@@ -418,6 +421,7 @@ namespace macro
     ArrayPtr set_intersection(const BaseTypePtr &btp) const override;
     BoolPtr contains(const BaseTypePtr &btp) const override;
     inline RealPtr length() const override { return make_shared<Real>(arr.size(), env); }
+    inline BoolPtr isempty() const override { return make_shared<Bool>(empty(), env); }
     RealPtr sum() const override;
     BoolPtr cast_bool() const override;
     RealPtr cast_real() const override;

@@ -65,6 +65,8 @@ using namespace macro;
 %token SQRT CBRT SIGN MAX MIN FLOOR CEIL TRUNC SUM MOD
 %token ERF ERFC GAMMA LGAMMA ROUND NORMPDF NORMCDF LENGTH
 
+%token ISEMPTY
+
 %token BOOL REAL STRING TUPLE ARRAY
 
 %left OR
@@ -340,6 +342,8 @@ expr : LPAREN expr RPAREN
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::unary_plus, $2, driver.env, @$); }
      | LENGTH LPAREN expr RPAREN
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::length, $3, driver.env, @$); }
+     | ISEMPTY LPAREN expr RPAREN
+       { $$ = make_shared<UnaryOp>(codes::UnaryOp::isempty, $3, driver.env, @$); }
      | EXP LPAREN expr RPAREN
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::exp, $3, driver.env, @$); }
      | LOG LPAREN expr RPAREN
