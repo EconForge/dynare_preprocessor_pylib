@@ -192,7 +192,8 @@
     \item arithmetic operators: \texttt{+ - * / \^{}}
     \item comparison operators: \texttt{< > <= >= == !=}
     \item logical operators: \verb+&& || !+
-    \item integer ranges: \texttt{1:4} is equivalent to integer array \texttt{[1,2,3,4]}. NB  \texttt{[1:4]} is equivalent to an array containing one integer array \texttt{[[1,2,3,4]]}
+    \item range with increment of \texttt{1}: \texttt{1:4} is equivalent to real array \texttt{[1, 2, 3, 4]}. NB \texttt{[1:4]} is equivalent to an array containing an array of reals \texttt{[[1, 2, 3, 4]]}
+    \item range with user-defined increment: \texttt{4:-1.1:-1} is equivalent to real array \texttt{[4, 2.9, 1.8, 0.7, -0.4]}.
     \end{itemize}
   \end{block}
 
@@ -324,9 +325,9 @@
 
   \begin{block}{Examples}
 \begin{verbatim}
-@#define x = 5              // Integer
+@#define x = 5              // Real
 @#define y = "US"           // String
-@#define v = [ 1, 2, 4 ]    // Integer array
+@#define v = [ 1, 2, 4 ]    // Real array
 @#define w = [ "US", "EA" ] // String array
 @#define z = 3 + v[2]       // Equals 5
 @#define t = ("US" in w)    // Equals 1 (true)
@@ -433,14 +434,14 @@ end;
   \begin{columns}[T]
     \column{0.47\linewidth}
     \begin{block}{Syntax 1}
-\verb+@#if +\textit{integer\_expr} \\
+\verb+@#if +\textit{real\_expr} \\
 \verb+   +\textit{body included if expr != 0} \\
 \verb+@#endif+
     \end{block}
 
     \column{0.47\linewidth}
     \begin{block}{Syntax 2}
-\verb+@#if +\textit{integer\_expr} \\
+\verb+@#if +\textit{real\_expr} \\
 \verb+   +\textit{body included if expr != 0} \\
 \verb+@#else+ \\
 \verb+   +\textit{body included if expr == 0} \\
