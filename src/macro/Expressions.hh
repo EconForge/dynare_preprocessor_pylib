@@ -181,7 +181,7 @@ namespace macro
     virtual RealPtr normcdf() const { throw StackTrace("Operator `normcdf` does not exist for this type"); }
     virtual RealPtr normcdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const { throw StackTrace("Operator `normcdf` does not exist for this type"); }
     virtual BoolPtr cast_bool() const { throw StackTrace("This type cannot be cast to a boolean"); }
-    virtual RealPtr cast_real() const { throw StackTrace("This type cannot be cast to a double"); }
+    virtual RealPtr cast_real() const { throw StackTrace("This type cannot be cast to a real"); }
     virtual StringPtr cast_string() const { throw StackTrace("This type cannot be cast to a string"); }
     virtual TuplePtr cast_tuple() const { throw StackTrace("This type cannot be cast to a tuple"); }
     virtual ArrayPtr cast_array() const { throw StackTrace("This type cannot be cast to an array"); }
