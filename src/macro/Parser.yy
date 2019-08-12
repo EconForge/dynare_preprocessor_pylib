@@ -80,8 +80,8 @@ using namespace macro;
 %left INTERSECTION
 %left PLUS MINUS
 %left TIMES DIVIDE
-%precedence UMINUS UPLUS NOT
-%precedence CAST_BOOL CAST_REAL CAST_STRING CAST_TUPLE CAST_ARRAY
+%precedence UNARY NOT
+%precedence CAST
 %nonassoc POWER
 
 %token <string> NAME TEXT QUOTED_STRING NUMBER EOL
@@ -325,21 +325,21 @@ expr : LPAREN expr RPAREN
        { $$ = make_shared<Comprehension>($2, $4, $6, driver.env, @$); }
      | LBRACKET expr FOR expr IN expr WHEN expr RBRACKET
        { $$ = make_shared<Comprehension>($2, $4, $6, $8, driver.env, @$); }
-     | LPAREN BOOL RPAREN expr %prec CAST_BOOL
+     | LPAREN BOOL RPAREN expr %prec CAST
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_bool, $4, driver.env, @$); }
-     | LPAREN REAL RPAREN expr %prec CAST_REAL
+     | LPAREN REAL RPAREN expr %prec CAST
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_real, $4, driver.env, @$); }
-     | LPAREN STRING RPAREN expr %prec CAST_STRING
+     | LPAREN STRING RPAREN expr %prec CAST
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_string, $4, driver.env, @$); }
-     | LPAREN TUPLE RPAREN expr %prec CAST_TUPLE
+     | LPAREN TUPLE RPAREN expr %prec CAST
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_tuple, $4, driver.env, @$); }
-     | LPAREN ARRAY RPAREN expr %prec CAST_ARRAY
+     | LPAREN ARRAY RPAREN expr %prec CAST
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_array, $4, driver.env, @$); }
      | NOT expr
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::logical_not, $2, driver.env, @$); }
-     | MINUS expr %prec UMINUS
+     | MINUS expr %prec UNARY
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::unary_minus, $2, driver.env, @$); }
-     | PLUS expr %prec UPLUS
+     | PLUS expr %prec UNARY
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::unary_plus, $2, driver.env, @$); }
      | LENGTH LPAREN expr RPAREN
        { $$ = make_shared<UnaryOp>(codes::UnaryOp::length, $3, driver.env, @$); }
