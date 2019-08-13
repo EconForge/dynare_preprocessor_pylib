@@ -124,7 +124,7 @@ class ParsingDriver;
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
 %left PLUS MINUS
 %left TIMES DIVIDE
-%precedence UMINUS UPLUS
+%precedence UNARY
 %nonassoc POWER
 %token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN ERF DIFF ADL AUXILIARY_MODEL_NAME
 %token SQRT CBRT NORMCDF NORMPDF STEADY_STATE EXPECTATION VAR_ESTIMATION
@@ -774,9 +774,9 @@ expression : '(' expression ')'
              { $$ = driver.add_equal_equal($1, $3); }
            | expression EXCLAMATION_EQUAL expression
              { $$ = driver.add_different($1, $3); }
-           | MINUS expression %prec UMINUS
+           | MINUS expression %prec UNARY
              { $$ = driver.add_uminus($2); }
-           | PLUS expression %prec UPLUS
+           | PLUS expression %prec UNARY
              { $$ = $2; }
            | EXP '(' expression ')'
              { $$ = driver.add_exp($3); }
@@ -979,9 +979,9 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_var_expectation($3); }
           | PAC_EXPECTATION '(' symbol ')'
             { $$ = driver.add_pac_expectation($3); }
-          | MINUS hand_side %prec UMINUS
+          | MINUS hand_side %prec UNARY
             { $$ = driver.add_uminus($2); }
-          | PLUS hand_side %prec UPLUS
+          | PLUS hand_side %prec UNARY
             { $$ = $2; }
           | EXP '(' hand_side ')'
             { $$ = driver.add_exp($3); }
