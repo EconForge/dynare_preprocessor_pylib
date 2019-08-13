@@ -33,8 +33,6 @@ namespace macro
     virtual void interpret(ostream &output, bool no_line_macro) = 0;
   };
 
-  using DirectivePtr = shared_ptr<Directive>;
-
 
   class TextNode : public Directive
   {
