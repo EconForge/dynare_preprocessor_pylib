@@ -75,7 +75,10 @@ using namespace macro;
 %left EQUAL_EQUAL NOT_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
 %nonassoc IN
-%left COLON
+/* The COLON operator cannot be given a precedence, because it has both a
+   binary and a ternary forms. But technically it belongs here given how the
+   grammar rules are organized */
+%token COLON
 %left UNION
 %left INTERSECTION
 %left PLUS MINUS
@@ -89,12 +92,12 @@ using namespace macro;
 %type <DirectivePtr> statement
 %type <DirectivePtr> directive directive_one_line directive_multiline for if ifdef ifndef text
 %type <EvalPtr> eval
-%type <ExpressionPtr> expr
+%type <ExpressionPtr> primary_expr oper_expr colon_expr expr
 %type <FunctionPtr> function
 %type <VariablePtr> symbol
 
 %type <vector<VariablePtr>> comma_name
-%type <vector<ExpressionPtr>> comma_expr function_args tuple_comma_expr colon_expr
+%type <vector<ExpressionPtr>> comma_expr function_args tuple_comma_expr
 
 %%
 
@@ -284,135 +287,150 @@ tuple_comma_expr : %empty
                    { $1.emplace_back($3); $$ = $1; }
                  ;
 
-colon_expr : expr COLON expr
-             { $$ = vector<ExpressionPtr>{$1, $3}; }
-           | colon_expr COLON expr
-             { $1.emplace_back($3); $$ = $1; }
+primary_expr : LPAREN expr RPAREN
+               { $$ = $2; }
+             | symbol
+               { $$ = $1; }
+             | NAME LPAREN comma_expr RPAREN
+               { $$ = make_shared<Function>($1, $3, driver.env, @$); }
+             | TRUE
+               { $$ = make_shared<Bool>(true, driver.env, @$); }
+             | FALSE
+               { $$ = make_shared<Bool>(false, driver.env, @$); }
+             | NUMBER
+               { $$ = make_shared<Real>($1, driver.env, @$); }
+             | QUOTED_STRING
+               { $$ = make_shared<String>($1, driver.env, @$); }
+             | LBRACKET comma_expr RBRACKET
+               { $$ = make_shared<Array>($2, driver.env, @$); }
+             | symbol LBRACKET comma_expr RBRACKET
+               { $1->addIndexing($3); $$ = $1; }
+             | LPAREN tuple_comma_expr RPAREN
+               { $$ = make_shared<Tuple>($2, driver.env, @$); }
+             | LBRACKET expr IN expr WHEN expr RBRACKET
+               { $$ = make_shared<Comprehension>(true, $2, $4, $6, driver.env, @$); }
+             | LBRACKET expr FOR expr IN expr RBRACKET
+               { $$ = make_shared<Comprehension>($2, $4, $6, driver.env, @$); }
+             | LBRACKET expr FOR expr IN expr WHEN expr RBRACKET
+               { $$ = make_shared<Comprehension>($2, $4, $6, $8, driver.env, @$); }
+             | LENGTH LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::length, $3, driver.env, @$); }
+             | ISEMPTY LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::isempty, $3, driver.env, @$); }
+             | ISBOOLEAN LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::isboolean, $3, driver.env, @$); }
+             | ISREAL LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::isreal, $3, driver.env, @$); }
+             | ISSTRING LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::isstring, $3, driver.env, @$); }
+             | ISTUPLE LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::istuple, $3, driver.env, @$); }
+             | ISARRAY LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::isarray, $3, driver.env, @$); }
+             | EXP LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::exp, $3, driver.env, @$); }
+             | LOG LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::ln, $3, driver.env, @$); }
+             | LN LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::ln, $3, driver.env, @$); }
+             | LOG10 LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::log10, $3, driver.env, @$); }
+             | SIN LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::sin, $3, driver.env, @$); }
+             | COS LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::cos, $3, driver.env, @$); }
+             | TAN LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::tan, $3, driver.env, @$); }
+             | ASIN LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::asin, $3, driver.env, @$); }
+             | ACOS LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::acos, $3, driver.env, @$); }
+             | ATAN LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::atan, $3, driver.env, @$); }
+             | SQRT LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::sqrt, $3, driver.env, @$); }
+             | CBRT LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::cbrt, $3, driver.env, @$); }
+             | SIGN LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::sign, $3, driver.env, @$); }
+             | FLOOR LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::floor, $3, driver.env, @$); }
+             | CEIL LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::ceil, $3, driver.env, @$); }
+             | TRUNC LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::trunc, $3, driver.env, @$); }
+             | SUM LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::sum, $3, driver.env, @$); }
+             | ERF LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::erf, $3, driver.env, @$); }
+             | ERFC LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::erfc, $3, driver.env, @$); }
+             | GAMMA LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::gamma, $3, driver.env, @$); }
+             | LGAMMA LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::lgamma, $3, driver.env, @$); }
+             | ROUND LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::round, $3, driver.env, @$); }
+             | NORMPDF LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::normpdf, $3, driver.env, @$); }
+             | NORMCDF LPAREN expr RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::normcdf, $3, driver.env, @$); }
+             | MAX LPAREN expr COMMA expr RPAREN
+               { $$ = make_shared<BinaryOp>(codes::BinaryOp::max, $3, $5, driver.env, @$); }
+             | MIN LPAREN expr COMMA expr RPAREN
+               { $$ = make_shared<BinaryOp>(codes::BinaryOp::min, $3, $5, driver.env, @$); }
+             | MOD LPAREN expr COMMA expr RPAREN
+               { $$ = make_shared<BinaryOp>(codes::BinaryOp::mod, $3, $5, driver.env, @$); }
+             | NORMPDF LPAREN expr COMMA expr COMMA expr RPAREN
+               { $$ = make_shared<TrinaryOp>(codes::TrinaryOp::normpdf, $3, $5, $7, driver.env, @$); }
+             | NORMCDF LPAREN expr COMMA expr COMMA expr RPAREN
+               { $$ = make_shared<TrinaryOp>(codes::TrinaryOp::normcdf, $3, $5, $7, driver.env, @$); }
+             ;
+
+oper_expr : primary_expr
+            { $$ = $1; }
+          | LPAREN BOOL RPAREN oper_expr %prec CAST
+            { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_bool, $4, driver.env, @$); }
+          | LPAREN REAL RPAREN oper_expr %prec CAST
+            { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_real, $4, driver.env, @$); }
+          | LPAREN STRING RPAREN oper_expr %prec CAST
+            { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_string, $4, driver.env, @$); }
+          | LPAREN TUPLE RPAREN oper_expr %prec CAST
+            { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_tuple, $4, driver.env, @$); }
+          | LPAREN ARRAY RPAREN oper_expr %prec CAST
+            { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_array, $4, driver.env, @$); }
+          | NOT oper_expr
+            { $$ = make_shared<UnaryOp>(codes::UnaryOp::logical_not, $2, driver.env, @$); }
+          | MINUS oper_expr %prec UNARY
+            { $$ = make_shared<UnaryOp>(codes::UnaryOp::unary_minus, $2, driver.env, @$); }
+          | PLUS oper_expr %prec UNARY
+            { $$ = make_shared<UnaryOp>(codes::UnaryOp::unary_plus, $2, driver.env, @$); }
+          | oper_expr PLUS oper_expr
+            { $$ = make_shared<BinaryOp>(codes::BinaryOp::plus, $1, $3, driver.env, @$); }
+          | oper_expr MINUS oper_expr
+            { $$ = make_shared<BinaryOp>(codes::BinaryOp::minus, $1, $3, driver.env, @$); }
+          | oper_expr TIMES oper_expr
+            { $$ = make_shared<BinaryOp>(codes::BinaryOp::times, $1, $3, driver.env, @$); }
+          | oper_expr DIVIDE oper_expr
+            { $$ = make_shared<BinaryOp>(codes::BinaryOp::divide, $1, $3, driver.env, @$); }
+          | oper_expr POWER oper_expr
+            { $$ = make_shared<BinaryOp>(codes::BinaryOp::power, $1, $3, driver.env, @$); }
+          | oper_expr UNION oper_expr
+            { $$ = make_shared<BinaryOp>(codes::BinaryOp::set_union, $1, $3, driver.env, @$); }
+          | oper_expr INTERSECTION oper_expr
+            { $$ = make_shared<BinaryOp>(codes::BinaryOp::set_intersection, $1, $3, driver.env, @$); }
+          ;
+
+colon_expr : oper_expr COLON oper_expr
+             { $$ = make_shared<Array>($1, $3, driver.env, @$); }
+           | oper_expr COLON oper_expr COLON oper_expr
+             { $$ = make_shared<Array>($1, $3, $5, driver.env, @$); }
            ;
 
-expr : LPAREN expr RPAREN
-       { $$ = $2; }
-     | symbol
+expr : oper_expr
        { $$ = $1; }
-     | NAME LPAREN comma_expr RPAREN
-       { $$ = make_shared<Function>($1, $3, driver.env, @$); }
-     | TRUE
-       { $$ = make_shared<Bool>(true, driver.env, @$); }
-     | FALSE
-       { $$ = make_shared<Bool>(false, driver.env, @$); }
-     | NUMBER
-       { $$ = make_shared<Real>($1, driver.env, @$); }
-     | QUOTED_STRING
-       { $$ = make_shared<String>($1, driver.env, @$); }
      | colon_expr
-       {
-         if ($1.size() == 2)
-           $$ = make_shared<Array>($1[0], $1[1], driver.env, @$);
-         else if ($1.size() == 3)
-           $$ = make_shared<Array>($1[0], $1[1], $1[2], driver.env, @$);
-         else
-           error(@$, "The colon operator only works with 2 or 3 arguments");
-       }
-     | LBRACKET comma_expr RBRACKET
-       { $$ = make_shared<Array>($2, driver.env, @$); }
-     | symbol LBRACKET comma_expr RBRACKET
-       { $1->addIndexing($3); $$ = $1; }
-     | LPAREN tuple_comma_expr RPAREN
-       { $$ = make_shared<Tuple>($2, driver.env, @$); }
-     | LBRACKET expr IN expr WHEN expr RBRACKET
-       { $$ = make_shared<Comprehension>(true, $2, $4, $6, driver.env, @$); }
-     | LBRACKET expr FOR expr IN expr RBRACKET
-       { $$ = make_shared<Comprehension>($2, $4, $6, driver.env, @$); }
-     | LBRACKET expr FOR expr IN expr WHEN expr RBRACKET
-       { $$ = make_shared<Comprehension>($2, $4, $6, $8, driver.env, @$); }
-     | LPAREN BOOL RPAREN expr %prec CAST
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_bool, $4, driver.env, @$); }
-     | LPAREN REAL RPAREN expr %prec CAST
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_real, $4, driver.env, @$); }
-     | LPAREN STRING RPAREN expr %prec CAST
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_string, $4, driver.env, @$); }
-     | LPAREN TUPLE RPAREN expr %prec CAST
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_tuple, $4, driver.env, @$); }
-     | LPAREN ARRAY RPAREN expr %prec CAST
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_array, $4, driver.env, @$); }
-     | NOT expr
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::logical_not, $2, driver.env, @$); }
-     | MINUS expr %prec UNARY
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::unary_minus, $2, driver.env, @$); }
-     | PLUS expr %prec UNARY
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::unary_plus, $2, driver.env, @$); }
-     | LENGTH LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::length, $3, driver.env, @$); }
-     | ISEMPTY LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::isempty, $3, driver.env, @$); }
-     | ISBOOLEAN LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::isboolean, $3, driver.env, @$); }
-     | ISREAL LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::isreal, $3, driver.env, @$); }
-     | ISSTRING LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::isstring, $3, driver.env, @$); }
-     | ISTUPLE LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::istuple, $3, driver.env, @$); }
-     | ISARRAY LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::isarray, $3, driver.env, @$); }
-     | EXP LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::exp, $3, driver.env, @$); }
-     | LOG LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::ln, $3, driver.env, @$); }
-     | LN LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::ln, $3, driver.env, @$); }
-     | LOG10 LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::log10, $3, driver.env, @$); }
-     | SIN LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::sin, $3, driver.env, @$); }
-     | COS LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::cos, $3, driver.env, @$); }
-     | TAN LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::tan, $3, driver.env, @$); }
-     | ASIN LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::asin, $3, driver.env, @$); }
-     | ACOS LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::acos, $3, driver.env, @$); }
-     | ATAN LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::atan, $3, driver.env, @$); }
-     | SQRT LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::sqrt, $3, driver.env, @$); }
-     | CBRT LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::cbrt, $3, driver.env, @$); }
-     | SIGN LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::sign, $3, driver.env, @$); }
-     | FLOOR LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::floor, $3, driver.env, @$); }
-     | CEIL LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::ceil, $3, driver.env, @$); }
-     | TRUNC LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::trunc, $3, driver.env, @$); }
-     | SUM LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::sum, $3, driver.env, @$); }
-     | ERF LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::erf, $3, driver.env, @$); }
-     | ERFC LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::erfc, $3, driver.env, @$); }
-     | GAMMA LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::gamma, $3, driver.env, @$); }
-     | LGAMMA LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::lgamma, $3, driver.env, @$); }
-     | ROUND LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::round, $3, driver.env, @$); }
-     | NORMPDF LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::normpdf, $3, driver.env, @$); }
-     | NORMCDF LPAREN expr RPAREN
-       { $$ = make_shared<UnaryOp>(codes::UnaryOp::normcdf, $3, driver.env, @$); }
-     | expr PLUS expr
-       { $$ = make_shared<BinaryOp>(codes::BinaryOp::plus, $1, $3, driver.env, @$); }
-     | expr MINUS expr
-       { $$ = make_shared<BinaryOp>(codes::BinaryOp::minus, $1, $3, driver.env, @$); }
-     | expr TIMES expr
-       { $$ = make_shared<BinaryOp>(codes::BinaryOp::times, $1, $3, driver.env, @$); }
-     | expr DIVIDE expr
-       { $$ = make_shared<BinaryOp>(codes::BinaryOp::divide, $1, $3, driver.env, @$); }
-     | expr POWER expr
-       { $$ = make_shared<BinaryOp>(codes::BinaryOp::power, $1, $3, driver.env, @$); }
+       { $$ = $1; }
      | expr EQUAL_EQUAL expr
        { $$ = make_shared<BinaryOp>(codes::BinaryOp::equal_equal, $1, $3, driver.env, @$); }
      | expr NOT_EQUAL expr
@@ -431,20 +449,6 @@ expr : LPAREN expr RPAREN
        { $$ = make_shared<BinaryOp>(codes::BinaryOp::logical_or, $1, $3, driver.env, @$); }
      | expr IN expr
        { $$ = make_shared<BinaryOp>(codes::BinaryOp::in, $1, $3, driver.env, @$); }
-     | expr UNION expr
-       { $$ = make_shared<BinaryOp>(codes::BinaryOp::set_union, $1, $3, driver.env, @$); }
-     | expr INTERSECTION expr
-       { $$ = make_shared<BinaryOp>(codes::BinaryOp::set_intersection, $1, $3, driver.env, @$); }
-     | MAX LPAREN expr COMMA expr RPAREN
-       { $$ = make_shared<BinaryOp>(codes::BinaryOp::max, $3, $5, driver.env, @$); }
-     | MIN LPAREN expr COMMA expr RPAREN
-       { $$ = make_shared<BinaryOp>(codes::BinaryOp::min, $3, $5, driver.env, @$); }
-     | MOD LPAREN expr COMMA expr RPAREN
-       { $$ = make_shared<BinaryOp>(codes::BinaryOp::mod, $3, $5, driver.env, @$); }
-     | NORMPDF LPAREN expr COMMA expr COMMA expr RPAREN
-       { $$ = make_shared<TrinaryOp>(codes::TrinaryOp::normpdf, $3, $5, $7, driver.env, @$); }
-     | NORMCDF LPAREN expr COMMA expr COMMA expr RPAREN
-       { $$ = make_shared<TrinaryOp>(codes::TrinaryOp::normcdf, $3, $5, $7, driver.env, @$); }
      ;
 
 %%
