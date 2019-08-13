@@ -228,11 +228,11 @@ ifndef_begin : IFNDEF { driver.pushContext(); }
              ;
 
 ifndef : ifndef_begin expr EOL statements ENDIF
-        {
-          auto ifContext = driver.popContext();
-          ifContext.emplace_back(make_shared<TextNode>("\n", driver.env, @5));
-          $$ = make_shared<Ifndef>($2, ifContext, driver.env, @$);
-        }
+         {
+           auto ifContext = driver.popContext();
+           ifContext.emplace_back(make_shared<TextNode>("\n", driver.env, @5));
+           $$ = make_shared<Ifndef>($2, ifContext, driver.env, @$);
+         }
        | ifndef_begin expr EOL statements ELSE EOL { driver.pushContext(); } statements ENDIF
          {
            auto elseContext = driver.popContext();
@@ -270,7 +270,7 @@ function_args : symbol
               ;
 
 comma_expr : %empty
-             { $$ = vector<ExpressionPtr>{}; } // Empty array
+             { $$ = vector<ExpressionPtr>{}; }
            | expr
              { $$ = vector<ExpressionPtr>{$1}; }
            | comma_expr COMMA expr
@@ -278,7 +278,7 @@ comma_expr : %empty
            ;
 
 tuple_comma_expr : %empty
-                   { $$ = vector<ExpressionPtr>{}; } // Empty tuple
+                   { $$ = vector<ExpressionPtr>{}; }
                  | expr COMMA
                    { $$ = vector<ExpressionPtr>{$1}; }
                  | expr COMMA expr
