@@ -981,7 +981,7 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_pac_expectation($3); }
           | MINUS hand_side %prec UMINUS
             { $$ = driver.add_uminus($2); }
-          | PLUS hand_side
+          | PLUS hand_side %prec UPLUS
             { $$ = $2; }
           | EXP '(' hand_side ')'
             { $$ = driver.add_exp($3); }
