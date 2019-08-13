@@ -435,17 +435,17 @@ end;
   \begin{columns}[T]
     \column{0.47\linewidth}
     \begin{block}{Syntax 1}
-\verb+@#if +\textit{real\_expr} \\
-\verb+   +\textit{body included if expr != 0} \\
+\verb+@#if +\textit{bool\_or\_real\_expr} \\
+\verb+   +\textit{body included if expr is true (or != 0)} \\
 \verb+@#endif+
     \end{block}
 
     \column{0.47\linewidth}
     \begin{block}{Syntax 2}
-\verb+@#if +\textit{real\_expr} \\
-\verb+   +\textit{body included if expr != 0} \\
+\verb+@#if +\textit{bool\_or\_real\_expr} \\
+\verb+   +\textit{body included if expr is true (or != 0)} \\
 \verb+@#else+ \\
-\verb+   +\textit{body included if expr == 0} \\
+\verb+   +\textit{body included if expr is false (or 0)} \\
 \verb+@#endif+
     \end{block}
   \end{columns}
@@ -453,7 +453,7 @@ end;
   \begin{block}{Example: alternative monetary policy rules}
     \scriptsize
 \begin{verbatim}
-@#define linear_mon_pol = 0 // or 1
+@#define linear_mon_pol = false // or 0
 ...
 model;
 @#if linear_mon_pol
@@ -680,7 +680,7 @@ end;
   \begin{itemize}
   \item File \texttt{steadystate.mod}:
     \begin{itemize}
-    \item begins with \verb+@#define steady = 1+
+    \item begins with \verb+@#define steady = true+
     \item then with \verb+@#include "modeqs.mod"+
     \item initializes parameters (including \texttt{lab\_rat}, excluding \texttt{alpha})
     \item computes steady state (using guess values for endogenous, including \texttt{alpha})
@@ -688,7 +688,7 @@ end;
     \end{itemize}
   \item File \texttt{simulate.mod}:
     \begin{itemize}
-    \item begins with \verb+@#define steady = 0+
+    \item begins with \verb+@#define steady = false+
     \item then with \verb+@#include "modeqs.mod"+
     \item loads values of parameters and endogenous at steady-state from file, using the \texttt{load\_params\_and\_steady\_state} command
     \item computes simulations
