@@ -1337,23 +1337,32 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
 
   // Compute the temporary terms in equations and derivatives
   map<pair<int, int>, temporary_terms_t> temp_terms_map;
-  if (!no_tmp_terms)
-    {
-      map<expr_t, pair<int, pair<int, int>>> reference_count;
+  map<expr_t, pair<int, pair<int, int>>> reference_count;
 
-      for (auto & equation : equations)
-        equation->computeTemporaryTerms({ 0, 0 },
-                                        temp_terms_map,
-                                        reference_count,
-                                        is_matlab);
+  for (auto & equation : equations)
+    equation->computeTemporaryTerms({ 0, 0 },
+                                    temp_terms_map,
+                                    reference_count,
+                                    is_matlab);
 
-      for (int order = 1; order < static_cast<int>(derivatives.size()); order++)
-        for (const auto &it : derivatives[order])
-          it.second->computeTemporaryTerms({ 0, order },
-                                           temp_terms_map,
-                                           reference_count,
-                                           is_matlab);
-    }
+  for (int order = 1; order < static_cast<int>(derivatives.size()); order++)
+    for (const auto &it : derivatives[order])
+      it.second->computeTemporaryTerms({ 0, order },
+                                       temp_terms_map,
+                                       reference_count,
+                                       is_matlab);
+
+  /* If the user has specified the notmpterms option, clear all temporary
+     terms, except those that correspond to external functions (since they are
+     not optional) */
+  if (no_tmp_terms)
+    for (auto &it : temp_terms_map)
+      // The following loop can be simplified with std::erase_if() in C++20
+      for (auto it2 = it.second.begin(); it2 != it.second.end(); )
+        if (!dynamic_cast<AbstractExternalFunctionNode *>(*it2))
+          it2 = it.second.erase(it2);
+        else
+          ++it2;
 
   // Fill the (now obsolete) temporary_terms structure
   temporary_terms.clear();
