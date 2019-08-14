@@ -197,7 +197,7 @@ namespace macro
   class Bool final : public BaseType
   {
   private:
-    bool value;
+    const bool value;
   public:
     Bool(bool value_arg,
          Environment &env_arg, Tokenizer::location location_arg = Tokenizer::location()) :
@@ -231,7 +231,7 @@ namespace macro
   class Real final : public BaseType
   {
   private:
-    double value;
+    const double value;
   public:
     // Use strtod to handle extreme cases (e.g. 1e500, 1e-500), nan, inf
     // See Note in NumericalConstants::AddNonNegativeConstant
@@ -326,7 +326,7 @@ namespace macro
   class String final : public BaseType
   {
   private:
-    string value;
+    const string value;
   public:
     String(string value_arg,
            Environment &env_arg, Tokenizer::location location_arg = Tokenizer::location()) :
@@ -364,7 +364,7 @@ namespace macro
   class Tuple final : public BaseType
   {
   private:
-    vector<ExpressionPtr> tup;
+    const vector<ExpressionPtr> tup;
   public:
     Tuple(vector<ExpressionPtr> tup_arg,
           Environment &env_arg, Tokenizer::location location_arg = Tokenizer::location()) :

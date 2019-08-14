@@ -134,7 +134,7 @@ namespace macro
   class EchoMacroVars : public Directive
   {
   private:
-    bool save;
+    const bool save;
   public:
     EchoMacroVars(bool save_arg,
                   Environment &env_arg, Tokenizer::location location_arg) :
@@ -148,7 +148,7 @@ namespace macro
   private:
     const vector<VariablePtr> index_vec;
     const ExpressionPtr index_vals;
-    vector<DirectivePtr> statements;
+    const vector<DirectivePtr> statements;
   public:
     For(vector<VariablePtr> index_vec_arg,
         ExpressionPtr index_vals_arg,
@@ -164,8 +164,8 @@ namespace macro
   {
   protected:
     const ExpressionPtr condition;
-    vector<DirectivePtr> if_statements;
-    vector<DirectivePtr> else_statements;
+    const vector<DirectivePtr> if_statements;
+    const vector<DirectivePtr> else_statements;
   public:
     If(ExpressionPtr condition_arg,
        vector<DirectivePtr> if_statements_arg,
