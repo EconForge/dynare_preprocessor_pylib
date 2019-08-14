@@ -28,7 +28,7 @@ namespace macro
   {
     // A Parent class just for clarity
   public:
-    Directive(Environment &env_arg, const Tokenizer::location location_arg) : Node(env_arg, move(location_arg)) { }
+    Directive(Environment &env_arg, Tokenizer::location location_arg) : Node(env_arg, move(location_arg)) { }
     // Directives can be interpreted
     virtual void interpret(ostream &output, bool no_line_macro) = 0;
   };
@@ -42,7 +42,7 @@ namespace macro
   private:
     const string text;
   public:
-    TextNode(const string text_arg, Environment &env_arg, const Tokenizer::location location_arg) :
+    TextNode(string text_arg, Environment &env_arg, Tokenizer::location location_arg) :
       Directive(env_arg, move(location_arg)), text{move(text_arg)} { }
     inline void interpret(ostream &output, bool no_line_macro) override { output << text; }
   };
@@ -56,7 +56,7 @@ namespace macro
   private:
     const ExpressionPtr expr;
   public:
-    Eval(const ExpressionPtr expr_arg, Environment &env_arg, const Tokenizer::location location_arg) :
+    Eval(ExpressionPtr expr_arg, Environment &env_arg, Tokenizer::location location_arg) :
       Directive(env_arg, move(location_arg)), expr{move(expr_arg)} { }
     void interpret(ostream &output, bool no_line_macro) override;
   };
@@ -68,7 +68,7 @@ namespace macro
     const ExpressionPtr expr;
     string name;
   public:
-    Include(const ExpressionPtr expr_arg, Environment &env_arg, const Tokenizer::location location_arg) :
+    Include(ExpressionPtr expr_arg, Environment &env_arg, Tokenizer::location location_arg) :
       Directive(env_arg, move(location_arg)), expr{move(expr_arg)} { }
     void interpret(ostream &output, bool no_line_macro) override;
     inline string getName() const { return name; }
@@ -81,7 +81,7 @@ namespace macro
     const ExpressionPtr expr;
     string path;
   public:
-    IncludePath(const ExpressionPtr expr_arg, Environment &env_arg, const Tokenizer::location location_arg) :
+    IncludePath(ExpressionPtr expr_arg, Environment &env_arg, Tokenizer::location location_arg) :
       Directive(env_arg, move(location_arg)), expr{move(expr_arg)} { }
     void interpret(ostream &output, bool no_line_macro) override;
     inline string getPath() const { return path; }
@@ -95,13 +95,13 @@ namespace macro
     const FunctionPtr func;
     const ExpressionPtr value;
   public:
-    Define(const VariablePtr var_arg,
-           const ExpressionPtr value_arg,
-           Environment &env_arg, const Tokenizer::location location_arg) :
+    Define(VariablePtr var_arg,
+           ExpressionPtr value_arg,
+           Environment &env_arg, Tokenizer::location location_arg) :
       Directive(env_arg, move(location_arg)), var{move(var_arg)}, value{move(value_arg)} { }
-    Define(const FunctionPtr func_arg,
-           const ExpressionPtr value_arg,
-           Environment &env_arg, const Tokenizer::location location_arg) :
+    Define(FunctionPtr func_arg,
+           ExpressionPtr value_arg,
+           Environment &env_arg, Tokenizer::location location_arg) :
       Directive(env_arg, move(location_arg)), func{move(func_arg)}, value{move(value_arg)} { }
     void interpret(ostream &output, bool no_line_macro) override;
   };
@@ -112,8 +112,8 @@ namespace macro
   private:
     const ExpressionPtr expr;
   public:
-    Echo(const ExpressionPtr expr_arg,
-         Environment &env_arg, const Tokenizer::location location_arg) :
+    Echo(ExpressionPtr expr_arg,
+         Environment &env_arg, Tokenizer::location location_arg) :
       Directive(env_arg, move(location_arg)), expr{move(expr_arg)} { }
     void interpret(ostream &output, bool no_line_macro) override;
   };
@@ -124,8 +124,8 @@ namespace macro
   private:
     const ExpressionPtr expr;
   public:
-    Error(const ExpressionPtr expr_arg,
-          Environment &env_arg, const Tokenizer::location location_arg) :
+    Error(ExpressionPtr expr_arg,
+          Environment &env_arg, Tokenizer::location location_arg) :
       Directive(env_arg, move(location_arg)), expr{move(expr_arg)} { }
     void interpret(ostream &output, bool no_line_macro) override;
   };
@@ -137,7 +137,7 @@ namespace macro
     bool save;
   public:
     EchoMacroVars(bool save_arg,
-                  Environment &env_arg, const Tokenizer::location location_arg) :
+                  Environment &env_arg, Tokenizer::location location_arg) :
       Directive(env_arg, move(location_arg)), save{save_arg} { }
     void interpret(ostream &output, bool no_line_macro) override;
   };
@@ -150,12 +150,12 @@ namespace macro
     const ExpressionPtr index_vals;
     vector<DirectivePtr> statements;
   public:
-    For(const vector<VariablePtr> index_vec_arg,
-        const ExpressionPtr index_vals_arg,
-        const vector<DirectivePtr> statements_arg,
-        Environment &env_arg, const Tokenizer::location location_arg) :
+    For(vector<VariablePtr> index_vec_arg,
+        ExpressionPtr index_vals_arg,
+        vector<DirectivePtr> statements_arg,
+        Environment &env_arg, Tokenizer::location location_arg) :
       Directive(env_arg, move(location_arg)), index_vec{move(index_vec_arg)},
-      index_vals{move(index_vals_arg)}, statements{statements_arg} { }
+      index_vals{move(index_vals_arg)}, statements{move(statements_arg)} { }
     void interpret(ostream &output, bool no_line_macro) override;
   };
 
@@ -167,16 +167,16 @@ namespace macro
     vector<DirectivePtr> if_statements;
     vector<DirectivePtr> else_statements;
   public:
-    If(const ExpressionPtr condition_arg,
-       const vector<DirectivePtr> if_statements_arg,
-       Environment &env_arg, const Tokenizer::location location_arg) :
-      Directive(env_arg, move(location_arg)), condition{move(condition_arg)}, if_statements{if_statements_arg} { }
-    If(const ExpressionPtr condition_arg,
-       const vector<DirectivePtr> if_statements_arg,
-       const vector<DirectivePtr> else_statements_arg,
-       Environment &env_arg, const Tokenizer::location location_arg) :
+    If(ExpressionPtr condition_arg,
+       vector<DirectivePtr> if_statements_arg,
+       Environment &env_arg, Tokenizer::location location_arg) :
+      Directive(env_arg, move(location_arg)), condition{move(condition_arg)}, if_statements{move(if_statements_arg)} { }
+    If(ExpressionPtr condition_arg,
+       vector<DirectivePtr> if_statements_arg,
+       vector<DirectivePtr> else_statements_arg,
+       Environment &env_arg, Tokenizer::location location_arg) :
       Directive(env_arg, move(location_arg)),
-      condition{move(condition_arg)}, if_statements{if_statements_arg}, else_statements{else_statements_arg} { }
+      condition{move(condition_arg)}, if_statements{move(if_statements_arg)}, else_statements{move(else_statements_arg)} { }
     void interpret(ostream &output, bool no_line_macro) override;
   protected:
     void loopIf(ostream &output, bool no_line_macro);
@@ -187,14 +187,14 @@ namespace macro
   class Ifdef : public If
   {
   public:
-    Ifdef(const ExpressionPtr condition_arg,
-          const vector<DirectivePtr> if_statements_arg,
-          Environment &env_arg, const Tokenizer::location location_arg) :
+    Ifdef(ExpressionPtr condition_arg,
+          vector<DirectivePtr> if_statements_arg,
+          Environment &env_arg, Tokenizer::location location_arg) :
       If(move(condition_arg), move(if_statements_arg), env_arg, move(location_arg)) { }
-    Ifdef(const ExpressionPtr condition_arg,
-          const vector<DirectivePtr> if_statements_arg,
-          const vector<DirectivePtr> else_statements_arg,
-          Environment &env_arg, const Tokenizer::location location_arg) :
+    Ifdef(ExpressionPtr condition_arg,
+          vector<DirectivePtr> if_statements_arg,
+          vector<DirectivePtr> else_statements_arg,
+          Environment &env_arg, Tokenizer::location location_arg) :
       If(move(condition_arg), move(if_statements_arg), move(else_statements_arg), env_arg, move(location_arg)) { }
     void interpret(ostream &output, bool no_line_macro) override;
   };
@@ -203,14 +203,14 @@ namespace macro
   class Ifndef : public If
   {
   public:
-    Ifndef(const ExpressionPtr condition_arg,
-           const vector<DirectivePtr> if_statements_arg,
-           Environment &env_arg, const Tokenizer::location location_arg) :
+    Ifndef(ExpressionPtr condition_arg,
+           vector<DirectivePtr> if_statements_arg,
+           Environment &env_arg, Tokenizer::location location_arg) :
       If(move(condition_arg), move(if_statements_arg), env_arg, move(location_arg)) { }
-    Ifndef(const ExpressionPtr condition_arg,
-           const vector<DirectivePtr> if_statements_arg,
-           const vector<DirectivePtr> else_statements_arg,
-           Environment &env_arg, const Tokenizer::location location_arg) :
+    Ifndef(ExpressionPtr condition_arg,
+           vector<DirectivePtr> if_statements_arg,
+           vector<DirectivePtr> else_statements_arg,
+           Environment &env_arg, Tokenizer::location location_arg) :
       If(move(condition_arg), move(if_statements_arg), move(else_statements_arg), env_arg, move(location_arg)) { }
     void interpret(ostream &output, bool no_line_macro) override;
   };

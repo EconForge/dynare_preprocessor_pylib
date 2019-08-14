@@ -36,7 +36,7 @@ namespace macro
   private:
     vector<string> message;
   public:
-    StackTrace (string message_arg) : message{{move(message_arg)}} { }
+    StackTrace (string message_arg) : message{move(message_arg)} { }
     StackTrace (const string &prefix, const char *standard_exception_message, const Tokenizer::location &location)
     {
       stringstream ss;
@@ -111,7 +111,7 @@ namespace macro
   class Expression : public Node
   {
   public:
-    Expression(Environment &env_arg, const Tokenizer::location location_arg) :
+    Expression(Environment &env_arg, Tokenizer::location location_arg) :
       Node(env_arg, move(location_arg)) { }
     virtual string to_string() const noexcept = 0;
     virtual void print(ostream &output, bool matlab_output = false) const noexcept = 0;
@@ -199,7 +199,7 @@ namespace macro
   private:
     bool value;
   public:
-    Bool(const bool value_arg,
+    Bool(bool value_arg,
          Environment &env_arg, Tokenizer::location location_arg = Tokenizer::location()) :
       BaseType(env_arg, move(location_arg)),
       value{value_arg} { }
@@ -235,7 +235,7 @@ namespace macro
   public:
     // Use strtod to handle extreme cases (e.g. 1e500, 1e-500), nan, inf
     // See Note in NumericalConstants::AddNonNegativeConstant
-    Real(const string value_arg,
+    Real(const string &value_arg,
          Environment &env_arg, Tokenizer::location location_arg = Tokenizer::location()) :
       BaseType(env_arg, move(location_arg)),
       value{strtod(value_arg.c_str(), nullptr)} { }
@@ -328,7 +328,7 @@ namespace macro
   private:
     string value;
   public:
-    String(const string value_arg,
+    String(string value_arg,
            Environment &env_arg, Tokenizer::location location_arg = Tokenizer::location()) :
       BaseType(env_arg, move(location_arg)),
       value{move(value_arg)} { }
@@ -366,7 +366,7 @@ namespace macro
   private:
     vector<ExpressionPtr> tup;
   public:
-    Tuple(const vector<ExpressionPtr> tup_arg,
+    Tuple(vector<ExpressionPtr> tup_arg,
           Environment &env_arg, Tokenizer::location location_arg = Tokenizer::location()) :
       BaseType(env_arg, move(location_arg)),
       tup{move(tup_arg)} { }
@@ -399,15 +399,15 @@ namespace macro
     vector<ExpressionPtr> arr;
     ExpressionPtr range1, increment, range2;
   public:
-    Array(const vector<ExpressionPtr> arr_arg,
+    Array(vector<ExpressionPtr> arr_arg,
           Environment &env_arg, Tokenizer::location location_arg = Tokenizer::location()) :
       BaseType(env_arg, move(location_arg)),
       arr{move(arr_arg)} { }
-    Array(const ExpressionPtr range1_arg, const ExpressionPtr range2_arg,
+    Array(ExpressionPtr range1_arg, ExpressionPtr range2_arg,
           Environment &env_arg, Tokenizer::location location_arg) :
       BaseType(env_arg, move(location_arg)),
       range1{move(range1_arg)}, range2{move(range2_arg)} { }
-    Array(const ExpressionPtr range1_arg, const ExpressionPtr increment_arg, const ExpressionPtr range2_arg,
+    Array(ExpressionPtr range1_arg, ExpressionPtr increment_arg, ExpressionPtr range2_arg,
           Environment &env_arg, Tokenizer::location location_arg) :
       BaseType(env_arg, move(location_arg)),
       range1{move(range1_arg)}, increment{move(increment_arg)}, range2{move(range2_arg)} { }
@@ -447,11 +447,11 @@ namespace macro
     const string name;
     ArrayPtr indices; // for strings/arrays
   public:
-    Variable(const string name_arg,
-             Environment &env_arg, const Tokenizer::location location_arg) :
+    Variable(string name_arg,
+             Environment &env_arg, Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)), name{move(name_arg)} { }
-    Variable(const string name_arg, const ArrayPtr indices_arg,
-             Environment &env_arg, const Tokenizer::location location_arg) :
+    Variable(string name_arg, ArrayPtr indices_arg,
+             Environment &env_arg, Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)), name{move(name_arg)}, indices{move(indices_arg)} { }
     inline void addIndexing(const vector<ExpressionPtr> indices_arg)
     {
@@ -477,9 +477,9 @@ namespace macro
     const string name;
     const vector<ExpressionPtr> args;
   public:
-    Function(const string &name_arg,
-             const vector<ExpressionPtr> &args_arg,
-             Environment &env_arg, const Tokenizer::location location_arg) :
+    Function(string name_arg,
+             vector<ExpressionPtr> args_arg,
+             Environment &env_arg, Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)), name{move(name_arg)}, args{move(args_arg)} { }
     string to_string() const noexcept override;
     inline void print(ostream &output, bool matlab_output = false) const noexcept override
@@ -503,8 +503,8 @@ namespace macro
     const ExpressionPtr arg;
   public:
     UnaryOp(codes::UnaryOp op_code_arg,
-            const ExpressionPtr arg_arg,
-            Environment &env_arg, const Tokenizer::location location_arg) :
+            ExpressionPtr arg_arg,
+            Environment &env_arg, Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)), op_code{move(op_code_arg)}, arg{move(arg_arg)} { }
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
@@ -523,9 +523,9 @@ namespace macro
     const ExpressionPtr arg1, arg2;
   public:
     BinaryOp(codes::BinaryOp op_code_arg,
-             const ExpressionPtr arg1_arg, const ExpressionPtr arg2_arg,
-             Environment &env_arg, const Tokenizer::location location_arg) :
-      Expression(env_arg, move(location_arg)), op_code{move(op_code_arg)},
+             ExpressionPtr arg1_arg, ExpressionPtr arg2_arg,
+             Environment &env_arg, Tokenizer::location location_arg) :
+      Expression(env_arg, move(location_arg)), op_code{op_code_arg},
       arg1{move(arg1_arg)}, arg2{move(arg2_arg)} { }
   public:
     string to_string() const noexcept override;
@@ -545,9 +545,9 @@ namespace macro
     const ExpressionPtr arg1, arg2, arg3;
   public:
     TrinaryOp(codes::TrinaryOp op_code_arg,
-              const ExpressionPtr arg1_arg, const ExpressionPtr arg2_arg, const ExpressionPtr arg3_arg,
-              Environment &env_arg, const Tokenizer::location location_arg) :
-      Expression(env_arg, move(location_arg)), op_code{move(op_code_arg)},
+              ExpressionPtr arg1_arg, ExpressionPtr arg2_arg, ExpressionPtr arg3_arg,
+              Environment &env_arg, Tokenizer::location location_arg) :
+      Expression(env_arg, move(location_arg)), op_code{op_code_arg},
       arg1{move(arg1_arg)}, arg2{move(arg2_arg)}, arg3{move(arg3_arg)} { }
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
@@ -569,25 +569,25 @@ namespace macro
   private:
     const ExpressionPtr c_expr, c_vars, c_set, c_when;
   public:
-    Comprehension(const ExpressionPtr c_expr_arg,
-                  const ExpressionPtr c_vars_arg,
-                  const ExpressionPtr c_set_arg,
-                  const ExpressionPtr c_when_arg,
-                  Environment &env_arg, const Tokenizer::location location_arg) :
+    Comprehension(ExpressionPtr c_expr_arg,
+                  ExpressionPtr c_vars_arg,
+                  ExpressionPtr c_set_arg,
+                  ExpressionPtr c_when_arg,
+                  Environment &env_arg, Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)),
       c_expr{move(c_expr_arg)}, c_vars{move(c_vars_arg)},
       c_set{move(c_set_arg)}, c_when{move(c_when_arg)} { }
-    Comprehension(const ExpressionPtr c_expr_arg,
-                  const ExpressionPtr c_vars_arg,
-                  const ExpressionPtr c_set_arg,
-                  Environment &env_arg, const Tokenizer::location location_arg) :
+    Comprehension(ExpressionPtr c_expr_arg,
+                  ExpressionPtr c_vars_arg,
+                  ExpressionPtr c_set_arg,
+                  Environment &env_arg, Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)),
       c_expr{move(c_expr_arg)}, c_vars{move(c_vars_arg)}, c_set{move(c_set_arg)} { }
-    Comprehension(const bool filter_only_arg,
-                  const ExpressionPtr c_vars_arg,
-                  const ExpressionPtr c_set_arg,
-                  const ExpressionPtr c_when_arg,
-                  Environment &env_arg, const Tokenizer::location location_arg) :
+    Comprehension(bool filter_only_arg,
+                  ExpressionPtr c_vars_arg,
+                  ExpressionPtr c_set_arg,
+                  ExpressionPtr c_when_arg,
+                  Environment &env_arg, Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)),
       c_vars{move(c_vars_arg)}, c_set{move(c_set_arg)}, c_when{move(c_when_arg)} { }
     string to_string() const noexcept override;
