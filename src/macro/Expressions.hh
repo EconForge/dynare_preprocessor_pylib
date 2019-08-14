@@ -378,8 +378,8 @@ namespace macro
   public:
     inline size_t size() const { return tup.size(); }
     inline bool empty() const { return tup.empty(); }
-    inline vector<ExpressionPtr> getValue() const { return tup; }
-    inline ExpressionPtr at(int i) const { return tup.at(i); }
+    inline const vector<ExpressionPtr> & getValue() const { return tup; }
+    inline const ExpressionPtr & at(int i) const { return tup.at(i); }
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
     inline BoolPtr istuple() const override { return make_shared<Bool>(true, env, location); }
     BoolPtr contains(const BaseTypePtr &btp) const override;
@@ -418,8 +418,8 @@ namespace macro
     ExpressionPtr clone() const noexcept override;
   public:
     inline size_t size() const { return arr.size(); }
-    inline vector<ExpressionPtr> getValue() const { return arr; }
-    inline ExpressionPtr at(int i) const { return arr.at(i); }
+    inline const vector<ExpressionPtr> & getValue() const { return arr; }
+    inline const ExpressionPtr & at(int i) const { return arr.at(i); }
     inline bool empty() const { return arr.empty() && !range1 && !range2; }
     BaseTypePtr plus(const BaseTypePtr &bt) const override;
     BaseTypePtr minus(const BaseTypePtr &bt) const override;
@@ -466,7 +466,7 @@ namespace macro
         make_shared<Variable>(name, env, location);
     }
   public:
-    inline string getName() const noexcept { return name; }
+    inline const string & getName() const noexcept { return name; }
     inline codes::BaseType getType() const { return env.getType(name); }
   };
 
@@ -491,8 +491,8 @@ namespace macro
   public:
     inline void printName(ostream &output) const noexcept { output << name; }
     void printArgs(ostream &output) const noexcept;
-    inline string getName() const { return name; }
-    inline vector<ExpressionPtr> getArgs() const { return args; }
+    inline const string & getName() const { return name; }
+    inline const vector<ExpressionPtr> & getArgs() const { return args; }
   };
 
 

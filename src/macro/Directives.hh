@@ -71,7 +71,7 @@ namespace macro
     Include(ExpressionPtr expr_arg, Environment &env_arg, Tokenizer::location location_arg) :
       Directive(env_arg, move(location_arg)), expr{move(expr_arg)} { }
     void interpret(ostream &output, bool no_line_macro) override;
-    inline string getName() const { return name; }
+    inline const string & getName() const { return name; }
   };
 
 
@@ -84,7 +84,7 @@ namespace macro
     IncludePath(ExpressionPtr expr_arg, Environment &env_arg, Tokenizer::location location_arg) :
       Directive(env_arg, move(location_arg)), expr{move(expr_arg)} { }
     void interpret(ostream &output, bool no_line_macro) override;
-    inline string getPath() const { return path; }
+    inline const string & getPath() const { return path; }
   };
 
 
