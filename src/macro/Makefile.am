@@ -26,5 +26,9 @@ Tokenizer.cc: Tokenizer.ll
 
 libmacro_a-Tokenizer.$(OBJEXT): CXXFLAGS += -Wno-old-style-cast
 
-Parser.cc Parser.hh location.hh stack.hh position.hh: Parser.yy
-	$(YACC) -W -o Parser.cc Parser.yy
+# We do not use a multiple target rule for Bison, because otherwise it will be
+# run several times in parallel builds
+Parser.cc: Parser.yy
+	$(YACC) -W -o $@ $<
+
+Parser.hh location.hh stack.hh position.hh: Parser.cc

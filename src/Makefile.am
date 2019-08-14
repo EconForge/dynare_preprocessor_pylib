@@ -68,14 +68,20 @@ dynare_m_CPPFLAGS = $(BOOST_CPPFLAGS) -I.
 dynare_m_LDFLAGS = $(AM_LDFLAGS) $(BOOST_LDFLAGS)
 dynare_m_LDADD = macro/libmacro.a $(BOOST_FILESYSTEM_LIB) $(BOOST_SYSTEM_LIB)
 
-DynareFlex.cc FlexLexer.h: DynareFlex.ll
+DynareFlex.cc: DynareFlex.ll
 	$(LEX) -o DynareFlex.cc DynareFlex.ll
+
+FlexLexer.h:
 	cp $(LEXINC)/FlexLexer.h . || test -f ./FlexLexer.h
 
 dynare_m-DynareFlex.$(OBJEXT): CXXFLAGS += -Wno-old-style-cast
 
-DynareBison.cc DynareBison.hh location.hh stack.hh position.hh: DynareBison.yy
-	$(YACC) -W -o DynareBison.cc DynareBison.yy
+# We do not use a multiple target rule for Bison, because otherwise it will be
+# run several times in parallel builds
+DynareBison.cc: DynareBison.yy
+	$(YACC) -W -o $@ $<
+
+DynareBison.hh location.hh stack.hh position.hh: DynareBison.cc
 
 all-local: $(PROGRAMS)
 
