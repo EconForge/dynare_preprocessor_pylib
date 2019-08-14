@@ -1,6 +1,6 @@
 SUBDIRS = macro
 
-BUILT_SOURCES = DynareBison.hh stack.hh position.hh location.hh DynareBison.cc DynareFlex.cc FlexLexer.h
+BUILT_SOURCES = DynareBison.hh location.hh DynareBison.cc DynareFlex.cc FlexLexer.h
 
 bin_PROGRAMS = dynare_m
 
@@ -81,7 +81,7 @@ dynare_m-DynareFlex.$(OBJEXT): CXXFLAGS += -Wno-old-style-cast
 DynareBison.cc: DynareBison.yy
 	$(YACC) -W -o $@ $<
 
-DynareBison.hh location.hh stack.hh position.hh: DynareBison.cc
+DynareBison.hh location.hh: DynareBison.cc
 
 all-local: $(PROGRAMS)
 

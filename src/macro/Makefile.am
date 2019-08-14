@@ -1,6 +1,6 @@
 noinst_LIBRARIES = libmacro.a
 
-BUILT_SOURCES = Parser.hh stack.hh position.hh location.hh Parser.cc Tokenizer.cc
+BUILT_SOURCES = Parser.hh location.hh Parser.cc Tokenizer.cc
 
 # We don't put BUILT_SOURCES in libmacro_a_SOURCES, otherwise Parser.o and Tokenizer.o will be linked two times (Automake translates Tokenizer.ll and Parser.yy into their respective .o); so BUILT_SOURCES is in EXTRA_DIST
 libmacro_a_SOURCES = \
@@ -31,4 +31,4 @@ libmacro_a-Tokenizer.$(OBJEXT): CXXFLAGS += -Wno-old-style-cast
 Parser.cc: Parser.yy
 	$(YACC) -W -o $@ $<
 
-Parser.hh location.hh stack.hh position.hh: Parser.cc
+Parser.hh location.hh: Parser.cc
