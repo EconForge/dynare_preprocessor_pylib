@@ -19,7 +19,7 @@
  */
 
 %language "c++"
-%require "3.0"
+%require "3.2"
 %defines
 %define api.value.type variant
 %define api.namespace {Tokenizer}
@@ -90,8 +90,7 @@ using namespace macro;
 %token <string> NAME TEXT QUOTED_STRING NUMBER EOL
 
 %type <DirectivePtr> statement
-%type <DirectivePtr> directive directive_one_line directive_multiline for if ifdef ifndef text
-%type <EvalPtr> eval
+%type <DirectivePtr> directive directive_one_line directive_multiline for if ifdef ifndef text eval
 %type <ExpressionPtr> primary_expr oper_expr colon_expr expr
 %type <FunctionPtr> function
 %type <VariablePtr> symbol
@@ -114,17 +113,12 @@ statements : statement
            ;
 
 statement : directive
-            { $$ = $1; }
           | text
-            { $$ = $1; }
           | eval
-            { $$ = $1; }
           ;
 
 directive : directive_one_line EOL
-            { $$ = $1; }
           | directive_multiline EOL
-            { $$ = $1; }
           ;
 
 directive_one_line : INCLUDE expr
@@ -146,13 +140,9 @@ directive_one_line : INCLUDE expr
                    ;
 
 directive_multiline : for
-                      { $$ = $1; }
                     | if
-                      { $$ = $1; }
                     | ifdef
-                      { $$ = $1; }
                     | ifndef
-                      { $$ = $1; }
                     ;
 
 for : FOR { driver.pushContext(); } NAME IN expr EOL statements ENDFOR
@@ -290,7 +280,7 @@ tuple_comma_expr : %empty
 primary_expr : LPAREN expr RPAREN
                { $$ = $2; }
              | symbol
-               { $$ = $1; }
+               { $$ = $1; } // Explicit rule needed for type conversion
              | NAME LPAREN comma_expr RPAREN
                { $$ = make_shared<Function>($1, $3, driver.env, @$); }
              | TRUE
@@ -388,7 +378,6 @@ primary_expr : LPAREN expr RPAREN
              ;
 
 oper_expr : primary_expr
-            { $$ = $1; }
           | LPAREN BOOL RPAREN oper_expr %prec CAST
             { $$ = make_shared<UnaryOp>(codes::UnaryOp::cast_bool, $4, driver.env, @$); }
           | LPAREN REAL RPAREN oper_expr %prec CAST
@@ -428,9 +417,7 @@ colon_expr : oper_expr COLON oper_expr
            ;
 
 expr : oper_expr
-       { $$ = $1; }
      | colon_expr
-       { $$ = $1; }
      | expr EQUAL_EQUAL expr
        { $$ = make_shared<BinaryOp>(codes::BinaryOp::equal_equal, $1, $3, driver.env, @$); }
      | expr NOT_EQUAL expr

@@ -19,7 +19,7 @@
  */
 
 %language "c++"
-%require "3.0"
+%require "3.2"
 %defines
 %define api.value.type variant
 %define api.namespace {Dynare}
@@ -579,9 +579,7 @@ named_var_1 : '(' named_var_elem
             ;
 
 named_var : named_var_1 ')'
-            { $$ = $1; }
           | named_var_1 COMMA ')'
-            { $$ = $1; }
           ;
 
 var_list : var_list symbol
@@ -837,7 +835,6 @@ comma_expression : expression
 expression_or_empty : %empty
                       { $$ = driver.add_nan_constant(); }
                     | expression
-                      { $$ = $1; }
 	            ;
 
 initval : INITVAL ';' initval_list END ';'
@@ -1541,13 +1538,10 @@ signed_integer : PLUS INT_NUMBER
                    $$.insert(0, "-");
                  }
                | INT_NUMBER
-                 { $$ = $1; }
                ;
 
 non_negative_number : INT_NUMBER
-                      { $$ = $1; }
                     | FLOAT_NUMBER
-                      { $$ = $1; }
                     ;
 
 signed_number : PLUS non_negative_number
@@ -1558,7 +1552,6 @@ signed_number : PLUS non_negative_number
                  $$.insert(0, "-");
                }
               | non_negative_number
-               { $$ = $1; }
               ;
 
 signed_inf : PLUS INF_CONSTANT
@@ -1570,9 +1563,7 @@ signed_inf : PLUS INF_CONSTANT
            ;
 
 signed_number_w_inf : signed_inf
-                      { $$ = $1; }
                     | signed_number
-                      { $$ = $1; }
                     ;
 
 estimated_params : ESTIMATED_PARAMS ';' estimated_list END ';' { driver.estimated_params(); };
@@ -1789,10 +1780,8 @@ prior_pdf : BETA_PDF
           ;
 
 date_str : DATES
-           { $$ = $1; }
 
 date_expr : date_str
-            { $$ = $1; }
           | date_expr PLUS INT_NUMBER
             { $$ = $1 + '+' + $3; }
           ;
@@ -2099,7 +2088,6 @@ list_sub_sampling_option : QUOTED_STRING COMMA QUOTED_STRING
                          ;
 
 sub_sampling_options : list_sub_sampling_option
-                       { $$ = $1; }
                      | sub_sampling_options COMMA list_sub_sampling_option
                        { $$ = $1 + ',' + $3; }
                      ;
@@ -2259,9 +2247,7 @@ model_comparison : MODEL_COMPARISON mc_filename_list ';'
                  ;
 
 filename : symbol
-           { $$ = $1; }
          | QUOTED_STRING
-           { $$ = $1; }
          ;
 
 parallel_local_filename_list : filename
@@ -3781,7 +3767,6 @@ vec_int_number : INT_NUMBER
                ;
 
 vec_int_elem : vec_int_number
-               { $$ = $1; }
              | INT_NUMBER ':' INT_NUMBER
                {
                  $$ = vector<int>{};
@@ -3807,9 +3792,7 @@ vec_int_1 : '[' vec_int_elem
           ;
 
 vec_int : vec_int_1 ']'
-          { $$ = $1; }
         | vec_int_1 COMMA ']'
-          { $$ = $1; }
         ;
 
 vec_str_1 : '[' QUOTED_STRING
@@ -3829,9 +3812,7 @@ vec_str_1 : '[' QUOTED_STRING
           ;
 
 vec_str : vec_str_1 ']'
-          { $$ = $1; }
         | vec_str_1 COMMA ']'
-          { $$ = $1; }
         ;
 
 vec_value_1 : '[' signed_number
@@ -3853,13 +3834,12 @@ vec_value : vec_value_1 ']'
 vec_value_list : vec_value_list COMMA vec_value
                  { $$ = $1 + ',' + $3; }
                | vec_value
-                 { $$ = $1; }
                ;
 
 vec_of_vec_value : '[' vec_value_list ']'
                    { $$ = $2; }
                  | vec_value
-                   { $$ = $1; };
+                 ;
 
 vec_value_1_w_inf : '[' signed_number_w_inf
                     { $$ = '[' + $2; }
@@ -3871,52 +3851,30 @@ vec_value_w_inf : vec_value_1_w_inf ']'
                   { $$ = $1 + ']'; };
 
 symbol : NAME
-         { $$ = $1; }
        | ALPHA
-         { $$ = $1; }
        | BETA
-         { $$ = $1; }
        | NINV
-         { $$ = $1; }
        | ABAND
-         { $$ = $1; }
        | CMS
-         { $$ = $1; }
        | NCMS
-         { $$ = $1; }
        | CNUM
-         { $$ = $1; }
        | GAMMA
-         { $$ = $1; }
        | INV_GAMMA
-         { $$ = $1; }
        | INV_GAMMA1
-         { $$ = $1; }
        | INV_GAMMA2
-         { $$ = $1; }
        | NORMAL
-         { $$ = $1; }
        | UNIFORM
-         { $$ = $1; }
        | EPS
-         { $$ = $1; }
        | PDF
-         { $$ = $1; }
        | FIG
-         { $$ = $1; }
        | NONE
-         { $$ = $1; }
        | DR
-         { $$ = $1; }
        | PRIOR
-         { $$ = $1; }
        ;
 
 
 number : INT_NUMBER
-         { $$ = $1; }
        | FLOAT_NUMBER
-         { $$ = $1; }
        ;
 %%
 
