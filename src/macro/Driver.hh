@@ -108,11 +108,11 @@ namespace macro
 
     inline void pushContext() { directive_stack.emplace(vector<DirectivePtr>()); }
 
-    inline void pushContextTop(DirectivePtr statement) { directive_stack.top().emplace_back(statement); }
+    inline void pushContextTop(DirectivePtr statement) { directive_stack.top().emplace_back(move(statement)); }
 
-    inline void pushStatements(DirectivePtr statement) { statements.emplace_back(statement); }
+    inline void pushStatements(DirectivePtr statement) { statements.emplace_back(move(statement)); }
 
-    inline vector<DirectivePtr> popContext() { auto top = directive_stack.top(); directive_stack.pop(); return top; }
+    inline vector<DirectivePtr> popContext() { auto top = move(directive_stack.top()); directive_stack.pop(); return top; }
   };
 }
 #endif
