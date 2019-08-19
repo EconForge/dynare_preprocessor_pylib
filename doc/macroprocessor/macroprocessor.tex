@@ -430,7 +430,7 @@ end;
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{Conditional directives (1/2)}
+  \frametitle{Conditional directives (1/3)}
 
   \begin{columns}[T]
     \column{0.47\linewidth}
@@ -449,6 +449,19 @@ end;
 \verb+@#endif+
     \end{block}
   \end{columns}
+\end{frame}
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{Conditional directives (2/3)}
+  \begin{block}{Syntax 3}
+    \verb+@#if +\textit{bool\_or\_real\_expr1} \\
+    \verb+   +\textit{body included if expr1 is true (or != 0)} \\
+    \verb+@#elseif +\textit{bool\_or\_real\_expr2} \\
+    \verb+   +\textit{body included if expr2 is true (or != 0)} \\
+    \verb+@#else+ \\
+    \verb+   +\textit{body included if expr1 and expr2 are false (or 0)} \\
+    \verb+@#endif+
+  \end{block}
 
   \begin{block}{Example: alternative monetary policy rules}
     \scriptsize
@@ -469,7 +482,7 @@ end;
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{Conditional directives (2/2)}
+  \frametitle{Conditional directives (3/3)}
 
   \begin{columns}[T]
     \column{0.47\linewidth}
@@ -492,7 +505,9 @@ end;
 \bigskip
 
 There is also \verb+@#ifndef+, which is the opposite of \verb+@#ifdef+
-(\textit{i.e.} it tests whether a variable is \emph{not} defined).
+(\textit{i.e.} it tests whether a variable is \emph{not} defined). NB: There is
+\emph{no} \verb+@#elseifdef+ or \verb+@#elseifndef+ directive; use
+\verb+elseif defined(variable_name)+ to achieve the desired objective.
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
