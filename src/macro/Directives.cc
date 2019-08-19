@@ -210,52 +210,37 @@ For::interpret(ostream &output, bool no_line_macro)
 void
 If::interpret(ostream &output, bool no_line_macro)
 {
-  RealPtr dp;
-  BoolPtr bp;
-  try
-    {
-      dp = dynamic_pointer_cast<Real>(condition->eval());
-      bp = dynamic_pointer_cast<Bool>(condition->eval());
-      if (!bp && !dp)
-        error(StackTrace("@#if", "The condition must evaluate to a boolean or a double", location));
-    }
-  catch (StackTrace &ex)
-    {
-      ex.push("@#if", location);
-      error(ex);
-    }
-  catch (exception &e)
-    {
-      error(StackTrace("@#if", e.what(), location));
-    }
-
-  if ((bp && *bp) || (dp && *dp))
-    loopIf(output, no_line_macro);
-  else
-    loopElse(output, no_line_macro);
+  for (auto & it : expr_and_body)
+    try
+      {
+        RealPtr dp = dynamic_pointer_cast<Real>(it.first->eval());
+        BoolPtr bp = dynamic_pointer_cast<Bool>(it.first->eval());
+        if (!bp && !dp)
+          error(StackTrace("@#if",
+                           "The condition must evaluate to a boolean or a double", location));
+        if ((bp && *bp) || (dp && *dp))
+          {
+            interpretBody(it.second, output, no_line_macro);
+            break;
+          }
+      }
+    catch (StackTrace &ex)
+      {
+        ex.push("@#if", location);
+        error(ex);
+      }
+    catch (exception &e)
+      {
+        error(StackTrace("@#if", e.what(), location));
+      }
   printEndLineInfo(output, no_line_macro);
 }
 
 void
-If::loopIf(ostream &output, bool no_line_macro)
+If::interpretBody(const vector<DirectivePtr> &body, ostream &output, bool no_line_macro)
 {
   bool printLine = !no_line_macro;
-  for (auto & statement : if_statements)
-    {
-      if (printLine)
-        {
-          statement->printLineInfo(output, no_line_macro);
-          printLine = false;
-        }
-      statement->interpret(output, no_line_macro);
-    }
-}
-
-void
-If::loopElse(ostream &output, bool no_line_macro)
-{
-  bool printLine = !no_line_macro;
-  for (auto & statement : else_statements)
+  for (auto & statement : body)
     {
       if (printLine)
         {
@@ -269,24 +254,31 @@ If::loopElse(ostream &output, bool no_line_macro)
 void
 Ifdef::interpret(ostream &output, bool no_line_macro)
 {
-  BaseTypePtr btnp = dynamic_pointer_cast<BaseType>(condition);
-  VariablePtr vp = dynamic_pointer_cast<Variable>(condition);
-  if (btnp || (vp && env.isVariableDefined(vp->getName())))
-    loopIf(output, no_line_macro);
-  else
-    loopElse(output, no_line_macro);
+  for (auto & it : expr_and_body)
+    {
+      VariablePtr vp = dynamic_pointer_cast<Variable>(it.first);
+      if (dynamic_pointer_cast<BaseType>(it.first)
+          || (vp && env.isVariableDefined(vp->getName())))
+        {
+          interpretBody(it.second, output, no_line_macro);
+          break;
+        }
+    }
   printEndLineInfo(output, no_line_macro);
 }
 
 void
 Ifndef::interpret(ostream &output, bool no_line_macro)
 {
-  BaseTypePtr btnp = dynamic_pointer_cast<BaseType>(condition);
-  VariablePtr vp = dynamic_pointer_cast<Variable>(condition);
-  if (!(btnp || (vp && env.isVariableDefined(vp->getName()))))
-    loopIf(output, no_line_macro);
-  else
-    loopElse(output, no_line_macro);
+  for (auto & it : expr_and_body)
+    {
+      VariablePtr vp = dynamic_pointer_cast<Variable>(it.first);
+      if (!(dynamic_pointer_cast<BaseType>(it.first)
+            || (vp && env.isVariableDefined(vp->getName()))))
+        {
+          interpretBody(it.second, output, no_line_macro);
+          break;
+        }
+    }
   printEndLineInfo(output, no_line_macro);
 }
-

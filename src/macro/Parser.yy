@@ -56,7 +56,7 @@ using namespace macro;
 
 }
 
-%token FOR ENDFOR IF IFDEF IFNDEF ELSE ENDIF TRUE FALSE
+%token FOR ENDFOR IF IFDEF IFNDEF ELSEIF ELSE ENDIF TRUE FALSE
 %token INCLUDE INCLUDEPATH DEFINE EQUAL D_ECHO ERROR
 %token COMMA LPAREN RPAREN LBRACKET RBRACKET WHEN
 %token BEGIN_EVAL END_EVAL ECHOMACROVARS SAVE
@@ -91,6 +91,8 @@ using namespace macro;
 
 %type <DirectivePtr> statement
 %type <DirectivePtr> directive directive_one_line directive_multiline for if ifdef ifndef text eval
+%type <vector<pair<ExpressionPtr, vector<DirectivePtr>>>> if_list if_list1
+%type <pair<ExpressionPtr, vector<DirectivePtr>>> elseif else
 %type <ExpressionPtr> primary_expr oper_expr colon_expr expr
 %type <FunctionPtr> function
 %type <VariablePtr> symbol
@@ -176,62 +178,77 @@ comma_name : NAME
              { $1.emplace_back(make_shared<Variable>($3, driver.env, @3)); $$ = $1; }
            ;
 
-if_begin : IF { driver.pushContext(); }
-         ;
 
-if : if_begin expr EOL statements ENDIF
-     {
-       auto ifContext = driver.popContext();
-       ifContext.emplace_back(make_shared<TextNode>("\n", driver.env, @5));
-       $$ = make_shared<If>($2, ifContext, driver.env, @$);
-     }
-   | if_begin expr EOL statements ELSE EOL { driver.pushContext(); } statements ENDIF
-     {
-       auto elseContext = driver.popContext();
-       elseContext.emplace_back(make_shared<TextNode>("\n", driver.env, @9));
-       auto ifContext = driver.popContext();
-       ifContext.emplace_back(make_shared<TextNode>("\n", driver.env, @5));
-       $$ = make_shared<If>($2, ifContext, elseContext, driver.env, @$);
-     }
+if : IF { driver.pushContext(); } if_list ENDIF
+     { $$ = make_shared<If>($3, driver.env, @$); }
    ;
 
-ifdef_begin : IFDEF { driver.pushContext(); }
-            ;
-
-ifdef : ifdef_begin expr EOL statements ENDIF
-        {
-          auto ifContext = driver.popContext();
-          ifContext.emplace_back(make_shared<TextNode>("\n", driver.env, @5));
-          $$ = make_shared<Ifdef>($2, ifContext, driver.env, @$);
-        }
-      | ifdef_begin expr EOL statements ELSE EOL { driver.pushContext(); } statements ENDIF
-        {
-          auto elseContext = driver.popContext();
-          elseContext.emplace_back(make_shared<TextNode>("\n", driver.env, @9));
-          auto ifContext = driver.popContext();
-          ifContext.emplace_back(make_shared<TextNode>("\n", driver.env, @5));
-          $$ = make_shared<Ifdef>($2, ifContext, elseContext, driver.env, @$);
-        }
+ifdef : IFDEF { driver.pushContext(); } if_list ENDIF
+        { $$ = make_shared<Ifdef>($3, driver.env, @$); }
       ;
 
-ifndef_begin : IFNDEF { driver.pushContext(); }
-             ;
+ifndef : IFNDEF { driver.pushContext(); } if_list ENDIF
+         { $$ = make_shared<Ifndef>($3, driver.env, @$); }
+       ;
 
-ifndef : ifndef_begin expr EOL statements ENDIF
+if_list : if_list1
+        | if_list1 else
+          {
+            $1.emplace_back($2);
+            $$ = $1;
+          }
+        ;
+
+if_list1 : expr EOL
+           {
+             auto context = driver.popContext();
+             context.emplace_back(make_shared<TextNode>("\n", driver.env, @2));
+             $$ = vector<pair<ExpressionPtr, vector<DirectivePtr>>> { make_pair($1, context) };
+           }
+         | expr EOL statements
+           {
+             auto context = driver.popContext();
+             context.emplace_back(make_shared<TextNode>("\n", driver.env, @3));
+             $$ = vector<pair<ExpressionPtr, vector<DirectivePtr>>> { make_pair($1, context) };
+           }
+         | if_list1 elseif
+           {
+             $1.emplace_back($2);
+             $$ = $1;
+           }
+         ;
+
+elseif_begin : ELSEIF { driver.pushContext(); } ;
+
+elseif : elseif_begin expr EOL
          {
-           auto ifContext = driver.popContext();
-           ifContext.emplace_back(make_shared<TextNode>("\n", driver.env, @5));
-           $$ = make_shared<Ifndef>($2, ifContext, driver.env, @$);
+           auto context = driver.popContext();
+           context.emplace_back(make_shared<TextNode>("\n", driver.env, @3));
+           $$ = make_pair($2, context);
          }
-       | ifndef_begin expr EOL statements ELSE EOL { driver.pushContext(); } statements ENDIF
+       | elseif_begin expr EOL statements
          {
-           auto elseContext = driver.popContext();
-           elseContext.emplace_back(make_shared<TextNode>("\n", driver.env, @9));
-           auto ifContext = driver.popContext();
-           ifContext.emplace_back(make_shared<TextNode>("\n", driver.env, @5));
-           $$ = make_shared<Ifndef>($2, ifContext, elseContext, driver.env, @$);
+           auto context = driver.popContext();
+           context.emplace_back(make_shared<TextNode>("\n", driver.env, @4));
+           $$ = make_pair($2, context);
          }
        ;
+
+else_begin : ELSE { driver.pushContext(); } ;
+
+else : else_begin EOL
+       {
+         auto context = driver.popContext();
+         context.emplace_back(make_shared<TextNode>("\n", driver.env, @2));
+         $$ = make_pair(make_shared<Bool>(true, driver.env, @1), context);
+       }
+     | else_begin EOL statements
+       {
+         auto context = driver.popContext();
+         context.emplace_back(make_shared<TextNode>("\n", driver.env, @3));
+         $$ = make_pair(make_shared<Bool>(true, driver.env, @1), context);
+       }
+     ;
 
 text : TEXT
        { $$ = make_shared<TextNode>($1, driver.env, @$); }

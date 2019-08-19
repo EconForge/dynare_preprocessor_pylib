@@ -72,6 +72,7 @@ CONT \\\\{SPC}*
 <directive>if              { BEGIN(expr); return token::IF; }
 <directive>ifdef           { BEGIN(expr); return token::IFDEF; }
 <directive>ifndef          { BEGIN(expr); return token::IFNDEF; }
+<directive>elseif          { BEGIN(expr); return token::ELSEIF; }
 <directive>else            { BEGIN(end_line); return token::ELSE; }
 <directive>endif           { BEGIN(end_line); return token::ENDIF; }
 <directive>for             { BEGIN(expr); return token::FOR; }

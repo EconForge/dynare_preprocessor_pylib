@@ -163,39 +163,23 @@ namespace macro
   class If : public Directive
   {
   protected:
-    const ExpressionPtr condition;
-    const vector<DirectivePtr> if_statements;
-    const vector<DirectivePtr> else_statements;
+    const vector<pair<ExpressionPtr, vector<DirectivePtr>>> expr_and_body;
   public:
-    If(ExpressionPtr condition_arg,
-       vector<DirectivePtr> if_statements_arg,
+    If(vector<pair<ExpressionPtr, vector<DirectivePtr>>> expr_and_body_arg,
        Environment &env_arg, Tokenizer::location location_arg) :
-      Directive(env_arg, move(location_arg)), condition{move(condition_arg)}, if_statements{move(if_statements_arg)} { }
-    If(ExpressionPtr condition_arg,
-       vector<DirectivePtr> if_statements_arg,
-       vector<DirectivePtr> else_statements_arg,
-       Environment &env_arg, Tokenizer::location location_arg) :
-      Directive(env_arg, move(location_arg)),
-      condition{move(condition_arg)}, if_statements{move(if_statements_arg)}, else_statements{move(else_statements_arg)} { }
+      Directive(env_arg, move(location_arg)), expr_and_body{move(expr_and_body_arg)} { }
     void interpret(ostream &output, bool no_line_macro) override;
   protected:
-    void loopIf(ostream &output, bool no_line_macro);
-    void loopElse(ostream &output, bool no_line_macro);
+    void interpretBody(const vector<DirectivePtr> &body, ostream &output, bool no_line_macro);
   };
 
 
   class Ifdef : public If
   {
   public:
-    Ifdef(ExpressionPtr condition_arg,
-          vector<DirectivePtr> if_statements_arg,
+    Ifdef(vector<pair<ExpressionPtr, vector<DirectivePtr>>> expr_and_body_arg,
           Environment &env_arg, Tokenizer::location location_arg) :
-      If(move(condition_arg), move(if_statements_arg), env_arg, move(location_arg)) { }
-    Ifdef(ExpressionPtr condition_arg,
-          vector<DirectivePtr> if_statements_arg,
-          vector<DirectivePtr> else_statements_arg,
-          Environment &env_arg, Tokenizer::location location_arg) :
-      If(move(condition_arg), move(if_statements_arg), move(else_statements_arg), env_arg, move(location_arg)) { }
+      If(move(expr_and_body_arg), env_arg, move(location_arg)) { }
     void interpret(ostream &output, bool no_line_macro) override;
   };
 
@@ -203,15 +187,9 @@ namespace macro
   class Ifndef : public If
   {
   public:
-    Ifndef(ExpressionPtr condition_arg,
-           vector<DirectivePtr> if_statements_arg,
+    Ifndef(vector<pair<ExpressionPtr, vector<DirectivePtr>>> expr_and_body_arg,
            Environment &env_arg, Tokenizer::location location_arg) :
-      If(move(condition_arg), move(if_statements_arg), env_arg, move(location_arg)) { }
-    Ifndef(ExpressionPtr condition_arg,
-           vector<DirectivePtr> if_statements_arg,
-           vector<DirectivePtr> else_statements_arg,
-           Environment &env_arg, Tokenizer::location location_arg) :
-      If(move(condition_arg), move(if_statements_arg), move(else_statements_arg), env_arg, move(location_arg)) { }
+      If(move(expr_and_body_arg), env_arg, move(location_arg)) { }
     void interpret(ostream &output, bool no_line_macro) override;
   };
 }
