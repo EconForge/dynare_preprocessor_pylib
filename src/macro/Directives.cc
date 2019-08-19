@@ -39,14 +39,8 @@ Eval::interpret(ostream &output, bool no_line_macro)
     }
 }
 
-void
-Include::interpret(ostream &output, bool no_line_macro)
-{
-  error(StackTrace("@#include", "should never be interpreted", location));
-}
-
 string
-Include::interpretAndGetName()
+Include::interpretAndGetName() const
 {
   try
     {
@@ -67,14 +61,8 @@ Include::interpretAndGetName()
   return "";
 }
 
-void
-IncludePath::interpret(ostream &output, bool no_line_macro)
-{
-error(StackTrace("@#includepath", "should never be interpreted", location));
-}
-
 string
-IncludePath::interpretAndGetPath()
+IncludePath::interpretAndGetPath() const
 {
   try
     {
