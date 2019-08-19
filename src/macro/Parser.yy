@@ -70,6 +70,8 @@ using namespace macro;
 
 %token BOOL REAL STRING TUPLE ARRAY
 
+%token DEFINED
+
 %left OR
 %left AND
 %left EQUAL_EQUAL NOT_EQUAL
@@ -392,6 +394,8 @@ primary_expr : LPAREN expr RPAREN
                { $$ = make_shared<TrinaryOp>(codes::TrinaryOp::normpdf, $3, $5, $7, driver.env, @$); }
              | NORMCDF LPAREN expr COMMA expr COMMA expr RPAREN
                { $$ = make_shared<TrinaryOp>(codes::TrinaryOp::normcdf, $3, $5, $7, driver.env, @$); }
+             | DEFINED LPAREN NAME RPAREN
+               { $$ = make_shared<UnaryOp>(codes::UnaryOp::defined, make_shared<String>($3, driver.env, @3), driver.env, @$); }
              ;
 
 oper_expr : primary_expr

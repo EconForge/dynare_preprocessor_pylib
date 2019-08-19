@@ -861,6 +861,8 @@ UnaryOp::eval()
           return argbt->normpdf();
         case codes::UnaryOp::normcdf:
           return argbt->normcdf();
+        case codes::UnaryOp::defined:
+          return argbt->defined();
         }
     }
   catch (StackTrace &ex)
@@ -1203,6 +1205,8 @@ UnaryOp::to_string() const noexcept
       return "normpdf(" + retval + ")";
     case codes::UnaryOp::normcdf:
       return "normcdf(" + retval + ")";
+    case codes::UnaryOp::defined:
+      return "defined(" + retval + ")";
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -1462,6 +1466,9 @@ UnaryOp::print(ostream &output, bool matlab_output) const noexcept
       break;
     case codes::UnaryOp::normcdf:
       output << "normcdf(";
+      break;
+    case codes::UnaryOp::defined:
+      output << "defined(";
       break;
     }
 

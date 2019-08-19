@@ -191,6 +191,7 @@ namespace macro
     virtual StringPtr cast_string() const { throw StackTrace("This type cannot be cast to a string"); }
     virtual TuplePtr cast_tuple() const { throw StackTrace("This type cannot be cast to a tuple"); }
     virtual ArrayPtr cast_array() const { throw StackTrace("This type cannot be cast to an array"); }
+    virtual BoolPtr defined() const { throw StackTrace("Operator `defined` does not exist for this type"); }
   };
 
 
@@ -357,6 +358,10 @@ namespace macro
     inline ArrayPtr cast_array() const override
     {
       return make_shared<Array>(vector<ExpressionPtr>{make_shared<String>(value, env)}, env);
+    }
+    inline BoolPtr defined() const override
+    {
+      return make_shared<Bool>(env.isSymbolDefined(value), env);
     }
   };
 

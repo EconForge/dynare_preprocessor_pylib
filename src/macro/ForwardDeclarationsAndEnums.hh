@@ -104,7 +104,8 @@ namespace macro
        lgamma,
        round,
        normpdf,
-       normcdf
+       normcdf,
+       defined
       };
 
     enum class BinaryOp
