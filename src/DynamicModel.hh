@@ -251,7 +251,7 @@ private:
   //! Create a legacy *_dynamic.m file for Matlab/Octave not yet using the temporary terms array interface
   void writeDynamicMatlabCompatLayer(const string &basename) const;
 
-  void getEquationNumbersFromTags(vector<int> &eqnumber, set<string> &eqtags) const;
+  vector<int> getEquationNumbersFromTags(const set<string> &eqtags) const;
 
   void findPacExpectationEquationNumbers(vector<int> &eqnumber) const;
 
@@ -323,12 +323,13 @@ public:
   map<string, map<tuple<int, int, int>, expr_t>> fillAutoregressiveMatrix(bool is_var) const;
 
   //! Fill Error Component Matrix for trend_component_model
-  void fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, expr_t>> &A0r, map<string, map<tuple<int, int, int>, expr_t>> &A0starr, ExprNode::subst_table_t &diff_subst_table) const;
+  /*! Returns a pair (A0r, A0starr) */
+  pair<map<string, map<tuple<int, int, int>, expr_t>>, map<string, map<tuple<int, int, int>, expr_t>>> fillErrorComponentMatrix(const ExprNode::subst_table_t &diff_subst_table) const;
 
   //! Fill the Trend Component Model Table
   void fillTrendComponentModelTable() const;
   void fillTrendComponentModelTableFromOrigModel(StaticModel &static_model) const;
-  void fillTrendComponentmodelTableAREC(ExprNode::subst_table_t &diff_subst_table) const;
+  void fillTrendComponentmodelTableAREC(const ExprNode::subst_table_t &diff_subst_table) const;
 
   //! Fill the Var Model Table
   void fillVarModelTable() const;
@@ -344,7 +345,7 @@ public:
   void addEquationsForVar();
 
   //! Get Pac equation parameter info
-  void walkPacParameters(const string &name, map<pair<string, string>, pair<string, int>> &eqtag_and_lag);
+  map<pair<string, string>, pair<string, int>> walkPacParameters(const string &name);
   //! Add var_model info to pac_expectation nodes
   void fillPacModelInfo(const string &pac_model_name,
                         vector<int> lhs,
@@ -442,16 +443,16 @@ public:
   void substituteAdl();
 
   //! Creates aux vars for all unary operators
-  void substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table);
+  pair<diff_table_t, ExprNode::subst_table_t> substituteUnaryOps(StaticModel &static_model);
 
   //! Creates aux vars for certain unary operators: originally implemented for support of VARs
-  void substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, set<string> &eq_tags);
+  pair<diff_table_t, ExprNode::subst_table_t> substituteUnaryOps(StaticModel &static_model, const set<string> &eq_tags);
 
   //! Creates aux vars for certain unary operators: originally implemented for support of VARs
-  void substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, vector<int> &eqnumbers);
+  pair<diff_table_t, ExprNode::subst_table_t> substituteUnaryOps(StaticModel &static_model, const vector<int> &eqnumbers);
 
   //! Substitutes diff operator
-  void substituteDiff(StaticModel &static_model, diff_table_t &diff_table, ExprNode::subst_table_t &diff_subst_table, vector<expr_t> &pac_growth);
+  pair<diff_table_t, ExprNode::subst_table_t> substituteDiff(StaticModel &static_model, vector<expr_t> &pac_growth);
 
   //! Substitute VarExpectation operators
   void substituteVarExpectation(const map<string, expr_t> &subst_table);
@@ -498,7 +499,7 @@ public:
 
   //! Table to undiff LHS variables for pac vector z
   vector<int> getUndiffLHSForPac(const string &aux_model_name,
-                                 ExprNode::subst_table_t &diff_subst_table) const;
+                                 const ExprNode::subst_table_t &diff_subst_table) const;
 
   //! Transforms the model by replacing trend variables with a 1
   void removeTrendVariableFromEquations();

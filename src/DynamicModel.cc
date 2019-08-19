@@ -4170,11 +4170,11 @@ DynamicModel::fillTrendComponentModelTable() const
   trend_component_model_table.setVals(eqnums, trend_eqnums, lhsr, lhs_expr_tr);
 }
 
-void
-DynamicModel::fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, expr_t>> &A0r,
-                                       map<string, map<tuple<int, int, int>, expr_t>> &A0starr,
-                                       ExprNode::subst_table_t &diff_subst_table) const
+pair<map<string, map<tuple<int, int, int>, expr_t>>, map<string, map<tuple<int, int, int>, expr_t>>>
+DynamicModel::fillErrorComponentMatrix(const ExprNode::subst_table_t &diff_subst_table) const
 {
+  map<string, map<tuple<int, int, int>, expr_t>> A0r, A0starr;
+
   for (const auto & it : trend_component_model_table.getEqNums())
     {
       int i = 0;
@@ -4198,6 +4198,8 @@ DynamicModel::fillErrorComponentMatrix(map<string, map<tuple<int, int, int>, exp
       A0r[it.first] = A0;
       A0starr[it.first] = A0star;
     }
+
+  return { A0r, A0starr };
 }
 
 void
@@ -4268,12 +4270,12 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel(StaticModel &static_mode
 }
 
 void
-DynamicModel::fillTrendComponentmodelTableAREC(ExprNode::subst_table_t &diff_subst_table) const
+DynamicModel::fillTrendComponentmodelTableAREC(const ExprNode::subst_table_t &diff_subst_table) const
 {
-  map<string, map<tuple<int, int, int>, expr_t>> ARr, A0r, A0starr;
-  ARr = fillAutoregressiveMatrix(false);
+  auto ARr = fillAutoregressiveMatrix(false);
   trend_component_model_table.setAR(ARr);
-  fillErrorComponentMatrix(A0r, A0starr, diff_subst_table);
+  map<string, map<tuple<int, int, int>, expr_t>> A0r, A0starr;
+  tie(A0r, A0starr) = fillErrorComponentMatrix(diff_subst_table);
   trend_component_model_table.setA0(A0r, A0starr);
 }
 
@@ -4337,7 +4339,7 @@ DynamicModel::addEquationsForVar()
 
 vector<int>
 DynamicModel::getUndiffLHSForPac(const string &aux_model_name,
-                                 ExprNode::subst_table_t &diff_subst_table) const
+                                 const ExprNode::subst_table_t &diff_subst_table) const
 {
   vector<expr_t> lhs_expr_t = trend_component_model_table.getLhsExprT(aux_model_name);
   vector<int> lhs = trend_component_model_table.getLhs(aux_model_name);
@@ -4404,9 +4406,11 @@ DynamicModel::getUndiffLHSForPac(const string &aux_model_name,
   return lhs;
 }
 
-void
-DynamicModel::walkPacParameters(const string &name, map<pair<string, string>, pair<string, int>> &eqtag_and_lag)
+map<pair<string, string>, pair<string, int>>
+DynamicModel::walkPacParameters(const string &name)
 {
+  map<pair<string, string>, pair<string, int>> eqtag_and_lag;
+
   int i = 0;
   for (auto & equation : equations)
     {
@@ -4507,6 +4511,7 @@ DynamicModel::walkPacParameters(const string &name, map<pair<string, string>, pa
           eqtag_and_lag[{name, eqtag}] = {eq, 0};
         }
     }
+  return eqtag_and_lag;
 }
 
 void
@@ -6212,9 +6217,10 @@ DynamicModel::substituteAdl()
     equation = dynamic_cast<BinaryOpNode *>(equation->substituteAdl());
 }
 
-void
-DynamicModel::getEquationNumbersFromTags(vector<int> &eqnumbers, set<string> &eqtags) const
+vector<int>
+DynamicModel::getEquationNumbersFromTags(const set<string> &eqtags) const
 {
+  vector<int> eqnumbers;
   for (auto & eqtag : eqtags)
     for (const auto & equation_tag : equation_tags)
       if (equation_tag.second.first == "name"
@@ -6223,6 +6229,7 @@ DynamicModel::getEquationNumbersFromTags(vector<int> &eqnumbers, set<string> &eq
           eqnumbers.push_back(equation_tag.first);
           break;
         }
+  return eqnumbers;
 }
 
 void
@@ -6238,26 +6245,28 @@ DynamicModel::findPacExpectationEquationNumbers(vector<int> &eqnumbers) const
     }
 }
 
-void
-DynamicModel::substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table)
+pair<diff_table_t, ExprNode::subst_table_t>
+DynamicModel::substituteUnaryOps(StaticModel &static_model)
 {
   vector<int> eqnumbers(equations.size());
   iota(eqnumbers.begin(), eqnumbers.end(), 0);
-  substituteUnaryOps(static_model, nodes, subst_table, eqnumbers);
+  return substituteUnaryOps(static_model, eqnumbers);
 }
 
-void
-DynamicModel::substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, set<string> &var_model_eqtags)
+pair<diff_table_t, ExprNode::subst_table_t>
+DynamicModel::substituteUnaryOps(StaticModel &static_model, const set<string> &var_model_eqtags)
 {
-  vector<int> eqnumbers;
-  getEquationNumbersFromTags(eqnumbers, var_model_eqtags);
+  vector<int> eqnumbers = getEquationNumbersFromTags(var_model_eqtags);
   findPacExpectationEquationNumbers(eqnumbers);
-  substituteUnaryOps(static_model, nodes, subst_table, eqnumbers);
+  return substituteUnaryOps(static_model, eqnumbers);
 }
 
-void
-DynamicModel::substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes, ExprNode::subst_table_t &subst_table, vector<int> &eqnumbers)
+pair<diff_table_t, ExprNode::subst_table_t>
+DynamicModel::substituteUnaryOps(StaticModel &static_model, const vector<int> &eqnumbers)
 {
+  diff_table_t nodes;
+  ExprNode::subst_table_t subst_table;
+
   // Find matching unary ops that may be outside of diffs (i.e., those with different lags)
   set<int> used_local_vars;
   for (int eqnumber : eqnumbers)
@@ -6293,11 +6302,16 @@ DynamicModel::substituteUnaryOps(StaticModel &static_model, diff_table_t &nodes,
 
   if (subst_table.size() > 0)
     cout << "Substitution of Unary Ops: added " << neweqs.size() << " auxiliary variables and equations." << endl;
+
+  return { nodes, subst_table };
 }
 
-void
-DynamicModel::substituteDiff(StaticModel &static_model, diff_table_t &diff_table, ExprNode::subst_table_t &diff_subst_table, vector<expr_t> &pac_growth)
+pair<diff_table_t, ExprNode::subst_table_t>
+DynamicModel::substituteDiff(StaticModel &static_model, vector<expr_t> &pac_growth)
 {
+  diff_table_t diff_table;
+  ExprNode::subst_table_t diff_subst_table;
+
   set<int> used_local_vars;
   for (const auto & equation : equations)
     equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
@@ -6359,6 +6373,8 @@ DynamicModel::substituteDiff(StaticModel &static_model, diff_table_t &diff_table
 
   if (diff_subst_table.size() > 0)
     cout << "Substitution of Diff operator: added " << neweqs.size() << " auxiliary variables and equations." << endl;
+
+  return { diff_table, diff_subst_table };
 }
 
 void

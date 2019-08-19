@@ -409,15 +409,15 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   diff_table_t unary_ops_nodes;
   ExprNode::subst_table_t unary_ops_subst_table;
   if (transform_unary_ops)
-    dynamic_model.substituteUnaryOps(diff_static_model, unary_ops_nodes, unary_ops_subst_table);
+    tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps(diff_static_model);
   else
     // substitute only those unary ops that appear in auxiliary model equations
-    dynamic_model.substituteUnaryOps(diff_static_model, unary_ops_nodes, unary_ops_subst_table, eqtags);
+    tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps(diff_static_model, eqtags);
 
   // Create auxiliary variable and equations for Diff operators
   diff_table_t diff_table;
   ExprNode::subst_table_t diff_subst_table;
-  dynamic_model.substituteDiff(diff_static_model, diff_table, diff_subst_table, pac_growth);
+  tie(diff_table, diff_subst_table) = dynamic_model.substituteDiff(diff_static_model, pac_growth);
 
   // Fill Trend Component Model Table
   dynamic_model.fillTrendComponentModelTable();
@@ -463,8 +463,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
                cerr << "Error: aux_model_name not recognized as VAR model or Trend Component model" << endl;
                exit(EXIT_FAILURE);
              }
-           map<pair<string, string>, pair<string, int>> eqtag_and_lag;
-           dynamic_model.walkPacParameters(pms->name, eqtag_and_lag);
+           auto eqtag_and_lag = dynamic_model.walkPacParameters(pms->name);
            original_model.getPacMaxLag(pms->name, eqtag_and_lag);
            if (pms->aux_model_name == "")
              dynamic_model.addPacModelConsistentExpectationEquation(pms->name, symbol_table.getID(pms->discount),
