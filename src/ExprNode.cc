@@ -3599,12 +3599,6 @@ UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nod
   if (it == nodes.end())
     return buildSimilarUnaryOpNode(argsubst, datatree);
 
-  if (arg->maxLead() > 0)
-    {
-      cerr << "Cannot substitute unary operations that contain leads" << endl;
-      exit(EXIT_FAILURE);
-    }
-
   string unary_op;
   switch (op_code)
     {
@@ -3682,6 +3676,16 @@ UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nod
   for (auto rit = it->second.rbegin(); rit != it->second.rend(); ++rit)
     if (rit == it->second.rbegin())
       {
+        /* Verify that we’re not operating on a node with leads, since the
+           transformation does take into account the expectation operator. We only
+           need to do this for the first iteration of the loop, because we’re
+           going from leads to lags. */
+        if (rit->second->maxLead() > 0)
+          {
+            cerr << "Cannot substitute unary operations that contain leads" << endl;
+            exit(EXIT_FAILURE);
+          }
+
         int symb_id;
         auto *vn = dynamic_cast<VariableNode *>(argsubst);
         if (vn == nullptr)
