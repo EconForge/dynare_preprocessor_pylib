@@ -445,10 +445,10 @@ public:
   //! Creates aux vars for all unary operators
   pair<diff_table_t, ExprNode::subst_table_t> substituteUnaryOps(StaticModel &static_model);
 
-  //! Creates aux vars for certain unary operators: originally implemented for support of VARs
+  //! Creates aux vars for unary operators in certain equations: originally implemented for support of VARs
   pair<diff_table_t, ExprNode::subst_table_t> substituteUnaryOps(StaticModel &static_model, const set<string> &eq_tags);
 
-  //! Creates aux vars for certain unary operators: originally implemented for support of VARs
+  //! Creates aux vars for unary operators in certain equations: originally implemented for support of VARs
   pair<diff_table_t, ExprNode::subst_table_t> substituteUnaryOps(StaticModel &static_model, const vector<int> &eqnumbers);
 
   //! Substitutes diff operator

@@ -3464,9 +3464,8 @@ UnaryOpNode::findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_t
   auto it = nodes.find(sthis);
   if (it != nodes.end())
     {
-      for (map<int, expr_t>::const_iterator it1 = it->second.begin();
-           it1 != it->second.end(); it1++)
-        if (arg == it1->second)
+      for (const auto &it1 : it->second)
+        if (arg == it1.second)
           return;
       it->second[arg_max_lag] = const_cast<UnaryOpNode *>(this);
     }
@@ -3488,9 +3487,8 @@ UnaryOpNode::findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) 
   auto it = diff_table.find(sthis);
   if (it != diff_table.end())
     {
-      for (map<int, expr_t>::const_iterator it1 = it->second.begin();
-           it1 != it->second.end(); it1++)
-        if (arg == it1->second)
+      for (const auto &it1 : it->second)
+        if (arg == it1.second)
           return;
       it->second[arg_max_lag] = const_cast<UnaryOpNode *>(this);
     }
@@ -3508,11 +3506,12 @@ expr_t
 UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table,
                             vector<BinaryOpNode *> &neweqs) const
 {
+  // If this is not a diff node, then substitute recursively and return
   expr_t argsubst = arg->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
   if (op_code != UnaryOpcode::diff)
     return buildSimilarUnaryOpNode(argsubst, datatree);
 
-  subst_table_t::const_iterator sit = subst_table.find(this);
+  auto sit = subst_table.find(this);
   if (sit != subst_table.end())
     return const_cast<VariableNode *>(sit->second);
 
@@ -3521,9 +3520,9 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
   int symb_id;
   if (it == diff_table.end() || it->second[-arg->maxLagWithDiffsExpanded()] != this)
     {
-      // diff does not appear in VAR equations
-      // so simply create aux var and return
-      // Once the comparison of expression nodes works, come back and remove this part, folding into the next loop.
+      /* diff does not appear in VAR equations, so simply create aux var and return.
+         Once the comparison of expression nodes works, come back and remove
+         this part, folding into the next loop. */
       symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
       VariableNode *aux_var = datatree.AddVariable(symb_id, 0);
       neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(aux_var,
@@ -3533,10 +3532,13 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
       return const_cast<VariableNode *>(subst_table[this]);
     }
 
+  /* At this point, we know that this node (and its lagged/leaded brothers)
+     must be substituted. We create the auxiliary variable and fill the
+     substitution table for all those similar nodes, in an iteration going from
+     leads to lags. */
   int last_arg_max_lag = 0;
   VariableNode *last_aux_var = nullptr;
-  for (auto rit = it->second.rbegin();
-       rit != it->second.rend(); rit++)
+  for (auto rit = it->second.rbegin(); rit != it->second.rend(); ++rit)
     {
       expr_t argsubst = dynamic_cast<UnaryOpNode *>(rit->second)->
           arg->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
@@ -3585,10 +3587,12 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
 expr_t
 UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  subst_table_t::const_iterator sit = subst_table.find(this);
+  auto sit = subst_table.find(this);
   if (sit != subst_table.end())
     return const_cast<VariableNode *>(sit->second);
 
+  /* If (the static equivalent of) this node is not marked for substitution,
+     then substitute recursively and return. */
   auto *sthis = dynamic_cast<UnaryOpNode *>(this->toStatic(static_datatree));
   auto it = nodes.find(sthis);
   expr_t argsubst = arg->substituteUnaryOpNodes(static_datatree, nodes, subst_table, neweqs);
@@ -3601,7 +3605,7 @@ UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nod
       exit(EXIT_FAILURE);
     }
 
-  string unary_op = "";
+  string unary_op;
   switch (op_code)
     {
     case UnaryOpcode::exp:
@@ -3665,15 +3669,17 @@ UnaryOpNode::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nod
       unary_op = "erf";
       break;
     default:
-      {
-        cerr << "UnaryOpNode::substituteUnaryOpNodes: Shouldn't arrive here" << endl;
-        exit(EXIT_FAILURE);
-      }
+      cerr << "UnaryOpNode::substituteUnaryOpNodes: Shouldn't arrive here" << endl;
+      exit(EXIT_FAILURE);
     }
 
+  /* At this point, we know that this node (and its lagged/leaded brothers)
+     must be substituted. We create the auxiliary variable and fill the
+     substitution table for all those similar nodes, in an iteration going from
+     leads to lags. */
   int base_aux_lag = 0;
   VariableNode *aux_var = nullptr;
-  for (auto rit = it->second.rbegin(); rit != it->second.rend(); rit++)
+  for (auto rit = it->second.rbegin(); rit != it->second.rend(); ++rit)
     if (rit == it->second.rbegin())
       {
         int symb_id;

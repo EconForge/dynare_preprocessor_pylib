@@ -558,15 +558,32 @@ class ExprNode
       //! Substitute VarExpectation nodes
       virtual expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const = 0;
 
-      //! Substitute diff operator
+      //! Mark diff nodes to be substituted
+      /*! The various nodes that are equivalent from a static point of view are
+          grouped together in the “nodes” table, referenced by their maximum
+          lag.
+          TODO: This is technically wrong for complex expressions, and
+          should be improved by grouping together only those nodes that are
+          equivalent up to a shift in all leads/lags. */
       virtual void findDiffNodes(DataTree &static_datatree, diff_table_t &diff_table) const = 0;
-      virtual void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const = 0;
-      virtual int findTargetVariable(int lhs_symb_id) const = 0;
+      //! Substitute diff operator
       virtual expr_t substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
+
+      //! Mark unary ops nodes to be substituted
+      /*! The various nodes that are equivalent from a static point of view are
+          grouped together in the “nodes” table, referenced by their maximum
+          lag.
+          TODO: This is technically wrong for complex expressions, and
+          should be improved by grouping together only those nodes that are
+          equivalent up to a shift in all leads/lags. */
+      virtual void findUnaryOpNodesForAuxVarCreation(DataTree &static_datatree, diff_table_t &nodes) const = 0;
+      //! Substitute unary ops nodes
       virtual expr_t substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
 
       //! Substitute pac_expectation operator
       virtual expr_t substitutePacExpectation(const string & name, expr_t subexpr) = 0;
+
+      virtual int findTargetVariable(int lhs_symb_id) const = 0;
 
       //! Add ExprNodes to the provided datatree
       virtual expr_t clone(DataTree &datatree) const = 0;
