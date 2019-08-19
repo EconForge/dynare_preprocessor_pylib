@@ -80,16 +80,14 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
           statement->printLineInfo(output, no_line_macro);
           printLine = false;
         }
-      statement->interpret(output, no_line_macro);
-
-      auto ipp = dynamic_pointer_cast<IncludePath>(statement);
-      if (ipp)
-        paths.emplace_back(ipp->getPath());
 
       auto ip = dynamic_pointer_cast<Include>(statement);
-      if (ip)
+      auto ipp = dynamic_pointer_cast<IncludePath>(statement);
+      if (ipp)
+        paths.emplace_back(ipp->interpretAndGetPath());
+      else if (ip)
         {
-          string filename = ip->getName();
+          string filename = ip->interpretAndGetName();
           ifstream incfile(filename, ios::binary);
           if (incfile.fail())
             {
@@ -116,6 +114,8 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
           Driver m(env, no_line_macro);
           m.parse(filename, basename, incfile, output, debug, vector<pair<string, string>>{}, paths);
         }
+      else
+        statement->interpret(output, no_line_macro);
     }
 }
 

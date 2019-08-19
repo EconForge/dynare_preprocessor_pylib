@@ -42,12 +42,18 @@ Eval::interpret(ostream &output, bool no_line_macro)
 void
 Include::interpret(ostream &output, bool no_line_macro)
 {
+  error(StackTrace("@#include", "should never be interpreted", location));
+}
+
+string
+Include::interpretAndGetName()
+{
   try
     {
       StringPtr msp = dynamic_pointer_cast<String>(expr->eval());
       if (!msp)
         throw StackTrace("File name does not evaluate to a string");
-      name = *msp;
+      return msp->to_string();
     }
   catch (StackTrace &ex)
     {
@@ -58,17 +64,24 @@ Include::interpret(ostream &output, bool no_line_macro)
     {
       error(StackTrace("@#include", e.what(), location));
     }
+  return "";
 }
 
 void
 IncludePath::interpret(ostream &output, bool no_line_macro)
+{
+error(StackTrace("@#includepath", "should never be interpreted", location));
+}
+
+string
+IncludePath::interpretAndGetPath()
 {
   try
     {
       StringPtr msp = dynamic_pointer_cast<String>(expr->eval());
       if (!msp)
         throw StackTrace("File name does not evaluate to a string");
-      path = *msp;
+      return *msp;
     }
   catch (StackTrace &ex)
     {
@@ -79,6 +92,7 @@ IncludePath::interpret(ostream &output, bool no_line_macro)
     {
       error(StackTrace("@#includepath", e.what(), location));
     }
+  return "";
 }
 
 void
