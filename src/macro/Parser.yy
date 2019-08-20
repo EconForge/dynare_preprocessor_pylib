@@ -205,13 +205,13 @@ if_list1 : expr EOL
            {
              auto context = driver.popContext();
              context.emplace_back(make_shared<TextNode>("\n", driver.env, @2));
-             $$ = vector<pair<ExpressionPtr, vector<DirectivePtr>>> { make_pair($1, context) };
+             $$ = vector<pair<ExpressionPtr, vector<DirectivePtr>>> {{$1, context}};
            }
          | expr EOL statements
            {
              auto context = driver.popContext();
              context.emplace_back(make_shared<TextNode>("\n", driver.env, @3));
-             $$ = vector<pair<ExpressionPtr, vector<DirectivePtr>>> { make_pair($1, context) };
+             $$ = vector<pair<ExpressionPtr, vector<DirectivePtr>>> {{$1, context}};
            }
          | if_list1 elseif
            {
@@ -226,13 +226,13 @@ elseif : elseif_begin expr EOL
          {
            auto context = driver.popContext();
            context.emplace_back(make_shared<TextNode>("\n", driver.env, @3));
-           $$ = make_pair($2, context);
+           $$ = {$2, context};
          }
        | elseif_begin expr EOL statements
          {
            auto context = driver.popContext();
            context.emplace_back(make_shared<TextNode>("\n", driver.env, @4));
-           $$ = make_pair($2, context);
+           $$ = {$2, context};
          }
        ;
 
@@ -242,13 +242,13 @@ else : else_begin EOL
        {
          auto context = driver.popContext();
          context.emplace_back(make_shared<TextNode>("\n", driver.env, @2));
-         $$ = make_pair(make_shared<Bool>(true, driver.env, @1), context);
+         $$ = {make_shared<Bool>(true, driver.env, @1), context};
        }
      | else_begin EOL statements
        {
          auto context = driver.popContext();
          context.emplace_back(make_shared<TextNode>("\n", driver.env, @3));
-         $$ = make_pair(make_shared<Bool>(true, driver.env, @1), context);
+         $$ = {make_shared<Bool>(true, driver.env, @1), context};
        }
      ;
 
