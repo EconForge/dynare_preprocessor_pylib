@@ -1020,7 +1020,7 @@ Comprehension::eval()
 
       if (!c_when)
         if (!c_expr)
-          throw StackTrace("Comp", "DINGDONG",location);
+          throw StackTrace("Comprehension", "Internal Error: Impossible case", location);
         else
           values.emplace_back(c_expr->clone()->eval());
       else
