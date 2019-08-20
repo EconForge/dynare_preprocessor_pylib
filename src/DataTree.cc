@@ -341,7 +341,7 @@ expr_t
 DataTree::AddDiff(expr_t iArg1)
 {
   if (iArg1->maxLead() > 0)
-    // Issue #21: always substitute diffs with lags
+    // Issue preprocessor#21: always expand diffs with leads
     return AddMinus(iArg1, iArg1->decreaseLeadsLags(1));
   return AddUnaryOp(UnaryOpcode::diff, iArg1);
 }

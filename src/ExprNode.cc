@@ -3517,13 +3517,12 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
 
   expr_t sthis = dynamic_cast<UnaryOpNode *>(this->toStatic(static_datatree));
   auto it = diff_table.find(sthis);
-  int symb_id;
   if (it == diff_table.end() || it->second[-arg->maxLagWithDiffsExpanded()] != this)
     {
       /* diff does not appear in VAR equations, so simply create aux var and return.
          Once the comparison of expression nodes works, come back and remove
          this part, folding into the next loop. */
-      symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
+      int symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
       VariableNode *aux_var = datatree.AddVariable(symb_id, 0);
       neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(aux_var,
                                                                       datatree.AddMinus(argsubst,
@@ -3543,6 +3542,7 @@ UnaryOpNode::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table,
       expr_t argsubst = dynamic_cast<UnaryOpNode *>(rit->second)->
           arg->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
       auto *vn = dynamic_cast<VariableNode *>(argsubst);
+      int symb_id;
       if (rit == it->second.rbegin())
         {
           if (vn != nullptr)

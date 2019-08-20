@@ -367,8 +367,13 @@ ModFile::checkPass(bool nostrict, bool stochastic)
 void
 ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const bool transform_unary_ops)
 {
-  // Save the original model (must be done before any model transformations by preprocessor)
-  // - except adl and diff which we always want expanded
+  /* Save the original model (must be done before any model transformations by preprocessor)
+     — except substituting out variables which we know are constant (they
+       appear in an equation of the form: X = constant)
+     — except adl operators which we always want expanded
+     — except diff operators with a lead which have been expanded by
+       DataTree:AddDiff()
+  */
   dynamic_model.simplifyEquations();
   for (auto & statement : statements)
     {

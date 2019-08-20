@@ -6308,18 +6308,23 @@ DynamicModel::substituteUnaryOps(StaticModel &static_model, const vector<int> &e
 pair<diff_table_t, ExprNode::subst_table_t>
 DynamicModel::substituteDiff(StaticModel &static_model, vector<expr_t> &pac_growth)
 {
+  /* Note: at this point, we know that there is no diff operator with a lead,
+     because they have been expanded by DataTree::AddDiff().
+     Hence we can go forward with the substitution without worrying about the
+     expectation operator. */
+
   diff_table_t diff_table;
   ExprNode::subst_table_t diff_subst_table;
 
+  // Mark diff operators to be substituted in model local variables
   set<int> used_local_vars;
   for (const auto & equation : equations)
     equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
-
-  // Only substitute diffs in model local variables that appear in VAR equations
   for (auto & it : local_variables_table)
     if (used_local_vars.find(it.first) != used_local_vars.end())
       it.second->findDiffNodes(static_model, diff_table);
 
+  // Mark diff operators to be substituted in equations
   for (const auto & equation : equations)
     equation->findDiffNodes(static_model, diff_table);
 
@@ -6329,7 +6334,7 @@ DynamicModel::substituteDiff(StaticModel &static_model, vector<expr_t> &pac_grow
      This is necessary to avoid lags of more than one in the auxiliary
      equation, which would then be modified by subsequent transformations
      (removing lags > 1), which in turn would break the recursive ordering
-     of auxiliary equations. See McModelTeam/McModelProject/issues/95 */
+     of auxiliary equations. See issue McModelTeam/McModelProject#95 */
   for (auto &it : diff_table)
     {
       auto iterator_arg_max_lag = it.second.rbegin();
@@ -6337,7 +6342,7 @@ DynamicModel::substituteDiff(StaticModel &static_model, vector<expr_t> &pac_grow
       expr_t arg_max_expr = iterator_arg_max_lag->second;
 
       /* We compare arg_max_lag with the result of countDiffs(), in order to
-         properly handle nested diffs. See McModelTeam/McModelProject/issues/97 */
+         properly handle nested diffs. See issue McModelTeam/McModelProject#97 */
       while (arg_max_lag < 1 - it.first->countDiffs())
         {
           arg_max_lag++;
