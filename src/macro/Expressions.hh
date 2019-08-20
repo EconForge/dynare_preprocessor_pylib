@@ -450,7 +450,7 @@ namespace macro
   {
   private:
     const string name;
-    ArrayPtr indices; // for strings/arrays
+    const ArrayPtr indices; // for indexing strings/arrays
   public:
     Variable(string name_arg,
              Environment &env_arg, Tokenizer::location location_arg) :
@@ -458,10 +458,6 @@ namespace macro
     Variable(string name_arg, ArrayPtr indices_arg,
              Environment &env_arg, Tokenizer::location location_arg) :
       Expression(env_arg, move(location_arg)), name{move(name_arg)}, indices{move(indices_arg)} { }
-    inline void addIndexing(const vector<ExpressionPtr> indices_arg)
-    {
-      indices = make_shared<Array>(indices_arg, env);
-    }
     inline string to_string() const noexcept override { return name; }
     inline void print(ostream &output, bool matlab_output = false) const noexcept override { output << name; }
     BaseTypePtr eval() override;

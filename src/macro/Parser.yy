@@ -300,6 +300,11 @@ primary_expr : LPAREN expr RPAREN
                { $$ = $2; }
              | symbol
                { $$ = $1; } // Explicit rule needed for type conversion
+             | NAME LBRACKET comma_expr RBRACKET
+               {
+                 $$ = make_shared<Variable>($1, make_shared<Array>($3, driver.env, @3),
+                                            driver.env, @$);
+               }
              | NAME LPAREN comma_expr RPAREN
                { $$ = make_shared<Function>($1, $3, driver.env, @$); }
              | TRUE
@@ -312,8 +317,6 @@ primary_expr : LPAREN expr RPAREN
                { $$ = make_shared<String>($1, driver.env, @$); }
              | LBRACKET comma_expr RBRACKET
                { $$ = make_shared<Array>($2, driver.env, @$); }
-             | symbol LBRACKET comma_expr RBRACKET
-               { $1->addIndexing($3); $$ = $1; }
              | LPAREN tuple_comma_expr RPAREN
                { $$ = make_shared<Tuple>($2, driver.env, @$); }
              | LBRACKET expr IN expr WHEN expr RBRACKET
