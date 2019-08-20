@@ -39,6 +39,8 @@ namespace macro
   using TuplePtr = shared_ptr<Tuple>;
   class Array;
   using ArrayPtr = shared_ptr<Array>;
+  class Range;
+  using RangePtr = shared_ptr<Range>;
 
   // For Environment.hh
   class Expression;
@@ -62,6 +64,7 @@ namespace macro
        Real,
        String,
        Array,
+       Range,
        Tuple
       };
 

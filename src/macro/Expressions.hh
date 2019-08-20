@@ -401,21 +401,11 @@ namespace macro
   class Array final : public BaseType
   {
   private:
-    vector<ExpressionPtr> arr;
-    ExpressionPtr range1, increment, range2;
+    const vector<ExpressionPtr> arr;
   public:
     Array(vector<ExpressionPtr> arr_arg,
           Environment &env_arg, Tokenizer::location location_arg = Tokenizer::location()) :
-      BaseType(env_arg, move(location_arg)),
-      arr{move(arr_arg)} { }
-    Array(ExpressionPtr range1_arg, ExpressionPtr range2_arg,
-          Environment &env_arg, Tokenizer::location location_arg) :
-      BaseType(env_arg, move(location_arg)),
-      range1{move(range1_arg)}, range2{move(range2_arg)} { }
-    Array(ExpressionPtr range1_arg, ExpressionPtr increment_arg, ExpressionPtr range2_arg,
-          Environment &env_arg, Tokenizer::location location_arg) :
-      BaseType(env_arg, move(location_arg)),
-      range1{move(range1_arg)}, increment{move(increment_arg)}, range2{move(range2_arg)} { }
+      BaseType(env_arg, move(location_arg)), arr{move(arr_arg)} { }
     inline codes::BaseType getType() const noexcept override { return codes::BaseType::Array; }
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
@@ -425,7 +415,7 @@ namespace macro
     inline size_t size() const { return arr.size(); }
     inline const vector<ExpressionPtr> & getValue() const { return arr; }
     inline const ExpressionPtr & at(int i) const { return arr.at(i); }
-    inline bool empty() const { return arr.empty() && !range1 && !range2; }
+    inline bool empty() const { return arr.empty(); }
     BaseTypePtr plus(const BaseTypePtr &bt) const override;
     BaseTypePtr minus(const BaseTypePtr &bt) const override;
     BaseTypePtr times(const BaseTypePtr &bt) const override;
@@ -443,6 +433,42 @@ namespace macro
     inline StringPtr cast_string() const override { return make_shared<String>(this->to_string(), env); }
     inline TuplePtr cast_tuple() const override { return make_shared<Tuple>(arr, env); }
     inline ArrayPtr cast_array() const override { return make_shared<Array>(arr, env); }
+  };
+
+
+  class Range final : public BaseType
+  {
+  private:
+    const ExpressionPtr start, inc, end;
+  public:
+    Range(ExpressionPtr start_arg, ExpressionPtr end_arg,
+          Environment &env_arg, Tokenizer::location location_arg) :
+      BaseType(env_arg, move(location_arg)), start{move(start_arg)}, end{move(end_arg)} { }
+    Range(ExpressionPtr start_arg, ExpressionPtr inc_arg, ExpressionPtr end_arg,
+          Environment &env_arg, Tokenizer::location location_arg) :
+      BaseType(env_arg, move(location_arg)),
+      start{move(start_arg)}, inc{move(inc_arg)}, end{move(end_arg)} { }
+    inline codes::BaseType getType() const noexcept override { return codes::BaseType::Range; }
+    inline string to_string() const noexcept override
+    {
+      string retval = "[" + start->to_string() + ":";
+      if (inc)
+        retval += inc->to_string() + ":" ;
+      return retval + end->to_string() + "]";
+    }
+    inline void print(ostream &output, bool matlab_output = false) const noexcept override { output << to_string(); }
+    BaseTypePtr eval() override;
+    inline ExpressionPtr clone() const noexcept override
+    {
+      return inc ?
+        make_shared<Range>(start, inc, end, env, location)
+        : make_shared<Range>(start, end, env, location);
+    }
+  public:
+    inline BoolPtr is_equal(const BaseTypePtr &btp) const override
+    {
+      throw StackTrace("Internal error: Range: Should not arrive here: is_equal");
+    }
   };
 
 

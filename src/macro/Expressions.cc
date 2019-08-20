@@ -603,35 +603,31 @@ Tuple::cast_real() const
 }
 
 BaseTypePtr
+Range::eval()
+{
+  RealPtr incdbl = make_shared<Real>(1, env);
+  if (inc)
+    incdbl = dynamic_pointer_cast<Real>(inc->eval());
+  RealPtr startdbl = dynamic_pointer_cast<Real>(start->eval());
+  RealPtr enddbl = dynamic_pointer_cast<Real>(end->eval());
+  if (!startdbl || !enddbl || !incdbl)
+    throw StackTrace("To create an array from a range using the colon operator, "
+                     "the arguments must evaluate to reals");
+
+  vector<ExpressionPtr> arr;
+  if (*incdbl > 0 && *startdbl < *enddbl)
+    for (double i = *startdbl; i <= *enddbl; i += *incdbl)
+      arr.emplace_back(make_shared<Real>(i, env));
+  else if (*startdbl > *enddbl && *incdbl < 0)
+    for (double i = *startdbl; i >= *enddbl; i += *incdbl)
+      arr.emplace_back(make_shared<Real>(i, env));
+
+  return make_shared<Array>(arr, env, location);
+}
+
+BaseTypePtr
 Array::eval()
 {
-  if (arr.empty() && range1 && range2)
-    {
-      RealPtr range1dbl = dynamic_pointer_cast<Real>(range1->eval());
-      RealPtr range2dbl = dynamic_pointer_cast<Real>(range2->eval());
-      if (!range1dbl || !range2dbl)
-        throw StackTrace("To create an array from a range using the colon operator, "
-                         "the arguments must evaluate to reals");
-
-      RealPtr incdbl = make_shared<Real>(1, env);
-      if (increment)
-        {
-          incdbl = dynamic_pointer_cast<Real>(increment->eval());
-          if (!incdbl)
-            throw StackTrace("To create an array from a range using the colon operator, "
-                             "the increment must evaluate to a real");
-        }
-
-      if (*incdbl > 0 && *range1dbl < *range2dbl)
-        for (double i = *range1dbl; i <= *range2dbl; i += *incdbl)
-          arr.emplace_back(make_shared<Real>(i, env));
-      else if (*range1dbl > *range2dbl && *incdbl < 0)
-        for (double i = *range1dbl; i >= *range2dbl; i += *incdbl)
-          arr.emplace_back(make_shared<Real>(i, env));
-
-      range1 = increment = range2 = nullptr;
-    }
-
   vector<ExpressionPtr> retval;
   for (const auto & it : arr)
     retval.emplace_back(it->eval());
@@ -696,6 +692,8 @@ Variable::eval()
           throw StackTrace("variable", "You cannot index a real", location);
         case codes::BaseType::Tuple:
           throw StackTrace("variable", "You cannot index a tuple", location);
+        case codes::BaseType::Range:
+          throw StackTrace("variable", "Internal Error: Range: should not arrive here", location);
         case codes::BaseType::String:
           {
             string orig_string =
@@ -1063,8 +1061,6 @@ Tuple::clone() const noexcept
 ExpressionPtr
 Array::clone() const noexcept
 {
-  if (range1 && range2)
-    return make_shared<Array>(range1, range2, env, location);
   vector<ExpressionPtr> arr_copy;
   for (auto & it : arr)
     arr_copy.emplace_back(it->clone());
@@ -1094,15 +1090,12 @@ Comprehension::clone() const noexcept
 string
 Array::to_string() const noexcept
 {
-  if (!arr.empty())
-    {
-      string retval = "[";
-      for (const auto & it : arr)
-        retval += dynamic_pointer_cast<BaseType>(it)->to_string() + ", ";
-      return retval.substr(0, retval.size()-2) + "]";
-    }
-  else
-    return "[" + range1->to_string() + ":" + range2->to_string() + "]";
+  if (arr.empty())
+    return "[]";
+  string retval = "[";
+  for (const auto & it : arr)
+    retval += dynamic_pointer_cast<BaseType>(it)->to_string() + ", ";
+  return retval.substr(0, retval.size()-2) + "]";
 }
 
 string

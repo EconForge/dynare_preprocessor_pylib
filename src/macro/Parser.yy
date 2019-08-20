@@ -435,9 +435,9 @@ oper_expr : primary_expr
           ;
 
 colon_expr : oper_expr COLON oper_expr
-             { $$ = make_shared<Array>($1, $3, driver.env, @$); }
+             { $$ = make_shared<Range>($1, $3, driver.env, @$); }
            | oper_expr COLON oper_expr COLON oper_expr
-             { $$ = make_shared<Array>($1, $3, $5, driver.env, @$); }
+             { $$ = make_shared<Range>($1, $3, $5, driver.env, @$); }
            ;
 
 expr : oper_expr
