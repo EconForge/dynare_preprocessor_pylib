@@ -1029,8 +1029,9 @@ Comprehension::eval()
           BoolPtr bp;
           try
             {
-              dp = dynamic_pointer_cast<Real>(c_when->eval());
-              bp = dynamic_pointer_cast<Bool>(c_when->eval());
+              auto tmp = c_when->eval();
+              dp = dynamic_pointer_cast<Real>(tmp);
+              bp = dynamic_pointer_cast<Bool>(tmp);
               if (!bp && !dp)
                 throw StackTrace("The condition must evaluate to a boolean or a real");
             }

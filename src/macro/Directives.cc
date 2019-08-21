@@ -215,8 +215,9 @@ If::interpret(ostream &output, bool no_line_macro)
   for (auto & it : expr_and_body)
     try
       {
-        RealPtr dp = dynamic_pointer_cast<Real>(it.first->eval());
-        BoolPtr bp = dynamic_pointer_cast<Bool>(it.first->eval());
+        auto tmp = it.first->eval();
+        RealPtr dp = dynamic_pointer_cast<Real>(tmp);
+        BoolPtr bp = dynamic_pointer_cast<Bool>(tmp);
         if (!bp && !dp)
           error(StackTrace("@#if",
                            "The condition must evaluate to a boolean or a double", location));
