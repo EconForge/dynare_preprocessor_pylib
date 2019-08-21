@@ -173,6 +173,14 @@ namespace macro
   class If : public Directive
   {
   protected:
+    /* Every if statement and the associated body to execute are stored in a
+     * pair<ExpressionPtr, vector<DirectivePtr>>, where the ExpressionPtr is the condition
+     * and vector<DirectivePtr> is the series of statements to execute if the condition evaluates
+     * to true.
+     * The `if` statement is the first element in the vector
+     * If there exist any `elseif` statements, they follow
+     * If there is an `else` statement it is the last element in the vector. Its condition is true.
+     */
     const vector<pair<ExpressionPtr, vector<DirectivePtr>>> expr_and_body;
   public:
     If(vector<pair<ExpressionPtr, vector<DirectivePtr>>> expr_and_body_arg,
