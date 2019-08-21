@@ -149,11 +149,11 @@ namespace macro
     virtual BoolPtr contains(const BaseTypePtr &btp) const { throw StackTrace("Second argument of `in` operator must be an array"); }
     virtual RealPtr length() const { throw StackTrace("Operator `length` does not exist for this type"); }
     virtual BoolPtr isempty() const { throw StackTrace("Operator `isempty` does not exist for this type"); }
-    virtual BoolPtr isboolean() const { return make_shared<Bool>(false, env, location); }
-    virtual BoolPtr isreal() const { return make_shared<Bool>(false, env, location); }
-    virtual BoolPtr isstring() const { return make_shared<Bool>(false, env, location); }
-    virtual BoolPtr istuple() const { return make_shared<Bool>(false, env, location); }
-    virtual BoolPtr isarray() const { return make_shared<Bool>(false, env, location); }
+    virtual BoolPtr isboolean() const noexcept { return make_shared<Bool>(false, env, location); }
+    virtual BoolPtr isreal() const noexcept { return make_shared<Bool>(false, env, location); }
+    virtual BoolPtr isstring() const noexcept { return make_shared<Bool>(false, env, location); }
+    virtual BoolPtr istuple() const noexcept { return make_shared<Bool>(false, env, location); }
+    virtual BoolPtr isarray() const noexcept { return make_shared<Bool>(false, env, location); }
     virtual RealPtr max(const BaseTypePtr &btp) const { throw StackTrace("Operator `max` does not exist for this type"); }
     virtual RealPtr min(const BaseTypePtr &btp) const { throw StackTrace("Operator `min` does not exist for this type"); }
     virtual RealPtr mod(const BaseTypePtr &btp) const { throw StackTrace("Operator `mod` does not exist for this type"); }
@@ -214,7 +214,7 @@ namespace macro
     BoolPtr logical_and(const BaseTypePtr &btp) const override;
     BoolPtr logical_or(const BaseTypePtr &btp) const override;
     BoolPtr logical_not() const override;
-    inline BoolPtr isboolean() const override { return make_shared<Bool>(true, env, location); }
+    inline BoolPtr isboolean() const noexcept override { return make_shared<Bool>(true, env, location); }
     inline BoolPtr cast_bool() const override { return make_shared<Bool>(value, env); }
     inline RealPtr cast_real() const override { return value ? make_shared<Real>(1, env) : make_shared<Real>(0, env); }
     inline StringPtr cast_string() const override { return make_shared<String>(this->to_string(), env); }
@@ -267,7 +267,7 @@ namespace macro
     BoolPtr is_less_equal(const BaseTypePtr &btp) const override;
     BoolPtr is_greater_equal(const BaseTypePtr &btp) const override;
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
-    inline BoolPtr isreal() const override { return make_shared<Bool>(true, env, location); }
+    inline BoolPtr isreal() const noexcept override { return make_shared<Bool>(true, env, location); }
     BoolPtr logical_and(const BaseTypePtr &btp) const override;
     BoolPtr logical_or(const BaseTypePtr &btp) const override;
     BoolPtr logical_not() const override;
@@ -345,7 +345,7 @@ namespace macro
     BoolPtr is_less_equal(const BaseTypePtr &btp) const override;
     BoolPtr is_greater_equal(const BaseTypePtr &btp) const override;
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
-    inline BoolPtr isstring() const override { return make_shared<Bool>(true, env, location); }
+    inline BoolPtr isstring() const noexcept override { return make_shared<Bool>(true, env, location); }
     inline RealPtr length() const override { return make_shared<Real>(value.size(), env); }
     inline BoolPtr isempty() const override { return make_shared<Bool>(value.empty(), env); }
     BoolPtr cast_bool() const override;
@@ -386,7 +386,7 @@ namespace macro
     inline const vector<ExpressionPtr> & getValue() const { return tup; }
     inline const ExpressionPtr & at(int i) const { return tup.at(i); }
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
-    inline BoolPtr istuple() const override { return make_shared<Bool>(true, env, location); }
+    inline BoolPtr istuple() const noexcept override { return make_shared<Bool>(true, env, location); }
     BoolPtr contains(const BaseTypePtr &btp) const override;
     inline RealPtr length() const override { return make_shared<Real>(tup.size(), env); }
     inline BoolPtr isempty() const override { return make_shared<Bool>(empty(), env); }
@@ -421,7 +421,7 @@ namespace macro
     BaseTypePtr times(const BaseTypePtr &bt) const override;
     BaseTypePtr power(const BaseTypePtr &btp) const override;
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
-    inline BoolPtr isarray() const override { return make_shared<Bool>(true, env, location); }
+    inline BoolPtr isarray() const noexcept override { return make_shared<Bool>(true, env, location); }
     ArrayPtr set_union(const BaseTypePtr &btp) const override;
     ArrayPtr set_intersection(const BaseTypePtr &btp) const override;
     BoolPtr contains(const BaseTypePtr &btp) const override;
