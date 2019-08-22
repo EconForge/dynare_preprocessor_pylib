@@ -5786,6 +5786,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
   ostringstream rpp_output;             // 2nd deriv of residuals w.r.t. parameters
   ostringstream gpp_output;             // 2nd deriv of Jacobian w.r.t. parameters
   ostringstream hp_output;              // 1st deriv. of Hessian w.r.t. parameters
+  ostringstream g3p_output;             // 1st deriv. of 3rd deriv. matrix w.r.t. parameters
 
   temporary_terms_t temp_term_union;
   deriv_node_temp_terms_t tef_terms;
@@ -5953,6 +5954,36 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
         }
     }
 
+  i = 1;
+  for (const auto &it : params_derivatives.find({ 3, 1 })->second)
+    {
+      int eq, var1, var2, var3, param;
+      tie(eq, var1, var2, var3, param) = vectorToTuple<5>(it.first);
+      expr_t d2 = it.second;
+
+      int var1_col = getDynJacobianCol(var1) + 1;
+      int var2_col = getDynJacobianCol(var2) + 1;
+      int var3_col = getDynJacobianCol(var3) + 1;
+      int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
+
+      g3p_output << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                 << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var1_col << ";" << endl
+                 << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var2_col << ";" << endl
+                 << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var3_col << ";" << endl
+                 << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
+                 << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",6"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+      d2->writeOutput(g3p_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
+      g3p_output << ";" << endl;
+
+      i++;
+    }
+
   string filename = julia ? basename + "DynamicParamsDerivs.jl" : packageDir(basename) + "/dynamic_params_derivs.m";
   ofstream paramsDerivsFile;
   paramsDerivsFile.open(filename, ios::out | ios::binary);
@@ -5973,7 +6004,8 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
       fixNestedParenthesis(rpp_output, tmp_paren_vars, message_printed);
       fixNestedParenthesis(gpp_output, tmp_paren_vars, message_printed);
       fixNestedParenthesis(hp_output, tmp_paren_vars, message_printed);
-      paramsDerivsFile << "function [rp, gp, rpp, gpp, hp] = dynamic_params_derivs(y, x, params, steady_state, it_, ss_param_deriv, ss_param_2nd_deriv)" << endl
+      fixNestedParenthesis(g3p_output, tmp_paren_vars, message_printed);
+      paramsDerivsFile << "function [rp, gp, rpp, gpp, hp, g3p] = dynamic_params_derivs(y, x, params, steady_state, it_, ss_param_deriv, ss_param_2nd_deriv)" << endl
                        << "%" << endl
                        << "% Compute the derivatives of the dynamic model with respect to the parameters" << endl
                        << "% Inputs :" << endl
@@ -6013,6 +6045,14 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                        << "%                                                              3rd column: column number of second variable in Hessian of the dynamic model" << endl
                        << "%                                                              4th column: number of the parameter in derivative" << endl
                        << "%                                                              5th column: value of the Hessian term" << endl
+                       << "%   g3p      [#first_order_g3_terms by 6] double   Jacobian matrix of derivatives of g3 (dynamic 3rd derivs) with respect to the parameters;" << endl
+                       << "%                                                              rows: respective derivative term" << endl
+                       << "%                                                              1st column: equation number of the term appearing" << endl
+                       << "%                                                              2nd column: column number of first variable in g3 of the dynamic model" << endl
+                       << "%                                                              3rd column: column number of second variable in g3 of the dynamic model" << endl
+                       << "%                                                              4th column: column number of third variable in g3 of the dynamic model" << endl
+                       << "%                                                              5th column: number of the parameter in derivative" << endl
+                       << "%                                                              6th column: value of the Hessian term" << endl
                        << "%" << endl
                        << "%" << endl
                        << "% Warning : this file is generated automatically by Dynare" << endl
@@ -6033,6 +6073,10 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                        << "if nargout >= 5" << endl
                        << "hp = zeros(" << params_derivatives.find({ 2, 1 })->second.size() << ",5);" << endl
                        << hp_output.str()
+                       << "end" << endl
+                       << "if nargout >= 6" << endl
+                       << "g3p = zeros(" << params_derivatives.find({ 3, 1 })->second.size() << ",6);" << endl
+                       << g3p_output.str()
                        << "end" << endl
                        << "end" << endl;
     }
@@ -6057,7 +6101,9 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                      << gpp_output.str()
                      << "hp = zeros(" << params_derivatives.find({ 2, 1 })->second.size() << ",5);" << endl
                      << hp_output.str()
-                     << "(rp, gp, rpp, gpp, hp)" << endl
+                     << "g3p = zeros(" << params_derivatives.find({ 3, 1 })->second.size() << ",6);" << endl
+                     << g3p_output.str()
+                     << "(rp, gp, rpp, gpp, hp, g3p)" << endl
                      << "end" << endl
                      << "end" << endl;
 
@@ -6914,6 +6960,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
   ostringstream rpp_output;                // 2nd deriv of residuals w.r.t. parameters
   ostringstream gpp_output;                // 2nd deriv of Jacobian w.r.t. parameters
   ostringstream hp_output;                 // 1st deriv. of Hessian w.r.t. parameters
+  ostringstream g3p_output;                // 1st deriv. of 3rd deriv. matrix w.r.t. parameters
 
   deriv_node_temp_terms_t tef_terms;
   writeJsonModelLocalVariables(model_local_vars_output, tef_terms);
@@ -7109,6 +7156,54 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
     }
   hp_output << "]}" << endl;
 
+  g3p_output << R"("derivative_g3_wrt_params": {)"
+             << R"(  "neqs": )" << equations.size()
+             << R"(, "nvar1cols": )" << dynJacobianColsNbr
+             << R"(, "nvar2cols": )" << dynJacobianColsNbr
+             << R"(, "nvar3cols": )" << dynJacobianColsNbr
+             << R"(, "nparamcols": )" << symbol_table.param_nbr()
+             << R"(, "entries": [)";
+  auto &g3p = params_derivatives.find({ 3, 1 })->second;
+  for (auto it = g3p.begin(); it != g3p.end(); ++it)
+    {
+      if (it != g3p.begin())
+        g3p_output << ", ";
+
+      int eq, var1, var2, var3, param;
+      tie(eq, var1, var2, var3, param) = vectorToTuple<5>(it->first);
+      expr_t d2 = it->second;
+
+      int var1_col = getDynJacobianCol(var1) + 1;
+      int var2_col = getDynJacobianCol(var2) + 1;
+      int var3_col = getDynJacobianCol(var3) + 1;
+      int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
+
+      if (writeDetails)
+        g3p_output << R"({"eq": )" << eq + 1;
+      else
+        g3p_output << R"({"row": )" << eq + 1;
+
+      g3p_output << R"(, "var1_col": )" << var1_col + 1
+                 << R"(, "var2_col": )" << var2_col + 1
+                 << R"(, "var3_col": )" << var3_col + 1
+                 << R"(, "param_col": )" << param_col + 1;
+
+      if (writeDetails)
+        g3p_output << R"(, "var1": ")" << symbol_table.getName(getSymbIDByDerivID(var1)) << R"(")"
+                   << R"(, "lag1": )" << getLagByDerivID(var1)
+                   << R"(, "var2": ")" << symbol_table.getName(getSymbIDByDerivID(var2)) << R"(")"
+                   << R"(, "lag2": )" << getLagByDerivID(var2)
+                   << R"(, "var3": ")" << symbol_table.getName(getSymbIDByDerivID(var3)) << R"(")"
+                   << R"(, "lag3": )" << getLagByDerivID(var3)
+                   << R"(, "param": ")" << symbol_table.getName(getSymbIDByDerivID(param)) << R"(")";
+
+      g3p_output << R"(, "val": ")";
+      d2->writeJsonOutput(g3p_output, temp_term_union, tef_terms);
+      g3p_output << R"("})" << endl;
+    }
+  g3p_output << "]}" << endl;
+
+
   if (writeDetails)
     output << R"("dynamic_model_params_derivative": {)";
   else
@@ -7120,6 +7215,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
          << ", " << rpp_output.str()
          << ", " << gpp_output.str()
          << ", " << hp_output.str()
+         << ", " << g3p_output.str()
          << "}";
 }
 

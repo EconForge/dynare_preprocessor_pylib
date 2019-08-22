@@ -2639,9 +2639,9 @@ IdentificationStatement::checkPass(ModFileStructure &mod_file_struct, WarningCon
   if (it != options_list.num_options.end())
     {
       int order = stoi(it->second);
-      if (order < 1 || order > 2)
+      if (order < 1 || order > 3)
         {
-          cerr << "ERROR: the order option of identification command must be either 1 or 2" << endl;
+          cerr << "ERROR: the order option of identification command must be between 1 and 3" << endl;
 
           exit(EXIT_FAILURE);
         }
