@@ -151,6 +151,7 @@ namespace macro
     virtual BoolPtr isempty() const { throw StackTrace("Operator `isempty` does not exist for this type"); }
     virtual BoolPtr isboolean() const noexcept { return make_shared<Bool>(false, env, location); }
     virtual BoolPtr isreal() const noexcept { return make_shared<Bool>(false, env, location); }
+    virtual BoolPtr isinteger() const noexcept { return make_shared<Bool>(false, env, location); }
     virtual BoolPtr isstring() const noexcept { return make_shared<Bool>(false, env, location); }
     virtual BoolPtr istuple() const noexcept { return make_shared<Bool>(false, env, location); }
     virtual BoolPtr isarray() const noexcept { return make_shared<Bool>(false, env, location); }
@@ -268,6 +269,11 @@ namespace macro
     BoolPtr is_greater_equal(const BaseTypePtr &btp) const override;
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
     inline BoolPtr isreal() const noexcept override { return make_shared<Bool>(true, env, location); }
+    inline BoolPtr isinteger() const noexcept override
+    {
+      double intpart;
+      return make_shared<Bool>(modf(value, &intpart) == 0.0, env, location);
+    }
     BoolPtr logical_and(const BaseTypePtr &btp) const override;
     BoolPtr logical_or(const BaseTypePtr &btp) const override;
     BoolPtr logical_not() const override;

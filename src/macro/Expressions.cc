@@ -416,8 +416,8 @@ BaseTypePtr
 Array::power(const BaseTypePtr &btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
-  if (!btp2)
-    throw StackTrace("The second argument of the power operator (^) must be a real");
+  if (!btp2 || !*(btp2->isinteger()))
+    throw StackTrace("The second argument of the power operator (^) must be an integer");
 
   auto retval = make_shared<Array>(arr, env);
   for (int i = 1; i < *btp2; i++)
@@ -651,7 +651,6 @@ Variable::eval()
       ArrayPtr map = dynamic_pointer_cast<Array>(indices->eval());
       vector<ExpressionPtr> index = map->getValue();
       vector<int> ind;
-      double intpart;
       for (auto it : index)
         {
           // Necessary to handle indexes like: y[1:2,2]
@@ -659,7 +658,7 @@ Variable::eval()
           auto db = dynamic_pointer_cast<Real>(it);
           if (db)
             {
-              if (modf(*db, &intpart) != 0.0)
+              if (!*(db->isinteger()))
                 throw StackTrace("variable", "When indexing a variable you must pass "
                                  "an int or an int array", location);
               ind.emplace_back(*db);
@@ -670,7 +669,7 @@ Variable::eval()
                 db = dynamic_pointer_cast<Real>(it1);
                 if (db)
                   {
-                    if (modf(*db, &intpart) != 0.0)
+                    if (!*(db->isinteger()))
                       throw StackTrace("variable", "When indexing a variable you must pass "
                                        "an int or an int array", location);
                     ind.emplace_back(*db);
