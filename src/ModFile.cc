@@ -1132,8 +1132,8 @@ ModFile::writeExternalFiles(const string &basename, FileOutputType output, Langu
     case LanguageOutputType::julia:
       writeExternalFilesJulia(basename, output);
       break;
-    default:
-      cerr << "This case shouldn't happen. Contact the authors of Dynare" << endl;
+    case LanguageOutputType::matlab:
+      cerr << "The 'output' option cannot be used when language=matlab" << endl;
       exit(EXIT_FAILURE);
     }
 }

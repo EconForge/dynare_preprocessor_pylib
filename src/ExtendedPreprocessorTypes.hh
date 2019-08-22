@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2017 Dynare Team
+ * Copyright © 2014-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -32,9 +32,7 @@ enum class FileOutputType
 enum class LanguageOutputType
   {
     matlab,                           // outputs files for Matlab/Octave processing
-    cuda,                             // outputs files for CUDA (not yet implemented)
     julia,                            // outputs files for Julia
-    python,                           // outputs files for Python (not yet implemented) (not yet implemented)
   };
 
 enum class JsonFileOutputType

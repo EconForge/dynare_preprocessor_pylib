@@ -63,7 +63,7 @@ usage()
 {
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [noemptylinemacro] [notmpterms] [nolog] [warn_uninit]"
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test]"
-       << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=julia]"
+       << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=matlab|julia]"
        << " [params_derivs_order=0|1|2] [transform_unary_ops]"
        << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] [nopathchange] [nopreprocessoroutput]"
        << " [mexext=<extension>] [matlabroot=<path>] [onlymodel]"
@@ -326,19 +326,12 @@ main(int argc, char **argv)
 
           if (s == "julia")
             language = LanguageOutputType::julia;
+          if (s == "matlab")
+            language = LanguageOutputType::matlab;
           else
             {
-              // we don't want temp terms in external functions (except Julia)
-              no_tmp_terms = true;
-              if (s == "cuda")
-                language = LanguageOutputType::cuda;
-              else if (s == "python")
-                language = LanguageOutputType::python;
-              else
-                {
-                  cerr << "Incorrect syntax for language option" << endl;
-                  usage();
-                }
+              cerr << "Incorrect syntax for language option" << endl;
+              usage();
             }
         }
       else if (s == "jsonstdout")
