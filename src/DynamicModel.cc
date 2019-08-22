@@ -5781,11 +5781,11 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
 
   ExprNodeOutputType output_type = (julia ? ExprNodeOutputType::juliaDynamicModel : ExprNodeOutputType::matlabDynamicModel);
   ostringstream tt_output;              // Used for storing model temp vars and equations
-  ostringstream jacobian_output;           // Used for storing jacobian equations
-  ostringstream hessian_output;            // Used for storing Hessian equations
-  ostringstream hessian1_output;           // Used for storing Hessian equations
-  ostringstream third_derivs_output;       // Used for storing third order derivatives equations
-  ostringstream third_derivs1_output;      // Used for storing third order derivatives equations
+  ostringstream rp_output;              // 1st deriv. of residuals w.r.t. parameters
+  ostringstream gp_output;              // 1st deriv. of Jacobian w.r.t. parameters
+  ostringstream rpp_output;             // 2nd deriv of residuals w.r.t. parameters
+  ostringstream gpp_output;             // 2nd deriv of Jacobian w.r.t. parameters
+  ostringstream hp_output;              // 1st deriv. of Hessian w.r.t. parameters
 
   temporary_terms_t temp_term_union;
   deriv_node_temp_terms_t tef_terms;
@@ -5802,10 +5802,10 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
 
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
-      jacobian_output << "rp" << LEFT_ARRAY_SUBSCRIPT(output_type) << eq+1 << ", " << param_col
-                      << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
-      d1->writeOutput(jacobian_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
-      jacobian_output << ";" << endl;
+      rp_output << "rp" << LEFT_ARRAY_SUBSCRIPT(output_type) << eq+1 << ", " << param_col
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
+      d1->writeOutput(rp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
+      rp_output << ";" << endl;
     }
 
   for (const auto & jacobian_params_derivative : params_derivatives.find({ 1, 1 })->second)
@@ -5817,10 +5817,10 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
       int var_col = getDynJacobianCol(var) + 1;
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
-      hessian_output << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type) << eq+1 << ", " << var_col
-                     << ", " << param_col << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
-      d2->writeOutput(hessian_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
-      hessian_output << ";" << endl;
+      gp_output << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type) << eq+1 << ", " << var_col
+                << ", " << param_col << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
+      d2->writeOutput(gp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
+      gp_output << ";" << endl;
     }
 
   int i = 1;
@@ -5833,32 +5833,32 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
       int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
 
-      hessian1_output << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
-                      << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
-                      << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
-                      << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
-                      << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
-                      << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
-                      << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
-                      << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-      d2->writeOutput(hessian1_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
-      hessian1_output << ";" << endl;
+      rpp_output << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                 << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
+                 << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
+                 << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+      d2->writeOutput(rpp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
+      rpp_output << ";" << endl;
 
       i++;
 
       if (param1 != param2)
         {
           // Treat symmetric elements
-          hessian1_output << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
-                          << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
-                          << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
-                          << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
-                          << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
-                          << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
-                          << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
-                          << RIGHT_ARRAY_SUBSCRIPT(output_type)
-                          << "=rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i-1 << ",4"
-                          << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
+          rpp_output << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                     << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
+                     << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
+                     << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                     << "=rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i-1 << ",4"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
           i++;
         }
     }
@@ -5874,36 +5874,36 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
       int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
 
-      third_derivs_output << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
-                          << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
-                          << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
-                          << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << endl
-                          << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
-                          << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
-                          << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
-                          << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
-                          << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
-                          << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-      d2->writeOutput(third_derivs_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
-      third_derivs_output << ";" << endl;
+      gpp_output << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                 << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << endl
+                 << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
+                 << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
+                 << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+      d2->writeOutput(gpp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
+      gpp_output << ";" << endl;
 
       i++;
 
       if (param1 != param2)
         {
           // Treat symmetric elements
-          third_derivs_output << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
-                              << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
-                              << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
-                              << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << endl
-                              << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
-                              << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
-                              << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
-                              << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
-                              << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
-                              << RIGHT_ARRAY_SUBSCRIPT(output_type)
-                              << "=gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i-1 << ",5"
-                              << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
+          gpp_output << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                     << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << endl
+                     << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
+                     << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
+                     << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                     << "=gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i-1 << ",5"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
           i++;
         }
     }
@@ -5919,36 +5919,36 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
       int var2_col = getDynJacobianCol(var2) + 1;
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
-      third_derivs1_output << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
-                           << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
-                           << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
-                           << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var1_col << ";" << endl
-                           << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
-                           << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var2_col << ";" << endl
-                           << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
-                           << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
-                           << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
-                           << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-      d2->writeOutput(third_derivs1_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
-      third_derivs1_output << ";" << endl;
+      hp_output << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var1_col << ";" << endl
+                << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var2_col << ";" << endl
+                << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
+                << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+      d2->writeOutput(hp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
+      hp_output << ";" << endl;
 
       i++;
 
       if (var1 != var2)
         {
           // Treat symmetric elements
-          third_derivs1_output << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
-                               << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
-                               << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
-                               << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var2_col << ";" << endl
-                               << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
-                               << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var1_col << ";" << endl
-                               << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
-                               << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
-                               << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
-                               << RIGHT_ARRAY_SUBSCRIPT(output_type)
-                               << "=hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i-1 << ",5"
-                               << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
+          hp_output << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                    << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var2_col << ";" << endl
+                    << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var1_col << ";" << endl
+                    << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
+                    << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
+                    << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                    << "=hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i-1 << ",5"
+                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
           i++;
         }
     }
@@ -5968,11 +5968,11 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
       map<string, string> tmp_paren_vars;
       bool message_printed = false;
       fixNestedParenthesis(tt_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(jacobian_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(hessian_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(hessian1_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(third_derivs_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(third_derivs1_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(rp_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(gp_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(rpp_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(gpp_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(hp_output, tmp_paren_vars, message_printed);
       paramsDerivsFile << "function [rp, gp, rpp, gpp, hp] = dynamic_params_derivs(y, x, params, steady_state, it_, ss_param_deriv, ss_param_2nd_deriv)" << endl
                        << "%" << endl
                        << "% Compute the derivatives of the dynamic model with respect to the parameters" << endl
@@ -6021,18 +6021,18 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                        << tt_output.str()
                        << "rp = zeros(" << equations.size() << ", "
                        << symbol_table.param_nbr() << ");" << endl
-                       << jacobian_output.str()
+                       << rp_output.str()
                        << "gp = zeros(" << equations.size() << ", " << dynJacobianColsNbr << ", " << symbol_table.param_nbr() << ");" << endl
-                       << hessian_output.str()
+                       << gp_output.str()
                        << "if nargout >= 3" << endl
                        << "rpp = zeros(" << params_derivatives.find({ 0, 2 })->second.size() << ",4);" << endl
-                       << hessian1_output.str()
+                       << rpp_output.str()
                        << "gpp = zeros(" << params_derivatives.find({ 1, 2 })->second.size() << ",5);" << endl
-                       << third_derivs_output.str()
+                       << gpp_output.str()
                        << "end" << endl
                        << "if nargout >= 5" << endl
                        << "hp = zeros(" << params_derivatives.find({ 2, 1 })->second.size() << ",5);" << endl
-                       << third_derivs1_output.str()
+                       << hp_output.str()
                        << "end" << endl
                        << "end" << endl;
     }
@@ -6048,15 +6048,15 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                      << tt_output.str()
                      << "rp = zeros(" << equations.size() << ", "
                      << symbol_table.param_nbr() << ");" << endl
-                     << jacobian_output.str()
+                     << rp_output.str()
                      << "gp = zeros(" << equations.size() << ", " << dynJacobianColsNbr << ", " << symbol_table.param_nbr() << ");" << endl
-                     << hessian_output.str()
+                     << gp_output.str()
                      << "rpp = zeros(" << params_derivatives.find({ 0, 2 })->second.size() << ",4);" << endl
-                     << hessian1_output.str()
+                     << rpp_output.str()
                      << "gpp = zeros(" << params_derivatives.find({ 1, 2 })->second.size() << ",5);" << endl
-                     << third_derivs_output.str()
+                     << gpp_output.str()
                      << "hp = zeros(" << params_derivatives.find({ 2, 1 })->second.size() << ",5);" << endl
-                     << third_derivs1_output.str()
+                     << hp_output.str()
                      << "(rp, gp, rpp, gpp, hp)" << endl
                      << "end" << endl
                      << "end" << endl;
@@ -6909,11 +6909,11 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
 
   ostringstream model_local_vars_output;   // Used for storing model local vars
   ostringstream model_output;              // Used for storing model temp vars and equations
-  ostringstream jacobian_output;           // Used for storing jacobian equations
-  ostringstream hessian_output;            // Used for storing Hessian equations
-  ostringstream hessian1_output;           // Used for storing Hessian equations
-  ostringstream third_derivs_output;       // Used for storing third order derivatives equations
-  ostringstream third_derivs1_output;      // Used for storing third order derivatives equations
+  ostringstream rp_output;                 // 1st deriv. of residuals w.r.t. parameters
+  ostringstream gp_output;                 // 1st deriv. of Jacobian w.r.t. parameters
+  ostringstream rpp_output;                // 2nd deriv of residuals w.r.t. parameters
+  ostringstream gpp_output;                // 2nd deriv of Jacobian w.r.t. parameters
+  ostringstream hp_output;                 // 1st deriv. of Hessian w.r.t. parameters
 
   deriv_node_temp_terms_t tef_terms;
   writeJsonModelLocalVariables(model_local_vars_output, tef_terms);
@@ -6922,15 +6922,15 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
   for (const auto &it : params_derivs_temporary_terms)
     writeJsonTemporaryTerms(it.second, temp_term_union, model_output, tef_terms, "all");
 
-  jacobian_output << R"("deriv_wrt_params": {)"
-                  << R"(  "neqs": )" << equations.size()
-                  << R"(, "nparamcols": )" << symbol_table.param_nbr()
-                  << R"(, "entries": [)";
+  rp_output << R"("deriv_wrt_params": {)"
+            << R"(  "neqs": )" << equations.size()
+            << R"(, "nparamcols": )" << symbol_table.param_nbr()
+            << R"(, "entries": [)";
   auto &rp = params_derivatives.find({ 0, 1 })->second;
   for (auto it = rp.begin(); it != rp.end(); it++)
     {
       if (it != rp.begin())
-        jacobian_output << ", ";
+        rp_output << ", ";
 
       int eq, param;
       tie(eq, param) = vectorToTuple<2>(it->first);
@@ -6939,31 +6939,31 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
       if (writeDetails)
-        jacobian_output << R"({"eq": )" << eq + 1;
+        rp_output << R"({"eq": )" << eq + 1;
       else
-        jacobian_output << R"({"row": )" << eq + 1;
+        rp_output << R"({"row": )" << eq + 1;
 
-      jacobian_output << R"(, "param_col": )" << param_col + 1;
+      rp_output << R"(, "param_col": )" << param_col + 1;
 
       if (writeDetails)
-        jacobian_output << R"(, "param": ")" << symbol_table.getName(getSymbIDByDerivID(param)) << R"(")";
+        rp_output << R"(, "param": ")" << symbol_table.getName(getSymbIDByDerivID(param)) << R"(")";
 
-      jacobian_output << R"(, "val": ")";
-      d1->writeJsonOutput(jacobian_output, temp_term_union, tef_terms);
-      jacobian_output << R"("})" << endl;
+      rp_output << R"(, "val": ")";
+      d1->writeJsonOutput(rp_output, temp_term_union, tef_terms);
+      rp_output << R"("})" << endl;
     }
-  jacobian_output << "]}";
+  rp_output << "]}";
 
-  hessian_output << R"("deriv_jacobian_wrt_params": {)"
-                 << R"(  "neqs": )" << equations.size()
-                 << R"(, "nvarcols": )" << dynJacobianColsNbr
-                 << R"(, "nparamcols": )" << symbol_table.param_nbr()
-                 << R"(, "entries": [)";
+  gp_output << R"("deriv_jacobian_wrt_params": {)"
+            << R"(  "neqs": )" << equations.size()
+            << R"(, "nvarcols": )" << dynJacobianColsNbr
+            << R"(, "nparamcols": )" << symbol_table.param_nbr()
+            << R"(, "entries": [)";
   auto &gp = params_derivatives.find({ 1, 1 })->second;
   for (auto it = gp.begin(); it != gp.end(); it++)
     {
       if (it != gp.begin())
-        hessian_output << ", ";
+        gp_output << ", ";
 
       int eq, var, param;
       tie(eq, var, param) = vectorToTuple<3>(it->first);
@@ -6973,34 +6973,34 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
       if (writeDetails)
-        hessian_output << R"({"eq": )" << eq + 1;
+        gp_output << R"({"eq": )" << eq + 1;
       else
-        hessian_output << R"({"row": )" << eq + 1;
+        gp_output << R"({"row": )" << eq + 1;
 
-      hessian_output << R"(, "var_col": )" << var_col + 1
-                     << R"(, "param_col": )" << param_col + 1;
+      gp_output << R"(, "var_col": )" << var_col + 1
+                << R"(, "param_col": )" << param_col + 1;
 
       if (writeDetails)
-      hessian_output << R"(, "var": ")" << symbol_table.getName(getSymbIDByDerivID(var)) << R"(")"
-                     << R"(, "lag": )" << getLagByDerivID(var)
-                     << R"(, "param": ")" << symbol_table.getName(getSymbIDByDerivID(param)) << R"(")";
+        gp_output << R"(, "var": ")" << symbol_table.getName(getSymbIDByDerivID(var)) << R"(")"
+                  << R"(, "lag": )" << getLagByDerivID(var)
+                  << R"(, "param": ")" << symbol_table.getName(getSymbIDByDerivID(param)) << R"(")";
 
-      hessian_output << R"(, "val": ")";
-      d2->writeJsonOutput(hessian_output, temp_term_union, tef_terms);
-      hessian_output << R"("})" << endl;
+      gp_output << R"(, "val": ")";
+      d2->writeJsonOutput(gp_output, temp_term_union, tef_terms);
+      gp_output << R"("})" << endl;
     }
-  hessian_output << "]}";
+  gp_output << "]}";
 
-  hessian1_output << R"("second_deriv_residuals_wrt_params": {)"
-                  << R"(  "nrows": )" << equations.size()
-                  << R"(, "nparam1cols": )" << symbol_table.param_nbr()
-                  << R"(, "nparam2cols": )" << symbol_table.param_nbr()
-                  << R"(, "entries": [)";
+  rpp_output << R"("second_deriv_residuals_wrt_params": {)"
+             << R"(  "nrows": )" << equations.size()
+             << R"(, "nparam1cols": )" << symbol_table.param_nbr()
+             << R"(, "nparam2cols": )" << symbol_table.param_nbr()
+             << R"(, "entries": [)";
   auto &rpp = params_derivatives.find({ 0, 2 })->second;
   for (auto it = rpp.begin(); it != rpp.end(); ++it)
     {
       if (it != rpp.begin())
-        hessian1_output << ", ";
+        rpp_output << ", ";
 
       int eq, param1, param2;
       tie(eq, param1, param2) = vectorToTuple<3>(it->first);
@@ -7010,33 +7010,33 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
 
       if (writeDetails)
-        hessian1_output << R"({"eq": )" << eq + 1;
+        rpp_output << R"({"eq": )" << eq + 1;
       else
-        hessian1_output << R"({"row": )" << eq + 1;
-      hessian1_output << R"(, "param1_col": )" << param1_col + 1
-                      << R"(, "param2_col": )" << param2_col + 1;
+        rpp_output << R"({"row": )" << eq + 1;
+      rpp_output << R"(, "param1_col": )" << param1_col + 1
+                 << R"(, "param2_col": )" << param2_col + 1;
 
       if (writeDetails)
-        hessian1_output << R"(, "param1": ")" << symbol_table.getName(getSymbIDByDerivID(param1)) << R"(")"
-                        << R"(, "param2": ")" << symbol_table.getName(getSymbIDByDerivID(param2)) << R"(")";
+        rpp_output << R"(, "param1": ")" << symbol_table.getName(getSymbIDByDerivID(param1)) << R"(")"
+                   << R"(, "param2": ")" << symbol_table.getName(getSymbIDByDerivID(param2)) << R"(")";
 
-      hessian1_output << R"(, "val": ")";
-      d2->writeJsonOutput(hessian1_output, temp_term_union, tef_terms);
-      hessian1_output << R"("})" << endl;
+      rpp_output << R"(, "val": ")";
+      d2->writeJsonOutput(rpp_output, temp_term_union, tef_terms);
+      rpp_output << R"("})" << endl;
     }
-  hessian1_output << "]}";
+  rpp_output << "]}";
 
-  third_derivs_output << R"("second_deriv_jacobian_wrt_params": {)"
-                      << R"(  "neqs": )" << equations.size()
-                      << R"(, "nvarcols": )" << dynJacobianColsNbr
-                      << R"(, "nparam1cols": )" << symbol_table.param_nbr()
-                      << R"(, "nparam2cols": )" << symbol_table.param_nbr()
-                      << R"(, "entries": [)";
+  gpp_output << R"("second_deriv_jacobian_wrt_params": {)"
+             << R"(  "neqs": )" << equations.size()
+             << R"(, "nvarcols": )" << dynJacobianColsNbr
+             << R"(, "nparam1cols": )" << symbol_table.param_nbr()
+             << R"(, "nparam2cols": )" << symbol_table.param_nbr()
+             << R"(, "entries": [)";
   auto &gpp = params_derivatives.find({ 1, 2 })->second;
   for (auto it = gpp.begin(); it != gpp.end(); ++it)
     {
       if (it != gpp.begin())
-        third_derivs_output << ", ";
+        gpp_output << ", ";
 
       int eq, var, param1, param2;
       tie(eq, var, param1, param2) = vectorToTuple<4>(it->first);
@@ -7047,37 +7047,37 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
 
       if (writeDetails)
-        third_derivs_output << R"({"eq": )" << eq + 1;
+        gpp_output << R"({"eq": )" << eq + 1;
       else
-        third_derivs_output << R"({"row": )" << eq + 1;
+        gpp_output << R"({"row": )" << eq + 1;
 
-      third_derivs_output << R"(, "var_col": )" << var_col + 1
-                          << R"(, "param1_col": )" << param1_col + 1
-                          << R"(, "param2_col": )" << param2_col + 1;
+      gpp_output << R"(, "var_col": )" << var_col + 1
+                 << R"(, "param1_col": )" << param1_col + 1
+                 << R"(, "param2_col": )" << param2_col + 1;
 
       if (writeDetails)
-        third_derivs_output << R"(, "var": ")" << symbol_table.getName(var) << R"(")"
-                            << R"(, "lag": )" << getLagByDerivID(var)
-                            << R"(, "param1": ")" << symbol_table.getName(getSymbIDByDerivID(param1)) << R"(")"
-                            << R"(, "param2": ")" << symbol_table.getName(getSymbIDByDerivID(param2)) << R"(")";
+        gpp_output << R"(, "var": ")" << symbol_table.getName(var) << R"(")"
+                   << R"(, "lag": )" << getLagByDerivID(var)
+                   << R"(, "param1": ")" << symbol_table.getName(getSymbIDByDerivID(param1)) << R"(")"
+                   << R"(, "param2": ")" << symbol_table.getName(getSymbIDByDerivID(param2)) << R"(")";
 
-      third_derivs_output << R"(, "val": ")";
-      d2->writeJsonOutput(third_derivs_output, temp_term_union, tef_terms);
-      third_derivs_output << R"("})" << endl;
+      gpp_output << R"(, "val": ")";
+      d2->writeJsonOutput(gpp_output, temp_term_union, tef_terms);
+      gpp_output << R"("})" << endl;
     }
-  third_derivs_output << "]}" << endl;
+  gpp_output << "]}" << endl;
 
-  third_derivs1_output << R"("derivative_hessian_wrt_params": {)"
-                       << R"(  "neqs": )" << equations.size()
-                       << R"(, "nvar1cols": )" << dynJacobianColsNbr
-                       << R"(, "nvar2cols": )" << dynJacobianColsNbr
-                       << R"(, "nparamcols": )" << symbol_table.param_nbr()
-                       << R"(, "entries": [)";
+  hp_output << R"("derivative_hessian_wrt_params": {)"
+            << R"(  "neqs": )" << equations.size()
+            << R"(, "nvar1cols": )" << dynJacobianColsNbr
+            << R"(, "nvar2cols": )" << dynJacobianColsNbr
+            << R"(, "nparamcols": )" << symbol_table.param_nbr()
+            << R"(, "entries": [)";
   auto &hp = params_derivatives.find({ 2, 1 })->second;
   for (auto it = hp.begin(); it != hp.end(); ++it)
     {
       if (it != hp.begin())
-        third_derivs1_output << ", ";
+        hp_output << ", ";
 
       int eq, var1, var2, param;
       tie(eq, var1, var2, param) = vectorToTuple<4>(it->first);
@@ -7088,26 +7088,26 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
       if (writeDetails)
-        third_derivs1_output << R"({"eq": )" << eq + 1;
+        hp_output << R"({"eq": )" << eq + 1;
       else
-        third_derivs1_output << R"({"row": )" << eq + 1;
+        hp_output << R"({"row": )" << eq + 1;
 
-      third_derivs1_output << R"(, "var1_col": )" << var1_col + 1
-                           << R"(, "var2_col": )" << var2_col + 1
-                           << R"(, "param_col": )" << param_col + 1;
+      hp_output << R"(, "var1_col": )" << var1_col + 1
+                << R"(, "var2_col": )" << var2_col + 1
+                << R"(, "param_col": )" << param_col + 1;
 
       if (writeDetails)
-        third_derivs1_output << R"(, "var1": ")" << symbol_table.getName(getSymbIDByDerivID(var1)) << R"(")"
-                             << R"(, "lag1": )" << getLagByDerivID(var1)
-                             << R"(, "var2": ")" << symbol_table.getName(getSymbIDByDerivID(var2)) << R"(")"
-                             << R"(, "lag2": )" << getLagByDerivID(var2)
-                             << R"(, "param": ")" << symbol_table.getName(getSymbIDByDerivID(param)) << R"(")";
+        hp_output << R"(, "var1": ")" << symbol_table.getName(getSymbIDByDerivID(var1)) << R"(")"
+                  << R"(, "lag1": )" << getLagByDerivID(var1)
+                  << R"(, "var2": ")" << symbol_table.getName(getSymbIDByDerivID(var2)) << R"(")"
+                  << R"(, "lag2": )" << getLagByDerivID(var2)
+                  << R"(, "param": ")" << symbol_table.getName(getSymbIDByDerivID(param)) << R"(")";
 
-      third_derivs1_output << R"(, "val": ")";
-      d2->writeJsonOutput(third_derivs1_output, temp_term_union, tef_terms);
-      third_derivs1_output << R"("})" << endl;
+      hp_output << R"(, "val": ")";
+      d2->writeJsonOutput(hp_output, temp_term_union, tef_terms);
+      hp_output << R"("})" << endl;
     }
-  third_derivs1_output << "]}" << endl;
+  hp_output << "]}" << endl;
 
   if (writeDetails)
     output << R"("dynamic_model_params_derivative": {)";
@@ -7115,11 +7115,11 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
     output << R"("dynamic_model_params_derivatives_simple": {)";
   output << model_local_vars_output.str()
          << ", " << model_output.str()
-         << ", " << jacobian_output.str()
-         << ", " << hessian_output.str()
-         << ", " << hessian1_output.str()
-         << ", " << third_derivs_output.str()
-         << ", " << third_derivs1_output.str()
+         << ", " << rp_output.str()
+         << ", " << gp_output.str()
+         << ", " << rpp_output.str()
+         << ", " << gpp_output.str()
+         << ", " << hp_output.str()
          << "}";
 }
 
