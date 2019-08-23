@@ -1092,7 +1092,7 @@ Array::to_string() const noexcept
     return "[]";
   string retval = "[";
   for (const auto & it : arr)
-    retval += dynamic_pointer_cast<BaseType>(it)->to_string() + ", ";
+    retval += it->to_string() + ", ";
   return retval.substr(0, retval.size()-2) + "]";
 }
 
@@ -1101,7 +1101,7 @@ Tuple::to_string() const noexcept
 {
   string retval = "(";
   for (const auto & it : tup)
-    retval += dynamic_pointer_cast<BaseType>(it)->to_string() + ", ";
+    retval += it->to_string() + ", ";
   return retval.substr(0, retval.size()-2) + ")";
 }
 
