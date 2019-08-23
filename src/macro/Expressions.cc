@@ -759,8 +759,6 @@ Function::eval()
       for (size_t i = 0; i < func->args.size(); i++)
         {
           VariablePtr mvp = dynamic_pointer_cast<Variable>(func->args.at(i));
-          if (!mvp)
-            throw StackTrace("Argument " + std::to_string(i) + " of function " + name + " must be a variable");
           env.define(mvp, args.at(i)->eval());
         }
       auto retval = body->eval();
