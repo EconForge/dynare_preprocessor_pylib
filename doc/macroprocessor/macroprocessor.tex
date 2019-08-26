@@ -399,12 +399,26 @@ end;
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{Loop directive}
-  \begin{block}{Syntax}
+  \frametitle{Loop directive (1/2)}
+  \begin{block}{Syntax 1}
 \verb+@#for +\textit{variable\_name}\verb+ in +\textit{array\_expr} \\
 \verb+   +\textit{loop\_body} \\
 \verb+@#endfor+
   \end{block}
+  \begin{block}{Syntax 2}
+\verb+@#for +\textit{tuple}\verb+ in +\textit{array\_expr} \\
+\verb+   +\textit{loop\_body} \\
+\verb+@#endfor+
+  \end{block}
+  \begin{block}{Syntax 3}
+\verb+@#for +\textit{tuple\_or\_variable}\verb+ in +\textit{array\_expr} \verb+ when +\textit{expr}\\
+\verb+   +\textit{loop\_body} \\
+\verb+@#endfor+
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{Loop directive (2/2)}
   \begin{block}{Example: before macro processing}
     \small
 \begin{verbatim}

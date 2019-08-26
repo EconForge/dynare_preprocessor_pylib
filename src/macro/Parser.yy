@@ -95,11 +95,10 @@ using namespace macro;
 %type <DirectivePtr> directive directive_one_line directive_multiline for if ifdef ifndef text eval
 %type <vector<pair<ExpressionPtr, vector<DirectivePtr>>>> if_list if_list1
 %type <pair<ExpressionPtr, vector<DirectivePtr>>> elseif else
-%type <ExpressionPtr> primary_expr oper_expr colon_expr expr
+%type <ExpressionPtr> primary_expr oper_expr colon_expr expr for_when
 %type <FunctionPtr> function
 %type <VariablePtr> symbol
 
-%type <vector<VariablePtr>> comma_name
 %type <vector<ExpressionPtr>> comma_expr function_args tuple_comma_expr
 
 %%
@@ -149,37 +148,42 @@ directive_multiline : for
                     | ifndef
                     ;
 
-for_begin : FOR { driver.pushContext(); } ;
+for_when : %empty
+           { $$ = shared_ptr<Expression>(); }
+         | WHEN expr
+           { $$ = $2; }
+         ;
 
-for : for_begin symbol IN expr EOL statements ENDFOR
-      {
-        vector<VariablePtr> vvnp = {$2};
-        auto vdp = driver.popContext();
-        vdp.emplace_back(make_shared<TextNode>("\n", driver.env, @7));
-        $$ = make_shared<For>(vvnp, $4, vdp, driver.env, @$);
-      }
-    | for_begin LPAREN comma_name RPAREN IN expr EOL statements ENDFOR
+for : FOR { driver.pushContext(); } expr IN expr for_when EOL statements ENDFOR
       {
         vector<VariablePtr> vvnp;
-        for (auto & it : $3)
-          {
-            auto vnp = dynamic_pointer_cast<Variable>(it);
-            if (!vnp)
-              error(@$, "For loop indices must be variables");
-            vvnp.push_back(vnp);
-          }
+        auto tmpt = dynamic_pointer_cast<Tuple>($3);
+        auto tmpv = dynamic_pointer_cast<Variable>($3);
+        if (tmpv)
+          vvnp.emplace_back(tmpv);
+        else if (tmpt)
+          for (auto & it : tmpt->getValue())
+            {
+              auto vnp = dynamic_pointer_cast<Variable>(it);
+              if (!vnp)
+                error(@$, "For loop indices must be variables");
+              vvnp.emplace_back(vnp);
+            }
+        else
+          error(@1, "For loop indices must be a variable or a tuple");
+
         auto vdp = driver.popContext();
         vdp.emplace_back(make_shared<TextNode>("\n", driver.env, @9));
-        $$ = make_shared<For>(vvnp, $6, vdp, driver.env, @$);
+
+        if (!$6)
+          $$ = make_shared<For>(vvnp, $5, vdp, driver.env, @$);
+        else
+          {
+            auto tmpc = make_shared<Comprehension>(true, $3, $5, $6, driver.env, @6);
+            $$ = make_shared<For>(vvnp, tmpc, vdp, driver.env, @$);
+          }
       }
     ;
-
-comma_name : NAME
-             { $$ = vector<VariablePtr>{make_shared<Variable>($1, driver.env, @$)}; }
-           | comma_name COMMA NAME
-             { $1.emplace_back(make_shared<Variable>($3, driver.env, @3)); $$ = $1; }
-           ;
-
 
 if : IF { driver.pushContext(); } if_list ENDIF
      { $$ = make_shared<If>($3, driver.env, @$); }
