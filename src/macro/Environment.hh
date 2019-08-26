@@ -23,6 +23,7 @@
 #include "ForwardDeclarationsAndEnums.hh"
 
 #include <map>
+#include <vector>
 
 namespace macro
 {
