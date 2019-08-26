@@ -149,19 +149,19 @@ directive_multiline : for
                     | ifndef
                     ;
 
-for : FOR { driver.pushContext(); } NAME IN expr EOL statements ENDFOR
-      {
-        vector<VariablePtr> vvnp = {make_shared<Variable>($3, driver.env, @3)};
-        auto vdp = driver.popContext();
-        vdp.emplace_back(make_shared<TextNode>("\n", driver.env, @8));
-        $$ = make_shared<For>(vvnp, $5, vdp, driver.env, @$);
-      }
-    ;
+for_begin : FOR { driver.pushContext(); } ;
 
-for : FOR { driver.pushContext(); } LPAREN comma_name RPAREN IN expr EOL statements ENDFOR
+for : for_begin symbol IN expr EOL statements ENDFOR
+      {
+        vector<VariablePtr> vvnp = {$2};
+        auto vdp = driver.popContext();
+        vdp.emplace_back(make_shared<TextNode>("\n", driver.env, @7));
+        $$ = make_shared<For>(vvnp, $4, vdp, driver.env, @$);
+      }
+    | for_begin LPAREN comma_name RPAREN IN expr EOL statements ENDFOR
       {
         vector<VariablePtr> vvnp;
-        for (auto & it : $4)
+        for (auto & it : $3)
           {
             auto vnp = dynamic_pointer_cast<Variable>(it);
             if (!vnp)
@@ -169,8 +169,8 @@ for : FOR { driver.pushContext(); } LPAREN comma_name RPAREN IN expr EOL stateme
             vvnp.push_back(vnp);
           }
         auto vdp = driver.popContext();
-        vdp.emplace_back(make_shared<TextNode>("\n", driver.env, @10));
-        $$ = make_shared<For>(vvnp, $7, vdp, driver.env, @$);
+        vdp.emplace_back(make_shared<TextNode>("\n", driver.env, @9));
+        $$ = make_shared<For>(vvnp, $6, vdp, driver.env, @$);
       }
     ;
 
