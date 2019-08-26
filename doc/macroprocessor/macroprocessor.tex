@@ -530,13 +530,17 @@ There is also \verb+@#ifndef+, which is the opposite of \verb+@#ifdef+
   \begin{itemize}
   \item The echo directive will simply display a message on standard output
   \item The error directive will display the message and make Dynare stop (only makes sense inside a conditional directive)
-  \item The echomacrovars directive will display all of the macro variables and their values
+  \item The echomacrovars directive will display all of the macro variables (or
+    those specified) and their values, optionally saving them
   \end{itemize}
 
   \begin{block}{Syntax}
 \verb+@#echo +\textit{string\_expr} \\
 \verb+@#error +\textit{string\_expr} \\
-\verb+@#echomacrovars +
+\verb+@#echomacrovars +\\
+\verb+@#echomacrovars +\textit{list\_of\_variables}\\
+\verb+@#echomacrovars (save)+\\
+\verb+@#echomacrovars (save)+\textit{list\_of\_variables}\\
   \end{block}
 
   \begin{block}{Examples}

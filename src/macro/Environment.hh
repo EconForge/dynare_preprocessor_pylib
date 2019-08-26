@@ -43,7 +43,9 @@ namespace macro
     bool isVariableDefined(const string &name) const noexcept;
     bool isFunctionDefined(const string &name) const noexcept;
     inline bool isSymbolDefined(const string &name) const noexcept { return isVariableDefined(name) || isFunctionDefined(name); }
-    void print(ostream &output, int line = -1, bool save = false) const;
+    void print(ostream &output, const vector<string> &vars, int line = -1, bool save = false) const;
+    void printVariable(ostream &output, const string & name, int line, bool save) const;
+    void printFunction(ostream &output, const tuple<FunctionPtr, ExpressionPtr> & function, int line, bool save) const;
     inline size_t size() const noexcept { return variables.size() + functions.size(); }
     inline const Environment *getGlobalEnv() const noexcept { return parent == nullptr ? this : parent->getGlobalEnv(); }
   };

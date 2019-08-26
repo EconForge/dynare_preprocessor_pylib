@@ -147,9 +147,9 @@ void
 EchoMacroVars::interpret(ostream &output, bool no_line_macro)
 {
   if (save)
-    env.print(output, location.begin.line, true);
+    env.print(output, vars, location.begin.line, true);
   else
-    env.print(cout);
+    env.print(cout, vars);
   printEndLineInfo(output, no_line_macro);
 }
 

@@ -100,6 +100,7 @@ using namespace macro;
 %type <VariablePtr> symbol
 
 %type <vector<ExpressionPtr>> comma_expr function_args tuple_comma_expr
+%type <vector<string>> name_list
 
 %%
 
@@ -138,9 +139,22 @@ directive_one_line : INCLUDE expr
                      { $$ = make_shared<Error>($2, driver.env, @$); }
                    | ECHOMACROVARS
                      { $$ = make_shared<EchoMacroVars>(false, driver.env, @$); }
+                   | ECHOMACROVARS name_list
+                     { $$ = make_shared<EchoMacroVars>(false, $2, driver.env, @$); }
                    | ECHOMACROVARS LPAREN SAVE RPAREN
                      { $$ = make_shared<EchoMacroVars>(true, driver.env, @$); }
+                   | ECHOMACROVARS LPAREN SAVE RPAREN name_list
+                     { $$ = make_shared<EchoMacroVars>(true, $5, driver.env, @$); }
                    ;
+
+name_list : NAME
+            { $$ = vector<string>{$1}; }
+          | name_list NAME
+            {
+              $1.emplace_back($2);
+              $$ = $1;
+            }
+          ;
 
 directive_multiline : for
                     | if

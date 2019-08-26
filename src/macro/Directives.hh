@@ -145,10 +145,14 @@ namespace macro
   {
   private:
     const bool save;
+    const vector<string> vars;
   public:
     EchoMacroVars(bool save_arg,
                   Environment &env_arg, Tokenizer::location location_arg) :
       Directive(env_arg, move(location_arg)), save{save_arg} { }
+    EchoMacroVars(bool save_arg, vector<string> vars_arg,
+                  Environment &env_arg, Tokenizer::location location_arg) :
+      Directive(env_arg, move(location_arg)), save{save_arg}, vars{move(vars_arg)} { }
     void interpret(ostream &output, bool no_line_macro) override;
   };
 

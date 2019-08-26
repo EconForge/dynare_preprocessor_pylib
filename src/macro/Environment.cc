@@ -101,42 +101,60 @@ Environment::isFunctionDefined(const string &name) const noexcept
 }
 
 void
-Environment::print(ostream &output, int line, bool save) const
+Environment::print(ostream &output, const vector<string> &vars, int line, bool save) const
 {
   if (!save && !variables.empty())
     output << "Macro Variables:" << endl;
 
-  for (auto & it : variables)
-    {
-      output << (save ? "options_.macrovars_line_" + to_string(line) + "." : "  " );
-      output << it.first << " = ";
-      getVariable(it.first)->eval()->print(output, save);
-      if (save)
-        output << ";";
-      output << endl;
-    }
+  if (vars.empty())
+    for (auto & it : variables)
+      printVariable(output, it.first, line, save);
+  else
+    for (const auto & it : vars)
+      if (isVariableDefined(it))
+        printVariable(output, it, line, save);
 
   if (!save && !functions.empty())
     output << "Macro Functions:" << endl;
 
-  for (auto & it : functions)
-    {
-      output << (save ? "options_.macrovars_line_" + to_string(line) + ".function." : "  " );
-      if (save)
-        {
-          get<0>(it.second)->printName(output);
-          output << " = '";
-        }
-
-      get<0>(it.second)->print(output);
-      output << " = ";
-      get<1>(it.second)->print(output);
-
-      if (save)
-        output << "';";
-      output << endl;
-    }
+  if (vars.empty())
+    for (const auto & it : functions)
+      printFunction(output, it.second, line, save);
+  else
+    for (const auto & it : vars)
+      if (isFunctionDefined(it))
+        printFunction(output, functions.find(it)->second, line, save);
 
   if (parent)
-    parent->print(output, line, save);
+    parent->print(output, vars, line, save);
+}
+
+void
+Environment::printVariable(ostream &output, const string & name, int line, bool save) const
+{
+  output << (save ? "options_.macrovars_line_" + to_string(line) + "." : "  " );
+  output << name << " = ";
+  getVariable(name)->eval()->print(output, save);
+  if (save)
+    output << ";";
+  output << endl;
+}
+
+void
+Environment::printFunction(ostream &output, const tuple<FunctionPtr, ExpressionPtr> & function, int line, bool save) const
+{
+  output << (save ? "options_.macrovars_line_" + to_string(line) + ".function." : "  " );
+  if (save)
+    {
+      get<0>(function)->printName(output);
+      output << " = '";
+    }
+
+  get<0>(function)->print(output);
+  output << " = ";
+  get<1>(function)->print(output);
+
+  if (save)
+    output << "';";
+  output << endl;
 }
