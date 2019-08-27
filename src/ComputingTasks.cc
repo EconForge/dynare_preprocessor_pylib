@@ -3055,7 +3055,7 @@ SvarIdentificationStatement::writeOutput(ostream &output, const string &basename
               if (col > k)
                 {
                   cerr << "ERROR: lag =" << it->lag << ", num endog vars = " << n << "current endog var index = " << it->variable << ". Index "
-                       << "out of bounds. If the above does not represent a logical error, please report this to the Dyanre Team." << endl;
+                       << "out of bounds. If the above does not represent a logical error, please report this to the Dynare Team." << endl;
                   exit(EXIT_FAILURE);
                 }
               output << "options_.ms.Ri{" << it->equation << "}(" << it->restriction_nbr << ", " << col << ") = ";
