@@ -390,16 +390,20 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   dynamic_model.setLeadsLagsOrig();
   original_model = dynamic_model;
 
-  if (nostrict)
-    {
-      set<int> unusedEndogs = dynamic_model.findUnusedEndogenous();
-      for (int unusedEndog : unusedEndogs)
-        {
-          symbol_table.changeType(unusedEndog, SymbolType::unusedEndogenous);
-          warnings << "WARNING: '" << symbol_table.getName(unusedEndog)
-                   << "' not used in model block, removed by nostrict command-line option" << endl;
-        }
-    }
+  set<int> unusedEndogs = dynamic_model.findUnusedEndogenous();
+  bool unusedEndogsIsErr = !nostrict && !mod_file_struct.bvar_present && unusedEndogs.size();
+  for (int unusedEndog : unusedEndogs)
+    if (nostrict)
+      {
+        symbol_table.changeType(unusedEndog, SymbolType::unusedEndogenous);
+        warnings << "WARNING: '" << symbol_table.getName(unusedEndog)
+                 << "' not used in model block, removed by nostrict command-line option" << endl;
+      }
+    else if (unusedEndogsIsErr)
+      cerr << "Error: " << symbol_table.getName(unusedEndog) << " not used in the model block"<< endl;
+
+  if (unusedEndogsIsErr)
+    exit(EXIT_FAILURE);
 
   // Get all equation tags associated with VARs and Trend Component Models
   set<string> eqtags;
