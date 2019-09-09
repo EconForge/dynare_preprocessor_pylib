@@ -84,6 +84,9 @@ private:
   //! Maximum lag and lead over deterministic exogenous variables (positive values) of original model
   int max_exo_det_lag_orig{0}, max_exo_det_lead_orig{0};
 
+  //! Max lags by symb_id
+  map<int, int> max_endo_lag_by_var, max_exo_lag_by_var;
+
   //! Cross reference information
   map<int, ExprNode::EquationInfo> xrefs;
   map<pair<int, int>, set<int>> xref_param;
