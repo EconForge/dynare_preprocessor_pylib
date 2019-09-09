@@ -645,6 +645,8 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
            << endl;
       exit(EXIT_FAILURE);
     }
+
+  symbol_list.removeDuplicates("stoch_simul", warnings);
 }
 
 void

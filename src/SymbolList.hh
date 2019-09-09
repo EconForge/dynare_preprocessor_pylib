@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2017 Dynare Team
+ * Copyright © 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -24,6 +24,8 @@
 #include <vector>
 #include <ostream>
 
+#include "WarningConsolidation.hh"
+
 using namespace std;
 
 //! Used to store a list of symbols
@@ -36,6 +38,8 @@ private:
 public:
   //! Adds a symbol to the list
   void addSymbol(const string &symbol);
+  //! Removed duplicate symbols
+  void removeDuplicates(const string &dynare_command, WarningConsolidation &warnings);
   //! Output content in Matlab format
   /*! Creates a string array for Matlab, stored in variable "varname" */
   void writeOutput(const string &varname, ostream &output) const;

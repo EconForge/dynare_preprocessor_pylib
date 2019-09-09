@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2018 Dynare Team
+ * Copyright © 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -69,4 +69,17 @@ vector<string>
 SymbolList::getSymbols() const
 {
   return symbols;
+}
+
+void
+SymbolList::removeDuplicates(const string &dynare_command, WarningConsolidation &warnings)
+{
+  vector<string> unique_symbols;
+  for (auto & it : symbols)
+    if (find(unique_symbols.begin(), unique_symbols.end(), it) == unique_symbols.end())
+      unique_symbols.push_back(it);
+    else
+      warnings << "WARNING: In " << dynare_command << ": " << it
+               << " found more than once in symbol list. Removing all but first occurence." << endl;
+  symbols = unique_symbols;
 }

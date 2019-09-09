@@ -124,7 +124,7 @@ public:
 class StochSimulStatement : public Statement
 {
 private:
-  const SymbolList symbol_list;
+  SymbolList symbol_list;
   const OptionsList options_list;
 public:
   StochSimulStatement(SymbolList symbol_list_arg,
