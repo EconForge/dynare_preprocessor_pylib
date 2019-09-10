@@ -307,17 +307,41 @@ ModFile::checkPass(bool nostrict, bool stochastic)
     warnings << R"(WARNING: you are using a function (max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) which is unsuitable for a stochastic context; see the reference manual, section about "Expressions", for more details.)" << endl;
 
   if (linear
-      && (dynamic_model.isUnaryOpUsed(UnaryOpcode::sign)
-          || dynamic_model.isUnaryOpUsed(UnaryOpcode::abs)
-          || dynamic_model.isBinaryOpUsed(BinaryOpcode::max)
-          || dynamic_model.isBinaryOpUsed(BinaryOpcode::min)
-          || dynamic_model.isBinaryOpUsed(BinaryOpcode::greater)
-          || dynamic_model.isBinaryOpUsed(BinaryOpcode::less)
-          || dynamic_model.isBinaryOpUsed(BinaryOpcode::greaterEqual)
-          || dynamic_model.isBinaryOpUsed(BinaryOpcode::lessEqual)
-          || dynamic_model.isBinaryOpUsed(BinaryOpcode::equalEqual)
-          || dynamic_model.isBinaryOpUsed(BinaryOpcode::different)))
-    warnings << "WARNING: you have declared your model 'linear' but you are using a function (max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) which potentially makes it non-linear." << endl;
+      && (dynamic_model.isUnaryOpUsedOnType(SymbolType::endogenous, UnaryOpcode::sign)
+          || dynamic_model.isUnaryOpUsedOnType(SymbolType::endogenous, UnaryOpcode::abs)
+          || dynamic_model.isBinaryOpUsedOnType(SymbolType::endogenous, BinaryOpcode::max)
+          || dynamic_model.isBinaryOpUsedOnType(SymbolType::endogenous, BinaryOpcode::min)
+          || dynamic_model.isBinaryOpUsedOnType(SymbolType::endogenous, BinaryOpcode::greater)
+          || dynamic_model.isBinaryOpUsedOnType(SymbolType::endogenous, BinaryOpcode::less)
+          || dynamic_model.isBinaryOpUsedOnType(SymbolType::endogenous, BinaryOpcode::greaterEqual)
+          || dynamic_model.isBinaryOpUsedOnType(SymbolType::endogenous, BinaryOpcode::lessEqual)
+          || dynamic_model.isBinaryOpUsedOnType(SymbolType::endogenous, BinaryOpcode::equalEqual)
+          || dynamic_model.isBinaryOpUsedOnType(SymbolType::endogenous, BinaryOpcode::different)))
+    {
+      cerr << "ERROR: you have declared your model 'linear' but you are using a function "
+           << "(max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) on an "
+           << "endogenous variable." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (linear
+      && !mod_file_struct.perfect_foresight_solver_present
+      && (dynamic_model.isUnaryOpUsedOnType(SymbolType::exogenous, UnaryOpcode::sign)
+          || dynamic_model.isUnaryOpUsedOnType(SymbolType::exogenous, UnaryOpcode::abs)
+          || dynamic_model.isBinaryOpUsedOnType(SymbolType::exogenous, BinaryOpcode::max)
+          || dynamic_model.isBinaryOpUsedOnType(SymbolType::exogenous, BinaryOpcode::min)
+          || dynamic_model.isBinaryOpUsedOnType(SymbolType::exogenous, BinaryOpcode::greater)
+          || dynamic_model.isBinaryOpUsedOnType(SymbolType::exogenous, BinaryOpcode::less)
+          || dynamic_model.isBinaryOpUsedOnType(SymbolType::exogenous, BinaryOpcode::greaterEqual)
+          || dynamic_model.isBinaryOpUsedOnType(SymbolType::exogenous, BinaryOpcode::lessEqual)
+          || dynamic_model.isBinaryOpUsedOnType(SymbolType::exogenous, BinaryOpcode::equalEqual)
+          || dynamic_model.isBinaryOpUsedOnType(SymbolType::exogenous, BinaryOpcode::different)))
+    {
+      cerr << "ERROR: you have declared your model 'linear' but you are using a function "
+           << "(max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) on an "
+           << "exogenous variable in a non-perfect-foresight context." << endl;
+      exit(EXIT_FAILURE);
+    }
 
   // Test if some estimated parameters are used within the values of shocks
   // statements (see issue #469)
@@ -1193,7 +1217,7 @@ ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) 
   jlOutputFile << endl
                << "options_ = dynare_options()" << endl
                << R"(options_.dynare_version = ")" << PACKAGE_VERSION << R"(")" << endl;
-  if (linear == 1)
+  if (linear)
     jlOutputFile << "options_.linear = true" << endl;
 
   // Write Model

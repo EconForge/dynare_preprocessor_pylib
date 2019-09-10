@@ -766,12 +766,40 @@ DataTree::isUnaryOpUsed(UnaryOpcode opcode) const
 }
 
 bool
+DataTree::isUnaryOpUsedOnType(SymbolType type, UnaryOpcode opcode) const
+{
+  set<int> var;
+  for (const auto & it : unary_op_node_map)
+    if (get<1>(it.first) == opcode)
+      {
+        it.second->collectVariables(type, var);
+        if (!var.empty())
+          return true;
+      }
+  return false;
+}
+
+bool
 DataTree::isBinaryOpUsed(BinaryOpcode opcode) const
 {
   for (const auto & it : binary_op_node_map)
     if (get<2>(it.first) == opcode)
       return true;
 
+  return false;
+}
+
+bool
+DataTree::isBinaryOpUsedOnType(SymbolType type, BinaryOpcode opcode) const
+{
+  set<int> var;
+  for (const auto & it : binary_op_node_map)
+    if (get<2>(it.first) == opcode)
+      {
+        it.second->collectVariables(type, var);
+        if (!var.empty())
+          return true;
+      }
   return false;
 }
 

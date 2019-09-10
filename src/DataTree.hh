@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2018 Dynare Team
+ * Copyright © 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -261,8 +261,12 @@ public:
   bool isSymbolUsed(int symb_id) const;
   //! Checks if a given unary op is used somewhere in the data tree
   bool isUnaryOpUsed(UnaryOpcode opcode) const;
+  //! Checks if a given unary op is used somewhere in the data tree on an endogenous variable
+  bool isUnaryOpUsedOnType(SymbolType type, UnaryOpcode opcode) const;
   //! Checks if a given binary op is used somewhere in the data tree
   bool isBinaryOpUsed(BinaryOpcode opcode) const;
+  //! Checks if a given binary op is used somewhere in the data tree on an endogenous variable
+  bool isBinaryOpUsedOnType(SymbolType type, BinaryOpcode opcode) const;
   //! Checks if a given trinary op is used somewhere in the data tree
   bool isTrinaryOpUsed(TrinaryOpcode opcode) const;
   //! Checks if a given external function is used somewhere in the data tree
