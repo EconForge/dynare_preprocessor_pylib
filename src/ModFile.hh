@@ -131,7 +131,7 @@ private:
   void writeJsonComputingPassOutput(const string &basename, JsonFileOutputType json_output_mode, bool jsonderivsimple) const;
   void writeJsonFileHelper(const string &fname, ostringstream &output) const;
   vector<expr_t> pac_growth;
-  /* Generate a random temporary path. Equivalent to
+  /* Generate a random temporary path, in the current directory. Equivalent to
      boost::filesystem::unique_path(). Both are insecure, but currently there
      is no better portable solution. Maybe in a later C++ standard? */
   static filesystem::path unique_path();

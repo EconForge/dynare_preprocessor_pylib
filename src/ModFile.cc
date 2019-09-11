@@ -853,7 +853,9 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
          macOS), if we directly remove the "+" subdirectory, then the
          preprocessor is not able to recreate it afterwards (presumably because
          MATLAB maintains some sort of lock on it). The workaround is to rename
-         it before deleting it. */
+         it before deleting it (the renaming must occur in the same directory,
+         otherwise it may file if the destination is not on the same
+         filesystem). */
       if (filesystem::exists("+" + basename))
 	{
 	  auto tmp = unique_path();
@@ -1582,7 +1584,7 @@ ModFile::unique_path()
       string rand_str(rand_length, '\0');
       for (auto &dis : rand_str)
         dis = possible_characters[distribution(generator)];
-      path = filesystem::temp_directory_path() / rand_str;
+      path = rand_str;
     }
   while (filesystem::exists(path));
 
