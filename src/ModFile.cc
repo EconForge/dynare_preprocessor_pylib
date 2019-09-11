@@ -446,9 +446,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
     tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps(diff_static_model, eqtags);
 
   // Create auxiliary variable and equations for Diff operators
-  diff_table_t diff_table;
-  ExprNode::subst_table_t diff_subst_table;
-  tie(diff_table, diff_subst_table) = dynamic_model.substituteDiff(diff_static_model, pac_growth);
+  auto [diff_table, diff_subst_table] = dynamic_model.substituteDiff(diff_static_model, pac_growth);
 
   // Fill Trend Component Model Table
   dynamic_model.fillTrendComponentModelTable();

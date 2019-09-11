@@ -2502,8 +2502,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
 
       for (const auto & first_derivative : derivatives[1])
         {
-          int eq, var;
-          tie(eq, var) = vectorToTuple<2>(first_derivative.first);
+          auto [eq, var] = vectorToTuple<2>(first_derivative.first);
           expr_t d1 = first_derivative.second;
 
           jacobianHelper(d_output[1], eq, getDynJacobianCol(var), output_type);
@@ -3614,12 +3613,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
 
   for (auto & pit : pac_equation_info)
     {
-      pair<int, int> lhs_pac_var;
-      int optim_share_index;
-      set<pair<int, pair<int, int>>> ar_params_and_vars;
-      pair<int, vector<tuple<int, bool, int>>> ec_params_and_vars;
-      vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants;
-      tie(lhs_pac_var, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants) = pit.second;
+      auto [lhs_pac_var, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants] = pit.second;
       string substruct = pit.first.first + ".equations." + pit.first.second + ".";
 
       output << modstruct << "pac." << substruct << "lhs_var = "
@@ -4296,8 +4290,7 @@ DynamicModel::fillTrendComponentmodelTableAREC(const ExprNode::subst_table_t &di
 {
   auto ARr = fillAutoregressiveMatrix(false);
   trend_component_model_table.setAR(ARr);
-  map<string, map<tuple<int, int, int>, expr_t>> A0r, A0starr;
-  tie(A0r, A0starr) = fillErrorComponentMatrix(diff_subst_table);
+  auto [A0r, A0starr] = fillErrorComponentMatrix(diff_subst_table);
   trend_component_model_table.setA0(A0r, A0starr);
 }
 
@@ -4443,8 +4436,6 @@ DynamicModel::walkPacParameters(const string &name)
 
       if (equation->containsPacExpectation())
         {
-          int optim_share_index;
-          expr_t optim_part, non_optim_part, additive_part;
           set<pair<int, int>> lhss;
           equation->arg1->collectDynamicVariables(SymbolType::endogenous, lhss);
           lhs = *(lhss.begin());
@@ -4465,7 +4456,7 @@ DynamicModel::walkPacParameters(const string &name)
               cerr << "Pac equation in incorrect format" << endl;
               exit(EXIT_FAILURE);
             }
-          tie(optim_share_index, optim_part, non_optim_part, additive_part) =
+          auto [optim_share_index, optim_part, non_optim_part, additive_part] =
             arg2->getPacOptimizingShareAndExprNodes(lhs_symb_id, lhs_orig_symb_id);
 
           if (optim_part == nullptr)
@@ -5149,8 +5140,7 @@ DynamicModel::computeChainRuleJacobian(blocks_derivatives_t &blocks_endo_derivat
       for (const auto &it : Derivatives)
         {
           int Deriv_type = it.second;
-          int lag, eq, var, eqr, varr;
-          tie(lag, eq, var, eqr, varr) = it.first;
+          auto [lag, eq, var, eqr, varr] = it.first;
           if (Deriv_type == 0)
             first_chain_rule_derivatives[{ eqr, varr, lag }] = derivatives[1][{ eqr, getDerivID(symbol_table.getID(SymbolType::endogenous, varr), lag) }];
           else if (Deriv_type == 1)
@@ -5833,8 +5823,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
 
   for (const auto & residuals_params_derivative : params_derivatives.find({ 0, 1 })->second)
     {
-      int eq, param;
-      tie(eq, param) = vectorToTuple<2>(residuals_params_derivative.first);
+      auto [eq, param] = vectorToTuple<2>(residuals_params_derivative.first);
       expr_t d1 = residuals_params_derivative.second;
 
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
@@ -5847,8 +5836,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
 
   for (const auto & jacobian_params_derivative : params_derivatives.find({ 1, 1 })->second)
     {
-      int eq, var, param;
-      tie(eq, var, param) = vectorToTuple<3>(jacobian_params_derivative.first);
+      auto [eq, var, param] = vectorToTuple<3>(jacobian_params_derivative.first);
       expr_t d2 = jacobian_params_derivative.second;
 
       int var_col = getDynJacobianCol(var) + 1;
@@ -5863,8 +5851,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
   int i = 1;
   for (const auto &it : params_derivatives.find({ 0, 2 })->second)
     {
-      int eq, param1, param2;
-      tie(eq, param1, param2) = vectorToTuple<3>(it.first);
+      auto [eq, param1, param2] = vectorToTuple<3>(it.first);
       expr_t d2 = it.second;
 
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
@@ -5903,8 +5890,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
   i = 1;
   for (const auto &it : params_derivatives.find({ 1, 2 })->second)
     {
-      int eq, var, param1, param2;
-      tie(eq, var, param1, param2) = vectorToTuple<4>(it.first);
+      auto [eq, var, param1, param2] = vectorToTuple<4>(it.first);
       expr_t d2 = it.second;
 
       int var_col = getDynJacobianCol(var) + 1;
@@ -5948,8 +5934,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
   i = 1;
   for (const auto &it : params_derivatives.find({ 2, 1 })->second)
     {
-      int eq, var1, var2, param;
-      tie(eq, var1, var2, param) = vectorToTuple<4>(it.first);
+      auto [eq, var1, var2, param] = vectorToTuple<4>(it.first);
       expr_t d2 = it.second;
 
       int var1_col = getDynJacobianCol(var1) + 1;
@@ -5993,8 +5978,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
   i = 1;
   for (const auto &it : params_derivatives.find({ 3, 1 })->second)
     {
-      int eq, var1, var2, var3, param;
-      tie(eq, var1, var2, var3, param) = vectorToTuple<5>(it.first);
+      auto [eq, var1, var2, var3, param] = vectorToTuple<5>(it.first);
       expr_t d2 = it.second;
 
       int var1_col = getDynJacobianCol(var1) + 1;
@@ -7015,8 +6999,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       if (it != rp.begin())
         rp_output << ", ";
 
-      int eq, param;
-      tie(eq, param) = vectorToTuple<2>(it->first);
+      auto [eq, param] = vectorToTuple<2>(it->first);
       expr_t d1 = it->second;
 
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
@@ -7048,8 +7031,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       if (it != gp.begin())
         gp_output << ", ";
 
-      int eq, var, param;
-      tie(eq, var, param) = vectorToTuple<3>(it->first);
+      auto [eq, var, param] = vectorToTuple<3>(it->first);
       expr_t d2 = it->second;
 
       int var_col = getDynJacobianCol(var) + 1;
@@ -7085,8 +7067,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       if (it != rpp.begin())
         rpp_output << ", ";
 
-      int eq, param1, param2;
-      tie(eq, param1, param2) = vectorToTuple<3>(it->first);
+      auto [eq, param1, param2] = vectorToTuple<3>(it->first);
       expr_t d2 = it->second;
 
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
@@ -7121,8 +7102,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       if (it != gpp.begin())
         gpp_output << ", ";
 
-      int eq, var, param1, param2;
-      tie(eq, var, param1, param2) = vectorToTuple<4>(it->first);
+      auto [eq, var, param1, param2] = vectorToTuple<4>(it->first);
       expr_t d2 = it->second;
 
       int var_col = getDynJacobianCol(var) + 1;
@@ -7162,8 +7142,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       if (it != hp.begin())
         hp_output << ", ";
 
-      int eq, var1, var2, param;
-      tie(eq, var1, var2, param) = vectorToTuple<4>(it->first);
+      auto [eq, var1, var2, param] = vectorToTuple<4>(it->first);
       expr_t d2 = it->second;
 
       int var1_col = getDynJacobianCol(var1) + 1;
@@ -7205,8 +7184,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       if (it != g3p.begin())
         g3p_output << ", ";
 
-      int eq, var1, var2, var3, param;
-      tie(eq, var1, var2, var3, param) = vectorToTuple<5>(it->first);
+      auto [eq, var1, var2, var3, param] = vectorToTuple<5>(it->first);
       expr_t d2 = it->second;
 
       int var1_col = getDynJacobianCol(var1) + 1;

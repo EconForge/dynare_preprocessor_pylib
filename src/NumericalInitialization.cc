@@ -466,12 +466,8 @@ HomotopyStatement::writeOutput(ostream &output, const string &basename, bool min
          << "%" << endl
          << "options_.homotopy_values = [];" << endl;
 
-  for (const auto & homotopy_value : homotopy_values)
+  for (auto [symb_id, expression1, expression2] : homotopy_values)
     {
-      int symb_id;
-      expr_t expression1, expression2;
-      tie(symb_id, expression1, expression2) = homotopy_value;
-
       const SymbolType type = symbol_table.getType(symb_id);
       const int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
 
@@ -497,9 +493,7 @@ HomotopyStatement::writeJsonOutput(ostream &output) const
       if (it != homotopy_values.begin())
         output << ", ";
 
-      int symb_id;
-      expr_t expression1, expression2;
-      tie(symb_id, expression1, expression2) = *it;
+      auto [symb_id, expression1, expression2] = *it;
 
       output << R"({"name": ")" << symbol_table.getName(symb_id) << R"(")"
              << R"(, "initial_value": ")";

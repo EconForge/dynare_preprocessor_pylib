@@ -333,12 +333,9 @@ PacModelStatement::writeOutput(ostream &output, const string &basename, bool min
              << "M_.pac." << name << ".growth_type = repmat({''}, " <<  nlc << ", 1);" << endl
              << "M_.pac." << name << ".growth_part_str = repmat({''}, " <<  nlc << ", 1);" << endl;
       int i = 0;
-      for (auto & it : growth_info)
+      for (auto [growth_symb_id, growth_lag, param_id, constant] : growth_info)
         {
           i++;
-          int growth_symb_id, growth_lag, param_id = -1;
-          double constant = 0;
-          tie(growth_symb_id, growth_lag, param_id, constant) = it;
           string growth_type;
           switch (symbol_table.getType(growth_symb_id))
             {

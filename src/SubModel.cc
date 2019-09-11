@@ -352,8 +352,7 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
                 << "    AR = zeros(" << nontarget_lhs_vec.size() << ", " << nontarget_lhs_vec.size() << ", " << getMaxLag(name) << ");" << endl;
       for (const auto & it : AR.at(name))
         {
-          int eqn, lag, lhs_symb_id;
-          tie (eqn, lag, lhs_symb_id) = it.first;
+          auto [eqn, lag, lhs_symb_id] = it.first;
           int colidx = static_cast<int>(distance(nontarget_lhs_vec.begin(), find(nontarget_lhs_vec.begin(), nontarget_lhs_vec.end(), lhs_symb_id)));
           ar_ec_output << "    AR(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
           it.second->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
@@ -369,8 +368,7 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
                    << "    A0 = zeros(" << nontarget_lhs_vec.size() << ", " << nontarget_lhs_vec.size() << ", " << a0_lag << ");" << endl;
       for (const auto & it : A0.at(name))
         {
-          int eqn, lag, colidx;
-          tie (eqn, lag, colidx) = it.first;
+          auto [eqn, lag, colidx] = it.first;
           ar_ec_output << "    A0(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
           it.second->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
           ar_ec_output << ";" << endl;
@@ -385,8 +383,7 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
                    << "    A0star = zeros(" << nontarget_lhs_vec.size() << ", " << target_lhs_vec.size() << ", " << a0star_lag << ");" << endl;
       for (const auto & it : A0star.at(name))
         {
-          int eqn, lag, colidx;
-          tie (eqn, lag, colidx) = it.first;
+          auto [eqn, lag, colidx] = it.first;
           ar_ec_output << "    A0star(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
           it.second->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
           ar_ec_output << ";" << endl;
@@ -525,8 +522,7 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
                 << "    ar = zeros(" << lhs.size() << ", " << lhs.size() << ", " << getMaxLag(name) << ");" << endl;
       for (const auto & it : AR.at(name))
         {
-          int eqn, lag, lhs_symb_id;
-          tie (eqn, lag, lhs_symb_id) = it.first;
+          auto [eqn, lag, lhs_symb_id] = it.first;
           int colidx = static_cast<int>(distance(lhs.begin(), find(lhs.begin(), lhs.end(), lhs_symb_id)));
           ar_output << "    ar(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
           it.second->writeOutput(ar_output, ExprNodeOutputType::matlabDynamicModel);

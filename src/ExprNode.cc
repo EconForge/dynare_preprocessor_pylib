@@ -356,11 +356,8 @@ ExprNode::fillErrorCorrectionRow(int eqn,
         continue;
 
       // Now fill the matrices
-      for (const auto &t : m.second)
+      for (auto [var_id, lag, param_id, constant] : m.second)
         {
-          int var_id, lag, param_id;
-          double constant;
-          tie(var_id, lag, param_id, constant) = t;
           /*
           if (lag != -1)
             {
@@ -5746,11 +5743,9 @@ BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
       for (auto &t : m.second)
         get<3>(t) *= it.second; // Update sign of constants
 
-      int vid, lag, pidtmp, pid = get<0>(m);
-      double constant;
-      for (auto &t : m.second)
+      int pid = get<0>(m);
+      for (auto [vid, lag, pidtmp, constant] : m.second)
         {
-          tie(vid, lag, pidtmp, constant) = t;
           if (pid == -1)
             pid = pidtmp;
           else

@@ -735,8 +735,7 @@ ModelTree::getVariableLeadLagByBlock(const dynamic_jacob_map_t &dynamic_jacobian
     }
   for (const auto & it : dynamic_jacobian)
     {
-      int lag, j_1, i_1;
-      tie(lag, j_1, i_1) = it.first;
+      auto [lag, j_1, i_1] = it.first;
       if (variable_blck[i_1] == equation_blck[j_1])
         {
           if (lag > variable_lead_lag[i_1].second)

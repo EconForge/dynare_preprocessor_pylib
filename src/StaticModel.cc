@@ -177,13 +177,7 @@ StaticModel::StaticModel(const DynamicModel &m) :
           // If yes, replace it by an equation marked [static]
           if (is_dynamic_only)
             {
-              auto tuple = m.getStaticOnlyEquationsInfo();
-              auto static_only_equations = get<0>(tuple);
-              auto static_only_equations_lineno = get<1>(tuple);
-              auto static_only_equations_equation_tags = get<2>(tuple);
-
-              // With C++17, rather use structured bindings, as:
-              //auto [ static_only_equations, static_only_equations_lineno, static_only_equations_equation_tags ] = m.getStaticOnlyEquationsInfo();
+              auto [static_only_equations, static_only_equations_lineno, static_only_equations_equation_tags] = m.getStaticOnlyEquationsInfo();
 
               addEquation(static_only_equations[static_only_index]->toStatic(*this), static_only_equations_lineno[static_only_index], static_only_equations_equation_tags[static_only_index]);
               static_only_index++;
@@ -1492,8 +1486,7 @@ StaticModel::writeStaticModel(const string &basename,
 
       for (const auto & first_derivative : derivatives[1])
         {
-          int eq, var;
-          tie(eq, var) = vectorToTuple<2>(first_derivative.first);
+          auto [eq, var] = vectorToTuple<2>(first_derivative.first);
           expr_t d1 = first_derivative.second;
 
           jacobianHelper(d_output[1], eq, getJacobCol(var), output_type);
@@ -2293,8 +2286,7 @@ StaticModel::computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives)
           for (const auto &it : Derivatives)
             {
               int Deriv_type = it.second;
-              int lag, eq, var, eqr, varr;
-              tie(lag, eq, var, eqr, varr) = it.first;
+              auto [lag, eq, var, eqr, varr] = it.first;
               if (Deriv_type == 0)
                 first_chain_rule_derivatives[{ eqr, varr, lag }] = derivatives[1][{ eqr, getDerivID(symbol_table.getID(SymbolType::endogenous, varr), lag) }];
               else if (Deriv_type == 1)
@@ -2513,8 +2505,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
 
   for (const auto & residuals_params_derivative : params_derivatives.find({ 0, 1 })->second)
     {
-      int eq, param;
-      tie(eq, param) = vectorToTuple<2>(residuals_params_derivative.first);
+      auto [eq, param] = vectorToTuple<2>(residuals_params_derivative.first);
       expr_t d1 = residuals_params_derivative.second;
 
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
@@ -2528,8 +2519,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
 
   for (const auto & jacobian_params_derivative : params_derivatives.find({ 1, 1 })->second)
     {
-      int eq, var, param;
-      tie(eq, var, param) = vectorToTuple<3>(jacobian_params_derivative.first);
+      auto [eq, var, param] = vectorToTuple<3>(jacobian_params_derivative.first);
       expr_t d2 = jacobian_params_derivative.second;
 
       int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
@@ -2545,8 +2535,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
   int i = 1;
   for (const auto &it : params_derivatives.find({ 0, 2 })->second)
     {
-      int eq, param1, param2;
-      tie(eq, param1, param2) = vectorToTuple<3>(it.first);
+      auto [eq, param1, param2] = vectorToTuple<3>(it.first);
       expr_t d2 = it.second;
 
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
@@ -2585,8 +2574,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
   i = 1;
   for (const auto &it : params_derivatives.find({ 1, 2 })->second)
     {
-      int eq, var, param1, param2;
-      tie(eq, var, param1, param2) = vectorToTuple<4>(it.first);
+      auto [eq, var, param1, param2] = vectorToTuple<4>(it.first);
       expr_t d2 = it.second;
 
       int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
@@ -2630,8 +2618,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
   i = 1;
   for (const auto &it : params_derivatives.find({ 2, 1 })->second)
     {
-      int eq, var1, var2, param;
-      tie(eq, var1, var2, param) = vectorToTuple<4>(it.first);
+      auto [eq, var1, var2, param] = vectorToTuple<4>(it.first);
       expr_t d2 = it.second;
 
       int var1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var1)) + 1;
@@ -2891,8 +2878,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
       if (it != rp.begin())
         jacobian_output << ", ";
 
-      int eq, param;
-      tie(eq, param) = vectorToTuple<2>(it->first);
+      auto [eq, param] = vectorToTuple<2>(it->first);
       expr_t d1 = it->second;
 
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
@@ -2924,8 +2910,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
       if (it != gp.begin())
         hessian_output << ", ";
 
-      int eq, var, param;
-      tie(eq, var, param) = vectorToTuple<3>(it->first);
+      auto [eq, var, param] = vectorToTuple<3>(it->first);
       expr_t d2 = it->second;
 
       int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
@@ -2959,8 +2944,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
       if (it != rpp.begin())
         hessian1_output << ", ";
 
-      int eq, param1, param2;
-      tie(eq, param1, param2) = vectorToTuple<3>(it->first);
+      auto [eq, param1, param2] = vectorToTuple<3>(it->first);
       expr_t d2 = it->second;
 
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
@@ -2996,8 +2980,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
       if (it != gpp.begin())
         third_derivs_output << ", ";
 
-      int eq, var, param1, param2;
-      tie(eq, var, param1, param2) = vectorToTuple<4>(it->first);
+      auto [eq, var, param1, param2] = vectorToTuple<4>(it->first);
       expr_t d2 = it->second;
 
       int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
@@ -3035,8 +3018,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
       if (it != hp.begin())
         third_derivs1_output << ", ";
 
-      int eq, var1, var2, param;
-      tie(eq, var1, var2, param) = vectorToTuple<4>(it->first);
+      auto [eq, var1, var2, param] = vectorToTuple<4>(it->first);
       expr_t d2 = it->second;
 
       int var1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var1)) + 1;
