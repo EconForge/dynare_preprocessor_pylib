@@ -2955,14 +2955,14 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       outstruct = "oo_.";
     }
 
-  if (max_endo_lag_by_var.size() != symbol_table.orig_endo_nbr())
+  if (max_endo_lag_by_var.size() != static_cast<size_t>(symbol_table.orig_endo_nbr()))
     {
       cerr << "ERROR: the number of endogenous variables found in the model block"
            << " is not equal to the number declared" << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (max_exo_lag_by_var.size() != symbol_table.exo_nbr())
+  if (max_exo_lag_by_var.size() != static_cast<size_t>(symbol_table.exo_nbr()))
     {
       cerr << "ERROR: the number of exogenous variables found in the model block"
            << " is not equal to the number declared" << endl;
