@@ -1293,6 +1293,8 @@ perfect_foresight_solver_options : o_stack_solve_algo
 				 | o_occbin
                                  | o_pf_tolf
                                  | o_pf_tolx
+                                 | o_noprint
+                                 | o_print
                                  ;
 
 gmm_smm_common_option : o_datafile
