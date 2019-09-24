@@ -4706,16 +4706,8 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
 {
   pac_eqtag_and_lag.insert(eqtag_and_lag.begin(), eqtag_and_lag.end());
 
-  bool stationary_vars_present = false;
-  bool nonstationary_vars_present = false;
-  for (auto it : nonstationary)
-    if (nonstationary_vars_present && stationary_vars_present)
-      break;
-    else
-      if (it)
-        nonstationary_vars_present = true;
-      else
-        stationary_vars_present = true;
+  bool stationary_vars_present = any_of(nonstationary.begin(), nonstationary.end(), logical_not<bool>());
+  bool nonstationary_vars_present = any_of(nonstationary.begin(), nonstationary.end(), [](bool b) { return b; }); // FIXME: use std::identity instead of an anonymous function when we upgrade to C++20
 
   int growth_param_index = -1;
   if (growth != nullptr)

@@ -305,7 +305,7 @@ PacModelStatement::overwriteGrowth(expr_t new_growth)
         growth_info.emplace_back(gv->symb_id, gv->lag, -1, 1);
       else
         {
-          cerr << "Pac growth must be a linear combination of varibles" << endl;
+          cerr << "Pac growth must be a linear combination of variables" << endl;
           exit(EXIT_FAILURE);
         }
     }
