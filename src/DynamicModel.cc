@@ -2954,29 +2954,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       outstruct = "oo_.";
     }
 
-  if (max_endo_lag_by_var.size() != static_cast<size_t>(symbol_table.orig_endo_nbr()))
-    {
-      cerr << "ERROR: the number of endogenous variables found in the model block"
-           << " is not equal to the number declared" << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  if (max_exo_lag_by_var.size() != static_cast<size_t>(symbol_table.exo_nbr()))
-    {
-      cerr << "ERROR: the number of exogenous variables found in the model block"
-           << " is not equal to the number declared" << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  output << modstruct << "max_endo_lag_by_var = [";
-  for (const auto & it : max_endo_lag_by_var)
-    output << it.second << " ";
-  output << "];" << endl
-         << modstruct << "max_exo_lag_by_var = [";
-  for (const auto & it : max_exo_lag_by_var)
-    output << it.second << " ";
-  output << "];" << endl
-         << modstruct << "orig_maximum_endo_lag = " << max_endo_lag_orig << ";" << endl
+  output << modstruct << "orig_maximum_endo_lag = " << max_endo_lag_orig << ";" << endl
          << modstruct << "orig_maximum_endo_lead = " << max_endo_lead_orig << ";" << endl
          << modstruct << "orig_maximum_exo_lag = " << max_exo_lag_orig << ";" << endl
          << modstruct << "orig_maximum_exo_lead = " << max_exo_lead_orig << ";" << endl
@@ -5558,35 +5536,21 @@ DynamicModel::setLeadsLagsOrig()
     for (const auto & dynvar : dynvars)
     {
       int lag = dynvar.second;
+      SymbolType type = symbol_table.getType(dynvar.first);
 
       max_lead_orig = max(lag, max_lead_orig);
       max_lag_orig = max(-lag, max_lag_orig);
 
-
-      switch (symbol_table.getType(dynvar.first))
+      switch (type)
         {
         case SymbolType::endogenous:
-          {
-            max_endo_lead_orig = max(lag, max_endo_lead_orig);
-            max_endo_lag_orig = max(-lag, max_endo_lag_orig);
-            auto var = max_endo_lag_by_var.find(dynvar.first);
-            if (var != max_endo_lag_by_var.end())
-              max_endo_lag_by_var[dynvar.first] = max(0, lag);
-            else
-              max_endo_lag_by_var[dynvar.first] = max(var->second, lag);
-            break;
-          }
+          max_endo_lead_orig = max(lag, max_endo_lead_orig);
+          max_endo_lag_orig = max(-lag, max_endo_lag_orig);
+          break;
         case SymbolType::exogenous:
-          {
-            max_exo_lead_orig = max(lag, max_exo_lead_orig);
-            max_exo_lag_orig = max(-lag, max_exo_lag_orig);
-            auto var = max_exo_lag_by_var.find(dynvar.first);
-            if (var != max_exo_lag_by_var.end())
-              max_exo_lag_by_var[dynvar.first] = max(0, lag);
-            else
-              max_exo_lag_by_var[dynvar.first] = max(var->second, lag);
-            break;
-          }
+          max_exo_lead_orig = max(lag, max_exo_lead_orig);
+          max_exo_lag_orig = max(-lag, max_exo_lag_orig);
+          break;
         case SymbolType::exogenousDet:
           max_exo_det_lead_orig = max(lag, max_exo_det_lead_orig);
           max_exo_det_lag_orig = max(-lag, max_exo_det_lag_orig);
