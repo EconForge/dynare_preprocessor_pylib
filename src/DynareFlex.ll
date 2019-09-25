@@ -328,7 +328,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <DYNARE_STATEMENT>kalman_algo 	{return token::KALMAN_ALGO;}
 <DYNARE_STATEMENT>fast_kalman_filter {return token::FAST_KALMAN_FILTER;}
 <DYNARE_STATEMENT>kalman_tol 	{return token::KALMAN_TOL;}
-<DYNARE_STATEMENT>undiff     {return token::UNDIFF;}
 <DYNARE_STATEMENT>diffuse_kalman_tol 	{return token::DIFFUSE_KALMAN_TOL;}
 <DYNARE_STATEMENT>forecast 	{return token::FORECAST;}
 <DYNARE_STATEMENT>smoother 	{return token::SMOOTHER;}
@@ -349,7 +348,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <DYNARE_STATEMENT>optim		{return token::OPTIM;}
 <DYNARE_STATEMENT>periods	{return token::PERIODS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>model_name	{return token::MODEL_NAME;}
-<DYNARE_STATEMENT>var_model_name    {return token::VAR_MODEL_NAME;}
 <DYNARE_STATEMENT>auxiliary_model_name    {return token::AUXILIARY_MODEL_NAME;}
 <DYNARE_STATEMENT>endogenous_terminal_period 	{return token::ENDOGENOUS_TERMINAL_PERIOD;}
 <DYNARE_STATEMENT>sub_draws	{return token::SUB_DRAWS;}
