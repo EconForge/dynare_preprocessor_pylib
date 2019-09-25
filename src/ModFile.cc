@@ -397,21 +397,11 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
        DataTree:AddDiff()
   */
   dynamic_model.simplifyEquations();
-  for (auto & statement : statements)
-    {
-      auto pms = dynamic_cast<PacModelStatement *>(statement.get());
-      if (pms != nullptr)
-        {
-          if (pms->growth != nullptr)
-            pac_growth.push_back(pms->growth);
-          if (pms->aux_model_name == "")
-            dynamic_model.declarePacModelConsistentExpectationEndogs(pms->name);
-        }
-    }
   dynamic_model.substituteAdl();
   dynamic_model.setLeadsLagsOrig();
   original_model = dynamic_model;
 
+  // Check that all declared endogenous are used in equations
   set<int> unusedEndogs = dynamic_model.findUnusedEndogenous();
   bool unusedEndogsIsErr = !nostrict && !mod_file_struct.bvar_present && unusedEndogs.size();
   for (int unusedEndog : unusedEndogs)
@@ -426,6 +416,19 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
 
   if (unusedEndogsIsErr)
     exit(EXIT_FAILURE);
+
+  // Declare endogenous used for PAC model-consistent expectations
+  for (auto & statement : statements)
+    {
+      auto pms = dynamic_cast<PacModelStatement *>(statement.get());
+      if (pms != nullptr)
+        {
+          if (pms->growth != nullptr)
+            pac_growth.push_back(pms->growth);
+          if (pms->aux_model_name == "")
+            dynamic_model.declarePacModelConsistentExpectationEndogs(pms->name);
+        }
+    }
 
   // Get all equation tags associated with VARs and Trend Component Models
   set<string> eqtags;
