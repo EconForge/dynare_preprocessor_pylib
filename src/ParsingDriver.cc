@@ -3205,7 +3205,7 @@ ParsingDriver::add_parallel_local_file(string filename)
 }
 
 void
-ParsingDriver::add_moment_calibration_item(const string &endo1, const string &endo2, string lags, const pair<string, string> &range)
+ParsingDriver::add_moment_calibration_item(const string &endo1, const string &endo2, string lags, const pair<expr_t, expr_t> &range)
 {
   MomentCalibration::Constraint c;
 
@@ -3232,7 +3232,7 @@ ParsingDriver::end_moment_calibration()
 }
 
 void
-ParsingDriver::add_irf_calibration_item(const string &endo, string periods, const string &exo, const pair<string, string> &range)
+ParsingDriver::add_irf_calibration_item(const string &endo, string periods, const string &exo, const pair<expr_t, expr_t> &range)
 {
   IrfCalibration::Constraint c;
 

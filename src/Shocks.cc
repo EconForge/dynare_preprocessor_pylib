@@ -525,7 +525,11 @@ MomentCalibration::writeOutput(ostream &output, const string &basename, bool min
       output << "'" << symbol_table.getName(c.endo1) << "', "
              << "'" << symbol_table.getName(c.endo2) << "', "
              << c.lags << ", "
-             << "[ " << c.lower_bound << ", " << c.upper_bound << " ];"
+             << "[ ";
+      c.lower_bound->writeOutput(output);
+      output << ", ";
+      c.upper_bound->writeOutput(output);
+      output << " ];"
              << endl;
     }
   output << "};" << endl;
@@ -543,8 +547,12 @@ MomentCalibration::writeJsonOutput(ostream &output) const
       output << R"({"endogenous1": ")" << symbol_table.getName(it->endo1) << R"(")"
              << R"(, "endogenous2": ")" << symbol_table.getName(it->endo2) << R"(")"
              << R"(, "lags": ")" << it->lags << R"(")"
-             << R"(, "lower_bound": ")" << it->lower_bound << R"(")"
-             << R"(, "upper_bound": ")" << it->upper_bound << R"(")"
+             << R"(, "lower_bound": ")";
+      it->lower_bound->writeJsonOutput(output, {}, {});
+      output << R"(")"
+             << R"(, "upper_bound": ")";
+      it->upper_bound->writeJsonOutput(output, {}, {});
+      output << R"(")"
              << "}";
     }
   output << "]"
@@ -569,7 +577,11 @@ IrfCalibration::writeOutput(ostream &output, const string &basename, bool minima
       output << "'" << symbol_table.getName(c.endo) << "', "
              << "'" << symbol_table.getName(c.exo) << "', "
              << c.periods << ", "
-             << "[ " << c.lower_bound << ", " << c.upper_bound << " ];"
+             << "[ ";
+      c.lower_bound->writeOutput(output);
+      output << ", ";
+      c.upper_bound->writeOutput(output);
+      output << " ];"
              << endl;
     }
   output << "};" << endl;
@@ -593,8 +605,12 @@ IrfCalibration::writeJsonOutput(ostream &output) const
       output << R"({"endogenous": ")" << symbol_table.getName(it->endo) << R"(")"
              << R"(, "exogenous": ")" << symbol_table.getName(it->exo) << R"(")"
              << R"(, "periods": ")" << it->periods << R"(")"
-             << R"(, "lower_bound": ")" << it->lower_bound << R"(")"
-             << R"(, "upper_bound": ")" << it->upper_bound << R"(")"
+             << R"(, "lower_bound": ")";
+      it->lower_bound->writeJsonOutput(output, {}, {});
+      output << R"(")";
+      output << R"(, "upper_bound": ")";
+      it->upper_bound->writeJsonOutput(output, {}, {});
+      output << R"(")"
              << "}";
     }
   output << "]"

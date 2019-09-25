@@ -113,7 +113,7 @@ public:
   {
     int endo1, endo2;
     string lags;
-    string lower_bound, upper_bound;
+    expr_t lower_bound, upper_bound;
   };
   using constraints_t = vector<Constraint>;
 private:
@@ -133,7 +133,8 @@ public:
   {
     int endo;
     int exo;
-    string periods, lower_bound, upper_bound;
+    string periods;
+    expr_t lower_bound, upper_bound;
   };
   using constraints_t = vector<Constraint>;
 private:

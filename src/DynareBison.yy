@@ -184,7 +184,8 @@ class ParsingDriver;
 %type <vector<string>> change_type_var_list
 %type <vector<int>> vec_int_elem vec_int_1 vec_int vec_int_number
 %type <PriorDistributions> prior_pdf prior_distribution
-%type <pair<string,string>> named_var_elem subsamples_eq_opt calibration_range integer_range_w_inf
+%type <pair<expr_t,expr_t>> calibration_range
+%type <pair<string,string>> named_var_elem subsamples_eq_opt integer_range_w_inf
 %type <vector<pair<string,string>>> named_var named_var_1
 %type <tuple<string,string,string,string>> prior_eq_opt options_eq_opt
 %%
@@ -2998,14 +2999,12 @@ model_diagnostics : MODEL_DIAGNOSTICS ';'
                     { driver.model_diagnostics(); }
                   ;
 
-calibration_range : '[' signed_number_w_inf signed_number_w_inf ']'
-                    { $$ = make_pair($2, $3); }
-                  | '[' signed_number_w_inf COMMA signed_number_w_inf ']'
+calibration_range : '[' expression COMMA expression ']'
                     { $$ = make_pair($2, $4); }
                   | PLUS
-                    { $$ = make_pair("0", "inf"); }
+                    { $$ = make_pair(driver.add_non_negative_constant("0"), driver.add_inf_constant()); }
                   | MINUS
-                    { $$ = make_pair("-inf", "0"); }
+                    { $$ = make_pair(driver.add_uminus(driver.add_inf_constant()), driver.add_non_negative_constant("0")); }
                   ;
 
 moment_calibration : MOMENT_CALIBRATION ';' moment_calibration_list END ';'

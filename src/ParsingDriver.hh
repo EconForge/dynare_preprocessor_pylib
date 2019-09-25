@@ -845,11 +845,11 @@ public:
   //! Processing the parallel_local_files option
   void add_parallel_local_file(string filename);
   //! Add an item of a moment_calibration statement
-  void add_moment_calibration_item(const string &endo1, const string &endo2, string lags, const pair<string, string> &range);
+  void add_moment_calibration_item(const string &endo1, const string &endo2, string lags, const pair<expr_t, expr_t> &range);
   //! End a moment_calibration statement
   void end_moment_calibration();
   //! Add an item of an irf_calibration statement
-  void add_irf_calibration_item(const string &endo, string periods, const string &exo, const pair<string, string> &range);
+  void add_irf_calibration_item(const string &endo, string periods, const string &exo, const pair<expr_t, expr_t> &range);
   //! End a moment_calibration statement
   void end_irf_calibration();
   //! Add a shock to a group
