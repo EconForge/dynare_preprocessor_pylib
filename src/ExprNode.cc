@@ -1211,11 +1211,13 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           cerr << "VariableNode::writeOutput: Impossible case" << endl;
           exit(EXIT_FAILURE);
         }
+    case SymbolType::unusedEndogenous:
+      cerr << "ERROR: You cannot use an unused endogenous variable in an expression" << endl;
+      exit(EXIT_FAILURE);
     case SymbolType::externalFunction:
     case SymbolType::trend:
     case SymbolType::logTrend:
     case SymbolType::statementDeclaredVariable:
-    case SymbolType::unusedEndogenous:
     case SymbolType::endogenousVAR:
       cerr << "VariableNode::writeOutput: Impossible case" << endl;
       exit(EXIT_FAILURE);
