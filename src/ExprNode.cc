@@ -1212,7 +1212,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           exit(EXIT_FAILURE);
         }
     case SymbolType::unusedEndogenous:
-      cerr << "ERROR: You cannot use an unused endogenous variable in an expression" << endl;
+      cerr << "ERROR: You cannot use an endogenous variable in an expression if that variable has not been used in the model block." << endl;
       exit(EXIT_FAILURE);
     case SymbolType::externalFunction:
     case SymbolType::trend:
