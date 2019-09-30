@@ -148,7 +148,7 @@ enum class SymbolType
     trend = 13,                    //!< Trend variable
     statementDeclaredVariable = 14, //!< Local variable assigned within a Statement (see subsample statement for example)
     logTrend = 15,                 //!< Log-trend variable
-    unusedEndogenous = 16,
+    unusedEndogenous = 16,         //!< Type to mark unused endogenous variables when `nostrict` option is passed
     endogenousVAR = 17,            //!< Variables declared in a var_model statement
     epilogue = 18                  //!< Variables created in epilogue block
   };
