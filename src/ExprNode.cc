@@ -856,13 +856,13 @@ VariableNode::computeDerivative(int deriv_id)
     case SymbolType::modelLocalVariable:
       return datatree.getLocalVariable(symb_id)->getDerivative(deriv_id);
     case SymbolType::modFileLocalVariable:
-      cerr << "ModFileLocalVariable is not derivable" << endl;
+      cerr << "modFileLocalVariable is not derivable" << endl;
       exit(EXIT_FAILURE);
     case SymbolType::statementDeclaredVariable:
-      cerr << "eStatementDeclaredVariable is not derivable" << endl;
+      cerr << "statementDeclaredVariable is not derivable" << endl;
       exit(EXIT_FAILURE);
     case SymbolType::unusedEndogenous:
-      cerr << "eUnusedEndogenous is not derivable" << endl;
+      cerr << "unusedEndogenous is not derivable" << endl;
       exit(EXIT_FAILURE);
     case SymbolType::externalFunction:
     case SymbolType::endogenousVAR:
@@ -1427,13 +1427,13 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recur
     case SymbolType::modelLocalVariable:
       return datatree.getLocalVariable(symb_id)->getChainRuleDerivative(deriv_id, recursive_variables);
     case SymbolType::modFileLocalVariable:
-      cerr << "ModFileLocalVariable is not derivable" << endl;
+      cerr << "modFileLocalVariable is not derivable" << endl;
       exit(EXIT_FAILURE);
     case SymbolType::statementDeclaredVariable:
-      cerr << "eStatementDeclaredVariable is not derivable" << endl;
+      cerr << "statementDeclaredVariable is not derivable" << endl;
       exit(EXIT_FAILURE);
     case SymbolType::unusedEndogenous:
-      cerr << "eUnusedEndogenous is not derivable" << endl;
+      cerr << "unusedEndogenous is not derivable" << endl;
       exit(EXIT_FAILURE);
     case SymbolType::externalFunction:
     case SymbolType::endogenousVAR:

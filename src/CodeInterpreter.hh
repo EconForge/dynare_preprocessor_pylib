@@ -138,19 +138,19 @@ enum BlockSimulationType
 /*! Warning: do not to change existing values for 0 to 4: the values matter for homotopy_setup command */
 enum class SymbolType
   {
-    endogenous = 0,                //!< Endogenous
-    exogenous = 1,                 //!< Exogenous
-    exogenousDet = 2,              //!< Exogenous deterministic
-    parameter = 4,                 //!< Parameter
-    modelLocalVariable = 10,       //!< Local variable whose scope is model (pound expression)
-    modFileLocalVariable = 11,     //!< Local variable whose scope is mod file (model excluded)
-    externalFunction = 12,         //!< External (user-defined) function
-    trend = 13,                    //!< Trend variable
+    endogenous = 0,                 //!< Endogenous
+    exogenous = 1,                  //!< Exogenous
+    exogenousDet = 2,               //!< Exogenous deterministic
+    parameter = 4,                  //!< Parameter
+    modelLocalVariable = 10,        //!< Local variable whose scope is model (pound expression)
+    modFileLocalVariable = 11,      //!< Local variable whose scope is mod file (model excluded)
+    externalFunction = 12,          //!< External (user-defined) function
+    trend = 13,                     //!< Trend variable
     statementDeclaredVariable = 14, //!< Local variable assigned within a Statement (see subsample statement for example)
-    logTrend = 15,                 //!< Log-trend variable
-    unusedEndogenous = 16,         //!< Type to mark unused endogenous variables when `nostrict` option is passed
-    endogenousVAR = 17,            //!< Variables declared in a var_model statement
-    epilogue = 18                  //!< Variables created in epilogue block
+    logTrend = 15,                  //!< Log-trend variable
+    unusedEndogenous = 16,          //!< Type to mark unused endogenous variables when `nostrict` option is passed
+    endogenousVAR = 17,             //!< Variables declared in a var_model statement
+    epilogue = 18                   //!< Variables created in epilogue block
   };
 
 enum ExpressionType
