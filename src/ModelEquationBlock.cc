@@ -237,9 +237,6 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model
     output << "    # Auxiliary equations" << endl;
   static_model.writeAuxVarRecursiveDefinitions(output, output_type);
 
-  if (!julia)
-    output << "    check_=0;" << endl;
-
   output << "end" << endl;
   if (julia)
     output << "end" << endl;
