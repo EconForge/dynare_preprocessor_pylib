@@ -33,7 +33,8 @@ main1(const string &filename, const string &basename, istream &modfile, bool deb
 {
   // Do macro processing
   macro::Environment env = macro::Environment();
-  macro::Driver m(env, no_line_macro_arg);
+  vector<string> paths;
+  macro::Driver m(env, paths, no_line_macro_arg);
   m.parse(filename, basename, modfile, macro_output, debug, defines, path);
   if (save_macro)
     {

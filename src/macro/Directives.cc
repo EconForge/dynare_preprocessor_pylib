@@ -18,6 +18,9 @@
  */
 
 #include "Directives.hh"
+#include "Driver.hh"
+
+#include <fstream>
 
 using namespace macro;
 
@@ -39,15 +42,45 @@ Eval::interpret(ostream &output, bool no_line_macro)
     }
 }
 
-string
-Include::interpretAndGetName() const
+void
+Include::interpret(ostream &output, bool no_line_macro)
 {
+#ifdef _WIN32
+  string FILESEP = "\\";
+#else
+  string FILESEP = "/";
+#endif
   try
     {
       StringPtr msp = dynamic_pointer_cast<String>(expr->eval());
       if (!msp)
         throw StackTrace("File name does not evaluate to a string");
-      return msp->to_string();
+      string filename = msp->to_string();
+      ifstream incfile(filename, ios::binary);
+      if (incfile.fail())
+        {
+          ostringstream dirs;
+          dirs << "." << FILESEP << endl;
+          for (const auto & path : paths)
+            {
+              string testfile = path + FILESEP + filename;
+              incfile = ifstream(testfile, ios::binary);
+              if (incfile.good())
+                break;
+              dirs << path << endl;
+            }
+          if (incfile.fail())
+            error(StackTrace("@#includepath", "Could not open " + filename +
+                             ". The following directories were searched:\n" + dirs.str(), location));
+        }
+
+      string basename = filename;
+      size_t pos = basename.find_last_of('.');
+      if (pos != string::npos)
+        basename.erase(pos);
+
+      Driver m(env, paths, no_line_macro);
+      m.parse(filename, basename, incfile, output, false, vector<pair<string, string>>{}, paths);
     }
   catch (StackTrace &ex)
     {
@@ -58,7 +91,6 @@ Include::interpretAndGetName() const
     {
       error(StackTrace("@#include", e.what(), location));
     }
-  return "";
 }
 
 void

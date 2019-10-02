@@ -56,6 +56,9 @@ namespace macro
   class Eval;
   using EvalPtr = shared_ptr<Eval>;
 
+  // For Directives.cc
+  class Driver;
+
   namespace codes
   {
     enum class BaseType

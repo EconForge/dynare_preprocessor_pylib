@@ -19,8 +19,6 @@
 
 #include "Driver.hh"
 
-#include <fstream>
-
 using namespace macro;
 
 void
@@ -28,12 +26,6 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
               ostream &output, bool debug, const vector<pair<string, string>> &defines,
               vector<string> paths_arg)
 {
-#ifdef _WIN32
-  string FILESEP = "\\";
-#else
-  string FILESEP = "/";
-#endif
-
   file = file_arg;
   basename = basename_arg;
   paths = move(paths_arg);
@@ -80,39 +72,7 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
           statement->printLineInfo(output, no_line_macro);
           printLine = false;
         }
-
-      auto ip = dynamic_pointer_cast<Include>(statement);
-      if (ip)
-        {
-          string filename = ip->interpretAndGetName();
-          ifstream incfile(filename, ios::binary);
-          if (incfile.fail())
-            {
-              ostringstream dirs;
-              dirs << "." << FILESEP << endl;
-              for (const auto & path : paths)
-                {
-                  string testfile = path + FILESEP + filename;
-                  incfile = ifstream(testfile, ios::binary);
-                  if (incfile.good())
-                    break;
-                  dirs << path << endl;
-                }
-              if (incfile.fail())
-                error(statement->getLocation(), "Could not open " + filename +
-                      ". The following directories were searched:\n" + dirs.str());
-            }
-
-          string basename = filename;
-          size_t pos = basename.find_last_of('.');
-          if (pos != string::npos)
-            basename.erase(pos);
-
-          Driver m(env, paths, no_line_macro);
-          m.parse(filename, basename, incfile, output, debug, vector<pair<string, string>>{}, paths);
-        }
-      else
-        statement->interpret(output, no_line_macro);
+      statement->interpret(output, no_line_macro);
     }
 }
 

@@ -66,17 +66,11 @@ namespace macro
   {
   private:
     const ExpressionPtr expr;
+    vector<string> &paths;
   public:
-    Include(ExpressionPtr expr_arg, Environment &env_arg, Tokenizer::location location_arg) :
-      Directive(env_arg, move(location_arg)), expr{move(expr_arg)} { }
-    // Not interpretable because we want the class to be immutable (for use with shared_ptr)
-    // If it were interpretable, the name would need to be stored in a non-const variable
-    // rendering the class mutable
-    inline void interpret(ostream &output, bool no_line_macro) override
-    {
-      error(StackTrace("@#include", "should never be interpreted", location));
-    }
-    string interpretAndGetName() const;
+    Include(ExpressionPtr expr_arg, Environment &env_arg, vector<string> &paths_arg, Tokenizer::location location_arg) :
+      Directive(env_arg, move(location_arg)), expr{move(expr_arg)}, paths{paths_arg} { }
+    void interpret(ostream &output, bool no_line_macro) override;
   };
 
 
