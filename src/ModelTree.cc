@@ -1524,10 +1524,10 @@ ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_
         {
           if (!message_printed)
             {
-              cerr << "Warning: A .m file created by Dynare will have more than 32 nested parenthesis. Matlab cannot support this. " << endl
+              cerr << "Warning: A .m file created by Dynare will have more than 32 nested parenthesis. MATLAB cannot support this. " << endl
                    << "         We are going to modify, albeit inefficiently, this output to have fewer than 32 nested parenthesis. " << endl
                    << "         It would hence behoove you to use the use_dll option of the model block to circumnavigate this problem." << endl
-                   << "         If you have not yet set up a compiler on your system, see the Matlab documentation for doing so." << endl
+                   << "         If you have not yet set up a compiler on your system, see the MATLAB documentation for doing so." << endl
                    << "         For Windows, see: https://www.mathworks.com/help/matlab/matlab_external/install-mingw-support-package.html" << endl << endl;
               message_printed = true;
             }

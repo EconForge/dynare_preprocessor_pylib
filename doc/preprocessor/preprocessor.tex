@@ -92,7 +92,7 @@
   \item Dynare is called from the host language platform with the syntax \texttt{dynare <<filename>>.mod}
   \item This call can be followed by certain options:
     \begin{itemize}
-    \item Some of these options impact host language platform functionality, \textit{e.g.} \texttt{nograph} prevents graphs from being displayed in Matlab
+    \item Some of these options impact host language platform functionality, \textit{e.g.} \texttt{nograph} prevents graphs from being displayed in MATLAB
     \item Some cause differences in the output created by default, \textit{e.g.} \texttt{notmpterms} prevents temporary terms from being written to the static/dynamic files
     \item While others impact the functionality of the macroprocessor or the preprocessor, \textit{e.g.} \texttt{nostrict} shuts off certain checks that the preprocessor does by defalut
     \end{itemize}
@@ -600,7 +600,7 @@ The class \texttt{ParsingDriver} has the following roles:
   \begin{itemize}
   \item The static model is simply the dynamic model without leads and lags
   \item Static model used to characterize the steady state
-  \item The jacobian of the static model is used in the (Matlab) solver for determining the steady state
+  \item The jacobian of the static model is used in the (MATLAB) solver for determining the steady state
   \end{itemize}
   \begin{block}{Example}
     \begin{itemize}
@@ -670,7 +670,7 @@ The class \texttt{ParsingDriver} has the following roles:
   \frametitle{Temporary terms (1/2)}
   \begin{itemize}
   \item When the preprocessor writes equations and derivatives in its outputs, it takes advantage of sub-expression sharing
-  \item In Matlab static and dynamic output files, equations are preceded by a list of \alert{temporary terms}
+  \item In MATLAB static and dynamic output files, equations are preceded by a list of \alert{temporary terms}
   \item These terms are variables containing expressions shared by several equations or derivatives
   \item Using these terms greatly enhances the computing speed of the model residual, jacobian, hessian, or third derivative
   \end{itemize}
@@ -698,7 +698,7 @@ residual(1)=3*T1+1;
 \begin{frame}
   \frametitle{Temporary terms (2/2)}
   \begin{itemize}
-  \item Expression storage in the preprocessor implements maximal sharing but this is not optimal for the Matlab output files, because creating a temporary variable also has a cost (in terms of CPU and of memory)
+  \item Expression storage in the preprocessor implements maximal sharing but this is not optimal for the MATLAB output files, because creating a temporary variable also has a cost (in terms of CPU and of memory)
   \item Computation of temporary terms implements a trade-off between:
     \begin{itemize}
     \item cost of duplicating sub-expressions
@@ -731,7 +731,7 @@ residual(1)=3*T1+1;
     \item general initialization commands
     \item symbol table output (from \texttt{SymbolTable::writeOutput()})
     \item lead/lag incidence matrix (from \texttt{DynamicModel::writeDynamicMFile()})
-    \item call to Matlab functions corresponding to the statements of the \texttt{mod} file (written by calling \texttt{Statement::writeOutput()} on all statements through polymorphism)
+    \item call to MATLAB functions corresponding to the statements of the \texttt{mod} file (written by calling \texttt{Statement::writeOutput()} on all statements through polymorphism)
     \end{itemize}
   \item Subsidiary output files:
     \begin{itemize}
@@ -748,20 +748,20 @@ residual(1)=3*T1+1;
   \frametitle{Model output files}
   Three possible output types:
   \begin{itemize}
-  \item Matlab/Octave mode: static and dynamic files in Matlab
+  \item MATLAB/Octave mode: static and dynamic files in MATLAB
   \item Julia mode: static and dynamic files in Julia
   \item DLL mode:
     \begin{itemize}
     \item static and dynamic files in C++ source code (with corresponding headers)
-    \item compiled through \texttt{mex} to allow execution from within Matlab
+    \item compiled through \texttt{mex} to allow execution from within MATLAB
     \end{itemize}
   \item Sparse DLL mode:
     \begin{itemize}
-    \item static file in Matlab
+    \item static file in MATLAB
     \item two possibilities for dynamic file:
       \begin{itemize}
       \item by default, a C++ source file (with header) and a binary file, to be read from the C++ code
-      \item or, with \texttt{no\_compiler} option, a binary file in custom format, executed from Matlab through \texttt{simulate} DLL
+      \item or, with \texttt{no\_compiler} option, a binary file in custom format, executed from MATLAB through \texttt{simulate} DLL
       \item the second option serves to bypass compilation of C++ file which can be very slow
       \end{itemize}
     \end{itemize}
@@ -785,7 +785,7 @@ residual(1)=3*T1+1;
   \item Dump preprocessor altogether: do everything with Julia
     \begin{itemize}
     \item Pros: simple to distribute, move away from C++ (no contributions, requires more expertise)
-    \item Cons: Matlab/Octave users must also download Julia, a big project, speed (?)
+    \item Cons: MATLAB/Octave users must also download Julia, a big project, speed (?)
     \end{itemize}
     \asuivre
   \end{enumerate}
