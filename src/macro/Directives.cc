@@ -61,15 +61,15 @@ Include::interpretAndGetName() const
   return "";
 }
 
-string
-IncludePath::interpretAndGetPath() const
+void
+IncludePath::interpret(ostream &output, bool no_line_macro)
 {
   try
     {
       StringPtr msp = dynamic_pointer_cast<String>(expr->eval());
       if (!msp)
         throw StackTrace("File name does not evaluate to a string");
-      return *msp;
+      paths.emplace_back(*msp);
     }
   catch (StackTrace &ex)
     {
@@ -80,7 +80,6 @@ IncludePath::interpretAndGetPath() const
     {
       error(StackTrace("@#includepath", e.what(), location));
     }
-  return "";
 }
 
 void

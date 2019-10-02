@@ -63,15 +63,15 @@ namespace macro
   {
   public:
     Environment &env;
+    //! The paths to search when looking for .mod files
+    vector<string> &paths;
   private:
     bool no_line_macro;
     vector<DirectivePtr> statements;
     stack<vector<DirectivePtr>> directive_stack;
-    //! The paths to search when looking for .mod files
-    vector<string> paths;
   public:
-    Driver(Environment &env_arg, bool no_line_macro_arg) :
-      env{env_arg}, no_line_macro(no_line_macro_arg) { }
+    Driver(Environment &env_arg, vector<string> &paths_arg, bool no_line_macro_arg) :
+      env{env_arg}, paths{paths_arg}, no_line_macro(no_line_macro_arg) { }
     Driver(const Driver &) = delete;
     Driver(Driver &&) = delete;
     Driver & operator=(const Driver &) = delete;

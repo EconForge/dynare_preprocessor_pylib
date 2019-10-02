@@ -55,7 +55,7 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
             else
               command_line_defines_with_endl << "@#define " << define.first << " = \"" << define.second << "\"" << endl;
           }
-      Driver m(env, true);
+      Driver m(env, paths, true);
       istream is(command_line_defines_with_endl.rdbuf());
       m.parse("command_line_defines", "command_line_defines", is, output, debug, vector<pair<string, string>>{}, paths);
     }
@@ -82,10 +82,7 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
         }
 
       auto ip = dynamic_pointer_cast<Include>(statement);
-      auto ipp = dynamic_pointer_cast<IncludePath>(statement);
-      if (ipp)
-        paths.emplace_back(ipp->interpretAndGetPath());
-      else if (ip)
+      if (ip)
         {
           string filename = ip->interpretAndGetName();
           ifstream incfile(filename, ios::binary);
@@ -111,7 +108,7 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
           if (pos != string::npos)
             basename.erase(pos);
 
-          Driver m(env, no_line_macro);
+          Driver m(env, paths, no_line_macro);
           m.parse(filename, basename, incfile, output, debug, vector<pair<string, string>>{}, paths);
         }
       else
