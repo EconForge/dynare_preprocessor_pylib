@@ -615,10 +615,10 @@ Range::eval()
                      "the arguments must evaluate to reals");
 
   vector<ExpressionPtr> arr;
-  if (*incdbl > 0 && *startdbl < *enddbl)
+  if (*incdbl > 0 && *startdbl <= *enddbl)
     for (double i = *startdbl; i <= *enddbl; i += *incdbl)
       arr.emplace_back(make_shared<Real>(i, env));
-  else if (*startdbl > *enddbl && *incdbl < 0)
+  else if (*startdbl >= *enddbl && *incdbl < 0)
     for (double i = *startdbl; i >= *enddbl; i += *incdbl)
       arr.emplace_back(make_shared<Real>(i, env));
 
