@@ -604,8 +604,11 @@ class ExprNode
       /*! Returns a list of (variable_id, lag, param_id, constant)
           corresponding to the terms in the expression. When there is no
           parameter in a term, param_id == -1.
-          Can throw a MatchFailureException. */
-      vector<tuple<int, int, int, double>> matchLinearCombinationOfVariables() const;
+          Can throw a MatchFailureException.
+          if `variable_obligatory_in_each_term` is true, then every part of the linear combination must contain a variable;
+          otherwise, if `variable_obligatory_in_each_term`, then any linear combination of constant/variable/param is matched
+      */
+      vector<tuple<int, int, int, double>> matchLinearCombinationOfVariables(bool variable_obligatory_in_each_term = true) const;
 
       pair<int, vector<tuple<int, int, int, double>>> matchParamTimesLinearCombinationOfVariables() const;
 
@@ -645,8 +648,11 @@ class ExprNode
          denominator (i.e. after a divide sign).
          The parameter is optional (in which case param_id == -1).
          If the expression is not of the expected form, throws a
-         MatchFailureException */
-      tuple<int, int, int, double> matchVariableTimesConstantTimesParam() const;
+         MatchFailureException
+         if `variable_obligatory` is true, then the linear combination must contain a variable;
+          otherwise, if `variable_obligatory`, then an expression is matched that has any mix of constant/variable/param
+      */
+      tuple<int, int, int, double> matchVariableTimesConstantTimesParam(bool variable_obligatory = true) const;
 
       //! Exception thrown by matchVariableTimesConstantTimesParam when matching fails
       class MatchFailureException

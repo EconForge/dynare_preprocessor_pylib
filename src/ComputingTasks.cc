@@ -296,7 +296,7 @@ PacModelStatement::overwriteGrowth(expr_t new_growth)
 
   try
     {
-      growth_info = growth->matchLinearCombinationOfVariables();
+      growth_info = growth->matchLinearCombinationOfVariables(false);
     }
   catch (ExprNode::MatchFailureException &e)
     {
@@ -325,67 +325,56 @@ PacModelStatement::writeOutput(ostream &output, const string &basename, bool min
 
   if (growth)
     {
-      size_t nlc = growth_info.size();
-      output << "M_.pac." << name << ".growth_index = repmat(-1, " << nlc << ", 1);" << endl
-             << "M_.pac." << name << ".growth_lag = zeros(" << nlc << ", 1);" << endl
-             << "M_.pac." << name << ".growth_param_id = repmat(-1, " << nlc << ", 1);" << endl
-             << "M_.pac." << name << ".growth_constant = zeros(" << nlc << ", 1);" << endl
-             << "M_.pac." << name << ".growth_type = repmat({''}, " <<  nlc << ", 1);" << endl
-             << "M_.pac." << name << ".growth_part_str = repmat({''}, " <<  nlc << ", 1);" << endl;
-      int i = 0;
-      for (auto [growth_symb_id, growth_lag, param_id, constant] : growth_info)
-        {
-          i++;
-          string growth_type;
-          switch (symbol_table.getType(growth_symb_id))
-            {
-            case SymbolType::endogenous:
-              growth_type = "endogenous";
-              break;
-            case SymbolType::exogenous:
-              growth_type = "exogenous";
-              break;
-            case SymbolType::parameter:
-              growth_type = "parameter";
-              break;
-            default:
-              {
-              }
-            }
-
-          try
-            {
-              // case when this is not the highest lag of the growth variable
-              int aux_symb_id = symbol_table.searchAuxiliaryVars(growth_symb_id, growth_lag);
-              output << "M_.pac." << name << ".growth_index(" << i << ") = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
-                     << "M_.pac." << name << ".growth_lag(" << i << ") = 0;" << endl;
-            }
-          catch (...)
-            {
-              try
-                {
-                  // case when this is the highest lag of the growth variable
-                  int tmp_growth_lag = growth_lag + 1;
-                  int aux_symb_id = symbol_table.searchAuxiliaryVars(growth_symb_id, tmp_growth_lag);
-                  output << "M_.pac." << name << ".growth_index(" << i << ") = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
-                         << "M_.pac." << name << ".growth_lag(" << i << ") = -1;" << endl;
-                }
-              catch (...)
-                {
-                  // case when there is no aux var for the variable
-                  output << "M_.pac." << name << ".growth_index(" << i << ") = " << symbol_table.getTypeSpecificID(growth_symb_id) + 1 << ";" << endl
-                         << "M_.pac." << name << ".growth_lag(" << i << ") = " << growth_lag << ";" << endl;
-                }
-            }
-
-          output << "M_.pac." << name << ".growth_param_id(" << i << ") = "
-                 << (param_id == -1 ? -1 : symbol_table.getTypeSpecificID(param_id)) + 1 << ";" << endl
-                 << "M_.pac." << name << ".growth_constant(" << i << ") = " << constant << ";" << endl
-                 << "M_.pac." << name << ".growth_type{" << i << "} = '" << growth_type << "';" << endl;
-        }
       output << "M_.pac." << name << ".growth_str = '";
       original_growth->writeJsonOutput(output, {}, {}, true);
       output << "';" << endl;
+      int i = 0;
+      for (auto [growth_symb_id, growth_lag, param_id, constant] : growth_info)
+        {
+          string structname = "M_.pac." + name + ".growth_linear_comb(" + to_string(++i) + ").";
+          if (growth_symb_id >= 0)
+            {
+              string var_field = "endo_id";
+              if (symbol_table.getType(growth_symb_id) == SymbolType::exogenous)
+                {
+                  var_field = "exo_id";
+                  output << structname << "endo_id = 0;" << endl;
+                }
+              else
+                output << structname << "exo_id = 0;" << endl;
+              try
+                {
+                  // case when this is not the highest lag of the growth variable
+                  int aux_symb_id = symbol_table.searchAuxiliaryVars(growth_symb_id, growth_lag);
+                  output << structname << var_field << " = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
+                         << structname << "lag = 0;" << endl;
+                }
+              catch (...)
+                {
+                  try
+                    {
+                      // case when this is the highest lag of the growth variable
+                      int tmp_growth_lag = growth_lag + 1;
+                      int aux_symb_id = symbol_table.searchAuxiliaryVars(growth_symb_id, tmp_growth_lag);
+                      output << structname << var_field << " = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
+                             << structname << "lag = -1;" << endl;
+                    }
+                  catch (...)
+                    {
+                      // case when there is no aux var for the variable
+                      output << structname << var_field << " = "<< symbol_table.getTypeSpecificID(growth_symb_id) + 1 << ";" << endl
+                             << structname << "lag = " << growth_lag << ";" << endl;
+                    }
+                }
+            }
+          else
+            output << structname << "endo_id = 0;" << endl
+                   << structname << "exo_id = 0;" << endl
+                   << structname << "lag = 0;" << endl;
+          output << structname << "param_id = "
+                 << (param_id == -1 ? 0 : symbol_table.getTypeSpecificID(param_id) + 1) << ";" << endl
+                 << structname << "constant = " << constant << ";" << endl;
+        }
     }
 }
 

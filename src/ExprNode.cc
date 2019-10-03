@@ -9537,12 +9537,12 @@ BinaryOpNode::decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int curre
 }
 
 tuple<int, int, int, double>
-ExprNode::matchVariableTimesConstantTimesParam() const
+ExprNode::matchVariableTimesConstantTimesParam(bool variable_obligatory) const
 {
   int variable_id = -1, lag = 0, param_id = -1;
   double constant = 1.0;
   matchVTCTPHelper(variable_id, lag, param_id, constant, false);
-  if (variable_id == -1)
+  if (variable_obligatory && variable_id == -1)
     throw MatchFailureException{"No variable in this expression"};
   return {variable_id, lag, param_id, constant};
 }
@@ -9615,7 +9615,7 @@ BinaryOpNode::matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &con
 }
 
 vector<tuple<int, int, int, double>>
-ExprNode::matchLinearCombinationOfVariables() const
+ExprNode::matchLinearCombinationOfVariables(bool variable_obligatory_in_each_term) const
 {
   vector<pair<expr_t, int>> terms;
   decomposeAdditiveTerms(terms);
@@ -9626,7 +9626,7 @@ ExprNode::matchLinearCombinationOfVariables() const
     {
       expr_t term = it.first;
       int sign = it.second;
-      auto m = term->matchVariableTimesConstantTimesParam();
+      auto m = term->matchVariableTimesConstantTimesParam(variable_obligatory_in_each_term);
       get<3>(m) *= sign;
       result.push_back(m);
     }
