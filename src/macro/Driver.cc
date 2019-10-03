@@ -24,11 +24,10 @@ using namespace macro;
 void
 Driver::parse(const string &file_arg, const string &basename_arg, istream &modfile,
               ostream &output, bool debug, const vector<pair<string, string>> &defines,
-              vector<string> paths_arg)
+              vector<filesystem::path> &paths)
 {
   file = file_arg;
   basename = basename_arg;
-  paths = move(paths_arg);
 
   if (!defines.empty())
     {
@@ -47,7 +46,7 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
             else
               command_line_defines_with_endl << "@#define " << define.first << " = \"" << define.second << "\"" << endl;
           }
-      Driver m(env, paths, true);
+      Driver m(env, true);
       istream is(command_line_defines_with_endl.rdbuf());
       m.parse("command_line_defines", "command_line_defines", is, output, debug, vector<pair<string, string>>{}, paths);
     }
@@ -72,7 +71,7 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
           statement->printLineInfo(output, no_line_macro);
           printLine = false;
         }
-      statement->interpret(output, no_line_macro);
+      statement->interpret(output, no_line_macro, paths);
     }
 }
 

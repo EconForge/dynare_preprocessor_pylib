@@ -19,6 +19,7 @@
 
 #include <sstream>
 #include <fstream>
+#include <filesystem>
 
 #include "macro/Driver.hh"
 
@@ -28,14 +29,13 @@ bool compareNewline (int i, int j) {
 
 void
 main1(const string &filename, const string &basename, istream &modfile, bool debug, bool save_macro, string &save_macro_file,
-      bool no_line_macro_arg, bool no_empty_line_macro, const vector<pair<string, string>> &defines, const vector<string> &path,
-      stringstream &macro_output)
+      bool no_line_macro_arg, bool no_empty_line_macro, const vector<pair<string, string>> &defines,
+      vector<filesystem::path> &paths, stringstream &macro_output)
 {
   // Do macro processing
   macro::Environment env = macro::Environment();
-  vector<string> paths;
-  macro::Driver m(env, paths, no_line_macro_arg);
-  m.parse(filename, basename, modfile, macro_output, debug, defines, path);
+  macro::Driver m(env, no_line_macro_arg);
+  m.parse(filename, basename, modfile, macro_output, debug, defines, paths);
   if (save_macro)
     {
       if (save_macro_file.empty())

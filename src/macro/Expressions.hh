@@ -94,6 +94,10 @@ namespace macro
       cerr << endl << "Macro-processing error: backtrace..." << endl << e.trace();
       exit(EXIT_FAILURE);
     }
+    inline void warning(const StackTrace &e) const noexcept
+    {
+      cerr << endl << "Macro-processing warning: backtrace..." << endl << e.trace();
+    }
     inline void printLineInfo(ostream &output, bool no_line_macro) const noexcept
     {
       if (!no_line_macro)

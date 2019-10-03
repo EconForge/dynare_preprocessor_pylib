@@ -29,6 +29,7 @@
 #include "Expressions.hh"
 
 #include <stack>
+#include <filesystem>
 
 // Declare TokenizerFlexLexer class
 #ifndef __FLEX_LEXER_H
@@ -63,15 +64,13 @@ namespace macro
   {
   public:
     Environment &env;
-    //! The paths to search when looking for .mod files
-    vector<string> &paths;
   private:
     bool no_line_macro;
     vector<DirectivePtr> statements;
     stack<vector<DirectivePtr>> directive_stack;
   public:
-    Driver(Environment &env_arg, vector<string> &paths_arg, bool no_line_macro_arg) :
-      env{env_arg}, paths{paths_arg}, no_line_macro(no_line_macro_arg) { }
+    Driver(Environment &env_arg, bool no_line_macro_arg) :
+      env{env_arg}, no_line_macro(no_line_macro_arg) { }
     Driver(const Driver &) = delete;
     Driver(Driver &&) = delete;
     Driver & operator=(const Driver &) = delete;
@@ -90,7 +89,7 @@ namespace macro
     //! Starts parsing a file, returns output in out
     void parse(const string &file_arg, const string &basename_arg, istream &modfile,
                ostream &output, bool debug, const vector<pair<string, string>> &defines,
-               vector<string> paths_arg);
+               vector<filesystem::path> &paths_arg);
 
     //! Name of main file being parsed
     string file;

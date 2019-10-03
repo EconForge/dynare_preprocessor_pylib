@@ -25,7 +25,7 @@
 using namespace macro;
 
 void
-Eval::interpret(ostream &output, bool no_line_macro)
+Eval::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
   try
     {
@@ -43,44 +43,37 @@ Eval::interpret(ostream &output, bool no_line_macro)
 }
 
 void
-Include::interpret(ostream &output, bool no_line_macro)
+Include::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
-#ifdef _WIN32
-  string FILESEP = "\\";
-#else
-  string FILESEP = "/";
-#endif
+  using namespace filesystem;
   try
     {
       StringPtr msp = dynamic_pointer_cast<String>(expr->eval());
       if (!msp)
         throw StackTrace("File name does not evaluate to a string");
-      string filename = msp->to_string();
+      path filename = msp->to_string();
       ifstream incfile(filename, ios::binary);
       if (incfile.fail())
         {
-          ostringstream dirs;
-          dirs << "." << FILESEP << endl;
-          for (const auto & path : paths)
+          for (auto file : paths)
             {
-              string testfile = path + FILESEP + filename;
-              incfile = ifstream(testfile, ios::binary);
+              file /= filename;
+              incfile = ifstream(file, ios::binary);
               if (incfile.good())
                 break;
-              dirs << path << endl;
             }
           if (incfile.fail())
-            error(StackTrace("@#includepath", "Could not open " + filename +
-                             ". The following directories were searched:\n" + dirs.str(), location));
+            {
+              ostringstream errmsg;
+              errmsg << "   * " << current_path().string() << endl;
+              for (auto & dir : paths)
+                errmsg << "   * " << absolute(dir).string() << endl;
+              error(StackTrace("@#includepath", "Could not open " + filename.string() +
+                               ". The following directories were searched:\n" + errmsg.str(), location));
+            }
         }
-
-      string basename = filename;
-      size_t pos = basename.find_last_of('.');
-      if (pos != string::npos)
-        basename.erase(pos);
-
-      Driver m(env, paths, no_line_macro);
-      m.parse(filename, basename, incfile, output, false, vector<pair<string, string>>{}, paths);
+      Driver m(env, no_line_macro);
+      m.parse(filename, filename.stem(), incfile, output, false, vector<pair<string, string>>{}, paths);
     }
   catch (StackTrace &ex)
     {
@@ -94,13 +87,19 @@ Include::interpret(ostream &output, bool no_line_macro)
 }
 
 void
-IncludePath::interpret(ostream &output, bool no_line_macro)
+IncludePath::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
+  using namespace filesystem;
   try
     {
       StringPtr msp = dynamic_pointer_cast<String>(expr->eval());
       if (!msp)
         throw StackTrace("File name does not evaluate to a string");
+      path ip = static_cast<string>(*msp);
+      if (!is_directory(ip))
+        throw StackTrace(ip.string() + " does not evaluate to a valid directory");
+      if (!exists(ip))
+        warning(StackTrace("@#includepath", ip.string() + " does not exist", location));
       paths.emplace_back(*msp);
     }
   catch (StackTrace &ex)
@@ -115,7 +114,7 @@ IncludePath::interpret(ostream &output, bool no_line_macro)
 }
 
 void
-Define::interpret(ostream &output, bool no_line_macro)
+Define::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
   try
     {
@@ -138,7 +137,7 @@ Define::interpret(ostream &output, bool no_line_macro)
 }
 
 void
-Echo::interpret(ostream &output, bool no_line_macro)
+Echo::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
   try
     {
@@ -157,7 +156,7 @@ Echo::interpret(ostream &output, bool no_line_macro)
 }
 
 void
-Error::interpret(ostream &output, bool no_line_macro)
+Error::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
   try
     {
@@ -175,7 +174,7 @@ Error::interpret(ostream &output, bool no_line_macro)
 }
 
 void
-EchoMacroVars::interpret(ostream &output, bool no_line_macro)
+EchoMacroVars::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
   if (save)
     env.print(output, vars, location.begin.line, true);
@@ -185,7 +184,7 @@ EchoMacroVars::interpret(ostream &output, bool no_line_macro)
 }
 
 void
-For::interpret(ostream &output, bool no_line_macro)
+For::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
   ArrayPtr ap;
   try
@@ -234,14 +233,14 @@ For::interpret(ostream &output, bool no_line_macro)
               statement->printLineInfo(output, no_line_macro);
               printLine = false;
             }
-          statement->interpret(output, no_line_macro);
+          statement->interpret(output, no_line_macro, paths);
         }
     }
   printEndLineInfo(output, no_line_macro);
 }
 
 void
-If::interpret(ostream &output, bool no_line_macro)
+If::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
   for (auto & it : expr_and_body)
     try
@@ -254,7 +253,7 @@ If::interpret(ostream &output, bool no_line_macro)
                            "The condition must evaluate to a boolean or a double", location));
         if ((bp && *bp) || (dp && *dp))
           {
-            interpretBody(it.second, output, no_line_macro);
+            interpretBody(it.second, output, no_line_macro, paths);
             break;
           }
       }
@@ -271,7 +270,7 @@ If::interpret(ostream &output, bool no_line_macro)
 }
 
 void
-If::interpretBody(const vector<DirectivePtr> &body, ostream &output, bool no_line_macro)
+If::interpretBody(const vector<DirectivePtr> &body, ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
   bool printLine = !no_line_macro;
   for (auto & statement : body)
@@ -281,12 +280,12 @@ If::interpretBody(const vector<DirectivePtr> &body, ostream &output, bool no_lin
           statement->printLineInfo(output, no_line_macro);
           printLine = false;
         }
-      statement->interpret(output, no_line_macro);
+      statement->interpret(output, no_line_macro, paths);
     }
 }
 
 void
-Ifdef::interpret(ostream &output, bool no_line_macro)
+Ifdef::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
   for (auto & it : expr_and_body)
     {
@@ -294,7 +293,7 @@ Ifdef::interpret(ostream &output, bool no_line_macro)
       if (dynamic_pointer_cast<BaseType>(it.first)
           || (vp && env.isVariableDefined(vp->getName())))
         {
-          interpretBody(it.second, output, no_line_macro);
+          interpretBody(it.second, output, no_line_macro, paths);
           break;
         }
     }
@@ -302,7 +301,7 @@ Ifdef::interpret(ostream &output, bool no_line_macro)
 }
 
 void
-Ifndef::interpret(ostream &output, bool no_line_macro)
+Ifndef::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
   for (auto & it : expr_and_body)
     {
@@ -310,7 +309,7 @@ Ifndef::interpret(ostream &output, bool no_line_macro)
       if (!(dynamic_pointer_cast<BaseType>(it.first)
             || (vp && env.isVariableDefined(vp->getName()))))
         {
-          interpretBody(it.second, output, no_line_macro);
+          interpretBody(it.second, output, no_line_macro, paths);
           break;
         }
     }

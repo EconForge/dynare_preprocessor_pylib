@@ -126,9 +126,9 @@ directive : directive_one_line EOL
           ;
 
 directive_one_line : INCLUDE expr
-                     { $$ = make_shared<Include>($2, driver.env, driver.paths, @$); }
+                     { $$ = make_shared<Include>($2, driver.env, @$); }
                    | INCLUDEPATH expr
-                     { $$ = make_shared<IncludePath>($2, driver.env, driver.paths, @$); }
+                     { $$ = make_shared<IncludePath>($2, driver.env, @$); }
                    | DEFINE symbol EQUAL expr
                      { $$ = make_shared<Define>($2, $4, driver.env, @$); }
                    | DEFINE function EQUAL expr

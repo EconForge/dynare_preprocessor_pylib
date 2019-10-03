@@ -52,7 +52,8 @@ void main2(stringstream &in, const string &basename, bool debug, bool clear_all,
            const filesystem::path &dynareroot, bool onlymodel);
 
 void main1(const string &filename, const string &basename, istream &modfile, bool debug, bool save_macro, string &save_macro_file,
-           bool no_line_macro, bool no_empty_line_macro, const vector<pair<string, string>> &defines, const vector<string> &path, stringstream &macro_output);
+           bool no_line_macro, bool no_empty_line_macro, const vector<pair<string, string>> &defines,
+           vector<filesystem::path> &paths, stringstream &macro_output);
 
 void
 usage()
@@ -155,7 +156,7 @@ main(int argc, char **argv)
   bool compute_xrefs = false;
   bool transform_unary_ops = false;
   vector<pair<string, string>> defines;
-  vector<string> path;
+  vector<filesystem::path> paths;
   FileOutputType output_mode{FileOutputType::none};
   JsonOutputPointType json{JsonOutputPointType::nojson};
   JsonFileOutputType json_output_mode{JsonFileOutputType::file};
@@ -284,7 +285,7 @@ main(int argc, char **argv)
                    << "must not be separated from -I by whitespace." << endl;
               usage();
             }
-          path.push_back(s.substr(2));
+          paths.push_back(s.substr(2));
         }
       else if (s.substr(0, 6) == "output")
         {
@@ -409,12 +410,12 @@ main(int argc, char **argv)
   // it to paths before macroprocessing
   vector<string> config_include_paths = config_file.getIncludePaths();
   for (const auto &it : config_include_paths)
-    path.push_back(it);
+    paths.emplace_back(it);
 
   // Do macro processing
   stringstream macro_output;
   main1(filename, basename, modfile, debug, save_macro, save_macro_file, no_line_macro, no_empty_line_macro,
-        defines, path, macro_output);
+        defines, paths, macro_output);
 
   if (only_macro)
     return EXIT_SUCCESS;
