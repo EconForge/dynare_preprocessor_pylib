@@ -21,6 +21,7 @@
 #include <fstream>
 #include <utility>
 #include <vector>
+#include <filesystem>
 
 #include "ConfigFile.hh"
 
@@ -679,10 +680,10 @@ ConfigFile::transformPass()
     member_node.second /= weight_denominator;
 }
 
-vector<string>
+vector<filesystem::path>
 ConfigFile::getIncludePaths() const
 {
-  vector<string> include_paths;
+  vector<filesystem::path> include_paths;
   for (auto path : paths)
     for (const auto & mapit : path.get_paths())
       for (const auto & vecit : mapit.second)

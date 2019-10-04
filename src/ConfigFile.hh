@@ -130,7 +130,7 @@ public:
   //! Check Pass
   void transformPass();
   //! Get Path Info
-  vector<string> getIncludePaths() const;
+  vector<filesystem::path> getIncludePaths() const;
   //! Write any hooks
   void writeHooks(ostream &output) const;
   //! Create options_.parallel structure, write options

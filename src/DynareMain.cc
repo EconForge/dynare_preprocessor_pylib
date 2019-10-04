@@ -408,8 +408,7 @@ main(int argc, char **argv)
 
   // If Include option was passed to the [paths] block of the config file, add
   // it to paths before macroprocessing
-  vector<string> config_include_paths = config_file.getIncludePaths();
-  for (const auto &it : config_include_paths)
+  for (const auto &it : config_file.getIncludePaths())
     paths.emplace_back(it);
 
   // Do macro processing
