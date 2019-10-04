@@ -100,7 +100,7 @@ IncludePath::interpret(ostream &output, bool no_line_macro, vector<filesystem::p
         throw StackTrace(ip.string() + " does not evaluate to a valid directory");
       if (!exists(ip))
         warning(StackTrace("@#includepath", ip.string() + " does not exist", location));
-      paths.emplace_back(*msp);
+      paths.emplace_back(ip);
     }
   catch (StackTrace &ex)
     {
