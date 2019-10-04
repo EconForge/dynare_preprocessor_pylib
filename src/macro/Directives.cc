@@ -73,7 +73,10 @@ Include::interpret(ostream &output, bool no_line_macro, vector<filesystem::path>
             }
         }
       Driver m(env, no_line_macro);
-      m.parse(filename, filename.stem(), incfile, output, false, vector<pair<string, string>>{}, paths);
+      // Calling `string()` method on filename and filename.stem() because of bug in
+      // MinGW 8.3.0 that ignores implicit conversion to string from filename::path.
+      // Test if bug exists when version of MinGW is upgraded on Debian runners
+      m.parse(filename.string(), filename.stem().string(), incfile, output, false, vector<pair<string, string>>{}, paths);
     }
   catch (StackTrace &ex)
     {
