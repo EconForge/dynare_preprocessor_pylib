@@ -50,6 +50,11 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
       istream is(command_line_defines_with_endl.rdbuf());
       m.parse("command_line_defines", "command_line_defines", is, output, debug, vector<pair<string, string>>{}, paths);
     }
+
+  // Handle empty files
+  if (modfile.rdbuf()->in_avail() == 0)
+    return;
+
   stringstream file_with_endl;
   file_with_endl << modfile.rdbuf() << endl;
 
