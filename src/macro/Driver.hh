@@ -29,7 +29,6 @@
 #include "Expressions.hh"
 
 #include <stack>
-#include <filesystem>
 
 // Declare TokenizerFlexLexer class
 #ifndef __FLEX_LEXER_H
