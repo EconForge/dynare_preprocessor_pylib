@@ -320,10 +320,10 @@ main(int argc, char **argv)
 
           s.erase(0, 9);
 
-          if (s == "julia")
-            language = LanguageOutputType::julia;
           if (s == "matlab")
             language = LanguageOutputType::matlab;
+          else if (s == "julia")
+            language = LanguageOutputType::julia;
           else
             {
               cerr << "Incorrect syntax for language option" << endl;
