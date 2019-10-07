@@ -845,10 +845,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
                           const filesystem::path &matlabroot,
                           const filesystem::path &dynareroot, bool onlymodel) const
 {
-  bool hasModelChanged = !dynamic_model.isChecksumMatching(basename, block);
-  if (!check_model_changes)
-    hasModelChanged = true;
-
+  bool hasModelChanged = !dynamic_model.isChecksumMatching(basename, block) || !check_model_changes;
   if (hasModelChanged)
     {
       // Erase possible remnants of previous runs
