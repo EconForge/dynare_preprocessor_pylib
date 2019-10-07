@@ -25,11 +25,6 @@ using namespace std;
 #include <fstream>
 #include <filesystem>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#include <boost/crc.hpp>
-#pragma GCC diagnostic pop
-
 #include "StaticModel.hh"
 
 //! Stores a dynamic model

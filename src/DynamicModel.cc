@@ -6580,8 +6580,6 @@ DynamicModel::dynamicOnlyEquationsNbr() const
 bool
 DynamicModel::isChecksumMatching(const string &basename, bool block) const
 {
-  boost::crc_32_type result;
-
   std::stringstream buffer;
 
   // Write equation tags
@@ -6634,13 +6632,7 @@ DynamicModel::isChecksumMatching(const string &basename, bool block) const
         }
     }
 
-  const size_t private_buffer_size{1024};
-  char private_buffer[private_buffer_size];
-  while (buffer)
-    {
-      buffer.get(private_buffer, private_buffer_size);
-      result.process_bytes(private_buffer, strlen(private_buffer));
-    }
+  unsigned int result = hash<string>{}(buffer.str());
 
   bool basename_dir_exists = !filesystem::create_directory(basename);
 
@@ -6660,7 +6652,7 @@ DynamicModel::isChecksumMatching(const string &basename, bool block) const
         }
     }
   // write new checksum file if none or different from old checksum
-  if (old_checksum != result.checksum())
+  if (old_checksum != result)
     {
       checksum_file.open(filename, ios::out | ios::binary);
       if (!checksum_file.is_open())
@@ -6668,7 +6660,7 @@ DynamicModel::isChecksumMatching(const string &basename, bool block) const
           cerr << "ERROR: Can't open file " << filename << endl;
           exit(EXIT_FAILURE);
         }
-      checksum_file << result.checksum();
+      checksum_file << result;
       checksum_file.close();
       return false;
     }
