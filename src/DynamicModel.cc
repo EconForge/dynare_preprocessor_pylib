@@ -6586,51 +6586,20 @@ DynamicModel::isChecksumMatching(const string &basename, bool block) const
   for (const auto & equation_tag : equation_tags)
     buffer << "  " << equation_tag.first + 1
            << equation_tag.second.first
-           << equation_tag.second.second;
+           << equation_tag.second.second << endl;
 
   ExprNodeOutputType buffer_type = block ? ExprNodeOutputType::matlabDynamicModelSparse : ExprNodeOutputType::CDynamicModel;
 
-  for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
-    {
-      BinaryOpNode *eq_node = equations[eq];
-      expr_t lhs = eq_node->arg1;
-      expr_t rhs = eq_node->arg2;
+  deriv_node_temp_terms_t tef_terms;
+  temporary_terms_t temp_term_union;
+  writeModelLocalVariableTemporaryTerms(temp_term_union, temporary_terms_idxs,
+                                        buffer, buffer_type, tef_terms);
 
-      // Test if the right hand side of the equation is empty.
-      double vrhs = 1.0;
-      try
-        {
-          vrhs = rhs->eval(eval_context_t());
-        }
-      catch (ExprNode::EvalException &e)
-        {
-        }
+  writeTemporaryTerms(temporary_terms_derivatives[0],
+                      temp_term_union, temporary_terms_idxs,
+                      buffer, buffer_type, tef_terms);
 
-      if (vrhs != 0) // The right hand side of the equation is not empty ==> residual=lhs-rhs;
-        {
-          buffer << "lhs =";
-          lhs->writeOutput(buffer, buffer_type, temporary_terms, temporary_terms_idxs);
-          buffer << ";" << endl;
-
-          buffer << "rhs =";
-          rhs->writeOutput(buffer, buffer_type, temporary_terms, temporary_terms_idxs);
-          buffer << ";" << endl;
-
-          buffer << "residual" << LEFT_ARRAY_SUBSCRIPT(buffer_type)
-                 << eq + ARRAY_SUBSCRIPT_OFFSET(buffer_type)
-                 << RIGHT_ARRAY_SUBSCRIPT(buffer_type)
-                 << "= lhs-rhs;" << endl;
-        }
-      else // The right hand side of the equation is empty ==> residual=lhs;
-        {
-          buffer << "residual" << LEFT_ARRAY_SUBSCRIPT(buffer_type)
-                 << eq + ARRAY_SUBSCRIPT_OFFSET(buffer_type)
-                 << RIGHT_ARRAY_SUBSCRIPT(buffer_type)
-                 << " = ";
-          lhs->writeOutput(buffer, buffer_type, temporary_terms, temporary_terms_idxs);
-          buffer << ";" << endl;
-        }
-    }
+  writeModelEquations(buffer, buffer_type, temp_term_union);
 
   size_t result = hash<string>{}(buffer.str());
 
