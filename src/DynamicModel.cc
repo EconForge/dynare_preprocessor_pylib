@@ -6580,7 +6580,7 @@ DynamicModel::dynamicOnlyEquationsNbr() const
 bool
 DynamicModel::isChecksumMatching(const string &basename, bool block) const
 {
-  std::stringstream buffer;
+  stringstream buffer;
 
   // Write equation tags
   for (const auto & equation_tag : equation_tags)
@@ -6632,40 +6632,35 @@ DynamicModel::isChecksumMatching(const string &basename, bool block) const
         }
     }
 
-  unsigned int result = hash<string>{}(buffer.str());
-
-  bool basename_dir_exists = !filesystem::create_directory(basename);
+  size_t result = hash<string>{}(buffer.str());
 
   // check whether basename directory exist. If not, create it.
-  // If it does, read old checksum if it exist
+  // If it does, read old checksum if it exists, return if equal to result
   fstream checksum_file;
-  string filename = basename + "/checksum";
-  unsigned int old_checksum = 0;
-  // read old checksum if it exists
-  if (basename_dir_exists)
+  auto filename = filesystem::path{basename} / "checksum";
+  if (!filesystem::create_directory(basename))
     {
       checksum_file.open(filename, ios::in | ios::binary);
       if (checksum_file.is_open())
         {
+          size_t old_checksum;
           checksum_file >> old_checksum;
           checksum_file.close();
+          if (old_checksum == result)
+            return true;
         }
-    }
-  // write new checksum file if none or different from old checksum
-  if (old_checksum != result)
-    {
-      checksum_file.open(filename, ios::out | ios::binary);
-      if (!checksum_file.is_open())
-        {
-          cerr << "ERROR: Can't open file " << filename << endl;
-          exit(EXIT_FAILURE);
-        }
-      checksum_file << result;
-      checksum_file.close();
-      return false;
     }
 
-  return true;
+  // write new checksum file if none or different from old checksum
+  checksum_file.open(filename, ios::out | ios::binary);
+  if (!checksum_file.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename << endl;
+      exit(EXIT_FAILURE);
+    }
+  checksum_file << result;
+  checksum_file.close();
+  return false;
 }
 
 void
