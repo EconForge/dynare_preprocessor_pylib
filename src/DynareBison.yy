@@ -1820,7 +1820,7 @@ subsamples_eq : subsamples_eq_opt EQUAL subsamples_eq_opt ';'
 
 subsamples_eq_opt : symbol '.' SUBSAMPLES
                     { $$ = make_pair($1, ""); }
-                  | STD '(' symbol ')' '.'SUBSAMPLES
+                  | STD '(' symbol ')' '.' SUBSAMPLES
                     { $$ = make_pair($3, ""); }
                   | CORR '(' symbol COMMA symbol ')' '.' SUBSAMPLES
                     { $$ = make_pair($3, $5); }
