@@ -781,7 +781,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <DYNARE_STATEMENT>variances {return token::VARIANCES;}
 <DYNARE_STATEMENT>equations {return token::EQUATIONS;}
 
-<DYNARE_STATEMENT>\. {return Dynare::parser::token_type (yytext[0]);}
+<DYNARE_STATEMENT,DYNARE_BLOCK>\. {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_STATEMENT>\\ {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_STATEMENT>\' {return Dynare::parser::token_type (yytext[0]);}
 

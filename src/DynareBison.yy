@@ -174,7 +174,8 @@ class ParsingDriver;
 %type <expr_t> expression expression_or_empty
 %type <expr_t> equation hand_side
 %type <string> non_negative_number signed_number signed_integer date_str
-%type <string> filename symbol vec_of_vec_value vec_value_list date_expr number
+%type <string> filename symbol namespace_qualified_filename namespace_qualified_symbol
+%type <string> vec_of_vec_value vec_value_list date_expr number
 %type <string> vec_value_1 vec_value signed_inf signed_number_w_inf
 %type <string> range vec_value_w_inf vec_value_1_w_inf
 %type <string> integer_range signed_integer_range
@@ -747,7 +748,7 @@ init_param : symbol EQUAL expression ';' { driver.init_param($1, $3); };
 
 expression : '(' expression ')'
              { $$ = $2;}
-           | symbol
+           | namespace_qualified_symbol
              { $$ = driver.add_expression_variable($1); }
            | non_negative_number
              { $$ = driver.add_non_negative_constant($1); }
@@ -809,7 +810,7 @@ expression : '(' expression ')'
              { $$ = driver.add_max($3, $5); }
            | MIN '(' expression COMMA expression ')'
              { $$ = driver.add_min($3, $5); }
-           | symbol { driver.push_external_function_arg_vector_onto_stack(); } '(' comma_expression ')'
+           | namespace_qualified_symbol { driver.push_external_function_arg_vector_onto_stack(); } '(' comma_expression ')'
              { $$ = driver.add_model_var_or_external_function($1, false); }
            | NORMCDF '(' expression COMMA expression COMMA expression ')'
              { $$ = driver.add_normcdf($3, $5, $7); }
@@ -939,7 +940,7 @@ tag_pair : NAME EQUAL QUOTED_STRING
 
 hand_side : '(' hand_side ')'
             { $$ = $2;}
-          | symbol
+          | namespace_qualified_symbol
             { $$ = driver.add_model_variable($1); }
           | symbol PIPE_E
             { $$ = driver.declare_or_change_type(SymbolType::endogenous, $1); }
@@ -1019,7 +1020,7 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_max($3, $5); }
           | MIN '(' hand_side COMMA hand_side ')'
             { $$ = driver.add_min($3, $5); }
-          | symbol { driver.push_external_function_arg_vector_onto_stack(); } '(' comma_hand_side ')'
+          | namespace_qualified_symbol { driver.push_external_function_arg_vector_onto_stack(); } '(' comma_hand_side ')'
             { $$ = driver.add_model_var_or_external_function($1, true); }
           | NORMCDF '(' hand_side COMMA hand_side COMMA hand_side ')'
             { $$ = driver.add_normcdf($3, $5, $7); }
@@ -2252,6 +2253,15 @@ model_comparison : MODEL_COMPARISON mc_filename_list ';'
 filename : symbol
          | QUOTED_STRING
          ;
+
+namespace_qualified_symbol : symbol
+                           | namespace_qualified_symbol '.' symbol
+                             { $$ = $1 + "." + $3; }
+                           ;
+
+namespace_qualified_filename : namespace_qualified_symbol
+                             | QUOTED_STRING
+                             ;
 
 parallel_local_filename_list : filename
                                { driver.add_parallel_local_file($1); }
@@ -3559,14 +3569,14 @@ o_equations : EQUATIONS EQUAL vec_int
 o_silent_optimizer : SILENT_OPTIMIZER { driver.option_num("silent_optimizer", "true"); };
 o_instruments : INSTRUMENTS EQUAL '(' symbol_list ')' {driver.option_symbol_list("instruments"); };
 
-o_ext_func_name : EXT_FUNC_NAME EQUAL filename { driver.external_function_option("name", $3); };
+o_ext_func_name : EXT_FUNC_NAME EQUAL namespace_qualified_filename { driver.external_function_option("name", $3); };
 o_ext_func_nargs : EXT_FUNC_NARGS EQUAL INT_NUMBER { driver.external_function_option("nargs",$3); };
-o_first_deriv_provided : FIRST_DERIV_PROVIDED EQUAL filename
+o_first_deriv_provided : FIRST_DERIV_PROVIDED EQUAL namespace_qualified_filename
                          { driver.external_function_option("first_deriv_provided", $3); }
                        | FIRST_DERIV_PROVIDED
                          { driver.external_function_option("first_deriv_provided", ""); }
                        ;
-o_second_deriv_provided : SECOND_DERIV_PROVIDED EQUAL filename
+o_second_deriv_provided : SECOND_DERIV_PROVIDED EQUAL namespace_qualified_filename
                           { driver.external_function_option("second_deriv_provided", $3); }
                         | SECOND_DERIV_PROVIDED
                           { driver.external_function_option("second_deriv_provided", ""); }
