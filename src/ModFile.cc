@@ -1151,12 +1151,12 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 }
 
 void
-ModFile::writeExternalFiles(const string &basename, FileOutputType output, LanguageOutputType language) const
+ModFile::writeExternalFiles(const string &basename, LanguageOutputType language) const
 {
   switch (language)
     {
     case LanguageOutputType::julia:
-      writeExternalFilesJulia(basename, output);
+      writeExternalFilesJulia(basename);
       break;
     case LanguageOutputType::matlab:
       cerr << "The 'output' option cannot be used when language=matlab" << endl;
@@ -1165,7 +1165,7 @@ ModFile::writeExternalFiles(const string &basename, FileOutputType output, Langu
 }
 
 void
-ModFile::writeExternalFilesJulia(const string &basename, FileOutputType output) const
+ModFile::writeExternalFilesJulia(const string &basename) const
 {
   ofstream jlOutputFile;
   if (basename.size())

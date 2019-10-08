@@ -65,7 +65,7 @@ main2(stringstream &in, const string &basename, bool debug, bool clear_all, bool
 
   // Write outputs
   if (output_mode != FileOutputType::none)
-    mod_file->writeExternalFiles(basename, output_mode, language);
+    mod_file->writeExternalFiles(basename, language);
   else
     mod_file->writeOutputFiles(basename, clear_all, clear_global, no_log, no_warn, console, nograph,
                                nointeractive, config_file, check_model_changes, minimal_workspace, compute_xrefs,

@@ -170,8 +170,8 @@ public:
                         bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
                         const string &mexext, const filesystem::path &matlabroot,
                         const filesystem::path &dynareroot, bool onlymodel) const;
-  void writeExternalFiles(const string &basename, FileOutputType output, LanguageOutputType language) const;
-  void writeExternalFilesJulia(const string &basename, FileOutputType output) const;
+  void writeExternalFiles(const string &basename, LanguageOutputType language) const;
+  void writeExternalFilesJulia(const string &basename) const;
 
   void computeChecksum();
   //! Write JSON representation of ModFile object
