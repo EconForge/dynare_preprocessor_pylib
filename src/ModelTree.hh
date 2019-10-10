@@ -345,14 +345,12 @@ public:
   //! Is a given variable non-stationary?
   bool isNonstationary(int symb_id) const;
   void set_cutoff_to_zero();
-  //! Helper for writing the Jacobian elements in MATLAB and C
-  /*! Writes either (i+1,j+1) or [i+j*no_eq] */
-
   //! Simplify model equations: if a variable is equal to a constant, replace that variable elsewhere in the model
   void simplifyEquations();
   //! Find equations where variable is equal to a constant
   void findConstantEquations(map<VariableNode *, NumConstNode *> &subst_table) const;
-
+  //! Helper for writing the Jacobian elements in MATLAB and C
+  /*! Writes either (i+1,j+1) or [i+j*no_eq] */
   void jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const;
   //! Helper for writing the sparse Hessian or third derivatives in MATLAB and C
   /*! If order=2, writes either v2(i+1,j+1) or v2[i+j*NNZDerivatives[2]]
