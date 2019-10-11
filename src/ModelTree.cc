@@ -17,12 +17,6 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdlib>
-#include <cassert>
-#include <cmath>
-#include <iostream>
-#include <fstream>
-
 #include "ModelTree.hh"
 #include "MinimumFeedbackSet.hh"
 #pragma GCC diagnostic push
