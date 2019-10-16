@@ -3050,6 +3050,15 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       output << "};" << endl;
     }
 
+  // Write mapping for variables and equations they are present in
+  for (const auto & variable : variableMapping)
+    {
+      output << modstruct << "mapping." << symbol_table.getName(variable.first) << ".eqidx = [";
+      for (auto equation : variable.second)
+        output << equation + 1 << " ";
+      output << "];" << endl;
+    }
+
   /* Say if static and dynamic models differ (because of [static] and [dynamic]
      equation tags) */
   output << modstruct << "static_and_dynamic_models_differ = "
@@ -5483,6 +5492,52 @@ DynamicModel::ParamUsedWithLeadLag() const
   return ParamUsedWithLeadLagInternal();
 }
 
+void
+DynamicModel::createVariableMapping(int orig_eq_nbr)
+{
+  for (int ii = 0; ii < orig_eq_nbr; ii++)
+    {
+      set<int> eqvars;
+      equations[ii]->collectVariables(SymbolType::endogenous, eqvars);
+      equations[ii]->collectVariables(SymbolType::exogenous, eqvars);
+      for (auto eqvar : eqvars)
+        {
+          while (symbol_table.isAuxiliaryVariable(eqvar))
+            eqvar = symbol_table.getOrigSymbIdForAuxVar(eqvar);
+          variableMapping[eqvar].emplace(ii);
+        }
+    }
+}
+
+void
+DynamicModel::expandEqTags()
+{
+  set<int> existing_tags;
+  for (const auto & eqn : equation_tags)
+    if (eqn.second.first == "name")
+      existing_tags.insert(eqn.first);
+
+  for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
+    if (existing_tags.find(eq) == existing_tags.end())
+      if (auto lhs_expr = dynamic_cast<VariableNode *>(equations[eq]->arg1); lhs_expr && equation_tags_xref.find(pair("name", symbol_table.getName(lhs_expr->symb_id))) == equation_tags_xref.end())
+        {
+          equation_tags.push_back(pair(eq, pair("name", symbol_table.getName(lhs_expr->symb_id))));
+          equation_tags_xref.emplace(pair("name", symbol_table.getName(lhs_expr->symb_id)), eq);
+        }
+      else if (equation_tags_xref.find(pair("name",to_string(eq+1))) == equation_tags_xref.end())
+        {
+          equation_tags.push_back(pair(eq, pair("name", to_string(eq+1))));
+          equation_tags_xref.emplace(pair("name", to_string(eq+1)), eq);
+        }
+      else
+        {
+          cerr << "Error creating default equation tag: cannot assign default tag to equation number " << eq+1 << " because it is already in use" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+  sort(equation_tags.begin(), equation_tags.end());
+}
+
 set<int>
 DynamicModel::findUnusedEndogenous()
 {
@@ -6642,6 +6697,8 @@ DynamicModel::writeJsonOutput(ostream &output) const
   writeJsonXrefs(output);
   output << ", ";
   writeJsonAST(output);
+  output << ", ";
+  writeJsonVariableMapping(output);
 }
 
 void
@@ -6678,6 +6735,26 @@ DynamicModel::writeJsonAST(ostream &output) const
       output << R"(, "AST": )";
       equations[eq]->writeJsonAST(output);
       output << "}";
+    }
+  output << "]";
+}
+
+void
+DynamicModel::writeJsonVariableMapping(ostream &output) const
+{
+  output << R"("variable_mapping":[)" << endl;
+  int ii = 0;
+  int end_idx_map = static_cast<int>(variableMapping.size()-1);
+  for (const auto & variable : variableMapping)
+    {
+      output << R"({"name": ")" << symbol_table.getName(variable.first) << R"(", "equations":[)";
+      int it = 0;
+      int end_idx_eq = static_cast<int>(variable.second.size())-1;
+      for (const auto & equation : variable.second)
+        for (const auto & equation_tag : equation_tags)
+          if (equation_tag.first == equation && equation_tag.second.first == "name")
+            output << R"(")" << equation_tag.second.second << (it++ == end_idx_eq ? R"("])":R"(", )");
+      output << (ii++ == end_idx_map ? R"(})":R"(},)") << endl;
     }
   output << "]";
 }

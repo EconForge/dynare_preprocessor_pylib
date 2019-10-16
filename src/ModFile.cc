@@ -394,6 +394,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   dynamic_model.substituteAdl();
   dynamic_model.setLeadsLagsOrig();
   original_model = dynamic_model;
+  dynamic_model.expandEqTags();
 
   // Check that all declared endogenous are used in equations
   set<int> unusedEndogs = dynamic_model.findUnusedEndogenous();
@@ -602,6 +603,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
     }
   // And finally perform the substitutions
   dynamic_model.substituteVarExpectation(var_expectation_subst_table);
+  dynamic_model.createVariableMapping(original_model.equation_number());
 
   if (mod_file_struct.stoch_simul_present
       || mod_file_struct.estimation_present
