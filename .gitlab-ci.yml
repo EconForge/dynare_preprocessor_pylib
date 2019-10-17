@@ -1,5 +1,7 @@
 variables:
   TERM: linux
+  MINGW32_BOOST_VERSION: 1.71.0-1
+  MINGW64_BOOST_VERSION: 1.71.0-1
 
 before_script:
   - 'export REMOTE_PATH=https://www.dynare.org/preprocessor/$CI_COMMIT_SHORT_SHA'
@@ -46,9 +48,9 @@ build_windows_32:
   stage: build
   script:
     - mkdir -p deps
-    - cd deps && wget http://repo.msys2.org/mingw/i686/mingw-w64-i686-boost-1.71.0-1-any.pkg.tar.xz
-    - tar xf mingw-w64-i686-boost-1.71.0-1-any.pkg.tar.xz
-    - rm mingw-w64-i686-boost-1.71.0-1-any.pkg.tar.xz && cd ..
+    - cd deps && wget http://repo.msys2.org/mingw/i686/mingw-w64-i686-boost-$MINGW32_BOOST_VERSION-any.pkg.tar.xz
+    - tar xf mingw-w64-i686-boost-$MINGW32_BOOST_VERSION-any.pkg.tar.xz
+    - rm mingw-w64-i686-boost-$MINGW32_BOOST_VERSION-any.pkg.tar.xz && cd ..
     - autoreconf -si
     - './configure --host=i686-w64-mingw32 --with-boost=$(pwd)/deps/mingw32/include LDFLAGS="-static -static-libgcc -static-libstdc++"'
     - make -j$(nproc)
@@ -67,9 +69,9 @@ build_windows_64:
   stage: build
   script:
     - mkdir -p deps
-    - cd deps && wget http://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-boost-1.71.0-1-any.pkg.tar.xz
-    - tar xf mingw-w64-x86_64-boost-1.71.0-1-any.pkg.tar.xz
-    - rm mingw-w64-x86_64-boost-1.71.0-1-any.pkg.tar.xz && cd ..
+    - cd deps && wget http://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.xz
+    - tar xf mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.xz
+    - rm mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.xz && cd ..
     - autoreconf -si
     - './configure --host=x86_64-w64-mingw32 --with-boost=$(pwd)/deps/mingw64/include LDFLAGS="-static -static-libgcc -static-libstdc++"'
     - make -j$(nproc)
