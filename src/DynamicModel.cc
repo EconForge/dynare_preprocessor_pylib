@@ -5323,10 +5323,8 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool linear_d
   else if (julia)
     writeDynamicJuliaFile(basename);
   else
-    {
-      writeDynamicMFile(basename);
-      writeSetAuxiliaryVariables(basename, julia);
-    }
+    writeDynamicMFile(basename);
+  writeSetAuxiliaryVariables(basename, julia);
 }
 
 void
