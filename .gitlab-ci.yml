@@ -7,48 +7,39 @@ before_script:
 stages:
   - build
   - prepare
-  - deploy
 
 build_linux_32:
   stage: build
   script:
     - autoreconf -si
-    - './configure CXX=g++ CC=gcc  LDFLAGS="-m32 -static -static-libgcc -static-libstdc++" CXXFLAGS="-m32"'
+    - './configure LDFLAGS="-m32 -static -static-libgcc -static-libstdc++" CXXFLAGS=-m32'
     - make -j$(nproc)
     - strip src/dynare_m
     - mkdir -p bin
     - mv src/dynare_m bin
-    - tar cfz preprocessor.tar.gz bin
-    - sha256sum preprocessor.tar.gz > sha256sum
-    - rm -rf bin
     - mkdir -p $CI_COMMIT_SHORT_SHA/linux/32
-    - mv preprocessor.tar.gz $CI_COMMIT_SHORT_SHA/linux/32
-    - mv sha256sum $CI_COMMIT_SHORT_SHA/linux/32
+    - tar cfz $CI_COMMIT_SHORT_SHA/linux/32/preprocessor.tar.gz bin
+    - cd $CI_COMMIT_SHORT_SHA/linux/32 && sha256sum preprocessor.tar.gz > sha256sum
   artifacts:
     paths:
-      - $CI_COMMIT_SHORT_SHA/linux/32/preprocessor.tar.gz
-      - $CI_COMMIT_SHORT_SHA/linux/32/sha256sum
+      - $CI_COMMIT_SHORT_SHA/linux/32/*
     expire_in: 1 hour
 
 build_linux_64:
   stage: build
   script:
     - autoreconf -si
-    - './configure CXX=g++ CC=gcc --with-boost=/usr/include LDFLAGS="-static -static-libgcc -static-libstdc++"'
+    - './configure LDFLAGS="-static -static-libgcc -static-libstdc++"'
     - make -j$(nproc)
     - strip src/dynare_m
     - mkdir -p bin
     - mv src/dynare_m bin
-    - tar cfz preprocessor.tar.gz bin
-    - sha256sum preprocessor.tar.gz > sha256sum
-    - rm -rf bin
     - mkdir -p $CI_COMMIT_SHORT_SHA/linux/64
-    - mv preprocessor.tar.gz $CI_COMMIT_SHORT_SHA/linux/64
-    - mv sha256sum $CI_COMMIT_SHORT_SHA/linux/64
+    - tar cfz $CI_COMMIT_SHORT_SHA/linux/64/preprocessor.tar.gz bin
+    - cd $CI_COMMIT_SHORT_SHA/linux/64 && sha256sum preprocessor.tar.gz > sha256sum
   artifacts:
     paths:
-      - $CI_COMMIT_SHORT_SHA/linux/64/preprocessor.tar.gz
-      - $CI_COMMIT_SHORT_SHA/linux/64/sha256sum
+      - $CI_COMMIT_SHORT_SHA/linux/64/*
     expire_in: 1 hour
 
 build_windows_32:
@@ -64,16 +55,12 @@ build_windows_32:
     - i686-w64-mingw32-strip src/dynare_m.exe
     - mkdir -p bin
     - mv src/dynare_m.exe bin
-    - tar cfz preprocessor.tar.gz bin
-    - sha256sum preprocessor.tar.gz > sha256sum
-    - rm -rf bin
     - mkdir -p $CI_COMMIT_SHORT_SHA/windows/32
-    - mv preprocessor.tar.gz $CI_COMMIT_SHORT_SHA/windows/32
-    - mv sha256sum $CI_COMMIT_SHORT_SHA/windows/32
+    - tar cfz $CI_COMMIT_SHORT_SHA/windows/32/preprocessor.tar.gz bin
+    - cd $CI_COMMIT_SHORT_SHA/windows/32 && sha256sum preprocessor.tar.gz > sha256sum
   artifacts:
     paths:
-      - $CI_COMMIT_SHORT_SHA/windows/32/preprocessor.tar.gz
-      - $CI_COMMIT_SHORT_SHA/windows/32/sha256sum
+      - $CI_COMMIT_SHORT_SHA/windows/32/*
     expire_in: 1 hour
 
 build_windows_64:
@@ -84,21 +71,17 @@ build_windows_64:
     - tar xf mingw-w64-x86_64-boost-1.71.0-1-any.pkg.tar.xz
     - rm mingw-w64-x86_64-boost-1.71.0-1-any.pkg.tar.xz && cd ..
     - autoreconf -si
-    - './configure --host=x86_64-w64-mingw32 --with-boost=$(pwd)/deps/mingw64/include CXXFLAGS="-std=gnu++17" LDFLAGS="-static -static-libgcc -static-libstdc++"'
+    - './configure --host=x86_64-w64-mingw32 --with-boost=$(pwd)/deps/mingw64/include LDFLAGS="-static -static-libgcc -static-libstdc++"'
     - make -j$(nproc)
     - x86_64-w64-mingw32-strip src/dynare_m.exe
     - mkdir -p bin
     - mv src/dynare_m.exe bin
-    - tar cfz preprocessor.tar.gz bin
-    - sha256sum preprocessor.tar.gz > sha256sum
-    - rm -rf bin
     - mkdir -p $CI_COMMIT_SHORT_SHA/windows/64
-    - mv preprocessor.tar.gz $CI_COMMIT_SHORT_SHA/windows/64
-    - mv sha256sum $CI_COMMIT_SHORT_SHA/windows/64
+    - tar cfz $CI_COMMIT_SHORT_SHA/windows/64/preprocessor.tar.gz bin
+    - cd $CI_COMMIT_SHORT_SHA/windows/64 && sha256sum preprocessor.tar.gz > sha256sum
   artifacts:
     paths:
-      - $CI_COMMIT_SHORT_SHA/windows/64/preprocessor.tar.gz
-      - $CI_COMMIT_SHORT_SHA/windows/64/sha256sum
+      - $CI_COMMIT_SHORT_SHA/windows/64/*
     expire_in: 1 hour
 
 build_macOS:
@@ -106,23 +89,18 @@ build_macOS:
   tags:
     - macOS
   script:
-    - mkdir -p deps
     - autoreconf -si
-    - './configure CXX=g++-9 CXXFLAGS="-static-libgcc"'
+    - './configure CXX=g++-9 CXXFLAGS=-static-libgcc'
     - make -j$(nproc)
     - strip src/dynare_m
     - mkdir -p bin
     - mv src/dynare_m bin
-    - tar cfz preprocessor.tar.gz bin
-    - sha256sum preprocessor.tar.gz > sha256sum
-    - rm -rf bin
     - mkdir -p $CI_COMMIT_SHORT_SHA/macOS/64
-    - mv preprocessor.tar.gz $CI_COMMIT_SHORT_SHA/macOS/64
-    - mv sha256sum $CI_COMMIT_SHORT_SHA/macOS/64
+    - tar cfz $CI_COMMIT_SHORT_SHA/macOS/64/preprocessor.tar.gz bin
+    - cd $CI_COMMIT_SHORT_SHA/macOS/64 && sha256sum preprocessor.tar.gz > sha256sum
   artifacts:
     paths:
-      - $CI_COMMIT_SHORT_SHA/macOS/64/preprocessor.tar.gz
-      - $CI_COMMIT_SHORT_SHA/macOS/64/sha256sum
+      - $CI_COMMIT_SHORT_SHA/macOS/64/*
     expire_in: 1 hour
 
 aggregate_builds:
@@ -134,11 +112,12 @@ aggregate_builds:
     - build_windows_64
     - build_macOS
   script:
-    - linux32sha=`cat $CI_COMMIT_SHORT_SHA/linux/32/sha256sum | sed "s/[[:space:]]*preprocessor.tar.gz//"`
-    - linux64sha=`cat $CI_COMMIT_SHORT_SHA/linux/64/sha256sum | sed "s/[[:space:]]*preprocessor.tar.gz//"`
-    - windows32sha=`cat $CI_COMMIT_SHORT_SHA/windows/32/sha256sum | sed "s/[[:space:]]*preprocessor.tar.gz//"`
-    - windows64sha=`cat $CI_COMMIT_SHORT_SHA/windows/64/sha256sum | sed "s/[[:space:]]*preprocessor.tar.gz//"`
-    - macOS64sha=`cat $CI_COMMIT_SHORT_SHA/macOS/64/sha256sum | sed "s/[[:space:]]*preprocessor.tar.gz//"`
+    - linux32sha=$(cut -f 1 -d ' ' < $CI_COMMIT_SHORT_SHA/linux/32/sha256sum)
+    - linux64sha=$(cut -f 1 -d ' ' < $CI_COMMIT_SHORT_SHA/linux/64/sha256sum)
+    - windows32sha=$(cut -f 1 -d ' ' < $CI_COMMIT_SHORT_SHA/windows/32/sha256sum)
+    - windows64sha=$(cut -f 1 -d ' ' < $CI_COMMIT_SHORT_SHA/windows/64/sha256sum)
+    - macOS64sha=$(cut -f 1 -d ' ' < $CI_COMMIT_SHORT_SHA/macOS/64/sha256sum)
+    - cd $CI_COMMIT_SHORT_SHA
     - echo 'PREPROCESSOR_VERSION = "'$CI_COMMIT_SHORT_SHA'"' > julia.conf
     - echo 'REMOTE_PATH = "https://www.dynare.org/preprocessor/'$CI_COMMIT_SHORT_SHA'"' >> julia.conf
     - echo -e "\n" >> julia.conf
@@ -149,18 +128,8 @@ aggregate_builds:
     - echo "    Windows(:x86_64) => ("\"\$REMOTE_PATH/windows/64/preprocessor.tar.gz\"", "\"$windows64sha\"")," >> julia.conf
     - echo "    MacOS() => ("\"\$REMOTE_PATH/macOS/64/preprocessor.tar.gz\"", "\"$macOS64sha\"")," >> julia.conf
     - echo " )" >> julia.conf
-    - mv julia.conf $CI_COMMIT_SHORT_SHA/
   artifacts:
     paths:
-      - $CI_COMMIT_SHORT_SHA/linux/32/preprocessor.tar.gz
-      - $CI_COMMIT_SHORT_SHA/linux/32/sha256sum
-      - $CI_COMMIT_SHORT_SHA/linux/64/preprocessor.tar.gz
-      - $CI_COMMIT_SHORT_SHA/linux/64/sha256sum
-      - $CI_COMMIT_SHORT_SHA/windows/32/preprocessor.tar.gz
-      - $CI_COMMIT_SHORT_SHA/windows/32/sha256sum
-      - $CI_COMMIT_SHORT_SHA/windows/64/preprocessor.tar.gz
-      - $CI_COMMIT_SHORT_SHA/windows/64/sha256sum
-      - $CI_COMMIT_SHORT_SHA/macOS/64/preprocessor.tar.gz
-      - $CI_COMMIT_SHORT_SHA/macOS/64/sha256sum
+      - $CI_COMMIT_SHORT_SHA/*/*/*
       - $CI_COMMIT_SHORT_SHA/julia.conf
     expire_in: 1 week
