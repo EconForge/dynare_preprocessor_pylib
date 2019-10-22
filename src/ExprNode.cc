@@ -599,7 +599,7 @@ NumConstNode::VarMinLag() const
 }
 
 int
-NumConstNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
+NumConstNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 {
   return 0;
 }
@@ -1638,10 +1638,11 @@ VariableNode::undiff() const
 }
 
 int
-VariableNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
+VariableNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 {
-  auto it = static_lhs.find(this->toStatic(static_datatree));
-  if (it == static_lhs.end())
+  auto [lag_equiv_repr, index] = getLagEquivalenceClass();
+  auto it = lhs_lag_equiv.find(lag_equiv_repr);
+  if (it == lhs_lag_equiv.end())
     return 0;
   return maxLag();
 }
@@ -3355,10 +3356,11 @@ UnaryOpNode::undiff() const
 }
 
 int
-UnaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
+UnaryOpNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 {
-  auto it = static_lhs.find(this->toStatic(static_datatree));
-  if (it == static_lhs.end())
+  auto [lag_equiv_repr, index] = getLagEquivalenceClass();
+  auto it = lhs_lag_equiv.find(lag_equiv_repr);
+  if (it == lhs_lag_equiv.end())
     return 0;
   return arg->maxLag();
 }
@@ -4832,10 +4834,10 @@ BinaryOpNode::VarMinLag() const
 }
 
 int
-BinaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
+BinaryOpNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 {
-  return max(arg1->VarMaxLag(static_datatree, static_lhs),
-             arg2->VarMaxLag(static_datatree, static_lhs));
+  return max(arg1->VarMaxLag(lhs_lag_equiv),
+             arg2->VarMaxLag(lhs_lag_equiv));
 }
 
 void
@@ -6636,11 +6638,11 @@ TrinaryOpNode::VarMinLag() const
 }
 
 int
-TrinaryOpNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
+TrinaryOpNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 {
-  return max(arg1->VarMaxLag(static_datatree, static_lhs),
-             max(arg2->VarMaxLag(static_datatree, static_lhs),
-                 arg3->VarMaxLag(static_datatree, static_lhs)));
+  return max(arg1->VarMaxLag(lhs_lag_equiv),
+             max(arg2->VarMaxLag(lhs_lag_equiv),
+                 arg3->VarMaxLag(lhs_lag_equiv)));
 }
 
 int
@@ -7119,11 +7121,11 @@ int val = 0;
 }
 
 int
-AbstractExternalFunctionNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
+AbstractExternalFunctionNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 {
   int max_lag = 0;
   for (auto argument : arguments)
-    max_lag = max(max_lag, argument->VarMaxLag(static_datatree, static_lhs));
+    max_lag = max(max_lag, argument->VarMaxLag(lhs_lag_equiv));
   return max_lag;
 }
 
@@ -8756,7 +8758,7 @@ VarExpectationNode::VarMinLag() const
 }
 
 int
-VarExpectationNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
+VarExpectationNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 {
   cerr << "VarExpectationNode::VarMaxLag not implemented." << endl;
   exit(EXIT_FAILURE);
@@ -9192,7 +9194,7 @@ PacExpectationNode::VarMinLag() const
 }
 
 int
-PacExpectationNode::VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const
+PacExpectationNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 {
   return 0;
 }

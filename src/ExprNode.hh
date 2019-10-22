@@ -345,7 +345,7 @@ class ExprNode
       virtual int VarMinLag() const = 0;
 
       //! Find the maximum lag in a VAR: handles case where LHS is diff
-      virtual int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const = 0;
+      virtual int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const = 0;
 
       //! Finds LHS variable in a VAR equation
       virtual void collectVARLHSVariable(set<expr_t> &result) const = 0;
@@ -730,7 +730,7 @@ public:
   int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
-  int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
+  int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   int PacMaxLag(int lhs_symb_id) const override;
   int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
   expr_t undiff() const override;
@@ -813,7 +813,7 @@ public:
   int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
-  int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
+  int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   int PacMaxLag(int lhs_symb_id) const override;
   int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
   expr_t undiff() const override;
@@ -921,7 +921,7 @@ public:
   int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
-  int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
+  int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   int PacMaxLag(int lhs_symb_id) const override;
   int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
   expr_t undiff() const override;
@@ -1033,7 +1033,7 @@ public:
   int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
-  int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
+  int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   int PacMaxLag(int lhs_symb_id) const override;
   int getPacTargetSymbIdHelper(int lhs_symb_id, int undiff_lhs_symb_id, const set<pair<int, int>> & endogs) const;
   int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
@@ -1164,7 +1164,7 @@ public:
   int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
-  int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
+  int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   int PacMaxLag(int lhs_symb_id) const override;
   int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
   expr_t undiff() const override;
@@ -1284,7 +1284,7 @@ public:
   int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
-  int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
+  int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   int PacMaxLag(int lhs_symb_id) const override;
   int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
   expr_t undiff() const override;
@@ -1481,7 +1481,7 @@ public:
   int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
-  int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
+  int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   int PacMaxLag(int lhs_symb_id) const override;
   int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
   expr_t undiff() const override;
@@ -1562,7 +1562,7 @@ public:
   int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
-  int VarMaxLag(DataTree &static_datatree, set<expr_t> &static_lhs) const override;
+  int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   int PacMaxLag(int lhs_symb_id) const override;
   int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
   expr_t undiff() const override;

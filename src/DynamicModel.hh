@@ -323,12 +323,12 @@ public:
 
   //! Fill the Trend Component Model Table
   void fillTrendComponentModelTable() const;
-  void fillTrendComponentModelTableFromOrigModel(StaticModel &static_model) const;
+  void fillTrendComponentModelTableFromOrigModel() const;
   void fillTrendComponentmodelTableAREC(const ExprNode::subst_table_t &diff_subst_table) const;
 
   //! Fill the Var Model Table
   void fillVarModelTable() const;
-  void fillVarModelTableFromOrigModel(StaticModel &static_model) const;
+  void fillVarModelTableFromOrigModel() const;
 
   //! Update the rhs references in the var model and trend component tables
   //! after substitution of auxiliary variables and find the trend variables

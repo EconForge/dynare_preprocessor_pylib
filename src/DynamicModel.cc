@@ -3974,7 +3974,7 @@ DynamicModel::fillVarModelTable() const
 }
 
 void
-DynamicModel::fillVarModelTableFromOrigModel(StaticModel &static_model) const
+DynamicModel::fillVarModelTableFromOrigModel() const
 {
   map<string, vector<int>> lags, orig_diff_var;
   map<string, vector<bool>> diff;
@@ -4024,13 +4024,16 @@ DynamicModel::fillVarModelTableFromOrigModel(StaticModel &static_model) const
           exit(EXIT_FAILURE);
         }
 
-      set<expr_t> lhs_static;
+      set<expr_t> lhs_lag_equiv;
       for(const auto & lh : lhs)
-        lhs_static.insert(lh->toStatic(static_model));
+        {
+          auto [lag_equiv_repr, index] = lh->getLagEquivalenceClass();
+          lhs_lag_equiv.insert(lag_equiv_repr);
+        }
 
       vector<int> max_lag;
       for (auto eqn : it.second)
-        max_lag.push_back(equations[eqn]->arg2->VarMaxLag(static_model, lhs_static));
+        max_lag.push_back(equations[eqn]->arg2->VarMaxLag(lhs_lag_equiv));
       lags[it.first] = max_lag;
       diff[it.first] = diff_vec;
       orig_diff_var[it.first] = orig_diff_var_vec;
@@ -4197,7 +4200,7 @@ DynamicModel::fillErrorComponentMatrix(const ExprNode::subst_table_t &diff_subst
 }
 
 void
-DynamicModel::fillTrendComponentModelTableFromOrigModel(StaticModel &static_model) const
+DynamicModel::fillTrendComponentModelTableFromOrigModel() const
 {
   map<string, vector<int>> lags, orig_diff_var;
   map<string, vector<bool>> diff;
@@ -4247,13 +4250,16 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel(StaticModel &static_mode
           exit(EXIT_FAILURE);
         }
 
-      set<expr_t> lhs_static;
+      set<expr_t> lhs_lag_equiv;
       for(const auto & lh : lhs)
-        lhs_static.insert(lh->toStatic(static_model));
+        {
+          auto [lag_equiv_repr, index] = lh->getLagEquivalenceClass();
+          lhs_lag_equiv.insert(lag_equiv_repr);
+        }
 
       vector<int> max_lag;
       for (auto eqn : it.second)
-        max_lag.push_back(equations[eqn]->arg2->VarMaxLag(static_model, lhs_static));
+        max_lag.push_back(equations[eqn]->arg2->VarMaxLag(lhs_lag_equiv));
       lags[it.first] = max_lag;
       diff[it.first] = diff_vec;
       orig_diff_var[it.first] = orig_diff_var_vec;

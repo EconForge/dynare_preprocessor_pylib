@@ -51,7 +51,6 @@ ModFile::ModFile(WarningConsolidation &warnings_arg)
              trend_component_model_table, var_model_table},
     static_model{symbol_table, num_constants, external_functions_table},
     steady_state_model{symbol_table, num_constants, external_functions_table, static_model},
-    diff_static_model{symbol_table, num_constants, external_functions_table},
     warnings{warnings_arg}
 {
 }
@@ -454,10 +453,10 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
 
   // Fill Trend Component Model Table
   dynamic_model.fillTrendComponentModelTable();
-  original_model.fillTrendComponentModelTableFromOrigModel(diff_static_model);
+  original_model.fillTrendComponentModelTableFromOrigModel();
   dynamic_model.fillTrendComponentmodelTableAREC(diff_subst_table);
   dynamic_model.fillVarModelTable();
-  original_model.fillVarModelTableFromOrigModel(diff_static_model);
+  original_model.fillVarModelTableFromOrigModel();
 
   // Pac Model
   int i = 0;
