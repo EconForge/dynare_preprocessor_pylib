@@ -22,6 +22,7 @@
 #include <cassert>
 #include <cmath>
 #include <utility>
+#include <limits>
 
 #include "ExprNode.hh"
 #include "DataTree.hh"
@@ -559,19 +560,19 @@ NumConstNode::maxExoLag() const
 int
 NumConstNode::maxLead() const
 {
-  return 0;
+  return numeric_limits<int>::min();
 }
 
 int
 NumConstNode::maxLag() const
 {
-  return 0;
+  return numeric_limits<int>::min();
 }
 
 int
 NumConstNode::maxLagWithDiffsExpanded() const
 {
-  return 0;
+  return numeric_limits<int>::min();
 }
 
 expr_t

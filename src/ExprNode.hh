@@ -407,12 +407,14 @@ class ExprNode
 
       //! Returns the maximum lead of endo/exo/exodet in this expression
       /*! A negative value means that the expression contains only lagged
-          variables. */
+          variables. A value of numeric_limits<int>::min() means that there is
+          no variable. */
       virtual int maxLead() const = 0;
 
       //! Returns the maximum lag of endo/exo/exodet in this expression
       /*! A negative value means that the expression contains only leaded
-          variables. */
+          variables. A value of numeric_limits<int>::min() means that there is
+          no variable. */
       virtual int maxLag() const = 0;
 
       //! Returns the maximum lag of endo/exo/exodet, as if diffs were expanded
