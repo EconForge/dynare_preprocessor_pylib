@@ -5021,10 +5021,10 @@ VarExpectationModelStatement::VarExpectationModelStatement(string model_name_arg
 }
 
 void
-VarExpectationModelStatement::substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, ExprNode::subst_table_t &subst_table)
+VarExpectationModelStatement::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, ExprNode::subst_table_t &subst_table)
 {
   vector<BinaryOpNode *> neweqs;
-  expression = expression->substituteUnaryOpNodes(static_datatree, nodes, subst_table, neweqs);
+  expression = expression->substituteUnaryOpNodes(nodes, subst_table, neweqs);
   if (neweqs.size() > 0)
     {
       cerr << "ERROR: the 'expression' option of var_expectation_model contains a variable with a unary operator that is not present in the VAR model" << endl;
@@ -5033,10 +5033,10 @@ VarExpectationModelStatement::substituteUnaryOpNodes(DataTree &static_datatree, 
 }
 
 void
-VarExpectationModelStatement::substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, ExprNode::subst_table_t &subst_table)
+VarExpectationModelStatement::substituteDiff(const lag_equivalence_table_t &nodes, ExprNode::subst_table_t &subst_table)
 {
   vector<BinaryOpNode *> neweqs;
-  expression = expression->substituteDiff(static_datatree, diff_table, subst_table, neweqs);
+  expression = expression->substituteDiff(nodes, subst_table, neweqs);
   if (neweqs.size() > 0)
     {
       cerr << "ERROR: the 'expression' option of var_expectation_model contains a diff'd variable that is not present in the VAR model" << endl;

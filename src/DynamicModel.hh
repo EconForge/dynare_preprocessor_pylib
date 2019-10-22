@@ -438,16 +438,16 @@ public:
   void substituteAdl();
 
   //! Creates aux vars for all unary operators
-  pair<diff_table_t, ExprNode::subst_table_t> substituteUnaryOps(StaticModel &static_model);
+  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps();
 
   //! Creates aux vars for unary operators in certain equations: originally implemented for support of VARs
-  pair<diff_table_t, ExprNode::subst_table_t> substituteUnaryOps(StaticModel &static_model, const set<string> &eq_tags);
+  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(const set<string> &eq_tags);
 
   //! Creates aux vars for unary operators in certain equations: originally implemented for support of VARs
-  pair<diff_table_t, ExprNode::subst_table_t> substituteUnaryOps(StaticModel &static_model, const vector<int> &eqnumbers);
+  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(const vector<int> &eqnumbers);
 
   //! Substitutes diff operator
-  pair<diff_table_t, ExprNode::subst_table_t> substituteDiff(StaticModel &static_model, vector<expr_t> &pac_growth);
+  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteDiff(vector<expr_t> &pac_growth);
 
   //! Substitute VarExpectation operators
   void substituteVarExpectation(const map<string, expr_t> &subst_table);

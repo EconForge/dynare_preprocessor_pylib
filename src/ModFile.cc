@@ -440,16 +440,17 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
     for (auto & it1 : it.second)
       eqtags.insert(it1);
 
-  diff_table_t unary_ops_nodes;
+  // Create auxiliary variables and equations for unary ops
+  lag_equivalence_table_t unary_ops_nodes;
   ExprNode::subst_table_t unary_ops_subst_table;
   if (transform_unary_ops)
-    tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps(diff_static_model);
+    tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps();
   else
     // substitute only those unary ops that appear in auxiliary model equations
-    tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps(diff_static_model, eqtags);
+    tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps(eqtags);
 
   // Create auxiliary variable and equations for Diff operators
-  auto [diff_table, diff_subst_table] = dynamic_model.substituteDiff(diff_static_model, pac_growth);
+  auto [diff_nodes, diff_subst_table] = dynamic_model.substituteDiff(pac_growth);
 
   // Fill Trend Component Model Table
   dynamic_model.fillTrendComponentModelTable();
@@ -587,8 +588,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
 
       /* Substitute unary and diff operators in the 'expression' option, then
          match the linear combination in the expression option */
-      vems->substituteUnaryOpNodes(diff_static_model, unary_ops_nodes, unary_ops_subst_table);
-      vems->substituteDiff(diff_static_model, diff_table, diff_subst_table);
+      vems->substituteUnaryOpNodes(unary_ops_nodes, unary_ops_subst_table);
+      vems->substituteDiff(diff_nodes, diff_subst_table);
       vems->matchExpression();
 
       /* Create auxiliary parameters and the expression to be substituted into

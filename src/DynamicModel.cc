@@ -6265,26 +6265,26 @@ DynamicModel::findPacExpectationEquationNumbers(vector<int> &eqnumbers) const
     }
 }
 
-pair<diff_table_t, ExprNode::subst_table_t>
-DynamicModel::substituteUnaryOps(StaticModel &static_model)
+pair<lag_equivalence_table_t, ExprNode::subst_table_t>
+DynamicModel::substituteUnaryOps()
 {
   vector<int> eqnumbers(equations.size());
   iota(eqnumbers.begin(), eqnumbers.end(), 0);
-  return substituteUnaryOps(static_model, eqnumbers);
+  return substituteUnaryOps(eqnumbers);
 }
 
-pair<diff_table_t, ExprNode::subst_table_t>
-DynamicModel::substituteUnaryOps(StaticModel &static_model, const set<string> &var_model_eqtags)
+pair<lag_equivalence_table_t, ExprNode::subst_table_t>
+DynamicModel::substituteUnaryOps(const set<string> &var_model_eqtags)
 {
   vector<int> eqnumbers = getEquationNumbersFromTags(var_model_eqtags);
   findPacExpectationEquationNumbers(eqnumbers);
-  return substituteUnaryOps(static_model, eqnumbers);
+  return substituteUnaryOps(eqnumbers);
 }
 
-pair<diff_table_t, ExprNode::subst_table_t>
-DynamicModel::substituteUnaryOps(StaticModel &static_model, const vector<int> &eqnumbers)
+pair<lag_equivalence_table_t, ExprNode::subst_table_t>
+DynamicModel::substituteUnaryOps(const vector<int> &eqnumbers)
 {
-  diff_table_t nodes;
+  lag_equivalence_table_t nodes;
   ExprNode::subst_table_t subst_table;
 
   // Mark unary ops to be substituted in model local variables that appear in selected equations
@@ -6293,22 +6293,22 @@ DynamicModel::substituteUnaryOps(StaticModel &static_model, const vector<int> &e
     equations[eqnumber]->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
   for (auto & it : local_variables_table)
     if (used_local_vars.find(it.first) != used_local_vars.end())
-      it.second->findUnaryOpNodesForAuxVarCreation(static_model, nodes);
+      it.second->findUnaryOpNodesForAuxVarCreation(nodes);
 
   // Mark unary ops to be substituted in selected equations
   for (int eqnumber : eqnumbers)
-    equations[eqnumber]->findUnaryOpNodesForAuxVarCreation(static_model, nodes);
+    equations[eqnumber]->findUnaryOpNodesForAuxVarCreation(nodes);
 
   // Substitute in model local variables
   vector<BinaryOpNode *> neweqs;
   for (auto & it : local_variables_table)
-    it.second = it.second->substituteUnaryOpNodes(static_model, nodes, subst_table, neweqs);
+    it.second = it.second->substituteUnaryOpNodes(nodes, subst_table, neweqs);
 
   // Substitute in equations
   for (auto & equation : equations)
     {
       auto *substeq = dynamic_cast<BinaryOpNode *>(equation->
-                                                   substituteUnaryOpNodes(static_model, nodes, subst_table, neweqs));
+                                                   substituteUnaryOpNodes(nodes, subst_table, neweqs));
       assert(substeq != nullptr);
       equation = substeq;
     }
@@ -6325,15 +6325,15 @@ DynamicModel::substituteUnaryOps(StaticModel &static_model, const vector<int> &e
   return { nodes, subst_table };
 }
 
-pair<diff_table_t, ExprNode::subst_table_t>
-DynamicModel::substituteDiff(StaticModel &static_model, vector<expr_t> &pac_growth)
+pair<lag_equivalence_table_t, ExprNode::subst_table_t>
+DynamicModel::substituteDiff(vector<expr_t> &pac_growth)
 {
   /* Note: at this point, we know that there is no diff operator with a lead,
      because they have been expanded by DataTree::AddDiff().
      Hence we can go forward with the substitution without worrying about the
      expectation operator. */
 
-  diff_table_t diff_table;
+  lag_equivalence_table_t diff_nodes;
   ExprNode::subst_table_t diff_subst_table;
 
   // Mark diff operators to be substituted in model local variables
@@ -6342,52 +6342,51 @@ DynamicModel::substituteDiff(StaticModel &static_model, vector<expr_t> &pac_grow
     equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
   for (auto & it : local_variables_table)
     if (used_local_vars.find(it.first) != used_local_vars.end())
-      it.second->findDiffNodes(static_model, diff_table);
+      it.second->findDiffNodes(diff_nodes);
 
   // Mark diff operators to be substituted in equations
   for (const auto & equation : equations)
-    equation->findDiffNodes(static_model, diff_table);
+    equation->findDiffNodes(diff_nodes);
 
   /* Ensure that all diff operators appear once with their argument at current
-     period (i.e. maxLag=0).
+     period (i.e. index 0 in the equivalence class, see comment above
+     lag_equivalence_table_t in ExprNode.hh for details on the concepts).
      If it is not the case, generate the corresponding expressions.
      This is necessary to avoid lags of more than one in the auxiliary
      equation, which would then be modified by subsequent transformations
      (removing lags > 1), which in turn would break the recursive ordering
      of auxiliary equations. See issue McModelTeam/McModelProject#95 */
-  for (auto &it : diff_table)
+  for (auto &it : diff_nodes)
     {
-      auto iterator_arg_max_lag = it.second.rbegin();
-      int arg_max_lag = iterator_arg_max_lag->first;
-      expr_t arg_max_expr = iterator_arg_max_lag->second;
+      auto iterator_max_index = it.second.rbegin();
+      int max_index = iterator_max_index->first;
+      expr_t max_index_expr = iterator_max_index->second;
 
-      /* We compare arg_max_lag with the result of countDiffs(), in order to
-         properly handle nested diffs. See issue McModelTeam/McModelProject#97 */
-      while (arg_max_lag < 1 - it.first->countDiffs())
+      while (max_index < 0)
         {
-          arg_max_lag++;
-          arg_max_expr = arg_max_expr->decreaseLeadsLags(-1);
-          it.second[arg_max_lag] = arg_max_expr;
+          max_index++;
+          max_index_expr = max_index_expr->decreaseLeadsLags(-1);
+          it.second[max_index] = max_index_expr;
         }
     }
 
   // Substitute in model local variables
   vector<BinaryOpNode *> neweqs;
   for (auto & it : local_variables_table)
-    it.second = it.second->substituteDiff(static_model, diff_table, diff_subst_table, neweqs);
+    it.second = it.second->substituteDiff(diff_nodes, diff_subst_table, neweqs);
 
   // Substitute in equations
   for (auto & equation : equations)
     {
       auto *substeq = dynamic_cast<BinaryOpNode *>(equation->
-                                                   substituteDiff(static_model, diff_table, diff_subst_table, neweqs));
+                                                   substituteDiff(diff_nodes, diff_subst_table, neweqs));
       assert(substeq != nullptr);
       equation = substeq;
     }
 
   for (auto & it : pac_growth)
     if (it != nullptr)
-      it = it->substituteDiff(static_model, diff_table, diff_subst_table, neweqs);
+      it = it->substituteDiff(diff_nodes, diff_subst_table, neweqs);
 
   // Add new equations
   for (auto & neweq : neweqs)
@@ -6398,7 +6397,7 @@ DynamicModel::substituteDiff(StaticModel &static_model, vector<expr_t> &pac_grow
   if (diff_subst_table.size() > 0)
     cout << "Substitution of Diff operator: added " << neweqs.size() << " auxiliary variables and equations." << endl;
 
-  return { diff_table, diff_subst_table };
+  return { diff_nodes, diff_subst_table };
 }
 
 void

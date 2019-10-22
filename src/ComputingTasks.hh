@@ -1204,8 +1204,8 @@ private:
 public:
   VarExpectationModelStatement(string model_name_arg, expr_t expression_arg, string aux_model_name_arg,
                                string horizon_arg, expr_t discount_arg, const SymbolTable &symbol_table_arg);
-  void substituteUnaryOpNodes(DataTree &static_datatree, diff_table_t &nodes, ExprNode::subst_table_t &subst_table);
-  void substituteDiff(DataTree &static_datatree, diff_table_t &diff_table, ExprNode::subst_table_t &subst_table);
+  void substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, ExprNode::subst_table_t &subst_table);
+  void substituteDiff(const lag_equivalence_table_t &diff_table, ExprNode::subst_table_t &subst_table);
   // Analyzes the linear combination contained in the 'expression' option
   /* Must be called after substituteUnaryOpNodes() and substituteDiff() (in
      that order) */
