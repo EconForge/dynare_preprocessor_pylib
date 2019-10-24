@@ -1268,7 +1268,6 @@ BinaryOp::to_string() const noexcept
 string
 TrinaryOp::to_string() const noexcept
 {
-  string retval = arg1->to_string();
   switch(op_code)
     {
     case codes::TrinaryOp::normpdf:
