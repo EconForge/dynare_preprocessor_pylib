@@ -841,7 +841,6 @@ public:
   explicit MarkovSwitchingStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
-  void writeCOutput(ostream &output, const string &basename) override;
   void writeJsonOutput(ostream &output) const override;
 };
 
@@ -961,10 +960,6 @@ protected:
   void writeVarianceOption(ostream &output, const string &lhs_field) const;
   void writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
   void writeShape(ostream &output, const string &lhs_field) const;
-  void writeCOutputHelper(ostream &output, const string &field) const;
-  void writeCShape(ostream &output) const;
-  void writeCVarianceOption(ostream &output) const;
-  void writeCDomain(ostream &output) const;
   void writeJsonShape(ostream &output) const;
   void writeJsonPriorOutput(ostream &output) const;
 };
@@ -978,7 +973,6 @@ public:
                  expr_t variance_arg,
                  OptionsList options_list_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
-  void writeCOutput(ostream &output, const string &basename) override;
   void writeJsonOutput(ostream &output) const override;
 };
 
@@ -994,7 +988,6 @@ public:
                     OptionsList options_list_arg,
                     const SymbolTable &symbol_table_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
-  void writeCOutput(ostream &output, const string &basename) override;
   void writeJsonOutput(ostream &output) const override;
 };
 
@@ -1013,7 +1006,6 @@ public:
                      const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
-  void writeCOutput(ostream &output, const string &basename) override;
   void writeJsonOutput(ostream &output) const override;
 };
 
@@ -1062,7 +1054,6 @@ protected:
   bool is_structural_innovation(const SymbolType symb_type) const;
   void writeOptionsIndex(ostream &output, const string &lhs_field) const;
   void writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
-  void writeCOutputHelper(ostream &output, const string &field) const;
   void writeJsonOptionsOutput(ostream &output) const;
 };
 
@@ -1071,7 +1062,6 @@ class OptionsStatement : public BasicOptionsStatement
 public:
   OptionsStatement(string name_arg, string subsample_name_arg, OptionsList options_list_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
-  void writeCOutput(ostream &output, const string &basename) override;
   void writeJsonOutput(ostream &output) const override;
 };
 
@@ -1085,7 +1075,6 @@ public:
                       OptionsList options_list_arg,
                       const SymbolTable &symbol_table_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
-  void writeCOutput(ostream &output, const string &basename) override;
   void writeJsonOutput(ostream &output) const override;
 };
 
@@ -1101,7 +1090,6 @@ public:
                        const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
-  void writeCOutput(ostream &output, const string &basename) override;
   void writeJsonOutput(ostream &output) const override;
 };
 

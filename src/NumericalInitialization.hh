@@ -42,7 +42,6 @@ public:
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJuliaOutput(ostream &output, const string &basename) override;
-  void writeCOutput(ostream &output, const string &basename) override;
   void writeJsonOutput(ostream &output) const override;
   //! Fill eval context with parameter value
   void fillEvalContext(eval_context_t &eval_context) const;

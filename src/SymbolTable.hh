@@ -371,10 +371,6 @@ public:
   void writeJsonOutput(ostream &output) const;
   //! Write Julia output of this class
   void writeJuliaOutput(ostream &output) const noexcept(false);
-  //! Write C output of this class
-  void writeCOutput(ostream &output) const noexcept(false);
-  //! Write CC output of this class
-  void writeCCOutput(ostream &output) const noexcept(false);
   //! Mark a symbol as predetermined variable
   void markPredetermined(int symb_id) noexcept(false);
   //! Test if a given symbol is a predetermined variable

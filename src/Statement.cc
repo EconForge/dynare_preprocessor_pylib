@@ -30,11 +30,6 @@ Statement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &wa
 }
 
 void
-Statement::writeCOutput(ostream &output, const string &basename)
-{
-}
-
-void
 Statement::writeJuliaOutput(ostream &output, const string &basename)
 {
 }

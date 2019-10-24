@@ -3279,54 +3279,6 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename, b
 }
 
 void
-MarkovSwitchingStatement::writeCOutput(ostream &output, const string &basename)
-{
-  output << endl;
-
-  auto it
-    = options_list.num_options.find("ms.chain");
-  assert(it !=  options_list.num_options.end());
-  output << "chain = " << it->second << ";" << endl;
-
-  it = options_list.num_options.find("ms.number_of_regimes");
-  assert(it !=  options_list.num_options.end());
-  output << "number_of_regimes = " << it->second << ";" << endl;
-
-  it = options_list.num_options.find("ms.number_of_lags");
-  if (it !=  options_list.num_options.end())
-    output << "number_of_lags = " << it->second << ";" << endl
-           << "number_of_lags_was_passed = true;" << endl;
-  else
-    output << "number_of_lags_was_passed = false;" << endl;
-
-  it = options_list.num_options.find("ms.duration");
-  assert(it != options_list.num_options.end());
-  output << "duration.clear();" << endl;
-  using namespace boost;
-  vector<string> tokenizedDomain;
-  split(tokenizedDomain, it->second, is_any_of("[ ]"), token_compress_on);
-  for (auto & itvs : tokenizedDomain)
-    if (!itvs.empty())
-      output << "duration.push_back(" << itvs << ");" << endl;
-
-  auto itsl
-    = options_list.symbol_list_options.find("ms.parameters");
-  assert(itsl != options_list.symbol_list_options.end());
-  vector<string> parameters = itsl->second.get_symbols();
-  output << "parameters.clear();" << endl;
-  for (auto & parameter : parameters)
-    output << R"(parameters.push_back(param_names[")" << parameter << R"("]);)" << endl;
-
-  output << "restriction_map.clear();" << endl;
-  for (auto & itrm : restriction_map)
-    output << "restriction_map[make_pair(" << itrm.first.first << ","
-           << itrm.first.second << ")] = " << itrm.second << ";" << endl;
-
-  output << "msdsgeinfo->addMarkovSwitching(new MarkovSwitching(" << endl
-         << "     chain, number_of_regimes, number_of_lags, number_of_lags_was_passed, parameters, duration, restriction_map));" << endl;
-}
-
-void
 MarkovSwitchingStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "markov_switching")";
@@ -3982,78 +3934,6 @@ BasicPriorStatement::writeJsonPriorOutput(ostream &output) const
 }
 
 void
-BasicPriorStatement::writeCVarianceOption(ostream &output) const
-{
-  output << "variance = ";
-  if (variance)
-    variance->writeOutput(output);
-  else
-    output << "numeric_limits<double>::quiet_NaN()";
-  output << ";" << endl;
-}
-
-void
-BasicPriorStatement::writeCDomain(ostream &output) const
-{
-  output << "domain.clear();" << endl;
-  auto it_num = options_list.num_options.find("domain");
-  if (it_num != options_list.num_options.end())
-    {
-      using namespace boost;
-      vector<string> tokenizedDomain;
-      split(tokenizedDomain, it_num->second, is_any_of("[ ]"), token_compress_on);
-      for (auto & it : tokenizedDomain)
-        if (!it.empty())
-          output << "domain.push_back(" << it << ");" << endl;
-    }
-}
-
-void
-BasicPriorStatement::writeCOutputHelper(ostream &output, const string &field) const
-{
-  auto itn = options_list.num_options.find(field);
-  if (itn != options_list.num_options.end())
-    output << field << " = " << itn->second << ";" << endl;
-  else
-    output << field << " = " << "numeric_limits<double>::quiet_NaN();" << endl;
-}
-
-void
-BasicPriorStatement::writeCShape(ostream &output) const
-{
-  output << "shape = ";
-  switch (prior_shape)
-    {
-    case PriorDistributions::beta:
-      output << R"("beta";)" << endl;
-      break;
-    case PriorDistributions::gamma:
-      output << R"("gamma";)" << endl;
-      break;
-    case PriorDistributions::normal:
-      output << R"("normal";)" << endl;
-      break;
-    case PriorDistributions::invGamma:
-      output << R"("inv_gamma";)" << endl;
-      break;
-    case PriorDistributions::uniform:
-      output << R"("uniform";)" << endl;
-      break;
-    case PriorDistributions::invGamma2:
-      output << R"("inv_gamma2";)" << endl;
-      break;
-    case PriorDistributions::dirichlet:
-      output << R"("dirichlet";)" << endl;
-      break;
-    case PriorDistributions::weibull:
-      output << R"("weibull";)" << endl;
-      break;
-    case PriorDistributions::noShape:
-      assert(prior_shape != PriorDistributions::noShape);
-    }
-}
-
-void
 BasicPriorStatement::writeJsonShape(ostream &output) const
 {
   output << R"("shape": )";
@@ -4115,22 +3995,6 @@ PriorStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-void
-PriorStatement::writeCOutput(ostream &output, const string &basename)
-{
-  output << endl
-         << R"(index = param_names[")"<< name << R"("];)" << endl;
-  writeCShape(output);
-  writeCOutputHelper(output, "mean");
-  writeCOutputHelper(output, "mode");
-  writeCOutputHelper(output, "stdev");
-  writeCVarianceOption(output);
-  writeCDomain(output);
-
-  output << "msdsgeinfo->addPrior(new ModFilePrior(" << endl
-         << "     index, shape, mean, mode, stdev, variance, domain));" << endl;
-}
-
 StdPriorStatement::StdPriorStatement(string name_arg,
                                      string subsample_name_arg,
                                      PriorDistributions prior_shape_arg,
@@ -4161,31 +4025,6 @@ StdPriorStatement::writeJsonOutput(ostream &output) const
   output << R"({"statementName": "std_prior")";
   writeJsonPriorOutput(output);
   output << "}";
-}
-
-void
-StdPriorStatement::writeCOutput(ostream &output, const string &basename)
-{
-  output << endl
-         << "index = ";
-  if (is_structural_innovation(symbol_table.getType(name)))
-    output << "exo_names";
-  else
-    output << "endo_names";
-  output << R"([")"<< name << R"("];)" << endl;
-
-  writeCShape(output);
-  writeCOutputHelper(output, "mean");
-  writeCOutputHelper(output, "mode");
-  writeCOutputHelper(output, "stdev");
-  writeCVarianceOption(output);
-  writeCDomain(output);
-
-  if (is_structural_innovation(symbol_table.getType(name)))
-    output << "msdsgeinfo->addStructuralInnovationPrior(new ModFileStructuralInnovationPrior(";
-  else
-    output << "msdsgeinfo->addMeasurementErrorPrior(new ModFileMeasurementErrorPrior(";
-  output << endl << "     index, shape, mean, mode, stdev, variance, domain));" << endl;
 }
 
 CorrPriorStatement::CorrPriorStatement(string name_arg1, string name_arg2,
@@ -4235,38 +4074,6 @@ CorrPriorStatement::writeJsonOutput(ostream &output) const
          << R"(, "name2": ")" << name1 << R"(")";
   writeJsonPriorOutput(output);
   output << "}";
-}
-
-void
-CorrPriorStatement::writeCOutput(ostream &output, const string &basename)
-{
-  output << endl
-         << "index = ";
-  if (is_structural_innovation(symbol_table.getType(name)))
-    output << "exo_names";
-  else
-    output << "endo_names";
-  output << R"([")"<< name << R"("];)" << endl;
-
-  output << "index1 = ";
-  if (is_structural_innovation(symbol_table.getType(name1)))
-    output << "exo_names";
-  else
-    output << "endo_names";
-  output << R"([")"<< name1 << R"("];)" << endl;
-
-  writeCShape(output);
-  writeCOutputHelper(output, "mean");
-  writeCOutputHelper(output, "mode");
-  writeCOutputHelper(output, "stdev");
-  writeCVarianceOption(output);
-  writeCDomain(output);
-
-  if (is_structural_innovation(symbol_table.getType(name)))
-    output << "msdsgeinfo->addStructuralInnovationCorrPrior(new ModFileStructuralInnovationCorrPrior(";
-  else
-    output << "msdsgeinfo->addMeasurementErrorCorrPrior(new ModFileMeasurementErrorCorrPrior(";
-  output << endl <<"     index, index1, shape, mean, mode, stdev, variance, domain));" << endl;
 }
 
 PriorEqualStatement::PriorEqualStatement(string to_declaration_type_arg,
@@ -4436,16 +4243,6 @@ BasicOptionsStatement::writeCommonOutputHelper(ostream &output, const string &fi
 }
 
 void
-BasicOptionsStatement::writeCOutputHelper(ostream &output, const string &field) const
-{
-  auto itn = options_list.num_options.find(field);
-  if (itn != options_list.num_options.end())
-    output << field << " = " << itn->second << ";" << endl;
-  else
-    output << field << " = " << "numeric_limits<double>::quiet_NaN();" << endl;
-}
-
-void
 BasicOptionsStatement::writeOptionsOutput(ostream &output, string &lhs_field, const string &name2) const
 {
   if (subsample_name.empty())
@@ -4497,15 +4294,6 @@ OptionsStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-void
-OptionsStatement::writeCOutput(ostream &output, const string &basename)
-{
-  output << endl
-         << R"(index = param_names[")"<< name << R"("];)" << endl;
-  writeCOutputHelper(output, "init");
-  output << "msdsgeinfo->addOption(new ModFileOption(index, init));" << endl;
-}
-
 StdOptionsStatement::StdOptionsStatement(string name_arg,
                                          string subsample_name_arg,
                                          OptionsList options_list_arg,
@@ -4534,26 +4322,6 @@ StdOptionsStatement::writeJsonOutput(ostream &output) const
   output << R"({"statementName": "std_options")";
   writeJsonOptionsOutput(output);
   output << "}";
-}
-
-void
-StdOptionsStatement::writeCOutput(ostream &output, const string &basename)
-{
-  output << endl
-         << "index = ";
-  if (is_structural_innovation(symbol_table.getType(name)))
-    output << "exo_names";
-  else
-    output << "endo_names";
-  output << R"([")"<< name << R"("];)" << endl;
-
-  writeCOutputHelper(output, "init");
-
-  if (is_structural_innovation(symbol_table.getType(name)))
-    output << "msdsgeinfo->addStructuralInnovationOption(new ModFileStructuralInnovationOption(";
-  else
-    output << "msdsgeinfo->addMeasurementErrorOption(new ModFileMeasurementErrorOption(";
-  output << "index, init));" << endl;
 }
 
 CorrOptionsStatement::CorrOptionsStatement(string name_arg1, string name_arg2,
@@ -4600,33 +4368,6 @@ CorrOptionsStatement::writeJsonOutput(ostream &output) const
          << R"(, "name2": ")" << name1 << R"(")";
   writeJsonOptionsOutput(output);
   output << "}";
-}
-
-void
-CorrOptionsStatement::writeCOutput(ostream &output, const string &basename)
-{
-  output << endl
-         << "index = ";
-  if (is_structural_innovation(symbol_table.getType(name)))
-    output << "exo_names";
-  else
-    output << "endo_names";
-  output << R"([")"<< name << R"("];)" << endl;
-
-  output << "index1 = ";
-  if (is_structural_innovation(symbol_table.getType(name1)))
-    output << "exo_names";
-  else
-    output << "endo_names";
-  output << R"([")"<< name1 << R"("];)" << endl;
-
-  writeCOutputHelper(output, "init");
-
-  if (is_structural_innovation(symbol_table.getType(name)))
-    output << "msdsgeinfo->addStructuralInnovationCorrOption(new ModFileStructuralInnovationCorrOption(";
-  else
-    output << "msdsgeinfo->addMeasurementErrorCorrOption(new ModFileMeasurementErrorCorrOption(";
-  output << "index, index1, init));" << endl;
 }
 
 OptionsEqualStatement::OptionsEqualStatement(string to_declaration_type_arg,
