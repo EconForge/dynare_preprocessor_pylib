@@ -1377,7 +1377,7 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
       if (it.type == 3) // Correlation
         {
           // Use lexical ordering for the pair of symbols
-          pair<string, string> x = it.name < it.name2 ? make_pair(it.name, it.name2) : make_pair(it.name2, it.name);
+          auto x = it.name < it.name2 ? pair(it.name, it.name2) : pair(it.name2, it.name);
 
           if (already_declared_corr.find(x) == already_declared_corr.end())
             already_declared_corr.insert(x);

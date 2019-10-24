@@ -562,7 +562,7 @@ parameters : PARAMETERS parameter_list ';';
 model_local_variable : MODEL_LOCAL_VARIABLE model_local_variable_list ';';
 
 named_var_elem : symbol EQUAL QUOTED_STRING
-               { $$ = make_pair($1, $3); }
+                 { $$ = { $1, $3 }; }
 
 named_var_1 : '(' named_var_elem
               { $$ = vector<pair<string, string>>{$2}; }
@@ -1820,11 +1820,11 @@ subsamples_eq : subsamples_eq_opt EQUAL subsamples_eq_opt ';'
               ;
 
 subsamples_eq_opt : symbol '.' SUBSAMPLES
-                    { $$ = make_pair($1, ""); }
+                    { $$ = { $1, "" }; }
                   | STD '(' symbol ')' '.' SUBSAMPLES
-                    { $$ = make_pair($3, ""); }
+                    { $$ = { $3, "" }; }
                   | CORR '(' symbol COMMA symbol ')' '.' SUBSAMPLES
-                    { $$ = make_pair($3, $5); }
+                    { $$ = { $3, $5 }; }
                   ;
 
 subsamples_name_list : subsamples_name_list COMMA o_subsample_name
@@ -1885,17 +1885,17 @@ prior_eq : prior_eq_opt EQUAL prior_eq_opt ';'
          ;
 
 prior_eq_opt : symbol '.' PRIOR
-               { $$ = make_tuple("par", $1, "", ""); }
+               { $$ = { "par", $1, "", "" }; }
              | symbol '.' symbol '.' PRIOR
-               { $$ = make_tuple("par", $1, "", $3); }
+               { $$ = { "par", $1, "", $3 }; }
              | STD '(' symbol ')' '.'  PRIOR
-               { $$ = make_tuple("std", $3, "", ""); }
+               { $$ = { "std", $3, "", "" }; }
              | STD '(' symbol ')' '.' symbol '.' PRIOR
-               { $$ = make_tuple("std", $3, "", $6); }
+               { $$ = { "std", $3, "", $6 }; }
              | CORR '(' symbol COMMA symbol ')' '.'  PRIOR
-               { $$ = make_tuple("corr", $3, $5, ""); }
+               { $$ = { "corr", $3, $5, "" }; }
              | CORR '(' symbol COMMA symbol ')' '.' symbol '.' PRIOR
-               { $$ = make_tuple("corr", $3, $5, $8); }
+               { $$ = { "corr", $3, $5, $8 }; }
              ;
 
 options : symbol '.' OPTIONS '(' options_options_list ')' ';'
@@ -1927,17 +1927,17 @@ options_eq : options_eq_opt EQUAL options_eq_opt ';'
            ;
 
 options_eq_opt : symbol '.' OPTIONS
-                 { $$ = make_tuple("par", $1, "", ""); }
+                 { $$ = { "par", $1, "", "" }; }
                | symbol '.' symbol '.' OPTIONS
-                 { $$ = make_tuple("par", $1, "", $3); }
+                 { $$ = { "par", $1, "", $3 }; }
                | STD '(' symbol ')' '.'  OPTIONS
-                 { $$ = make_tuple("std", $3, "", ""); }
+                 { $$ = { "std", $3, "", "" }; }
                | STD '(' symbol ')' '.' symbol '.' OPTIONS
-                 { $$ = make_tuple("std", $3, "", $6); }
+                 { $$ = { "std", $3, "", $6 }; }
                | CORR '(' symbol COMMA symbol ')' '.'  OPTIONS
-                 { $$ = make_tuple("corr", $3, $5, ""); }
+                 { $$ = { "corr", $3, $5, "" }; }
                | CORR '(' symbol COMMA symbol ')' '.' symbol '.' OPTIONS
-                 { $$ = make_tuple("corr", $3, $5, $8); }
+                 { $$ = { "corr", $3, $5, $8 }; }
                ;
 
 estimation : ESTIMATION ';'
@@ -3010,11 +3010,11 @@ model_diagnostics : MODEL_DIAGNOSTICS ';'
                   ;
 
 calibration_range : '[' expression COMMA expression ']'
-                    { $$ = make_pair($2, $4); }
+                    { $$ = { $2, $4 }; }
                   | PLUS
-                    { $$ = make_pair(driver.add_non_negative_constant("0"), driver.add_inf_constant()); }
+                    { $$ = { driver.add_non_negative_constant("0"), driver.add_inf_constant() }; }
                   | MINUS
-                    { $$ = make_pair(driver.add_uminus(driver.add_inf_constant()), driver.add_non_negative_constant("0")); }
+                    { $$ = { driver.add_uminus(driver.add_inf_constant()), driver.add_non_negative_constant("0") }; }
                   ;
 
 moment_calibration : MOMENT_CALIBRATION ';' moment_calibration_list END ';'
@@ -3763,9 +3763,9 @@ integer_range : INT_NUMBER ':' INT_NUMBER
                 { $$ = $1 + ':' + $3; }
 
 integer_range_w_inf : INT_NUMBER ':' INT_NUMBER
-                      { $$ = make_pair($1, $3); }
+                      { $$ = { $1, $3 }; }
                     | INT_NUMBER ':' INF_CONSTANT
-                      { $$ = make_pair($1, "Inf"); }
+                      { $$ = { $1, "Inf" }; }
                     ;
 
 signed_integer_range : signed_integer ':' signed_integer

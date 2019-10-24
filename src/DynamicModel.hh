@@ -507,7 +507,7 @@ public:
   //! Fills eval context with values of model local variables and auxiliary variables
   void fillEvalContext(eval_context_t &eval_context) const;
 
-  auto getStaticOnlyEquationsInfo() const { return make_tuple(static_only_equations, static_only_equations_lineno, static_only_equations_equation_tags); };
+  auto getStaticOnlyEquationsInfo() const { return tuple(static_only_equations, static_only_equations_lineno, static_only_equations_equation_tags); };
 
   //! Return the number of blocks
   unsigned int

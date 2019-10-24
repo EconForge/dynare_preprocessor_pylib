@@ -36,7 +36,7 @@ using namespace std;
 // Helper to convert a vector into a tuple
 template <typename T, size_t... Indices>
 auto vectorToTupleHelper(const vector<T>& v, index_sequence<Indices...>) {
-  return make_tuple(v[Indices]...);
+  return tuple(v[Indices]...);
 }
 template <size_t N, typename T>
 auto vectorToTuple(const vector<T>& v) {

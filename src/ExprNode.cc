@@ -408,7 +408,7 @@ ExprNode::fillErrorCorrectionRow(int eqn,
               expr_t e = datatree.AddTimes(datatree.AddVariable(m.first), datatree.AddPossiblyNegativeConstant(-constant));
               if (param_id != -1)
                 e = datatree.AddTimes(e, datatree.AddVariable(param_id));
-              auto coor = make_tuple(eqn, -orig_lag, colidx);
+              auto coor = tuple(eqn, -orig_lag, colidx);
               if (A0star.find(coor) == A0star.end())
                 A0star[coor] = e;
               else
@@ -5679,7 +5679,7 @@ BinaryOpNode::getPacEC(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id
             istarget = false;
           ordered_symb_ids.emplace_back(id, istarget, scale);
         }
-      ec_params_and_vars = make_pair(optim_param_symb_id, ordered_symb_ids);
+      ec_params_and_vars = { optim_param_symb_id, ordered_symb_ids };
     }
   return ec_params_and_vars;
 }
