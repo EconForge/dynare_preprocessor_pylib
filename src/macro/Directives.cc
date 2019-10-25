@@ -55,10 +55,9 @@ Include::interpret(ostream &output, bool no_line_macro, vector<filesystem::path>
       ifstream incfile(filename, ios::binary);
       if (incfile.fail())
         {
-          for (auto file : paths)
+          for (auto & file : paths)
             {
-              file /= filename;
-              incfile = ifstream(file, ios::binary);
+              incfile = ifstream(file / filename, ios::binary);
               if (incfile.good())
                 break;
             }

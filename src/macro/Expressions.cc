@@ -43,7 +43,7 @@ Bool::logical_and(const BaseTypePtr &btp) const
 {
   auto btp2 = dynamic_pointer_cast<Bool>(btp);
   if (btp2)
-    return make_shared<Bool>(value && btp2->value, env);
+    return make_shared<Bool>(value && *btp2, env);
 
   auto btp3 = dynamic_pointer_cast<Real>(btp);
   if (btp3)
@@ -57,7 +57,7 @@ Bool::logical_or(const BaseTypePtr &btp) const
 {
   auto btp2 = dynamic_pointer_cast<Bool>(btp);
   if (btp2)
-    return make_shared<Bool>(value || btp2->value, env);
+    return make_shared<Bool>(value || *btp2, env);
 
   auto btp3 = dynamic_pointer_cast<Real>(btp);
   if (btp3)
@@ -167,7 +167,7 @@ Real::logical_and(const BaseTypePtr &btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (btp2)
-    return make_shared<Bool>(value && btp2->value, env);
+    return make_shared<Bool>(value && *btp2, env);
 
   auto btp3 = dynamic_pointer_cast<Bool>(btp);
   if (btp3)
@@ -181,7 +181,7 @@ Real::logical_or(const BaseTypePtr &btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
-    return make_shared<Bool>(value || btp2->value, env);
+    return make_shared<Bool>(value || *btp2, env);
 
   auto btp3 = dynamic_pointer_cast<Bool>(btp);
   if (btp3)
@@ -300,14 +300,14 @@ String::is_equal(const BaseTypePtr &btp) const
 BoolPtr
 String::cast_bool() const
 {
+  auto f = [](const char& a, const char& b) { return (tolower(a) == tolower(b)); };
+
   string tf = "true";
-  if (equal(value.begin(), value.end(), tf.begin(),
-            [] (const char& a, const char& b) { return (tolower(a) == tolower(b)); }))
+  if (equal(value.begin(), value.end(), tf.begin(), f))
     return make_shared<Bool>(true, env);
 
   tf = "false";
-  if (equal(value.begin(), value.end(), tf.begin(),
-            [] (const char& a, const char& b) { return (tolower(a) == tolower(b)); }))
+  if (equal(value.begin(), value.end(), tf.begin(), f))
     return make_shared<Bool>(false, env);
 
   try
@@ -368,11 +368,8 @@ Array::minus(const BaseTypePtr &btp) const
       auto itbtp = dynamic_pointer_cast<BaseType>(it);
       auto it2 = btp2->arr.cbegin();
       for (; it2 != btp2->arr.cend(); ++it2)
-        {
-          auto it2btp = dynamic_pointer_cast<BaseType>(*it2);
-          if (*(itbtp->is_equal(it2btp)))
-            break;
-        }
+        if (*(itbtp->is_equal(dynamic_pointer_cast<BaseType>(*it2))))
+          break;
       if (it2 == btp2->arr.cend())
         arr_copy.emplace_back(itbtp);
     }
@@ -497,7 +494,6 @@ Array::set_intersection(const BaseTypePtr &btp) const
           auto v2 = dynamic_pointer_cast<BaseType>(nvit);
           if (!v2)
             throw StackTrace("Type mismatch for operands of in operator");
-
           if (*(v2->is_equal(it2)))
             {
               new_values.push_back(it);
@@ -1294,9 +1290,9 @@ Comprehension::to_string() const noexcept
 void
 String::print(ostream &output, bool matlab_output) const noexcept
 {
-  output << (matlab_output ? "'" : R"(")");
-  output << value;
-  output << (matlab_output ? "'" : R"(")");
+  output << (matlab_output ? "'" : R"(")")
+         << value
+         << (matlab_output ? "'" : R"(")");
 }
 
 void

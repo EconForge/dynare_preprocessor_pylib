@@ -446,8 +446,7 @@ NumConstNode::computeDerivative(int deriv_id)
 void
 NumConstNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  auto it = temporary_terms.find(const_cast<NumConstNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<NumConstNode *>(this)) != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
 }
 
@@ -958,8 +957,7 @@ VariableNode::writeJsonOutput(ostream &output,
                               const deriv_node_temp_terms_t &tef_terms,
                               const bool isdynamic) const
 {
-  auto it = temporary_terms.find(const_cast<VariableNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<VariableNode *>(this)) != temporary_terms.end())
     {
       output << "T" << idx;
       return;
@@ -1240,15 +1238,13 @@ expr_t
 VariableNode::substituteStaticAuxiliaryVariable() const
 {
   if (get_type() == SymbolType::endogenous)
-    {
-      try
-        {
-          return datatree.symbol_table.getAuxiliaryVarsExprNode(symb_id)->substituteStaticAuxiliaryVariable();
-        }
-      catch (SymbolTable::SearchFailedException &e)
-        {
-        }
-    }
+    try
+      {
+        return datatree.symbol_table.getAuxiliaryVarsExprNode(symb_id)->substituteStaticAuxiliaryVariable();
+      }
+    catch (SymbolTable::SearchFailedException &e)
+      {
+      }
   return const_cast<VariableNode *>(this);
 }
 
@@ -1641,8 +1637,7 @@ int
 VariableNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 {
   auto [lag_equiv_repr, index] = getLagEquivalenceClass();
-  auto it = lhs_lag_equiv.find(lag_equiv_repr);
-  if (it == lhs_lag_equiv.end())
+  if (lhs_lag_equiv.find(lag_equiv_repr) == lhs_lag_equiv.end())
     return 0;
   return maxLag();
 }
@@ -2448,8 +2443,7 @@ UnaryOpNode::computeTemporaryTerms(map<expr_t, int> &reference_count,
 void
 UnaryOpNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  auto it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<UnaryOpNode *>(this)) != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
   else
     arg->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
@@ -2575,8 +2569,7 @@ UnaryOpNode::writeJsonOutput(ostream &output,
                              const deriv_node_temp_terms_t &tef_terms,
                               const bool isdynamic) const
 {
-  auto it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<UnaryOpNode *>(this)) != temporary_terms.end())
     {
       output << "T" << idx;
       return;
@@ -3018,7 +3011,6 @@ double
 UnaryOpNode::eval(const eval_context_t &eval_context) const noexcept(false)
 {
   double v = arg->eval(eval_context);
-
   return eval_opcode(op_code, v);
 }
 
@@ -3028,8 +3020,7 @@ UnaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                      const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                      const deriv_node_temp_terms_t &tef_terms) const
 {
-  auto it = temporary_terms.find(const_cast<UnaryOpNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<UnaryOpNode *>(this)) != temporary_terms.end())
     {
       if (dynamic)
         {
@@ -4093,9 +4084,8 @@ BinaryOpNode::computeDerivative(int deriv_id)
 int
 BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const
 {
-  auto it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
   // A temporary term behaves as a variable
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<BinaryOpNode *>(this)) != temporary_terms.end())
     return 100;
 
   switch (op_code)
@@ -4134,9 +4124,8 @@ BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t
 int
 BinaryOpNode::precedenceJson(const temporary_terms_t &temporary_terms) const
 {
-  auto it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
   // A temporary term behaves as a variable
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<BinaryOpNode *>(this)) != temporary_terms.end())
     return 100;
 
   switch (op_code)
@@ -4371,7 +4360,6 @@ BinaryOpNode::eval(const eval_context_t &eval_context) const noexcept(false)
 {
   double v1 = arg1->eval(eval_context);
   double v2 = arg2->eval(eval_context);
-
   return eval_opcode(v1, op_code, v2, powerDerivOrder);
 }
 
@@ -4382,8 +4370,7 @@ BinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                       const deriv_node_temp_terms_t &tef_terms) const
 {
   // If current node is a temporary term
-  auto it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<BinaryOpNode *>(this)) != temporary_terms.end())
     {
       if (dynamic)
         {
@@ -4413,8 +4400,7 @@ BinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 void
 BinaryOpNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  auto it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<BinaryOpNode *>(this)) != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
   else
     {
@@ -4497,8 +4483,7 @@ BinaryOpNode::writeJsonOutput(ostream &output,
                               const bool isdynamic) const
 {
   // If current node is a temporary term
-  auto it = temporary_terms.find(const_cast<BinaryOpNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<BinaryOpNode *>(this)) != temporary_terms.end())
     {
       output << "T" << idx;
       return;
@@ -5332,33 +5317,31 @@ BinaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vecto
       return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
     }
   else
-    {
-      switch (op_code)
-        {
-        case BinaryOpcode::plus:
-        case BinaryOpcode::minus:
-        case BinaryOpcode::equal:
-          arg1subst = maxendolead1 >= 2 ? arg1->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model) : arg1;
-          arg2subst = maxendolead2 >= 2 ? arg2->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model) : arg2;
-          return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
-        case BinaryOpcode::times:
-        case BinaryOpcode::divide:
-          if (maxendolead1 >= 2 && maxendolead2 == 0 && arg2->maxExoLead() == 0)
-            {
-              arg1subst = arg1->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
-              return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
-            }
-          if (maxendolead1 == 0 && arg1->maxExoLead() == 0
-              && maxendolead2 >= 2 && op_code == BinaryOpcode::times)
-            {
-              arg2subst = arg2->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
-              return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
-            }
-          return createEndoLeadAuxiliaryVarForMyself(subst_table, neweqs);
-        default:
-          return createEndoLeadAuxiliaryVarForMyself(subst_table, neweqs);
-        }
-    }
+    switch (op_code)
+      {
+      case BinaryOpcode::plus:
+      case BinaryOpcode::minus:
+      case BinaryOpcode::equal:
+        arg1subst = maxendolead1 >= 2 ? arg1->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model) : arg1;
+        arg2subst = maxendolead2 >= 2 ? arg2->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model) : arg2;
+        return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+      case BinaryOpcode::times:
+      case BinaryOpcode::divide:
+        if (maxendolead1 >= 2 && maxendolead2 == 0 && arg2->maxExoLead() == 0)
+          {
+            arg1subst = arg1->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
+            return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
+          }
+        if (maxendolead1 == 0 && arg1->maxExoLead() == 0
+            && maxendolead2 >= 2 && op_code == BinaryOpcode::times)
+          {
+            arg2subst = arg2->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
+            return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
+          }
+        return createEndoLeadAuxiliaryVarForMyself(subst_table, neweqs);
+      default:
+        return createEndoLeadAuxiliaryVarForMyself(subst_table, neweqs);
+      }
 }
 
 expr_t
@@ -5384,33 +5367,31 @@ BinaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode 
       return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
     }
   else
-    {
-      switch (op_code)
-        {
-        case BinaryOpcode::plus:
-        case BinaryOpcode::minus:
-        case BinaryOpcode::equal:
-          arg1subst = maxexolead1 >= 1 ? arg1->substituteExoLead(subst_table, neweqs, deterministic_model) : arg1;
-          arg2subst = maxexolead2 >= 1 ? arg2->substituteExoLead(subst_table, neweqs, deterministic_model) : arg2;
-          return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
-        case BinaryOpcode::times:
-        case BinaryOpcode::divide:
-          if (maxexolead1 >= 1 && maxexolead2 == 0 && arg2->maxEndoLead() == 0)
-            {
-              arg1subst = arg1->substituteExoLead(subst_table, neweqs, deterministic_model);
-              return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
-            }
-          if (maxexolead1 == 0 && arg1->maxEndoLead() == 0
-              && maxexolead2 >= 1 && op_code == BinaryOpcode::times)
-            {
-              arg2subst = arg2->substituteExoLead(subst_table, neweqs, deterministic_model);
-              return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
-            }
-          return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
-        default:
-          return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
-        }
-    }
+    switch (op_code)
+      {
+      case BinaryOpcode::plus:
+      case BinaryOpcode::minus:
+      case BinaryOpcode::equal:
+        arg1subst = maxexolead1 >= 1 ? arg1->substituteExoLead(subst_table, neweqs, deterministic_model) : arg1;
+        arg2subst = maxexolead2 >= 1 ? arg2->substituteExoLead(subst_table, neweqs, deterministic_model) : arg2;
+        return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+      case BinaryOpcode::times:
+      case BinaryOpcode::divide:
+        if (maxexolead1 >= 1 && maxexolead2 == 0 && arg2->maxEndoLead() == 0)
+          {
+            arg1subst = arg1->substituteExoLead(subst_table, neweqs, deterministic_model);
+            return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
+          }
+        if (maxexolead1 == 0 && arg1->maxEndoLead() == 0
+            && maxexolead2 >= 1 && op_code == BinaryOpcode::times)
+          {
+            arg2subst = arg2->substituteExoLead(subst_table, neweqs, deterministic_model);
+            return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
+          }
+        return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
+      default:
+        return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
+      }
 }
 
 expr_t
@@ -6144,9 +6125,8 @@ TrinaryOpNode::computeDerivative(int deriv_id)
 int
 TrinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const
 {
-  auto it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
   // A temporary term behaves as a variable
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<TrinaryOpNode *>(this)) != temporary_terms.end())
     return 100;
 
   switch (op_code)
@@ -6232,7 +6212,7 @@ TrinaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
     {
       // If the node has already been encountered, increment its ref count
       //  and declare it as a temporary term if it is too costly
-      reference_count[this2] = { it->second.first + 1, it->second.second };;
+      reference_count[this2] = { it->second.first + 1, it->second.second };
       if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > min_cost(is_matlab))
         temp_terms_map[reference_count[this2].second].insert(this2);
     }
@@ -6298,8 +6278,7 @@ TrinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                        const deriv_node_temp_terms_t &tef_terms) const
 {
   // If current node is a temporary term
-  auto it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<TrinaryOpNode *>(this)) != temporary_terms.end())
     {
       if (dynamic)
         {
@@ -6325,8 +6304,7 @@ TrinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 void
 TrinaryOpNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  auto it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<TrinaryOpNode *>(this)) != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
   else
     {
@@ -7023,14 +7001,11 @@ AbstractExternalFunctionNode::collectDynamicVariables(SymbolType type_arg, set<p
 void
 AbstractExternalFunctionNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  auto it = temporary_terms.find(const_cast<AbstractExternalFunctionNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<AbstractExternalFunctionNode *>(this)) != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
   else
-    {
-      for (auto argument : arguments)
-        argument->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
-    }
+    for (auto argument : arguments)
+      argument->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
 }
 
 double
@@ -7307,8 +7282,7 @@ AbstractExternalFunctionNode::differentiateForwardVars(const vector<string> &sub
 bool
 AbstractExternalFunctionNode::alreadyWrittenAsTefTerm(int the_symb_id, const deriv_node_temp_terms_t &tef_terms) const
 {
-  auto it = tef_terms.find({ the_symb_id, arguments });
-  if (it != tef_terms.end())
+  if (tef_terms.find({ the_symb_id, arguments }) != tef_terms.end())
     return true;
   return false;
 }
@@ -7368,19 +7342,19 @@ AbstractExternalFunctionNode::isVariableNodeEqualTo(SymbolType type_arg, int var
 bool
 AbstractExternalFunctionNode::containsPacExpectation(const string &pac_model_name) const
 {
-  bool result = false;
   for (auto argument : arguments)
-    result = result || argument->containsPacExpectation(pac_model_name);
-  return result;
+    if (argument->containsPacExpectation(pac_model_name))
+      return true;
+  return false;
 }
 
 bool
 AbstractExternalFunctionNode::containsEndogenous() const
 {
-  bool result = false;
   for (auto argument : arguments)
-    result = result || argument->containsEndogenous();
-  return result;
+    if (argument->containsEndogenous())
+      return true;
+  return false;
 }
 
 bool
@@ -7605,8 +7579,7 @@ ExternalFunctionNode::compile(ostream &CompileCode, unsigned int &instruction_nu
                               const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                               const deriv_node_temp_terms_t &tef_terms) const
 {
-  auto it = temporary_terms.find(const_cast<ExternalFunctionNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<ExternalFunctionNode *>(this)) != temporary_terms.end())
     {
       if (dynamic)
         {
@@ -7700,8 +7673,7 @@ ExternalFunctionNode::writeJsonOutput(ostream &output,
                                       const deriv_node_temp_terms_t &tef_terms,
                                       const bool isdynamic) const
 {
-  auto it = temporary_terms.find(const_cast<ExternalFunctionNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<ExternalFunctionNode *>(this)) != temporary_terms.end())
     {
       output << "T" << idx;
       return;
@@ -7945,8 +7917,7 @@ FirstDerivExternalFunctionNode::writeJsonOutput(ostream &output,
                                                 const bool isdynamic) const
 {
   // If current node is a temporary term
-  auto it = temporary_terms.find(const_cast<FirstDerivExternalFunctionNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<FirstDerivExternalFunctionNode *>(this)) != temporary_terms.end())
     {
       output << "T" << idx;
       return;
@@ -8012,8 +7983,7 @@ FirstDerivExternalFunctionNode::compile(ostream &CompileCode, unsigned int &inst
                                         const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
                                         const deriv_node_temp_terms_t &tef_terms) const
 {
-  auto it = temporary_terms.find(const_cast<FirstDerivExternalFunctionNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<FirstDerivExternalFunctionNode *>(this)) != temporary_terms.end())
     {
       if (dynamic)
         {
@@ -8334,8 +8304,7 @@ SecondDerivExternalFunctionNode::writeJsonOutput(ostream &output,
                                                  const bool isdynamic) const
 {
   // If current node is a temporary term
-  auto it = temporary_terms.find(const_cast<SecondDerivExternalFunctionNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<SecondDerivExternalFunctionNode *>(this)) != temporary_terms.end())
     {
       output << "T" << idx;
       return;
@@ -9270,8 +9239,7 @@ PacExpectationNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, i
 void
 PacExpectationNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  auto it = temporary_terms.find(const_cast<PacExpectationNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<PacExpectationNode *>(this)) != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
 }
 

@@ -132,8 +132,8 @@ Environment::print(ostream &output, const vector<string> &vars, int line, bool s
 void
 Environment::printVariable(ostream &output, const string & name, int line, bool save) const
 {
-  output << (save ? "options_.macrovars_line_" + to_string(line) + "." : "  " );
-  output << name << " = ";
+  output << (save ? "options_.macrovars_line_" + to_string(line) + "." : "  " )
+         << name << " = ";
   getVariable(name)->eval()->print(output, save);
   if (save)
     output << ";";
