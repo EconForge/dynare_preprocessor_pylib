@@ -39,13 +39,11 @@ ExprNode::getDerivative(int deriv_id)
     prepareForDerivation();
 
   // Return zero if derivative is necessarily null (using symbolic a priori)
-  auto it = non_null_derivatives.find(deriv_id);
-  if (it == non_null_derivatives.end())
+  if (auto it = non_null_derivatives.find(deriv_id); it == non_null_derivatives.end())
     return datatree.Zero;
 
   // If derivative is stored in cache, use the cached value, otherwise compute it (and cache it)
-  map<int, expr_t>::const_iterator it2 = derivatives.find(deriv_id);
-  if (it2 != derivatives.end())
+  if (auto it2 = derivatives.find(deriv_id); it2 != derivatives.end())
     return it2->second;
   else
     {
@@ -95,8 +93,7 @@ ExprNode::checkIfTemporaryTermThenWrite(ostream &output, ExprNodeOutputType outp
                                         const temporary_terms_t &temporary_terms,
                                         const temporary_terms_idxs_t &temporary_terms_idxs) const
 {
-  auto it = temporary_terms.find(const_cast<ExprNode *>(this));
-  if (it == temporary_terms.end())
+  if (auto it = temporary_terms.find(const_cast<ExprNode *>(this)); it == temporary_terms.end())
     return false;
 
   if (output_type == ExprNodeOutputType::matlabDynamicModelSparse)
@@ -252,8 +249,7 @@ ExprNode::createEndoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector
   while (lag >= 0)
     {
       expr_t orig_expr = decreaseLeadsLags(lag);
-      it = subst_table.find(orig_expr);
-      if (it == subst_table.end())
+      if (it = subst_table.find(orig_expr); it == subst_table.end())
         {
           int symb_id = datatree.symbol_table.addEndoLeadAuxiliaryVar(orig_expr->idx, substexpr);
           neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(symb_id, 0), substexpr)));
@@ -288,8 +284,7 @@ ExprNode::createExoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<
   while (lag >= 0)
     {
       expr_t orig_expr = decreaseLeadsLags(lag);
-      it = subst_table.find(orig_expr);
-      if (it == subst_table.end())
+      if (it = subst_table.find(orig_expr); it == subst_table.end())
         {
           int symb_id = datatree.symbol_table.addExoLeadAuxiliaryVar(orig_expr->idx, substexpr);
           neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(symb_id, 0), substexpr)));
@@ -408,8 +403,7 @@ ExprNode::fillErrorCorrectionRow(int eqn,
               expr_t e = datatree.AddTimes(datatree.AddVariable(m.first), datatree.AddPossiblyNegativeConstant(-constant));
               if (param_id != -1)
                 e = datatree.AddTimes(e, datatree.AddVariable(param_id));
-              auto coor = tuple(eqn, -orig_lag, colidx);
-              if (A0star.find(coor) == A0star.end())
+              if (auto coor = tuple(eqn, -orig_lag, colidx); A0star.find(coor) == A0star.end())
                 A0star[coor] = e;
               else
                 A0star[coor] = datatree.AddPlus(e, A0star[coor]);
@@ -464,8 +458,7 @@ void
 NumConstNode::writeJsonAST(ostream &output) const
 {
   output << R"({"node_type" : "NumConstNode", "value" : )";
-  double testval = datatree.num_constants.getDouble(id);
-  if (testval < 1.0 && testval > -1.0 && testval != 0.0)
+  if (double testval = datatree.num_constants.getDouble(id); testval < 1.0 && testval > -1.0 && testval != 0.0)
     output << "0";
   output << datatree.num_constants.get(id) << "}";
 }
@@ -888,8 +881,7 @@ VariableNode::computeDerivative(int deriv_id)
 void
 VariableNode::collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const
 {
-  auto it = temporary_terms.find(const_cast<VariableNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<VariableNode *>(this)) != temporary_terms.end())
     temporary_terms_inuse.insert(idx);
   if (get_type() == SymbolType::modelLocalVariable)
     datatree.getLocalVariable(symb_id)->collectTemporary_terms(temporary_terms, temporary_terms_inuse, Curr_Block);
@@ -1000,8 +992,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
 
   int i;
-  int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
-  switch (type)
+  switch (int tsid = datatree.symbol_table.getTypeSpecificID(symb_id); type)
     {
     case SymbolType::parameter:
       if (output_type == ExprNodeOutputType::matlabOutsideModel)
@@ -1733,7 +1724,6 @@ VariableNode::decreaseLeadsLagsPredeterminedVariables() const
 expr_t
 VariableNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
-  expr_t value;
   switch (get_type())
     {
     case SymbolType::endogenous:
@@ -1742,8 +1732,7 @@ VariableNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vecto
       else
         return createEndoLeadAuxiliaryVarForMyself(subst_table, neweqs);
     case SymbolType::modelLocalVariable:
-      value = datatree.getLocalVariable(symb_id);
-      if (value->maxEndoLead() <= 1)
+      if (expr_t value = datatree.getLocalVariable(symb_id); value->maxEndoLead() <= 1)
         return const_cast<VariableNode *>(this);
       else
         return value->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
@@ -1756,8 +1745,6 @@ expr_t
 VariableNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   VariableNode *substexpr;
-  expr_t value;
-  subst_table_t::const_iterator it;
   int cur_lag;
   switch (get_type())
     {
@@ -1765,8 +1752,7 @@ VariableNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector
       if (lag >= -1)
         return const_cast<VariableNode *>(this);
 
-      it = subst_table.find(this);
-      if (it != subst_table.end())
+      if (auto it = subst_table.find(this); it != subst_table.end())
         return const_cast<VariableNode *>(it->second);
 
       substexpr = datatree.AddVariable(symb_id, -1);
@@ -1777,8 +1763,7 @@ VariableNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector
       while (cur_lag >= lag)
         {
           VariableNode *orig_expr = datatree.AddVariable(symb_id, cur_lag);
-          it = subst_table.find(orig_expr);
-          if (it == subst_table.end())
+          if (auto it = subst_table.find(orig_expr); it == subst_table.end())
             {
               int aux_symb_id = datatree.symbol_table.addEndoLagAuxiliaryVar(symb_id, cur_lag+1, substexpr);
               neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), substexpr)));
@@ -1793,8 +1778,7 @@ VariableNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector
       return substexpr;
 
     case SymbolType::modelLocalVariable:
-      value = datatree.getLocalVariable(symb_id);
-      if (value->maxEndoLag() <= 1)
+      if (expr_t value = datatree.getLocalVariable(symb_id); value->maxEndoLag() <= 1)
         return const_cast<VariableNode *>(this);
       else
         return value->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
@@ -1806,7 +1790,6 @@ VariableNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector
 expr_t
 VariableNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
-  expr_t value;
   switch (get_type())
     {
     case SymbolType::exogenous:
@@ -1815,8 +1798,7 @@ VariableNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode 
       else
         return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
     case SymbolType::modelLocalVariable:
-      value = datatree.getLocalVariable(symb_id);
-      if (value->maxExoLead() == 0)
+      if (expr_t value = datatree.getLocalVariable(symb_id); value->maxExoLead() == 0)
         return const_cast<VariableNode *>(this);
       else
         return value->substituteExoLead(subst_table, neweqs, deterministic_model);
@@ -1829,8 +1811,6 @@ expr_t
 VariableNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   VariableNode *substexpr;
-  expr_t value;
-  subst_table_t::const_iterator it;
   int cur_lag;
   switch (get_type())
     {
@@ -1838,8 +1818,7 @@ VariableNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *
       if (lag >= 0)
         return const_cast<VariableNode *>(this);
 
-      it = subst_table.find(this);
-      if (it != subst_table.end())
+      if (auto it = subst_table.find(this); it != subst_table.end())
         return const_cast<VariableNode *>(it->second);
 
       substexpr = datatree.AddVariable(symb_id, 0);
@@ -1850,8 +1829,7 @@ VariableNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *
       while (cur_lag >= lag)
         {
           VariableNode *orig_expr = datatree.AddVariable(symb_id, cur_lag);
-          it = subst_table.find(orig_expr);
-          if (it == subst_table.end())
+          if (auto it = subst_table.find(orig_expr); it == subst_table.end())
             {
               int aux_symb_id = datatree.symbol_table.addExoLagAuxiliaryVar(symb_id, cur_lag+1, substexpr);
               neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), substexpr)));
@@ -1866,8 +1844,7 @@ VariableNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *
       return substexpr;
 
     case SymbolType::modelLocalVariable:
-      value = datatree.getLocalVariable(symb_id);
-      if (value->maxExoLag() == 0)
+      if (expr_t value = datatree.getLocalVariable(symb_id); value->maxExoLag() == 0)
         return const_cast<VariableNode *>(this);
       else
         return value->substituteExoLag(subst_table, neweqs);
@@ -1885,7 +1862,6 @@ VariableNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpN
 expr_t
 VariableNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t value;
   switch (get_type())
     {
     case SymbolType::endogenous:
@@ -1896,9 +1872,8 @@ VariableNode::differentiateForwardVars(const vector<string> &subset, subst_table
         return const_cast<VariableNode *>(this);
       else
         {
-          auto it = subst_table.find(this);
           VariableNode *diffvar;
-          if (it != subst_table.end())
+          if (auto it = subst_table.find(this); it != subst_table.end())
             diffvar = const_cast<VariableNode *>(it->second);
           else
             {
@@ -1912,8 +1887,7 @@ VariableNode::differentiateForwardVars(const vector<string> &subset, subst_table
           return datatree.AddPlus(datatree.AddVariable(symb_id, 0), diffvar);
         }
     case SymbolType::modelLocalVariable:
-      value = datatree.getLocalVariable(symb_id);
-      if (value->maxEndoLead() <= 0)
+      if (expr_t value = datatree.getLocalVariable(symb_id); value->maxEndoLead() <= 0)
         return const_cast<VariableNode *>(this);
       else
         return value->differentiateForwardVars(subset, subst_table, neweqs);
@@ -2063,9 +2037,9 @@ VariableNode::isVarModelReferenced(const string &model_info_name) const
 void
 VariableNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
 {
-  string varname = datatree.symbol_table.getName(symb_id);
   if (get_type() == SymbolType::endogenous)
-    if (model_endos_and_lags.find(varname) == model_endos_and_lags.end())
+    if (string varname = datatree.symbol_table.getName(symb_id);
+        model_endos_and_lags.find(varname) == model_endos_and_lags.end())
       model_endos_and_lags[varname] = min(model_endos_and_lags[varname], lag);
     else
       model_endos_and_lags[varname] = lag;
@@ -2398,7 +2372,6 @@ UnaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
                                    bool is_matlab) const
 {
   expr_t this2 = const_cast<UnaryOpNode *>(this);
-
   auto it = reference_count.find(this2);
   if (it == reference_count.end())
     {
@@ -3763,8 +3736,7 @@ UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNo
 {
   if (op_code == UnaryOpcode::expectation)
     {
-      auto it = subst_table.find(const_cast<UnaryOpNode *>(this));
-      if (it != subst_table.end())
+      if (auto it = subst_table.find(const_cast<UnaryOpNode *>(this)); it != subst_table.end())
         return const_cast<VariableNode *>(it->second);
 
       //Arriving here, we need to create an auxiliary variable for this Expectation Operator:
@@ -4525,8 +4497,8 @@ BinaryOpNode::writeJsonOutput(ostream &output,
 
   // If left argument has a lower precedence, or if current and left argument are both power operators,
   // add parenthesis around left argument
-  auto *barg1 = dynamic_cast<BinaryOpNode *>(arg1);
-  if (arg1->precedenceJson(temporary_terms) < prec
+  if (auto *barg1 = dynamic_cast<BinaryOpNode *>(arg1);
+      arg1->precedenceJson(temporary_terms) < prec
       || (op_code == BinaryOpcode::power && barg1 != nullptr && barg1->op_code == BinaryOpcode::power))
     {
       output << "(";
@@ -4590,8 +4562,7 @@ BinaryOpNode::writeJsonOutput(ostream &output,
      - it is a minus operator with same precedence than current operator
      - it is a divide operator with same precedence than current operator */
   auto *barg2 = dynamic_cast<BinaryOpNode *>(arg2);
-  int arg2_prec = arg2->precedenceJson(temporary_terms);
-  if (arg2_prec < prec
+  if (int arg2_prec = arg2->precedenceJson(temporary_terms); arg2_prec < prec
       || (op_code == BinaryOpcode::power && barg2 != nullptr && barg2->op_code == BinaryOpcode::power)
       || (op_code == BinaryOpcode::minus && arg2_prec == prec)
       || (op_code == BinaryOpcode::divide && arg2_prec == prec))
@@ -4759,8 +4730,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
          - it is a minus operator with same precedence than current operator
          - it is a divide operator with same precedence than current operator */
       auto *barg2 = dynamic_cast<BinaryOpNode *>(arg2);
-      int arg2_prec = arg2->precedence(output_type, temporary_terms);
-      if (arg2_prec < prec
+      if (int arg2_prec = arg2->precedence(output_type, temporary_terms); arg2_prec < prec
           || (op_code == BinaryOpcode::power && barg2 != nullptr && barg2->op_code == BinaryOpcode::power && !isLatexOutput(output_type))
           || (op_code == BinaryOpcode::minus && arg2_prec == prec)
           || (op_code == BinaryOpcode::divide && arg2_prec == prec && !isLatexOutput(output_type)))
@@ -5674,18 +5644,15 @@ BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
   vector<pair<expr_t, int>> terms;
   decomposeAdditiveTerms(terms, 1);
   for (auto it = terms.begin(); it != terms.end(); it++)
-    {
-      auto bopn = dynamic_cast<BinaryOpNode *>(it->first);
-      if (bopn != nullptr)
-        {
-          ec_params_and_vars = getPacEC(bopn, lhs_symb_id, lhs_orig_symb_id);
-          if (ec_params_and_vars.first >= 0)
-            {
-              terms.erase(it);
-              break;
-            }
-        }
-    }
+    if (auto bopn = dynamic_cast<BinaryOpNode *>(it->first); bopn != nullptr)
+      {
+        ec_params_and_vars = getPacEC(bopn, lhs_symb_id, lhs_orig_symb_id);
+        if (ec_params_and_vars.first >= 0)
+          {
+            terms.erase(it);
+            break;
+          }
+      }
 
   if (ec_params_and_vars.first < 0)
     {
@@ -5863,36 +5830,30 @@ BinaryOpNode::getPacOptimizingShareAndExprNodes(int lhs_symb_id, int lhs_orig_sy
   optim_part = non_optim_part = additive_part = nullptr;
 
   for (auto it = terms.begin(); it != terms.end(); it++)
-    {
-      auto bopn = dynamic_cast<BinaryOpNode *>(it->first);
-      if (bopn != nullptr)
-        {
-          tie(optim_share, optim_part) =
-            getPacOptimizingShareAndExprNodesHelper(bopn, lhs_symb_id, lhs_orig_symb_id);
-          if (optim_share >= 0 && optim_part != nullptr)
-            {
-              terms.erase(it);
-              break;
-            }
-        }
-    }
+    if (auto bopn = dynamic_cast<BinaryOpNode *>(it->first); bopn != nullptr)
+      {
+        tie(optim_share, optim_part) =
+          getPacOptimizingShareAndExprNodesHelper(bopn, lhs_symb_id, lhs_orig_symb_id);
+        if (optim_share >= 0 && optim_part != nullptr)
+          {
+            terms.erase(it);
+            break;
+          }
+      }
 
   if (optim_part == nullptr)
     return {-1, nullptr, nullptr, nullptr};
 
   for (auto it = terms.begin(); it != terms.end(); it++)
-    {
-      auto bopn = dynamic_cast<BinaryOpNode *>(it->first);
-      if (bopn != nullptr)
-        {
-          non_optim_part = getPacNonOptimizingPart(bopn, optim_share);
-          if (non_optim_part != nullptr)
-            {
-              terms.erase(it);
-              break;
-            }
-        }
-    }
+    if (auto bopn = dynamic_cast<BinaryOpNode *>(it->first); bopn != nullptr)
+      {
+        non_optim_part = getPacNonOptimizingPart(bopn, optim_share);
+        if (non_optim_part != nullptr)
+          {
+            terms.erase(it);
+            break;
+          }
+      }
 
   if (non_optim_part == nullptr)
     return {-1, nullptr, nullptr, nullptr};
@@ -6352,8 +6313,7 @@ TrinaryOpNode::writeJsonOutput(ostream &output,
                                const bool isdynamic) const
 {
   // If current node is a temporary term
-  auto it = temporary_terms.find(const_cast<TrinaryOpNode *>(this));
-  if (it != temporary_terms.end())
+  if (temporary_terms.find(const_cast<TrinaryOpNode *>(this)) != temporary_terms.end())
     {
       output << "T" << idx;
       return;

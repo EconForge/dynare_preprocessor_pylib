@@ -63,16 +63,13 @@ ModFile::evalAllExpressions(bool warn_uninit)
   // Loop over all statements, and fill global eval context if relevant
   for (auto &st : statements)
     {
-      auto ips = dynamic_cast<InitParamStatement *>(st.get());
-      if (ips)
+      if (auto ips = dynamic_cast<InitParamStatement *>(st.get()); ips)
         ips->fillEvalContext(global_eval_context);
 
-      auto ies = dynamic_cast<InitOrEndValStatement *>(st.get());
-      if (ies)
+      if (auto ies = dynamic_cast<InitOrEndValStatement *>(st.get()); ies)
         ies->fillEvalContext(global_eval_context);
 
-      auto lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(st.get());
-      if (lpass)
+      if (auto lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(st.get()); lpass)
         lpass->fillEvalContext(global_eval_context);
     }
 
@@ -83,18 +80,16 @@ ModFile::evalAllExpressions(bool warn_uninit)
 
   // Check if some symbols are not initialized, and give them a zero value then
   for (int id = 0; id <= symbol_table.maxID(); id++)
-    {
-      SymbolType type = symbol_table.getType(id);
-      if ((type == SymbolType::endogenous || type == SymbolType::exogenous || type == SymbolType::exogenousDet
-           || type == SymbolType::parameter || type == SymbolType::modelLocalVariable)
-          && global_eval_context.find(id) == global_eval_context.end())
-        {
-          if (warn_uninit)
-            warnings << "WARNING: Can't find a numeric initial value for "
-                     << symbol_table.getName(id) << ", using zero" << endl;
-          global_eval_context[id] = 0;
-        }
-    }
+    if (auto type = symbol_table.getType(id);
+        (type == SymbolType::endogenous || type == SymbolType::exogenous || type == SymbolType::exogenousDet
+         || type == SymbolType::parameter || type == SymbolType::modelLocalVariable)
+        && global_eval_context.find(id) == global_eval_context.end())
+      {
+        if (warn_uninit)
+          warnings << "WARNING: Can't find a numeric initial value for "
+                   << symbol_table.getName(id) << ", using zero" << endl;
+        global_eval_context[id] = 0;
+      }
 }
 
 void
@@ -418,16 +413,14 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
 
   // Declare endogenous used for PAC model-consistent expectations
   for (auto & statement : statements)
-    {
-      auto pms = dynamic_cast<PacModelStatement *>(statement.get());
-      if (pms != nullptr)
-        {
-          if (pms->growth != nullptr)
-            pac_growth.push_back(pms->growth);
-          if (pms->aux_model_name == "")
-            dynamic_model.declarePacModelConsistentExpectationEndogs(pms->name);
-        }
-    }
+    if (auto pms = dynamic_cast<PacModelStatement *>(statement.get());
+        pms != nullptr)
+      {
+        if (pms->growth != nullptr)
+          pac_growth.push_back(pms->growth);
+        if (pms->aux_model_name == "")
+          dynamic_model.declarePacModelConsistentExpectationEndogs(pms->name);
+      }
 
   // Get all equation tags associated with VARs and Trend Component Models
   set<string> eqtags;
@@ -461,51 +454,48 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   // Pac Model
   int i = 0;
   for (auto & statement : statements)
-    {
-      auto pms = dynamic_cast<PacModelStatement *>(statement.get());
-      if (pms != nullptr)
-         {
-           if (pms->growth != nullptr)
-             pms->overwriteGrowth(pac_growth.at(i++));
+    if (auto pms = dynamic_cast<PacModelStatement *>(statement.get()); pms != nullptr)
+      {
+        if (pms->growth != nullptr)
+          pms->overwriteGrowth(pac_growth.at(i++));
 
-           int max_lag;
-           vector<int> lhs;
-           vector<bool> nonstationary;
-           string aux_model_type;
-           if (trend_component_model_table.isExistingTrendComponentModelName(pms->aux_model_name))
-             {
-               aux_model_type = "trend_component";
-               max_lag = trend_component_model_table.getMaxLag(pms->aux_model_name) + 1;
-               lhs = dynamic_model.getUndiffLHSForPac(pms->aux_model_name, diff_subst_table);
-               // All lhs variables in a trend component model are nonstationary
-               nonstationary.insert(nonstationary.end(), trend_component_model_table.getDiff(pms->aux_model_name).size(), true);
-             }
-           else if (var_model_table.isExistingVarModelName(pms->aux_model_name))
-             {
-               aux_model_type = "var";
-               max_lag = var_model_table.getMaxLag(pms->aux_model_name);
-               lhs = var_model_table.getLhs(pms->aux_model_name);
-               // nonstationary variables in a VAR are those that are in diff
-               nonstationary = var_model_table.getDiff(pms->aux_model_name);
-             }
-           else if (pms->aux_model_name == "")
-             max_lag = 0;
-           else
-             {
-               cerr << "Error: aux_model_name not recognized as VAR model or Trend Component model" << endl;
-               exit(EXIT_FAILURE);
-             }
-           auto eqtag_and_lag = dynamic_model.walkPacParameters(pms->name);
-           original_model.getPacMaxLag(pms->name, eqtag_and_lag);
-           if (pms->aux_model_name == "")
-             dynamic_model.addPacModelConsistentExpectationEquation(pms->name, symbol_table.getID(pms->discount),
-                                                                    eqtag_and_lag, diff_subst_table);
-           else
-             dynamic_model.fillPacModelInfo(pms->name, lhs, max_lag, aux_model_type,
-                                            eqtag_and_lag, nonstationary, pms->growth);
-           dynamic_model.substitutePacExpectation(pms->name);
-         }
-     }
+        int max_lag;
+        vector<int> lhs;
+        vector<bool> nonstationary;
+        string aux_model_type;
+        if (trend_component_model_table.isExistingTrendComponentModelName(pms->aux_model_name))
+          {
+            aux_model_type = "trend_component";
+            max_lag = trend_component_model_table.getMaxLag(pms->aux_model_name) + 1;
+            lhs = dynamic_model.getUndiffLHSForPac(pms->aux_model_name, diff_subst_table);
+            // All lhs variables in a trend component model are nonstationary
+            nonstationary.insert(nonstationary.end(), trend_component_model_table.getDiff(pms->aux_model_name).size(), true);
+          }
+        else if (var_model_table.isExistingVarModelName(pms->aux_model_name))
+          {
+            aux_model_type = "var";
+            max_lag = var_model_table.getMaxLag(pms->aux_model_name);
+            lhs = var_model_table.getLhs(pms->aux_model_name);
+            // nonstationary variables in a VAR are those that are in diff
+            nonstationary = var_model_table.getDiff(pms->aux_model_name);
+          }
+        else if (pms->aux_model_name == "")
+          max_lag = 0;
+        else
+          {
+            cerr << "Error: aux_model_name not recognized as VAR model or Trend Component model" << endl;
+            exit(EXIT_FAILURE);
+          }
+        auto eqtag_and_lag = dynamic_model.walkPacParameters(pms->name);
+        original_model.getPacMaxLag(pms->name, eqtag_and_lag);
+        if (pms->aux_model_name == "")
+          dynamic_model.addPacModelConsistentExpectationEquation(pms->name, symbol_table.getID(pms->discount),
+                                                                 eqtag_and_lag, diff_subst_table);
+        else
+          dynamic_model.fillPacModelInfo(pms->name, lhs, max_lag, aux_model_type,
+                                         eqtag_and_lag, nonstationary, pms->growth);
+        dynamic_model.substitutePacExpectation(pms->name);
+      }
 
   dynamic_model.addEquationsForVar();
 
@@ -527,17 +517,14 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
     {
       PlannerObjectiveStatement *pos = nullptr;
       for (auto & statement : statements)
-        {
-          auto pos2 = dynamic_cast<PlannerObjectiveStatement *>(statement.get());
-          if (pos2 != nullptr)
-            if (pos != nullptr)
-              {
-                cerr << "ERROR: there can only be one planner_objective statement" << endl;
-                exit(EXIT_FAILURE);
-              }
-            else
-              pos = pos2;
-        }
+        if (auto pos2 = dynamic_cast<PlannerObjectiveStatement *>(statement.get()); pos2 != nullptr)
+          if (pos != nullptr)
+            {
+              cerr << "ERROR: there can only be one planner_objective statement" << endl;
+              exit(EXIT_FAILURE);
+            }
+          else
+            pos = pos2;
       assert(pos != nullptr);
       const StaticModel &planner_objective = pos->getPlannerObjective();
 
@@ -695,11 +682,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
 
   if (mod_file_struct.ramsey_policy_present)
     for (auto & statement : statements)
-      {
-        auto *rps = dynamic_cast<RamseyPolicyStatement *>(statement.get());
-        if (rps != nullptr)
-          rps->checkRamseyPolicyList();
-      }
+      if (auto *rps = dynamic_cast<RamseyPolicyStatement *>(statement.get()); rps != nullptr)
+        rps->checkRamseyPolicyList();
 
   if (mod_file_struct.identification_present && symbol_table.exo_det_nbr() > 0)
     {
@@ -1023,8 +1007,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
       {
         /* Special treatment for initval block: insert initial values for the
            auxiliary variables and initialize exo det */
-        auto *ivs = dynamic_cast<InitValStatement *>(statement.get());
-        if (ivs != nullptr)
+        if (auto *ivs = dynamic_cast<InitValStatement *>(statement.get()); ivs != nullptr)
           {
             ivs->writeOutput(mOutputFile, basename, minimal_workspace);
             static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
@@ -1032,27 +1015,22 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
           }
 
         // Special treatment for endval block: insert initial values for the auxiliary variables
-        auto *evs = dynamic_cast<EndValStatement *>(statement.get());
-        if (evs != nullptr)
+        if (auto *evs = dynamic_cast<EndValStatement *>(statement.get()); evs != nullptr)
           {
             evs->writeOutput(mOutputFile, basename, minimal_workspace);
             static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
           }
 
-        auto *ips = dynamic_cast<InitParamStatement *>(statement.get());
-        if (ips != nullptr)
+        if (auto *ips = dynamic_cast<InitParamStatement *>(statement.get()); ips != nullptr)
           ips->writeOutput(mOutputFile, basename, minimal_workspace);
 
-        auto *ss = dynamic_cast<ShocksStatement *>(statement.get());
-        if (ss != nullptr)
+        if (auto *ss = dynamic_cast<ShocksStatement *>(statement.get()); ss != nullptr)
           ss->writeOutput(mOutputFile, basename, minimal_workspace);
 
-        auto *eps = dynamic_cast<EstimatedParamsStatement *>(statement.get());
-        if (eps != nullptr)
+        if (auto *eps = dynamic_cast<EstimatedParamsStatement *>(statement.get()); eps != nullptr)
           eps->writeOutput(mOutputFile, basename, minimal_workspace);
 
-        auto *sgs = dynamic_cast<ShockGroupsStatement *>(statement.get());
-        if (sgs != nullptr)
+        if (auto *sgs = dynamic_cast<ShockGroupsStatement *>(statement.get()); sgs != nullptr)
           sgs->writeOutput(mOutputFile, basename, minimal_workspace);
       }
   else
@@ -1063,21 +1041,18 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 
           /* Special treatment for initval block: insert initial values for the
              auxiliary variables and initialize exo det */
-          auto ivs = dynamic_cast<InitValStatement *>(statement.get());
-          if (ivs != nullptr)
+          if (auto ivs = dynamic_cast<InitValStatement *>(statement.get()); ivs != nullptr)
             {
               static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
               ivs->writeOutputPostInit(mOutputFile);
             }
 
           // Special treatment for endval block: insert initial values for the auxiliary variables
-          auto evs = dynamic_cast<EndValStatement *>(statement.get());
-          if (evs != nullptr)
+          if (auto evs = dynamic_cast<EndValStatement *>(statement.get()); evs != nullptr)
             static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
 
           // Special treatment for load params and steady state statement: insert initial values for the auxiliary variables
-          auto lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(statement.get());
-          if (lpass && !no_static)
+          if (auto lpass = dynamic_cast<LoadParamsAndSteadyStateStatement *>(statement.get()); lpass && !no_static)
             static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
         }
 

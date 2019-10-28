@@ -239,8 +239,8 @@ DynamicModel::operator=(const DynamicModel &m)
 void
 DynamicModel::compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, int lag, const map_idx_t &map_idx) const
 {
-  auto it = derivatives[1].find({ eq, getDerivID(symbol_table.getID(SymbolType::endogenous, symb_id), lag) });
-  if (it != derivatives[1].end())
+  if (auto it = derivatives[1].find({ eq, getDerivID(symbol_table.getID(SymbolType::endogenous, symb_id), lag) });
+      it != derivatives[1].end())
     (it->second)->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
   else
     {
@@ -252,8 +252,7 @@ DynamicModel::compileDerivative(ofstream &code_file, unsigned int &instruction_n
 void
 DynamicModel::compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int eqr, int varr, int lag, const map_idx_t &map_idx) const
 {
-  auto it = first_chain_rule_derivatives.find({ eqr, varr, lag });
-  if (it != first_chain_rule_derivatives.end())
+  if (auto it = first_chain_rule_derivatives.find({ eqr, varr, lag }); it != first_chain_rule_derivatives.end())
     (it->second)->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
   else
     {

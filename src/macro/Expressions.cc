@@ -55,13 +55,11 @@ Bool::logical_and(const BaseTypePtr &btp) const
 BoolPtr
 Bool::logical_or(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Bool>(btp);
-  if (btp2)
+  if (auto btp2 = dynamic_pointer_cast<Bool>(btp); btp2)
     return make_shared<Bool>(value || *btp2, env);
 
-  auto btp3 = dynamic_pointer_cast<Real>(btp);
-  if (btp3)
-    return make_shared<Bool>(value || *btp3, env);
+  if (auto btp2 = dynamic_pointer_cast<Real>(btp); btp2)
+    return make_shared<Bool>(value || *btp2, env);
 
   throw StackTrace("Type mismatch for operands of || operator");
 }
@@ -165,13 +163,11 @@ Real::is_equal(const BaseTypePtr &btp) const
 BoolPtr
 Real::logical_and(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Real>(btp);
-  if (btp2)
+  if (auto btp2 = dynamic_pointer_cast<Real>(btp); btp2)
     return make_shared<Bool>(value && *btp2, env);
 
-  auto btp3 = dynamic_pointer_cast<Bool>(btp);
-  if (btp3)
-    return make_shared<Bool>(value && *btp3, env);
+  if (auto btp2 = dynamic_pointer_cast<Bool>(btp); btp2)
+    return make_shared<Bool>(value && *btp2, env);
 
   throw StackTrace("Type mismatch for operands of && operator");
 }
@@ -179,13 +175,11 @@ Real::logical_and(const BaseTypePtr &btp) const
 BoolPtr
 Real::logical_or(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Real>(btp);
-  if (!btp2)
+  if (auto btp2 = dynamic_pointer_cast<Real>(btp); !btp2)
     return make_shared<Bool>(value || *btp2, env);
 
-  auto btp3 = dynamic_pointer_cast<Bool>(btp);
-  if (btp3)
-    return make_shared<Bool>(value || *btp3, env);
+  if (auto btp2 = dynamic_pointer_cast<Bool>(btp); btp2)
+    return make_shared<Bool>(value || *btp2, env);
 
   throw StackTrace("Type mismatch for operands of || operator");
 }
@@ -302,12 +296,10 @@ String::cast_bool() const
 {
   auto f = [](const char& a, const char& b) { return (tolower(a) == tolower(b)); };
 
-  string tf = "true";
-  if (equal(value.begin(), value.end(), tf.begin(), f))
+  if (string tf = "true"; equal(value.begin(), value.end(), tf.begin(), f))
     return make_shared<Bool>(true, env);
 
-  tf = "false";
-  if (equal(value.begin(), value.end(), tf.begin(), f))
+  if (string tf = "false"; equal(value.begin(), value.end(), tf.begin(), f))
     return make_shared<Bool>(false, env);
 
   try
@@ -648,36 +640,30 @@ Variable::eval()
       vector<ExpressionPtr> index = map->getValue();
       vector<int> ind;
       for (auto it : index)
-        {
-          // Necessary to handle indexes like: y[1:2,2]
-          // In general this evaluates to [[1:2],2] but when subscripting we want to expand it to [1,2,2]
-          auto db = dynamic_pointer_cast<Real>(it);
-          if (db)
-            {
-              if (!*(db->isinteger()))
-                throw StackTrace("variable", "When indexing a variable you must pass "
-                                 "an int or an int array", location);
-              ind.emplace_back(*db);
-            }
-          else if (dynamic_pointer_cast<Array>(it))
-            for (auto it1 : dynamic_pointer_cast<Array>(it)->getValue())
+        // Necessary to handle indexes like: y[1:2,2]
+        // In general this evaluates to [[1:2],2] but when subscripting we want to expand it to [1,2,2]
+        if (auto db = dynamic_pointer_cast<Real>(it); db)
+          {
+            if (!*(db->isinteger()))
+              throw StackTrace("variable", "When indexing a variable you must pass "
+                               "an int or an int array", location);
+            ind.emplace_back(*db);
+          }
+        else if (dynamic_pointer_cast<Array>(it))
+          for (auto it1 : dynamic_pointer_cast<Array>(it)->getValue())
+            if (db = dynamic_pointer_cast<Real>(it1); db)
               {
-                db = dynamic_pointer_cast<Real>(it1);
-                if (db)
-                  {
-                    if (!*(db->isinteger()))
-                      throw StackTrace("variable", "When indexing a variable you must pass "
-                                       "an int or an int array", location);
-                    ind.emplace_back(*db);
-                  }
-                else
-                  throw StackTrace("variable", "You cannot index a variable with a "
-                                   "nested array", location);
+                if (!*(db->isinteger()))
+                  throw StackTrace("variable", "When indexing a variable you must pass "
+                                   "an int or an int array", location);
+                ind.emplace_back(*db);
               }
-          else
-            throw StackTrace("variable", "You can only index a variable with an int or "
-                             "an int array", location);
-        }
+            else
+              throw StackTrace("variable", "You cannot index a variable with a "
+                               "nested array", location);
+        else
+          throw StackTrace("variable", "You can only index a variable with an int or "
+                           "an int array", location);
 
       switch (env.getType(name))
         {

@@ -290,15 +290,13 @@ void
 Ifdef::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
   for (auto & it : expr_and_body)
-    {
-      VariablePtr vp = dynamic_pointer_cast<Variable>(it.first);
-      if (dynamic_pointer_cast<BaseType>(it.first)
-          || (vp && env.isVariableDefined(vp->getName())))
-        {
-          interpretBody(it.second, output, no_line_macro, paths);
-          break;
-        }
-    }
+    if (VariablePtr vp = dynamic_pointer_cast<Variable>(it.first);
+        dynamic_pointer_cast<BaseType>(it.first)
+        || (vp && env.isVariableDefined(vp->getName())))
+      {
+        interpretBody(it.second, output, no_line_macro, paths);
+        break;
+      }
   printEndLineInfo(output, no_line_macro);
 }
 
@@ -306,14 +304,12 @@ void
 Ifndef::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
   for (auto & it : expr_and_body)
-    {
-      VariablePtr vp = dynamic_pointer_cast<Variable>(it.first);
-      if (!(dynamic_pointer_cast<BaseType>(it.first)
-            || (vp && env.isVariableDefined(vp->getName()))))
-        {
-          interpretBody(it.second, output, no_line_macro, paths);
-          break;
-        }
-    }
+    if (VariablePtr vp = dynamic_pointer_cast<Variable>(it.first);
+        !(dynamic_pointer_cast<BaseType>(it.first)
+          || (vp && env.isVariableDefined(vp->getName()))))
+      {
+        interpretBody(it.second, output, no_line_macro, paths);
+        break;
+      }
   printEndLineInfo(output, no_line_macro);
 }
