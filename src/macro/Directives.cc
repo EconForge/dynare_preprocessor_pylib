@@ -244,10 +244,10 @@ For::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &pa
 void
 If::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
-  for (auto & it : expr_and_body)
+  for (const auto & [expr, body] : expr_and_body)
     try
       {
-        auto tmp = it.first->eval();
+        auto tmp = expr->eval();
         RealPtr dp = dynamic_pointer_cast<Real>(tmp);
         BoolPtr bp = dynamic_pointer_cast<Bool>(tmp);
         if (!bp && !dp)
@@ -255,7 +255,7 @@ If::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &pat
                            "The condition must evaluate to a boolean or a double", location));
         if ((bp && *bp) || (dp && *dp))
           {
-            interpretBody(it.second, output, no_line_macro, paths);
+            interpretBody(body, output, no_line_macro, paths);
             break;
           }
       }
@@ -289,12 +289,12 @@ If::interpretBody(const vector<DirectivePtr> &body, ostream &output, bool no_lin
 void
 Ifdef::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
-  for (auto & it : expr_and_body)
-    if (VariablePtr vp = dynamic_pointer_cast<Variable>(it.first);
-        dynamic_pointer_cast<BaseType>(it.first)
+  for (const auto & [expr, body] : expr_and_body)
+    if (VariablePtr vp = dynamic_pointer_cast<Variable>(expr);
+        dynamic_pointer_cast<BaseType>(expr)
         || (vp && env.isVariableDefined(vp->getName())))
       {
-        interpretBody(it.second, output, no_line_macro, paths);
+        interpretBody(body, output, no_line_macro, paths);
         break;
       }
   printEndLineInfo(output, no_line_macro);
@@ -303,12 +303,12 @@ Ifdef::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &
 void
 Ifndef::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
-  for (auto & it : expr_and_body)
-    if (VariablePtr vp = dynamic_pointer_cast<Variable>(it.first);
-        !(dynamic_pointer_cast<BaseType>(it.first)
+  for (const auto & [expr, body] : expr_and_body)
+    if (VariablePtr vp = dynamic_pointer_cast<Variable>(expr);
+        !(dynamic_pointer_cast<BaseType>(expr)
           || (vp && env.isVariableDefined(vp->getName()))))
       {
-        interpretBody(it.second, output, no_line_macro, paths);
+        interpretBody(body, output, no_line_macro, paths);
         break;
       }
   printEndLineInfo(output, no_line_macro);

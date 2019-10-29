@@ -32,19 +32,19 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
   if (!defines.empty())
     {
       stringstream command_line_defines_with_endl;
-      for (auto & define : defines)
+      for (const auto & [var, val] : defines)
         try
           {
-            stoi(define.second);
-            command_line_defines_with_endl << "@#define " << define.first << " = " << define.second << endl;
+            stoi(val);
+            command_line_defines_with_endl << "@#define " << var << " = " << val << endl;
           }
         catch (const invalid_argument &)
           {
-            if (!define.second.empty() && define.second.at(0) == '[' && define.second.at(define.second.length()-1) == ']')
+            if (!val.empty() && val.at(0) == '[' && val.at(val.length()-1) == ']')
               // If the input is an array. Issue #1578
-              command_line_defines_with_endl << "@#define " << define.first << " = " << define.second << endl;
+              command_line_defines_with_endl << "@#define " << var << " = " << val << endl;
             else
-              command_line_defines_with_endl << "@#define " << define.first << " = \"" << define.second << "\"" << endl;
+              command_line_defines_with_endl << "@#define " << var << " = \"" << val << "\"" << endl;
           }
       Driver m(env, true);
       istream is(command_line_defines_with_endl.rdbuf());
