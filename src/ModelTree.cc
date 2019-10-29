@@ -100,6 +100,7 @@ ModelTree::ModelTree(const ModelTree &m) :
   DataTree {m},
   equations_lineno {m.equations_lineno},
   equation_tags {m.equation_tags},
+  equation_tags_xref {m.equation_tags_xref},
   NNZDerivatives {m.NNZDerivatives},
   equation_reordered {m.equation_reordered},
   variable_reordered {m.variable_reordered},
@@ -125,6 +126,7 @@ ModelTree::operator=(const ModelTree &m)
   equations_lineno = m.equations_lineno;
   aux_equations.clear();
   equation_tags = m.equation_tags;
+  equation_tags_xref = m.equation_tags_xref;
   NNZDerivatives = m.NNZDerivatives;
 
   derivatives.clear();
@@ -1956,7 +1958,10 @@ ModelTree::addEquation(expr_t eq, int lineno, const vector<pair<string, string>>
 {
   int n = equations.size();
   for (const auto & eq_tag : eq_tags)
-    equation_tags.emplace_back(n, eq_tag);
+    {
+      equation_tags.emplace_back(n, eq_tag);
+      equation_tags_xref.emplace(eq_tag, n);
+    }
   addEquation(eq, lineno);
 }
 

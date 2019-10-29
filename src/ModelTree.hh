@@ -65,11 +65,28 @@ class ModelTree : public DataTree
   friend class DynamicModel;
   friend class StaticModel;
 protected:
+  /*
+   * ************** BEGIN **************
+   * The following structures keep track of the model equations and must all be updated
+   * when adding or removing an equation. Hence, if a new parallel structure is added
+   * in the future, it must be maintained whereever these structures are updated
+   * NB: This message added with the introduction of the `exclude_eqs` option, hence
+   *     that's a place to update future structures.
+   */
   //! Stores declared and generated auxiliary equations
   vector<BinaryOpNode *> equations;
 
   //! Stores line numbers of declared equations; -1 means undefined
   vector<int> equations_lineno;
+
+  //! Stores equation tags
+  vector<pair<int, pair<string, string>>> equation_tags;
+
+  //! Stores mapping from equation tags to equation number
+  multimap<pair<string, string>, int> equation_tags_xref;
+  /*
+   * ************** END **************
+   */
 
   //! Only stores generated auxiliary equations, in an order meaningful for evaluation
   /*! These equations only contain the definition of auxiliary variables, and
@@ -82,9 +99,6 @@ protected:
       operator in a ramsey model, see
       tests/optimal_policy/nk_ramsey_expectation.mod */
   deque<BinaryOpNode *> aux_equations;
-
-  //! Stores equation tags
-  vector<pair<int, pair<string, string>>> equation_tags;
 
   //! Stores derivatives
   /*! Index 0 is not used, index 1 contains first derivatives, ...
