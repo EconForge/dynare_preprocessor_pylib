@@ -355,7 +355,7 @@ Array::minus(const BaseTypePtr &btp) const
   /* Highly inefficient algorithm for computing set difference
      (but vector<T> is not suited for that...) */
   vector<ExpressionPtr> arr_copy;
-  for (auto & it : arr)
+  for (const auto & it : arr)
     {
       auto itbtp = dynamic_pointer_cast<BaseType>(it);
       auto it2 = btp2->arr.cbegin();
@@ -376,8 +376,8 @@ Array::times(const BaseTypePtr &btp) const
   if (!btp2)
     throw StackTrace("Type mismatch for operands of * operator");
 
-  for (auto & itl : arr)
-    for (auto & itr : btp2->getValue())
+  for (const auto & itl : arr)
+    for (const auto & itr : btp2->getValue())
       {
         vector<ExpressionPtr> new_tuple;
         if (dynamic_pointer_cast<Real>(itl) || dynamic_pointer_cast<String>(itl))
@@ -390,7 +390,7 @@ Array::times(const BaseTypePtr &btp) const
         if (dynamic_pointer_cast<Real>(itr) || dynamic_pointer_cast<String>(itr))
           new_tuple.push_back(itr);
         else if (dynamic_pointer_cast<Tuple>(itr))
-          for (auto & tit : dynamic_pointer_cast<Tuple>(itr)->getValue())
+          for (const auto & tit : dynamic_pointer_cast<Tuple>(itr)->getValue())
             new_tuple.push_back(tit);
         else
           throw StackTrace("Array::times: unsupported type on rhs");
@@ -445,13 +445,13 @@ Array::set_union(const BaseTypePtr &btp) const
     throw StackTrace("Arguments of the union operator (|) must be sets");
 
   vector<ExpressionPtr> new_values = arr;
-  for (auto & it : btp2->arr)
+  for (const auto & it : btp2->arr)
     {
       bool found = false;
       auto it2 = dynamic_pointer_cast<BaseType>(it);
       if (!it2)
         throw StackTrace("Type mismatch for operands of in operator");
-      for (auto & nvit : new_values)
+      for (const auto & nvit : new_values)
         {
           auto v2 = dynamic_pointer_cast<BaseType>(nvit);
           if (!v2)
@@ -476,12 +476,12 @@ Array::set_intersection(const BaseTypePtr &btp) const
     throw StackTrace("Arguments of the intersection operator (|) must be sets");
 
   vector<ExpressionPtr> new_values;
-  for (auto & it : btp2->arr)
+  for (const auto & it : btp2->arr)
     {
       auto it2 = dynamic_pointer_cast<BaseType>(it);
       if (!it2)
         throw StackTrace("Type mismatch for operands of in operator");
-      for (auto & nvit : arr)
+      for (const auto & nvit : arr)
         {
           auto v2 = dynamic_pointer_cast<BaseType>(nvit);
           if (!v2)
@@ -499,7 +499,7 @@ Array::set_intersection(const BaseTypePtr &btp) const
 BoolPtr
 Array::contains(const BaseTypePtr &btp) const
 {
-  for (auto & v : arr)
+  for (const auto & v : arr)
     {
       auto v2 = dynamic_pointer_cast<BaseType>(v);
       if (!v2)
@@ -514,7 +514,7 @@ RealPtr
 Array::sum() const
 {
   double retval = 0;
-  for (auto & v : arr)
+  for (const auto & v : arr)
     {
       auto v2 = dynamic_pointer_cast<Real>(v);
       if (!v2)
@@ -563,7 +563,7 @@ Tuple::is_equal(const BaseTypePtr &btp) const
 BoolPtr
 Tuple::contains(const BaseTypePtr &btp) const
 {
-  for (auto & v : tup)
+  for (const auto & v : tup)
     {
       auto v2 = dynamic_pointer_cast<BaseType>(v);
       if (!v2)
@@ -639,7 +639,7 @@ Variable::eval()
       ArrayPtr map = dynamic_pointer_cast<Array>(indices->eval());
       vector<ExpressionPtr> index = map->getValue();
       vector<int> ind;
-      for (auto it : index)
+      for (const auto & it : index)
         // Necessary to handle indexes like: y[1:2,2]
         // In general this evaluates to [[1:2],2] but when subscripting we want to expand it to [1,2,2]
         if (auto db = dynamic_pointer_cast<Real>(it); db)
@@ -650,7 +650,7 @@ Variable::eval()
             ind.emplace_back(*db);
           }
         else if (dynamic_pointer_cast<Array>(it))
-          for (auto it1 : dynamic_pointer_cast<Array>(it)->getValue())
+          for (const auto & it1 : dynamic_pointer_cast<Array>(it)->getValue())
             if (db = dynamic_pointer_cast<Real>(it1); db)
               {
                 if (!*(db->isinteger()))
@@ -1033,7 +1033,7 @@ ExpressionPtr
 Tuple::clone() const noexcept
 {
   vector<ExpressionPtr> tup_copy;
-  for (auto & it : tup)
+  for (const auto & it : tup)
     tup_copy.emplace_back(it->clone());
   return make_shared<Tuple>(tup_copy, env, location);
 }
@@ -1042,7 +1042,7 @@ ExpressionPtr
 Array::clone() const noexcept
 {
   vector<ExpressionPtr> arr_copy;
-  for (auto & it : arr)
+  for (const auto & it : arr)
     arr_copy.emplace_back(it->clone());
   return make_shared<Array>(arr_copy, env, location);
 }
@@ -1051,7 +1051,7 @@ ExpressionPtr
 Function::clone() const noexcept
 {
   vector<ExpressionPtr> args_copy;
-  for (auto & it : args)
+  for (const auto & it : args)
     args_copy.emplace_back(it->clone());
   return make_shared<Function>(name, args_copy, env, location);
 }
@@ -1091,7 +1091,7 @@ string
 Function::to_string() const noexcept
 {
   string retval = name + "(";
-  for (auto & it : args)
+  for (const auto & it : args)
     retval += it->to_string() + ", ";
   return retval.substr(0, retval.size()-2) + ")";
 }

@@ -107,7 +107,7 @@ Environment::print(ostream &output, const vector<string> &vars, int line, bool s
     output << "Macro Variables:" << endl;
 
   if (vars.empty())
-    for (auto & it : variables)
+    for (const auto & it : variables)
       printVariable(output, it.first, line, save);
   else
     for (const auto & it : vars)

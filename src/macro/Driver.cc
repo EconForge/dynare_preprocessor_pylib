@@ -69,7 +69,7 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
 
   // Interpret parsed statements
   bool printLine = true;
-  for (auto & statement : statements)
+  for (const auto & statement : statements)
     {
       if (printLine)
         {

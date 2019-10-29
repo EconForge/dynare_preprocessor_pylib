@@ -55,9 +55,9 @@ Include::interpret(ostream &output, bool no_line_macro, vector<filesystem::path>
       ifstream incfile(filename, ios::binary);
       if (incfile.fail())
         {
-          for (auto & file : paths)
+          for (const auto & dir : paths)
             {
-              incfile = ifstream(file / filename, ios::binary);
+              incfile = ifstream(dir / filename, ios::binary);
               if (incfile.good())
                 break;
             }
@@ -65,7 +65,7 @@ Include::interpret(ostream &output, bool no_line_macro, vector<filesystem::path>
             {
               ostringstream errmsg;
               errmsg << "   * " << current_path().string() << endl;
-              for (auto & dir : paths)
+              for (const auto & dir : paths)
                 errmsg << "   * " << absolute(dir).string() << endl;
               error(StackTrace("@#includepath", "Could not open " + filename.string() +
                                ". The following directories were searched:\n" + errmsg.str(), location));
@@ -228,7 +228,7 @@ For::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &pa
         }
 
       bool printLine = true;
-      for (auto & statement : statements)
+      for (const auto & statement : statements)
         {
           if (printLine)
             {
@@ -275,7 +275,7 @@ void
 If::interpretBody(const vector<DirectivePtr> &body, ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
 {
   bool printLine = !no_line_macro;
-  for (auto & statement : body)
+  for (const auto & statement : body)
     {
       if (printLine)
         {

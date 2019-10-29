@@ -176,7 +176,7 @@ for : FOR { driver.pushContext(); } expr IN expr for_when EOL statements ENDFOR
         if (tmpv)
           vvnp.emplace_back(tmpv);
         else if (tmpt)
-          for (auto & it : tmpt->getValue())
+          for (const auto & it : tmpt->getValue())
             {
               auto vnp = dynamic_pointer_cast<Variable>(it);
               if (!vnp)
