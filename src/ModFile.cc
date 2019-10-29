@@ -424,11 +424,11 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
 
   // Get all equation tags associated with VARs and Trend Component Models
   set<string> eqtags;
-  for (auto const & it : trend_component_model_table.getEqTags())
+  for (const auto & it : trend_component_model_table.getEqTags())
     for (auto & it1 : it.second)
       eqtags.insert(it1);
 
-  for (auto const & it : var_model_table.getEqTags())
+  for (const auto & it : var_model_table.getEqTags())
     for (auto & it1 : it.second)
       eqtags.insert(it1);
 
