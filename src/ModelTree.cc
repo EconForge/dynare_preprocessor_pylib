@@ -29,6 +29,10 @@
 #include <boost/graph/topological_sort.hpp>
 #pragma GCC diagnostic pop
 
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+
 using namespace MFS;
 
 void
@@ -2201,7 +2205,10 @@ ModelTree::matlab_arch(const string &mexext)
   else if (mexext == "mexw64")
     return "win64";
   else if (mexext == "mexmaci")
-    return "maci";
+    {
+      cerr << "32-bit MATLAB not supported on macOS" << endl;
+      exit(EXIT_FAILURE);
+    }
   else if (mexext == "mexmaci64")
     return "maci64";
   else
@@ -2265,9 +2272,28 @@ ModelTree::compileDll(const string &basename, const string &static_or_dynamic, c
       else
         {
           // macOS
-          compiler = "/usr/local/bin/gcc-9";
-          string archs = (mexext == "maci" ? "i386" : "x86_64");
-          flags << " -fno-common -arch " << archs << " -mmacosx-version-min=10.7 -Wl,-twolevel_namespace -undefined error -bundle";
+#ifdef __APPLE__
+          char dynare_m_path[PATH_MAX];
+          uint32_t size = PATH_MAX;
+          string gcc_relative_path = "";
+          if (_NSGetExecutablePath(dynare_m_path, &size) == 0)
+            {
+              string str = dynare_m_path;
+              gcc_relative_path = str.substr(0, str.find_last_of("/")) + "/../../.brew/bin/gcc-9";
+            }
+
+          if (filesystem::exists(gcc_relative_path))
+            compiler = gcc_relative_path;
+          else if (filesystem::exists("/usr/local/bin/gcc-9"))
+            compiler = "/usr/local/bin/gcc-9";
+          else
+            {
+              cerr << "ERROR: You must install gcc-9 on your system before using the `use_dll` option of Dynare. "
+                   << "You can do this via the Dynare installation package." << endl;
+              exit(EXIT_FAILURE);
+            }
+#endif
+          flags << " -fno-common -arch x86_64 -mmacosx-version-min=10.9 -Wl,-twolevel_namespace -undefined error -bundle";
           libs += " -lm -lstdc++";
         }
     }
