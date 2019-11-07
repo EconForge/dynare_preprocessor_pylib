@@ -97,6 +97,9 @@ private:
 
   vector<temporary_terms_inuse_t> v_temporary_terms_inuse;
 
+  //! Creates mapping for variables and equations they are present in
+  map<int, set<int>> variableMapping;
+
   //! Store the derivatives or the chainrule derivatives:map<tuple<equation, variable, lead_lag>, expr_t>
   using first_chain_rule_derivatives_t = map<tuple<int, int, int>, expr_t>;
   first_chain_rule_derivatives_t first_chain_rule_derivatives;
@@ -289,6 +292,9 @@ public:
   //! Write JSON AST
   void writeJsonAST(ostream &output) const;
 
+  //! Write JSON variable mapping
+  void writeJsonVariableMapping(ostream &output) const;
+
   //! Write JSON Output
   void writeJsonOutput(ostream &output) const;
 
@@ -368,6 +374,12 @@ public:
   //! Converts to nonlinear model (only the equations)
   /*! It assumes that the nonlinear model given in argument has just been allocated */
   void toNonlinearPart(DynamicModel &non_linear_equations_dynamic_model) const;
+
+  //! Creates mapping for variables and equations they are present in
+  void createVariableMapping(int orig_eq_nbr);
+
+  //! Expands equation tags with default equation names (available "name" tag or LHS variable or equation ID)
+  void expandEqTags();
 
   //! Find endogenous variables not used in model
   set<int> findUnusedEndogenous();
