@@ -6408,6 +6408,10 @@ DynamicModel::substituteDiff(vector<expr_t> &pac_growth)
   for (const auto & equation : equations)
     equation->findDiffNodes(diff_nodes);
 
+  for (const auto & gv : pac_growth)
+    if (gv != nullptr)
+      gv->findDiffNodes(diff_nodes);
+
   /* Ensure that all diff operators appear once with their argument at current
      period (i.e. index 0 in the equivalence class, see comment above
      lag_equivalence_table_t in ExprNode.hh for details on the concepts).
