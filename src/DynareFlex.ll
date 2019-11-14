@@ -706,6 +706,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <DYNARE_BLOCK>periods {return token::PERIODS;}
 <DYNARE_BLOCK>cutoff {return token::CUTOFF;}
 <DYNARE_BLOCK>mfs	{return token::MFS;}
+<DYNARE_BLOCK>balanced_growth_test_tol {return token::BALANCED_GROWTH_TEST_TOL;}
 <DYNARE_BLOCK>gamma_pdf {return token::GAMMA_PDF;}
 <DYNARE_BLOCK>beta_pdf {return token::BETA_PDF;}
 <DYNARE_BLOCK>normal_pdf {return token::NORMAL_PDF;}

@@ -356,6 +356,8 @@ public:
   void cutoff(const string &value);
   //! mfs option of model block
   void mfs(const string &value);
+  //! balanced_growth_test_tol option of model block
+  void balanced_growth_test_tol(const string &value);
   //! Sets the FILENAME for the initial value in initval
   void initval_file(const string &filename);
   //! Declares an endogenous variable

@@ -794,6 +794,12 @@ ParsingDriver::mfs(const string &value)
 }
 
 void
+ParsingDriver::balanced_growth_test_tol(const string &value)
+{
+  mod_file->dynamic_model.balanced_growth_test_tol = stod(value);
+}
+
+void
 ParsingDriver::end_initval(bool all_values_required)
 {
   mod_file->addStatement(make_unique<InitValStatement>(init_values, mod_file->symbol_table, all_values_required));

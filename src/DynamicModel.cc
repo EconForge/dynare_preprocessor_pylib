@@ -100,6 +100,7 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   ModelTree {m},
   trend_component_model_table {m.trend_component_model_table},
   var_model_table {m.var_model_table},
+  balanced_growth_test_tol {m.balanced_growth_test_tol},
   static_only_equations_lineno {m.static_only_equations_lineno},
   static_only_equations_equation_tags {m.static_only_equations_equation_tags},
   deriv_id_table {m.deriv_id_table},
@@ -160,6 +161,7 @@ DynamicModel::operator=(const DynamicModel &m)
 
   assert(&trend_component_model_table == &m.trend_component_model_table);
   assert(&var_model_table == &m.var_model_table);
+  balanced_growth_test_tol = m.balanced_growth_test_tol;
 
   static_only_equations_lineno = m.static_only_equations_lineno;
   static_only_equations_equation_tags = m.static_only_equations_equation_tags;
@@ -5800,13 +5802,14 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context
                 if (symbol_table.getType(endogit->first.first) == SymbolType::endogenous)
                   {
                     double nearZero = testeq->getDerivative(endogit->second)->eval(eval_context); // eval d F / d Trend d Endog
-                    if (fabs(nearZero) > zero_band)
+                    if (fabs(nearZero) > balanced_growth_test_tol)
                       {
-                        cerr << "WARNING: trends not compatible with balanced growth path; the second-order cross partial of equation " << eq + 1 << " (line "
+                        cerr << "ERROR: trends not compatible with balanced growth path; the second-order cross partial of equation " << eq + 1 << " (line "
                              << equations_lineno[eq] << ") w.r.t. trend variable "
                              << symbol_table.getName(it->first.first) << " and endogenous variable "
-                             << symbol_table.getName(endogit->first.first) << " is not null. " << endl;
-                        // Changed to warning. See discussion in #1389
+                             << symbol_table.getName(endogit->first.first) << " is not null (abs. value = "
+                             << fabs(nearZero) << "). If you are confident that your trends are correctly specified, you can raise the value of option 'balanced_growth_test_tol' in the 'model' block." << endl;
+                        exit(EXIT_FAILURE);
                       }
                   }
             }

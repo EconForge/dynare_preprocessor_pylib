@@ -35,7 +35,15 @@ public:
   TrendComponentModelTable &trend_component_model_table;
   //! A reference to the VAR model table
   VarModelTable &var_model_table;
+  /* Used in the balanced growth test, for determining whether the
+     cross-derivative of a given equation, w.r.t. an endogenous and a trend
+     variable is zero. Controlled by option “balanced_growth_test_tol” of the
+     “model” block. The default should not be too small (see dynare#1389). */
+  double balanced_growth_test_tol{1e-6};
 private:
+  /* Used in the balanced growth test, for skipping equations where the test
+     cannot be performed (i.e. when LHS=RHS at the initial values). Should not
+     be too large, otherwise the test becomes less powerful. */
   constexpr static double zero_band{1e-8};
 
   //! Stores equations declared as [static]
