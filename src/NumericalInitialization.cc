@@ -148,12 +148,25 @@ InitOrEndValStatement::writeInitValues(ostream &output) const
       SymbolType type = symbol_table.getType(symb_id);
       int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
 
-      if (type == SymbolType::endogenous)
-        output << "oo_.steady_state";
-      else if (type == SymbolType::exogenous)
-        output << "oo_.exo_steady_state";
-      else if (type == SymbolType::exogenousDet)
-        output << "oo_.exo_det_steady_state";
+      switch (type)
+        {
+        case SymbolType::endogenous:
+          output << "oo_.steady_state";
+          break;
+        case SymbolType::exogenous:
+          output << "oo_.exo_steady_state";
+          break;
+        case SymbolType::exogenousDet:
+          output << "oo_.exo_det_steady_state";
+          break;
+        case SymbolType::excludedVariable:
+          cerr << "ERROR: Variable `" << symbol_table.getName(symb_id)
+               << "` was excluded but found in an initval or endval statement" << endl;
+          exit(EXIT_FAILURE);
+        default:
+          cerr << "Should not arrive here" << endl;
+          exit(EXIT_FAILURE);
+        }
 
       output << "( " << tsid << " ) = ";
       expression->writeOutput(output);

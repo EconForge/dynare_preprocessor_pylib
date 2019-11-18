@@ -23,6 +23,7 @@
 #include <cassert>
 #include <algorithm>
 #include <numeric>
+#include <regex>
 
 #include "DynamicModel.hh"
 
@@ -103,6 +104,7 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   balanced_growth_test_tol {m.balanced_growth_test_tol},
   static_only_equations_lineno {m.static_only_equations_lineno},
   static_only_equations_equation_tags {m.static_only_equations_equation_tags},
+  static_only_equation_tags_xref {m.static_only_equation_tags_xref},
   deriv_id_table {m.deriv_id_table},
   inv_deriv_id_table {m.inv_deriv_id_table},
   dyn_jacobian_cols_table {m.dyn_jacobian_cols_table},
@@ -165,6 +167,7 @@ DynamicModel::operator=(const DynamicModel &m)
 
   static_only_equations_lineno = m.static_only_equations_lineno;
   static_only_equations_equation_tags = m.static_only_equations_equation_tags;
+  static_only_equation_tags_xref = m.static_only_equation_tags_xref;
   deriv_id_table = m.deriv_id_table;
   inv_deriv_id_table = m.inv_deriv_id_table;
   dyn_jacobian_cols_table = m.dyn_jacobian_cols_table;
@@ -2928,6 +2931,179 @@ DynamicModel::writeDynamicJacobianNonZeroElts(const string &basename) const
   print_nzij(nzij_fwrd, "nzij_fwrd");
   output << "end" << endl;
   output.close();
+}
+
+void
+DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_eq_tags, set<pair<string, string>> & eq_tag_set, bool exclude_eqs)
+{
+  string tags;
+  if (filesystem::exists(inc_exc_eq_tags))
+    {
+      ifstream exclude_file;
+      exclude_file.open(inc_exc_eq_tags, ifstream::in);
+      if (!exclude_file.is_open())
+        {
+          cerr << "ERROR: Could not open " << inc_exc_eq_tags << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      string line;
+      bool tagname_on_first_line = false;
+      while (getline(exclude_file, line))
+        {
+          removeLeadingTrailingWhitespace(line);
+          if (!line.empty())
+            if (tags.empty() && line.find("=") != string::npos)
+              {
+                tagname_on_first_line = true;
+                tags += line + "(";
+              }
+            else
+              if (line.find("'") != string::npos)
+                tags += line + ",";
+              else
+                tags += "'" + line + "',";
+        }
+
+      if (!tags.empty())
+        {
+          tags = tags.substr(0, tags.size()-1);
+          if (tagname_on_first_line)
+            tags += ")";
+        }
+    }
+  else
+    tags = inc_exc_eq_tags;
+  removeLeadingTrailingWhitespace(tags);
+
+  if (tags.front() == '[' && tags.back() != ']')
+    {
+      cerr << "Error: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
+           << ": if the first character is '[' the last must be ']'" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (tags.front() == '[' && tags.back() == ']')
+    tags = tags.substr(1, tags.length() - 2);
+  removeLeadingTrailingWhitespace(tags);
+
+  regex q ("^\\w+\\s*=");
+  smatch matches;
+  string tagname = "name";
+  if (regex_search(tags, matches, q))
+    {
+      tagname = matches[0].str();
+      tags = tags.substr(tagname.size(), tags.length() - tagname.size() + 1);
+      removeLeadingTrailingWhitespace(tags);
+      if (tags.front() == '(' && tags.back() == ')')
+        {
+          tags = tags.substr(1, tags.length() - 2);
+          removeLeadingTrailingWhitespace(tags);
+        }
+      tagname = tagname.substr(0, tagname.size()-1);
+      removeLeadingTrailingWhitespace(tagname);
+    }
+
+  string quote_regex = "'[^']+'";
+  string non_quote_regex = "[^,\\s]+";
+  regex r ("(\\s*" + quote_regex + "|" + non_quote_regex + "\\s*)(,\\s*(" + quote_regex + "|" + non_quote_regex + ")\\s*)*");
+  if (!regex_match (tags, r))
+    {
+      cerr << "Error: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
+           << ": argument is of incorrect format." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  regex s (quote_regex + "|" + non_quote_regex);
+  for (auto it = sregex_iterator(tags.begin(), tags.end(), s);
+      it != sregex_iterator(); it++)
+    {
+      auto str = it->str();
+      if (str[0] == '\'' && str[str.size()-1] == '\'')
+        str = str.substr(1, str.size()-2);
+      eq_tag_set.insert({tagname, str});
+    }
+}
+
+void
+DynamicModel::includeExcludeEquations(const string & eqs, bool exclude_eqs)
+{
+  if (eqs.empty())
+    return;
+
+  set<pair<string, string>> eq_tag_set;
+  parseIncludeExcludeEquations(eqs, eq_tag_set, exclude_eqs);
+
+  vector<int> excluded_vars =
+    ModelTree::includeExcludeEquations(eq_tag_set, exclude_eqs,
+                                       equations, equations_lineno,
+                                       equation_tags, equation_tags_xref, false);
+
+  // `static_only_equation_tags` is `vector<vector<pair<string, string>>>`
+  // while `equation_tags` is `vector<pair<int, pair<string, string>>>`
+  // so convert former structure to latter to conform with function call
+  int n = 0;
+  vector<pair<int, pair<string, string>>> tmp_static_only_equation_tags;
+  for (auto & eqn_tags : static_only_equations_equation_tags)
+    {
+      for (auto & eqn_tag : eqn_tags)
+        tmp_static_only_equation_tags.emplace_back(make_pair(n, eqn_tag));
+      n++;
+    }
+  // Ignore output because variables are not excluded when equations marked 'static' are excluded
+  ModelTree::includeExcludeEquations(eq_tag_set, exclude_eqs,
+                                     static_only_equations, static_only_equations_lineno,
+                                     tmp_static_only_equation_tags,
+                                     static_only_equation_tags_xref, true);
+  if (!eq_tag_set.empty())
+    {
+      cerr << "ERROR: " << (exclude_eqs ? "exclude_eqs" : "include_eqs") << ": The equations specified by `";
+      cerr << eq_tag_set.begin()->first << "= ";
+      for (auto & it : eq_tag_set)
+        cerr << it.second << ", ";
+      cerr << "` were not found." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (staticOnlyEquationsNbr() != dynamicOnlyEquationsNbr())
+    {
+      cerr << "ERROR: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
+           << ": You must remove the same number of equations marked `static` as equations marked `dynamic`." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  // convert back static equation info
+  if (static_only_equations.empty())
+    static_only_equations_equation_tags.clear();
+  else
+    {
+      static_only_equations_equation_tags.resize(static_only_equations.size());
+      fill(static_only_equations_equation_tags.begin(), static_only_equations_equation_tags.end(), vector<pair<string, string>>());
+      for (auto & it : tmp_static_only_equation_tags)
+        static_only_equations_equation_tags.at(it.first).emplace_back(it.second);
+    }
+
+  // Collect list of used variables in updated list of equations
+  set<pair<int, int>> eqn_vars;
+  for (const auto & eqn : equations)
+    eqn->collectDynamicVariables(SymbolType::endogenous, eqn_vars);
+  for (const auto & eqn : static_only_equations)
+    eqn->collectDynamicVariables(SymbolType::endogenous, eqn_vars);
+
+  // Change LHS variable type of excluded equation if it is used in an eqution that has been kept
+  for (auto ev : excluded_vars)
+    {
+      bool found = false;
+      for (const auto & it : eqn_vars)
+        if (it.first == ev)
+          {
+            symbol_table.changeType(ev, SymbolType::exogenous);
+            found = true;
+            break;
+          }
+      if (!found)
+        symbol_table.changeType(ev, SymbolType::excludedVariable);
+    }
 }
 
 void
@@ -6305,13 +6481,22 @@ DynamicModel::getEquationNumbersFromTags(const set<string> &eqtags) const
 {
   vector<int> eqnumbers;
   for (auto & eqtag : eqtags)
-    for (const auto & equation_tag : equation_tags)
-      if (equation_tag.second.first == "name"
-          && equation_tag.second.second == eqtag)
+    {
+      bool found = false;
+      for (const auto & equation_tag : equation_tags)
+        if (equation_tag.second.first == "name"
+            && equation_tag.second.second == eqtag)
+          {
+            found = true;
+            eqnumbers.push_back(equation_tag.first);
+            break;
+          }
+      if (!found)
         {
-          eqnumbers.push_back(equation_tag.first);
-          break;
+          cerr << "ERROR: looking for equation tag " << eqtag << " failed." << endl;
+          exit(EXIT_FAILURE);
         }
+    }
   return eqnumbers;
 }
 
@@ -6618,9 +6803,12 @@ DynamicModel::addStaticOnlyEquation(expr_t eq, int lineno, const vector<pair<str
   for (const auto & eq_tag : eq_tags)
     soe_eq_tags.push_back(eq_tag);
 
+  int n = static_only_equations.size();
   static_only_equations.push_back(beq);
   static_only_equations_lineno.push_back(lineno);
   static_only_equations_equation_tags.push_back(soe_eq_tags);
+  for (auto & it : soe_eq_tags)
+    static_only_equation_tags_xref.emplace(it, n);
 }
 
 size_t

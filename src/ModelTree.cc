@@ -1934,6 +1934,104 @@ ModelTree::addEquation(expr_t eq, int lineno)
   equations_lineno.push_back(lineno);
 }
 
+vector<int>
+ModelTree::includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_eqs,
+                                   vector<BinaryOpNode *> &equations, vector<int> &equations_lineno,
+                                   vector<pair<int, pair<string, string>>> &equation_tags,
+                                   multimap<pair<string, string>, int> &equation_tags_xref, bool static_equations) const
+{
+  vector<int> excluded_vars;
+  if (equations.empty())
+    return excluded_vars;
+
+  // Get equation numbers of tags
+  set<int> tag_eqns;
+  for (auto & it : eqs)
+    if (equation_tags_xref.find(it) != equation_tags_xref.end())
+      {
+        auto range = equation_tags_xref.equal_range(it);
+        for_each ( range.first, range.second, [&tag_eqns](auto & x){ tag_eqns.insert(x.second); } );
+        eqs.erase(it);
+      }
+  if (tag_eqns.empty())
+    return excluded_vars;
+
+  set<int> eqns;
+  if (exclude_eqs)
+    eqns = tag_eqns;
+  else
+    for (size_t i = 0; i < equations.size(); i++)
+      if (tag_eqns.find(i) == tag_eqns.end())
+        eqns.insert(i);
+
+  // remove from equations, equations_lineno, equation_tags, equation_tags_xref
+  vector<BinaryOpNode *> new_eqns;
+  vector<int> new_equations_lineno;
+  map<int, int> old_eqn_num_2_new;
+  for (size_t i = 0; i < equations.size(); i++)
+    if (eqns.find(i) != eqns.end())
+      {
+        bool found = false;
+        for (const auto & it : equation_tags)
+          if (it.first == static_cast<int>(i) && it.second.first == "endogenous")
+            {
+              found = true;
+              excluded_vars.push_back(symbol_table.getID(it.second.second));
+              break;
+            }
+        if (!found)
+          {
+            set<pair<int, int>> result;
+            equations[i]->arg1->collectDynamicVariables(SymbolType::endogenous, result);
+            if (result.size() == 1)
+              excluded_vars.push_back(result.begin()->first);
+            else
+              {
+                cerr << "ERROR: Equation " << i
+                     << " has been excluded but does not have a single variable on LHS or `endogenous` tag" << endl;
+                exit(EXIT_FAILURE);
+              }
+          }
+      }
+    else
+      {
+        new_eqns.emplace_back(equations[i]);
+        old_eqn_num_2_new[i] = new_eqns.size() - 1;
+        new_equations_lineno.emplace_back(equations_lineno[i]);
+      }
+  int n_excl = equations.size() - new_eqns.size();
+
+  equations = new_eqns;
+  equations_lineno = new_equations_lineno;
+
+  equation_tags.erase(remove_if(equation_tags.begin(), equation_tags.end(),
+                                [&](const auto& it) { return eqns.find(it.first) != eqns.end(); }),
+                      equation_tags.end());
+  for (auto & it : old_eqn_num_2_new)
+    for (auto & it1 : equation_tags)
+      if (it1.first == it.first)
+        it1.first = it.second;
+
+  equation_tags_xref.clear();
+  for (const auto & it : equation_tags)
+    equation_tags_xref.emplace(it.second, it.first);
+
+  if (!static_equations)
+    for (size_t i = 0; i < excluded_vars.size(); i++)
+      for (size_t j = i+1; j < excluded_vars.size(); j++)
+        if (excluded_vars[i] == excluded_vars[j])
+          {
+            cerr << "Error: Variable " << symbol_table.getName(i) << " was excluded twice"
+                 << " via in/exclude_eqs option" << endl;
+            exit(EXIT_FAILURE);
+          }
+
+  cout << "Excluded " << n_excl << (static_equations ? " static " : " dynamic ")
+       << "equation" << (n_excl > 1 ? "s" : "" ) << " via in/exclude_eqs option" << endl;
+
+  return excluded_vars;
+}
+
 void
 ModelTree::simplifyEquations()
 {

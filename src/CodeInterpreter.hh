@@ -150,7 +150,8 @@ enum class SymbolType
     logTrend = 15,                  //!< Log-trend variable
     unusedEndogenous = 16,          //!< Type to mark unused endogenous variables when `nostrict` option is passed
     endogenousVAR = 17,             //!< Variables declared in a var_model statement
-    epilogue = 18                   //!< Variables created in epilogue block
+    epilogue = 18,                  //!< Variables created in epilogue block
+    excludedVariable = 19           //!< Type to use when an equation is excluded via include/exclude_eqs and the LHS variable is not used elsewhere in the model
   };
 
 enum ExpressionType

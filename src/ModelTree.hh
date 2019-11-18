@@ -75,13 +75,10 @@ protected:
    */
   //! Stores declared and generated auxiliary equations
   vector<BinaryOpNode *> equations;
-
   //! Stores line numbers of declared equations; -1 means undefined
   vector<int> equations_lineno;
-
   //! Stores equation tags
   vector<pair<int, pair<string, string>>> equation_tags;
-
   //! Stores mapping from equation tags to equation number
   multimap<pair<string, string>, int> equation_tags_xref;
   /*
@@ -262,6 +259,11 @@ protected:
   void printBlockDecomposition(const vector<pair<int, int>> &blocks) const;
   //! Determine for each block if it is linear or not
   vector<bool> BlockLinear(const blocks_derivatives_t &blocks_derivatives, const vector<int> &variable_reordered) const;
+  //! Remove equations specified by exclude_eqs
+  vector<int> includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_eqs,
+                                      vector<BinaryOpNode *> &equations, vector<int> &equations_lineno,
+                                      vector<pair<int, pair<string, string>>> &equation_tags,
+                                      multimap<pair<string, string>, int> &equation_tags_xref, bool static_equations) const;
 
   //! Determine the simulation type of each block
   virtual BlockSimulationType getBlockSimulationType(int block_number) const = 0;
@@ -348,6 +350,8 @@ public:
   void addEquation(expr_t eq, int lineno);
   //! Declare a node as an equation of the model, also giving its tags
   void addEquation(expr_t eq, int lineno, const vector<pair<string, string>> &eq_tags);
+  //! Add equation tags to equation tag table
+  void addEquationTagsToTable(const vector<pair<string, string>> &eq_tags);
   //! Declare a node as an auxiliary equation of the model, adding it at the end of the list of auxiliary equations
   void addAuxEquation(expr_t eq);
   //! Returns the number of equations in the model
