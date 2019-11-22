@@ -59,7 +59,7 @@ using namespace macro;
 %token FOR ENDFOR IF IFDEF IFNDEF ELSEIF ELSE ENDIF TRUE FALSE
 %token INCLUDE INCLUDEPATH DEFINE EQUAL D_ECHO ERROR
 %token COMMA LPAREN RPAREN LBRACKET RBRACKET WHEN
-%token BEGIN_EVAL END_EVAL ECHOMACROVARS SAVE
+%token BEGIN_EVAL END_EVAL ECHOMACROVARS SAVE LINE
 
 %token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN
 %token SQRT CBRT SIGN MAX MIN FLOOR CEIL TRUNC SUM MOD
@@ -145,6 +145,12 @@ directive_one_line : INCLUDE expr
                      { $$ = make_shared<EchoMacroVars>(true, driver.env, @$); }
                    | ECHOMACROVARS LPAREN SAVE RPAREN name_list
                      { $$ = make_shared<EchoMacroVars>(true, $5, driver.env, @$); }
+                   | LINE QUOTED_STRING NUMBER
+                     {
+                       // `@#line` is ignored; adjust newlines in output to accord
+                       auto l = static_cast<Tokenizer::parser::location_type>(@$);
+                       $$ = make_shared<TextNode>(string(l.end.line - l.begin.line + 1, '\n'), driver.env, @$);
+                     }
                    ;
 
 name_list : NAME

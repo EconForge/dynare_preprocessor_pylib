@@ -64,6 +64,7 @@ CONT \\\\{SPC}*
   yylloc->step();
 %}
 
+<directive>line            { BEGIN(expr); return token::LINE; }
 <directive>include         { BEGIN(expr); return token::INCLUDE; }
 <directive>includepath     { BEGIN(expr); return token::INCLUDEPATH; }
 <directive>define          { BEGIN(expr); return token::DEFINE; }
