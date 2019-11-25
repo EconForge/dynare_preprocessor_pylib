@@ -158,6 +158,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <INITIAL>histval_file {BEGIN DYNARE_STATEMENT; return token::HISTVAL_FILE;}
 <INITIAL>forecast {BEGIN DYNARE_STATEMENT; return token::FORECAST;}
 <INITIAL>shock_decomposition {BEGIN DYNARE_STATEMENT; return token::SHOCK_DECOMPOSITION;}
+<INITIAL>forecast_shock_decomposition {BEGIN DYNARE_STATEMENT; return token::FORECAST_SHOCK_DECOMPOSITION;}
 <INITIAL>realtime_shock_decomposition {BEGIN DYNARE_STATEMENT; return token::REALTIME_SHOCK_DECOMPOSITION;}
 <INITIAL>plot_shock_decomposition {BEGIN DYNARE_STATEMENT; return token::PLOT_SHOCK_DECOMPOSITION;}
 <INITIAL>initial_condition_decomposition {BEGIN DYNARE_STATEMENT; return token::INITIAL_CONDITION_DECOMPOSITION;}

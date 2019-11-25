@@ -2784,6 +2784,38 @@ ShockDecompositionStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
+ForecastShockDecompositionStatement::ForecastShockDecompositionStatement(SymbolList symbol_list_arg,
+                                                                         OptionsList options_list_arg) :
+  symbol_list{move(symbol_list_arg)},
+  options_list{move(options_list_arg)}
+{
+}
+
+void
+ForecastShockDecompositionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  options_list.writeOutput(output);
+  symbol_list.writeOutput("var_list_", output);
+  output << "oo_ = forecast_shock_decomposition(M_,oo_,options_,var_list_,bayestopt_,estim_params_);" << endl;
+}
+
+void
+ForecastShockDecompositionStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "forecast_shock_decomposition")";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 RealtimeShockDecompositionStatement::RealtimeShockDecompositionStatement(SymbolList symbol_list_arg,
                                                                          OptionsList options_list_arg) :
   symbol_list{move(symbol_list_arg)},

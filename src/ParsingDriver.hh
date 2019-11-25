@@ -682,6 +682,8 @@ public:
   void markov_switching();
   //! Shock decomposition
   void shock_decomposition();
+  //! Forecast Shock decomposition
+  void forecast_shock_decomposition();
   //! Realtime Shock decomposition
   void realtime_shock_decomposition();
   //! Plot Shock decomposition
