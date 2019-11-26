@@ -294,10 +294,10 @@ String::cast_bool() const
 {
   auto f = [](const char& a, const char& b) { return (tolower(a) == tolower(b)); };
 
-  if (string tf = "true"; equal(value.begin(), value.end(), tf.begin(), f))
+  if (string tf = "true"; equal(value.begin(), value.end(), tf.begin(), tf.end(), f))
     return make_shared<Bool>(true, env);
 
-  if (string tf = "false"; equal(value.begin(), value.end(), tf.begin(), f))
+  if (string tf = "false"; equal(value.begin(), value.end(), tf.begin(), tf.end(), f))
     return make_shared<Bool>(false, env);
 
   try
