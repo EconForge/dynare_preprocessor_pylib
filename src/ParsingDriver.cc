@@ -2349,14 +2349,6 @@ ParsingDriver::shock_decomposition()
 }
 
 void
-ParsingDriver::forecast_shock_decomposition()
-{
-  mod_file->addStatement(make_unique<ForecastShockDecompositionStatement>(symbol_list, options_list));
-  symbol_list.clear();
-  options_list.clear();
-}
-
-void
 ParsingDriver::realtime_shock_decomposition()
 {
   mod_file->addStatement(make_unique<RealtimeShockDecompositionStatement>(symbol_list, options_list));
