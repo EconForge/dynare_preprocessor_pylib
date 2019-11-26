@@ -175,7 +175,7 @@ Real::logical_and(const BaseTypePtr &btp) const
 BoolPtr
 Real::logical_or(const BaseTypePtr &btp) const
 {
-  if (auto btp2 = dynamic_pointer_cast<Real>(btp); !btp2)
+  if (auto btp2 = dynamic_pointer_cast<Real>(btp); btp2)
     return make_shared<Bool>(value || *btp2, env);
 
   if (auto btp2 = dynamic_pointer_cast<Bool>(btp); btp2)
