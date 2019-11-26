@@ -169,7 +169,7 @@ CONT \\\\{SPC}*
   return token::NAME;
 }
 
-<expr,eval>\"[^\"]+\" {
+<expr,eval>\"[^\"]*\" {
   yylval->build<string>(yytext + 1).pop_back();
   return token::QUOTED_STRING;
 }
