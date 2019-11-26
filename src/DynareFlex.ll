@@ -608,8 +608,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <DYNARE_STATEMENT>interactive {return token::INTERACTIVE;}
 <DYNARE_STATEMENT>screen_shocks {return token::SCREEN_SHOCKS;}
 <DYNARE_STATEMENT>steadystate {return token::STEADYSTATE;}
-<DYNARE_STATEMENT>unconditional {return token::UNCONDITIONAL;}
-<DYNARE_STATEMENT>conditional {return token::CONDITIONAL;}
 <DYNARE_STATEMENT>type {return token::TYPE;}
 <DYNARE_STATEMENT>qoq {return token::QOQ; }
 <DYNARE_STATEMENT>yoy {return token::YOY; }
