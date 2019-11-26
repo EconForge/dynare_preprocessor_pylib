@@ -3221,9 +3221,9 @@ o_posterior_nograph : POSTERIOR_NOGRAPH
           ;
 o_shock_decomposition_nograph : NOGRAPH { driver.option_num("no_graph.shock_decomposition", "true"); }
 o_init_state : INIT_STATE EQUAL INT_NUMBER { driver.option_num("shock_decomp.init_state", $3); };
-o_forecast_type : UNCONDITIONAL
+o_forecast_type : FORECAST EQUAL UNCONDITIONAL
                   { driver.option_str("shock_decomp.forecast_type", "unconditional"); }
-                | CONDITIONAL
+                | FORECAST EQUAL CONDITIONAL
                   { driver.option_str("shock_decomp.forecast_type", "conditional"); }
 o_shock_decomposition_presample : PRESAMPLE EQUAL INT_NUMBER { driver.option_num("shock_decomp.presample", $3); };
 o_shock_decomposition_forecast : FORECAST EQUAL INT_NUMBER { driver.option_num("shock_decomp.forecast", $3); };
