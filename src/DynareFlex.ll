@@ -611,6 +611,8 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <DYNARE_STATEMENT>qoq {return token::QOQ; }
 <DYNARE_STATEMENT>yoy {return token::YOY; }
 <DYNARE_STATEMENT>aoa {return token::AOA; }
+<DYNARE_STATEMENT>unconditional {return token::UNCONDITIONAL; }
+<DYNARE_STATEMENT>conditional {return token::CONDITIONAL; }
 <DYNARE_STATEMENT>fig_name {return token::FIG_NAME;}
 <DYNARE_STATEMENT>write_xls {return token::WRITE_XLS;}
 <DYNARE_STATEMENT>realtime {return token::REALTIME;}
