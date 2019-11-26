@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 
-dnl Copyright © 2009-2018 Dynare Team
+dnl Copyright © 2009-2019 Dynare Team
 dnl
 dnl This file is part of Dynare.
 dnl
@@ -77,19 +77,20 @@ CPPFLAGS="$CPPFLAGS_SAVED"
 # Don't use deprecated hash structures
 AC_DEFINE([BOOST_NO_HASH], [], [Don't use deprecated STL hash structures])
 
+# Check if internal documentation can be built
 AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen])
 AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
 
-AC_CHECK_PROG([PDFLATEX], [pdflatex], [pdflatex])
-AM_CONDITIONAL([HAVE_PDFLATEX], [test -n "$PDFLATEX"])
+# Check if user documentation can be built
+AC_ARG_ENABLE([doc], AS_HELP_STRING([--disable-doc], [disable compilation of documentation]), [], [enable_doc=yes])
+AM_CONDITIONAL([ENABLE_DOC], [test "$enable_doc" = yes])
 
-AC_CHECK_PROG([BIBTEX], [bibtex], [bibtex])
-AM_CONDITIONAL([HAVE_BIBTEX], [test -n "$BIBTEX"])
-
-if test -n "$PDFLATEX" -a -n "$BIBTEX"; then
-  AX_LATEX_CLASS([beamer], [ax_latex_have_beamer])
+if test "$enable_doc" = yes; then
+  AC_CHECK_PROG([PDFLATEX], [pdflatex], [pdflatex], [AC_MSG_ERROR([pdflatex cannot be found. If you want to skip the compilation of the documentation, pass the --disable-doc flag.])])
+  AC_CHECK_PROG([BIBTEX], [bibtex], [bibtex], [AC_MSG_ERROR([bibtex cannot be found. If you want to skip the compilation of the documentation, pass the --disable-doc flag.])])
+  AX_LATEX_CLASS([beamer], [ax_latex_have_beamer], [], [AC_MSG_ERROR([beamer cannot be found. If you want to skip the compilation of the documentation, pass the --disable-doc flag.])])
 fi
-AM_CONDITIONAL([HAVE_BEAMER], [test "$ax_latex_have_beamer" = yes])
+
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
@@ -100,16 +101,15 @@ AC_CONFIG_FILES([Makefile
 ])
 
 if test -n "$DOXYGEN"; then
-  BUILD_DYNARE_PREPROC_DOC="yes"
+  BUILD_INTERNAL_DOC="yes"
 else
-  BUILD_DYNARE_PREPROC_DOC="no (missing doxygen)"
+  BUILD_INTERNAL_DOC="no (missing doxygen)"
 fi
 
-
-if test -n "$PDFLATEX" -a "$ax_latex_have_beamer" = yes; then
-  BUILD_BEAMER_DOC="yes"
+if test "$enable_doc" = yes; then
+  BUILD_DOC="yes"
 else
-  BUILD_BEAMER_DOC="no (missing one of: pdflatex, beamer)"
+  BUILD_DOC="no"
 fi
 
 AC_MSG_NOTICE([
@@ -120,10 +120,10 @@ Binaries (with "make")
  Dynare preprocessor:                         yes
 
 PDF documentation (with "make pdf"):
- Preprocessor & Macroprocessor presentations: $BUILD_BEAMER_DOC
+ Preprocessor & Macroprocessor presentations: $BUILD_DOC
 
 HTML documentation (with "make html"):
- Dynare preprocessor developer doc:           $BUILD_DYNARE_PREPROC_DOC
+ Dynare preprocessor internal doc:            $BUILD_INTERNAL_DOC
 
 ])
 

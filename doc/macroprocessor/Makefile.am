@@ -1,7 +1,5 @@
-if HAVE_PDFLATEX
-if HAVE_BEAMER
+if ENABLE_DOC
 pdf-local: macroprocessor.pdf
-endif
 endif
 
 SRC = macroprocessor.tex new-design.pdf

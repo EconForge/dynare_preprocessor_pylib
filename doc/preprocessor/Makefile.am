@@ -1,7 +1,5 @@
-if HAVE_PDFLATEX
-if HAVE_BEAMER
+if ENABLE_DOC
 pdf-local: preprocessor.pdf
-endif
 endif
 
 SRC = preprocessor.tex expr.png expr-sharing.png matrices.png overview.png json-preprocessor.png
