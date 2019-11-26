@@ -41,13 +41,11 @@ Bool::is_equal(const BaseTypePtr &btp) const
 BoolPtr
 Bool::logical_and(const BaseTypePtr &btp) const
 {
-  auto btp2 = dynamic_pointer_cast<Bool>(btp);
-  if (btp2)
+  if (auto btp2 = dynamic_pointer_cast<Bool>(btp); btp2)
     return make_shared<Bool>(value && *btp2, env);
 
-  auto btp3 = dynamic_pointer_cast<Real>(btp);
-  if (btp3)
-    return make_shared<Bool>(value && *btp3, env);
+  if (auto btp2 = dynamic_pointer_cast<Real>(btp); btp2)
+    return make_shared<Bool>(value && *btp2, env);
 
   throw StackTrace("Type mismatch for operands of && operator");
 }
