@@ -839,6 +839,11 @@ VariableNode::prepareForDerivation()
     case SymbolType::epilogue:
       cerr << "VariableNode::prepareForDerivation: impossible case" << endl;
       exit(EXIT_FAILURE);
+    case SymbolType::excludedVariable:
+      cerr << "VariableNode::prepareForDerivation: impossible case: "
+           << "You are trying to derive a variable that has been excluded via include_eqs/exclude_eqs: "
+           << datatree.symbol_table.getName(symb_id) << endl;
+      exit(EXIT_FAILURE);
     }
 }
 
@@ -871,6 +876,7 @@ VariableNode::computeDerivative(int deriv_id)
     case SymbolType::externalFunction:
     case SymbolType::endogenousVAR:
     case SymbolType::epilogue:
+    case SymbolType::excludedVariable:
       cerr << "VariableNode::computeDerivative: Impossible case!" << endl;
       exit(EXIT_FAILURE);
     }
@@ -939,6 +945,9 @@ VariableNode::writeJsonAST(ostream &output) const
     case SymbolType::epilogue:
       output << "epilogue";
       break;
+    case SymbolType::excludedVariable:
+      cerr << "VariableNode::computeDerivative: Impossible case!" << endl;
+      exit(EXIT_FAILURE);
     }
   output << R"(", "lag" : )" << lag << "}";
 }
@@ -1220,6 +1229,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     case SymbolType::logTrend:
     case SymbolType::statementDeclaredVariable:
     case SymbolType::endogenousVAR:
+    case SymbolType::excludedVariable:
       cerr << "VariableNode::writeOutput: Impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -1439,6 +1449,7 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recur
     case SymbolType::externalFunction:
     case SymbolType::endogenousVAR:
     case SymbolType::epilogue:
+    case SymbolType::excludedVariable:
       cerr << "VariableNode::getChainRuleDerivative: Impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -1478,6 +1489,7 @@ VariableNode::computeXrefs(EquationInfo &ei) const
     case SymbolType::externalFunction:
     case SymbolType::endogenousVAR:
     case SymbolType::epilogue:
+    case SymbolType::excludedVariable:
       break;
     }
 }

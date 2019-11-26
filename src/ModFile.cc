@@ -381,7 +381,8 @@ ModFile::checkPass(bool nostrict, bool stochastic)
 }
 
 void
-ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const bool transform_unary_ops)
+ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const bool transform_unary_ops,
+                       const string &exclude_eqs, const string &include_eqs)
 {
   /* Save the original model (must be done before any model transformations by preprocessor)
      — except substituting out variables which we know are constant (they
@@ -390,6 +391,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
      — except diff operators with a lead which have been expanded by
        DataTree:AddDiff()
   */
+  dynamic_model.includeExcludeEquations(exclude_eqs, true);
+  dynamic_model.includeExcludeEquations(include_eqs, false);
   dynamic_model.simplifyEquations();
   dynamic_model.substituteAdl();
   dynamic_model.setLeadsLagsOrig();

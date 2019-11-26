@@ -32,6 +32,7 @@ main2(stringstream &in, const string &basename, bool debug, bool clear_all, bool
       WarningConsolidation &warnings, bool nostrict, bool stochastic, bool check_model_changes,
       bool minimal_workspace, bool compute_xrefs, FileOutputType output_mode,
       LanguageOutputType language, int params_derivs_order, bool transform_unary_ops,
+      const string &exclude_eqs, const string &include_eqs,
       JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple,
       const string &mexext, const filesystem::path &matlabroot,
       const filesystem::path &dynareroot, bool onlymodel)
@@ -51,7 +52,8 @@ main2(stringstream &in, const string &basename, bool debug, bool clear_all, bool
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
 
   // Perform transformations on the model (creation of auxiliary vars and equations)
-  mod_file->transformPass(nostrict, stochastic, compute_xrefs || json == JsonOutputPointType::transformpass, transform_unary_ops);
+  mod_file->transformPass(nostrict, stochastic, compute_xrefs || json == JsonOutputPointType::transformpass,
+                          transform_unary_ops, exclude_eqs, include_eqs);
   if (json == JsonOutputPointType::transformpass)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
 

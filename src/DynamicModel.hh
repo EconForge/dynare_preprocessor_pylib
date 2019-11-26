@@ -56,6 +56,9 @@ private:
   //! Stores the equation tags of equations declared as [static]
   vector<vector<pair<string, string>>> static_only_equations_equation_tags;
 
+  //! Stores mapping from equation tags to equation number
+  multimap<pair<string, string>, int> static_only_equation_tags_xref;
+
   using deriv_id_table_t = map<pair<int, int>, int>;
   //! Maps a pair (symbol_id, lag) to a deriv ID
   deriv_id_table_t deriv_id_table;
@@ -266,6 +269,32 @@ private:
       pointers into their equivalent in the new tree */
   void copyHelper(const DynamicModel &m);
 
+  // Internal helper functions for includeExcludeEquations()
+  /*! Handles parsing of argument passed to exclude_eqs/include_eqs*/
+  /*
+    Expects command line arguments of the form:
+      * filename.txt
+      * eq1
+      * ['eq 1', 'eq 2']
+      * [tagname='eq 1']
+      * [tagname=('eq 1', 'eq 2')]
+    If argument is a file, the file should be formatted as:
+        eq 1
+        eq 2
+    OR
+        tagname=
+        X
+        Y
+   */
+  void parseIncludeExcludeEquations(const string &inc_exc_eq_tags, set<pair<string, string>> & eq_tag_set, bool exclude_eqs);
+
+  // General function that removes leading/trailing whitespace from a string
+  inline void removeLeadingTrailingWhitespace(string & str)
+  {
+    str.erase(0, str.find_first_not_of("\t\n\v\f\r "));
+    str.erase(str.find_last_not_of("\t\n\v\f\r ") + 1);
+  }
+
 public:
   DynamicModel(SymbolTable &symbol_table_arg,
                NumericalConstants &num_constants_arg,
@@ -396,6 +425,9 @@ public:
 
   //! Set the max leads/lags of the original model
   void setLeadsLagsOrig();
+
+  //! Removes equations from the model according to name tags
+  void includeExcludeEquations(const string & eqs, bool exclude_eqs);
 
   //! Replaces model equations with derivatives of Lagrangian w.r.t. endogenous
   void computeRamseyPolicyFOCs(const StaticModel &static_model);

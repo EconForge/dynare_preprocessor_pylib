@@ -46,6 +46,7 @@ void main2(stringstream &in, const string &basename, bool debug, bool clear_all,
            WarningConsolidation &warnings_arg, bool nostrict, bool stochastic, bool check_model_changes,
            bool minimal_workspace, bool compute_xrefs, FileOutputType output_mode,
            LanguageOutputType lang, int params_derivs_order, bool transform_unary_ops,
+           const string &exclude_eqs, const string &include_eqs,
            JsonOutputPointType json, JsonFileOutputType json_output_mode, bool onlyjson, bool jsonderivsimple,
            const string &mexext, const filesystem::path &matlabroot,
            const filesystem::path &dynareroot, bool onlymodel);
@@ -60,7 +61,7 @@ usage()
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [noemptylinemacro] [notmpterms] [nolog] [warn_uninit]"
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test]"
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=matlab|julia]"
-       << " [params_derivs_order=0|1|2] [transform_unary_ops]"
+       << " [params_derivs_order=0|1|2] [transform_unary_ops] [exclude_eqs=<equation_tag_list_or_file>] [include_eqs=<equation_tag_list_or_file>]"
        << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] [nopathchange] [nopreprocessoroutput]"
        << " [mexext=<extension>] [matlabroot=<path>] [onlymodel]"
        << endl;
@@ -154,6 +155,7 @@ main(int argc, char **argv)
   bool minimal_workspace = false;
   bool compute_xrefs = false;
   bool transform_unary_ops = false;
+  string exclude_eqs, include_eqs;
   vector<pair<string, string>> defines;
   vector<filesystem::path> paths;
   FileOutputType output_mode{FileOutputType::none};
@@ -371,6 +373,24 @@ main(int argc, char **argv)
             }
           mexext = s.substr(7);
         }
+      else if (s.substr(0, 11) == "exclude_eqs")
+        {
+          if (s.length() <= 12 || s.at(11) != '=')
+            {
+              cerr << "Incorrect syntax for exclude_eqs option" << endl;
+              usage();
+            }
+          exclude_eqs = s.substr(12);
+        }
+      else if (s.substr(0, 11) == "include_eqs")
+        {
+          if (s.length() <= 12 || s.at(11) != '=')
+            {
+              cerr << "Incorrect syntax for include_eqs option" << endl;
+              usage();
+            }
+          include_eqs = s.substr(12);
+        }
       else if (s.substr(0, 10) == "matlabroot")
         {
           if (s.length() <= 11 || s.at(10) != '=')
@@ -418,11 +438,17 @@ main(int argc, char **argv)
   if (only_macro)
     return EXIT_SUCCESS;
 
+  if (!exclude_eqs.empty() && !include_eqs.empty())
+    {
+      cerr << "You may only pass one of `include_eqs` and `exclude_eqs`" << endl;
+      exit(EXIT_FAILURE);
+    }
+
   // Do the rest
   main2(macro_output, basename, debug, clear_all, clear_global,
         no_tmp_terms, no_log, no_warn, warn_uninit, console, nograph, nointeractive,
         parallel, config_file, warnings, nostrict, stochastic, check_model_changes, minimal_workspace,
-        compute_xrefs, output_mode, language, params_derivs_order, transform_unary_ops,
+        compute_xrefs, output_mode, language, params_derivs_order, transform_unary_ops, exclude_eqs, include_eqs,
         json, json_output_mode, onlyjson, jsonderivsimple,
         mexext, matlabroot, dynareroot, onlymodel);
 
