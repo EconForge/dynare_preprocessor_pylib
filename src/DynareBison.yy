@@ -1465,7 +1465,6 @@ stoch_simul_options_list : stoch_simul_options_list COMMA stoch_simul_options
 stoch_simul_primary_options : o_dr_algo
                             | o_solve_algo
                             | o_simul_algo
-                            | o_linear
                             | o_order
                             | o_replic
                             | o_drop
