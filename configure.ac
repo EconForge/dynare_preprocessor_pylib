@@ -86,8 +86,10 @@ AC_ARG_ENABLE([doc], AS_HELP_STRING([--disable-doc], [disable compilation of doc
 AM_CONDITIONAL([ENABLE_DOC], [test "$enable_doc" = yes])
 
 if test "$enable_doc" = yes; then
-  AC_CHECK_PROG([PDFLATEX], [pdflatex], [pdflatex], [AC_MSG_ERROR([pdflatex cannot be found. If you want to skip the compilation of the documentation, pass the --disable-doc flag.])])
-  AC_CHECK_PROG([BIBTEX], [bibtex], [bibtex], [AC_MSG_ERROR([bibtex cannot be found. If you want to skip the compilation of the documentation, pass the --disable-doc flag.])])
+  AC_CHECK_PROG([PDFLATEX], [pdflatex], [pdflatex], [no])
+  test "$PDFLATEX" = no && AC_MSG_ERROR([pdflatex cannot be found. If you want to skip the compilation of the documentation, pass the --disable-doc flag.])
+  AC_CHECK_PROG([BIBTEX], [bibtex], [bibtex], [no])
+  test "$BIBTEX" = no && AC_MSG_ERROR([bibtex cannot be found. If you want to skip the compilation of the documentation, pass the --disable-doc flag.])
   AX_LATEX_CLASS([beamer], [ax_latex_have_beamer], [], [AC_MSG_ERROR([beamer cannot be found. If you want to skip the compilation of the documentation, pass the --disable-doc flag.])])
 fi
 
