@@ -2833,6 +2833,7 @@ plot_shock_decomposition_option : o_use_shock_groups
                                 | o_psd_plot_end_date
                                 | o_psd_diff
                                 | o_psd_flip
+                                | o_psd_nograph
                                 ;
 
 initial_condition_decomposition_options_list : initial_condition_decomposition_option COMMA initial_condition_decomposition_options_list
@@ -3218,6 +3219,7 @@ o_posterior_nograph : POSTERIOR_NOGRAPH
           | POSTERIOR_GRAPH
             { driver.option_num("no_graph.posterior", "false"); }
           ;
+o_psd_nograph : NOGRAPH { driver.option_num("no_graph.plot_shock_decomposition", "true"); }
 o_shock_decomposition_nograph : NOGRAPH { driver.option_num("no_graph.shock_decomposition", "true"); }
 o_init_state : INIT_STATE EQUAL INT_NUMBER { driver.option_num("shock_decomp.init_state", $3); };
 o_forecast_type : FORECAST EQUAL UNCONDITIONAL
