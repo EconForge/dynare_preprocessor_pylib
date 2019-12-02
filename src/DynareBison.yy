@@ -84,7 +84,7 @@ class ParsingDriver;
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR EXPRESSION
 %token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME OSR_PARAMS_BOUNDS KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED
 %token <string> FLOAT_NUMBER DATES
-%token DEFAULT FIXED_POINT FLIP OPT_ALGO
+%token DEFAULT FIXED_POINT FLIP OPT_ALGO COMPILATION_SETUP COMPILER ADD_FLAGS SUBSTITUTE_FLAGS ADD_LIBS SUBSTITUTE_LIBS
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
 %token GAMMA_PDF GRAPH GRAPH_FORMAT CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
 %token HISTVAL HISTVAL_FILE HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID HYBRID ONE_SIDED_HP_FILTER
@@ -308,6 +308,7 @@ statement : parameters
           | init2shocks
           | det_cond_forecast
           | var_expectation_model
+          | compilation_setup
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -889,6 +890,24 @@ epilogue_equation_list : epilogue_equation_list epilogue_equation
 epilogue_equation : NAME { driver.add_epilogue_variable($1); } EQUAL expression ';'
                     { driver.add_epilogue_equal($1, $4); }
                   ;
+
+compilation_setup : COMPILATION_SETUP '(' compilation_setup_options_list ')' ';' { };
+
+compilation_setup_options_list : compilation_setup_options_list COMMA compilation_setup_option
+                               | compilation_setup_option
+                               ;
+
+compilation_setup_option : SUBSTITUTE_FLAGS EQUAL QUOTED_STRING
+                           { driver.compilation_setup_substitute_flags($3); }
+                         | ADD_FLAGS EQUAL QUOTED_STRING
+                           { driver.compilation_setup_add_flags($3); }
+                         | SUBSTITUTE_LIBS EQUAL QUOTED_STRING
+                           { driver.compilation_setup_substitute_libs($3); }
+                         | ADD_LIBS EQUAL QUOTED_STRING
+                           { driver.compilation_setup_add_libs($3); }
+                         | COMPILER EQUAL QUOTED_STRING
+                           { driver.compilation_setup_compiler($3); }
+                         ;
 
 model_options : BLOCK { driver.block(); }
               | o_cutoff

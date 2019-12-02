@@ -358,6 +358,16 @@ public:
   void cutoff(const string &value);
   //! mfs option of model block
   void mfs(const string &value);
+  //! the flags to substitute for the default compiler flags used by `use_dll`
+  void compilation_setup_substitute_flags(const string & flags);
+  //! the flags to add to the default compiler flags used by `use_dll`
+  void compilation_setup_add_flags(const string & flags);
+  //! the libs to substitute for the default compiler libs used by `use_dll`
+  void compilation_setup_substitute_libs(const string & libs);
+  //! the libs to add to the default compiler libs used by `use_dll`
+  void compilation_setup_add_libs(const string & libs);
+  //! the compiler to replace the default compiler used by `use_dll`
+  void compilation_setup_compiler(const string & path);
   //! balanced_growth_test_tol option of model block
   void balanced_growth_test_tol(const string &value);
   //! Sets the FILENAME for the initial value in initval
