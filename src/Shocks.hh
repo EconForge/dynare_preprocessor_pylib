@@ -167,4 +167,17 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
+class Init2shocksStatement : public Statement
+{
+private:
+  const vector<pair<int, int>> init2shocks;
+  const string name;
+  const SymbolTable &symbol_table;
+public:
+  Init2shocksStatement(vector<pair<int, int>> init2shocks_arg, string name_arg, const SymbolTable &symbol_table_arg);
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
+};
+
 #endif

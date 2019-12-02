@@ -235,6 +235,8 @@ private:
   //! Temporary storage for shock_groups
   vector<string> shock_group;
   vector<ShockGroupsStatement::Group> shock_groups;
+  //! Temporary storage for init2shocks
+  vector<pair<int, int>> init2shocks;
   //! Temporary storage for ramsey policy. Workaround for issue #1355
   vector<string> ramsey_policy_list;
   //! reset the values for temporary storage
@@ -860,6 +862,10 @@ public:
   void add_shock_group(string name);
   //! End shock groups declaration
   void end_shock_groups(const string &name);
+  //! Add a set of init2shocks
+  void add_init2shocks(const string &endo_name, const string &exo_name);
+  //! End init2shocks declaration
+  void end_init2shocks(const string &name);
   //! Add an element to the ramsey policy list
   void add_to_ramsey_policy_list(string name);
   void smoother2histval();

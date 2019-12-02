@@ -135,7 +135,7 @@ class ParsingDriver;
 %token ALPHA_RMSE ALPHA2_RMSE
 /* end of GSA analysis*/
 %token FREQ INITIAL_YEAR INITIAL_SUBPERIOD FINAL_YEAR FINAL_SUBPERIOD DATA VLIST
-%token VLISTLOG VLISTPER SPECTRAL_DENSITY
+%token VLISTLOG VLISTPER SPECTRAL_DENSITY INIT2SHOCKS
 %token RESTRICTION RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST
 %token DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR SPECIFICATION SIMS_ZHA
 %token <string> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX DIRICHLET DIAGONAL OPTIMAL
@@ -305,6 +305,7 @@ statement : parameters
           | gmm_estimation
           | smm_estimation
           | shock_groups
+          | init2shocks
           | det_cond_forecast
           | var_expectation_model
           ;
@@ -2834,6 +2835,7 @@ plot_shock_decomposition_option : o_use_shock_groups
                                 | o_psd_diff
                                 | o_psd_flip
                                 | o_psd_nograph
+                                | o_psd_init2shocks
                                 ;
 
 initial_condition_decomposition_options_list : initial_condition_decomposition_option COMMA initial_condition_decomposition_options_list
@@ -3089,6 +3091,20 @@ shock_name_list : shock_name_list COMMA symbol {driver.add_shock_group_element($
                 | symbol {driver.add_shock_group_element($1);}
                 ;
 
+init2shocks : INIT2SHOCKS ';' init2shocks_list END ';'
+              { driver.end_init2shocks("default"); }
+            | INIT2SHOCKS '(' NAME EQUAL symbol ')' ';' init2shocks_list END ';'
+              {driver.end_init2shocks($5);}
+            ;
+
+init2shocks_list : init2shocks_list init2shocks_element
+                 | init2shocks_element
+                 ;
+
+init2shocks_element : symbol symbol ';' { driver.add_init2shocks($1, $2); }
+                    | symbol COMMA symbol ';' { driver.add_init2shocks($1, $3); }
+                    ;
+
 o_dr_algo : DR_ALGO EQUAL INT_NUMBER {
                                        if ($3 == "0")
                                          driver.warning("dr_algo option is now deprecated, and may be removed in a future version of Dynare");
@@ -3232,6 +3248,9 @@ o_save_realtime : SAVE_REALTIME EQUAL vec_int { driver.option_vec_int("shock_dec
 o_fast_realtime : FAST_REALTIME EQUAL INT_NUMBER { driver.option_num("shock_decomp.fast_realtime", $3); };
 o_nodisplay : NODISPLAY { driver.option_num("nodisplay", "true"); };
 o_psd_nodisplay : NODISPLAY { driver.option_num("plot_shock_decomp.nodisplay", "true"); };
+o_psd_init2shocks : INIT2SHOCKS { driver.option_str("plot_shock_decomp.init2shocks", "default"); }
+                  | INIT2SHOCKS EQUAL symbol { driver.option_str("plot_shock_decomp.init2shocks", $3); }
+                  ;
 o_graph_format : GRAPH_FORMAT EQUAL allowed_graph_formats
                  { driver.process_graph_format_option(); }
                | GRAPH_FORMAT EQUAL '(' list_allowed_graph_formats ')'

@@ -202,6 +202,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <INITIAL>histval {BEGIN DYNARE_BLOCK; return token::HISTVAL;}
 <INITIAL>shocks {BEGIN DYNARE_BLOCK; return token::SHOCKS;}
 <INITIAL>shock_groups {BEGIN DYNARE_BLOCK; return token::SHOCK_GROUPS;}
+<INITIAL>init2shocks {BEGIN DYNARE_BLOCK; return token::INIT2SHOCKS;}
 <INITIAL>mshocks {BEGIN DYNARE_BLOCK; return token::MSHOCKS;}
 <INITIAL>estimated_params {BEGIN DYNARE_BLOCK; return token::ESTIMATED_PARAMS;}
 <INITIAL>epilogue {BEGIN DYNARE_BLOCK; return token::EPILOGUE;}
@@ -404,6 +405,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <DYNARE_STATEMENT>use_univariate_filters_if_singularity_is_detected {return token::USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED;}
 <DYNARE_STATEMENT>hybrid {return token::HYBRID;}
 <DYNARE_STATEMENT>default {return token::DEFAULT;}
+<DYNARE_STATEMENT>init2shocks {return token::INIT2SHOCKS;}
 
 <DYNARE_STATEMENT>number_of_particles {return token::NUMBER_OF_PARTICLES;}
 <DYNARE_STATEMENT>resampling {return token::RESAMPLING;}

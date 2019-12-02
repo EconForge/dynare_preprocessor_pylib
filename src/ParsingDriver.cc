@@ -3408,6 +3408,29 @@ ParsingDriver::end_shock_groups(const string &name)
 }
 
 void
+ParsingDriver::add_init2shocks(const string &endo_name, const string &exo_name)
+{
+  check_symbol_existence(endo_name);
+  check_symbol_existence(exo_name);
+  int symb_id_endo = mod_file->symbol_table.getID(endo_name);
+  if (mod_file->symbol_table.getType(symb_id_endo) != SymbolType::endogenous)
+    error("init2shocks: " + endo_name + " should be an endogenous variable");
+
+  int symb_id_exo = mod_file->symbol_table.getID(exo_name);
+  if (mod_file->symbol_table.getType(symb_id_exo) != SymbolType::exogenous)
+    error("init2shocks: " + exo_name + " should be an exogenous variable");
+
+  init2shocks.push_back(make_pair(symb_id_endo, symb_id_exo));
+}
+
+void
+ParsingDriver::end_init2shocks(const string &name)
+{
+  mod_file->addStatement(make_unique<Init2shocksStatement>(init2shocks, name, mod_file->symbol_table));
+  init2shocks.clear();
+}
+
+void
 ParsingDriver::var_expectation_model()
 {
   auto it = options_list.string_options.find("variable");

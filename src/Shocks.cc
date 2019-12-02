@@ -686,3 +686,46 @@ ShockGroupsStatement::writeJsonOutput(ostream &output) const
     }
   output << "]}";
 }
+
+Init2shocksStatement::Init2shocksStatement(vector<pair<int, int>> init2shocks_arg, string name_arg,
+                                           const SymbolTable &symbol_table_arg)
+  : init2shocks{move(init2shocks_arg)}, name{move(name_arg)}, symbol_table{symbol_table_arg}
+{
+}
+
+void
+Init2shocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  for (size_t i = 0; i < init2shocks.size(); i++)
+    for (size_t j = i + 1; j < init2shocks.size(); j++)
+      if (init2shocks.at(i).first == init2shocks.at(j).first)
+        {
+          cerr << "Init2shocks(" << name << "): enogenous variable '"
+               << symbol_table.getName(init2shocks.at(i).first)
+               << "' appears more than once in the init2shocks statement" << endl;
+          exit(EXIT_FAILURE);
+        }
+}
+
+void
+Init2shocksStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << "M_.init2shocks." << name << " = {" << endl;
+  for (auto & it : init2shocks)
+    output << "{'" << symbol_table.getName(it.first) << "', '" << symbol_table.getName(it.second) << "'};" << endl;
+  output << "};" << endl;
+}
+
+void
+Init2shocksStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "init2shocks", "name": ")" << name << R"(", "groups": [)";
+  for (auto & it : init2shocks)
+    {
+      if (it != *(init2shocks.begin()))
+        output << ",";
+      output << R"({"endogenous": ")" << symbol_table.getName(it.first) << R"(", )"
+             << R"( "exogenous": ")" << symbol_table.getName(it.second) << R"("})";
+    }
+  output << "]}";
+}
