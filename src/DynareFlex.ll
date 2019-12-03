@@ -977,8 +977,15 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
     }
 }
 
- /* For joint prior statement, match [symbol, symbol, ...]
-   If no match, begin native and push everything back on stack
+ /*
+    For joint prior statement, match [symbol, symbol, ...]
+    If no match, begin native and push everything back on stack
+
+    We produce SYMBOL_VEC in Flex (instead of matching `'[' symbol_list ']'`
+    in Bison because the pattern also matches potential native statements
+    (e.g. function returns from a MATLAB/Octave function). Hence, we need to
+    be able to back out of the statement if we realize it's a native statement
+    and move to the NATIVE context
  */
 <INITIAL>\[([[:space:]]*[a-z_][a-z0-9_]*[[:space:]]*,{1}[[:space:]]*)*([[:space:]]*[a-z_][a-z0-9_]*[[:space:]]*){1}\] {
   string yytextcpy = string(yytext);
