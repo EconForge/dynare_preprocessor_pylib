@@ -95,7 +95,7 @@ protected:
       For example, such a divergence appears when there is an expectation
       operator in a ramsey model, see
       tests/optimal_policy/nk_ramsey_expectation.mod */
-  deque<BinaryOpNode *> aux_equations;
+  vector<BinaryOpNode *> aux_equations;
 
   //! Stores derivatives
   /*! Index 0 is not used, index 1 contains first derivatives, ...
@@ -363,6 +363,9 @@ public:
   void set_cutoff_to_zero();
   //! Simplify model equations: if a variable is equal to a constant, replace that variable elsewhere in the model
   void simplifyEquations();
+  /*! Reorder auxiliary variables so that they appear in recursive order in
+      set_auxiliary_variables.m and dynamic_set_auxiliary_series.m */
+  void reorderAuxiliaryEquations();
   //! Find equations where variable is equal to a constant
   void findConstantEquations(map<VariableNode *, NumConstNode *> &subst_table) const;
   //! Helper for writing the Jacobian elements in MATLAB and C

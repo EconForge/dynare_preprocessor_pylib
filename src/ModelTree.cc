@@ -2425,3 +2425,47 @@ ModelTree::compileDll(const string &basename, const string &static_or_dynamic, c
       exit(EXIT_FAILURE);
     }
 }
+
+void
+ModelTree::reorderAuxiliaryEquations()
+{
+  using namespace boost;
+
+  // Create the mapping between auxiliary variables and auxiliary equations
+  int n = static_cast<int>(aux_equations.size());
+  map<int, int> auxEndoToEq;
+  for (int i = 0; i < n; i++)
+    {
+      auto varexpr = dynamic_cast<VariableNode *>(aux_equations[i]->arg1);
+      assert(varexpr && symbol_table.getType(varexpr->symb_id) == SymbolType::endogenous);
+      auxEndoToEq[varexpr->symb_id] = i;
+    }
+  assert(static_cast<int>(auxEndoToEq.size()) == n);
+
+  /* Construct the directed acyclic graph where auxiliary equations are
+     vertices and edges represent dependency relationships. */
+  using Graph = adjacency_list<vecS, vecS, directedS>;
+  Graph g(n);
+  for (int i = 0; i < n; i++)
+    {
+      set<int> endos;
+      aux_equations[i]->collectVariables(SymbolType::endogenous, endos);
+      for (int endo : endos)
+        {
+          auto it = auxEndoToEq.find(endo);
+          if (it != auxEndoToEq.end() && it->second != i)
+            add_edge(i, it->second, g);
+        }
+    }
+
+  // Topological sort of the graph
+  using Vertex = graph_traits<Graph>::vertex_descriptor;
+  vector<Vertex> ordered;
+  topological_sort(g, back_inserter(ordered));
+
+  // Reorder auxiliary equations accordingly
+  auto aux_equations_old = aux_equations;
+  auto index = get(vertex_index, g); // Maps vertex descriptors to their index
+  for (int i = 0; i < n; i++)
+    aux_equations[i] = aux_equations_old[index[ordered[i]]];
+}

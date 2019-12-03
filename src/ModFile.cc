@@ -652,6 +652,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
         exit(EXIT_FAILURE);
       }
 
+  dynamic_model.reorderAuxiliaryEquations();
+
   // Freeze the symbol table
   symbol_table.freeze();
 

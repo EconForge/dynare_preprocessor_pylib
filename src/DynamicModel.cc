@@ -6430,13 +6430,10 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
 
   // Add new equations
   for (auto & neweq : neweqs)
-    addEquation(neweq, -1);
-
-  // Order of auxiliary variable definition equations:
-  //  - expectation (entered before this function is called)
-  //  - lead variables from lower lead to higher lead
-  //  - lag variables from lower lag to higher lag
-  copy(neweqs.begin(), neweqs.end(), back_inserter(aux_equations));
+    {
+      addEquation(neweq, -1);
+      aux_equations.push_back(neweq);
+    }
 
   if (neweqs.size() > 0)
     {
@@ -6563,9 +6560,10 @@ DynamicModel::substituteUnaryOps(const vector<int> &eqnumbers)
 
   // Add new equations
   for (auto & neweq : neweqs)
-    addEquation(neweq, -1);
-
-  copy(neweqs.begin(), neweqs.end(), back_inserter(aux_equations));
+    {
+      addEquation(neweq, -1);
+      aux_equations.push_back(neweq);
+    }
 
   if (subst_table.size() > 0)
     cout << "Substitution of Unary Ops: added " << neweqs.size() << " auxiliary variables and equations." << endl;
@@ -6600,28 +6598,6 @@ DynamicModel::substituteDiff(vector<expr_t> &pac_growth)
     if (gv != nullptr)
       gv->findDiffNodes(diff_nodes);
 
-  /* Ensure that all diff operators appear once with their argument at current
-     period (i.e. index 0 in the equivalence class, see comment above
-     lag_equivalence_table_t in ExprNode.hh for details on the concepts).
-     If it is not the case, generate the corresponding expressions.
-     This is necessary to avoid lags of more than one in the auxiliary
-     equation, which would then be modified by subsequent transformations
-     (removing lags > 1), which in turn would break the recursive ordering
-     of auxiliary equations. See issue McModelTeam/McModelProject#95 */
-  for (auto &it : diff_nodes)
-    {
-      auto iterator_max_index = it.second.rbegin();
-      int max_index = iterator_max_index->first;
-      expr_t max_index_expr = iterator_max_index->second;
-
-      while (max_index < 0)
-        {
-          max_index++;
-          max_index_expr = max_index_expr->decreaseLeadsLags(-1);
-          it.second[max_index] = max_index_expr;
-        }
-    }
-
   // Substitute in model local variables
   vector<BinaryOpNode *> neweqs;
   for (auto & it : local_variables_table)
@@ -6642,9 +6618,10 @@ DynamicModel::substituteDiff(vector<expr_t> &pac_growth)
 
   // Add new equations
   for (auto & neweq : neweqs)
-    addEquation(neweq, -1);
-
-  copy(neweqs.begin(), neweqs.end(), back_inserter(aux_equations));
+    {
+      addEquation(neweq, -1);
+      aux_equations.push_back(neweq);
+    }
 
   if (diff_subst_table.size() > 0)
     cout << "Substitution of Diff operator: added " << neweqs.size() << " auxiliary variables and equations." << endl;
@@ -6672,10 +6649,10 @@ DynamicModel::substituteExpectation(bool partial_information_model)
 
   // Add new equations
   for (auto & neweq : neweqs)
-    addEquation(neweq, -1);
-
-  // Add the new set of equations at the *beginning* of aux_equations
-  copy(neweqs.rbegin(), neweqs.rend(), front_inserter(aux_equations));
+    {
+      addEquation(neweq, -1);
+      aux_equations.push_back(neweq);
+    }
 
   if (subst_table.size() > 0)
     {
