@@ -2777,7 +2777,22 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << "sqrt";
       break;
     case UnaryOpcode::cbrt:
-      output << "cbrt";
+      if (isMatlabOutput(output_type))
+        {
+          output << "nthroot(";
+          arg->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+          output << ", 3)";
+          return;
+        }
+      else if (isLatexOutput(output_type))
+        {
+          output << R"(\sqrt[3]{)";
+          arg->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+          output << "}";
+          return;
+        }
+      else
+        output << "cbrt";
       break;
     case UnaryOpcode::abs:
       output << "abs";

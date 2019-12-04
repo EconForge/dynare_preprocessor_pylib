@@ -1014,6 +1014,8 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_atan($3); }
           | SQRT '(' hand_side ')'
             { $$ = driver.add_sqrt($3); }
+          | CBRT '(' hand_side ')'
+             { $$ = driver.add_cbrt($3); }
           | ABS '(' hand_side ')'
             { $$ = driver.add_abs($3); }
           | SIGN '(' hand_side ')'
