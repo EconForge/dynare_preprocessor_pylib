@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2018 Dynare Team
+ * Copyright © 2010-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -88,6 +88,10 @@ public:
 
   //! Checks that no variable is declared twice
   void checkPass(WarningConsolidation &warnings) const;
+
+  //! Deal with trend variables in the epilogue block
+  void detrend(const map<int, expr_t> & trend_symbols_map,
+               const nonstationary_symbols_map_t & nonstationary_symbols_map);
 
   //! Write the steady state file
   void writeEpilogueFile(const string &basename) const;

@@ -486,6 +486,16 @@ public:
   //! Transforms the model by removing trends specified by the user
   void detrendEquations();
 
+  inline const nonstationary_symbols_map_t & getNonstationarySymbolsMap() const
+  {
+    return nonstationary_symbols_map;
+  }
+
+  inline const map<int, expr_t> & getTrendSymbolsMap() const
+  {
+    return trend_symbols_map;
+  }
+
   //! Substitutes adl operator
   void substituteAdl();
 

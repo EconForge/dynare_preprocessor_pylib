@@ -336,6 +336,31 @@ Epilogue::checkPass(WarningConsolidation &warnings) const
 }
 
 void
+Epilogue::detrend(const map<int, expr_t> & trend_symbols_map,
+                  const nonstationary_symbols_map_t & nonstationary_symbols_map)
+{
+  for (auto it = nonstationary_symbols_map.crbegin();
+       it != nonstationary_symbols_map.crend(); it++)
+    for (auto & [symb_id, expr] : def_table)
+      {
+        expr = expr->detrend(it->first, it->second.first, it->second.second);
+        assert(expr != nullptr);
+      }
+
+  for (auto & [symb_id, expr] : def_table)
+    {
+      expr = expr->removeTrendLeadLag(trend_symbols_map);
+      assert(expr != nullptr);
+    }
+
+  for (auto & [symb_id, expr] : def_table)
+    {
+      expr = expr->replaceTrendVar();
+      assert(expr != nullptr);
+    }
+}
+
+void
 Epilogue::writeEpilogueFile(const string &basename) const
 {
   if (def_table.size() == 0)

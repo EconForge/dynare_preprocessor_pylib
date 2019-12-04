@@ -514,6 +514,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       dynamic_model.detrendEquations();
       trend_dynamic_model = dynamic_model;
       dynamic_model.removeTrendVariableFromEquations();
+      const auto & trend_symbols = dynamic_model.getTrendSymbolsMap();
+      const auto & nonstationary_symbols = dynamic_model.getNonstationarySymbolsMap();
+      epilogue.detrend(trend_symbols, nonstationary_symbols);
     }
 
   mod_file_struct.orig_eq_nbr = dynamic_model.equation_number();
