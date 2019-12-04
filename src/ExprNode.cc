@@ -2723,7 +2723,10 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << "-";
       break;
     case UnaryOpcode::exp:
-      output << "exp";
+      if (isLatexOutput(output_type))
+        output << R"(\exp)";
+      else
+        output << "exp";
       break;
     case UnaryOpcode::log:
       if (isLatexOutput(output_type))
@@ -2738,13 +2741,22 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         output << "log10";
       break;
     case UnaryOpcode::cos:
-      output << "cos";
+      if (isLatexOutput(output_type))
+        output << R"(\cos)";
+      else
+        output << "cos";
       break;
     case UnaryOpcode::sin:
-      output << "sin";
+      if (isLatexOutput(output_type))
+        output << R"(\sin)";
+      else
+        output << "sin";
       break;
     case UnaryOpcode::tan:
-      output << "tan";
+      if (isLatexOutput(output_type))
+        output << R"(\tan)";
+      else
+        output << "tan";
       break;
     case UnaryOpcode::acos:
       output << "acos";
@@ -2774,6 +2786,13 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << "atanh";
       break;
     case UnaryOpcode::sqrt:
+      if (isLatexOutput(output_type))
+        {
+          output << R"(\sqrt{)";
+          arg->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+          output << "}";
+          return;
+        }
       output << "sqrt";
       break;
     case UnaryOpcode::cbrt:
