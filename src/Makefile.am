@@ -68,8 +68,11 @@ dynare_m_CPPFLAGS = $(BOOST_CPPFLAGS) -I.
 dynare_m_LDFLAGS = $(AM_LDFLAGS) $(BOOST_LDFLAGS)
 dynare_m_LDADD = macro/libmacro.a -lstdc++fs
 
+# -Ca flag comes from hitting a hard-coded size limit.
+# Partial explanation: https://www.owlfolio.org/possibly-useful/flex-input-scanner-rules-are-too-complicated
+# There is a Debian bug report about this: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=642040
 DynareFlex.cc: DynareFlex.ll
-	$(LEX) -o DynareFlex.cc DynareFlex.ll
+	$(LEX) -Ca -o DynareFlex.cc DynareFlex.ll
 
 FlexLexer.h:
 	cp $(LEXINC)/FlexLexer.h . || test -f ./FlexLexer.h

@@ -102,6 +102,11 @@ ModelTree::ModelTree(SymbolTable &symbol_table_arg,
 
 ModelTree::ModelTree(const ModelTree &m) :
   DataTree {m},
+  user_set_add_flags {m.user_set_add_flags},
+  user_set_subst_flags {m.user_set_subst_flags},
+  user_set_add_libs {m.user_set_add_libs},
+  user_set_subst_libs {m.user_set_subst_libs},
+  user_set_compiler {m.user_set_compiler},
   equations_lineno {m.equations_lineno},
   equation_tags {m.equation_tags},
   equation_tags_xref {m.equation_tags_xref},
@@ -156,6 +161,12 @@ ModelTree::operator=(const ModelTree &m)
   block_lag_lead = m.block_lag_lead;
   cutoff = m.cutoff;
   mfs = m.mfs;
+
+  user_set_add_flags = m.user_set_add_flags;
+  user_set_subst_flags = m.user_set_subst_flags;
+  user_set_add_libs = m.user_set_add_libs;
+  user_set_subst_libs = m.user_set_subst_libs;
+  user_set_compiler = m.user_set_compiler;
 
   copyHelper(m);
 
@@ -2317,7 +2328,7 @@ ModelTree::matlab_arch(const string &mexext)
 }
 
 void
-ModelTree::compileDll(const string &basename, const string &static_or_dynamic, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot)
+ModelTree::compileDll(const string &basename, const string &static_or_dynamic, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
 {
   const string opt_flags = "-O3 -g0 --param ira-max-conflict-table-size=1 -fno-forward-propagate -fno-gcse -fno-dce -fno-dse -fno-tree-fre -fno-tree-pre -fno-tree-cselim -fno-tree-dse -fno-tree-dce -fno-tree-pta -fno-gcse-after-reload";
 
@@ -2411,7 +2422,35 @@ ModelTree::compileDll(const string &basename, const string &static_or_dynamic, c
      quotes to be correctly handled. See "cmd /?" for more details. */
   cmd << '"';
 #endif
-  cmd << compiler << " " << opt_flags << " " << flags.str() << " " << main_src << " " << mex_src << " -o " << binary << " " << libs;
+
+  if (user_set_compiler.empty())
+    cmd << compiler << " ";
+  else
+    if (!filesystem::exists(user_set_compiler))
+      {
+        cerr << "Error: The specified compiler '" << user_set_compiler << "' cannot be found on your system" << endl;
+        exit(EXIT_FAILURE);
+      }
+    else
+      cmd << user_set_compiler << " ";
+
+  if (user_set_subst_flags.empty())
+    cmd << opt_flags << " " << flags.str() << " ";
+  else
+    cmd << user_set_subst_flags << " ";
+
+  if (!user_set_add_flags.empty())
+    cmd << user_set_add_flags << " ";
+
+  cmd << main_src << " " << mex_src << " -o " << binary << " ";
+
+  if (user_set_subst_libs.empty())
+    cmd << libs;
+  else
+    cmd << user_set_subst_libs;
+
+  if (!user_set_add_libs.empty())
+    cmd << " " << user_set_add_libs;
 
 #ifdef _WIN32
   cmd << '"';

@@ -64,6 +64,13 @@ class ModelTree : public DataTree
 {
   friend class DynamicModel;
   friend class StaticModel;
+public:
+  // The following 5 variables are set via the `compiler` command
+  string user_set_add_flags;
+  string user_set_subst_flags;
+  string user_set_add_libs;
+  string user_set_subst_libs;
+  string user_set_compiler;
 protected:
   /*
    * ************** BEGIN **************
@@ -324,7 +331,7 @@ private:
   //! Returns the name of the MATLAB architecture given the extension used for MEX files
   static string matlab_arch(const string &mexext);
   //! Compiles the MEX file
-  static void compileDll(const string &basename, const string &static_or_dynamic, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot);
+  void compileDll(const string &basename, const string &static_or_dynamic, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
 
 public:
   ModelTree(SymbolTable &symbol_table_arg,

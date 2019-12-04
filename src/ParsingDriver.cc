@@ -794,6 +794,36 @@ ParsingDriver::mfs(const string &value)
 }
 
 void
+ParsingDriver::compilation_setup_substitute_flags(const string & flags)
+{
+  mod_file->dynamic_model.user_set_subst_flags = flags;
+}
+
+void
+ParsingDriver::compilation_setup_add_flags(const string & flags)
+{
+  mod_file->dynamic_model.user_set_add_flags = flags;
+}
+
+void
+ParsingDriver::compilation_setup_substitute_libs(const string & libs)
+{
+  mod_file->dynamic_model.user_set_subst_libs = libs;
+}
+
+void
+ParsingDriver::compilation_setup_add_libs(const string & libs)
+{
+  mod_file->dynamic_model.user_set_add_libs = libs;
+}
+
+void
+ParsingDriver::compilation_setup_compiler(const string & compiler)
+{
+  mod_file->dynamic_model.user_set_compiler = compiler;
+}
+
+void
 ParsingDriver::balanced_growth_test_tol(const string &value)
 {
   mod_file->dynamic_model.balanced_growth_test_tol = stod(value);

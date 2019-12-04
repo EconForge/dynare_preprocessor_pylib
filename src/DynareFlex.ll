@@ -186,6 +186,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <INITIAL>perfect_foresight_setup {BEGIN DYNARE_STATEMENT; return token::PERFECT_FORESIGHT_SETUP;}
 <INITIAL>perfect_foresight_solver {BEGIN DYNARE_STATEMENT; return token::PERFECT_FORESIGHT_SOLVER;}
 <INITIAL>det_cond_forecast {BEGIN DYNARE_STATEMENT; return token::DET_COND_FORECAST;}
+<INITIAL>compilation_setup {BEGIN DYNARE_STATEMENT; return token::COMPILATION_SETUP;}
 
 <DYNARE_STATEMENT>; {
   if (!sigma_e)
@@ -563,6 +564,11 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <DYNARE_STATEMENT>tolf {return token::TOLF;}
 <DYNARE_STATEMENT>tolx {return token::TOLX;}
 <DYNARE_STATEMENT>opt_algo {return token::OPT_ALGO;}
+<DYNARE_STATEMENT>add_flags {return token::ADD_FLAGS;}
+<DYNARE_STATEMENT>substitute_flags {return token::SUBSTITUTE_FLAGS;}
+<DYNARE_STATEMENT>add_libs {return token::ADD_LIBS;}
+<DYNARE_STATEMENT>substitute_libs {return token::SUBSTITUTE_LIBS;}
+<DYNARE_STATEMENT>compiler {return token::COMPILER;}
 <DYNARE_STATEMENT>instruments {return token::INSTRUMENTS;}
 <DYNARE_STATEMENT>hessian  {
   yylval->build<string>(yytext);
