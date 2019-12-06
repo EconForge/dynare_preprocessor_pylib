@@ -847,10 +847,18 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
          it before deleting it (the renaming must occur in the same directory,
          otherwise it may file if the destination is not on the same
          filesystem). */
-      if (filesystem::exists("+" + basename))
+      if (filesystem::path plusfolder{"+" + basename}; filesystem::exists(plusfolder))
 	{
+          if (filesystem::exists(plusfolder / "+objective"))
+            {
+              // Do it recursively for the +objective folder, created by ramsey_policy
+              auto tmp2 = unique_path();
+              filesystem::rename(plusfolder / "+objective", tmp2);
+              filesystem::remove_all(tmp2);
+            }
+
 	  auto tmp = unique_path();
-	  filesystem::rename("+" + basename, tmp);
+	  filesystem::rename(plusfolder, tmp);
 	  filesystem::remove_all(tmp);
 	}
       filesystem::remove_all(basename + "/model/src");
