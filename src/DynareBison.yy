@@ -2869,9 +2869,9 @@ initial_condition_decomposition_option : o_icd_type
                                        | o_icd_write_xls
                                        | o_icd_plot_init_date
                                        | o_icd_plot_end_date
-                                       | o_nodisplay
-                                       | o_graph_format
-                                       | o_psd_fig_name
+                                       | o_icd_nodisplay
+                                       | o_icd_graph_format
+                                       | o_icd_fig_name
                                        | o_icd_diff
                                        | o_icd_flip
                                        ;
@@ -3268,6 +3268,7 @@ o_shock_decomposition_forecast : FORECAST EQUAL INT_NUMBER { driver.option_num("
 o_save_realtime : SAVE_REALTIME EQUAL vec_int { driver.option_vec_int("shock_decomp.save_realtime", $3); };
 o_fast_realtime : FAST_REALTIME EQUAL INT_NUMBER { driver.option_num("shock_decomp.fast_realtime", $3); };
 o_nodisplay : NODISPLAY { driver.option_num("nodisplay", "true"); };
+o_icd_nodisplay : NODISPLAY { driver.option_num("initial_condition_decomp.nodisplay", "true"); };
 o_psd_nodisplay : NODISPLAY { driver.option_num("plot_shock_decomp.nodisplay", "true"); };
 o_psd_init2shocks : INIT2SHOCKS { driver.option_str("plot_shock_decomp.init2shocks", "default"); }
                   | INIT2SHOCKS EQUAL symbol { driver.option_str("plot_shock_decomp.init2shocks", $3); }
@@ -3277,6 +3278,11 @@ o_graph_format : GRAPH_FORMAT EQUAL allowed_graph_formats
                | GRAPH_FORMAT EQUAL '(' list_allowed_graph_formats ')'
                  { driver.process_graph_format_option(); }
                ;
+o_icd_graph_format : GRAPH_FORMAT EQUAL allowed_graph_formats
+                     { driver.initial_condition_decomp_process_graph_format_option(); }
+                   | GRAPH_FORMAT EQUAL '(' list_allowed_graph_formats ')'
+                     { driver.initial_condition_decomp_process_graph_format_option(); }
+                   ;
 o_psd_graph_format : GRAPH_FORMAT EQUAL allowed_graph_formats
                      { driver.plot_shock_decomp_process_graph_format_option(); }
                    | GRAPH_FORMAT EQUAL '(' list_allowed_graph_formats ')'
@@ -3396,6 +3402,7 @@ o_psd_interactive : INTERACTIVE { driver.option_num("plot_shock_decomp.interacti
 o_psd_screen_shocks : SCREEN_SHOCKS { driver.option_num("plot_shock_decomp.screen_shocks", "true"); };
 o_psd_steadystate : STEADYSTATE { driver.option_num("plot_shock_decomp.steadystate", "true"); };
 o_icd_steadystate : STEADYSTATE { driver.option_num("initial_condition_decomp.steadystate", "true"); };
+o_icd_fig_name : FIG_NAME EQUAL filename { driver.option_str("initial_condition_decomp.fig_name", $3); };
 o_psd_fig_name : FIG_NAME EQUAL filename { driver.option_str("plot_shock_decomp.fig_name", $3); };
 o_psd_type : TYPE EQUAL QOQ
              { driver.option_str("plot_shock_decomp.type", "qoq"); }

@@ -3237,6 +3237,13 @@ ParsingDriver::process_graph_format_option()
 }
 
 void
+ParsingDriver::initial_condition_decomp_process_graph_format_option()
+{
+  options_list.symbol_list_options["initial_condition_decomp.graph_format"] = graph_formats;
+  graph_formats.clear();
+}
+
+void
 ParsingDriver::plot_shock_decomp_process_graph_format_option()
 {
   options_list.symbol_list_options["plot_shock_decomp.graph_format"] = graph_formats;
