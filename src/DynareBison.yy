@@ -2874,6 +2874,7 @@ initial_condition_decomposition_option : o_icd_type
                                        | o_icd_fig_name
                                        | o_icd_diff
                                        | o_icd_flip
+                                       | o_icd_colormap
                                        ;
 
 homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END ';'
@@ -3742,6 +3743,7 @@ o_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("plot_shock_decomp.use
                    | USE_SHOCK_GROUPS EQUAL symbol { driver.option_str("plot_shock_decomp.use_shock_groups", $3); }
                    ;
 o_colormap : COLORMAP EQUAL symbol { driver.option_num("plot_shock_decomp.colormap",$3); };
+o_icd_colormap : COLORMAP EQUAL symbol { driver.option_num("initial_condition_decomp.colormap",$3); };
 
 o_gmm_order : ORDER EQUAL INT_NUMBER { driver.option_num("gmm.order", $3); };
 o_smm_order : ORDER EQUAL INT_NUMBER { driver.option_num("smm.order", $3); };
