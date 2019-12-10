@@ -773,87 +773,86 @@ UnaryOp::eval()
 {
   try
     {
-      auto argbt = arg->eval();
       switch (op_code)
         {
         case codes::UnaryOp::cast_bool:
-          return argbt->cast_bool();
+          return arg->eval()->cast_bool();
         case codes::UnaryOp::cast_real:
-          return argbt->cast_real();
+          return arg->eval()->cast_real();
         case codes::UnaryOp::cast_string:
-          return argbt->cast_string();
+          return arg->eval()->cast_string();
         case codes::UnaryOp::cast_tuple:
-          return argbt->cast_tuple();
+          return arg->eval()->cast_tuple();
         case codes::UnaryOp::cast_array:
-          return argbt->cast_array();
+          return arg->eval()->cast_array();
         case codes::UnaryOp::logical_not:
-          return argbt->logical_not();
+          return arg->eval()->logical_not();
         case codes::UnaryOp::unary_minus:
-          return argbt->unary_minus();
+          return arg->eval()->unary_minus();
         case codes::UnaryOp::unary_plus:
-          return argbt->unary_plus();
+          return arg->eval()->unary_plus();
         case codes::UnaryOp::length:
-          return argbt->length();
+          return arg->eval()->length();
         case codes::UnaryOp::isempty:
-          return argbt->isempty();
+          return arg->eval()->isempty();
         case codes::UnaryOp::isboolean:
-          return argbt->isboolean();
+          return arg->eval()->isboolean();
         case codes::UnaryOp::isreal:
-          return argbt->isreal();
+          return arg->eval()->isreal();
         case codes::UnaryOp::isstring:
-          return argbt->isstring();
+          return arg->eval()->isstring();
         case codes::UnaryOp::istuple:
-          return argbt->istuple();
+          return arg->eval()->istuple();
         case codes::UnaryOp::isarray:
-          return argbt->isarray();
+          return arg->eval()->isarray();
         case codes::UnaryOp::exp:
-          return argbt->exp();
+          return arg->eval()->exp();
         case codes::UnaryOp::ln:
-          return argbt->ln();
+          return arg->eval()->ln();
         case codes::UnaryOp::log10:
-          return argbt->log10();
+          return arg->eval()->log10();
         case codes::UnaryOp::sin:
-          return argbt->sin();
+          return arg->eval()->sin();
         case codes::UnaryOp::cos:
-          return argbt->cos();
+          return arg->eval()->cos();
         case codes::UnaryOp::tan:
-          return argbt->tan();
+          return arg->eval()->tan();
         case codes::UnaryOp::asin:
-          return argbt->asin();
+          return arg->eval()->asin();
         case codes::UnaryOp::acos:
-          return argbt->acos();
+          return arg->eval()->acos();
         case codes::UnaryOp::atan:
-          return argbt->atan();
+          return arg->eval()->atan();
         case codes::UnaryOp::sqrt:
-          return argbt->sqrt();
+          return arg->eval()->sqrt();
         case codes::UnaryOp::cbrt:
-          return argbt->cbrt();
+          return arg->eval()->cbrt();
         case codes::UnaryOp::sign:
-          return argbt->sign();
+          return arg->eval()->sign();
         case codes::UnaryOp::floor:
-          return argbt->floor();
+          return arg->eval()->floor();
         case codes::UnaryOp::ceil:
-          return argbt->ceil();
+          return arg->eval()->ceil();
         case codes::UnaryOp::trunc:
-          return argbt->trunc();
+          return arg->eval()->trunc();
         case codes::UnaryOp::sum:
-          return argbt->sum();
+          return arg->eval()->sum();
         case codes::UnaryOp::erf:
-          return argbt->erf();
+          return arg->eval()->erf();
         case codes::UnaryOp::erfc:
-          return argbt->erfc();
+          return arg->eval()->erfc();
         case codes::UnaryOp::gamma:
-          return argbt->gamma();
+          return arg->eval()->gamma();
         case codes::UnaryOp::lgamma:
-          return argbt->lgamma();
+          return arg->eval()->lgamma();
         case codes::UnaryOp::round:
-          return argbt->round();
+          return arg->eval()->round();
         case codes::UnaryOp::normpdf:
-          return argbt->normpdf();
+          return arg->eval()->normpdf();
         case codes::UnaryOp::normcdf:
-          return argbt->normcdf();
+          return arg->eval()->normcdf();
         case codes::UnaryOp::defined:
-          return argbt->defined();
+          return arg->eval()->defined();
         }
     }
   catch (StackTrace &ex)
@@ -874,47 +873,46 @@ BinaryOp::eval()
 {
   try
     {
-      auto arg1bt = arg1->eval();
       switch(op_code)
         {
         case codes::BinaryOp::plus:
-          return arg1bt->plus(arg2->eval());
+          return arg1->eval()->plus(arg2->eval());
         case codes::BinaryOp::minus:
-          return arg1bt->minus(arg2->eval());
+          return arg1->eval()->minus(arg2->eval());
         case codes::BinaryOp::times:
-          return arg1bt->times(arg2->eval());
+          return arg1->eval()->times(arg2->eval());
         case codes::BinaryOp::divide:
-          return arg1bt->divide(arg2->eval());
+          return arg1->eval()->divide(arg2->eval());
         case codes::BinaryOp::power:
-          return arg1bt->power( arg2->eval());
+          return arg1->eval()->power( arg2->eval());
         case codes::BinaryOp::equal_equal:
-          return arg1bt->is_equal(arg2->eval());
+          return arg1->eval()->is_equal(arg2->eval());
         case codes::BinaryOp::not_equal:
-          return arg1bt->is_different(arg2->eval());
+          return arg1->eval()->is_different(arg2->eval());
         case codes::BinaryOp::less:
-          return arg1bt->is_less(arg2->eval());
+          return arg1->eval()->is_less(arg2->eval());
         case codes::BinaryOp::greater:
-          return arg1bt->is_greater(arg2->eval());
+          return arg1->eval()->is_greater(arg2->eval());
         case codes::BinaryOp::less_equal:
-          return arg1bt->is_less_equal(arg2->eval());
+          return arg1->eval()->is_less_equal(arg2->eval());
         case codes::BinaryOp::greater_equal:
-          return arg1bt->is_greater_equal(arg2->eval());
+          return arg1->eval()->is_greater_equal(arg2->eval());
         case codes::BinaryOp::logical_and:
-          return arg1bt->logical_and(arg2);
+          return arg1->eval()->logical_and(arg2);
         case codes::BinaryOp::logical_or:
-          return arg1bt->logical_or(arg2);
+          return arg1->eval()->logical_or(arg2);
         case codes::BinaryOp::in:
-          return arg2->eval()->contains(arg1bt);
+          return arg2->eval()->contains(arg1->eval());
         case codes::BinaryOp::set_union:
-          return arg1bt->set_union(arg2->eval());
+          return arg1->eval()->set_union(arg2->eval());
         case codes::BinaryOp::set_intersection:
-          return arg1bt->set_intersection(arg2->eval());
+          return arg1->eval()->set_intersection(arg2->eval());
         case codes::BinaryOp::max:
-          return arg1bt->max(arg2->eval());
+          return arg1->eval()->max(arg2->eval());
         case codes::BinaryOp::min:
-          return arg1bt->min(arg2->eval());
+          return arg1->eval()->min(arg2->eval());
         case codes::BinaryOp::mod:
-          return arg1bt->mod(arg2->eval());
+          return arg1->eval()->mod(arg2->eval());
         }
     }
   catch (StackTrace &ex)
@@ -935,15 +933,12 @@ TrinaryOp::eval()
 {
   try
     {
-      auto arg1bt = arg1->eval();
-      auto arg2bt = arg2->eval();
-      auto arg3bt = arg3->eval();
       switch(op_code)
         {
         case codes::TrinaryOp::normpdf:
-          return arg1bt->normpdf(arg2bt, arg3bt);
+          return arg1->eval()->normpdf(arg2->eval(), arg3->eval());
         case codes::TrinaryOp::normcdf:
-          return arg1bt->normcdf(arg2bt, arg3bt);
+          return arg1->eval()->normcdf(arg2->eval(), arg3->eval());
         }
     }
   catch (StackTrace &ex)
