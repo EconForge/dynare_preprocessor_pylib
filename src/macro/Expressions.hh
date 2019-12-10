@@ -145,8 +145,8 @@ namespace macro
     virtual BoolPtr is_greater_equal(const BaseTypePtr &btp) const { throw StackTrace("Operator >= does not exist for this type"); }
     virtual BoolPtr is_equal(const BaseTypePtr &btp) const = 0;
     virtual BoolPtr is_different(const BaseTypePtr &btp) const final;
-    virtual BoolPtr logical_and(const BaseTypePtr &btp) const { throw StackTrace("Operator && does not exist for this type"); }
-    virtual BoolPtr logical_or(const BaseTypePtr &btp) const { throw StackTrace("Operator || does not exist for this type"); }
+    virtual BoolPtr logical_and(const ExpressionPtr &ep) const { throw StackTrace("Operator && does not exist for this type"); }
+    virtual BoolPtr logical_or(const ExpressionPtr &ep) const { throw StackTrace("Operator || does not exist for this type"); }
     virtual BoolPtr logical_not() const { throw StackTrace("Operator ! does not exist for this type"); }
     virtual ArrayPtr set_union(const BaseTypePtr &btp) const { throw StackTrace("Operator | does not exist for this type"); }
     virtual ArrayPtr set_intersection(const BaseTypePtr &btp) const { throw StackTrace("Operator & does not exist for this type"); }
@@ -216,8 +216,8 @@ namespace macro
   public:
     operator bool() const { return value; }
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
-    BoolPtr logical_and(const BaseTypePtr &btp) const override;
-    BoolPtr logical_or(const BaseTypePtr &btp) const override;
+    BoolPtr logical_and(const ExpressionPtr &ep) const override;
+    BoolPtr logical_or(const ExpressionPtr &ep) const override;
     BoolPtr logical_not() const override;
     inline BoolPtr isboolean() const noexcept override { return make_shared<Bool>(true, env, location); }
     inline BoolPtr cast_bool() const override { return make_shared<Bool>(value, env); }
@@ -278,8 +278,8 @@ namespace macro
       double intpart;
       return make_shared<Bool>(modf(value, &intpart) == 0.0, env, location);
     }
-    BoolPtr logical_and(const BaseTypePtr &btp) const override;
-    BoolPtr logical_or(const BaseTypePtr &btp) const override;
+    BoolPtr logical_and(const ExpressionPtr &ep) const override;
+    BoolPtr logical_or(const ExpressionPtr &ep) const override;
     BoolPtr logical_not() const override;
     RealPtr max(const BaseTypePtr &btp) const override;
     RealPtr min(const BaseTypePtr &btp) const override;
