@@ -273,6 +273,11 @@ DataTree::AddDivide(expr_t iArg1, expr_t iArg2) noexcept(false)
   if (iArg1 == iArg2)
     return One;
 
+  // Simplify x/(1/y) in x*y
+  if (auto barg2 = dynamic_cast<BinaryOpNode *>(iArg2);
+      barg2 && barg2->op_code == BinaryOpcode::divide && barg2->arg1 == One)
+    return AddTimes(iArg1, barg2->arg2);
+
   return AddBinaryOp(iArg1, BinaryOpcode::divide, iArg2);
 }
 
