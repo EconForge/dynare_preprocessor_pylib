@@ -764,8 +764,8 @@ RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
   /* Fill in option_order of mod_file_struct
      Since ramsey model needs one further order of derivation (for example, for 1st order
      approximation, it needs 2nd derivatives), we add 1 to the order declared by user */
-  auto it = options_list.num_options.find("order");
-  if (it != options_list.num_options.end())
+  if (auto it = options_list.num_options.find("order");
+      it != options_list.num_options.end())
     {
       int order = stoi(it->second);
       if (order > 2)
@@ -777,13 +777,13 @@ RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
     }
 
   // Fill in mod_file_struct.partial_information
-  it = options_list.num_options.find("partial_information");
-  if (it != options_list.num_options.end() && it->second == "true")
+  if (auto it = options_list.num_options.find("partial_information");
+      it != options_list.num_options.end() && it->second == "true")
     mod_file_struct.partial_information = true;
 
   // Option k_order_solver (implicit when order >= 3)
-  it = options_list.num_options.find("k_order_solver");
-  if ((it != options_list.num_options.end() && it->second == "true")
+  if (auto it = options_list.num_options.find("k_order_solver");
+      (it != options_list.num_options.end() && it->second == "true")
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
 }
@@ -922,8 +922,8 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
   /* Fill in option_order of mod_file_struct
      Since ramsey policy needs one further order of derivation (for example, for 1st order
      approximation, it needs 2nd derivatives), we add 1 to the order declared by user */
-  auto it = options_list.num_options.find("order");
-  if (it != options_list.num_options.end())
+  if (auto it = options_list.num_options.find("order");
+      it != options_list.num_options.end())
     {
       int order = stoi(it->second);
       if (order > 2)
@@ -935,13 +935,13 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
     }
 
   // Fill in mod_file_struct.partial_information
-  it = options_list.num_options.find("partial_information");
-  if (it != options_list.num_options.end() && it->second == "true")
+  if (auto it = options_list.num_options.find("partial_information");
+      it != options_list.num_options.end() && it->second == "true")
     mod_file_struct.partial_information = true;
 
   // Option k_order_solver (implicit when order >= 3)
-  it = options_list.num_options.find("k_order_solver");
-  if ((it != options_list.num_options.end() && it->second == "true")
+  if (auto it = options_list.num_options.find("k_order_solver");
+      (it != options_list.num_options.end() && it->second == "true")
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
 }
@@ -1045,8 +1045,8 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
   /* Fill in option_order of mod_file_struct
      Since discretionary policy needs one further order of derivation (for example, for 1st order
      approximation, it needs 2nd derivatives), we add 1 to the order declared by user */
-  auto it = options_list.num_options.find("order");
-  if (it != options_list.num_options.end())
+  if (auto it = options_list.num_options.find("order");
+      it != options_list.num_options.end())
     {
       int order = stoi(it->second);
       if (order > 1)
@@ -1058,13 +1058,13 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
     }
 
   // Fill in mod_file_struct.partial_information
-  it = options_list.num_options.find("partial_information");
-  if (it != options_list.num_options.end() && it->second == "true")
+  if (auto it = options_list.num_options.find("partial_information");
+      it != options_list.num_options.end() && it->second == "true")
     mod_file_struct.partial_information = true;
 
   // Option k_order_solver (implicit when order >= 3)
-  it = options_list.num_options.find("k_order_solver");
-  if ((it != options_list.num_options.end() && it->second == "true")
+  if (auto it = options_list.num_options.find("k_order_solver");
+      (it != options_list.num_options.end() && it->second == "true")
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
 }
