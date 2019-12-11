@@ -427,4 +427,13 @@ Epilogue::writeOutput(ostream &output) const
   for (const auto & [symb_id, expr] : def_table)
     output << "M_.epilogue_names{" << idx++ << "} = '"
            << symbol_table.getName(symb_id) << "';" << endl;
+
+  set<int> endogs;
+  for (const auto & [symb_id, expr] : def_table)
+    expr->collectVariables(SymbolType::endogenous, endogs);
+
+  SymbolList symbol_list;
+  for (auto symb_id : endogs)
+    symbol_list.addSymbol(symbol_table.getName(symb_id));
+  symbol_list.writeOutput("M_.epilogue_var_list_", output);
 }
