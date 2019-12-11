@@ -210,6 +210,11 @@ DataTree::AddMinus(expr_t iArg1, expr_t iArg2)
   if (iArg1 == iArg2)
     return Zero;
 
+  // Simplify x-(-y) in x+y
+  if (auto uarg2 = dynamic_cast<UnaryOpNode *>(iArg2);
+      uarg2 && uarg2->op_code == UnaryOpcode::uminus)
+    return AddPlus(iArg1, uarg2->arg);
+
   return AddBinaryOp(iArg1, BinaryOpcode::minus, iArg2);
 }
 
