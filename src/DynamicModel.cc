@@ -6681,8 +6681,8 @@ void
 DynamicModel::detrendEquations()
 {
   // We go backwards in the list of trend_vars, to deal correctly with I(2) processes
-  for (nonstationary_symbols_map_t::const_reverse_iterator it = nonstationary_symbols_map.rbegin();
-       it != nonstationary_symbols_map.rend(); ++it)
+  for (auto it = nonstationary_symbols_map.crbegin();
+       it != nonstationary_symbols_map.crend(); ++it)
     for (auto & equation : equations)
       {
         auto *substeq = dynamic_cast<BinaryOpNode *>(equation->detrend(it->first, it->second.first, it->second.second));
