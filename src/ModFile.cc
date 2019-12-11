@@ -519,6 +519,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
       epilogue.detrend(trend_symbols, nonstationary_symbols);
     }
 
+  epilogue.toStatic();
+
   mod_file_struct.orig_eq_nbr = dynamic_model.equation_number();
   if (mod_file_struct.ramsey_model_present)
     {

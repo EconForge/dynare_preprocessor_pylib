@@ -70,7 +70,7 @@ class Epilogue : public DynamicModel
 {
 private:
   //! Associates a set of symbol IDs (the variable(s) assigned in a given statement) to an expression (their assigned value)
-  vector<pair<int, expr_t>> def_table;
+  vector<pair<int, expr_t>> dynamic_def_table, static_def_table;
 public:
   Epilogue(SymbolTable &symbol_table_arg,
            NumericalConstants &num_constants_arg,
@@ -89,6 +89,9 @@ public:
   //! Checks that no variable is declared twice
   void checkPass(WarningConsolidation &warnings) const;
 
+  //! Creates static epilogue equations
+  void toStatic();
+
   //! Deal with trend variables in the epilogue block
   void detrend(const map<int, expr_t> & trend_symbols_map,
                const nonstationary_symbols_map_t & nonstationary_symbols_map);
@@ -98,6 +101,9 @@ public:
 
   //! Write Output
   void writeOutput(ostream &output) const;
+private:
+  //! Helper for public writeEpilogueFile
+  void writeEpilogueFile(const string & basename, bool dynamic_file) const;
 };
 
 
