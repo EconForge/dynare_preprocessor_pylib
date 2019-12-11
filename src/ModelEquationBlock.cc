@@ -415,3 +415,16 @@ Epilogue::writeEpilogueFile(const string &basename) const
   output << "end" << endl;
   output.close();
 }
+
+void
+Epilogue::writeOutput(ostream &output) const
+{
+  if (def_table.empty())
+    return;
+
+  int idx = 1;
+  output << "M_.epilogue_names = cell(" << def_table.size() << ",1);" << endl;
+  for (const auto & [symb_id, expr] : def_table)
+    output << "M_.epilogue_names{" << idx++ << "} = '"
+           << symbol_table.getName(symb_id) << "';" << endl;
+}

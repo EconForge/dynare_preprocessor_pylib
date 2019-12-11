@@ -95,6 +95,9 @@ public:
 
   //! Write the steady state file
   void writeEpilogueFile(const string &basename) const;
+
+  //! Write Output
+  void writeOutput(ostream &output) const;
 };
 
 

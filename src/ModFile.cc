@@ -1011,6 +1011,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
               << "M_.ramsey_eq_nbr = " << mod_file_struct.ramsey_eq_nbr << ";" << endl
               << "M_.set_auxiliary_variables = exist(['./+' M_.fname '/set_auxiliary_variables.m'], 'file') == 2;" << endl;
 
+  epilogue.writeOutput(mOutputFile);
+
   if (dynamic_model.equation_number() > 0)
     {
       if (linear_decomposition)
