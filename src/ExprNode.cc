@@ -1214,13 +1214,16 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           if (lag != 0)
             output << lag;
           output << RIGHT_ARRAY_SUBSCRIPT(output_type);
-          break;
         }
+      else if (output_type == ExprNodeOutputType::matlabDseries)
+        // Only writing dseries for epilogue_static, hence no need to check lag
+        output << "ds." << datatree.symbol_table.getName(symb_id);
       else
         {
           cerr << "VariableNode::writeOutput: Impossible case" << endl;
           exit(EXIT_FAILURE);
         }
+      break;
     case SymbolType::unusedEndogenous:
       cerr << "ERROR: You cannot use an endogenous variable in an expression if that variable has not been used in the model block." << endl;
       exit(EXIT_FAILURE);

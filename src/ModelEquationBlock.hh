@@ -103,7 +103,8 @@ public:
   void writeOutput(ostream &output) const;
 private:
   //! Helper for public writeEpilogueFile
-  void writeEpilogueFile(const string & basename, bool dynamic_file) const;
+  void writeStaticEpilogueFile(const string & basename) const;
+  void writeDynamicEpilogueFile(const string & basename) const;
 };
 
 
