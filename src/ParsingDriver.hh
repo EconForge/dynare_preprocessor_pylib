@@ -658,6 +658,8 @@ public:
   void add_ramsey_constraint(const string &name, BinaryOpcode op_code, const expr_t rhs);
   //! Ramsey policy statement
   void ramsey_policy();
+  //! Evaluate Planner Objective
+  void evaluate_planner_objective();
   //! Discretionary policy statement
   void discretionary_policy();
   //! Adds a write_latex_dynamic_model statement

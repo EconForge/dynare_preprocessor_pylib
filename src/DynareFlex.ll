@@ -148,6 +148,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <INITIAL>planner_objective {BEGIN DYNARE_STATEMENT; return token::PLANNER_OBJECTIVE;}
 <INITIAL>ramsey_model {BEGIN DYNARE_STATEMENT; return token::RAMSEY_MODEL;}
 <INITIAL>ramsey_policy {BEGIN DYNARE_STATEMENT; return token::RAMSEY_POLICY;}
+<INITIAL>evaluate_planner_objective {BEGIN DYNARE_STATEMENT; return token::EVALUATE_PLANNER_OBJECTIVE;}
 <INITIAL>discretionary_policy {BEGIN DYNARE_STATEMENT; return token::DISCRETIONARY_POLICY;}
 <INITIAL>identification {BEGIN DYNARE_STATEMENT; return token::IDENTIFICATION;}
 

@@ -1008,6 +1008,22 @@ RamseyPolicyStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
+EvaluatePlannerObjective::EvaluatePlannerObjective()
+{
+}
+
+void
+EvaluatePlannerObjective::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << "oo_.planner_objective_value = evaluate_planner_objective(M_, options_, oo_);" << endl;
+}
+
+void
+EvaluatePlannerObjective::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "evaluate_planner_objective"})";
+}
+
 DiscretionaryPolicyStatement::DiscretionaryPolicyStatement(SymbolList symbol_list_arg,
                                                            OptionsList options_list_arg) :
   symbol_list{move(symbol_list_arg)},

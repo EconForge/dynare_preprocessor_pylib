@@ -254,6 +254,14 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
+class EvaluatePlannerObjective : public Statement
+{
+public:
+  EvaluatePlannerObjective();
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
+};
+
 class DiscretionaryPolicyStatement : public Statement
 {
 private:

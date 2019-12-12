@@ -2202,6 +2202,12 @@ ParsingDriver::add_to_ramsey_policy_list(string name)
 }
 
 void
+ParsingDriver::evaluate_planner_objective()
+{
+  mod_file->addStatement(make_unique<EvaluatePlannerObjective>());
+}
+
+void
 ParsingDriver::discretionary_policy()
 {
   if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
