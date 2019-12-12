@@ -786,6 +786,11 @@ RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
       (it != options_list.num_options.end() && it->second == "true")
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
+
+  // Fill list of instruments
+  if (auto it = options_list.symbol_list_options.find("instruments");
+      it != options_list.symbol_list_options.end())
+    mod_file_struct.instruments = it->second;
 }
 
 void
@@ -944,6 +949,11 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
       (it != options_list.num_options.end() && it->second == "true")
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
+
+  // Fill list of instruments
+  if (auto it = options_list.symbol_list_options.find("instruments");
+      it != options_list.symbol_list_options.end())
+    mod_file_struct.instruments = it->second;
 }
 
 void
@@ -1067,6 +1077,11 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
       (it != options_list.num_options.end() && it->second == "true")
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
+
+  // Fill list of instruments
+  if (auto it = options_list.symbol_list_options.find("instruments");
+      it != options_list.symbol_list_options.end())
+    mod_file_struct.instruments = it->second;
 }
 
 void

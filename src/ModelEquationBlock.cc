@@ -120,12 +120,18 @@ SteadyStateModel::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
       copy(symb_ids.begin(), symb_ids.end(), back_inserter(so_far_defined));
     }
 
-  set<int> orig_endogs = symbol_table.getOrigEndogenous();
-  for (int orig_endog : orig_endogs)
+  /* Check that all original endogous are defined (except the instruments of a
+     Ramsey model, since the steady_state_block should give the steady state
+     *conditional* to those instruments) */
+  set<int> should_be_defined = symbol_table.getOrigEndogenous();
+  if (mod_file_struct.ramsey_policy_present || mod_file_struct.ramsey_model_present)
+    for (const auto &s : mod_file_struct.instruments.getSymbols())
+      should_be_defined.erase(symbol_table.getID(s));
+  for (int v : should_be_defined)
     {
-      if (find(so_far_defined.begin(), so_far_defined.end(), orig_endog)
+      if (find(so_far_defined.begin(), so_far_defined.end(), v)
           == so_far_defined.end())
-        warnings << "WARNING: in the 'steady_state_model' block, variable '" << symbol_table.getName(orig_endog) << "' is not assigned a value" << endl;
+        warnings << "WARNING: in the 'steady_state_model' block, variable '" << symbol_table.getName(v) << "' is not assigned a value" << endl;
     }
 }
 

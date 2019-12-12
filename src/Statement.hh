@@ -129,6 +129,8 @@ public:
   bool write_latex_steady_state_model_present{false};
   //! Pac growth and discount
   set<int> pac_params;
+  //! Instruments if ramsey_model, ramsey_policy or discretionary_policy is present
+  SymbolList instruments;
 };
 
 class Statement
