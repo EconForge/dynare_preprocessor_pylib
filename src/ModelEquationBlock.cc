@@ -400,17 +400,6 @@ Epilogue::writeEpilogueFile(const string & basename, bool dynamic_file) const
   temporary_terms_idxs_t temporary_terms_idxs;
   for (const auto & [symb_id, expr] : dynamic_def_table)
     {
-      if (expr->containsExternalFunction())
-        if (dynamic_file)
-          expr->writeExternalFunctionOutput(output, ExprNodeOutputType::epilogueFile, temporary_terms, temporary_terms_idxs, tef_terms);
-        else
-          static_def_table.at(def_table_idx).second->writeExternalFunctionOutput(output, ExprNodeOutputType::epilogueFile, temporary_terms, temporary_terms_idxs, tef_terms);
-      def_table_idx++;
-    }
-  output << endl;
-  def_table_idx = 0;
-  for (const auto & [symb_id, expr] : dynamic_def_table)
-    {
       int max_lag = expr->maxLagWithDiffsExpanded();
       set<int> used_symbols;
       expr->collectVariables(SymbolType::endogenous, used_symbols);

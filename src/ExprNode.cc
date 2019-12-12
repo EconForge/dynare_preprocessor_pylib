@@ -7698,6 +7698,7 @@ ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_typ
 {
   if (output_type == ExprNodeOutputType::matlabOutsideModel || output_type == ExprNodeOutputType::steadyStateFile
       || output_type == ExprNodeOutputType::juliaSteadyStateFile
+      || output_type == ExprNodeOutputType::epilogueFile
       || isLatexOutput(output_type))
     {
       string name = isLatexOutput(output_type) ? datatree.symbol_table.getTeXName(symb_id)
