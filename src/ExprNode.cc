@@ -1075,7 +1075,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case ExprNodeOutputType::epilogueFile:
-          output << "dseries__." << datatree.symbol_table.getName(symb_id);
+          output << "ds." << datatree.symbol_table.getName(symb_id);
           output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
           if (lag != 0)
             output << lag;
@@ -1135,7 +1135,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case ExprNodeOutputType::epilogueFile:
-          output << "dseries__." << datatree.symbol_table.getName(symb_id);
+          output << "ds." << datatree.symbol_table.getName(symb_id);
           output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
           if (lag != 0)
             output << lag;
@@ -1195,7 +1195,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case ExprNodeOutputType::epilogueFile:
-          output << "dseries__." << datatree.symbol_table.getName(symb_id);
+          output << "ds." << datatree.symbol_table.getName(symb_id);
           output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
           if (lag != 0)
             output << lag;
@@ -1209,7 +1209,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     case SymbolType::epilogue:
       if (output_type == ExprNodeOutputType::epilogueFile)
         {
-          output << "dseries__." << datatree.symbol_table.getName(symb_id);
+          output << "ds." << datatree.symbol_table.getName(symb_id);
           output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
           if (lag != 0)
             output << lag;
