@@ -2188,6 +2188,7 @@ ParsingDriver::ramsey_model()
 void
 ParsingDriver::ramsey_policy()
 {
+  warning("The `ramsey_policy` statement is deprecated. Please use `ramsey_model`, `stoch_simul`, and `evaluate_planner_objective` instead.");
   if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
     declare_optimal_policy_discount_factor_parameter(data_tree->One);
   mod_file->addStatement(make_unique<RamseyPolicyStatement>(mod_file->symbol_table, ramsey_policy_list, options_list));
