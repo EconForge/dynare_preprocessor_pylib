@@ -183,6 +183,16 @@ DataTree::AddPlus(expr_t iArg1, expr_t iArg2)
           uarg1 && uarg1->op_code == UnaryOpcode::uminus)
         return AddMinus(iArg2, uarg1->arg);
 
+      // Simplify (x-y)+y in x
+      if (auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
+          barg1 && barg1->op_code == BinaryOpcode::minus && barg1->arg2 == iArg2)
+        return barg1->arg1;
+
+      // Simplify y+(x-y) in x
+      if (auto barg2 = dynamic_cast<BinaryOpNode *>(iArg2);
+          barg2 && barg2->op_code == BinaryOpcode::minus && barg2->arg2 == iArg1)
+        return barg2->arg1;
+
       // To treat commutativity of "+"
       // Nodes iArg1 and iArg2 are sorted by index
       if (iArg1->idx > iArg2->idx)
@@ -214,6 +224,16 @@ DataTree::AddMinus(expr_t iArg1, expr_t iArg2)
   if (auto uarg2 = dynamic_cast<UnaryOpNode *>(iArg2);
       uarg2 && uarg2->op_code == UnaryOpcode::uminus)
     return AddPlus(iArg1, uarg2->arg);
+
+  // Simplify (x+y)-y and (y+x)-y in x
+  if (auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
+      barg1 && barg1->op_code == BinaryOpcode::plus)
+    {
+      if (barg1->arg2 == iArg2)
+        return barg1->arg1;
+      if (barg1->arg1 == iArg2)
+        return barg1->arg2;
+    }
 
   return AddBinaryOp(iArg1, BinaryOpcode::minus, iArg2);
 }
