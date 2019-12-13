@@ -3697,6 +3697,33 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   output << modstruct << "params = " << (julia ? "fill(NaN, " : "NaN(")
          << symbol_table.param_nbr() << (julia ? ")" : ", 1);") << endl;
 
+  // FIXME: implement this for Julia
+  if (!julia)
+    {
+      string empty_cell = "cell(" + to_string(symbol_table.endo_nbr()) + ", 1)";
+      output << modstruct << "endo_trends = struct('deflator', " << empty_cell
+             << ", 'log_deflator', " << empty_cell << ", 'growth_factor', " << empty_cell
+             << ", 'log_growth_factor', " << empty_cell << ");" << endl;
+      for (int i = 0; i < symbol_table.endo_nbr(); i++)
+        {
+          int symb_id = symbol_table.getID(SymbolType::endogenous, i);
+          if (auto it = nonstationary_symbols_map.find(symb_id); it != nonstationary_symbols_map.end())
+            {
+              auto [is_log, deflator] = it->second;
+              output << modstruct << "endo_trends(" << i << ")."
+                     << (is_log ? "log_deflator" : "deflator") << " = '";
+              deflator->writeJsonOutput(output, {}, {});
+              output << "';" << endl;
+
+              auto growth_factor = const_cast<DynamicModel *>(this)->AddDivide(deflator, deflator->decreaseLeadsLags(1))->removeTrendLeadLag(trend_symbols_map)->replaceTrendVar();
+              output << modstruct << "endo_trends(" << i << ")."
+                     << (is_log ? "log_growth_factor" : "growth_factor") << " = '";
+              growth_factor->writeJsonOutput(output, {}, {});
+              output << "';" << endl;
+            }
+        }
+    }
+
   if (compute_xrefs)
     writeXrefs(output);
 
