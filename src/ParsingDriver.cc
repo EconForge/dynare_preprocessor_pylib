@@ -1544,6 +1544,7 @@ ParsingDriver::var_model()
 void
 ParsingDriver::simul()
 {
+  warning("The 'simul' statement is deprecated. Please use 'perfect_foresight_setup' and 'perfect_foresight_solver' instead.");
   mod_file->addStatement(make_unique<SimulStatement>(options_list));
   options_list.clear();
 }
