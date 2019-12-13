@@ -2321,7 +2321,7 @@ ramsey_policy : RAMSEY_POLICY ';'
                 { driver.ramsey_policy(); }
               | RAMSEY_POLICY '(' ramsey_policy_options_list ')' ';'
                 { driver.ramsey_policy(); }
-              | RAMSEY_POLICY symbol_list ';'
+              | RAMSEY_POLICY ramsey_policy_list ';'
                 { driver.ramsey_policy(); }
               | RAMSEY_POLICY '(' ramsey_policy_options_list ')' ramsey_policy_list ';'
                 { driver.ramsey_policy(); }
