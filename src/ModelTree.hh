@@ -382,6 +382,17 @@ public:
   /*! If order=2, writes either v2(i+1,j+1) or v2[i+j*NNZDerivatives[2]]
     If order=3, writes either v3(i+1,j+1) or v3[i+j*NNZDerivatives[3]] */
   void sparseHelper(int order, ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const;
+
+  //! Returns all the equation tags associated to an equation
+  inline map<string, string> getEquationTags(int eq) const
+  {
+    map<string, string> r;
+    for (auto &[eq2, tagpair]: equation_tags)
+      if (eq2 == eq)
+        r[tagpair.first] = tagpair.second;
+    return r;
+  }
+
   inline static std::string
   c_Equation_Type(int type)
   {

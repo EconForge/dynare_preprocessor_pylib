@@ -1875,31 +1875,10 @@ DynamicModel::printNonZeroHessianEquations(ostream &output) const
     {
       if (it != nonzero_hessian_eqs.begin())
         output << " ";
-      output << it->first;
+      output << *it;
     }
   if (nonzero_hessian_eqs.size() != 1)
     output << "]";
-}
-
-void
-DynamicModel::setNonZeroHessianEquations(map<int, string> &eqs)
-{
-  for (const auto &it : derivatives[2])
-    {
-      int eq = it.first[0];
-      if (nonzero_hessian_eqs.find(eq) == nonzero_hessian_eqs.end())
-        {
-          nonzero_hessian_eqs[eq] = "";
-          for (auto & equation_tag : equation_tags)
-            if (equation_tag.first == eq)
-              if (equation_tag.second.first == "name")
-                {
-                  nonzero_hessian_eqs[eq] = equation_tag.second.second;
-                  break;
-                }
-        }
-    }
-  eqs = nonzero_hessian_eqs;
 }
 
 void
@@ -5002,6 +4981,13 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
        << "dynamic model derivatives (order " << derivsOrder << ")." << endl;
 
   computeDerivatives(derivsOrder, vars);
+
+  if (derivsOrder > 1)
+    {
+      hessian_computed = true;
+      for (const auto &it : derivatives[2])
+        nonzero_hessian_eqs.insert(it.first[0]);
+    }
 
   if (paramsDerivsOrder > 0)
     {

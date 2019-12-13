@@ -98,7 +98,9 @@ private:
   map<pair<int, int>, set<int>> xref_exo_det;
 
   //! Nonzero equations in the Hessian
-  map<int, string> nonzero_hessian_eqs;
+  set<int> nonzero_hessian_eqs;
+  //! Whether the hessian has actually been computed
+  bool hessian_computed{false};
 
   //! Number of columns of dynamic jacobian
   /*! Set by computeDerivID()s and computeDynJacobianCols() */
@@ -354,8 +356,18 @@ public:
   //! Print equations that have non-zero second derivatives
   void printNonZeroHessianEquations(ostream &output) const;
 
-  //! Set the equations that have non-zero second derivatives
-  void setNonZeroHessianEquations(map<int, string> &eqs);
+  //! Tells whether Hessian has been computed
+  /*! This is needed to know whether no non-zero equation in Hessian means a
+      zero Hessian or Hessian not computed */
+  inline bool isHessianComputed() const
+  {
+    return hessian_computed;
+  }
+  //! Returns equations that have non-zero second derivatives
+  inline set<int> getNonZeroHessianEquations() const
+  {
+    return nonzero_hessian_eqs;
+  }
 
   //! Fill Autoregressive Matrix for var_model
   map<string, map<tuple<int, int, int>, expr_t>> fillAutoregressiveMatrix(bool is_var) const;
