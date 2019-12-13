@@ -1875,7 +1875,7 @@ DynamicModel::printNonZeroHessianEquations(ostream &output) const
     {
       if (it != nonzero_hessian_eqs.begin())
         output << " ";
-      output << *it;
+      output << *it + 1;
     }
   if (nonzero_hessian_eqs.size() != 1)
     output << "]";
