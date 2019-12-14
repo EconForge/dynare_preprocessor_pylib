@@ -2811,7 +2811,7 @@ PlotShockDecompositionStatement::writeOutput(ostream &output, const string &base
   output << "options_ = set_default_plot_shock_decomposition_options(options_);" << endl;
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "plot_shock_decomposition(M_, oo_, options_, var_list_);" << endl;
+  output << "oo_ = plot_shock_decomposition(M_, oo_, options_, var_list_);" << endl;
 }
 
 void
@@ -2856,6 +2856,35 @@ InitialConditionDecompositionStatement::writeJsonOutput(ostream &output) const
       output << ", ";
       options_list.writeJsonOutput(output);
     }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
+SqueezeShockDecompositionStatement::SqueezeShockDecompositionStatement(SymbolList symbol_list_arg)
+  : symbol_list{move(symbol_list_arg)}
+{
+}
+
+void
+SqueezeShockDecompositionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  if (symbol_list.empty())
+    output << "oo_ = squeeze_shock_decomposition(M_, oo_, options_);" << endl;
+  else
+    {
+      symbol_list.writeOutput("var_list_", output);
+      output << "oo_ = squeeze_shock_decomposition(M_, oo_, options_, var_list_,);" << endl;
+    }
+}
+
+void
+SqueezeShockDecompositionStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "squeeze_shock_decomposition")";
   if (!symbol_list.empty())
     {
       output << ", ";

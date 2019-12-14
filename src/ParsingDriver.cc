@@ -2397,6 +2397,13 @@ ParsingDriver::initial_condition_decomposition()
 }
 
 void
+ParsingDriver::squeeze_shock_decomposition()
+{
+  mod_file->addStatement(make_unique<SqueezeShockDecompositionStatement>(symbol_list));
+  symbol_list.clear();
+}
+
+void
 ParsingDriver::conditional_forecast()
 {
   mod_file->addStatement(make_unique<ConditionalForecastStatement>(options_list));

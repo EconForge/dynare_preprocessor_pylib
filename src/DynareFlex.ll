@@ -162,6 +162,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <INITIAL>realtime_shock_decomposition {BEGIN DYNARE_STATEMENT; return token::REALTIME_SHOCK_DECOMPOSITION;}
 <INITIAL>plot_shock_decomposition {BEGIN DYNARE_STATEMENT; return token::PLOT_SHOCK_DECOMPOSITION;}
 <INITIAL>initial_condition_decomposition {BEGIN DYNARE_STATEMENT; return token::INITIAL_CONDITION_DECOMPOSITION;}
+<INITIAL>squeeze_shock_decomposition {BEGIN DYNARE_STATEMENT; return token::SQUEEZE_SHOCK_DECOMPOSITION;}
 <INITIAL>sbvar {BEGIN DYNARE_STATEMENT; return token::SBVAR;}
 <INITIAL>ms_estimation {BEGIN DYNARE_STATEMENT; return token::MS_ESTIMATION;}
 <INITIAL>ms_simulation {BEGIN DYNARE_STATEMENT; return token::MS_SIMULATION;}
@@ -702,6 +703,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <DYNARE_STATEMENT>tol_sv {return token::TOL_SV;}
 <DYNARE_STATEMENT>checks_via_subsets {return token::CHECKS_VIA_SUBSETS;}
 <DYNARE_STATEMENT>max_dim_subsets_groups {return token::MAX_DIM_SUBSETS_GROUPS;}
+<DYNARE_STATEMENT>max_nrows {return token::MAX_NROWS;}
 
 <DYNARE_STATEMENT>\$[^$]*\$ {
   strtok(yytext+1, "$");

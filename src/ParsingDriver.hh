@@ -702,6 +702,8 @@ public:
   void plot_shock_decomposition();
   //! Initial Condition decomposition
   void initial_condition_decomposition();
+  //! squeeze_shock_decomposition statement
+  void squeeze_shock_decomposition();
   //! Conditional forecast statement
   void conditional_forecast();
   //! Conditional forecast paths block

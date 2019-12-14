@@ -168,6 +168,7 @@ class ParsingDriver;
 %token NO_IDENTIFICATION_STRENGTH NO_IDENTIFICATION_REDUCEDFORM NO_IDENTIFICATION_MOMENTS
 %token NO_IDENTIFICATION_MINIMAL NO_IDENTIFICATION_SPECTRUM NORMALIZE_JACOBIANS GRID_NBR
 %token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS
+%token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -273,6 +274,7 @@ statement : parameters
           | realtime_shock_decomposition
           | plot_shock_decomposition
           | initial_condition_decomposition
+          | squeeze_shock_decomposition
           | conditional_forecast
           | conditional_forecast_paths
           | plot_conditional_forecast
@@ -2452,6 +2454,12 @@ initial_condition_decomposition : INITIAL_CONDITION_DECOMPOSITION ';'
                                   { driver.initial_condition_decomposition(); }
                                 ;
 
+squeeze_shock_decomposition : SQUEEZE_SHOCK_DECOMPOSITION ';'
+                              { driver.squeeze_shock_decomposition(); }
+                            | SQUEEZE_SHOCK_DECOMPOSITION symbol_list ';'
+                              { driver.squeeze_shock_decomposition(); }
+                            ;
+
 bvar_prior_option : o_bvar_prior_tau
                   | o_bvar_prior_decay
                   | o_bvar_prior_lambda
@@ -2862,6 +2870,7 @@ plot_shock_decomposition_option : o_use_shock_groups
                                 | o_psd_flip
                                 | o_psd_nograph
                                 | o_psd_init2shocks
+                                | o_psd_max_nrows
                                 ;
 
 initial_condition_decomposition_options_list : initial_condition_decomposition_option COMMA initial_condition_decomposition_options_list
@@ -2880,6 +2889,7 @@ initial_condition_decomposition_option : o_icd_type
                                        | o_icd_diff
                                        | o_icd_flip
                                        | o_icd_colormap
+                                       | o_icd_max_nrows
                                        ;
 
 homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END ';'
@@ -3279,6 +3289,8 @@ o_psd_nodisplay : NODISPLAY { driver.option_num("plot_shock_decomp.nodisplay", "
 o_psd_init2shocks : INIT2SHOCKS { driver.option_str("plot_shock_decomp.init2shocks", "default"); }
                   | INIT2SHOCKS EQUAL symbol { driver.option_str("plot_shock_decomp.init2shocks", $3); }
                   ;
+o_icd_max_nrows : MAX_NROWS EQUAL INT_NUMBER { driver.option_num("initial_condition_decomp.max_nrows", $3); };
+o_psd_max_nrows : MAX_NROWS EQUAL INT_NUMBER { driver.option_num("plot_shock_decomp.max_nrows", $3); };
 o_graph_format : GRAPH_FORMAT EQUAL allowed_graph_formats
                  { driver.process_graph_format_option(); }
                | GRAPH_FORMAT EQUAL '(' list_allowed_graph_formats ')'
