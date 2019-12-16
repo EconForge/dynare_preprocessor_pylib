@@ -204,12 +204,11 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
-  if (block || byte_code)
-    if (dynamic_model.isModelLocalVariableUsed())
-      {
-        cerr << "ERROR: In 'model' block, 'block' or 'bytecode' options are not yet compatible with pound expressions" << endl;
-        exit(EXIT_FAILURE);
-      }
+  if ((block || byte_code) && dynamic_model.isModelLocalVariableUsed())
+    {
+      cerr << "ERROR: In 'model' block, 'block' or 'bytecode' options are not yet compatible with pound expressions" << endl;
+      exit(EXIT_FAILURE);
+    }
 
   if ((stochastic_statement_present || mod_file_struct.check_present || mod_file_struct.steady_present) && no_static)
     {
@@ -217,13 +216,12 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
-  if (mod_file_struct.dsge_var_estimated)
-    if (!mod_file_struct.dsge_prior_weight_in_estimated_params)
-      {
-        cerr << "ERROR: When estimating a DSGE-VAR model and estimating the weight of the prior, dsge_prior_weight must "
-             << "be referenced in the estimated_params block." << endl;
-        exit(EXIT_FAILURE);
-      }
+  if (mod_file_struct.dsge_var_estimated && !mod_file_struct.dsge_prior_weight_in_estimated_params)
+    {
+      cerr << "ERROR: When estimating a DSGE-VAR model and estimating the weight of the prior, dsge_prior_weight must "
+           << "be referenced in the estimated_params block." << endl;
+      exit(EXIT_FAILURE);
+    }
 
   if (symbol_table.exists("dsge_prior_weight"))
     {
@@ -381,7 +379,7 @@ ModFile::checkPass(bool nostrict, bool stochastic)
 }
 
 void
-ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const bool transform_unary_ops,
+ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool transform_unary_ops,
                        const string &exclude_eqs, const string &include_eqs)
 {
   /* Save the original model (must be done before any model transformations by preprocessor)
@@ -418,11 +416,11 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   // Declare endogenous used for PAC model-consistent expectations
   for (auto & statement : statements)
     if (auto pms = dynamic_cast<PacModelStatement *>(statement.get());
-        pms != nullptr)
+        pms)
       {
-        if (pms->growth != nullptr)
+        if (pms->growth)
           pac_growth.push_back(pms->growth);
-        if (pms->aux_model_name == "")
+        if (pms->aux_model_name.empty())
           dynamic_model.declarePacModelConsistentExpectationEndogs(pms->name);
       }
 
@@ -458,9 +456,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
   // Pac Model
   int i = 0;
   for (auto & statement : statements)
-    if (auto pms = dynamic_cast<PacModelStatement *>(statement.get()); pms != nullptr)
+    if (auto pms = dynamic_cast<PacModelStatement *>(statement.get()); pms)
       {
-        if (pms->growth != nullptr)
+        if (pms->growth)
           pms->overwriteGrowth(pac_growth.at(i++));
 
         int max_lag;
@@ -483,7 +481,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
             // nonstationary variables in a VAR are those that are in diff
             nonstationary = var_model_table.getDiff(pms->aux_model_name);
           }
-        else if (pms->aux_model_name == "")
+        else if (pms->aux_model_name.empty())
           max_lag = 0;
         else
           {
@@ -492,7 +490,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
           }
         auto eqtag_and_lag = dynamic_model.walkPacParameters(pms->name);
         original_model.getPacMaxLag(pms->name, eqtag_and_lag);
-        if (pms->aux_model_name == "")
+        if (pms->aux_model_name.empty())
           dynamic_model.addPacModelConsistentExpectationEquation(pms->name, symbol_table.getID(pms->discount),
                                                                  eqtag_and_lag, diff_subst_table);
         else
@@ -526,15 +524,15 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
     {
       PlannerObjectiveStatement *pos = nullptr;
       for (auto & statement : statements)
-        if (auto pos2 = dynamic_cast<PlannerObjectiveStatement *>(statement.get()); pos2 != nullptr)
-          if (pos != nullptr)
+        if (auto pos2 = dynamic_cast<PlannerObjectiveStatement *>(statement.get()); pos2)
+          if (pos)
             {
               cerr << "ERROR: there can only be one planner_objective statement" << endl;
               exit(EXIT_FAILURE);
             }
           else
             pos = pos2;
-      assert(pos != nullptr);
+      assert(pos);
       const StaticModel &planner_objective = pos->getPlannerObjective();
 
       /*
@@ -694,7 +692,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const
 
   if (mod_file_struct.ramsey_policy_present)
     for (auto & statement : statements)
-      if (auto *rps = dynamic_cast<RamseyPolicyStatement *>(statement.get()); rps != nullptr)
+      if (auto rps = dynamic_cast<RamseyPolicyStatement *>(statement.get()); rps)
         rps->checkRamseyPolicyList();
 
   if (mod_file_struct.identification_present && symbol_table.exo_det_nbr() > 0)
@@ -1036,7 +1034,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
       {
         /* Special treatment for initval block: insert initial values for the
            auxiliary variables and initialize exo det */
-        if (auto *ivs = dynamic_cast<InitValStatement *>(statement.get()); ivs != nullptr)
+        if (auto ivs = dynamic_cast<InitValStatement *>(statement.get()); ivs)
           {
             ivs->writeOutput(mOutputFile, basename, minimal_workspace);
             static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
@@ -1044,22 +1042,22 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
           }
 
         // Special treatment for endval block: insert initial values for the auxiliary variables
-        if (auto *evs = dynamic_cast<EndValStatement *>(statement.get()); evs != nullptr)
+        if (auto evs = dynamic_cast<EndValStatement *>(statement.get()); evs)
           {
             evs->writeOutput(mOutputFile, basename, minimal_workspace);
             static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
           }
 
-        if (auto *ips = dynamic_cast<InitParamStatement *>(statement.get()); ips != nullptr)
+        if (auto ips = dynamic_cast<InitParamStatement *>(statement.get()); ips)
           ips->writeOutput(mOutputFile, basename, minimal_workspace);
 
-        if (auto *ss = dynamic_cast<ShocksStatement *>(statement.get()); ss != nullptr)
+        if (auto ss = dynamic_cast<ShocksStatement *>(statement.get()); ss)
           ss->writeOutput(mOutputFile, basename, minimal_workspace);
 
-        if (auto *eps = dynamic_cast<EstimatedParamsStatement *>(statement.get()); eps != nullptr)
+        if (auto eps = dynamic_cast<EstimatedParamsStatement *>(statement.get()); eps)
           eps->writeOutput(mOutputFile, basename, minimal_workspace);
 
-        if (auto *sgs = dynamic_cast<ShockGroupsStatement *>(statement.get()); sgs != nullptr)
+        if (auto sgs = dynamic_cast<ShockGroupsStatement *>(statement.get()); sgs)
           sgs->writeOutput(mOutputFile, basename, minimal_workspace);
       }
   else
@@ -1070,14 +1068,14 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 
           /* Special treatment for initval block: insert initial values for the
              auxiliary variables and initialize exo det */
-          if (auto ivs = dynamic_cast<InitValStatement *>(statement.get()); ivs != nullptr)
+          if (auto ivs = dynamic_cast<InitValStatement *>(statement.get()); ivs)
             {
               static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
               ivs->writeOutputPostInit(mOutputFile);
             }
 
           // Special treatment for endval block: insert initial values for the auxiliary variables
-          if (auto evs = dynamic_cast<EndValStatement *>(statement.get()); evs != nullptr)
+          if (auto evs = dynamic_cast<EndValStatement *>(statement.get()); evs)
             static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
 
           // Special treatment for load params and steady state statement: insert initial values for the auxiliary variables
@@ -1369,8 +1367,7 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
           output << ", ";
         }
 
-      for (auto it = statements.begin();
-           it != statements.end(); it++)
+      for (auto it = statements.begin(); it != statements.end(); ++it)
         {
           if (it != statements.begin())
             output << ", " << endl;
@@ -1522,14 +1519,11 @@ ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType
   dynamic_model.writeJsonComputingPassOutput(dynamic_output, !jsonderivsimple);
   dynamic_output << "}";
 
-  tmp_out << "";
-  static_paramsd_output << "";
   static_model.writeJsonParamsDerivativesFile(tmp_out, !jsonderivsimple);
   if (!tmp_out.str().empty())
     static_paramsd_output << "{" << tmp_out.str() << "}" << endl;
 
   tmp_out.str("");
-  dynamic_paramsd_output << "";
   dynamic_model.writeJsonParamsDerivativesFile(tmp_out, !jsonderivsimple);
   if (!tmp_out.str().empty())
     dynamic_paramsd_output << "{" << tmp_out.str() << "}" << endl;

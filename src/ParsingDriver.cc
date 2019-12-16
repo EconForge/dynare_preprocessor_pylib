@@ -36,7 +36,7 @@ ParsingDriver::symbol_exists_and_is_not_modfile_local_or_external_function(const
 
   SymbolType type = mod_file->symbol_table.getType(s);
 
-  return (type != SymbolType::modFileLocalVariable && type != SymbolType::externalFunction);
+  return type != SymbolType::modFileLocalVariable && type != SymbolType::externalFunction;
 }
 
 void
@@ -355,7 +355,7 @@ ParsingDriver::declare_or_change_type(SymbolType new_type, const string &name)
         if (it->first == name)
           it = undeclared_model_variable_errors.erase(it);
         else
-          it++;
+          ++it;
     }
   catch (SymbolTable::UnknownSymbolNameException &e)
     {
@@ -396,10 +396,10 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
   if (type == SymbolType::modelLocalVariable && lag != 0)
     error("Model local variable " + mod_file->symbol_table.getName(symb_id) + " cannot be given a lead or a lag.");
 
-  if (dynamic_cast<StaticModel *>(model_tree) != nullptr && lag != 0)
+  if (dynamic_cast<StaticModel *>(model_tree) && lag != 0)
     error("Leads and lags on variables are forbidden in 'planner_objective'.");
 
-  if (dynamic_cast<StaticModel *>(model_tree) != nullptr && type == SymbolType::modelLocalVariable)
+  if (dynamic_cast<StaticModel *>(model_tree) && type == SymbolType::modelLocalVariable)
     error("Model local variable " + mod_file->symbol_table.getName(symb_id) + " cannot be used in 'planner_objective'.");
 
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
@@ -502,13 +502,12 @@ void
 ParsingDriver::add_VAR_exclusion_restriction(const string &lagstr)
 {
   int lag = stoi(lagstr);
-  auto it = exclusion_restrictions.find(lag);
-  if (it == exclusion_restrictions.end())
+  if (auto it = exclusion_restrictions.find(lag);
+      it == exclusion_restrictions.end())
     exclusion_restrictions[lag] = exclusion_restriction;
   else
-    for (map<int, SymbolList>::const_iterator it1 = exclusion_restriction.begin();
-         it1 != exclusion_restriction.end(); it1++)
-      it->second[it1->first] = it1->second;
+    for (auto & it1 : exclusion_restriction)
+      it->second[it1.first] = it1.second;
 
   exclusion_restriction.clear();
 }
@@ -771,9 +770,8 @@ ParsingDriver::differentiate_forward_vars_some()
 {
   mod_file->differentiate_forward_vars = true;
   mod_file->differentiate_forward_vars_subset = symbol_list.get_symbols();
-  for (vector<string>::const_iterator it = mod_file->differentiate_forward_vars_subset.begin();
-       it != mod_file->differentiate_forward_vars_subset.end(); ++it)
-    check_symbol_is_endogenous(*it);
+  for (auto & it : mod_file->differentiate_forward_vars_subset)
+    check_symbol_is_endogenous(it);
   symbol_list.clear();
 }
 
@@ -894,23 +892,21 @@ ParsingDriver::end_model()
 {
   bool exit_after_write = false;
   if (model_errors.size() > 0)
-    for (vector<pair<string, string>>::const_iterator it = model_errors.begin();
-         it != model_errors.end(); it++)
+    for (auto & it : model_errors)
       {
-        if (it->first == "")
+        if (it.first.empty())
           exit_after_write = true;
-        cerr << it->second;
+        cerr << it.second;
       }
 
   if (undeclared_model_variable_errors.size() > 0)
-    for (vector<pair<string, string>>::const_iterator it = undeclared_model_variable_errors.begin();
-         it != undeclared_model_variable_errors.end(); it++)
+    for (auto & it : undeclared_model_variable_errors)
       if (nostrict)
-        warning(it->second);
+        warning(it.second);
       else
         {
           exit_after_write = true;
-          cerr << it->second << endl;
+          cerr << it.second << endl;
         }
 
   if (exit_after_write)
@@ -1147,7 +1143,6 @@ ParsingDriver::combine_lag_and_restriction(const string &lag)
         new_restriction.value = data_tree->One;
         svar_ident_restrictions.push_back(new_restriction);
       }
-  //    svar_ident_exclusion_values[make_pair(current_lag, it->first)] = it->second;
 
   svar_upper_cholesky = false;
   svar_lower_cholesky = false;
@@ -1286,7 +1281,7 @@ ParsingDriver::add_restriction_element(expr_t value, const string &variable, con
 void
 ParsingDriver::check_restriction_expression_constant(expr_t value)
 {
-  if (value->eval(eval_context_t()) != 0)
+  if (value->eval({}) != 0)
     error("SVAR_INDENTIFICATION restrictions must be homogenous");
 }
 
@@ -1412,19 +1407,17 @@ ParsingDriver::option_symbol_list(string name_option)
   if (name_option.compare("irf_shocks") == 0)
     {
       vector<string> shocks = symbol_list.get_symbols();
-      for (vector<string>::const_iterator it = shocks.begin();
-           it != shocks.end(); it++)
-        if (mod_file->symbol_table.getType(*it) != SymbolType::exogenous)
-          error("Variables passed to irf_shocks must be exogenous. Caused by: " + *it);
+      for (auto & shock : shocks)
+        if (mod_file->symbol_table.getType(shock) != SymbolType::exogenous)
+          error("Variables passed to irf_shocks must be exogenous. Caused by: " + shock);
     }
 
   if (name_option.compare("ms.parameters") == 0)
     {
       vector<string> parameters = symbol_list.get_symbols();
-      for (vector<string>::const_iterator it = parameters.begin();
-           it != parameters.end(); it++)
-        if (mod_file->symbol_table.getType(*it) != SymbolType::parameter)
-          error("Variables passed to the parameters option of the markov_switching statement must be parameters. Caused by: " + *it);
+      for (auto & it : parameters)
+        if (mod_file->symbol_table.getType(it) != SymbolType::parameter)
+          error("Variables passed to the parameters option of the markov_switching statement must be parameters. Caused by: " + it);
     }
 
   options_list.symbol_list_options[move(name_option)] = symbol_list;
@@ -1489,17 +1482,17 @@ ParsingDriver::stoch_simul()
 void
 ParsingDriver::trend_component_model()
 {
-  const auto its = options_list.string_options.find("trend_component.name");
+  auto its = options_list.string_options.find("trend_component.name");
   if (its == options_list.string_options.end())
     error("You must pass the model_name option to the trend_component_model statement.");
   auto name = its->second;
 
-  const auto itvs = options_list.vector_str_options.find("trend_component.eqtags");
+  auto itvs = options_list.vector_str_options.find("trend_component.eqtags");
   if (itvs == options_list.vector_str_options.end())
     error("You must pass the eqtags option to the trend_component_model statement.");
   auto eqtags = itvs->second;
 
-  const auto itvs1 = options_list.vector_str_options.find("trend_component.targets");
+  auto itvs1 = options_list.vector_str_options.find("trend_component.targets");
   if (itvs1 == options_list.vector_str_options.end())
     error("You must pass the targets option to the trend_component_model statement.");
   auto targets = itvs1->second;
@@ -1511,13 +1504,13 @@ ParsingDriver::trend_component_model()
 void
 ParsingDriver::var_model()
 {
-  const auto its = options_list.string_options.find("var.model_name");
+  auto its = options_list.string_options.find("var.model_name");
   if (its == options_list.string_options.end())
     error("You must pass the model_name option to the var_model statement.");
   auto name = its->second;
 
   int order = 0;
-  const auto itn = options_list.num_options.find("var.order");
+  auto itn = options_list.num_options.find("var.order");
   if (itn != options_list.num_options.end())
     order = stoi(itn->second);
   else
@@ -1525,7 +1518,7 @@ ParsingDriver::var_model()
     error("You must pass the order option when passing a symbol list to the var_model statement");
 
   vector<string> eqtags;
-  const auto itvs = options_list.vector_str_options.find("var.eqtags");
+  auto itvs = options_list.vector_str_options.find("var.eqtags");
   if (itvs != options_list.vector_str_options.end())
     {
       eqtags = itvs->second;
@@ -1809,7 +1802,6 @@ ParsingDriver::copy_prior(const string &to_declaration_type, const string &to_na
                                                           from_declaration_type, from_name1,
                                                           from_name2, from_subsample_name,
                                                           mod_file->symbol_table));
-
 }
 
 void
@@ -2317,13 +2309,9 @@ ParsingDriver::ms_variance_decomposition()
 void
 ParsingDriver::svar()
 {
-  OptionsList::string_options_t::const_iterator it0, it1, it2;
-  OptionsList::num_options_t::const_iterator itn;
-  OptionsList::vec_int_options_t::const_iterator itv;
-
-  it0 = options_list.string_options.find("ms.coefficients");
-  it1 = options_list.string_options.find("ms.variances");
-  it2 = options_list.string_options.find("ms.constants");
+  auto it0 = options_list.string_options.find("ms.coefficients"),
+    it1 = options_list.string_options.find("ms.variances"),
+    it2 = options_list.string_options.find("ms.constants");
   if (it0 == options_list.string_options.end()
       && it1 == options_list.string_options.end()
       && it2 == options_list.string_options.end())
@@ -2337,14 +2325,14 @@ ParsingDriver::svar()
           && it2 != options_list.string_options.end()))
     error("You may only pass one of 'coefficients', 'variances', or 'constants'.");
 
-  itn = options_list.num_options.find("ms.chain");
-  if (itn == options_list.num_options.end())
+  if (auto itn = options_list.num_options.find("ms.chain");
+      itn == options_list.num_options.end())
     error("A chain option must be passed to the svar statement.");
   else if (stoi(itn->second) <= 0)
     error("The value passed to the chain option must be greater than zero.");
 
-  itv = options_list.vector_int_options.find("ms.equations");
-  if (itv != options_list.vector_int_options.end())
+  if (auto itv = options_list.vector_int_options.find("ms.equations");
+      itv != options_list.vector_int_options.end())
     for (int viit : itv->second)
       if (viit <= 0)
         error("The value(s) passed to the equation option must be greater than zero.");
@@ -2356,9 +2344,7 @@ ParsingDriver::svar()
 void
 ParsingDriver::markov_switching()
 {
-  OptionsList::num_options_t::const_iterator it0;
-
-  it0 = options_list.num_options.find("ms.chain");
+  auto it0 = options_list.num_options.find("ms.chain");
   if (it0 == options_list.num_options.end())
     error("A chain option must be passed to the markov_switching statement.");
   else if (stoi(it0->second) <= 0)
@@ -2420,12 +2406,7 @@ ParsingDriver::conditional_forecast()
 void
 ParsingDriver::plot_conditional_forecast(const string &periods)
 {
-  int nperiods;
-  if (periods.empty())
-    nperiods = -1;
-  else
-    nperiods = stoi(periods);
-
+  int nperiods = periods.empty() ? -1 : stoi(periods);
   mod_file->addStatement(make_unique<PlotConditionalForecastStatement>(nperiods, symbol_list));
   symbol_list.clear();
 }
@@ -2476,9 +2457,8 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
 
   // Detect if the equation is tagged [static]
   bool is_static_only = false;
-  for (vector<pair<string, string>>::const_iterator it = eq_tags.begin();
-       it != eq_tags.end(); ++it)
-    if (it->first == "static")
+  for (auto & eq_tag : eq_tags)
+    if (eq_tag.first == "static")
       {
         is_static_only = true;
         break;
@@ -2676,13 +2656,13 @@ ParsingDriver::begin_pac_model()
 void
 ParsingDriver::pac_model()
 {
-  OptionsList::string_options_t::const_iterator it = options_list.string_options.find("pac.model_name");
+  auto it = options_list.string_options.find("pac.model_name");
   if (it == options_list.string_options.end())
     error("You must pass the model_name option to the pac_model statement.");
   auto name = it->second;
 
   bool pac_growth_is_param = false;
-  if (pac_growth != nullptr && dynamic_cast<VariableNode *>(pac_growth) != nullptr)
+  if (pac_growth && dynamic_cast<VariableNode *>(pac_growth))
     {
       set<int> params;
       pac_growth->collectVariables(SymbolType::parameter, params);
@@ -2694,7 +2674,7 @@ ParsingDriver::pac_model()
         pac_growth_is_param = false;
     }
 
-  string aux_model_name = "";
+  string aux_model_name;
   it = options_list.string_options.find("pac.aux_model_name");
   if (it != options_list.string_options.end())
     {
@@ -2710,7 +2690,7 @@ ParsingDriver::pac_model()
     if (pac_growth_is_param
         && (pac_steady_state_growth_rate_number >= 0 || pac_steady_state_growth_rate_symb_id >=0))
       warning("If growth option is constant, steady_state_growth is ignored");
-    else if (pac_growth != nullptr && !pac_growth_is_param
+    else if (pac_growth && !pac_growth_is_param
              && (pac_steady_state_growth_rate_number < 0 || pac_steady_state_growth_rate_symb_id < 0))
       error("The steady state growth rate of the target must be provided (steady_state_growth option) if option growth is not constant");
 
@@ -3025,15 +3005,15 @@ ParsingDriver::is_there_one_integer_argument() const
   if (stack_external_function_args.top().size() != 1)
     return { false, 0 };
 
-  auto *numNode = dynamic_cast<NumConstNode *>(stack_external_function_args.top().front());
-  auto *unaryNode = dynamic_cast<UnaryOpNode *>(stack_external_function_args.top().front());
+  auto numNode = dynamic_cast<NumConstNode *>(stack_external_function_args.top().front());
+  auto unaryNode = dynamic_cast<UnaryOpNode *>(stack_external_function_args.top().front());
 
-  if (numNode == nullptr && unaryNode == nullptr)
+  if (!numNode && !unaryNode)
     return { false, 0 };
 
   eval_context_t ectmp;
   double model_var_arg;
-  if (unaryNode == nullptr)
+  if (!unaryNode)
     {
       try
         {
@@ -3090,7 +3070,7 @@ ParsingDriver::add_model_var_or_external_function(const string &function_name, b
           nid = add_model_variable(mod_file->symbol_table.getID(function_name), static_cast<int>(rv.second));
           stack_external_function_args.pop();
           return nid;
-      }
+        }
     else
       { // e.g. this function has already been referenced (either ad hoc or through the external_function() statement
         // => check that the information matches previously declared info
@@ -3465,7 +3445,7 @@ ParsingDriver::add_init2shocks(const string &endo_name, const string &exo_name)
   if (mod_file->symbol_table.getType(symb_id_exo) != SymbolType::exogenous)
     error("init2shocks: " + exo_name + " should be an exogenous variable");
 
-  init2shocks.push_back(make_pair(symb_id_endo, symb_id_exo));
+  init2shocks.emplace_back(symb_id_endo, symb_id_exo);
 }
 
 void

@@ -23,10 +23,6 @@
 
 #include "macro/Driver.hh"
 
-bool compareNewline (int i, int j) {
-  return i == '\n' && j == '\n';
-}
-
 void
 main1(const string &filename, const string &basename, istream &modfile, bool debug, bool save_macro, string &save_macro_file,
       bool no_line_macro_arg, bool no_empty_line_macro, const vector<pair<string, string>> &defines,
@@ -50,6 +46,7 @@ main1(const string &filename, const string &basename, istream &modfile, bool deb
       string str (macro_output.str());
       if (no_empty_line_macro)
         {
+          auto compareNewline = [](char i, char j) { return i == '\n' && j == '\n'; };
           str.erase(0, str.find_first_not_of('\n'));
           str.erase(unique(str.begin(), str.end(), compareNewline), str.end());
         }

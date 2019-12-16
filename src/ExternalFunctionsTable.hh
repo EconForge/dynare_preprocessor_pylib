@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2015 Dynare Team
+ * Copyright © 2010-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -79,8 +79,7 @@ public:
 inline bool
 ExternalFunctionsTable::exists(int symb_id) const
 {
-  auto iter = externalFunctionTable.find(symb_id);
-  return (iter != externalFunctionTable.end());
+  return externalFunctionTable.find(symb_id) != externalFunctionTable.end();
 }
 
 inline int
@@ -114,7 +113,7 @@ inline int
 ExternalFunctionsTable::get_total_number_of_unique_model_block_external_functions() const
 {
   int number_of_unique_model_block_external_functions = 0;
-  for (auto it : externalFunctionTable)
+  for (const auto &it : externalFunctionTable)
     if (it.second.nargs > 0)
       number_of_unique_model_block_external_functions++;
 

@@ -152,15 +152,37 @@ isLatexOutput(ExprNodeOutputType output_type)
 
 /* Equal to 1 for Matlab langage or Julia, or to 0 for C language. Not defined for LaTeX.
    In Matlab and Julia, array indexes begin at 1, while they begin at 0 in C */
-#define ARRAY_SUBSCRIPT_OFFSET(output_type) (static_cast<int>(isMatlabOutput(output_type) || isJuliaOutput(output_type)))
+inline int
+ARRAY_SUBSCRIPT_OFFSET(ExprNodeOutputType output_type)
+{
+  return static_cast<int>(isMatlabOutput(output_type) || isJuliaOutput(output_type));
+}
 
 // Left and right array subscript delimiters: '(' and ')' for Matlab, '[' and ']' for C
-#define LEFT_ARRAY_SUBSCRIPT(output_type) (isMatlabOutput(output_type) ? '(' : '[')
-#define RIGHT_ARRAY_SUBSCRIPT(output_type) (isMatlabOutput(output_type) ? ')' : ']')
+inline char
+LEFT_ARRAY_SUBSCRIPT(ExprNodeOutputType output_type)
+{
+  return isMatlabOutput(output_type) ? '(' : '[';
+}
+
+inline char
+RIGHT_ARRAY_SUBSCRIPT(ExprNodeOutputType output_type)
+{
+  return isMatlabOutput(output_type) ? ')' : ']';
+}
 
 // Left and right parentheses
-#define LEFT_PAR(output_type) (isLatexOutput(output_type) ? "\\left(" : "(")
-#define RIGHT_PAR(output_type) (isLatexOutput(output_type) ? "\\right)" : ")")
+inline string
+LEFT_PAR(ExprNodeOutputType output_type)
+{
+  return isLatexOutput(output_type) ? "\\left(" : "(";
+}
+
+inline string
+RIGHT_PAR(ExprNodeOutputType output_type)
+{
+  return isLatexOutput(output_type) ? "\\right)" : ")";
+}
 
 //! Base class for expression nodes
 class ExprNode
@@ -307,7 +329,7 @@ class ExprNode
       void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs) const;
 
       //! Writes output of node in JSON syntax
-      virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic = true) const = 0;
+      virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic = true) const = 0;
 
       //! Writes the Abstract Syntax Tree in JSON
       virtual void writeJsonAST(ostream &output) const = 0;
@@ -325,7 +347,7 @@ class ExprNode
       virtual void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                    const temporary_terms_t &temporary_terms,
                                                    deriv_node_temp_terms_t &tef_terms,
-                                                   const bool isdynamic = true) const;
+                                                   bool isdynamic = true) const;
 
       virtual void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
                                                  bool lhs_rhs, const temporary_terms_t &temporary_terms,
@@ -711,7 +733,7 @@ public:
   void prepareForDerivation() override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
-  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
   bool containsExternalFunction() const override;
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
@@ -787,7 +809,7 @@ public:
   void prepareForDerivation() override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
-  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
   bool containsExternalFunction() const override;
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
@@ -883,7 +905,7 @@ public:
                              bool is_matlab) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
-  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
   bool containsExternalFunction() const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
@@ -892,7 +914,7 @@ public:
   void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
                                                deriv_node_temp_terms_t &tef_terms,
-                                               const bool isdynamic) const override;
+                                               bool isdynamic) const override;
   void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
@@ -994,7 +1016,7 @@ public:
                              bool is_matlab) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
-  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
   bool containsExternalFunction() const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
@@ -1003,7 +1025,7 @@ public:
   void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
                                                deriv_node_temp_terms_t &tef_terms,
-                                               const bool isdynamic) const override;
+                                               bool isdynamic) const override;
   void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
@@ -1126,7 +1148,7 @@ public:
                              bool is_matlab) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
-  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
   bool containsExternalFunction() const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
@@ -1135,7 +1157,7 @@ public:
   void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
                                                deriv_node_temp_terms_t &tef_terms,
-                                               const bool isdynamic) const override;
+                                               bool isdynamic) const override;
   void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
@@ -1227,7 +1249,7 @@ protected:
   //! Helper function to write output arguments of any given external function
   void writeExternalFunctionArguments(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
   void writeJsonASTExternalFunctionArguments(ostream &output) const;
-  void writeJsonExternalFunctionArguments(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const;
+  void writeJsonExternalFunctionArguments(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const;
   /*! Returns a predicate that tests whether an other ExprNode is an external
     function which is computed by the same external function call (i.e. it has
     the same so-called "Tef" index) */
@@ -1242,7 +1264,7 @@ public:
                              bool is_matlab) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override = 0;
   void writeJsonAST(ostream &output) const override = 0;
-  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic = true) const override = 0;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic = true) const override = 0;
   bool containsExternalFunction() const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
@@ -1251,7 +1273,7 @@ public:
   void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
                                                deriv_node_temp_terms_t &tef_terms,
-                                               const bool isdynamic = true) const override = 0;
+                                               bool isdynamic = true) const override = 0;
   void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
@@ -1339,7 +1361,7 @@ public:
                        const vector<expr_t> &arguments_arg);
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
-  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                            const temporary_terms_t &temporary_terms,
                                            const temporary_terms_idxs_t &temporary_terms_idxs,
@@ -1347,7 +1369,7 @@ public:
   void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
                                                deriv_node_temp_terms_t &tef_terms,
-                                               const bool isdynamic) const override;
+                                               bool isdynamic) const override;
   void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
@@ -1386,7 +1408,7 @@ public:
                                      int equation) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
-  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
   void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
                        const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
@@ -1398,7 +1420,7 @@ public:
   void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
                                                deriv_node_temp_terms_t &tef_terms,
-                                               const bool isdynamic) const override;
+                                               bool isdynamic) const override;
   void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
@@ -1432,7 +1454,7 @@ public:
                                      int equation) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
-  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
   void compile(ostream &CompileCode, unsigned int &instruction_number,
                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
                        const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
@@ -1444,7 +1466,7 @@ public:
   void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
                                                deriv_node_temp_terms_t &tef_terms,
-                                               const bool isdynamic) const override;
+                                               bool isdynamic) const override;
   void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
@@ -1532,7 +1554,7 @@ public:
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   expr_t substituteStaticAuxiliaryVariable() const override;
   void writeJsonAST(ostream &output) const override;
-  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
 };
 
 class PacExpectationNode : public ExprNode
@@ -1613,7 +1635,7 @@ public:
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   expr_t substituteStaticAuxiliaryVariable() const override;
   void writeJsonAST(ostream &output) const override;
-  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, const bool isdynamic) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
 };
 
 #endif

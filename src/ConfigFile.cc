@@ -176,10 +176,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
   bool singleCompThread{false};
   member_nodes_t member_nodes;
 
-  bool inHooks{false};
-  bool inNode{false};
-  bool inCluster{false};
-  bool inPaths{false};
+  bool inHooks{false}, inNode{false}, inCluster{false}, inPaths{false};
 
   while (configFile.good())
     {
@@ -666,11 +663,7 @@ ConfigFile::transformPass()
       }
 #endif
 
-  map<string, Cluster>::iterator cluster_it;
-  if (cluster_name.empty())
-    cluster_it = clusters.find(firstClusterName);
-  else
-    cluster_it = clusters.find(cluster_name);
+  auto cluster_it = cluster_name.empty() ? clusters.find(firstClusterName) : clusters.find(cluster_name);
 
   double weight_denominator{0.0};
   for (const auto & it : cluster_it->second.member_nodes)
@@ -687,7 +680,7 @@ ConfigFile::getIncludePaths() const
   for (auto path : paths)
     for (const auto & mapit : path.get_paths())
       for (const auto & vecit : mapit.second)
-        include_paths.push_back(vecit);
+        include_paths.emplace_back(vecit);
   return include_paths;
 }
 
@@ -705,11 +698,7 @@ ConfigFile::writeCluster(ostream &output) const
   if (!parallel && !parallel_test)
     return;
 
-  map<string, Cluster>::const_iterator cluster_it;
-  if (cluster_name.empty())
-    cluster_it = clusters.find(firstClusterName);
-  else
-    cluster_it = clusters.find(cluster_name);
+  auto cluster_it = cluster_name.empty() ? clusters.find(firstClusterName) : clusters.find(cluster_name);
 
   int i{1};
   for (const auto & slave_node : slave_nodes)

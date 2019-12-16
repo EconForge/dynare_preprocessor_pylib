@@ -65,12 +65,8 @@ class ModelTree : public DataTree
   friend class DynamicModel;
   friend class StaticModel;
 public:
-  // The following 5 variables are set via the `compiler` command
-  string user_set_add_flags;
-  string user_set_subst_flags;
-  string user_set_add_libs;
-  string user_set_subst_libs;
-  string user_set_compiler;
+  // Set via the `compiler` command
+  string user_set_add_flags, user_set_subst_flags, user_set_add_libs, user_set_subst_libs, user_set_compiler;
 protected:
   /*
    * ************** BEGIN **************
@@ -205,7 +201,7 @@ protected:
   void compileModelEquations(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const;
 
   //! Writes LaTeX model file
-  void writeLatexModelFile(const string &mod_basename, const string &latex_basename, ExprNodeOutputType output_type, const bool write_equation_tags) const;
+  void writeLatexModelFile(const string &mod_basename, const string &latex_basename, ExprNodeOutputType output_type, bool write_equation_tags) const;
 
   //! Sparse matrix of double to store the values of the Jacobian
   /*! First index is equation number, second index is endogenous type specific ID */
@@ -242,7 +238,7 @@ protected:
   //! Try to find a natural normalization if all equations are matched to an endogenous variable on the LHS
   bool computeNaturalNormalization();
   //! Try to normalized each unnormalized equation (matched endogenous variable only on the LHS)
-  void computeNormalizedEquations(multimap<int, int> &endo2eqs) const;
+  multimap<int, int> computeNormalizedEquations() const;
   //! Evaluate the jacobian and suppress all the elements below the cutoff
   void evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_map_t &contemporaneous_jacobian, jacob_map_t &static_jacobian, dynamic_jacob_map_t &dynamic_jacobian, double cutoff, bool verbose);
   //! Select and reorder the non linear equations of the model
@@ -393,74 +389,60 @@ public:
     return r;
   }
 
-  inline static std::string
+  inline static string
   c_Equation_Type(int type)
   {
-    char c_Equation_Type[4][13] =
+    vector<string> c_Equation_Type =
       {
         "E_UNKNOWN   ",
         "E_EVALUATE  ",
         "E_EVALUATE_S",
         "E_SOLVE     "
       };
-    return (c_Equation_Type[type]);
+    return c_Equation_Type[type];
   };
 
-  inline static std::string
+  inline static string
   BlockType0(BlockType type)
   {
     switch (type)
       {
       case SIMULTANS:
-        return ("SIMULTANEOUS TIME SEPARABLE  ");
-        break;
+        return "SIMULTANEOUS TIME SEPARABLE  ";
       case PROLOGUE:
-        return ("PROLOGUE                     ");
-        break;
+        return "PROLOGUE                     ";
       case EPILOGUE:
-        return ("EPILOGUE                     ");
-        break;
+        return "EPILOGUE                     ";
       case SIMULTAN:
-        return ("SIMULTANEOUS TIME UNSEPARABLE");
-        break;
+        return "SIMULTANEOUS TIME UNSEPARABLE";
       default:
-        return ("UNKNOWN                      ");
-        break;
+        return "UNKNOWN                      ";
       }
   };
 
-  inline static std::string
+  inline static string
   BlockSim(int type)
   {
     switch (type)
       {
       case EVALUATE_FORWARD:
-        return ("EVALUATE FORWARD             ");
-        break;
+        return "EVALUATE FORWARD             ";
       case EVALUATE_BACKWARD:
-        return ("EVALUATE BACKWARD            ");
-        break;
+        return "EVALUATE BACKWARD            ";
       case SOLVE_FORWARD_SIMPLE:
-        return ("SOLVE FORWARD SIMPLE         ");
-        break;
+        return "SOLVE FORWARD SIMPLE         ";
       case SOLVE_BACKWARD_SIMPLE:
-        return ("SOLVE BACKWARD SIMPLE        ");
-        break;
+        return "SOLVE BACKWARD SIMPLE        ";
       case SOLVE_TWO_BOUNDARIES_SIMPLE:
-        return ("SOLVE TWO BOUNDARIES SIMPLE  ");
-        break;
+        return "SOLVE TWO BOUNDARIES SIMPLE  ";
       case SOLVE_FORWARD_COMPLETE:
-        return ("SOLVE FORWARD COMPLETE       ");
-        break;
+        return "SOLVE FORWARD COMPLETE       ";
       case SOLVE_BACKWARD_COMPLETE:
-        return ("SOLVE BACKWARD COMPLETE      ");
-        break;
+        return "SOLVE BACKWARD COMPLETE      ";
       case SOLVE_TWO_BOUNDARIES_COMPLETE:
-        return ("SOLVE TWO BOUNDARIES COMPLETE");
-        break;
+        return "SOLVE TWO BOUNDARIES COMPLETE";
       default:
-        return ("UNKNOWN                      ");
-        break;
+        return "UNKNOWN                      ";
       }
   };
 };

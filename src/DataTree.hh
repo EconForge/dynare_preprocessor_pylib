@@ -365,18 +365,18 @@ inline expr_t
 DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int param1_symb_id, int param2_symb_id, const string &adl_param_name, const vector<int> &adl_lags)
 {
   // If the node already exists in tree, share it
-  auto it = unary_op_node_map.find({ arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags });
-  if (it != unary_op_node_map.end())
+  if (auto it = unary_op_node_map.find({ arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags });
+      it != unary_op_node_map.end())
     return it->second;
 
   // Try to reduce to a constant
   // Case where arg is a constant and op_code == UnaryOpcode::uminus (i.e. we're adding a negative constant) is skipped
-  auto *carg = dynamic_cast<NumConstNode *>(arg);
-  if (op_code != UnaryOpcode::uminus || carg == nullptr)
+  if (auto carg = dynamic_cast<NumConstNode *>(arg);
+      op_code != UnaryOpcode::uminus || !carg)
     {
       try
         {
-          double argval = arg->eval(eval_context_t());
+          double argval = arg->eval({});
           double val = UnaryOpNode::eval_opcode(op_code, argval);
           return AddPossiblyNegativeConstant(val);
         }
@@ -395,15 +395,15 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int 
 inline expr_t
 DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerDerivOrder)
 {
-  auto it = binary_op_node_map.find({ arg1, arg2, op_code, powerDerivOrder });
-  if (it != binary_op_node_map.end())
+  if (auto it = binary_op_node_map.find({ arg1, arg2, op_code, powerDerivOrder });
+      it != binary_op_node_map.end())
     return it->second;
 
   // Try to reduce to a constant
   try
     {
-      double argval1 = arg1->eval(eval_context_t());
-      double argval2 = arg2->eval(eval_context_t());
+      double argval1 = arg1->eval({});
+      double argval2 = arg2->eval({});
       double val = BinaryOpNode::eval_opcode(argval1, op_code, argval2, powerDerivOrder);
       return AddPossiblyNegativeConstant(val);
     }
@@ -421,16 +421,16 @@ DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerD
 inline expr_t
 DataTree::AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t arg3)
 {
-  auto it = trinary_op_node_map.find({ arg1, arg2, arg3, op_code });
-  if (it != trinary_op_node_map.end())
+  if (auto it = trinary_op_node_map.find({ arg1, arg2, arg3, op_code });
+      it != trinary_op_node_map.end())
     return it->second;
 
   // Try to reduce to a constant
   try
     {
-      double argval1 = arg1->eval(eval_context_t());
-      double argval2 = arg2->eval(eval_context_t());
-      double argval3 = arg3->eval(eval_context_t());
+      double argval1 = arg1->eval({});
+      double argval2 = arg2->eval({});
+      double argval3 = arg3->eval({});
       double val = TrinaryOpNode::eval_opcode(argval1, op_code, argval2, argval3);
       return AddPossiblyNegativeConstant(val);
     }

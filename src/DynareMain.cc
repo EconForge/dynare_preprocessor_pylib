@@ -81,15 +81,15 @@ parse_options_line(istream &modfile)
   while (getline(modfile, first_nonempty_line))
     if (first_nonempty_line != "")
       {
-        if (regex_search(first_nonempty_line, matches, pat))
-          if (matches.size() > 1 && matches[1].matched)
-            {
-              regex pat2{R"(([^,\s]+))"};
-              string s{matches[1]};
-              for (sregex_iterator p(s.begin(), s.end(), pat2);
-                   p != sregex_iterator{}; ++p)
-                options.push_back((*p)[1]);
-            }
+        if (regex_search(first_nonempty_line, matches, pat)
+            && matches.size() > 1 && matches[1].matched)
+          {
+            regex pat2{R"(([^,\s]+))"};
+            string s{matches[1]};
+            for (sregex_iterator p(s.begin(), s.end(), pat2);
+                 p != sregex_iterator{}; ++p)
+              options.push_back((*p)[1]);
+          }
         break;
       }
 
@@ -272,8 +272,8 @@ main(int argc, char **argv)
               usage();
             }
 
-          auto equal_index = s.find('=');
-          if (equal_index != string::npos)
+          if (auto equal_index = s.find('=');
+              equal_index != string::npos)
             defines.emplace_back(s.substr(2, equal_index-2), s.substr(equal_index+1));
           else
             defines.emplace_back(s.substr(2), "1");
@@ -286,7 +286,7 @@ main(int argc, char **argv)
                    << "must not be separated from -I by whitespace." << endl;
               usage();
             }
-          paths.push_back(s.substr(2));
+          paths.emplace_back(s.substr(2));
         }
       else if (s.substr(0, 6) == "output")
         {
@@ -413,8 +413,8 @@ main(int argc, char **argv)
 
   // Construct basename (i.e. remove file extension if there is one)
   string basename = argv[1];
-  size_t pos = basename.find_last_of('.');
-  if (pos != string::npos)
+  if (size_t pos = basename.find_last_of('.');
+      pos != string::npos)
     basename.erase(pos);
 
   WarningConsolidation warnings(no_warn);

@@ -77,10 +77,10 @@ DataTree::DataTree(const DataTree &d) :
 DataTree &
 DataTree::operator=(const DataTree &d)
 {
-  assert (&symbol_table == &d.symbol_table);
-  assert (&num_constants == &d.num_constants);
-  assert (&external_functions_table == &d.external_functions_table);
-  assert (is_dynamic == d.is_dynamic);
+  assert(&symbol_table == &d.symbol_table);
+  assert(&num_constants == &d.num_constants);
+  assert(&external_functions_table == &d.external_functions_table);
+  assert(is_dynamic == d.is_dynamic);
 
   num_const_node_map.clear();
   variable_node_map.clear();
@@ -116,8 +116,8 @@ DataTree::AddNonNegativeConstant(const string &value)
 {
   int id = num_constants.AddNonNegativeConstant(value);
 
-  auto it = num_const_node_map.find(id);
-  if (it != num_const_node_map.end())
+  if (auto it = num_const_node_map.find(id);
+      it != num_const_node_map.end())
     return it->second;
 
   auto sp = make_unique<NumConstNode>(*this, node_list.size(), id);
@@ -136,8 +136,8 @@ DataTree::AddVariable(int symb_id, int lag)
       exit(EXIT_FAILURE);
     }
 
-  auto it = variable_node_map.find({ symb_id, lag });
-  if (it != variable_node_map.end())
+  if (auto it = variable_node_map.find({ symb_id, lag });
+      it != variable_node_map.end())
     return it->second;
 
   auto sp = make_unique<VariableNode>(*this, node_list.size(), symb_id, lag);
@@ -171,41 +171,37 @@ DataTree::ParamUsedWithLeadLagInternal() const
 expr_t
 DataTree::AddPlus(expr_t iArg1, expr_t iArg2)
 {
-  if (iArg1 != Zero && iArg2 != Zero)
-    {
-      // Simplify x+(-y) in x-y
-      if (auto uarg2 = dynamic_cast<UnaryOpNode *>(iArg2);
-          uarg2 && uarg2->op_code == UnaryOpcode::uminus)
-        return AddMinus(iArg1, uarg2->arg);
-
-      // Simplify (-x)+y in y-x
-      if (auto uarg1 = dynamic_cast<UnaryOpNode *>(iArg1);
-          uarg1 && uarg1->op_code == UnaryOpcode::uminus)
-        return AddMinus(iArg2, uarg1->arg);
-
-      // Simplify (x-y)+y in x
-      if (auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
-          barg1 && barg1->op_code == BinaryOpcode::minus && barg1->arg2 == iArg2)
-        return barg1->arg1;
-
-      // Simplify y+(x-y) in x
-      if (auto barg2 = dynamic_cast<BinaryOpNode *>(iArg2);
-          barg2 && barg2->op_code == BinaryOpcode::minus && barg2->arg2 == iArg1)
-        return barg2->arg1;
-
-      // To treat commutativity of "+"
-      // Nodes iArg1 and iArg2 are sorted by index
-      if (iArg1->idx > iArg2->idx)
-        swap(iArg1, iArg2);
-
-      return AddBinaryOp(iArg1, BinaryOpcode::plus, iArg2);
-    }
-  else if (iArg1 != Zero)
+  if (iArg2 == Zero)
     return iArg1;
-  else if (iArg2 != Zero)
+
+  if (iArg1 == Zero)
     return iArg2;
-  else
-    return Zero;
+
+  // Simplify x+(-y) in x-y
+  if (auto uarg2 = dynamic_cast<UnaryOpNode *>(iArg2);
+      uarg2 && uarg2->op_code == UnaryOpcode::uminus)
+    return AddMinus(iArg1, uarg2->arg);
+
+  // Simplify (-x)+y in y-x
+  if (auto uarg1 = dynamic_cast<UnaryOpNode *>(iArg1);
+      uarg1 && uarg1->op_code == UnaryOpcode::uminus)
+    return AddMinus(iArg2, uarg1->arg);
+
+  // Simplify (x-y)+y in x
+  if (auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
+      barg1 && barg1->op_code == BinaryOpcode::minus && barg1->arg2 == iArg2)
+    return barg1->arg1;
+
+  // Simplify y+(x-y) in x
+  if (auto barg2 = dynamic_cast<BinaryOpNode *>(iArg2);
+      barg2 && barg2->op_code == BinaryOpcode::minus && barg2->arg2 == iArg1)
+    return barg2->arg1;
+
+  // To treat commutativity of "+"
+  // Nodes iArg1 and iArg2 are sorted by index
+  if (iArg1->idx > iArg2->idx)
+    swap(iArg1, iArg2);
+  return AddBinaryOp(iArg1, BinaryOpcode::plus, iArg2);
 }
 
 expr_t
@@ -241,52 +237,50 @@ DataTree::AddMinus(expr_t iArg1, expr_t iArg2)
 expr_t
 DataTree::AddUMinus(expr_t iArg1)
 {
-  if (iArg1 != Zero)
-    {
-      // Simplify -(-x) in x
-      if (auto uarg = dynamic_cast<UnaryOpNode *>(iArg1);
-          uarg && uarg->op_code == UnaryOpcode::uminus)
-        return uarg->arg;
-
-      return AddUnaryOp(UnaryOpcode::uminus, iArg1);
-    }
-  else
+  if (iArg1 == Zero)
     return Zero;
+
+  // Simplify -(-x) in x
+  if (auto uarg = dynamic_cast<UnaryOpNode *>(iArg1);
+      uarg && uarg->op_code == UnaryOpcode::uminus)
+    return uarg->arg;
+
+  return AddUnaryOp(UnaryOpcode::uminus, iArg1);
 }
 
 expr_t
 DataTree::AddTimes(expr_t iArg1, expr_t iArg2)
 {
+  if (iArg1 == Zero || iArg2 == Zero)
+    return Zero;
+
+  if (iArg1 == One)
+    return iArg2;
+
+  if (iArg2 == One)
+    return iArg1;
+
   if (iArg1 == MinusOne)
     return AddUMinus(iArg2);
-  else if (iArg2 == MinusOne)
+
+  if (iArg2 == MinusOne)
     return AddUMinus(iArg1);
-  else if (iArg1 != Zero && iArg1 != One && iArg2 != Zero && iArg2 != One)
-    {
-      // Simplify (x/y)*y in x
-      if (auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
-          barg1 && barg1->op_code == BinaryOpcode::divide && barg1->arg2 == iArg2)
-        return barg1->arg1;
 
-      // Simplify y*(x/y) in x
-      if (auto barg2 = dynamic_cast<BinaryOpNode *>(iArg2);
-          barg2 && barg2->op_code == BinaryOpcode::divide && barg2->arg2 == iArg1)
-        return barg2->arg1;
+  // Simplify (x/y)*y in x
+  if (auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
+      barg1 && barg1->op_code == BinaryOpcode::divide && barg1->arg2 == iArg2)
+    return barg1->arg1;
 
-      // To treat commutativity of "*"
-      // Nodes iArg1 and iArg2 are sorted by index
-      if (iArg1->idx > iArg2->idx)
-        swap(iArg1, iArg2);
-      return AddBinaryOp(iArg1, BinaryOpcode::times, iArg2);
-    }
-  else if (iArg1 != Zero && iArg1 != One && iArg2 == One)
-    return iArg1;
-  else if (iArg2 != Zero && iArg2 != One && iArg1 == One)
-    return iArg2;
-  else if (iArg2 == One && iArg1 == One)
-    return One;
-  else
-    return Zero;
+  // Simplify y*(x/y) in x
+  if (auto barg2 = dynamic_cast<BinaryOpNode *>(iArg2);
+      barg2 && barg2->op_code == BinaryOpcode::divide && barg2->arg2 == iArg1)
+    return barg2->arg1;
+
+  // To treat commutativity of "*"
+  // Nodes iArg1 and iArg2 are sorted by index
+  if (iArg1->idx > iArg2->idx)
+    swap(iArg1, iArg2);
+  return AddBinaryOp(iArg1, BinaryOpcode::times, iArg2);
 }
 
 expr_t
@@ -365,16 +359,20 @@ DataTree::AddDifferent(expr_t iArg1, expr_t iArg2)
 expr_t
 DataTree::AddPower(expr_t iArg1, expr_t iArg2)
 {
-  if (iArg1 != Zero && iArg2 != Zero && iArg1 != One && iArg2 != One)
-    return AddBinaryOp(iArg1, BinaryOpcode::power, iArg2);
-  else if (iArg1 == One)
+  // This one comes first, because 0⁰=1
+  if (iArg2 == Zero)
     return One;
-  else if (iArg2 == One)
-    return iArg1;
-  else if (iArg2 == Zero)
-    return One;
-  else
+
+  if (iArg1 == Zero)
     return Zero;
+
+  if (iArg1 == One)
+    return One;
+
+  if (iArg2 == One)
+    return iArg1;
+
+  return AddBinaryOp(iArg1, BinaryOpcode::power, iArg2);
 }
 
 expr_t
@@ -402,10 +400,10 @@ DataTree::AddAdl(expr_t iArg1, const string &name, const vector<int> &lags)
 expr_t
 DataTree::AddExp(expr_t iArg1)
 {
-  if (iArg1 != Zero)
-    return AddUnaryOp(UnaryOpcode::exp, iArg1);
-  else
+  if (iArg1 == Zero)
     return One;
+
+  return AddUnaryOp(UnaryOpcode::exp, iArg1);
 }
 
 expr_t
@@ -420,9 +418,9 @@ DataTree::AddLog(expr_t iArg1)
       exit(EXIT_FAILURE);
     }
 
-  // Try to simplify log(1/x) into -log(x)
-  auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
-  if (barg1 && barg1->op_code == BinaryOpcode::divide && barg1->arg1 == One)
+  // Simplify log(1/x) in −log(x)
+  if (auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
+      barg1 && barg1->op_code == BinaryOpcode::divide && barg1->arg1 == One)
     return AddUMinus(AddLog(barg1->arg2));
 
   return AddUnaryOp(UnaryOpcode::log, iArg1);
@@ -440,9 +438,9 @@ DataTree::AddLog10(expr_t iArg1)
       exit(EXIT_FAILURE);
     }
 
-  // Try to simplify log10(1/x) into -log10(x)
-  auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
-  if (barg1 && barg1->op_code == BinaryOpcode::divide && barg1->arg1 == One)
+  // Simplify log₁₀(1/x) in −log₁₀(x)
+  if (auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
+      barg1 && barg1->op_code == BinaryOpcode::divide && barg1->arg1 == One)
     return AddUMinus(AddLog10(barg1->arg2));
 
   return AddUnaryOp(UnaryOpcode::log10, iArg1);
@@ -451,118 +449,121 @@ DataTree::AddLog10(expr_t iArg1)
 expr_t
 DataTree::AddCos(expr_t iArg1)
 {
-  if (iArg1 != Zero)
-    return AddUnaryOp(UnaryOpcode::cos, iArg1);
-  else
+  if (iArg1 == Zero)
     return One;
+
+  return AddUnaryOp(UnaryOpcode::cos, iArg1);
 }
 
 expr_t
 DataTree::AddSin(expr_t iArg1)
 {
-  if (iArg1 != Zero)
-    return AddUnaryOp(UnaryOpcode::sin, iArg1);
-  else
+  if (iArg1 == Zero)
     return Zero;
+
+  return AddUnaryOp(UnaryOpcode::sin, iArg1);
 }
 
 expr_t
 DataTree::AddTan(expr_t iArg1)
 {
-  if (iArg1 != Zero)
-    return AddUnaryOp(UnaryOpcode::tan, iArg1);
-  else
+  if (iArg1 == Zero)
     return Zero;
+
+  return AddUnaryOp(UnaryOpcode::tan, iArg1);
 }
 
 expr_t
 DataTree::AddAcos(expr_t iArg1)
 {
-  if (iArg1 != One)
-    return AddUnaryOp(UnaryOpcode::acos, iArg1);
-  else
+  if (iArg1 == One)
     return Zero;
+
+  return AddUnaryOp(UnaryOpcode::acos, iArg1);
 }
 
 expr_t
 DataTree::AddAsin(expr_t iArg1)
 {
-  if (iArg1 != Zero)
-    return AddUnaryOp(UnaryOpcode::asin, iArg1);
-  else
+  if (iArg1 == Zero)
     return Zero;
+
+  return AddUnaryOp(UnaryOpcode::asin, iArg1);
 }
 
 expr_t
 DataTree::AddAtan(expr_t iArg1)
 {
-  if (iArg1 != Zero)
-    return AddUnaryOp(UnaryOpcode::atan, iArg1);
-  else
+  if (iArg1 == Zero)
     return Zero;
+
+  return AddUnaryOp(UnaryOpcode::atan, iArg1);
 }
 
 expr_t
 DataTree::AddCosh(expr_t iArg1)
 {
-  if (iArg1 != Zero)
-    return AddUnaryOp(UnaryOpcode::cosh, iArg1);
-  else
+  if (iArg1 == Zero)
     return One;
+
+  return AddUnaryOp(UnaryOpcode::cosh, iArg1);
 }
 
 expr_t
 DataTree::AddSinh(expr_t iArg1)
 {
-  if (iArg1 != Zero)
-    return AddUnaryOp(UnaryOpcode::sinh, iArg1);
-  else
+  if (iArg1 == Zero)
     return Zero;
+
+  return AddUnaryOp(UnaryOpcode::sinh, iArg1);
 }
 
 expr_t
 DataTree::AddTanh(expr_t iArg1)
 {
-  if (iArg1 != Zero)
-    return AddUnaryOp(UnaryOpcode::tanh, iArg1);
-  else
+  if (iArg1 == Zero)
     return Zero;
+
+  return AddUnaryOp(UnaryOpcode::tanh, iArg1);
 }
 
 expr_t
 DataTree::AddAcosh(expr_t iArg1)
 {
-  if (iArg1 != One)
-    return AddUnaryOp(UnaryOpcode::acosh, iArg1);
-  else
+  if (iArg1 == One)
     return Zero;
+
+  return AddUnaryOp(UnaryOpcode::acosh, iArg1);
 }
 
 expr_t
 DataTree::AddAsinh(expr_t iArg1)
 {
-  if (iArg1 != Zero)
-    return AddUnaryOp(UnaryOpcode::asinh, iArg1);
-  else
+  if (iArg1 == Zero)
     return Zero;
+
+  return AddUnaryOp(UnaryOpcode::asinh, iArg1);
 }
 
 expr_t
 DataTree::AddAtanh(expr_t iArg1)
 {
-  if (iArg1 != Zero)
-    return AddUnaryOp(UnaryOpcode::atanh, iArg1);
-  else
+  if (iArg1 == Zero)
     return Zero;
+
+  return AddUnaryOp(UnaryOpcode::atanh, iArg1);
 }
 
 expr_t
 DataTree::AddSqrt(expr_t iArg1)
 {
-  if (iArg1 != Zero)
-    return AddUnaryOp(UnaryOpcode::sqrt, iArg1);
-  else
+  if (iArg1 == Zero)
     return Zero;
+
+  if (iArg1 == One)
+    return One;
+
+  return AddUnaryOp(UnaryOpcode::sqrt, iArg1);
 }
 
 expr_t
@@ -570,10 +571,11 @@ DataTree::AddCbrt(expr_t iArg1)
 {
   if (iArg1 == Zero)
     return Zero;
-  else if (iArg1 == One)
+
+  if (iArg1 == One)
     return One;
-  else
-    return AddUnaryOp(UnaryOpcode::cbrt, iArg1);
+
+  return AddUnaryOp(UnaryOpcode::cbrt, iArg1);
 }
 
 expr_t
@@ -581,10 +583,11 @@ DataTree::AddAbs(expr_t iArg1)
 {
   if (iArg1 == Zero)
     return Zero;
+
   if (iArg1 == One)
     return One;
-  else
-    return AddUnaryOp(UnaryOpcode::abs, iArg1);
+
+  return AddUnaryOp(UnaryOpcode::abs, iArg1);
 }
 
 expr_t
@@ -592,19 +595,20 @@ DataTree::AddSign(expr_t iArg1)
 {
   if (iArg1 == Zero)
     return Zero;
+
   if (iArg1 == One)
     return One;
-  else
-    return AddUnaryOp(UnaryOpcode::sign, iArg1);
+
+  return AddUnaryOp(UnaryOpcode::sign, iArg1);
 }
 
 expr_t
 DataTree::AddErf(expr_t iArg1)
 {
-  if (iArg1 != Zero)
-    return AddUnaryOp(UnaryOpcode::erf, iArg1);
-  else
+  if (iArg1 == Zero)
     return Zero;
+
+  return AddUnaryOp(UnaryOpcode::erf, iArg1);
 }
 
 expr_t
@@ -658,8 +662,8 @@ DataTree::AddExpectation(int iArg1, expr_t iArg2)
 expr_t
 DataTree::AddVarExpectation(const string &model_name)
 {
-  auto it = var_expectation_node_map.find(model_name);
-  if (it != var_expectation_node_map.end())
+  if (auto it = var_expectation_node_map.find(model_name);
+      it != var_expectation_node_map.end())
     return it->second;
 
   auto sp = make_unique<VarExpectationNode>(*this, node_list.size(), model_name);
@@ -672,8 +676,8 @@ DataTree::AddVarExpectation(const string &model_name)
 expr_t
 DataTree::AddPacExpectation(const string &model_name)
 {
-  auto it = pac_expectation_node_map.find(model_name);
-  if (it != pac_expectation_node_map.end())
+  if (auto it = pac_expectation_node_map.find(model_name);
+      it != pac_expectation_node_map.end())
     return it->second;
 
   auto sp = make_unique<PacExpectationNode>(*this, node_list.size(), model_name);
@@ -695,8 +699,8 @@ DataTree::AddLocalVariable(int symb_id, expr_t value) noexcept(false)
   assert(symbol_table.getType(symb_id) == SymbolType::modelLocalVariable);
 
   // Throw an exception if symbol already declared
-  auto it = local_variables_table.find(symb_id);
-  if (it != local_variables_table.end())
+  if (auto it = local_variables_table.find(symb_id);
+      it != local_variables_table.end())
     throw LocalVariableException(symbol_table.getName(symb_id));
 
   local_variables_table[symb_id] = value;
@@ -708,8 +712,8 @@ DataTree::AddExternalFunction(int symb_id, const vector<expr_t> &arguments)
 {
   assert(symbol_table.getType(symb_id) == SymbolType::externalFunction);
 
-  auto it = external_function_node_map.find({ arguments, symb_id });
-  if (it != external_function_node_map.end())
+  if (auto it = external_function_node_map.find({ arguments, symb_id });
+      it != external_function_node_map.end())
     return it->second;
 
   auto sp = make_unique<ExternalFunctionNode>(*this, node_list.size(), symb_id, arguments);
@@ -724,9 +728,8 @@ DataTree::AddFirstDerivExternalFunction(int top_level_symb_id, const vector<expr
 {
   assert(symbol_table.getType(top_level_symb_id) == SymbolType::externalFunction);
 
-  auto it
-    = first_deriv_external_function_node_map.find({ arguments, input_index, top_level_symb_id });
-  if (it != first_deriv_external_function_node_map.end())
+  if (auto it = first_deriv_external_function_node_map.find({ arguments, input_index, top_level_symb_id });
+      it != first_deriv_external_function_node_map.end())
     return it->second;
 
   auto sp = make_unique<FirstDerivExternalFunctionNode>(*this, node_list.size(), top_level_symb_id, arguments, input_index);
@@ -741,10 +744,9 @@ DataTree::AddSecondDerivExternalFunction(int top_level_symb_id, const vector<exp
 {
   assert(symbol_table.getType(top_level_symb_id) == SymbolType::externalFunction);
 
-  auto it
-    = second_deriv_external_function_node_map.find({ arguments, input_index1, input_index2,
-          top_level_symb_id });
-  if (it != second_deriv_external_function_node_map.end())
+  if (auto it = second_deriv_external_function_node_map.find({ arguments, input_index1, input_index2,
+                                                               top_level_symb_id });
+    it != second_deriv_external_function_node_map.end())
     return it->second;
 
   auto sp = make_unique<SecondDerivExternalFunctionNode>(*this, node_list.size(), top_level_symb_id, arguments, input_index1, input_index2);

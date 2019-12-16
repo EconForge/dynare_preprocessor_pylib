@@ -167,7 +167,6 @@ private:
   vector<int> varexobs;
 
 public:
-  SymbolTable();
   //! Thrown when trying to access an unknown symbol (by name)
   class UnknownSymbolNameException
   {
@@ -425,8 +424,7 @@ SymbolTable::validateSymbID(int symb_id) const noexcept(false)
 inline bool
 SymbolTable::exists(const string &name) const
 {
-  auto iter = symbol_table.find(name);
-  return (iter != symbol_table.end());
+  return symbol_table.find(name) != symbol_table.end();
 }
 
 inline string
@@ -466,8 +464,8 @@ SymbolTable::getType(const string &name) const noexcept(false)
 inline int
 SymbolTable::getID(const string &name) const noexcept(false)
 {
-  auto iter = symbol_table.find(name);
-  if (iter != symbol_table.end())
+  if (auto iter = symbol_table.find(name);
+      iter != symbol_table.end())
     return iter->second;
   else
     throw UnknownSymbolNameException(name);
@@ -535,7 +533,7 @@ SymbolTable::maxID()
 inline int
 SymbolTable::orig_endo_nbr() const noexcept(false)
 {
-  return (endo_nbr() - aux_vars.size());
+  return endo_nbr() - aux_vars.size();
 }
 
 #endif

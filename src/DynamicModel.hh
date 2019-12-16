@@ -106,7 +106,7 @@ private:
   /*! Set by computeDerivID()s and computeDynJacobianCols() */
   int dynJacobianColsNbr{0};
   //! Temporary terms for block decomposed models
-  vector< vector<temporary_terms_t>> v_temporary_terms;
+  vector<vector<temporary_terms_t>> v_temporary_terms;
 
   vector<temporary_terms_inuse_t> v_temporary_terms_inuse;
 
@@ -123,7 +123,7 @@ private:
   void writeDynamicJuliaFile(const string &dynamic_basename) const;
   //! Writes dynamic model file (C version)
   /*! \todo add third derivatives handling */
-  void writeDynamicCFile(const string &basename, const int order) const;
+  void writeDynamicCFile(const string &basename, int order) const;
   //! Writes dynamic model file when SparseDLL option is on
   void writeSparseDynamicMFile(const string &basename) const;
   //! Writes the dynamic model equations and its derivatives
@@ -134,11 +134,11 @@ private:
   //! Writes the Block reordred structure of the model in M output
   void writeModelEquationsOrdered_M(const string &basename) const;
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
-  void writeModelEquationsCode_Block(const string &basename, const map_idx_t &map_idx, const bool linear_decomposition) const;
+  void writeModelEquationsCode_Block(const string &basename, const map_idx_t &map_idx, bool linear_decomposition) const;
   //! Writes the code of the model in virtual machine bytecode
   void writeModelEquationsCode(const string &basename, const map_idx_t &map_idx) const;
 
-  void writeSetAuxiliaryVariables(const string &basename, const bool julia) const;
+  void writeSetAuxiliaryVariables(const string &basename, bool julia) const;
   void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
 
   //! Computes jacobian and prepares for equation normalization
@@ -153,7 +153,7 @@ private:
   //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
   void computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives);
 
-  string reform(string name) const;
+  string reform(const string &name) const;
   map_idx_t map_idx;
 
   //! sorts the temporary terms in the blocks order
@@ -410,7 +410,7 @@ public:
 
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &basename,
-                                   const int &num, int &u_count_int, bool &file_open, bool is_two_boundaries, const bool linear_decomposition) const;
+                                   int num, int &u_count_int, bool &file_open, bool is_two_boundaries, bool linear_decomposition) const;
   //! Writes dynamic model file
   void writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, int order, bool julia) const;
   //! Writes file containing parameters derivatives
@@ -456,10 +456,10 @@ public:
   size_t dynamicOnlyEquationsNbr() const;
 
   //! Writes LaTeX file with the equations of the dynamic model
-  void writeLatexFile(const string &basename, const bool write_equation_tags) const;
+  void writeLatexFile(const string &basename, bool write_equation_tags) const;
 
   //! Writes LaTeX file with the equations of the dynamic model (for the original model)
-  void writeLatexOriginalFile(const string &basename, const bool write_equation_tags) const;
+  void writeLatexOriginalFile(const string &basename, bool write_equation_tags) const;
 
   int getDerivID(int symb_id, int lag) const noexcept(false) override;
   int getDynJacobianCol(int deriv_id) const noexcept(false) override;
@@ -587,164 +587,163 @@ public:
   unsigned int
   getNbBlocks() const override
   {
-    return (block_type_firstequation_size_mfs.size());
+    return block_type_firstequation_size_mfs.size();
   };
   //! Determine the simulation type of each block
   BlockSimulationType
   getBlockSimulationType(int block_number) const override
   {
-    return (get<0>(block_type_firstequation_size_mfs[block_number]));
+    return get<0>(block_type_firstequation_size_mfs[block_number]);
   };
   //! Return the first equation number of a block
   unsigned int
   getBlockFirstEquation(int block_number) const override
   {
-    return (get<1>(block_type_firstequation_size_mfs[block_number]));
+    return get<1>(block_type_firstequation_size_mfs[block_number]);
   };
   //! Return the size of the block block_number
   unsigned int
   getBlockSize(int block_number) const override
   {
-    return (get<2>(block_type_firstequation_size_mfs[block_number]));
+    return get<2>(block_type_firstequation_size_mfs[block_number]);
   };
   //! Return the number of exogenous variable in the block block_number
   unsigned int
   getBlockExoSize(int block_number) const override
   {
-    return (block_var_exo[block_number].first.size());
+    return block_var_exo[block_number].first.size();
   };
   //! Return the number of colums in the jacobian matrix for exogenous variable in the block block_number
   unsigned int
   getBlockExoColSize(int block_number) const override
   {
-    return (block_var_exo[block_number].second);
+    return block_var_exo[block_number].second;
   };
   //! Return the number of feedback variable of the block block_number
   unsigned int
   getBlockMfs(int block_number) const override
   {
-    return (get<3>(block_type_firstequation_size_mfs[block_number]));
+    return get<3>(block_type_firstequation_size_mfs[block_number]);
   };
   //! Return the maximum lag in a block
   unsigned int
   getBlockMaxLag(int block_number) const override
   {
-    return (block_lag_lead[block_number].first);
+    return block_lag_lead[block_number].first;
   };
   //! Return the maximum lead in a block
   unsigned int
   getBlockMaxLead(int block_number) const override
   {
-    return (block_lag_lead[block_number].second);
+    return block_lag_lead[block_number].second;
   };
   //! Return the type of equation (equation_number) belonging to the block block_number
   EquationType
   getBlockEquationType(int block_number, int equation_number) const override
   {
-    return (equation_type_and_normalized_equation[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].first);
+    return equation_type_and_normalized_equation[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].first;
   };
   //! Return true if the equation has been normalized
   bool
   isBlockEquationRenormalized(int block_number, int equation_number) const override
   {
-    return (equation_type_and_normalized_equation[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].first == E_EVALUATE_S);
+    return equation_type_and_normalized_equation[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].first == E_EVALUATE_S;
   };
   //! Return the expr_t of the equation equation_number belonging to the block block_number
   expr_t
   getBlockEquationExpr(int block_number, int equation_number) const override
   {
-    return (equations[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]]);
+    return equations[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]];
   };
   //! Return the expr_t of the renormalized equation equation_number belonging to the block block_number
   expr_t
   getBlockEquationRenormalizedExpr(int block_number, int equation_number) const override
   {
-    return (equation_type_and_normalized_equation[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].second);
+    return equation_type_and_normalized_equation[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].second;
   };
   //! Return the original number of equation equation_number belonging to the block block_number
   int
   getBlockEquationID(int block_number, int equation_number) const override
   {
-    return (equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]);
+    return equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number];
   };
   //! Return the original number of variable variable_number belonging to the block block_number
   int
   getBlockVariableID(int block_number, int variable_number) const override
   {
-    return (variable_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+variable_number]);
+    return variable_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+variable_number];
   };
   //! Return the original number of the exogenous variable varexo_number belonging to the block block_number
   int
   getBlockVariableExoID(int block_number, int variable_number) const override
   {
-    auto it = exo_block[block_number].find(variable_number);
-    return (it->first);
+    return exo_block[block_number].find(variable_number)->first;
   };
   //! Return the position of equation_number in the block number belonging to the block block_number
   int
   getBlockInitialEquationID(int block_number, int equation_number) const override
   {
-    return (static_cast<int>(inv_equation_reordered[equation_number]) - static_cast<int>(get<1>(block_type_firstequation_size_mfs[block_number])));
+    return static_cast<int>(inv_equation_reordered[equation_number]) - static_cast<int>(get<1>(block_type_firstequation_size_mfs[block_number]));
   };
   //! Return the position of variable_number in the block number belonging to the block block_number
   int
   getBlockInitialVariableID(int block_number, int variable_number) const override
   {
-    return (static_cast<int>(inv_variable_reordered[variable_number]) - static_cast<int>(get<1>(block_type_firstequation_size_mfs[block_number])));
+    return static_cast<int>(inv_variable_reordered[variable_number]) - static_cast<int>(get<1>(block_type_firstequation_size_mfs[block_number]));
   };
   //! Return the block number containing the endogenous variable variable_number
   int
   getBlockVariableID(int variable_number) const
   {
-    return (get<0>(variable_block_lead_lag[variable_number]));
+    return get<0>(variable_block_lead_lag[variable_number]);
   };
   //! Return the position of the exogenous variable_number in the block number belonging to the block block_number
   int
   getBlockInitialExogenousID(int block_number, int variable_number) const override
   {
-    auto it = block_exo_index.find(block_number);
-    if (it != block_exo_index.end())
+    if (auto it = block_exo_index.find(block_number);
+        it != block_exo_index.end())
       {
-        auto it1 = it->second.find(variable_number);
-        if (it1 != it->second.end())
+        if (auto it1 = it->second.find(variable_number);
+            it1 != it->second.end())
           return it1->second;
         else
           return -1;
       }
     else
-      return (-1);
+      return -1;
   };
   //! Return the position of the deterministic exogenous variable_number in the block number belonging to the block block_number
   int
   getBlockInitialDetExogenousID(int block_number, int variable_number) const override
   {
-    auto it = block_det_exo_index.find(block_number);
-    if (it != block_det_exo_index.end())
+    if (auto it = block_det_exo_index.find(block_number);
+        it != block_det_exo_index.end())
       {
-        auto it1 = it->second.find(variable_number);
-        if (it1 != it->second.end())
+        if (auto it1 = it->second.find(variable_number);
+            it1 != it->second.end())
           return it1->second;
         else
           return -1;
       }
     else
-      return (-1);
+      return -1;
   };
   //! Return the position of the other endogenous variable_number in the block number belonging to the block block_number
   int
   getBlockInitialOtherEndogenousID(int block_number, int variable_number) const override
   {
-    auto it = block_other_endo_index.find(block_number);
-    if (it != block_other_endo_index.end())
+    if (auto it = block_other_endo_index.find(block_number);
+        it != block_other_endo_index.end())
       {
-        auto it1 = it->second.find(variable_number);
-        if (it1 != it->second.end())
+        if (auto it1 = it->second.find(variable_number);
+            it1 != it->second.end())
           return it1->second;
         else
           return -1;
       }
     else
-      return (-1);
+      return -1;
   };
   bool isModelLocalVariableUsed() const;
 

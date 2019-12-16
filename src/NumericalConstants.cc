@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2012 Dynare Team
+ * Copyright © 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -26,9 +26,8 @@
 int
 NumericalConstants::AddNonNegativeConstant(const string &iConst)
 {
-  map<string, int>::const_iterator iter = numConstantsIndex.find(iConst);
-
-  if (iter != numConstantsIndex.end())
+  if (auto iter = numConstantsIndex.find(iConst);
+      iter != numConstantsIndex.end())
     return iter->second;
 
   auto id = static_cast<int>(mNumericalConstants.size());

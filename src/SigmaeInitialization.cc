@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2015 Dynare Team
+ * Copyright © 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -52,8 +52,7 @@ SigmaeStatement::determineMatrixForm(const matrix_t &matrix) noexcept(false)
   // Checking if matrix is triangular (upper or lower):
   // each row has one element more or less than the previous one
   // and first or last one has one element.
-  matrix_t::const_iterator ir;
-  for (ir = matrix.begin(), ir++; ir != matrix.end(); ir++, nbe += inc)
+  for (auto ir = ++matrix.begin(); ir != matrix.end(); ++ir, nbe += inc)
     if (ir->size() != nbe)
       throw MatrixFormException();
 
@@ -63,13 +62,12 @@ SigmaeStatement::determineMatrixForm(const matrix_t &matrix) noexcept(false)
 void
 SigmaeStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  size_t ic, ic1, ir, ir1;
-
   output << "M_.Sigma_e = [..." << endl;
-  for (ir = 0; ir < matrix.size(); ir++)
+  for (size_t ir = 0; ir < matrix.size(); ir++)
     {
-      for (ic = 0; ic < matrix.size(); ic++)
+      for (size_t ic = 0; ic < matrix.size(); ic++)
         {
+          size_t ic1, ir1;
           if (ic >= ir && matrix_form == MatrixForm::upper)
             {
               ic1 = ic-ir;

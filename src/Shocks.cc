@@ -40,27 +40,26 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
 {
   int exo_det_length = 0;
 
-  for (const auto & det_shock : det_shocks)
+  for (const auto & [id, shock_vec] : det_shocks)
     {
-      int id = symbol_table.getTypeSpecificID(det_shock.first) + 1;
-      bool exo_det = (symbol_table.getType(det_shock.first) == SymbolType::exogenousDet);
+      bool exo_det = (symbol_table.getType(id) == SymbolType::exogenousDet);
 
-      for (const auto &it : det_shock.second)
+      for (const auto &it : shock_vec)
         {
-          const int &period1 = it.period1;
-          const int &period2 = it.period2;
-          const expr_t value = it.value;
+          int period1 = it.period1;
+          int period2 = it.period2;
+          expr_t value = it.value;
 
           output << "M_.det_shocks = [ M_.det_shocks;" << endl
                  << "struct('exo_det'," << static_cast<int>(exo_det)
-                 << ",'exo_id'," << id
+                 << ",'exo_id'," << symbol_table.getTypeSpecificID(id)+1
                  << ",'multiplicative'," << static_cast<int>(mshocks)
                  << ",'periods'," << period1 << ":" << period2
                  << ",'value',";
           value->writeOutput(output);
           output << ") ];" << endl;
 
-          if (exo_det && (period2 > exo_det_length))
+          if (exo_det && period2 > exo_det_length)
             exo_det_length = period2;
         }
     }
@@ -71,15 +70,13 @@ void
 AbstractShocksStatement::writeJsonDetShocks(ostream &output) const
 {
   output << R"("deterministic_shocks": [)";
-  for (auto it = det_shocks.begin();
-       it != det_shocks.end(); it++)
+  for (auto it = det_shocks.begin(); it != det_shocks.end(); ++it)
     {
       if (it != det_shocks.begin())
         output << ", ";
       output << R"({"var": ")" << symbol_table.getName(it->first) << R"(", )"
              << R"("values": [)";
-      for (auto it1 = it->second.begin();
-           it1 != it->second.end(); it1++)
+      for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
         {
           if (it1 != it->second.begin())
             output << ", ";
@@ -165,7 +162,7 @@ ShocksStatement::writeJsonOutput(ostream &output) const
       writeJsonDetShocks(output);
     }
   output<< R"(, "variance": [)";
-  for (auto it = var_shocks.begin(); it != var_shocks.end(); it++)
+  for (auto it = var_shocks.begin(); it != var_shocks.end(); ++it)
     {
       if (it != var_shocks.begin())
         output << ", ";
@@ -187,7 +184,7 @@ ShocksStatement::writeJsonOutput(ostream &output) const
     }
   output << "]"
          << R"(, "covariance": [)";
-  for (auto it = covar_shocks.begin(); it != covar_shocks.end(); it++)
+  for (auto it = covar_shocks.begin(); it != covar_shocks.end(); ++it)
     {
       if (it != covar_shocks.begin())
         output << ", ";
@@ -200,7 +197,7 @@ ShocksStatement::writeJsonOutput(ostream &output) const
     }
   output << "]"
          << R"(, "correlation": [)";
-  for (auto it = corr_shocks.begin(); it != corr_shocks.end(); it++)
+  for (auto it = corr_shocks.begin(); it != corr_shocks.end(); ++it)
     {
       if (it != corr_shocks.begin())
         output << ", ";
@@ -246,12 +243,10 @@ ShocksStatement::writeVarOrStdShock(ostream &output, var_and_std_shocks_t::const
 void
 ShocksStatement::writeVarAndStdShocks(ostream &output) const
 {
-  var_and_std_shocks_t::const_iterator it;
-
-  for (it = var_shocks.begin(); it != var_shocks.end(); it++)
+  for (auto it = var_shocks.begin(); it != var_shocks.end(); ++it)
     writeVarOrStdShock(output, it, false);
 
-  for (it = std_shocks.begin(); it != std_shocks.end(); it++)
+  for (auto it = std_shocks.begin(); it != std_shocks.end(); ++it)
     writeVarOrStdShock(output, it, true);
 }
 
@@ -302,12 +297,10 @@ ShocksStatement::writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_t:
 void
 ShocksStatement::writeCovarAndCorrShocks(ostream &output) const
 {
-  covar_and_corr_shocks_t::const_iterator it;
-
-  for (it = covar_shocks.begin(); it != covar_shocks.end(); it++)
+  for (auto it = covar_shocks.begin(); it != covar_shocks.end(); ++it)
     writeCovarOrCorrShock(output, it, false);
 
-  for (it = corr_shocks.begin(); it != corr_shocks.end(); it++)
+  for (auto it = corr_shocks.begin(); it != corr_shocks.end(); ++it)
     writeCovarOrCorrShock(output, it, true);
 }
 
@@ -317,32 +310,31 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
   /* Error out if variables are not of the right type. This must be done here
      and not at parsing time (see #448).
      Also Determine if there is a calibrated measurement error */
-  for (auto var_shock : var_shocks)
+  for (auto [id, val] : var_shocks)
     {
-      if (symbol_table.getType(var_shock.first) != SymbolType::exogenous
-          && !symbol_table.isObservedVariable(var_shock.first))
+      if (symbol_table.getType(id) != SymbolType::exogenous
+          && !symbol_table.isObservedVariable(id))
         {
           cerr << "shocks: setting a variance on '"
-               << symbol_table.getName(var_shock.first) << "' is not allowed, because it is neither an exogenous variable nor an observed endogenous variable" << endl;
+               << symbol_table.getName(id) << "' is not allowed, because it is neither an exogenous variable nor an observed endogenous variable" << endl;
           exit(EXIT_FAILURE);
         }
     }
 
-  for (auto std_shock : std_shocks)
+  for (auto [id, val] : std_shocks)
     {
-      if (symbol_table.getType(std_shock.first) != SymbolType::exogenous
-          && !symbol_table.isObservedVariable(std_shock.first))
+      if (symbol_table.getType(id) != SymbolType::exogenous
+          && !symbol_table.isObservedVariable(id))
         {
           cerr << "shocks: setting a standard error on '"
-               << symbol_table.getName(std_shock.first) << "' is not allowed, because it is neither an exogenous variable nor an observed endogenous variable" << endl;
+               << symbol_table.getName(id) << "' is not allowed, because it is neither an exogenous variable nor an observed endogenous variable" << endl;
           exit(EXIT_FAILURE);
         }
     }
 
-  for (const auto & covar_shock : covar_shocks)
+  for (const auto & [ids, val] : covar_shocks)
     {
-      int symb_id1 = covar_shock.first.first;
-      int symb_id2 = covar_shock.first.second;
+      int symb_id1 = ids.first, symb_id2 = ids.second;
 
       if (!((symbol_table.getType(symb_id1) == SymbolType::exogenous
              && symbol_table.getType(symb_id2) == SymbolType::exogenous)
@@ -356,10 +348,9 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
         }
     }
 
-  for (const auto & corr_shock : corr_shocks)
+  for (const auto & [ids, val] : corr_shocks)
     {
-      int symb_id1 = corr_shock.first.first;
-      int symb_id2 = corr_shock.first.second;
+      int symb_id1 = ids.first, symb_id2 = ids.second;
 
       if (!((symbol_table.getType(symb_id1) == SymbolType::exogenous
              && symbol_table.getType(symb_id2) == SymbolType::exogenous)
@@ -377,36 +368,35 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
   mod_file_struct.calibrated_measurement_errors |= has_calibrated_measurement_errors();
 
   // Fill in mod_file_struct.parameters_with_shocks_values (related to #469)
-  for (auto var_shock : var_shocks)
-    var_shock.second->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
-  for (auto std_shock : std_shocks)
-    std_shock.second->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
-  for (const auto & covar_shock : covar_shocks)
-    covar_shock.second->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
-  for (const auto & corr_shock : corr_shocks)
-    corr_shock.second->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
-
+  for (auto [id, val] : var_shocks)
+    val->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
+  for (auto [id, val] : std_shocks)
+    val->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
+  for (const auto &[ids, val] : covar_shocks)
+    val->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
+  for (const auto &[ids, val] : corr_shocks)
+    val->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
 }
 
 bool
 ShocksStatement::has_calibrated_measurement_errors() const
 {
-  for (auto var_shock : var_shocks)
-    if (symbol_table.isObservedVariable(var_shock.first))
+  for (auto [id, val] : var_shocks)
+    if (symbol_table.isObservedVariable(id))
       return true;
 
-  for (auto std_shock : std_shocks)
-    if (symbol_table.isObservedVariable(std_shock.first))
+  for (auto [id, val] : std_shocks)
+    if (symbol_table.isObservedVariable(id))
       return true;
 
-  for (const auto & covar_shock : covar_shocks)
-    if (symbol_table.isObservedVariable(covar_shock.first.first)
-        || symbol_table.isObservedVariable(covar_shock.first.second))
+  for (const auto & [ids, val] : covar_shocks)
+    if (symbol_table.isObservedVariable(ids.first)
+        || symbol_table.isObservedVariable(ids.second))
       return true;
 
-  for (const auto & corr_shock : corr_shocks)
-    if (symbol_table.isObservedVariable(corr_shock.first.first)
-        || symbol_table.isObservedVariable(corr_shock.first.second))
+  for (const auto & [ids, val] : corr_shocks)
+    if (symbol_table.isObservedVariable(ids.first)
+        || symbol_table.isObservedVariable(ids.second))
       return true;
 
   return false;
@@ -450,11 +440,6 @@ ConditionalForecastPathsStatement::checkPass(ModFileStructure &mod_file_struct, 
         // Period1 < Period2, as enforced in ParsingDriver::add_period()
         this_path_length = max(this_path_length, elem.period2);
       path_length = max(this_path_length, path_length);
-      //      else if (path_length != this_path_length)
-      //        {
-      //          cerr << "conditional_forecast_paths: all constrained paths must have the same length!" << endl;
-      //          exit(EXIT_FAILURE);
-      //        }
     }
 }
 
@@ -466,15 +451,13 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
          << "constrained_paths_ = NaN(" << paths.size() << ", " << path_length << ");" << endl;
 
   int k = 1;
-  for (auto it = paths.begin();
-       it != paths.end(); it++, k++)
+  for (auto it = paths.begin(); it != paths.end(); ++it, k++)
     {
       if (it == paths.begin())
         output << "constrained_vars_ = " << symbol_table.getTypeSpecificID(it->first) + 1 << ";" << endl;
       else
         output << "constrained_vars_ = [constrained_vars_; " << symbol_table.getTypeSpecificID(it->first) + 1 << "];" << endl;
-      const vector<AbstractShocksStatement::DetShockElement> &elems = it->second;
-      for (auto elem : elems)
+      for (const auto &elem : it->second)
         for (int j = elem.period1; j <= elem.period2; j++)
           {
             output << "constrained_paths_(" << k << "," << j << ")=";
@@ -489,13 +472,13 @@ ConditionalForecastPathsStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "conditional_forecast_paths")"
          << R"(, "paths": [)";
-  for (auto it = paths.begin(); it != paths.end(); it++)
+  for (auto it = paths.begin(); it != paths.end(); ++it)
     {
       if (it != paths.begin())
         output << ", ";
       output << R"({"var": ")" << symbol_table.getName(it->first) << R"(", )"
              << R"("values": [)";
-      for (auto it1 = it->second.begin(); it1 != it->second.end(); it1++)
+      for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
         {
           if (it1 != it->second.begin())
             output << ", ";
@@ -540,7 +523,7 @@ MomentCalibration::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "moment_calibration")"
          << R"(, "moment_calibration_criteria": [)";
-  for (auto it = constraints.begin(); it != constraints.end(); it++)
+  for (auto it = constraints.begin(); it != constraints.end(); ++it)
     {
       if (it != constraints.begin())
         output << ", ";
@@ -598,7 +581,7 @@ IrfCalibration::writeJsonOutput(ostream &output) const
     }
 
   output << R"(, "irf_restrictions": [)";
-  for (auto it = constraints.begin(); it != constraints.end(); it++)
+  for (auto it = constraints.begin(); it != constraints.end(); ++it)
     {
       if (it != constraints.begin())
         output << ", ";
@@ -627,9 +610,9 @@ ShockGroupsStatement::writeOutput(ostream &output, const string &basename, bool 
 {
   int i = 1;
   bool unique_label = true;
-  for (auto it = shock_groups.begin(); it != shock_groups.end(); it++, unique_label = true)
+  for (auto it = shock_groups.begin(); it != shock_groups.end(); ++it, unique_label = true)
     {
-      for (auto it1 = it+1; it1 != shock_groups.end(); it1++)
+      for (auto it1 = it+1; it1 != shock_groups.end(); ++it1)
         if (it->name == it1->name)
           {
             unique_label = false;
@@ -658,9 +641,9 @@ ShockGroupsStatement::writeJsonOutput(ostream &output) const
   output << R"({"statementName": "shock_groups", "name": ")" << name << R"(", "groups": [)";
   bool unique_label = true;
   bool printed_group = false;
-  for (auto it = shock_groups.begin(); it != shock_groups.end(); it++, unique_label = true)
+  for (auto it = shock_groups.begin(); it != shock_groups.end(); ++it, unique_label = true)
     {
-      for (auto it1 = it+1; it1 != shock_groups.end(); it1++)
+      for (auto it1 = it+1; it1 != shock_groups.end(); ++it1)
         if (it->name == it1->name)
           {
             unique_label = false;
@@ -675,7 +658,7 @@ ShockGroupsStatement::writeJsonOutput(ostream &output) const
             printed_group = true;
           output << R"({"group_name": ")" << it->name << R"(",)"
                  << R"("shocks": [)";
-          for (auto it1 = it->list.begin(); it1 != it->list.end(); it1++)
+          for (auto it1 = it->list.begin(); it1 != it->list.end(); ++it1)
             {
               if (it1 != it->list.begin())
                 output << ", ";

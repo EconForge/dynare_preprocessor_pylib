@@ -43,9 +43,6 @@ AuxVarInfo::AuxVarInfo(int symb_id_arg, AuxVarType type_arg, int orig_symb_id_ar
 {
 }
 
-SymbolTable::SymbolTable()
-= default;
-
 int
 SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string, string>> &partition_value) noexcept(false)
 {
@@ -74,7 +71,7 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
 
   string final_long_name = name;
   bool non_long_name_partition_exists = false;
-  for (auto it : partition_value)
+  for (const auto &it : partition_value)
     if (it.first == "long_name")
       final_long_name = it.second;
     else
@@ -90,7 +87,7 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
   if (non_long_name_partition_exists)
     {
       map<string, string> pmv;
-      for (auto it : partition_value)
+      for (const auto &it : partition_value)
         pmv[it.first] = it.second;
       partition_value_map[id] = pmv;
     }
@@ -201,12 +198,11 @@ SymbolTable::getPartitionsForType(SymbolType st) const noexcept(false)
   map<string, map<int, string>> partitions;
   for (const auto & it : partition_value_map)
     if (getType(it.first) == st)
-      for (auto it1 = it.second.begin();
-           it1 != it.second.end(); it1++)
+      for (const auto &it1 : it.second)
         {
-          if (partitions.find(it1->first) == partitions.end())
-            partitions[it1->first] = map<int, string> ();
-          partitions[it1->first][it.first] = it1->second;
+          if (partitions.find(it1.first) == partitions.end())
+            partitions[it1.first] = {};
+          partitions[it1.first][it.first] = it1.second;
         }
   return partitions;
 }
@@ -227,24 +223,22 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
                << "M_.exo_names_tex(" << id+1 << ") = {'" << getTeXName(exo_ids[id]) << "'};" << endl
                << "M_.exo_names_long(" << id+1 << ") = {'" << getLongName(exo_ids[id]) << "'};" << endl;
       map<string, map<int, string>> partitions = getPartitionsForType(SymbolType::exogenous);
-      for (map<string, map<int, string>>::const_iterator it = partitions.begin();
-           it != partitions.end(); it++)
-        if (it->first != "long_name")
+      for (auto & partition : partitions)
+        if (partition.first != "long_name")
           {
-            map<int, string>::const_iterator it1;
-            output << "M_.exo_partitions." << it->first << " = { ";
+            output << "M_.exo_partitions." << partition.first << " = { ";
             for (int id = 0; id < exo_nbr(); id++)
               {
                 output << "'";
-                it1 = it->second.find(exo_ids[id]);
-                if (it1 != it->second.end())
+                if (auto it1 = partition.second.find(exo_ids[id]);
+                    it1 != partition.second.end())
                   output << it1->second;
                 output << "' ";
               }
             output << "};" << endl;
-            if (it->first == "status")
+            if (partition.first == "status")
               output << "M_ = set_observed_exogenous_variables(M_);" << endl;
-            if (it->first == "used")
+            if (partition.first == "used")
               output << "M_ = set_exogenous_variables_for_simulation(M_);" << endl;
           }
     }
@@ -266,17 +260,15 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
                << "M_.exo_det_names_long(" << id+1 << ") = {'" << getLongName(exo_det_ids[id]) << "'};" << endl;
       output << "M_.exo_det_partitions = struct();" << endl;
       map<string, map<int, string>> partitions = getPartitionsForType(SymbolType::exogenousDet);
-      for (map<string, map<int, string>>::const_iterator it = partitions.begin();
-           it != partitions.end(); it++)
-        if (it->first != "long_name")
+      for (auto & partition : partitions)
+        if (partition.first != "long_name")
           {
-            map<int, string>::const_iterator it1;
-            output << "M_.exo_det_partitions." << it->first << " = { ";
+            output << "M_.exo_det_partitions." << partition.first << " = { ";
             for (int id = 0; id < exo_det_nbr(); id++)
               {
                 output << "'";
-                it1 = it->second.find(exo_det_ids[id]);
-                if (it1 != it->second.end())
+                if (auto it1 = partition.second.find(exo_det_ids[id]);
+                    it1 != partition.second.end())
                   output << it1->second;
                 output << "' ";
               }
@@ -295,17 +287,15 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
                << "M_.endo_names_long(" << id+1 << ") = {'" << getLongName(endo_ids[id]) << "'};" << endl;
       output << "M_.endo_partitions = struct();" << endl;
       map<string, map<int, string>> partitions = getPartitionsForType(SymbolType::endogenous);
-      for (map<string, map<int, string>>::const_iterator it = partitions.begin();
-           it != partitions.end(); it++)
-        if (it->first != "long_name")
+      for (auto & partition : partitions)
+        if (partition.first != "long_name")
           {
-            map<int, string>::const_iterator it1;
-            output << "M_.endo_partitions." << it->first << " = { ";
+            output << "M_.endo_partitions." << partition.first << " = { ";
             for (int id = 0; id < endo_nbr(); id++)
               {
                 output << "'";
-                it1 = it->second.find(endo_ids[id]);
-                if (it1 != it->second.end())
+                if (auto it1 = partition.second.find(endo_ids[id]);
+                    it1 != partition.second.end())
                   output << it1->second;
                 output << "' ";
               }
@@ -328,17 +318,15 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
         }
       output << "M_.param_partitions = struct();" << endl;
       map<string, map<int, string>> partitions = getPartitionsForType(SymbolType::parameter);
-      for (map<string, map<int, string>>::const_iterator it = partitions.begin();
-           it != partitions.end(); it++)
-        if (it->first != "long_name")
+      for (auto & partition : partitions)
+        if (partition.first != "long_name")
           {
-            map<int, string>::const_iterator it1;
-            output << "M_.param_partitions." << it->first << " = { ";
+            output << "M_.param_partitions." << partition.first << " = { ";
             for (int id = 0; id < param_nbr(); id++)
               {
                 output << "'";
-                it1 = it->second.find(param_ids[id]);
-                if (it1 != it->second.end())
+                if (auto it1 = partition.second.find(param_ids[id]);
+                    it1 != partition.second.end())
                   output << it1->second;
                 output << "' ";
               }
@@ -418,8 +406,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
     {
       int ic = 1;
       output << "options_.varobs = cell(" << observedVariablesNbr() << ", 1);" << endl;
-      for (auto it = varobs.begin();
-           it != varobs.end(); it++, ic++)
+      for (auto it = varobs.begin(); it != varobs.end(); ++it, ic++)
         output << "options_.varobs(" << ic << ")  = {'" << getName(*it) << "'};" << endl;
 
       output << "options_.varobs_id = [ ";
@@ -432,8 +419,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
     {
       int ic = 1;
       output << "options_.varexobs = cell(1);" << endl;
-      for (auto it = varexobs.begin();
-           it != varexobs.end(); it++, ic++)
+      for (auto it = varexobs.begin(); it != varexobs.end(); ++it, ic++)
         output << "options_.varexobs(" << ic << ")  = {'" << getName(*it) << "'};" << endl;
 
       output << "options_.varexobs_id = [ ";
@@ -757,13 +743,11 @@ SymbolTable::getAuxiliaryVarsExprNode(int symb_id) const noexcept(false)
 {
   for (const auto & aux_var : aux_vars)
     if (aux_var.get_symb_id() == symb_id)
-      {
-        expr_t expr_node = aux_var.get_expr_node();
-        if (expr_node != nullptr)
-          return expr_node;
-        else
-          throw SearchFailedException(symb_id);
-      }
+      if (expr_t expr_node = aux_var.get_expr_node();
+          expr_node)
+        return expr_node;
+      else
+        throw SearchFailedException(symb_id);
   throw SearchFailedException(symb_id);
 }
 
@@ -810,7 +794,7 @@ SymbolTable::observedVariablesNbr() const
 bool
 SymbolTable::isObservedVariable(int symb_id) const
 {
-  return (find(varobs.begin(), varobs.end(), symb_id) != varobs.end());
+  return find(varobs.begin(), varobs.end(), symb_id) != varobs.end();
 }
 
 int
@@ -838,7 +822,7 @@ SymbolTable::observedExogenousVariablesNbr() const
 bool
 SymbolTable::isObservedExogenousVariable(int symb_id) const
 {
-  return (find(varexobs.begin(), varexobs.end(), symb_id) != varexobs.end());
+  return find(varexobs.begin(), varexobs.end(), symb_id) != varexobs.end();
 }
 
 int

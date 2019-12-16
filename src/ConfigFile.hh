@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2017 Dynare Team
+ * Copyright © 2010-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -67,16 +67,11 @@ public:
             string operatingSystem_arg);
 
 protected:
-  const string computerName;
-  const string port;
-  int minCpuNbr;
-  int maxCpuNbr;
-  const string userName;
-  const string password;
-  const string remoteDrive;
-  const string remoteDirectory;
-  const string dynarePath;
-  const string matlabOctavePath;
+  const string computerName, port;
+  int minCpuNbr, maxCpuNbr;
+  const string userName, password;
+  const string remoteDrive, remoteDirectory;
+  const string dynarePath, matlabOctavePath;
   const bool singleCompThread;
   const int numberOfThreadsPerJob;
   const string operatingSystem;
@@ -99,9 +94,7 @@ public:
   ConfigFile(bool parallel_arg, bool parallel_test_arg, bool parallel_slave_open_mode_arg, string cluster_name);
 
 private:
-  const bool parallel;
-  const bool parallel_test;
-  const bool parallel_slave_open_mode;
+  const bool parallel, parallel_test, parallel_slave_open_mode;
   const string cluster_name;
   string firstClusterName;
   //! Hooks

@@ -92,48 +92,48 @@ VerbatimStatement::writeJsonOutput(ostream &output) const
 void
 OptionsList::writeOutput(ostream &output) const
 {
-  for (const auto & num_option : num_options)
-    output << "options_." << num_option.first << " = " << num_option.second << ";" << endl;
+  for (const auto & [name, val] : num_options)
+    output << "options_." << name << " = " << val << ";" << endl;
 
-  for (const auto & paired_num_option : paired_num_options)
-    output << "options_." << paired_num_option.first << " = [" << paired_num_option.second.first << "; "
-           << paired_num_option.second.second << "];" << endl;
+  for (const auto & [name, vals] : paired_num_options)
+    output << "options_." << name << " = [" << vals.first << "; "
+           << vals.second << "];" << endl;
 
-  for (const auto & string_option : string_options)
-    output << "options_." << string_option.first << " = '" << string_option.second << "';" << endl;
+  for (const auto & [name, val] : string_options)
+    output << "options_." << name << " = '" << val << "';" << endl;
 
-  for (const auto & date_option : date_options)
-    output << "options_." << date_option.first << " = " << date_option.second << ";" << endl;
+  for (const auto & [name, val] : date_options)
+    output << "options_." << name << " = " << val << ";" << endl;
 
-  for (const auto & symbol_list_option : symbol_list_options)
-    symbol_list_option.second.writeOutput("options_." + symbol_list_option.first, output);
+  for (const auto & [name, list] : symbol_list_options)
+    list.writeOutput("options_." + name, output);
 
-  for (const auto & vector_int_option : vector_int_options)
+  for (const auto & [name, vals] : vector_int_options)
     {
-      output << "options_." << vector_int_option.first << " = ";
-      if (vector_int_option.second.size() > 1)
+      output << "options_." << name << " = ";
+      if (vals.size() > 1)
         {
           output << "[";
-          for (int viit : vector_int_option.second)
+          for (int viit : vals)
             output << viit << ";";
           output << "];" << endl;
         }
       else
-        output << vector_int_option.second.front() << ";" << endl;
+        output << vals.front() << ";" << endl;
     }
 
-  for (const auto & vector_str_option : vector_str_options)
+  for (const auto & [name, vals] : vector_str_options)
     {
-      output << "options_." << vector_str_option.first << " = ";
-      if (vector_str_option.second.size() > 1)
+      output << "options_." << name << " = ";
+      if (vals.size() > 1)
         {
           output << "{";
-          for (const auto & viit : vector_str_option.second)
+          for (const auto & viit : vals)
             output << "'" << viit << "';";
           output << "};" << endl;
         }
       else
-        output << vector_str_option.second.front() << ";" << endl;
+        output << vals.front() << ";" << endl;
     }
 }
 
@@ -141,8 +141,8 @@ void
 OptionsList::writeOutput(ostream &output, const string &option_group) const
 {
   // Initialize option_group as an empty struct iff the field does not exist!
-  size_t idx = option_group.find_last_of(".");
-  if (idx != string::npos)
+  if (size_t idx = option_group.find_last_of(".");
+      idx != string::npos)
     {
       output << "if ~isfield(" << option_group.substr(0, idx) << ",'" << option_group.substr(idx+1) << "')" << endl;
       output << "    " << option_group << " = struct();" << endl;
@@ -151,48 +151,48 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
   else
     output << option_group << " = struct();" << endl;
 
-  for (const auto & num_option : num_options)
-    output << option_group << "." << num_option.first << " = " << num_option.second << ";" << endl;
+  for (const auto & [name, val] : num_options)
+    output << option_group << "." << name << " = " << val << ";" << endl;
 
-  for (const auto & paired_num_option : paired_num_options)
-    output << option_group << "." << paired_num_option.first << " = [" << paired_num_option.second.first << "; "
-           << paired_num_option.second.second << "];" << endl;
+  for (const auto & [name, vals] : paired_num_options)
+    output << option_group << "." << name << " = [" << vals.first << "; "
+           << vals.second << "];" << endl;
 
-  for (const auto & string_option : string_options)
-    output << option_group << "." << string_option.first << " = '" << string_option.second << "';" << endl;
+  for (const auto & [name, val] : string_options)
+    output << option_group << "." << name << " = '" << val << "';" << endl;
 
-  for (const auto & date_option : date_options)
-    output << option_group << "." << date_option.first << " = " << date_option.second << ";" << endl;
+  for (const auto & [name, val] : date_options)
+    output << option_group << "." << name << " = " << val << ";" << endl;
 
-  for (const auto & symbol_list_option : symbol_list_options)
-    symbol_list_option.second.writeOutput(option_group + "." + symbol_list_option.first, output);
+  for (const auto & [name, list] : symbol_list_options)
+    list.writeOutput(option_group + "." + name, output);
 
-  for (const auto & vector_int_option : vector_int_options)
+  for (const auto & [name, vals] : vector_int_options)
     {
-      output << option_group << "." << vector_int_option.first << " = ";
-      if (vector_int_option.second.size() > 1)
+      output << option_group << "." << name << " = ";
+      if (vals.size() > 1)
         {
           output << "[";
-          for (int viit : vector_int_option.second)
+          for (int viit : vals)
             output << viit << ";";
           output << "];" << endl;
         }
       else
-        output <<  vector_int_option.second.front() << ";" << endl;
+        output << vals.front() << ";" << endl;
     }
 
-  for (const auto & vector_str_option : vector_str_options)
+  for (const auto & [name, vals] : vector_str_options)
     {
-      output << option_group << "." << vector_str_option.first << " = ";
-      if (vector_str_option.second.size() > 1)
+      output << option_group << "." << name << " = ";
+      if (vals.size() > 1)
         {
           output << "{";
-          for (const auto & viit : vector_str_option.second)
+          for (const auto & viit : vals)
             output << "'" << viit << "';";
           output << "};" << endl;
         }
       else
-        output <<  vector_str_option.second.front() << ";" << endl;
+        output << vals.front() << ";" << endl;
     }
 }
 
@@ -207,7 +207,7 @@ OptionsList::writeJsonOutput(ostream &output) const
        it != num_options.end();)
     {
       output << R"(")"<< it->first << R"(": )" << it->second;
-      it++;
+      ++it;
       if (it != num_options.end()
           || !(paired_num_options.empty()
                && string_options.empty()
@@ -221,7 +221,7 @@ OptionsList::writeJsonOutput(ostream &output) const
        it != paired_num_options.end();)
     {
       output << R"(")"<< it->first << R"(": [)" << it->second.first << " " << it->second.second << "]";
-      it++;
+      ++it;
       if (it != paired_num_options.end()
           || !(string_options.empty()
                && date_options.empty()
@@ -234,7 +234,7 @@ OptionsList::writeJsonOutput(ostream &output) const
        it != string_options.end();)
     {
       output << R"(")"<< it->first << R"(": ")" << it->second << R"(")";
-      it++;
+      ++it;
       if (it != string_options.end()
           || !(date_options.empty()
                && symbol_list_options.empty()
@@ -246,7 +246,7 @@ OptionsList::writeJsonOutput(ostream &output) const
        it != date_options.end();)
     {
       output << R"(")"<< it->first << R"(": ")" << it->second << R"(")";
-      it++;
+      ++it;
       if (it != date_options.end()
           || !(symbol_list_options.empty()
                && vector_int_options.empty()))
@@ -259,7 +259,7 @@ OptionsList::writeJsonOutput(ostream &output) const
       output << R"(")"<< it->first << R"(": {)";
       it->second.writeJsonOutput(output);
       output << "}";
-      it++;
+      ++it;
       if (it != symbol_list_options.end()
           || !vector_int_options.empty())
         output << ", ";
@@ -275,7 +275,7 @@ OptionsList::writeJsonOutput(ostream &output) const
                viit != it->second.end();)
             {
               output << *viit;
-              viit++;
+              ++viit;
               if (viit != it->second.end())
                 output << ", ";
             }
@@ -283,7 +283,7 @@ OptionsList::writeJsonOutput(ostream &output) const
       else
         output << it->second.front() << endl;
       output << "]";
-      it++;
+      ++it;
       if (it != vector_int_options.end())
         output << ", ";
     }
@@ -298,7 +298,7 @@ OptionsList::writeJsonOutput(ostream &output) const
                viit != it->second.end();)
             {
               output << R"(")" << *viit << R"(")";
-              viit++;
+              ++viit;
               if (viit != it->second.end())
                 output << ", ";
             }
@@ -306,7 +306,7 @@ OptionsList::writeJsonOutput(ostream &output) const
       else
         output << it->second.front() << endl;
       output << "]";
-      it++;
+      ++it;
       if (it != vector_str_options.end())
         output << ", ";
     }

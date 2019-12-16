@@ -203,8 +203,7 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
 #else // Alternative way to compute normalization, by giving an initial matching using natural normalizations
   fill(mate_map.begin(), mate_map.end(), boost::graph_traits<BipartiteGraph>::null_vertex());
 
-  multimap<int, int> natural_endo2eqs;
-  computeNormalizedEquations(natural_endo2eqs);
+  auto natural_endo2eqs = computeNormalizedEquations();
 
   for (int i = 0; i < symbol_table.endo_nbr(); i++)
     {
@@ -240,8 +239,7 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
   transform(mate_map.begin(), mate_map.begin() + n, endo2eq.begin(), [=](int i) { return i-n; });
 
 #ifdef DEBUG
-  multimap<int, int> natural_endo2eqs;
-  computeNormalizedEquations(natural_endo2eqs);
+  auto natural_endo2eqs = computeNormalizedEquations(natural_endo2eqs);
 
   int n1 = 0, n2 = 0;
 
@@ -264,8 +262,8 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
 #endif
 
   // Check if all variables are normalized
-  auto it = find(mate_map.begin(), mate_map.begin() + n, boost::graph_traits<BipartiteGraph>::null_vertex());
-  if (it != mate_map.begin() + n)
+  if (auto it = find(mate_map.begin(), mate_map.begin() + n, boost::graph_traits<BipartiteGraph>::null_vertex());
+      it != mate_map.begin() + n)
     {
       if (verbose)
         cerr << "ERROR: Could not normalize the model. Variable "
@@ -339,22 +337,22 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
       if (check)
         {
           // Update the jacobian matrix
-          for (const auto &it : tmp_normalized_contemporaneous_jacobian)
+          for (const auto &[key, ignore] : tmp_normalized_contemporaneous_jacobian)
             {
-              if (static_jacobian.find({ it.first.first, it.first.second }) == static_jacobian.end())
-                static_jacobian[{ it.first.first, it.first.second }] = 0;
-              if (dynamic_jacobian.find({ 0, it.first.first, it.first.second }) == dynamic_jacobian.end())
-                dynamic_jacobian[{ 0, it.first.first, it.first.second }] = nullptr;
-              if (contemporaneous_jacobian.find({ it.first.first, it.first.second }) == contemporaneous_jacobian.end())
-                contemporaneous_jacobian[{ it.first.first, it.first.second }] = 0;
+              if (static_jacobian.find({ key.first, key.second }) == static_jacobian.end())
+                static_jacobian[{ key.first, key.second }] = 0;
+              if (dynamic_jacobian.find({ 0, key.first, key.second }) == dynamic_jacobian.end())
+                dynamic_jacobian[{ 0, key.first, key.second }] = nullptr;
+              if (contemporaneous_jacobian.find({ key.first, key.second }) == contemporaneous_jacobian.end())
+                contemporaneous_jacobian[{ key.first, key.second }] = 0;
               try
                 {
-                  if (derivatives[1].find({ it.first.first, getDerivID(symbol_table.getID(SymbolType::endogenous, it.first.second), 0) }) == derivatives[1].end())
-                    derivatives[1][{ it.first.first, getDerivID(symbol_table.getID(SymbolType::endogenous, it.first.second), 0) }] = Zero;
+                  if (derivatives[1].find({ key.first, getDerivID(symbol_table.getID(SymbolType::endogenous, key.second), 0) }) == derivatives[1].end())
+                    derivatives[1][{ key.first, getDerivID(symbol_table.getID(SymbolType::endogenous, key.second), 0) }] = Zero;
                 }
               catch (DataTree::UnknownDerivIDException &e)
                 {
-                  cerr << "The variable " << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, it.first.second))
+                  cerr << "The variable " << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, key.second))
                        << " does not appear at the current period (i.e. with no lead and no lag); this case is not handled by the 'block' option of the 'model' block." << endl;
                   exit(EXIT_FAILURE);
                 }
@@ -369,13 +367,14 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
     }
 }
 
-void
-ModelTree::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
+multimap<int, int>
+ModelTree::computeNormalizedEquations() const
 {
+  multimap<int, int> endo2eqs;
   for (size_t i = 0; i < equations.size(); i++)
     {
-      auto *lhs = dynamic_cast<VariableNode *>(equations[i]->arg1);
-      if (lhs == nullptr)
+      auto lhs = dynamic_cast<VariableNode *>(equations[i]->arg1);
+      if (!lhs)
         continue;
 
       int symb_id = lhs->symb_id;
@@ -388,8 +387,9 @@ ModelTree::computeNormalizedEquations(multimap<int, int> &endo2eqs) const
         continue;
 
       endo2eqs.emplace(symbol_table.getTypeSpecificID(symb_id), static_cast<int>(i));
-      cout << "Endogenous " << symbol_table.getName(symb_id) << " normalized in equation " << (i+1) << endl;
+      cout << "Endogenous " << symbol_table.getName(symb_id) << " normalized in equation " << i+1 << endl;
     }
+  return endo2eqs;
 }
 
 void
@@ -397,20 +397,19 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
 {
   int nb_elements_contemparenous_Jacobian = 0;
   set<vector<int>> jacobian_elements_to_delete;
-  for (const auto &it : derivatives[1])
+  for (const auto &[indices, d1] : derivatives[1])
     {
-      int deriv_id = it.first[1];
+      int deriv_id = indices[1];
       if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
         {
-          expr_t Id = it.second;
-          int eq = it.first[0];
+          int eq = indices[0];
           int symb = getSymbIDByDerivID(deriv_id);
           int var = symbol_table.getTypeSpecificID(symb);
           int lag = getLagByDerivID(deriv_id);
           double val = 0;
           try
             {
-              val = Id->eval(eval_context);
+              val = d1->eval(eval_context);
             }
           catch (ExprNode::EvalExternalFunctionException &e)
             {
@@ -419,7 +418,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
           catch (ExprNode::EvalException &e)
             {
               cerr << "ERROR: evaluation of Jacobian failed for equation " << eq+1 << " (line " << equations_lineno[eq] << ") and variable " << symbol_table.getName(symb) << "(" << lag << ") [" << symb << "] !" << endl;
-              Id->writeOutput(cerr, ExprNodeOutputType::matlabDynamicModelSparse, temporary_terms, {});
+              d1->writeOutput(cerr, ExprNodeOutputType::matlabDynamicModelSparse, temporary_terms, {});
               cerr << endl;
               exit(EXIT_FAILURE);
             }
@@ -440,7 +439,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
                 static_jacobian[{ eq, var }] += val;
               else
                 static_jacobian[{ eq, var }] = val;
-              dynamic_jacobian[{ lag, eq, var }] = Id;
+              dynamic_jacobian[{ lag, eq, var }] = d1;
             }
         }
     }
@@ -470,34 +469,18 @@ ModelTree::select_non_linear_equations_and_variables(vector<bool> is_equation_li
     if (!is_equation_linear[it])
       num++;
   vector<int> endo2block = vector<int>(endo2eq.size(), 1);
-  vector<pair<set<int>, pair<set<int>, vector<int> > > > components_set(num);
+  vector<pair<set<int>, pair<set<int>, vector<int>>>> components_set(num);
   int i = 0, j = 0;
   for (auto it : endo2eq)
-    {
-      if (!is_equation_linear[it])
-        {
-          equation_reordered[i] = it;
-          variable_reordered[i] = j;
-          endo2block[j] = 0;
-          components_set[endo2block[j]].first.insert(i);
-          /*cout << " -----------------------------------------" << endl;
-          cout.flush();
-          cout << "equation_reordered[" << *it << "] = " << i << endl;
-          cout.flush();
-          cout << "variable_reordered[" << j << "] = " << i << endl;
-          cout.flush();
-          cout << "components_set[" << endo2block[j] << "].first[" << i << "] = " << i << endl;
-          cout << "endo2block[" << j << "] = " << 0 << endl;
-          cout.flush();
-          */
-          i++;
-          j++;
-        }
-    }
-/*  for (unsigned int j = 0; j < is_equation_linear.size() ; j++)
-     cout << "endo2block[" << j << "] = " << endo2block[j] << endl;*/
-  /*cout << "before getVariableLeadLAgByBlock\n";
-  cout.flush();*/
+    if (!is_equation_linear[it])
+      {
+        equation_reordered[i] = it;
+        variable_reordered[i] = j;
+        endo2block[j] = 0;
+        components_set[endo2block[j]].first.insert(i);
+        i++;
+        j++;
+      }
   getVariableLeadLagByBlock(dynamic_jacobian, endo2block, endo2block.size(), equation_lag_lead, variable_lag_lead, equation_reordered, variable_reordered);
   n_static = vector<unsigned int>(endo2eq.size(), 0);
   n_forward = vector<unsigned int>(endo2eq.size(), 0);
@@ -505,7 +488,7 @@ ModelTree::select_non_linear_equations_and_variables(vector<bool> is_equation_li
   n_mixed = vector<unsigned int>(endo2eq.size(), 0);
   for (unsigned int i = 0; i < endo2eq.size(); i++)
     {
-      if      (variable_lag_lead[variable_reordered[i]].first != 0 && variable_lag_lead[variable_reordered[i]].second != 0)
+      if (variable_lag_lead[variable_reordered[i]].first != 0 && variable_lag_lead[variable_reordered[i]].second != 0)
         n_mixed[i]++;
       else if (variable_lag_lead[variable_reordered[i]].first == 0 && variable_lag_lead[variable_reordered[i]].second != 0)
         n_forward[i]++;
@@ -543,10 +526,9 @@ ModelTree::computeNaturalNormalization()
         if (result.size() == 1 && result.begin()->second == 0)
           {
             //check if the endogenous variable has not been already used in an other match !
-             auto it = find(endo2eq.begin(), endo2eq.end(), result.begin()->first);
-             if (it == endo2eq.end())
-               endo2eq[result.begin()->first] = eq;
-             else
+            if (find(endo2eq.begin(), endo2eq.end(), result.begin()->first) == endo2eq.end())
+              endo2eq[result.begin()->first] = eq;
+            else
               {
                 bool_result = false;
                 break;
@@ -791,17 +773,16 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
           equations[i]->collectEndogenous(endo);
           for (const auto & it : endo)
             tmp_normalized_contemporaneous_jacobian[{ i, it.first }] = 1;
-
         }
     }
   else
     tmp_normalized_contemporaneous_jacobian = static_jacobian;
-  for (const auto &it : tmp_normalized_contemporaneous_jacobian)
-    if (reverse_equation_reordered[it.first.first] >= static_cast<int>(prologue) && reverse_equation_reordered[it.first.first] < static_cast<int>(nb_var - epilogue)
-        && reverse_variable_reordered[it.first.second] >= static_cast<int>(prologue) && reverse_variable_reordered[it.first.second] < static_cast<int>(nb_var - epilogue)
-        && it.first.first != endo2eq[it.first.second])
-      add_edge(vertex(reverse_equation_reordered[endo2eq[it.first.second]]-prologue, G2),
-               vertex(reverse_equation_reordered[it.first.first]-prologue, G2),
+  for (const auto &[key, value] : tmp_normalized_contemporaneous_jacobian)
+    if (reverse_equation_reordered[key.first] >= static_cast<int>(prologue) && reverse_equation_reordered[key.first] < static_cast<int>(nb_var - epilogue)
+        && reverse_variable_reordered[key.second] >= static_cast<int>(prologue) && reverse_variable_reordered[key.second] < static_cast<int>(nb_var - epilogue)
+        && key.first != endo2eq[key.second])
+      add_edge(vertex(reverse_equation_reordered[endo2eq[key.second]]-prologue, G2),
+               vertex(reverse_equation_reordered[key.first]-prologue, G2),
                G2);
 
   vector<int> endo2block(num_vertices(G2)), discover_time(num_vertices(G2));
@@ -867,11 +848,10 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
           add_edge(vertex(i, G2), vertex(i, G2), G2);
     }
   else
-    {
-      for (int i = 0; i < n; i++)
-        if (Equation_Type[equation_reordered[i+prologue]].first == E_SOLVE || mfs == 0)
-          add_edge(vertex(i, G2), vertex(i, G2), G2);
-    }
+    for (int i = 0; i < n; i++)
+      if (Equation_Type[equation_reordered[i+prologue]].first == E_SOLVE || mfs == 0)
+        add_edge(vertex(i, G2), vertex(i, G2), G2);
+
   //Determines the dynamic structure of each equation
   n_static = vector<unsigned int>(prologue+num+epilogue, 0);
   n_forward = vector<unsigned int>(prologue+num+epilogue, 0);
@@ -879,16 +859,15 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   n_mixed = vector<unsigned int>(prologue+num+epilogue, 0);
 
   for (int i = 0; i < static_cast<int>(prologue); i++)
-    {
-      if      (variable_lag_lead[tmp_variable_reordered[i]].first != 0 && variable_lag_lead[tmp_variable_reordered[i]].second != 0)
-        n_mixed[i]++;
-      else if (variable_lag_lead[tmp_variable_reordered[i]].first == 0 && variable_lag_lead[tmp_variable_reordered[i]].second != 0)
-        n_forward[i]++;
-      else if (variable_lag_lead[tmp_variable_reordered[i]].first != 0 && variable_lag_lead[tmp_variable_reordered[i]].second == 0)
-        n_backward[i]++;
-      else if (variable_lag_lead[tmp_variable_reordered[i]].first == 0 && variable_lag_lead[tmp_variable_reordered[i]].second == 0)
-        n_static[i]++;
-    }
+    if (variable_lag_lead[tmp_variable_reordered[i]].first != 0 && variable_lag_lead[tmp_variable_reordered[i]].second != 0)
+      n_mixed[i]++;
+    else if (variable_lag_lead[tmp_variable_reordered[i]].first == 0 && variable_lag_lead[tmp_variable_reordered[i]].second != 0)
+      n_forward[i]++;
+    else if (variable_lag_lead[tmp_variable_reordered[i]].first != 0 && variable_lag_lead[tmp_variable_reordered[i]].second == 0)
+      n_backward[i]++;
+    else if (variable_lag_lead[tmp_variable_reordered[i]].first == 0 && variable_lag_lead[tmp_variable_reordered[i]].second == 0)
+      n_static[i]++;
+
   //For each block, the minimum set of feedback variable is computed
   // and the non-feedback variables are reordered to get
   // a sub-recursive block without feedback variables
@@ -897,7 +876,6 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
     {
       AdjacencyList_t G = extract_subgraph(G2, get<0>(components_set[i]));
       set<int> feed_back_vertices;
-      //Print(G);
       AdjacencyList_t G1 = Minimal_set_of_feedback_vertex(feed_back_vertices, G);
       auto v_index = get(boost::vertex_index, G);
       get<1>(components_set[i]) = feed_back_vertices;
@@ -907,86 +885,81 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
 
       //First we have the recursive equations conditional on feedback variables
       for (int j = 0; j < 4; j++)
-        {
-          for (int its : Reordered_Vertice)
-            {
-              bool something_done = false;
-              if      (j == 2 && variable_lag_lead[tmp_variable_reordered[its +prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[its +prologue]].second != 0)
-                {
-                  n_mixed[prologue+i]++;
-                  something_done = true;
-                }
-              else if (j == 3 && variable_lag_lead[tmp_variable_reordered[its +prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[its +prologue]].second != 0)
-                {
-                  n_forward[prologue+i]++;
-                  something_done = true;
-                }
-              else if (j == 1 && variable_lag_lead[tmp_variable_reordered[its +prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[its +prologue]].second == 0)
-                {
-                  n_backward[prologue+i]++;
-                  something_done = true;
-                }
-              else if (j == 0 && variable_lag_lead[tmp_variable_reordered[its +prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[its +prologue]].second == 0)
-                {
-                  n_static[prologue+i]++;
-                  something_done = true;
-                }
-              if (something_done)
-                {
-                  equation_reordered[order] = tmp_equation_reordered[its+prologue];
-                  variable_reordered[order] = tmp_variable_reordered[its+prologue];
-                  order++;
-                }
-            }
-        }
+        for (int its : Reordered_Vertice)
+          {
+            bool something_done = false;
+            if (j == 2 && variable_lag_lead[tmp_variable_reordered[its+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[its+prologue]].second != 0)
+              {
+                n_mixed[prologue+i]++;
+                something_done = true;
+              }
+            else if (j == 3 && variable_lag_lead[tmp_variable_reordered[its+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[its+prologue]].second != 0)
+              {
+                n_forward[prologue+i]++;
+                something_done = true;
+              }
+            else if (j == 1 && variable_lag_lead[tmp_variable_reordered[its+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[its+prologue]].second == 0)
+              {
+                n_backward[prologue+i]++;
+                something_done = true;
+              }
+            else if (j == 0 && variable_lag_lead[tmp_variable_reordered[its+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[its+prologue]].second == 0)
+              {
+                n_static[prologue+i]++;
+                something_done = true;
+              }
+            if (something_done)
+              {
+                equation_reordered[order] = tmp_equation_reordered[its+prologue];
+                variable_reordered[order] = tmp_variable_reordered[its+prologue];
+                order++;
+              }
+          }
+
       get<2>(components_set[i]) = Reordered_Vertice;
       //Second we have the equations related to the feedback variables
       for (int j = 0; j < 4; j++)
-        {
-          for (int feed_back_vertice : feed_back_vertices)
-            {
-              bool something_done = false;
-              if      (j == 2 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].second != 0)
-                {
-                  n_mixed[prologue+i]++;
-                  something_done = true;
-                }
-              else if (j == 3 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].second != 0)
-                {
-                  n_forward[prologue+i]++;
-                  something_done = true;
-                }
-              else if (j == 1 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].second == 0)
-                {
-                  n_backward[prologue+i]++;
-                  something_done = true;
-                }
-              else if (j == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].second == 0)
-                {
-                  n_static[prologue+i]++;
-                  something_done = true;
-                }
-              if (something_done)
-                {
-                  equation_reordered[order] = tmp_equation_reordered[v_index[vertex(feed_back_vertice, G)]+prologue];
-                  variable_reordered[order] = tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue];
-                  order++;
-                }
-            }
-        }
+        for (int feed_back_vertice : feed_back_vertices)
+          {
+            bool something_done = false;
+            if (j == 2 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].second != 0)
+              {
+                n_mixed[prologue+i]++;
+                something_done = true;
+              }
+            else if (j == 3 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].second != 0)
+              {
+                n_forward[prologue+i]++;
+                something_done = true;
+              }
+            else if (j == 1 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].second == 0)
+              {
+                n_backward[prologue+i]++;
+                something_done = true;
+              }
+            else if (j == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue]].second == 0)
+              {
+                n_static[prologue+i]++;
+                something_done = true;
+              }
+            if (something_done)
+              {
+                equation_reordered[order] = tmp_equation_reordered[v_index[vertex(feed_back_vertice, G)]+prologue];
+                variable_reordered[order] = tmp_variable_reordered[v_index[vertex(feed_back_vertice, G)]+prologue];
+                order++;
+              }
+          }
     }
 
   for (int i = 0; i < static_cast<int>(epilogue); i++)
-    {
-      if      (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first != 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second != 0)
-        n_mixed[prologue+num+i]++;
-      else if (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first == 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second != 0)
-        n_forward[prologue+num+i]++;
-      else if (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first != 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second == 0)
-        n_backward[prologue+num+i]++;
-      else if (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first == 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second == 0)
-        n_static[prologue+num+i]++;
-    }
+    if (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first != 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second != 0)
+      n_mixed[prologue+num+i]++;
+    else if (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first == 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second != 0)
+      n_forward[prologue+num+i]++;
+    else if (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first != 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second == 0)
+      n_backward[prologue+num+i]++;
+    else if (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first == 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second == 0)
+      n_static[prologue+num+i]++;
 
   inv_equation_reordered.resize(nb_var);
   inv_variable_reordered.resize(nb_var);
@@ -1000,9 +973,9 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
 void
 ModelTree::printBlockDecomposition(const vector<pair<int, int>> &blocks) const
 {
-  int largest_block = 0;
-  int Nb_SimulBlocks = 0;
-  int Nb_feedback_variable = 0;
+  int largest_block = 0,
+    Nb_SimulBlocks = 0,
+    Nb_feedback_variable = 0;
   unsigned int Nb_TotalBlocks = getNbBlocks();
   for (unsigned int block = 0; block < Nb_TotalBlocks; block++)
     {
@@ -1036,10 +1009,7 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
   block_type_firstequation_size_mfs_t block_type_size_mfs;
   BlockSimulationType Simulation_Type, prev_Type = UNKNOWN;
   int eq = 0;
-  unsigned int l_n_static = 0;
-  unsigned int l_n_forward = 0;
-  unsigned int l_n_backward = 0;
-  unsigned int l_n_mixed = 0;
+  unsigned int l_n_static = 0, l_n_forward = 0, l_n_backward = 0, l_n_mixed = 0;
   for (i = 0; i < static_cast<int>(prologue+blocks.size()+epilogue); i++)
     {
       int first_count_equ = count_equ;
@@ -1062,7 +1032,7 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
 
       Lag = Lead = 0;
       set<pair<int, int>> endo;
-      for (count_equ  = first_count_equ; count_equ  < Blck_Size+first_count_equ; count_equ++)
+      for (count_equ = first_count_equ; count_equ < Blck_Size+first_count_equ; count_equ++)
         {
           endo.clear();
           equations[equation_reordered[count_equ]]->collectEndogenous(endo);
@@ -1070,7 +1040,6 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
             {
               int curr_variable = it.first;
               int curr_lag = it.second;
-              auto it1 = find(variable_reordered.begin()+first_count_equ, variable_reordered.begin()+(first_count_equ+Blck_Size), curr_variable);
               if (linear_decomposition)
                 {
                   if (dynamic_jacobian.find({ curr_lag, equation_reordered[count_equ], curr_variable }) != dynamic_jacobian.end())
@@ -1083,18 +1052,19 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
                 }
               else
                 {
-                  if (it1 != variable_reordered.begin()+(first_count_equ+Blck_Size))
-                    if (dynamic_jacobian.find({ curr_lag, equation_reordered[count_equ], curr_variable }) != dynamic_jacobian.end())
-                      {
-                        if (curr_lag > Lead)
-                          Lead = curr_lag;
-                        else if (-curr_lag > Lag)
-                          Lag = -curr_lag;
-                      }
+                  if (find(variable_reordered.begin()+first_count_equ, variable_reordered.begin()+(first_count_equ+Blck_Size), curr_variable)
+                      != variable_reordered.begin()+(first_count_equ+Blck_Size)
+                      && dynamic_jacobian.find({ curr_lag, equation_reordered[count_equ], curr_variable }) != dynamic_jacobian.end())
+                    {
+                      if (curr_lag > Lead)
+                        Lead = curr_lag;
+                      else if (-curr_lag > Lag)
+                        Lag = -curr_lag;
+                    }
                 }
             }
         }
-      if ((Lag > 0) && (Lead > 0))
+      if (Lag > 0 && Lead > 0)
         {
           if (Blck_Size == 1)
             Simulation_Type = SOLVE_TWO_BOUNDARIES_SIMPLE;
@@ -1217,50 +1187,34 @@ ModelTree::BlockLinear(const blocks_derivatives_t &blocks_derivatives, const vec
       block_derivatives_equation_variable_laglead_nodeid_t derivatives_block = blocks_derivatives[block];
       int first_variable_position = getBlockFirstEquation(block);
       if (simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
-        {
-          for (const auto &it : derivatives_block)
-            {
-              int lag = get<2>(it);
-              if (lag == 0)
-                {
-                  expr_t Id = get<3>(it);
-                  set<pair<int, int>> endogenous;
-                  Id->collectEndogenous(endogenous);
-                  if (endogenous.size() > 0)
-                    {
-                      for (int l = 0; l < block_size; l++)
-                        {
-                          if (endogenous.find({ variable_reordered[first_variable_position+l], 0 }) != endogenous.end())
-                            {
-                              blocks_linear[block] = false;
-                              goto the_end;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-      else if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
-        {
-          for (const auto &it : derivatives_block)
-            {
-              int lag = get<2>(it);
-              expr_t Id = get<3>(it); //
-              set<pair<int, int>> endogenous;
-              Id->collectEndogenous(endogenous);
-              if (endogenous.size() > 0)
-                {
+        for (const auto &[ignore, ignore2, lag, d1] : derivatives_block)
+          {
+            if (lag == 0)
+              {
+                set<pair<int, int>> endogenous;
+                d1->collectEndogenous(endogenous);
+                if (endogenous.size() > 0)
                   for (int l = 0; l < block_size; l++)
-                    {
-                      if (endogenous.find({ variable_reordered[first_variable_position+l], lag }) != endogenous.end())
-                        {
-                          blocks_linear[block] = false;
-                          goto the_end;
-                        }
-                    }
-                }
-            }
-        }
+                    if (endogenous.find({ variable_reordered[first_variable_position+l], 0 }) != endogenous.end())
+                      {
+                        blocks_linear[block] = false;
+                        goto the_end;
+                      }
+              }
+          }
+      else if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
+        for (const auto &[ignore, ignore2, lag, d1] : derivatives_block)
+          {
+            set<pair<int, int>> endogenous;
+            d1->collectEndogenous(endogenous);
+            if (endogenous.size() > 0)
+              for (int l = 0; l < block_size; l++)
+                if (endogenous.find({ variable_reordered[first_variable_position+l], lag }) != endogenous.end())
+                  {
+                    blocks_linear[block] = false;
+                    goto the_end;
+                  }
+          }
     the_end:
       ;
     }
@@ -1278,9 +1232,9 @@ ModelTree::writeDerivative(ostream &output, int eq, int symb_id, int lag,
                            ExprNodeOutputType output_type,
                            const temporary_terms_t &temporary_terms) const
 {
-  auto it = derivatives[1].find({ eq, getDerivID(symb_id, lag) });
-  if (it != derivatives[1].end())
-    (it->second)->writeOutput(output, output_type, temporary_terms, {});
+  if (auto it = derivatives[1].find({ eq, getDerivID(symb_id, lag) });
+      it != derivatives[1].end())
+    it->second->writeOutput(output, output_type, temporary_terms, {});
   else
     output << 0;
 }
@@ -1434,7 +1388,7 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt,
 {
   for (auto it : tt)
     {
-      if (dynamic_cast<AbstractExternalFunctionNode *>(it) != nullptr)
+      if (dynamic_cast<AbstractExternalFunctionNode *>(it))
         it->writeExternalFunctionOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
 
       if (isJuliaOutput(output_type))
@@ -1465,7 +1419,7 @@ ModelTree::writeJsonTemporaryTerms(const temporary_terms_t &tt,
   output << R"("external_functions_temporary_terms_)" << concat << R"(": [)";
   for (auto it : tt)
     {
-      if (dynamic_cast<AbstractExternalFunctionNode *>(it) != nullptr)
+      if (dynamic_cast<AbstractExternalFunctionNode *>(it))
         {
           if (wrote_term)
             output << ", ";
@@ -1513,7 +1467,6 @@ ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_
   int matching_paren = 0;
   bool hit_limit = false;
   int i1 = 0;
-  map<string, string>::iterator it;
   for (size_t i = 0; i < str.length(); i++)
     {
       if (str.at(i) == '(')
@@ -1543,8 +1496,7 @@ ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_
               message_printed = true;
             }
           string str1 = str.substr(first_open_paren, matching_paren - first_open_paren + 1);
-          string repstr = "";
-          string varname;
+          string repstr, varname;
           while (testNestedParenthesis(str1))
             {
               size_t open_paren_idx  = string::npos;
@@ -1555,24 +1507,24 @@ ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_
                   if (str1.at(j) == '(')
                     {
                       // don't match, e.g. y(1)
-                      size_t idx = str1.find_last_of("*/-+", j - 1);
-                      if (j == 0 || (idx != string::npos && idx == j - 1))
+                      if (size_t idx = str1.find_last_of("*/-+", j - 1);
+                          j == 0 || (idx != string::npos && idx == j - 1))
                         open_paren_idx = j;
                       last_open_paren = j;
                     }
                   else if (str1.at(j) == ')')
                     {
                       // don't match, e.g. y(1)
-                      size_t idx = str1.find_last_not_of("0123456789", j - 1);
-                      if (idx != string::npos && idx != last_open_paren)
+                      if (size_t idx = str1.find_last_not_of("0123456789", j - 1);
+                          idx != string::npos && idx != last_open_paren)
                         match_paren_idx = j;
                     }
 
                   if (open_paren_idx != string::npos && match_paren_idx != string::npos)
                     {
                       string val = str1.substr(open_paren_idx, match_paren_idx - open_paren_idx + 1);
-                      it = tmp_paren_vars.find(val);
-                      if (it == tmp_paren_vars.end())
+                      if (auto it = tmp_paren_vars.find(val);
+                          it == tmp_paren_vars.end())
                         {
                           ostringstream ptvstr;
                           ptvstr << i1++;
@@ -1587,8 +1539,8 @@ ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_
                     }
                 }
             }
-          it = tmp_paren_vars.find(str1);
-          if (it == tmp_paren_vars.end())
+          if (auto it = tmp_paren_vars.find(str1);
+              it == tmp_paren_vars.end())
             {
               ostringstream ptvstr;
               ptvstr << i1++;
@@ -1633,7 +1585,7 @@ ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_n
   deriv_node_temp_terms_t tef_terms;
   for (auto it : tt)
     {
-      if (dynamic_cast<AbstractExternalFunctionNode *>(it) != nullptr)
+      if (dynamic_cast<AbstractExternalFunctionNode *>(it))
         {
           it->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic, tef_terms);
         }
@@ -1684,7 +1636,7 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, deriv_node_temp_terms_t
         vector<string> efout;
         expr_t value = local_variables_table.find(id)->second;
         value->writeJsonExternalFunctionOutput(efout, tt, tef_terms);
-        for (vector<string>::const_iterator it1 = efout.begin(); it1 != efout.end(); it1++)
+        for (auto it1 = efout.begin(); it1 != efout.end(); ++it1)
           {
             if (it1 != efout.begin())
               output << ", ";
@@ -1827,12 +1779,12 @@ ModelTree::Write_Inf_To_Bin_File(const string &filename,
       exit(EXIT_FAILURE);
     }
   u_count_int = 0;
-  for (const auto & first_derivative : derivatives[1])
+  for (const auto & [indices, d1] : derivatives[1])
     {
-      int deriv_id = first_derivative.first[1];
+      int deriv_id = indices[1];
       if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
         {
-          int eq = first_derivative.first[0];
+          int eq = indices[0];
           int symb = getSymbIDByDerivID(deriv_id);
           int var = symbol_table.getTypeSpecificID(symb);
           int lag = getLagByDerivID(deriv_id);
@@ -1855,7 +1807,7 @@ ModelTree::Write_Inf_To_Bin_File(const string &filename,
 }
 
 void
-ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_basename, ExprNodeOutputType output_type, const bool write_equation_tags) const
+ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_basename, ExprNodeOutputType output_type, bool write_equation_tags) const
 {
   filesystem::create_directories(mod_basename + "/latex");
 
@@ -1902,18 +1854,18 @@ ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_b
       if (write_equation_tags)
         {
           bool wrote_eq_tag = false;
-          for (const auto & equation_tag : equation_tags)
-            if (equation_tag.first == eq)
+          for (const auto & [tagged_eq, tag_pair] : equation_tags)
+            if (tagged_eq == eq)
               {
                 if (!wrote_eq_tag)
                   content_output << R"(\noindent[)";
                 else
                   content_output << ", ";
 
-                content_output << equation_tag.second.first;
+                content_output << tag_pair.first;
 
-                if (!(equation_tag.second.second.empty()))
-                  content_output << "= `" << equation_tag.second.second << "'";
+                if (!(tag_pair.second.empty()))
+                  content_output << "= `" << tag_pair.second << "'";
 
                 wrote_eq_tag = true;
               }
@@ -1938,8 +1890,8 @@ ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_b
 void
 ModelTree::addEquation(expr_t eq, int lineno)
 {
-  auto *beq = dynamic_cast<BinaryOpNode *>(eq);
-  assert(beq != nullptr && beq->op_code == BinaryOpcode::equal);
+  auto beq = dynamic_cast<BinaryOpNode *>(eq);
+  assert(beq && beq->op_code == BinaryOpcode::equal);
 
   equations.push_back(beq);
   equations_lineno.push_back(lineno);
@@ -1961,7 +1913,7 @@ ModelTree::includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_
     if (equation_tags_xref.find(it) != equation_tags_xref.end())
       {
         auto range = equation_tags_xref.equal_range(it);
-        for_each ( range.first, range.second, [&tag_eqns](auto & x){ tag_eqns.insert(x.second); } );
+        for_each (range.first, range.second, [&tag_eqns](auto & x){ tag_eqns.insert(x.second); });
         eqs.erase(it);
       }
   if (tag_eqns.empty())
@@ -1983,11 +1935,11 @@ ModelTree::includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_
     if (eqns.find(i) != eqns.end())
       {
         bool found = false;
-        for (const auto & it : equation_tags)
-          if (it.first == static_cast<int>(i) && it.second.first == "endogenous")
+        for (const auto & [tagged_eq, tag_pair] : equation_tags)
+          if (tagged_eq == static_cast<int>(i) && tag_pair.first == "endogenous")
             {
               found = true;
-              excluded_vars.push_back(symbol_table.getID(it.second.second));
+              excluded_vars.push_back(symbol_table.getID(tag_pair.second));
               break;
             }
         if (!found)
@@ -2081,8 +2033,8 @@ ModelTree::addEquation(expr_t eq, int lineno, const vector<pair<string, string>>
 void
 ModelTree::addAuxEquation(expr_t eq)
 {
-  auto *beq = dynamic_cast<BinaryOpNode *>(eq);
-  assert(beq != nullptr && beq->op_code == BinaryOpcode::equal);
+  auto beq = dynamic_cast<BinaryOpNode *>(eq);
+  assert(beq && beq->op_code == BinaryOpcode::equal);
 
   aux_equations.push_back(beq);
 }
@@ -2167,33 +2119,33 @@ ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
         }
 
       for (int endoOrd = 1; endoOrd < static_cast<int>(derivatives.size()); endoOrd++)
-        for (const auto &it : derivatives[endoOrd])
+        for (const auto &[indices, dprev] : derivatives[endoOrd])
           {
-            expr_t d = it.second->getDerivative(param);
+            expr_t d = dprev->getDerivative(param);
             if (d == Zero)
               continue;
-            vector<int> indices{it.first};
-            indices.push_back(param);
-            params_derivatives[{ endoOrd, 1 }][indices] = d;
+            vector<int> new_indices = indices;
+            new_indices.push_back(param);
+            params_derivatives[{ endoOrd, 1 }][new_indices] = d;
           }
     }
 
   // Higher-order derivatives w.r.t. parameters
   for (int endoOrd = 0; endoOrd < static_cast<int>(derivatives.size()); endoOrd++)
     for (int paramOrd = 2; paramOrd <= paramsDerivsOrder; paramOrd++)
-      for (const auto &it : params_derivatives[{ endoOrd, paramOrd-1 }])
+      for (const auto &[indices, dprev] : params_derivatives[{ endoOrd, paramOrd-1 }])
         for (int param : deriv_id_set)
           {
-            if (it.first.back() > param)
+            if (indices.back() > param)
               continue;
 
-            expr_t d = it.second->getDerivative(param);
+            expr_t d = dprev->getDerivative(param);
             if (d == Zero)
               continue;
-            vector<int> indices{it.first};
-            indices.push_back(param);
+            vector<int> new_indices = indices;
+            new_indices.push_back(param);
             // At this point, indices of both endogenous and parameters are sorted in non-decreasing order
-            params_derivatives[{ endoOrd, paramOrd }][indices] = d;
+            params_derivatives[{ endoOrd, paramOrd }][new_indices] = d;
           }
 }
 
@@ -2205,33 +2157,28 @@ ModelTree::computeParamsDerivativesTemporaryTerms()
   /* The temp terms should be constructed in the same order as the for loops in
      {Static,Dynamic}Model::write{Json,}ParamsDerivativesFile() */
   params_derivs_temporary_terms.clear();
-  for (const auto &it : params_derivatives)
-    for (const auto &it2 : it.second)
-      it2.second->computeTemporaryTerms(it.first,
-                                        params_derivs_temporary_terms,
-                                        reference_count,
-                                        true);
+  for (const auto &[order, derivs] : params_derivatives)
+    for (const auto &[indices, d] : derivs)
+      d->computeTemporaryTerms(order, params_derivs_temporary_terms,
+                               reference_count, true);
 
   int idx = 0;
-  for (auto &it : temporary_terms_mlv)
-    params_derivs_temporary_terms_idxs[it.first] = idx++;
-  for (const auto &it : params_derivs_temporary_terms)
-    for (const auto &tt : it.second)
+  for (auto &[mlv, value] : temporary_terms_mlv)
+    params_derivs_temporary_terms_idxs[mlv] = idx++;
+  for (const auto &[order, tts] : params_derivs_temporary_terms)
+    for (const auto &tt : tts)
       params_derivs_temporary_terms_idxs[tt] = idx++;
 }
 
 bool
 ModelTree::isNonstationary(int symb_id) const
 {
-  return (nonstationary_symbols_map.find(symb_id)
-          != nonstationary_symbols_map.end());
+  return nonstationary_symbols_map.find(symb_id) != nonstationary_symbols_map.end();
 }
 
 void
 ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
 {
-  vector<pair<string, string>> eqtags;
-  temporary_terms_t tt_empty;
   if (residuals)
     output << endl << R"("residuals":[)" << endl;
   else
@@ -2273,25 +2220,23 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
       else
         {
           output << R"({"lhs": ")";
-          lhs->writeJsonOutput(output, tt_empty, {});
+          lhs->writeJsonOutput(output, {}, {});
           output << R"(", "rhs": ")";
-          rhs->writeJsonOutput(output, tt_empty, {});
+          rhs->writeJsonOutput(output, {}, {});
           output << R"(")"
                  << R"(, "line": )" << equations_lineno[eq];
 
-          for (const auto & equation_tag : equation_tags)
-            if (equation_tag.first == eq)
-              eqtags.push_back(equation_tag.second);
-
-          if (!eqtags.empty())
+          if (auto eqtags = getEquationTags(eq);
+              !eqtags.empty())
             {
               output << R"(, "tags": {)";
               int i = 0;
-              for (vector<pair<string, string>>::const_iterator it = eqtags.begin(); it != eqtags.end(); it++, i++)
+              for (const auto &[name, value] : eqtags)
                 {
                   if (i != 0)
                     output << ", ";
-                  output << R"(")" << it->first << R"(": ")" << it->second << R"(")";
+                  output << R"(")" << name << R"(": ")" << value << R"(")";
+                  i++;
                 }
               output << "}";
               eqtags.clear();
@@ -2370,7 +2315,7 @@ ModelTree::compileDll(const string &basename, const string &static_or_dynamic, c
           // Windows
           flags << " -static-libgcc -static-libstdc++ -shared";
           // Put the MinGW environment shipped with Dynare in the path
-          filesystem::path mingwpath = dynareroot / (string{"mingw"} + (mexext == "mexw32" ? "32" : "64")) / "bin";
+          auto mingwpath = dynareroot / (string{"mingw"} + (mexext == "mexw32" ? "32" : "64")) / "bin";
           string newpath = "PATH=" + mingwpath.string() + ';' + string{getenv("PATH")};
           if (putenv(const_cast<char *>(newpath.c_str())) != 0)
             {
@@ -2490,11 +2435,9 @@ ModelTree::reorderAuxiliaryEquations()
       set<int> endos;
       aux_equations[i]->collectVariables(SymbolType::endogenous, endos);
       for (int endo : endos)
-        {
-          auto it = auxEndoToEq.find(endo);
-          if (it != auxEndoToEq.end() && it->second != i)
-            add_edge(i, it->second, g);
-        }
+        if (auto it = auxEndoToEq.find(endo);
+            it != auxEndoToEq.end() && it->second != i)
+          add_edge(i, it->second, g);
     }
 
   // Topological sort of the graph

@@ -192,7 +192,7 @@ public:
   void computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool bytecode);
 
   //! Adds informations for simulation in a binary file for a block decomposed model
-  void Write_Inf_To_Bin_File_Block(const string &basename, const int &num,
+  void Write_Inf_To_Bin_File_Block(const string &basename, int num,
                                    int &u_count_int, bool &file_open) const;
 
   //! Writes static model file
@@ -211,13 +211,13 @@ public:
   void writeParamsDerivativesFile(const string &basename, bool julia) const;
 
   //! Writes LaTeX file with the equations of the static model
-  void writeLatexFile(const string &basename, const bool write_equation_tags) const;
+  void writeLatexFile(const string &basename, bool write_equation_tags) const;
 
   //! Writes initializations in oo_.steady_state or steady state file for the auxiliary variables
   void writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type) const;
 
   //! Writes definition of the auxiliary variables in a .m or .jl file
-  void writeSetAuxiliaryVariables(const string &basename, const bool julia) const;
+  void writeSetAuxiliaryVariables(const string &basename, bool julia) const;
   void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
   void writeLatexAuxVarRecursiveDefinitions(ostream &output) const;
   void writeJsonAuxVarRecursiveDefinitions(ostream &output) const;

@@ -146,7 +146,7 @@ public:
   void checkPass(bool nostrict, bool stochastic);
   //! Perform some transformations on the model (creation of auxiliary vars and equations)
   /*! \param compute_xrefs if true, equation cross references will be computed */
-  void transformPass(bool nostrict, bool stochastic, bool compute_xrefs, const bool transform_unary_ops,
+  void transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool transform_unary_ops,
                      const string &exclude_eqs, const string &include_eqs);
   //! Execute computations
   /*! \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */

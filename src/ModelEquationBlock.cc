@@ -166,11 +166,9 @@ SteadyStateModel::writeLatexSteadyStateFile(const string &basename) const
          << "\\begin{document}" << endl
          << "\\footnotesize" << endl;
 
-  for (const auto & it : def_table)
-    for (auto it1 = it.first.begin(); it1 != it.first.end(); it1++)
+  for (const auto & [ids, value] : def_table)
+    for (int id : ids)
       {
-        int id = *it1;
-        expr_t value = it.second;
         content_output << "\\begin{dmath}" << endl
                        << symbol_table.getTeXName(id) << " = ";
         value->writeOutput(content_output, ExprNodeOutputType::latexStaticModel);
@@ -218,9 +216,8 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model
            << "function steady_state!(ys_::Vector{Float64}, exo_::Vector{Float64}, "
            << "params::Vector{Float64})" << endl;
 
-  for (const auto & i : def_table)
+  for (const auto & [symb_ids, value] : def_table)
     {
-      const vector<int> &symb_ids = i.first;
       output << "    ";
       if (symb_ids.size() > 1)
         output << "[";
@@ -234,7 +231,7 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model
         output << "]";
 
       output << "=";
-      i.second->writeOutput(output, output_type);
+      value->writeOutput(output, output_type);
       output << ";" << endl;
     }
   if (!julia)
@@ -353,23 +350,23 @@ Epilogue::detrend(const map<int, expr_t> & trend_symbols_map,
                   const nonstationary_symbols_map_t & nonstationary_symbols_map)
 {
   for (auto it = nonstationary_symbols_map.crbegin();
-       it != nonstationary_symbols_map.crend(); it++)
+       it != nonstationary_symbols_map.crend(); ++it)
     for (auto & [symb_id, expr] : dynamic_def_table)
       {
         expr = expr->detrend(it->first, it->second.first, it->second.second);
-        assert(expr != nullptr);
+        assert(expr);
       }
 
   for (auto & [symb_id, expr] : dynamic_def_table)
     {
       expr = expr->removeTrendLeadLag(trend_symbols_map);
-      assert(expr != nullptr);
+      assert(expr);
     }
 
   for (auto & [symb_id, expr] : dynamic_def_table)
     {
       expr = expr->replaceTrendVar();
-      assert(expr != nullptr);
+      assert(expr);
     }
 }
 
@@ -445,7 +442,7 @@ Epilogue::writeDynamicEpilogueFile(const string & basename) const
       expr->collectVariables(SymbolType::epilogue, used_symbols);
 
       output << "simul_begin_date = firstobservedperiod(ds{";
-      for (auto it1 = used_symbols.begin(); it1 != used_symbols.end(); it1++)
+      for (auto it1 = used_symbols.begin(); it1 != used_symbols.end(); ++it1)
         {
           if (it1 != used_symbols.begin())
             output << ", ";

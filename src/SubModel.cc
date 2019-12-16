@@ -402,7 +402,7 @@ TrendComponentModelTable::writeJsonOutput(ostream &output) const
 {
   for (const auto &name : names)
     {
-      if (name != *(names.begin()))
+      if (name != *names.begin())
         output << ", ";
       output << R"({"statementName": "trend_component_model",)"
              << R"("model_name": ")" << name << R"(",)"
@@ -541,7 +541,7 @@ VarModelTable::writeJsonOutput(ostream &output) const
 {
   for (const auto &name : names)
     {
-      if (name != *(names.begin()))
+      if (name != *names.begin())
         output << ", ";
       output << R"({"statementName": "var_model",)"
              << R"("model_name": ")" << name << R"(",)";

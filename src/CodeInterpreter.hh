@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2018 Dynare Team
+ * Copyright © 2007-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -482,7 +482,7 @@ public:
   {
   };
   inline explicit
-  FLDC_(const double value_arg) : TagWithOneArgument<double>::TagWithOneArgument{FLDC, value_arg}
+  FLDC_(double value_arg) : TagWithOneArgument<double>::TagWithOneArgument{FLDC, value_arg}
   {
   };
   inline double
@@ -500,7 +500,7 @@ public:
   {
   };
   inline explicit
-  FLDU_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDU, pos_arg}
+  FLDU_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDU, pos_arg}
   {
   };
   inline unsigned int
@@ -518,7 +518,7 @@ public:
   {
   };
   inline explicit
-  FLDSU_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDSU, pos_arg}
+  FLDSU_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDSU, pos_arg}
   {
   };
   inline unsigned int
@@ -536,7 +536,7 @@ public:
   {
   };
   inline explicit
-  FLDR_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDR, pos_arg}
+  FLDR_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDR, pos_arg}
   {
   };
   inline unsigned int
@@ -554,7 +554,7 @@ public:
   {
   };
   inline explicit
-  FLDT_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDT, pos_arg}
+  FLDT_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDT, pos_arg}
   {
   };
   inline unsigned int
@@ -572,7 +572,7 @@ public:
   {
   };
   inline explicit
-  FLDST_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDST, pos_arg}
+  FLDST_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDST, pos_arg}
   {
   };
   inline unsigned int
@@ -590,7 +590,7 @@ public:
   {
   };
   inline explicit
-  FSTPT_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPT, pos_arg}
+  FSTPT_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPT, pos_arg}
   {
   };
   inline unsigned int
@@ -608,7 +608,7 @@ public:
   {
   };
   inline explicit
-  FSTPST_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPST, pos_arg}
+  FSTPST_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPST, pos_arg}
   {
   };
   inline unsigned int
@@ -626,7 +626,7 @@ public:
   {
   };
   inline explicit
-  FSTPR_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPR, pos_arg}
+  FSTPR_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPR, pos_arg}
   {
   };
   inline unsigned int
@@ -644,7 +644,7 @@ public:
   {
   };
   inline explicit
-  FSTPU_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPU, pos_arg}
+  FSTPU_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPU, pos_arg}
   {
   };
   inline unsigned int
@@ -662,7 +662,7 @@ public:
   {
   };
   inline explicit
-  FSTPSU_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPSU, pos_arg}
+  FSTPSU_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPSU, pos_arg}
   {
   };
   inline unsigned int
@@ -680,7 +680,7 @@ public:
   {
   };
   inline explicit
-  FSTPG_(const unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPG, pos_arg}
+  FSTPG_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPG, pos_arg}
   {
   };
   inline unsigned int
@@ -698,7 +698,7 @@ public:
   {
   };
   inline
-  FSTPG2_(const unsigned int pos_arg1, const unsigned int pos_arg2) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{FSTPG2, pos_arg1, pos_arg2}
+  FSTPG2_(unsigned int pos_arg1, unsigned int pos_arg2) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{FSTPG2, pos_arg1, pos_arg2}
   {
   };
   inline unsigned int
@@ -721,7 +721,7 @@ public:
   {
   };
   inline
-  FSTPG3_(const unsigned int pos_arg1, const unsigned int pos_arg2, const int pos_arg3, const unsigned int pos_arg4) : TagWithFourArguments<unsigned int, unsigned int, int, unsigned int>::TagWithFourArguments{FSTPG3, pos_arg1, pos_arg2, pos_arg3, pos_arg4}
+  FSTPG3_(unsigned int pos_arg1, unsigned int pos_arg2, int pos_arg3, unsigned int pos_arg4) : TagWithFourArguments<unsigned int, unsigned int, int, unsigned int>::TagWithFourArguments{FSTPG3, pos_arg1, pos_arg2, pos_arg3, pos_arg4}
   {
   };
   inline unsigned int
@@ -772,7 +772,7 @@ public:
   {
   };
   inline explicit
-  FBINARY_(const int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument{FBINARY, static_cast<uint8_t>(op_type_arg)}
+  FBINARY_(int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument{FBINARY, static_cast<uint8_t>(op_type_arg)}
   {
   };
   inline uint8_t
@@ -790,7 +790,7 @@ public:
   {
   };
   inline explicit
-  FTRINARY_(const int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument{FTRINARY, static_cast<uint8_t>(op_type_arg)}
+  FTRINARY_(int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument{FTRINARY, static_cast<uint8_t>(op_type_arg)}
   {
   };
   inline uint8_t
@@ -808,7 +808,7 @@ public:
   {
   };
   inline explicit
-  FOK_(const int arg_arg) : TagWithOneArgument<int>::TagWithOneArgument{FOK, arg_arg}
+  FOK_(int arg_arg) : TagWithOneArgument<int>::TagWithOneArgument{FOK, arg_arg}
   {
   };
   inline int
@@ -1000,7 +1000,7 @@ public:
   {
   };
   inline
-  FLDVS_(uint8_t type_arg, const unsigned int pos_arg) : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{FLDVS, type_arg, pos_arg}
+  FLDVS_(uint8_t type_arg, unsigned int pos_arg) : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{FLDVS, type_arg, pos_arg}
   {
   };
   inline uint8_t
@@ -1023,7 +1023,7 @@ public:
   {
   };
   inline
-  FLDSV_(const uint8_t type_arg, const unsigned int pos_arg) :
+  FLDSV_(uint8_t type_arg, unsigned int pos_arg) :
     TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{FLDSV, type_arg, pos_arg}
   {
   };
@@ -1047,7 +1047,7 @@ public:
   {
   };
   inline
-  FSTPSV_(const uint8_t type_arg, const unsigned int pos_arg) :
+  FSTPSV_(uint8_t type_arg, unsigned int pos_arg) :
     TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{FSTPSV, type_arg, pos_arg}
   {
   };
@@ -1071,12 +1071,12 @@ public:
   {
   };
   inline
-  FLDV_(const int type_arg, const unsigned int pos_arg) :
+  FLDV_(int type_arg, unsigned int pos_arg) :
     TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{FLDV, static_cast<uint8_t>(type_arg), pos_arg, 0}
   {
   };
   inline
-  FLDV_(const int type_arg, const unsigned int pos_arg, const int lead_lag_arg) :
+  FLDV_(int type_arg, unsigned int pos_arg, int lead_lag_arg) :
     TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{FLDV, static_cast<uint8_t>(type_arg), pos_arg, lead_lag_arg}
   {
   };
@@ -1105,12 +1105,12 @@ public:
   {
   };
   inline
-  FSTPV_(const int type_arg, const unsigned int pos_arg) :
+  FSTPV_(int type_arg, unsigned int pos_arg) :
     TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{FSTPV, static_cast<uint8_t>(type_arg), pos_arg, 0}
   {
   };
   inline
-  FSTPV_(const int type_arg, const unsigned int pos_arg, const int lead_lag_arg) :
+  FSTPV_(int type_arg, unsigned int pos_arg, int lead_lag_arg) :
     TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{FSTPV, static_cast<uint8_t>(type_arg), pos_arg, lead_lag_arg}
   {
   };
@@ -1139,24 +1139,22 @@ class FCALL_ : public TagWithFourArguments<unsigned int, unsigned int, string, u
   ExternalFunctionType function_type;
 public:
   inline
-  FCALL_() : TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments{FCALL}
+  FCALL_() : TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments{FCALL},
+    add_input_arguments{0},
+    row{0},
+    col{0},
+    function_type{ExternalFunctionType::withoutDerivative}
   {
-    arg_func_name = "";
-    add_input_arguments = 0;
-    row = 0;
-    col = 0;
-    function_type = ExternalFunctionType::withoutDerivative;
   };
   inline
   FCALL_(unsigned int nb_output_arguments, unsigned int nb_input_arguments, string f_name, unsigned int indx) :
-    TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments{FCALL, nb_output_arguments, nb_input_arguments, f_name, indx}
+    TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments{FCALL, nb_output_arguments, nb_input_arguments, f_name, indx},
+    func_name{f_name},
+    add_input_arguments{0},
+    row{0},
+    col{0},
+    function_type{ExternalFunctionType::withoutDerivative}
   {
-    arg_func_name = "";
-    add_input_arguments = 0;
-    row = 0;
-    col = 0;
-    function_type = ExternalFunctionType::withoutDerivative;
-    func_name = f_name;
   };
   inline string
   get_function_name()

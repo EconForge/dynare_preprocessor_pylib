@@ -257,7 +257,6 @@ public:
 class EvaluatePlannerObjective : public Statement
 {
 public:
-  EvaluatePlannerObjective();
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -532,7 +531,7 @@ private:
   StaticModel model_tree;
   bool computing_pass_called{false};
 public:
-  PlannerObjectiveStatement(const StaticModel &model_tree_arg);
+  explicit PlannerObjectiveStatement(const StaticModel &model_tree_arg);
   /*! \todo check there are only endogenous variables at the current period in the objective
     (no exogenous, no lead/lag) */
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
@@ -824,9 +823,7 @@ public:
   using svar_identification_restrictions_t = vector<svar_identification_restriction>;
 private:
   const svar_identification_restrictions_t restrictions;
-  const bool upper_cholesky_present;
-  const bool lower_cholesky_present;
-  const bool constants_exclusion_present;
+  const bool upper_cholesky_present, lower_cholesky_present, constants_exclusion_present;
   const SymbolTable &symbol_table;
   int getMaxLag() const;
 public:
@@ -844,7 +841,7 @@ class MarkovSwitchingStatement : public Statement
 {
 private:
   const OptionsList options_list;
-  map <pair<int, int >, double > restriction_map;
+  map<pair<int, int>, double> restriction_map;
 public:
   explicit MarkovSwitchingStatement(OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
@@ -897,8 +894,7 @@ public:
   //! Storage for declaring subsamples: map<subsample_name, <date1, date2 >
   using subsample_declaration_map_t = map<string, pair<string, string>>;
 private:
-  const string name1;
-  const string name2;
+  const string name1, name2;
   const subsample_declaration_map_t subsample_declaration_map;
   const SymbolTable &symbol_table;
 public:
@@ -914,10 +910,7 @@ public:
 class SubsamplesEqualStatement : public Statement
 {
 private:
-  const string to_name1;
-  const string to_name2;
-  const string from_name1;
-  const string from_name2;
+  const string to_name1, to_name2, from_name1, from_name2;
   const SymbolTable &symbol_table;
 public:
   SubsamplesEqualStatement(string to_name1_arg,
@@ -948,8 +941,7 @@ public:
 class BasicPriorStatement : public Statement
 {
 protected:
-  const string name;
-  const string subsample_name;
+  const string name, subsample_name;
   const PriorDistributions prior_shape;
   const expr_t variance;
   const OptionsList options_list;
@@ -1020,14 +1012,8 @@ public:
 class PriorEqualStatement : public Statement
 {
 private:
-  const string to_declaration_type;
-  const string to_name1;
-  const string to_name2;
-  const string to_subsample_name;
-  const string from_declaration_type;
-  const string from_name1;
-  const string from_name2;
-  const string from_subsample_name;
+  const string to_declaration_type, to_name1, to_name2, to_subsample_name;
+  const string from_declaration_type, from_name1, from_name2, from_subsample_name;
   const SymbolTable &symbol_table;
 public:
   PriorEqualStatement(string to_declaration_type_arg,
@@ -1048,8 +1034,7 @@ public:
 class BasicOptionsStatement : public Statement
 {
 protected:
-  const string name;
-  const string subsample_name;
+  const string name, subsample_name;
   const OptionsList options_list;
   BasicOptionsStatement(string name_arg,
                         string subsample_name_arg,
@@ -1104,14 +1089,8 @@ public:
 class OptionsEqualStatement : public Statement
 {
 private:
-  const string to_declaration_type;
-  const string to_name1;
-  const string to_name2;
-  const string to_subsample_name;
-  const string from_declaration_type;
-  const string from_name1;
-  const string from_name2;
-  const string from_subsample_name;
+  const string to_declaration_type, to_name1, to_name2, to_subsample_name;
+  const string from_declaration_type, from_name1, from_name2, from_subsample_name;
   const SymbolTable &symbol_table;
 public:
   OptionsEqualStatement(string to_declaration_type_arg,

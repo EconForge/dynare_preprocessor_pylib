@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2017 Dynare Team
+ * Copyright © 2003-2019 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -62,7 +62,7 @@ protected:
 public:
   InitOrEndValStatement(init_values_t init_values_arg,
                         const SymbolTable &symbol_table_arg,
-                        const bool &all_values_required_arg);
+                        bool all_values_required_arg);
   //! Return set of unused variables by type
   set<int> getUninitializedVariables(SymbolType type);
   //! Fill eval context with variables values
@@ -77,7 +77,7 @@ class InitValStatement : public InitOrEndValStatement
 public:
   InitValStatement(const init_values_t &init_values_arg,
                    const SymbolTable &symbol_table_arg,
-                   const bool &all_values_required_arg);
+                   bool all_values_required_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -90,7 +90,7 @@ class EndValStatement : public InitOrEndValStatement
 public:
   EndValStatement(const init_values_t &init_values_arg,
                   const SymbolTable &symbol_table_arg,
-                  const bool &all_values_required_arg);
+                  bool all_values_required_arg);
   //! Workaround for trac ticket #35
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
@@ -113,7 +113,7 @@ private:
 public:
   HistValStatement(hist_values_t hist_values_arg,
                    const SymbolTable &symbol_table_arg,
-                   const bool &all_values_required_arg);
+                   bool all_values_required_arg);
   //! Workaround for trac ticket #157
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;

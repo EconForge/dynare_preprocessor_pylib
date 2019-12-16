@@ -59,9 +59,6 @@ InitParamStatement::writeJuliaOutput(ostream &output, const string &basename)
   output << "model_.params[ " << id << " ] = ";
   param_value->writeOutput(output);
   output << endl;
-  // Do we really need this?
-  // if (!minimal_workspace)
-  //   output << symbol_table.getName(symb_id) << " = model_.params[ " << id << " ]" << endl;
 }
 
 void
@@ -87,7 +84,7 @@ InitParamStatement::fillEvalContext(eval_context_t &eval_context) const
 
 InitOrEndValStatement::InitOrEndValStatement(init_values_t init_values_arg,
                                              const SymbolTable &symbol_table_arg,
-                                             const bool &all_values_required_arg) :
+                                             bool all_values_required_arg) :
   init_values{move(init_values_arg)},
   symbol_table{symbol_table_arg},
   all_values_required{all_values_required_arg}
@@ -127,13 +124,11 @@ InitOrEndValStatement::getUninitializedVariables(SymbolType type)
       exit(EXIT_FAILURE);
     }
 
-  set<int>::iterator sit;
   for (const auto & init_value : init_values)
-    {
-      sit = unused.find(init_value.first);
-      if (sit != unused.end())
-        unused.erase(sit);
-    }
+    if (auto sit = unused.find(init_value.first);
+        sit != unused.end())
+      unused.erase(sit);
+
   return unused;
 }
 
@@ -190,7 +185,7 @@ InitOrEndValStatement::writeJsonInitValues(ostream &output) const
 
 InitValStatement::InitValStatement(const init_values_t &init_values_arg,
                                    const SymbolTable &symbol_table_arg,
-                                   const bool &all_values_required_arg) :
+                                   bool all_values_required_arg) :
   InitOrEndValStatement{init_values_arg, symbol_table_arg, all_values_required_arg}
 {
 }
@@ -254,7 +249,7 @@ InitValStatement::writeOutputPostInit(ostream &output) const
 
 EndValStatement::EndValStatement(const init_values_t &init_values_arg,
                                  const SymbolTable &symbol_table_arg,
-                                 const bool &all_values_required_arg) :
+                                 bool all_values_required_arg) :
   InitOrEndValStatement{init_values_arg, symbol_table_arg, all_values_required_arg}
 {
 }
@@ -308,7 +303,7 @@ EndValStatement::writeJsonOutput(ostream &output) const
 
 HistValStatement::HistValStatement(hist_values_t hist_values_arg,
                                    const SymbolTable &symbol_table_arg,
-                                   const bool &all_values_required_arg) :
+                                   bool all_values_required_arg) :
   hist_values{move(hist_values_arg)},
   symbol_table{symbol_table_arg},
   all_values_required{all_values_required_arg}
@@ -325,12 +320,12 @@ HistValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
 
       for (const auto & hist_value : hist_values)
         {
-          auto sit = unused_endo.find(hist_value.first.first);
-          if (sit != unused_endo.end())
+          if (auto sit = unused_endo.find(hist_value.first.first);
+              sit != unused_endo.end())
             unused_endo.erase(sit);
 
-          sit = unused_exo.find(hist_value.first.first);
-          if (sit != unused_exo.end())
+          if (auto sit = unused_exo.find(hist_value.first.first);
+              sit != unused_exo.end())
             unused_exo.erase(sit);
         }
 
@@ -399,7 +394,7 @@ HistValStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "histval", "vals": [)";
   for (auto it = hist_values.begin();
-       it != hist_values.end(); it++)
+       it != hist_values.end(); ++it)
     {
       if (it != hist_values.begin())
         output << ", ";
@@ -569,9 +564,9 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const strin
 void
 LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  for (const auto & it : content)
+  for (const auto &[id, value] : content)
     {
-      switch (symbol_table.getType(it.first))
+      switch (symbol_table.getType(id))
         {
         case SymbolType::parameter:
           output << "M_.params";
@@ -586,12 +581,12 @@ LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &ba
           output << "oo_.exo_det_steady_state";
           break;
         default:
-          cerr << "ERROR: Unsupported variable type for " << symbol_table.getName(it.first) << " in load_params_and_steady_state" << endl;
+          cerr << "ERROR: Unsupported variable type for " << symbol_table.getName(id) << " in load_params_and_steady_state" << endl;
           exit(EXIT_FAILURE);
         }
 
-      int tsid = symbol_table.getTypeSpecificID(it.first) + 1;
-      output << "(" << tsid << ") = " << it.second << ";" << endl;
+      int tsid = symbol_table.getTypeSpecificID(id) + 1;
+      output << "(" << tsid << ") = " << value << ";" << endl;
     }
 }
 
@@ -600,8 +595,7 @@ LoadParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "load_params_and_steady_state")"
          << R"("values": [)";
-  for (auto it = content.begin();
-       it != content.end(); it++)
+  for (auto it = content.begin(); it != content.end(); ++it)
     {
       if (it != content.begin())
         output << ", ";
@@ -615,9 +609,9 @@ LoadParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
 void
 LoadParamsAndSteadyStateStatement::fillEvalContext(eval_context_t &eval_context) const
 {
-  for (const auto & it : content)
+  for (const auto & [id, value] : content)
     /* We use strtod() instead of stod() because we want underflows and
        overflows to respectively yield 0 and ±Inf. See also the comment in
        NumericalConstants.cc */
-    eval_context[it.first] = strtod(it.second.c_str(), nullptr);
+    eval_context[id] = strtod(value.c_str(), nullptr);
 }
