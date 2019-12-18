@@ -45,11 +45,11 @@ void
 InitParamStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   int id = symbol_table.getTypeSpecificID(symb_id) + 1;
-  output << "M_.params( " << id << " ) = ";
+  output << "M_.params(" << id << ") = ";
   param_value->writeOutput(output);
   output << ";" << endl;
   if (!minimal_workspace)
-    output << symbol_table.getName(symb_id) << " = M_.params( " << id << " );" << endl;
+    output << symbol_table.getName(symb_id) << " = M_.params(" << id << ");" << endl;
 }
 
 void
@@ -163,7 +163,7 @@ InitOrEndValStatement::writeInitValues(ostream &output) const
           exit(EXIT_FAILURE);
         }
 
-      output << "( " << tsid << " ) = ";
+      output << "(" << tsid << ") = ";
       expression->writeOutput(output);
       output << ";" << endl;
     }
