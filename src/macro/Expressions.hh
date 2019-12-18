@@ -52,7 +52,7 @@ namespace macro
     void push(const string &prefix, const Tokenizer::location &location)
     {
       stringstream ss;
-      unsigned end_col = 0 < location.end.column ? location.end.column - 1 : 0;
+      auto end_col = 0 < location.end.column ? location.end.column - 1 : 0;
 
       ss << prefix << ": "
          << R"(")" << *location.begin.filename << R"(" line )" << location.begin.line
