@@ -73,7 +73,7 @@ void
 SymbolList::removeDuplicates(const string &dynare_command, WarningConsolidation &warnings)
 {
   vector<string> unique_symbols;
-  for (auto & it : symbols)
+  for (const auto & it : symbols)
     if (find(unique_symbols.begin(), unique_symbols.end(), it) == unique_symbols.end())
       unique_symbols.push_back(it);
     else
