@@ -448,7 +448,7 @@ Epilogue::writeDynamicEpilogueFile(const string & basename) const
             output << ", ";
           output << "'" << symbol_table.getName(*it1) << "'";
         }
-      output << "}) + " << max_lag << " + 1;" << endl
+      output << "}) + " << max_lag << ";" << endl
              << "if ~ds.exist('" << symbol_table.getName(symb_id) << "')" << endl
              << "    ds = [ds dseries(NaN(ds.nobs,1), ds.firstdate, '" << symbol_table.getName(symb_id)<< "')];" << endl
              << "end" << endl
