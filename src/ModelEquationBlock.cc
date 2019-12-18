@@ -399,15 +399,21 @@ Epilogue::writeStaticEpilogueFile(const string & basename) const
   for (const auto & [symb_id, expr] : static_def_table)
     {
       // Rewrite external function TEF term for every equation as argument values could have been changed
-      // in between two calls to the same function; 
+      // in between two calls to the same function;
       deriv_node_temp_terms_t tef_terms;
       temporary_terms_t temporary_terms;
       temporary_terms_idxs_t temporary_terms_idxs;
+      output << endl;
       if (expr->containsExternalFunction())
         expr->writeExternalFunctionOutput(output, ExprNodeOutputType::matlabDseries, temporary_terms, temporary_terms_idxs, tef_terms);
-      output << "ds." << symbol_table.getName(symb_id) << " = ";
+      output << "epilogue_static_tmp_term = ";
       expr->writeOutput(output, ExprNodeOutputType::matlabDseries, temporary_terms, temporary_terms_idxs, tef_terms);
-      output << ";" << endl;
+      output << ";" << endl
+             << "if isdseries(epilogue_static_tmp_term)" << endl
+             << "    ds." << symbol_table.getName(symb_id) << " = epilogue_static_tmp_term;" << endl
+             << "else" << endl
+             << "    ds." << symbol_table.getName(symb_id) << " = dseries(ones(ds.nobs,1)*epilogue_static_tmp_term, ds.firstdate, '" << symbol_table.getName(symb_id) << "');" << endl
+             << "end" << endl;
     }
   output << "end" << endl;
   output.close();
