@@ -20,6 +20,7 @@
 #include <sstream>
 #include <fstream>
 #include <filesystem>
+#include <algorithm>
 
 #include "macro/Driver.hh"
 
