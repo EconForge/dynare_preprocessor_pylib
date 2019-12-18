@@ -447,7 +447,12 @@ Epilogue::writeDynamicEpilogueFile(const string & basename) const
       expr->collectVariables(SymbolType::exogenous, used_symbols);
       expr->collectVariables(SymbolType::epilogue, used_symbols);
 
-      output << "simul_begin_date = firstobservedperiod(ds{";
+      output << endl
+             << "if ~ds.exist('" << symbol_table.getName(symb_id) << "')" << endl
+             << "    ds = [ds dseries(NaN(ds.nobs,1), ds.firstdate, '" << symbol_table.getName(symb_id)<< "')];" << endl
+             << "end" << endl
+             << "try" << endl
+             << "    simul_begin_date = firstobservedperiod(ds{";
       for (auto it1 = used_symbols.begin(); it1 != used_symbols.end(); ++it1)
         {
           if (it1 != used_symbols.begin())
@@ -455,14 +460,12 @@ Epilogue::writeDynamicEpilogueFile(const string & basename) const
           output << "'" << symbol_table.getName(*it1) << "'";
         }
       output << "}) + " << max_lag << ";" << endl
-             << "if ~ds.exist('" << symbol_table.getName(symb_id) << "')" << endl
-             << "    ds = [ds dseries(NaN(ds.nobs,1), ds.firstdate, '" << symbol_table.getName(symb_id)<< "')];" << endl
-             << "end" << endl
-             << "from simul_begin_date to simul_end_date do "
+             << "    from simul_begin_date to simul_end_date do "
              << "ds." << symbol_table.getName(symb_id) << "(t) = ";
-
       expr->writeOutput(output, ExprNodeOutputType::epilogueFile, temporary_terms, temporary_terms_idxs, tef_terms);
-      output << ";" << endl << endl;
+      output << ";" << endl
+             << "catch" << endl
+             << "end" << endl;
     }
   output << "end" << endl;
   output.close();
