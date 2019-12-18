@@ -246,10 +246,15 @@ ParsingDriver::declare_statement_local_variable(const string &name)
 }
 
 void
-ParsingDriver::declare_optimal_policy_discount_factor_parameter(expr_t exprnode)
+ParsingDriver::set_planner_discount(expr_t value)
 {
-  declare_parameter("optimal_policy_discount_factor");
-  init_param("optimal_policy_discount_factor", exprnode);
+  planner_discount = value;
+}
+
+void
+ParsingDriver::set_planner_discount_latex_name(string tex_name)
+{
+  planner_discount_latex_name = move(tex_name);
 }
 
 void
@@ -2173,20 +2178,40 @@ void
 ParsingDriver::ramsey_model()
 {
   if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
-    declare_optimal_policy_discount_factor_parameter(data_tree->One);
+    {
+      if (!planner_discount)
+        planner_discount = data_tree->One;
+      declare_parameter("optimal_policy_discount_factor", planner_discount_latex_name);
+      init_param("optimal_policy_discount_factor", planner_discount);
+    }
+  else if (planner_discount)
+    error("ramsey_model: the 'planner_discount' option cannot be used when the 'optimal_policy_discount_factor' parameter is explicitly declared.");
+
   mod_file->addStatement(make_unique<RamseyModelStatement>(options_list));
   options_list.clear();
+  planner_discount = nullptr;
+  planner_discount_latex_name.clear();
 }
 
 void
 ParsingDriver::ramsey_policy()
 {
   warning("The 'ramsey_policy' statement is deprecated. Please use 'ramsey_model', 'stoch_simul', and 'evaluate_planner_objective' instead.");
+
   if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
-    declare_optimal_policy_discount_factor_parameter(data_tree->One);
+    {
+      if (!planner_discount)
+        planner_discount = data_tree->One;
+      declare_parameter("optimal_policy_discount_factor");
+      init_param("optimal_policy_discount_factor", planner_discount);
+    }
+  else if (planner_discount)
+    error("ramsey_policy: the 'planner_discount' option cannot be used when the 'optimal_policy_discount_factor' parameter is explicitly declared.");
+
   mod_file->addStatement(make_unique<RamseyPolicyStatement>(mod_file->symbol_table, ramsey_policy_list, options_list));
   options_list.clear();
   ramsey_policy_list.clear();
+  planner_discount = nullptr;
 }
 
 void
@@ -2205,7 +2230,10 @@ void
 ParsingDriver::discretionary_policy()
 {
   if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
-    declare_optimal_policy_discount_factor_parameter(data_tree->One);
+    {
+      declare_parameter("optimal_policy_discount_factor");
+      init_param("optimal_policy_discount_factor", data_tree->One);
+    }
   mod_file->addStatement(make_unique<DiscretionaryPolicyStatement>(symbol_list, options_list));
   symbol_list.clear();
   options_list.clear();

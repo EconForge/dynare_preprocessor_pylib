@@ -114,7 +114,8 @@ class ParsingDriver;
 %token SHOCKS SHOCK_DECOMPOSITION SHOCK_GROUPS USE_SHOCK_GROUPS SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED ENDOGENOUS_TERMINAL_PERIOD
 %token SMOOTHER SMOOTHER2HISTVAL SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS ROBUST_LIN_SOLVE
 %token STDERR STEADY STOCH_SIMUL SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME REALTIME_SHOCK_DECOMPOSITION CONDITIONAL UNCONDITIONAL
-%token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT DISCRETIONARY_POLICY DISCRETIONARY_TOL EVALUATE_PLANNER_OBJECTIVE
+%token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT PLANNER_DISCOUNT_LATEX_NAME
+%token DISCRETIONARY_POLICY DISCRETIONARY_TOL EVALUATE_PLANNER_OBJECTIVE
 %token <string> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VARIABLE VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION VAR_EXPECTATION_MODEL PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
@@ -2380,6 +2381,7 @@ ramsey_model_options_list : ramsey_model_options_list COMMA ramsey_model_options
                            ;
 
 ramsey_model_options :  o_planner_discount
+                      | o_planner_discount_latex_name
                       | o_instruments
                       ;
 
@@ -3398,7 +3400,8 @@ o_plot_priors: PLOT_PRIORS EQUAL INT_NUMBER {driver.option_num("plot_priors", $3
 o_aim_solver: AIM_SOLVER {driver.option_num("aim_solver", "true"); };
 o_partial_information : PARTIAL_INFORMATION {driver.option_num("partial_information", "true"); };
 o_sub_draws: SUB_DRAWS EQUAL INT_NUMBER {driver.option_num("sub_draws",$3);};
-o_planner_discount : PLANNER_DISCOUNT EQUAL expression { driver.declare_optimal_policy_discount_factor_parameter($3); };
+o_planner_discount : PLANNER_DISCOUNT EQUAL expression { driver.set_planner_discount($3); };
+o_planner_discount_latex_name : PLANNER_DISCOUNT_LATEX_NAME EQUAL TEX_NAME { driver.set_planner_discount_latex_name($3); };
 o_sylvester : SYLVESTER EQUAL FIXED_POINT {driver.option_num("sylvester_fp", "true"); }
                | SYLVESTER EQUAL DEFAULT {driver.option_num("sylvester_fp", "false"); };
 o_sylvester_fixed_point_tol : SYLVESTER_FIXED_POINT_TOL EQUAL non_negative_number {driver.option_num("sylvester_fixed_point_tol",$3);};

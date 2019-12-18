@@ -239,6 +239,10 @@ private:
   vector<pair<int, int>> init2shocks;
   //! Temporary storage for ramsey policy. Workaround for issue #1355
   vector<string> ramsey_policy_list;
+  /* Temporary storage for planner_discount and planner_discount_latex_name
+     options of ramsey_model and ramsey_policy */
+  expr_t planner_discount{nullptr};
+  string planner_discount_latex_name;
   //! reset the values for temporary storage
   void reset_current_external_function_options();
   //! Adds a model lagged variable to ModelTree and VariableTable
@@ -395,8 +399,10 @@ public:
   void check_subsample_declaration_exists(const string &name1, const string &name2, const string &subsample_name);
   //! Copies the set of subsamples from_name to_name
   void copy_subsamples(string to_name1, string to_name2, string from_name1, string from_name2);
-  //! Declares declare_optimal_policy_discount_factor as a parameter and initializes it to exprnode
-  void declare_optimal_policy_discount_factor_parameter(expr_t exprnode);
+  //! Sets the value of the planner_discount option of ramsey_{model,policy}
+  void set_planner_discount(expr_t value);
+  //! Sets the value of the planner_discount_latex_name option of ramsey_model
+  void set_planner_discount_latex_name(string tex_name);
   //! Adds a predetermined_variable
   void add_predetermined_variable(const string &name);
   //! Declares and initializes a local parameter
