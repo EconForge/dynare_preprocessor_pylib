@@ -3519,7 +3519,7 @@ UnaryOpNode::substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t 
       /* diff does not appear in VAR equations, so simply create aux var and return.
          Once the comparison of expression nodes works, come back and remove
          this part, folding into the next loop. */
-      int symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
+      int symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, const_cast<UnaryOpNode *>(this));
       VariableNode *aux_var = datatree.AddVariable(symb_id, 0);
       neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(aux_var,
                                                                       datatree.AddMinus(argsubst,
@@ -3543,9 +3543,9 @@ UnaryOpNode::substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t 
       if (rit == it->second.rbegin())
         {
           if (vn)
-            symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst, vn->symb_id, vn->lag);
+            symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, rit->second, vn->symb_id, vn->lag);
           else
-            symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, argsubst);
+            symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, rit->second);
 
           // make originating aux var & equation
           last_index = rit->first;
@@ -3563,10 +3563,10 @@ UnaryOpNode::substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t 
           for (int i = last_index; i > rit->first; i--)
             {
               if (i == last_index)
-                symb_id = datatree.symbol_table.addDiffLagAuxiliaryVar(argsubst->idx, argsubst,
+                symb_id = datatree.symbol_table.addDiffLagAuxiliaryVar(argsubst->idx, rit->second,
                                                                        last_aux_var->symb_id, last_aux_var->lag);
               else
-                symb_id = datatree.symbol_table.addDiffLagAuxiliaryVar(new_aux_var->idx, new_aux_var,
+                symb_id = datatree.symbol_table.addDiffLagAuxiliaryVar(new_aux_var->idx, rit->second,
                                                                        last_aux_var->symb_id, last_aux_var->lag);
 
               new_aux_var = datatree.AddVariable(symb_id, 0);
@@ -3782,7 +3782,7 @@ UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNo
       //Arriving here, we need to create an auxiliary variable for this Expectation Operator:
       //AUX_EXPECT_(LEAD/LAG)_(period)_(arg.idx) OR
       //AUX_EXPECT_(info_set_name)_(arg.idx)
-      int symb_id = datatree.symbol_table.addExpectationAuxiliaryVar(expectation_information_set, arg->idx, arg);
+      int symb_id = datatree.symbol_table.addExpectationAuxiliaryVar(expectation_information_set, arg->idx, const_cast<UnaryOpNode *>(this));
       expr_t newAuxE = datatree.AddVariable(symb_id, 0);
 
       if (partial_information_model && expectation_information_set == 0)
@@ -3901,6 +3901,9 @@ UnaryOpNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
 expr_t
 UnaryOpNode::substituteStaticAuxiliaryVariable() const
 {
+  if (op_code == UnaryOpcode::diff)
+    return datatree.Zero;
+
   expr_t argsubst = arg->substituteStaticAuxiliaryVariable();
   if (op_code == UnaryOpcode::expectation)
     return argsubst;
