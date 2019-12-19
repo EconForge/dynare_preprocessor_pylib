@@ -1142,8 +1142,7 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 
       if (order > 2)
         {
-          cerr << "ERROR: order > 2 is not supported in estimation" << endl;
-          exit(EXIT_FAILURE);
+          mod_file_struct.k_order_solver = true;
         }
 
       mod_file_struct.order_option = max(mod_file_struct.order_option, order);
@@ -1213,8 +1212,12 @@ EstimationStatement::writeOutput(ostream &output, const string &basename, bool m
   if (auto it = options_list.num_options.find("order");
       it == options_list.num_options.end())
     output << "options_.order = 1;" << endl;
-  else if (stoi(it->second) == 2)
-    output << "options_.particle.status = true;" << endl;
+  else if (stoi(it->second) >= 2)
+    {
+      output << "options_.particle.status = true;" << endl;
+      if (stoi(it->second) > 2)
+        output << "options_.k_order_solver = 1;" << endl;
+    }
 
   // Do not check for the steady state in diffuse filter mode (#400)
   if (auto it = options_list.num_options.find("diffuse_filter");
