@@ -28,10 +28,8 @@
 
 using namespace std;
 
-#include "SymbolTable.hh"
 #include "CodeInterpreter.hh"
 #include "ExternalFunctionsTable.hh"
-#include "SymbolList.hh"
 
 class DataTree;
 class NumConstNode;

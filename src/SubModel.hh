@@ -27,6 +27,7 @@
 
 #include "ExprNode.hh"
 #include "SymbolTable.hh"
+#include "SymbolList.hh"
 
 using namespace std;
 
