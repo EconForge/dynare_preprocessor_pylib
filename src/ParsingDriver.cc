@@ -91,7 +91,7 @@ ParsingDriver::parse(istream &in, bool debug)
 {
   mod_file = make_unique<ModFile>(warnings);
 
-  symbol_list.clear();
+  symbol_list.setSymbolTable(mod_file->symbol_table);
 
   reset_data_tree();
   estim_params.init(*data_tree);
@@ -1464,8 +1464,6 @@ ParsingDriver::linear()
 void
 ParsingDriver::add_in_symbol_list(const string &tmp_var)
 {
-  if (tmp_var != ":")
-    check_symbol_existence(tmp_var);
   symbol_list.addSymbol(tmp_var);
 }
 
@@ -2208,16 +2206,11 @@ ParsingDriver::ramsey_policy()
   else if (planner_discount)
     error("ramsey_policy: the 'planner_discount' option cannot be used when the 'optimal_policy_discount_factor' parameter is explicitly declared.");
 
-  mod_file->addStatement(make_unique<RamseyPolicyStatement>(mod_file->symbol_table, ramsey_policy_list, options_list));
+  mod_file->addStatement(make_unique<RamseyPolicyStatement>(mod_file->symbol_table,
+                                                            symbol_list, options_list));
   options_list.clear();
-  ramsey_policy_list.clear();
+  symbol_list.clear();
   planner_discount = nullptr;
-}
-
-void
-ParsingDriver::add_to_ramsey_policy_list(string name)
-{
-  ramsey_policy_list.push_back(move(name));
 }
 
 void

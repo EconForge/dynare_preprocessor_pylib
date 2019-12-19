@@ -643,6 +643,16 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
     }
 
   symbol_list.removeDuplicates("stoch_simul", warnings);
+
+  try
+    {
+      symbol_list.checkPass(warnings);
+    }
+  catch (SymbolList::SymbolListException &e)
+    {
+      cerr << "ERROR: stoch_simul: " << e.message << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -682,6 +692,20 @@ ForecastStatement::ForecastStatement(SymbolList symbol_list_arg,
   symbol_list{move(symbol_list_arg)},
   options_list{move(options_list_arg)}
 {
+}
+
+void
+ForecastStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  try
+    {
+      symbol_list.checkPass(warnings);
+    }
+  catch (SymbolList::SymbolListException &e)
+    {
+      cerr << "ERROR: forecast: " << e.message << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -917,10 +941,10 @@ RamseyConstraintsStatement::writeJsonOutput(ostream &output) const
 }
 
 RamseyPolicyStatement::RamseyPolicyStatement(const SymbolTable &symbol_table_arg,
-                                             vector<string> ramsey_policy_list_arg,
+                                             SymbolList symbol_list_arg,
                                              OptionsList options_list_arg) :
   symbol_table{symbol_table_arg},
-  ramsey_policy_list{move(ramsey_policy_list_arg)},
+  symbol_list{move(symbol_list_arg)},
   options_list{move(options_list_arg)}
 {
 }
@@ -964,23 +988,15 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
   if (auto it = options_list.symbol_list_options.find("instruments");
       it != options_list.symbol_list_options.end())
     mod_file_struct.instruments = it->second;
-}
 
-void
-RamseyPolicyStatement::checkRamseyPolicyList()
-{
-  for (const auto & it : ramsey_policy_list)
+  try
     {
-      if (!symbol_table.exists(it))
-        {
-          cerr << "ERROR: ramsey_policy: " << it << " was not declared." << endl;
-          exit(EXIT_FAILURE);
-        }
-      if (symbol_table.getType(it) != SymbolType::endogenous)
-        {
-          cerr << "ERROR: ramsey_policy: " << it << " is not endogenous." << endl;
-          exit(EXIT_FAILURE);
-        }
+      symbol_list.checkPass(warnings);
+    }
+  catch (SymbolList::SymbolListException &e)
+    {
+      cerr << "ERROR: ramsey_policy: " << e.message << endl;
+      exit(EXIT_FAILURE);
     }
 }
 
@@ -995,16 +1011,8 @@ RamseyPolicyStatement::writeOutput(ostream &output, const string &basename, bool
     output << "options_.k_order_solver = true;" << endl;
 
   options_list.writeOutput(output);
-  output << "var_list_ = {";
-  for (auto it = ramsey_policy_list.begin();
-       it != ramsey_policy_list.end(); ++it)
-    {
-      if (it != ramsey_policy_list.begin())
-        output << ";";
-      output << "'" << *it << "'";
-    }
-  output << "};" << endl
-         << "ramsey_policy(var_list_);" << endl;
+  symbol_list.writeOutput("var_list_", output);
+  output << "ramsey_policy(var_list_);" << endl;
 }
 
 void
@@ -1016,16 +1024,12 @@ RamseyPolicyStatement::writeJsonOutput(ostream &output) const
       output << ", ";
       options_list.writeJsonOutput(output);
     }
-  output << R"(, "ramsey_policy_list": [)";
-  for (auto it = ramsey_policy_list.begin();
-       it != ramsey_policy_list.end(); ++it)
+  if (!symbol_list.empty())
     {
-      if (it != ramsey_policy_list.begin())
-        output << ",";
-      output << R"(")" << *it << R"(")";
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
     }
-  output << "]"
-         << "}";
+  output << "}";
 }
 
 void
@@ -1088,6 +1092,16 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
   if (auto it = options_list.symbol_list_options.find("instruments");
       it != options_list.symbol_list_options.end())
     mod_file_struct.instruments = it->second;
+
+  try
+    {
+      symbol_list.checkPass(warnings);
+    }
+  catch (SymbolList::SymbolListException &e)
+    {
+      cerr << "ERROR: discretionary_policy: " << e.message << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -1197,6 +1211,16 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       && mod_file_struct.estim_params_use_calib)
     {
       cerr << "ERROR: The mode_file option of the estimation statement is incompatible with the use_calibration option of the estimated_params_init block." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  try
+    {
+      symbol_list.checkPass(warnings);
+    }
+  catch (SymbolList::SymbolListException &e)
+    {
+      cerr << "ERROR: estimation: " << e.message << endl;
       exit(EXIT_FAILURE);
     }
 }
@@ -1969,6 +1993,16 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation 
       (it != options_list.num_options.end() && it->second == "true")
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
+
+  try
+    {
+      symbol_list.checkPass(warnings);
+    }
+  catch (SymbolList::SymbolListException &e)
+    {
+      cerr << "ERROR: osr: " << e.message << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -2084,6 +2118,20 @@ DynaSaveStatement::DynaSaveStatement(SymbolList symbol_list_arg,
 }
 
 void
+DynaSaveStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  try
+    {
+      symbol_list.checkPass(warnings);
+    }
+  catch (SymbolList::SymbolListException &e)
+    {
+      cerr << "ERROR: dynasave: " << e.message << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
 DynaSaveStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
@@ -2109,6 +2157,20 @@ DynaTypeStatement::DynaTypeStatement(SymbolList symbol_list_arg,
   symbol_list(move(symbol_list_arg)),
   filename(move(filename_arg))
 {
+}
+
+void
+DynaTypeStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  try
+    {
+      symbol_list.checkPass(warnings);
+    }
+  catch (SymbolList::SymbolListException &e)
+    {
+      cerr << "ERROR: dynatype: " << e.message << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -2498,6 +2560,16 @@ MSSBVARIrfStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
            << "filtered_probabilities to ms_irf" << endl;
       exit(EXIT_FAILURE);
     }
+
+  try
+    {
+      symbol_list.checkPass(warnings);
+    }
+  catch (SymbolList::SymbolListException &e)
+    {
+      cerr << "ERROR: ms_irf: " << e.message << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -2765,6 +2837,16 @@ ShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, Warnin
   if (auto it = options_list.num_options.find("shock_decomp.with_epilogue");
       it != options_list.num_options.end() && it->second == "true")
     mod_file_struct.with_epilogue_option = true;
+
+  try
+    {
+      symbol_list.checkPass(warnings);
+    }
+  catch (SymbolList::SymbolListException &e)
+    {
+      cerr << "ERROR: shock_decomposition: " << e.message << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -2805,6 +2887,16 @@ RealtimeShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct
   if (auto it = options_list.num_options.find("shock_decomp.with_epilogue");
       it != options_list.num_options.end() && it->second == "true")
     mod_file_struct.with_epilogue_option = true;
+
+  try
+    {
+      symbol_list.checkPass(warnings);
+    }
+  catch (SymbolList::SymbolListException &e)
+    {
+      cerr << "ERROR: realtime_shock_decomposition: " << e.message << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -2878,6 +2970,16 @@ InitialConditionDecompositionStatement::checkPass(ModFileStructure &mod_file_str
   if (auto it = options_list.num_options.find("initial_condition_decomp.with_epilogue");
       it != options_list.num_options.end() && it->second == "true")
     mod_file_struct.with_epilogue_option = true;
+
+  try
+    {
+      symbol_list.checkPass(warnings);
+    }
+  catch (SymbolList::SymbolListException &e)
+    {
+      cerr << "ERROR: initial_condition_decomposition: " << e.message << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -2909,6 +3011,21 @@ InitialConditionDecompositionStatement::writeJsonOutput(ostream &output) const
 SqueezeShockDecompositionStatement::SqueezeShockDecompositionStatement(SymbolList symbol_list_arg)
   : symbol_list{move(symbol_list_arg)}
 {
+}
+
+void
+SqueezeShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct,
+                                              WarningConsolidation &warnings)
+{
+  try
+    {
+      symbol_list.checkPass(warnings);
+    }
+  catch (SymbolList::SymbolListException &e)
+    {
+      cerr << "ERROR: squeeze_shock_decomposition: " << e.message << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -2973,6 +3090,21 @@ PlotConditionalForecastStatement::PlotConditionalForecastStatement(int periods_a
   periods{periods_arg},
   symbol_list{move(symbol_list_arg)}
 {
+}
+
+void
+PlotConditionalForecastStatement::checkPass(ModFileStructure &mod_file_struct,
+                                            WarningConsolidation &warnings)
+{
+  try
+    {
+      symbol_list.checkPass(warnings);
+    }
+  catch (SymbolList::SymbolListException &e)
+    {
+      cerr << "ERROR: plot_conditional_forecast: " << e.message << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -4538,6 +4670,15 @@ void
 CalibSmootherStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   mod_file_struct.calib_smoother_present = true;
+  try
+    {
+      symbol_list.checkPass(warnings);
+    }
+  catch (SymbolList::SymbolListException &e)
+    {
+      cerr << "ERROR: calib_smoother: " << e.message << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -4659,6 +4800,20 @@ GMMEstimationStatement::GMMEstimationStatement(SymbolList symbol_list_arg,
 }
 
 void
+GMMEstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  try
+    {
+      symbol_list.checkPass(warnings);
+    }
+  catch (SymbolList::SymbolListException &e)
+    {
+      cerr << "ERROR: gmm_estimation: " << e.message << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
 GMMEstimationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
@@ -4689,6 +4844,20 @@ SMMEstimationStatement::SMMEstimationStatement(SymbolList symbol_list_arg,
   symbol_list{move(symbol_list_arg)},
   options_list{move(options_list_arg)}
 {
+}
+
+void
+SMMEstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  try
+    {
+      symbol_list.checkPass(warnings);
+    }
+  catch (SymbolList::SymbolListException &e)
+    {
+      cerr << "ERROR: smm_estimation: " << e.message << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void

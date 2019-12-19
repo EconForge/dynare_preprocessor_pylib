@@ -237,8 +237,6 @@ private:
   vector<ShockGroupsStatement::Group> shock_groups;
   //! Temporary storage for init2shocks
   vector<pair<int, int>> init2shocks;
-  //! Temporary storage for ramsey policy. Workaround for issue #1355
-  vector<string> ramsey_policy_list;
   /* Temporary storage for planner_discount and planner_discount_latex_name
      options of ramsey_model and ramsey_policy */
   expr_t planner_discount{nullptr};
@@ -888,8 +886,6 @@ public:
   void add_init2shocks(const string &endo_name, const string &exo_name);
   //! End init2shocks declaration
   void end_init2shocks(const string &name);
-  //! Add an element to the ramsey policy list
-  void add_to_ramsey_policy_list(string name);
   void smoother2histval();
   void histval_file(const string &filename);
   void perfect_foresight_setup();

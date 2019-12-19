@@ -106,7 +106,6 @@ public:
   DetCondForecast(SymbolList symbol_list_arg,
                   OptionsList options_list_arg,
                   const bool linear_decompositiontion_arg);
-  //virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
 };
 
@@ -203,6 +202,7 @@ private:
 public:
   ForecastStatement(SymbolList symbol_list_arg,
                     OptionsList options_list_arg);
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -242,11 +242,11 @@ class RamseyPolicyStatement : public Statement
 {
 private:
   const SymbolTable &symbol_table;
-  const vector<string> ramsey_policy_list;
+  const SymbolList symbol_list;
   const OptionsList options_list;
 public:
   RamseyPolicyStatement(const SymbolTable &symbol_table_arg,
-                        vector<string> ramsey_policy_list_arg,
+                        SymbolList symbol_list_arg,
                         OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void checkRamseyPolicyList();
@@ -410,6 +410,7 @@ private:
 public:
   DynaTypeStatement(SymbolList symbol_list_arg,
                     string filename_arg);
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -422,6 +423,7 @@ private:
 public:
   DynaSaveStatement(SymbolList symbol_list_arg,
                     string filename_arg);
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -769,6 +771,7 @@ private:
   const SymbolList symbol_list;
 public:
   SqueezeShockDecompositionStatement(SymbolList symbol_list_arg);
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -792,6 +795,7 @@ private:
   const SymbolList symbol_list;
 public:
   PlotConditionalForecastStatement(int periods_arg, SymbolList symbol_list_arg);
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -1145,6 +1149,7 @@ private:
   const OptionsList options_list;
 public:
   GMMEstimationStatement(SymbolList symbol_list_arg, OptionsList options_list_arg);
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -1156,6 +1161,7 @@ private:
   const OptionsList options_list;
 public:
   SMMEstimationStatement(SymbolList symbol_list_arg, OptionsList options_list_arg);
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };

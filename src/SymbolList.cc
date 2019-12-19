@@ -17,12 +17,45 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <regex>
+
 #include "SymbolList.hh"
+
+void
+SymbolList::setSymbolTable(const SymbolTable &symbol_table_arg)
+{
+  symbol_table = &symbol_table_arg;
+}
 
 void
 SymbolList::addSymbol(const string &symbol)
 {
   symbols.push_back(symbol);
+}
+
+void
+SymbolList::checkPass(WarningConsolidation &warnings) const noexcept(false)
+{
+  smatch m;
+  regex re("^(AUX_EXPECT_|AUX_ENDO_|MULT_)");
+  for (const auto & symbol : symbols)
+    {
+      if (!symbol_table->exists(symbol))
+        {
+          if (regex_search(symbol, m, re))
+            {
+              warnings << "WARNING: symbol_list variable " << symbol << " has not yet been declared. "
+                       << "This is being ignored because the variable name corresponds to a possible "
+                       << "auxiliary variable name." << endl;
+              return;
+            }
+          else
+            throw SymbolListException{"Variable " + symbol +  " was not declared."};
+        }
+
+      if (symbol_table->getType(symbol) != SymbolType::endogenous)
+        throw SymbolListException{"Variable " + symbol +  " is not endogenous."};
+    }
 }
 
 void

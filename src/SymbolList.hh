@@ -26,6 +26,7 @@
 #include <algorithm>
 
 #include "WarningConsolidation.hh"
+#include "SymbolTable.hh"
 
 using namespace std;
 
@@ -36,11 +37,22 @@ class SymbolList
 private:
   //! Internal container for symbol list
   vector<string> symbols;
+  const SymbolTable *symbol_table;
 public:
+  class SymbolListException
+  {
+  public:
+    const string message;
+    SymbolListException(string message_arg) : message{move(message_arg)} {};
+  };
+  //! Set symbol table pointer
+  void setSymbolTable(const SymbolTable &symbol_table_arg);
   //! Adds a symbol to the list
   void addSymbol(const string &symbol);
   //! Removed duplicate symbols
   void removeDuplicates(const string &dynare_command, WarningConsolidation &warnings);
+  //! Check symbols to ensure variables have been declared and are endogenous
+  void checkPass(WarningConsolidation &warnings) const noexcept(false);
   //! Output content in Matlab format
   /*! Creates a string array for Matlab, stored in variable "varname" */
   void writeOutput(const string &varname, ostream &output) const;

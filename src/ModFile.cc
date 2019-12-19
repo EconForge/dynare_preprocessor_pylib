@@ -690,11 +690,6 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       exit(EXIT_FAILURE);
     }
 
-  if (mod_file_struct.ramsey_policy_present)
-    for (auto & statement : statements)
-      if (auto rps = dynamic_cast<RamseyPolicyStatement *>(statement.get()); rps)
-        rps->checkRamseyPolicyList();
-
   if (mod_file_struct.identification_present && symbol_table.exo_det_nbr() > 0)
     {
       cerr << "ERROR: identification is incompatible with deterministic exogenous variables" << endl;

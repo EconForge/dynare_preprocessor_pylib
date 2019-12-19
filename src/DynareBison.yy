@@ -2322,18 +2322,11 @@ ramsey_policy : RAMSEY_POLICY ';'
                 { driver.ramsey_policy(); }
               | RAMSEY_POLICY '(' ramsey_policy_options_list ')' ';'
                 { driver.ramsey_policy(); }
-              | RAMSEY_POLICY ramsey_policy_list ';'
+              | RAMSEY_POLICY symbol_list ';'
                 { driver.ramsey_policy(); }
-              | RAMSEY_POLICY '(' ramsey_policy_options_list ')' ramsey_policy_list ';'
+              | RAMSEY_POLICY '(' ramsey_policy_options_list ')' symbol_list ';'
                 { driver.ramsey_policy(); }
               ;
-
-ramsey_policy_list : ramsey_policy_list ramsey_policy_element
-                   | ramsey_policy_element
-                   ;
-
-ramsey_policy_element : symbol { driver.add_to_ramsey_policy_list($1); }
-                      ;
 
 ramsey_constraints : RAMSEY_CONSTRAINTS ';' ramsey_constraints_list END ';'
                      { driver.add_ramsey_constraints_statement(); }
