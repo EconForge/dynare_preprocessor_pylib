@@ -139,7 +139,16 @@ SimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidatio
 void
 SimulStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  options_list.writeOutput(output);
+  // Translate the “datafile” option into “initval_file” (see dynare#1663)
+  auto options_list_new = options_list; // Need a copy, because of const
+  if (auto it = options_list_new.string_options.find("datafile");
+      it != options_list_new.string_options.end())
+    {
+      output << "options_.initval_file = true;" << endl
+             << "initvalf('" << it->second << "');" << endl;
+      options_list_new.string_options.erase(it);
+    }
+  options_list_new.writeOutput(output);
   output << "perfect_foresight_setup;" << endl
          << "perfect_foresight_solver;" << endl;
 }
@@ -164,7 +173,15 @@ PerfectForesightSetupStatement::PerfectForesightSetupStatement(OptionsList optio
 void
 PerfectForesightSetupStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  options_list.writeOutput(output);
+  auto options_list_new = options_list; // Need a copy, because of const
+  if (auto it = options_list_new.string_options.find("datafile");
+      it != options_list_new.string_options.end())
+    {
+      output << "options_.initval_file = true;" << endl
+             << "initvalf('" << it->second << "');" << endl;
+      options_list_new.string_options.erase(it);
+    }
+  options_list_new.writeOutput(output);
   output << "perfect_foresight_setup;" << endl;
 }
 
