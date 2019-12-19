@@ -378,11 +378,6 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
             output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl;
             break;
           case AuxVarType::expectation:
-            output << "M_.aux_vars(" << i+1 << R"().orig_expr = '\mathbb{E}_{t)"
-                   << (aux_vars[i].get_information_set() < 0 ? "" : "+")
-                   << aux_vars[i].get_information_set() << "}(";
-            aux_vars[i].get_expr_node()->writeOutput(output, ExprNodeOutputType::latexDynamicModel);
-            output << ")';" << endl;
             break;
           case AuxVarType::diff:
           case AuxVarType::diffLag:
@@ -391,6 +386,14 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
               output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl
                      << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
             break;
+          }
+
+        if (expr_t orig_expr = aux_vars[i].get_expr_node();
+            orig_expr)
+          {
+            output << "M_.aux_vars(" << i+1 << ").orig_expr = '";
+            orig_expr->writeJsonOutput(output, {}, {});
+            output << "';" << endl;
           }
       }
 
