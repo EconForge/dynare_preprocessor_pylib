@@ -1914,13 +1914,6 @@ OsrParamsStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-OsrStatement::OsrStatement(SymbolList symbol_list_arg,
-                           OptionsList options_list_arg) :
-  symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)}
-{
-}
-
 OsrParamsBoundsStatement::OsrParamsBoundsStatement(vector<OsrParams> osr_params_list_arg) :
   osr_params_list{move(osr_params_list_arg)}
 {
@@ -1971,6 +1964,13 @@ OsrParamsBoundsStatement::writeJsonOutput(ostream &output) const
     }
   output << "]"
          << "}";
+}
+
+OsrStatement::OsrStatement(SymbolList symbol_list_arg,
+                           OptionsList options_list_arg) :
+  symbol_list{move(symbol_list_arg)},
+  options_list{move(options_list_arg)}
+{
 }
 
 void
