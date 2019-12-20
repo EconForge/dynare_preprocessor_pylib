@@ -1141,9 +1141,7 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       int order = stoi(it->second);
 
       if (order > 2)
-        {
-          mod_file_struct.k_order_solver = true;
-        }
+        mod_file_struct.k_order_solver = true;
 
       mod_file_struct.order_option = max(mod_file_struct.order_option, order);
     }
@@ -1216,7 +1214,7 @@ EstimationStatement::writeOutput(ostream &output, const string &basename, bool m
     {
       output << "options_.particle.status = true;" << endl;
       if (stoi(it->second) > 2)
-        output << "options_.k_order_solver = 1;" << endl;
+        output << "options_.k_order_solver = true;" << endl;
     }
 
   // Do not check for the steady state in diffuse filter mode (#400)
