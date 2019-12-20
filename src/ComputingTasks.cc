@@ -3036,7 +3036,7 @@ SqueezeShockDecompositionStatement::writeOutput(ostream &output, const string &b
   else
     {
       symbol_list.writeOutput("var_list_", output);
-      output << "oo_ = squeeze_shock_decomposition(M_, oo_, options_, var_list_,);" << endl;
+      output << "oo_ = squeeze_shock_decomposition(M_, oo_, options_, var_list_);" << endl;
     }
 }
 
