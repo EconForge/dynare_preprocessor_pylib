@@ -2452,6 +2452,8 @@ ParsingDriver::det_cond_forecast_linear_decomposition(const string & plan)
   symbol_list.clear();
   symbol_list.addSymbol(plan);
   mod_file->addStatement(make_unique<DetCondForecast>(symbol_list, options_list, mod_file->linear_decomposition));
+  symbol_list.clear();
+  options_list.clear();
 }
 
 void
@@ -2461,6 +2463,8 @@ ParsingDriver::det_cond_forecast_linear_decomposition(const string &plan, const 
   symbol_list.addSymbol(plan);
   symbol_list.addSymbol(dset);
   mod_file->addStatement(make_unique<DetCondForecast>(symbol_list, options_list, mod_file->linear_decomposition));
+  symbol_list.clear();
+  options_list.clear();
 }
 
 void
