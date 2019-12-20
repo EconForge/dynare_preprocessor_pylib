@@ -321,10 +321,17 @@ Epilogue::addDefinition(int symb_id, expr_t expr)
 }
 
 void
-Epilogue::checkPass(WarningConsolidation &warnings) const
+Epilogue::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) const
 {
   if (dynamic_def_table.size() == 0)
-    return;
+    {
+      if (mod_file_struct.with_epilogue_option)
+        {
+          cerr << "ERROR: the 'with_epilogue' option cannot be specified when there is no 'epilogue' block" << endl;
+          exit(EXIT_FAILURE);
+        }
+      return;
+    }
 
   vector<int> so_far_defined;
   for (const auto & it : dynamic_def_table)

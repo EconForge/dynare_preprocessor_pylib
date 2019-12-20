@@ -2762,6 +2762,14 @@ ShockDecompositionStatement::ShockDecompositionStatement(SymbolList symbol_list_
 }
 
 void
+ShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  if (auto it = options_list.num_options.find("shock_decomp.with_epilogue");
+      it != options_list.num_options.end() && it->second == "true")
+    mod_file_struct.with_epilogue_option = true;
+}
+
+void
 ShockDecompositionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
@@ -2791,6 +2799,14 @@ RealtimeShockDecompositionStatement::RealtimeShockDecompositionStatement(SymbolL
   symbol_list{move(symbol_list_arg)},
   options_list{move(options_list_arg)}
 {
+}
+
+void
+RealtimeShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  if (auto it = options_list.num_options.find("shock_decomp.with_epilogue");
+      it != options_list.num_options.end() && it->second == "true")
+    mod_file_struct.with_epilogue_option = true;
 }
 
 void
@@ -2856,6 +2872,14 @@ InitialConditionDecompositionStatement::InitialConditionDecompositionStatement(S
   symbol_list{move(symbol_list_arg)},
   options_list{move(options_list_arg)}
 {
+}
+
+void
+InitialConditionDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  if (auto it = options_list.num_options.find("initial_condition_decomp.with_epilogue");
+      it != options_list.num_options.end() && it->second == "true")
+    mod_file_struct.with_epilogue_option = true;
 }
 
 void

@@ -114,7 +114,7 @@ ModFile::checkPass(bool nostrict, bool stochastic)
   steady_state_model.checkPass(mod_file_struct, warnings);
 
   // Check epilogue block
-  epilogue.checkPass(warnings);
+  epilogue.checkPass(mod_file_struct, warnings);
 
   if (mod_file_struct.write_latex_steady_state_model_present &&
       !mod_file_struct.steady_state_model_present)

@@ -704,6 +704,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <DYNARE_STATEMENT>checks_via_subsets {return token::CHECKS_VIA_SUBSETS;}
 <DYNARE_STATEMENT>max_dim_subsets_groups {return token::MAX_DIM_SUBSETS_GROUPS;}
 <DYNARE_STATEMENT>max_nrows {return token::MAX_NROWS;}
+<DYNARE_STATEMENT>with_epilogue {return token::WITH_EPILOGUE;}
 
 <DYNARE_STATEMENT>\$[^$]*\$ {
   strtok(yytext+1, "$");

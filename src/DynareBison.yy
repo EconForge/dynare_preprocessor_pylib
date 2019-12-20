@@ -169,7 +169,7 @@ class ParsingDriver;
 %token NO_IDENTIFICATION_STRENGTH NO_IDENTIFICATION_REDUCEDFORM NO_IDENTIFICATION_MOMENTS
 %token NO_IDENTIFICATION_MINIMAL NO_IDENTIFICATION_SPECTRUM NORMALIZE_JACOBIANS GRID_NBR
 %token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS
-%token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION
+%token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION WITH_EPILOGUE
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -2830,6 +2830,7 @@ shock_decomposition_option : o_parameter_set
                            | o_nobs
                            | o_init_state
 			   | o_forecast_type
+                           | o_shock_decomposition_with_epilogue
                            ;
 
 realtime_shock_decomposition_options_list : realtime_shock_decomposition_option COMMA realtime_shock_decomposition_options_list
@@ -2847,6 +2848,7 @@ realtime_shock_decomposition_option : o_parameter_set
                                     | o_shock_decomposition_forecast
                                     | o_save_realtime
                                     | o_fast_realtime
+                                    | o_shock_decomposition_with_epilogue
                                     ;
 
 plot_shock_decomposition_options_list : plot_shock_decomposition_option COMMA plot_shock_decomposition_options_list
@@ -2892,6 +2894,7 @@ initial_condition_decomposition_option : o_icd_type
                                        | o_icd_flip
                                        | o_icd_colormap
                                        | o_icd_max_nrows
+                                       | o_icd_with_epilogue
                                        ;
 
 homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END ';'
@@ -3308,6 +3311,8 @@ o_psd_graph_format : GRAPH_FORMAT EQUAL allowed_graph_formats
                    | GRAPH_FORMAT EQUAL '(' list_allowed_graph_formats ')'
                      { driver.plot_shock_decomp_process_graph_format_option(); }
                    ;
+o_shock_decomposition_with_epilogue : WITH_EPILOGUE { driver.option_num("shock_decomp.with_epilogue", "true"); };
+o_icd_with_epilogue : WITH_EPILOGUE { driver.option_num("initial_condition_decomp.with_epilogue", "true"); };
 allowed_graph_formats : EPS
                         { driver.add_graph_format("eps"); }
                       | FIG

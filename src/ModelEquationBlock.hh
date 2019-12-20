@@ -86,8 +86,8 @@ public:
   //! Add an expression of the form "var = expr;"
   void addDefinition(int symb_id, expr_t expr);
 
-  //! Checks that no variable is declared twice
-  void checkPass(WarningConsolidation &warnings) const;
+  //! Checks that no variable is declared twice, and that “with_epilogue” is not misused
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) const;
 
   //! Creates static epilogue equations
   void toStatic();

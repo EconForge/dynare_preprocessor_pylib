@@ -131,6 +131,9 @@ public:
   set<int> pac_params;
   //! Instruments if ramsey_model, ramsey_policy or discretionary_policy is present
   SymbolList instruments;
+  /* Whether any of shock_decomposition, realtime_shock_decomposition and
+     initial_condition_decomposition has the “with_epilogue” option */
+  bool with_epilogue_option{false};
 };
 
 class Statement
