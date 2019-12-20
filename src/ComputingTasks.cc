@@ -750,13 +750,11 @@ DetCondForecast::writeOutput(ostream &output, const string &basename, bool minim
   if (linear_decomposition)
     {
       output << "first_order_solution_to_compute = 1;" << endl
-             << "if exist('oo_')" << endl
-             << "  if isfield(oo_, 'dr')" << endl
+             << "if isfield(oo_, 'dr')" << endl
              << "    if isfield(oo_.dr, 'ghx') && isfield(oo_.dr, 'ghu') && isfield(oo_.dr, 'state_var') && isfield(oo_.dr, 'order_var')" << endl
-             << "      first_order_solution_to_compute = 0;" << endl
-             << "    end;" << endl
-             << "  end;" << endl
-             << "end;" << endl
+             << "        first_order_solution_to_compute = 0;" << endl
+             << "    end" << endl
+             << "end" << endl
              << "if first_order_solution_to_compute" << endl
              << "  fprintf('%s','Computing the first order solution ...');" << endl
              << "  options_.nograph = true;" << endl
@@ -773,7 +771,7 @@ DetCondForecast::writeOutput(ostream &output, const string &basename, bool minim
              << "  info = stoch_simul(var_list_);" << endl
              << R"(  fprintf('%s\n','done');)" << endl
              << "  options_.periods = tmp_periods;" << endl
-             << "end;" << endl;
+             << "end" << endl;
     }
   vector<string> symbols = symbol_list.get_symbols();
   if (symbols.size() > 0)
