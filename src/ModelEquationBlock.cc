@@ -475,7 +475,11 @@ void
 Epilogue::writeOutput(ostream &output) const
 {
   if (dynamic_def_table.empty())
-    return;
+    {
+      output << "M_.epilogue_names = {};" << endl
+             << "M_.epilogue_var_list_ = {};" << endl;
+      return;
+    }
 
   int idx = 1;
   output << "M_.epilogue_names = cell(" << dynamic_def_table.size() << ",1);" << endl;
