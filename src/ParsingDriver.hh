@@ -62,8 +62,8 @@ public:
 
   DynareFlex(const DynareFlex &) = delete;
   DynareFlex(DynareFlex &&) = delete;
-  DynareFlex & operator=(const DynareFlex &) = delete;
-  DynareFlex & operator=(DynareFlex &&) = delete;
+  DynareFlex &operator=(const DynareFlex &) = delete;
+  DynareFlex &operator=(DynareFlex &&) = delete;
 
   //! The main lexing function
   Dynare::parser::token_type lex(Dynare::parser::semantic_type *yylval,
@@ -205,9 +205,9 @@ private:
   //! Temporary storage for restriction type
   enum class SvarRestrictionType
     {
-      NOT_SET,
-      Qi_TYPE,
-      Ri_TYPE
+     NOT_SET,
+     Qi_TYPE,
+     Ri_TYPE
     };
   SvarRestrictionType svar_restriction_type;
   //! Temporary storage for generate_irfs
@@ -215,7 +215,7 @@ private:
   vector<map<string, double>> generate_irf_elements;
   map<string, double> generate_irf_exos;
   //! Temporary storage for argument list of external function
-  stack<vector<expr_t>>  stack_external_function_args;
+  stack<vector<expr_t>> stack_external_function_args;
   //! Temporary storage for parameters in joint prior statement
   vector<string> joint_parameters;
   //! Temporary storage for the symb_id associated with the "name" symbol of the current external_function statement
@@ -279,12 +279,14 @@ private:
 
 public:
   ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) :
-    warnings{warnings_arg}, nostrict{nostrict_arg} { };
+    warnings{warnings_arg}, nostrict{nostrict_arg}
+  {
+  };
 
   ParsingDriver(const ParsingDriver &) = delete;
   ParsingDriver(ParsingDriver &&) = delete;
-  ParsingDriver & operator=(const ParsingDriver &) = delete;
-  ParsingDriver & operator=(ParsingDriver &&) = delete;
+  ParsingDriver &operator=(const ParsingDriver &) = delete;
+  ParsingDriver &operator=(ParsingDriver &&) = delete;
 
   //! Starts parsing, and constructs the MOD file representation
   unique_ptr<ModFile> parse(istream &in, bool debug);
@@ -361,15 +363,15 @@ public:
   //! mfs option of model block
   void mfs(const string &value);
   //! the flags to substitute for the default compiler flags used by `use_dll`
-  void compilation_setup_substitute_flags(const string & flags);
+  void compilation_setup_substitute_flags(const string &flags);
   //! the flags to add to the default compiler flags used by `use_dll`
-  void compilation_setup_add_flags(const string & flags);
+  void compilation_setup_add_flags(const string &flags);
   //! the libs to substitute for the default compiler libs used by `use_dll`
-  void compilation_setup_substitute_libs(const string & libs);
+  void compilation_setup_substitute_libs(const string &libs);
   //! the libs to add to the default compiler libs used by `use_dll`
-  void compilation_setup_add_libs(const string & libs);
+  void compilation_setup_add_libs(const string &libs);
   //! the compiler to replace the default compiler used by `use_dll`
-  void compilation_setup_compiler(const string & path);
+  void compilation_setup_compiler(const string &path);
   //! balanced_growth_test_tol option of model block
   void balanced_growth_test_tol(const string &value);
   //! Sets the FILENAME for the initial value in initval
@@ -557,7 +559,7 @@ public:
   void set_options(const string &name, const string &subsample_name);
   //! Copies the options from_name to_name
   void copy_options(const string &to_declaration_type, const string &to_name1, const string &to_name2, const string &to_subsample_name,
-                  const string &from_declaration_type, const string &from_name1, const string &from_name2, const string &from_subsample_name);
+                    const string &from_declaration_type, const string &from_name1, const string &from_name2, const string &from_subsample_name);
   //! Sets the prior for estimated std dev
   void set_std_prior(const string &name, const string &subsample_name);
   //! Sets the options for estimated std dev
@@ -728,13 +730,13 @@ public:
   //! Writes token "arg1+arg2" to model tree
   expr_t add_plus(expr_t arg1, expr_t arg2);
   //! Writes token "arg1-arg2" to model tree
-  expr_t add_minus(expr_t arg1,  expr_t arg2);
+  expr_t add_minus(expr_t arg1, expr_t arg2);
   //! Writes token "-arg1" to model tree
   expr_t add_uminus(expr_t arg1);
   //! Writes token "arg1*arg2" to model tree
-  expr_t add_times(expr_t arg1,  expr_t arg2);
+  expr_t add_times(expr_t arg1, expr_t arg2);
   //! Writes token "arg1/arg2" to model tree
-  expr_t add_divide(expr_t arg1,  expr_t arg2);
+  expr_t add_divide(expr_t arg1, expr_t arg2);
   //! Writes token "arg1<arg2" to model tree
   expr_t add_less(expr_t arg1, expr_t arg2);
   //! Writes token "arg1>arg2" to model treeexpr_t
@@ -748,9 +750,9 @@ public:
   //! Writes token "arg1!=arg2" to model treeexpr_texpr_t
   expr_t add_different(expr_t arg1, expr_t arg2);
   //! Writes token "arg1^arg2" to model tree
-  expr_t add_power(expr_t arg1,  expr_t arg2);
+  expr_t add_power(expr_t arg1, expr_t arg2);
   //! Writes token "E(arg1)(arg2)" to model tree
-  expr_t add_expectation(const string &arg1,  expr_t arg2);
+  expr_t add_expectation(const string &arg1, expr_t arg2);
   //! Writes token "VAR_EXPECTATION(model_name)" to model tree
   expr_t add_var_expectation(const string &model_name);
   //! Writes token "PAC_EXPECTATION(model_name, discount, growth)" to model tree

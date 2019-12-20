@@ -43,7 +43,9 @@ public:
   {
   public:
     const string message;
-    SymbolListException(string message_arg) : message{move(message_arg)} {};
+    SymbolListException(string message_arg) : message{move(message_arg)}
+    {
+    };
   };
   //! Set symbol table pointer
   void setSymbolTable(const SymbolTable &symbol_table_arg);

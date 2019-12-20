@@ -432,7 +432,7 @@ ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(AbstractSho
 void
 ConditionalForecastPathsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  for (const auto & path : paths)
+  for (const auto &path : paths)
     {
       int this_path_length = 0;
       const vector<AbstractShocksStatement::DetShockElement> &elems = path.second;
@@ -503,7 +503,7 @@ void
 MomentCalibration::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_.endogenous_prior_restrictions.moment = {" << endl;
-  for (const auto & c : constraints)
+  for (const auto &c : constraints)
     {
       output << "'" << symbol_table.getName(c.endo1) << "', "
              << "'" << symbol_table.getName(c.endo2) << "', "
@@ -555,7 +555,7 @@ IrfCalibration::writeOutput(ostream &output, const string &basename, bool minima
   options_list.writeOutput(output);
 
   output << "options_.endogenous_prior_restrictions.irf = {" << endl;
-  for (const auto & c : constraints)
+  for (const auto &c : constraints)
     {
       output << "'" << symbol_table.getName(c.endo) << "', "
              << "'" << symbol_table.getName(c.exo) << "', "
@@ -627,7 +627,7 @@ ShockGroupsStatement::writeOutput(ostream &output, const string &basename, bool 
                  << ".group" << i << ".label = '" << it->name << "';" << endl
                  << "M_.shock_groups." << name
                  << ".group" << i << ".shocks = {";
-          for (const auto & it1 : it->list)
+          for (const auto &it1 : it->list)
             output << " '" << it1 << "'";
           output << "};" << endl;
           i++;
@@ -694,7 +694,7 @@ void
 Init2shocksStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "M_.init2shocks." << name << " = {" << endl;
-  for (auto & it : init2shocks)
+  for (auto &it : init2shocks)
     output << "{'" << symbol_table.getName(it.first) << "', '" << symbol_table.getName(it.second) << "'};" << endl;
   output << "};" << endl;
 }
@@ -703,7 +703,7 @@ void
 Init2shocksStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "init2shocks", "name": ")" << name << R"(", "groups": [)";
-  for (auto & it : init2shocks)
+  for (auto &it : init2shocks)
     {
       if (it != *(init2shocks.begin()))
         output << ",";

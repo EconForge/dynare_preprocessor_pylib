@@ -101,7 +101,7 @@ namespace MFS
   void
   Print(AdjacencyList_t &G)
   {
-    AdjacencyList_t::vertex_iterator  it, it_end;
+    AdjacencyList_t::vertex_iterator it, it_end;
     auto v_index = get(vertex_index, G);
     cout << "Graph\n"
          << "-----\n";
@@ -193,7 +193,7 @@ namespace MFS
     tie(it_out, out_end) = out_edges(vertex, G);
     while (it_in != in_end && it_out != out_end && agree)
       {
-        agree = (source(*it_in, G) == target(*it_out, G) && source(*it_in, G) != target(*it_in, G));  //not a loop
+        agree = (source(*it_in, G) == target(*it_out, G) && source(*it_in, G) != target(*it_in, G)); //not a loop
         liste.push_back(source(*it_in, G));
         ++it_in;
         ++it_out;

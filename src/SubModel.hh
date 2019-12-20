@@ -111,7 +111,6 @@ TrendComponentModelTable::empty() const
   return names.empty();
 }
 
-
 class VarModelTable
 {
 private:

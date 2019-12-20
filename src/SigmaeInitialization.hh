@@ -33,8 +33,8 @@ public:
   //! Matrix form (lower or upper triangular) enum
   enum class MatrixForm
     {
-      lower,              //!< Lower triangular matrix
-      upper               //!< Upper triangular matrix
+     lower, //!< Lower triangular matrix
+     upper //!< Upper triangular matrix
     };
   //! Type of a matrix row
   using row_t = vector<expr_t>;

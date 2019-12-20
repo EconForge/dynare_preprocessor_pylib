@@ -94,7 +94,7 @@ InitOrEndValStatement::InitOrEndValStatement(init_values_t init_values_arg,
 void
 InitOrEndValStatement::fillEvalContext(eval_context_t &eval_context) const
 {
-  for (const auto & init_value : init_values)
+  for (const auto &init_value : init_values)
     {
       try
         {
@@ -124,7 +124,7 @@ InitOrEndValStatement::getUninitializedVariables(SymbolType type)
       exit(EXIT_FAILURE);
     }
 
-  for (const auto & init_value : init_values)
+  for (const auto &init_value : init_values)
     if (auto sit = unused.find(init_value.first);
         sit != unused.end())
       unused.erase(sit);
@@ -135,7 +135,7 @@ InitOrEndValStatement::getUninitializedVariables(SymbolType type)
 void
 InitOrEndValStatement::writeInitValues(ostream &output) const
 {
-  for (const auto & init_value : init_values)
+  for (const auto &init_value : init_values)
     {
       const int symb_id = init_value.first;
       const expr_t expression = init_value.second;
@@ -318,7 +318,7 @@ HistValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
       set<int> unused_endo = symbol_table.getEndogenous();
       set<int> unused_exo = symbol_table.getExogenous();
 
-      for (const auto & hist_value : hist_values)
+      for (const auto &hist_value : hist_values)
         {
           if (auto sit = unused_endo.find(hist_value.first.first);
               sit != unused_endo.end())
@@ -366,7 +366,7 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
          << (symbol_table.exo_det_nbr() > 0 ? "M_.exo_det_names; " : "")
          << "]);" << endl;
 
-  for (const auto & hist_value : hist_values)
+  for (const auto &hist_value : hist_values)
     {
       int symb_id = hist_value.first.first;
       int lag = hist_value.first.second;
@@ -378,8 +378,8 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
     }
 
   output << "if exist(['+' M_.fname '/dynamic_set_auxiliary_series.m'])" << endl
-       << "  eval(['M_.histval_dseries = ' M_.fname '.dynamic_set_auxiliary_series(M_.histval_dseries, M_.params);']);" << endl
-       << "end" << endl
+         << "  eval(['M_.histval_dseries = ' M_.fname '.dynamic_set_auxiliary_series(M_.histval_dseries, M_.params);']);" << endl
+         << "end" << endl
          << "M_.endo_histval = M_.histval_dseries{M_.endo_names{:}}(dates(sprintf('%dY', 1-M_.maximum_lag)):dates('0Y')).data';" << endl
          << "M_.endo_histval(isnan(M_.endo_histval)) = 0;" << endl; // Ensure that lead aux variables do not have a NaN
 

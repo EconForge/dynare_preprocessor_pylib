@@ -32,8 +32,8 @@ SteadyStateModel::SteadyStateModel(SymbolTable &symbol_table_arg,
 }
 
 SteadyStateModel::SteadyStateModel(const SteadyStateModel &m) :
-  DataTree {m},
-  static_model {m.static_model}
+  DataTree{m},
+  static_model{m.static_model}
 {
   for (const auto &it : m.def_table)
     def_table.emplace_back(it.first, it.second->clone(*this));
@@ -90,7 +90,7 @@ SteadyStateModel::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
   mod_file_struct.steady_state_model_present = true;
   vector<int> so_far_defined;
 
-  for (const auto & i : def_table)
+  for (const auto &i : def_table)
     {
       const vector<int> &symb_ids = i.first;
 
@@ -296,7 +296,7 @@ Epilogue::Epilogue(SymbolTable &symbol_table_arg,
 }
 
 Epilogue::Epilogue(const Epilogue &m) :
-  DynamicModel {m}
+  DynamicModel{m}
 {
   for (const auto &it : m.dynamic_def_table)
     dynamic_def_table.emplace_back(it.first, it.second->clone(*this));
@@ -334,7 +334,7 @@ Epilogue::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &war
     }
 
   vector<int> so_far_defined;
-  for (const auto & it : dynamic_def_table)
+  for (const auto &it : dynamic_def_table)
     if (find(so_far_defined.begin(), so_far_defined.end(), it.first) != so_far_defined.end())
       {
         cerr << "WARNING: in the 'epilogue' block, variable '" << it.first
@@ -353,8 +353,8 @@ Epilogue::toStatic()
 }
 
 void
-Epilogue::detrend(const map<int, expr_t> & trend_symbols_map,
-                  const nonstationary_symbols_map_t & nonstationary_symbols_map)
+Epilogue::detrend(const map<int, expr_t> &trend_symbols_map,
+                  const nonstationary_symbols_map_t &nonstationary_symbols_map)
 {
   for (auto it = nonstationary_symbols_map.crbegin();
        it != nonstationary_symbols_map.crend(); ++it)
@@ -388,7 +388,7 @@ Epilogue::writeEpilogueFile(const string &basename) const
 }
 
 void
-Epilogue::writeStaticEpilogueFile(const string & basename) const
+Epilogue::writeStaticEpilogueFile(const string &basename) const
 {
   string filename = packageDir(basename) + "/epilogue_static.m";
   ofstream output;
@@ -427,7 +427,7 @@ Epilogue::writeStaticEpilogueFile(const string & basename) const
 }
 
 void
-Epilogue::writeDynamicEpilogueFile(const string & basename) const
+Epilogue::writeDynamicEpilogueFile(const string &basename) const
 {
   string filename = packageDir(basename) + "/epilogue_dynamic.m";
   ofstream output;

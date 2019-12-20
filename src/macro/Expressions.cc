@@ -308,7 +308,7 @@ String::is_equal(const BaseTypePtr &btp) const
 BoolPtr
 String::cast_bool() const
 {
-  auto f = [](const char& a, const char& b) { return (tolower(a) == tolower(b)); };
+  auto f = [](const char &a, const char &b) { return (tolower(a) == tolower(b)); };
 
   if (string tf = "true"; equal(value.begin(), value.end(), tf.begin(), tf.end(), f))
     return make_shared<Bool>(true, env);
@@ -369,7 +369,7 @@ Array::minus(const BaseTypePtr &btp) const
   /* Highly inefficient algorithm for computing set difference
      (but vector<T> is not suited for that...) */
   vector<ExpressionPtr> arr_copy;
-  for (const auto & it : arr)
+  for (const auto &it : arr)
     {
       auto itbtp = dynamic_pointer_cast<BaseType>(it);
       auto it2 = btp2->arr.cbegin();
@@ -390,8 +390,8 @@ Array::times(const BaseTypePtr &btp) const
   if (!btp2)
     throw StackTrace("Type mismatch for operands of * operator");
 
-  for (const auto & itl : arr)
-    for (const auto & itr : btp2->getValue())
+  for (const auto &itl : arr)
+    for (const auto &itr : btp2->getValue())
       {
         vector<ExpressionPtr> new_tuple;
         if (dynamic_pointer_cast<Real>(itl) || dynamic_pointer_cast<String>(itl))
@@ -404,7 +404,7 @@ Array::times(const BaseTypePtr &btp) const
         if (dynamic_pointer_cast<Real>(itr) || dynamic_pointer_cast<String>(itr))
           new_tuple.push_back(itr);
         else if (dynamic_pointer_cast<Tuple>(itr))
-          for (const auto & tit : dynamic_pointer_cast<Tuple>(itr)->getValue())
+          for (const auto &tit : dynamic_pointer_cast<Tuple>(itr)->getValue())
             new_tuple.push_back(tit);
         else
           throw StackTrace("Array::times: unsupported type on rhs");
@@ -459,13 +459,13 @@ Array::set_union(const BaseTypePtr &btp) const
     throw StackTrace("Arguments of the union operator (|) must be sets");
 
   vector<ExpressionPtr> new_values = arr;
-  for (const auto & it : btp2->arr)
+  for (const auto &it : btp2->arr)
     {
       bool found = false;
       auto it2 = dynamic_pointer_cast<BaseType>(it);
       if (!it2)
         throw StackTrace("Type mismatch for operands of in operator");
-      for (const auto & nvit : new_values)
+      for (const auto &nvit : new_values)
         {
           auto v2 = dynamic_pointer_cast<BaseType>(nvit);
           if (!v2)
@@ -490,12 +490,12 @@ Array::set_intersection(const BaseTypePtr &btp) const
     throw StackTrace("Arguments of the intersection operator (|) must be sets");
 
   vector<ExpressionPtr> new_values;
-  for (const auto & it : btp2->arr)
+  for (const auto &it : btp2->arr)
     {
       auto it2 = dynamic_pointer_cast<BaseType>(it);
       if (!it2)
         throw StackTrace("Type mismatch for operands of in operator");
-      for (const auto & nvit : arr)
+      for (const auto &nvit : arr)
         {
           auto v2 = dynamic_pointer_cast<BaseType>(nvit);
           if (!v2)
@@ -506,14 +506,14 @@ Array::set_intersection(const BaseTypePtr &btp) const
               break;
             }
         }
-      }
+    }
   return make_shared<Array>(new_values, env);
 }
 
 BoolPtr
 Array::contains(const BaseTypePtr &btp) const
 {
-  for (const auto & v : arr)
+  for (const auto &v : arr)
     {
       auto v2 = dynamic_pointer_cast<BaseType>(v);
       if (!v2)
@@ -528,7 +528,7 @@ RealPtr
 Array::sum() const
 {
   double retval = 0;
-  for (const auto & v : arr)
+  for (const auto &v : arr)
     {
       auto v2 = dynamic_pointer_cast<Real>(v);
       if (!v2)
@@ -577,7 +577,7 @@ Tuple::is_equal(const BaseTypePtr &btp) const
 BoolPtr
 Tuple::contains(const BaseTypePtr &btp) const
 {
-  for (const auto & v : tup)
+  for (const auto &v : tup)
     {
       auto v2 = dynamic_pointer_cast<BaseType>(v);
       if (!v2)
@@ -631,7 +631,7 @@ BaseTypePtr
 Array::eval()
 {
   vector<ExpressionPtr> retval;
-  for (const auto & it : arr)
+  for (const auto &it : arr)
     retval.emplace_back(it->eval());
   return make_shared<Array>(retval, env);
 }
@@ -640,7 +640,7 @@ BaseTypePtr
 Tuple::eval()
 {
   vector<ExpressionPtr> retval;
-  for (const auto & it : tup)
+  for (const auto &it : tup)
     retval.emplace_back(it->eval());
   return make_shared<Tuple>(retval, env);
 }
@@ -653,7 +653,7 @@ Variable::eval()
       ArrayPtr map = dynamic_pointer_cast<Array>(indices->eval());
       vector<ExpressionPtr> index = map->getValue();
       vector<int> ind;
-      for (const auto & it : index)
+      for (const auto &it : index)
         // Necessary to handle indexes like: y[1:2,2]
         // In general this evaluates to [[1:2],2] but when subscripting we want to expand it to [1,2,2]
         if (auto db = dynamic_pointer_cast<Real>(it); db)
@@ -664,7 +664,7 @@ Variable::eval()
             ind.emplace_back(*db);
           }
         else if (dynamic_pointer_cast<Array>(it))
-          for (const auto & it1 : dynamic_pointer_cast<Array>(it)->getValue())
+          for (const auto &it1 : dynamic_pointer_cast<Array>(it)->getValue())
             if (db = dynamic_pointer_cast<Real>(it1); db)
               {
                 if (!*(db->isinteger()))
@@ -691,8 +691,8 @@ Variable::eval()
           throw StackTrace("variable", "Internal Error: Range: should not arrive here", location);
         case codes::BaseType::String:
           {
-            string orig_string =
-              dynamic_pointer_cast<String>(env.getVariable(name))->to_string();
+            string orig_string
+              = dynamic_pointer_cast<String>(env.getVariable(name))->to_string();
             string retvals;
             for (auto it : ind)
               try
@@ -747,8 +747,8 @@ Function::eval()
     }
 
   if (func->args.size() != args.size())
-    throw StackTrace("Function", "The number of arguments used to call " + name +
-                     " does not match the number used in its definition", location);
+    throw StackTrace("Function", "The number of arguments used to call " + name
+                     +" does not match the number used in its definition", location);
 
   try
     {
@@ -873,7 +873,7 @@ BinaryOp::eval()
 {
   try
     {
-      switch(op_code)
+      switch (op_code)
         {
         case codes::BinaryOp::plus:
           return arg1->eval()->plus(arg2->eval());
@@ -884,7 +884,7 @@ BinaryOp::eval()
         case codes::BinaryOp::divide:
           return arg1->eval()->divide(arg2->eval());
         case codes::BinaryOp::power:
-          return arg1->eval()->power( arg2->eval());
+          return arg1->eval()->power(arg2->eval());
         case codes::BinaryOp::equal_equal:
           return arg1->eval()->is_equal(arg2->eval());
         case codes::BinaryOp::not_equal:
@@ -933,7 +933,7 @@ TrinaryOp::eval()
 {
   try
     {
-      switch(op_code)
+      switch (op_code)
         {
         case codes::TrinaryOp::normpdf:
           return arg1->eval()->normpdf(arg2->eval(), arg3->eval());
@@ -1041,7 +1041,7 @@ ExpressionPtr
 Tuple::clone() const noexcept
 {
   vector<ExpressionPtr> tup_copy;
-  for (const auto & it : tup)
+  for (const auto &it : tup)
     tup_copy.emplace_back(it->clone());
   return make_shared<Tuple>(tup_copy, env, location);
 }
@@ -1050,7 +1050,7 @@ ExpressionPtr
 Array::clone() const noexcept
 {
   vector<ExpressionPtr> arr_copy;
-  for (const auto & it : arr)
+  for (const auto &it : arr)
     arr_copy.emplace_back(it->clone());
   return make_shared<Array>(arr_copy, env, location);
 }
@@ -1059,7 +1059,7 @@ ExpressionPtr
 Function::clone() const noexcept
 {
   vector<ExpressionPtr> args_copy;
-  for (const auto & it : args)
+  for (const auto &it : args)
     args_copy.emplace_back(it->clone());
   return make_shared<Function>(name, args_copy, env, location);
 }
@@ -1081,7 +1081,7 @@ Array::to_string() const noexcept
   if (arr.empty())
     return "[]";
   string retval = "[";
-  for (const auto & it : arr)
+  for (const auto &it : arr)
     retval += it->to_string() + ", ";
   return retval.substr(0, retval.size()-2) + "]";
 }
@@ -1090,7 +1090,7 @@ string
 Tuple::to_string() const noexcept
 {
   string retval = "(";
-  for (const auto & it : tup)
+  for (const auto &it : tup)
     retval += it->to_string() + ", ";
   return retval.substr(0, retval.size()-2) + ")";
 }
@@ -1099,7 +1099,7 @@ string
 Function::to_string() const noexcept
 {
   string retval = name + "(";
-  for (const auto & it : args)
+  for (const auto &it : args)
     retval += it->to_string() + ", ";
   return retval.substr(0, retval.size()-2) + ")";
 }
@@ -1197,7 +1197,7 @@ string
 BinaryOp::to_string() const noexcept
 {
   string retval = "(" + arg1->to_string();
-  switch(op_code)
+  switch (op_code)
     {
     case codes::BinaryOp::plus:
       retval += " + ";
@@ -1258,7 +1258,7 @@ BinaryOp::to_string() const noexcept
 string
 TrinaryOp::to_string() const noexcept
 {
-  switch(op_code)
+  switch (op_code)
     {
     case codes::TrinaryOp::normpdf:
       return "normpdf(" + arg1->to_string() + ", " + arg2->to_string() + ", " + arg3->to_string() + ")";
@@ -1474,7 +1474,7 @@ BinaryOp::print(ostream &output, bool matlab_output) const noexcept
       || op_code == codes::BinaryOp::min
       || op_code == codes::BinaryOp::mod)
     {
-      switch(op_code)
+      switch (op_code)
         {
         case codes::BinaryOp::set_union:
           output << "union(";
@@ -1503,7 +1503,7 @@ BinaryOp::print(ostream &output, bool matlab_output) const noexcept
 
   output << "(";
   arg1->print(output, matlab_output);
-  switch(op_code)
+  switch (op_code)
     {
     case codes::BinaryOp::plus:
       output << " + ";
@@ -1562,7 +1562,7 @@ BinaryOp::print(ostream &output, bool matlab_output) const noexcept
 void
 TrinaryOp::print(ostream &output, bool matlab_output) const noexcept
 {
-  switch(op_code)
+  switch (op_code)
     {
     case codes::TrinaryOp::normpdf:
       output << "normpdf(";
@@ -1598,4 +1598,3 @@ Comprehension::print(ostream &output, bool matlab_output) const noexcept
     }
   output << "]";
 }
-

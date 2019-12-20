@@ -144,8 +144,8 @@ public:
 
   Statement(const Statement &) = delete;
   Statement(Statement &&) = delete;
-  Statement & operator=(const Statement &) = delete;
-  Statement & operator=(Statement &&) = delete;
+  Statement &operator=(const Statement &) = delete;
+  Statement &operator=(Statement &&) = delete;
 
   //! Do some internal check, and fill the ModFileStructure class
   /*! Don't forget to update ComputingTasks.hh, Shocks.hh and

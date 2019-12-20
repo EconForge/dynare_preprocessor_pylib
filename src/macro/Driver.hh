@@ -46,11 +46,13 @@ namespace macro
   class TokenizerFlex : public TokenizerFlexLexer
   {
   public:
-    TokenizerFlex(istream *in) : TokenizerFlexLexer{in} { }
+    TokenizerFlex(istream *in) : TokenizerFlexLexer{in}
+    {
+    }
     TokenizerFlex(const TokenizerFlex &) = delete;
     TokenizerFlex(TokenizerFlex &&) = delete;
-    TokenizerFlex & operator=(const TokenizerFlex &) = delete;
-    TokenizerFlex & operator=(TokenizerFlex &&) = delete;
+    TokenizerFlex &operator=(const TokenizerFlex &) = delete;
+    TokenizerFlex &operator=(TokenizerFlex &&) = delete;
 
     //! The main lexing function
     Tokenizer::parser::token_type lex(Tokenizer::parser::semantic_type *yylval,
@@ -69,11 +71,13 @@ namespace macro
     stack<vector<DirectivePtr>> directive_stack;
   public:
     Driver(Environment &env_arg, bool no_line_macro_arg) :
-      env{env_arg}, no_line_macro(no_line_macro_arg) { }
+      env{env_arg}, no_line_macro(no_line_macro_arg)
+    {
+    }
     Driver(const Driver &) = delete;
     Driver(Driver &&) = delete;
-    Driver & operator=(const Driver &) = delete;
-    Driver & operator=(Driver &&) = delete;
+    Driver &operator=(const Driver &) = delete;
+    Driver &operator=(Driver &&) = delete;
 
     //! Exception thrown when value of an unknown variable is requested
     class UnknownVariable
@@ -102,15 +106,37 @@ namespace macro
     //! Error handler
     void error(const Tokenizer::parser::location_type &location, const string &message) const;
 
-    inline bool inContext() const { return !directive_stack.empty(); }
+    inline bool
+    inContext() const
+    {
+      return !directive_stack.empty();
+    }
 
-    inline void pushContext() { directive_stack.emplace(vector<DirectivePtr>()); }
+    inline void
+    pushContext()
+    {
+      directive_stack.emplace(vector<DirectivePtr>());
+    }
 
-    inline void pushContextTop(DirectivePtr statement) { directive_stack.top().emplace_back(move(statement)); }
+    inline void
+    pushContextTop(DirectivePtr statement)
+    {
+      directive_stack.top().emplace_back(move(statement));
+    }
 
-    inline void pushStatements(DirectivePtr statement) { statements.emplace_back(move(statement)); }
+    inline void
+    pushStatements(DirectivePtr statement)
+    {
+      statements.emplace_back(move(statement));
+    }
 
-    inline vector<DirectivePtr> popContext() { auto top = move(directive_stack.top()); directive_stack.pop(); return top; }
+    inline vector<DirectivePtr>
+    popContext()
+    {
+      auto top = move(directive_stack.top());
+      directive_stack.pop();
+      return top;
+    }
   };
 }
 #endif

@@ -196,7 +196,7 @@ map<string, map<int, string>>
 SymbolTable::getPartitionsForType(SymbolType st) const noexcept(false)
 {
   map<string, map<int, string>> partitions;
-  for (const auto & it : partition_value_map)
+  for (const auto &it : partition_value_map)
     if (getType(it.first) == st)
       for (const auto &it1 : it.second)
         {
@@ -223,7 +223,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
                << "M_.exo_names_tex(" << id+1 << ") = {'" << getTeXName(exo_ids[id]) << "'};" << endl
                << "M_.exo_names_long(" << id+1 << ") = {'" << getLongName(exo_ids[id]) << "'};" << endl;
       map<string, map<int, string>> partitions = getPartitionsForType(SymbolType::exogenous);
-      for (auto & partition : partitions)
+      for (auto &partition : partitions)
         if (partition.first != "long_name")
           {
             output << "M_.exo_partitions." << partition.first << " = { ";
@@ -260,7 +260,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
                << "M_.exo_det_names_long(" << id+1 << ") = {'" << getLongName(exo_det_ids[id]) << "'};" << endl;
       output << "M_.exo_det_partitions = struct();" << endl;
       map<string, map<int, string>> partitions = getPartitionsForType(SymbolType::exogenousDet);
-      for (auto & partition : partitions)
+      for (auto &partition : partitions)
         if (partition.first != "long_name")
           {
             output << "M_.exo_det_partitions." << partition.first << " = { ";
@@ -287,7 +287,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
                << "M_.endo_names_long(" << id+1 << ") = {'" << getLongName(endo_ids[id]) << "'};" << endl;
       output << "M_.endo_partitions = struct();" << endl;
       map<string, map<int, string>> partitions = getPartitionsForType(SymbolType::endogenous);
-      for (auto & partition : partitions)
+      for (auto &partition : partitions)
         if (partition.first != "long_name")
           {
             output << "M_.endo_partitions." << partition.first << " = { ";
@@ -318,7 +318,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
         }
       output << "M_.param_partitions = struct();" << endl;
       map<string, map<int, string>> partitions = getPartitionsForType(SymbolType::parameter);
-      for (auto & partition : partitions)
+      for (auto &partition : partitions)
         if (partition.first != "long_name")
           {
             output << "M_.param_partitions." << partition.first << " = { ";
@@ -695,7 +695,7 @@ SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id, expr_t expr_arg) noexc
 int
 SymbolTable::searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const noexcept(false)
 {
-  for (const auto & aux_var : aux_vars)
+  for (const auto &aux_var : aux_vars)
     if ((aux_var.get_type() == AuxVarType::endoLag || aux_var.get_type() == AuxVarType::exoLag)
         && aux_var.get_orig_symb_id() == orig_symb_id && aux_var.get_orig_lead_lag() == orig_lead_lag)
       return aux_var.get_symb_id();
@@ -705,7 +705,7 @@ SymbolTable::searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const noex
 int
 SymbolTable::getOrigSymbIdForAuxVar(int aux_var_symb_id) const noexcept(false)
 {
-  for (const auto & aux_var : aux_vars)
+  for (const auto &aux_var : aux_vars)
     if ((aux_var.get_type() == AuxVarType::endoLag
          || aux_var.get_type() == AuxVarType::exoLag
          || aux_var.get_type() == AuxVarType::diff
@@ -720,7 +720,7 @@ int
 SymbolTable::getOrigLeadLagForDiffAuxVar(int diff_aux_var_symb_id) const noexcept(false)
 {
   int lag = 0;
-  for (const auto & aux_var : aux_vars)
+  for (const auto &aux_var : aux_vars)
     if ((aux_var.get_type() == AuxVarType::diffLag || aux_var.get_type() == AuxVarType::diffLead)
         && aux_var.get_symb_id() == diff_aux_var_symb_id)
       lag += 1 + getOrigLeadLagForDiffAuxVar(aux_var.get_orig_symb_id());
@@ -731,7 +731,7 @@ int
 SymbolTable::getOrigSymbIdForDiffAuxVar(int diff_aux_var_symb_id) const noexcept(false)
 {
   int orig_symb_id = -1;
-  for (const auto & aux_var : aux_vars)
+  for (const auto &aux_var : aux_vars)
     if (aux_var.get_symb_id() == diff_aux_var_symb_id)
       if (aux_var.get_type() == AuxVarType::diff)
         orig_symb_id = diff_aux_var_symb_id;
@@ -744,7 +744,7 @@ expr_t
 SymbolTable::getAuxiliaryVarsExprNode(int symb_id) const noexcept(false)
 // throw exception if it is a Lagrange multiplier
 {
-  for (const auto & aux_var : aux_vars)
+  for (const auto &aux_var : aux_vars)
     if (aux_var.get_symb_id() == symb_id)
       if (expr_t expr_node = aux_var.get_expr_node();
           expr_node)
@@ -840,7 +840,7 @@ vector <int>
 SymbolTable::getTrendVarIds() const
 {
   vector <int> trendVars;
-  for (const auto & it : symbol_table)
+  for (const auto &it : symbol_table)
     if (getType(it.second) == SymbolType::trend || getType(it.second) == SymbolType::logTrend)
       trendVars.push_back(it.second);
   return trendVars;
@@ -850,7 +850,7 @@ set<int>
 SymbolTable::getExogenous() const
 {
   set <int> exogs;
-  for (const auto & it : symbol_table)
+  for (const auto &it : symbol_table)
     if (getType(it.second) == SymbolType::exogenous)
       exogs.insert(it.second);
   return exogs;
@@ -860,7 +860,7 @@ set<int>
 SymbolTable::getObservedExogenous() const
 {
   set <int> oexogs;
-  for (const auto & it : symbol_table)
+  for (const auto &it : symbol_table)
     if (getType(it.second) == SymbolType::exogenous)
       if (isObservedExogenousVariable(it.second))
         oexogs.insert(it.second);
@@ -871,7 +871,7 @@ set<int>
 SymbolTable::getEndogenous() const
 {
   set <int> endogs;
-  for (const auto & it : symbol_table)
+  for (const auto &it : symbol_table)
     if (getType(it.second) == SymbolType::endogenous)
       endogs.insert(it.second);
   return endogs;
@@ -880,7 +880,7 @@ SymbolTable::getEndogenous() const
 bool
 SymbolTable::isAuxiliaryVariable(int symb_id) const
 {
-  for (const auto & aux_var : aux_vars)
+  for (const auto &aux_var : aux_vars)
     if (aux_var.get_symb_id() == symb_id)
       return true;
   return false;
@@ -889,7 +889,7 @@ SymbolTable::isAuxiliaryVariable(int symb_id) const
 bool
 SymbolTable::isAuxiliaryVariableButNotMultiplier(int symb_id) const
 {
-  for (const auto & aux_var : aux_vars)
+  for (const auto &aux_var : aux_vars)
     if (aux_var.get_symb_id() == symb_id && aux_var.get_type() != AuxVarType::multiplier)
       return true;
   return false;
@@ -898,11 +898,11 @@ SymbolTable::isAuxiliaryVariableButNotMultiplier(int symb_id) const
 bool
 SymbolTable::isDiffAuxiliaryVariable(int symb_id) const
 {
-  for (const auto & aux_var : aux_vars)
-    if (aux_var.get_symb_id() == symb_id &&
-        (aux_var.get_type() == AuxVarType::diff
-         || aux_var.get_type() == AuxVarType::diffLag
-         || aux_var.get_type() == AuxVarType::diffLead))
+  for (const auto &aux_var : aux_vars)
+    if (aux_var.get_symb_id() == symb_id
+        && (aux_var.get_type() == AuxVarType::diff
+            || aux_var.get_type() == AuxVarType::diffLag
+            || aux_var.get_type() == AuxVarType::diffLead))
       return true;
   return false;
 }
@@ -911,7 +911,7 @@ set<int>
 SymbolTable::getOrigEndogenous() const
 {
   set <int> origendogs;
-  for (const auto & it : symbol_table)
+  for (const auto &it : symbol_table)
     if (getType(it.second) == SymbolType::endogenous && !isAuxiliaryVariable(it.second))
       origendogs.insert(it.second);
   return origendogs;
@@ -976,7 +976,7 @@ SymbolTable::writeJuliaOutput(ostream &output) const noexcept(false)
     {
       output << "# Auxiliary Variables" << endl
              << "model_.aux_vars = [" << endl;
-      for (const auto & aux_var : aux_vars)
+      for (const auto &aux_var : aux_vars)
         {
           output << "                   DynareModel.AuxVars("
                  << getTypeSpecificID(aux_var.get_symb_id()) + 1 << ", "

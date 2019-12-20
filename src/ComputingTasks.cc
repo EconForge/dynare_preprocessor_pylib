@@ -501,7 +501,7 @@ VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, b
           output << "struct('eq', " << findIdxInVector(vars, symbol_table.getName(it1->first)) + 1
                  << ", 'vars', [";
           vector<string> excvars = it1->second.getSymbols();
-          for (auto & excvar : excvars)
+          for (auto &excvar : excvars)
             output << findIdxInVector(vars, excvar) + 1 << " ";
           output << "])";
           nrestrictions += it1->second.getSize();
@@ -775,7 +775,7 @@ DetCondForecast::writeOutput(ostream &output, const string &basename, bool minim
     }
   vector<string> symbols = symbol_list.get_symbols();
   if (symbols.size() > 0)
-    output << symbols[1] << " = det_cond_forecast(" ;
+    output << symbols[1] << " = det_cond_forecast(";
   for (unsigned int i = 0; i < symbols.size() - 1; i++)
     output << symbols[i] << ", ";
   if (symbols.size() > 0)
@@ -1004,7 +1004,7 @@ RamseyPolicyStatement::writeOutput(ostream &output, const string &basename, bool
   // Ensure that order 3 implies k_order (#844)
   if (auto it = options_list.num_options.find("order"),
       it1 = options_list.num_options.find("k_order_solver");
-        (it1 != options_list.num_options.end() && it1->second == "true")
+      (it1 != options_list.num_options.end() && it1->second == "true")
       || (it != options_list.num_options.end() && stoi(it->second) >= 3))
     output << "options_.k_order_solver = true;" << endl;
 
@@ -1404,7 +1404,7 @@ EstimatedParamsStatement::EstimatedParamsStatement(vector<EstimationParams> esti
 void
 EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  for (const auto & it : estim_params_list)
+  for (const auto &it : estim_params_list)
     {
       if (it.name == "dsge_prior_weight")
         mod_file_struct.dsge_prior_weight_in_estimated_params = true;
@@ -1429,7 +1429,7 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
   // Check that no parameter/endogenous is declared twice in the block
   set<string> already_declared;
   set<pair<string, string>> already_declared_corr;
-  for (const auto & it : estim_params_list)
+  for (const auto &it : estim_params_list)
     {
       if (it.type == 3) // Correlation
         {
@@ -1457,7 +1457,7 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
     }
 
   // Fill in mod_file_struct.estimated_parameters (related to #469)
-  for (const auto & it : estim_params_list)
+  for (const auto &it : estim_params_list)
     if (it.type == 2 && it.name != "dsge_prior_weight")
       mod_file_struct.estimated_parameters.insert(symbol_table.getID(it.name));
 }
@@ -1471,7 +1471,7 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, b
          << "estim_params_.corrn = zeros(0, 11);" << endl
          << "estim_params_.param_vals = zeros(0, 10);" << endl;
 
-  for (const auto & it : estim_params_list)
+  for (const auto &it : estim_params_list)
     {
       int symb_id = symbol_table.getTypeSpecificID(it.name) + 1;
       SymbolType symb_type = symbol_table.getType(it.name);
@@ -1590,7 +1590,7 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basenam
 
   bool skipline = false;
 
-  for (const auto & it : estim_params_list)
+  for (const auto &it : estim_params_list)
     {
       int symb_id = symbol_table.getTypeSpecificID(it.name) + 1;
       SymbolType symb_type = symbol_table.getType(it.name);
@@ -1715,7 +1715,7 @@ EstimatedParamsBoundsStatement::EstimatedParamsBoundsStatement(vector<Estimation
 void
 EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  for (const auto & it : estim_params_list)
+  for (const auto &it : estim_params_list)
     {
       int symb_id = symbol_table.getTypeSpecificID(it.name) + 1;
       SymbolType symb_type = symbol_table.getType(it.name);
@@ -1835,7 +1835,7 @@ void
 ObservationTrendsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "options_.trend_coeff = {};" << endl;
-  for (const auto & trend_element : trend_elements)
+  for (const auto &trend_element : trend_elements)
     {
       SymbolType type = symbol_table.getType(trend_element.first);
       if (type == SymbolType::endogenous)
@@ -1856,7 +1856,7 @@ ObservationTrendsStatement::writeJsonOutput(ostream &output) const
   output << R"({"statementName": "observation_trends", )"
          << R"("trends" : {)";
   bool printed = false;
-  for (const auto & trend_element : trend_elements)
+  for (const auto &trend_element : trend_elements)
     {
       if (symbol_table.getType(trend_element.first) == SymbolType::endogenous)
         {
@@ -1896,7 +1896,7 @@ OsrParamsStatement::writeOutput(ostream &output, const string &basename, bool mi
          << "M_.osr.param_indices = zeros(length(M_.osr.param_names), 1);" << endl;
   int i = 0;
   vector<string> symbols = symbol_list.get_symbols();
-  for (auto & symbol : symbols)
+  for (auto &symbol : symbols)
     output << "M_.osr.param_indices(" << ++i <<") = " << symbol_table.getTypeSpecificID(symbol) + 1 << ";" << endl;
 }
 
@@ -1933,7 +1933,7 @@ OsrParamsBoundsStatement::writeOutput(ostream &output, const string &basename, b
 
   output << "M_.osr.param_bounds = [-inf(length(M_.osr.param_names), 1), inf(length(M_.osr.param_names), 1)];" << endl;
 
-  for (const auto & it : osr_params_list)
+  for (const auto &it : osr_params_list)
     {
       output << "M_.osr.param_bounds(strcmp(M_.osr.param_names, '" << it.name << "'), :) = [";
       it.low_bound->writeOutput(output);
@@ -2207,7 +2207,7 @@ ModelComparisonStatement::writeOutput(ostream &output, const string &basename, b
   output << "ModelNames_ = {};" << endl;
   output << "ModelPriors_ = [];" << endl;
 
-  for (const auto & it : filename_list)
+  for (const auto &it : filename_list)
     {
       output << "ModelNames_ = { ModelNames_{:} '" << it.first << "'};" << endl;
       output << "ModelPriors_ = [ ModelPriors_ ; " << it.second << "];" << endl;
@@ -2243,7 +2243,7 @@ ModelComparisonStatement::writeJsonOutput(ostream &output) const
 }
 
 PlannerObjectiveStatement::PlannerObjectiveStatement(const StaticModel &model_tree_arg) :
-  model_tree {model_tree_arg}
+  model_tree{model_tree_arg}
 {
 }
 
@@ -3145,7 +3145,7 @@ int
 SvarIdentificationStatement::getMaxLag() const
 {
   int max_lag = 0;
-  for (const auto & restriction : restrictions)
+  for (const auto &restriction : restrictions)
     if (restriction.lag > max_lag)
       max_lag = restriction.lag;
 
@@ -3282,12 +3282,12 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg)
     {
       using namespace boost;
       auto it_num_regimes = options_list.num_options.find("ms.number_of_regimes");
-      assert(it_num_regimes !=  options_list.num_options.end());
+      assert(it_num_regimes != options_list.num_options.end());
       auto num_regimes = stoi(it_num_regimes->second);
 
       vector<string> tokenizedRestrictions;
       split(tokenizedRestrictions, it_num->second, is_any_of("["), token_compress_on);
-      for (auto & tokenizedRestriction : tokenizedRestrictions)
+      for (auto &tokenizedRestriction : tokenizedRestrictions)
         if (tokenizedRestriction.size() > 0)
           {
             vector<string> restriction;
@@ -3859,13 +3859,13 @@ JointPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 void
 JointPriorStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  for (const auto & joint_parameter : joint_parameters)
+  for (const auto &joint_parameter : joint_parameters)
     output << "eifind = get_new_or_existing_ei_index('joint_parameter_prior_index', '"
            << joint_parameter << "', '');" << endl
            << "estimation_info.joint_parameter_prior_index(eifind) = {'" << joint_parameter << "'};" << endl;
 
   output << "key = {[";
-  for (const auto & joint_parameter : joint_parameters)
+  for (const auto &joint_parameter : joint_parameters)
     output << "get_new_or_existing_ei_index('joint_parameter_prior_index', '" << joint_parameter << "', '') ..."
            << endl << "    ";
   output << "]};" << endl;
@@ -4734,7 +4734,7 @@ ExtendedPathStatement::writeOutput(ostream &output, const string &basename, bool
 {
   // Beware: options do not have the same name in the interface and in the M code...
 
-  for (const auto & num_option : options_list.num_options)
+  for (const auto &num_option : options_list.num_options)
     if (num_option.first != "periods")
       output << "options_." << num_option.first << " = " << num_option.second << ";" << endl;
 
@@ -4902,7 +4902,7 @@ GenerateIRFsStatement::writeOutput(ostream &output, const string &basename, bool
     return;
 
   output << "options_.irf_opt.irf_shock_graphtitles = { ";
-  for (const auto & generate_irf_name : generate_irf_names)
+  for (const auto &generate_irf_name : generate_irf_names)
     output << "'" << generate_irf_name << "'; ";
   output << "};" << endl;
 
@@ -4912,7 +4912,7 @@ GenerateIRFsStatement::writeOutput(ostream &output, const string &basename, bool
   for (size_t i = 0; i < generate_irf_names.size(); i++)
     {
       map<string, double> m = generate_irf_elements[i];
-      for (auto & it : m)
+      for (auto &it : m)
         output << "options_.irf_opt.irf_shocks(M_.exo_names == '"
                << it.first << "', " << i + 1 << ") = "
                << it.second << ";" << endl;

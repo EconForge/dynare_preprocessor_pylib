@@ -128,7 +128,7 @@ OptionsList::writeOutput(ostream &output) const
       if (vals.size() > 1)
         {
           output << "{";
-          for (const auto & viit : vals)
+          for (const auto &viit : vals)
             output << "'" << viit << "';";
           output << "};" << endl;
         }
@@ -187,7 +187,7 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
       if (vals.size() > 1)
         {
           output << "{";
-          for (const auto & viit : vals)
+          for (const auto &viit : vals)
             output << "'" << viit << "';";
           output << "};" << endl;
         }

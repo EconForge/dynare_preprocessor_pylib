@@ -391,12 +391,12 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
   SymbolType type = mod_file->symbol_table.getType(symb_id);
 
   if (type == SymbolType::modFileLocalVariable)
-    error("Variable " + mod_file->symbol_table.getName(symb_id) +
-          " not allowed inside model declaration. Its scope is only outside model.");
+    error("Variable " + mod_file->symbol_table.getName(symb_id)
+          +" not allowed inside model declaration. Its scope is only outside model.");
 
   if (type == SymbolType::externalFunction)
-    error("Symbol " + mod_file->symbol_table.getName(symb_id) +
-          " is a function name external to Dynare. It cannot be used like a variable without input argument inside model.");
+    error("Symbol " + mod_file->symbol_table.getName(symb_id)
+          +" is a function name external to Dynare. It cannot be used like a variable without input argument inside model.");
 
   if (type == SymbolType::modelLocalVariable && lag != 0)
     error("Model local variable " + mod_file->symbol_table.getName(symb_id) + " cannot be given a lead or a lag.");
@@ -511,7 +511,7 @@ ParsingDriver::add_VAR_exclusion_restriction(const string &lagstr)
       it == exclusion_restrictions.end())
     exclusion_restrictions[lag] = exclusion_restriction;
   else
-    for (auto & it1 : exclusion_restriction)
+    for (auto &it1 : exclusion_restriction)
       it->second[it1.first] = it1.second;
 
   exclusion_restriction.clear();
@@ -775,7 +775,7 @@ ParsingDriver::differentiate_forward_vars_some()
 {
   mod_file->differentiate_forward_vars = true;
   mod_file->differentiate_forward_vars_subset = symbol_list.get_symbols();
-  for (auto & it : mod_file->differentiate_forward_vars_subset)
+  for (auto &it : mod_file->differentiate_forward_vars_subset)
     check_symbol_is_endogenous(it);
   symbol_list.clear();
 }
@@ -797,31 +797,31 @@ ParsingDriver::mfs(const string &value)
 }
 
 void
-ParsingDriver::compilation_setup_substitute_flags(const string & flags)
+ParsingDriver::compilation_setup_substitute_flags(const string &flags)
 {
   mod_file->dynamic_model.user_set_subst_flags = flags;
 }
 
 void
-ParsingDriver::compilation_setup_add_flags(const string & flags)
+ParsingDriver::compilation_setup_add_flags(const string &flags)
 {
   mod_file->dynamic_model.user_set_add_flags = flags;
 }
 
 void
-ParsingDriver::compilation_setup_substitute_libs(const string & libs)
+ParsingDriver::compilation_setup_substitute_libs(const string &libs)
 {
   mod_file->dynamic_model.user_set_subst_libs = libs;
 }
 
 void
-ParsingDriver::compilation_setup_add_libs(const string & libs)
+ParsingDriver::compilation_setup_add_libs(const string &libs)
 {
   mod_file->dynamic_model.user_set_add_libs = libs;
 }
 
 void
-ParsingDriver::compilation_setup_compiler(const string & compiler)
+ParsingDriver::compilation_setup_compiler(const string &compiler)
 {
   mod_file->dynamic_model.user_set_compiler = compiler;
 }
@@ -897,7 +897,7 @@ ParsingDriver::end_model()
 {
   bool exit_after_write = false;
   if (model_errors.size() > 0)
-    for (auto & it : model_errors)
+    for (auto &it : model_errors)
       {
         if (it.first.empty())
           exit_after_write = true;
@@ -905,7 +905,7 @@ ParsingDriver::end_model()
       }
 
   if (undeclared_model_variable_errors.size() > 0)
-    for (auto & it : undeclared_model_variable_errors)
+    for (auto &it : undeclared_model_variable_errors)
       if (nostrict)
         warning(it.second);
       else
@@ -1412,7 +1412,7 @@ ParsingDriver::option_symbol_list(string name_option)
   if (name_option.compare("irf_shocks") == 0)
     {
       vector<string> shocks = symbol_list.get_symbols();
-      for (auto & shock : shocks)
+      for (auto &shock : shocks)
         if (mod_file->symbol_table.getType(shock) != SymbolType::exogenous)
           error("Variables passed to irf_shocks must be exogenous. Caused by: " + shock);
     }
@@ -1420,7 +1420,7 @@ ParsingDriver::option_symbol_list(string name_option)
   if (name_option.compare("ms.parameters") == 0)
     {
       vector<string> parameters = symbol_list.get_symbols();
-      for (auto & it : parameters)
+      for (auto &it : parameters)
         if (mod_file->symbol_table.getType(it) != SymbolType::parameter)
           error("Variables passed to the parameters option of the markov_switching statement must be parameters. Caused by: " + it);
     }
@@ -1517,8 +1517,8 @@ ParsingDriver::var_model()
   if (itn != options_list.num_options.end())
     order = stoi(itn->second);
   else
-  if (!symbol_list.empty())
-    error("You must pass the order option when passing a symbol list to the var_model statement");
+    if (!symbol_list.empty())
+      error("You must pass the order option when passing a symbol list to the var_model statement");
 
   vector<string> eqtags;
   auto itvs = options_list.vector_str_options.find("var.eqtags");
@@ -2137,7 +2137,7 @@ ParsingDriver::run_identification()
 void
 ParsingDriver::add_mc_filename(string filename, string prior)
 {
-  for (auto & it : filename_list)
+  for (auto &it : filename_list)
     if (it.first == filename)
       error("model_comparison: filename " + filename + " declared twice");
   filename_list.emplace_back(move(filename), move(prior));
@@ -2447,7 +2447,7 @@ ParsingDriver::conditional_forecast_paths()
 }
 
 void
-ParsingDriver::det_cond_forecast_linear_decomposition(const string & plan)
+ParsingDriver::det_cond_forecast_linear_decomposition(const string &plan)
 {
   symbol_list.clear();
   symbol_list.addSymbol(plan);
@@ -2489,7 +2489,7 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
 
   // Detect if the equation is tagged [static]
   bool is_static_only = false;
-  for (auto & eq_tag : eq_tags)
+  for (auto &eq_tag : eq_tags)
     if (eq_tag.first == "static")
       {
         is_static_only = true;
@@ -2551,7 +2551,7 @@ ParsingDriver::declare_and_init_model_local_variable(const string &name, expr_t 
 void
 ParsingDriver::change_type(SymbolType new_type, const vector<string> &var_list)
 {
-  for (auto & it : var_list)
+  for (auto &it : var_list)
     {
       int id;
       try
@@ -2720,7 +2720,7 @@ ParsingDriver::pac_model()
     }
   else
     if (pac_growth_is_param
-        && (pac_steady_state_growth_rate_number >= 0 || pac_steady_state_growth_rate_symb_id >=0))
+        && (pac_steady_state_growth_rate_number >= 0 || pac_steady_state_growth_rate_symb_id >= 0))
       warning("If growth option is constant, steady_state_growth is ignored");
     else if (pac_growth && !pac_growth_is_param
              && (pac_steady_state_growth_rate_number < 0 || pac_steady_state_growth_rate_symb_id < 0))
@@ -3007,11 +3007,11 @@ ParsingDriver::external_function()
     error("The 'name' option must be passed to external_function().");
 
   if (current_external_function_options.secondDerivSymbID >= 0
-      && current_external_function_options.firstDerivSymbID  == ExternalFunctionsTable::IDNotSet)
+      && current_external_function_options.firstDerivSymbID == ExternalFunctionsTable::IDNotSet)
     error("If the second derivative is provided to the external_function command, the first derivative must also be provided.");
 
   if (current_external_function_options.secondDerivSymbID == ExternalFunctionsTable::IDSetButNoNameProvided
-      && current_external_function_options.firstDerivSymbID  != ExternalFunctionsTable::IDSetButNoNameProvided)
+      && current_external_function_options.firstDerivSymbID != ExternalFunctionsTable::IDSetButNoNameProvided)
     error("If the second derivative is provided in the top-level function, the first derivative must also be provided in that function.");
 
   mod_file->external_functions_table.addExternalFunction(current_external_function_id, current_external_function_options, true);
@@ -3096,8 +3096,8 @@ ParsingDriver::add_model_var_or_external_function(const string &function_name, b
 
           pair<bool, double> rv = is_there_one_integer_argument();
           if (!rv.first)
-            model_error("Symbol " + function_name +
-                        " is being treated as if it were a function (i.e., takes an argument that is not an integer).", "");
+            model_error("Symbol " + function_name
+                        +" is being treated as if it were a function (i.e., takes an argument that is not an integer).", "");
 
           nid = add_model_variable(mod_file->symbol_table.getID(function_name), static_cast<int>(rv.second));
           stack_external_function_args.pop();
@@ -3138,8 +3138,8 @@ ParsingDriver::add_model_var_or_external_function(const string &function_name, b
               return add_model_variable(mod_file->symbol_table.getID(function_name), static_cast<int>(rv.second));
             }
           else
-            error("To use an external function (" + function_name +
-                  ") within the model block, you must first declare it via the external_function() statement.");
+            error("To use an external function (" + function_name
+                  +") within the model block, you must first declare it via the external_function() statement.");
         }
       declare_symbol(function_name, SymbolType::externalFunction, "", {});
       current_external_function_options.nargs = stack_external_function_args.top().size();
@@ -3220,7 +3220,7 @@ ParsingDriver::add_steady_state_model_equal_multiple(expr_t expr)
   const vector<string> &symbs = symbol_list.get_symbols();
   vector<int> ids;
 
-  for (const auto & symb : symbs)
+  for (const auto &symb : symbs)
     {
       int id;
       try

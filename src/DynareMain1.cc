@@ -44,7 +44,7 @@ main1(const string &filename, const string &basename, istream &modfile, bool deb
           exit(EXIT_FAILURE);
         }
 
-      string str (macro_output.str());
+      string str(macro_output.str());
       if (no_empty_line_macro)
         {
           auto compareNewline = [](char i, char j) { return i == '\n' && j == '\n'; };

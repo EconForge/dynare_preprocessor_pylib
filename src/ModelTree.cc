@@ -30,7 +30,7 @@
 #pragma GCC diagnostic pop
 
 #ifdef __APPLE__
-#include <mach-o/dyld.h>
+# include <mach-o/dyld.h>
 #endif
 
 using namespace MFS;
@@ -41,18 +41,18 @@ ModelTree::copyHelper(const ModelTree &m)
   auto f = [this](expr_t e) { return e->clone(*this); };
 
   // Equations
-  for (const auto & it : m.equations)
+  for (const auto &it : m.equations)
     equations.push_back(dynamic_cast<BinaryOpNode *>(f(it)));
-  for (const auto & it : m.aux_equations)
+  for (const auto &it : m.aux_equations)
     aux_equations.push_back(dynamic_cast<BinaryOpNode *>(f(it)));
 
   auto convert_deriv_map = [f](map<vector<int>, expr_t> dm)
-    {
-      map<vector<int>, expr_t> dm2;
-      for (const auto &it : dm)
-        dm2.emplace(it.first, f(it.second));
-      return dm2;
-    };
+                           {
+                             map<vector<int>, expr_t> dm2;
+                             for (const auto &it : dm)
+                               dm2.emplace(it.first, f(it.second));
+                             return dm2;
+                           };
 
   // Derivatives
   for (const auto &it : m.derivatives)
@@ -61,31 +61,31 @@ ModelTree::copyHelper(const ModelTree &m)
     params_derivatives[it.first] = convert_deriv_map(it.second);
 
   auto convert_temporary_terms_t = [f](temporary_terms_t tt)
-    {
-      temporary_terms_t tt2;
-      for (const auto &it : tt)
-        tt2.insert(f(it));
-      return tt2;
-    };
+                                   {
+                                     temporary_terms_t tt2;
+                                     for (const auto &it : tt)
+                                       tt2.insert(f(it));
+                                     return tt2;
+                                   };
 
   // Temporary terms
-  for (const auto & it : m.temporary_terms)
+  for (const auto &it : m.temporary_terms)
     temporary_terms.insert(f(it));
-  for (const auto & it : m.temporary_terms_mlv)
+  for (const auto &it : m.temporary_terms_mlv)
     temporary_terms_mlv[f(it.first)] = f(it.second);
   for (const auto &it : m.temporary_terms_derivatives)
     temporary_terms_derivatives.push_back(convert_temporary_terms_t(it));
-  for (const auto & it : m.temporary_terms_idxs)
+  for (const auto &it : m.temporary_terms_idxs)
     temporary_terms_idxs[f(it.first)] = it.second;
-  for (const auto & it : m.params_derivs_temporary_terms)
+  for (const auto &it : m.params_derivs_temporary_terms)
     params_derivs_temporary_terms[it.first] = convert_temporary_terms_t(it.second);
-  for (const auto & it : m.params_derivs_temporary_terms_idxs)
+  for (const auto &it : m.params_derivs_temporary_terms_idxs)
     params_derivs_temporary_terms_idxs[f(it.first)] = it.second;
 
   // Other stuff
-  for (const auto & it : m.trend_symbols_map)
+  for (const auto &it : m.trend_symbols_map)
     trend_symbols_map[it.first] = f(it.second);
-  for (const auto & it : m.nonstationary_symbols_map)
+  for (const auto &it : m.nonstationary_symbols_map)
     nonstationary_symbols_map[it.first] = {it.second.first, f(it.second.second)};
 }
 
@@ -93,7 +93,7 @@ ModelTree::ModelTree(SymbolTable &symbol_table_arg,
                      NumericalConstants &num_constants_arg,
                      ExternalFunctionsTable &external_functions_table_arg,
                      bool is_dynamic_arg) :
-  DataTree {symbol_table_arg, num_constants_arg, external_functions_table_arg, is_dynamic_arg},
+  DataTree{symbol_table_arg, num_constants_arg, external_functions_table_arg, is_dynamic_arg},
   derivatives(4),
   NNZDerivatives(4, 0),
   temporary_terms_derivatives(4)
@@ -101,27 +101,27 @@ ModelTree::ModelTree(SymbolTable &symbol_table_arg,
 }
 
 ModelTree::ModelTree(const ModelTree &m) :
-  DataTree {m},
-  user_set_add_flags {m.user_set_add_flags},
-  user_set_subst_flags {m.user_set_subst_flags},
-  user_set_add_libs {m.user_set_add_libs},
-  user_set_subst_libs {m.user_set_subst_libs},
-  user_set_compiler {m.user_set_compiler},
-  equations_lineno {m.equations_lineno},
-  equation_tags {m.equation_tags},
-  equation_tags_xref {m.equation_tags_xref},
-  NNZDerivatives {m.NNZDerivatives},
-  equation_reordered {m.equation_reordered},
-  variable_reordered {m.variable_reordered},
-  inv_equation_reordered {m.inv_equation_reordered},
-  inv_variable_reordered {m.inv_variable_reordered},
-  is_equation_linear {m.is_equation_linear},
-  endo2eq {m.endo2eq},
-  epilogue {m.epilogue},
-  prologue {m.prologue},
-  block_lag_lead {m.block_lag_lead},
-  cutoff {m.cutoff},
-  mfs {m.mfs}
+  DataTree{m},
+  user_set_add_flags{m.user_set_add_flags},
+  user_set_subst_flags{m.user_set_subst_flags},
+  user_set_add_libs{m.user_set_add_libs},
+  user_set_subst_libs{m.user_set_subst_libs},
+  user_set_compiler{m.user_set_compiler},
+  equations_lineno{m.equations_lineno},
+  equation_tags{m.equation_tags},
+  equation_tags_xref{m.equation_tags_xref},
+  NNZDerivatives{m.NNZDerivatives},
+  equation_reordered{m.equation_reordered},
+  variable_reordered{m.variable_reordered},
+  inv_equation_reordered{m.inv_equation_reordered},
+  inv_variable_reordered{m.inv_variable_reordered},
+  is_equation_linear{m.is_equation_linear},
+  endo2eq{m.endo2eq},
+  epilogue{m.epilogue},
+  prologue{m.prologue},
+  block_lag_lead{m.block_lag_lead},
+  cutoff{m.cutoff},
+  mfs{m.mfs}
 {
   copyHelper(m);
 }
@@ -173,7 +173,6 @@ ModelTree::operator=(const ModelTree &m)
   return *this;
 }
 
-
 bool
 ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, bool verbose)
 {
@@ -192,7 +191,7 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
   // Fill in the graph
   set<pair<int, int>> endo;
 
-  for (const auto & it : contemporaneous_jacobian)
+  for (const auto &it : contemporaneous_jacobian)
     add_edge(it.first.first + n, it.first.second, g);
 
   // Compute maximum cardinality matching
@@ -291,7 +290,7 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
     if (fabs(it.second) > max_val[it.first.first])
       max_val[it.first.first] = fabs(it.second);
 
-  for (auto & iter : normalized_contemporaneous_jacobian)
+  for (auto &iter : normalized_contemporaneous_jacobian)
     iter.second /= max_val[iter.first.first];
 
   //We start with the highest value of the cutoff and try to normalize the model
@@ -302,7 +301,7 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
     {
       jacob_map_t tmp_normalized_contemporaneous_jacobian;
       int suppress = 0;
-      for (auto & iter : normalized_contemporaneous_jacobian)
+      for (auto &iter : normalized_contemporaneous_jacobian)
         if (fabs(iter.second) > max(current_cutoff, cutoff))
           tmp_normalized_contemporaneous_jacobian[{ iter.first.first, iter.first.second }] = iter.second;
         else
@@ -330,7 +329,7 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
         {
           endo.clear();
           equations[i]->collectEndogenous(endo);
-          for (const auto & it : endo)
+          for (const auto &it : endo)
             tmp_normalized_contemporaneous_jacobian[{ i, it.first }] = 1;
         }
       check = computeNormalization(tmp_normalized_contemporaneous_jacobian, true);
@@ -445,7 +444,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
     }
 
   // Get rid of the elements of the Jacobian matrix below the cutoff
-  for (const auto & it : jacobian_elements_to_delete)
+  for (const auto &it : jacobian_elements_to_delete)
     derivatives[1].erase(it);
 
   if (jacobian_elements_to_delete.size() > 0)
@@ -455,7 +454,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_m
     }
 }
 
-vector<pair<int, int> >
+vector<pair<int, int>>
 ModelTree::select_non_linear_equations_and_variables(vector<bool> is_equation_linear, const dynamic_jacob_map_t &dynamic_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered,
                                                      vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered,
                                                      lag_lead_vector_t &equation_lag_lead, lag_lead_vector_t &variable_lag_lead,
@@ -463,7 +462,7 @@ ModelTree::select_non_linear_equations_and_variables(vector<bool> is_equation_li
 {
   vector<int> eq2endo(equations.size(), 0);
   /*equation_reordered.resize(equations.size());
-  variable_reordered.resize(equations.size());*/
+    variable_reordered.resize(equations.size());*/
   unsigned int num = 0;
   for (auto it : endo2eq)
     if (!is_equation_linear[it])
@@ -514,7 +513,7 @@ bool
 ModelTree::computeNaturalNormalization()
 {
   bool bool_result = true;
-  set<pair<int, int> > result;
+  set<pair<int, int>> result;
   endo2eq.resize(equations.size());
   for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     if (!is_equation_linear[eq])
@@ -561,12 +560,12 @@ ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian_arg, ve
         {
           endo.clear();
           equations[i]->collectEndogenous(endo);
-          for (const auto & it : endo)
+          for (const auto &it : endo)
             IM[i * n + endo2eq[it.first]] = true;
         }
     }
   else
-    for (const auto & it : static_jacobian_arg)
+    for (const auto &it : static_jacobian_arg)
       IM[it.first.first * n + endo2eq[it.first.second]] = true;
   bool something_has_been_done = true;
   prologue = 0;
@@ -683,7 +682,7 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
           else
             {
               vector<tuple<int, expr_t, expr_t>> List_of_Op_RHS;
-              res =  equations[eq]->normalizeEquation(var, List_of_Op_RHS);
+              res = equations[eq]->normalizeEquation(var, List_of_Op_RHS);
               if (mfs == 2)
                 {
                   if (d_endo_variable == result.end() && res.second)
@@ -726,7 +725,7 @@ ModelTree::getVariableLeadLagByBlock(const dynamic_jacob_map_t &dynamic_jacobian
           equation_blck[equation_reordered[i]] = i- (nb_endo - nb_blck_sim - prologue - epilogue);
         }
     }
-  for (const auto & it : dynamic_jacobian)
+  for (const auto &it : dynamic_jacobian)
     {
       auto [lag, j_1, i_1] = it.first;
       if (variable_blck[i_1] == equation_blck[j_1])
@@ -771,7 +770,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
         {
           endo.clear();
           equations[i]->collectEndogenous(endo);
-          for (const auto & it : endo)
+          for (const auto &it : endo)
             tmp_normalized_contemporaneous_jacobian[{ i, it.first }] = 1;
         }
     }
@@ -1036,7 +1035,7 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
         {
           endo.clear();
           equations[equation_reordered[count_equ]]->collectEndogenous(endo);
-          for (const auto & it : endo)
+          for (const auto &it : endo)
             {
               int curr_variable = it.first;
               int curr_lag = it.second;
@@ -1103,8 +1102,8 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
               bool is_lead = false, is_lag = false;
               int c_Size = get<2>(block_type_size_mfs[block_type_size_mfs.size()-1]);
               int first_equation = get<1>(block_type_size_mfs[block_type_size_mfs.size()-1]);
-              if (c_Size > 0 && ((prev_Type ==  EVALUATE_FORWARD && Simulation_Type == EVALUATE_FORWARD && !is_lead)
-                                 || (prev_Type ==  EVALUATE_BACKWARD && Simulation_Type == EVALUATE_BACKWARD && !is_lag)))
+              if (c_Size > 0 && ((prev_Type == EVALUATE_FORWARD && Simulation_Type == EVALUATE_FORWARD && !is_lead)
+                                 || (prev_Type == EVALUATE_BACKWARD && Simulation_Type == EVALUATE_BACKWARD && !is_lag)))
                 {
                   for (int j = first_equation; j < first_equation+c_Size; j++)
                     {
@@ -1116,8 +1115,8 @@ ModelTree::reduceBlocksAndTypeDetermination(const dynamic_jacob_map_t &dynamic_j
                         is_lead = true;
                     }
                 }
-              if ((prev_Type ==  EVALUATE_FORWARD && Simulation_Type == EVALUATE_FORWARD && !is_lead)
-                  || (prev_Type ==  EVALUATE_BACKWARD && Simulation_Type == EVALUATE_BACKWARD && !is_lag))
+              if ((prev_Type == EVALUATE_FORWARD && Simulation_Type == EVALUATE_FORWARD && !is_lead)
+                  || (prev_Type == EVALUATE_BACKWARD && Simulation_Type == EVALUATE_BACKWARD && !is_lag))
                 {
                   //merge the current block with the previous one
                   BlockSimulationType c_Type = get<0>(block_type_size_mfs[block_type_size_mfs.size()-1]);
@@ -1163,14 +1162,14 @@ ModelTree::equationLinear(map<tuple<int, int, int>, expr_t> first_order_endo_der
   vector<bool> is_linear(symbol_table.endo_nbr(), true);
   for (const auto &it : first_order_endo_derivatives)
     {
-       expr_t Id = it.second;
-       set<pair<int, int>> endogenous;
-       Id->collectEndogenous(endogenous);
-       if (endogenous.size() > 0)
-         {
-           int eq = get<0>(it.first);
-           is_linear[eq] = false;
-         }
+      expr_t Id = it.second;
+      set<pair<int, int>> endogenous;
+      Id->collectEndogenous(endogenous);
+      if (endogenous.size() > 0)
+        {
+          int eq = get<0>(it.first);
+          is_linear[eq] = false;
+        }
     }
   return is_linear;
 }
@@ -1242,7 +1241,7 @@ ModelTree::writeDerivative(ostream &output, int eq, int symb_id, int lag,
 void
 ModelTree::computeDerivatives(int order, const set<int> &vars)
 {
-  assert (order >= 1);
+  assert(order >= 1);
 
   // Do not shrink the vectors, since they have a minimal size of 4 (see constructor)
   derivatives.resize(max(static_cast<size_t>(order+1), derivatives.size()));
@@ -1293,7 +1292,7 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
      be treated as the rest of temporary terms. */
   temporary_terms_mlv.clear();
   set<int> used_local_vars;
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
   for (int used_local_var : used_local_vars)
     {
@@ -1305,7 +1304,7 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
   map<pair<int, int>, temporary_terms_t> temp_terms_map;
   map<expr_t, pair<int, pair<int, int>>> reference_count;
 
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     equation->computeTemporaryTerms({ 0, 0 },
                                     temp_terms_map,
                                     reference_count,
@@ -1324,7 +1323,7 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
   if (no_tmp_terms)
     for (auto &it : temp_terms_map)
       // The following loop can be simplified with std::erase_if() in C++20
-      for (auto it2 = it.second.begin(); it2 != it.second.end(); )
+      for (auto it2 = it.second.begin(); it2 != it.second.end();)
         if (!dynamic_cast<AbstractExternalFunctionNode *>(*it2))
           it2 = it.second.erase(it2);
         else
@@ -1499,7 +1498,7 @@ ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_
           string repstr, varname;
           while (testNestedParenthesis(str1))
             {
-              size_t open_paren_idx  = string::npos;
+              size_t open_paren_idx = string::npos;
               size_t match_paren_idx = string::npos;
               size_t last_open_paren = string::npos;
               for (size_t j = 0; j < str1.length(); j++)
@@ -1798,7 +1797,7 @@ ModelTree::Write_Inf_To_Bin_File(const string &filename,
         }
     }
   if (is_two_boundaries)
-    u_count_int +=  symbol_table.endo_nbr();
+    u_count_int += symbol_table.endo_nbr();
   for (j = 0; j < static_cast<int>(symbol_table.endo_nbr()); j++)
     SaveCode.write(reinterpret_cast<char *>(&j), sizeof(j));
   for (j = 0; j < static_cast<int>(symbol_table.endo_nbr()); j++)
@@ -1909,11 +1908,11 @@ ModelTree::includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_
 
   // Get equation numbers of tags
   set<int> tag_eqns;
-  for (auto & it : eqs)
+  for (auto &it : eqs)
     if (equation_tags_xref.find(it) != equation_tags_xref.end())
       {
         auto range = equation_tags_xref.equal_range(it);
-        for_each (range.first, range.second, [&tag_eqns](auto & x){ tag_eqns.insert(x.second); });
+        for_each(range.first, range.second, [&tag_eqns](auto &x) { tag_eqns.insert(x.second); });
         eqs.erase(it);
       }
   if (tag_eqns.empty())
@@ -1968,15 +1967,15 @@ ModelTree::includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_
   equations_lineno = new_equations_lineno;
 
   equation_tags.erase(remove_if(equation_tags.begin(), equation_tags.end(),
-                                [&](const auto& it) { return eqns.find(it.first) != eqns.end(); }),
+                                [&](const auto &it) { return eqns.find(it.first) != eqns.end(); }),
                       equation_tags.end());
-  for (auto & it : old_eqn_num_2_new)
-    for (auto & it1 : equation_tags)
+  for (auto &it : old_eqn_num_2_new)
+    for (auto &it1 : equation_tags)
       if (it1.first == it.first)
         it1.first = it.second;
 
   equation_tags_xref.clear();
-  for (const auto & it : equation_tags)
+  for (const auto &it : equation_tags)
     equation_tags_xref.emplace(it.second, it.first);
 
   if (!static_equations)
@@ -1990,7 +1989,7 @@ ModelTree::includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_
           }
 
   cout << "Excluded " << n_excl << (static_equations ? " static " : " dynamic ")
-       << "equation" << (n_excl > 1 ? "s" : "" ) << " via in/exclude_eqs option" << endl;
+       << "equation" << (n_excl > 1 ? "s" : "") << " via in/exclude_eqs option" << endl;
 
   return excluded_vars;
 }
@@ -2004,7 +2003,7 @@ ModelTree::simplifyEquations()
   while (subst_table.size() != last_subst_table_size)
     {
       last_subst_table_size = subst_table.size();
-      for (auto & equation : equations)
+      for (auto &equation : equations)
         equation = dynamic_cast<BinaryOpNode *>(equation->replaceVarsInEquation(subst_table));
       subst_table.clear();
       findConstantEquations(subst_table);
@@ -2014,7 +2013,7 @@ ModelTree::simplifyEquations()
 void
 ModelTree::findConstantEquations(map<VariableNode *, NumConstNode *> &subst_table) const
 {
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     equation->findConstantEquations(subst_table);
 }
 
@@ -2022,7 +2021,7 @@ void
 ModelTree::addEquation(expr_t eq, int lineno, const vector<pair<string, string>> &eq_tags)
 {
   int n = equations.size();
-  for (const auto & eq_tag : eq_tags)
+  for (const auto &eq_tag : eq_tags)
     {
       equation_tags.emplace_back(n, eq_tag);
       equation_tags_xref.emplace(eq_tag, n);
@@ -2322,7 +2321,7 @@ ModelTree::compileDll(const string &basename, const string &static_or_dynamic, c
               cerr << "Can't set PATH" << endl;
               exit(EXIT_FAILURE);
             }
-          }
+        }
       else
         {
           // macOS

@@ -86,7 +86,7 @@ SlaveNode::SlaveNode(string computerName_arg, string port_arg, int minCpuNbr_arg
       }
 }
 
-Cluster::Cluster(member_nodes_t  member_nodes_arg) :
+Cluster::Cluster(member_nodes_t member_nodes_arg) :
   member_nodes{move(member_nodes_arg)}
 {
   if (member_nodes.empty())
@@ -276,7 +276,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                 {
                   vector<string> tokenizedPath;
                   split(tokenizedPath, tokenizedLine.back(), is_any_of(":"), token_compress_on);
-                  for (auto & it : tokenizedPath)
+                  for (auto &it : tokenizedPath)
                     if (!it.empty())
                       {
                         trim(it);
@@ -377,7 +377,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                 tokenizer<char_separator<char>> tokens(tokenizedLine.back(), sep);
                 bool begin_weight = false;
                 string node_name;
-                for (const auto & token : tokens)
+                for (const auto &token : tokens)
                   {
                     if (token.compare("(") == 0)
                       {
@@ -497,9 +497,9 @@ ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, const member
         }
       else
         slave_nodes.emplace(name, SlaveNode{computerName, port, minCpuNbr, maxCpuNbr, userName,
-              password, remoteDrive, remoteDirectory, dynarePath,
-              matlabOctavePath, singleCompThread, numberOfThreadsPerJob,
-              operatingSystem});
+                                              password, remoteDrive, remoteDirectory, dynarePath,
+                                              matlabOctavePath, singleCompThread, numberOfThreadsPerJob,
+                                              operatingSystem});
   //! ADD CLUSTER
   else if (inCluster)
     if (minCpuNbr > 0 || maxCpuNbr > 0 || !userName.empty()
@@ -527,9 +527,9 @@ void
 ConfigFile::checkPass(WarningConsolidation &warnings) const
 {
   bool global_init_file_declared = false;
-  for (const auto & hook : hooks)
+  for (const auto &hook : hooks)
     {
-      for (const auto & mapit : hook.get_hooks())
+      for (const auto &mapit : hook.get_hooks())
         if (mapit.first.compare("global_init_file") == 0)
           if (global_init_file_declared == true)
             {
@@ -550,7 +550,7 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
       exit(EXIT_FAILURE);
     }
 
-  for (const auto & slave_node : slave_nodes)
+  for (const auto &slave_node : slave_nodes)
     {
 #if !defined(_WIN32) && !defined(__CYGWIN32__)
       //For Linux/Mac, check that cpuNbr starts at 0
@@ -638,8 +638,8 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
       exit(EXIT_FAILURE);
     }
 
-  for (const auto & cluster : clusters)
-    for (const auto & itmn : cluster.second.member_nodes)
+  for (const auto &cluster : clusters)
+    for (const auto &itmn : cluster.second.member_nodes)
       if (slave_nodes.find(itmn.first) == slave_nodes.end())
         {
           cerr << "Error: node " << itmn.first << " specified in cluster " << cluster.first << " was not found" << endl;
@@ -655,7 +655,7 @@ ConfigFile::transformPass()
 
 #if !defined(_WIN32) && !defined(__CYGWIN32__)
   //For Linux/Mac, check that cpuNbr starts at 0
-  for (auto & it : slave_nodes)
+  for (auto &it : slave_nodes)
     if (it.second.minCpuNbr != 0)
       {
         it.second.maxCpuNbr = it.second.maxCpuNbr - it.second.minCpuNbr;
@@ -666,10 +666,10 @@ ConfigFile::transformPass()
   auto cluster_it = cluster_name.empty() ? clusters.find(firstClusterName) : clusters.find(cluster_name);
 
   double weight_denominator{0.0};
-  for (const auto & it : cluster_it->second.member_nodes)
+  for (const auto &it : cluster_it->second.member_nodes)
     weight_denominator += it.second;
 
-  for (auto & member_node : cluster_it->second.member_nodes)
+  for (auto &member_node : cluster_it->second.member_nodes)
     member_node.second /= weight_denominator;
 }
 
@@ -678,8 +678,8 @@ ConfigFile::getIncludePaths() const
 {
   vector<filesystem::path> include_paths;
   for (auto path : paths)
-    for (const auto & mapit : path.get_paths())
-      for (const auto & vecit : mapit.second)
+    for (const auto &mapit : path.get_paths())
+      for (const auto &vecit : mapit.second)
         include_paths.emplace_back(vecit);
   return include_paths;
 }
@@ -688,7 +688,7 @@ void
 ConfigFile::writeHooks(ostream &output) const
 {
   for (auto hook : hooks)
-    for (const auto & mapit : hook.get_hooks())
+    for (const auto &mapit : hook.get_hooks())
       output << "options_." << mapit.first << " = '" << mapit.second << "';" << endl;
 }
 
@@ -701,10 +701,10 @@ ConfigFile::writeCluster(ostream &output) const
   auto cluster_it = cluster_name.empty() ? clusters.find(firstClusterName) : clusters.find(cluster_name);
 
   int i{1};
-  for (const auto & slave_node : slave_nodes)
+  for (const auto &slave_node : slave_nodes)
     {
       bool slave_node_in_member_nodes = false;
-      for (const auto & itmn : cluster_it->second.member_nodes)
+      for (const auto &itmn : cluster_it->second.member_nodes)
         if (!slave_node.first.compare(itmn.first))
           slave_node_in_member_nodes = true;
 

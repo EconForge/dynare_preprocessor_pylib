@@ -22,31 +22,31 @@
 
 enum class FileOutputType
   {
-    none,                             // outputs files for Matlab/Octave processing
-    dynamic,                          // outputs <fname>_dynamic.* and related files
-    first,                            // outputs <fname>_first_derivatives.* and related files
-    second,                           // outputs <fname>_first_derivatives.*, <fname>_second_derivatives.* and related files
-    third,                            // outputs <fname>_first_derivatives.*, <fname>_second_derivatives.*, <fname>_third_derivatives.*  and related files
+   none, // outputs files for Matlab/Octave processing
+   dynamic, // outputs <fname>_dynamic.* and related files
+   first, // outputs <fname>_first_derivatives.* and related files
+   second, // outputs <fname>_first_derivatives.*, <fname>_second_derivatives.* and related files
+   third, // outputs <fname>_first_derivatives.*, <fname>_second_derivatives.*, <fname>_third_derivatives.*  and related files
   };
 
 enum class LanguageOutputType
   {
-    matlab,                           // outputs files for Matlab/Octave processing
-    julia,                            // outputs files for Julia
+   matlab, // outputs files for Matlab/Octave processing
+   julia, // outputs files for Julia
   };
 
 enum class JsonFileOutputType
   {
-    file,                             // output JSON files to file
-    standardout,                      // output JSON files to stdout
+   file, // output JSON files to file
+   standardout, // output JSON files to stdout
   };
 
 enum class JsonOutputPointType
   {
-    nojson,                            // don't output JSON
-    parsing,                           // output JSON after the parsing step
-    checkpass,                         // output JSON after the check pass
-    transformpass,                     // output JSON after the transform pass
-    computingpass                      // output JSON after the computing pass
+   nojson, // don't output JSON
+   parsing, // output JSON after the parsing step
+   checkpass, // output JSON after the check pass
+   transformpass, // output JSON after the transform pass
+   computingpass // output JSON after the computing pass
   };
 #endif

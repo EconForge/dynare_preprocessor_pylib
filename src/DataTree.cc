@@ -50,27 +50,27 @@ DataTree::DataTree(SymbolTable &symbol_table_arg,
   symbol_table{symbol_table_arg},
   num_constants{num_constants_arg},
   external_functions_table{external_functions_table_arg},
-  is_dynamic {is_dynamic_arg}
+  is_dynamic{is_dynamic_arg}
 {
   initConstants();
 }
 
 DataTree::DataTree(const DataTree &d) :
-  symbol_table {d.symbol_table},
-  num_constants {d.num_constants},
-  external_functions_table {d.external_functions_table},
-  is_dynamic {d.is_dynamic},
-  local_variables_vector {d.local_variables_vector}
+  symbol_table{d.symbol_table},
+  num_constants{d.num_constants},
+  external_functions_table{d.external_functions_table},
+  is_dynamic{d.is_dynamic},
+  local_variables_vector{d.local_variables_vector}
 {
   // Constants must be initialized first because they are used in some Add* methods
   initConstants();
 
-  for (const auto & it : d.node_list)
+  for (const auto &it : d.node_list)
     it->clone(*this);
 
   assert(node_list.size() == d.node_list.size());
 
-  for (const auto & it : d.local_variables_table)
+  for (const auto &it : d.local_variables_table)
     local_variables_table[it.first] = it.second->clone(*this);
 }
 
@@ -98,14 +98,14 @@ DataTree::operator=(const DataTree &d)
   // Constants must be initialized first because they are used in some Add* methods
   initConstants();
 
-  for (const auto & it : d.node_list)
+  for (const auto &it : d.node_list)
     it->clone(*this);
 
   assert(node_list.size() == d.node_list.size());
 
   local_variables_vector = d.local_variables_vector;
 
-  for (const auto & it : d.local_variables_table)
+  for (const auto &it : d.local_variables_table)
     local_variables_table[it.first] = it.second->clone(*this);
 
   return *this;
@@ -162,7 +162,7 @@ DataTree::getVariable(int symb_id, int lag) const
 bool
 DataTree::ParamUsedWithLeadLagInternal() const
 {
-  for (const auto & it : variable_node_map)
+  for (const auto &it : variable_node_map)
     if (symbol_table.getType(it.first.first) == SymbolType::parameter && it.first.second != 0)
       return true;
   return false;
@@ -759,7 +759,7 @@ DataTree::AddSecondDerivExternalFunction(int top_level_symb_id, const vector<exp
 bool
 DataTree::isSymbolUsed(int symb_id) const
 {
-  for (const auto & it : variable_node_map)
+  for (const auto &it : variable_node_map)
     if (it.first.first == symb_id)
       return true;
 
@@ -807,7 +807,7 @@ DataTree::getDynJacobianCol(int deriv_id) const noexcept(false)
 bool
 DataTree::isUnaryOpUsed(UnaryOpcode opcode) const
 {
-  for (const auto & it : unary_op_node_map)
+  for (const auto &it : unary_op_node_map)
     if (get<1>(it.first) == opcode)
       return true;
 
@@ -818,7 +818,7 @@ bool
 DataTree::isUnaryOpUsedOnType(SymbolType type, UnaryOpcode opcode) const
 {
   set<int> var;
-  for (const auto & it : unary_op_node_map)
+  for (const auto &it : unary_op_node_map)
     if (get<1>(it.first) == opcode)
       {
         it.second->collectVariables(type, var);
@@ -831,7 +831,7 @@ DataTree::isUnaryOpUsedOnType(SymbolType type, UnaryOpcode opcode) const
 bool
 DataTree::isBinaryOpUsed(BinaryOpcode opcode) const
 {
-  for (const auto & it : binary_op_node_map)
+  for (const auto &it : binary_op_node_map)
     if (get<2>(it.first) == opcode)
       return true;
 
@@ -842,7 +842,7 @@ bool
 DataTree::isBinaryOpUsedOnType(SymbolType type, BinaryOpcode opcode) const
 {
   set<int> var;
-  for (const auto & it : binary_op_node_map)
+  for (const auto &it : binary_op_node_map)
     if (get<2>(it.first) == opcode)
       {
         it.second->collectVariables(type, var);
@@ -855,7 +855,7 @@ DataTree::isBinaryOpUsedOnType(SymbolType type, BinaryOpcode opcode) const
 bool
 DataTree::isTrinaryOpUsed(TrinaryOpcode opcode) const
 {
-  for (const auto & it : trinary_op_node_map)
+  for (const auto &it : trinary_op_node_map)
     if (get<3>(it.first) == opcode)
       return true;
 
@@ -865,7 +865,7 @@ DataTree::isTrinaryOpUsed(TrinaryOpcode opcode) const
 bool
 DataTree::isExternalFunctionUsed(int symb_id) const
 {
-  for (const auto & it : external_function_node_map)
+  for (const auto &it : external_function_node_map)
     if (it.first.second == symb_id)
       return true;
 
@@ -875,7 +875,7 @@ DataTree::isExternalFunctionUsed(int symb_id) const
 bool
 DataTree::isFirstDerivExternalFunctionUsed(int symb_id) const
 {
-  for (const auto & it : first_deriv_external_function_node_map)
+  for (const auto &it : first_deriv_external_function_node_map)
     if (get<2>(it.first) == symb_id)
       return true;
 
@@ -885,7 +885,7 @@ DataTree::isFirstDerivExternalFunctionUsed(int symb_id) const
 bool
 DataTree::isSecondDerivExternalFunctionUsed(int symb_id) const
 {
-  for (const auto & it : second_deriv_external_function_node_map)
+  for (const auto &it : second_deriv_external_function_node_map)
     if (get<3>(it.first) == symb_id)
       return true;
 
@@ -896,7 +896,7 @@ int
 DataTree::minLagForSymbol(int symb_id) const
 {
   int r = 0;
-  for (const auto & it : variable_node_map)
+  for (const auto &it : variable_node_map)
     if (it.first.first == symb_id && it.first.second < r)
       r = it.first.second;
   return r;

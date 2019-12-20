@@ -107,10 +107,10 @@ Environment::print(ostream &output, const vector<string> &vars, int line, bool s
     output << "Macro Variables:" << endl;
 
   if (vars.empty())
-    for (const auto & it : variables)
+    for (const auto &it : variables)
       printVariable(output, it.first, line, save);
   else
-    for (const auto & it : vars)
+    for (const auto &it : vars)
       if (isVariableDefined(it))
         printVariable(output, it, line, save);
 
@@ -118,10 +118,10 @@ Environment::print(ostream &output, const vector<string> &vars, int line, bool s
     output << "Macro Functions:" << endl;
 
   if (vars.empty())
-    for (const auto & it : functions)
+    for (const auto &it : functions)
       printFunction(output, it.second, line, save);
   else
-    for (const auto & it : vars)
+    for (const auto &it : vars)
       if (isFunctionDefined(it))
         printFunction(output, functions.find(it)->second, line, save);
 
@@ -130,9 +130,9 @@ Environment::print(ostream &output, const vector<string> &vars, int line, bool s
 }
 
 void
-Environment::printVariable(ostream &output, const string & name, int line, bool save) const
+Environment::printVariable(ostream &output, const string &name, int line, bool save) const
 {
-  output << (save ? "options_.macrovars_line_" + to_string(line) + "." : "  " )
+  output << (save ? "options_.macrovars_line_" + to_string(line) + "." : "  ")
          << name << " = ";
   getVariable(name)->eval()->print(output, save);
   if (save)
@@ -141,9 +141,9 @@ Environment::printVariable(ostream &output, const string & name, int line, bool 
 }
 
 void
-Environment::printFunction(ostream &output, const tuple<FunctionPtr, ExpressionPtr> & function, int line, bool save) const
+Environment::printFunction(ostream &output, const tuple<FunctionPtr, ExpressionPtr> &function, int line, bool save) const
 {
-  output << (save ? "options_.macrovars_line_" + to_string(line) + ".function." : "  " );
+  output << (save ? "options_.macrovars_line_" + to_string(line) + ".function." : "  ");
   if (save)
     {
       get<0>(function)->printName(output);

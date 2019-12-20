@@ -38,7 +38,7 @@ SymbolList::checkPass(WarningConsolidation &warnings) const noexcept(false)
 {
   smatch m;
   regex re("^(AUX_EXPECT_|AUX_ENDO_|MULT_)");
-  for (const auto & symbol : symbols)
+  for (const auto &symbol : symbols)
     {
       if (!symbol_table->exists(symbol))
         {
@@ -106,7 +106,7 @@ void
 SymbolList::removeDuplicates(const string &dynare_command, WarningConsolidation &warnings)
 {
   vector<string> unique_symbols;
-  for (const auto & it : symbols)
+  for (const auto &it : symbols)
     if (find(unique_symbols.begin(), unique_symbols.end(), it) == unique_symbols.end())
       unique_symbols.push_back(it);
     else

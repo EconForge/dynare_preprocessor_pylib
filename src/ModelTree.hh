@@ -34,12 +34,16 @@ using namespace std;
 #include "ExtendedPreprocessorTypes.hh"
 
 // Helper to convert a vector into a tuple
-template <typename T, size_t... Indices>
-auto vectorToTupleHelper(const vector<T>& v, index_sequence<Indices...>) {
-  return tuple(v[Indices]...);
+template<typename T, size_t... Indices>
+auto
+vectorToTupleHelper(const vector<T> &v, index_sequence<Indices...>)
+{
+  return tuple(v[Indices] ...);
 }
-template <size_t N, typename T>
-auto vectorToTuple(const vector<T>& v) {
+template<size_t N, typename T>
+auto
+vectorToTuple(const vector<T> &v)
+{
   assert(v.size() >= N);
   return vectorToTupleHelper(v, make_index_sequence<N>());
 }
@@ -138,7 +142,7 @@ protected:
 
   //! Temporary terms for parameter derivatives, under a disaggregated form
   /*! The pair of integers is to be interpreted as in param_derivatives */
-  map<pair<int,int>, temporary_terms_t> params_derivs_temporary_terms;
+  map<pair<int, int>, temporary_terms_t> params_derivs_temporary_terms;
 
   //! Stores, for each temporary term in param. derivs, its index in the MATLAB/Julia vector
   temporary_terms_idxs_t params_derivs_temporary_terms_idxs;
@@ -157,7 +161,7 @@ protected:
 
   //! the file containing the model and the derivatives code
   ofstream code_file;
-  
+
   //! Vector indicating if the equation is linear in endogenous variable (true) or not (false)
   vector<bool> is_equation_linear;
 
@@ -242,10 +246,10 @@ protected:
   //! Evaluate the jacobian and suppress all the elements below the cutoff
   void evaluateAndReduceJacobian(const eval_context_t &eval_context, jacob_map_t &contemporaneous_jacobian, jacob_map_t &static_jacobian, dynamic_jacob_map_t &dynamic_jacobian, double cutoff, bool verbose);
   //! Select and reorder the non linear equations of the model
-  vector<pair<int, int> > select_non_linear_equations_and_variables(vector<bool> is_equation_linear, const dynamic_jacob_map_t &dynamic_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered,
-                                                                    vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered,
-                                                                    lag_lead_vector_t &equation_lag_lead, lag_lead_vector_t &variable_lag_lead,
-                                                                    vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed);
+  vector<pair<int, int>> select_non_linear_equations_and_variables(vector<bool> is_equation_linear, const dynamic_jacob_map_t &dynamic_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered,
+                                                                   vector<int> &inv_equation_reordered, vector<int> &inv_variable_reordered,
+                                                                   lag_lead_vector_t &equation_lag_lead, lag_lead_vector_t &variable_lag_lead,
+                                                                   vector<unsigned int> &n_static, vector<unsigned int> &n_forward, vector<unsigned int> &n_backward, vector<unsigned int> &n_mixed);
   //! Search the equations and variables belonging to the prologue and the epilogue of the model
   void computePrologueAndEpilogue(const jacob_map_t &static_jacobian, vector<int> &equation_reordered, vector<int> &variable_reordered);
   //! Determine the type of each equation of model and try to normalized the unnormalized equation using computeNormalizedEquations
@@ -337,8 +341,8 @@ public:
 
   ModelTree(const ModelTree &m);
   ModelTree(ModelTree &&) = delete;
-  ModelTree & operator=(const ModelTree &m);
-  ModelTree & operator=(ModelTree &&) = delete;
+  ModelTree &operator=(const ModelTree &m);
+  ModelTree &operator=(ModelTree &&) = delete;
 
   //! Absolute value under which a number is considered to be zero
   double cutoff{1e-15};
@@ -380,10 +384,11 @@ public:
   void sparseHelper(int order, ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const;
 
   //! Returns all the equation tags associated to an equation
-  inline map<string, string> getEquationTags(int eq) const
+  inline map<string, string>
+  getEquationTags(int eq) const
   {
     map<string, string> r;
-    for (auto &[eq2, tagpair]: equation_tags)
+    for (auto &[eq2, tagpair] : equation_tags)
       if (eq2 == eq)
         r[tagpair.first] = tagpair.second;
     return r;
@@ -394,10 +399,10 @@ public:
   {
     vector<string> c_Equation_Type =
       {
-        "E_UNKNOWN   ",
-        "E_EVALUATE  ",
-        "E_EVALUATE_S",
-        "E_SOLVE     "
+       "E_UNKNOWN   ",
+       "E_EVALUATE  ",
+       "E_EVALUATE_S",
+       "E_SOLVE     "
       };
     return c_Equation_Type[type];
   };

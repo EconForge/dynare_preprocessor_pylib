@@ -37,18 +37,18 @@ using expr_t = class ExprNode *;
 //! Types of auxiliary variables
 enum class AuxVarType
   {
-    endoLead = 0,    //!< Substitute for endo leads >= 2
-    endoLag = 1,     //!< Substitute for endo lags >= 2
-    exoLead = 2,     //!< Substitute for exo leads >= 1
-    exoLag = 3,      //!< Substitute for exo lags >= 1
-    expectation = 4, //!< Substitute for Expectation Operator
-    diffForward = 5, //!< Substitute for the differentiate of a forward variable
-    multiplier = 6,  //!< Multipliers for FOC of Ramsey Problem
-    varModel = 7,    //!< Variable for var_model with order > abs(min_lag()) present in model
-    diff = 8,        //!< Variable for Diff operator
-    diffLag = 9,     //!< Variable for timing between Diff operators
-    unaryOp = 10,    //!< Variable for allowing the undiff operator to work when diff was taken of unary op, eg diff(log(x))
-    diffLead = 11    //!< Variable for timing between Diff operators
+   endoLead = 0, //!< Substitute for endo leads >= 2
+   endoLag = 1, //!< Substitute for endo lags >= 2
+   exoLead = 2, //!< Substitute for exo leads >= 1
+   exoLag = 3, //!< Substitute for exo lags >= 1
+   expectation = 4, //!< Substitute for Expectation Operator
+   diffForward = 5, //!< Substitute for the differentiate of a forward variable
+   multiplier = 6, //!< Multipliers for FOC of Ramsey Problem
+   varModel = 7, //!< Variable for var_model with order > abs(min_lag()) present in model
+   diff = 8, //!< Variable for Diff operator
+   diffLag = 9, //!< Variable for timing between Diff operators
+   unaryOp = 10, //!< Variable for allowing the undiff operator to work when diff was taken of unary op, eg diff(log(x))
+   diffLead = 11 //!< Variable for timing between Diff operators
   };
 
 //! Information on some auxiliary variables

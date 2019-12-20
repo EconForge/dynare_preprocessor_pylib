@@ -95,7 +95,6 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
-
 class DetCondForecast : public Statement
 {
 private:

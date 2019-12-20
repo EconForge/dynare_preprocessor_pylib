@@ -128,8 +128,8 @@ public:
 
   DataTree(const DataTree &d);
   DataTree(DataTree &&) = delete;
-  DataTree & operator=(const DataTree &d);
-  DataTree & operator=(DataTree &&) = delete;
+  DataTree &operator=(const DataTree &d);
+  DataTree &operator=(DataTree &&) = delete;
 
   //! Some predefined constants
   expr_t Zero, One, Two, Three, MinusOne, NaN, Infinity, MinusInfinity, Pi;
@@ -155,7 +155,7 @@ public:
   VariableNode *AddVariable(int symb_id, int lag = 0);
   //! Gets a variable
   /*! Same as AddVariable, except that it fails if the variable node has not
-      already been created */
+    already been created */
   VariableNode *getVariable(int symb_id, int lag = 0) const;
   //! Adds "arg1+arg2" to model tree
   expr_t AddPlus(expr_t iArg1, expr_t iArg2);
@@ -324,7 +324,8 @@ public:
     }
   };
 
-  expr_t getLocalVariable(int symb_id) const
+  expr_t
+  getLocalVariable(int symb_id) const
   {
     auto it = local_variables_table.find(symb_id);
     if (it == local_variables_table.end())

@@ -32,17 +32,17 @@ StaticModel::copyHelper(const StaticModel &m)
   auto f = [this](expr_t e) { return e->clone(*this); };
 
   auto convert_vector_tt = [f](vector<temporary_terms_t> vtt)
-    {
-      vector<temporary_terms_t> vtt2;
-      for (const auto &tt : vtt)
-        {
-          temporary_terms_t tt2;
-          for (const auto &it : tt)
-            tt2.insert(f(it));
-          vtt2.push_back(tt2);
-        }
-      return vtt2;
-    };
+                           {
+                             vector<temporary_terms_t> vtt2;
+                             for (const auto &tt : vtt)
+                               {
+                                 temporary_terms_t tt2;
+                                 for (const auto &it : tt)
+                                   tt2.insert(f(it));
+                                 vtt2.push_back(tt2);
+                               }
+                             return vtt2;
+                           };
 
   for (const auto &it : m.v_temporary_terms)
     v_temporary_terms.push_back(convert_vector_tt(it));
@@ -67,12 +67,12 @@ StaticModel::copyHelper(const StaticModel &m)
     dynamic_jacobian[it.first] = f(it.second);
 
   auto convert_derivative_t = [f](derivative_t dt)
-    {
-      derivative_t dt2;
-      for (const auto &it : dt)
-        dt2[it.first] = f(it.second);
-      return dt2;
-    };
+                              {
+                                derivative_t dt2;
+                                for (const auto &it : dt)
+                                  dt2[it.first] = f(it.second);
+                                return dt2;
+                              };
   for (const auto &it : m.derivative_endo)
     derivative_endo.push_back(convert_derivative_t(it));
   for (const auto &it : m.derivative_other_endo)
@@ -91,19 +91,19 @@ StaticModel::StaticModel(SymbolTable &symbol_table_arg,
 }
 
 StaticModel::StaticModel(const StaticModel &m) :
-  ModelTree {m},
-  v_temporary_terms_inuse {m.v_temporary_terms_inuse},
-  map_idx {m.map_idx},
-  map_idx2 {m.map_idx2},
-  global_temporary_terms {m.global_temporary_terms},
-  block_type_firstequation_size_mfs {m.block_type_firstequation_size_mfs},
-  blocks_linear {m.blocks_linear},
-  block_col_type {m.block_col_type},
-  endo_max_leadlag_block {m.endo_max_leadlag_block},
-  other_endo_max_leadlag_block {m.other_endo_max_leadlag_block},
-  exo_max_leadlag_block {m.exo_max_leadlag_block},
-  exo_det_max_leadlag_block {m.exo_det_max_leadlag_block},
-  max_leadlag_block {m.max_leadlag_block}
+  ModelTree{m},
+  v_temporary_terms_inuse{m.v_temporary_terms_inuse},
+  map_idx{m.map_idx},
+  map_idx2{m.map_idx2},
+  global_temporary_terms{m.global_temporary_terms},
+  block_type_firstequation_size_mfs{m.block_type_firstequation_size_mfs},
+  blocks_linear{m.blocks_linear},
+  block_col_type{m.block_col_type},
+  endo_max_leadlag_block{m.endo_max_leadlag_block},
+  other_endo_max_leadlag_block{m.other_endo_max_leadlag_block},
+  exo_max_leadlag_block{m.exo_max_leadlag_block},
+  exo_det_max_leadlag_block{m.exo_det_max_leadlag_block},
+  max_leadlag_block{m.max_leadlag_block}
 {
   copyHelper(m);
 }
@@ -151,7 +151,7 @@ StaticModel::operator=(const StaticModel &m)
 }
 
 StaticModel::StaticModel(const DynamicModel &m) :
-  ModelTree {m.symbol_table, m.num_constants, m.external_functions_table}
+  ModelTree{m.symbol_table, m.num_constants, m.external_functions_table}
 {
   // Convert model local variables (need to be done first)
   for (int it : m.local_variables_vector)
@@ -264,17 +264,17 @@ StaticModel::computeTemporaryTermsOrdered()
       for (unsigned int i = 0; i < block_size; i++)
         {
           if (i < block_nb_recursives && isBlockEquationRenormalized(block, i))
-            getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count_local, temporary_terms_l, first_occurence_local, block, v_temporary_terms_local,  i);
+            getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count_local, temporary_terms_l, first_occurence_local, block, v_temporary_terms_local, i);
           else
             {
               eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
-              eq_node->computeTemporaryTerms(reference_count_local, temporary_terms_l, first_occurence_local, block, v_temporary_terms_local,  i);
+              eq_node->computeTemporaryTerms(reference_count_local, temporary_terms_l, first_occurence_local, block, v_temporary_terms_local, i);
             }
         }
       for (const auto &it : blocks_derivatives[block])
         {
           expr_t id = get<3>(it);
-          id->computeTemporaryTerms(reference_count_local, temporary_terms_l, first_occurence_local, block, v_temporary_terms_local,  block_size-1);
+          id->computeTemporaryTerms(reference_count_local, temporary_terms_l, first_occurence_local, block, v_temporary_terms_local, block_size-1);
         }
       v_temporary_terms_inuse[block] = {};
       computeTemporaryTermsMapping(temporary_terms_l, map_idx2[block]);
@@ -291,7 +291,7 @@ StaticModel::computeTemporaryTermsOrdered()
       for (unsigned int i = 0; i < block_size; i++)
         {
           if (i < block_nb_recursives && isBlockEquationRenormalized(block, i))
-            getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms,  i);
+            getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, i);
           else
             {
               eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
@@ -353,7 +353,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
   BinaryOpNode *eq_node;
   map<expr_t, int> reference_count;
   temporary_terms_t local_temporary_terms;
-  ofstream  output;
+  ofstream output;
   vector<int> feedback_variables;
   deriv_node_temp_terms_t tef_terms;
   ExprNodeOutputType local_output_type;
@@ -392,11 +392,11 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
       if (simulation_type == SOLVE_FORWARD_COMPLETE || simulation_type == SOLVE_BACKWARD_COMPLETE)
         block_type = SIMULTANS;
       else if ((simulation_type == SOLVE_FORWARD_SIMPLE || simulation_type == SOLVE_BACKWARD_SIMPLE
-                || simulation_type == EVALUATE_BACKWARD    || simulation_type == EVALUATE_FORWARD)
+                || simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
                && getBlockFirstEquation(block) < prologue)
         block_type = PROLOGUE;
       else if ((simulation_type == SOLVE_FORWARD_SIMPLE || simulation_type == SOLVE_BACKWARD_SIMPLE
-                || simulation_type == EVALUATE_BACKWARD    || simulation_type == EVALUATE_FORWARD)
+                || simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
                && getBlockFirstEquation(block) >= equations.size() - epilogue)
         block_type = EPILOGUE;
       else
@@ -409,7 +409,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
              << "  % ////////////////////////////////////////////////////////////////////////" << endl;
       output << "  global options_;" << endl;
       //The Temporary terms
-      if (simulation_type != EVALUATE_BACKWARD  && simulation_type != EVALUATE_FORWARD)
+      if (simulation_type != EVALUATE_BACKWARD && simulation_type != EVALUATE_FORWARD)
         output << " g1 = spalloc("  << block_mfs << ", " << block_mfs << ", " << derivative_endo[block].size() << ");" << endl;
 
       if (v_temporary_terms_inuse[block].size())
@@ -515,7 +515,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
             }
         }
       // The Jacobian if we have to solve the block
-      if (simulation_type == SOLVE_BACKWARD_SIMPLE   || simulation_type == SOLVE_FORWARD_SIMPLE
+      if (simulation_type == SOLVE_BACKWARD_SIMPLE || simulation_type == SOLVE_FORWARD_SIMPLE
           || simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
         output << "  " << sps << "% Jacobian  " << endl;
       switch (simulation_type)
@@ -1191,7 +1191,7 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
       neweqs.push_back(dynamic_cast<BinaryOpNode *>(eq_tmp->toStatic(*this)));
     }
 
-  for (auto & aux_equation : aux_equations)
+  for (auto &aux_equation : aux_equations)
     {
       expr_t eq_tmp = aux_equation->substituteStaticAuxiliaryDefinition();
       neweqs.push_back(dynamic_cast<BinaryOpNode *>(eq_tmp->toStatic(*this)));
@@ -1453,7 +1453,7 @@ void
 StaticModel::writeStaticModel(const string &basename,
                               ostream &StaticOutput, bool use_dll, bool julia) const
 {
-  vector<ostringstream> d_output(derivatives.size());  // Derivatives output (at all orders, including 0=residual)
+  vector<ostringstream> d_output(derivatives.size()); // Derivatives output (at all orders, including 0=residual)
   vector<ostringstream> tt_output(derivatives.size()); // Temp terms output (at all orders)
 
   ExprNodeOutputType output_type = (use_dll ? ExprNodeOutputType::CStaticModel :
@@ -1721,7 +1721,7 @@ StaticModel::writeStaticModel(const string &basename,
              << "             The columns and rows respectively correspond to the variables in declaration order and the" << endl
              << "             equations in order of declaration" << endl << endl
              << "## Remarks ##" << endl
-             << "  [1] The size of `T`, ie the value of `num_temp_terms`, depends on the version of the static model called. The number of temporary variables" << endl    
+             << "  [1] The size of `T`, ie the value of `num_temp_terms`, depends on the version of the static model called. The number of temporary variables" << endl
              << "      used for the different returned objects (residuals, jacobian, hessian or third order derivatives) is given by the elements in `tmp_nbr`" << endl
              << "      exported vector. The first element is the number of temporaries used for the computation of the residuals, the second element is the" << endl
              << "      number of temporaries used for the evaluation of the jacobian matrix, etc. If one calls the version of the static model computing the" << endl
@@ -2103,7 +2103,7 @@ void
 StaticModel::writeOutput(ostream &output, bool block) const
 {
   output << "M_.static_tmp_nbr = [";
-  for (const auto & temporary_terms_derivative : temporary_terms_derivatives)
+  for (const auto &temporary_terms_derivative : temporary_terms_derivatives)
     output << temporary_terms_derivative.size() << "; ";
   output << "];" << endl;
 
@@ -2342,7 +2342,7 @@ StaticModel::collect_block_first_order_derivatives()
   derivative_endo = vector<derivative_t>(nb_blocks);
   endo_max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
   max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
-  for (auto & first_derivative : derivatives[1])
+  for (auto &first_derivative : derivatives[1])
     {
       int eq = first_derivative.first[0];
       int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(first_derivative.first[1]));
@@ -2431,11 +2431,11 @@ StaticModel::writeLatexAuxVarRecursiveDefinitions(ostream &output) const
 {
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temporary_terms;
-    temporary_terms_idxs_t temporary_terms_idxs;
+  temporary_terms_idxs_t temporary_terms_idxs;
   for (auto aux_equation : aux_equations)
     if (dynamic_cast<ExprNode *>(aux_equation)->containsExternalFunction())
       dynamic_cast<ExprNode *>(aux_equation)->writeExternalFunctionOutput(output, ExprNodeOutputType::latexStaticModel,
-                                                                              temporary_terms, temporary_terms_idxs, tef_terms);
+                                                                          temporary_terms, temporary_terms_idxs, tef_terms);
   for (auto aux_equation : aux_equations)
     {
       output << R"(\begin{dmath})" << endl;
@@ -2484,12 +2484,12 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
 
   ExprNodeOutputType output_type = (julia ? ExprNodeOutputType::juliaStaticModel : ExprNodeOutputType::matlabStaticModel);
 
-  ostringstream tt_output;                 // Used for storing temporary terms
-  ostringstream jacobian_output;           // Used for storing jacobian equations
-  ostringstream hessian_output;            // Used for storing Hessian equations
-  ostringstream hessian1_output;           // Used for storing Hessian equations
-  ostringstream third_derivs_output;       // Used for storing third order derivatives equations
-  ostringstream third_derivs1_output;      // Used for storing third order derivatives equations
+  ostringstream tt_output; // Used for storing temporary terms
+  ostringstream jacobian_output; // Used for storing jacobian equations
+  ostringstream hessian_output; // Used for storing Hessian equations
+  ostringstream hessian1_output; // Used for storing Hessian equations
+  ostringstream third_derivs_output; // Used for storing third order derivatives equations
+  ostringstream third_derivs1_output; // Used for storing third order derivatives equations
 
   temporary_terms_t temp_term_union;
   deriv_node_temp_terms_t tef_terms;
@@ -2759,8 +2759,8 @@ StaticModel::writeJsonOutput(ostream &output) const
 void
 StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) const
 {
-  ostringstream model_local_vars_output;  // Used for storing model local vars
-  vector<ostringstream> d_output(derivatives.size());  // Derivatives output (at all orders, including 0=residual)
+  ostringstream model_local_vars_output; // Used for storing model local vars
+  vector<ostringstream> d_output(derivatives.size()); // Derivatives output (at all orders, including 0=residual)
 
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;
@@ -2822,9 +2822,9 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
           d->writeJsonOutput(d_output[i], temp_term_union, tef_terms);
           d_output[i] << R"("})" << endl;
         }
-     d_output[i] << "]}";
+      d_output[i] << "]}";
 
-     ncols *= symbol_table.endo_nbr();
+      ncols *= symbol_table.endo_nbr();
     }
 
   if (writeDetails)
@@ -2843,13 +2843,13 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
   if (!params_derivatives.size())
     return;
 
-  ostringstream model_local_vars_output;   // Used for storing model local vars
-  ostringstream model_output;              // Used for storing model temp vars and equations
-  ostringstream jacobian_output;           // Used for storing jacobian equations
-  ostringstream hessian_output;            // Used for storing Hessian equations
-  ostringstream hessian1_output;           // Used for storing Hessian equations
-  ostringstream third_derivs_output;       // Used for storing third order derivatives equations
-  ostringstream third_derivs1_output;      // Used for storing third order derivatives equations
+  ostringstream model_local_vars_output; // Used for storing model local vars
+  ostringstream model_output; // Used for storing model temp vars and equations
+  ostringstream jacobian_output; // Used for storing jacobian equations
+  ostringstream hessian_output; // Used for storing Hessian equations
+  ostringstream hessian1_output; // Used for storing Hessian equations
+  ostringstream third_derivs_output; // Used for storing third order derivatives equations
+  ostringstream third_derivs1_output; // Used for storing third order derivatives equations
 
   deriv_node_temp_terms_t tef_terms;
   writeJsonModelLocalVariables(model_local_vars_output, tef_terms);

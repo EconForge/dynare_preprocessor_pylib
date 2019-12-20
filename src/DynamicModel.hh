@@ -288,10 +288,11 @@ private:
         X
         Y
    */
-  void parseIncludeExcludeEquations(const string &inc_exc_eq_tags, set<pair<string, string>> & eq_tag_set, bool exclude_eqs);
+  void parseIncludeExcludeEquations(const string &inc_exc_eq_tags, set<pair<string, string>> &eq_tag_set, bool exclude_eqs);
 
   // General function that removes leading/trailing whitespace from a string
-  inline void removeLeadingTrailingWhitespace(string & str)
+  inline void
+  removeLeadingTrailingWhitespace(string &str)
   {
     str.erase(0, str.find_first_not_of("\t\n\v\f\r "));
     str.erase(str.find_last_not_of("\t\n\v\f\r ") + 1);
@@ -306,8 +307,8 @@ public:
 
   DynamicModel(const DynamicModel &m);
   DynamicModel(DynamicModel &&) = delete;
-  DynamicModel & operator=(const DynamicModel &m);
-  DynamicModel & operator=(DynamicModel &&) = delete;
+  DynamicModel &operator=(const DynamicModel &m);
+  DynamicModel &operator=(DynamicModel &&) = delete;
 
   //! Compute cross references
   void computeXrefs();
@@ -358,13 +359,15 @@ public:
 
   //! Tells whether Hessian has been computed
   /*! This is needed to know whether no non-zero equation in Hessian means a
-      zero Hessian or Hessian not computed */
-  inline bool isHessianComputed() const
+    zero Hessian or Hessian not computed */
+  inline bool
+  isHessianComputed() const
   {
     return hessian_computed;
   }
   //! Returns equations that have non-zero second derivatives
-  inline set<int> getNonZeroHessianEquations() const
+  inline set<int>
+  getNonZeroHessianEquations() const
   {
     return nonzero_hessian_eqs;
   }
@@ -406,7 +409,7 @@ public:
                         expr_t growth);
 
   //! Substitutes pac_expectation operator with expectation based on auxiliary model
-  void substitutePacExpectation(const string & pac_model_name);
+  void substitutePacExpectation(const string &pac_model_name);
 
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File_Block(const string &basename,
@@ -439,7 +442,7 @@ public:
   void setLeadsLagsOrig();
 
   //! Removes equations from the model according to name tags
-  void includeExcludeEquations(const string & eqs, bool exclude_eqs);
+  void includeExcludeEquations(const string &eqs, bool exclude_eqs);
 
   //! Replaces model equations with derivatives of Lagrangian w.r.t. endogenous
   void computeRamseyPolicyFOCs(const StaticModel &static_model);
@@ -498,12 +501,14 @@ public:
   //! Transforms the model by removing trends specified by the user
   void detrendEquations();
 
-  inline const nonstationary_symbols_map_t & getNonstationarySymbolsMap() const
+  inline const nonstationary_symbols_map_t &
+  getNonstationarySymbolsMap() const
   {
     return nonstationary_symbols_map;
   }
 
-  inline const map<int, expr_t> & getTrendSymbolsMap() const
+  inline const map<int, expr_t> &
+  getTrendSymbolsMap() const
   {
     return trend_symbols_map;
   }
@@ -536,7 +541,7 @@ public:
   void declarePacModelConsistentExpectationEndogs(const string &name);
 
   //! Add model consistent expectation equation for pac model
-  void addPacModelConsistentExpectationEquation(const string & name, int discount,
+  void addPacModelConsistentExpectationEquation(const string &name, int discount,
                                                 const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
                                                 ExprNode::subst_table_t &diff_subst_table);
 
@@ -581,7 +586,11 @@ public:
   //! Fills eval context with values of model local variables and auxiliary variables
   void fillEvalContext(eval_context_t &eval_context) const;
 
-  auto getStaticOnlyEquationsInfo() const { return tuple(static_only_equations, static_only_equations_lineno, static_only_equations_equation_tags); };
+  auto
+  getStaticOnlyEquationsInfo() const
+  {
+    return tuple(static_only_equations, static_only_equations_lineno, static_only_equations_equation_tags);
+  };
 
   //! Return the number of blocks
   unsigned int

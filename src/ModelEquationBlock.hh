@@ -43,8 +43,8 @@ public:
 
   SteadyStateModel(const SteadyStateModel &m);
   SteadyStateModel(SteadyStateModel &&) = delete;
-  SteadyStateModel & operator=(const SteadyStateModel &m);
-  SteadyStateModel & operator=(SteadyStateModel &&) = delete;
+  SteadyStateModel &operator=(const SteadyStateModel &m);
+  SteadyStateModel &operator=(SteadyStateModel &&) = delete;
 
   //! Add an expression of the form "var = expr;"
   void addDefinition(int symb_id, expr_t expr);
@@ -80,8 +80,8 @@ public:
 
   Epilogue(const Epilogue &m);
   Epilogue(Epilogue &&) = delete;
-  Epilogue & operator=(const Epilogue &m);
-  Epilogue & operator=(Epilogue &&) = delete;
+  Epilogue &operator=(const Epilogue &m);
+  Epilogue &operator=(Epilogue &&) = delete;
 
   //! Add an expression of the form "var = expr;"
   void addDefinition(int symb_id, expr_t expr);
@@ -93,8 +93,8 @@ public:
   void toStatic();
 
   //! Deal with trend variables in the epilogue block
-  void detrend(const map<int, expr_t> & trend_symbols_map,
-               const nonstationary_symbols_map_t & nonstationary_symbols_map);
+  void detrend(const map<int, expr_t> &trend_symbols_map,
+               const nonstationary_symbols_map_t &nonstationary_symbols_map);
 
   //! Write the steady state file
   void writeEpilogueFile(const string &basename) const;
@@ -103,9 +103,8 @@ public:
   void writeOutput(ostream &output) const;
 private:
   //! Helper for public writeEpilogueFile
-  void writeStaticEpilogueFile(const string & basename) const;
-  void writeDynamicEpilogueFile(const string & basename) const;
+  void writeStaticEpilogueFile(const string &basename) const;
+  void writeDynamicEpilogueFile(const string &basename) const;
 };
-
 
 #endif

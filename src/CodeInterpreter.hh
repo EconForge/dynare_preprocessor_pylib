@@ -46,212 +46,212 @@ const double near_zero{1e-12};
  */
 enum Tags
   {
-    FLDZ,         //!< Stores zero in the stack - 0 (0)
-    FLDC,         //!< Stores a constant term in the stack - 1 (1)
+   FLDZ, //!< Stores zero in the stack - 0 (0)
+   FLDC, //!< Stores a constant term in the stack - 1 (1)
 
-    FDIMT,        //!< Defines the number of temporary terms - dynamic context (the period has to be indicated) - 2 (2)
-    FDIMST,       //!< Defines the number of temporary terms - static context (the period hasn't to be indicated) - 3  (3)
-    FLDT,         //!< Stores a temporary term in the stack - dynamic context (the period has to be indicated) - 4 (4)
-    FLDST,        //!< Stores a temporary term in the stack - static context (the period hasn't to be indicated) - 5 (5)
-    FSTPT,        //!< Loads a temporary term from the stack - dynamic context (the period has to be indicated) - 6 (6)
-    FSTPST,       //!< Loads a temporary term from the stack - static context (the period hasn't to be indicated) - 7 (7)
+   FDIMT, //!< Defines the number of temporary terms - dynamic context (the period has to be indicated) - 2 (2)
+   FDIMST, //!< Defines the number of temporary terms - static context (the period hasn't to be indicated) - 3  (3)
+   FLDT, //!< Stores a temporary term in the stack - dynamic context (the period has to be indicated) - 4 (4)
+   FLDST, //!< Stores a temporary term in the stack - static context (the period hasn't to be indicated) - 5 (5)
+   FSTPT, //!< Loads a temporary term from the stack - dynamic context (the period has to be indicated) - 6 (6)
+   FSTPST, //!< Loads a temporary term from the stack - static context (the period hasn't to be indicated) - 7 (7)
 
-    FLDU,         //!< Stores an element of the vector U in the stack - dynamic context (the period has to be indicated) - 8 (8)
-    FLDSU,        //!< Stores an element of the vector U in the stack - static context (the period hasn't to be indicated) - 9 (9)
-    FSTPU,        //!< Loads an element of the vector U from the stack - dynamic context (the period has to be indicated) - A (10)
-    FSTPSU,       //!< Loads an element of the vector U from the stack - static context (the period hasn't to be indicated) - B (11)
+   FLDU, //!< Stores an element of the vector U in the stack - dynamic context (the period has to be indicated) - 8 (8)
+   FLDSU, //!< Stores an element of the vector U in the stack - static context (the period hasn't to be indicated) - 9 (9)
+   FSTPU, //!< Loads an element of the vector U from the stack - dynamic context (the period has to be indicated) - A (10)
+   FSTPSU, //!< Loads an element of the vector U from the stack - static context (the period hasn't to be indicated) - B (11)
 
-    FLDV,         //!< Stores a variable (described in SymbolType) in the stack - dynamic context (the period has to be indicated) - C (12)
-    FLDSV,        //!< Stores a variable (described in SymbolType) in the stack - static context (the period hasn't to be indicated) - D (13)
-    FLDVS,        //!< Stores a variable (described in SymbolType) in the stack - dynamic context but inside the STEADYSTATE function (the period hasn't to be indicated) - E (14)
-    FSTPV,        //!< Loads a variable (described in SymbolType) from the stack - dynamic context (the period has to be indicated) - F (15)
-    FSTPSV,       //!< Loads a variable (described in SymbolType) from the stack - static context (the period hasn't to be indicated) - 10 (16)
+   FLDV, //!< Stores a variable (described in SymbolType) in the stack - dynamic context (the period has to be indicated) - C (12)
+   FLDSV, //!< Stores a variable (described in SymbolType) in the stack - static context (the period hasn't to be indicated) - D (13)
+   FLDVS, //!< Stores a variable (described in SymbolType) in the stack - dynamic context but inside the STEADYSTATE function (the period hasn't to be indicated) - E (14)
+   FSTPV, //!< Loads a variable (described in SymbolType) from the stack - dynamic context (the period has to be indicated) - F (15)
+   FSTPSV, //!< Loads a variable (described in SymbolType) from the stack - static context (the period hasn't to be indicated) - 10 (16)
 
-    FLDR,         //!< Stores a residual in the stack - 11 (17)
-    FSTPR,        //!< Loads a residual from the stack - 12 (18)
+   FLDR, //!< Stores a residual in the stack - 11 (17)
+   FSTPR, //!< Loads a residual from the stack - 12 (18)
 
-    FSTPG,        //!< Loads a derivative from the stack - 13 (19)
-    FSTPG2,       //!< Loads a derivative matrix for static model from the stack - 14 (20)
-    FSTPG3,       //!< Loads a derivative matrix for a dynamic model from the stack - 15 (21)
-    FSTPG4,       //!< Loads a second order derivative matrix for a dynamic model from the stack - 16 (22)
+   FSTPG, //!< Loads a derivative from the stack - 13 (19)
+   FSTPG2, //!< Loads a derivative matrix for static model from the stack - 14 (20)
+   FSTPG3, //!< Loads a derivative matrix for a dynamic model from the stack - 15 (21)
+   FSTPG4, //!< Loads a second order derivative matrix for a dynamic model from the stack - 16 (22)
 
-    FUNARY,       //!< A Unary operator - 17 (23)
-    FBINARY,      //!< A binary operator - 18 (24)
-    FTRINARY,     //!< A trinary operator - 19 (25)
+   FUNARY, //!< A Unary operator - 17 (23)
+   FBINARY, //!< A binary operator - 18 (24)
+   FTRINARY, //!< A trinary operator - 19 (25)
 
-    FCUML,        //!< Cumulates the result - 1A (26)
+   FCUML, //!< Cumulates the result - 1A (26)
 
-    FJMPIFEVAL,   //!< Jump if evaluate = true - 1B (27)
-    FJMP,         //!< Jump - 1C (28)
+   FJMPIFEVAL, //!< Jump if evaluate = true - 1B (27)
+   FJMP, //!< Jump - 1C (28)
 
-    FBEGINBLOCK,  //!< Defines the begining of a model block - 1D (29)
-    FENDBLOCK,    //!< Defines the end of a model block - 1E (30)
-    FENDEQU,      //!< Defines the last equation of the block. For block that has to be solved, the derivatives appear just after this flag - 1F (31)
-    FEND,         //!< Defines the end of the model code - 20 (32)
+   FBEGINBLOCK, //!< Defines the begining of a model block - 1D (29)
+   FENDBLOCK, //!< Defines the end of a model block - 1E (30)
+   FENDEQU, //!< Defines the last equation of the block. For block that has to be solved, the derivatives appear just after this flag - 1F (31)
+   FEND, //!< Defines the end of the model code - 20 (32)
 
-    FOK,          //!< Used for debugging purpose - 21 (33)
+   FOK, //!< Used for debugging purpose - 21 (33)
 
-    FNUMEXPR,     //!< Store the expression type and references - 22 (34)
+   FNUMEXPR, //!< Store the expression type and references - 22 (34)
 
-    FCALL,        //!< Call an external function - 23 (35)
-    FPUSH,        //!< Push a double in the stack - 24 (36)
-    FPOP,         //!< Pop a double from the stack - 25 (37)
-    FLDTEF,       //!< Stores the result of an external function in the stack - 26 (38)
-    FSTPTEF,      //!< Loads the result of an external function from the stack- 27 (39)
-    FLDTEFD,      //!< Stores the result of an external function in the stack - 28 (40)
-    FSTPTEFD,     //!< Loads the result of an external function from the stack- 29 (41)
-    FLDTEFDD,     //!< Stores the result of an external function in the stack - 28 (42)
-    FSTPTEFDD     //!< Loads the result of an external function from the stack- 29 (43)
+   FCALL, //!< Call an external function - 23 (35)
+   FPUSH, //!< Push a double in the stack - 24 (36)
+   FPOP, //!< Pop a double from the stack - 25 (37)
+   FLDTEF, //!< Stores the result of an external function in the stack - 26 (38)
+   FSTPTEF, //!< Loads the result of an external function from the stack- 27 (39)
+   FLDTEFD, //!< Stores the result of an external function in the stack - 28 (40)
+   FSTPTEFD, //!< Loads the result of an external function from the stack- 29 (41)
+   FLDTEFDD, //!< Stores the result of an external function in the stack - 28 (42)
+   FSTPTEFDD //!< Loads the result of an external function from the stack- 29 (43)
 
   };
 
 enum BlockType
   {
-    SIMULTANS,  //!< Simultaneous time separable block
-    PROLOGUE,   //!< Prologue block (one equation at the beginning, later merged)
-    EPILOGUE,   //!< Epilogue block (one equation at the beginning, later merged)
-    SIMULTAN    //!< Simultaneous time unseparable block
+   SIMULTANS, //!< Simultaneous time separable block
+   PROLOGUE, //!< Prologue block (one equation at the beginning, later merged)
+   EPILOGUE, //!< Epilogue block (one equation at the beginning, later merged)
+   SIMULTAN //!< Simultaneous time unseparable block
   };
 
 enum EquationType
   {
-    E_UNKNOWN,              //!< Unknown equation type
-    E_EVALUATE,             //!< Simple evaluation, normalized variable on left-hand side
-    E_EVALUATE_S,           //!< Simple evaluation, normalize using the first order derivative
-    E_SOLVE                 //!< No simple evaluation of the equation, it has to be solved
+   E_UNKNOWN, //!< Unknown equation type
+   E_EVALUATE, //!< Simple evaluation, normalized variable on left-hand side
+   E_EVALUATE_S, //!< Simple evaluation, normalize using the first order derivative
+   E_SOLVE //!< No simple evaluation of the equation, it has to be solved
   };
 
 enum BlockSimulationType
   {
-    UNKNOWN,                      //!< Unknown simulation type
-    EVALUATE_FORWARD,             //!< Simple evaluation, normalized variable on left-hand side, forward
-    EVALUATE_BACKWARD,            //!< Simple evaluation, normalized variable on left-hand side, backward
-    SOLVE_FORWARD_SIMPLE,         //!< Block of one equation, newton solver needed, forward
-    SOLVE_BACKWARD_SIMPLE,        //!< Block of one equation, newton solver needed, backward
-    SOLVE_TWO_BOUNDARIES_SIMPLE,  //!< Block of one equation, newton solver needed, forward & ackward
-    SOLVE_FORWARD_COMPLETE,       //!< Block of several equations, newton solver needed, forward
-    SOLVE_BACKWARD_COMPLETE,      //!< Block of several equations, newton solver needed, backward
-    SOLVE_TWO_BOUNDARIES_COMPLETE //!< Block of several equations, newton solver needed, forward and backwar
+   UNKNOWN, //!< Unknown simulation type
+   EVALUATE_FORWARD, //!< Simple evaluation, normalized variable on left-hand side, forward
+   EVALUATE_BACKWARD, //!< Simple evaluation, normalized variable on left-hand side, backward
+   SOLVE_FORWARD_SIMPLE, //!< Block of one equation, newton solver needed, forward
+   SOLVE_BACKWARD_SIMPLE, //!< Block of one equation, newton solver needed, backward
+   SOLVE_TWO_BOUNDARIES_SIMPLE, //!< Block of one equation, newton solver needed, forward & ackward
+   SOLVE_FORWARD_COMPLETE, //!< Block of several equations, newton solver needed, forward
+   SOLVE_BACKWARD_COMPLETE, //!< Block of several equations, newton solver needed, backward
+   SOLVE_TWO_BOUNDARIES_COMPLETE //!< Block of several equations, newton solver needed, forward and backwar
   };
 
 //! Enumeration of possible symbol types
 /*! Warning: do not to change existing values for 0 to 4: the values matter for homotopy_setup command */
 enum class SymbolType
   {
-    endogenous = 0,                 //!< Endogenous
-    exogenous = 1,                  //!< Exogenous
-    exogenousDet = 2,               //!< Exogenous deterministic
-    parameter = 4,                  //!< Parameter
-    modelLocalVariable = 10,        //!< Local variable whose scope is model (pound expression)
-    modFileLocalVariable = 11,      //!< Local variable whose scope is mod file (model excluded)
-    externalFunction = 12,          //!< External (user-defined) function
-    trend = 13,                     //!< Trend variable
-    statementDeclaredVariable = 14, //!< Local variable assigned within a Statement (see subsample statement for example)
-    logTrend = 15,                  //!< Log-trend variable
-    unusedEndogenous = 16,          //!< Type to mark unused endogenous variables when `nostrict` option is passed
-    endogenousVAR = 17,             //!< Variables declared in a var_model statement
-    epilogue = 18,                  //!< Variables created in epilogue block
-    excludedVariable = 19           //!< Type to use when an equation is excluded via include/exclude_eqs and the LHS variable is not used elsewhere in the model
+   endogenous = 0, //!< Endogenous
+   exogenous = 1, //!< Exogenous
+   exogenousDet = 2, //!< Exogenous deterministic
+   parameter = 4, //!< Parameter
+   modelLocalVariable = 10, //!< Local variable whose scope is model (pound expression)
+   modFileLocalVariable = 11, //!< Local variable whose scope is mod file (model excluded)
+   externalFunction = 12, //!< External (user-defined) function
+   trend = 13, //!< Trend variable
+   statementDeclaredVariable = 14, //!< Local variable assigned within a Statement (see subsample statement for example)
+   logTrend = 15, //!< Log-trend variable
+   unusedEndogenous = 16, //!< Type to mark unused endogenous variables when `nostrict` option is passed
+   endogenousVAR = 17, //!< Variables declared in a var_model statement
+   epilogue = 18, //!< Variables created in epilogue block
+   excludedVariable = 19 //!< Type to use when an equation is excluded via include/exclude_eqs and the LHS variable is not used elsewhere in the model
   };
 
 enum ExpressionType
   {
-    TemporaryTerm,
-    ModelEquation,
-    FirstEndoDerivative,
-    FirstOtherEndoDerivative,
-    FirstExoDerivative,
-    FirstExodetDerivative,
-    FirstParamDerivative,
-    SecondEndoDerivative,
-    SecondExoDerivative,
-    SecondExodetDerivative,
-    SecondParamDerivative,
-    ThirdEndoDerivative,
-    ThirdExoDerivative,
-    ThirdExodetDerivative,
-    ThirdParamDerivative
+   TemporaryTerm,
+   ModelEquation,
+   FirstEndoDerivative,
+   FirstOtherEndoDerivative,
+   FirstExoDerivative,
+   FirstExodetDerivative,
+   FirstParamDerivative,
+   SecondEndoDerivative,
+   SecondExoDerivative,
+   SecondExodetDerivative,
+   SecondParamDerivative,
+   ThirdEndoDerivative,
+   ThirdExoDerivative,
+   ThirdExodetDerivative,
+   ThirdParamDerivative
   };
 
 enum class UnaryOpcode
   {
-    uminus,
-    exp,
-    log,
-    log10,
-    cos,
-    sin,
-    tan,
-    acos,
-    asin,
-    atan,
-    cosh,
-    sinh,
-    tanh,
-    acosh,
-    asinh,
-    atanh,
-    sqrt,
-    cbrt,
-    abs,
-    sign,
-    steadyState,
-    steadyStateParamDeriv, // for the derivative of the STEADY_STATE operator w.r.t. to a parameter
-    steadyStateParam2ndDeriv, // for the 2nd derivative of the STEADY_STATE operator w.r.t. to a parameter
-    expectation,
-    erf,
-    diff,
-    adl
+   uminus,
+   exp,
+   log,
+   log10,
+   cos,
+   sin,
+   tan,
+   acos,
+   asin,
+   atan,
+   cosh,
+   sinh,
+   tanh,
+   acosh,
+   asinh,
+   atanh,
+   sqrt,
+   cbrt,
+   abs,
+   sign,
+   steadyState,
+   steadyStateParamDeriv, // for the derivative of the STEADY_STATE operator w.r.t. to a parameter
+   steadyStateParam2ndDeriv, // for the 2nd derivative of the STEADY_STATE operator w.r.t. to a parameter
+   expectation,
+   erf,
+   diff,
+   adl
   };
 
 enum class BinaryOpcode
   {
-    plus,
-    minus,
-    times,
-    divide,
-    power,
-    powerDeriv, // for the derivative of the power function (see trac ticket #78)
-    equal,
-    max,
-    min,
-    less,
-    greater,
-    lessEqual,
-    greaterEqual,
-    equalEqual,
-    different
+   plus,
+   minus,
+   times,
+   divide,
+   power,
+   powerDeriv, // for the derivative of the power function (see trac ticket #78)
+   equal,
+   max,
+   min,
+   less,
+   greater,
+   lessEqual,
+   greaterEqual,
+   equalEqual,
+   different
   };
 
 enum class TrinaryOpcode
   {
-    normcdf,
-    normpdf
+   normcdf,
+   normpdf
   };
 
 enum class ExternalFunctionType
   {
-    withoutDerivative,
-    withFirstDerivative,
-    withFirstAndSecondDerivative,
-    numericalFirstDerivative,
-    firstDerivative,
-    numericalSecondDerivative,
-    secondDerivative
+   withoutDerivative,
+   withFirstDerivative,
+   withFirstAndSecondDerivative,
+   numericalFirstDerivative,
+   firstDerivative,
+   numericalSecondDerivative,
+   secondDerivative
   };
 
 enum class PriorDistributions
   {
-    noShape = 0,
-    beta = 1,
-    gamma = 2,
-    normal = 3,
-    invGamma = 4,
-    invGamma1 = 4,
-    uniform = 5,
-    invGamma2 = 6,
-    dirichlet = 7,
-    weibull = 8
+   noShape = 0,
+   beta = 1,
+   gamma = 2,
+   normal = 3,
+   invGamma = 4,
+   invGamma1 = 4,
+   uniform = 5,
+   invGamma2 = 6,
+   dirichlet = 7,
+   weibull = 8
   };
 
 struct Block_contain_type
@@ -1429,7 +1429,7 @@ private:
 public:
   inline
   FBEGINBLOCK_() : size{0}, type{UNKNOWN},
-    is_linear{false}, endo_nbr{0}, Max_Lag{0}, Max_Lead{0}, u_count_int{0}, nb_col_jacob{0}
+                   is_linear{false}, endo_nbr{0}, Max_Lag{0}, Max_Lead{0}, u_count_int{0}, nb_col_jacob{0}
   {
   }
   inline

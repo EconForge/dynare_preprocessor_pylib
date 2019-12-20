@@ -33,7 +33,7 @@ ExternalFunctionsTable::addExternalFunction(int symb_id, const external_function
 
   // Change options to be saved so the table is consistent
   external_function_options external_function_options_chng = external_function_options_arg;
-  if (external_function_options_arg.firstDerivSymbID  == IDSetButNoNameProvided)
+  if (external_function_options_arg.firstDerivSymbID == IDSetButNoNameProvided)
     external_function_options_chng.firstDerivSymbID = symb_id;
 
   if (external_function_options_arg.secondDerivSymbID == IDSetButNoNameProvided)
@@ -44,7 +44,7 @@ ExternalFunctionsTable::addExternalFunction(int symb_id, const external_function
 
   // Ensure 1st & 2nd deriv option consistency
   if (external_function_options_chng.secondDerivSymbID == symb_id
-      && external_function_options_chng.firstDerivSymbID  != symb_id)
+      && external_function_options_chng.firstDerivSymbID != symb_id)
     {
       cerr << "ERROR: If the second derivative is provided by the top-level function "
            << "the first derivative must also be provided by the same function." << endl;
@@ -52,7 +52,7 @@ ExternalFunctionsTable::addExternalFunction(int symb_id, const external_function
     }
 
   if ((external_function_options_chng.secondDerivSymbID != symb_id
-       && external_function_options_chng.firstDerivSymbID  == symb_id)
+       && external_function_options_chng.firstDerivSymbID == symb_id)
       && external_function_options_chng.secondDerivSymbID != IDNotSet)
     {
       cerr << "ERROR: If the first derivative is provided by the top-level function, the "
@@ -84,7 +84,7 @@ ExternalFunctionsTable::addExternalFunction(int symb_id, const external_function
         ok_to_overwrite = true;
 
       if (!ok_to_overwrite) // prevents multiple non-compatible calls to external_function(name=funcname)
-        {                   // e.g. e_f(name=a,nargs=1,fd,sd) and e_f(name=a,nargs=2,fd=b,sd=c) should cause an error
+        { // e.g. e_f(name=a,nargs=1,fd,sd) and e_f(name=a,nargs=2,fd=b,sd=c) should cause an error
           if (external_function_options_chng.nargs != getNargs(symb_id))
             {
               cerr << "ERROR: The number of arguments passed to the external_function() statement do not "

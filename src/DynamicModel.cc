@@ -36,17 +36,17 @@ DynamicModel::copyHelper(const DynamicModel &m)
     static_only_equations.push_back(dynamic_cast<BinaryOpNode *>(f(it)));
 
   auto convert_vector_tt = [f](vector<temporary_terms_t> vtt)
-    {
-      vector<temporary_terms_t> vtt2;
-      for (const auto &tt : vtt)
-        {
-          temporary_terms_t tt2;
-          for (const auto &it : tt)
-            tt2.insert(f(it));
-          vtt2.push_back(tt2);
-        }
-      return vtt2;
-    };
+                           {
+                             vector<temporary_terms_t> vtt2;
+                             for (const auto &tt : vtt)
+                               {
+                                 temporary_terms_t tt2;
+                                 for (const auto &it : tt)
+                                   tt2.insert(f(it));
+                                 vtt2.push_back(tt2);
+                               }
+                             return vtt2;
+                           };
 
   for (const auto &it : m.v_temporary_terms)
     v_temporary_terms.push_back(convert_vector_tt(it));
@@ -69,12 +69,12 @@ DynamicModel::copyHelper(const DynamicModel &m)
     dynamic_jacobian[it.first] = f(it.second);
 
   auto convert_derivative_t = [f](derivative_t dt)
-    {
-      derivative_t dt2;
-      for (const auto &it : dt)
-        dt2[it.first] = f(it.second);
-      return dt2;
-    };
+                              {
+                                derivative_t dt2;
+                                for (const auto &it : dt)
+                                  dt2[it.first] = f(it.second);
+                                return dt2;
+                              };
   for (const auto &it : m.derivative_endo)
     derivative_endo.push_back(convert_derivative_t(it));
   for (const auto &it : m.derivative_other_endo)
@@ -85,73 +85,72 @@ DynamicModel::copyHelper(const DynamicModel &m)
     derivative_exo_det.push_back(convert_derivative_t(it));
 }
 
-
 DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
                            NumericalConstants &num_constants_arg,
                            ExternalFunctionsTable &external_functions_table_arg,
                            TrendComponentModelTable &trend_component_model_table_arg,
                            VarModelTable &var_model_table_arg) :
-  ModelTree {symbol_table_arg, num_constants_arg, external_functions_table_arg, true},
+  ModelTree{symbol_table_arg, num_constants_arg, external_functions_table_arg, true},
   trend_component_model_table{trend_component_model_table_arg},
   var_model_table{var_model_table_arg}
 {
 }
 
 DynamicModel::DynamicModel(const DynamicModel &m) :
-  ModelTree {m},
-  trend_component_model_table {m.trend_component_model_table},
-  var_model_table {m.var_model_table},
-  balanced_growth_test_tol {m.balanced_growth_test_tol},
-  static_only_equations_lineno {m.static_only_equations_lineno},
-  static_only_equations_equation_tags {m.static_only_equations_equation_tags},
-  static_only_equation_tags_xref {m.static_only_equation_tags_xref},
-  deriv_id_table {m.deriv_id_table},
-  inv_deriv_id_table {m.inv_deriv_id_table},
-  dyn_jacobian_cols_table {m.dyn_jacobian_cols_table},
-  max_lag {m.max_lag},
-  max_lead {m.max_lead},
-  max_endo_lag {m.max_endo_lag},
-  max_endo_lead {m.max_endo_lead},
-  max_exo_lag {m.max_exo_lag},
-  max_exo_lead {m.max_exo_lead},
-  max_exo_det_lag {m.max_exo_det_lag},
-  max_exo_det_lead {m.max_exo_det_lead},
-  max_lag_orig {m.max_lag_orig},
-  max_lead_orig {m.max_lead_orig},
-  max_lag_with_diffs_expanded_orig {m.max_lag_with_diffs_expanded_orig},
-  max_endo_lag_orig {m.max_endo_lag_orig},
-  max_endo_lead_orig {m.max_endo_lead_orig},
-  max_exo_lag_orig {m.max_exo_lag_orig},
-  max_exo_lead_orig {m.max_exo_lead_orig},
-  max_exo_det_lag_orig {m.max_exo_det_lag_orig},
-  max_exo_det_lead_orig {m.max_exo_det_lead_orig},
-  xrefs {m.xrefs},
-  xref_param  {m.xref_param},
-  xref_endo {m.xref_endo},
-  xref_exo {m.xref_exo},
-  xref_exo_det {m.xref_exo_det},
-  nonzero_hessian_eqs {m.nonzero_hessian_eqs},
-  v_temporary_terms_inuse {m.v_temporary_terms_inuse},
-  map_idx {m.map_idx},
-  global_temporary_terms {m.global_temporary_terms},
-  block_type_firstequation_size_mfs {m.block_type_firstequation_size_mfs},
-  blocks_linear {m.blocks_linear},
-  other_endo_block {m.other_endo_block},
-  exo_block {m.exo_block},
-  exo_det_block {m.exo_det_block},
-  block_var_exo {m.block_var_exo},
-  block_exo_index {m.block_exo_index},
-  block_det_exo_index {m.block_det_exo_index},
-  block_other_endo_index {m.block_other_endo_index},
-  block_col_type {m.block_col_type},
-  variable_block_lead_lag {m.variable_block_lead_lag},
-  equation_block {m.equation_block},
-  var_expectation_functions_to_write {m.var_expectation_functions_to_write},
-  endo_max_leadlag_block {m.endo_max_leadlag_block},
-  other_endo_max_leadlag_block {m.other_endo_max_leadlag_block},
-  exo_max_leadlag_block {m.exo_max_leadlag_block},
-  exo_det_max_leadlag_block {m.exo_det_max_leadlag_block},
-  max_leadlag_block {m.max_leadlag_block}
+  ModelTree{m},
+  trend_component_model_table{m.trend_component_model_table},
+  var_model_table{m.var_model_table},
+  balanced_growth_test_tol{m.balanced_growth_test_tol},
+  static_only_equations_lineno{m.static_only_equations_lineno},
+  static_only_equations_equation_tags{m.static_only_equations_equation_tags},
+  static_only_equation_tags_xref{m.static_only_equation_tags_xref},
+  deriv_id_table{m.deriv_id_table},
+  inv_deriv_id_table{m.inv_deriv_id_table},
+  dyn_jacobian_cols_table{m.dyn_jacobian_cols_table},
+  max_lag{m.max_lag},
+  max_lead{m.max_lead},
+  max_endo_lag{m.max_endo_lag},
+  max_endo_lead{m.max_endo_lead},
+  max_exo_lag{m.max_exo_lag},
+  max_exo_lead{m.max_exo_lead},
+  max_exo_det_lag{m.max_exo_det_lag},
+  max_exo_det_lead{m.max_exo_det_lead},
+  max_lag_orig{m.max_lag_orig},
+  max_lead_orig{m.max_lead_orig},
+  max_lag_with_diffs_expanded_orig{m.max_lag_with_diffs_expanded_orig},
+  max_endo_lag_orig{m.max_endo_lag_orig},
+  max_endo_lead_orig{m.max_endo_lead_orig},
+  max_exo_lag_orig{m.max_exo_lag_orig},
+  max_exo_lead_orig{m.max_exo_lead_orig},
+  max_exo_det_lag_orig{m.max_exo_det_lag_orig},
+  max_exo_det_lead_orig{m.max_exo_det_lead_orig},
+  xrefs{m.xrefs},
+  xref_param{m.xref_param},
+  xref_endo{m.xref_endo},
+  xref_exo{m.xref_exo},
+  xref_exo_det{m.xref_exo_det},
+  nonzero_hessian_eqs{m.nonzero_hessian_eqs},
+  v_temporary_terms_inuse{m.v_temporary_terms_inuse},
+  map_idx{m.map_idx},
+  global_temporary_terms{m.global_temporary_terms},
+  block_type_firstequation_size_mfs{m.block_type_firstequation_size_mfs},
+  blocks_linear{m.blocks_linear},
+  other_endo_block{m.other_endo_block},
+  exo_block{m.exo_block},
+  exo_det_block{m.exo_det_block},
+  block_var_exo{m.block_var_exo},
+  block_exo_index{m.block_exo_index},
+  block_det_exo_index{m.block_det_exo_index},
+  block_other_endo_index{m.block_other_endo_index},
+  block_col_type{m.block_col_type},
+  variable_block_lead_lag{m.variable_block_lead_lag},
+  equation_block{m.equation_block},
+  var_expectation_functions_to_write{m.var_expectation_functions_to_write},
+  endo_max_leadlag_block{m.endo_max_leadlag_block},
+  other_endo_max_leadlag_block{m.other_endo_max_leadlag_block},
+  exo_max_leadlag_block{m.exo_max_leadlag_block},
+  exo_det_max_leadlag_block{m.exo_det_max_leadlag_block},
+  max_leadlag_block{m.max_leadlag_block}
 {
   copyHelper(m);
 }
@@ -189,7 +188,7 @@ DynamicModel::operator=(const DynamicModel &m)
   max_exo_det_lag_orig = m.max_exo_det_lag_orig;
   max_exo_det_lead_orig = m.max_exo_det_lead_orig;
   xrefs = m.xrefs;
-  xref_param  = m.xref_param;
+  xref_param = m.xref_param;
   xref_endo = m.xref_endo;
   xref_exo = m.xref_exo;
   xref_exo_det = m.xref_exo_det;
@@ -295,22 +294,22 @@ DynamicModel::computeTemporaryTermsOrdered()
           for (unsigned int i = 0; i < block_size; i++)
             {
               if (i < block_nb_recursives && isBlockEquationRenormalized(block, i))
-                getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms,  i);
+                getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, i);
               else
                 {
                   eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
-                  eq_node->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms,  i);
+                  eq_node->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, i);
                 }
             }
           for (const auto &it : blocks_derivatives[block])
             {
               expr_t id = get<3>(it);
-              id->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms,  block_size-1);
+              id->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
             }
           for (const auto &it : derivative_endo[block])
-            it.second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms,  block_size-1);
+            it.second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
           for (const auto &it : derivative_other_endo[block])
-            it.second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms,  block_size-1);
+            it.second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
           v_temporary_terms_inuse[block] = {};
         }
     }
@@ -326,7 +325,7 @@ DynamicModel::computeTemporaryTermsOrdered()
           for (unsigned int i = 0; i < block_size; i++)
             {
               if (i < block_nb_recursives && isBlockEquationRenormalized(block, i))
-                getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms,  i);
+                getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, i);
               else
                 {
                   eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
@@ -399,7 +398,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
   vector<string> Uf(symbol_table.endo_nbr(), "");
   map<expr_t, int> reference_count;
   temporary_terms_t local_temporary_terms;
-  ofstream  output;
+  ofstream output;
   int nze, nze_exo, nze_exo_det, nze_other_endo;
   vector<int> feedback_variables;
   ExprNodeOutputType local_output_type;
@@ -525,11 +524,11 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       else if (simulation_type == SOLVE_FORWARD_COMPLETE || simulation_type == SOLVE_BACKWARD_COMPLETE)
         block_type = SIMULTANS;
       else if ((simulation_type == SOLVE_FORWARD_SIMPLE || simulation_type == SOLVE_BACKWARD_SIMPLE
-                || simulation_type == EVALUATE_BACKWARD    || simulation_type == EVALUATE_FORWARD)
+                || simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
                && getBlockFirstEquation(block) < prologue)
         block_type = PROLOGUE;
       else if ((simulation_type == SOLVE_FORWARD_SIMPLE || simulation_type == SOLVE_BACKWARD_SIMPLE
-                || simulation_type == EVALUATE_BACKWARD    || simulation_type == EVALUATE_FORWARD)
+                || simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
                && getBlockFirstEquation(block) >= equations.size() - epilogue)
         block_type = EPILOGUE;
       else
@@ -727,7 +726,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       if (simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE || simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE)
         output << "  " << sps << "% Jacobian  " << endl << "    if jacobian_eval" << endl;
       else
-        if (simulation_type == SOLVE_BACKWARD_SIMPLE   || simulation_type == SOLVE_FORWARD_SIMPLE
+        if (simulation_type == SOLVE_BACKWARD_SIMPLE || simulation_type == SOLVE_FORWARD_SIMPLE
             || simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
           output << "  % Jacobian  " << endl << "  if jacobian_eval" << endl;
         else
@@ -1036,7 +1035,7 @@ DynamicModel::writeModelEquationsCode(const string &basename, const map_idx_t &m
   int count_col_exo = 0;
   int count_col_det_exo = 0;
 
-  for (const auto & it : first_derivatives_reordered_exo)
+  for (const auto &it : first_derivatives_reordered_exo)
     {
       int var, lag;
       SymbolType type;
@@ -1177,7 +1176,7 @@ DynamicModel::writeModelEquationsCode(const string &basename, const map_idx_t &m
   prev_var = -1;
   prev_lag = -999999999;
   count_col_exo = 0;
-  for (const auto & it : first_derivatives_reordered_exo)
+  for (const auto &it : first_derivatives_reordered_exo)
     {
       int lag, var, eq;
       tie(lag, ignore, var, eq) = it.first;
@@ -1303,7 +1302,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
         }
       unsigned int count_col_det_exo = 0;
       vector<unsigned int> exo_det;
-      for (const auto & it : exo_det_block[block])
+      for (const auto &it : exo_det_block[block])
         for (const auto &it1 : it.second)
           {
             count_col_det_exo++;
@@ -1313,7 +1312,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
 
       unsigned int count_col_exo = 0;
       vector<unsigned int> exo;
-      for (const auto & it : exo_block[block])
+      for (const auto &it : exo_block[block])
         for (const auto &it1 : it.second)
           {
             count_col_exo++;
@@ -1323,7 +1322,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
 
       vector<unsigned int> other_endo;
       unsigned int count_col_other_endo = 0;
-      for (const auto & it : other_endo_block[block])
+      for (const auto &it : other_endo_block[block])
         for (const auto &it1 : it.second)
           {
             count_col_other_endo++;
@@ -2272,7 +2271,7 @@ DynamicModel::writeWrapperFunctions(const string &basename, const string &ending
   if (ending == "g1")
     name = "dynamic_resid_g1";
   else if (ending == "g2")
-    name= "dynamic_resid_g1_g2";
+    name = "dynamic_resid_g1_g2";
   else if (ending == "g3")
     name = "dynamic_resid_g1_g2_g3";
 
@@ -2450,7 +2449,7 @@ DynamicModel::writeDynamicModel(const string &basename, bool use_dll, bool julia
 void
 DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, bool use_dll, bool julia) const
 {
-  vector<ostringstream> d_output(derivatives.size());  // Derivatives output (at all orders, including 0=residual)
+  vector<ostringstream> d_output(derivatives.size()); // Derivatives output (at all orders, including 0=residual)
   vector<ostringstream> tt_output(derivatives.size()); // Temp terms output (at all orders)
 
   ExprNodeOutputType output_type = (use_dll ? ExprNodeOutputType::CDynamicModel :
@@ -2480,7 +2479,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
                           temporary_terms_idxs,
                           tt_output[1], output_type, tef_terms);
 
-      for (const auto & first_derivative : derivatives[1])
+      for (const auto &first_derivative : derivatives[1])
         {
           auto [eq, var] = vectorToTuple<2>(first_derivative.first);
           expr_t d1 = first_derivative.second;
@@ -2712,7 +2711,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
              << "                 stored in model_.lead_lag_incidence" << endl << endl
              << "## Remarks ##" << endl
              << "  [1] `num_dynamic_vars` is the number of non zero entries in the lead lag incidence matrix, `model_.lead_lag_incidence.`" << endl
-             << "  [2] The size of `T`, ie the value of `num_temp_terms`, depends on the version of the dynamic model called. The number of temporary variables" << endl    
+             << "  [2] The size of `T`, ie the value of `num_temp_terms`, depends on the version of the dynamic model called. The number of temporary variables" << endl
              << "      used for the different returned objects (residuals, jacobian, hessian or third order derivatives) is given by the elements in `tmp_nbr`" << endl
              << "      exported vector. The first element is the number of temporaries used for the computation of the residuals, the second element is the" << endl
              << "      number of temporaries used for the evaluation of the jacobian matrix, etc. If one calls the version of the dynamic model computing the" << endl
@@ -2890,16 +2889,16 @@ DynamicModel::writeDynamicJacobianNonZeroElts(const string &basename) const
   ofstream output{"+" + basename + "/dynamic_g1_nz.m", ios::out | ios::binary};
   output << "function [nzij_pred, nzij_current, nzij_fwrd] = dynamic_g1_nz()" << endl
          << "% Returns the coordinates of non-zero elements in the Jacobian, in column-major order, for each lead/lag (only for endogenous)" << endl;
-  auto print_nzij = [&output](const vector<pair<int, int>> &nzij, const string &name)    {
-      output << "  " << name << " = zeros(" << nzij.size() << ", 2, 'int32');" << endl;
-      int idx = 1;
-      for (const auto &it : nzij)
-        {
-          output << "  " << name << "(" << idx << ",1)=" << it.second+1 << ';'
-                 << " " << name << "(" << idx << ",2)=" << it.first+1 << ';' << endl;
-          idx++;
-        }
-    };
+  auto print_nzij = [&output](const vector<pair<int, int>> &nzij, const string &name) {
+                      output << "  " << name << " = zeros(" << nzij.size() << ", 2, 'int32');" << endl;
+                      int idx = 1;
+                      for (const auto &it : nzij)
+                        {
+                          output << "  " << name << "(" << idx << ",1)=" << it.second+1 << ';'
+                                 << " " << name << "(" << idx << ",2)=" << it.first+1 << ';' << endl;
+                          idx++;
+                        }
+                    };
   print_nzij(nzij_pred, "nzij_pred");
   print_nzij(nzij_current, "nzij_current");
   print_nzij(nzij_fwrd, "nzij_fwrd");
@@ -2908,7 +2907,7 @@ DynamicModel::writeDynamicJacobianNonZeroElts(const string &basename) const
 }
 
 void
-DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_eq_tags, set<pair<string, string>> & eq_tag_set, bool exclude_eqs)
+DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_eq_tags, set<pair<string, string>> &eq_tag_set, bool exclude_eqs)
 {
   string tags;
   if (filesystem::exists(inc_exc_eq_tags))
@@ -2961,7 +2960,7 @@ DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_eq_tags, set<pa
     tags = tags.substr(1, tags.length() - 2);
   removeLeadingTrailingWhitespace(tags);
 
-  regex q (R"(^\w+\s*=)");
+  regex q(R"(^\w+\s*=)");
   smatch matches;
   string tagname = "name";
   if (regex_search(tags, matches, q))
@@ -2980,17 +2979,17 @@ DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_eq_tags, set<pa
 
   string quote_regex = "'[^']+'";
   string non_quote_regex = R"([^,\s]+)";
-  regex r (R"((\s*)" + quote_regex + "|" + non_quote_regex + R"(\s*)(,\s*()" + quote_regex + "|" + non_quote_regex + R"()\s*)*)");
-  if (!regex_match (tags, r))
+  regex r(R"((\s*)" + quote_regex + "|" + non_quote_regex + R"(\s*)(,\s*()" + quote_regex + "|" + non_quote_regex + R"()\s*)*)");
+  if (!regex_match(tags, r))
     {
       cerr << "Error: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
            << ": argument is of incorrect format." << endl;
       exit(EXIT_FAILURE);
     }
 
-  regex s (quote_regex + "|" + non_quote_regex);
+  regex s(quote_regex + "|" + non_quote_regex);
   for (auto it = sregex_iterator(tags.begin(), tags.end(), s);
-      it != sregex_iterator(); ++it)
+       it != sregex_iterator(); ++it)
     {
       auto str = it->str();
       if (str[0] == '\'' && str[str.size()-1] == '\'')
@@ -3000,7 +2999,7 @@ DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_eq_tags, set<pa
 }
 
 void
-DynamicModel::includeExcludeEquations(const string & eqs, bool exclude_eqs)
+DynamicModel::includeExcludeEquations(const string &eqs, bool exclude_eqs)
 {
   if (eqs.empty())
     return;
@@ -3008,19 +3007,19 @@ DynamicModel::includeExcludeEquations(const string & eqs, bool exclude_eqs)
   set<pair<string, string>> eq_tag_set;
   parseIncludeExcludeEquations(eqs, eq_tag_set, exclude_eqs);
 
-  vector<int> excluded_vars =
-    ModelTree::includeExcludeEquations(eq_tag_set, exclude_eqs,
-                                       equations, equations_lineno,
-                                       equation_tags, equation_tags_xref, false);
+  vector<int> excluded_vars
+    = ModelTree::includeExcludeEquations(eq_tag_set, exclude_eqs,
+                                         equations, equations_lineno,
+                                         equation_tags, equation_tags_xref, false);
 
   // `static_only_equation_tags` is `vector<vector<pair<string, string>>>`
   // while `equation_tags` is `vector<pair<int, pair<string, string>>>`
   // so convert former structure to latter to conform with function call
   int n = 0;
   vector<pair<int, pair<string, string>>> tmp_static_only_equation_tags;
-  for (auto & eqn_tags : static_only_equations_equation_tags)
+  for (auto &eqn_tags : static_only_equations_equation_tags)
     {
-      for (auto & eqn_tag : eqn_tags)
+      for (auto &eqn_tag : eqn_tags)
         tmp_static_only_equation_tags.emplace_back(make_pair(n, eqn_tag));
       n++;
     }
@@ -3033,7 +3032,7 @@ DynamicModel::includeExcludeEquations(const string & eqs, bool exclude_eqs)
     {
       cerr << "ERROR: " << (exclude_eqs ? "exclude_eqs" : "include_eqs") << ": The equations specified by `";
       cerr << eq_tag_set.begin()->first << "= ";
-      for (auto & it : eq_tag_set)
+      for (auto &it : eq_tag_set)
         cerr << it.second << ", ";
       cerr << "` were not found." << endl;
       exit(EXIT_FAILURE);
@@ -3053,22 +3052,22 @@ DynamicModel::includeExcludeEquations(const string & eqs, bool exclude_eqs)
     {
       static_only_equations_equation_tags.resize(static_only_equations.size());
       fill(static_only_equations_equation_tags.begin(), static_only_equations_equation_tags.end(), vector<pair<string, string>>());
-      for (auto & it : tmp_static_only_equation_tags)
+      for (auto &it : tmp_static_only_equation_tags)
         static_only_equations_equation_tags.at(it.first).emplace_back(it.second);
     }
 
   // Collect list of used variables in updated list of equations
   set<pair<int, int>> eqn_vars;
-  for (const auto & eqn : equations)
+  for (const auto &eqn : equations)
     eqn->collectDynamicVariables(SymbolType::endogenous, eqn_vars);
-  for (const auto & eqn : static_only_equations)
+  for (const auto &eqn : static_only_equations)
     eqn->collectDynamicVariables(SymbolType::endogenous, eqn_vars);
 
   // Change LHS variable type of excluded equation if it is used in an eqution that has been kept
   for (auto ev : excluded_vars)
     {
       bool found = false;
-      for (const auto & it : eqn_vars)
+      for (const auto &it : eqn_vars)
         if (it.first == ev)
           {
             symbol_table.changeType(ev, SymbolType::exogenous);
@@ -3159,9 +3158,9 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
             }
         }
       nstatic += sstatic;
-      nfwrd   += sfwrd;
-      npred   += spred;
-      nboth   += sboth;
+      nfwrd += sfwrd;
+      npred += spred;
+      nboth += sboth;
       output << ";";
     }
   output << "]';" << endl;
@@ -3184,7 +3183,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   if (julia)
     {
       output << modstruct << "equation_tags = [" << endl;
-      for (const auto & equation_tag : equation_tags)
+      for (const auto &equation_tag : equation_tags)
         output << "                       EquationTag("
                << equation_tag.first + 1 << R"( , ")"
                << equation_tag.second.first << R"(" , ")"
@@ -3194,7 +3193,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   else
     {
       output << modstruct << "equations_tags = {" << endl;
-      for (const auto & equation_tag : equation_tags)
+      for (const auto &equation_tag : equation_tags)
         output << "  " << equation_tag.first + 1 << " , '"
                << equation_tag.second.first << "' , '"
                << equation_tag.second.second << "' ;" << endl;
@@ -3202,7 +3201,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
     }
 
   // Write mapping for variables and equations they are present in
-  for (const auto & variable : variableMapping)
+  for (const auto &variable : variableMapping)
     {
       output << modstruct << "mapping." << symbol_table.getName(variable.first) << ".eqidx = [";
       for (auto equation : variable.second)
@@ -3213,7 +3212,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   /* Say if static and dynamic models differ (because of [static] and [dynamic]
      equation tags) */
   output << modstruct << "static_and_dynamic_models_differ = "
-         << (static_only_equations.size() > 0 ? "true" :"false")
+         << (static_only_equations.size() > 0 ? "true" : "false")
          << ";" << endl;
 
   // Say if model contains an external function call
@@ -3255,7 +3254,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           count_lead_lag_incidence = 0;
           BlockSimulationType simulation_type = getBlockSimulationType(block);
           int block_size = getBlockSize(block);
-          max_lag  = max_leadlag_block[block].first;
+          max_lag = max_leadlag_block[block].first;
           max_lead = max_leadlag_block[block].second;
           max_lag_endo = endo_max_leadlag_block[block].first;
           max_lead_endo = endo_max_leadlag_block[block].second;
@@ -3272,15 +3271,15 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               tmp_s_eq << " " << getBlockEquationID(block, i)+1;
             }
           set<int> exogenous;
-          for (const auto & it : exo_block[block])
+          for (const auto &it : exo_block[block])
             for (int it1 : it.second)
               exogenous.insert(it1);
           set<int> exogenous_det;
-          for (const auto & it : exo_det_block[block])
+          for (const auto &it : exo_det_block[block])
             for (int it1 : it.second)
               exogenous_det.insert(it1);
           set<int> other_endogenous;
-          for (const auto & it : other_endo_block[block])
+          for (const auto &it : other_endo_block[block])
             for (int it1 : it.second)
               other_endogenous.insert(it1);
           output << "block_structure.block(" << block+1 << ").Simulation_Type = " << simulation_type << ";" << endl
@@ -3358,7 +3357,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           tmp_s.str("");
           count_lead_lag_incidence = 0;
           dynamic_jacob_map_t reordered_dynamic_jacobian;
-          for (const auto & it : blocks_derivatives[block])
+          for (const auto &it : blocks_derivatives[block])
             reordered_dynamic_jacobian[{ get<2>(it), get<1>(it), get<0>(it) }] = get<3>(it);
           output << "block_structure.block(" << block+1 << ").lead_lag_incidence = [];" << endl;
           int last_var = -1;
@@ -3414,7 +3413,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               tmp_s.str("");
             }
           vector<int> inter_state_var;
-          for (int & it_l : local_state_var)
+          for (int &it_l : local_state_var)
             for (auto it = state_var.begin(); it != state_var.end(); ++it)
               if (*it == it_l)
                 inter_state_var.push_back(it - state_var.begin()+1);
@@ -3471,7 +3470,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       for (int it : state_var)
         state_equ.push_back(equation_reordered[variable_inv_reordered[it - 1]]+1);
 
-      map<tuple<int, int, int>,  int> lag_row_incidence;
+      map<tuple<int, int, int>, int> lag_row_incidence;
       for (const auto & [indices, d1] : derivatives[1])
         {
           int deriv_id = indices[1];
@@ -3555,7 +3554,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
 
                     }
                   set<pair<int, int>> col_state_var_incidence;
-                  for (const auto & it : row_state_var_incidence)
+                  for (const auto &it : row_state_var_incidence)
                     col_state_var_incidence.emplace(it.second, it.first);
                   auto col_state_var_incidence_it = col_state_var_incidence.begin();
                   diag = true;
@@ -3600,7 +3599,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           int size_v_index_KF = v_index_KF.size();
 
           KF_index_file.write(reinterpret_cast<char *>(&size_v_index_KF), sizeof(size_v_index_KF));
-          for (auto & it : v_index_KF)
+          for (auto &it : v_index_KF)
             KF_index_file.write(reinterpret_cast<char *>(&it), sizeof(index_KF));
 
           vector<index_KF> v_index_KF_2;
@@ -3618,7 +3617,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           int size_v_index_KF_2 = v_index_KF_2.size();
 
           KF_index_file.write(reinterpret_cast<char *>(&size_v_index_KF_2), sizeof(size_v_index_KF_2));
-          for (auto & it : v_index_KF_2)
+          for (auto &it : v_index_KF_2)
             KF_index_file.write(reinterpret_cast<char *>(&it), sizeof(index_KF));
           KF_index_file.close();
         }
@@ -3694,7 +3693,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   output << "];" << endl;
 
   // Write Pac Model Consistent Expectation parameter info
-  for (auto & it : pac_mce_alpha_symb_ids)
+  for (auto &it : pac_mce_alpha_symb_ids)
     {
       output << modstruct << "pac." << it.first.first << ".equations." << it.first.second << ".mce.alpha = [";
       for (auto it : it.second)
@@ -3703,28 +3702,28 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
     }
 
   // Write Pac Model Consistent Expectation Z1 info
-  for (auto & it : pac_mce_z1_symb_ids)
+  for (auto &it : pac_mce_z1_symb_ids)
     output << modstruct << "pac." << it.first.first << ".equations." << it.first.second << ".mce.z1 = "
            << symbol_table.getTypeSpecificID(it.second) + 1 << ";" << endl;
 
   // Write Pac lag info
-  for (auto & it : pac_eqtag_and_lag)
+  for (auto &it : pac_eqtag_and_lag)
     output << modstruct << "pac." << it.first.first << ".equations." << it.second.first << ".max_lag = " << it.second.second << ";" << endl;
 
   // Write Pac equation tag info
   map<string, vector<pair<string, string>>> for_writing;
-  for (auto & it : pac_eqtag_and_lag)
+  for (auto &it : pac_eqtag_and_lag)
     for_writing[it.first.first].emplace_back(it.first.second, it.second.first);
 
-  for (auto & it : for_writing)
+  for (auto &it : for_writing)
     {
       output << modstruct << "pac." << it.first << ".tag_map = [";
-      for (auto & it1 : it.second)
-        output << "{'" << it1.first << "', '" << it1.second << "'};" ;
+      for (auto &it1 : it.second)
+        output << "{'" << it1.first << "', '" << it1.second << "'};";
       output << "];" << endl;
     }
 
-  for (auto & it : pac_model_info)
+  for (auto &it : pac_model_info)
     {
       vector<int> lhs = get<0>(it.second);
       output << modstruct << "pac." << it.first << ".lhs = [";
@@ -3740,7 +3739,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       output << modstruct << "pac." << it.first << ".auxiliary_model_type = '" << get<2>(it.second) << "';" << endl;
     }
 
-  for (auto & pit : pac_equation_info)
+  for (auto &pit : pac_equation_info)
     {
       auto [lhs_pac_var, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants] = pit.second;
       string substruct = pit.first.first + ".equations." + pit.first.second + ".";
@@ -3782,32 +3781,32 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           }
       output << "];" << endl
              << modstruct << "pac." << substruct << "ar.params = [";
-      for (auto & it : ar_params_and_vars)
+      for (auto &it : ar_params_and_vars)
         output << symbol_table.getTypeSpecificID(it.first) + 1 << " ";
       output << "];" << endl
              << modstruct << "pac." << substruct << "ar.vars = [";
-      for (auto & it : ar_params_and_vars)
+      for (auto &it : ar_params_and_vars)
         output << symbol_table.getTypeSpecificID(it.second.first) + 1 << " ";
       output << "];" << endl
              << modstruct << "pac." << substruct << "ar.lags = [";
-      for (auto & it : ar_params_and_vars)
+      for (auto &it : ar_params_and_vars)
         output << it.second.second << " ";
       output << "];" << endl;
       if (!non_optim_vars_params_and_constants.empty())
         {
           output << modstruct << "pac." << substruct << "non_optimizing_behaviour.params = [";
-          for (auto & it : non_optim_vars_params_and_constants)
+          for (auto &it : non_optim_vars_params_and_constants)
             if (get<2>(it) >= 0)
               output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
             else
               output << "NaN ";
           output << "];" << endl
                  << modstruct << "pac." << substruct << "non_optimizing_behaviour.vars = [";
-          for (auto & it : non_optim_vars_params_and_constants)
+          for (auto &it : non_optim_vars_params_and_constants)
             output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
           output << "];" << endl
                  << modstruct << "pac." << substruct << "non_optimizing_behaviour.isendo = [";
-          for (auto & it : non_optim_vars_params_and_constants)
+          for (auto &it : non_optim_vars_params_and_constants)
             switch (symbol_table.getType(get<0>(it)))
               {
               case SymbolType::endogenous:
@@ -3822,29 +3821,29 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               }
           output << "];" << endl
                  << modstruct << "pac." << substruct << "non_optimizing_behaviour.lags = [";
-          for (auto & it : non_optim_vars_params_and_constants)
+          for (auto &it : non_optim_vars_params_and_constants)
             output << get<1>(it) << " ";
           output << "];" << endl
                  << modstruct << "pac." << substruct << "non_optimizing_behaviour.scaling_factor = [";
-          for (auto & it : non_optim_vars_params_and_constants)
+          for (auto &it : non_optim_vars_params_and_constants)
             output << get<3>(it) << " ";
           output << "];" << endl;
         }
       if (!additive_vars_params_and_constants.empty())
         {
           output << modstruct << "pac." << substruct << "additive.params = [";
-          for (auto & it : additive_vars_params_and_constants)
+          for (auto &it : additive_vars_params_and_constants)
             if (get<2>(it) >= 0)
               output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
             else
               output << "NaN ";
           output << "];" << endl
                  << modstruct << "pac." << substruct << "additive.vars = [";
-          for (auto & it : additive_vars_params_and_constants)
+          for (auto &it : additive_vars_params_and_constants)
             output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
           output << "];" << endl
                  << modstruct << "pac." << substruct << "additive.isendo = [";
-          for (auto & it : additive_vars_params_and_constants)
+          for (auto &it : additive_vars_params_and_constants)
             switch (symbol_table.getType(get<0>(it)))
               {
               case SymbolType::endogenous:
@@ -3859,29 +3858,29 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               }
           output << "];" << endl
                  << modstruct << "pac." << substruct << "additive.lags = [";
-          for (auto & it : additive_vars_params_and_constants)
+          for (auto &it : additive_vars_params_and_constants)
             output << get<1>(it) << " ";
           output << "];" << endl
                  << modstruct << "pac." << substruct << "additive.scaling_factor = [";
-          for (auto & it : additive_vars_params_and_constants)
+          for (auto &it : additive_vars_params_and_constants)
             output << get<3>(it) << " ";
           output << "];" << endl;
         }
       if (!optim_additive_vars_params_and_constants.empty())
         {
           output << modstruct << "pac." << substruct << "optim_additive.params = [";
-          for (auto & it : optim_additive_vars_params_and_constants)
+          for (auto &it : optim_additive_vars_params_and_constants)
             if (get<2>(it) >= 0)
               output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
             else
               output << "NaN ";
           output << "];" << endl
                  << modstruct << "pac." << substruct << "optim_additive.vars = [";
-          for (auto & it : optim_additive_vars_params_and_constants)
+          for (auto &it : optim_additive_vars_params_and_constants)
             output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
           output << "];" << endl
                  << modstruct << "pac." << substruct << "optim_additive.isendo = [";
-          for (auto & it : optim_additive_vars_params_and_constants)
+          for (auto &it : optim_additive_vars_params_and_constants)
             switch (symbol_table.getType(get<0>(it)))
               {
               case SymbolType::endogenous:
@@ -3896,11 +3895,11 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               }
           output << "];" << endl
                  << modstruct << "pac." << substruct << "optim_additive.lags = [";
-          for (auto & it : optim_additive_vars_params_and_constants)
+          for (auto &it : optim_additive_vars_params_and_constants)
             output << get<1>(it) << " ";
           output << "];" << endl
                  << modstruct << "pac." << substruct << "optim_additive.scaling_factor = [";
-          for (auto & it : optim_additive_vars_params_and_constants)
+          for (auto &it : optim_additive_vars_params_and_constants)
             output << get<3>(it) << " ";
           output << "];" << endl;
         }
@@ -3909,7 +3908,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
              << modstruct << "pac." << substruct << "h1_param_indices = [];" << endl;
     }
 
-  for (auto & it : pac_h0_indices)
+  for (auto &it : pac_h0_indices)
     {
       output << modstruct << "pac." << it.first.first << ".equations." << it.first.second << ".h0_param_indices = [";
       for (auto it1 : it.second)
@@ -3917,7 +3916,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       output << "];" << endl;
     }
 
-  for (auto & it : pac_h1_indices)
+  for (auto &it : pac_h1_indices)
     {
       output << modstruct << "pac." << it.first.first << ".equations." << it.first.second << ".h1_param_indices = [";
       for (auto it1 : it.second)
@@ -3964,7 +3963,7 @@ DynamicModel::updateVarAndTrendModel() const
 
       map<string, vector<int>> trend_varr;
       map<string, vector<set<pair<int, int>>>> rhsr;
-      for (const auto & it : eqnums)
+      for (const auto &it : eqnums)
         {
           vector<int> lhs, trend_var, trend_lhs;
           vector<set<pair<int, int>>> rhs;
@@ -4047,17 +4046,17 @@ DynamicModel::fillVarModelTable() const
   map<string, vector<set<pair<int, int>>>> rhsr;
   map<string, vector<string>> eqtags = var_model_table.getEqTags();
 
-  for (const auto & it : eqtags)
+  for (const auto &it : eqtags)
     {
       vector<int> eqnumber, lhs;
       vector<expr_t> lhs_expr_t;
       vector<set<pair<int, int>>> rhs;
 
-      for (const auto & eqtag : it.second)
+      for (const auto &eqtag : it.second)
         {
           int eqn = -1;
           set<pair<int, int>> lhs_set, lhs_tmp_set, rhs_set;
-          for (const auto & equation_tag : equation_tags)
+          for (const auto &equation_tag : equation_tags)
             if (equation_tag.second.first == "name"
                 && equation_tag.second.second == eqtag)
               {
@@ -4099,7 +4098,7 @@ DynamicModel::fillVarModelTable() const
           lhs_expr_t.push_back(*(lhs_expr_t_set.begin()));
 
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_set);
-          for (const auto & itrhs : rhs_set)
+          for (const auto &itrhs : rhs_set)
             if (itrhs.second > 0)
               {
                 cerr << "ERROR: in Equation " << eqtag
@@ -4127,7 +4126,7 @@ DynamicModel::fillVarModelTableFromOrigModel() const
 {
   map<string, vector<int>> lags, orig_diff_var;
   map<string, vector<bool>> diff;
-  for (const auto & it : var_model_table.getEqNums())
+  for (const auto &it : var_model_table.getEqNums())
     {
       set<expr_t> lhs;
       vector<int> orig_diff_var_vec;
@@ -4174,7 +4173,7 @@ DynamicModel::fillVarModelTableFromOrigModel() const
         }
 
       set<expr_t> lhs_lag_equiv;
-      for(const auto & lh : lhs)
+      for (const auto &lh : lhs)
         {
           auto [lag_equiv_repr, index] = lh->getLagEquivalenceClass();
           lhs_lag_equiv.insert(lag_equiv_repr);
@@ -4198,7 +4197,7 @@ DynamicModel::fillAutoregressiveMatrix(bool is_var) const
   map<string, map<tuple<int, int, int>, expr_t>> ARr;
   auto eqnums = is_var ?
     var_model_table.getEqNums() : trend_component_model_table.getNonTargetEqNums();
-  for (const auto & it : eqnums)
+  for (const auto &it : eqnums)
     {
       int i = 0;
       map<tuple<int, int, int>, expr_t> AR;
@@ -4222,13 +4221,13 @@ DynamicModel::fillTrendComponentModelTable() const
   map<string, vector<set<pair<int, int>>>> rhsr;
   map<string, vector<string>> eqtags = trend_component_model_table.getEqTags();
   map<string, vector<string>> trend_eqtags = trend_component_model_table.getTargetEqTags();
-  for (const auto & it : trend_eqtags)
+  for (const auto &it : trend_eqtags)
     {
       vector<int> trend_eqnumber;
-      for (const auto & eqtag : it.second)
+      for (const auto &eqtag : it.second)
         {
           int eqn = -1;
-          for (const auto & equation_tag : equation_tags)
+          for (const auto &equation_tag : equation_tags)
             if (equation_tag.second.first == "name"
                 && equation_tag.second.second == eqtag)
               {
@@ -4246,17 +4245,17 @@ DynamicModel::fillTrendComponentModelTable() const
       trend_eqnums[it.first] = trend_eqnumber;
     }
 
-  for (const auto & it : eqtags)
+  for (const auto &it : eqtags)
     {
       vector<int> eqnumber, lhs;
       vector<expr_t> lhs_expr_t;
       vector<set<pair<int, int>>> rhs;
 
-      for (const auto & eqtag : it.second)
+      for (const auto &eqtag : it.second)
         {
           int eqn = -1;
           set<pair<int, int>> lhs_set, lhs_tmp_set, rhs_set;
-          for (const auto & equation_tag : equation_tags)
+          for (const auto &equation_tag : equation_tags)
             if (equation_tag.second.first == "name"
                 && equation_tag.second.second == eqtag)
               {
@@ -4298,7 +4297,7 @@ DynamicModel::fillTrendComponentModelTable() const
           lhs_expr_t.push_back(*(lhs_expr_t_set.begin()));
 
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_set);
-          for (const auto & itrhs : rhs_set)
+          for (const auto &itrhs : rhs_set)
             if (itrhs.second > 0)
               {
                 cerr << "ERROR: in Equation " << eqtag
@@ -4321,7 +4320,7 @@ DynamicModel::fillErrorComponentMatrix(const ExprNode::subst_table_t &diff_subst
 {
   map<string, map<tuple<int, int, int>, expr_t>> A0r, A0starr;
 
-  for (const auto & it : trend_component_model_table.getEqNums())
+  for (const auto &it : trend_component_model_table.getEqNums())
     {
       int i = 0;
       map<tuple<int, int, int>, expr_t> A0, A0star;
@@ -4353,7 +4352,7 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
 {
   map<string, vector<int>> lags, orig_diff_var;
   map<string, vector<bool>> diff;
-  for (const auto & it : trend_component_model_table.getEqNums())
+  for (const auto &it : trend_component_model_table.getEqNums())
     {
       set<expr_t> lhs;
       vector<int> orig_diff_var_vec;
@@ -4402,7 +4401,7 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
         }
 
       set<expr_t> lhs_lag_equiv;
-      for(const auto & lh : lhs)
+      for (const auto &lh : lhs)
         {
           auto [lag_equiv_repr, index] = lh->getLagEquivalenceClass();
           lhs_lag_equiv.insert(lag_equiv_repr);
@@ -4438,13 +4437,13 @@ DynamicModel::addEquationsForVar()
 
   // List of endogenous variables and the minimum lag value that must exist in the model equations
   map<string, int> var_endos_and_lags, model_endos_and_lags;
-  for (const auto & it : var_symbol_list_and_order)
-    for (auto & equation : equations)
+  for (const auto &it : var_symbol_list_and_order)
+    for (auto &equation : equations)
       if (equation->isVarModelReferenced(it.first))
         {
           vector<string> symbol_list = it.second.first.get_symbols();
           int order = it.second.second;
-          for (auto & it1 : symbol_list)
+          for (auto &it1 : symbol_list)
             if (order > 2)
               if (var_endos_and_lags.find(it1) != var_endos_and_lags.end())
                 var_endos_and_lags[it1] = min(var_endos_and_lags[it1], -order);
@@ -4458,11 +4457,11 @@ DynamicModel::addEquationsForVar()
 
   // Ensure that the minimum lag value exists in the model equations.
   // If not, add an equation for it
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     equation->getEndosAndMaxLags(model_endos_and_lags);
 
   int count = 0;
-  for (auto & it : var_endos_and_lags)
+  for (auto &it : var_endos_and_lags)
     if (auto it2 = model_endos_and_lags.find(it.first);
         it2 == model_endos_and_lags.end())
       cerr << "WARNING: Variable used in VAR that is not used in the model: " << it.first << endl;
@@ -4555,7 +4554,7 @@ DynamicModel::walkPacParameters(const string &name)
   map<pair<string, string>, pair<string, int>> eqtag_and_lag;
 
   int i = 0;
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     {
       pair<int, int> lhs(-1, -1);
       pair<int, vector<tuple<int, bool, int>>> ec_params_and_vars;
@@ -4584,8 +4583,8 @@ DynamicModel::walkPacParameters(const string &name)
               cerr << "Pac equation in incorrect format" << endl;
               exit(EXIT_FAILURE);
             }
-          auto [optim_share_index, optim_part, non_optim_part, additive_part] =
-            arg2->getPacOptimizingShareAndExprNodes(lhs_symb_id, lhs_orig_symb_id);
+          auto [optim_share_index, optim_part, non_optim_part, additive_part]
+            = arg2->getPacOptimizingShareAndExprNodes(lhs_symb_id, lhs_orig_symb_id);
 
           if (!optim_part)
             {
@@ -4621,7 +4620,7 @@ DynamicModel::walkPacParameters(const string &name)
             }
 
           string eqtag;
-          for (auto & tag : equation_tags)
+          for (auto &tag : equation_tags)
             if (tag.first == (&equation - &equations[0]))
               if (tag.second.first == "name")
                 {
@@ -4658,7 +4657,7 @@ DynamicModel::walkPacParameters(const string &name)
 void
 DynamicModel::getPacMaxLag(const string &pac_model_name, map<pair<string, string>, pair<string, int>> &eqtag_and_lag) const
 {
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     if (equation->containsPacExpectation(pac_model_name))
       {
         set<pair<int, int>> endogs;
@@ -4671,7 +4670,7 @@ DynamicModel::getPacMaxLag(const string &pac_model_name, map<pair<string, string
           }
 
         string eqtag;
-        for (auto & tag : equation_tags)
+        for (auto &tag : equation_tags)
           if (tag.first == (&equation - &equations[0]))
             if (tag.second.first == "name")
               {
@@ -4686,7 +4685,7 @@ DynamicModel::getPacMaxLag(const string &pac_model_name, map<pair<string, string
 int
 DynamicModel::getPacTargetSymbId(const string &pac_model_name) const
 {
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     if (equation->containsPacExpectation(pac_model_name))
       {
         pair<int, int> lhs(-1, -1);
@@ -4708,16 +4707,15 @@ DynamicModel::getPacTargetSymbId(const string &pac_model_name) const
   return -1;
 }
 
-
 void
 DynamicModel::declarePacModelConsistentExpectationEndogs(const string &name)
 {
   int i = 0;
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     if (equation->containsPacExpectation())
       {
         string eqtag;
-        for (auto & tag : equation_tags)
+        for (auto &tag : equation_tags)
           if (tag.first == (&equation - &equations[0]))
             if (tag.second.first == "name")
               {
@@ -4732,8 +4730,8 @@ DynamicModel::declarePacModelConsistentExpectationEndogs(const string &name)
         string standard_eqtag = "eq" + to_string(i++);
         try
           {
-            pac_mce_z1_symb_ids[{name, standard_eqtag}] =
-              symbol_table.addSymbol("mce_Z1_" + name + "_" + standard_eqtag, SymbolType::endogenous);
+            pac_mce_z1_symb_ids[{name, standard_eqtag}]
+              = symbol_table.addSymbol("mce_Z1_" + name + "_" + standard_eqtag, SymbolType::endogenous);
           }
         catch (SymbolTable::AlreadyDeclaredException &e)
           {
@@ -4744,14 +4742,14 @@ DynamicModel::declarePacModelConsistentExpectationEndogs(const string &name)
 }
 
 void
-DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int discount_symb_id,
+DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int discount_symb_id,
                                                        const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
                                                        ExprNode::subst_table_t &diff_subst_table)
 {
   int pac_target_symb_id = getPacTargetSymbId(name);
   pac_eqtag_and_lag.insert(eqtag_and_lag.begin(), eqtag_and_lag.end());
   int neqs = 0;
-  for (auto & it : eqtag_and_lag)
+  for (auto &it : eqtag_and_lag)
     {
       string eqtag = it.first.second;
       string standard_eqtag = it.second.first;
@@ -4842,7 +4840,7 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string & name, int 
       neqs++;
       pac_expectation_substitution[{name, eqtag}] = AddVariable(mce_z1_symb_id);
     }
-    cout << "Pac Model Consistent Expectation: added " << neqs << " auxiliary variables and equations." << endl;
+  cout << "Pac Model Consistent Expectation: added " << neqs << " auxiliary variables and equations." << endl;
 }
 
 void
@@ -4861,8 +4859,8 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
 
   int growth_param_index = -1;
   if (growth)
-    growth_param_index = symbol_table.addSymbol(pac_model_name +
-                                                "_pac_growth_neutrality_correction",
+    growth_param_index = symbol_table.addSymbol(pac_model_name
+                                                +"_pac_growth_neutrality_correction",
                                                 SymbolType::parameter);
 
   for (auto pac_models_and_eqtags : pac_eqtag_and_lag)
@@ -4914,14 +4912,14 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
 }
 
 void
-DynamicModel::substitutePacExpectation(const string & pac_model_name)
+DynamicModel::substitutePacExpectation(const string &pac_model_name)
 {
-  for (auto & it : pac_expectation_substitution)
+  for (auto &it : pac_expectation_substitution)
     if (it.first.first == pac_model_name)
-      for (auto & equation : equations)
+      for (auto &equation : equations)
         for (auto & [tagged_eq, tag_pair] : equation_tags)
-          if (tagged_eq == (&equation - &equations[0]) &&
-              tag_pair.first == "name" && tag_pair.second == it.first.second)
+          if (tagged_eq == (&equation - &equations[0])
+              && tag_pair.first == "name" && tag_pair.second == it.first.second)
             {
               auto substeq = dynamic_cast<BinaryOpNode *>(equation->substitutePacExpectation(pac_model_name, it.second));
               assert(substeq);
@@ -4947,7 +4945,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
   // Compute derivatives w.r. to all endogenous, and possibly exogenous and exogenous deterministic
   set<int> vars;
-  for (auto & it : deriv_id_table)
+  for (auto &it : deriv_id_table)
     {
       SymbolType type = symbol_table.getType(it.first.first);
       if (type == SymbolType::endogenous || (jacobianExo && (type == SymbolType::exogenous || type == SymbolType::exogenousDet)))
@@ -5079,7 +5077,7 @@ void
 DynamicModel::computeXrefs()
 {
   int i = 0;
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     {
       ExprNode::EquationInfo ei;
       equation->computeXrefs(ei);
@@ -5099,7 +5097,7 @@ DynamicModel::computeXrefs()
 void
 DynamicModel::computeRevXref(map<pair<int, int>, set<int>> &xrefset, const set<pair<int, int>> &eiref, int eqn)
 {
-  for (const auto & it : eiref)
+  for (const auto &it : eiref)
     {
       set<int> eq;
       if (xrefset.find(it) != xrefset.end())
@@ -5120,22 +5118,22 @@ DynamicModel::writeXrefs(ostream &output) const
   for (auto it = xrefs.begin(); it != xrefs.end(); ++it, i++)
     {
       output << "M_.xref1.param{" << i << "} = [ ";
-      for (const auto & it1 : it->second.param)
+      for (const auto &it1 : it->second.param)
         output << symbol_table.getTypeSpecificID(it1.first) + 1 << " ";
       output << "];" << endl;
 
       output << "M_.xref1.endo{" << i << "} = [ ";
-      for (const auto & it1 : it->second.endo)
+      for (const auto &it1 : it->second.endo)
         output << "struct('id', " << symbol_table.getTypeSpecificID(it1.first) + 1 << ", 'shift', " << it1.second << ");";
       output << "];" << endl;
 
       output << "M_.xref1.exo{" << i << "} = [ ";
-      for (const auto & it1 : it->second.exo)
+      for (const auto &it1 : it->second.exo)
         output << "struct('id', " << symbol_table.getTypeSpecificID(it1.first) + 1 << ", 'shift', " << it1.second << ");";
       output << "];" << endl;
 
       output << "M_.xref1.exo_det{" << i << "} = [ ";
-      for (const auto & it1 : it->second.exo_det)
+      for (const auto &it1 : it->second.exo_det)
         output << "struct('id', " << symbol_table.getTypeSpecificID(it1.first) + 1 << ", 'shift', " << it1.second << ");";
       output << "];" << endl;
     }
@@ -5154,7 +5152,7 @@ void
 DynamicModel::writeRevXrefs(ostream &output, const map<pair<int, int>, set<int>> &xrefmap, const string &type) const
 {
   int last_tsid = -1;
-  for (const auto & it : xrefmap)
+  for (const auto &it : xrefmap)
     {
       int tsid = symbol_table.getTypeSpecificID(it.first.first) + 1;
       output << "M_.xref2." << type << "{" << tsid << "} = [ ";
@@ -5180,13 +5178,13 @@ DynamicModel::get_Derivatives(int block)
   BlockSimulationType simulation_type = getBlockSimulationType(block);
   if (simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
     {
-      max_lag  = 1;
+      max_lag = 1;
       max_lead = 1;
       setBlockLeadLag(block, max_lag, max_lead);
     }
   else
     {
-      max_lag  = getBlockMaxLag(block);
+      max_lag = getBlockMaxLag(block);
       max_lead = getBlockMaxLead(block);
     }
   int block_size = getBlockSize(block);
@@ -5549,10 +5547,10 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
   set<pair<int, int>> dynvars;
   int max_eq_lead = 0;
   int max_eq_lag = 0;
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     equation->collectDynamicVariables(SymbolType::endogenous, dynvars);
 
-  for (const auto & dynvar : dynvars)
+  for (const auto &dynvar : dynvars)
     {
       int lag = dynvar.second;
       if (max_eq_lead < lag)
@@ -5592,14 +5590,14 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
 
   //Compute derivatives and overwrite equations
   vector<expr_t> neweqs;
-  for (auto & it : deriv_id_table)
+  for (auto &it : deriv_id_table)
     // For all endogenous variables with zero lag
     if (symbol_table.getType(it.first.first) == SymbolType::endogenous && it.first.second == 0)
       neweqs.push_back(AddEqual(equations[0]->getNonZeroPartofEquation()->getDerivative(it.second), Zero));
 
   // Add new equations
   equations.clear();
-  for (auto & neweq : neweqs)
+  for (auto &neweq : neweqs)
     addEquation(neweq, -1);
 }
 
@@ -5607,7 +5605,7 @@ void
 DynamicModel::toNonlinearPart(DynamicModel &non_linear_equations_dynamic_model) const
 {
   // Convert model local variables (need to be done first)
-  for (const auto & it : local_variables_table)
+  for (const auto &it : local_variables_table)
     non_linear_equations_dynamic_model.AddLocalVariable(it.first, it.second);
 }
 
@@ -5638,7 +5636,7 @@ void
 DynamicModel::expandEqTags()
 {
   set<int> existing_tags;
-  for (const auto & eqn : equation_tags)
+  for (const auto &eqn : equation_tags)
     if (eqn.second.first == "name")
       existing_tags.insert(eqn.first);
 
@@ -5649,7 +5647,7 @@ DynamicModel::expandEqTags()
           equation_tags.emplace_back(eq, pair("name", symbol_table.getName(lhs_expr->symb_id)));
           equation_tags_xref.emplace(pair("name", symbol_table.getName(lhs_expr->symb_id)), eq);
         }
-      else if (equation_tags_xref.find({ "name",to_string(eq+1) }) == equation_tags_xref.end())
+      else if (equation_tags_xref.find({ "name", to_string(eq+1) }) == equation_tags_xref.end())
         {
           equation_tags.emplace_back(eq, pair("name", to_string(eq+1)));
           equation_tags_xref.emplace(pair("name", to_string(eq+1)), eq);
@@ -5667,7 +5665,7 @@ set<int>
 DynamicModel::findUnusedEndogenous()
 {
   set<int> usedEndo, unusedEndo;
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     equation->collectVariables(SymbolType::endogenous, usedEndo);
   set<int> allEndo = symbol_table.getEndogenous();
   set_difference(allEndo.begin(), allEndo.end(),
@@ -5680,7 +5678,7 @@ set<int>
 DynamicModel::findUnusedExogenous()
 {
   set<int> usedExo, unusedExo, unobservedExo;
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     equation->collectVariables(SymbolType::exogenous, usedExo);
   set<int> observedExo = symbol_table.getObservedExogenous();
   set<int> allExo = symbol_table.getExogenous();
@@ -5698,7 +5696,7 @@ DynamicModel::setLeadsLagsOrig()
 {
   set<pair<int, int>> dynvars;
 
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     {
       equation->collectDynamicVariables(SymbolType::endogenous, dynvars);
       equation->collectDynamicVariables(SymbolType::exogenous, dynvars);
@@ -5708,7 +5706,7 @@ DynamicModel::setLeadsLagsOrig()
                                              max_lag_with_diffs_expanded_orig);
     }
 
-    for (const auto & dynvar : dynvars)
+  for (const auto &dynvar : dynvars)
     {
       int lag = dynvar.second;
       SymbolType type = symbol_table.getType(dynvar.first);
@@ -5741,12 +5739,12 @@ DynamicModel::computeDerivIDs()
 {
   set<pair<int, int>> dynvars;
 
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     equation->collectDynamicVariables(SymbolType::endogenous, dynvars);
 
   dynJacobianColsNbr = dynvars.size();
 
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     {
       equation->collectDynamicVariables(SymbolType::exogenous, dynvars);
       equation->collectDynamicVariables(SymbolType::exogenousDet, dynvars);
@@ -5755,7 +5753,7 @@ DynamicModel::computeDerivIDs()
       equation->collectDynamicVariables(SymbolType::logTrend, dynvars);
     }
 
-  for (const auto & dynvar : dynvars)
+  for (const auto &dynvar : dynvars)
     {
       int lag = dynvar.second;
       SymbolType type = symbol_table.getType(dynvar.first);
@@ -5846,7 +5844,7 @@ DynamicModel::computeDynJacobianCols(bool jacobianExo)
      and fill the dynamic columns for exogenous and exogenous deterministic */
   map<pair<int, int>, int> ordered_dyn_endo;
 
-  for (auto & it : deriv_id_table)
+  for (auto &it : deriv_id_table)
     {
       int symb_id = it.first.first;
       int lag = it.first.second;
@@ -5883,7 +5881,7 @@ DynamicModel::computeDynJacobianCols(bool jacobianExo)
 
   // Fill in dynamic jacobian columns for endogenous
   int sorted_id = 0;
-  for (auto & it : ordered_dyn_endo)
+  for (auto &it : ordered_dyn_endo)
     dyn_jacobian_cols_table[it.second] = sorted_id++;
 
   // Set final value for dynJacobianColsNbr
@@ -5917,7 +5915,7 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context
             {
               expr_t testeq = AddLog(homogeneq); // F = log(lhs-rhs)
               testeq = testeq->getDerivative(it.second); // d F / d Trend
-              for (auto & endogit : deriv_id_table)
+              for (auto &endogit : deriv_id_table)
                 if (symbol_table.getType(endogit.first.first) == SymbolType::endogenous)
                   {
                     double nearZero = testeq->getDerivative(endogit.second)->eval(eval_context); // eval d F / d Trend d Endog
@@ -5942,13 +5940,13 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
     return;
 
   ExprNodeOutputType output_type = (julia ? ExprNodeOutputType::juliaDynamicModel : ExprNodeOutputType::matlabDynamicModel);
-  ostringstream tt_output;              // Used for storing model temp vars and equations
-  ostringstream rp_output;              // 1st deriv. of residuals w.r.t. parameters
-  ostringstream gp_output;              // 1st deriv. of Jacobian w.r.t. parameters
-  ostringstream rpp_output;             // 2nd deriv of residuals w.r.t. parameters
-  ostringstream gpp_output;             // 2nd deriv of Jacobian w.r.t. parameters
-  ostringstream hp_output;              // 1st deriv. of Hessian w.r.t. parameters
-  ostringstream g3p_output;             // 1st deriv. of 3rd deriv. matrix w.r.t. parameters
+  ostringstream tt_output; // Used for storing model temp vars and equations
+  ostringstream rp_output; // 1st deriv. of residuals w.r.t. parameters
+  ostringstream gp_output; // 1st deriv. of Jacobian w.r.t. parameters
+  ostringstream rpp_output; // 2nd deriv of residuals w.r.t. parameters
+  ostringstream gpp_output; // 2nd deriv of Jacobian w.r.t. parameters
+  ostringstream hp_output; // 1st deriv. of Hessian w.r.t. parameters
+  ostringstream g3p_output; // 1st deriv. of 3rd deriv. matrix w.r.t. parameters
 
   temporary_terms_t temp_term_union;
   deriv_node_temp_terms_t tef_terms;
@@ -6304,7 +6302,7 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
 
   // Substitute in used model local variables
   set<int> used_local_vars;
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
 
   for (int used_local_var : used_local_vars)
@@ -6336,7 +6334,7 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
     }
 
   // Substitute in equations
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     {
       expr_t subst;
       switch (type)
@@ -6366,7 +6364,7 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
     }
 
   // Add new equations
-  for (auto & neweq : neweqs)
+  for (auto &neweq : neweqs)
     {
       addEquation(neweq, -1);
       aux_equations.push_back(neweq);
@@ -6406,7 +6404,7 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
 void
 DynamicModel::substituteAdl()
 {
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     equation = dynamic_cast<BinaryOpNode *>(equation->substituteAdl());
 }
 
@@ -6414,10 +6412,10 @@ vector<int>
 DynamicModel::getEquationNumbersFromTags(const set<string> &eqtags) const
 {
   vector<int> eqnumbers;
-  for (auto & eqtag : eqtags)
+  for (auto &eqtag : eqtags)
     {
       bool found = false;
-      for (const auto & equation_tag : equation_tags)
+      for (const auto &equation_tag : equation_tags)
         if (equation_tag.second.first == "name"
             && equation_tag.second.second == eqtag)
           {
@@ -6438,10 +6436,10 @@ void
 DynamicModel::findPacExpectationEquationNumbers(vector<int> &eqnumbers) const
 {
   int i = 0;
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     {
-      if (equation->containsPacExpectation() &&
-          find(eqnumbers.begin(), eqnumbers.end(), i) == eqnumbers.end())
+      if (equation->containsPacExpectation()
+          && find(eqnumbers.begin(), eqnumbers.end(), i) == eqnumbers.end())
         eqnumbers.push_back(i);
       i++;
     }
@@ -6473,7 +6471,7 @@ DynamicModel::substituteUnaryOps(const vector<int> &eqnumbers)
   set<int> used_local_vars;
   for (int eqnumber : eqnumbers)
     equations[eqnumber]->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
-  for (auto & it : local_variables_table)
+  for (auto &it : local_variables_table)
     if (used_local_vars.find(it.first) != used_local_vars.end())
       it.second->findUnaryOpNodesForAuxVarCreation(nodes);
 
@@ -6483,11 +6481,11 @@ DynamicModel::substituteUnaryOps(const vector<int> &eqnumbers)
 
   // Substitute in model local variables
   vector<BinaryOpNode *> neweqs;
-  for (auto & it : local_variables_table)
+  for (auto &it : local_variables_table)
     it.second = it.second->substituteUnaryOpNodes(nodes, subst_table, neweqs);
 
   // Substitute in equations
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     {
       auto substeq = dynamic_cast<BinaryOpNode *>(equation->
                                                   substituteUnaryOpNodes(nodes, subst_table, neweqs));
@@ -6496,7 +6494,7 @@ DynamicModel::substituteUnaryOps(const vector<int> &eqnumbers)
     }
 
   // Add new equations
-  for (auto & neweq : neweqs)
+  for (auto &neweq : neweqs)
     {
       addEquation(neweq, -1);
       aux_equations.push_back(neweq);
@@ -6521,27 +6519,27 @@ DynamicModel::substituteDiff(vector<expr_t> &pac_growth)
 
   // Mark diff operators to be substituted in model local variables
   set<int> used_local_vars;
-  for (const auto & equation : equations)
+  for (const auto &equation : equations)
     equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
-  for (auto & it : local_variables_table)
+  for (auto &it : local_variables_table)
     if (used_local_vars.find(it.first) != used_local_vars.end())
       it.second->findDiffNodes(diff_nodes);
 
   // Mark diff operators to be substituted in equations
-  for (const auto & equation : equations)
+  for (const auto &equation : equations)
     equation->findDiffNodes(diff_nodes);
 
-  for (const auto & gv : pac_growth)
+  for (const auto &gv : pac_growth)
     if (gv)
       gv->findDiffNodes(diff_nodes);
 
   // Substitute in model local variables
   vector<BinaryOpNode *> neweqs;
-  for (auto & it : local_variables_table)
+  for (auto &it : local_variables_table)
     it.second = it.second->substituteDiff(diff_nodes, diff_subst_table, neweqs);
 
   // Substitute in equations
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     {
       auto substeq = dynamic_cast<BinaryOpNode *>(equation->
                                                   substituteDiff(diff_nodes, diff_subst_table, neweqs));
@@ -6549,12 +6547,12 @@ DynamicModel::substituteDiff(vector<expr_t> &pac_growth)
       equation = substeq;
     }
 
-  for (auto & it : pac_growth)
+  for (auto &it : pac_growth)
     if (it)
       it = it->substituteDiff(diff_nodes, diff_subst_table, neweqs);
 
   // Add new equations
-  for (auto & neweq : neweqs)
+  for (auto &neweq : neweqs)
     {
       addEquation(neweq, -1);
       aux_equations.push_back(neweq);
@@ -6573,11 +6571,11 @@ DynamicModel::substituteExpectation(bool partial_information_model)
   vector<BinaryOpNode *> neweqs;
 
   // Substitute in model local variables
-  for (auto & it : local_variables_table)
+  for (auto &it : local_variables_table)
     it.second = it.second->substituteExpectation(subst_table, neweqs, partial_information_model);
 
   // Substitute in equations
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     {
       auto substeq = dynamic_cast<BinaryOpNode *>(equation->substituteExpectation(subst_table, neweqs, partial_information_model));
       assert(substeq);
@@ -6585,7 +6583,7 @@ DynamicModel::substituteExpectation(bool partial_information_model)
     }
 
   // Add new equations
-  for (auto & neweq : neweqs)
+  for (auto &neweq : neweqs)
     {
       addEquation(neweq, -1);
       aux_equations.push_back(neweq);
@@ -6603,10 +6601,10 @@ DynamicModel::substituteExpectation(bool partial_information_model)
 void
 DynamicModel::transformPredeterminedVariables()
 {
-  for (auto & it : local_variables_table)
+  for (auto &it : local_variables_table)
     it.second = it.second->decreaseLeadsLagsPredeterminedVariables();
 
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     {
       auto substeq = dynamic_cast<BinaryOpNode *>(equation->decreaseLeadsLagsPredeterminedVariables());
       assert(substeq);
@@ -6620,14 +6618,14 @@ DynamicModel::detrendEquations()
   // We go backwards in the list of trend_vars, to deal correctly with I(2) processes
   for (auto it = nonstationary_symbols_map.crbegin();
        it != nonstationary_symbols_map.crend(); ++it)
-    for (auto & equation : equations)
+    for (auto &equation : equations)
       {
         auto substeq = dynamic_cast<BinaryOpNode *>(equation->detrend(it->first, it->second.first, it->second.second));
         assert(substeq);
         equation = dynamic_cast<BinaryOpNode *>(substeq);
       }
 
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     {
       auto substeq = dynamic_cast<BinaryOpNode *>(equation->removeTrendLeadLag(trend_symbols_map));
       assert(substeq);
@@ -6638,7 +6636,7 @@ DynamicModel::detrendEquations()
 void
 DynamicModel::removeTrendVariableFromEquations()
 {
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     {
       auto substeq = dynamic_cast<BinaryOpNode *>(equation->replaceTrendVar());
       assert(substeq);
@@ -6689,8 +6687,8 @@ DynamicModel::fillEvalContext(eval_context_t &eval_context) const
 
   //Third, trend variables
   vector <int> trendVars = symbol_table.getTrendVarIds();
-  for (int & trendVar : trendVars)
-    eval_context[trendVar] = 2;  //not <= 0 bc of log, not 1 bc of powers
+  for (int &trendVar : trendVars)
+    eval_context[trendVar] = 2; //not <= 0 bc of log, not 1 bc of powers
 }
 
 bool
@@ -6713,14 +6711,14 @@ DynamicModel::addStaticOnlyEquation(expr_t eq, int lineno, const vector<pair<str
   assert(beq && beq->op_code == BinaryOpcode::equal);
 
   vector<pair<string, string>> soe_eq_tags;
-  for (const auto & eq_tag : eq_tags)
+  for (const auto &eq_tag : eq_tags)
     soe_eq_tags.push_back(eq_tag);
 
   int n = static_only_equations.size();
   static_only_equations.push_back(beq);
   static_only_equations_lineno.push_back(lineno);
   static_only_equations_equation_tags.push_back(soe_eq_tags);
-  for (auto & it : soe_eq_tags)
+  for (auto &it : soe_eq_tags)
     static_only_equation_tags_xref.emplace(it, n);
 }
 
@@ -6735,7 +6733,7 @@ DynamicModel::dynamicOnlyEquationsNbr() const
 {
   set<int> eqs;
 
-  for (const auto & equation_tag : equation_tags)
+  for (const auto &equation_tag : equation_tags)
     if (equation_tag.second.first == "dynamic")
       eqs.insert(equation_tag.first);
 
@@ -6748,7 +6746,7 @@ DynamicModel::isChecksumMatching(const string &basename, bool block) const
   stringstream buffer;
 
   // Write equation tags
-  for (const auto & equation_tag : equation_tags)
+  for (const auto &equation_tag : equation_tags)
     buffer << "  " << equation_tag.first + 1
            << equation_tag.second.first
            << equation_tag.second.second << endl;
@@ -6822,7 +6820,7 @@ DynamicModel::writeJsonAST(ostream &output) const
       output << R"({ "number":)" << eq
              << R"(, "line":)" << equations_lineno[eq];
 
-      for (const auto & equation_tag : equation_tags)
+      for (const auto &equation_tag : equation_tags)
         if (equation_tag.first == eq)
           eqtags.push_back(equation_tag.second);
 
@@ -6854,16 +6852,16 @@ DynamicModel::writeJsonVariableMapping(ostream &output) const
   output << R"("variable_mapping":[)" << endl;
   int ii = 0;
   int end_idx_map = static_cast<int>(variableMapping.size()-1);
-  for (const auto & variable : variableMapping)
+  for (const auto &variable : variableMapping)
     {
       output << R"({"name": ")" << symbol_table.getName(variable.first) << R"(", "equations":[)";
       int it = 0;
       int end_idx_eq = static_cast<int>(variable.second.size())-1;
-      for (const auto & equation : variable.second)
-        for (const auto & equation_tag : equation_tags)
+      for (const auto &equation : variable.second)
+        for (const auto &equation_tag : equation_tags)
           if (equation_tag.first == equation && equation_tag.second.first == "name")
-            output << R"(")" << equation_tag.second.second << (it++ == end_idx_eq ? R"("])":R"(", )");
-      output << (ii++ == end_idx_map ? R"(})":R"(},)") << endl;
+            output << R"(")" << equation_tag.second.second << (it++ == end_idx_eq ? R"("])" : R"(", )");
+      output << (ii++ == end_idx_map ? R"(})" : R"(},)") << endl;
     }
   output << "]";
 }
@@ -6968,9 +6966,9 @@ DynamicModel::writeJsonDynamicModelInfo(ostream &output) const
             }
         }
       nstatic += sstatic;
-      nfwrd   += sfwrd;
-      npred   += spred;
-      nboth   += sboth;
+      nfwrd += sfwrd;
+      npred += spred;
+      nboth += sboth;
       output << "]";
     }
   output << "], "
@@ -6987,8 +6985,8 @@ DynamicModel::writeJsonDynamicModelInfo(ostream &output) const
 void
 DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) const
 {
-  ostringstream model_local_vars_output;  // Used for storing model local vars
-  vector<ostringstream> d_output(derivatives.size());  // Derivatives output (at all orders, including 0=residual)
+  ostringstream model_local_vars_output; // Used for storing model local vars
+  vector<ostringstream> d_output(derivatives.size()); // Derivatives output (at all orders, including 0=residual)
 
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;
@@ -7044,15 +7042,15 @@ DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) c
           if (writeDetails)
             for (size_t j = 1; j < vidx.size(); j++)
               d_output[i] << R"(, "var)" << (i > 1 ? to_string(j) : "") << R"(": ")" << symbol_table.getName(getSymbIDByDerivID(vidx[j])) << R"(")"
-                                                                                                                                 << R"(, "shift)" << (i > 1 ? to_string(j) : "") << R"(": )" << getLagByDerivID(vidx[j]);
+                          << R"(, "shift)" << (i > 1 ? to_string(j) : "") << R"(": )" << getLagByDerivID(vidx[j]);
 
           d_output[i] << R"(, "val": ")";
           d->writeJsonOutput(d_output[i], temp_term_union, tef_terms);
           d_output[i] << R"("})" << endl;
         }
-     d_output[i] << "]}";
+      d_output[i] << "]}";
 
-     ncols *= dynJacobianColsNbr;
+      ncols *= dynJacobianColsNbr;
     }
 
   if (writeDetails)
@@ -7071,14 +7069,14 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
   if (!params_derivatives.size())
     return;
 
-  ostringstream model_local_vars_output;   // Used for storing model local vars
-  ostringstream model_output;              // Used for storing model temp vars and equations
-  ostringstream rp_output;                 // 1st deriv. of residuals w.r.t. parameters
-  ostringstream gp_output;                 // 1st deriv. of Jacobian w.r.t. parameters
-  ostringstream rpp_output;                // 2nd deriv of residuals w.r.t. parameters
-  ostringstream gpp_output;                // 2nd deriv of Jacobian w.r.t. parameters
-  ostringstream hp_output;                 // 1st deriv. of Hessian w.r.t. parameters
-  ostringstream g3p_output;                // 1st deriv. of 3rd deriv. matrix w.r.t. parameters
+  ostringstream model_local_vars_output; // Used for storing model local vars
+  ostringstream model_output; // Used for storing model temp vars and equations
+  ostringstream rp_output; // 1st deriv. of residuals w.r.t. parameters
+  ostringstream gp_output; // 1st deriv. of Jacobian w.r.t. parameters
+  ostringstream rpp_output; // 2nd deriv of residuals w.r.t. parameters
+  ostringstream gpp_output; // 2nd deriv of Jacobian w.r.t. parameters
+  ostringstream hp_output; // 1st deriv. of Hessian w.r.t. parameters
+  ostringstream g3p_output; // 1st deriv. of 3rd deriv. matrix w.r.t. parameters
 
   deriv_node_temp_terms_t tef_terms;
   writeJsonModelLocalVariables(model_local_vars_output, tef_terms);
@@ -7315,7 +7313,6 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
     }
   g3p_output << "]}" << endl;
 
-
   if (writeDetails)
     output << R"("dynamic_model_params_derivative": {)";
   else
@@ -7334,6 +7331,6 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
 void
 DynamicModel::substituteVarExpectation(const map<string, expr_t> &subst_table)
 {
-  for (auto & equation : equations)
+  for (auto &equation : equations)
     equation = dynamic_cast<BinaryOpNode *>(equation->substituteVarExpectation(subst_table));
 }

@@ -46,7 +46,7 @@ ModFile::ModFile(WarningConsolidation &warnings_arg)
     orig_ramsey_dynamic_model{symbol_table, num_constants, external_functions_table,
                               trend_component_model_table, var_model_table},
     non_linear_equations_dynamic_model{symbol_table, num_constants, external_functions_table,
-                  trend_component_model_table, var_model_table},
+                                       trend_component_model_table, var_model_table},
     epilogue{symbol_table, num_constants, external_functions_table,
              trend_component_model_table, var_model_table},
     static_model{symbol_table, num_constants, external_functions_table},
@@ -107,7 +107,7 @@ ModFile::addStatementAtFront(unique_ptr<Statement> st)
 void
 ModFile::checkPass(bool nostrict, bool stochastic)
 {
-  for (auto & statement : statements)
+  for (auto &statement : statements)
     statement->checkPass(mod_file_struct, warnings);
 
   // Check the steady state block
@@ -116,8 +116,8 @@ ModFile::checkPass(bool nostrict, bool stochastic)
   // Check epilogue block
   epilogue.checkPass(mod_file_struct, warnings);
 
-  if (mod_file_struct.write_latex_steady_state_model_present &&
-      !mod_file_struct.steady_state_model_present)
+  if (mod_file_struct.write_latex_steady_state_model_present
+      && !mod_file_struct.steady_state_model_present)
     {
       cerr << "ERROR: You cannot have a write_latex_steady_state_model statement without a steady_state_model block." << endl;
       exit(EXIT_FAILURE);
@@ -414,7 +414,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
     exit(EXIT_FAILURE);
 
   // Declare endogenous used for PAC model-consistent expectations
-  for (auto & statement : statements)
+  for (auto &statement : statements)
     if (auto pms = dynamic_cast<PacModelStatement *>(statement.get());
         pms)
       {
@@ -426,12 +426,12 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
 
   // Get all equation tags associated with VARs and Trend Component Models
   set<string> eqtags;
-  for (const auto & it : trend_component_model_table.getEqTags())
-    for (auto & it1 : it.second)
+  for (const auto &it : trend_component_model_table.getEqTags())
+    for (auto &it1 : it.second)
       eqtags.insert(it1);
 
-  for (const auto & it : var_model_table.getEqTags())
-    for (auto & it1 : it.second)
+  for (const auto &it : var_model_table.getEqTags())
+    for (auto &it1 : it.second)
       eqtags.insert(it1);
 
   // Create auxiliary variables and equations for unary ops
@@ -455,7 +455,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
 
   // Pac Model
   int i = 0;
-  for (auto & statement : statements)
+  for (auto &statement : statements)
     if (auto pms = dynamic_cast<PacModelStatement *>(statement.get()); pms)
       {
         if (pms->growth)
@@ -512,8 +512,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       dynamic_model.detrendEquations();
       trend_dynamic_model = dynamic_model;
       dynamic_model.removeTrendVariableFromEquations();
-      const auto & trend_symbols = dynamic_model.getTrendSymbolsMap();
-      const auto & nonstationary_symbols = dynamic_model.getNonstationarySymbolsMap();
+      const auto &trend_symbols = dynamic_model.getTrendSymbolsMap();
+      const auto &nonstationary_symbols = dynamic_model.getNonstationarySymbolsMap();
       epilogue.detrend(trend_symbols, nonstationary_symbols);
     }
 
@@ -523,7 +523,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   if (mod_file_struct.ramsey_model_present)
     {
       PlannerObjectiveStatement *pos = nullptr;
-      for (auto & statement : statements)
+      for (auto &statement : statements)
         if (auto pos2 = dynamic_cast<PlannerObjectiveStatement *>(statement.get()); pos2)
           if (pos)
             {
@@ -553,7 +553,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
      TODO: move information collection to checkPass(), within a new
      VarModelTable class */
   map<string, expr_t> var_expectation_subst_table;
-  for (auto & statement : statements)
+  for (auto &statement : statements)
     {
       auto vems = dynamic_cast<VarExpectationModelStatement *>(statement.get());
       if (!vems)
@@ -619,7 +619,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       || mod_file_struct.calib_smoother_present
       || mod_file_struct.identification_present
       || mod_file_struct.sensitivity_present
-      || stochastic )
+      || stochastic)
     {
       // In stochastic models, create auxiliary vars for leads and lags greater than 2, on both endos and exos
       dynamic_model.substituteEndoLeadGreaterThanTwo(false);
@@ -734,7 +734,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
 
       // Compute static model and its derivatives
       static_model = static_cast<StaticModel>(dynamic_model);
-	  if (linear_decomposition)
+      if (linear_decomposition)
         {
           non_linear_equations_dynamic_model = dynamic_model;
           non_linear_equations_dynamic_model.set_cutoff_to_zero();
@@ -823,7 +823,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
         }
     }
 
-  for (auto & statement : statements)
+  for (auto &statement : statements)
     statement->computingPass();
 
   // Compute epilogue derivatives (but silence standard output)
@@ -853,7 +853,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
          otherwise it may file if the destination is not on the same
          filesystem). */
       if (filesystem::path plusfolder{"+" + basename}; filesystem::exists(plusfolder))
-	{
+        {
           if (filesystem::exists(plusfolder / "+objective"))
             {
               // Do it recursively for the +objective folder, created by ramsey_policy
@@ -862,10 +862,10 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
               filesystem::remove_all(tmp2);
             }
 
-	  auto tmp = unique_path();
-	  filesystem::rename(plusfolder, tmp);
-	  filesystem::remove_all(tmp);
-	}
+          auto tmp = unique_path();
+          filesystem::rename(plusfolder, tmp);
+          filesystem::remove_all(tmp);
+        }
       filesystem::remove_all(basename + "/model/src");
       filesystem::remove_all(basename + "/model/bytecode");
     }
@@ -980,7 +980,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   if (parallel_local_files.size() > 0)
     {
       mOutputFile << "options_.parallel_info.local_files = {" << endl;
-      for (const auto & parallel_local_file : parallel_local_files)
+      for (const auto &parallel_local_file : parallel_local_files)
         {
           size_t j = parallel_local_file.find_last_of(R"(/\)");
           if (j == string::npos)
@@ -1353,7 +1353,7 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
       if (!var_model_table.empty())
         {
           var_model_table.writeJsonOutput(output);
-           output << ", ";
+          output << ", ";
         }
 
       if (!trend_component_model_table.empty())
@@ -1398,7 +1398,7 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
               original_model_output << ", ";
             }
           int i = 0;
-          for (const auto & it : statements)
+          for (const auto &it : statements)
             {
               original_model_output << (i++ > 0 ? "," : "") << endl;
               it->writeJsonOutput(original_model_output);

@@ -56,7 +56,7 @@ operator<<(WarningConsolidation &wcc, const Dynare::location &loc)
 };
 
 WarningConsolidation &
-operator<<(WarningConsolidation &wcc, ostream & (*pf)(ostream &))
+operator<<(WarningConsolidation &wcc, ostream &(*pf)(ostream &))
 {
   if (wcc.no_warn)
     return wcc;

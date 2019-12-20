@@ -44,7 +44,7 @@ struct ExprNodeLess;
 
 //! Type for set of temporary terms
 /*! The ExprNodeLess ordering is important for the temporary terms algorithm,
-    see the definition of ExprNodeLess */
+  see the definition of ExprNodeLess */
 using temporary_terms_t = set<expr_t, ExprNodeLess>;
 /*! Keeps track of array indices of temporary_terms for writing */
 using temporary_terms_idxs_t = map<expr_t, int>;
@@ -86,26 +86,26 @@ using lag_equivalence_table_t = map<expr_t, map<int, expr_t>>;
 //! Possible types of output when writing ExprNode(s)
 enum class ExprNodeOutputType
   {
-    matlabStaticModel,                           //!< Matlab code, static model
-    matlabDynamicModel,                          //!< Matlab code, dynamic model
-    matlabStaticModelSparse,                     //!< Matlab code, static block decomposed model
-    matlabDynamicModelSparse,                    //!< Matlab code, dynamic block decomposed model
-    CDynamicModel,                               //!< C code, dynamic model
-    CStaticModel,                                //!< C code, static model
-    juliaStaticModel,                            //!< Julia code, static model
-    juliaDynamicModel,                           //!< Julia code, dynamic model
-    matlabOutsideModel,                          //!< Matlab code, outside model block (for example in initval)
-    latexStaticModel,                            //!< LaTeX code, static model
-    latexDynamicModel,                           //!< LaTeX code, dynamic model
-    latexDynamicSteadyStateOperator,             //!< LaTeX code, dynamic model, inside a steady state operator
-    matlabDynamicSteadyStateOperator,            //!< Matlab code, dynamic model, inside a steady state operator
-    matlabDynamicSparseSteadyStateOperator,      //!< Matlab code, dynamic block decomposed model, inside a steady state operator
-    CDynamicSteadyStateOperator,                 //!< C code, dynamic model, inside a steady state operator
-    juliaDynamicSteadyStateOperator,             //!< Julia code, dynamic model, inside a steady state operator
-    steadyStateFile,                             //!< Matlab code, in the generated steady state file
-    juliaSteadyStateFile,                        //!< Julia code, in the generated steady state file
-    matlabDseries,                               //!< Matlab code for dseries
-    epilogueFile                                 //!< Matlab code, in the generated epilogue file
+   matlabStaticModel, //!< Matlab code, static model
+   matlabDynamicModel, //!< Matlab code, dynamic model
+   matlabStaticModelSparse, //!< Matlab code, static block decomposed model
+   matlabDynamicModelSparse, //!< Matlab code, dynamic block decomposed model
+   CDynamicModel, //!< C code, dynamic model
+   CStaticModel, //!< C code, static model
+   juliaStaticModel, //!< Julia code, static model
+   juliaDynamicModel, //!< Julia code, dynamic model
+   matlabOutsideModel, //!< Matlab code, outside model block (for example in initval)
+   latexStaticModel, //!< LaTeX code, static model
+   latexDynamicModel, //!< LaTeX code, dynamic model
+   latexDynamicSteadyStateOperator, //!< LaTeX code, dynamic model, inside a steady state operator
+   matlabDynamicSteadyStateOperator, //!< Matlab code, dynamic model, inside a steady state operator
+   matlabDynamicSparseSteadyStateOperator, //!< Matlab code, dynamic block decomposed model, inside a steady state operator
+   CDynamicSteadyStateOperator, //!< C code, dynamic model, inside a steady state operator
+   juliaDynamicSteadyStateOperator, //!< Julia code, dynamic model, inside a steady state operator
+   steadyStateFile, //!< Matlab code, in the generated steady state file
+   juliaSteadyStateFile, //!< Julia code, in the generated steady state file
+   matlabDseries, //!< Matlab code for dseries
+   epilogueFile //!< Matlab code, in the generated epilogue file
   };
 
 inline bool
@@ -184,528 +184,532 @@ RIGHT_PAR(ExprNodeOutputType output_type)
 
 //! Base class for expression nodes
 class ExprNode
-    {
-      friend class DataTree;
-      friend class DynamicModel;
-      friend class StaticModel;
-      friend class ModelTree;
-      friend struct ExprNodeLess;
-      friend class NumConstNode;
-      friend class VariableNode;
-      friend class UnaryOpNode;
-      friend class BinaryOpNode;
-      friend class TrinaryOpNode;
-      friend class AbstractExternalFunctionNode;
-      friend class VarExpectationNode;
-      friend class PacExpectationNode;
-    private:
-      //! Computes derivative w.r. to a derivation ID (but doesn't store it in derivatives map)
-      /*! You shoud use getDerivative() to get the benefit of symbolic a priori and of caching */
-      virtual expr_t computeDerivative(int deriv_id) = 0;
+{
+  friend class DataTree;
+  friend class DynamicModel;
+  friend class StaticModel;
+  friend class ModelTree;
+  friend struct ExprNodeLess;
+  friend class NumConstNode;
+  friend class VariableNode;
+  friend class UnaryOpNode;
+  friend class BinaryOpNode;
+  friend class TrinaryOpNode;
+  friend class AbstractExternalFunctionNode;
+  friend class VarExpectationNode;
+  friend class PacExpectationNode;
+private:
+  //! Computes derivative w.r. to a derivation ID (but doesn't store it in derivatives map)
+  /*! You shoud use getDerivative() to get the benefit of symbolic a priori and of caching */
+  virtual expr_t computeDerivative(int deriv_id) = 0;
 
-    protected:
-      //! Reference to the enclosing DataTree
-      DataTree &datatree;
+protected:
+  //! Reference to the enclosing DataTree
+  DataTree &datatree;
 
-      //! Index number
-      const int idx;
+  //! Index number
+  const int idx;
 
-      //! Is the data member non_null_derivatives initialized ?
-      bool preparedForDerivation{false};
+  //! Is the data member non_null_derivatives initialized ?
+  bool preparedForDerivation{false};
 
-      //! Set of derivation IDs with respect to which the derivative is potentially non-null
-      set<int> non_null_derivatives;
+  //! Set of derivation IDs with respect to which the derivative is potentially non-null
+  set<int> non_null_derivatives;
 
-      //! Used for caching of first order derivatives (when non-null)
-      map<int, expr_t> derivatives;
+  //! Used for caching of first order derivatives (when non-null)
+  map<int, expr_t> derivatives;
 
-      constexpr static int min_cost_matlab{40*90};
-      constexpr static int min_cost_c{40*4};
-      inline static int min_cost(bool is_matlab) { return(is_matlab ? min_cost_matlab : min_cost_c); };
+  constexpr static int min_cost_matlab{40*90};
+  constexpr static int min_cost_c{40*4};
+  inline static int
+  min_cost(bool is_matlab)
+  {
+    return (is_matlab ? min_cost_matlab : min_cost_c);
+  };
 
-      //! Cost of computing current node
-      /*! Nodes included in temporary_terms are considered having a null cost */
-      virtual int cost(int cost, bool is_matlab) const;
-      virtual int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const;
-      virtual int cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const;
+  //! Cost of computing current node
+  /*! Nodes included in temporary_terms are considered having a null cost */
+  virtual int cost(int cost, bool is_matlab) const;
+  virtual int cost(const temporary_terms_t &temporary_terms, bool is_matlab) const;
+  virtual int cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const;
 
-      //! For creating equation cross references
-      struct EquationInfo
-      {
-        set<pair<int, int>> param;
-        set<pair<int, int>> endo;
-        set<pair<int, int>> exo;
-        set<pair<int, int>> exo_det;
-      };
+  //! For creating equation cross references
+  struct EquationInfo
+  {
+    set<pair<int, int>> param;
+    set<pair<int, int>> endo;
+    set<pair<int, int>> exo;
+    set<pair<int, int>> exo_det;
+  };
 
-      //! If this node is a temporary term, writes its temporary term representation
-      /*! Returns true if node is a temporary term and has therefore been
-          written to output*/
-      bool checkIfTemporaryTermThenWrite(ostream &output, ExprNodeOutputType output_type,
-                                         const temporary_terms_t &temporary_terms,
-                                         const temporary_terms_idxs_t &temporary_terms_idxs) const;
+  //! If this node is a temporary term, writes its temporary term representation
+  /*! Returns true if node is a temporary term and has therefore been
+    written to output*/
+  bool checkIfTemporaryTermThenWrite(ostream &output, ExprNodeOutputType output_type,
+                                     const temporary_terms_t &temporary_terms,
+                                     const temporary_terms_idxs_t &temporary_terms_idxs) const;
 
-      // Internal helper for matchVariableTimesConstantTimesParam()
-      virtual void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const;
+  // Internal helper for matchVariableTimesConstantTimesParam()
+  virtual void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const;
 
-      /* Computes the representative element and the index under the
-         lag-equivalence relationship. See the comment above
-         lag_equivalence_table_t for an explanation of these concepts. */
-      pair<expr_t, int> getLagEquivalenceClass() const;
+  /* Computes the representative element and the index under the
+     lag-equivalence relationship. See the comment above
+     lag_equivalence_table_t for an explanation of these concepts. */
+  pair<expr_t, int> getLagEquivalenceClass() const;
 
-    public:
-      ExprNode(DataTree &datatree_arg, int idx_arg);
-      virtual ~ExprNode() = default;
+public:
+  ExprNode(DataTree &datatree_arg, int idx_arg);
+  virtual ~ExprNode() = default;
 
-      ExprNode(const ExprNode &) = delete;
-      ExprNode(ExprNode &&) = delete;
-      ExprNode & operator=(const ExprNode &) = delete;
-      ExprNode & operator=(ExprNode &&) = delete;
+  ExprNode(const ExprNode &) = delete;
+  ExprNode(ExprNode &&) = delete;
+  ExprNode &operator=(const ExprNode &) = delete;
+  ExprNode &operator=(ExprNode &&) = delete;
 
-      //! Initializes data member non_null_derivatives
-      virtual void prepareForDerivation() = 0;
+  //! Initializes data member non_null_derivatives
+  virtual void prepareForDerivation() = 0;
 
-      //! Returns derivative w.r. to derivation ID
-      /*! Uses a symbolic a priori to pre-detect null derivatives, and caches the result for other derivatives (to avoid computing it several times)
-        For an equal node, returns the derivative of lhs minus rhs */
-      expr_t getDerivative(int deriv_id);
+  //! Returns derivative w.r. to derivation ID
+  /*! Uses a symbolic a priori to pre-detect null derivatives, and caches the result for other derivatives (to avoid computing it several times)
+    For an equal node, returns the derivative of lhs minus rhs */
+  expr_t getDerivative(int deriv_id);
 
-      //! Computes derivatives by applying the chain rule for some variables
-      /*!
-        \param deriv_id The derivation ID with respect to which we are derivating
-        \param recursive_variables Contains the derivation ID for which chain rules must be applied. Keys are derivation IDs, values are equations of the form x=f(y) where x is the key variable and x doesn't appear in y
-      */
-      virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) = 0;
+  //! Computes derivatives by applying the chain rule for some variables
+  /*!
+    \param deriv_id The derivation ID with respect to which we are derivating
+    \param recursive_variables Contains the derivation ID for which chain rules must be applied. Keys are derivation IDs, values are equations of the form x=f(y) where x is the key variable and x doesn't appear in y
+  */
+  virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) = 0;
 
-      //! Returns precedence of node
-      /*! Equals 100 for constants, variables, unary ops, and temporary terms */
-      virtual int precedence(ExprNodeOutputType output_t, const temporary_terms_t &temporary_terms) const;
+  //! Returns precedence of node
+  /*! Equals 100 for constants, variables, unary ops, and temporary terms */
+  virtual int precedence(ExprNodeOutputType output_t, const temporary_terms_t &temporary_terms) const;
 
-      //! Compute temporary terms in this expression
-      /*!
-        \param[in] derivOrder the derivation order (first w.r.t. endo/exo,
-                   second w.r.t. params)
-        \param[out] temp_terms_map the computed temporary terms, associated
-                    with their derivation order
-        \param[out] reference_count a temporary structure, used to count
-                    references to each node (integer in outer pair is the
-                    reference count, the inner pair is the derivation order)
-        \param[in] is_matlab whether we are in a MATLAB context, since that
-                    affects the cost of each operator
+  //! Compute temporary terms in this expression
+  /*!
+    \param[in] derivOrder the derivation order (first w.r.t. endo/exo,
+    second w.r.t. params)
+    \param[out] temp_terms_map the computed temporary terms, associated
+    with their derivation order
+    \param[out] reference_count a temporary structure, used to count
+    references to each node (integer in outer pair is the
+    reference count, the inner pair is the derivation order)
+    \param[in] is_matlab whether we are in a MATLAB context, since that
+    affects the cost of each operator
 
-        A node will be marked as a temporary term if it is referenced at least
-        two times (i.e. has at least two parents), and has a computing cost
-        (multiplied by reference count) greater to datatree.min_cost
-      */
-      virtual void computeTemporaryTerms(const pair<int, int> &derivOrder,
-                                         map<pair<int, int>, temporary_terms_t> &temp_terms_map,
-                                         map<expr_t, pair<int, pair<int, int>>> &reference_count,
-                                         bool is_matlab) const;
+    A node will be marked as a temporary term if it is referenced at least
+    two times (i.e. has at least two parents), and has a computing cost
+    (multiplied by reference count) greater to datatree.min_cost
+  */
+  virtual void computeTemporaryTerms(const pair<int, int> &derivOrder,
+                                     map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                                     map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                     bool is_matlab) const;
 
-      //! Writes output of node, using a Txxx notation for nodes in temporary_terms, and specifiying the set of already written external functions
-      /*!
-        \param[in] output the output stream
-        \param[in] output_type the type of output (MATLAB, C, LaTeX...)
-        \param[in] temporary_terms the nodes that are marked as temporary terms
-        \param[in] a map from temporary_terms to integers indexes (in the
-                   MATLAB, C or Julia vector of temporary terms); can be empty
-                   when writing MATLAB with block decomposition)
-        \param[in] tef_terms the set of already written external function nodes
-      */
-      virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const = 0;
+  //! Writes output of node, using a Txxx notation for nodes in temporary_terms, and specifiying the set of already written external functions
+  /*!
+    \param[in] output the output stream
+    \param[in] output_type the type of output (MATLAB, C, LaTeX...)
+    \param[in] temporary_terms the nodes that are marked as temporary terms
+    \param[in] a map from temporary_terms to integers indexes (in the
+    MATLAB, C or Julia vector of temporary terms); can be empty
+    when writing MATLAB with block decomposition)
+    \param[in] tef_terms the set of already written external function nodes
+  */
+  virtual void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const = 0;
 
-      //! returns true if the expr node contains an external function
-      virtual bool containsExternalFunction() const = 0;
+  //! returns true if the expr node contains an external function
+  virtual bool containsExternalFunction() const = 0;
 
-      //! Writes output of node (with no temporary terms and with "outside model" output type)
-      void writeOutput(ostream &output) const;
+  //! Writes output of node (with no temporary terms and with "outside model" output type)
+  void writeOutput(ostream &output) const;
 
-      //! Writes output of node (with no temporary terms)
-      void writeOutput(ostream &output, ExprNodeOutputType output_type) const;
+  //! Writes output of node (with no temporary terms)
+  void writeOutput(ostream &output, ExprNodeOutputType output_type) const;
 
-      //! Writes output of node, using a Txxx notation for nodes in temporary_terms
-      void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs) const;
+  //! Writes output of node, using a Txxx notation for nodes in temporary_terms
+  void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs) const;
 
-      //! Writes output of node in JSON syntax
-      virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic = true) const = 0;
+  //! Writes output of node in JSON syntax
+  virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic = true) const = 0;
 
-      //! Writes the Abstract Syntax Tree in JSON
-      virtual void writeJsonAST(ostream &output) const = 0;
+  //! Writes the Abstract Syntax Tree in JSON
+  virtual void writeJsonAST(ostream &output) const = 0;
 
-      virtual int precedenceJson(const temporary_terms_t &temporary_terms) const;
+  virtual int precedenceJson(const temporary_terms_t &temporary_terms) const;
 
-      //! Writes the output for an external function, ensuring that the external function is called as few times as possible using temporary terms
-      virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+  //! Writes the output for an external function, ensuring that the external function is called as few times as possible using temporary terms
+  virtual void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
+                                           const temporary_terms_t &temporary_terms,
+                                           const temporary_terms_idxs_t &temporary_terms_idxs,
+                                           deriv_node_temp_terms_t &tef_terms) const;
+
+  //! Write the JSON output of an external function in a string vector
+  //! Allows the insertion of commas if necessary
+  virtual void writeJsonExternalFunctionOutput(vector<string> &efout,
                                                const temporary_terms_t &temporary_terms,
-                                               const temporary_terms_idxs_t &temporary_terms_idxs,
-                                               deriv_node_temp_terms_t &tef_terms) const;
-
-      //! Write the JSON output of an external function in a string vector
-      //! Allows the insertion of commas if necessary
-      virtual void writeJsonExternalFunctionOutput(vector<string> &efout,
-                                                   const temporary_terms_t &temporary_terms,
-                                                   deriv_node_temp_terms_t &tef_terms,
-                                                   bool isdynamic = true) const;
-
-      virtual void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                                 bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                                 const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                                 deriv_node_temp_terms_t &tef_terms) const;
-
-      //! Computes the set of all variables of a given symbol type in the expression (with information on lags)
-      /*!
-        Variables are stored as integer pairs of the form (symb_id, lag).
-        They are added to the set given in argument.
-        Note that model local variables are substituted by their expression in the computation
-        (and added if type_arg = ModelLocalVariable).
-      */
-      virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const = 0;
-
-      //! Find lowest lag for VAR
-      virtual int VarMinLag() const = 0;
-
-      //! Find the maximum lag in a VAR: handles case where LHS is diff
-      virtual int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const = 0;
-
-      //! Finds LHS variable in a VAR equation
-      virtual void collectVARLHSVariable(set<expr_t> &result) const = 0;
-
-      //! Computes the set of all variables of a given symbol type in the expression (without information on lags)
-      /*!
-        Variables are stored as symb_id.
-        They are added to the set given in argument.
-        Note that model local variables are substituted by their expression in the computation
-        (and added if type_arg = ModelLocalVariable).
-      */
-      void collectVariables(SymbolType type_arg, set<int> &result) const;
-
-      //! Computes the set of endogenous variables in the expression
-      /*!
-        Endogenous are stored as integer pairs of the form (type_specific_id, lag).
-        They are added to the set given in argument.
-        Note that model local variables are substituted by their expression in the computation.
-      */
-      virtual void collectEndogenous(set<pair<int, int>> &result) const;
-
-      //! Computes the set of exogenous variables in the expression
-      /*!
-        Exogenous are stored as integer pairs of the form (type_specific_id, lag).
-        They are added to the set given in argument.
-        Note that model local variables are substituted by their expression in the computation.
-      */
-      virtual void collectExogenous(set<pair<int, int>> &result) const;
-
-      virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const = 0;
-
-      virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                         temporary_terms_t &temporary_terms,
-                                         map<expr_t, pair<int, int>> &first_occurence,
-                                         int Curr_block,
-                                         vector< vector<temporary_terms_t>> &v_temporary_terms,
-                                         int equation) const;
-
-      class EvalException
-
-      {
-      };
-
-      class EvalExternalFunctionException : public EvalException
-
-      {
-      };
-
-      virtual double eval(const eval_context_t &eval_context) const noexcept(false) = 0;
-      virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const = 0;
-      void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const;
-      //! Creates a static version of this node
-      /*!
-        This method duplicates the current node by creating a similar node from which all leads/lags have been stripped,
-        adds the result in the static_datatree argument (and not in the original datatree), and returns it.
-      */
-      virtual expr_t toStatic(DataTree &static_datatree) const = 0;
-
-      /*!
-        Compute cross references for equations
-      */
-      //  virtual void computeXrefs(set<int> &param, set<int> &endo, set<int> &exo, set<int> &exo_det) const = 0;
-      virtual void computeXrefs(EquationInfo &ei) const = 0;
-      //! Try to normalize an equation linear in its endogenous variable
-      virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const = 0;
-
-      //! Returns the maximum lead of endogenous in this expression
-      /*! Always returns a non-negative value */
-      virtual int maxEndoLead() const = 0;
-
-      //! Returns the maximum lead of exogenous in this expression
-      /*! Always returns a non-negative value */
-      virtual int maxExoLead() const = 0;
-
-      //! Returns the maximum lag of endogenous in this expression
-      /*! Always returns a non-negative value */
-      virtual int maxEndoLag() const = 0;
-
-      //! Returns the maximum lag of exogenous in this expression
-      /*! Always returns a non-negative value */
-      virtual int maxExoLag() const = 0;
-
-      //! Returns the maximum lead of endo/exo/exodet in this expression
-      /*! A negative value means that the expression contains only lagged
-          variables. A value of numeric_limits<int>::min() means that there is
-          no variable. */
-      virtual int maxLead() const = 0;
-
-      //! Returns the maximum lag of endo/exo/exodet in this expression
-      /*! A negative value means that the expression contains only leaded
-          variables. A value of numeric_limits<int>::min() means that there is
-          no variable. */
-      virtual int maxLag() const = 0;
-
-      //! Returns the maximum lag of endo/exo/exodet, as if diffs were expanded
-      /*! This function behaves as maxLag(), except that it treats diff()
-          differently. For e.g., on diff(diff(x(-1))), maxLag() returns 1 while
-          maxLagWithDiffsExpanded() returns 3. */
-      virtual int maxLagWithDiffsExpanded() const = 0;
-
-      //! Get Max lag of var associated with Pac model
-      //! Takes account of undiffed LHS variables in calculating the max lag
-      virtual int PacMaxLag(int lhs_symb_id) const = 0;
-
-      //! Get the target variable of the PAC model
-      virtual int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const = 0;
-
-      virtual expr_t undiff() const = 0;
-
-      //! Returns a new expression where all the leads/lags have been shifted backwards by the same amount
-      /*!
-        Only acts on endogenous, exogenous, exogenous det
-        \param[in] n The number of lags by which to shift
-        \return The same expression except that leads/lags have been shifted backwards
-      */
-      virtual expr_t decreaseLeadsLags(int n) const = 0;
-
-      //! Type for the substitution map used in the process of creating auxiliary vars
-      using subst_table_t = map<const ExprNode *, const VariableNode *>;
-
-      //! Type for the substitution map used in the process of substituting adl expressions
-      using subst_table_adl_t = map<const ExprNode *, const expr_t>;
-
-      //! Creates auxiliary endo lead variables corresponding to this expression
-      /*!
-        If maximum endogenous lead >= 3, this method will also create intermediary auxiliary var, and will add the equations of the form aux1 = aux2(+1) to the substitution table.
-        \pre This expression is assumed to have maximum endogenous lead >= 2
-        \param[in,out] subst_table The table to which new auxiliary variables and their correspondance will be added
-        \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
-        \return The new variable node corresponding to the current expression
-      */
-      VariableNode *createEndoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-
-      //! Creates auxiliary exo lead variables corresponding to this expression
-      /*!
-        If maximum exogenous lead >= 2, this method will also create intermediary auxiliary var, and will add the equations of the form aux1 = aux2(+1) to the substitution table.
-        \pre This expression is assumed to have maximum exogenous lead >= 1
-        \param[in,out] subst_table The table to which new auxiliary variables and their correspondance will be added
-        \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
-        \return The new variable node corresponding to the current expression
-      */
-      VariableNode *createExoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
-
-      //! Constructs a new expression where sub-expressions with max endo lead >= 2 have been replaced by auxiliary variables
-      /*!
-        \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
-        \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
-
-        If the method detects a sub-expr which needs to be substituted, two cases are possible:
-        - if this expr is in the table, then it will use the corresponding variable and return the substituted expression
-        - if this expr is not in the table, then it will create an auxiliary endogenous variable, add the substitution in the table and return the substituted expression
-
-        \return A new equivalent expression where sub-expressions with max endo lead >= 2 have been replaced by auxiliary variables
-      */
-      virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const = 0;
-
-      //! Constructs a new expression where endo variables with max endo lag >= 2 have been replaced by auxiliary variables
-      /*!
-        \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
-        \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
-      */
-      virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
-
-      //! Constructs a new expression where exogenous variables with a lead have been replaced by auxiliary variables
-      /*!
-        \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
-        \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
-      */
-      virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const = 0;
-      //! Constructs a new expression where exogenous variables with a lag have been replaced by auxiliary variables
-      /*!
-        \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
-        \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
-      */
-      virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
-
-      //! Constructs a new expression where the expectation operator has been replaced by auxiliary variables
-      /*!
-        \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
-        \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
-        \param[in] partial_information_model Are we substituting in a partial information model?
-      */
-      virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const = 0;
-
-      virtual expr_t decreaseLeadsLagsPredeterminedVariables() const = 0;
-
-      //! Constructs a new expression where forward variables (supposed to be at most in t+1) have been replaced by themselves at t, plus a new aux var representing their (time) differentiate
-      /*!
-        \param[in] subset variables to which to limit the transformation; transform
-        all fwrd vars if empty
-        \param[in,out] subst_table Map used to store mapping between a given
-        forward variable and the aux var that contains its differentiate
-        \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
-      */
-      virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
-
-      //! Return true if the nodeID is a numerical constant equal to value and false otherwise
-      /*!
-        \param[in] value of the numerical constante
-        \param[out] the boolean equal to true if NodeId is a constant equal to value
-      */
-      virtual bool isNumConstNodeEqualTo(double value) const = 0;
-
-      //! Returns true if the expression contains one or several endogenous variable
-      virtual bool containsEndogenous() const = 0;
-
-      //! Returns true if the expression contains one or several exogenous variable
-      virtual bool containsExogenous() const = 0;
-
-      //! Returns the maximum number of nested diffs in the expression
-      virtual int countDiffs() const = 0;
-
-      //! Return true if the nodeID is a variable withe a type equal to type_arg, a specific variable id aqual to varfiable_id and a lag equal to lag_arg and false otherwise
-      /*!
-        \param[in] the type (type_arg), specifique variable id (variable_id and the lag (lag_arg)
-        \param[out] the boolean equal to true if NodeId is the variable
-      */
-      virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const = 0;
-
-      //! Replaces the Trend var with datatree.One
-      virtual expr_t replaceTrendVar() const = 0;
-
-      //! Constructs a new expression where the variable indicated by symb_id has been detrended
-      /*!
-        \param[in] symb_id indicating the variable to be detrended
-        \param[in] log_trend indicates if the trend is in log
-        \param[in] trend indicating the trend
-        \return the new binary op pointing to a detrended variable
-      */
-      virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const = 0;
-
-      //! Substitute adl operator
-      virtual expr_t substituteAdl() const = 0;
-
-      //! Substitute VarExpectation nodes
-      virtual expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const = 0;
-
-      //! Mark diff nodes to be substituted
-      /*! The various nodes that are equivalent up to a shift of leads/lags are
-          grouped together in the “nodes” table. See the comment above
-          lag_equivalence_table_t for more details. */
-      virtual void findDiffNodes(lag_equivalence_table_t &nodes) const = 0;
-      //! Substitute diff operator
-      virtual expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
-
-      //! Mark unary ops nodes to be substituted
-      /*! The various nodes that are equivalent up to a shift of leads/lags are
-          grouped together in the “nodes” table. See the comment above
-          lag_equivalence_table_t for more details. */
-      virtual void findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const = 0;
-      //! Substitute unary ops nodes
-      virtual expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
-
-      //! Substitute pac_expectation operator
-      virtual expr_t substitutePacExpectation(const string & name, expr_t subexpr) = 0;
-
-      virtual int findTargetVariable(int lhs_symb_id) const = 0;
-
-      //! Add ExprNodes to the provided datatree
-      virtual expr_t clone(DataTree &datatree) const = 0;
-
-      //! Move a trend variable with lag/lead to time t by dividing/multiplying by its growth factor
-      virtual expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const = 0;
-
-      //! Returns true if the expression is in static form (no lead, no lag, no expectation, no STEADY_STATE)
-      virtual bool isInStaticForm() const = 0;
-
-      //! Substitute auxiliary variables by their expression in static model
-      virtual expr_t substituteStaticAuxiliaryVariable() const = 0;
-
-      //! Returns true if model_info_name is referenced by a VarExpectationNode
-      virtual bool isVarModelReferenced(const string &model_info_name) const = 0;
-
-      //! Matches a linear combination of variables, where scalars can be constant*parameter
-      /*! Returns a list of (variable_id, lag, param_id, constant)
-          corresponding to the terms in the expression. When there is no
-          parameter in a term, param_id == -1.
-          Can throw a MatchFailureException.
-          if `variable_obligatory_in_each_term` is true, then every part of the linear combination must contain a variable;
-          otherwise, if `variable_obligatory_in_each_term`, then any linear combination of constant/variable/param is matched
-      */
-      vector<tuple<int, int, int, double>> matchLinearCombinationOfVariables(bool variable_obligatory_in_each_term = true) const;
-
-      pair<int, vector<tuple<int, int, int, double>>> matchParamTimesLinearCombinationOfVariables() const;
-
-      //! Returns true if expression is of the form:
-      //! param * (endog op endog op ...) + param * (endog op endog op ...) + ...
-      virtual bool isParamTimesEndogExpr() const = 0;
-
-      //! Fills the EC matrix structure
-      void fillErrorCorrectionRow(int eqn, const vector<int> &nontarget_lhs, const vector<int> &target_lhs,
-                                  map<tuple<int, int, int>, expr_t> &A0,
-                                  map<tuple<int, int, int>, expr_t> &A0star) const;
-
-      //! Finds equations where a variable is equal to a constant
-      virtual void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const = 0;
-
-      //! Replaces variables found in findConstantEquations() with their constant values
-      virtual expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const = 0;
-
-      //! Returns true if PacExpectationNode encountered
-      virtual bool containsPacExpectation(const string &pac_model_name = "") const = 0;
-
-      //! Fills map
-      virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const = 0;
-
-      //! Decompose an expression into its additive terms
-      /*! Returns a list of terms, with their sign (either 1 or -1, depending
-        on whether the terms appears with a plus or a minus).
-        The current_sign argument should normally be left to 1.
-        If current_sign == -1, then all signs are inverted */
-      virtual void decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign = 1) const;
-
-      // Matches an expression of the form variable*constant*parameter
-      /* Returns a tuple (variable_id, lag, param_id, constant).
-         The variable must be an exogenous or an endogenous.
-         The constant is optional (in which case 1 is returned); there can be
-         several multiplicative constants; constants can also appear at the
-         denominator (i.e. after a divide sign).
-         The parameter is optional (in which case param_id == -1).
-         If the expression is not of the expected form, throws a
-         MatchFailureException
-         if `variable_obligatory` is true, then the linear combination must contain a variable;
-          otherwise, if `variable_obligatory`, then an expression is matched that has any mix of constant/variable/param
-      */
-      tuple<int, int, int, double> matchVariableTimesConstantTimesParam(bool variable_obligatory = true) const;
-
-      //! Exception thrown by matchVariableTimesConstantTimesParam when matching fails
-      class MatchFailureException
-      {
-      public:
-        const string message;
-        MatchFailureException(string message_arg) : message{move(message_arg)} {};
-      };
+                                               deriv_node_temp_terms_t &tef_terms,
+                                               bool isdynamic = true) const;
+
+  virtual void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
+                                             bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                             const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                                             deriv_node_temp_terms_t &tef_terms) const;
+
+  //! Computes the set of all variables of a given symbol type in the expression (with information on lags)
+  /*!
+    Variables are stored as integer pairs of the form (symb_id, lag).
+    They are added to the set given in argument.
+    Note that model local variables are substituted by their expression in the computation
+    (and added if type_arg = ModelLocalVariable).
+  */
+  virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const = 0;
+
+  //! Find lowest lag for VAR
+  virtual int VarMinLag() const = 0;
+
+  //! Find the maximum lag in a VAR: handles case where LHS is diff
+  virtual int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const = 0;
+
+  //! Finds LHS variable in a VAR equation
+  virtual void collectVARLHSVariable(set<expr_t> &result) const = 0;
+
+  //! Computes the set of all variables of a given symbol type in the expression (without information on lags)
+  /*!
+    Variables are stored as symb_id.
+    They are added to the set given in argument.
+    Note that model local variables are substituted by their expression in the computation
+    (and added if type_arg = ModelLocalVariable).
+  */
+  void collectVariables(SymbolType type_arg, set<int> &result) const;
+
+  //! Computes the set of endogenous variables in the expression
+  /*!
+    Endogenous are stored as integer pairs of the form (type_specific_id, lag).
+    They are added to the set given in argument.
+    Note that model local variables are substituted by their expression in the computation.
+  */
+  virtual void collectEndogenous(set<pair<int, int>> &result) const;
+
+  //! Computes the set of exogenous variables in the expression
+  /*!
+    Exogenous are stored as integer pairs of the form (type_specific_id, lag).
+    They are added to the set given in argument.
+    Note that model local variables are substituted by their expression in the computation.
+  */
+  virtual void collectExogenous(set<pair<int, int>> &result) const;
+
+  virtual void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const = 0;
+
+  virtual void computeTemporaryTerms(map<expr_t, int> &reference_count,
+                                     temporary_terms_t &temporary_terms,
+                                     map<expr_t, pair<int, int>> &first_occurence,
+                                     int Curr_block,
+                                     vector< vector<temporary_terms_t>> &v_temporary_terms,
+                                     int equation) const;
+
+  class EvalException
+  {
+  };
+
+  class EvalExternalFunctionException : public EvalException
+  {
+  };
+
+  virtual double eval(const eval_context_t &eval_context) const noexcept(false) = 0;
+  virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const = 0;
+  void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const;
+  //! Creates a static version of this node
+  /*!
+    This method duplicates the current node by creating a similar node from which all leads/lags have been stripped,
+    adds the result in the static_datatree argument (and not in the original datatree), and returns it.
+  */
+  virtual expr_t toStatic(DataTree &static_datatree) const = 0;
+
+  /*!
+    Compute cross references for equations
+  */
+  //  virtual void computeXrefs(set<int> &param, set<int> &endo, set<int> &exo, set<int> &exo_det) const = 0;
+  virtual void computeXrefs(EquationInfo &ei) const = 0;
+  //! Try to normalize an equation linear in its endogenous variable
+  virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const = 0;
+
+  //! Returns the maximum lead of endogenous in this expression
+  /*! Always returns a non-negative value */
+  virtual int maxEndoLead() const = 0;
+
+  //! Returns the maximum lead of exogenous in this expression
+  /*! Always returns a non-negative value */
+  virtual int maxExoLead() const = 0;
+
+  //! Returns the maximum lag of endogenous in this expression
+  /*! Always returns a non-negative value */
+  virtual int maxEndoLag() const = 0;
+
+  //! Returns the maximum lag of exogenous in this expression
+  /*! Always returns a non-negative value */
+  virtual int maxExoLag() const = 0;
+
+  //! Returns the maximum lead of endo/exo/exodet in this expression
+  /*! A negative value means that the expression contains only lagged
+    variables. A value of numeric_limits<int>::min() means that there is
+    no variable. */
+  virtual int maxLead() const = 0;
+
+  //! Returns the maximum lag of endo/exo/exodet in this expression
+  /*! A negative value means that the expression contains only leaded
+    variables. A value of numeric_limits<int>::min() means that there is
+    no variable. */
+  virtual int maxLag() const = 0;
+
+  //! Returns the maximum lag of endo/exo/exodet, as if diffs were expanded
+  /*! This function behaves as maxLag(), except that it treats diff()
+    differently. For e.g., on diff(diff(x(-1))), maxLag() returns 1 while
+    maxLagWithDiffsExpanded() returns 3. */
+  virtual int maxLagWithDiffsExpanded() const = 0;
+
+  //! Get Max lag of var associated with Pac model
+  //! Takes account of undiffed LHS variables in calculating the max lag
+  virtual int PacMaxLag(int lhs_symb_id) const = 0;
+
+  //! Get the target variable of the PAC model
+  virtual int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const = 0;
+
+  virtual expr_t undiff() const = 0;
+
+  //! Returns a new expression where all the leads/lags have been shifted backwards by the same amount
+  /*!
+    Only acts on endogenous, exogenous, exogenous det
+    \param[in] n The number of lags by which to shift
+    \return The same expression except that leads/lags have been shifted backwards
+  */
+  virtual expr_t decreaseLeadsLags(int n) const = 0;
+
+  //! Type for the substitution map used in the process of creating auxiliary vars
+  using subst_table_t = map<const ExprNode *, const VariableNode *>;
+
+  //! Type for the substitution map used in the process of substituting adl expressions
+  using subst_table_adl_t = map<const ExprNode *, const expr_t>;
+
+  //! Creates auxiliary endo lead variables corresponding to this expression
+  /*!
+    If maximum endogenous lead >= 3, this method will also create intermediary auxiliary var, and will add the equations of the form aux1 = aux2(+1) to the substitution table.
+    \pre This expression is assumed to have maximum endogenous lead >= 2
+    \param[in,out] subst_table The table to which new auxiliary variables and their correspondance will be added
+    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+    \return The new variable node corresponding to the current expression
+  */
+  VariableNode *createEndoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+
+  //! Creates auxiliary exo lead variables corresponding to this expression
+  /*!
+    If maximum exogenous lead >= 2, this method will also create intermediary auxiliary var, and will add the equations of the form aux1 = aux2(+1) to the substitution table.
+    \pre This expression is assumed to have maximum exogenous lead >= 1
+    \param[in,out] subst_table The table to which new auxiliary variables and their correspondance will be added
+    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+    \return The new variable node corresponding to the current expression
+  */
+  VariableNode *createExoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const;
+
+  //! Constructs a new expression where sub-expressions with max endo lead >= 2 have been replaced by auxiliary variables
+  /*!
+    \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
+    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+
+    If the method detects a sub-expr which needs to be substituted, two cases are possible:
+    - if this expr is in the table, then it will use the corresponding variable and return the substituted expression
+    - if this expr is not in the table, then it will create an auxiliary endogenous variable, add the substitution in the table and return the substituted expression
+
+    \return A new equivalent expression where sub-expressions with max endo lead >= 2 have been replaced by auxiliary variables
+  */
+  virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const = 0;
+
+  //! Constructs a new expression where endo variables with max endo lag >= 2 have been replaced by auxiliary variables
+  /*!
+    \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
+    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+  */
+  virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
+
+  //! Constructs a new expression where exogenous variables with a lead have been replaced by auxiliary variables
+  /*!
+    \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
+    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+  */
+  virtual expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const = 0;
+  //! Constructs a new expression where exogenous variables with a lag have been replaced by auxiliary variables
+  /*!
+    \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
+    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+  */
+  virtual expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
+
+  //! Constructs a new expression where the expectation operator has been replaced by auxiliary variables
+  /*!
+    \param[in,out] subst_table Map used to store expressions that have already be substituted and their corresponding variable, in order to avoid creating two auxiliary variables for the same sub-expr.
+    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+    \param[in] partial_information_model Are we substituting in a partial information model?
+  */
+  virtual expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const = 0;
+
+  virtual expr_t decreaseLeadsLagsPredeterminedVariables() const = 0;
+
+  //! Constructs a new expression where forward variables (supposed to be at most in t+1) have been replaced by themselves at t, plus a new aux var representing their (time) differentiate
+  /*!
+    \param[in] subset variables to which to limit the transformation; transform
+    all fwrd vars if empty
+    \param[in,out] subst_table Map used to store mapping between a given
+    forward variable and the aux var that contains its differentiate
+    \param[out] neweqs Equations to be added to the model to match the creation of auxiliary variables.
+  */
+  virtual expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
+
+  //! Return true if the nodeID is a numerical constant equal to value and false otherwise
+  /*!
+    \param[in] value of the numerical constante
+    \param[out] the boolean equal to true if NodeId is a constant equal to value
+  */
+  virtual bool isNumConstNodeEqualTo(double value) const = 0;
+
+  //! Returns true if the expression contains one or several endogenous variable
+  virtual bool containsEndogenous() const = 0;
+
+  //! Returns true if the expression contains one or several exogenous variable
+  virtual bool containsExogenous() const = 0;
+
+  //! Returns the maximum number of nested diffs in the expression
+  virtual int countDiffs() const = 0;
+
+  //! Return true if the nodeID is a variable withe a type equal to type_arg, a specific variable id aqual to varfiable_id and a lag equal to lag_arg and false otherwise
+  /*!
+    \param[in] the type (type_arg), specifique variable id (variable_id and the lag (lag_arg)
+    \param[out] the boolean equal to true if NodeId is the variable
+  */
+  virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const = 0;
+
+  //! Replaces the Trend var with datatree.One
+  virtual expr_t replaceTrendVar() const = 0;
+
+  //! Constructs a new expression where the variable indicated by symb_id has been detrended
+  /*!
+    \param[in] symb_id indicating the variable to be detrended
+    \param[in] log_trend indicates if the trend is in log
+    \param[in] trend indicating the trend
+    \return the new binary op pointing to a detrended variable
+  */
+  virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const = 0;
+
+  //! Substitute adl operator
+  virtual expr_t substituteAdl() const = 0;
+
+  //! Substitute VarExpectation nodes
+  virtual expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const = 0;
+
+  //! Mark diff nodes to be substituted
+  /*! The various nodes that are equivalent up to a shift of leads/lags are
+    grouped together in the “nodes” table. See the comment above
+    lag_equivalence_table_t for more details. */
+  virtual void findDiffNodes(lag_equivalence_table_t &nodes) const = 0;
+  //! Substitute diff operator
+  virtual expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
+
+  //! Mark unary ops nodes to be substituted
+  /*! The various nodes that are equivalent up to a shift of leads/lags are
+    grouped together in the “nodes” table. See the comment above
+    lag_equivalence_table_t for more details. */
+  virtual void findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const = 0;
+  //! Substitute unary ops nodes
+  virtual expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const = 0;
+
+  //! Substitute pac_expectation operator
+  virtual expr_t substitutePacExpectation(const string &name, expr_t subexpr) = 0;
+
+  virtual int findTargetVariable(int lhs_symb_id) const = 0;
+
+  //! Add ExprNodes to the provided datatree
+  virtual expr_t clone(DataTree &datatree) const = 0;
+
+  //! Move a trend variable with lag/lead to time t by dividing/multiplying by its growth factor
+  virtual expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const = 0;
+
+  //! Returns true if the expression is in static form (no lead, no lag, no expectation, no STEADY_STATE)
+  virtual bool isInStaticForm() const = 0;
+
+  //! Substitute auxiliary variables by their expression in static model
+  virtual expr_t substituteStaticAuxiliaryVariable() const = 0;
+
+  //! Returns true if model_info_name is referenced by a VarExpectationNode
+  virtual bool isVarModelReferenced(const string &model_info_name) const = 0;
+
+  //! Matches a linear combination of variables, where scalars can be constant*parameter
+  /*! Returns a list of (variable_id, lag, param_id, constant)
+    corresponding to the terms in the expression. When there is no
+    parameter in a term, param_id == -1.
+    Can throw a MatchFailureException.
+    if `variable_obligatory_in_each_term` is true, then every part of the linear combination must contain a variable;
+    otherwise, if `variable_obligatory_in_each_term`, then any linear combination of constant/variable/param is matched
+  */
+  vector<tuple<int, int, int, double>> matchLinearCombinationOfVariables(bool variable_obligatory_in_each_term = true) const;
+
+  pair<int, vector<tuple<int, int, int, double>>> matchParamTimesLinearCombinationOfVariables() const;
+
+  //! Returns true if expression is of the form:
+  //! param * (endog op endog op ...) + param * (endog op endog op ...) + ...
+  virtual bool isParamTimesEndogExpr() const = 0;
+
+  //! Fills the EC matrix structure
+  void fillErrorCorrectionRow(int eqn, const vector<int> &nontarget_lhs, const vector<int> &target_lhs,
+                              map<tuple<int, int, int>, expr_t> &A0,
+                              map<tuple<int, int, int>, expr_t> &A0star) const;
+
+  //! Finds equations where a variable is equal to a constant
+  virtual void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const = 0;
+
+  //! Replaces variables found in findConstantEquations() with their constant values
+  virtual expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const = 0;
+
+  //! Returns true if PacExpectationNode encountered
+  virtual bool containsPacExpectation(const string &pac_model_name = "") const = 0;
+
+  //! Fills map
+  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const = 0;
+
+  //! Decompose an expression into its additive terms
+  /*! Returns a list of terms, with their sign (either 1 or -1, depending
+    on whether the terms appears with a plus or a minus).
+    The current_sign argument should normally be left to 1.
+    If current_sign == -1, then all signs are inverted */
+  virtual void decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign = 1) const;
+
+  // Matches an expression of the form variable*constant*parameter
+  /* Returns a tuple (variable_id, lag, param_id, constant).
+     The variable must be an exogenous or an endogenous.
+     The constant is optional (in which case 1 is returned); there can be
+     several multiplicative constants; constants can also appear at the
+     denominator (i.e. after a divide sign).
+     The parameter is optional (in which case param_id == -1).
+     If the expression is not of the expected form, throws a
+     MatchFailureException
+     if `variable_obligatory` is true, then the linear combination must contain a variable;
+     otherwise, if `variable_obligatory`, then an expression is matched that has any mix of constant/variable/param
+  */
+  tuple<int, int, int, double> matchVariableTimesConstantTimesParam(bool variable_obligatory = true) const;
+
+  //! Exception thrown by matchVariableTimesConstantTimesParam when matching fails
+  class MatchFailureException
+  {
+  public:
+    const string message;
+    MatchFailureException(string message_arg) : message{move(message_arg)}
+    {
+    };
+  };
 };
 
 //! Object used to compare two nodes (using their indexes)
 /*! Note that in this ordering, a subexpression is always less than the
-    expression from which it is extracted. This property is used extensively in
-    the temporary terms computations. */
+  expression from which it is extracted. This property is used extensively in
+  the temporary terms computations. */
 struct ExprNodeLess
 {
   bool
@@ -740,7 +744,7 @@ public:
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -767,7 +771,7 @@ public:
   int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substitutePacExpectation(const string & name, expr_t subexpr) override;
+  expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
@@ -812,18 +816,18 @@ public:
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   void computeTemporaryTerms(map<expr_t, int > &reference_count,
-                                     temporary_terms_t &temporary_terms,
-                                     map<expr_t, pair<int, int>> &first_occurence,
-                                     int Curr_block,
-                                     vector< vector<temporary_terms_t>> &v_temporary_terms,
-                                     int equation) const override;
+                             temporary_terms_t &temporary_terms,
+                             map<expr_t, pair<int, int>> &first_occurence,
+                             int Curr_block,
+                             vector< vector<temporary_terms_t>> &v_temporary_terms,
+                             int equation) const override;
   void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const override;
   double eval(const eval_context_t &eval_context) const noexcept(false) override;
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   SymbolType get_type() const;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -850,7 +854,7 @@ public:
   int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substitutePacExpectation(const string & name, expr_t subexpr) override;
+  expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
@@ -906,23 +910,23 @@ public:
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
   bool containsExternalFunction() const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
-                                           const temporary_terms_t &temporary_terms,
-                                           const temporary_terms_idxs_t &temporary_terms_idxs,
-                                           deriv_node_temp_terms_t &tef_terms) const override;
+                                   const temporary_terms_t &temporary_terms,
+                                   const temporary_terms_idxs_t &temporary_terms_idxs,
+                                   deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonExternalFunctionOutput(vector<string> &efout,
-                                               const temporary_terms_t &temporary_terms,
-                                               deriv_node_temp_terms_t &tef_terms,
-                                               bool isdynamic) const override;
+                                       const temporary_terms_t &temporary_terms,
+                                       deriv_node_temp_terms_t &tef_terms,
+                                       bool isdynamic) const override;
   void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                             bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                             const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                             deriv_node_temp_terms_t &tef_terms) const override;
+                                     bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                     const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                                     deriv_node_temp_terms_t &tef_terms) const override;
   void computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                     temporary_terms_t &temporary_terms,
-                                     map<expr_t, pair<int, int>> &first_occurence,
-                                     int Curr_block,
-                                     vector< vector<temporary_terms_t>> &v_temporary_terms,
-                                     int equation) const override;
+                             temporary_terms_t &temporary_terms,
+                             map<expr_t, pair<int, int>> &first_occurence,
+                             int Curr_block,
+                             vector< vector<temporary_terms_t>> &v_temporary_terms,
+                             int equation) const override;
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const override;
@@ -931,7 +935,7 @@ public:
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -961,7 +965,7 @@ public:
   int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substitutePacExpectation(const string & name, expr_t subexpr) override;
+  expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
@@ -1017,23 +1021,23 @@ public:
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
   bool containsExternalFunction() const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
-                                           const temporary_terms_t &temporary_terms,
-                                           const temporary_terms_idxs_t &temporary_terms_idxs,
-                                           deriv_node_temp_terms_t &tef_terms) const override;
+                                   const temporary_terms_t &temporary_terms,
+                                   const temporary_terms_idxs_t &temporary_terms_idxs,
+                                   deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonExternalFunctionOutput(vector<string> &efout,
-                                               const temporary_terms_t &temporary_terms,
-                                               deriv_node_temp_terms_t &tef_terms,
-                                               bool isdynamic) const override;
+                                       const temporary_terms_t &temporary_terms,
+                                       deriv_node_temp_terms_t &tef_terms,
+                                       bool isdynamic) const override;
   void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                             bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                             const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                             deriv_node_temp_terms_t &tef_terms) const override;
+                                     bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                     const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                                     deriv_node_temp_terms_t &tef_terms) const override;
   void computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                     temporary_terms_t &temporary_terms,
-                                     map<expr_t, pair<int, int>> &first_occurence,
-                                     int Curr_block,
-                                     vector< vector<temporary_terms_t>> &v_temporary_terms,
-                                     int equation) const override;
+                             temporary_terms_t &temporary_terms,
+                             map<expr_t, pair<int, int>> &first_occurence,
+                             int Curr_block,
+                             vector< vector<temporary_terms_t>> &v_temporary_terms,
+                             int equation) const override;
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const override;
@@ -1043,7 +1047,7 @@ public:
   expr_t Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -1055,7 +1059,7 @@ public:
   int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   int PacMaxLag(int lhs_symb_id) const override;
-  int getPacTargetSymbIdHelper(int lhs_symb_id, int undiff_lhs_symb_id, const set<pair<int, int>> & endogs) const;
+  int getPacTargetSymbIdHelper(int lhs_symb_id, int undiff_lhs_symb_id, const set<pair<int, int>> &endogs) const;
   int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
@@ -1075,7 +1079,7 @@ public:
   int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substitutePacExpectation(const string & name, expr_t subexpr) override;
+  expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
@@ -1149,23 +1153,23 @@ public:
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
   bool containsExternalFunction() const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
-                                           const temporary_terms_t &temporary_terms,
-                                           const temporary_terms_idxs_t &temporary_terms_idxs,
-                                           deriv_node_temp_terms_t &tef_terms) const override;
+                                   const temporary_terms_t &temporary_terms,
+                                   const temporary_terms_idxs_t &temporary_terms_idxs,
+                                   deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonExternalFunctionOutput(vector<string> &efout,
-                                               const temporary_terms_t &temporary_terms,
-                                               deriv_node_temp_terms_t &tef_terms,
-                                               bool isdynamic) const override;
+                                       const temporary_terms_t &temporary_terms,
+                                       deriv_node_temp_terms_t &tef_terms,
+                                       bool isdynamic) const override;
   void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                             bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                             const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                             deriv_node_temp_terms_t &tef_terms) const override;
+                                     bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                     const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                                     deriv_node_temp_terms_t &tef_terms) const override;
   void computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                     temporary_terms_t &temporary_terms,
-                                     map<expr_t, pair<int, int>> &first_occurence,
-                                     int Curr_block,
-                                     vector< vector<temporary_terms_t>> &v_temporary_terms,
-                                     int equation) const override;
+                             temporary_terms_t &temporary_terms,
+                             map<expr_t, pair<int, int>> &first_occurence,
+                             int Curr_block,
+                             vector< vector<temporary_terms_t>> &v_temporary_terms,
+                             int equation) const override;
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const override;
@@ -1174,7 +1178,7 @@ public:
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -1203,7 +1207,7 @@ public:
   int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substitutePacExpectation(const string & name, expr_t subexpr) override;
+  expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
@@ -1265,23 +1269,23 @@ public:
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic = true) const override = 0;
   bool containsExternalFunction() const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
-                                           const temporary_terms_t &temporary_terms,
-                                           const temporary_terms_idxs_t &temporary_terms_idxs,
-                                           deriv_node_temp_terms_t &tef_terms) const override = 0;
+                                   const temporary_terms_t &temporary_terms,
+                                   const temporary_terms_idxs_t &temporary_terms_idxs,
+                                   deriv_node_temp_terms_t &tef_terms) const override = 0;
   void writeJsonExternalFunctionOutput(vector<string> &efout,
-                                               const temporary_terms_t &temporary_terms,
-                                               deriv_node_temp_terms_t &tef_terms,
-                                               bool isdynamic = true) const override = 0;
+                                       const temporary_terms_t &temporary_terms,
+                                       deriv_node_temp_terms_t &tef_terms,
+                                       bool isdynamic = true) const override = 0;
   void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                             bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                             const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                             deriv_node_temp_terms_t &tef_terms) const override = 0;
+                                     bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                     const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                                     deriv_node_temp_terms_t &tef_terms) const override = 0;
   void computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                     temporary_terms_t &temporary_terms,
-                                     map<expr_t, pair<int, int>> &first_occurence,
-                                     int Curr_block,
-                                     vector< vector<temporary_terms_t>> &v_temporary_terms,
-                                     int equation) const override = 0;
+                             temporary_terms_t &temporary_terms,
+                             map<expr_t, pair<int, int>> &first_occurence,
+                             int Curr_block,
+                             vector< vector<temporary_terms_t>> &v_temporary_terms,
+                             int equation) const override = 0;
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const override;
@@ -1294,7 +1298,7 @@ public:
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override = 0;
   expr_t toStatic(DataTree &static_datatree) const override = 0;
   void computeXrefs(EquationInfo &ei) const override = 0;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -1321,7 +1325,7 @@ public:
   int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substitutePacExpectation(const string & name, expr_t subexpr) override;
+  expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const = 0;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
@@ -1361,23 +1365,23 @@ public:
   void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
-                                           const temporary_terms_t &temporary_terms,
-                                           const temporary_terms_idxs_t &temporary_terms_idxs,
-                                           deriv_node_temp_terms_t &tef_terms) const override;
+                                   const temporary_terms_t &temporary_terms,
+                                   const temporary_terms_idxs_t &temporary_terms_idxs,
+                                   deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonExternalFunctionOutput(vector<string> &efout,
-                                               const temporary_terms_t &temporary_terms,
-                                               deriv_node_temp_terms_t &tef_terms,
-                                               bool isdynamic) const override;
+                                       const temporary_terms_t &temporary_terms,
+                                       deriv_node_temp_terms_t &tef_terms,
+                                       bool isdynamic) const override;
   void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                             bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                             const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                             deriv_node_temp_terms_t &tef_terms) const override;
+                                     bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                     const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                                     deriv_node_temp_terms_t &tef_terms) const override;
   void computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                     temporary_terms_t &temporary_terms,
-                                     map<expr_t, pair<int, int>> &first_occurence,
-                                     int Curr_block,
-                                     vector< vector<temporary_terms_t>> &v_temporary_terms,
-                                     int equation) const override;
+                             temporary_terms_t &temporary_terms,
+                             map<expr_t, pair<int, int>> &first_occurence,
+                             int Curr_block,
+                             vector< vector<temporary_terms_t>> &v_temporary_terms,
+                             int equation) const override;
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
@@ -1399,30 +1403,30 @@ public:
                                  const vector<expr_t> &arguments_arg,
                                  int inputIndex_arg);
   void computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                     temporary_terms_t &temporary_terms,
-                                     map<expr_t, pair<int, int>> &first_occurence,
-                                     int Curr_block,
-                                     vector< vector<temporary_terms_t>> &v_temporary_terms,
-                                     int equation) const override;
+                             temporary_terms_t &temporary_terms,
+                             map<expr_t, pair<int, int>> &first_occurence,
+                             int Curr_block,
+                             vector< vector<temporary_terms_t>> &v_temporary_terms,
+                             int equation) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
   void compile(ostream &CompileCode, unsigned int &instruction_number,
-                       bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                       const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                       const deriv_node_temp_terms_t &tef_terms) const override;
+               bool lhs_rhs, const temporary_terms_t &temporary_terms,
+               const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+               const deriv_node_temp_terms_t &tef_terms) const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
-                                           const temporary_terms_t &temporary_terms,
-                                           const temporary_terms_idxs_t &temporary_terms_idxs,
-                                           deriv_node_temp_terms_t &tef_terms) const override;
+                                   const temporary_terms_t &temporary_terms,
+                                   const temporary_terms_idxs_t &temporary_terms_idxs,
+                                   deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonExternalFunctionOutput(vector<string> &efout,
-                                               const temporary_terms_t &temporary_terms,
-                                               deriv_node_temp_terms_t &tef_terms,
-                                               bool isdynamic) const override;
+                                       const temporary_terms_t &temporary_terms,
+                                       deriv_node_temp_terms_t &tef_terms,
+                                       bool isdynamic) const override;
   void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                             bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                             const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                             deriv_node_temp_terms_t &tef_terms) const override;
+                                     bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                     const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                                     deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const override;
@@ -1445,30 +1449,30 @@ public:
                                   int inputIndex1_arg,
                                   int inputIndex2_arg);
   void computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                     temporary_terms_t &temporary_terms,
-                                     map<expr_t, pair<int, int>> &first_occurence,
-                                     int Curr_block,
-                                     vector< vector<temporary_terms_t>> &v_temporary_terms,
-                                     int equation) const override;
+                             temporary_terms_t &temporary_terms,
+                             map<expr_t, pair<int, int>> &first_occurence,
+                             int Curr_block,
+                             vector< vector<temporary_terms_t>> &v_temporary_terms,
+                             int equation) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
   void compile(ostream &CompileCode, unsigned int &instruction_number,
-                       bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                       const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                       const deriv_node_temp_terms_t &tef_terms) const override;
+               bool lhs_rhs, const temporary_terms_t &temporary_terms,
+               const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+               const deriv_node_temp_terms_t &tef_terms) const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
-                                           const temporary_terms_t &temporary_terms,
-                                           const temporary_terms_idxs_t &temporary_terms_idxs,
-                                           deriv_node_temp_terms_t &tef_terms) const override;
+                                   const temporary_terms_t &temporary_terms,
+                                   const temporary_terms_idxs_t &temporary_terms_idxs,
+                                   deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonExternalFunctionOutput(vector<string> &efout,
-                                               const temporary_terms_t &temporary_terms,
-                                               deriv_node_temp_terms_t &tef_terms,
-                                               bool isdynamic) const override;
+                                       const temporary_terms_t &temporary_terms,
+                                       deriv_node_temp_terms_t &tef_terms,
+                                       bool isdynamic) const override;
   void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                             bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                             const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                                             deriv_node_temp_terms_t &tef_terms) const override;
+                                     bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                     const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+                                     deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const override;
@@ -1486,11 +1490,11 @@ public:
                              bool is_matlab) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                     temporary_terms_t &temporary_terms,
-                                     map<expr_t, pair<int, int>> &first_occurence,
-                                     int Curr_block,
-                                     vector< vector<temporary_terms_t>> &v_temporary_terms,
-                                     int equation) const override;
+                             temporary_terms_t &temporary_terms,
+                             map<expr_t, pair<int, int>> &first_occurence,
+                             int Curr_block,
+                             vector< vector<temporary_terms_t>> &v_temporary_terms,
+                             int equation) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   expr_t clone(DataTree &datatree) const override;
   int maxEndoLead() const override;
@@ -1524,12 +1528,12 @@ public:
   int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substitutePacExpectation(const string & name, expr_t subexpr) override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
+  expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const override;
   void compile(ostream &CompileCode, unsigned int &instruction_number,
-                       bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                       const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                       const deriv_node_temp_terms_t &tef_terms) const override;
+               bool lhs_rhs, const temporary_terms_t &temporary_terms,
+               const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+               const deriv_node_temp_terms_t &tef_terms) const override;
   void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const override;
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
@@ -1567,11 +1571,11 @@ public:
                              bool is_matlab) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void computeTemporaryTerms(map<expr_t, int> &reference_count,
-                                     temporary_terms_t &temporary_terms,
-                                     map<expr_t, pair<int, int>> &first_occurence,
-                                     int Curr_block,
-                                     vector< vector<temporary_terms_t>> &v_temporary_terms,
-                                     int equation) const override;
+                             temporary_terms_t &temporary_terms,
+                             map<expr_t, pair<int, int>> &first_occurence,
+                             int Curr_block,
+                             vector< vector<temporary_terms_t>> &v_temporary_terms,
+                             int equation) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   expr_t clone(DataTree &datatree) const override;
   int maxEndoLead() const override;
@@ -1605,12 +1609,12 @@ public:
   int findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substitutePacExpectation(const string & name, expr_t subexpr) override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>>  &List_of_Op_RHS) const override;
+  expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
+  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const override;
   void compile(ostream &CompileCode, unsigned int &instruction_number,
-                       bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                       const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
-                       const deriv_node_temp_terms_t &tef_terms) const override;
+               bool lhs_rhs, const temporary_terms_t &temporary_terms,
+               const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
+               const deriv_node_temp_terms_t &tef_terms) const override;
   void collectTemporary_terms(const temporary_terms_t &temporary_terms, temporary_terms_inuse_t &temporary_terms_inuse, int Curr_Block) const override;
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
