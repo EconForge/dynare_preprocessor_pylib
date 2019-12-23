@@ -46,9 +46,7 @@ namespace macro
   class TokenizerFlex : public TokenizerFlexLexer
   {
   public:
-    TokenizerFlex(istream *in) : TokenizerFlexLexer{in}
-    {
-    }
+    TokenizerFlex(istream *in) : TokenizerFlexLexer{in} { }
     TokenizerFlex(const TokenizerFlex &) = delete;
     TokenizerFlex(TokenizerFlex &&) = delete;
     TokenizerFlex &operator=(const TokenizerFlex &) = delete;
@@ -71,9 +69,7 @@ namespace macro
     stack<vector<DirectivePtr>> directive_stack;
   public:
     Driver(Environment &env_arg, bool no_line_macro_arg) :
-      env{env_arg}, no_line_macro(no_line_macro_arg)
-    {
-    }
+      env{env_arg}, no_line_macro(no_line_macro_arg) { }
     Driver(const Driver &) = delete;
     Driver(Driver &&) = delete;
     Driver &operator=(const Driver &) = delete;

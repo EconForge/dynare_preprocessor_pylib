@@ -34,12 +34,8 @@ namespace macro
     map<string, ExpressionPtr> variables;
     map<string, tuple<FunctionPtr, ExpressionPtr>> functions;
   public:
-    Environment() : parent{nullptr}
-    {
-    }
-    Environment(const Environment *parent_arg) : parent{parent_arg}
-    {
-    }
+    Environment() : parent{nullptr} { }
+    Environment(const Environment *parent_arg) : parent{parent_arg} { }
     void define(VariablePtr var, ExpressionPtr value);
     void define(FunctionPtr func, ExpressionPtr value);
     ExpressionPtr getVariable(const string &name) const;
@@ -47,24 +43,12 @@ namespace macro
     codes::BaseType getType(const string &name);
     bool isVariableDefined(const string &name) const noexcept;
     bool isFunctionDefined(const string &name) const noexcept;
-    inline bool
-    isSymbolDefined(const string &name) const noexcept
-    {
-      return isVariableDefined(name) || isFunctionDefined(name);
-    }
+    inline bool isSymbolDefined(const string &name) const noexcept { return isVariableDefined(name) || isFunctionDefined(name); }
     void print(ostream &output, const vector<string> &vars, int line = -1, bool save = false) const;
     void printVariable(ostream &output, const string &name, int line, bool save) const;
     void printFunction(ostream &output, const tuple<FunctionPtr, ExpressionPtr> &function, int line, bool save) const;
-    inline size_t
-    size() const noexcept
-    {
-      return variables.size() + functions.size();
-    }
-    inline const Environment *
-    getGlobalEnv() const noexcept
-    {
-      return parent == nullptr ? this : parent->getGlobalEnv();
-    }
+    inline size_t size() const noexcept { return variables.size() + functions.size(); }
+    inline const Environment *getGlobalEnv() const noexcept { return parent == nullptr ? this : parent->getGlobalEnv(); }
   };
 }
 #endif

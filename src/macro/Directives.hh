@@ -30,12 +30,12 @@ namespace macro
   {
     // A Parent class just for clarity
   public:
-    Directive(Environment &env_arg, Tokenizer::location location_arg) : Node(env_arg, move(location_arg))
-    {
-    }
+    Directive(Environment &env_arg, Tokenizer::location location_arg) :
+      Node(env_arg, move(location_arg)) { }
     // Directives can be interpreted
     virtual void interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths) = 0;
   };
+
 
   class TextNode : public Directive
   {
@@ -46,15 +46,10 @@ namespace macro
     const string text;
   public:
     TextNode(string text_arg, Environment &env_arg, Tokenizer::location location_arg) :
-      Directive(env_arg, move(location_arg)), text{move(text_arg)}
-    {
-    }
-    inline void
-    interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths) override
-    {
-      output << text;
-    }
+      Directive(env_arg, move(location_arg)), text{move(text_arg)} { }
+    inline void interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths) override { output << text; }
   };
+
 
   class Eval : public Directive
   {
@@ -65,11 +60,10 @@ namespace macro
     const ExpressionPtr expr;
   public:
     Eval(ExpressionPtr expr_arg, Environment &env_arg, Tokenizer::location location_arg) :
-      Directive(env_arg, move(location_arg)), expr{move(expr_arg)}
-    {
-    }
+      Directive(env_arg, move(location_arg)), expr{move(expr_arg)} { }
     void interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths) override;
   };
+
 
   class Include : public Directive
   {
@@ -77,11 +71,10 @@ namespace macro
     const ExpressionPtr expr;
   public:
     Include(ExpressionPtr expr_arg, Environment &env_arg, Tokenizer::location location_arg) :
-      Directive(env_arg, move(location_arg)), expr{move(expr_arg)}
-    {
-    }
+      Directive(env_arg, move(location_arg)), expr{move(expr_arg)} { }
     void interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths) override;
   };
+
 
   class IncludePath : public Directive
   {
@@ -89,11 +82,10 @@ namespace macro
     const ExpressionPtr expr;
   public:
     IncludePath(ExpressionPtr expr_arg, Environment &env_arg, Tokenizer::location location_arg) :
-      Directive(env_arg, move(location_arg)), expr{move(expr_arg)}
-    {
-    }
+      Directive(env_arg, move(location_arg)), expr{move(expr_arg)} { }
     void interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths) override;
   };
+
 
   class Define : public Directive
   {
@@ -105,17 +97,14 @@ namespace macro
     Define(VariablePtr var_arg,
            ExpressionPtr value_arg,
            Environment &env_arg, Tokenizer::location location_arg) :
-      Directive(env_arg, move(location_arg)), var{move(var_arg)}, value{move(value_arg)}
-    {
-    }
+      Directive(env_arg, move(location_arg)), var{move(var_arg)}, value{move(value_arg)} { }
     Define(FunctionPtr func_arg,
            ExpressionPtr value_arg,
            Environment &env_arg, Tokenizer::location location_arg) :
-      Directive(env_arg, move(location_arg)), func{move(func_arg)}, value{move(value_arg)}
-    {
-    }
+      Directive(env_arg, move(location_arg)), func{move(func_arg)}, value{move(value_arg)} { }
     void interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths) override;
   };
+
 
   class Echo : public Directive
   {
@@ -124,11 +113,10 @@ namespace macro
   public:
     Echo(ExpressionPtr expr_arg,
          Environment &env_arg, Tokenizer::location location_arg) :
-      Directive(env_arg, move(location_arg)), expr{move(expr_arg)}
-    {
-    }
+      Directive(env_arg, move(location_arg)), expr{move(expr_arg)} { }
     void interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths) override;
   };
+
 
   class Error : public Directive
   {
@@ -137,11 +125,10 @@ namespace macro
   public:
     Error(ExpressionPtr expr_arg,
           Environment &env_arg, Tokenizer::location location_arg) :
-      Directive(env_arg, move(location_arg)), expr{move(expr_arg)}
-    {
-    }
+      Directive(env_arg, move(location_arg)), expr{move(expr_arg)} { }
     void interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths) override;
   };
+
 
   class EchoMacroVars : public Directive
   {
@@ -151,16 +138,13 @@ namespace macro
   public:
     EchoMacroVars(bool save_arg,
                   Environment &env_arg, Tokenizer::location location_arg) :
-      Directive(env_arg, move(location_arg)), save{save_arg}
-    {
-    }
+      Directive(env_arg, move(location_arg)), save{save_arg} { }
     EchoMacroVars(bool save_arg, vector<string> vars_arg,
                   Environment &env_arg, Tokenizer::location location_arg) :
-      Directive(env_arg, move(location_arg)), save{save_arg}, vars{move(vars_arg)}
-    {
-    }
+      Directive(env_arg, move(location_arg)), save{save_arg}, vars{move(vars_arg)} { }
     void interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths) override;
   };
+
 
   class For : public Directive
   {
@@ -174,11 +158,10 @@ namespace macro
         vector<DirectivePtr> statements_arg,
         Environment &env_arg, Tokenizer::location location_arg) :
       Directive(env_arg, move(location_arg)), index_vec{move(index_vec_arg)},
-      index_vals{move(index_vals_arg)}, statements{move(statements_arg)}
-    {
-    }
+      index_vals{move(index_vals_arg)}, statements{move(statements_arg)} { }
     void interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths) override;
   };
+
 
   class If : public Directive
   {
@@ -195,33 +178,29 @@ namespace macro
   public:
     If(vector<pair<ExpressionPtr, vector<DirectivePtr>>> expr_and_body_arg,
        Environment &env_arg, Tokenizer::location location_arg) :
-      Directive(env_arg, move(location_arg)), expr_and_body{move(expr_and_body_arg)}
-    {
-    }
+      Directive(env_arg, move(location_arg)), expr_and_body{move(expr_and_body_arg)} { }
     void interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths) override;
   protected:
     void interpretBody(const vector<DirectivePtr> &body, ostream &output, bool no_line_macro, vector<filesystem::path> &paths);
   };
+
 
   class Ifdef : public If
   {
   public:
     Ifdef(vector<pair<ExpressionPtr, vector<DirectivePtr>>> expr_and_body_arg,
           Environment &env_arg, Tokenizer::location location_arg) :
-      If(move(expr_and_body_arg), env_arg, move(location_arg))
-    {
-    }
+      If(move(expr_and_body_arg), env_arg, move(location_arg)) { }
     void interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths) override;
   };
+
 
   class Ifndef : public If
   {
   public:
     Ifndef(vector<pair<ExpressionPtr, vector<DirectivePtr>>> expr_and_body_arg,
            Environment &env_arg, Tokenizer::location location_arg) :
-      If(move(expr_and_body_arg), env_arg, move(location_arg))
-    {
-    }
+      If(move(expr_and_body_arg), env_arg, move(location_arg)) { }
     void interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths) override;
   };
 }
