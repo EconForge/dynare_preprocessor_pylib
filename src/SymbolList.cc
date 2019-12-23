@@ -34,10 +34,21 @@ SymbolList::addSymbol(const string &symbol)
 }
 
 void
-SymbolList::checkPass(WarningConsolidation &warnings) const noexcept(false)
+SymbolList::checkPass(WarningConsolidation &warnings,
+                      const vector<SymbolType> &types) const noexcept(false)
 {
+  if (types.empty())
+    return;
+
   smatch m;
-  regex re("^(AUX_EXPECT_|AUX_ENDO_|MULT_)");
+  string regex_str = "AUX_EXPECT_|MULT_";
+  for (auto type : types)
+    if (type == SymbolType::endogenous)
+      {
+        regex_str += "|AUX_ENDO_";
+        break;
+      }
+  regex re("^(" + regex_str +")");
   for (const auto &symbol : symbols)
     {
       if (!symbol_table->exists(symbol))
@@ -53,8 +64,64 @@ SymbolList::checkPass(WarningConsolidation &warnings) const noexcept(false)
             throw SymbolListException{"Variable " + symbol +  " was not declared."};
         }
 
-      if (symbol_table->getType(symbol) != SymbolType::endogenous)
-        throw SymbolListException{"Variable " + symbol +  " is not endogenous."};
+      bool type_found = false;
+      for (auto type : types)
+        if (symbol_table->getType(symbol) == type)
+          {
+            type_found = true;
+            break;
+          }
+      if (!type_found)
+        {
+          string valid_types;
+          for (auto type : types)
+            switch(type)
+              {
+              case SymbolType::endogenous:
+                valid_types += "endogenous, ";
+                break;
+              case SymbolType::exogenous:
+                valid_types += "exogenous, ";
+                break;
+              case SymbolType::epilogue:
+                valid_types += "epilogue, ";
+                break;
+              case SymbolType::parameter:
+                valid_types += "parameter, ";
+                break;
+              case SymbolType::exogenousDet:
+                valid_types += "exogenousDet, ";
+                break;
+              case SymbolType::trend:
+                valid_types += "trend, ";
+                break;
+              case SymbolType::logTrend:
+                valid_types += "logTrend, ";
+                break;
+              case SymbolType::modFileLocalVariable:
+                valid_types += "modFileLocalVariable, ";
+                break;
+              case SymbolType::modelLocalVariable:
+                valid_types += "modelLocalVariable, ";
+                break;
+              case SymbolType::externalFunction:
+                valid_types += "externalFunction, ";
+                break;
+              case SymbolType::statementDeclaredVariable:
+                valid_types += "statementDeclaredVariable, ";
+                break;
+              case SymbolType::unusedEndogenous:
+                valid_types += "unusedEndogenous, ";
+                break;
+              case SymbolType::endogenousVAR:
+                valid_types += "endogenousVAR, ";
+                break;
+              case SymbolType::excludedVariable:
+                valid_types += "excludedVariable, ";
+              }
+          valid_types = valid_types.erase(valid_types.size()-2, 2);
+          throw SymbolListException{"Variable " + symbol +  " is not one of {" + valid_types + "}"};
+        }
     }
 }
 

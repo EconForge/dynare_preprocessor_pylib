@@ -54,7 +54,7 @@ public:
   //! Removed duplicate symbols
   void removeDuplicates(const string &dynare_command, WarningConsolidation &warnings);
   //! Check symbols to ensure variables have been declared and are endogenous
-  void checkPass(WarningConsolidation &warnings) const noexcept(false);
+  void checkPass(WarningConsolidation &warnings, const vector<SymbolType> &types) const noexcept(false);
   //! Output content in Matlab format
   /*! Creates a string array for Matlab, stored in variable "varname" */
   void writeOutput(const string &varname, ostream &output) const;
