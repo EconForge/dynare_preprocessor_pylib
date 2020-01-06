@@ -5517,12 +5517,24 @@ DynamicModel::writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputTyp
 }
 
 void
+DynamicModel::clearEquations()
+{
+  equations.clear();
+  equations_lineno.clear();
+  equation_tags.clear();
+  equation_tags_xref.clear();
+}
+
+void
 DynamicModel::replaceMyEquations(DynamicModel &dynamic_model) const
 {
-  dynamic_model.equations.clear();
+  dynamic_model.clearEquations();
+
   for (size_t i = 0; i < equations.size(); i++)
-    dynamic_model.addEquation(equations[i]->clone(dynamic_model),
-                              equations_lineno[i]);
+    dynamic_model.addEquation(equations[i]->clone(dynamic_model), equations_lineno[i]);
+
+  dynamic_model.equation_tags = equation_tags;
+  dynamic_model.equation_tags_xref = equation_tags_xref;
 }
 
 void
@@ -5539,9 +5551,9 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
     }
   cout << "Ramsey Problem: added " << i << " Multipliers." << endl;
 
-  // Add Planner Objective to equations to include in computeDerivIDs
+  // Add Planner Objective to equations so that it appears in Lagrangian
   assert(static_model.equations.size() == 1);
-  addEquation(static_model.equations[0]->clone(*this), static_model.equations_lineno[0]);
+  addEquation(static_model.equations[0]->clone(*this), -1);
 
   // Get max endo lead and max endo lag
   set<pair<int, int>> dynvars;
@@ -5550,9 +5562,8 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
   for (auto &equation : equations)
     equation->collectDynamicVariables(SymbolType::endogenous, dynvars);
 
-  for (const auto &dynvar : dynvars)
+  for (const auto &[symb_id, lag] : dynvars)
     {
-      int lag = dynvar.second;
       if (max_eq_lead < lag)
         max_eq_lead = lag;
       else if (-max_eq_lag > lag)
@@ -5584,21 +5595,47 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
                                       equations[i]->getNonZeroPartofEquation()->decreaseLeadsLags(lag)), lagrangian);
       }
 
-  equations.clear();
+  // Save line numbers and tags, see below
+  auto old_equations_lineno = equations_lineno;
+  auto old_equation_tags = equation_tags;
+
+  // Prepare derivation of the Lagrangian
+  clearEquations();
   addEquation(AddEqual(lagrangian, Zero), -1);
   computeDerivIDs();
 
-  //Compute derivatives and overwrite equations
+  /* Compute Lagrangian derivatives.
+     Also restore line numbers and tags for FOCs w.r.t. a Lagrange multiplier
+     (i.e. a FOC identical to an equation of the original model) */
   vector<expr_t> neweqs;
-  for (auto &it : deriv_id_table)
-    // For all endogenous variables with zero lag
-    if (symbol_table.getType(it.first.first) == SymbolType::endogenous && it.first.second == 0)
-      neweqs.push_back(AddEqual(equations[0]->getNonZeroPartofEquation()->getDerivative(it.second), Zero));
+  vector<int> neweqs_lineno;
+  map<int, vector<pair<string, string>>> neweqs_tags;
+  for (auto &[symb_id_and_lag, deriv_id] : deriv_id_table)
+    {
+      auto &[symb_id, lag] = symb_id_and_lag;
+      if (symbol_table.getType(symb_id) == SymbolType::endogenous && lag == 0)
+        {
+          neweqs.push_back(AddEqual(equations[0]->getNonZeroPartofEquation()->getDerivative(deriv_id), Zero));
+          if (int i = symbol_table.getEquationNumberForMultiplier(symb_id);
+              i != -1)
+            {
+              // This is a derivative w.r.t. a Lagrange multiplier
+              neweqs_lineno.push_back(old_equations_lineno[i]);
+              vector<pair<string, string>> tags;
+              for (auto &[j, tagpair] : old_equation_tags)
+                if (j == i)
+                  tags.emplace_back(tagpair);
+              neweqs_tags[neweqs.size()-1] = tags;
+            }
+          else
+            neweqs_lineno.push_back(-1);
+        }
+    }
 
-  // Add new equations
-  equations.clear();
-  for (auto &neweq : neweqs)
-    addEquation(neweq, -1);
+  // Overwrite equations with the Lagrangian derivatives
+  clearEquations();
+  for (size_t i = 0; i < neweqs.size(); i++)
+    addEquation(neweqs[i], neweqs_lineno[i], neweqs_tags[i]);
 }
 
 void

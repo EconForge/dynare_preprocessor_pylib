@@ -412,6 +412,8 @@ public:
      repeatedly call getOrigSymbIDForAuxVar() until an original
      (non-auxiliary) variable is found. */
   int getUltimateOrigSymbID(int symb_id) const;
+  //! If this is a Lagrange multiplier, return its associated equation number; otherwise return -1
+  int getEquationNumberForMultiplier(int symb_id) const;
 };
 
 inline void

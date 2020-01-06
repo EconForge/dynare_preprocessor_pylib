@@ -77,6 +77,8 @@ protected:
    * The following structures keep track of the model equations and must all be updated
    * when adding or removing an equation. Hence, if a new parallel structure is added
    * in the future, it must be maintained whereever these structures are updated
+   * See in particular methods clearEquations(), replaceMyEquations() and
+   * computeRamseyPolicyFOCs() of DynamicModel class.
    * NB: This message added with the introduction of the `exclude_eqs` option, hence
    *     that's a place to update future structures.
    */
