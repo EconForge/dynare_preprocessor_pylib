@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2019 Dynare Team
+ * Copyright © 2007-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -976,7 +976,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     {
       if (output_type == ExprNodeOutputType::latexDynamicSteadyStateOperator)
         output << R"(\bar)";
-      output << "{" << datatree.symbol_table.getTeXName(symb_id);
+      output << "{" << datatree.symbol_table.getTeXName(symb_id) << "}";
       if (output_type == ExprNodeOutputType::latexDynamicModel
           && (type == SymbolType::endogenous || type == SymbolType::exogenous || type == SymbolType::exogenousDet || type == SymbolType::modelLocalVariable || type == SymbolType::trend || type == SymbolType::logTrend))
         {
@@ -989,7 +989,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             }
           output << "}";
         }
-      output << "}";
       return;
     }
 
