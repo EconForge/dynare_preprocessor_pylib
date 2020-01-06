@@ -2153,7 +2153,8 @@ DynaSaveStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolida
 {
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous };
+      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous,
+                                                         SymbolType::exogenous };
       symbol_list.checkPass(warnings, valid_symbol_list_types);
     }
   catch (SymbolList::SymbolListException &e)
@@ -2196,7 +2197,8 @@ DynaTypeStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolida
 {
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous };
+      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous,
+                                                         SymbolType::exogenous };
       symbol_list.checkPass(warnings, valid_symbol_list_types);
     }
   catch (SymbolList::SymbolListException &e)
