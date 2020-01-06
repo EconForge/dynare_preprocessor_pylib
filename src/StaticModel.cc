@@ -164,7 +164,7 @@ StaticModel::StaticModel(const DynamicModel &m) :
       // Detect if equation is marked [dynamic]
       bool is_dynamic_only = false;
       vector<pair<string, string>> eq_tags;
-      for (const auto & [tagged_eq, tag_pair] : equation_tags)
+      for (const auto & [tagged_eq, tag_pair] : m.equation_tags)
         if (tagged_eq == i)
           {
             eq_tags.push_back(tag_pair);
