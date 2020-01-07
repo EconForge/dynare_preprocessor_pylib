@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1870,7 +1870,7 @@ ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_b
               }
 
           if (wrote_eq_tag)
-            content_output << "]";
+            content_output << "]" << endl;
         }
 
       content_output << R"(\begin{dmath})" << endl;
