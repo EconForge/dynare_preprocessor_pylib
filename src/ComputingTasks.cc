@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -646,8 +646,7 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -700,8 +699,7 @@ ForecastStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolida
 {
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -991,8 +989,7 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -1096,8 +1093,7 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
 
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -1218,8 +1214,7 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -1328,9 +1323,7 @@ RplotStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidatio
 {
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous,
-                                                         SymbolType::exogenous};
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous, SymbolType::exogenous});
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -1910,8 +1903,7 @@ OsrParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
 
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::parameter };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::parameter });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -2026,8 +2018,7 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation 
 
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -2153,9 +2144,7 @@ DynaSaveStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolida
 {
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous,
-                                                         SymbolType::exogenous };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous, SymbolType::exogenous });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -2197,9 +2186,7 @@ DynaTypeStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolida
 {
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous,
-                                                         SymbolType::exogenous };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous, SymbolType::exogenous });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -2598,8 +2585,7 @@ MSSBVARIrfStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -2876,8 +2862,7 @@ ShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, Warnin
 
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -2927,8 +2912,7 @@ RealtimeShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct
 
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -2974,9 +2958,7 @@ PlotShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, Wa
 {
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous,
-                                                         SymbolType::epilogue };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous, SymbolType::epilogue });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -3027,8 +3009,7 @@ InitialConditionDecompositionStatement::checkPass(ModFileStructure &mod_file_str
 
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -3074,8 +3055,7 @@ SqueezeShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct,
 {
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -3154,8 +3134,7 @@ PlotConditionalForecastStatement::checkPass(ModFileStructure &mod_file_struct,
 {
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -4729,8 +4708,7 @@ CalibSmootherStatement::checkPass(ModFileStructure &mod_file_struct, WarningCons
   mod_file_struct.calib_smoother_present = true;
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -4862,8 +4840,7 @@ GMMEstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningCons
 {
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous });
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -4910,8 +4887,7 @@ SMMEstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningCons
 {
   try
     {
-      const vector<SymbolType> valid_symbol_list_types { SymbolType::endogenous };
-      symbol_list.checkPass(warnings, valid_symbol_list_types);
+      symbol_list.checkPass(warnings, { SymbolType::endogenous });
     }
   catch (SymbolList::SymbolListException &e)
     {
