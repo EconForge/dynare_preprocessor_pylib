@@ -33,6 +33,8 @@
 # include <mach-o/dyld.h>
 #endif
 
+#include <regex>
+
 using namespace MFS;
 
 void
@@ -1852,6 +1854,20 @@ ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_b
       content_output << "% Equation " << eq + 1 << endl;
       if (write_equation_tags)
         {
+          auto escape_special_latex_symbols
+            = [](string str)
+              {
+                const regex special_latex_chars (R"([&%$#_{}])");
+                const regex backslash (R"(\\)");
+                const regex tilde (R"(~)");
+                const regex carrot (R"(\^)");
+                const regex textbackslash (R"(\\textbackslash)");
+                str = regex_replace(str, backslash, R"(\textbackslash)");
+                str = regex_replace(str, special_latex_chars, R"(\$&)");
+                str = regex_replace(str, carrot, R"(\^{})");
+                str = regex_replace(str, tilde, R"(\textasciitilde{})");
+                return regex_replace(str, textbackslash, R"(\textbackslash{})");
+              };
           bool wrote_eq_tag = false;
           for (const auto & [tagged_eq, tag_pair] : equation_tags)
             if (tagged_eq == eq)
@@ -1861,10 +1877,10 @@ ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_b
                 else
                   content_output << ", ";
 
-                content_output << tag_pair.first;
+                content_output << escape_special_latex_symbols(tag_pair.first);
 
                 if (!(tag_pair.second.empty()))
-                  content_output << "= `" << tag_pair.second << "'";
+                  content_output << "= `" << escape_special_latex_symbols(tag_pair.second) << "'";
 
                 wrote_eq_tag = true;
               }
