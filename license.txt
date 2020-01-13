@@ -1,15 +1,24 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: Dynare-preprocessor
 Upstream-Contact: Dynare Team, whose members in 2020 are:
-                  Stéphane Adjemian <stephane.adjemian@univ-lemans.fr>
-                  Houtan Bastani <houtan@dynare.org>
-                  Michel Juillard <michel.juillard@mjui.fr>
-                  Frédéric Karamé <frederic.karame@univ-lemans.fr>
-                  Junior Maih <junior.maih@gmail.com>
-                  Ferhat Mihoubi <fmihoubi@univ-evry.fr>
-                  Johannes Pfeifer <jpfeifer@gmx.de>
-                  Marco Ratto <marco.ratto@ec.europa.eu>
-                  Sébastien Villemot <sebastien@dynare.org>
+                  - Stéphane Adjemian <stephane.adjemian@univ-lemans.fr>
+                  - Houtan Bastani <houtan@dynare.org>
+                  - Michel Juillard <michel.juillard@mjui.fr>
+                  - Frédéric Karamé <frederic.karame@univ-lemans.fr>
+                  - Dóra Kocsis <dora@dynare.org>
+                  - Junior Maih <junior.maih@gmail.com>
+                  - Ferhat Mihoubi <fmihoubi@univ-evry.fr>
+                  - Willi Mutschler <willi@mutschler.eu>
+                  - Johannes Pfeifer <jpfeifer@gmx.de>
+                  - Marco Ratto <marco.ratto@ec.europa.eu>
+                  - Sébastien Villemot <sebastien@dynare.org>
+                  Former Dynare Team members include:
+                  - Abdeljabar Benzougar
+                  - Alejandro Buesa
+                  - Fabrice Collard
+                  - Assia Ezzeroug
+                  - Stéphane Lhuissier
+                  - George Perendia
 Source: https://www.dynare.org
 
 Files: *
