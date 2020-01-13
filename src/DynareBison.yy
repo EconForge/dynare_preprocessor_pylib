@@ -2992,6 +2992,8 @@ calib_smoother_option : o_filtered_vars
                       | o_diffuse_filter
                       | o_smoothed_state_uncertainty
                       | o_parameter_set
+                      | o_xls_sheet
+                      | o_xls_range
                       ;
 
 generate_irfs : GENERATE_IRFS ';' END ';'
