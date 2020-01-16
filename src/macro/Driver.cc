@@ -56,7 +56,7 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
               // If the input is an array. Issue #1578
               command_line_defines_with_endl << "@#define " << var << " = " << val << endl;
             else
-              command_line_defines_with_endl << "@#define " << var << R"( = ")" << val << '"' << endl;
+              command_line_defines_with_endl << "@#define " << var << R"( = ")" << val << R"(")" << endl;
           }
       Driver m(env, true);
       istream is(command_line_defines_with_endl.rdbuf());
