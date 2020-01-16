@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Dynare Team
+ * Copyright © 2019-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -18,6 +18,7 @@
  */
 
 #include "Driver.hh"
+#include <regex>
 
 using namespace macro;
 
@@ -40,7 +41,14 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
             if (pos == val.size())
               command_line_defines_with_endl << "@#define " << var << " = " << val << endl;
             else
-              command_line_defines_with_endl << "@#define " << var << R"( = ")" << val << R"(")" << endl;
+              {
+                // The following regex matches the range syntax: double:double(:double)?
+                regex colon_separated_doubles(R"(((((\d*\.\d+)|(\d+\.))([ed][-+]?\d+)?)|(\d+([ed][-+]?\d+)?)):((((\d*\.\d+)|(\d+\.))([ed][-+]?\d+)?)|(\d+([ed][-+]?\d+)?))(:((((\d*\.\d+)|(\d+\.))([ed][-+]?\d+)?)|(\d+([ed][-+]?\d+)?)))?)");
+                if (regex_match(val, colon_separated_doubles))
+                  command_line_defines_with_endl << "@#define " << var << " = " << val << endl;
+                else
+                  command_line_defines_with_endl << "@#define " << var << R"( = ")" << val << R"(")" << endl;
+              }
           }
         catch (const invalid_argument &)
           {
