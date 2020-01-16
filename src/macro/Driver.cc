@@ -35,8 +35,12 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
       for (const auto & [var, val] : defines)
         try
           {
-            stoi(val);
-            command_line_defines_with_endl << "@#define " << var << " = " << val << endl;
+            string::size_type pos;
+            stod(val, &pos);
+            if (pos == val.size())
+              command_line_defines_with_endl << "@#define " << var << " = " << val << endl;
+            else
+              command_line_defines_with_endl << "@#define " << var << R"( = ")" << val << R"(")" << endl;
           }
         catch (const invalid_argument &)
           {
