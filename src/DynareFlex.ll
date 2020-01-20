@@ -765,6 +765,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <DYNARE_STATEMENT>one_sided_hp_filter {return token::ONE_SIDED_HP_FILTER;}
 <DYNARE_STATEMENT>bandpass_filter {return token::BANDPASS_FILTER;}
 <DYNARE_STATEMENT>hp_ngrid {return token::HP_NGRID;}
+<DYNARE_STATEMENT>filtered_theoretical_moments_grid {return token::FILTERED_THEORETICAL_MOMENTS_GRID;}
 <DYNARE_STATEMENT>simul_seed {return token::SIMUL_SEED;}
 <DYNARE_STATEMENT>qz_criterium {return token::QZ_CRITERIUM;}
 <DYNARE_STATEMENT>qz_zero_threshold {return token::QZ_ZERO_THRESHOLD;}
