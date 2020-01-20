@@ -1275,7 +1275,11 @@ DynareSensitivityStatement::checkPass(ModFileStructure &mod_file_struct, Warning
 {
   if (auto it = options_list.num_options.find("identification");
       it != options_list.num_options.end() && it->second == "1")
-    mod_file_struct.identification_present = true;
+    {
+      mod_file_struct.identification_present = true;
+      // The following triggers 3rd order derivatives, see preprocessor#40
+      mod_file_struct.identification_order = max(mod_file_struct.identification_order, 2);
+    }
   mod_file_struct.sensitivity_present = true;
 }
 
@@ -2731,7 +2735,7 @@ IdentificationStatement::checkPass(ModFileStructure &mod_file_struct, WarningCon
       mod_file_struct.identification_order = max(mod_file_struct.identification_order, order);
     }
   else
-    // The default value for order is 1 (which triggers 2nd order dynamic derivatives)
+    // The default value for order is 1 (which triggers 2nd order dynamic derivatives, see preprocessor#40)
     mod_file_struct.identification_order = max(mod_file_struct.identification_order, 1);
 }
 

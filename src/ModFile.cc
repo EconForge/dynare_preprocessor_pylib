@@ -779,7 +779,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
                   exit(EXIT_FAILURE);
                 }
               int derivsOrder = max(mod_file_struct.order_option,
-                                    mod_file_struct.identification_order + 1);
+                                    mod_file_struct.identification_order + 1); // See preprocessor#40
               if (mod_file_struct.sensitivity_present || linear || output == FileOutputType::second)
                 derivsOrder = max(derivsOrder, 2);
               if (mod_file_struct.estimation_analytic_derivation || output == FileOutputType::third)
