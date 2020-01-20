@@ -1780,7 +1780,7 @@ DynamicModel::writeDynamicCFile(const string &basename) const
                   << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
                   << "{" << endl
                   << "  /* Check that no derivatives of higher order than computed are being requested */" << endl
-                  << "  if (nlhs > " << computed_derivs_order << ")" << endl
+                  << "  if (nlhs > " << computed_derivs_order + 1 << ")" << endl
                   << R"(    mexErrMsgTxt("Derivatives of higher order than computed have been requested");)" << endl
                   << "  /* Create a pointer to the input matrix y. */" << endl
                   << "  double *y = mxGetPr(prhs[0]);" << endl
