@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2019 Dynare Team
+ * Copyright © 2006-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1018,8 +1018,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   if (dynamic_model.equation_number() > 0)
     {
       if (linear_decomposition)
-        non_linear_equations_dynamic_model.writeOutput(mOutputFile, basename, block, true, byte_code, use_dll, mod_file_struct.order_option, mod_file_struct.estimation_present, compute_xrefs, false);
-      dynamic_model.writeOutput(mOutputFile, basename, block, false, byte_code, use_dll, mod_file_struct.order_option, mod_file_struct.estimation_present, compute_xrefs, false);
+        non_linear_equations_dynamic_model.writeOutput(mOutputFile, basename, block, true, byte_code, use_dll, mod_file_struct.estimation_present, compute_xrefs, false);
+      dynamic_model.writeOutput(mOutputFile, basename, block, false, byte_code, use_dll, mod_file_struct.estimation_present, compute_xrefs, false);
       if (!no_static)
         static_model.writeOutput(mOutputFile, block);
     }
@@ -1126,11 +1126,11 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 
           if (linear_decomposition)
             {
-              non_linear_equations_dynamic_model.writeDynamicFile(basename, block, linear_decomposition, byte_code, use_dll, mexext, matlabroot, dynareroot, mod_file_struct.order_option, false);
+              non_linear_equations_dynamic_model.writeDynamicFile(basename, block, linear_decomposition, byte_code, use_dll, mexext, matlabroot, dynareroot, false);
               non_linear_equations_dynamic_model.writeParamsDerivativesFile(basename, false);
             }
 
-          dynamic_model.writeDynamicFile(basename, block, false, byte_code, use_dll, mexext, matlabroot, dynareroot, mod_file_struct.order_option, false);
+          dynamic_model.writeDynamicFile(basename, block, false, byte_code, use_dll, mexext, matlabroot, dynareroot, false);
 
           dynamic_model.writeParamsDerivativesFile(basename, false);
 
@@ -1245,7 +1245,6 @@ ModFile::writeExternalFilesJulia(const string &basename) const
   if (dynamic_model.equation_number() > 0)
     {
       dynamic_model.writeOutput(jlOutputFile, basename, false, false, false, false,
-                                mod_file_struct.order_option,
                                 mod_file_struct.estimation_present, false, true);
       if (!no_static)
         {
@@ -1253,7 +1252,7 @@ ModFile::writeExternalFilesJulia(const string &basename) const
           static_model.writeParamsDerivativesFile(basename, true);
         }
       dynamic_model.writeDynamicFile(basename, block, linear_decomposition, byte_code, use_dll,
-                                     "", {}, {}, mod_file_struct.order_option, true);
+                                     "", {}, {}, true);
       dynamic_model.writeParamsDerivativesFile(basename, true);
     }
   steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present, true);

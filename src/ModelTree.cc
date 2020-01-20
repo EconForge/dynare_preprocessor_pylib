@@ -112,6 +112,7 @@ ModelTree::ModelTree(const ModelTree &m) :
   equations_lineno{m.equations_lineno},
   equation_tags{m.equation_tags},
   equation_tags_xref{m.equation_tags_xref},
+  computed_derivs_order{m.computed_derivs_order},
   NNZDerivatives{m.NNZDerivatives},
   equation_reordered{m.equation_reordered},
   variable_reordered{m.variable_reordered},
@@ -138,6 +139,7 @@ ModelTree::operator=(const ModelTree &m)
   aux_equations.clear();
   equation_tags = m.equation_tags;
   equation_tags_xref = m.equation_tags_xref;
+  computed_derivs_order = m.computed_derivs_order;
   NNZDerivatives = m.NNZDerivatives;
 
   derivatives.clear();
@@ -1244,6 +1246,8 @@ void
 ModelTree::computeDerivatives(int order, const set<int> &vars)
 {
   assert(order >= 1);
+
+  computed_derivs_order = order;
 
   // Do not shrink the vectors, since they have a minimal size of 4 (see constructor)
   derivatives.resize(max(static_cast<size_t>(order+1), derivatives.size()));

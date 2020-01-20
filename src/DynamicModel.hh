@@ -99,8 +99,6 @@ private:
 
   //! Nonzero equations in the Hessian
   set<int> nonzero_hessian_eqs;
-  //! Whether the hessian has actually been computed
-  bool hessian_computed{false};
 
   //! Number of columns of dynamic jacobian
   /*! Set by computeDerivID()s and computeDynJacobianCols() */
@@ -123,7 +121,7 @@ private:
   void writeDynamicJuliaFile(const string &dynamic_basename) const;
   //! Writes dynamic model file (C version)
   /*! \todo add third derivatives handling */
-  void writeDynamicCFile(const string &basename, int order) const;
+  void writeDynamicCFile(const string &basename) const;
   //! Writes dynamic model file when SparseDLL option is on
   void writeSparseDynamicMFile(const string &basename) const;
   //! Writes the dynamic model equations and its derivatives
@@ -327,7 +325,7 @@ public:
   void computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsOrder,
                      const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode, bool linear_decomposition);
   //! Writes model initialization and lead/lag incidence matrix to output
-  void writeOutput(ostream &output, const string &basename, bool block, bool linear_decomposition, bool byte_code, bool use_dll, int order, bool estimation_present, bool compute_xrefs, bool julia) const;
+  void writeOutput(ostream &output, const string &basename, bool block, bool linear_decomposition, bool byte_code, bool use_dll, bool estimation_present, bool compute_xrefs, bool julia) const;
 
   //! Write JSON AST
   void writeJsonAST(ostream &output) const;
@@ -363,7 +361,7 @@ public:
   inline bool
   isHessianComputed() const
   {
-    return hessian_computed;
+    return computed_derivs_order >= 2;
   }
   //! Returns equations that have non-zero second derivatives
   inline set<int>
@@ -415,7 +413,7 @@ public:
   void Write_Inf_To_Bin_File_Block(const string &basename,
                                    int num, int &u_count_int, bool &file_open, bool is_two_boundaries, bool linear_decomposition) const;
   //! Writes dynamic model file
-  void writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, int order, bool julia) const;
+  void writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const;
   //! Writes file containing parameters derivatives
   void writeParamsDerivativesFile(const string &basename, bool julia) const;
 

@@ -1691,7 +1691,7 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
 }
 
 void
-DynamicModel::writeDynamicCFile(const string &basename, int order) const
+DynamicModel::writeDynamicCFile(const string &basename) const
 {
   filesystem::create_directories(basename + "/model/src");
   string filename = basename + "/model/src/dynamic.c";
@@ -1780,7 +1780,7 @@ DynamicModel::writeDynamicCFile(const string &basename, int order) const
                   << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
                   << "{" << endl
                   << "  /* Check that no derivatives of higher order than computed are being requested */" << endl
-                  << "  if (nlhs > " << order + 1 << ")" << endl
+                  << "  if (nlhs > " << computed_derivs_order << ")" << endl
                   << R"(    mexErrMsgTxt("Derivatives of higher order than computed have been requested");)" << endl
                   << "  /* Create a pointer to the input matrix y. */" << endl
                   << "  double *y = mxGetPr(prhs[0]);" << endl
@@ -3080,7 +3080,7 @@ DynamicModel::includeExcludeEquations(const string &eqs, bool exclude_eqs)
 }
 
 void
-DynamicModel::writeOutput(ostream &output, const string &basename, bool block_decomposition, bool linear_decomposition, bool byte_code, bool use_dll, int order, bool estimation_present, bool compute_xrefs, bool julia) const
+DynamicModel::writeOutput(ostream &output, const string &basename, bool block_decomposition, bool linear_decomposition, bool byte_code, bool use_dll, bool estimation_present, bool compute_xrefs, bool julia) const
 {
   /* Writing initialisation for M_.lead_lag_incidence matrix
      M_.lead_lag_incidence is a matrix with as many columns as there are
@@ -3689,7 +3689,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   // Use -1 if the derivatives have not been computed
   output << modstruct << (julia ? "nnzderivatives" : "NNZDerivatives") << " = [";
   for (int i = 1; i < static_cast<int>(NNZDerivatives.size()); i++)
-    output << (i > order ? -1 : NNZDerivatives[i]) << "; ";
+    output << (i > computed_derivs_order ? -1 : NNZDerivatives[i]) << "; ";
   output << "];" << endl;
 
   // Write Pac Model Consistent Expectation parameter info
@@ -4959,11 +4959,8 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
   computeDerivatives(derivsOrder, vars);
 
   if (derivsOrder > 1)
-    {
-      hessian_computed = true;
-      for (const auto &[indices, d2] : derivatives[2])
-        nonzero_hessian_eqs.insert(indices[0]);
-    }
+    for (const auto &[indices, d2] : derivatives[2])
+      nonzero_hessian_eqs.insert(indices[0]);
 
   if (paramsDerivsOrder > 0)
     {
@@ -5442,7 +5439,7 @@ DynamicModel::collectBlockVariables()
 }
 
 void
-DynamicModel::writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, int order, bool julia) const
+DynamicModel::writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const
 {
   if (block && bytecode)
     writeModelEquationsCode_Block(basename, map_idx, linear_decomposition);
@@ -5456,7 +5453,7 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool linear_d
     writeSparseDynamicMFile(basename);
   else if (use_dll)
     {
-      writeDynamicCFile(basename, order);
+      writeDynamicCFile(basename);
       compileDll(basename, "dynamic", mexext, matlabroot, dynareroot);
     }
   else if (julia)

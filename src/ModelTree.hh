@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -105,6 +105,9 @@ protected:
       operator in a ramsey model, see
       tests/optimal_policy/nk_ramsey_expectation.mod */
   vector<BinaryOpNode *> aux_equations;
+
+  //! Maximum order at which (endogenous) derivatives have been computed
+  int computed_derivs_order{0};
 
   //! Stores derivatives
   /*! Index 0 is not used, index 1 contains first derivatives, ...
