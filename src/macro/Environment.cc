@@ -26,7 +26,7 @@ void
 Environment::define(VariablePtr var, ExpressionPtr value)
 {
   string name = var->getName();
-  if (functions.find(name) != functions.end())
+  if (functions.count(name))
     throw StackTrace("Variable " + name + " was previously defined as a function");
   variables[move(name)] = value->eval();
 }
@@ -35,7 +35,7 @@ void
 Environment::define(FunctionPtr func, ExpressionPtr value)
 {
   string name = func->getName();
-  if (variables.find(name) != variables.end())
+  if (variables.count(name))
     throw StackTrace("Variable " + name + " was previously defined as a variable");
   functions[name] = {move(func), move(value)};
 }
