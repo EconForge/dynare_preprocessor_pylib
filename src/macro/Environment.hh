@@ -40,7 +40,7 @@ namespace macro
     void define(FunctionPtr func, ExpressionPtr value);
     ExpressionPtr getVariable(const string &name) const;
     tuple<FunctionPtr, ExpressionPtr> getFunction(const string &name) const;
-    codes::BaseType getType(const string &name);
+    codes::BaseType getType(const string &name) const;
     bool isVariableDefined(const string &name) const noexcept;
     bool isFunctionDefined(const string &name) const noexcept;
     inline bool isSymbolDefined(const string &name) const noexcept { return isVariableDefined(name) || isFunctionDefined(name); }

@@ -67,7 +67,7 @@ Environment::getFunction(const string &name) const
 }
 
 codes::BaseType
-Environment::getType(const string &name)
+Environment::getType(const string &name) const
 {
   return getVariable(name)->eval()->getType();
 }
