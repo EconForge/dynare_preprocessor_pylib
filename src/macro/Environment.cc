@@ -43,8 +43,7 @@ Environment::define(FunctionPtr func, ExpressionPtr value)
 ExpressionPtr
 Environment::getVariable(const string &name) const
 {
-  auto it = variables.find(name);
-  if (it != variables.end())
+  if (auto it = variables.find(name); it != variables.end())
     return it->second;
 
   if (!parent)
@@ -56,8 +55,7 @@ Environment::getVariable(const string &name) const
 tuple<FunctionPtr, ExpressionPtr>
 Environment::getFunction(const string &name) const
 {
-  auto it = functions.find(name);
-  if (it != functions.end())
+  if (auto it = functions.find(name); it != functions.end())
     return it->second;
 
   if (!parent)
