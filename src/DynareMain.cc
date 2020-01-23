@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -68,8 +68,9 @@ usage()
   exit(EXIT_FAILURE);
 }
 
-/* Looks for an options list in the first line of the mod file (but rewind
-   the input stream afterwards */
+/* Looks for an options list in the first non-empty line of the .mod file (but rewind
+   the input stream afterwards).
+   This function should be kept in sync with the one with the same name in matlab/dynare.m */
 vector<string>
 parse_options_line(istream &modfile)
 {
@@ -79,16 +80,16 @@ parse_options_line(istream &modfile)
   smatch matches;
 
   while (getline(modfile, first_nonempty_line))
-    if (first_nonempty_line != "")
+    if (!first_nonempty_line.empty())
       {
         if (regex_search(first_nonempty_line, matches, pat)
             && matches.size() > 1 && matches[1].matched)
           {
-            regex pat2{R"(([^,\s]+))"};
+            regex pat2{R"([^,\s]+)"};
             string s{matches[1]};
             for (sregex_iterator p(s.begin(), s.end(), pat2);
                  p != sregex_iterator{}; ++p)
-              options.push_back((*p)[1]);
+              options.push_back(p->str());
           }
         break;
       }
