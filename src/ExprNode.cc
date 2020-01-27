@@ -451,8 +451,6 @@ void
 NumConstNode::writeJsonAST(ostream &output) const
 {
   output << R"({"node_type" : "NumConstNode", "value" : )";
-  if (double testval = datatree.num_constants.getDouble(id); testval < 1.0 && testval > -1.0 && testval != 0.0)
-    output << "0";
   output << datatree.num_constants.get(id) << "}";
 }
 
