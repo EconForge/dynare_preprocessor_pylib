@@ -451,7 +451,7 @@ void
 NumConstNode::writeJsonAST(ostream &output) const
 {
   output << R"({"node_type" : "NumConstNode", "value" : )";
-  output << datatree.num_constants.get(id) << "}";
+  output << std::stof(datatree.num_constants.get(id)) << "}";
 }
 
 void
