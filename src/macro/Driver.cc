@@ -34,30 +34,7 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
     {
       stringstream command_line_defines_with_endl;
       for (const auto & [var, val] : defines)
-        try
-          {
-            string::size_type pos;
-            stod(val, &pos);
-            if (pos == val.size())
-              command_line_defines_with_endl << "@#define " << var << " = " << val << endl;
-            else
-              {
-                // The following regex matches the range syntax: double:double(:double)?
-                regex colon_separated_doubles(R"(((((\d*\.\d+)|(\d+\.))([ed][-+]?\d+)?)|(\d+([ed][-+]?\d+)?)):((((\d*\.\d+)|(\d+\.))([ed][-+]?\d+)?)|(\d+([ed][-+]?\d+)?))(:((((\d*\.\d+)|(\d+\.))([ed][-+]?\d+)?)|(\d+([ed][-+]?\d+)?)))?)");
-                if (regex_match(val, colon_separated_doubles))
-                  command_line_defines_with_endl << "@#define " << var << " = " << val << endl;
-                else
-                  command_line_defines_with_endl << "@#define " << var << R"( = ")" << val << R"(")" << endl;
-              }
-          }
-        catch (const invalid_argument &)
-          {
-            if (!val.empty() && val.at(0) == '[' && val.at(val.length()-1) == ']')
-              // If the input is an array. Issue #1578
-              command_line_defines_with_endl << "@#define " << var << " = " << val << endl;
-            else
-              command_line_defines_with_endl << "@#define " << var << R"( = ")" << val << R"(")" << endl;
-          }
+        command_line_defines_with_endl << "@#define " << var << " = " << val << endl;
       Driver m(env, true);
       istream is(command_line_defines_with_endl.rdbuf());
       m.parse("command_line_defines", "command_line_defines", is, output, debug, vector<pair<string, string>>{}, paths);
