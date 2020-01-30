@@ -6720,8 +6720,7 @@ DynamicModel::fillEvalContext(eval_context_t &eval_context) const
     }
 
   //Third, trend variables
-  vector <int> trendVars = symbol_table.getTrendVarIds();
-  for (int &trendVar : trendVars)
+  for (int trendVar : symbol_table.getTrendVarIds())
     eval_context[trendVar] = 2; //not <= 0 bc of log, not 1 bc of powers
 }
 
@@ -6729,13 +6728,9 @@ bool
 DynamicModel::isModelLocalVariableUsed() const
 {
   set<int> used_local_vars;
-  size_t i = 0;
-  while (i < equations.size() && used_local_vars.size() == 0)
-    {
-      equations[i]->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
-      i++;
-    }
-  return used_local_vars.size() > 0;
+  for (size_t i = 0; i < equations.size() && used_local_vars.empty(); i++)
+    equations[i]->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
+  return !used_local_vars.empty();
 }
 
 void
