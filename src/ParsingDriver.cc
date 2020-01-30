@@ -2222,14 +2222,20 @@ ParsingDriver::evaluate_planner_objective()
 void
 ParsingDriver::discretionary_policy()
 {
+  /* The logic here is different from “ramsey_policy” and “ramsey_model”,
+     because we want to allow several instances of “discretionary_policy” in
+     the same .mod file. */
   if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
-    {
-      declare_parameter("optimal_policy_discount_factor");
-      init_param("optimal_policy_discount_factor", data_tree->One);
-    }
+    declare_parameter("optimal_policy_discount_factor");
+
+  if (!planner_discount)
+    planner_discount = data_tree->One;
+  init_param("optimal_policy_discount_factor", planner_discount);
+
   mod_file->addStatement(make_unique<DiscretionaryPolicyStatement>(symbol_list, options_list));
   symbol_list.clear();
   options_list.clear();
+  planner_discount = nullptr;
 }
 
 void
