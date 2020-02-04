@@ -154,7 +154,7 @@ directive_one_line : INCLUDE expr
                    ;
 
 name_list : NAME
-            { $$ = vector<string>{$1}; }
+            { $$ = {$1}; }
           | name_list NAME
             {
               $1.emplace_back($2);
@@ -229,13 +229,13 @@ if_list1 : expr EOL
            {
              auto context = driver.popContext();
              context.emplace_back(make_shared<TextNode>("\n", driver.env, @2));
-             $$ = vector<pair<ExpressionPtr, vector<DirectivePtr>>> {{$1, context}};
+             $$ = {{$1, context}};
            }
          | expr EOL statements
            {
              auto context = driver.popContext();
              context.emplace_back(make_shared<TextNode>("\n", driver.env, @3));
-             $$ = vector<pair<ExpressionPtr, vector<DirectivePtr>>> {{$1, context}};
+             $$ = {{$1, context}};
            }
          | if_list1 elseif
            {
@@ -297,25 +297,25 @@ function : NAME LPAREN RPAREN
          ;
 
 function_args : symbol
-                { $$ = vector<ExpressionPtr>{$1}; }
+                { $$ = {$1}; }
               | function_args COMMA symbol
                 { $1.emplace_back($3); $$ = $1; }
               ;
 
 comma_expr : %empty
-             { $$ = vector<ExpressionPtr>{}; }
+             { $$ = {}; }
            | expr
-             { $$ = vector<ExpressionPtr>{$1}; }
+             { $$ = {$1}; }
            | comma_expr COMMA expr
              { $1.emplace_back($3); $$ = $1; }
            ;
 
 tuple_comma_expr : %empty
-                   { $$ = vector<ExpressionPtr>{}; }
+                   { $$ = {}; }
                  | expr COMMA
-                   { $$ = vector<ExpressionPtr>{$1}; }
+                   { $$ = {$1}; }
                  | expr COMMA expr
-                   { $$ = vector<ExpressionPtr>{$1, $3}; }
+                   { $$ = {$1, $3}; }
                  | tuple_comma_expr COMMA expr
                    { $1.emplace_back($3); $$ = $1; }
                  ;

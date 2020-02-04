@@ -37,7 +37,7 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
         command_line_defines_with_endl << "@#define " << var << " = " << val << endl;
       Driver m(env, true);
       istream is(command_line_defines_with_endl.rdbuf());
-      m.parse("command_line_defines", "command_line_defines", is, output, debug, vector<pair<string, string>>{}, paths);
+      m.parse("command_line_defines", "command_line_defines", is, output, debug, {}, paths);
     }
 
   // Handle empty files
