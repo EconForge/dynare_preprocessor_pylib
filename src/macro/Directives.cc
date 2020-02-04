@@ -86,6 +86,7 @@ Include::interpret(ostream &output, bool no_line_macro, vector<filesystem::path>
     {
       error(StackTrace("@#include", e.what(), location));
     }
+  printLineInfo(output, no_line_macro);
 }
 
 void
