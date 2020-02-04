@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -39,6 +39,10 @@ InitParamStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
 {
   if (symbol_table.getName(symb_id) == "dsge_prior_weight")
     mod_file_struct.dsge_prior_weight_initialized = true;
+
+  // Needed for the workaround discussed in dynare#1173
+  if (symbol_table.getName(symb_id) == "optimal_policy_discount_factor")
+    param_value->collectVariables(SymbolType::parameter, mod_file_struct.parameters_in_planner_discount);
 }
 
 void

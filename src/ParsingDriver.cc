@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1931,7 +1931,7 @@ ParsingDriver::set_corr_options(const string &name1, const string &name2, const 
 void
 ParsingDriver::run_estimation()
 {
-  mod_file->addStatement(make_unique<EstimationStatement>(symbol_list, options_list));
+  mod_file->addStatement(make_unique<EstimationStatement>(mod_file->symbol_table, symbol_list, options_list));
   symbol_list.clear();
   options_list.clear();
 }

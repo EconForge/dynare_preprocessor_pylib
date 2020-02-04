@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -314,10 +314,12 @@ public:
 class EstimationStatement : public Statement
 {
 private:
+  const SymbolTable &symbol_table;
   const SymbolList symbol_list;
   const OptionsList options_list;
 public:
-  EstimationStatement(SymbolList symbol_list_arg,
+  EstimationStatement(const SymbolTable &symbol_table_arg,
+                      SymbolList symbol_list_arg,
                       OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;

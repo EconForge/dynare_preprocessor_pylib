@@ -34,6 +34,7 @@ using namespace std;
 #pragma GCC diagnostic pop
 
 #include <utility>
+#include <algorithm>
 
 SteadyStatement::SteadyStatement(OptionsList options_list_arg) :
   options_list{move(options_list_arg)}
@@ -1134,8 +1135,10 @@ DiscretionaryPolicyStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-EstimationStatement::EstimationStatement(SymbolList symbol_list_arg,
+EstimationStatement::EstimationStatement(const SymbolTable &symbol_table_arg,
+                                         SymbolList symbol_list_arg,
                                          OptionsList options_list_arg) :
+  symbol_table{symbol_table_arg},
   symbol_list{move(symbol_list_arg)},
   options_list{move(options_list_arg)}
 {
@@ -1209,6 +1212,22 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       && mod_file_struct.estim_params_use_calib)
     {
       cerr << "ERROR: The mode_file option of the estimation statement is incompatible with the use_calibration option of the estimated_params_init block." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  /* Check that we are not trying to estimate a parameter appearing in the
+     planner discount factor (see dynare#1173) */
+  vector<int> estimated_params_in_planner_discount;
+  set_intersection(mod_file_struct.estimated_parameters.begin(),
+                   mod_file_struct.estimated_parameters.end(),
+                   mod_file_struct.parameters_in_planner_discount.begin(),
+                   mod_file_struct.parameters_in_planner_discount.end(),
+                   back_inserter(estimated_params_in_planner_discount));
+  if (!estimated_params_in_planner_discount.empty())
+    {
+      cerr << "ERROR: It is not possible to estimate a parameter ("
+           << symbol_table.getName(estimated_params_in_planner_discount[0])
+           << ") that appears in the discount factor of the planner (i.e. in the 'planner_discount' option)." << endl;
       exit(EXIT_FAILURE);
     }
 
