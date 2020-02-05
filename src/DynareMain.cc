@@ -52,13 +52,12 @@ void main2(stringstream &in, const string &basename, bool debug, bool clear_all,
            const filesystem::path &dynareroot, bool onlymodel);
 
 void main1(const string &filename, const string &basename, istream &modfile, bool debug, bool save_macro, string &save_macro_file,
-           bool no_line_macro, bool no_empty_line_macro, const vector<pair<string, string>> &defines,
-           vector<filesystem::path> &paths, stringstream &macro_output);
+           bool line_macro, const vector<pair<string, string>> &defines, vector<filesystem::path> &paths, stringstream &macro_output);
 
 void
 usage()
 {
-  cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] [savemacro[=macro_file]] [onlymacro] [nolinemacro] [noemptylinemacro] [notmpterms] [nolog] [warn_uninit]"
+  cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] [savemacro[=macro_file]] [onlymacro] [linemacro] [notmpterms] [nolog] [warn_uninit]"
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test]"
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=matlab|julia]"
        << " [params_derivs_order=0|1|2] [transform_unary_ops] [exclude_eqs=<equation_tag_list_or_file>] [include_eqs=<equation_tag_list_or_file>]"
@@ -136,8 +135,7 @@ main(int argc, char **argv)
   bool debug = false;
   bool no_tmp_terms = false;
   bool only_macro = false;
-  bool no_line_macro = false;
-  bool no_empty_line_macro = false;
+  bool line_macro = false;
   bool no_log = false;
   bool no_warn = false;
   int params_derivs_order = 2;
@@ -208,10 +206,8 @@ main(int argc, char **argv)
               save_macro_file = s.substr(10);
             }
         }
-      else if (s == "nolinemacro")
-        no_line_macro = true;
-      else if (s == "noemptylinemacro")
-        no_empty_line_macro = true;
+      else if (s == "linemacro")
+        line_macro = true;
       else if (s == "notmpterms")
         no_tmp_terms = true;
       else if (s == "nolog")
@@ -433,7 +429,7 @@ main(int argc, char **argv)
 
   // Do macro processing
   stringstream macro_output;
-  main1(filename, basename, modfile, debug, save_macro, save_macro_file, no_line_macro, no_empty_line_macro,
+  main1(filename, basename, modfile, debug, save_macro, save_macro_file, line_macro,
         defines, paths, macro_output);
 
   if (only_macro)

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2019 Dynare Team
+ * Copyright © 2015-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -21,17 +21,17 @@
 #include <fstream>
 #include <filesystem>
 #include <algorithm>
+#include <regex>
 
 #include "macro/Driver.hh"
 
 void
 main1(const string &filename, const string &basename, istream &modfile, bool debug, bool save_macro, string &save_macro_file,
-      bool no_line_macro_arg, bool no_empty_line_macro, const vector<pair<string, string>> &defines,
-      vector<filesystem::path> &paths, stringstream &macro_output)
+      bool line_macro, const vector<pair<string, string>> &defines, vector<filesystem::path> &paths, stringstream &macro_output)
 {
   // Do macro processing
   macro::Environment env = macro::Environment();
-  macro::Driver m(env, no_line_macro_arg);
+  macro::Driver m(env);
   m.parse(filename, basename, modfile, macro_output, debug, defines, paths);
   if (save_macro)
     {
@@ -45,8 +45,9 @@ main1(const string &filename, const string &basename, istream &modfile, bool deb
         }
 
       string str(macro_output.str());
-      if (no_empty_line_macro)
+      if (!line_macro)
         {
+          str = regex_replace(str, regex(R"((^|\n)\s*@#line.*)"), "");
           auto compareNewline = [](char i, char j) { return i == '\n' && j == '\n'; };
           str.erase(0, str.find_first_not_of('\n'));
           str.erase(unique(str.begin(), str.end(), compareNewline), str.end());

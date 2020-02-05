@@ -35,7 +35,7 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
       stringstream command_line_defines_with_endl;
       for (const auto & [var, val] : defines)
         command_line_defines_with_endl << "@#define " << var << " = " << val << endl;
-      Driver m(env, true);
+      Driver m(env);
       istream is(command_line_defines_with_endl.rdbuf());
       m.parse("command_line_defines", "command_line_defines", is, output, debug, {}, paths);
     }
@@ -62,10 +62,10 @@ Driver::parse(const string &file_arg, const string &basename_arg, istream &modfi
     {
       if (printLine)
         {
-          statement->printLineInfo(output, no_line_macro);
+          statement->printLineInfo(output);
           printLine = false;
         }
-      statement->interpret(output, no_line_macro, paths);
+      statement->interpret(output, paths);
     }
 }
 

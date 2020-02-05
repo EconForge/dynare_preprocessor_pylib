@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Dynare Team
+ * Copyright © 2019-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -25,7 +25,7 @@
 using namespace macro;
 
 void
-Eval::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
+Eval::interpret(ostream &output, vector<filesystem::path> &paths)
 {
   try
     {
@@ -43,7 +43,7 @@ Eval::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &p
 }
 
 void
-Include::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
+Include::interpret(ostream &output, vector<filesystem::path> &paths)
 {
   using namespace filesystem;
   try
@@ -71,7 +71,7 @@ Include::interpret(ostream &output, bool no_line_macro, vector<filesystem::path>
                                +". The following directories were searched:\n" + errmsg.str(), location));
             }
         }
-      Driver m(env, no_line_macro);
+      Driver m(env);
       // Calling `string()` method on filename and filename.stem() because of bug in
       // MinGW 8.3.0 that ignores implicit conversion to string from filename::path.
       // Test if bug exists when version of MinGW is upgraded on Debian runners
@@ -86,11 +86,11 @@ Include::interpret(ostream &output, bool no_line_macro, vector<filesystem::path>
     {
       error(StackTrace("@#include", e.what(), location));
     }
-  printLineInfo(output, no_line_macro);
+  printLineInfo(output);
 }
 
 void
-IncludePath::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
+IncludePath::interpret(ostream &output, vector<filesystem::path> &paths)
 {
   using namespace filesystem;
   try
@@ -117,7 +117,7 @@ IncludePath::interpret(ostream &output, bool no_line_macro, vector<filesystem::p
 }
 
 void
-Define::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
+Define::interpret(ostream &output, vector<filesystem::path> &paths)
 {
   try
     {
@@ -140,7 +140,7 @@ Define::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> 
 }
 
 void
-Echo::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
+Echo::interpret(ostream &output, vector<filesystem::path> &paths)
 {
   try
     {
@@ -155,11 +155,11 @@ Echo::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &p
     {
       error(StackTrace("@#echo", e.what(), location));
     }
-  printEndLineInfo(output, no_line_macro);
+  printEndLineInfo(output);
 }
 
 void
-Error::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
+Error::interpret(ostream &output, vector<filesystem::path> &paths)
 {
   try
     {
@@ -177,17 +177,17 @@ Error::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &
 }
 
 void
-EchoMacroVars::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
+EchoMacroVars::interpret(ostream &output, vector<filesystem::path> &paths)
 {
   if (save)
     env.print(output, vars, location.begin.line, true);
   else
     env.print(cout, vars);
-  printEndLineInfo(output, no_line_macro);
+  printEndLineInfo(output);
 }
 
 void
-For::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
+For::interpret(ostream &output, vector<filesystem::path> &paths)
 {
   ArrayPtr ap;
   try
@@ -233,17 +233,17 @@ For::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &pa
         {
           if (printLine)
             {
-              statement->printLineInfo(output, no_line_macro);
+              statement->printLineInfo(output);
               printLine = false;
             }
-          statement->interpret(output, no_line_macro, paths);
+          statement->interpret(output, paths);
         }
     }
-  printEndLineInfo(output, no_line_macro);
+  printEndLineInfo(output);
 }
 
 void
-If::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
+If::interpret(ostream &output, vector<filesystem::path> &paths)
 {
   for (const auto & [expr, body] : expr_and_body)
     try
@@ -256,7 +256,7 @@ If::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &pat
                            "The condition must evaluate to a boolean or a double", location));
         if ((bp && *bp) || (dp && *dp))
           {
-            interpretBody(body, output, no_line_macro, paths);
+            interpretBody(body, output, paths);
             break;
           }
       }
@@ -269,48 +269,48 @@ If::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &pat
       {
         error(StackTrace("@#if", e.what(), location));
       }
-  printEndLineInfo(output, no_line_macro);
+  printEndLineInfo(output);
 }
 
 void
-If::interpretBody(const vector<DirectivePtr> &body, ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
+If::interpretBody(const vector<DirectivePtr> &body, ostream &output, vector<filesystem::path> &paths)
 {
-  bool printLine = !no_line_macro;
+  bool printLine = true;
   for (const auto &statement : body)
     {
       if (printLine)
         {
-          statement->printLineInfo(output, no_line_macro);
+          statement->printLineInfo(output);
           printLine = false;
         }
-      statement->interpret(output, no_line_macro, paths);
+      statement->interpret(output, paths);
     }
 }
 
 void
-Ifdef::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
+Ifdef::interpret(ostream &output, vector<filesystem::path> &paths)
 {
   for (const auto & [expr, body] : expr_and_body)
     if (VariablePtr vp = dynamic_pointer_cast<Variable>(expr);
         dynamic_pointer_cast<BaseType>(expr)
         || (vp && env.isVariableDefined(vp->getName())))
       {
-        interpretBody(body, output, no_line_macro, paths);
+        interpretBody(body, output, paths);
         break;
       }
-  printEndLineInfo(output, no_line_macro);
+  printEndLineInfo(output);
 }
 
 void
-Ifndef::interpret(ostream &output, bool no_line_macro, vector<filesystem::path> &paths)
+Ifndef::interpret(ostream &output, vector<filesystem::path> &paths)
 {
   for (const auto & [expr, body] : expr_and_body)
     if (VariablePtr vp = dynamic_pointer_cast<Variable>(expr);
         !(dynamic_pointer_cast<BaseType>(expr)
           || (vp && env.isVariableDefined(vp->getName()))))
       {
-        interpretBody(body, output, no_line_macro, paths);
+        interpretBody(body, output, paths);
         break;
       }
-  printEndLineInfo(output, no_line_macro);
+  printEndLineInfo(output);
 }

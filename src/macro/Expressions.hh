@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Dynare Team
+ * Copyright © 2019-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -98,16 +98,14 @@ namespace macro
     {
       cerr << endl << "Macro-processing warning: backtrace..." << endl << e.trace();
     }
-    inline void printLineInfo(ostream &output, bool no_line_macro) const noexcept
+    inline void printLineInfo(ostream &output) const noexcept
     {
-      if (!no_line_macro)
-        output << R"(@#line ")" << *(location.begin.filename) << R"(" )" << location.begin.line << endl;
+      output << R"(@#line ")" << *(location.begin.filename) << R"(" )" << location.begin.line << endl;
     }
-    inline void printEndLineInfo(ostream &output, bool no_line_macro) const noexcept
+    inline void printEndLineInfo(ostream &output) const noexcept
     {
-      if (!no_line_macro)
-        // Add one to end line because we want to print the line number of the line *following* the end statement
-        output << R"(@#line ")" << *(location.begin.filename) << R"(" )" << location.end.line + 1 << endl;
+      // Add one to end line because we want to print the line number of the line *following* the end statement
+      output << R"(@#line ")" << *(location.begin.filename) << R"(" )" << location.end.line + 1 << endl;
     }
   };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Dynare Team
+ * Copyright © 2019-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -64,12 +64,11 @@ namespace macro
   public:
     Environment &env;
   private:
-    bool no_line_macro;
     vector<DirectivePtr> statements;
     stack<vector<DirectivePtr>> directive_stack;
   public:
-    Driver(Environment &env_arg, bool no_line_macro_arg) :
-      env{env_arg}, no_line_macro(no_line_macro_arg) { }
+    Driver(Environment &env_arg) :
+      env{env_arg} { }
     Driver(const Driver &) = delete;
     Driver(Driver &&) = delete;
     Driver &operator=(const Driver &) = delete;
