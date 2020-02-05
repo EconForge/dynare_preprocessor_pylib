@@ -84,10 +84,12 @@ namespace macro
       }
     };
 
-    //! Starts parsing a file, returns output in out
-    void parse(const string &file_arg, const string &basename_arg, istream &modfile,
-               ostream &output, bool debug, const vector<pair<string, string>> &defines,
-               vector<filesystem::path> &paths_arg);
+    //! Starts parsing a file, modifies `paths` and `output`
+    //! Both `paths` and `output` are passed as reference
+    //! as they are modified by various macro directives
+    void parse(const string &file, const string &basename, const istream &modfile,
+               bool debug, const vector<pair<string, string>> &defines,
+               vector<filesystem::path> &paths, ostream &output);
 
     //! Name of main file being parsed
     string file;

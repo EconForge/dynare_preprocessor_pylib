@@ -17,22 +17,25 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <regex>
 #include <sstream>
 #include <fstream>
 #include <filesystem>
 #include <algorithm>
-#include <regex>
 
 #include "macro/Driver.hh"
 
-void
-main1(const string &filename, const string &basename, istream &modfile, bool debug, bool save_macro, string &save_macro_file,
-      bool line_macro, const vector<pair<string, string>> &defines, vector<filesystem::path> &paths, stringstream &macro_output)
+stringstream
+macroExpandModFile(const string &filename, const string &basename, const istream &modfile,
+                   bool debug, bool save_macro, string save_macro_file, bool line_macro,
+                   const vector<pair<string, string>> &defines,
+                   vector<filesystem::path> paths)
 {
   // Do macro processing
+  stringstream macro_output;
   macro::Environment env = macro::Environment();
   macro::Driver m(env);
-  m.parse(filename, basename, modfile, macro_output, debug, defines, paths);
+  m.parse(filename, basename, modfile, debug, defines, paths, macro_output);
   if (save_macro)
     {
       if (save_macro_file.empty())
@@ -55,4 +58,5 @@ main1(const string &filename, const string &basename, istream &modfile, bool deb
       macro_output_file << str;
       macro_output_file.close();
     }
+  return macro_output;
 }

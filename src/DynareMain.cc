@@ -38,12 +38,17 @@
 #include "ConfigFile.hh"
 #include "ModFile.hh"
 
-/* Prototype for second part of main function
-   Splitting main() in two parts was necessary because ParsingDriver.h and MacroDriver.h can't be
+/* Prototype for the function that handles the macro-expansion of the .mod file
+   Splitting this out was necessary because ParsingDriver.hh and macro/Driver.hh can't be
    included simultaneously (because of Bison limitations).
+
+   Function can be found in: MacroExpandModFile.cc
 */
-void main1(const string &filename, const string &basename, istream &modfile, bool debug, bool save_macro, string &save_macro_file,
-           bool line_macro, const vector<pair<string, string>> &defines, vector<filesystem::path> &paths, stringstream &macro_output);
+stringstream
+macroExpandModFile(const string &filename, const string &basename, const istream &modfile,
+                   bool debug, bool save_macro, string save_macro_file, bool line_macro,
+                   const vector<pair<string, string>> &defines,
+                   vector<filesystem::path> paths);
 
 void
 usage()
@@ -424,9 +429,10 @@ main(int argc, char **argv)
   /*
    * Macro-expand MOD file
    */
-  stringstream macro_output;
-  main1(filename, basename, modfile, debug, save_macro, save_macro_file, line_macro,
-        defines, paths, macro_output);
+  stringstream macro_output =
+    macroExpandModFile(filename, basename, modfile, debug, save_macro,
+                       move(save_macro_file), line_macro,
+                       defines, move(paths));
 
   if (only_macro)
     return EXIT_SUCCESS;

@@ -43,7 +43,7 @@ dynare_m_SOURCES = \
 	MinimumFeedbackSet.cc \
 	MinimumFeedbackSet.hh \
 	DynareMain.cc \
-	DynareMain1.cc \
+	MacroExpandModFile.cc \
 	CodeInterpreter.hh \
 	ExternalFunctionsTable.cc \
 	ExternalFunctionsTable.hh \
