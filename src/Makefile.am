@@ -44,7 +44,6 @@ dynare_m_SOURCES = \
 	MinimumFeedbackSet.hh \
 	DynareMain.cc \
 	DynareMain1.cc \
-	DynareMain2.cc \
 	CodeInterpreter.hh \
 	ExternalFunctionsTable.cc \
 	ExternalFunctionsTable.hh \
