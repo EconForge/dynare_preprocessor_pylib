@@ -145,6 +145,7 @@ main(int argc, char **argv)
   bool minimal_workspace = false;
   bool compute_xrefs = false;
   bool transform_unary_ops = false;
+  bool gui = false;
   string exclude_eqs, include_eqs;
   vector<pair<string, string>> defines;
   vector<filesystem::path> paths;
@@ -390,6 +391,8 @@ main(int argc, char **argv)
         }
       else if (s == "onlymodel")
         onlymodel = true;
+      else if (s == "gui")
+        gui = true;
       else
         {
           cerr << "Unknown option: " << s << endl;
@@ -471,7 +474,7 @@ main(int argc, char **argv)
   else
     mod_file->writeOutputFiles(basename, clear_all, clear_global, no_log, no_warn, console, nograph,
                                nointeractive, config_file, check_model_changes, minimal_workspace, compute_xrefs,
-                               mexext, matlabroot, dynareroot, onlymodel);
+                               mexext, matlabroot, dynareroot, onlymodel, gui);
 
   cout << "Preprocessing completed." << endl;
   return EXIT_SUCCESS;

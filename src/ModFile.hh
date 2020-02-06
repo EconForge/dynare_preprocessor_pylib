@@ -168,7 +168,7 @@ public:
                         bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
                         bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
                         const string &mexext, const filesystem::path &matlabroot,
-                        const filesystem::path &dynareroot, bool onlymodel) const;
+                        const filesystem::path &dynareroot, bool onlymodel, bool gui) const;
   void writeExternalFiles(const string &basename, LanguageOutputType language) const;
   void writeExternalFilesJulia(const string &basename) const;
 

@@ -839,7 +839,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
                           bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
                           const string &mexext,
                           const filesystem::path &matlabroot,
-                          const filesystem::path &dynareroot, bool onlymodel) const
+                          const filesystem::path &dynareroot, bool onlymodel, bool gui) const
 {
   bool hasModelChanged = !dynamic_model.isChecksumMatching(basename, block) || !check_model_changes;
   if (hasModelChanged)
@@ -1024,7 +1024,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
         static_model.writeOutput(mOutputFile, block);
     }
 
-  if (onlymodel)
+  if (onlymodel || gui)
     for (const auto &statement : statements)
       {
         /* Special treatment for initval block: insert initial values for the
@@ -1054,6 +1054,10 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 
         if (auto sgs = dynamic_cast<ShockGroupsStatement *>(statement.get()); sgs)
           sgs->writeOutput(mOutputFile, basename, minimal_workspace);
+
+        if (gui)
+          if (auto it = dynamic_cast<NativeStatement *>(statement.get()); it)
+            it->writeOutput(mOutputFile, basename, minimal_workspace);
       }
   else
     {
