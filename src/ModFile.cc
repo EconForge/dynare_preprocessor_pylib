@@ -1025,7 +1025,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
     }
 
   if (onlymodel)
-    for (auto &statement : statements)
+    for (const auto &statement : statements)
       {
         /* Special treatment for initval block: insert initial values for the
            auxiliary variables and initialize exo det */
@@ -1057,7 +1057,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
       }
   else
     {
-      for (auto &statement : statements)
+      for (const auto &statement : statements)
         {
           statement->writeOutput(mOutputFile, basename, minimal_workspace);
 
@@ -1258,7 +1258,7 @@ ModFile::writeExternalFilesJulia(const string &basename) const
   steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present, true);
 
   // Print statements (includes parameter values)
-  for (auto &statement : statements)
+  for (const auto &statement : statements)
     statement->writeJuliaOutput(jlOutputFile, basename);
 
   jlOutputFile << "model_.static = " << basename << "Static.static!" << endl
