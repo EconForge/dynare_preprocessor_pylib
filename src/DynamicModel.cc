@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -3198,6 +3198,23 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                << equation_tag.second.first << "' , '"
                << equation_tag.second.second << "' ;" << endl;
       output << "};" << endl;
+    }
+
+  // Write Occbin tags
+  map<int, vector<pair<string, string>>> occbin_options;
+  for (const auto &[eqn, tag] : equation_tags)
+      if (tag.first == "pswitch"
+          || tag.first == "bind"
+          || tag.first == "relax"
+          || tag.first == "pcrit")
+        occbin_options[eqn].push_back(tag);
+
+  int idx = 0;
+  for (const auto &[eqn, tags] : occbin_options)
+    {
+      idx++;
+      for (const auto &[tag_name, tag_value] : tags)
+        output << "M_.occbin.constraint(" << idx << ")." << tag_name << " = '" << tag_value << "';" << endl;
     }
 
   // Write mapping for variables and equations they are present in

@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -434,6 +434,8 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
 <DYNARE_STATEMENT>rescale_prediction_error_covariance {return token::RESCALE_PREDICTION_ERROR_COVARIANCE;}
 <DYNARE_STATEMENT>use_penalized_objective_for_hessian {return token::USE_PENALIZED_OBJECTIVE_FOR_HESSIAN;}
 <DYNARE_STATEMENT>expression    {return token::EXPRESSION;}
+<DYNARE_STATEMENT>occbin_likelihood {return token::OCCBIN_LIKELIHOOD;}
+<DYNARE_STATEMENT>occbin_smoother {return token::OCCBIN_SMOOTHER;}
 
 <DYNARE_STATEMENT>alpha {
   yylval->build<string>(yytext);

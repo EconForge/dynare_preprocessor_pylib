@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -128,7 +128,7 @@ class ParsingDriver;
 %precedence UNARY
 %nonassoc POWER
 %token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN ERF DIFF ADL AUXILIARY_MODEL_NAME
-%token SQRT CBRT NORMCDF NORMPDF STEADY_STATE EXPECTATION VAR_ESTIMATION
+%token SQRT CBRT NORMCDF NORMPDF STEADY_STATE EXPECTATION VAR_ESTIMATION OCCBIN_LIKELIHOOD OCCBIN_SMOOTHER
 /* GSA analysis */
 %token DYNARE_SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU MORRIS_NLIV
 %token MORRIS_NTRA NSAM LOAD_REDFORM LOAD_RMSE LOAD_STAB ALPHA2_STAB LOGTRANS_REDFORM THRESHOLD_REDFORM
@@ -2100,6 +2100,8 @@ estimation_options : o_datafile
                    | o_emas_max_iter
                    | o_stderr_multiples
                    | o_diagonal_only
+                   | o_occbin_likelihood
+                   | o_occbin_smoother
                    ;
 
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
@@ -3484,8 +3486,8 @@ o_proposal_approximation : PROPOSAL_APPROXIMATION EQUAL CUBATURE {driver.option_
 o_distribution_approximation : DISTRIBUTION_APPROXIMATION EQUAL CUBATURE {driver.option_num("particle.distribution_approximation.cubature", "true"); driver.option_num("particle.distribution_approximation.unscented", "false"); driver.option_num("particle.distribution_approximation.montecarlo", "false");}
 		| DISTRIBUTION_APPROXIMATION EQUAL UNSCENTED {driver.option_num("particle.distribution_approximation.cubature", "false"); driver.option_num("particle.distribution_approximation.unscented", "true"); driver.option_num("particle.distribution_approximation.montecarlo", "false");}
 		| DISTRIBUTION_APPROXIMATION EQUAL MONTECARLO {driver.option_num("particle.distribution_approximation.cubature", "false"); driver.option_num("particle.distribution_approximation.unscented", "false"); driver.option_num("particle.distribution_approximation.montecarlo", "true");} ;
-
-
+o_occbin_likelihood : OCCBIN_LIKELIHOOD { driver.option_num("occbin_likelihood", "true"); };
+o_occbin_smoother : OCCBIN_SMOOTHER { driver.option_num("occbin_smoother", "true"); };
 o_gsa_identification : IDENTIFICATION EQUAL INT_NUMBER { driver.option_num("identification", $3); }; /*not in doc */
 o_gsa_morris : MORRIS EQUAL INT_NUMBER { driver.option_num("morris", $3); };
 o_gsa_stab : STAB  EQUAL INT_NUMBER { driver.option_num("stab", $3); };
