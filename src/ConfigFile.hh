@@ -63,15 +63,15 @@ class SlaveNode
 public:
   SlaveNode(string computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string userName_arg,
             string password_arg, string remoteDrive_arg, string remoteDirectory_arg,
-            string programPath_arg, string matlabOctavePath_arg, bool singleCompThread_arg, int numberOfThreadsPerJob_arg,
-            string operatingSystem_arg);
+            string programPath_arg, string programConfig_arg, string matlabOctavePath_arg, bool singleCompThread_arg,
+            int numberOfThreadsPerJob_arg, string operatingSystem_arg);
 
 protected:
   const string computerName, port;
   int minCpuNbr, maxCpuNbr;
   const string userName, password;
   const string remoteDrive, remoteDirectory;
-  const string programPath, matlabOctavePath;
+  const string programPath, programConfig, matlabOctavePath;
   const bool singleCompThread;
   const int numberOfThreadsPerJob;
   const string operatingSystem;
@@ -111,9 +111,10 @@ private:
   void addPathsConfFileElement(vector<string> includepath);
   //! Add a SlaveNode or a Cluster object
   void addParallelConfFileElement(bool inNode, bool inCluster, const member_nodes_t &member_nodes, const string &name,
-                                  const string &computerName, const string &port, int minCpuNbr, int maxCpuNbr, const string &userName,
-                                  const string &password, const string &remoteDrive, const string &remoteDirectory,
-                                  const string &programPath, const string &matlabOctavePath, bool singleCompThread, int numberOfThreadsPerJob,
+                                  const string &computerName, const string &port, int minCpuNbr, int maxCpuNbr,
+                                  const string &userName, const string &password, const string &remoteDrive,
+                                  const string &remoteDirectory, const string &programPath, const string &programConfig,
+                                  const string &matlabOctavePath, bool singleCompThread, int numberOfThreadsPerJob,
                                   const string &operatingSystem);
 public:
   //! Parse config file
