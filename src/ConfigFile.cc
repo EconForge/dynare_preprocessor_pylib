@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2019 Dynare Team
+ * Copyright © 2010-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -56,7 +56,7 @@ Path::Path(vector<string> includepath_arg)
 
 SlaveNode::SlaveNode(string computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string userName_arg,
                      string password_arg, string remoteDrive_arg, string remoteDirectory_arg,
-                     string dynarePath_arg, string matlabOctavePath_arg, bool singleCompThread_arg, int numberOfThreadsPerJob_arg,
+                     string programPath_arg, string matlabOctavePath_arg, bool singleCompThread_arg, int numberOfThreadsPerJob_arg,
                      string operatingSystem_arg) :
   computerName{move(computerName_arg)},
   port{move(port_arg)},
@@ -66,7 +66,7 @@ SlaveNode::SlaveNode(string computerName_arg, string port_arg, int minCpuNbr_arg
   password{move(password_arg)},
   remoteDrive{move(remoteDrive_arg)},
   remoteDirectory{move(remoteDirectory_arg)},
-  dynarePath{move(dynarePath_arg)},
+  programPath{move(programPath_arg)},
   matlabOctavePath{move(matlabOctavePath_arg)},
   singleCompThread{singleCompThread_arg},
   numberOfThreadsPerJob{numberOfThreadsPerJob_arg},
@@ -168,7 +168,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
     }
 
   string name, computerName, port, userName, password, remoteDrive,
-    remoteDirectory, dynarePath, matlabOctavePath, operatingSystem,
+    remoteDirectory, programPath, matlabOctavePath, operatingSystem,
     global_init_file;
   vector<string> includepath;
   int minCpuNbr{0}, maxCpuNbr{0};
@@ -202,7 +202,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
             addParallelConfFileElement(inNode, inCluster, member_nodes, name,
                                        computerName, port, minCpuNbr, maxCpuNbr, userName,
                                        password, remoteDrive, remoteDirectory,
-                                       dynarePath, matlabOctavePath, singleCompThread, numberOfThreadsPerJob,
+                                       programPath, matlabOctavePath, singleCompThread, numberOfThreadsPerJob,
                                        operatingSystem);
 
           //! Reset communication vars / option defaults
@@ -236,7 +236,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
             }
 
           name = userName = computerName = port = password = remoteDrive
-            = remoteDirectory = dynarePath = matlabOctavePath
+            = remoteDirectory = programPath = matlabOctavePath
             = operatingSystem = global_init_file = "";
           includepath.clear();
           minCpuNbr = maxCpuNbr = 0;
@@ -353,8 +353,9 @@ ConfigFile::getConfigFileInfo(const string &config_file)
               remoteDrive = tokenizedLine.back();
             else if (!tokenizedLine.front().compare("RemoteDirectory"))
               remoteDirectory = tokenizedLine.back();
-            else if (!tokenizedLine.front().compare("DynarePath"))
-              dynarePath = tokenizedLine.back();
+            else if (!tokenizedLine.front().compare("DynarePath")
+                     || !tokenizedLine.front().compare("ProgramPath"))
+              programPath = tokenizedLine.back();
             else if (!tokenizedLine.front().compare("MatlabOctavePath"))
               matlabOctavePath = tokenizedLine.back();
             else if (!tokenizedLine.front().compare("NumberOfThreadsPerJob"))
@@ -445,7 +446,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
     addParallelConfFileElement(inNode, inCluster, member_nodes, name,
                                computerName, port, minCpuNbr, maxCpuNbr, userName,
                                password, remoteDrive, remoteDirectory,
-                               dynarePath, matlabOctavePath, singleCompThread, numberOfThreadsPerJob,
+                               programPath, matlabOctavePath, singleCompThread, numberOfThreadsPerJob,
                                operatingSystem);
 
   configFile.close();
@@ -479,7 +480,7 @@ void
 ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, const member_nodes_t &member_nodes, const string &name,
                                        const string &computerName, const string &port, int minCpuNbr, int maxCpuNbr, const string &userName,
                                        const string &password, const string &remoteDrive, const string &remoteDirectory,
-                                       const string &dynarePath, const string &matlabOctavePath, bool singleCompThread, int numberOfThreadsPerJob,
+                                       const string &programPath, const string &matlabOctavePath, bool singleCompThread, int numberOfThreadsPerJob,
                                        const string &operatingSystem)
 {
   //! ADD NODE
@@ -497,14 +498,14 @@ ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, const member
         }
       else
         slave_nodes.emplace(name, SlaveNode{computerName, port, minCpuNbr, maxCpuNbr, userName,
-                                              password, remoteDrive, remoteDirectory, dynarePath,
+                                              password, remoteDrive, remoteDirectory, programPath,
                                               matlabOctavePath, singleCompThread, numberOfThreadsPerJob,
                                               operatingSystem});
   //! ADD CLUSTER
   else if (inCluster)
     if (minCpuNbr > 0 || maxCpuNbr > 0 || !userName.empty()
         || !password.empty() || !remoteDrive.empty() || !remoteDirectory.empty()
-        || !dynarePath.empty() || !matlabOctavePath.empty() || !operatingSystem.empty())
+        || !programPath.empty() || !matlabOctavePath.empty() || !operatingSystem.empty())
       {
         cerr << "Invalid option passed to [cluster]." << endl;
         exit(EXIT_FAILURE);
@@ -728,7 +729,7 @@ ConfigFile::writeCluster(ostream &output) const
              << "'Password', '" << slave_node.second.password << "', "
              << "'RemoteDrive', '" << slave_node.second.remoteDrive << "', "
              << "'RemoteDirectory', '" << slave_node.second.remoteDirectory << "', "
-             << "'DynarePath', '" << slave_node.second.dynarePath << "', "
+             << "'ProgramPath', '" << slave_node.second.programPath << "', "
              << "'MatlabOctavePath', '" << slave_node.second.matlabOctavePath << "', "
              << "'OperatingSystem', '" << slave_node.second.operatingSystem << "', "
              << "'NodeWeight', '" << (cluster_it->second.member_nodes.find(slave_node.first))->second << "', "
