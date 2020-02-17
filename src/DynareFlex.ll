@@ -71,7 +71,7 @@ string eofbuff;
 #define YY_USER_ACTION location_increment(yylloc, yytext);
 %}
 
-DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|w([1-9]{1}|[1-4][0-9]|5[0-2]))
+DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 
 %%
  /* Code put at the beginning of yylex() */
