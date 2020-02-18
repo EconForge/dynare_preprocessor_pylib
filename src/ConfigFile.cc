@@ -749,6 +749,7 @@ ConfigFile::writeCluster(ostream &output) const
 
   if (parallel_slave_open_mode)
     output << "options_.parallel_info.leaveSlaveOpen = 1;" << endl;
+  output << "options_.parallel_info.console_mode= isoctave;" << endl;
 
   output << "InitializeComputationalEnvironment();" << endl;
   if (parallel_test)
