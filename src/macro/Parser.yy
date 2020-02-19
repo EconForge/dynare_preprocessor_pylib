@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /*
- * Copyright © 2019 Dynare Team
+ * Copyright © 2019-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -129,6 +129,11 @@ directive_one_line : INCLUDE expr
                      { $$ = make_shared<Include>($2, driver.env, @$); }
                    | INCLUDEPATH expr
                      { $$ = make_shared<IncludePath>($2, driver.env, @$); }
+                   | DEFINE symbol
+                     {
+                       auto tmp = make_shared<Real>("1", driver.env, @$);
+                       $$ = make_shared<Define>($2, tmp, driver.env, @$);
+                     }
                    | DEFINE symbol EQUAL expr
                      { $$ = make_shared<Define>($2, $4, driver.env, @$); }
                    | DEFINE function EQUAL expr
