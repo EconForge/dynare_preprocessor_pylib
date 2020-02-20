@@ -111,7 +111,6 @@ ModelTree::ModelTree(const ModelTree &m) :
   user_set_compiler{m.user_set_compiler},
   equations_lineno{m.equations_lineno},
   equation_tags{m.equation_tags},
-  equation_tags_xref{m.equation_tags_xref},
   computed_derivs_order{m.computed_derivs_order},
   NNZDerivatives{m.NNZDerivatives},
   equation_reordered{m.equation_reordered},
@@ -138,7 +137,6 @@ ModelTree::operator=(const ModelTree &m)
   equations_lineno = m.equations_lineno;
   aux_equations.clear();
   equation_tags = m.equation_tags;
-  equation_tags_xref = m.equation_tags_xref;
   computed_derivs_order = m.computed_derivs_order;
   NNZDerivatives = m.NNZDerivatives;
 
@@ -1857,41 +1855,7 @@ ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_b
     {
       content_output << "% Equation " << eq + 1 << endl;
       if (write_equation_tags)
-        {
-          auto escape_special_latex_symbols
-            = [](string str)
-              {
-                const regex special_latex_chars (R"([&%$#_{}])");
-                const regex backslash (R"(\\)");
-                const regex tilde (R"(~)");
-                const regex carrot (R"(\^)");
-                const regex textbackslash (R"(\\textbackslash)");
-                str = regex_replace(str, backslash, R"(\textbackslash)");
-                str = regex_replace(str, special_latex_chars, R"(\$&)");
-                str = regex_replace(str, carrot, R"(\^{})");
-                str = regex_replace(str, tilde, R"(\textasciitilde{})");
-                return regex_replace(str, textbackslash, R"(\textbackslash{})");
-              };
-          bool wrote_eq_tag = false;
-          for (const auto & [tagged_eq, tag_pair] : equation_tags)
-            if (tagged_eq == eq)
-              {
-                if (!wrote_eq_tag)
-                  content_output << R"(\noindent[)";
-                else
-                  content_output << ", ";
-
-                content_output << escape_special_latex_symbols(tag_pair.first);
-
-                if (!(tag_pair.second.empty()))
-                  content_output << "= `" << escape_special_latex_symbols(tag_pair.second) << "'";
-
-                wrote_eq_tag = true;
-              }
-
-          if (wrote_eq_tag)
-            content_output << "]" << endl;
-        }
+        equation_tags.writeLatexOutput(content_output, eq);
 
       content_output << R"(\begin{dmath})" << endl;
       // Here it is necessary to cast to superclass ExprNode, otherwise the overloaded writeOutput() method is not found
@@ -1919,8 +1883,7 @@ ModelTree::addEquation(expr_t eq, int lineno)
 vector<int>
 ModelTree::includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_eqs,
                                    vector<BinaryOpNode *> &equations, vector<int> &equations_lineno,
-                                   vector<pair<int, pair<string, string>>> &equation_tags,
-                                   multimap<pair<string, string>, int> &equation_tags_xref, bool static_equations) const
+                                   EquationTags &equation_tags, bool static_equations) const
 {
   vector<int> excluded_vars;
   if (equations.empty())
@@ -1929,12 +1892,12 @@ ModelTree::includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_
   // Get equation numbers of tags
   set<int> tag_eqns;
   for (auto &it : eqs)
-    if (equation_tags_xref.find(it) != equation_tags_xref.end())
+    if (auto tmp = equation_tags.getEqnsByTag(it.first, it.second); !tmp.empty())
       {
-        auto range = equation_tags_xref.equal_range(it);
-        for_each(range.first, range.second, [&tag_eqns](auto &x) { tag_eqns.insert(x.second); });
+        tag_eqns.insert(tmp.begin(), tmp.end());
         eqs.erase(it);
       }
+
   if (tag_eqns.empty())
     return excluded_vars;
 
@@ -1946,23 +1909,16 @@ ModelTree::includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_
       if (tag_eqns.find(i) == tag_eqns.end())
         eqns.insert(i);
 
-  // remove from equations, equations_lineno, equation_tags, equation_tags_xref
+  // remove from equations, equations_lineno, equation_tags
   vector<BinaryOpNode *> new_eqns;
   vector<int> new_equations_lineno;
   map<int, int> old_eqn_num_2_new;
   for (size_t i = 0; i < equations.size(); i++)
     if (eqns.find(i) != eqns.end())
       {
-        bool found = false;
-        for (const auto & [tagged_eq, tag_pair] : equation_tags)
-          if (tagged_eq == static_cast<int>(i) && tag_pair.first == "endogenous")
-            {
-              found = true;
-              excluded_vars.push_back(symbol_table.getID(tag_pair.second));
-              break;
-            }
-        if (!found)
+        if (auto tmp = equation_tags.getTagValueByEqnAndKey(i, "endogenous"); !tmp.empty())
           {
+            excluded_vars.push_back(symbol_table.getID(tmp));
             set<pair<int, int>> result;
             equations[i]->arg1->collectDynamicVariables(SymbolType::endogenous, result);
             if (result.size() == 1)
@@ -1986,17 +1942,7 @@ ModelTree::includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_
   equations = new_eqns;
   equations_lineno = new_equations_lineno;
 
-  equation_tags.erase(remove_if(equation_tags.begin(), equation_tags.end(),
-                                [&](const auto &it) { return eqns.find(it.first) != eqns.end(); }),
-                      equation_tags.end());
-  for (auto &it : old_eqn_num_2_new)
-    for (auto &it1 : equation_tags)
-      if (it1.first == it.first)
-        it1.first = it.second;
-
-  equation_tags_xref.clear();
-  for (const auto &it : equation_tags)
-    equation_tags_xref.emplace(it.second, it.first);
+  equation_tags.erase(eqns, old_eqn_num_2_new);
 
   if (!static_equations)
     for (size_t i = 0; i < excluded_vars.size(); i++)
@@ -2040,14 +1986,9 @@ ModelTree::findConstantEquationsWithoutTags(map<VariableNode *, NumConstNode *> 
 }
 
 void
-ModelTree::addEquation(expr_t eq, int lineno, const vector<pair<string, string>> &eq_tags)
+ModelTree::addEquation(expr_t eq, int lineno, const map<string, string> &eq_tags)
 {
-  int n = equations.size();
-  for (const auto &eq_tag : eq_tags)
-    {
-      equation_tags.emplace_back(n, eq_tag);
-      equation_tags_xref.emplace(eq_tag, n);
-    }
+  equation_tags.add(equations.size(), eq_tags);
   addEquation(eq, lineno);
 }
 

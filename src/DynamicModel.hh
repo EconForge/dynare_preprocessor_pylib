@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -54,10 +54,7 @@ private:
   vector<int> static_only_equations_lineno;
 
   //! Stores the equation tags of equations declared as [static]
-  vector<vector<pair<string, string>>> static_only_equations_equation_tags;
-
-  //! Stores mapping from equation tags to equation number
-  multimap<pair<string, string>, int> static_only_equation_tags_xref;
+  EquationTags static_only_equations_equation_tags;
 
   using deriv_id_table_t = map<pair<int, int>, int>;
   //! Maps a pair (symbol_id, lag) to a deriv ID
@@ -260,9 +257,9 @@ private:
   //! Create a legacy *_dynamic.m file for Matlab/Octave not yet using the temporary terms array interface
   void writeDynamicMatlabCompatLayer(const string &basename) const;
 
-  vector<int> getEquationNumbersFromTags(const set<string> &eqtags) const;
+  set<int> getEquationNumbersFromTags(const set<string> &eqtags) const;
 
-  void findPacExpectationEquationNumbers(vector<int> &eqnumber) const;
+  void findPacExpectationEquationNumbers(set<int> &eqnumber) const;
 
   //! Internal helper for the copy constructor and assignment operator
   /*! Copies all the structures that contain ExprNode*, by the converting the
@@ -452,7 +449,7 @@ public:
   void replaceMyEquations(DynamicModel &dynamic_model) const;
 
   //! Adds an equation marked as [static]
-  void addStaticOnlyEquation(expr_t eq, int lineno, const vector<pair<string, string>> &eq_tags);
+  void addStaticOnlyEquation(expr_t eq, int lineno, const map<string, string> &eq_tags);
 
   //! Returns number of static only equations
   size_t staticOnlyEquationsNbr() const;

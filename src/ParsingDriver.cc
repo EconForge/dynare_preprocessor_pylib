@@ -296,7 +296,7 @@ ParsingDriver::add_predetermined_variable(const string &name)
 void
 ParsingDriver::add_equation_tags(string key, string value)
 {
-  eq_tags.emplace_back(key, value);
+  eq_tags[key] = value;
 
   transform(key.begin(), key.end(), key.begin(), ::tolower);
   if (key.compare("endogenous") == 0)
@@ -2494,15 +2494,7 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
   expr_t id = model_tree->AddEqual(arg1, arg2);
 
   // Detect if the equation is tagged [static]
-  bool is_static_only = false;
-  for (auto &eq_tag : eq_tags)
-    if (eq_tag.first == "static")
-      {
-        is_static_only = true;
-        break;
-      }
-
-  if (is_static_only)
+  if (eq_tags.find("static") != eq_tags.end())
     {
       if (!id->isInStaticForm())
         error("An equation tagged [static] cannot contain leads, lags, expectations or STEADY_STATE operators");

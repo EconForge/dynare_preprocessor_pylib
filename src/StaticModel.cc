@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -159,38 +159,32 @@ StaticModel::StaticModel(const DynamicModel &m) :
 
   // Convert equations
   int static_only_index = 0;
+  set<int> dynamic_equations = m.equation_tags.getDynamicEqns();
   for (int i = 0; i < static_cast<int>(m.equations.size()); i++)
-    {
-      // Detect if equation is marked [dynamic]
-      bool is_dynamic_only = false;
-      vector<pair<string, string>> eq_tags;
-      for (const auto & [tagged_eq, tag_pair] : m.equation_tags)
-        if (tagged_eq == i)
+    try
+      {
+        // If equation is dynamic, replace it by an equation marked [static]
+        if (dynamic_equations.find(i) != dynamic_equations.end())
           {
-            eq_tags.push_back(tag_pair);
-            if (tag_pair.first == "dynamic")
-              is_dynamic_only = true;
+            auto [static_only_equations,
+                  static_only_equations_lineno,
+                  static_only_equations_equation_tags] = m.getStaticOnlyEquationsInfo();
+
+            addEquation(static_only_equations[static_only_index]->toStatic(*this),
+                        static_only_equations_lineno[static_only_index],
+                        static_only_equations_equation_tags.getTagsByEqn(static_only_index));
+            static_only_index++;
           }
-
-      try
-        {
-          // If yes, replace it by an equation marked [static]
-          if (is_dynamic_only)
-            {
-              auto [static_only_equations, static_only_equations_lineno, static_only_equations_equation_tags] = m.getStaticOnlyEquationsInfo();
-
-              addEquation(static_only_equations[static_only_index]->toStatic(*this), static_only_equations_lineno[static_only_index], static_only_equations_equation_tags[static_only_index]);
-              static_only_index++;
-            }
-          else
-            addEquation(m.equations[i]->toStatic(*this), m.equations_lineno[i], eq_tags);
-        }
-      catch (DataTree::DivisionByZeroException)
-        {
-          cerr << "...division by zero error encountred when converting equation " << i << " to static" << endl;
-          exit(EXIT_FAILURE);
-        }
-    }
+        else
+          addEquation(m.equations[i]->toStatic(*this),
+                      m.equations_lineno[i],
+                      m.equation_tags.getTagsByEqn(i));
+      }
+    catch (DataTree::DivisionByZeroException)
+      {
+        cerr << "...division by zero error encountred when converting equation " << i << " to static" << endl;
+        exit(EXIT_FAILURE);
+      }
 
   // Convert auxiliary equations
   for (auto aux_eq : m.aux_equations)

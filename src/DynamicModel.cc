@@ -103,7 +103,6 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   balanced_growth_test_tol{m.balanced_growth_test_tol},
   static_only_equations_lineno{m.static_only_equations_lineno},
   static_only_equations_equation_tags{m.static_only_equations_equation_tags},
-  static_only_equation_tags_xref{m.static_only_equation_tags_xref},
   deriv_id_table{m.deriv_id_table},
   inv_deriv_id_table{m.inv_deriv_id_table},
   dyn_jacobian_cols_table{m.dyn_jacobian_cols_table},
@@ -166,7 +165,6 @@ DynamicModel::operator=(const DynamicModel &m)
 
   static_only_equations_lineno = m.static_only_equations_lineno;
   static_only_equations_equation_tags = m.static_only_equations_equation_tags;
-  static_only_equation_tags_xref = m.static_only_equation_tags_xref;
   deriv_id_table = m.deriv_id_table;
   inv_deriv_id_table = m.inv_deriv_id_table;
   dyn_jacobian_cols_table = m.dyn_jacobian_cols_table;
@@ -2907,7 +2905,8 @@ DynamicModel::writeDynamicJacobianNonZeroElts(const string &basename) const
 }
 
 void
-DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_eq_tags, set<pair<string, string>> &eq_tag_set, bool exclude_eqs)
+DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_eq_tags,
+                                           set<pair<string, string>> &eq_tag_set, bool exclude_eqs)
 {
   string tags;
   if (filesystem::exists(inc_exc_eq_tags))
@@ -3010,24 +3009,13 @@ DynamicModel::includeExcludeEquations(const string &eqs, bool exclude_eqs)
   vector<int> excluded_vars
     = ModelTree::includeExcludeEquations(eq_tag_set, exclude_eqs,
                                          equations, equations_lineno,
-                                         equation_tags, equation_tags_xref, false);
+                                         equation_tags, false);
 
-  // `static_only_equation_tags` is `vector<vector<pair<string, string>>>`
-  // while `equation_tags` is `vector<pair<int, pair<string, string>>>`
-  // so convert former structure to latter to conform with function call
-  int n = 0;
-  vector<pair<int, pair<string, string>>> tmp_static_only_equation_tags;
-  for (auto &eqn_tags : static_only_equations_equation_tags)
-    {
-      for (auto &eqn_tag : eqn_tags)
-        tmp_static_only_equation_tags.emplace_back(make_pair(n, eqn_tag));
-      n++;
-    }
   // Ignore output because variables are not excluded when equations marked 'static' are excluded
   ModelTree::includeExcludeEquations(eq_tag_set, exclude_eqs,
                                      static_only_equations, static_only_equations_lineno,
-                                     tmp_static_only_equation_tags,
-                                     static_only_equation_tags_xref, true);
+                                     static_only_equations_equation_tags, true);
+
   if (!eq_tag_set.empty())
     {
       cerr << "ERROR: " << (exclude_eqs ? "exclude_eqs" : "include_eqs") << ": The equations specified by `";
@@ -3043,17 +3031,6 @@ DynamicModel::includeExcludeEquations(const string &eqs, bool exclude_eqs)
       cerr << "ERROR: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
            << ": You must remove the same number of equations marked `static` as equations marked `dynamic`." << endl;
       exit(EXIT_FAILURE);
-    }
-
-  // convert back static equation info
-  if (static_only_equations.empty())
-    static_only_equations_equation_tags.clear();
-  else
-    {
-      static_only_equations_equation_tags.resize(static_only_equations.size());
-      fill(static_only_equations_equation_tags.begin(), static_only_equations_equation_tags.end(), vector<pair<string, string>>());
-      for (auto &it : tmp_static_only_equation_tags)
-        static_only_equations_equation_tags.at(it.first).emplace_back(it.second);
     }
 
   // Collect list of used variables in updated list of equations
@@ -3180,42 +3157,10 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
     }
 
   // Write equation tags
-  if (julia)
-    {
-      output << modstruct << "equation_tags = [" << endl;
-      for (const auto &equation_tag : equation_tags)
-        output << "                       EquationTag("
-               << equation_tag.first + 1 << R"( , ")"
-               << equation_tag.second.first << R"(" , ")"
-               << equation_tag.second.second << R"("))" << endl;
-      output << "                      ]" << endl;
-    }
-  else
-    {
-      output << modstruct << "equations_tags = {" << endl;
-      for (const auto &equation_tag : equation_tags)
-        output << "  " << equation_tag.first + 1 << " , '"
-               << equation_tag.second.first << "' , '"
-               << equation_tag.second.second << "' ;" << endl;
-      output << "};" << endl;
-    }
+  equation_tags.writeOutput(output, modstruct, julia);
 
   // Write Occbin tags
-  map<int, vector<pair<string, string>>> occbin_options;
-  for (const auto &[eqn, tag] : equation_tags)
-      if (tag.first == "pswitch"
-          || tag.first == "bind"
-          || tag.first == "relax"
-          || tag.first == "pcrit")
-        occbin_options[eqn].push_back(tag);
-
-  int idx = 0;
-  for (const auto &[eqn, tags] : occbin_options)
-    {
-      idx++;
-      for (const auto &[tag_name, tag_value] : tags)
-        output << "M_.occbin.constraint(" << idx << ")." << tag_name << " = '" << tag_value << "';" << endl;
-    }
+  equation_tags.writeOccbinOutput(output, modstruct, julia);
 
   // Write mapping for variables and equations they are present in
   for (const auto &variable : variableMapping)
@@ -4071,16 +4016,8 @@ DynamicModel::fillVarModelTable() const
 
       for (const auto &eqtag : it.second)
         {
-          int eqn = -1;
           set<pair<int, int>> lhs_set, lhs_tmp_set, rhs_set;
-          for (const auto &equation_tag : equation_tags)
-            if (equation_tag.second.first == "name"
-                && equation_tag.second.second == eqtag)
-              {
-                eqn = equation_tag.first;
-                break;
-              }
-
+          int eqn = equation_tags.getEqnByTag("name", eqtag);
           if (eqn == -1)
             {
               cerr << "ERROR: equation tag '" << eqtag << "' not found" << endl;
@@ -4243,15 +4180,7 @@ DynamicModel::fillTrendComponentModelTable() const
       vector<int> trend_eqnumber;
       for (const auto &eqtag : it.second)
         {
-          int eqn = -1;
-          for (const auto &equation_tag : equation_tags)
-            if (equation_tag.second.first == "name"
-                && equation_tag.second.second == eqtag)
-              {
-                eqn = equation_tag.first;
-                break;
-              }
-
+          int eqn = equation_tags.getEqnByTag("name", eqtag);
           if (eqn == -1)
             {
               cerr << "ERROR: trend equation tag '" << eqtag << "' not found" << endl;
@@ -4270,16 +4199,8 @@ DynamicModel::fillTrendComponentModelTable() const
 
       for (const auto &eqtag : it.second)
         {
-          int eqn = -1;
           set<pair<int, int>> lhs_set, lhs_tmp_set, rhs_set;
-          for (const auto &equation_tag : equation_tags)
-            if (equation_tag.second.first == "name"
-                && equation_tag.second.second == eqtag)
-              {
-                eqn = equation_tag.first;
-                break;
-              }
-
+          int eqn = equation_tags.getEqnByTag("name", eqtag);
           if (eqn == -1)
             {
               cerr << "ERROR: equation tag '" << eqtag << "' not found" << endl;
@@ -4636,14 +4557,7 @@ DynamicModel::walkPacParameters(const string &name)
                 }
             }
 
-          string eqtag;
-          for (auto &tag : equation_tags)
-            if (tag.first == (&equation - &equations[0]))
-              if (tag.second.first == "name")
-                {
-                  eqtag = tag.second.second;
-                  break;
-                }
+          string eqtag = equation_tags.getTagValueByEqnAndKey(&equation - &equations[0], "name");
           if (eqtag.empty())
             {
               cerr << "Every equation with a pac expectation must have been assigned an equation tag name" << endl;
@@ -4686,14 +4600,7 @@ DynamicModel::getPacMaxLag(const string &pac_model_name, map<pair<string, string
             exit(EXIT_FAILURE);
           }
 
-        string eqtag;
-        for (auto &tag : equation_tags)
-          if (tag.first == (&equation - &equations[0]))
-            if (tag.second.first == "name")
-              {
-                eqtag = tag.second.second;
-                break;
-              }
+        string eqtag = equation_tags.getTagValueByEqnAndKey(&equation - &equations[0], "name");
         string eq = eqtag_and_lag[{pac_model_name, eqtag}].first;
         eqtag_and_lag[{pac_model_name, eqtag}] = {eq, equation->PacMaxLag(endogs.begin()->first)};
       }
@@ -4731,15 +4638,7 @@ DynamicModel::declarePacModelConsistentExpectationEndogs(const string &name)
   for (auto &equation : equations)
     if (equation->containsPacExpectation())
       {
-        string eqtag;
-        for (auto &tag : equation_tags)
-          if (tag.first == (&equation - &equations[0]))
-            if (tag.second.first == "name")
-              {
-                eqtag = tag.second.second;
-                break;
-              }
-        if (eqtag.empty())
+        if (!equation_tags.exists(&equation - &equations[0], "name"))
           {
             cerr << "Every equation with a pac expectation must have been assigned an equation tag name" << endl;
             exit(EXIT_FAILURE);
@@ -4934,15 +4833,13 @@ DynamicModel::substitutePacExpectation(const string &pac_model_name)
   for (auto &it : pac_expectation_substitution)
     if (it.first.first == pac_model_name)
       for (auto &equation : equations)
-        for (auto & [tagged_eq, tag_pair] : equation_tags)
-          if (tagged_eq == (&equation - &equations[0])
-              && tag_pair.first == "name" && tag_pair.second == it.first.second)
-            {
-              auto substeq = dynamic_cast<BinaryOpNode *>(equation->substitutePacExpectation(pac_model_name, it.second));
-              assert(substeq);
-              equation = substeq;
-              break;
-            }
+        if (equation_tags.exists(&equation - &equations[0], "name", it.first.second))
+          {
+            auto substeq = dynamic_cast<BinaryOpNode *>(equation->substitutePacExpectation(pac_model_name, it.second));
+            assert(substeq);
+            equation = substeq;
+            break;
+          }
 }
 
 void
@@ -5536,7 +5433,6 @@ DynamicModel::clearEquations()
   equations.clear();
   equations_lineno.clear();
   equation_tags.clear();
-  equation_tags_xref.clear();
 }
 
 void
@@ -5548,7 +5444,6 @@ DynamicModel::replaceMyEquations(DynamicModel &dynamic_model) const
     dynamic_model.addEquation(equations[i]->clone(dynamic_model), equations_lineno[i]);
 
   dynamic_model.equation_tags = equation_tags;
-  dynamic_model.equation_tags_xref = equation_tags_xref;
 }
 
 void
@@ -5623,7 +5518,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
      (i.e. a FOC identical to an equation of the original model) */
   vector<expr_t> neweqs;
   vector<int> neweqs_lineno;
-  map<int, vector<pair<string, string>>> neweqs_tags;
+  map<int, map<string, string>> neweqs_tags;
   for (auto &[symb_id_and_lag, deriv_id] : deriv_id_table)
     {
       auto &[symb_id, lag] = symb_id_and_lag;
@@ -5635,10 +5530,10 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
             {
               // This is a derivative w.r.t. a Lagrange multiplier
               neweqs_lineno.push_back(old_equations_lineno[i]);
-              vector<pair<string, string>> tags;
-              for (auto &[j, tagpair] : old_equation_tags)
-                if (j == i)
-                  tags.emplace_back(tagpair);
+              map<string, string> tags;
+              auto tmp = old_equation_tags.getTagsByEqn(i);
+              for (const auto &[key, value] : tmp)
+                tags[key] = value;
               neweqs_tags[neweqs.size()-1] = tags;
             }
           else
@@ -5686,30 +5581,20 @@ DynamicModel::createVariableMapping(int orig_eq_nbr)
 void
 DynamicModel::expandEqTags()
 {
-  set<int> existing_tags;
-  for (const auto &eqn : equation_tags)
-    if (eqn.second.first == "name")
-      existing_tags.insert(eqn.first);
-
+  set<int> existing_tags = equation_tags.getEqnsByKey("name");
   for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     if (existing_tags.find(eq) == existing_tags.end())
-      if (auto lhs_expr = dynamic_cast<VariableNode *>(equations[eq]->arg1); lhs_expr && equation_tags_xref.find({ "name", symbol_table.getName(lhs_expr->symb_id)}) == equation_tags_xref.end())
-        {
-          equation_tags.emplace_back(eq, pair("name", symbol_table.getName(lhs_expr->symb_id)));
-          equation_tags_xref.emplace(pair("name", symbol_table.getName(lhs_expr->symb_id)), eq);
-        }
-      else if (equation_tags_xref.find({ "name", to_string(eq+1) }) == equation_tags_xref.end())
-        {
-          equation_tags.emplace_back(eq, pair("name", to_string(eq+1)));
-          equation_tags_xref.emplace(pair("name", to_string(eq+1)), eq);
-        }
+      if (auto lhs_expr = dynamic_cast<VariableNode *>(equations[eq]->arg1);
+          lhs_expr
+          && !equation_tags.exists("name", symbol_table.getName(lhs_expr->symb_id)))
+        equation_tags.add(eq, "name", symbol_table.getName(lhs_expr->symb_id));
+      else if (!equation_tags.exists("name", to_string(eq+1)))
+        equation_tags.add(eq, "name", to_string(eq+1));
       else
         {
           cerr << "Error creating default equation tag: cannot assign default tag to equation number " << eq+1 << " because it is already in use" << endl;
           exit(EXIT_FAILURE);
         }
-
-  sort(equation_tags.begin(), equation_tags.end());
 }
 
 set<int>
@@ -6459,39 +6344,32 @@ DynamicModel::substituteAdl()
     equation = dynamic_cast<BinaryOpNode *>(equation->substituteAdl());
 }
 
-vector<int>
+set<int>
 DynamicModel::getEquationNumbersFromTags(const set<string> &eqtags) const
 {
-  vector<int> eqnumbers;
+  set<int> eqnumbers;
   for (auto &eqtag : eqtags)
     {
-      bool found = false;
-      for (const auto &equation_tag : equation_tags)
-        if (equation_tag.second.first == "name"
-            && equation_tag.second.second == eqtag)
-          {
-            found = true;
-            eqnumbers.push_back(equation_tag.first);
-            break;
-          }
-      if (!found)
+      set<int> tmp = equation_tags.getEqnsByTag("name", eqtag);
+      if (tmp.empty())
         {
           cerr << "ERROR: looking for equation tag " << eqtag << " failed." << endl;
           exit(EXIT_FAILURE);
         }
+      eqnumbers.insert(tmp.begin(), tmp.end());
     }
   return eqnumbers;
 }
 
 void
-DynamicModel::findPacExpectationEquationNumbers(vector<int> &eqnumbers) const
+DynamicModel::findPacExpectationEquationNumbers(set<int> &eqnumbers) const
 {
   int i = 0;
   for (auto &equation : equations)
     {
       if (equation->containsPacExpectation()
           && find(eqnumbers.begin(), eqnumbers.end(), i) == eqnumbers.end())
-        eqnumbers.push_back(i);
+        eqnumbers.insert(i);
       i++;
     }
 }
@@ -6507,9 +6385,10 @@ DynamicModel::substituteUnaryOps()
 pair<lag_equivalence_table_t, ExprNode::subst_table_t>
 DynamicModel::substituteUnaryOps(const set<string> &var_model_eqtags)
 {
-  vector<int> eqnumbers = getEquationNumbersFromTags(var_model_eqtags);
+  set<int> eqnumbers = getEquationNumbersFromTags(var_model_eqtags);
   findPacExpectationEquationNumbers(eqnumbers);
-  return substituteUnaryOps(eqnumbers);
+  vector<int> eqnumbers_vec(eqnumbers.begin(), eqnumbers.end());
+  return substituteUnaryOps(eqnumbers_vec);
 }
 
 pair<lag_equivalence_table_t, ExprNode::subst_table_t>
@@ -6751,21 +6630,14 @@ DynamicModel::isModelLocalVariableUsed() const
 }
 
 void
-DynamicModel::addStaticOnlyEquation(expr_t eq, int lineno, const vector<pair<string, string>> &eq_tags)
+DynamicModel::addStaticOnlyEquation(expr_t eq, int lineno, const map<string, string> &eq_tags)
 {
   auto beq = dynamic_cast<BinaryOpNode *>(eq);
   assert(beq && beq->op_code == BinaryOpcode::equal);
 
-  vector<pair<string, string>> soe_eq_tags;
-  for (const auto &eq_tag : eq_tags)
-    soe_eq_tags.push_back(eq_tag);
-
-  int n = static_only_equations.size();
+  static_only_equations_equation_tags.add(static_only_equations.size(), eq_tags);
   static_only_equations.push_back(beq);
   static_only_equations_lineno.push_back(lineno);
-  static_only_equations_equation_tags.push_back(soe_eq_tags);
-  for (auto &it : soe_eq_tags)
-    static_only_equation_tags_xref.emplace(it, n);
 }
 
 size_t
@@ -6777,13 +6649,7 @@ DynamicModel::staticOnlyEquationsNbr() const
 size_t
 DynamicModel::dynamicOnlyEquationsNbr() const
 {
-  set<int> eqs;
-
-  for (const auto &equation_tag : equation_tags)
-    if (equation_tag.second.first == "dynamic")
-      eqs.insert(equation_tag.first);
-
-  return eqs.size();
+  return equation_tags.getDynamicEqns().size();
 }
 
 bool
@@ -6792,10 +6658,7 @@ DynamicModel::isChecksumMatching(const string &basename, bool block) const
   stringstream buffer;
 
   // Write equation tags
-  for (const auto &equation_tag : equation_tags)
-    buffer << "  " << equation_tag.first + 1
-           << equation_tag.second.first
-           << equation_tag.second.second << endl;
+  equation_tags.writeCheckSumInfo(buffer);
 
   ExprNodeOutputType buffer_type = block ? ExprNodeOutputType::matlabDynamicModelSparse : ExprNodeOutputType::CDynamicModel;
 
@@ -6866,24 +6729,7 @@ DynamicModel::writeJsonAST(ostream &output) const
       output << R"({ "number":)" << eq
              << R"(, "line":)" << equations_lineno[eq];
 
-      for (const auto &equation_tag : equation_tags)
-        if (equation_tag.first == eq)
-          eqtags.push_back(equation_tag.second);
-
-      if (!eqtags.empty())
-        {
-          output << R"(, "tags": {)";
-          int i = 0;
-          for (const auto &[name, value] : eqtags)
-            {
-              if (i != 0)
-                output << ", ";
-              output << R"(")" << name << R"(": ")" << value << R"(")";
-              i++;
-            }
-          output << "}";
-          eqtags.clear();
-        }
+      equation_tags.writeJsonAST(output, eq);
 
       output << R"(, "AST": )";
       equations[eq]->writeJsonAST(output);
@@ -6904,9 +6750,8 @@ DynamicModel::writeJsonVariableMapping(ostream &output) const
       int it = 0;
       int end_idx_eq = static_cast<int>(variable.second.size())-1;
       for (const auto &equation : variable.second)
-        for (const auto &equation_tag : equation_tags)
-          if (equation_tag.first == equation && equation_tag.second.first == "name")
-            output << R"(")" << equation_tag.second.second << (it++ == end_idx_eq ? R"("])" : R"(", )");
+        if (auto tmp = equation_tags.getTagValueByEqnAndKey(equation, "name"); !tmp.empty())
+          output << R"(")" << tmp << (it++ == end_idx_eq ? R"("])" : R"(", )");
       output << (ii++ == end_idx_map ? R"(})" : R"(},)") << endl;
     }
   output << "]";

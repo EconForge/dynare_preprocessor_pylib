@@ -10,6 +10,8 @@ dynare_m_SOURCES = \
 	DynareBison.yy \
 	ComputingTasks.cc \
 	ComputingTasks.hh \
+	EquationTags.cc \
+	EquationTags.hh \
 	ModelTree.cc \
 	ModelTree.hh \
 	StaticModel.cc \

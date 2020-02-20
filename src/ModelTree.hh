@@ -31,6 +31,7 @@ using namespace std;
 #include <filesystem>
 
 #include "DataTree.hh"
+#include "EquationTags.hh"
 #include "ExtendedPreprocessorTypes.hh"
 
 // Helper to convert a vector into a tuple
@@ -87,9 +88,7 @@ protected:
   //! Stores line numbers of declared equations; -1 means undefined
   vector<int> equations_lineno;
   //! Stores equation tags
-  vector<pair<int, pair<string, string>>> equation_tags;
-  //! Stores mapping from equation tags to equation number
-  multimap<pair<string, string>, int> equation_tags_xref;
+  EquationTags equation_tags;
   /*
    * ************** END **************
    */
@@ -274,8 +273,7 @@ protected:
   //! Remove equations specified by exclude_eqs
   vector<int> includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_eqs,
                                       vector<BinaryOpNode *> &equations, vector<int> &equations_lineno,
-                                      vector<pair<int, pair<string, string>>> &equation_tags,
-                                      multimap<pair<string, string>, int> &equation_tags_xref, bool static_equations) const;
+                                      EquationTags &equation_tags, bool static_equations) const;
 
   //! Determine the simulation type of each block
   virtual BlockSimulationType getBlockSimulationType(int block_number) const = 0;
@@ -361,7 +359,7 @@ public:
   //! Declare a node as an equation of the model; also give its line number
   void addEquation(expr_t eq, int lineno);
   //! Declare a node as an equation of the model, also giving its tags
-  void addEquation(expr_t eq, int lineno, const vector<pair<string, string>> &eq_tags);
+  void addEquation(expr_t eq, int lineno, const map<string, string> &eq_tags);
   //! Declare a node as an auxiliary equation of the model, adding it at the end of the list of auxiliary equations
   void addAuxEquation(expr_t eq);
   //! Returns the number of equations in the model
@@ -394,11 +392,7 @@ public:
   inline map<string, string>
   getEquationTags(int eq) const
   {
-    map<string, string> r;
-    for (auto &[eq2, tagpair] : equation_tags)
-      if (eq2 == eq)
-        r[tagpair.first] = tagpair.second;
-    return r;
+    return equation_tags.getTagsByEqn(eq);
   }
 
   inline static string
