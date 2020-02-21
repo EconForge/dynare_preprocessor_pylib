@@ -17,7 +17,6 @@
  * along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <filesystem>
 #include <iostream>
 #include <sstream>
 #include <fstream>
