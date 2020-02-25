@@ -668,7 +668,7 @@ StochSimulStatement::writeOutput(ostream &output, const string &basename, bool m
 
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "[info, oo_, options_] = stoch_simul(M_, options_, oo_, var_list_);" << endl;
+  output << "[info, oo_, options_, M_] = stoch_simul(M_, options_, oo_, var_list_);" << endl;
 }
 
 void
@@ -1115,7 +1115,7 @@ DiscretionaryPolicyStatement::writeOutput(ostream &output, const string &basenam
 
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "[info, oo_, options_] = discretionary_policy(M_, options_, oo_, var_list_);" << endl;
+  output << "[info, oo_, options_, M_] = discretionary_policy(M_, options_, oo_, var_list_);" << endl;
 }
 
 void
