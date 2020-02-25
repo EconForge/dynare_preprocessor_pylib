@@ -4565,7 +4565,7 @@ DynamicModel::walkPacParameters(const string &name)
             }
           if (lhs.first == -1)
             {
-              cerr << "walkPacParameters: error obtaining LHS varibale." << endl;
+              cerr << "walkPacParameters: error obtaining LHS variable." << endl;
               exit(EXIT_FAILURE);
             }
           if (ec_params_and_vars.second.empty() || ar_params_and_vars.empty())

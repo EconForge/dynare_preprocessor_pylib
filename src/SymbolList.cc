@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -178,6 +178,6 @@ SymbolList::removeDuplicates(const string &dynare_command, WarningConsolidation 
       unique_symbols.push_back(it);
     else
       warnings << "WARNING: In " << dynare_command << ": " << it
-               << " found more than once in symbol list. Removing all but first occurence." << endl;
+               << " found more than once in symbol list. Removing all but first occurrence." << endl;
   symbols = unique_symbols;
 }
