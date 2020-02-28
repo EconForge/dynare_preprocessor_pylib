@@ -94,7 +94,7 @@ class ParsingDriver;
 %token FAST_KALMAN_FILTER KALMAN_ALGO KALMAN_TOL DIFFUSE_KALMAN_TOL SUBSAMPLES OPTIONS TOLF TOLX PLOT_INIT_DATE PLOT_END_DATE
 %token LAPLACE LIK_ALGO LIK_INIT LINEAR LINEAR_DECOMPOSITION LOAD_IDENT_FILES LOAD_MH_FILE LOAD_RESULTS_AFTER_LOAD_MH LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV LINEAR_APPROXIMATION
 %token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
-%token MFS MH_CONF_SIG MH_DROP MH_INIT_SCALE MH_JSCALE MH_TUNE_JSCALE MH_TUNE_JSCALE_INITIAL_GUESS MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
+%token MFS MH_CONF_SIG MH_DROP MH_INIT_SCALE MH_JSCALE MH_TUNE_JSCALE MH_TUNE_GUESS MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
 %token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO CONTEMPORANEOUS_CORRELATION DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL RAFTERY_LEWIS_QRS RAFTERY_LEWIS_DIAGNOSTICS MCMC_JUMPING_COVARIANCE MOMENT_CALIBRATION
 %token NUMBER_OF_PARTICLES RESAMPLING SYSTEMATIC GENERIC RESAMPLING_THRESHOLD RESAMPLING_METHOD KITAGAWA STRATIFIED SMOOTH
@@ -1998,7 +1998,7 @@ estimation_options : o_datafile
                    | o_mh_drop
                    | o_mh_jscale
                    | o_mh_tune_jscale
-                   | o_mh_tune_jscale_initial_guess
+                   | o_mh_tune_guess
                    | o_optim
                    | o_mh_init_scale
                    | o_mode_file
@@ -3343,7 +3343,7 @@ o_mh_jscale : MH_JSCALE EQUAL non_negative_number { driver.option_num("mh_jscale
 o_mh_tune_jscale : MH_TUNE_JSCALE EQUAL non_negative_number
                  { driver.option_num("mh_tune_jscale.target", $3); driver.option_num("mh_tune_jscale.status", "true");}
                  | MH_TUNE_JSCALE {driver.option_num("mh_tune_jscale.status", "true");};
-o_mh_tune_jscale_initial_guess : MH_TUNE_JSCALE_INITIAL_GUESS EQUAL non_negative_number { driver.option_num("mh_tune_jscale.guess", $3); };
+o_mh_tune_guess : MH_TUNE_GUESS EQUAL non_negative_number { driver.option_num("mh_tune_jscale.guess", $3); };
 o_optim : OPTIM  EQUAL '(' optim_options ')';
 o_posterior_sampler_options : POSTERIOR_SAMPLER_OPTIONS EQUAL '(' sampling_options ')' ;
 o_proposal_distribution : PROPOSAL_DISTRIBUTION EQUAL symbol { driver.option_str("posterior_sampler_options.posterior_sampling_method.proposal_distribution", $3); };
