@@ -255,9 +255,9 @@ statement : parameters
           | planner_objective
           | ramsey_model
           | ramsey_policy
-	  | ramsey_constraints
+          | ramsey_constraints
           | evaluate_planner_objective
-	  | discretionary_policy
+          | discretionary_policy
           | bvar_density
           | bvar_forecast
           | sbvar
@@ -915,7 +915,7 @@ compilation_setup_option : SUBSTITUTE_FLAGS EQUAL QUOTED_STRING
 
 model_options : BLOCK { driver.block(); }
               | o_cutoff
-							| o_mfs
+              | o_mfs
               | BYTECODE { driver.byte_code(); }
               | USE_DLL { driver.use_dll(); }
               | NO_STATIC { driver.no_static();}
@@ -1151,7 +1151,7 @@ restriction_elem_expression : COEFF '(' symbol COMMA INT_NUMBER ')'
 svar_global_identification_check: SVAR_GLOBAL_IDENTIFICATION_CHECK ';'
                                   { driver.add_svar_global_identification_check(); }
                                 ;
-				
+
 markov_switching : MARKOV_SWITCHING '(' ms_options_list ')' ';'
                    { driver.markov_switching(); }
                  ;
@@ -1313,13 +1313,13 @@ perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_markowitz
                                  | o_minimal_solving_periods
                                  | o_simul_maxit
-	                         | o_endogenous_terminal_period
-				 | o_linear_approximation
+                                 | o_endogenous_terminal_period
+                                 | o_linear_approximation
                                  | o_no_homotopy
                                  | o_solve_algo
                                  | o_robust_lin_solve
-				 | o_lmmcp
-				 | o_occbin
+                                 | o_lmmcp
+                                 | o_occbin
                                  | o_pf_tolf
                                  | o_pf_tolx
                                  | o_noprint
@@ -2030,7 +2030,7 @@ estimation_options : o_datafile
                    | o_fast_kalman_filter
                    | o_kalman_algo
                    | o_kalman_tol
-		   | o_diffuse_kalman_tol
+                   | o_diffuse_kalman_tol
                    | o_xls_sheet
                    | o_xls_range
                    | o_filter_step_ahead
@@ -2074,15 +2074,15 @@ estimation_options : o_datafile
                    | o_posterior_max_subsample_draws
                    | o_consider_all_endogenous
                    | o_consider_only_observed
-		   | o_number_of_particles
-		   | o_resampling
-		   | o_resampling_threshold
-		   | o_resampling_method
-		   | o_filter_algorithm
+                   | o_number_of_particles
+                   | o_resampling
+                   | o_resampling_threshold
+                   | o_resampling_method
+                   | o_filter_algorithm
                    | o_nonlinear_filter_initialization
                    | o_cpf_weights
-		   | o_proposal_approximation
-		   | o_distribution_approximation
+                   | o_proposal_approximation
+                   | o_distribution_approximation
                    | o_dirname
                    | o_huge_number
                    | o_silent_optimizer
@@ -2336,7 +2336,7 @@ ramsey_constraints : RAMSEY_CONSTRAINTS ';' ramsey_constraints_list END ';'
                      { driver.add_ramsey_constraints_statement(); }
 		   ;
 
-ramsey_constraints_list : ramsey_constraints_list ramsey_constraint 
+ramsey_constraints_list : ramsey_constraints_list ramsey_constraint
                  | ramsey_constraint
 		 ;
 
@@ -2344,7 +2344,7 @@ ramsey_constraint : NAME  LESS expression ';'
                     { driver.ramsey_constraint_add_less($1,$3); }
 		  | NAME  GREATER  expression ';'
                     { driver.ramsey_constraint_add_greater($1,$3); }
-		  | NAME  LESS_EQUAL expression ';'		
+		  | NAME  LESS_EQUAL expression ';'
                     { driver.ramsey_constraint_add_less_equal($1,$3); }
 		  | NAME  GREATER_EQUAL  expression ';'
                     { driver.ramsey_constraint_add_greater_equal($1,$3); }
@@ -2368,7 +2368,7 @@ discretionary_policy_options_list : discretionary_policy_options_list COMMA disc
                            | discretionary_policy_options
                            ;
 
-discretionary_policy_options : ramsey_policy_options 
+discretionary_policy_options : ramsey_policy_options
                              | o_discretionary_tol;
                              | o_dp_maxit;
                              ;
@@ -3034,7 +3034,7 @@ generate_irfs_exog_element_list : generate_irfs_exog_element_list COMMA symbol E
 
 extended_path : EXTENDED_PATH ';'
                 { driver.extended_path(); }
-              | EXTENDED_PATH '(' extended_path_options_list ')' ';'            
+              | EXTENDED_PATH '(' extended_path_options_list ')' ';'
                 { driver.extended_path(); }
               ;
 
@@ -3665,7 +3665,7 @@ o_second_deriv_provided : SECOND_DERIV_PROVIDED EQUAL namespace_qualified_filena
                         | SECOND_DERIV_PROVIDED
                           { driver.external_function_option("second_deriv_provided", ""); }
                         ;
-o_filter_covariance : FILTER_COVARIANCE 
+o_filter_covariance : FILTER_COVARIANCE
                         { driver.option_num("filter_covariance","true");}
                       ;
 o_filter_decomposition : FILTER_DECOMPOSITION
@@ -3778,12 +3778,12 @@ o_gmm_order : ORDER EQUAL INT_NUMBER { driver.option_num("gmm.order", $3); };
 o_smm_order : ORDER EQUAL INT_NUMBER { driver.option_num("smm.order", $3); };
 o_gmm_centered_moments : CENTERED_MOMENTS { driver.option_num("gmm.centered_moments", "true"); };
 o_smm_centered_moments : CENTERED_MOMENTS { driver.option_num("smm.centered_moments", "true"); };
-o_gmm_autolag : AUTOLAG EQUAL vec_int 
+o_gmm_autolag : AUTOLAG EQUAL vec_int
                 { driver.option_vec_int("gmm.autolag", $3); }
               | AUTOLAG EQUAL vec_int_number
                 { driver.option_vec_int("gmm.autolag", $3); }
               ;
-o_smm_autolag : AUTOLAG EQUAL vec_int 
+o_smm_autolag : AUTOLAG EQUAL vec_int
                 { driver.option_vec_int("smm.autolag", $3); }
               | AUTOLAG EQUAL vec_int_number
                 { driver.option_vec_int("smm.autolag", $3); }
@@ -3793,7 +3793,7 @@ o_smm_recursive_order_estimation : RECURSIVE_ORDER_ESTIMATION { driver.option_nu
 o_gmm_bartlett_kernel_lag : BARTLETT_KERNEL_LAG EQUAL INT_NUMBER { driver.option_num("gmm.qLag", $3); };
 o_smm_bartlett_kernel_lag : BARTLETT_KERNEL_LAG EQUAL INT_NUMBER { driver.option_num("smm.qLag", $3); };
 o_gmm_weighting_matrix : WEIGHTING_MATRIX EQUAL OPTIMAL
-                     { driver.option_str("gmm.weighting_matrix", $3); }                                  
+                     { driver.option_str("gmm.weighting_matrix", $3); }
                    | WEIGHTING_MATRIX EQUAL IDENTITY_MATRIX
                      { driver.option_str("gmm.weighting_matrix", $3); }
                    | WEIGHTING_MATRIX EQUAL DIAGONAL
@@ -3802,7 +3802,7 @@ o_gmm_weighting_matrix : WEIGHTING_MATRIX EQUAL OPTIMAL
                      { driver.option_str("gmm.weighting_matrix", $3); }
                    ;
 o_smm_weighting_matrix : WEIGHTING_MATRIX EQUAL OPTIMAL
-                     { driver.option_str("smm.weighting_matrix", $3); }                                  
+                     { driver.option_str("smm.weighting_matrix", $3); }
                    | WEIGHTING_MATRIX EQUAL IDENTITY_MATRIX
                      { driver.option_str("smm.weighting_matrix", $3); }
                    | WEIGHTING_MATRIX EQUAL DIAGONAL
