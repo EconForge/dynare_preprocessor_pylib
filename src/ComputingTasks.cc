@@ -1222,6 +1222,13 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       exit(EXIT_FAILURE);
     }
 
+  if (options_list.num_options.find("mh_tune_jscale.guess") != options_list.num_options.end()
+      && options_list.num_options.find("mh_tune_jscale.target") == options_list.num_options.end())
+    {
+      cerr << "ERROR: The option mh_tune_guess in estimation statement cannot be used without option mh_tune_jscale." << endl;
+      exit(EXIT_FAILURE);
+    }
+
   /* Check that we are not trying to estimate a parameter appearing in the
      planner discount factor (see dynare#1173) */
   vector<int> estimated_params_in_planner_discount;
