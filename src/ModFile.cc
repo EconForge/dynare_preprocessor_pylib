@@ -386,6 +386,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
      — except substituting out variables which we know are constant (they
        appear in an equation of the form: X = constant)
      — except adl operators which we always want expanded
+     — except predetermined variables (which must be handled before the call to
+       setLeadsLagsOrig(), see preprocessor#47)
      — except diff operators with a lead which have been expanded by
        DataTree:AddDiff()
   */
@@ -393,6 +395,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   dynamic_model.includeExcludeEquations(include_eqs, false);
   dynamic_model.simplifyEquations();
   dynamic_model.substituteAdl();
+  if (symbol_table.predeterminedNbr() > 0)
+    dynamic_model.transformPredeterminedVariables();
   dynamic_model.setLeadsLagsOrig();
   original_model = dynamic_model;
   dynamic_model.expandEqTags();
@@ -500,9 +504,6 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       }
 
   dynamic_model.addEquationsForVar();
-
-  if (symbol_table.predeterminedNbr() > 0)
-    dynamic_model.transformPredeterminedVariables();
 
   // Create auxiliary vars for Expectation operator
   dynamic_model.substituteExpectation(mod_file_struct.partial_information);
