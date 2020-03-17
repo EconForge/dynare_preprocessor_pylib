@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009-2019 Dynare Team
+ * Copyright © 2009-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -25,6 +25,9 @@ using namespace boost;
 
 namespace MFS
 {
+  using color_t = map<boost::graph_traits<AdjacencyList_t>::vertex_descriptor, boost::default_color_type>;
+  using vector_vertex_descriptor_t = vector<AdjacencyList_t::vertex_descriptor>;
+
   void
   Suppress(AdjacencyList_t::vertex_descriptor vertex_to_eliminate, AdjacencyList_t &G)
   {
