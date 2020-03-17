@@ -35,8 +35,6 @@
 
 #include <regex>
 
-using namespace MFS;
-
 void
 ModelTree::copyHelper(const ModelTree &m)
 {
@@ -750,7 +748,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   int nb_var = variable_reordered.size();
   int n = nb_var - prologue - epilogue;
 
-  AdjacencyList_t G2(n);
+  MFS::AdjacencyList_t G2(n);
 
   // It is necessary to manually initialize vertex_index property since this graph uses listS and not vecS as underlying vertex container
   auto v_index = get(boost::vertex_index, G2);
@@ -787,7 +785,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
                G2);
 
   vector<int> endo2block(num_vertices(G2)), discover_time(num_vertices(G2));
-  boost::iterator_property_map<int *, boost::property_map<AdjacencyList_t, boost::vertex_index_t>::type, int, int &> endo2block_map(&endo2block[0], get(boost::vertex_index, G2));
+  boost::iterator_property_map<int *, boost::property_map<MFS::AdjacencyList_t, boost::vertex_index_t>::type, int, int &> endo2block_map(&endo2block[0], get(boost::vertex_index, G2));
 
   // Compute strongly connected components
   int num = strong_components(G2, endo2block_map);
@@ -800,8 +798,8 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
 
   for (unsigned int i = 0; i < num_vertices(G2); i++)
     {
-      AdjacencyList_t::out_edge_iterator it_out, out_end;
-      AdjacencyList_t::vertex_descriptor vi = vertex(i, G2);
+      MFS::AdjacencyList_t::out_edge_iterator it_out, out_end;
+      MFS::AdjacencyList_t::vertex_descriptor vi = vertex(i, G2);
       for (tie(it_out, out_end) = out_edges(vi, G2); it_out != out_end; ++it_out)
         {
           int t_b = endo2block_map[target(*it_out, G2)];
@@ -875,14 +873,14 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
 
   for (int i = 0; i < num; i++)
     {
-      AdjacencyList_t G = extract_subgraph(G2, get<0>(components_set[i]));
+      MFS::AdjacencyList_t G = MFS::extract_subgraph(G2, get<0>(components_set[i]));
       set<int> feed_back_vertices;
-      AdjacencyList_t G1 = Minimal_set_of_feedback_vertex(feed_back_vertices, G);
+      MFS::AdjacencyList_t G1 = MFS::Minimal_set_of_feedback_vertex(feed_back_vertices, G);
       auto v_index = get(boost::vertex_index, G);
       get<1>(components_set[i]) = feed_back_vertices;
       blocks[i].second = feed_back_vertices.size();
       vector<int> Reordered_Vertice;
-      Reorder_the_recursive_variables(G, feed_back_vertices, Reordered_Vertice);
+      MFS::Reorder_the_recursive_variables(G, feed_back_vertices, Reordered_Vertice);
 
       //First we have the recursive equations conditional on feedback variables
       for (int j = 0; j < 4; j++)
