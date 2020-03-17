@@ -3163,13 +3163,29 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
   equation_tags.writeOccbinOutput(output, modstruct, julia);
 
   // Write mapping for variables and equations they are present in
-  for (const auto &variable : variableMapping)
+  if (!julia)
+    for (const auto &variable : variableMapping)
+      {
+	output << modstruct << "mapping." << symbol_table.getName(variable.first) << ".eqidx = [";
+	for (auto equation : variable.second)
+	  output << equation + 1 << " ";
+	output << "];" << endl;
+      }
+  else
     {
-      output << modstruct << "mapping." << symbol_table.getName(variable.first) << ".eqidx = [";
-      for (auto equation : variable.second)
-        output << equation + 1 << " ";
-      output << "];" << endl;
+      output << modstruct << "mapping.eqidx = Dict(\n";
+      for (const auto &variable : variableMapping)
+	{
+	  output << "        \""
+		 << symbol_table.getName(variable.first)
+		 << "\" => [";
+	  for (auto equation : variable.second)
+	    output << equation + 1 << ", ";
+	  output << "]," << endl;
+	}
+      output << ")" << endl;
     }
+
 
   /* Say if static and dynamic models differ (because of [static] and [dynamic]
      equation tags) */
