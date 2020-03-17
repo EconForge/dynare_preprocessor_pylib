@@ -2826,8 +2826,14 @@ shock_decomposition_option : o_parameter_set
                            | o_first_obs
                            | o_nobs
                            | o_init_state
-			   | o_forecast_type
+                           | o_forecast_type
                            | o_shock_decomposition_with_epilogue
+                           | o_prefilter
+                           | o_loglinear
+                           | o_diffuse_kalman_tol
+                           | o_diffuse_filter
+                           | o_xls_sheet
+                           | o_xls_range
                            ;
 
 realtime_shock_decomposition_options_list : realtime_shock_decomposition_option COMMA realtime_shock_decomposition_options_list
