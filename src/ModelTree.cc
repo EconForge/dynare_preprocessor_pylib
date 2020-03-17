@@ -39,6 +39,18 @@ void
 ModelTree::copyHelper(const ModelTree &m)
 {
   auto f = [this](expr_t e) { return e->clone(*this); };
+  auto convert_vector_tt = [f](vector<temporary_terms_t> vtt)
+                           {
+                             vector<temporary_terms_t> vtt2;
+                             for (const auto &tt : vtt)
+                               {
+                                 temporary_terms_t tt2;
+                                 for (const auto &it : tt)
+                                   tt2.insert(f(it));
+                                 vtt2.push_back(tt2);
+                               }
+                             return vtt2;
+                           };
 
   // Equations
   for (const auto &it : m.equations)
@@ -77,6 +89,8 @@ ModelTree::copyHelper(const ModelTree &m)
     temporary_terms_derivatives.push_back(convert_temporary_terms_t(it));
   for (const auto &it : m.temporary_terms_idxs)
     temporary_terms_idxs[f(it.first)] = it.second;
+  for (const auto &it : m.v_temporary_terms)
+    v_temporary_terms.push_back(convert_vector_tt(it));
   for (const auto &it : m.params_derivs_temporary_terms)
     params_derivs_temporary_terms[it.first] = convert_temporary_terms_t(it.second);
   for (const auto &it : m.params_derivs_temporary_terms_idxs)
@@ -87,6 +101,37 @@ ModelTree::copyHelper(const ModelTree &m)
     trend_symbols_map[it.first] = f(it.second);
   for (const auto &it : m.nonstationary_symbols_map)
     nonstationary_symbols_map[it.first] = {it.second.first, f(it.second.second)};
+  for (const auto &it : m.dynamic_jacobian)
+    dynamic_jacobian[it.first] = f(it.second);
+  for (const auto &it : m.first_chain_rule_derivatives)
+    first_chain_rule_derivatives[it.first] = f(it.second);
+
+  for (const auto &it : m.equation_type_and_normalized_equation)
+    equation_type_and_normalized_equation.emplace_back(it.first, f(it.second));
+
+  for (const auto &it : m.blocks_derivatives)
+    {
+      block_derivatives_equation_variable_laglead_nodeid_t v;
+      for (const auto &it2 : it)
+        v.emplace_back(get<0>(it2), get<1>(it2), get<2>(it2), f(get<3>(it2)));
+      blocks_derivatives.push_back(v);
+    }
+
+  auto convert_derivative_t = [f](derivative_t dt)
+                              {
+                                derivative_t dt2;
+                                for (const auto &it : dt)
+                                  dt2[it.first] = f(it.second);
+                                return dt2;
+                              };
+  for (const auto &it : m.derivative_endo)
+    derivative_endo.push_back(convert_derivative_t(it));
+  for (const auto &it : m.derivative_other_endo)
+    derivative_other_endo.push_back(convert_derivative_t(it));
+  for (const auto &it : m.derivative_exo)
+    derivative_exo.push_back(convert_derivative_t(it));
+  for (const auto &it : m.derivative_exo_det)
+    derivative_exo_det.push_back(convert_derivative_t(it));
 }
 
 ModelTree::ModelTree(SymbolTable &symbol_table_arg,
@@ -111,10 +156,20 @@ ModelTree::ModelTree(const ModelTree &m) :
   equation_tags{m.equation_tags},
   computed_derivs_order{m.computed_derivs_order},
   NNZDerivatives{m.NNZDerivatives},
+  v_temporary_terms_inuse{m.v_temporary_terms_inuse},
   equation_reordered{m.equation_reordered},
   variable_reordered{m.variable_reordered},
   inv_equation_reordered{m.inv_equation_reordered},
   inv_variable_reordered{m.inv_variable_reordered},
+  map_idx{m.map_idx},
+  block_type_firstequation_size_mfs{m.block_type_firstequation_size_mfs},
+  blocks_linear{m.blocks_linear},
+  block_col_type{m.block_col_type},
+  endo_max_leadlag_block{m.endo_max_leadlag_block},
+  other_endo_max_leadlag_block{m.other_endo_max_leadlag_block},
+  exo_max_leadlag_block{m.exo_max_leadlag_block},
+  exo_det_max_leadlag_block{m.exo_det_max_leadlag_block},
+  max_leadlag_block{m.max_leadlag_block},
   is_equation_linear{m.is_equation_linear},
   endo2eq{m.endo2eq},
   epilogue{m.epilogue},
@@ -144,16 +199,36 @@ ModelTree::operator=(const ModelTree &m)
   temporary_terms.clear();
   temporary_terms_mlv.clear();
   temporary_terms_derivatives.clear();
+  v_temporary_terms.clear();
+  v_temporary_terms_inuse = m.v_temporary_terms_inuse;
   params_derivs_temporary_terms.clear();
   params_derivs_temporary_terms_idxs.clear();
 
   trend_symbols_map.clear();
   nonstationary_symbols_map.clear();
 
+  dynamic_jacobian.clear();
   equation_reordered = m.equation_reordered;
   variable_reordered = m.variable_reordered;
   inv_equation_reordered = m.inv_equation_reordered;
   inv_variable_reordered = m.inv_variable_reordered;
+  first_chain_rule_derivatives.clear();
+  map_idx = m.map_idx;
+  equation_type_and_normalized_equation.clear();
+  block_type_firstequation_size_mfs = m.block_type_firstequation_size_mfs;
+  blocks_derivatives.clear();
+  blocks_linear = m.blocks_linear;
+  derivative_endo.clear();
+  derivative_other_endo.clear();
+  derivative_exo.clear();
+  derivative_exo_det.clear();
+  block_col_type = m.block_col_type;
+  endo_max_leadlag_block = m.endo_max_leadlag_block;
+  other_endo_max_leadlag_block = m.other_endo_max_leadlag_block;
+  exo_max_leadlag_block = m.exo_max_leadlag_block;
+  exo_det_max_leadlag_block = m.exo_det_max_leadlag_block;
+  max_leadlag_block = m.max_leadlag_block;
+
   is_equation_linear = m.is_equation_linear;
   endo2eq = m.endo2eq;
   epilogue = m.epilogue;

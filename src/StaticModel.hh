@@ -33,16 +33,8 @@ class DynamicModel;
 class StaticModel : public ModelTree
 {
 private:
-  //! global temporary terms for block decomposed models
-  vector<vector<temporary_terms_t>> v_temporary_terms;
-
   //! local temporary terms for block decomposed models
   vector<vector<temporary_terms_t>> v_temporary_terms_local;
-
-  vector<temporary_terms_inuse_t> v_temporary_terms_inuse;
-
-  using first_chain_rule_derivatives_t = map<tuple<int, int, int>, expr_t>;
-  first_chain_rule_derivatives_t first_chain_rule_derivatives;
 
   //! Writes static model file (standard Matlab version)
   void writeStaticMFile(const string &basename) const;
@@ -74,8 +66,6 @@ private:
     - removes edges of the incidence matrix when derivative w.r. to the corresponding variable is too close to zero (below the cutoff)
   */
   void evaluateJacobian(const eval_context_t &eval_context, jacob_map_t *j_m, bool dynamic);
-
-  map_idx_t map_idx;
 
   vector<map_idx_t> map_idx2;
 
@@ -110,36 +100,9 @@ private:
   //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
   bool global_temporary_terms{true};
 
-  //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
-  equation_type_and_normalized_equation_t equation_type_and_normalized_equation;
-
-  //! for each block contains pair< Simulation_Type, pair < Block_Size, Recursive_part_Size >>
-  block_type_firstequation_size_mfs_t block_type_firstequation_size_mfs;
-
-  //! for all blocks derivatives description
-  blocks_derivatives_t blocks_derivatives;
-
-  //! The jacobian without the elements below the cutoff
-  dynamic_jacob_map_t dynamic_jacobian;
-
-  //! Vector indicating if the block is linear in endogenous variable (true) or not (false)
-  vector<bool> blocks_linear;
-
-  //! Map the derivatives for a block tuple<lag, eq, var>
-  using derivative_t = map<tuple<int, int, int>, expr_t>;
-  //! Vector of derivative for each blocks
-  vector<derivative_t> derivative_endo, derivative_other_endo, derivative_exo, derivative_exo_det;
-
   //!List for each block and for each lag-leag all the other endogenous variables and exogenous variables
   using var_t = set<int>;
   using lag_var_t = map<int, var_t>;
-
-  //! for each block described the number of static, forward, backward and mixed variables in the block
-  /*! tuple<static, forward, backward, mixed> */
-  vector<tuple<int, int, int, int>> block_col_type;
-
-  //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
-  vector<pair<int, int>> endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
 
   //! Helper functions for writeStaticModel
   void writeStaticModelHelper(const string &basename,

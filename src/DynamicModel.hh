@@ -100,17 +100,9 @@ private:
   //! Number of columns of dynamic jacobian
   /*! Set by computeDerivID()s and computeDynJacobianCols() */
   int dynJacobianColsNbr{0};
-  //! Temporary terms for block decomposed models
-  vector<vector<temporary_terms_t>> v_temporary_terms;
-
-  vector<temporary_terms_inuse_t> v_temporary_terms_inuse;
 
   //! Creates mapping for variables and equations they are present in
   map<int, set<int>> variableMapping;
-
-  //! Store the derivatives or the chainrule derivatives:map<tuple<equation, variable, lead_lag>, expr_t>
-  using first_chain_rule_derivatives_t = map<tuple<int, int, int>, expr_t>;
-  first_chain_rule_derivatives_t first_chain_rule_derivatives;
 
   //! Writes dynamic model file (Matlab version)
   void writeDynamicMFile(const string &basename) const;
@@ -149,7 +141,6 @@ private:
   void computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives);
 
   string reform(const string &name) const;
-  map_idx_t map_idx;
 
   //! sorts the temporary terms in the blocks order
   void computeTemporaryTermsOrdered();
@@ -194,26 +185,6 @@ private:
   //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
   bool global_temporary_terms{true};
 
-  //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
-  equation_type_and_normalized_equation_t equation_type_and_normalized_equation;
-
-  //! for each block contains pair< Simulation_Type, pair < Block_Size, Recursive_part_Size >>
-  block_type_firstequation_size_mfs_t block_type_firstequation_size_mfs;
-
-  //! for all blocks derivatives description
-  blocks_derivatives_t blocks_derivatives;
-
-  //! The jacobian without the elements below the cutoff
-  dynamic_jacob_map_t dynamic_jacobian;
-
-  //! Vector indicating if the block is linear in endogenous variable (true) or not (false)
-  vector<bool> blocks_linear;
-
-  //! Map the derivatives for a block tuple<lag, eq, var>
-  using derivative_t = map<tuple<int, int, int>, expr_t>;
-  //! Vector of derivative for each blocks
-  vector<derivative_t> derivative_endo, derivative_other_endo, derivative_exo, derivative_exo_det;
-
   //!List for each block and for each lag-lead all the other endogenous variables and exogenous variables
   using var_t = set<int>;
   using lag_var_t = map<int, var_t>;
@@ -223,10 +194,6 @@ private:
   vector<pair<var_t, int>> block_var_exo;
 
   map< int, map<int, int>> block_exo_index, block_det_exo_index, block_other_endo_index;
-
-  //! for each block described the number of static, forward, backward and mixed variables in the block
-  /*! tuple<static, forward, backward, mixed> */
-  vector<tuple<int, int, int, int>> block_col_type;
 
   //! Help computeXrefs to compute the reverse references (i.e. param->eqs, endo->eqs, etc)
   void computeRevXref(map<pair<int, int>, set<int>> &xrefset, const set<pair<int, int>> &eiref, int eqn);
@@ -241,9 +208,6 @@ private:
 
   //! Used for var_expectation and var_model
   map<string, set<int>> var_expectation_functions_to_write;
-
-  //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
-  vector<pair<int, int>> endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
 
   void writeWrapperFunctions(const string &name, const string &ending) const;
   void writeDynamicModelHelper(const string &basename,

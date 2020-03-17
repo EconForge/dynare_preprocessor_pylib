@@ -144,6 +144,10 @@ protected:
   //! Stores, for each temporary term, its index in the MATLAB/Julia vector
   temporary_terms_idxs_t temporary_terms_idxs;
 
+  //! Temporary terms for block decomposed models
+  vector<vector<temporary_terms_t>> v_temporary_terms;
+  vector<temporary_terms_inuse_t> v_temporary_terms_inuse;
+
   //! Temporary terms for parameter derivatives, under a disaggregated form
   /*! The pair of integers is to be interpreted as in param_derivatives */
   map<pair<int, int>, temporary_terms_t> params_derivs_temporary_terms;
@@ -160,8 +164,45 @@ protected:
   //! Nonstationary variables and their deflators
   nonstationary_symbols_map_t nonstationary_symbols_map;
 
+  //! Sparse matrix of double to store the values of the Jacobian
+  /*! First index is lag, second index is equation number, third index is endogenous type specific ID */
+  using dynamic_jacob_map_t = map<tuple<int, int, int>, expr_t>;
+
+  //! The jacobian without the elements below the cutoff
+  dynamic_jacob_map_t dynamic_jacobian;
+
   //! vector of block reordered variables and equations
   vector<int> equation_reordered, variable_reordered, inv_equation_reordered, inv_variable_reordered;
+
+  //! Store the derivatives or the chainrule derivatives:map<tuple<equation, variable, lead_lag>, expr_t>
+  using first_chain_rule_derivatives_t = map<tuple<int, int, int>, expr_t>;
+  first_chain_rule_derivatives_t first_chain_rule_derivatives;
+
+  map_idx_t map_idx;
+
+  //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
+  equation_type_and_normalized_equation_t equation_type_and_normalized_equation;
+
+  //! for each block contains pair< Simulation_Type, pair < Block_Size, Recursive_part_Size >>
+  block_type_firstequation_size_mfs_t block_type_firstequation_size_mfs;
+
+  //! for all blocks derivatives description
+  blocks_derivatives_t blocks_derivatives;
+
+  //! Vector indicating if the block is linear in endogenous variable (true) or not (false)
+  vector<bool> blocks_linear;
+
+  //! Map the derivatives for a block tuple<lag, eq, var>
+  using derivative_t = map<tuple<int, int, int>, expr_t>;
+  //! Vector of derivative for each blocks
+  vector<derivative_t> derivative_endo, derivative_other_endo, derivative_exo, derivative_exo_det;
+
+  //! for each block described the number of static, forward, backward and mixed variables in the block
+  /*! tuple<static, forward, backward, mixed> */
+  vector<tuple<int, int, int, int>> block_col_type;
+
+  //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
+  vector<pair<int, int>> endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
 
   //! the file containing the model and the derivatives code
   ofstream code_file;
@@ -214,10 +255,6 @@ protected:
   //! Sparse matrix of double to store the values of the Jacobian
   /*! First index is equation number, second index is endogenous type specific ID */
   using jacob_map_t = map<pair<int, int>, double>;
-
-  //! Sparse matrix of double to store the values of the Jacobian
-  /*! First index is lag, second index is equation number, third index is endogenous type specific ID */
-  using dynamic_jacob_map_t = map<tuple<int, int, int>, expr_t>;
 
   //! Normalization of equations
   /*! Maps endogenous type specific IDs to equation numbers */

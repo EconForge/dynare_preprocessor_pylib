@@ -34,55 +34,6 @@ DynamicModel::copyHelper(const DynamicModel &m)
 
   for (const auto &it : m.static_only_equations)
     static_only_equations.push_back(dynamic_cast<BinaryOpNode *>(f(it)));
-
-  auto convert_vector_tt = [f](vector<temporary_terms_t> vtt)
-                           {
-                             vector<temporary_terms_t> vtt2;
-                             for (const auto &tt : vtt)
-                               {
-                                 temporary_terms_t tt2;
-                                 for (const auto &it : tt)
-                                   tt2.insert(f(it));
-                                 vtt2.push_back(tt2);
-                               }
-                             return vtt2;
-                           };
-
-  for (const auto &it : m.v_temporary_terms)
-    v_temporary_terms.push_back(convert_vector_tt(it));
-
-  for (const auto &it : m.first_chain_rule_derivatives)
-    first_chain_rule_derivatives[it.first] = f(it.second);
-
-  for (const auto &it : m.equation_type_and_normalized_equation)
-    equation_type_and_normalized_equation.emplace_back(it.first, f(it.second));
-
-  for (const auto &it : m.blocks_derivatives)
-    {
-      block_derivatives_equation_variable_laglead_nodeid_t v;
-      for (const auto &it2 : it)
-        v.emplace_back(get<0>(it2), get<1>(it2), get<2>(it2), f(get<3>(it2)));
-      blocks_derivatives.push_back(v);
-    }
-
-  for (const auto &it : m.dynamic_jacobian)
-    dynamic_jacobian[it.first] = f(it.second);
-
-  auto convert_derivative_t = [f](derivative_t dt)
-                              {
-                                derivative_t dt2;
-                                for (const auto &it : dt)
-                                  dt2[it.first] = f(it.second);
-                                return dt2;
-                              };
-  for (const auto &it : m.derivative_endo)
-    derivative_endo.push_back(convert_derivative_t(it));
-  for (const auto &it : m.derivative_other_endo)
-    derivative_other_endo.push_back(convert_derivative_t(it));
-  for (const auto &it : m.derivative_exo)
-    derivative_exo.push_back(convert_derivative_t(it));
-  for (const auto &it : m.derivative_exo_det)
-    derivative_exo_det.push_back(convert_derivative_t(it));
 }
 
 DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
@@ -129,11 +80,7 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   xref_exo{m.xref_exo},
   xref_exo_det{m.xref_exo_det},
   nonzero_hessian_eqs{m.nonzero_hessian_eqs},
-  v_temporary_terms_inuse{m.v_temporary_terms_inuse},
-  map_idx{m.map_idx},
   global_temporary_terms{m.global_temporary_terms},
-  block_type_firstequation_size_mfs{m.block_type_firstequation_size_mfs},
-  blocks_linear{m.blocks_linear},
   other_endo_block{m.other_endo_block},
   exo_block{m.exo_block},
   exo_det_block{m.exo_det_block},
@@ -141,15 +88,9 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   block_exo_index{m.block_exo_index},
   block_det_exo_index{m.block_det_exo_index},
   block_other_endo_index{m.block_other_endo_index},
-  block_col_type{m.block_col_type},
   variable_block_lead_lag{m.variable_block_lead_lag},
   equation_block{m.equation_block},
-  var_expectation_functions_to_write{m.var_expectation_functions_to_write},
-  endo_max_leadlag_block{m.endo_max_leadlag_block},
-  other_endo_max_leadlag_block{m.other_endo_max_leadlag_block},
-  exo_max_leadlag_block{m.exo_max_leadlag_block},
-  exo_det_max_leadlag_block{m.exo_det_max_leadlag_block},
-  max_leadlag_block{m.max_leadlag_block}
+  var_expectation_functions_to_write{m.var_expectation_functions_to_write}
 {
   copyHelper(m);
 }
@@ -192,28 +133,7 @@ DynamicModel::operator=(const DynamicModel &m)
   xref_exo_det = m.xref_exo_det;
   nonzero_hessian_eqs = m.nonzero_hessian_eqs;
 
-  v_temporary_terms.clear();
-
-  v_temporary_terms_inuse = m.v_temporary_terms_inuse;
-
-  first_chain_rule_derivatives.clear();
-
-  map_idx = m.map_idx;
   global_temporary_terms = m.global_temporary_terms;
-
-  equation_type_and_normalized_equation.clear();
-
-  block_type_firstequation_size_mfs = m.block_type_firstequation_size_mfs;
-
-  blocks_derivatives.clear();
-  dynamic_jacobian.clear();
-
-  blocks_linear = m.blocks_linear;
-
-  derivative_endo.clear();
-  derivative_other_endo.clear();
-  derivative_exo.clear();
-  derivative_exo_det.clear();
 
   other_endo_block = m.other_endo_block;
   exo_block = m.exo_block;
@@ -222,16 +142,9 @@ DynamicModel::operator=(const DynamicModel &m)
   block_exo_index = m.block_exo_index;
   block_det_exo_index = m.block_det_exo_index;
   block_other_endo_index = m.block_other_endo_index;
-  block_col_type = m.block_col_type;
   variable_block_lead_lag = m.variable_block_lead_lag;
   equation_block = m.equation_block;
   var_expectation_functions_to_write = m.var_expectation_functions_to_write;
-
-  endo_max_leadlag_block = m.endo_max_leadlag_block;
-  other_endo_max_leadlag_block = m.other_endo_max_leadlag_block;
-  exo_max_leadlag_block = m.exo_max_leadlag_block;
-  exo_det_max_leadlag_block = m.exo_det_max_leadlag_block;
-  max_leadlag_block = m.max_leadlag_block;
 
   copyHelper(m);
 
