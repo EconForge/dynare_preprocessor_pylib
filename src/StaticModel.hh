@@ -90,7 +90,7 @@ private:
   //! return a map on the block jacobian
   map<tuple<int, int, int, int, int>, int> get_Derivatives(int block);
   //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
-  void computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives);
+  void computeChainRuleJacobian();
   //! Collect only the first derivatives
   map<tuple<int, int, int>, expr_t> collect_first_order_derivatives_endogenous();
 

@@ -1144,35 +1144,27 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
 
   if (block)
     {
-      jacob_map_t contemporaneous_jacobian, static_jacobian;
-      vector<unsigned int> n_static, n_forward, n_backward, n_mixed;
+      auto [contemporaneous_jacobian, static_jacobian] = evaluateAndReduceJacobian(eval_context, cutoff, false);
 
-      // for each block contains pair<Size, Feddback_variable>
-      vector<pair<int, int>> blocks;
+      computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian);
 
-      evaluateAndReduceJacobian(eval_context, contemporaneous_jacobian, static_jacobian, dynamic_jacobian, cutoff, false);
+      computePrologueAndEpilogue(static_jacobian);
 
-      computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian, dynamic_jacobian);
+      auto first_order_endo_derivatives = collect_first_order_derivatives_endogenous();
 
-      computePrologueAndEpilogue(static_jacobian, equation_reordered, variable_reordered);
-
-      map<tuple<int, int, int>, expr_t> first_order_endo_derivatives = collect_first_order_derivatives_endogenous();
-
-      equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, variable_reordered, equation_reordered, mfs);
+      equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, mfs);
 
       cout << "Finding the optimal block decomposition of the model ..." << endl;
 
-      lag_lead_vector_t equation_lag_lead, variable_lag_lead;
+      auto [blocks, equation_lag_lead, variable_lag_lead, n_static, n_forward, n_backward, n_mixed] = computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, equation_type_and_normalized_equation, false, false);
 
-      computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, dynamic_jacobian, equation_reordered, variable_reordered, blocks, equation_type_and_normalized_equation, false, false, mfs, inv_equation_reordered, inv_variable_reordered, equation_lag_lead, variable_lag_lead, n_static, n_forward, n_backward, n_mixed);
-
-      block_type_firstequation_size_mfs = reduceBlocksAndTypeDetermination(dynamic_jacobian, blocks, equation_type_and_normalized_equation, variable_reordered, equation_reordered, n_static, n_forward, n_backward, n_mixed, block_col_type, false);
+      block_type_firstequation_size_mfs = reduceBlocksAndTypeDetermination(blocks, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, false);
 
       printBlockDecomposition(blocks);
 
-      computeChainRuleJacobian(blocks_derivatives);
+      computeChainRuleJacobian();
 
-      blocks_linear = BlockLinear(blocks_derivatives, variable_reordered);
+      blocks_linear = BlockLinear();
 
       collect_block_first_order_derivatives();
 
@@ -2176,11 +2168,11 @@ StaticModel::get_Derivatives(int block)
 }
 
 void
-StaticModel::computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives)
+StaticModel::computeChainRuleJacobian()
 {
   map<int, expr_t> recursive_variables;
   unsigned int nb_blocks = getNbBlocks();
-  blocks_derivatives = blocks_derivatives_t(nb_blocks);
+  blocks_derivatives.resize(nb_blocks);
   for (unsigned int block = 0; block < nb_blocks; block++)
     {
       block_derivatives_equation_variable_laglead_nodeid_t tmp_derivatives;
@@ -2191,7 +2183,6 @@ StaticModel::computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives)
       int block_nb_recursives = block_size - block_nb_mfs;
       if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
         {
-          blocks_derivatives.push_back(block_derivatives_equation_variable_laglead_nodeid_t(0));
           for (int i = 0; i < block_nb_recursives; i++)
             {
               if (getBlockEquationType(block, i) == E_EVALUATE_S)
@@ -2220,7 +2211,6 @@ StaticModel::computeChainRuleJacobian(blocks_derivatives_t &blocks_derivatives)
         }
       else
         {
-          blocks_derivatives.push_back(block_derivatives_equation_variable_laglead_nodeid_t(0));
           for (int i = 0; i < block_nb_recursives; i++)
             {
               if (getBlockEquationType(block, i) == E_EVALUATE_S)

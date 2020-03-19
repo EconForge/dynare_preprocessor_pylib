@@ -4822,27 +4822,25 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
       first_order_endo_derivatives = collect_first_order_derivatives_endogenous();
       is_equation_linear = equationLinear(first_order_endo_derivatives);
 
-      evaluateAndReduceJacobian(eval_context, contemporaneous_jacobian, static_jacobian, dynamic_jacobian, cutoff, false);
+      tie(contemporaneous_jacobian, static_jacobian) = evaluateAndReduceJacobian(eval_context, cutoff, false);
 
       if (!computeNaturalNormalization())
-        computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian, dynamic_jacobian);
+        computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian);
 
       lag_lead_vector_t equation_lag_lead, variable_lag_lead;
 
-      blocks = select_non_linear_equations_and_variables(is_equation_linear, dynamic_jacobian, equation_reordered, variable_reordered,
-                                                         inv_equation_reordered, inv_variable_reordered,
-                                                         equation_lag_lead, variable_lag_lead,
-                                                         n_static, n_forward, n_backward, n_mixed);
+      tie(blocks, equation_lag_lead, variable_lag_lead, n_static, n_forward, n_backward, n_mixed)
+        = select_non_linear_equations_and_variables(is_equation_linear);
 
-      equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, variable_reordered, equation_reordered, 0);
+      equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, 0);
       prologue = 0;
       epilogue = 0;
 
-      block_type_firstequation_size_mfs = reduceBlocksAndTypeDetermination(dynamic_jacobian, blocks, equation_type_and_normalized_equation, variable_reordered, equation_reordered, n_static, n_forward, n_backward, n_mixed, block_col_type, linear_decomposition);
+      block_type_firstequation_size_mfs = reduceBlocksAndTypeDetermination(blocks, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, linear_decomposition);
 
-      computeChainRuleJacobian(blocks_derivatives);
+      computeChainRuleJacobian();
 
-      blocks_linear = BlockLinear(blocks_derivatives, variable_reordered);
+      blocks_linear = BlockLinear();
 
       collect_block_first_order_derivatives();
 
@@ -4855,29 +4853,29 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
   if (block)
     {
-      evaluateAndReduceJacobian(eval_context, contemporaneous_jacobian, static_jacobian, dynamic_jacobian, cutoff, false);
+      tie(contemporaneous_jacobian, static_jacobian) = evaluateAndReduceJacobian(eval_context, cutoff, false);
 
-      computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian, dynamic_jacobian);
+      computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian);
 
-      computePrologueAndEpilogue(static_jacobian, equation_reordered, variable_reordered);
+      computePrologueAndEpilogue(static_jacobian);
 
       first_order_endo_derivatives = collect_first_order_derivatives_endogenous();
 
-      equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, variable_reordered, equation_reordered, mfs);
+      equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, mfs);
 
       cout << "Finding the optimal block decomposition of the model ..." << endl;
 
       lag_lead_vector_t equation_lag_lead, variable_lag_lead;
 
-      computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, dynamic_jacobian, equation_reordered, variable_reordered, blocks, equation_type_and_normalized_equation, false, true, mfs, inv_equation_reordered, inv_variable_reordered, equation_lag_lead, variable_lag_lead, n_static, n_forward, n_backward, n_mixed);
+      tie(blocks, equation_lag_lead, variable_lag_lead, n_static, n_forward, n_backward, n_mixed) = computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, equation_type_and_normalized_equation, false, true);
 
-      block_type_firstequation_size_mfs = reduceBlocksAndTypeDetermination(dynamic_jacobian, blocks, equation_type_and_normalized_equation, variable_reordered, equation_reordered, n_static, n_forward, n_backward, n_mixed, block_col_type, linear_decomposition);
+      block_type_firstequation_size_mfs = reduceBlocksAndTypeDetermination(blocks, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, linear_decomposition);
 
       printBlockDecomposition(blocks);
 
-      computeChainRuleJacobian(blocks_derivatives);
+      computeChainRuleJacobian();
 
-      blocks_linear = BlockLinear(blocks_derivatives, variable_reordered);
+      blocks_linear = BlockLinear();
 
       collect_block_first_order_derivatives();
 
@@ -4888,7 +4886,8 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
         computeTemporaryTermsOrdered();
       int k = 0;
       equation_block.resize(equations.size());
-      variable_block_lead_lag = vector<tuple<int, int, int>>(equations.size());
+      variable_block_lead_lag.clear();
+      variable_block_lead_lag.resize(equations.size());
       for (unsigned int i = 0; i < getNbBlocks(); i++)
         {
           for (unsigned int j = 0; j < getBlockSize(i); j++)
@@ -5072,11 +5071,11 @@ DynamicModel::get_Derivatives(int block)
 }
 
 void
-DynamicModel::computeChainRuleJacobian(blocks_derivatives_t &blocks_endo_derivatives)
+DynamicModel::computeChainRuleJacobian()
 {
   map<int, expr_t> recursive_variables;
   unsigned int nb_blocks = getNbBlocks();
-  blocks_endo_derivatives = blocks_derivatives_t(nb_blocks);
+  blocks_derivatives.resize(nb_blocks);
   for (unsigned int block = 0; block < nb_blocks; block++)
     {
       block_derivatives_equation_variable_laglead_nodeid_t tmp_derivatives;
@@ -5084,7 +5083,6 @@ DynamicModel::computeChainRuleJacobian(blocks_derivatives_t &blocks_endo_derivat
       int block_size = getBlockSize(block);
       int block_nb_mfs = getBlockMfs(block);
       int block_nb_recursives = block_size - block_nb_mfs;
-      blocks_endo_derivatives.push_back(block_derivatives_equation_variable_laglead_nodeid_t(0));
       for (int i = 0; i < block_nb_recursives; i++)
         {
           if (getBlockEquationType(block, i) == E_EVALUATE_S)
@@ -5110,7 +5108,7 @@ DynamicModel::computeChainRuleJacobian(blocks_derivatives_t &blocks_endo_derivat
             }
           tmp_derivatives.emplace_back(eq, var, lag, first_chain_rule_derivatives[{ eqr, varr, lag }]);
         }
-      blocks_endo_derivatives[block] = tmp_derivatives;
+      blocks_derivatives[block] = tmp_derivatives;
     }
 }
 
