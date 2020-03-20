@@ -113,12 +113,12 @@ enum class BlockType
    simultan //!< Simultaneous time unseparable block
   };
 
-enum EquationType
+enum class EquationType
   {
-   E_UNKNOWN, //!< Unknown equation type
-   E_EVALUATE, //!< Simple evaluation, normalized variable on left-hand side
-   E_EVALUATE_S, //!< Simple evaluation, normalize using the first order derivative
-   E_SOLVE //!< No simple evaluation of the equation, it has to be solved
+   unknown, //!< Unknown equation type
+   evaluate, //!< Simple evaluation, normalized variable on left-hand side
+   evaluate_s, //!< Simple evaluation, normalize using the first order derivative
+   solve //!< No simple evaluation of the equation, it has to be solved
   };
 
 enum class BlockSimulationType

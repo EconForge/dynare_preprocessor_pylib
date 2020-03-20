@@ -619,7 +619,7 @@ public:
   bool
   isBlockEquationRenormalized(int block_number, int equation_number) const override
   {
-    return equation_type_and_normalized_equation[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].first == E_EVALUATE_S;
+    return equation_type_and_normalized_equation[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].first == EquationType::evaluate_s;
   };
   //! Return the expr_t of the equation equation_number belonging to the block block_number
   expr_t

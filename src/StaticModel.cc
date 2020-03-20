@@ -395,13 +395,13 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
               output << "  % equation " << getBlockEquationID(block, i)+1 << " variable : " << sModel
                      << " (" << variable_ID+1 << ") " << c_Equation_Type(equ_type) << endl;
               output << "  ";
-              if (equ_type == E_EVALUATE)
+              if (equ_type == EquationType::evaluate)
                 {
                   output << tmp_output.str();
                   output << " = ";
                   rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
                 }
-              else if (equ_type == E_EVALUATE_S)
+              else if (equ_type == EquationType::evaluate_s)
                 {
                   output << "%" << tmp_output.str();
                   output << " = ";
@@ -755,7 +755,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
                 FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
                 fnumexpr.write(code_file, instruction_number);
               }
-              if (equ_type == E_EVALUATE)
+              if (equ_type == EquationType::evaluate)
                 {
                   eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
                   lhs = eq_node->arg1;
@@ -763,7 +763,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
                   rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, false, false);
                   lhs->compile(code_file, instruction_number, true, temporary_terms, map_idx, false, false);
                 }
-              else if (equ_type == E_EVALUATE_S)
+              else if (equ_type == EquationType::evaluate_s)
                 {
                   eq_node = static_cast<BinaryOpNode *>(getBlockEquationRenormalizedExpr(block, i));
                   lhs = eq_node->arg1;
@@ -947,7 +947,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
                 FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
                 fnumexpr.write(code_file, instruction_number);
               }
-              if (equ_type == E_EVALUATE)
+              if (equ_type == EquationType::evaluate)
                 {
                   eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
                   lhs = eq_node->arg1;
@@ -955,7 +955,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
                   rhs->compile(code_file, instruction_number, false, tt2, map_idx2[block], false, false);
                   lhs->compile(code_file, instruction_number, true, tt2, map_idx2[block], false, false);
                 }
-              else if (equ_type == E_EVALUATE_S)
+              else if (equ_type == EquationType::evaluate_s)
                 {
                   eq_node = static_cast<BinaryOpNode *>(getBlockEquationRenormalizedExpr(block, i));
                   lhs = eq_node->arg1;
@@ -2155,7 +2155,8 @@ StaticModel::get_Derivatives(int block)
 
               if (OK)
                 {
-                  if (getBlockEquationType(block, eq) == E_EVALUATE_S && eq < block_nb_recursive)
+                  if (getBlockEquationType(block, eq) == EquationType::evaluate_s
+                      && eq < block_nb_recursive)
                     //It's a normalized equation, we have to recompute the derivative using chain rule derivative function
                     Derivatives[{ lag, eq, var, eqr, varr }] = 1;
                   else
@@ -2199,7 +2200,7 @@ StaticModel::computeChainRuleJacobian()
         {
           for (int i = 0; i < block_nb_recursives; i++)
             {
-              if (getBlockEquationType(block, i) == E_EVALUATE_S)
+              if (getBlockEquationType(block, i) == EquationType::evaluate_s)
                 recursive_variables[getDerivID(symbol_table.getID(SymbolType::endogenous, getBlockVariableID(block, i)), 0)] = getBlockEquationRenormalizedExpr(block, i);
               else
                 recursive_variables[getDerivID(symbol_table.getID(SymbolType::endogenous, getBlockVariableID(block, i)), 0)] = getBlockEquationExpr(block, i);
@@ -2215,7 +2216,8 @@ StaticModel::computeChainRuleJacobian()
                 first_chain_rule_derivatives[{ eqr, varr, lag }] = (equation_type_and_normalized_equation[eqr].second)->getChainRuleDerivative(getDerivID(symbol_table.getID(SymbolType::endogenous, varr), lag), recursive_variables);
               else if (Deriv_type == 2)
                 {
-                  if (getBlockEquationType(block, eq) == E_EVALUATE_S && eq < block_nb_recursives)
+                  if (getBlockEquationType(block, eq) == EquationType::evaluate_s
+                      && eq < block_nb_recursives)
                     first_chain_rule_derivatives[{ eqr, varr, lag }] = (equation_type_and_normalized_equation[eqr].second)->getChainRuleDerivative(getDerivID(symbol_table.getID(SymbolType::endogenous, varr), lag), recursive_variables);
                   else
                     first_chain_rule_derivatives[{ eqr, varr, lag }] = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(SymbolType::endogenous, varr), lag), recursive_variables);
@@ -2227,7 +2229,7 @@ StaticModel::computeChainRuleJacobian()
         {
           for (int i = 0; i < block_nb_recursives; i++)
             {
-              if (getBlockEquationType(block, i) == E_EVALUATE_S)
+              if (getBlockEquationType(block, i) == EquationType::evaluate_s)
                 recursive_variables[getDerivID(symbol_table.getID(SymbolType::endogenous, getBlockVariableID(block, i)), 0)] = getBlockEquationRenormalizedExpr(block, i);
               else
                 recursive_variables[getDerivID(symbol_table.getID(SymbolType::endogenous, getBlockVariableID(block, i)), 0)] = getBlockEquationExpr(block, i);

@@ -742,7 +742,7 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
       int var = variable_reordered[i];
       eq_node = equations[eq];
       lhs = eq_node->arg1;
-      Equation_Simulation_Type = E_SOLVE;
+      Equation_Simulation_Type = EquationType::solve;
       pair<bool, expr_t> res;
       if (auto derivative = first_order_endo_derivatives.find({ eq, var, 0 });
           derivative != first_order_endo_derivatives.end())
@@ -752,7 +752,7 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
           auto d_endo_variable = result.find({ var, 0 });
           //Determine whether the equation could be evaluated rather than to be solved
           if (lhs->isVariableNodeEqualTo(SymbolType::endogenous, variable_reordered[i], 0) && derivative->second->isNumConstNodeEqualTo(1))
-            Equation_Simulation_Type = E_EVALUATE;
+            Equation_Simulation_Type = EquationType::evaluate;
           else
             {
               vector<tuple<int, expr_t, expr_t>> List_of_Op_RHS;
@@ -760,12 +760,12 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
               if (mfs == 2)
                 {
                   if (d_endo_variable == result.end() && res.second)
-                    Equation_Simulation_Type = E_EVALUATE_S;
+                    Equation_Simulation_Type = EquationType::evaluate_s;
                 }
               else if (mfs == 3)
                 {
                   if (res.second) // The equation could be solved analytically
-                    Equation_Simulation_Type = E_EVALUATE_S;
+                    Equation_Simulation_Type = EquationType::evaluate_s;
                 }
             }
         }
@@ -912,7 +912,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   if (select_feedback_variable)
     {
       for (int i = 0; i < n; i++)
-        if (Equation_Type[equation_reordered[i+prologue]].first == E_SOLVE
+        if (Equation_Type[equation_reordered[i+prologue]].first == EquationType::solve
             || variable_lag_lead[variable_reordered[i+prologue]].second > 0
             || variable_lag_lead[variable_reordered[i+prologue]].first > 0
             || equation_lag_lead[equation_reordered[i+prologue]].second > 0
@@ -922,7 +922,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
     }
   else
     for (int i = 0; i < n; i++)
-      if (Equation_Type[equation_reordered[i+prologue]].first == E_SOLVE || mfs == 0)
+      if (Equation_Type[equation_reordered[i+prologue]].first == EquationType::solve || mfs == 0)
         add_edge(vertex(i, G2), vertex(i, G2), G2);
 
   //Determines the dynamic structure of each equation
@@ -1166,7 +1166,8 @@ ModelTree::reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks
       l_n_mixed = n_mixed[i];
       if (Blck_Size == 1)
         {
-          if (Equation_Type[equation_reordered[eq]].first == E_EVALUATE || Equation_Type[equation_reordered[eq]].first == E_EVALUATE_S)
+          if (Equation_Type[equation_reordered[eq]].first == EquationType::evaluate
+              || Equation_Type[equation_reordered[eq]].first == EquationType::evaluate_s)
             {
               if (Simulation_Type == BlockSimulationType::solveBackwardSimple)
                 Simulation_Type = BlockSimulationType::evaluateBackward;

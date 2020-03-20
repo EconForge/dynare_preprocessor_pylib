@@ -437,17 +437,20 @@ public:
   }
 
   inline static string
-  c_Equation_Type(int type)
+  c_Equation_Type(EquationType type)
   {
-    vector<string> c_Equation_Type =
+    switch (type)
       {
-       "E_UNKNOWN   ",
-       "E_EVALUATE  ",
-       "E_EVALUATE_S",
-       "E_SOLVE     "
-      };
-    return c_Equation_Type[type];
-  };
+      case EquationType::evaluate:
+        return "EVALUATE  ";
+      case EquationType::evaluate_s:
+        return "EVALUATE_S";
+      case EquationType::solve:
+        return "SOLVE     ";
+      default:
+        return "UNKNOWN   ";
+      }
+  }
 
   inline static string
   BlockType0(BlockType type)
@@ -465,7 +468,7 @@ public:
       default:
         return "UNKNOWN                      ";
       }
-  };
+  }
 
   inline static string
   BlockSim(BlockSimulationType type)
@@ -491,7 +494,7 @@ public:
       default:
         return "UNKNOWN                      ";
       }
-  };
+  }
 };
 
 #endif
