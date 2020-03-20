@@ -284,9 +284,9 @@ protected:
   bool computeNaturalNormalization();
   //! Try to normalized each unnormalized equation (matched endogenous variable only on the LHS)
   multimap<int, int> computeNormalizedEquations() const;
-  //! Evaluate the jacobian and suppress all the elements below the cutoff
+  //! Evaluate the jacobian (w.r.t. endogenous) and suppress all the elements below the cutoff
   /*! Returns a pair (contemporaneous_jacobian, static_jacobian). Also fills
-    dynamic_jacobian. */
+    dynamic_jacobian. External functions are evaluated to 1. */
   pair<jacob_map_t, jacob_map_t> evaluateAndReduceJacobian(const eval_context_t &eval_context, double cutoff, bool verbose);
   //! Select and reorder the non linear equations of the model
   /*! Returns a tuple (blocks, equation_lag_lead, variable_lag_lead, n_static,

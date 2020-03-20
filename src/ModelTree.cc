@@ -264,10 +264,8 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
   BipartiteGraph g(2 * n);
 
   // Fill in the graph
-  set<pair<int, int>> endo;
-
-  for (const auto &it : contemporaneous_jacobian)
-    add_edge(it.first.first + n, it.first.second, g);
+  for (const auto &[eq_and_endo, val] : contemporaneous_jacobian)
+    add_edge(eq_and_endo.first + n, eq_and_endo.second, g);
 
   // Compute maximum cardinality matching
   vector<int> mate_map(2*n);
@@ -357,28 +355,27 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
 
   int n = equations.size();
 
-  // compute the maximum value of each row of the contemporaneous Jacobian matrix
-  //jacob_map normalized_contemporaneous_jacobian;
+  // Compute the maximum value of each row of the contemporaneous Jacobian matrix
   jacob_map_t normalized_contemporaneous_jacobian(contemporaneous_jacobian);
   vector<double> max_val(n, 0.0);
-  for (const auto &it : contemporaneous_jacobian)
-    if (fabs(it.second) > max_val[it.first.first])
-      max_val[it.first.first] = fabs(it.second);
+  for (const auto &[eq_and_endo, val] : contemporaneous_jacobian)
+    max_val[eq_and_endo.first] = max(max_val[eq_and_endo.first], fabs(val));
 
-  for (auto &iter : normalized_contemporaneous_jacobian)
-    iter.second /= max_val[iter.first.first];
+  for (auto &[eq_and_endo, val] : normalized_contemporaneous_jacobian)
+    val /= max_val[eq_and_endo.first];
 
-  //We start with the highest value of the cutoff and try to normalize the model
+  // We start with the highest value of the cutoff and try to normalize the model
   double current_cutoff = 0.99999999;
+  const double cutoff_lower_limit = 1e-19;
 
   int suppressed = 0;
-  while (!check && current_cutoff > 1e-19)
+  while (!check && current_cutoff > cutoff_lower_limit)
     {
       jacob_map_t tmp_normalized_contemporaneous_jacobian;
       int suppress = 0;
-      for (auto &iter : normalized_contemporaneous_jacobian)
-        if (fabs(iter.second) > max(current_cutoff, cutoff))
-          tmp_normalized_contemporaneous_jacobian[{ iter.first.first, iter.first.second }] = iter.second;
+      for (auto &[eq_and_endo, val] : normalized_contemporaneous_jacobian)
+        if (fabs(val) > max(current_cutoff, cutoff))
+          tmp_normalized_contemporaneous_jacobian[eq_and_endo] = val;
         else
           suppress++;
 
@@ -389,7 +386,7 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
         {
           current_cutoff /= 2;
           // In this last case try to normalize with the complete jacobian
-          if (current_cutoff <= 1e-19)
+          if (current_cutoff <= cutoff_lower_limit)
             check = computeNormalization(normalized_contemporaneous_jacobian, false);
         }
     }
@@ -399,34 +396,33 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
       cout << "Normalization failed with cutoff, trying symbolic normalization..." << endl;
       //if no non-singular normalization can be found, try to find a normalization even with a potential singularity
       jacob_map_t tmp_normalized_contemporaneous_jacobian;
-      set<pair<int, int>> endo;
       for (int i = 0; i < n; i++)
         {
-          endo.clear();
-          equations[i]->collectEndogenous(endo);
-          for (const auto &it : endo)
-            tmp_normalized_contemporaneous_jacobian[{ i, it.first }] = 1;
+          set<pair<int, int>> endos_and_lags;
+          equations[i]->collectEndogenous(endos_and_lags);
+          for (const auto &[endo, lag] : endos_and_lags)
+            tmp_normalized_contemporaneous_jacobian[{ i, endo }] = 1;
         }
       check = computeNormalization(tmp_normalized_contemporaneous_jacobian, true);
       if (check)
         {
           // Update the jacobian matrix
-          for (const auto &[key, ignore] : tmp_normalized_contemporaneous_jacobian)
+          for (const auto &[eq_and_endo, ignore] : tmp_normalized_contemporaneous_jacobian)
             {
-              if (static_jacobian.find({ key.first, key.second }) == static_jacobian.end())
-                static_jacobian[{ key.first, key.second }] = 0;
-              if (dynamic_jacobian.find({ 0, key.first, key.second }) == dynamic_jacobian.end())
-                dynamic_jacobian[{ 0, key.first, key.second }] = nullptr;
-              if (contemporaneous_jacobian.find({ key.first, key.second }) == contemporaneous_jacobian.end())
-                contemporaneous_jacobian[{ key.first, key.second }] = 0;
+              if (static_jacobian.find(eq_and_endo) == static_jacobian.end())
+                static_jacobian[eq_and_endo] = 0;
+              if (dynamic_jacobian.find({ 0, eq_and_endo.first, eq_and_endo.second }) == dynamic_jacobian.end())
+                dynamic_jacobian[{ 0, eq_and_endo.first, eq_and_endo.second }] = nullptr;
+              if (contemporaneous_jacobian.find(eq_and_endo) == contemporaneous_jacobian.end())
+                contemporaneous_jacobian[eq_and_endo] = 0;
               try
                 {
-                  if (derivatives[1].find({ key.first, getDerivID(symbol_table.getID(SymbolType::endogenous, key.second), 0) }) == derivatives[1].end())
-                    derivatives[1][{ key.first, getDerivID(symbol_table.getID(SymbolType::endogenous, key.second), 0) }] = Zero;
+                  if (derivatives[1].find({ eq_and_endo.first, getDerivID(symbol_table.getID(SymbolType::endogenous, eq_and_endo.second), 0) }) == derivatives[1].end())
+                    derivatives[1][{ eq_and_endo.first, getDerivID(symbol_table.getID(SymbolType::endogenous, eq_and_endo.second), 0) }] = Zero;
                 }
               catch (DataTree::UnknownDerivIDException &e)
                 {
-                  cerr << "The variable " << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, key.second))
+                  cerr << "The variable " << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, eq_and_endo.second))
                        << " does not appear at the current period (i.e. with no lead and no lag); this case is not handled by the 'block' option of the 'model' block." << endl;
                   exit(EXIT_FAILURE);
                 }
@@ -470,7 +466,7 @@ pair<ModelTree::jacob_map_t, ModelTree::jacob_map_t>
 ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, double cutoff, bool verbose)
 {
   jacob_map_t contemporaneous_jacobian, static_jacobian;
-  int nb_elements_contemparenous_Jacobian = 0;
+  int nb_elements_contemporaneous_jacobian = 0;
   set<vector<int>> jacobian_elements_to_delete;
   for (const auto &[indices, d1] : derivatives[1])
     {
@@ -500,20 +496,22 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, double 
           if (fabs(val) < cutoff)
             {
               if (verbose)
-                cout << "the coefficient related to variable " << var << " with lag " << lag << " in equation " << eq << " is equal to " << val << " and is set to 0 in the incidence matrix (size=" << symbol_table.endo_nbr() << ")" << endl;
+                cout << "The coefficient related to variable " << var << " with lag " << lag << " in equation " << eq << " is equal to " << val << " and is set to 0 in the incidence matrix (size=" << symbol_table.endo_nbr() << ")." << endl;
               jacobian_elements_to_delete.insert({ eq, deriv_id });
             }
           else
             {
               if (lag == 0)
                 {
-                  nb_elements_contemparenous_Jacobian++;
+                  nb_elements_contemporaneous_jacobian++;
                   contemporaneous_jacobian[{ eq, var }] = val;
                 }
+
               if (static_jacobian.find({ eq, var }) != static_jacobian.end())
                 static_jacobian[{ eq, var }] += val;
               else
                 static_jacobian[{ eq, var }] = val;
+
               dynamic_jacobian[{ lag, eq, var }] = d1;
             }
         }
@@ -525,8 +523,8 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, double 
 
   if (jacobian_elements_to_delete.size() > 0)
     {
-      cout << jacobian_elements_to_delete.size() << " elements among " << derivatives[1].size() << " in the incidence matrices are below the cutoff (" << cutoff << ") and are discarded" << endl
-           << "The contemporaneous incidence matrix has " << nb_elements_contemparenous_Jacobian << " elements" << endl;
+      cout << jacobian_elements_to_delete.size() << " elements among " << derivatives[1].size() << " in the incidence matrices are below the cutoff (" << cutoff << ") and are discarded." << endl
+           << "The contemporaneous incidence matrix has " << nb_elements_contemporaneous_jacobian << " elements." << endl;
     }
 
   return { contemporaneous_jacobian, static_jacobian };

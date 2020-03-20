@@ -136,19 +136,19 @@ ExprNode::collectVariables(SymbolType type, set<int> &result) const
 void
 ExprNode::collectEndogenous(set<pair<int, int>> &result) const
 {
-  set<pair<int, int>> symb_ids;
-  collectDynamicVariables(SymbolType::endogenous, symb_ids);
-  for (const auto &symb_id : symb_ids)
-    result.emplace(datatree.symbol_table.getTypeSpecificID(symb_id.first), symb_id.second);
+  set<pair<int, int>> symb_ids_and_lags;
+  collectDynamicVariables(SymbolType::endogenous, symb_ids_and_lags);
+  for (const auto &[symb_id, lag] : symb_ids_and_lags)
+    result.emplace(datatree.symbol_table.getTypeSpecificID(symb_id), lag);
 }
 
 void
 ExprNode::collectExogenous(set<pair<int, int>> &result) const
 {
-  set<pair<int, int>> symb_ids;
-  collectDynamicVariables(SymbolType::exogenous, symb_ids);
-  for (const auto &symb_id : symb_ids)
-    result.emplace(datatree.symbol_table.getTypeSpecificID(symb_id.first), symb_id.second);
+  set<pair<int, int>> symb_ids_and_lags;
+  collectDynamicVariables(SymbolType::exogenous, symb_ids_and_lags);
+  for (const auto &[symb_id, lag] : symb_ids_and_lags)
+    result.emplace(datatree.symbol_table.getTypeSpecificID(symb_id), lag);
 }
 
 void
