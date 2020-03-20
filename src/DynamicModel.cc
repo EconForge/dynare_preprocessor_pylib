@@ -4832,15 +4832,15 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
       tie(blocks, equation_lag_lead, variable_lag_lead, n_static, n_forward, n_backward, n_mixed)
         = select_non_linear_equations_and_variables(is_equation_linear);
 
-      equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, 0);
+      equationTypeDetermination(first_order_endo_derivatives, 0);
       prologue = 0;
       epilogue = 0;
 
-      block_type_firstequation_size_mfs = reduceBlocksAndTypeDetermination(blocks, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, linear_decomposition);
+      reduceBlocksAndTypeDetermination(blocks, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, linear_decomposition);
 
       computeChainRuleJacobian();
 
-      blocks_linear = BlockLinear();
+      determineLinearBlocks();
 
       collect_block_first_order_derivatives();
 
@@ -4861,7 +4861,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
       first_order_endo_derivatives = collect_first_order_derivatives_endogenous();
 
-      equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, mfs);
+      equationTypeDetermination(first_order_endo_derivatives, mfs);
 
       cout << "Finding the optimal block decomposition of the model ..." << endl;
 
@@ -4869,13 +4869,13 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
       tie(blocks, equation_lag_lead, variable_lag_lead, n_static, n_forward, n_backward, n_mixed) = computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, equation_type_and_normalized_equation, false, true);
 
-      block_type_firstequation_size_mfs = reduceBlocksAndTypeDetermination(blocks, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, linear_decomposition);
+      reduceBlocksAndTypeDetermination(blocks, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, linear_decomposition);
 
       printBlockDecomposition(blocks);
 
       computeChainRuleJacobian();
 
-      blocks_linear = BlockLinear();
+      determineLinearBlocks();
 
       collect_block_first_order_derivatives();
 

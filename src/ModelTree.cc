@@ -728,13 +728,14 @@ ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian_arg)
     }
 }
 
-equation_type_and_normalized_equation_t
-ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives, int mfs) const
+void
+ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives, int mfs)
 {
   expr_t lhs;
   BinaryOpNode *eq_node;
   EquationType Equation_Simulation_Type;
-  equation_type_and_normalized_equation_t V_Equation_Simulation_Type(equations.size());
+  equation_type_and_normalized_equation.clear();
+  equation_type_and_normalized_equation.resize(equations.size());
   for (unsigned int i = 0; i < equations.size(); i++)
     {
       int eq = equation_reordered[i];
@@ -768,9 +769,8 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
                 }
             }
         }
-      V_Equation_Simulation_Type[eq] = { Equation_Simulation_Type, dynamic_cast<BinaryOpNode *>(res.second) };
+      equation_type_and_normalized_equation[eq] = { Equation_Simulation_Type, dynamic_cast<BinaryOpNode *>(res.second) };
     }
-  return V_Equation_Simulation_Type;
 }
 
 pair<lag_lead_vector_t, lag_lead_vector_t>
@@ -1072,14 +1072,14 @@ ModelTree::printBlockDecomposition(const vector<pair<int, int>> &blocks) const
        << "                                 and " << Nb_feedback_variable << " feedback variable(s)." << endl;
 }
 
-block_type_firstequation_size_mfs_t
+void
 ModelTree::reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<unsigned int> &n_static, const vector<unsigned int> &n_forward, const vector<unsigned int> &n_backward, const vector<unsigned int> &n_mixed, bool linear_decomposition)
 {
   int i = 0;
   int count_equ = 0, blck_count_simult = 0;
   int Blck_Size, MFS_Size;
   int Lead, Lag;
-  block_type_firstequation_size_mfs_t block_type_size_mfs;
+  block_type_firstequation_size_mfs.clear();
   BlockSimulationType Simulation_Type, prev_Type = UNKNOWN;
   int eq = 0;
   unsigned int l_n_static = 0, l_n_forward = 0, l_n_backward = 0, l_n_mixed = 0;
@@ -1174,8 +1174,8 @@ ModelTree::reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks
           if (i > 0)
             {
               bool is_lead = false, is_lag = false;
-              int c_Size = get<2>(block_type_size_mfs[block_type_size_mfs.size()-1]);
-              int first_equation = get<1>(block_type_size_mfs[block_type_size_mfs.size()-1]);
+              int c_Size = get<2>(block_type_firstequation_size_mfs[block_type_firstequation_size_mfs.size()-1]);
+              int first_equation = get<1>(block_type_firstequation_size_mfs[block_type_firstequation_size_mfs.size()-1]);
               if (c_Size > 0 && ((prev_Type == EVALUATE_FORWARD && Simulation_Type == EVALUATE_FORWARD && !is_lead)
                                  || (prev_Type == EVALUATE_BACKWARD && Simulation_Type == EVALUATE_BACKWARD && !is_lag)))
                 {
@@ -1193,41 +1193,40 @@ ModelTree::reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks
                   || (prev_Type == EVALUATE_BACKWARD && Simulation_Type == EVALUATE_BACKWARD && !is_lag))
                 {
                   //merge the current block with the previous one
-                  BlockSimulationType c_Type = get<0>(block_type_size_mfs[block_type_size_mfs.size()-1]);
+                  BlockSimulationType c_Type = get<0>(block_type_firstequation_size_mfs[block_type_firstequation_size_mfs.size()-1]);
                   c_Size++;
-                  block_type_size_mfs[block_type_size_mfs.size()-1] = { c_Type, first_equation, c_Size, c_Size };
-                  if (block_lag_lead[block_type_size_mfs.size()-1].first > Lag)
-                    Lag = block_lag_lead[block_type_size_mfs.size()-1].first;
-                  if (block_lag_lead[block_type_size_mfs.size()-1].second > Lead)
-                    Lead = block_lag_lead[block_type_size_mfs.size()-1].second;
-                  block_lag_lead[block_type_size_mfs.size()-1] = { Lag, Lead };
+                  block_type_firstequation_size_mfs[block_type_firstequation_size_mfs.size()-1] = { c_Type, first_equation, c_Size, c_Size };
+                  if (block_lag_lead[block_type_firstequation_size_mfs.size()-1].first > Lag)
+                    Lag = block_lag_lead[block_type_firstequation_size_mfs.size()-1].first;
+                  if (block_lag_lead[block_type_firstequation_size_mfs.size()-1].second > Lead)
+                    Lead = block_lag_lead[block_type_firstequation_size_mfs.size()-1].second;
+                  block_lag_lead[block_type_firstequation_size_mfs.size()-1] = { Lag, Lead };
                   auto tmp = block_col_type[block_col_type.size()-1];
                   block_col_type[block_col_type.size()-1] = { get<0>(tmp)+l_n_static, get<1>(tmp)+l_n_forward, get<2>(tmp)+l_n_backward, get<3>(tmp)+l_n_mixed };
                 }
               else
                 {
-                  block_type_size_mfs.emplace_back(Simulation_Type, eq, Blck_Size, MFS_Size);
+                  block_type_firstequation_size_mfs.emplace_back(Simulation_Type, eq, Blck_Size, MFS_Size);
                   block_lag_lead.emplace_back(Lag, Lead);
                   block_col_type.emplace_back(l_n_static, l_n_forward, l_n_backward, l_n_mixed);
                 }
             }
           else
             {
-              block_type_size_mfs.emplace_back(Simulation_Type, eq, Blck_Size, MFS_Size);
+              block_type_firstequation_size_mfs.emplace_back(Simulation_Type, eq, Blck_Size, MFS_Size);
               block_lag_lead.emplace_back(Lag, Lead);
               block_col_type.emplace_back(l_n_static, l_n_forward, l_n_backward, l_n_mixed);
             }
         }
       else
         {
-          block_type_size_mfs.emplace_back(Simulation_Type, eq, Blck_Size, MFS_Size);
+          block_type_firstequation_size_mfs.emplace_back(Simulation_Type, eq, Blck_Size, MFS_Size);
           block_lag_lead.emplace_back(Lag, Lead);
           block_col_type.emplace_back(l_n_static, l_n_forward, l_n_backward, l_n_mixed);
         }
       prev_Type = Simulation_Type;
       eq += Blck_Size;
     }
-  return block_type_size_mfs;
 }
 
 vector<bool>
@@ -1248,11 +1247,12 @@ ModelTree::equationLinear(const map<tuple<int, int, int>, expr_t> &first_order_e
   return is_linear;
 }
 
-vector<bool>
-ModelTree::BlockLinear() const
+void
+ModelTree::determineLinearBlocks()
 {
   unsigned int nb_blocks = getNbBlocks();
-  vector<bool> blocks_linear(nb_blocks, true);
+  blocks_linear.clear();
+  blocks_linear.resize(nb_blocks, true);
   for (unsigned int block = 0; block < nb_blocks; block++)
     {
       BlockSimulationType simulation_type = getBlockSimulationType(block);
@@ -1291,7 +1291,6 @@ ModelTree::BlockLinear() const
     the_end:
       ;
     }
-  return blocks_linear;
 }
 
 int

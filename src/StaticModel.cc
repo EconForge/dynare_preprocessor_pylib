@@ -1152,19 +1152,19 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
 
       auto first_order_endo_derivatives = collect_first_order_derivatives_endogenous();
 
-      equation_type_and_normalized_equation = equationTypeDetermination(first_order_endo_derivatives, mfs);
+      equationTypeDetermination(first_order_endo_derivatives, mfs);
 
       cout << "Finding the optimal block decomposition of the model ..." << endl;
 
       auto [blocks, equation_lag_lead, variable_lag_lead, n_static, n_forward, n_backward, n_mixed] = computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, equation_type_and_normalized_equation, false, false);
 
-      block_type_firstequation_size_mfs = reduceBlocksAndTypeDetermination(blocks, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, false);
+      reduceBlocksAndTypeDetermination(blocks, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, false);
 
       printBlockDecomposition(blocks);
 
       computeChainRuleJacobian();
 
-      blocks_linear = BlockLinear();
+      determineLinearBlocks();
 
       collect_block_first_order_derivatives();
 

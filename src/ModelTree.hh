@@ -295,13 +295,13 @@ protected:
   //! Search the equations and variables belonging to the prologue and the epilogue of the model
   void computePrologueAndEpilogue(const jacob_map_t &static_jacobian);
   //! Determine the type of each equation of model and try to normalized the unnormalized equation using computeNormalizedEquations
-  equation_type_and_normalized_equation_t equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives, int mfs) const;
+  void equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives, int mfs);
   //! Compute the block decomposition and for a non-recusive block find the minimum feedback set
   /*! Returns a tuple (blocks, equation_lag_lead, variable_lag_lead, n_static,
       n_forward, n_backward, n_mixed) */
   tuple<vector<pair<int, int>>, lag_lead_vector_t, lag_lead_vector_t, vector<unsigned int>, vector<unsigned int>, vector<unsigned int>, vector<unsigned int>> computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_, bool select_feedback_variable);
   //! Reduce the number of block merging the same type equation in the prologue and the epilogue and determine the type of each block
-  block_type_firstequation_size_mfs_t reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<unsigned int> &n_static, const vector<unsigned int> &n_forward, const vector<unsigned int> &n_backward, const vector<unsigned int> &n_mixed, bool linear_decomposition);
+  void reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<unsigned int> &n_static, const vector<unsigned int> &n_forward, const vector<unsigned int> &n_backward, const vector<unsigned int> &n_mixed, bool linear_decomposition);
   //! Determine the maximum number of lead and lag for the endogenous variable in a bloc
   /*! Returns a pair { equation_lead,lag, variable_lead_lag } */
   pair<lag_lead_vector_t, lag_lead_vector_t> getVariableLeadLagByBlock(const vector<int> &components_set, int nb_blck_sim) const;
@@ -310,7 +310,7 @@ protected:
   //! Print an abstract of the block structure of the model
   void printBlockDecomposition(const vector<pair<int, int>> &blocks) const;
   //! Determine for each block if it is linear or not
-  vector<bool> BlockLinear() const;
+  void determineLinearBlocks();
   //! Remove equations specified by exclude_eqs
   vector<int> includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_eqs,
                                       vector<BinaryOpNode *> &equations, vector<int> &equations_lineno,
