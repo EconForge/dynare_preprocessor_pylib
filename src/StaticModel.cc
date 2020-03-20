@@ -305,20 +305,26 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
              << "% Warning : this file is generated automatically by Dynare" << endl
              << "%           from model file (.mod)" << endl << endl
              << "%/" << endl;
-      if (simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
+      if (simulation_type == BlockSimulationType::evaluateBackward
+          || simulation_type == BlockSimulationType::evaluateForward)
         output << "function y = static_" << block+1 << "(y, x, params)" << endl;
       else
         output << "function [residual, y, g1] = static_" << block+1 << "(y, x, params)" << endl;
 
       BlockType block_type;
-      if (simulation_type == SOLVE_FORWARD_COMPLETE || simulation_type == SOLVE_BACKWARD_COMPLETE)
+      if (simulation_type == BlockSimulationType::solveForwardComplete
+          || simulation_type == BlockSimulationType::solveBackwardComplete)
         block_type = BlockType::simultans;
-      else if ((simulation_type == SOLVE_FORWARD_SIMPLE || simulation_type == SOLVE_BACKWARD_SIMPLE
-                || simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
+      else if ((simulation_type == BlockSimulationType::solveForwardSimple
+                || simulation_type == BlockSimulationType::solveBackwardSimple
+                || simulation_type == BlockSimulationType::evaluateBackward
+                || simulation_type == BlockSimulationType::evaluateForward)
                && getBlockFirstEquation(block) < prologue)
         block_type = BlockType::prologue;
-      else if ((simulation_type == SOLVE_FORWARD_SIMPLE || simulation_type == SOLVE_BACKWARD_SIMPLE
-                || simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
+      else if ((simulation_type == BlockSimulationType::solveForwardSimple
+                || simulation_type == BlockSimulationType::solveBackwardSimple
+                || simulation_type == BlockSimulationType::evaluateBackward
+                || simulation_type == BlockSimulationType::evaluateForward)
                && getBlockFirstEquation(block) >= equations.size() - epilogue)
         block_type = BlockType::epilogue;
       else
@@ -331,7 +337,8 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
              << "  % ////////////////////////////////////////////////////////////////////////" << endl;
       output << "  global options_;" << endl;
       //The Temporary terms
-      if (simulation_type != EVALUATE_BACKWARD && simulation_type != EVALUATE_FORWARD)
+      if (simulation_type != BlockSimulationType::evaluateBackward
+          && simulation_type != BlockSimulationType::evaluateForward)
         output << " g1 = spalloc("  << block_mfs << ", " << block_mfs << ", " << derivative_endo[block].size() << ");" << endl;
 
       if (v_temporary_terms_inuse[block].size())
@@ -342,7 +349,8 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
           output << "  global" << tmp_output.str() << ";" << endl;
         }
 
-      if (simulation_type != EVALUATE_BACKWARD && simulation_type != EVALUATE_FORWARD)
+      if (simulation_type != BlockSimulationType::evaluateBackward
+          && simulation_type != BlockSimulationType::evaluateForward)
         output << "  residual=zeros(" << block_mfs << ",1);" << endl;
 
       // The equations
@@ -381,8 +389,8 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
           lhs->writeOutput(tmp_output, local_output_type, local_temporary_terms, {});
           switch (simulation_type)
             {
-            case EVALUATE_BACKWARD:
-            case EVALUATE_FORWARD:
+            case BlockSimulationType::evaluateBackward:
+            case BlockSimulationType::evaluateForward:
             evaluation:
               output << "  % equation " << getBlockEquationID(block, i)+1 << " variable : " << sModel
                      << " (" << variable_ID+1 << ") " << c_Equation_Type(equ_type) << endl;
@@ -417,10 +425,10 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
                 }
               output << ";" << endl;
               break;
-            case SOLVE_BACKWARD_SIMPLE:
-            case SOLVE_FORWARD_SIMPLE:
-            case SOLVE_BACKWARD_COMPLETE:
-            case SOLVE_FORWARD_COMPLETE:
+            case BlockSimulationType::solveBackwardSimple:
+            case BlockSimulationType::solveForwardSimple:
+            case BlockSimulationType::solveBackwardComplete:
+            case BlockSimulationType::solveForwardComplete:
               if (i < block_recursive)
                 goto evaluation;
               feedback_variables.push_back(variable_ID);
@@ -437,15 +445,17 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
             }
         }
       // The Jacobian if we have to solve the block
-      if (simulation_type == SOLVE_BACKWARD_SIMPLE || simulation_type == SOLVE_FORWARD_SIMPLE
-          || simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
+      if (simulation_type == BlockSimulationType::solveBackwardSimple
+          || simulation_type == BlockSimulationType::solveForwardSimple
+          || simulation_type == BlockSimulationType::solveBackwardComplete
+          || simulation_type == BlockSimulationType::solveForwardComplete)
         output << "  " << sps << "% Jacobian  " << endl;
       switch (simulation_type)
         {
-        case SOLVE_BACKWARD_SIMPLE:
-        case SOLVE_FORWARD_SIMPLE:
-        case SOLVE_BACKWARD_COMPLETE:
-        case SOLVE_FORWARD_COMPLETE:
+        case BlockSimulationType::solveBackwardSimple:
+        case BlockSimulationType::solveForwardSimple:
+        case BlockSimulationType::solveBackwardComplete:
+        case BlockSimulationType::solveForwardComplete:
           for (const auto &it : blocks_derivatives[block])
             {
               unsigned int eq, var;
@@ -497,7 +507,7 @@ StaticModel::writeModelEquationsCode(const string &basename, map_idx_t map_idx) 
   FDIMST_ fdimst(temporary_terms.size());
   fdimst.write(code_file, instruction_number);
   FBEGINBLOCK_ fbeginblock(symbol_table.endo_nbr(),
-                           SOLVE_FORWARD_COMPLETE,
+                           BlockSimulationType::solveForwardComplete,
                            0,
                            symbol_table.endo_nbr(),
                            variable_reordered,
@@ -681,8 +691,10 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
       unsigned int block_mfs = getBlockMfs(block);
       unsigned int block_recursive = block_size - block_mfs;
 
-      if (simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE || simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE
-          || simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
+      if (simulation_type == BlockSimulationType::solveTwoBoundariesSimple
+          || simulation_type == BlockSimulationType::solveTwoBoundariesComplete
+          || simulation_type == BlockSimulationType::solveBackwardComplete
+          || simulation_type == BlockSimulationType::solveForwardComplete)
         {
           Write_Inf_To_Bin_File_Block(basename, block, u_count_int, file_open);
           file_open = true;
@@ -736,8 +748,8 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
           switch (simulation_type)
             {
             evaluation:
-            case EVALUATE_BACKWARD:
-            case EVALUATE_FORWARD:
+            case BlockSimulationType::evaluateBackward:
+            case BlockSimulationType::evaluateForward:
               equ_type = getBlockEquationType(block, i);
               {
                 FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
@@ -760,8 +772,8 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
                   lhs->compile(code_file, instruction_number, true, temporary_terms, map_idx, false, false);
                 }
               break;
-            case SOLVE_BACKWARD_COMPLETE:
-            case SOLVE_FORWARD_COMPLETE:
+            case BlockSimulationType::solveBackwardComplete:
+            case BlockSimulationType::solveForwardComplete:
               if (i < static_cast<int>(block_recursive))
                 goto evaluation;
               variable_ID = getBlockVariableID(block, i);
@@ -790,13 +802,13 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
       fendequ.write(code_file, instruction_number);
 
       // The Jacobian if we have to solve the block
-      if (simulation_type != EVALUATE_BACKWARD
-          && simulation_type != EVALUATE_FORWARD)
+      if (simulation_type != BlockSimulationType::evaluateBackward
+          && simulation_type != BlockSimulationType::evaluateForward)
         {
           switch (simulation_type)
             {
-            case SOLVE_BACKWARD_SIMPLE:
-            case SOLVE_FORWARD_SIMPLE:
+            case BlockSimulationType::solveBackwardSimple:
+            case BlockSimulationType::solveForwardSimple:
               {
                 FNUMEXPR_ fnumexpr(FirstEndoDerivative, 0, 0);
                 fnumexpr.write(code_file, instruction_number);
@@ -808,8 +820,8 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
               }
               break;
 
-            case SOLVE_BACKWARD_COMPLETE:
-            case SOLVE_FORWARD_COMPLETE:
+            case BlockSimulationType::solveBackwardComplete:
+            case BlockSimulationType::solveForwardComplete:
               count_u = feedback_variables.size();
               for (const auto &it : blocks_derivatives[block])
                 {
@@ -928,8 +940,8 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
           switch (simulation_type)
             {
             evaluation_l:
-            case EVALUATE_BACKWARD:
-            case EVALUATE_FORWARD:
+            case BlockSimulationType::evaluateBackward:
+            case BlockSimulationType::evaluateForward:
               equ_type = getBlockEquationType(block, i);
               {
                 FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
@@ -952,8 +964,8 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
                   lhs->compile(code_file, instruction_number, true, tt2, map_idx2[block], false, false);
                 }
               break;
-            case SOLVE_BACKWARD_COMPLETE:
-            case SOLVE_FORWARD_COMPLETE:
+            case BlockSimulationType::solveBackwardComplete:
+            case BlockSimulationType::solveForwardComplete:
               if (i < static_cast<int>(block_recursive))
                 goto evaluation_l;
               variable_ID = getBlockVariableID(block, i);
@@ -984,8 +996,8 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
       // The Jacobian if we have to solve the block determinsitic bloc
       switch (simulation_type)
         {
-        case SOLVE_BACKWARD_SIMPLE:
-        case SOLVE_FORWARD_SIMPLE:
+        case BlockSimulationType::solveBackwardSimple:
+        case BlockSimulationType::solveForwardSimple:
           {
             FNUMEXPR_ fnumexpr(FirstEndoDerivative, 0, 0);
             fnumexpr.write(code_file, instruction_number);
@@ -996,10 +1008,10 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
             fstpg2.write(code_file, instruction_number);
           }
           break;
-        case EVALUATE_BACKWARD:
-        case EVALUATE_FORWARD:
-        case SOLVE_BACKWARD_COMPLETE:
-        case SOLVE_FORWARD_COMPLETE:
+        case BlockSimulationType::evaluateBackward:
+        case BlockSimulationType::evaluateForward:
+        case BlockSimulationType::solveBackwardComplete:
+        case BlockSimulationType::solveForwardComplete:
           count_u = feedback_variables.size();
           for (const auto &it : blocks_derivatives[block])
             {
@@ -1994,7 +2006,8 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
 
       BlockSimulationType simulation_type = getBlockSimulationType(b);
 
-      if (simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
+      if (simulation_type == BlockSimulationType::evaluateBackward
+          || simulation_type == BlockSimulationType::evaluateForward)
         {
           output << "      y_tmp = " << basename << ".block.static_" << b+1 << "(y, x, params);" << endl;
           ostringstream tmp;
@@ -2037,7 +2050,7 @@ StaticModel::writeOutput(ostream &output, bool block) const
           tmp_s << " " << getBlockVariableID(b, i)+1;
           tmp_s_eq << " " << getBlockEquationID(b, i)+1;
         }
-      output << "block_structure_stat.block(" << b+1 << ").Simulation_Type = " << simulation_type << ";" << endl
+      output << "block_structure_stat.block(" << b+1 << ").Simulation_Type = " << static_cast<int>(simulation_type) << ";" << endl
              << "block_structure_stat.block(" << b+1 << ").endo_nbr = " << block_size << ";" << endl
              << "block_structure_stat.block(" << b+1 << ").mfs = " << getBlockMfs(block) << ";" << endl
              << "block_structure_stat.block(" << b+1 << ").equation = [" << tmp_s_eq.str() << "];" << endl
@@ -2181,7 +2194,8 @@ StaticModel::computeChainRuleJacobian()
       int block_size = getBlockSize(block);
       int block_nb_mfs = getBlockMfs(block);
       int block_nb_recursives = block_size - block_nb_mfs;
-      if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
+      if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
+          || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
         {
           for (int i = 0; i < block_nb_recursives; i++)
             {

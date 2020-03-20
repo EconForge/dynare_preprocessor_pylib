@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2019 Dynare Team
+ * Copyright © 2007-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -121,17 +121,17 @@ enum EquationType
    E_SOLVE //!< No simple evaluation of the equation, it has to be solved
   };
 
-enum BlockSimulationType
+enum class BlockSimulationType
   {
-   UNKNOWN, //!< Unknown simulation type
-   EVALUATE_FORWARD, //!< Simple evaluation, normalized variable on left-hand side, forward
-   EVALUATE_BACKWARD, //!< Simple evaluation, normalized variable on left-hand side, backward
-   SOLVE_FORWARD_SIMPLE, //!< Block of one equation, newton solver needed, forward
-   SOLVE_BACKWARD_SIMPLE, //!< Block of one equation, newton solver needed, backward
-   SOLVE_TWO_BOUNDARIES_SIMPLE, //!< Block of one equation, newton solver needed, forward & ackward
-   SOLVE_FORWARD_COMPLETE, //!< Block of several equations, newton solver needed, forward
-   SOLVE_BACKWARD_COMPLETE, //!< Block of several equations, newton solver needed, backward
-   SOLVE_TWO_BOUNDARIES_COMPLETE //!< Block of several equations, newton solver needed, forward and backwar
+   unknown, //!< Unknown simulation type
+   evaluateForward, //!< Simple evaluation, normalized variable on left-hand side, forward
+   evaluateBackward, //!< Simple evaluation, normalized variable on left-hand side, backward
+   solveForwardSimple, //!< Block of one equation, newton solver needed, forward
+   solveBackwardSimple, //!< Block of one equation, newton solver needed, backward
+   solveTwoBoundariesSimple, //!< Block of one equation, newton solver needed, forward & ackward
+   solveForwardComplete, //!< Block of several equations, newton solver needed, forward
+   solveBackwardComplete, //!< Block of several equations, newton solver needed, backward
+   solveTwoBoundariesComplete //!< Block of several equations, newton solver needed, forward and backwar
   };
 
 //! Enumeration of possible symbol types
@@ -1428,7 +1428,7 @@ private:
   unsigned int nb_col_det_exo_jacob, nb_col_exo_jacob, nb_col_other_endo_jacob;
 public:
   inline
-  FBEGINBLOCK_() : size{0}, type{UNKNOWN},
+  FBEGINBLOCK_() : size{0}, type{static_cast<uint8_t>(BlockSimulationType::unknown)},
                    is_linear{false}, endo_nbr{0}, Max_Lag{0}, Max_Lead{0}, u_count_int{0}, nb_col_jacob{0}
   {
   }
@@ -1577,8 +1577,10 @@ public:
         CompileCode.write(reinterpret_cast<char *>(&variable[i]), sizeof(variable[0]));
         CompileCode.write(reinterpret_cast<char *>(&equation[i]), sizeof(equation[0]));
       }
-    if (type == SOLVE_TWO_BOUNDARIES_SIMPLE || type == SOLVE_TWO_BOUNDARIES_COMPLETE
-        || type == SOLVE_BACKWARD_COMPLETE || type == SOLVE_FORWARD_COMPLETE)
+    if (type == static_cast<uint8_t>(BlockSimulationType::solveTwoBoundariesSimple)
+        || type == static_cast<uint8_t>(BlockSimulationType::solveTwoBoundariesComplete)
+        || type == static_cast<uint8_t>(BlockSimulationType::solveBackwardComplete)
+        || type == static_cast<uint8_t>(BlockSimulationType::solveForwardComplete))
       {
         CompileCode.write(reinterpret_cast<char *>(&is_linear), sizeof(is_linear));
         CompileCode.write(reinterpret_cast<char *>(&endo_nbr), sizeof(endo_nbr));
@@ -1617,8 +1619,10 @@ public:
         memcpy(&bc.Equation, code, sizeof(bc.Equation)); code += sizeof(bc.Equation);
         Block_Contain_.push_back(bc);
       }
-    if (type == SOLVE_TWO_BOUNDARIES_SIMPLE || type == SOLVE_TWO_BOUNDARIES_COMPLETE
-        || type == SOLVE_BACKWARD_COMPLETE || type == SOLVE_FORWARD_COMPLETE)
+    if (type == static_cast<uint8_t>(BlockSimulationType::solveTwoBoundariesSimple)
+        || type == static_cast<uint8_t>(BlockSimulationType::solveTwoBoundariesComplete)
+        || type == static_cast<uint8_t>(BlockSimulationType::solveBackwardComplete)
+        || type == static_cast<uint8_t>(BlockSimulationType::solveForwardComplete))
       {
         memcpy(&is_linear, code, sizeof(is_linear)); code += sizeof(is_linear);
         memcpy(&endo_nbr, code, sizeof(endo_nbr)); code += sizeof(endo_nbr);

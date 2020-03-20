@@ -468,25 +468,25 @@ public:
   };
 
   inline static string
-  BlockSim(int type)
+  BlockSim(BlockSimulationType type)
   {
     switch (type)
       {
-      case EVALUATE_FORWARD:
+      case BlockSimulationType::evaluateForward:
         return "EVALUATE FORWARD             ";
-      case EVALUATE_BACKWARD:
+      case BlockSimulationType::evaluateBackward:
         return "EVALUATE BACKWARD            ";
-      case SOLVE_FORWARD_SIMPLE:
+      case BlockSimulationType::solveForwardSimple:
         return "SOLVE FORWARD SIMPLE         ";
-      case SOLVE_BACKWARD_SIMPLE:
+      case BlockSimulationType::solveBackwardSimple:
         return "SOLVE BACKWARD SIMPLE        ";
-      case SOLVE_TWO_BOUNDARIES_SIMPLE:
+      case BlockSimulationType::solveTwoBoundariesSimple:
         return "SOLVE TWO BOUNDARIES SIMPLE  ";
-      case SOLVE_FORWARD_COMPLETE:
+      case BlockSimulationType::solveForwardComplete:
         return "SOLVE FORWARD COMPLETE       ";
-      case SOLVE_BACKWARD_COMPLETE:
+      case BlockSimulationType::solveBackwardComplete:
         return "SOLVE BACKWARD COMPLETE      ";
-      case SOLVE_TWO_BOUNDARIES_COMPLETE:
+      case BlockSimulationType::solveTwoBoundariesComplete:
         return "SOLVE TWO BOUNDARIES COMPLETE";
       default:
         return "UNKNOWN                      ";

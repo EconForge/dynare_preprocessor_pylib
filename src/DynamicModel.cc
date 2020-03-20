@@ -419,27 +419,36 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
              << "% Warning : this file is generated automatically by Dynare" << endl
              << "%           from model file (.mod)" << endl << endl
              << "%/" << endl;
-      if (simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
+      if (simulation_type == BlockSimulationType::evaluateBackward
+          || simulation_type == BlockSimulationType::evaluateForward)
         {
           output << "function [y, g1, g2, g3, varargout] = dynamic_" << block+1 << "(y, x, params, steady_state, jacobian_eval, y_kmin, periods)" << endl;
         }
-      else if (simulation_type == SOLVE_FORWARD_COMPLETE || simulation_type == SOLVE_BACKWARD_COMPLETE)
+      else if (simulation_type == BlockSimulationType::solveForwardComplete
+               || simulation_type == BlockSimulationType::solveBackwardComplete)
         output << "function [residual, y, g1, g2, g3, varargout] = dynamic_" << block+1 << "(y, x, params, steady_state, it_, jacobian_eval)" << endl;
-      else if (simulation_type == SOLVE_BACKWARD_SIMPLE || simulation_type == SOLVE_FORWARD_SIMPLE)
+      else if (simulation_type == BlockSimulationType::solveBackwardSimple
+               || simulation_type == BlockSimulationType::solveForwardSimple)
         output << "function [residual, y, g1, g2, g3, varargout] = dynamic_" << block+1 << "(y, x, params, steady_state, it_, jacobian_eval)" << endl;
       else
         output << "function [residual, y, g1, g2, g3, b, varargout] = dynamic_" << block+1 << "(y, x, params, steady_state, periods, jacobian_eval, y_kmin, y_size, Periods)" << endl;
       BlockType block_type;
-      if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
+      if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
+          || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
         block_type = BlockType::simultan;
-      else if (simulation_type == SOLVE_FORWARD_COMPLETE || simulation_type == SOLVE_BACKWARD_COMPLETE)
+      else if (simulation_type == BlockSimulationType::solveForwardComplete
+               || simulation_type == BlockSimulationType::solveBackwardComplete)
         block_type = BlockType::simultans;
-      else if ((simulation_type == SOLVE_FORWARD_SIMPLE || simulation_type == SOLVE_BACKWARD_SIMPLE
-                || simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
+      else if ((simulation_type == BlockSimulationType::solveForwardSimple
+                || simulation_type == BlockSimulationType::solveBackwardSimple
+                || simulation_type == BlockSimulationType::evaluateBackward
+                || simulation_type == BlockSimulationType::evaluateForward)
                && getBlockFirstEquation(block) < prologue)
         block_type = BlockType::prologue;
-      else if ((simulation_type == SOLVE_FORWARD_SIMPLE || simulation_type == SOLVE_BACKWARD_SIMPLE
-                || simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
+      else if ((simulation_type == BlockSimulationType::solveForwardSimple
+                || simulation_type == BlockSimulationType::solveBackwardSimple
+                || simulation_type == BlockSimulationType::evaluateBackward
+                || simulation_type == BlockSimulationType::evaluateForward)
                && getBlockFirstEquation(block) >= equations.size() - epilogue)
         block_type = BlockType::epilogue;
       else
@@ -451,7 +460,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
              << BlockSim(simulation_type) << "  //" << endl
              << "  % ////////////////////////////////////////////////////////////////////////" << endl;
       //The Temporary terms
-      if (simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
+      if (simulation_type == BlockSimulationType::evaluateBackward
+          || simulation_type == BlockSimulationType::evaluateForward)
         {
           output << "  if(jacobian_eval)" << endl
                  << "    g1 = spalloc(" << block_mfs  << ", " << count_col_endo << ", " << nze << ");" << endl
@@ -468,7 +478,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
                  << "    g1_xd=spalloc(" << block_size << ", " << count_col_exo_det  << ", " << nze_exo_det << ");" << endl
                  << "    g1_o=spalloc(" << block_size << ", " << count_col_other_endo << ", " << nze_other_endo << ");" << endl
                  << "  else" << endl;
-          if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
+          if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
+              || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
             output << "    g1 = spalloc(" << block_mfs << "*Periods, "
                    << block_mfs << "*(Periods+" << max_leadlag_block[block].first+max_leadlag_block[block].second+1 << ")"
                    << ", " << nze << "*Periods);" << endl;
@@ -486,7 +497,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
             tmp_output << " T" << it;
           output << "  global" << tmp_output.str() << ";" << endl;
         }
-      if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
+      if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
+          || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
         {
           temporary_terms_t tt2;
           for (int i = 0; i < static_cast<int>(block_size); i++)
@@ -505,16 +517,21 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
                 }
             }
         }
-      if (simulation_type == SOLVE_BACKWARD_SIMPLE || simulation_type == SOLVE_FORWARD_SIMPLE || simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
+      if (simulation_type == BlockSimulationType::solveBackwardSimple
+          || simulation_type == BlockSimulationType::solveForwardSimple
+          || simulation_type == BlockSimulationType::solveBackwardComplete
+          || simulation_type == BlockSimulationType::solveForwardComplete)
         output << "  residual=zeros(" << block_mfs << ",1);" << endl;
-      else if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
+      else if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
+               || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
         output << "  residual=zeros(" << block_mfs << ",y_kmin+periods);" << endl;
-      if (simulation_type == EVALUATE_BACKWARD)
+      if (simulation_type == BlockSimulationType::evaluateBackward)
         output << "  for it_ = (y_kmin+periods):y_kmin+1" << endl;
-      if (simulation_type == EVALUATE_FORWARD)
+      if (simulation_type == BlockSimulationType::evaluateForward)
         output << "  for it_ = y_kmin+1:(y_kmin+periods)" << endl;
 
-      if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
+      if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
+          || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
         {
           output << "  b = zeros(periods*y_size,1);" << endl
                  << "  for it_ = y_kmin+1:(periods+y_kmin)" << endl
@@ -524,7 +541,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
           sps = "  ";
         }
       else
-        if (simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
+        if (simulation_type == BlockSimulationType::evaluateBackward
+            || simulation_type == BlockSimulationType::evaluateForward)
           sps = "  ";
         else
           sps = "";
@@ -562,9 +580,10 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
           lhs->writeOutput(tmp_output, local_output_type, local_temporary_terms, {});
           switch (simulation_type)
             {
-            case EVALUATE_BACKWARD:
-            case EVALUATE_FORWARD:
-            evaluation:     if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
+            case BlockSimulationType::evaluateBackward:
+            case BlockSimulationType::evaluateForward:
+            evaluation:     if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
+                                || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
                 output << "    % equation " << getBlockEquationID(block, i)+1 << " variable : " << sModel
                        << " (" << variable_ID+1 << ") " << c_Equation_Type(equ_type) << endl;
               output << "    ";
@@ -598,10 +617,10 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
                 }
               output << ";" << endl;
               break;
-            case SOLVE_BACKWARD_SIMPLE:
-            case SOLVE_FORWARD_SIMPLE:
-            case SOLVE_BACKWARD_COMPLETE:
-            case SOLVE_FORWARD_COMPLETE:
+            case BlockSimulationType::solveBackwardSimple:
+            case BlockSimulationType::solveForwardSimple:
+            case BlockSimulationType::solveBackwardComplete:
+            case BlockSimulationType::solveForwardComplete:
               if (i < block_recursive)
                 goto evaluation;
               feedback_variables.push_back(variable_ID);
@@ -609,8 +628,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
                      << " (" << variable_ID+1 << ") " << c_Equation_Type(equ_type) << " symb_id=" << symbol_table.getID(SymbolType::endogenous, variable_ID) << endl;
               output << "  " << "residual(" << i+1-block_recursive << ") = (";
               goto end;
-            case SOLVE_TWO_BOUNDARIES_COMPLETE:
-            case SOLVE_TWO_BOUNDARIES_SIMPLE:
+            case BlockSimulationType::solveTwoBoundariesComplete:
+            case BlockSimulationType::solveTwoBoundariesSimple:
               if (i < block_recursive)
                 goto evaluation;
               feedback_variables.push_back(variable_ID);
@@ -628,17 +647,21 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
               rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
               output << ");" << endl;
 #ifdef CONDITION
-              if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
+              if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
+                  || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
                 output << "  condition(" << i+1 << ")=0;" << endl;
 #endif
             }
         }
       // The Jacobian if we have to solve the block
-      if (simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE || simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE)
+      if (simulation_type == BlockSimulationType::solveTwoBoundariesSimple
+          || simulation_type == BlockSimulationType::solveTwoBoundariesComplete)
         output << "  " << sps << "% Jacobian  " << endl << "    if jacobian_eval" << endl;
       else
-        if (simulation_type == SOLVE_BACKWARD_SIMPLE || simulation_type == SOLVE_FORWARD_SIMPLE
-            || simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
+        if (simulation_type == BlockSimulationType::solveBackwardSimple
+            || simulation_type == BlockSimulationType::solveForwardSimple
+            || simulation_type == BlockSimulationType::solveBackwardComplete
+            || simulation_type == BlockSimulationType::solveForwardComplete)
           output << "  % Jacobian  " << endl << "  if jacobian_eval" << endl;
         else
           output << "    % Jacobian  " << endl << "    if jacobian_eval" << endl;
@@ -744,15 +767,15 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
 
       switch (simulation_type)
         {
-        case EVALUATE_FORWARD:
-        case EVALUATE_BACKWARD:
+        case BlockSimulationType::evaluateForward:
+        case BlockSimulationType::evaluateBackward:
           output << "    end;" << endl
                  << "  end;" << endl;
           break;
-        case SOLVE_BACKWARD_SIMPLE:
-        case SOLVE_FORWARD_SIMPLE:
-        case SOLVE_BACKWARD_COMPLETE:
-        case SOLVE_FORWARD_COMPLETE:
+        case BlockSimulationType::solveBackwardSimple:
+        case BlockSimulationType::solveForwardSimple:
+        case BlockSimulationType::solveBackwardComplete:
+        case BlockSimulationType::solveForwardComplete:
           output << "  else" << endl;
           for (const auto &it : blocks_derivatives[block])
             {
@@ -775,8 +798,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
             }
           output << "  end;" << endl;
           break;
-        case SOLVE_TWO_BOUNDARIES_SIMPLE:
-        case SOLVE_TWO_BOUNDARIES_COMPLETE:
+        case BlockSimulationType::solveTwoBoundariesSimple:
+        case BlockSimulationType::solveTwoBoundariesComplete:
           output << "    else" << endl;
           for (const auto &it : blocks_derivatives[block])
             {
@@ -892,13 +915,13 @@ DynamicModel::writeModelEquationsCode(const string &basename, const map_idx_t &m
   int u_count_int = 0;
   BlockSimulationType simulation_type;
   if ((max_endo_lag > 0) && (max_endo_lead > 0))
-    simulation_type = SOLVE_TWO_BOUNDARIES_COMPLETE;
+    simulation_type = BlockSimulationType::solveTwoBoundariesComplete;
   else if ((max_endo_lag >= 0) && (max_endo_lead == 0))
-    simulation_type = SOLVE_FORWARD_COMPLETE;
+    simulation_type = BlockSimulationType::solveForwardComplete;
   else
-    simulation_type = SOLVE_BACKWARD_COMPLETE;
+    simulation_type = BlockSimulationType::solveBackwardComplete;
 
-  Write_Inf_To_Bin_File(basename + "/model/bytecode/dynamic.bin", u_count_int, file_open, simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE, symbol_table.endo_nbr());
+  Write_Inf_To_Bin_File(basename + "/model/bytecode/dynamic.bin", u_count_int, file_open, simulation_type == BlockSimulationType::solveTwoBoundariesComplete, symbol_table.endo_nbr());
   file_open = true;
 
   //Temporary variables declaration
@@ -1178,11 +1201,13 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
       int block_max_lag = max_leadlag_block[block].first;
       int block_max_lead = max_leadlag_block[block].second;
 
-      if (simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE || simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE
-          || simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
+      if (simulation_type == BlockSimulationType::solveTwoBoundariesSimple
+          || simulation_type == BlockSimulationType::solveTwoBoundariesComplete
+          || simulation_type == BlockSimulationType::solveBackwardComplete
+          || simulation_type == BlockSimulationType::solveForwardComplete)
         {
           Write_Inf_To_Bin_File_Block(basename, block, u_count_int, file_open,
-                                      simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE, linear_decomposition);
+                                      simulation_type == BlockSimulationType::solveTwoBoundariesComplete || simulation_type == BlockSimulationType::solveTwoBoundariesSimple, linear_decomposition);
           file_open = true;
         }
       map<tuple<int, int, int>, expr_t> tmp_block_endo_derivative;
@@ -1311,8 +1336,8 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
           switch (simulation_type)
             {
             evaluation:
-            case EVALUATE_BACKWARD:
-            case EVALUATE_FORWARD:
+            case BlockSimulationType::evaluateBackward:
+            case BlockSimulationType::evaluateForward:
               equ_type = getBlockEquationType(block, i);
               {
                 FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
@@ -1335,10 +1360,10 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
                   lhs->compile(code_file, instruction_number, true, temporary_terms, map_idx, true, false);
                 }
               break;
-            case SOLVE_BACKWARD_COMPLETE:
-            case SOLVE_FORWARD_COMPLETE:
-            case SOLVE_TWO_BOUNDARIES_COMPLETE:
-            case SOLVE_TWO_BOUNDARIES_SIMPLE:
+            case BlockSimulationType::solveBackwardComplete:
+            case BlockSimulationType::solveForwardComplete:
+            case BlockSimulationType::solveTwoBoundariesComplete:
+            case BlockSimulationType::solveTwoBoundariesSimple:
               if (i < static_cast<int>(block_recursive))
                 goto evaluation;
               variable_ID = getBlockVariableID(block, i);
@@ -1371,13 +1396,13 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
       fjmp_if_eval.write(code_file, instruction_number);
       int prev_instruction_number = instruction_number;
       // The Jacobian if we have to solve the block determinsitic block
-      if (simulation_type != EVALUATE_BACKWARD
-          && simulation_type != EVALUATE_FORWARD)
+      if (simulation_type != BlockSimulationType::evaluateBackward
+          && simulation_type != BlockSimulationType::evaluateForward)
         {
           switch (simulation_type)
             {
-            case SOLVE_BACKWARD_SIMPLE:
-            case SOLVE_FORWARD_SIMPLE:
+            case BlockSimulationType::solveBackwardSimple:
+            case BlockSimulationType::solveForwardSimple:
               {
                 FNUMEXPR_ fnumexpr(FirstEndoDerivative, getBlockEquationID(block, 0), getBlockVariableID(block, 0), 0);
                 fnumexpr.write(code_file, instruction_number);
@@ -1389,10 +1414,10 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
               }
               break;
 
-            case SOLVE_BACKWARD_COMPLETE:
-            case SOLVE_FORWARD_COMPLETE:
-            case SOLVE_TWO_BOUNDARIES_COMPLETE:
-            case SOLVE_TWO_BOUNDARIES_SIMPLE:
+            case BlockSimulationType::solveBackwardComplete:
+            case BlockSimulationType::solveForwardComplete:
+            case BlockSimulationType::solveTwoBoundariesComplete:
+            case BlockSimulationType::solveTwoBoundariesSimple:
               count_u = feedback_variables.size();
               for (const auto &it : blocks_derivatives[block])
                 {
@@ -1403,7 +1428,9 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
                   unsigned int varr = getBlockVariableID(block, var);
                   if (eq >= block_recursive and var >= block_recursive)
                     {
-                      if (lag != 0 && (simulation_type == SOLVE_FORWARD_COMPLETE || simulation_type == SOLVE_BACKWARD_COMPLETE))
+                      if (lag != 0
+                          && (simulation_type == BlockSimulationType::solveForwardComplete
+                              || simulation_type == BlockSimulationType::solveBackwardComplete))
                         continue;
                       if (!Uf[eqr].Ufl)
                         {
@@ -1927,7 +1954,8 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
         block_recursive = block_size - block_mfs;
       BlockSimulationType simulation_type = getBlockSimulationType(block);
 
-      if (simulation_type == EVALUATE_FORWARD || simulation_type == EVALUATE_BACKWARD)
+      if (simulation_type == BlockSimulationType::evaluateForward
+          || simulation_type == BlockSimulationType::evaluateBackward)
         {
           for (unsigned int ik = 0; ik < block_size; ik++)
             {
@@ -1948,23 +1976,23 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
 
       switch (simulation_type)
         {
-        case EVALUATE_FORWARD:
-        case EVALUATE_BACKWARD:
+        case BlockSimulationType::evaluateForward:
+        case BlockSimulationType::evaluateBackward:
           mDynamicModelFile << "    [y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, 1, it_-1, 1);" << endl
                             << "    residual(y_index_eq)=ys(y_index)-y(it_, y_index);" << endl;
           break;
-        case SOLVE_FORWARD_SIMPLE:
-        case SOLVE_BACKWARD_SIMPLE:
+        case BlockSimulationType::solveForwardSimple:
+        case BlockSimulationType::solveBackwardSimple:
           mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, it_, 1);" << endl
                             << "    residual(y_index_eq)=r;" << endl;
           break;
-        case SOLVE_FORWARD_COMPLETE:
-        case SOLVE_BACKWARD_COMPLETE:
+        case BlockSimulationType::solveForwardComplete:
+        case BlockSimulationType::solveBackwardComplete:
           mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, it_, 1);" << endl
                             << "    residual(y_index_eq)=r;" << endl;
           break;
-        case SOLVE_TWO_BOUNDARIES_COMPLETE:
-        case SOLVE_TWO_BOUNDARIES_SIMPLE:
+        case BlockSimulationType::solveTwoBoundariesComplete:
+        case BlockSimulationType::solveTwoBoundariesSimple:
           mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, b, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << basename << ".block.dynamic_" <<  block + 1 << "(y, x, params, steady_state, it_-" << max_lag << ", 1, " << max_lag << ", " << block_recursive << "," << "options_.periods" << ");" << endl
                             << "    residual(y_index_eq)=r(:,M_.maximum_lag+1);" << endl;
           break;
@@ -2017,7 +2045,7 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
       unsigned int block_recursive = block_size - block_mfs;
       BlockSimulationType simulation_type = getBlockSimulationType(block);
 
-      if (simulation_type == EVALUATE_FORWARD && block_size)
+      if (simulation_type == BlockSimulationType::evaluateForward && block_size)
         {
           if (open_par)
             mDynamicModelFile << "  end" << endl;
@@ -2043,7 +2071,7 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
                             << "    return;" << endl
                             << "  end;" << endl;
         }
-      else if (simulation_type == EVALUATE_BACKWARD && block_size)
+      else if (simulation_type == BlockSimulationType::evaluateBackward && block_size)
         {
           if (open_par)
             mDynamicModelFile << "  end" << endl;
@@ -2069,7 +2097,8 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
                             << "    return;" << endl
                             << "  end;" << endl;
         }
-      else if ((simulation_type == SOLVE_FORWARD_COMPLETE || simulation_type == SOLVE_FORWARD_SIMPLE) && block_size)
+      else if ((simulation_type == BlockSimulationType::solveForwardComplete
+                || simulation_type == BlockSimulationType::solveForwardSimple) && block_size)
         {
           if (open_par)
             mDynamicModelFile << "  end" << endl;
@@ -2099,7 +2128,8 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
                             << "    return;" << endl
                             << "  end;" << endl;
         }
-      else if ((simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_BACKWARD_SIMPLE) && block_size)
+      else if ((simulation_type == BlockSimulationType::solveBackwardComplete
+                || simulation_type == BlockSimulationType::solveBackwardSimple) && block_size)
         {
           if (open_par)
             mDynamicModelFile << "  end" << endl;
@@ -2130,7 +2160,8 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
                             << "    return;" << endl
                             << "  end;" << endl;
         }
-      else if ((simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE) && block_size)
+      else if ((simulation_type == BlockSimulationType::solveTwoBoundariesComplete
+                || simulation_type == BlockSimulationType::solveTwoBoundariesSimple) && block_size)
         {
           if (open_par)
             mDynamicModelFile << "  end" << endl;
@@ -3173,7 +3204,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           for (const auto &it : other_endo_block[block])
             for (int it1 : it.second)
               other_endogenous.insert(it1);
-          output << "block_structure.block(" << block+1 << ").Simulation_Type = " << simulation_type << ";" << endl
+          output << "block_structure.block(" << block+1 << ").Simulation_Type = " << static_cast<int>(simulation_type) << ";" << endl
                  << "block_structure.block(" << block+1 << ").maximum_lag = " << max_lag << ";" << endl
                  << "block_structure.block(" << block+1 << ").maximum_lead = " << max_lead << ";" << endl
                  << "block_structure.block(" << block+1 << ").maximum_endo_lag = " << max_lag_endo << ";" << endl
@@ -5015,7 +5046,8 @@ DynamicModel::get_Derivatives(int block)
   int max_lag, max_lead;
   map<tuple<int, int, int, int, int>, int> Derivatives;
   BlockSimulationType simulation_type = getBlockSimulationType(block);
-  if (simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
+  if (simulation_type == BlockSimulationType::evaluateBackward
+      || simulation_type == BlockSimulationType::evaluateForward)
     {
       max_lag = 1;
       max_lead = 1;

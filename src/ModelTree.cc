@@ -1053,7 +1053,9 @@ ModelTree::printBlockDecomposition(const vector<pair<int, int>> &blocks) const
   for (unsigned int block = 0; block < Nb_TotalBlocks; block++)
     {
       BlockSimulationType simulation_type = getBlockSimulationType(block);
-      if (simulation_type == SOLVE_FORWARD_COMPLETE || simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE)
+      if (simulation_type == BlockSimulationType::solveForwardComplete
+          || simulation_type == BlockSimulationType::solveBackwardComplete
+          || simulation_type == BlockSimulationType::solveTwoBoundariesComplete)
         {
           Nb_SimulBlocks++;
           int size = getBlockSize(block);
@@ -1080,7 +1082,7 @@ ModelTree::reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks
   int Blck_Size, MFS_Size;
   int Lead, Lag;
   block_type_firstequation_size_mfs.clear();
-  BlockSimulationType Simulation_Type, prev_Type = UNKNOWN;
+  BlockSimulationType Simulation_Type, prev_Type = BlockSimulationType::unknown;
   int eq = 0;
   unsigned int l_n_static = 0, l_n_forward = 0, l_n_backward = 0, l_n_mixed = 0;
   for (i = 0; i < static_cast<int>(prologue+blocks.size()+epilogue); i++)
@@ -1140,23 +1142,23 @@ ModelTree::reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks
       if (Lag > 0 && Lead > 0)
         {
           if (Blck_Size == 1)
-            Simulation_Type = SOLVE_TWO_BOUNDARIES_SIMPLE;
+            Simulation_Type = BlockSimulationType::solveTwoBoundariesSimple;
           else
-            Simulation_Type = SOLVE_TWO_BOUNDARIES_COMPLETE;
+            Simulation_Type = BlockSimulationType::solveTwoBoundariesComplete;
         }
       else if (Blck_Size > 1)
         {
           if (Lead > 0)
-            Simulation_Type = SOLVE_BACKWARD_COMPLETE;
+            Simulation_Type = BlockSimulationType::solveBackwardComplete;
           else
-            Simulation_Type = SOLVE_FORWARD_COMPLETE;
+            Simulation_Type = BlockSimulationType::solveForwardComplete;
         }
       else
         {
           if (Lead > 0)
-            Simulation_Type = SOLVE_BACKWARD_SIMPLE;
+            Simulation_Type = BlockSimulationType::solveBackwardSimple;
           else
-            Simulation_Type = SOLVE_FORWARD_SIMPLE;
+            Simulation_Type = BlockSimulationType::solveForwardSimple;
         }
       l_n_static = n_static[i];
       l_n_forward = n_forward[i];
@@ -1166,18 +1168,19 @@ ModelTree::reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks
         {
           if (Equation_Type[equation_reordered[eq]].first == E_EVALUATE || Equation_Type[equation_reordered[eq]].first == E_EVALUATE_S)
             {
-              if (Simulation_Type == SOLVE_BACKWARD_SIMPLE)
-                Simulation_Type = EVALUATE_BACKWARD;
-              else if (Simulation_Type == SOLVE_FORWARD_SIMPLE)
-                Simulation_Type = EVALUATE_FORWARD;
+              if (Simulation_Type == BlockSimulationType::solveBackwardSimple)
+                Simulation_Type = BlockSimulationType::evaluateBackward;
+              else if (Simulation_Type == BlockSimulationType::solveForwardSimple)
+                Simulation_Type = BlockSimulationType::evaluateForward;
             }
           if (i > 0)
             {
               bool is_lead = false, is_lag = false;
               int c_Size = get<2>(block_type_firstequation_size_mfs[block_type_firstequation_size_mfs.size()-1]);
               int first_equation = get<1>(block_type_firstequation_size_mfs[block_type_firstequation_size_mfs.size()-1]);
-              if (c_Size > 0 && ((prev_Type == EVALUATE_FORWARD && Simulation_Type == EVALUATE_FORWARD && !is_lead)
-                                 || (prev_Type == EVALUATE_BACKWARD && Simulation_Type == EVALUATE_BACKWARD && !is_lag)))
+              if (c_Size > 0
+                  && ((prev_Type == BlockSimulationType::evaluateForward && Simulation_Type == BlockSimulationType::evaluateForward && !is_lead)
+                      || (prev_Type == BlockSimulationType::evaluateBackward && Simulation_Type == BlockSimulationType::evaluateBackward && !is_lag)))
                 {
                   for (int j = first_equation; j < first_equation+c_Size; j++)
                     {
@@ -1189,8 +1192,8 @@ ModelTree::reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks
                         is_lead = true;
                     }
                 }
-              if ((prev_Type == EVALUATE_FORWARD && Simulation_Type == EVALUATE_FORWARD && !is_lead)
-                  || (prev_Type == EVALUATE_BACKWARD && Simulation_Type == EVALUATE_BACKWARD && !is_lag))
+              if ((prev_Type == BlockSimulationType::evaluateForward && Simulation_Type == BlockSimulationType::evaluateForward && !is_lead)
+                  || (prev_Type == BlockSimulationType::evaluateBackward && Simulation_Type == BlockSimulationType::evaluateBackward && !is_lag))
                 {
                   //merge the current block with the previous one
                   BlockSimulationType c_Type = get<0>(block_type_firstequation_size_mfs[block_type_firstequation_size_mfs.size()-1]);
@@ -1259,7 +1262,8 @@ ModelTree::determineLinearBlocks()
       int block_size = getBlockSize(block);
       block_derivatives_equation_variable_laglead_nodeid_t derivatives_block = blocks_derivatives[block];
       int first_variable_position = getBlockFirstEquation(block);
-      if (simulation_type == SOLVE_BACKWARD_COMPLETE || simulation_type == SOLVE_FORWARD_COMPLETE)
+      if (simulation_type == BlockSimulationType::solveBackwardComplete
+          || simulation_type == BlockSimulationType::solveForwardComplete)
         for (const auto &[ignore, ignore2, lag, d1] : derivatives_block)
           {
             if (lag == 0)
@@ -1275,7 +1279,8 @@ ModelTree::determineLinearBlocks()
                       }
               }
           }
-      else if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
+      else if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
+               || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
         for (const auto &[ignore, ignore2, lag, d1] : derivatives_block)
           {
             set<pair<int, int>> endogenous;
