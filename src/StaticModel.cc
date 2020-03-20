@@ -312,17 +312,17 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
 
       BlockType block_type;
       if (simulation_type == SOLVE_FORWARD_COMPLETE || simulation_type == SOLVE_BACKWARD_COMPLETE)
-        block_type = SIMULTANS;
+        block_type = BlockType::simultans;
       else if ((simulation_type == SOLVE_FORWARD_SIMPLE || simulation_type == SOLVE_BACKWARD_SIMPLE
                 || simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
                && getBlockFirstEquation(block) < prologue)
-        block_type = PROLOGUE;
+        block_type = BlockType::prologue;
       else if ((simulation_type == SOLVE_FORWARD_SIMPLE || simulation_type == SOLVE_BACKWARD_SIMPLE
                 || simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
                && getBlockFirstEquation(block) >= equations.size() - epilogue)
-        block_type = EPILOGUE;
+        block_type = BlockType::epilogue;
       else
-        block_type = SIMULTANS;
+        block_type = BlockType::simultans;
       output << "  % ////////////////////////////////////////////////////////////////////////" << endl
              << "  % //" << string("                     Block ").substr(int (log10(block + 1))) << block + 1 << " " << BlockType0(block_type)
              << "          //" << endl

@@ -454,13 +454,13 @@ public:
   {
     switch (type)
       {
-      case SIMULTANS:
+      case BlockType::simultans:
         return "SIMULTANEOUS TIME SEPARABLE  ";
-      case PROLOGUE:
+      case BlockType::prologue:
         return "PROLOGUE                     ";
-      case EPILOGUE:
+      case BlockType::epilogue:
         return "EPILOGUE                     ";
-      case SIMULTAN:
+      case BlockType::simultan:
         return "SIMULTANEOUS TIME UNSEPARABLE";
       default:
         return "UNKNOWN                      ";

@@ -431,19 +431,19 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
         output << "function [residual, y, g1, g2, g3, b, varargout] = dynamic_" << block+1 << "(y, x, params, steady_state, periods, jacobian_eval, y_kmin, y_size, Periods)" << endl;
       BlockType block_type;
       if (simulation_type == SOLVE_TWO_BOUNDARIES_COMPLETE || simulation_type == SOLVE_TWO_BOUNDARIES_SIMPLE)
-        block_type = SIMULTAN;
+        block_type = BlockType::simultan;
       else if (simulation_type == SOLVE_FORWARD_COMPLETE || simulation_type == SOLVE_BACKWARD_COMPLETE)
-        block_type = SIMULTANS;
+        block_type = BlockType::simultans;
       else if ((simulation_type == SOLVE_FORWARD_SIMPLE || simulation_type == SOLVE_BACKWARD_SIMPLE
                 || simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
                && getBlockFirstEquation(block) < prologue)
-        block_type = PROLOGUE;
+        block_type = BlockType::prologue;
       else if ((simulation_type == SOLVE_FORWARD_SIMPLE || simulation_type == SOLVE_BACKWARD_SIMPLE
                 || simulation_type == EVALUATE_BACKWARD || simulation_type == EVALUATE_FORWARD)
                && getBlockFirstEquation(block) >= equations.size() - epilogue)
-        block_type = EPILOGUE;
+        block_type = BlockType::epilogue;
       else
-        block_type = SIMULTANS;
+        block_type = BlockType::simultans;
       output << "  % ////////////////////////////////////////////////////////////////////////" << endl
              << "  % //" << string("                     Block ").substr(int (log10(block + 1))) << block + 1 << " " << BlockType0(block_type)
              << "          //" << endl
