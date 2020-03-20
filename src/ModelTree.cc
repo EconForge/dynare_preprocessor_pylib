@@ -270,33 +270,7 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
   // Compute maximum cardinality matching
   vector<int> mate_map(2*n);
 
-#if 1
   bool check = checked_edmonds_maximum_cardinality_matching(g, &mate_map[0]);
-#else // Alternative way to compute normalization, by giving an initial matching using natural normalizations
-  fill(mate_map.begin(), mate_map.end(), boost::graph_traits<BipartiteGraph>::null_vertex());
-
-  auto natural_endo2eqs = computeNormalizedEquations();
-
-  for (int i = 0; i < symbol_table.endo_nbr(); i++)
-    {
-      if (natural_endo2eqs.count(i) == 0)
-        continue;
-
-      int j = natural_endo2eqs.find(i)->second;
-
-      put(&mate_map[0], i, n+j);
-      put(&mate_map[0], n+j, i);
-    }
-
-  boost::edmonds_augmenting_path_finder<BipartiteGraph, int *, boost::property_map<BipartiteGraph, boost::vertex_index_t>::type> augmentor(g, &mate_map[0], get(boost::vertex_index, g));
-  while (augmentor.augment_matching())
-    {
-    };
-
-  augmentor.get_current_matching(&mate_map[0]);
-
-  bool check = boost::maximum_cardinality_matching_verifier<BipartiteGraph, int *, boost::property_map<BipartiteGraph, boost::vertex_index_t>::type>::verify_matching(g, &mate_map[0], get(boost::vertex_index, g));
-#endif
 
   assert(check);
 
@@ -309,29 +283,6 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
   // Create the resulting map, by copying the n first elements of mate_map, and substracting n to them
   endo2eq.resize(equations.size());
   transform(mate_map.begin(), mate_map.begin() + n, endo2eq.begin(), [=](int i) { return i-n; });
-
-#ifdef DEBUG
-  auto natural_endo2eqs = computeNormalizedEquations(natural_endo2eqs);
-
-  int n1 = 0, n2 = 0;
-
-  for (int i = 0; i < symbol_table.endo_nbr(); i++)
-    {
-      if (natural_endo2eqs.count(i) == 0)
-        continue;
-
-      n1++;
-
-      auto x = natural_endo2eqs.equal_range(i);
-      if (find_if(x.first, x.second, [=](auto y) { return y.second == endo2eq[i]; }) == x.second)
-        cout << "Natural normalization of variable " << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, i))
-             << " not used." << endl;
-      else
-        n2++;
-    }
-
-  cout << "Used " << n2 << " natural normalizations out of " << n1 << ", for a total of " << n << " equations." << endl;
-#endif
 
   // Check if all variables are normalized
   if (auto it = find(mate_map.begin(), mate_map.begin() + n, boost::graph_traits<BipartiteGraph>::null_vertex());
@@ -435,31 +386,6 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
       cerr << "No normalization could be computed. Aborting." << endl;
       exit(EXIT_FAILURE);
     }
-}
-
-multimap<int, int>
-ModelTree::computeNormalizedEquations() const
-{
-  multimap<int, int> endo2eqs;
-  for (size_t i = 0; i < equations.size(); i++)
-    {
-      auto lhs = dynamic_cast<VariableNode *>(equations[i]->arg1);
-      if (!lhs)
-        continue;
-
-      int symb_id = lhs->symb_id;
-      if (symbol_table.getType(symb_id) != SymbolType::endogenous)
-        continue;
-
-      set<pair<int, int>> endo;
-      equations[i]->arg2->collectEndogenous(endo);
-      if (endo.find({ symbol_table.getTypeSpecificID(symb_id), 0 }) != endo.end())
-        continue;
-
-      endo2eqs.emplace(symbol_table.getTypeSpecificID(symb_id), static_cast<int>(i));
-      cout << "Endogenous " << symbol_table.getName(symb_id) << " normalized in equation " << i+1 << endl;
-    }
-  return endo2eqs;
 }
 
 pair<ModelTree::jacob_map_t, ModelTree::jacob_map_t>

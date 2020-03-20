@@ -282,8 +282,6 @@ protected:
   void computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian, double cutoff, jacob_map_t &static_jacobian);
   //! Try to find a natural normalization if all equations are matched to an endogenous variable on the LHS
   bool computeNaturalNormalization();
-  //! Try to normalized each unnormalized equation (matched endogenous variable only on the LHS)
-  multimap<int, int> computeNormalizedEquations() const;
   //! Evaluate the jacobian (w.r.t. endogenous) and suppress all the elements below the cutoff
   /*! Returns a pair (contemporaneous_jacobian, static_jacobian). Also fills
     dynamic_jacobian. External functions are evaluated to 1. */
@@ -294,7 +292,7 @@ protected:
   tuple<vector<pair<int, int>>, lag_lead_vector_t, lag_lead_vector_t, vector<unsigned int>, vector<unsigned int>, vector<unsigned int>, vector<unsigned int>> select_non_linear_equations_and_variables(const vector<bool> &is_equation_linear);
   //! Search the equations and variables belonging to the prologue and the epilogue of the model
   void computePrologueAndEpilogue(const jacob_map_t &static_jacobian);
-  //! Determine the type of each equation of model and try to normalized the unnormalized equation using computeNormalizedEquations
+  //! Determine the type of each equation of model and try to normalize the unnormalized equation
   void equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives, int mfs);
   //! Compute the block decomposition and for a non-recusive block find the minimum feedback set
   /*! Returns a tuple (blocks, equation_lag_lead, variable_lag_lead, n_static,
