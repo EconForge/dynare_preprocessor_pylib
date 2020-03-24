@@ -363,7 +363,7 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
               if (static_jacobian.find(eq_and_endo) == static_jacobian.end())
                 static_jacobian[eq_and_endo] = 0;
               if (dynamic_jacobian.find({ 0, eq_and_endo.first, eq_and_endo.second }) == dynamic_jacobian.end())
-                dynamic_jacobian[{ 0, eq_and_endo.first, eq_and_endo.second }] = nullptr;
+                dynamic_jacobian[{ 0, eq_and_endo.first, eq_and_endo.second }] = Zero;
               if (contemporaneous_jacobian.find(eq_and_endo) == contemporaneous_jacobian.end())
                 contemporaneous_jacobian[eq_and_endo] = 0;
               try
