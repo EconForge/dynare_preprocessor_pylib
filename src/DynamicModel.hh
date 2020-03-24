@@ -724,28 +724,4 @@ public:
 
   bool isChecksumMatching(const string &basename, bool block) const;
 };
-
-//! Classes to re-order derivatives for various sparse storage formats
-class derivative
-{
-public:
-  long unsigned int linear_address;
-  long unsigned int col_nbr;
-  unsigned int row_nbr;
-  expr_t value;
-  derivative(long unsigned int arg1, long unsigned int arg2, int arg3, expr_t arg4) :
-    linear_address(arg1), col_nbr(arg2), row_nbr(arg3), value(arg4)
-  {
-  };
-};
-
-class derivative_less_than
-{
-public:
-  bool
-  operator()(const derivative &d1, const derivative &d2) const
-  {
-    return d1.linear_address < d2.linear_address;
-  }
-};
 #endif
