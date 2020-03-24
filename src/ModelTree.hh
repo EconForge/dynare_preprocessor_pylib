@@ -256,7 +256,7 @@ protected:
   /*! First index is equation number, second index is endogenous type specific ID */
   using jacob_map_t = map<pair<int, int>, double>;
 
-  //! Normalization of equations
+  //! Normalization of equations, as computed by computeNonSingularNormalization()
   /*! Maps endogenous type specific IDs to equation numbers */
   vector<int> endo2eq;
 
@@ -277,14 +277,15 @@ protected:
   /*!
     Applied to the jacobian contemporaneous_jacobian and stop when a matching is found.
     If no matching is found using a strictly positive cutoff, then a zero cutoff is applied (i.e. use a symbolic normalization); in that case, the method adds zeros in the jacobian matrices to reflect all the edges in the symbolic incidence matrix.
-    If no matching is found with a zero cutoff close to zero an error message is printout.
+    If no matching is found with a zero cutoff, an error message is printed.
+    The resulting normalization is stored in endo2eq.
   */
   void computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian, double cutoff, jacob_map_t &static_jacobian);
   //! Try to find a natural normalization if all equations are matched to an endogenous variable on the LHS
   bool computeNaturalNormalization();
   //! Evaluate the jacobian (w.r.t. endogenous) and suppress all the elements below the cutoff
   /*! Returns a pair (contemporaneous_jacobian, static_jacobian). Also fills
-    dynamic_jacobian. External functions are evaluated to 1. */
+    dynamic_jacobian. Elements below the cutoff are discarded. External functions are evaluated to 1. */
   pair<jacob_map_t, jacob_map_t> evaluateAndReduceJacobian(const eval_context_t &eval_context, double cutoff, bool verbose);
   //! Select and reorder the non linear equations of the model
   /*! Returns a tuple (blocks, equation_lag_lead, variable_lag_lead, n_static,

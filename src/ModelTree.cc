@@ -34,6 +34,7 @@
 #endif
 
 #include <regex>
+#include <utility>
 
 void
 ModelTree::copyHelper(const ModelTree &m)
@@ -300,18 +301,17 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
 void
 ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian, double cutoff, jacob_map_t &static_jacobian)
 {
-  bool check = false;
-
   cout << "Normalizing the model..." << endl;
 
   int n = equations.size();
 
   // Compute the maximum value of each row of the contemporaneous Jacobian matrix
-  jacob_map_t normalized_contemporaneous_jacobian(contemporaneous_jacobian);
   vector<double> max_val(n, 0.0);
   for (const auto &[eq_and_endo, val] : contemporaneous_jacobian)
     max_val[eq_and_endo.first] = max(max_val[eq_and_endo.first], fabs(val));
 
+  // Compute normalized contemporaneous Jacobian
+  jacob_map_t normalized_contemporaneous_jacobian(contemporaneous_jacobian);
   for (auto &[eq_and_endo, val] : normalized_contemporaneous_jacobian)
     val /= max_val[eq_and_endo.first];
 
@@ -319,46 +319,53 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
   double current_cutoff = 0.99999999;
   const double cutoff_lower_limit = 1e-19;
 
-  int suppressed = 0;
-  while (!check && current_cutoff > cutoff_lower_limit)
+  bool found_normalization = false;
+  int last_suppressed = 0;
+  while (!found_normalization && current_cutoff > cutoff_lower_limit)
     {
-      jacob_map_t tmp_normalized_contemporaneous_jacobian;
-      int suppress = 0;
-      for (auto &[eq_and_endo, val] : normalized_contemporaneous_jacobian)
+      // Drop elements below cutoff from normalized contemporaneous Jacobian
+      jacob_map_t normalized_contemporaneous_jacobian_above_cutoff;
+      int suppressed = 0;
+      for (const auto &[eq_and_endo, val] : normalized_contemporaneous_jacobian)
         if (fabs(val) > max(current_cutoff, cutoff))
-          tmp_normalized_contemporaneous_jacobian[eq_and_endo] = val;
+          normalized_contemporaneous_jacobian_above_cutoff[eq_and_endo] = val;
         else
-          suppress++;
+          suppressed++;
 
-      if (suppress != suppressed)
-        check = computeNormalization(tmp_normalized_contemporaneous_jacobian, false);
-      suppressed = suppress;
-      if (!check)
+      if (suppressed != last_suppressed)
+        found_normalization = computeNormalization(normalized_contemporaneous_jacobian_above_cutoff, false);
+      last_suppressed = suppressed;
+      if (!found_normalization)
         {
           current_cutoff /= 2;
           // In this last case try to normalize with the complete jacobian
           if (current_cutoff <= cutoff_lower_limit)
-            check = computeNormalization(normalized_contemporaneous_jacobian, false);
+            found_normalization = computeNormalization(normalized_contemporaneous_jacobian, false);
         }
     }
 
-  if (!check)
+  if (!found_normalization)
     {
       cout << "Normalization failed with cutoff, trying symbolic normalization..." << endl;
-      //if no non-singular normalization can be found, try to find a normalization even with a potential singularity
-      jacob_map_t tmp_normalized_contemporaneous_jacobian;
+      /* If no non-singular normalization can be found, try to find a
+         normalization even with a potential singularity.
+         TODO: Explain why symbolic_jacobian is not contemporaneous. */
+      jacob_map_t symbolic_jacobian;
       for (int i = 0; i < n; i++)
         {
           set<pair<int, int>> endos_and_lags;
           equations[i]->collectEndogenous(endos_and_lags);
           for (const auto &[endo, lag] : endos_and_lags)
-            tmp_normalized_contemporaneous_jacobian[{ i, endo }] = 1;
+            symbolic_jacobian[{ i, endo }] = 1;
         }
-      check = computeNormalization(tmp_normalized_contemporaneous_jacobian, true);
-      if (check)
+      found_normalization = computeNormalization(symbolic_jacobian, true);
+      if (found_normalization)
         {
-          // Update the jacobian matrix
-          for (const auto &[eq_and_endo, ignore] : tmp_normalized_contemporaneous_jacobian)
+          /* Update the Jacobian matrices by ensuring that they have a
+             numerical value associated to each symbolic occurrence.
+             TODO: Explain why this is needed. Maybe in order to have the
+             right incidence matrix in computePrologueAndEpilogue? */
+          for (const auto &[eq_and_endo, ignore] : symbolic_jacobian)
             {
               if (static_jacobian.find(eq_and_endo) == static_jacobian.end())
                 static_jacobian[eq_and_endo] = 0;
@@ -381,7 +388,7 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
         }
     }
 
-  if (!check)
+  if (!found_normalization)
     {
       cerr << "No normalization could be computed. Aborting." << endl;
       exit(EXIT_FAILURE);
@@ -444,6 +451,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, double 
     }
 
   // Get rid of the elements of the Jacobian matrix below the cutoff
+  // TODO: Why?
   for (const auto &it : jacobian_elements_to_delete)
     derivatives[1].erase(it);
 
@@ -535,47 +543,53 @@ ModelTree::computeNaturalNormalization()
 }
 
 void
-ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian_arg)
+ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian)
 {
-  vector<int> eq2endo(equations.size(), 0);
-  equation_reordered.resize(equations.size());
-  variable_reordered.resize(equations.size());
-  int n = equations.size();
-  vector<bool> IM(n*n);
-  int i = 0;
-  for (auto it : endo2eq)
+  const int n = equations.size();
+
+  /* Compute reverse map (eq→var) of normalization. Also initialize
+     “equation_reordered” and “variable_reordered” to the identity
+     permutation. */
+  vector<int> eq2endo(n);
+  equation_reordered.resize(n);
+  variable_reordered.resize(n);
+  for (int i = 0; i < n; i++)
     {
+      int it = endo2eq[i];
       eq2endo[it] = i;
       equation_reordered[i] = i;
       variable_reordered[it] = i;
-      i++;
     }
+
+  /* Compute incidence matrix, equations in rows, variables in columns. Row
+     (resp. column) indices are to be interpreted according to
+     “equation_ordered” (resp. “variable_reordered”). Stored in row-major
+     order. */
+  vector<bool> IM(n*n, false);
   if (cutoff == 0)
-    {
-      set<pair<int, int>> endo;
-      for (int i = 0; i < n; i++)
-        {
-          endo.clear();
-          equations[i]->collectEndogenous(endo);
-          for (const auto &it : endo)
-            IM[i * n + endo2eq[it.first]] = true;
-        }
-    }
+    for (int i = 0; i < n; i++)
+      {
+        set<pair<int, int>> endos_and_lags;
+        equations[i]->collectEndogenous(endos_and_lags);
+        for (const auto &[endo, lag] : endos_and_lags)
+          IM[i * n + endo2eq[endo]] = true;
+      }
   else
-    for (const auto &it : static_jacobian_arg)
-      IM[it.first.first * n + endo2eq[it.first.second]] = true;
-  bool something_has_been_done = true;
-  prologue = 0;
-  int k = 0;
+    for (const auto &[eq_and_endo, val] : static_jacobian)
+      IM[eq_and_endo.first * n + endo2eq[eq_and_endo.second]] = true;
+
+  bool something_has_been_done;
   // Find the prologue equations and place first the AR(1) shock equations first
-  while (something_has_been_done)
+  prologue = 0;
+  do
     {
-      int tmp_prologue = prologue;
       something_has_been_done = false;
+      int new_prologue = prologue;
       for (int i = prologue; i < n; i++)
         {
           int nze = 0;
-          for (int j = tmp_prologue; j < n; j++)
+          int k = 0;
+          for (int j = new_prologue; j < n; j++)
             if (IM[i * n + j])
               {
                 nze++;
@@ -583,42 +597,35 @@ ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian_arg)
               }
           if (nze == 1)
             {
+              // Swap equations indexed by “new_prologue” and i
               for (int j = 0; j < n; j++)
-                {
-                  bool tmp_bool = IM[tmp_prologue * n + j];
-                  IM[tmp_prologue * n + j] = IM[i * n + j];
-                  IM[i * n + j] = tmp_bool;
-                }
-              int tmp = equation_reordered[tmp_prologue];
-              equation_reordered[tmp_prologue] = equation_reordered[i];
-              equation_reordered[i] = tmp;
+                swap(IM[new_prologue * n + j], IM[i * n + j]);
+              swap(equation_reordered[new_prologue], equation_reordered[i]);
+
+              // Swap variables indexed by “new_prologue” and k (in the matching)
               for (int j = 0; j < n; j++)
-                {
-                  bool tmp_bool = IM[j * n + tmp_prologue];
-                  IM[j * n + tmp_prologue] = IM[j * n + k];
-                  IM[j * n + k] = tmp_bool;
-                }
-              tmp = variable_reordered[tmp_prologue];
-              variable_reordered[tmp_prologue] = variable_reordered[k];
-              variable_reordered[k] = tmp;
-              tmp_prologue++;
+                swap(IM[j * n + new_prologue], IM[j * n + k]);
+              swap(variable_reordered[new_prologue], variable_reordered[k]);
+
+              new_prologue++;
               something_has_been_done = true;
             }
         }
-      prologue = tmp_prologue;
+      prologue = new_prologue;
     }
-
-  something_has_been_done = true;
-  epilogue = 0;
+  while (something_has_been_done);
+  
   // Find the epilogue equations
-  while (something_has_been_done)
+  epilogue = 0;
+  do
     {
-      int tmp_epilogue = epilogue;
       something_has_been_done = false;
+      int new_epilogue = epilogue;
       for (int i = prologue; i < n - static_cast<int>(epilogue); i++)
         {
           int nze = 0;
-          for (int j = prologue; j < n - tmp_epilogue; j++)
+          int k = 0;
+          for (int j = prologue; j < n - new_epilogue; j++)
             if (IM[j * n + i])
               {
                 nze++;
@@ -627,29 +634,20 @@ ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian_arg)
           if (nze == 1)
             {
               for (int j = 0; j < n; j++)
-                {
-                  bool tmp_bool = IM[(n - 1 - tmp_epilogue) * n + j];
-                  IM[(n - 1 - tmp_epilogue) * n + j] = IM[k * n + j];
-                  IM[k * n + j] = tmp_bool;
-                }
-              int tmp = equation_reordered[n - 1 - tmp_epilogue];
-              equation_reordered[n - 1 - tmp_epilogue] = equation_reordered[k];
-              equation_reordered[k] = tmp;
+                swap(IM[(n - 1 - new_epilogue) * n + j], IM[k * n + j]);
+              swap(equation_reordered[n - 1 - new_epilogue], equation_reordered[k]);
+
               for (int j = 0; j < n; j++)
-                {
-                  bool tmp_bool = IM[j * n + n - 1 - tmp_epilogue];
-                  IM[j * n + n - 1 - tmp_epilogue] = IM[j * n + i];
-                  IM[j * n + i] = tmp_bool;
-                }
-              tmp = variable_reordered[n - 1 - tmp_epilogue];
-              variable_reordered[n - 1 - tmp_epilogue] = variable_reordered[i];
-              variable_reordered[i] = tmp;
-              tmp_epilogue++;
+                swap(IM[j * n + n - 1 - new_epilogue], IM[j * n + i]);
+              swap(variable_reordered[n - 1 - new_epilogue], variable_reordered[i]);
+
+              new_epilogue++;
               something_has_been_done = true;
             }
         }
-      epilogue = tmp_epilogue;
+      epilogue = new_epilogue;
     }
+  while (something_has_been_done);
 }
 
 void
@@ -1109,11 +1107,11 @@ ModelTree::reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks
                 {
                   for (int j = first_equation; j < first_equation+c_Size; j++)
                     {
-                      auto it = dynamic_jacobian.find({ -1, equation_reordered[eq], variable_reordered[j] });
-                      if (it != dynamic_jacobian.end())
+                      if (dynamic_jacobian.find({ -1, equation_reordered[eq], variable_reordered[j] })
+                          != dynamic_jacobian.end())
                         is_lag = true;
-                      it = dynamic_jacobian.find({ +1, equation_reordered[eq], variable_reordered[j] });
-                      if (it != dynamic_jacobian.end())
+                      if (dynamic_jacobian.find({ +1, equation_reordered[eq], variable_reordered[j] })
+                          != dynamic_jacobian.end())
                         is_lead = true;
                     }
                 }
