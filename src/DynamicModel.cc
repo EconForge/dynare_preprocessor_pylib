@@ -187,22 +187,22 @@ DynamicModel::computeTemporaryTermsOrdered()
   v_temporary_terms.clear();
   map_idx.clear();
 
-  unsigned int nb_blocks = getNbBlocks();
+  int nb_blocks = getNbBlocks();
   v_temporary_terms = vector<vector<temporary_terms_t>>(nb_blocks);
   v_temporary_terms_inuse = vector<temporary_terms_inuse_t>(nb_blocks);
   temporary_terms.clear();
 
   if (!global_temporary_terms)
     {
-      for (unsigned int block = 0; block < nb_blocks; block++)
+      for (int block = 0; block < nb_blocks; block++)
         {
           reference_count.clear();
           temporary_terms.clear();
-          unsigned int block_size = getBlockSize(block);
-          unsigned int block_nb_mfs = getBlockMfs(block);
-          unsigned int block_nb_recursives = block_size - block_nb_mfs;
+          int block_size = getBlockSize(block);
+          int block_nb_mfs = getBlockMfs(block);
+          int block_nb_recursives = block_size - block_nb_mfs;
           v_temporary_terms[block] = vector<temporary_terms_t>(block_size);
-          for (unsigned int i = 0; i < block_size; i++)
+          for (int i = 0; i < block_size; i++)
             {
               if (i < block_nb_recursives && isBlockEquationRenormalized(block, i))
                 getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, i);
@@ -226,14 +226,14 @@ DynamicModel::computeTemporaryTermsOrdered()
     }
   else
     {
-      for (unsigned int block = 0; block < nb_blocks; block++)
+      for (int block = 0; block < nb_blocks; block++)
         {
           // Compute the temporary terms reordered
-          unsigned int block_size = getBlockSize(block);
-          unsigned int block_nb_mfs = getBlockMfs(block);
-          unsigned int block_nb_recursives = block_size - block_nb_mfs;
+          int block_size = getBlockSize(block);
+          int block_nb_mfs = getBlockMfs(block);
+          int block_nb_recursives = block_size - block_nb_mfs;
           v_temporary_terms[block] = vector<temporary_terms_t>(block_size);
-          for (unsigned int i = 0; i < block_size; i++)
+          for (int i = 0; i < block_size; i++)
             {
               if (i < block_nb_recursives && isBlockEquationRenormalized(block, i))
                 getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, i);
@@ -253,14 +253,14 @@ DynamicModel::computeTemporaryTermsOrdered()
           for (const auto &it : derivative_other_endo[block])
             it.second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
         }
-      for (unsigned int block = 0; block < nb_blocks; block++)
+      for (int block = 0; block < nb_blocks; block++)
         {
           // Collect the temporary terms reordered
-          unsigned int block_size = getBlockSize(block);
-          unsigned int block_nb_mfs = getBlockMfs(block);
-          unsigned int block_nb_recursives = block_size - block_nb_mfs;
+          int block_size = getBlockSize(block);
+          int block_nb_mfs = getBlockMfs(block);
+          int block_nb_recursives = block_size - block_nb_mfs;
           set<int> temporary_terms_in_use;
-          for (unsigned int i = 0; i < block_size; i++)
+          for (int i = 0; i < block_size; i++)
             {
               if (i < block_nb_recursives && isBlockEquationRenormalized(block, i))
                 getBlockEquationRenormalizedExpr(block, i)->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
@@ -320,7 +320,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
 
   //----------------------------------------------------------------------
   //For each block
-  for (unsigned int block = 0; block < getNbBlocks(); block++)
+  for (int block = 0; block < getNbBlocks(); block++)
     {
 
       //recursive_variables.clear();
@@ -331,16 +331,16 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       nze_exo = derivative_exo[block].size();
       nze_exo_det = derivative_exo_det[block].size();
       BlockSimulationType simulation_type = getBlockSimulationType(block);
-      unsigned int block_size = getBlockSize(block);
-      unsigned int block_mfs = getBlockMfs(block);
-      unsigned int block_recursive = block_size - block_mfs;
+      int block_size = getBlockSize(block);
+      int block_mfs = getBlockMfs(block);
+      int block_recursive = block_size - block_mfs;
       deriv_node_temp_terms_t tef_terms;
       local_output_type = ExprNodeOutputType::matlabDynamicModelSparse;
       if (global_temporary_terms)
         local_temporary_terms = temporary_terms;
 
       int prev_lag;
-      unsigned int prev_var, count_col, count_col_endo, count_col_exo, count_col_exo_det, count_col_other_endo;
+      int prev_var, count_col, count_col_endo, count_col_exo, count_col_exo_det, count_col_other_endo;
       map<tuple<int, int, int>, expr_t> tmp_block_endo_derivative;
       for (const auto &it : blocks_derivatives[block])
         tmp_block_endo_derivative[{ get<2>(it), get<1>(it), get<0>(it) }] = get<3>(it);
@@ -349,8 +349,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       count_col_endo = 0;
       for (const auto &it : tmp_block_endo_derivative)
         {
-          int lag = get<0>(it.first);
-          unsigned int var = get<1>(it.first);
+          auto [lag, var, ignore] = it.first;
           if (var != prev_var || lag != prev_lag)
             {
               prev_var = var;
@@ -366,8 +365,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       count_col_exo = 0;
       for (const auto &it : tmp_block_exo_derivative)
         {
-          int lag = get<0>(it.first);
-          unsigned int var = get<1>(it.first);
+          auto [lag, var, ignore] = it.first;
           if (var != prev_var || lag != prev_lag)
             {
               prev_var = var;
@@ -383,8 +381,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       count_col_exo_det = 0;
       for (const auto &it : tmp_block_exo_det_derivative)
         {
-          int lag = get<0>(it.first);
-          unsigned int var = get<1>(it.first);
+          auto [lag, var, ignore] = it.first;
           if (var != prev_var || lag != prev_lag)
             {
               prev_var = var;
@@ -400,8 +397,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       count_col_other_endo = 0;
       for (const auto &it : tmp_block_other_endo_derivative)
         {
-          int lag = get<0>(it.first);
-          unsigned int var = get<1>(it.first);
+          auto [lag, var, ignore] = it.first;
           if (var != prev_var || lag != prev_lag)
             {
               prev_var = var;
@@ -449,7 +445,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
                 || simulation_type == BlockSimulationType::solveBackwardSimple
                 || simulation_type == BlockSimulationType::evaluateBackward
                 || simulation_type == BlockSimulationType::evaluateForward)
-               && getBlockFirstEquation(block) >= equations.size() - epilogue)
+               && getBlockFirstEquation(block) >= static_cast<int>(equations.size()) - epilogue)
         block_type = BlockType::epilogue;
       else
         block_type = BlockType::simultans;
@@ -501,7 +497,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
           || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
         {
           temporary_terms_t tt2;
-          for (int i = 0; i < static_cast<int>(block_size); i++)
+          for (int i = 0; i < block_size; i++)
             {
               if (v_temporary_terms[block][i].size() && global_temporary_terms)
                 {
@@ -548,7 +544,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
           sps = "";
       // The equations
       temporary_terms_idxs_t temporary_terms_idxs;
-      for (unsigned int i = 0; i < block_size; i++)
+      for (int i = 0; i < block_size; i++)
         {
           temporary_terms_t tt2;
           if (v_temporary_terms[block].size())
@@ -670,9 +666,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       count_col = 0;
       for (const auto &it : tmp_block_endo_derivative)
         {
-          int lag;
-          unsigned int var, eq;
-          tie(lag, var, eq) = it.first;
+          auto [lag, var, eq] = it.first;
           int eqr = getBlockEquationID(block, eq);
           int varr = getBlockVariableID(block, var);
           if (var != prev_var || lag != prev_lag)
@@ -696,9 +690,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       count_col = 0;
       for (const auto &it : tmp_block_exo_derivative)
         {
-          int lag;
-          unsigned int var, eq;
-          tie(lag, var, eq) = it.first;
+          auto [lag, var, eq] = it.first;
           int eqr = getBlockInitialEquationID(block, eq);
           if (var != prev_var || lag != prev_lag)
             {
@@ -719,9 +711,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       count_col = 0;
       for (const auto &it : tmp_block_exo_det_derivative)
         {
-          int lag;
-          unsigned int var, eq;
-          tie(lag, var, eq) = it.first;
+          auto [lag, var, eq] = it.first;
           int eqr = getBlockInitialEquationID(block, eq);
           if (var != prev_var || lag != prev_lag)
             {
@@ -742,9 +732,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       count_col = 0;
       for (const auto &it : tmp_block_other_endo_derivative)
         {
-          int lag;
-          unsigned int var, eq;
-          tie(lag, var, eq) = it.first;
+          auto [lag, var, eq] = it.first;
           int eqr = getBlockInitialEquationID(block, eq);
           if (var != prev_var || lag != prev_lag)
             {
@@ -777,14 +765,10 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
         case BlockSimulationType::solveBackwardComplete:
         case BlockSimulationType::solveForwardComplete:
           output << "  else" << endl;
-          for (const auto &it : blocks_derivatives[block])
+          for (const auto &[eq, var, lag, id] : blocks_derivatives[block])
             {
-              unsigned int eq, var;
-              expr_t id;
-              int lag;
-              tie(eq, var, lag, id) = it;
-              unsigned int eqr = getBlockEquationID(block, eq);
-              unsigned int varr = getBlockVariableID(block, var);
+              int eqr = getBlockEquationID(block, eq);
+              int varr = getBlockVariableID(block, var);
               if (lag == 0)
                 {
                   output << "    g1(" << eq+1 << ", " << var+1-block_recursive << ") = ";
@@ -801,14 +785,10 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
         case BlockSimulationType::solveTwoBoundariesSimple:
         case BlockSimulationType::solveTwoBoundariesComplete:
           output << "    else" << endl;
-          for (const auto &it : blocks_derivatives[block])
+          for (const auto &[eq, var, lag, id] : blocks_derivatives[block])
             {
-              unsigned int eq, var;
-              int lag;
-              expr_t id;
-              tie(eq, var, lag, id) = it;
-              unsigned int eqr = getBlockEquationID(block, eq);
-              unsigned int varr = getBlockVariableID(block, var);
+              int eqr = getBlockEquationID(block, eq);
+              int varr = getBlockVariableID(block, var);
               ostringstream tmp_output;
               if (eq >= block_recursive && var >= block_recursive)
                 {
@@ -856,7 +836,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
                      << "    condition(" << eqr << ")=u(" << u << "+Per_u_);" << endl;
 #endif
             }
-          for (unsigned int i = 0; i < block_size; i++)
+          for (int i = 0; i < block_size; i++)
             {
               if (i >= block_recursive)
                 output << "  " << Uf[getBlockEquationID(block, i)] << ";" << endl;
@@ -871,10 +851,10 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
               k = m-ModelBlock->Block_List[block].Max_Lag;
               for (i = 0; i < ModelBlock->Block_List[block].IM_lead_lag[m].size; i++)
                 {
-                  unsigned int eq = ModelBlock->Block_List[block].IM_lead_lag[m].Equ_Index[i];
-                  unsigned int var = ModelBlock->Block_List[block].IM_lead_lag[m].Var_Index[i];
-                  unsigned int u = ModelBlock->Block_List[block].IM_lead_lag[m].u[i];
-                  unsigned int eqr = ModelBlock->Block_List[block].IM_lead_lag[m].Equ[i];
+                  int eq = ModelBlock->Block_List[block].IM_lead_lag[m].Equ_Index[i];
+                  int var = ModelBlock->Block_List[block].IM_lead_lag[m].Var_Index[i];
+                  int u = ModelBlock->Block_List[block].IM_lead_lag[m].u[i];
+                  int eqr = ModelBlock->Block_List[block].IM_lead_lag[m].Equ[i];
                   output << "  u(" << u+1 << "+Per_u_) = u(" << u+1 << "+Per_u_) / condition(" << eqr+1 << ");" << endl;
                 }
             }
@@ -940,9 +920,9 @@ DynamicModel::writeModelEquationsCode(const string &basename, const map_idx_t &m
   for (const auto & [indices, d1] : derivatives[1])
     {
       int deriv_id = indices[1];
-      unsigned int eq = indices[0];
+      int eq = indices[0];
       int symb = getSymbIDByDerivID(deriv_id);
-      unsigned int var = symbol_table.getTypeSpecificID(symb);
+      int var = symbol_table.getTypeSpecificID(symb);
       int lag = getLagByDerivID(deriv_id);
       if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
         first_derivatives_reordered_endo[{ lag, var, eq }] = d1;
@@ -1030,9 +1010,9 @@ DynamicModel::writeModelEquationsCode(const string &basename, const map_idx_t &m
       int deriv_id = indices[1];
       if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
         {
-          unsigned int eq = indices[0];
+          int eq = indices[0];
           int symb = getSymbIDByDerivID(deriv_id);
-          unsigned int var = symbol_table.getTypeSpecificID(symb);
+          int var = symbol_table.getTypeSpecificID(symb);
           int lag = getLagByDerivID(deriv_id);
           FNUMEXPR_ fnumexpr(FirstEndoDerivative, eq, var, lag);
           fnumexpr.write(code_file, instruction_number);
@@ -1091,9 +1071,7 @@ DynamicModel::writeModelEquationsCode(const string &basename, const map_idx_t &m
   count_col_endo = 0;
   for (const auto &it : first_derivatives_reordered_endo)
     {
-      unsigned int eq;
-      int var, lag;
-      tie(lag, var, eq) = it.first;
+      auto [lag, var, eq] = it.first;
       expr_t d1 = it.second;
       FNUMEXPR_ fnumexpr(FirstEndoDerivative, eq, var, lag);
       fnumexpr.write(code_file, instruction_number);
@@ -1112,8 +1090,7 @@ DynamicModel::writeModelEquationsCode(const string &basename, const map_idx_t &m
   count_col_exo = 0;
   for (const auto &it : first_derivatives_reordered_exo)
     {
-      int lag, var, eq;
-      tie(lag, ignore, var, eq) = it.first;
+      auto [lag, ignore, var, eq] = it.first;
       expr_t d1 = it.second;
       FNUMEXPR_ fnumexpr(FirstExoDerivative, eq, var, lag);
       fnumexpr.write(code_file, instruction_number);
@@ -1184,7 +1161,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
   FDIMT_ fdimt(temporary_terms.size());
   fdimt.write(code_file, instruction_number);
 
-  for (unsigned int block = 0; block < getNbBlocks(); block++)
+  for (int block = 0; block < getNbBlocks(); block++)
     {
       feedback_variables.clear();
       if (block > 0)
@@ -1195,9 +1172,9 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
       int count_u;
       int u_count_int = 0;
       BlockSimulationType simulation_type = getBlockSimulationType(block);
-      unsigned int block_size = getBlockSize(block);
-      unsigned int block_mfs = getBlockMfs(block);
-      unsigned int block_recursive = block_size - block_mfs;
+      int block_size = getBlockSize(block);
+      int block_mfs = getBlockMfs(block);
+      int block_recursive = block_size - block_mfs;
       int block_max_lag = max_leadlag_block[block].first;
       int block_max_lead = max_leadlag_block[block].second;
 
@@ -1236,7 +1213,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
               count_col_endo++;
             }
         }
-      unsigned int count_col_det_exo = 0;
+      int count_col_det_exo = 0;
       vector<unsigned int> exo_det;
       for (const auto &it : exo_det_block[block])
         for (const auto &it1 : it.second)
@@ -1246,7 +1223,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
               exo_det.push_back(it1);
           }
 
-      unsigned int count_col_exo = 0;
+      int count_col_exo = 0;
       vector<unsigned int> exo;
       for (const auto &it : exo_block[block])
         for (const auto &it1 : it.second)
@@ -1257,7 +1234,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
           }
 
       vector<unsigned int> other_endo;
-      unsigned int count_col_other_endo = 0;
+      int count_col_other_endo = 0;
       for (const auto &it : other_endo_block[block])
         for (const auto &it1 : it.second)
           {
@@ -1294,7 +1271,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
         compileTemporaryTerms(code_file, instruction_number, temporary_terms, map_idx, true, false);
 
       // The equations
-      for (i = 0; i < static_cast<int>(block_size); i++)
+      for (i = 0; i < block_size; i++)
         {
           //The Temporary terms
           temporary_terms_t tt2;
@@ -1364,7 +1341,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
             case BlockSimulationType::solveForwardComplete:
             case BlockSimulationType::solveTwoBoundariesComplete:
             case BlockSimulationType::solveTwoBoundariesSimple:
-              if (i < static_cast<int>(block_recursive))
+              if (i < block_recursive)
                 goto evaluation;
               variable_ID = getBlockVariableID(block, i);
               equation_ID = getBlockEquationID(block, i);
@@ -1419,13 +1396,10 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
             case BlockSimulationType::solveTwoBoundariesComplete:
             case BlockSimulationType::solveTwoBoundariesSimple:
               count_u = feedback_variables.size();
-              for (const auto &it : blocks_derivatives[block])
+              for (const auto &[eq, var, lag, ignore] : blocks_derivatives[block])
                 {
-                  unsigned int eq, var;
-                  int lag;
-                  tie(eq, var, lag, ignore) = it;
-                  unsigned int eqr = getBlockEquationID(block, eq);
-                  unsigned int varr = getBlockVariableID(block, var);
+                  int eqr = getBlockEquationID(block, eq);
+                  int varr = getBlockVariableID(block, var);
                   if (eq >= block_recursive and var >= block_recursive)
                     {
                       if (lag != 0
@@ -1454,9 +1428,9 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
                       count_u++;
                     }
                 }
-              for (i = 0; i < static_cast<int>(block_size); i++)
+              for (i = 0; i < block_size; i++)
                 {
-                  if (i >= static_cast<int>(block_recursive))
+                  if (i >= block_recursive)
                     {
                       FLDR_ fldr(i-block_recursive);
                       fldr.write(code_file, instruction_number);
@@ -1515,11 +1489,9 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
       count_col_endo = 0;
       for (const auto &it : tmp_block_endo_derivative)
         {
-          int lag, var;
-          unsigned int eq;
-          tie(lag, var, eq) = it.first;
-          unsigned int eqr = getBlockEquationID(block, eq);
-          unsigned int varr = getBlockVariableID(block, var);
+          auto [lag, var, eq] = it.first;
+          int eqr = getBlockEquationID(block, eq);
+          int varr = getBlockVariableID(block, var);
           if (prev_var != var || prev_lag != lag)
             {
               prev_var = var;
@@ -1537,8 +1509,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
       count_col_exo = 0;
       for (const auto &it : tmp_exo_derivative)
         {
-          int lag, eq, var;
-          tie(lag, var, eq) = it.first;
+          auto [lag, var, eq] = it.first;
           int eqr = getBlockInitialEquationID(block, eq);
           int varr = getBlockInitialExogenousID(block, var);
           if (prev_var != var || prev_lag != lag)
@@ -1560,8 +1531,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
       int count_col_exo_det = 0;
       for (const auto &it : tmp_exo_det_derivative)
         {
-          int lag, eq, var;
-          tie(lag, var, eq) = it.first;
+          auto [lag, var, eq] = it.first;
           int eqr = getBlockInitialEquationID(block, eq);
           int varr = getBlockInitialDetExogenousID(block, var);
           if (prev_var != var || prev_lag != lag)
@@ -1583,8 +1553,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
       count_col_other_endo = 0;
       for (const auto &it : tmp_other_endo_derivative)
         {
-          int lag, eq, var;
-          tie(lag, var, eq) = it.first;
+          auto [lag, var, eq] = it.first;
           int eqr = getBlockInitialEquationID(block, eq);
           int varr = getBlockInitialOtherEndogenousID(block, var);;
           if (prev_var != var || prev_lag != lag)
@@ -1839,14 +1808,11 @@ DynamicModel::Write_Inf_To_Bin_File_Block(const string &basename, int num,
       exit(EXIT_FAILURE);
     }
   u_count_int = 0;
-  unsigned int block_size = getBlockSize(num);
-  unsigned int block_mfs = getBlockMfs(num);
-  unsigned int block_recursive = block_size - block_mfs;
-  for (const auto &it : blocks_derivatives[num])
+  int block_size = getBlockSize(num);
+  int block_mfs = getBlockMfs(num);
+  int block_recursive = block_size - block_mfs;
+  for (const auto &[eq, var, lag, ignore] : blocks_derivatives[num])
     {
-      unsigned int eq, var;
-      int lag;
-      tie(eq, var, lag, ignore) = it;
       if (lag != 0 && !is_two_boundaries)
         continue;
       if (eq >= block_recursive && var >= block_recursive)
@@ -1855,7 +1821,7 @@ DynamicModel::Write_Inf_To_Bin_File_Block(const string &basename, int num,
           SaveCode.write(reinterpret_cast<char *>(&v), sizeof(v));
           int varr = var - block_recursive + lag * block_mfs;
           SaveCode.write(reinterpret_cast<char *>(&varr), sizeof(varr));
-          SaveCode.write(reinterpret_cast<char *>(&lag), sizeof(lag));
+          SaveCode.write(reinterpret_cast<const char *>(&lag), sizeof(lag));
           int u = u_count_int + block_mfs;
           SaveCode.write(reinterpret_cast<char *>(&u), sizeof(u));
           u_count_int++;
@@ -1864,14 +1830,14 @@ DynamicModel::Write_Inf_To_Bin_File_Block(const string &basename, int num,
 
   if (is_two_boundaries)
     u_count_int += block_mfs;
-  for (j = block_recursive; j < static_cast<int>(block_size); j++)
+  for (j = block_recursive; j < block_size; j++)
     {
-      unsigned int varr = getBlockVariableID(num, j);
+      int varr = getBlockVariableID(num, j);
       SaveCode.write(reinterpret_cast<char *>(&varr), sizeof(varr));
     }
-  for (j = block_recursive; j < static_cast<int>(block_size); j++)
+  for (j = block_recursive; j < block_size; j++)
     {
-      unsigned int eqr = getBlockEquationID(num, j);
+      int eqr = getBlockEquationID(num, j);
       SaveCode.write(reinterpret_cast<char *>(&eqr), sizeof(eqr));
     }
   SaveCode.close();
@@ -1945,11 +1911,11 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
                     << "    ys=y(it_,:);" << endl;
   tmp.str("");
   tmp_eq.str("");
-  unsigned int nb_blocks = getNbBlocks();
-  unsigned int block = 0;
+  int nb_blocks = getNbBlocks();
+  int block = 0;
   for (int count_call = 1; block < nb_blocks; block++, count_call++)
     {
-      unsigned int block_size = getBlockSize(block),
+      int block_size = getBlockSize(block),
         block_mfs = getBlockMfs(block),
         block_recursive = block_size - block_mfs;
       BlockSimulationType simulation_type = getBlockSimulationType(block);
@@ -1957,7 +1923,7 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
       if (simulation_type == BlockSimulationType::evaluateForward
           || simulation_type == BlockSimulationType::evaluateBackward)
         {
-          for (unsigned int ik = 0; ik < block_size; ik++)
+          for (int ik = 0; ik < block_size; ik++)
             {
               tmp << " " << getBlockVariableID(block, ik)+1;
               tmp_eq << " " << getBlockEquationID(block, ik)+1;
@@ -1965,7 +1931,7 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
         }
       else
         {
-          for (unsigned int ik = block_recursive; ik < block_size; ik++)
+          for (int ik = block_recursive; ik < block_size; ik++)
             {
               tmp << " " << getBlockVariableID(block, ik)+1;
               tmp_eq << " " << getBlockEquationID(block, ik)+1;
@@ -2040,9 +2006,9 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
                     << "  oo_.deterministic_simulation.status = 0;" << endl;
   for (block = 0; block < nb_blocks; block++)
     {
-      unsigned int block_size = getBlockSize(block);
-      unsigned int block_mfs = getBlockMfs(block);
-      unsigned int block_recursive = block_size - block_mfs;
+      int block_size = getBlockSize(block);
+      int block_mfs = getBlockMfs(block);
+      int block_recursive = block_size - block_mfs;
       BlockSimulationType simulation_type = getBlockSimulationType(block);
 
       if (simulation_type == BlockSimulationType::evaluateForward && block_size)
@@ -2106,7 +2072,7 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
           mDynamicModelFile << "  g1=0;" << endl
                             << "  r=0;" << endl;
           tmp.str("");
-          for (unsigned int ik = block_recursive; ik < block_size; ik++)
+          for (int ik = block_recursive; ik < block_size; ik++)
             tmp << " " << getBlockVariableID(block, ik)+1;
           mDynamicModelFile << "  y_index = [" << tmp.str() << "];" << endl;
           int nze = blocks_derivatives[block].size();
@@ -2137,7 +2103,7 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
           mDynamicModelFile << "  g1=0;" << endl
                             << "  r=0;" << endl;
           tmp.str("");
-          for (unsigned int ik = block_recursive; ik < block_size; ik++)
+          for (int ik = block_recursive; ik < block_size; ik++)
             tmp << " " << getBlockVariableID(block, ik)+1;
           mDynamicModelFile << "  y_index = [" << tmp.str() << "];" << endl;
           int nze = blocks_derivatives[block].size();
@@ -2169,7 +2135,7 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
           Nb_SGE++;
           int nze = blocks_derivatives[block].size();
           mDynamicModelFile << "  y_index=[";
-          for (unsigned int ik = block_recursive; ik < block_size; ik++)
+          for (int ik = block_recursive; ik < block_size; ik++)
             mDynamicModelFile << " " << getBlockVariableID(block, ik)+1;
           mDynamicModelFile << "  ];" << endl
                             << "  if(isfield(oo_.deterministic_simulation,'block'))" << endl
@@ -3169,8 +3135,8 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       vector<int> state_equ;
       int count_lead_lag_incidence = 0;
       int max_lead, max_lag, max_lag_endo, max_lead_endo, max_lag_exo, max_lead_exo, max_lag_exo_det, max_lead_exo_det;
-      unsigned int nb_blocks = getNbBlocks();
-      for (unsigned int block = 0; block < nb_blocks; block++)
+      int nb_blocks = getNbBlocks();
+      for (int block = 0; block < nb_blocks; block++)
         {
           //For a block composed of a single equation determines wether we have to evaluate or to solve the equation
           count_lead_lag_incidence = 0;
@@ -3252,9 +3218,9 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
             if (other_endo >= 0)
               {
                 bool OK = true;
-                unsigned int j;
+                int j;
                 for (j = 0; j < block && OK; j++)
-                  for (unsigned int k = 0; k < getBlockSize(j) && OK; k++)
+                  for (int k = 0; k < getBlockSize(j) && OK; k++)
                     OK = other_endo != getBlockVariableID(j, k);
                 if (!OK)
                   output << " " << j;
@@ -3353,7 +3319,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                   bool done = false;
                   for (int i = 0; i < block_size; i++)
                     {
-                      unsigned int eq = getBlockEquationID(block, i);
+                      int eq = getBlockEquationID(block, i);
                       if (derivative_other_endo[block].find({ lag, eq, other_endo })
                           != derivative_other_endo[block].end())
                         {
@@ -3438,9 +3404,9 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           vector<int> i_nz_state_var(n);
           for (int i = 0; i < n_obs; i++)
             i_nz_state_var[i] = n;
-          unsigned int lp = n_obs;
+          int lp = n_obs;
 
-          for (unsigned int block = 0; block < nb_blocks; block++)
+          for (int block = 0; block < nb_blocks; block++)
             {
               int block_size = getBlockSize(block);
               int nze = 0;
@@ -3501,7 +3467,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               lp += nze;
             }
           output << modstruct << "nz_state_var = [";
-          for (unsigned int i = 0; i < lp; i++)
+          for (int i = 0; i < lp; i++)
             output << i_nz_state_var[i] << " ";
           output << "];" << endl;
           output << modstruct << "n_diag = " << nb_diag << ";" << endl;
@@ -4846,7 +4812,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
   map<tuple<int, int, int>, expr_t> first_order_endo_derivatives;
   // for each block contains pair<Size, Feddback_variable>
   vector<pair<int, int>> blocks;
-  vector<unsigned int> n_static, n_forward, n_backward, n_mixed;
+  vector<int> n_static, n_forward, n_backward, n_mixed;
 
   if (linear_decomposition)
     {
@@ -4919,9 +4885,9 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
       equation_block.resize(equations.size());
       variable_block_lead_lag.clear();
       variable_block_lead_lag.resize(equations.size());
-      for (unsigned int i = 0; i < getNbBlocks(); i++)
+      for (int i = 0; i < getNbBlocks(); i++)
         {
-          for (unsigned int j = 0; j < getBlockSize(i); j++)
+          for (int j = 0; j < getBlockSize(i); j++)
             {
               equation_block[equation_reordered[k]] = i;
               int l = variable_reordered[k];
@@ -5107,9 +5073,9 @@ void
 DynamicModel::computeChainRuleJacobian()
 {
   map<int, expr_t> recursive_variables;
-  unsigned int nb_blocks = getNbBlocks();
+  int nb_blocks = getNbBlocks();
   blocks_derivatives.resize(nb_blocks);
-  for (unsigned int block = 0; block < nb_blocks; block++)
+  for (int block = 0; block < nb_blocks; block++)
     {
       block_derivatives_equation_variable_laglead_nodeid_t tmp_derivatives;
       recursive_variables.clear();
@@ -5151,11 +5117,11 @@ DynamicModel::collect_block_first_order_derivatives()
 {
   //! vector for an equation or a variable indicates the block number
   vector<int> equation_2_block(equation_reordered.size()), variable_2_block(variable_reordered.size());
-  unsigned int nb_blocks = getNbBlocks();
-  for (unsigned int block = 0; block < nb_blocks; block++)
+  int nb_blocks = getNbBlocks();
+  for (int block = 0; block < nb_blocks; block++)
     {
-      unsigned int block_size = getBlockSize(block);
-      for (unsigned int i = 0; i < block_size; i++)
+      int block_size = getBlockSize(block);
+      for (int i = 0; i < block_size; i++)
         {
           equation_2_block[getBlockEquationID(block, i)] = block;
           variable_2_block[getBlockVariableID(block, i)] = block;
@@ -5289,7 +5255,7 @@ DynamicModel::collect_block_first_order_derivatives()
 void
 DynamicModel::collectBlockVariables()
 {
-  for (unsigned int block = 0; block < getNbBlocks(); block++)
+  for (int block = 0; block < getNbBlocks(); block++)
     {
       int prev_var = -1;
       int prev_lag = -999999999;

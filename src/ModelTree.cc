@@ -465,11 +465,11 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, double 
 }
 
 tuple<vector<pair<int, int>>, lag_lead_vector_t, lag_lead_vector_t,
-      vector<unsigned int>, vector<unsigned int>, vector<unsigned int>, vector<unsigned int>>
+      vector<int>, vector<int>, vector<int>, vector<int>>
 ModelTree::select_non_linear_equations_and_variables(const vector<bool> &is_equation_linear)
 {
   vector<int> eq2endo(equations.size(), 0);
-  unsigned int num = 0;
+  int num = 0;
   for (auto it : endo2eq)
     if (!is_equation_linear[it])
       num++;
@@ -487,9 +487,9 @@ ModelTree::select_non_linear_equations_and_variables(const vector<bool> &is_equa
         j++;
       }
   auto [equation_lag_lead, variable_lag_lead] = getVariableLeadLagByBlock(endo2block, endo2block.size());
-  vector<unsigned int> n_static(endo2eq.size(), 0), n_forward(endo2eq.size(), 0),
+  vector<int> n_static(endo2eq.size(), 0), n_forward(endo2eq.size(), 0),
     n_backward(endo2eq.size(), 0), n_mixed(endo2eq.size(), 0);
-  for (unsigned int i = 0; i < endo2eq.size(); i++)
+  for (int i = 0; i < static_cast<int>(endo2eq.size()); i++)
     {
       if (variable_lag_lead[variable_reordered[i]].first != 0 && variable_lag_lead[variable_reordered[i]].second != 0)
         n_mixed[i]++;
@@ -621,7 +621,7 @@ ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian)
     {
       something_has_been_done = false;
       int new_epilogue = epilogue;
-      for (int i = prologue; i < n - static_cast<int>(epilogue); i++)
+      for (int i = prologue; i < n - epilogue; i++)
         {
           int nze = 0;
           int k = 0;
@@ -658,7 +658,7 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
   EquationType Equation_Simulation_Type;
   equation_type_and_normalized_equation.clear();
   equation_type_and_normalized_equation.resize(equations.size());
-  for (unsigned int i = 0; i < equations.size(); i++)
+  for (int i = 0; i < static_cast<int>(equations.size()); i++)
     {
       int eq = equation_reordered[i];
       int var = variable_reordered[i];
@@ -703,12 +703,12 @@ ModelTree::getVariableLeadLagByBlock(const vector<int> &components_set, int nb_b
   vector<int> variable_blck(nb_endo), equation_blck(nb_endo);
   for (int i = 0; i < nb_endo; i++)
     {
-      if (i < static_cast<int>(prologue))
+      if (i < prologue)
         {
           variable_blck[variable_reordered[i]] = i;
           equation_blck[equation_reordered[i]] = i;
         }
-      else if (i < static_cast<int>(components_set.size() + prologue))
+      else if (i < static_cast<int>(components_set.size()) + prologue)
         {
           variable_blck[variable_reordered[i]] = components_set[i-prologue] + prologue;
           equation_blck[equation_reordered[i]] = components_set[i-prologue] + prologue;
@@ -738,7 +738,7 @@ ModelTree::getVariableLeadLagByBlock(const vector<int> &components_set, int nb_b
 }
 
 tuple<vector<pair<int, int>>, lag_lead_vector_t, lag_lead_vector_t,
-      vector<unsigned int>, vector<unsigned int>, vector<unsigned int>, vector<unsigned int>>
+      vector<int>, vector<int>, vector<int>, vector<int>>
 ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_, bool select_feedback_variable)
 {
   int nb_var = variable_reordered.size();
@@ -773,8 +773,8 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   else
     tmp_normalized_contemporaneous_jacobian = static_jacobian;
   for (const auto &[key, value] : tmp_normalized_contemporaneous_jacobian)
-    if (reverse_equation_reordered[key.first] >= static_cast<int>(prologue) && reverse_equation_reordered[key.first] < static_cast<int>(nb_var - epilogue)
-        && reverse_variable_reordered[key.second] >= static_cast<int>(prologue) && reverse_variable_reordered[key.second] < static_cast<int>(nb_var - epilogue)
+    if (reverse_equation_reordered[key.first] >= prologue && reverse_equation_reordered[key.first] < nb_var - epilogue
+        && reverse_variable_reordered[key.second] >= prologue && reverse_variable_reordered[key.second] < nb_var - epilogue
         && key.first != endo2eq[key.second])
       add_edge(vertex(reverse_equation_reordered[endo2eq[key.second]]-prologue, G2),
                vertex(reverse_equation_reordered[key.first]-prologue, G2),
@@ -792,7 +792,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   using DirectedGraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS>;
   DirectedGraph dag(num);
 
-  for (unsigned int i = 0; i < num_vertices(G2); i++)
+  for (int i = 0; i < static_cast<int>(num_vertices(G2)); i++)
     {
       MFS::AdjacencyList_t::out_edge_iterator it_out, out_end;
       MFS::AdjacencyList_t::vertex_descriptor vi = vertex(i, G2);
@@ -819,7 +819,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   //   - second set = the feeback variables,
   //   - third vector = the reordered non-feedback variables.
   vector<tuple<set<int>, set<int>, vector<int>>> components_set(num);
-  for (unsigned int i = 0; i < endo2block.size(); i++)
+  for (int i = 0; i < static_cast<int>(endo2block.size()); i++)
     {
       endo2block[i] = unordered2ordered[endo2block[i]];
       blocks[endo2block[i]].first++;
@@ -848,10 +848,10 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
         add_edge(vertex(i, G2), vertex(i, G2), G2);
 
   //Determines the dynamic structure of each equation
-  vector<unsigned int> n_static(prologue+num+epilogue, 0), n_forward(prologue+num+epilogue, 0),
+  vector<int> n_static(prologue+num+epilogue, 0), n_forward(prologue+num+epilogue, 0),
     n_backward(prologue+num+epilogue, 0), n_mixed(prologue+num+epilogue, 0);
 
-  for (int i = 0; i < static_cast<int>(prologue); i++)
+  for (int i = 0; i < prologue; i++)
     if (variable_lag_lead[tmp_variable_reordered[i]].first != 0 && variable_lag_lead[tmp_variable_reordered[i]].second != 0)
       n_mixed[i]++;
     else if (variable_lag_lead[tmp_variable_reordered[i]].first == 0 && variable_lag_lead[tmp_variable_reordered[i]].second != 0)
@@ -944,7 +944,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
           }
     }
 
-  for (int i = 0; i < static_cast<int>(epilogue); i++)
+  for (int i = 0; i < epilogue; i++)
     if (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first != 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second != 0)
       n_mixed[prologue+num+i]++;
     else if (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first == 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second != 0)
@@ -971,8 +971,8 @@ ModelTree::printBlockDecomposition(const vector<pair<int, int>> &blocks) const
   int largest_block = 0,
     Nb_SimulBlocks = 0,
     Nb_feedback_variable = 0;
-  unsigned int Nb_TotalBlocks = getNbBlocks();
-  for (unsigned int block = 0; block < Nb_TotalBlocks; block++)
+  int Nb_TotalBlocks = getNbBlocks();
+  for (int block = 0; block < Nb_TotalBlocks; block++)
     {
       BlockSimulationType simulation_type = getBlockSimulationType(block);
       if (simulation_type == BlockSimulationType::solveForwardComplete
@@ -997,7 +997,7 @@ ModelTree::printBlockDecomposition(const vector<pair<int, int>> &blocks) const
 }
 
 void
-ModelTree::reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<unsigned int> &n_static, const vector<unsigned int> &n_forward, const vector<unsigned int> &n_backward, const vector<unsigned int> &n_mixed, bool linear_decomposition)
+ModelTree::reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &n_static, const vector<int> &n_forward, const vector<int> &n_backward, const vector<int> &n_mixed, bool linear_decomposition)
 {
   int i = 0;
   int count_equ = 0, blck_count_simult = 0;
@@ -1006,22 +1006,22 @@ ModelTree::reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks
   block_type_firstequation_size_mfs.clear();
   BlockSimulationType Simulation_Type, prev_Type = BlockSimulationType::unknown;
   int eq = 0;
-  unsigned int l_n_static = 0, l_n_forward = 0, l_n_backward = 0, l_n_mixed = 0;
-  for (i = 0; i < static_cast<int>(prologue+blocks.size()+epilogue); i++)
+  int l_n_static = 0, l_n_forward = 0, l_n_backward = 0, l_n_mixed = 0;
+  for (i = 0; i < prologue+static_cast<int>(blocks.size())+epilogue; i++)
     {
       int first_count_equ = count_equ;
-      if (i < static_cast<int>(prologue))
+      if (i < prologue)
         {
           Blck_Size = 1;
           MFS_Size = 1;
         }
-      else if (i < static_cast<int>(prologue+blocks.size()))
+      else if (i < prologue+static_cast<int>(blocks.size()))
         {
           Blck_Size = blocks[blck_count_simult].first;
           MFS_Size = blocks[blck_count_simult].second;
           blck_count_simult++;
         }
-      else if (i < static_cast<int>(prologue+blocks.size()+epilogue))
+      else if (i < prologue+static_cast<int>(blocks.size())+epilogue)
         {
           Blck_Size = 1;
           MFS_Size = 1;
@@ -1176,10 +1176,10 @@ ModelTree::equationLinear(const map<tuple<int, int, int>, expr_t> &first_order_e
 void
 ModelTree::determineLinearBlocks()
 {
-  unsigned int nb_blocks = getNbBlocks();
+  int nb_blocks = getNbBlocks();
   blocks_linear.clear();
   blocks_linear.resize(nb_blocks, true);
-  for (unsigned int block = 0; block < nb_blocks; block++)
+  for (int block = 0; block < nb_blocks; block++)
     {
       BlockSimulationType simulation_type = getBlockSimulationType(block);
       int block_size = getBlockSize(block);
@@ -1801,9 +1801,9 @@ ModelTree::Write_Inf_To_Bin_File(const string &filename,
     }
   if (is_two_boundaries)
     u_count_int += symbol_table.endo_nbr();
-  for (j = 0; j < static_cast<int>(symbol_table.endo_nbr()); j++)
+  for (j = 0; j < symbol_table.endo_nbr(); j++)
     SaveCode.write(reinterpret_cast<char *>(&j), sizeof(j));
-  for (j = 0; j < static_cast<int>(symbol_table.endo_nbr()); j++)
+  for (j = 0; j < symbol_table.endo_nbr(); j++)
     SaveCode.write(reinterpret_cast<char *>(&j), sizeof(j));
   SaveCode.close();
 }

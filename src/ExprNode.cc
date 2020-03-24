@@ -8163,7 +8163,7 @@ FirstDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCo
     {
       unsigned int nb_input_arguments = 0;
       unsigned int nb_output_arguments = 1;
-      unsigned int indx = getIndxInTefTerms(symb_id, tef_terms);
+      int indx = getIndxInTefTerms(symb_id, tef_terms);
       FCALL_ fcall(nb_output_arguments, nb_input_arguments, "jacob_element", indx);
       fcall.set_arg_func_name(datatree.symbol_table.getName(symb_id));
       fcall.set_row(inputIndex);

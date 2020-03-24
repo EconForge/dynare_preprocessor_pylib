@@ -261,7 +261,7 @@ protected:
   vector<int> endo2eq;
 
   //! number of equation in the prologue and in the epilogue
-  unsigned int epilogue, prologue;
+  int epilogue, prologue;
 
   //! for each block contains pair< max_lag, max_lead>
   lag_lead_vector_t block_lag_lead;
@@ -290,7 +290,7 @@ protected:
   //! Select and reorder the non linear equations of the model
   /*! Returns a tuple (blocks, equation_lag_lead, variable_lag_lead, n_static,
       n_forward, n_backward, n_mixed) */
-  tuple<vector<pair<int, int>>, lag_lead_vector_t, lag_lead_vector_t, vector<unsigned int>, vector<unsigned int>, vector<unsigned int>, vector<unsigned int>> select_non_linear_equations_and_variables(const vector<bool> &is_equation_linear);
+  tuple<vector<pair<int, int>>, lag_lead_vector_t, lag_lead_vector_t, vector<int>, vector<int>, vector<int>, vector<int>> select_non_linear_equations_and_variables(const vector<bool> &is_equation_linear);
   //! Search the equations and variables belonging to the prologue and the epilogue of the model
   void computePrologueAndEpilogue(const jacob_map_t &static_jacobian);
   //! Determine the type of each equation of model and try to normalize the unnormalized equation
@@ -298,9 +298,9 @@ protected:
   //! Compute the block decomposition and for a non-recusive block find the minimum feedback set
   /*! Returns a tuple (blocks, equation_lag_lead, variable_lag_lead, n_static,
       n_forward, n_backward, n_mixed) */
-  tuple<vector<pair<int, int>>, lag_lead_vector_t, lag_lead_vector_t, vector<unsigned int>, vector<unsigned int>, vector<unsigned int>, vector<unsigned int>> computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_, bool select_feedback_variable);
+  tuple<vector<pair<int, int>>, lag_lead_vector_t, lag_lead_vector_t, vector<int>, vector<int>, vector<int>, vector<int>> computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_, bool select_feedback_variable);
   //! Reduce the number of block merging the same type equation in the prologue and the epilogue and determine the type of each block
-  void reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<unsigned int> &n_static, const vector<unsigned int> &n_forward, const vector<unsigned int> &n_backward, const vector<unsigned int> &n_mixed, bool linear_decomposition);
+  void reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &n_static, const vector<int> &n_forward, const vector<int> &n_backward, const vector<int> &n_mixed, bool linear_decomposition);
   //! Determine the maximum number of lead and lag for the endogenous variable in a bloc
   /*! Returns a pair { equation_lead,lag, variable_lead_lag } */
   pair<lag_lead_vector_t, lag_lead_vector_t> getVariableLeadLagByBlock(const vector<int> &components_set, int nb_blck_sim) const;
@@ -318,21 +318,21 @@ protected:
   //! Determine the simulation type of each block
   virtual BlockSimulationType getBlockSimulationType(int block_number) const = 0;
   //! Return the number of blocks
-  virtual unsigned int getNbBlocks() const = 0;
+  virtual int getNbBlocks() const = 0;
   //! Return the first equation number of a block
-  virtual unsigned int getBlockFirstEquation(int block_number) const = 0;
+  virtual int getBlockFirstEquation(int block_number) const = 0;
   //! Return the size of the block block_number
-  virtual unsigned int getBlockSize(int block_number) const = 0;
+  virtual int getBlockSize(int block_number) const = 0;
   //! Return the number of exogenous variable in the block block_number
-  virtual unsigned int getBlockExoSize(int block_number) const = 0;
+  virtual int getBlockExoSize(int block_number) const = 0;
   //! Return the number of colums in the jacobian matrix for exogenous variable in the block block_number
-  virtual unsigned int getBlockExoColSize(int block_number) const = 0;
+  virtual int getBlockExoColSize(int block_number) const = 0;
   //! Return the number of feedback variable of the block block_number
-  virtual unsigned int getBlockMfs(int block_number) const = 0;
+  virtual int getBlockMfs(int block_number) const = 0;
   //! Return the maximum lag in a block
-  virtual unsigned int getBlockMaxLag(int block_number) const = 0;
+  virtual int getBlockMaxLag(int block_number) const = 0;
   //! Return the maximum lead in a block
-  virtual unsigned int getBlockMaxLead(int block_number) const = 0;
+  virtual int getBlockMaxLead(int block_number) const = 0;
   inline void
   setBlockLeadLag(int block, int max_lag, int max_lead)
   {

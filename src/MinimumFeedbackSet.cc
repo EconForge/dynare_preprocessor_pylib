@@ -123,18 +123,18 @@ namespace MFS
   }
 
   AdjacencyList_t
-  AM_2_AdjacencyList(bool *AM, unsigned int n)
+  AM_2_AdjacencyList(bool *AM, int n)
   {
     AdjacencyList_t G(n);
     auto v_index = get(vertex_index, G);
     auto v_index1 = get(vertex_index1, G);
-    for (unsigned int i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
       {
         put(v_index, vertex(i, G), i);
         put(v_index1, vertex(i, G), i);
       }
-    for (unsigned int i = 0; i < n; i++)
-      for (unsigned int j = 0; j < n; j++)
+    for (int i = 0; i < n; i++)
+      for (int j = 0; j < n; j++)
         if (AM[i*n+j])
           add_edge(vertex(j, G), vertex(i, G), G);
     return G;
@@ -143,14 +143,14 @@ namespace MFS
   AdjacencyList_t
   extract_subgraph(AdjacencyList_t &G1, set<int> select_index)
   {
-    unsigned int n = select_index.size();
+    int n = select_index.size();
     AdjacencyList_t G(n);
     auto v_index = get(vertex_index, G);
     auto v_index1 = get(vertex_index1, G);
     auto v1_index = get(vertex_index, G1);
     map<int, int> reverse_index;
     set<int>::iterator it;
-    unsigned int i;
+    int i;
     for (it = select_index.begin(), i = 0; i < n; i++, ++it)
       {
         reverse_index[get(v1_index, vertex(*it, G1))] = i;
@@ -205,11 +205,11 @@ namespace MFS
       {
         if (it_in != in_end || it_out != out_end)
           agree = false;
-        unsigned int i = 1;
-        while (i < liste.size() && agree)
+        int i = 1;
+        while (i < static_cast<int>(liste.size()) && agree)
           {
-            unsigned int j = i + 1;
-            while (j < liste.size() && agree)
+            int j = i + 1;
+            while (j < static_cast<int>(liste.size()) && agree)
               {
                 AdjacencyList_t::edge_descriptor ed;
                 bool exist1, exist2;
@@ -379,10 +379,10 @@ namespace MFS
         if (num_vertices(G) > 0)
           {
             /*if nothing has been done in the five previous rule then cut the vertex with the maximum in_degree+out_degree*/
-            unsigned int max_degree = 0, num = 0;
+            int max_degree = 0, num = 0;
             AdjacencyList_t::vertex_iterator it, it_end, max_degree_index;
             for (tie(it, it_end) = vertices(G); it != it_end; ++it, num++)
-              if (in_degree(*it, G) + out_degree(*it, G) > max_degree)
+              if (static_cast<int>(in_degree(*it, G) + out_degree(*it, G)) > max_degree)
                 {
                   max_degree = in_degree(*it, G) + out_degree(*it, G);
                   max_degree_index = it;

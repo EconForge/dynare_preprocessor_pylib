@@ -193,7 +193,7 @@ public:
   void addAllParamDerivId(set<int> &deriv_id_set) override;
 
   //! Return the number of blocks
-  unsigned int
+  int
   getNbBlocks() const override
   {
     return (block_type_firstequation_size_mfs.size());
@@ -205,43 +205,43 @@ public:
     return (get<0>(block_type_firstequation_size_mfs[block_number]));
   };
   //! Return the first equation number of a block
-  unsigned int
+  int
   getBlockFirstEquation(int block_number) const override
   {
     return (get<1>(block_type_firstequation_size_mfs[block_number]));
   };
   //! Return the size of the block block_number
-  unsigned int
+  int
   getBlockSize(int block_number) const override
   {
     return (get<2>(block_type_firstequation_size_mfs[block_number]));
   };
   //! Return the number of exogenous variable in the block block_number
-  unsigned int
+  int
   getBlockExoSize(int block_number) const override
   {
     return 0;
   };
   //! Return the number of colums in the jacobian matrix for exogenous variable in the block block_number
-  unsigned int
+  int
   getBlockExoColSize(int block_number) const override
   {
     return 0;
   }
   //! Return the number of feedback variable of the block block_number
-  unsigned int
+  int
   getBlockMfs(int block_number) const override
   {
     return (get<3>(block_type_firstequation_size_mfs[block_number]));
   };
   //! Return the maximum lag in a block
-  unsigned int
+  int
   getBlockMaxLag(int block_number) const override
   {
     return (block_lag_lead[block_number].first);
   };
   //! Return the maximum lead in a block
-  unsigned int
+  int
   getBlockMaxLead(int block_number) const override
   {
     return (block_lag_lead[block_number].second);
@@ -292,13 +292,13 @@ public:
   int
   getBlockInitialEquationID(int block_number, int equation_number) const override
   {
-    return (static_cast<int>(inv_equation_reordered[equation_number]) - static_cast<int>(get<1>(block_type_firstequation_size_mfs[block_number])));
+    return inv_equation_reordered[equation_number] - get<1>(block_type_firstequation_size_mfs[block_number]);
   };
   //! Return the position of variable_number in the block number belonging to the block block_number
   int
   getBlockInitialVariableID(int block_number, int variable_number) const override
   {
-    return (static_cast<int>(inv_variable_reordered[variable_number]) - static_cast<int>(get<1>(block_type_firstequation_size_mfs[block_number])));
+    return inv_variable_reordered[variable_number] - get<1>(block_type_firstequation_size_mfs[block_number]);
   };
   //! Return the position of variable_number in the block number belonging to the block block_number
   int
