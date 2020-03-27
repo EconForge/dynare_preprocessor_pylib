@@ -412,14 +412,13 @@ public:
   bool isNonstationary(int symb_id) const;
   void set_cutoff_to_zero();
   //! Simplify model equations: if a variable is equal to a constant, replace that variable elsewhere in the model
-  /*! Equations with tags are excluded, in particular because of MCPs, see
-      dynare#1697 */
+  /*! Equations with MCP tags are excluded, see dynare#1697 */
   void simplifyEquations();
   /*! Reorder auxiliary variables so that they appear in recursive order in
       set_auxiliary_variables.m and dynamic_set_auxiliary_series.m */
   void reorderAuxiliaryEquations();
-  //! Find equations of the form “variable=constant”, excluding equations with tags
-  void findConstantEquationsWithoutTags(map<VariableNode *, NumConstNode *> &subst_table) const;
+  //! Find equations of the form “variable=constant”, excluding equations with “mcp” tag (see dynare#1697)
+  void findConstantEquationsWithoutMcpTag(map<VariableNode *, NumConstNode *> &subst_table) const;
   //! Helper for writing the Jacobian elements in MATLAB and C
   /*! Writes either (i+1,j+1) or [i+j*no_eq] */
   void jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const;

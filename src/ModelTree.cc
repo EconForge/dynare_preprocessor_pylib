@@ -1964,23 +1964,24 @@ ModelTree::simplifyEquations()
 {
   size_t last_subst_table_size = 0;
   map<VariableNode *, NumConstNode *> subst_table;
-  // Equations with tags are excluded, in particular because of MCPs, see dynare#1697
-  findConstantEquationsWithoutTags(subst_table);
+  // Equations with “mcp” tag are excluded, see dynare#1697
+  findConstantEquationsWithoutMcpTag(subst_table);
   while (subst_table.size() != last_subst_table_size)
     {
       last_subst_table_size = subst_table.size();
       for (auto &equation : equations)
         equation = dynamic_cast<BinaryOpNode *>(equation->replaceVarsInEquation(subst_table));
       subst_table.clear();
-      findConstantEquationsWithoutTags(subst_table);
+      findConstantEquationsWithoutMcpTag(subst_table);
     }
 }
 
 void
-ModelTree::findConstantEquationsWithoutTags(map<VariableNode *, NumConstNode *> &subst_table) const
+ModelTree::findConstantEquationsWithoutMcpTag(map<VariableNode *, NumConstNode *> &subst_table) const
 {
   for (size_t i = 0; i < equations.size(); i++)
-    if (getEquationTags(i).empty())
+    if (auto tags = getEquationTags(i);
+        tags.find("mcp") == tags.end())
       equations[i]->findConstantEquations(subst_table);
 }
 
