@@ -2413,3 +2413,18 @@ ModelTree::reorderAuxiliaryEquations()
   for (int i = 0; i < n; i++)
     aux_equations[i] = aux_equations_old[index[ordered[i]]];
 }
+
+map<tuple<int, int, int>, expr_t>
+ModelTree::collectFirstOrderDerivativesEndogenous()
+{
+  map<tuple<int, int, int>, expr_t> endo_derivatives;
+  for (auto &[indices, d1] : derivatives[1])
+    if (getTypeByDerivID(indices[1]) == SymbolType::endogenous)
+      {
+        int eq = indices[0];
+        int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(indices[1]));
+        int lag = getLagByDerivID(indices[1]);
+        endo_derivatives[{ eq, var, lag }] = d1;
+      }
+  return endo_derivatives;
+}

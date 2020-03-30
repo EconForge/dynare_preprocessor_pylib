@@ -3813,21 +3813,6 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
     }
 }
 
-map<tuple<int, int, int>, expr_t>
-DynamicModel::collect_first_order_derivatives_endogenous()
-{
-  map<tuple<int, int, int>, expr_t> endo_derivatives;
-  for (auto & [indices, d1] : derivatives[1])
-    if (getTypeByDerivID(indices[1]) == SymbolType::endogenous)
-      {
-        int eq = indices[0];
-        int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(indices[1]));
-        int lag = getLagByDerivID(indices[1]);
-        endo_derivatives[{ eq, var, lag }] = d1;
-      }
-  return endo_derivatives;
-}
-
 void
 DynamicModel::runTrendTest(const eval_context_t &eval_context)
 {
@@ -4816,7 +4801,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
   if (linear_decomposition)
     {
-      first_order_endo_derivatives = collect_first_order_derivatives_endogenous();
+      first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
       is_equation_linear = equationLinear(first_order_endo_derivatives);
 
       tie(contemporaneous_jacobian, static_jacobian) = evaluateAndReduceJacobian(eval_context, cutoff, false);
@@ -4856,7 +4841,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
       computePrologueAndEpilogue(static_jacobian);
 
-      first_order_endo_derivatives = collect_first_order_derivatives_endogenous();
+      first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
 
       equationTypeDetermination(first_order_endo_derivatives, mfs);
 

@@ -162,8 +162,6 @@ private:
   void computeDynJacobianCols(bool jacobianExo);
   //! Computes derivatives of the Jacobian w.r. to trend vars and tests that they are equal to zero
   void testTrendDerivativesEqualToZero(const eval_context_t &eval_context);
-  //! Collect only the first derivatives
-  map<tuple<int, int, int>, expr_t> collect_first_order_derivatives_endogenous();
 
   //! Allocates the derivation IDs for all dynamic variables of the model
   /*! Also computes max_{endo,exo}_{lead_lag}, and initializes dynJacobianColsNbr to the number of dynamic endos */

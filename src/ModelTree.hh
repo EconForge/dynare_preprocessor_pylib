@@ -365,6 +365,10 @@ protected:
   virtual int getBlockInitialOtherEndogenousID(int block_number, int variable_number) const = 0;
   //! Initialize equation_reordered & variable_reordered
   void initializeVariablesAndEquations();
+  //! Returns the 1st derivatives w.r.t. endogenous in a different format
+  /*! Returns a map (equation, type-specific ID, lag) → derivative.
+      Assumes that derivatives have already been computed. */
+  map<tuple<int, int, int>, expr_t> collectFirstOrderDerivativesEndogenous();
 
 private:
   //! Internal helper for the copy constructor and assignment operator

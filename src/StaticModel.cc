@@ -1087,23 +1087,6 @@ StaticModel::Write_Inf_To_Bin_File_Block(const string &basename, int num,
   SaveCode.close();
 }
 
-map<tuple<int, int, int>, expr_t>
-StaticModel::collect_first_order_derivatives_endogenous()
-{
-  map<tuple<int, int, int>, expr_t> endo_derivatives;
-  for (auto & [indices, d1] : derivatives[1])
-    {
-      if (getTypeByDerivID(indices[1]) == SymbolType::endogenous)
-        {
-          int eq = indices[0];
-          int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(indices[1]));
-          int lag = 0;
-          endo_derivatives[{ eq, var, lag }] = d1;
-        }
-    }
-  return endo_derivatives;
-}
-
 void
 StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool bytecode)
 {
@@ -1153,7 +1136,7 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
 
       computePrologueAndEpilogue(static_jacobian);
 
-      auto first_order_endo_derivatives = collect_first_order_derivatives_endogenous();
+      auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
 
       equationTypeDetermination(first_order_endo_derivatives, mfs);
 
