@@ -3076,7 +3076,7 @@ UnaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &r
 pair<int, expr_t>
 UnaryOpNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const
 {
-  pair<bool, expr_t> res = arg->normalizeEquation(var_endo, List_of_Op_RHS);
+  pair<int, expr_t> res = arg->normalizeEquation(var_endo, List_of_Op_RHS);
   int is_endogenous_present = res.first;
   expr_t New_expr_t = res.second;
 
@@ -4927,7 +4927,7 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>>
     {
       if (op_code == BinaryOpcode::equal) /* The end of the normalization process :
                                              All the operations needed to normalize the equation are applied. */
-        for (int i = 0; i < static_cast<int>(List_of_Op_RHS1.size()); i++)
+        while (!List_of_Op_RHS1.empty())
           {
             tuple<int, expr_t, expr_t> it = List_of_Op_RHS1.back();
             List_of_Op_RHS1.pop_back();
@@ -4946,7 +4946,7 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>>
   else if (is_endogenous_present_2)
     {
       if (op_code == BinaryOpcode::equal)
-        for (int i = 0; i < static_cast<int>(List_of_Op_RHS2.size()); i++)
+        while (!List_of_Op_RHS2.empty())
           {
             tuple<int, expr_t, expr_t> it = List_of_Op_RHS2.back();
             List_of_Op_RHS2.pop_back();
@@ -4966,12 +4966,9 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>>
     {
     case BinaryOpcode::plus:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
-        {
-          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), datatree.AddPlus(expr_t_1, expr_t_2), nullptr);
-          return { 0, datatree.AddPlus(expr_t_1, expr_t_2) };
-        }
+        return { 0, datatree.AddPlus(expr_t_1, expr_t_2) };
       else if (is_endogenous_present_1 && is_endogenous_present_2)
-        return { 1, nullptr };
+        return { 2, nullptr };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
           List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), expr_t_1, nullptr);
@@ -4985,12 +4982,9 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>>
       break;
     case BinaryOpcode::minus:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
-        {
-          List_of_Op_RHS.emplace_back(static_cast<int>(BinaryOpcode::minus), datatree.AddMinus(expr_t_1, expr_t_2), nullptr);
-          return { 0, datatree.AddMinus(expr_t_1, expr_t_2) };
-        }
+        return { 0, datatree.AddMinus(expr_t_1, expr_t_2) };
       else if (is_endogenous_present_1 && is_endogenous_present_2)
-        return { 1, nullptr };
+        return { 2, nullptr };
       else if (!is_endogenous_present_1 && is_endogenous_present_2)
         {
           List_of_Op_RHS.emplace_back(static_cast<int>(UnaryOpcode::uminus), nullptr, nullptr);
@@ -5017,7 +5011,7 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>>
           return { 1, expr_t_2 };
         }
       else
-        return { 1, nullptr };
+        return { 2, nullptr };
       break;
     case BinaryOpcode::divide:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
@@ -5033,7 +5027,7 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>>
           return { 1, expr_t_2 };
         }
       else
-        return { 1, nullptr };
+        return { 2, nullptr };
       break;
     case BinaryOpcode::power:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
@@ -5075,49 +5069,49 @@ BinaryOpNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>>
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddMax(expr_t_1, expr_t_2) };
       else
-        return { 1, nullptr };
+        return { 2, nullptr };
       break;
     case BinaryOpcode::min:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddMin(expr_t_1, expr_t_2) };
       else
-        return { 1, nullptr };
+        return { 2, nullptr };
       break;
     case BinaryOpcode::less:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddLess(expr_t_1, expr_t_2) };
       else
-        return { 1, nullptr };
+        return { 2, nullptr };
       break;
     case BinaryOpcode::greater:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddGreater(expr_t_1, expr_t_2) };
       else
-        return { 1, nullptr };
+        return { 2, nullptr };
       break;
     case BinaryOpcode::lessEqual:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddLessEqual(expr_t_1, expr_t_2) };
       else
-        return { 1, nullptr };
+        return { 2, nullptr };
       break;
     case BinaryOpcode::greaterEqual:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddGreaterEqual(expr_t_1, expr_t_2) };
       else
-        return { 1, nullptr };
+        return { 2, nullptr };
       break;
     case BinaryOpcode::equalEqual:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddEqualEqual(expr_t_1, expr_t_2) };
       else
-        return { 1, nullptr };
+        return { 2, nullptr };
       break;
     case BinaryOpcode::different:
       if (!is_endogenous_present_1 && !is_endogenous_present_2)
         return { 0, datatree.AddDifferent(expr_t_1, expr_t_2) };
       else
-        return { 1, nullptr };
+        return { 2, nullptr };
       break;
     default:
       cerr << "Binary operator not handled during the normalization process" << endl;
@@ -6498,7 +6492,7 @@ TrinaryOpNode::normalizeEquation(int var_endo, vector<tuple<int, expr_t, expr_t>
   if (!is_endogenous_present_1 && !is_endogenous_present_2 && !is_endogenous_present_3)
     return { 0, datatree.AddNormcdf(expr_t_1, expr_t_2, expr_t_3) };
   else
-    return { 1, nullptr };
+    return { 2, nullptr };
 }
 
 expr_t
@@ -7426,7 +7420,7 @@ AbstractExternalFunctionNode::normalizeEquation(int var_endo, vector<tuple<int, 
   if (!present)
     return { 0, datatree.AddExternalFunction(symb_id, V_expr_t) };
   else
-    return { 1, nullptr };
+    return { 2, nullptr };
 }
 
 void
