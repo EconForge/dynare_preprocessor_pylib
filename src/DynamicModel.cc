@@ -2084,7 +2084,7 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
                             << "  y = solve_one_boundary('" << basename << ".block.dynamic_" <<  block + 1 << "'"
                             << ", y, x, params, steady_state, y_index, " << nze
                             << ", options_.periods, " << blocks_linear[block]
-                            << ", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0);" << endl
+                            << ", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0, M_, options_, oo_);" << endl
                             << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);" << endl
                             << "  if any(isnan(tmp) | isinf(tmp))" << endl
                             << "    disp(['Inf or Nan value during the resolution of block " << block <<"']);" << endl
@@ -2116,7 +2116,7 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
                             << "  y = solve_one_boundary('" << basename << ".block.dynamic_" <<  block + 1 << "'"
                             <<", y, x, params, steady_state, y_index, " << nze
                             <<", options_.periods, " << blocks_linear[block]
-                            <<", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0);" << endl
+                            <<", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0, M_, options_, oo_);" << endl
                             << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);" << endl
                             << "  if any(isnan(tmp) | isinf(tmp))" << endl
                             << "    disp(['Inf or Nan value during the resolution of block " << block <<"']);" << endl
