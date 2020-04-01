@@ -840,7 +840,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
                           bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
                           const string &mexext,
                           const filesystem::path &matlabroot,
-                          const filesystem::path &dynareroot, bool onlymodel, bool gui) const
+                          const filesystem::path &dynareroot, bool onlymodel, bool gui, bool notime) const
 {
   bool hasModelChanged = !dynamic_model.isChecksumMatching(basename, block) || !check_model_changes;
   if (hasModelChanged)
@@ -1098,10 +1098,11 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
                   << "  save('" << basename << "_results.mat', 'oo_recursive_', '-append');" << endl << "end" << endl;
 
       config_file.writeEndParallel(mOutputFile);
-
-      mOutputFile << endl << endl
-                  << "disp(['Total computing time : ' dynsec2hms(toc(tic0)) ]);" << endl;
-
+      if (!notime)
+        {
+          mOutputFile << endl << endl
+                      << "disp(['Total computing time : ' dynsec2hms(toc(tic0)) ]);" << endl;
+        }
       if (!no_warn)
         {
           if (warnings.countWarnings() > 0)

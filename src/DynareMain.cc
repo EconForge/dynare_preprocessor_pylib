@@ -57,7 +57,7 @@ usage()
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=matlab|julia]"
        << " [params_derivs_order=0|1|2] [transform_unary_ops] [exclude_eqs=<equation_tag_list_or_file>] [include_eqs=<equation_tag_list_or_file>]"
        << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] [nopathchange] [nopreprocessoroutput]"
-       << " [mexext=<extension>] [matlabroot=<path>] [onlymodel]"
+       << " [mexext=<extension>] [matlabroot=<path>] [onlymodel] [notime]"
        << endl;
   exit(EXIT_FAILURE);
 }
@@ -123,6 +123,7 @@ main(int argc, char **argv)
     options.emplace_back(argv[arg]);
 
   // Parse options
+  bool notime = false;
   bool clear_all = true;
   bool clear_global = false;
   bool save_macro = false;
@@ -170,6 +171,8 @@ main(int argc, char **argv)
     {
       if (s == "debug")
         debug = true;
+      else if (s == "notime")
+        notime = true;
       else if (s == "noclearall")
         clear_all = false;
       else if (s.substr(0, 19) == "params_derivs_order")
@@ -479,7 +482,7 @@ main(int argc, char **argv)
   else
     mod_file->writeOutputFiles(basename, clear_all, clear_global, no_log, no_warn, console, nograph,
                                nointeractive, config_file, check_model_changes, minimal_workspace, compute_xrefs,
-                               mexext, matlabroot, dynareroot, onlymodel, gui);
+                               mexext, matlabroot, dynareroot, onlymodel, gui, notime);
 
   cout << "Preprocessing completed." << endl;
   return EXIT_SUCCESS;
