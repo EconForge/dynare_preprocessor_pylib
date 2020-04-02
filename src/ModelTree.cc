@@ -661,7 +661,7 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
       int var = variable_reordered[i];
       expr_t lhs = equations[eq]->arg1;
       EquationType Equation_Simulation_Type = EquationType::solve;
-      pair<int, expr_t> res;
+      BinaryOpNode *normalized_eq = nullptr;
       if (auto it = first_order_endo_derivatives.find({ eq, var, 0 });
           it != first_order_endo_derivatives.end())
         {
@@ -676,16 +676,18 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
               derivative->collectEndogenous(result);
               bool variable_not_in_derivative = result.find({ var, 0 }) == result.end();
 
-              vector<tuple<int, expr_t, expr_t>> List_of_Op_RHS;
-              res = equations[eq]->normalizeEquation(var, List_of_Op_RHS);
-
-              if (mfs == 2 && variable_not_in_derivative && res.second)
-                Equation_Simulation_Type = EquationType::evaluate_s;
-              else if (mfs == 3 && res.second) // The equation could be solved analytically
-                Equation_Simulation_Type = EquationType::evaluate_s;
+              try
+                {
+                  normalized_eq = equations[eq]->normalizeEquation(symbol_table.getID(SymbolType::endogenous, var), 0);
+                  if ((mfs == 2 && variable_not_in_derivative) || mfs == 3)
+                    Equation_Simulation_Type = EquationType::evaluate_s;
+                }
+              catch (ExprNode::NormalizationFailed &e)
+                {
+                }
             }
         }
-      equation_type_and_normalized_equation[eq] = { Equation_Simulation_Type, dynamic_cast<BinaryOpNode *>(res.second) };
+      equation_type_and_normalized_equation[eq] = { Equation_Simulation_Type, normalized_eq };
     }
 }
 

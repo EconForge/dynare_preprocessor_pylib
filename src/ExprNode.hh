@@ -431,8 +431,18 @@ public:
   */
   //  virtual void computeXrefs(set<int> &param, set<int> &endo, set<int> &exo, set<int> &exo_det) const = 0;
   virtual void computeXrefs(EquationInfo &ei) const = 0;
-  //! Try to normalize an equation linear in its endogenous variable
-  virtual pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const = 0;
+
+  // Computes the set of all sub-expressions that contain the variable (symb_id, lag)
+  virtual void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const = 0;
+
+  //! Helper for normalization of equations
+  /*! Normalize the equation this = rhs.
+      Must be called on a node containing the desired LHS variable.
+      Returns an equal node of the form: LHS variable = new RHS.
+      Must be given the set of all subexpressions that contain the desired LHS variable.
+      Throws a NormallizationFailed() exception if normalization is not possible. */
+  virtual BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const = 0;
+  class NormalizationFailed {};
 
   //! Returns the maximum lead of endogenous in this expression
   /*! Always returns a non-negative value */
@@ -744,7 +754,8 @@ public:
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const override;
+  void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
+  BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -827,7 +838,8 @@ public:
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   SymbolType get_type() const;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const override;
+  void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
+  BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -935,7 +947,8 @@ public:
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const override;
+  void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
+  BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -1047,7 +1060,11 @@ public:
   expr_t Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const override;
+  void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
+  BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
+  //! Try to normalize an equation with respect to a given dynamic variable.
+  /*! Should only be called on Equal nodes. The variable must appear in the equation. */
+  BinaryOpNode *normalizeEquation(int symb_id, int lag) const;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -1178,7 +1195,8 @@ public:
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const override;
+  void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
+  BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -1298,7 +1316,8 @@ public:
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override = 0;
   expr_t toStatic(DataTree &static_datatree) const override = 0;
   void computeXrefs(EquationInfo &ei) const override = 0;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const override;
+  void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
+  BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
@@ -1529,7 +1548,8 @@ public:
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const override;
+  void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
+  BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
   void compile(ostream &CompileCode, unsigned int &instruction_number,
                bool lhs_rhs, const temporary_terms_t &temporary_terms,
                const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
@@ -1610,7 +1630,8 @@ public:
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
-  pair<int, expr_t> normalizeEquation(int symb_id_endo, vector<tuple<int, expr_t, expr_t>> &List_of_Op_RHS) const override;
+  void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
+  BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
   void compile(ostream &CompileCode, unsigned int &instruction_number,
                bool lhs_rhs, const temporary_terms_t &temporary_terms,
                const map_idx_t &map_idx, bool dynamic, bool steady_dynamic,
