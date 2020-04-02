@@ -252,7 +252,7 @@ ExprNode::createEndoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector
       if (auto it = subst_table.find(orig_expr); it == subst_table.end())
         {
           int symb_id = datatree.symbol_table.addEndoLeadAuxiliaryVar(orig_expr->idx, substexpr);
-          neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(symb_id, 0), substexpr)));
+          neweqs.push_back(datatree.AddEqual(datatree.AddVariable(symb_id, 0), substexpr));
           substexpr = datatree.AddVariable(symb_id, +1);
           assert(dynamic_cast<VariableNode *>(substexpr));
           subst_table[orig_expr] = dynamic_cast<VariableNode *>(substexpr);
@@ -287,7 +287,7 @@ ExprNode::createExoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<
       if (auto it = subst_table.find(orig_expr); it == subst_table.end())
         {
           int symb_id = datatree.symbol_table.addExoLeadAuxiliaryVar(orig_expr->idx, substexpr);
-          neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(symb_id, 0), substexpr)));
+          neweqs.push_back(datatree.AddEqual(datatree.AddVariable(symb_id, 0), substexpr));
           substexpr = datatree.AddVariable(symb_id, +1);
           assert(dynamic_cast<VariableNode *>(substexpr));
           subst_table[orig_expr] = dynamic_cast<VariableNode *>(substexpr);
@@ -1771,7 +1771,7 @@ VariableNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector
           if (auto it = subst_table.find(orig_expr); it == subst_table.end())
             {
               int aux_symb_id = datatree.symbol_table.addEndoLagAuxiliaryVar(symb_id, cur_lag+1, substexpr);
-              neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), substexpr)));
+              neweqs.push_back(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), substexpr));
               substexpr = datatree.AddVariable(aux_symb_id, -1);
               subst_table[orig_expr] = substexpr;
             }
@@ -1837,7 +1837,7 @@ VariableNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *
           if (auto it = subst_table.find(orig_expr); it == subst_table.end())
             {
               int aux_symb_id = datatree.symbol_table.addExoLagAuxiliaryVar(symb_id, cur_lag+1, substexpr);
-              neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), substexpr)));
+              neweqs.push_back(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), substexpr));
               substexpr = datatree.AddVariable(aux_symb_id, -1);
               subst_table[orig_expr] = substexpr;
             }
@@ -1884,8 +1884,8 @@ VariableNode::differentiateForwardVars(const vector<string> &subset, subst_table
             {
               int aux_symb_id = datatree.symbol_table.addDiffForwardAuxiliaryVar(symb_id, datatree.AddMinus(datatree.AddVariable(symb_id, 0),
                                                                                                             datatree.AddVariable(symb_id, -1)));
-              neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), datatree.AddMinus(datatree.AddVariable(symb_id, 0),
-                                                                                                                                      datatree.AddVariable(symb_id, -1)))));
+              neweqs.push_back(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), datatree.AddMinus(datatree.AddVariable(symb_id, 0),
+                                                                                                                                      datatree.AddVariable(symb_id, -1))));
               diffvar = datatree.AddVariable(aux_symb_id, 1);
               subst_table[this] = diffvar;
             }
@@ -3518,9 +3518,9 @@ UnaryOpNode::substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t 
          this part, folding into the next loop. */
       int symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, const_cast<UnaryOpNode *>(this));
       VariableNode *aux_var = datatree.AddVariable(symb_id, 0);
-      neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(aux_var,
-                                                                      datatree.AddMinus(argsubst,
-                                                                                        argsubst->decreaseLeadsLags(1)))));
+      neweqs.push_back(datatree.AddEqual(aux_var,
+                                         datatree.AddMinus(argsubst,
+                                                           argsubst->decreaseLeadsLags(1))));
       subst_table[this] = dynamic_cast<VariableNode *>(aux_var);
       return const_cast<VariableNode *>(subst_table[this]);
     }
@@ -3548,9 +3548,9 @@ UnaryOpNode::substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t 
           last_index = rit->first;
           last_aux_var = datatree.AddVariable(symb_id, 0);
           //ORIG_AUX_DIFF = argsubst - argsubst(-1)
-          neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(last_aux_var,
-                                                                          datatree.AddMinus(argsubst,
-                                                                                            argsubst->decreaseLeadsLags(1)))));
+          neweqs.push_back(datatree.AddEqual(last_aux_var,
+                                             datatree.AddMinus(argsubst,
+                                                               argsubst->decreaseLeadsLags(1))));
           subst_table[rit->second] = dynamic_cast<VariableNode *>(last_aux_var);
         }
       else
@@ -3567,8 +3567,8 @@ UnaryOpNode::substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t 
                                                                        last_aux_var->symb_id, last_aux_var->lag);
 
               new_aux_var = datatree.AddVariable(symb_id, 0);
-              neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(new_aux_var,
-                                                                              last_aux_var->decreaseLeadsLags(1))));
+              neweqs.push_back(datatree.AddEqual(new_aux_var,
+                                                 last_aux_var->decreaseLeadsLags(1)));
               last_aux_var = new_aux_var;
             }
           subst_table[rit->second] = dynamic_cast<VariableNode *>(new_aux_var);
@@ -3688,8 +3688,8 @@ UnaryOpNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_
           symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, dynamic_cast<UnaryOpNode *>(rit->second), unary_op,
                                                                  vn->symb_id, vn->lag);
         aux_var = datatree.AddVariable(symb_id, 0);
-        neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(aux_var,
-                                                                        dynamic_cast<UnaryOpNode *>(rit->second))));
+        neweqs.push_back(datatree.AddEqual(aux_var,
+                                           dynamic_cast<UnaryOpNode *>(rit->second)));
         subst_table[rit->second] = dynamic_cast<VariableNode *>(aux_var);
         base_index = rit->first;
       }
@@ -3794,7 +3794,7 @@ UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNo
       //arg(lag-period) (holds entire subtree of arg(lag-period)
       expr_t substexpr = (arg->substituteExpectation(subst_table, neweqs, partial_information_model))->decreaseLeadsLags(expectation_information_set);
       assert(substexpr);
-      neweqs.push_back(dynamic_cast<BinaryOpNode *>(datatree.AddEqual(newAuxE, substexpr))); //AUXE_period_arg.idx = arg(lag-period)
+      neweqs.push_back(datatree.AddEqual(newAuxE, substexpr)); //AUXE_period_arg.idx = arg(lag-period)
       newAuxE = datatree.AddVariable(symb_id, expectation_information_set);
 
       assert(dynamic_cast<VariableNode *>(newAuxE));

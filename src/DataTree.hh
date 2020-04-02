@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -244,7 +244,7 @@ public:
   //! Add 2nd derivative of steady state w.r.t. parameter to model tree
   expr_t AddSteadyStateParam2ndDeriv(expr_t iArg1, int param1_symb_id, int param2_symb_id);
   //! Adds "arg1=arg2" to model tree
-  expr_t AddEqual(expr_t iArg1, expr_t iArg2);
+  BinaryOpNode *AddEqual(expr_t iArg1, expr_t iArg2);
   //! Adds "var_expectation(model_name)" to model tree
   expr_t AddVarExpectation(const string &model_name);
   //! Adds pac_expectation command to model tree

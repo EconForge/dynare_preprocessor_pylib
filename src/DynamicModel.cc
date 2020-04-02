@@ -4621,9 +4621,9 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
         {
           int symb_id = symbol_table.addDiffAuxiliaryVar(diff_node_to_search->idx, diff_node_to_search);
           target_base_diff_node = AddVariable(symb_id);
-          addEquation(dynamic_cast<BinaryOpNode *>(AddEqual(const_cast<VariableNode *>(target_base_diff_node),
-                                                            AddMinus(AddVariable(pac_target_symb_id),
-                                                                     AddVariable(pac_target_symb_id, -1)))), -1);
+          addEquation(AddEqual(const_cast<VariableNode *>(target_base_diff_node),
+                               AddMinus(AddVariable(pac_target_symb_id),
+                                        AddVariable(pac_target_symb_id, -1))), -1);
           neqs++;
         }
 
@@ -4635,8 +4635,8 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
           int symb_id = symbol_table.addDiffLeadAuxiliaryVar(this_diff_node->idx, this_diff_node,
                                                              last_aux_var->symb_id, last_aux_var->lag);
           VariableNode *current_aux_var = AddVariable(symb_id);
-          addEquation(dynamic_cast<BinaryOpNode *>(AddEqual(current_aux_var,
-                                                            AddVariable(last_aux_var->symb_id, 1))), -1);
+          addEquation(AddEqual(current_aux_var,
+                               AddVariable(last_aux_var->symb_id, 1)), -1);
           last_aux_var = current_aux_var;
           target_aux_var_to_add[i] = current_aux_var;
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -687,10 +687,12 @@ DataTree::AddPacExpectation(const string &model_name)
   return p;
 }
 
-expr_t
+BinaryOpNode *
 DataTree::AddEqual(expr_t iArg1, expr_t iArg2)
 {
-  return AddBinaryOp(iArg1, BinaryOpcode::equal, iArg2);
+  /* We know that we can safely cast to BinaryOpNode because
+     BinaryOpCode::equal can never be reduced to a constant. */
+  return dynamic_cast<BinaryOpNode *>(AddBinaryOp(iArg1, BinaryOpcode::equal, iArg2));
 }
 
 void
