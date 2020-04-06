@@ -909,8 +909,10 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   else if (clear_global)
     mOutputFile << "clear M_ options_ oo_ estim_params_ bayestopt_ dataset_ dataset_info estimation_info ys0_ ex0_;" << endl;
 
-  mOutputFile << "tic0 = tic;" << endl
-              << "% Define global variables." << endl
+  if (!notime)
+    mOutputFile << "tic0 = tic;" << endl;
+
+  mOutputFile << "% Define global variables." << endl
               << "global M_ options_ oo_ estim_params_ bayestopt_ dataset_ dataset_info estimation_info ys0_ ex0_" << endl
               << "options_ = [];" << endl
               << "M_.fname = '" << basename << "';" << endl
@@ -1098,11 +1100,11 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
                   << "  save('" << basename << "_results.mat', 'oo_recursive_', '-append');" << endl << "end" << endl;
 
       config_file.writeEndParallel(mOutputFile);
+
       if (!notime)
-        {
           mOutputFile << endl << endl
                       << "disp(['Total computing time : ' dynsec2hms(toc(tic0)) ]);" << endl;
-        }
+
       if (!no_warn)
         {
           if (warnings.countWarnings() > 0)
