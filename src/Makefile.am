@@ -42,8 +42,8 @@ dynare_m_SOURCES = \
 	Statement.hh \
 	ExprNode.cc \
 	ExprNode.hh \
-	MinimumFeedbackSet.cc \
-	MinimumFeedbackSet.hh \
+	VariableDependencyGraph.cc \
+	VariableDependencyGraph.hh \
 	DynareMain.cc \
 	MacroExpandModFile.cc \
 	CodeInterpreter.hh \
