@@ -1146,7 +1146,7 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
 
       reduceBlocksAndTypeDetermination(blocks, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, false);
 
-      printBlockDecomposition(blocks);
+      printBlockDecomposition();
 
       computeChainRuleJacobian();
 

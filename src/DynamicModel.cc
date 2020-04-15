@@ -4795,8 +4795,8 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
   jacob_map_t contemporaneous_jacobian, static_jacobian;
   map<tuple<int, int, int>, expr_t> first_order_endo_derivatives;
-  // for each block contains pair<Size, Feddback_variable>
-  vector<pair<int, int>> blocks;
+  // For each simultaneous block contains pair<Size, Num_Feedback_variable>
+  vector<pair<int, int>> simblock_size;
   vector<int> n_static, n_forward, n_backward, n_mixed;
 
   if (linear_decomposition)
@@ -4811,14 +4811,14 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
       lag_lead_vector_t equation_lag_lead, variable_lag_lead;
 
-      tie(blocks, equation_lag_lead, variable_lag_lead, n_static, n_forward, n_backward, n_mixed)
+      tie(simblock_size, equation_lag_lead, variable_lag_lead, n_static, n_forward, n_backward, n_mixed)
         = select_non_linear_equations_and_variables(is_equation_linear);
 
       equationTypeDetermination(first_order_endo_derivatives, 0);
       prologue = 0;
       epilogue = 0;
 
-      reduceBlocksAndTypeDetermination(blocks, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, linear_decomposition);
+      reduceBlocksAndTypeDetermination(simblock_size, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, linear_decomposition);
 
       computeChainRuleJacobian();
 
@@ -4849,11 +4849,11 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
       lag_lead_vector_t equation_lag_lead, variable_lag_lead;
 
-      tie(blocks, equation_lag_lead, variable_lag_lead, n_static, n_forward, n_backward, n_mixed) = computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, equation_type_and_normalized_equation, false, true);
+      tie(simblock_size, equation_lag_lead, variable_lag_lead, n_static, n_forward, n_backward, n_mixed) = computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, equation_type_and_normalized_equation, false, true);
 
-      reduceBlocksAndTypeDetermination(blocks, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, linear_decomposition);
+      reduceBlocksAndTypeDetermination(simblock_size, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, linear_decomposition);
 
-      printBlockDecomposition(blocks);
+      printBlockDecomposition();
 
       computeChainRuleJacobian();
 

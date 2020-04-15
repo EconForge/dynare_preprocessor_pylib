@@ -172,6 +172,7 @@ protected:
   dynamic_jacob_map_t dynamic_jacobian;
 
   //! vector of block reordered variables and equations
+  // See also updateReverseVariableEquationOrderings()
   vector<int> equation_reordered, variable_reordered, inv_equation_reordered, inv_variable_reordered;
 
   //! Store the derivatives or the chainrule derivatives:map<tuple<equation, variable, lead_lag>, expr_t>
@@ -183,7 +184,7 @@ protected:
   //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
   equation_type_and_normalized_equation_t equation_type_and_normalized_equation;
 
-  //! for each block contains pair< Simulation_Type, pair < Block_Size, Recursive_part_Size >>
+  //! For each block contains tuple<Simulation_Type, first_equation, Block_Size, Recursive_part_Size>
   block_type_firstequation_size_mfs_t block_type_firstequation_size_mfs;
 
   //! for all blocks derivatives description
@@ -266,6 +267,13 @@ protected:
   //! for each block contains pair< max_lag, max_lead>
   lag_lead_vector_t block_lag_lead;
 
+  /* Compute a pseudo-Jacobian whose all elements are either zero or one,
+     depending on whether the variable symbolically appears in the equation */
+  jacob_map_t computeSymbolicJacobian() const;
+
+  // Update inv_{equation,variable}_reordered from {equation,variable}_reordered
+  void updateReverseVariableEquationOrderings();
+
   //! Compute the matching between endogenous and variable using the jacobian contemporaneous_jacobian
   /*!
     \param contemporaneous_jacobian Jacobian used as an incidence matrix: all elements declared in the map (even if they are zero), are used as vertices of the incidence matrix
@@ -300,14 +308,14 @@ protected:
       n_forward, n_backward, n_mixed) */
   tuple<vector<pair<int, int>>, lag_lead_vector_t, lag_lead_vector_t, vector<int>, vector<int>, vector<int>, vector<int>> computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_, bool select_feedback_variable);
   //! Reduce the number of block merging the same type equation in the prologue and the epilogue and determine the type of each block
-  void reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &n_static, const vector<int> &n_forward, const vector<int> &n_backward, const vector<int> &n_mixed, bool linear_decomposition);
+  void reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &simblock_size, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &n_static, const vector<int> &n_forward, const vector<int> &n_backward, const vector<int> &n_mixed, bool linear_decomposition);
   //! Determine the maximum number of lead and lag for the endogenous variable in a bloc
   /*! Returns a pair { equation_lead,lag, variable_lead_lag } */
-  pair<lag_lead_vector_t, lag_lead_vector_t> getVariableLeadLagByBlock(const vector<int> &components_set, int nb_blck_sim) const;
+  pair<lag_lead_vector_t, lag_lead_vector_t> getVariableLeadLagByBlock(const vector<int> &endo2simblock, int num_simblocks) const;
   //! For each equation determine if it is linear or not
   vector<bool> equationLinear(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives) const;
   //! Print an abstract of the block structure of the model
-  void printBlockDecomposition(const vector<pair<int, int>> &blocks) const;
+  void printBlockDecomposition() const;
   //! Determine for each block if it is linear or not
   void determineLinearBlocks();
   //! Remove equations specified by exclude_eqs

@@ -349,14 +349,7 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
       /* If no non-singular normalization can be found, try to find a
          normalization even with a potential singularity.
          TODO: Explain why symbolic_jacobian is not contemporaneous. */
-      jacob_map_t symbolic_jacobian;
-      for (int i = 0; i < n; i++)
-        {
-          set<pair<int, int>> endos_and_lags;
-          equations[i]->collectEndogenous(endos_and_lags);
-          for (const auto &[endo, lag] : endos_and_lags)
-            symbolic_jacobian[{ i, endo }] = 1;
-        }
+      auto symbolic_jacobian = computeSymbolicJacobian();
       found_normalization = computeNormalization(symbolic_jacobian, true);
       if (found_normalization)
         {
@@ -473,7 +466,6 @@ ModelTree::select_non_linear_equations_and_variables(const vector<bool> &is_equa
     if (!is_equation_linear[it])
       num++;
   vector<int> endo2block(endo2eq.size(), 1);
-  vector<pair<set<int>, pair<set<int>, vector<int>>>> components_set(num);
   int i = 0, j = 0;
   for (auto it : endo2eq)
     if (!is_equation_linear[it])
@@ -481,7 +473,6 @@ ModelTree::select_non_linear_equations_and_variables(const vector<bool> &is_equa
         equation_reordered[i] = it;
         variable_reordered[i] = j;
         endo2block[j] = 0;
-        components_set[endo2block[j]].first.insert(i);
         i++;
         j++;
       }
@@ -500,16 +491,9 @@ ModelTree::select_non_linear_equations_and_variables(const vector<bool> &is_equa
         n_static[i]++;
     }
   cout.flush();
-  int nb_endo = is_equation_linear.size();
-  vector<pair<int, int>> blocks(1, {i, i});
-  inv_equation_reordered.resize(nb_endo);
-  inv_variable_reordered.resize(nb_endo);
-  for (int i = 0; i < nb_endo; i++)
-    {
-      inv_variable_reordered[variable_reordered[i]] = i;
-      inv_equation_reordered[equation_reordered[i]] = i;
-    }
-  return { blocks, equation_lag_lead, variable_lag_lead,
+  vector<pair<int, int>> simblock_size(1, {i, i});
+  updateReverseVariableEquationOrderings();
+  return { simblock_size, equation_lag_lead, variable_lag_lead,
            n_static, n_forward, n_backward, n_mixed };
 }
 
@@ -546,7 +530,7 @@ ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian)
 {
   const int n = equations.size();
 
-  /* Compute reverse map (eq→var) of normalization. Also initialize
+  /* Compute reverse map (eq→endo) of normalization. Also initialize
      “equation_reordered” and “variable_reordered” to the identity
      permutation. */
   vector<int> eq2endo(n);
@@ -562,7 +546,7 @@ ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian)
 
   /* Compute incidence matrix, equations in rows, variables in columns. Row
      (resp. column) indices are to be interpreted according to
-     “equation_ordered” (resp. “variable_reordered”). Stored in row-major
+     “equation_reordered” (resp. “variable_reordered”). Stored in row-major
      order. */
   vector<bool> IM(n*n, false);
   if (cutoff == 0)
@@ -647,6 +631,8 @@ ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian)
       epilogue = new_epilogue;
     }
   while (something_has_been_done);
+
+  updateReverseVariableEquationOrderings();
 }
 
 void
@@ -691,7 +677,7 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
 }
 
 pair<lag_lead_vector_t, lag_lead_vector_t>
-ModelTree::getVariableLeadLagByBlock(const vector<int> &components_set, int nb_blck_sim) const
+ModelTree::getVariableLeadLagByBlock(const vector<int> &endo2simblock, int num_simblocks) const
 {
   int nb_endo = symbol_table.endo_nbr();
   lag_lead_vector_t variable_lead_lag(nb_endo, { 0, 0 }), equation_lead_lag(nb_endo, { 0, 0 });
@@ -703,20 +689,20 @@ ModelTree::getVariableLeadLagByBlock(const vector<int> &components_set, int nb_b
           variable_blck[variable_reordered[i]] = i;
           equation_blck[equation_reordered[i]] = i;
         }
-      else if (i < static_cast<int>(components_set.size()) + prologue)
+      else if (i < static_cast<int>(endo2simblock.size()) + prologue)
         {
-          variable_blck[variable_reordered[i]] = components_set[i-prologue] + prologue;
-          equation_blck[equation_reordered[i]] = components_set[i-prologue] + prologue;
+          variable_blck[variable_reordered[i]] = endo2simblock[i-prologue] + prologue;
+          equation_blck[equation_reordered[i]] = endo2simblock[i-prologue] + prologue;
         }
       else
         {
-          variable_blck[variable_reordered[i]] = i- (nb_endo - nb_blck_sim - prologue - epilogue);
-          equation_blck[equation_reordered[i]] = i- (nb_endo - nb_blck_sim - prologue - epilogue);
+          variable_blck[variable_reordered[i]] = i - (nb_endo - num_simblocks - prologue - epilogue);
+          equation_blck[equation_reordered[i]] = i - (nb_endo - num_simblocks - prologue - epilogue);
         }
     }
-  for (const auto &it : dynamic_jacobian)
+  for (const auto &[key, value] : dynamic_jacobian)
     {
-      auto [lag, j_1, i_1] = it.first;
+      auto [lag, j_1, i_1] = key;
       if (variable_blck[i_1] == equation_blck[j_1])
         {
           if (lag > variable_lead_lag[i_1].second)
@@ -740,55 +726,42 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   int n = nb_var - prologue - epilogue;
 
   /* Construct the graph representing the dependencies between all
-     variables that do not belong to the prologue or the epilogue. */
+     variables that do not belong to the prologue or the epilogue.
+
+     For detecting dependencies between variables, use the static jacobian,
+     except when the cutoff is zero, in which case use the symbolic adjacency
+     matrix */
   VariableDependencyGraph G(n);
-
-  vector<int> reverse_equation_reordered(nb_var), reverse_variable_reordered(nb_var);
-  for (int i = 0; i < nb_var; i++)
+  for (const auto &[key, value] : cutoff == 0 ? computeSymbolicJacobian() : static_jacobian)
     {
-      reverse_equation_reordered[equation_reordered[i]] = i;
-      reverse_variable_reordered[variable_reordered[i]] = i;
+      auto [eq, endo] = key;
+      if (inv_equation_reordered[eq] >= prologue
+          && inv_equation_reordered[eq] < nb_var - epilogue
+          && inv_variable_reordered[endo] >= prologue
+          && inv_variable_reordered[endo] < nb_var - epilogue
+          && eq != endo2eq[endo])
+        add_edge(vertex(inv_equation_reordered[endo2eq[endo]]-prologue, G),
+                 vertex(inv_equation_reordered[eq]-prologue, G), G);
     }
 
-  jacob_map_t tmp_normalized_contemporaneous_jacobian;
-  if (cutoff == 0)
-    for (int i = 0; i < nb_var; i++)
-      {
-        set<pair<int, int>> endo;
-        equations[i]->collectEndogenous(endo);
-        for (const auto &it : endo)
-          tmp_normalized_contemporaneous_jacobian[{ i, it.first }] = 1;
-      }
-  else
-    tmp_normalized_contemporaneous_jacobian = static_jacobian;
-  for (const auto &[key, value] : tmp_normalized_contemporaneous_jacobian)
-    if (reverse_equation_reordered[key.first] >= prologue && reverse_equation_reordered[key.first] < nb_var - epilogue
-        && reverse_variable_reordered[key.second] >= prologue && reverse_variable_reordered[key.second] < nb_var - epilogue
-        && key.first != endo2eq[key.second])
-      add_edge(vertex(reverse_equation_reordered[endo2eq[key.second]]-prologue, G),
-               vertex(reverse_equation_reordered[key.first]-prologue, G),
-               G);
+  /* Identify the simultaneous blocks. Each simultaneous block is given an
+     index, starting from 0, in recursive order */
+  auto [num_simblocks, endo2simblock] = G.sortedStronglyConnectedComponents();
 
-  /* Compute the mapping between endogenous and blocks, using a strongly
-     connected components (SCC) decomposition */
-  auto [num_scc, endo2block] = G.sortedStronglyConnectedComponents();
+  vector<pair<int, int>> simblock_size(num_simblocks, { 0, 0 });
 
-  vector<pair<int, int>> blocks(num_scc, { 0, 0 });
-
-  /* This vector contains for each block:
-     – first set = equations belonging to the block,
-     — second set = the feeback variables,
-     — third vector = the reordered non-feedback variables. */
-  vector<tuple<set<int>, set<int>, vector<int>>> components_set(num_scc);
-  for (int i = 0; i < static_cast<int>(endo2block.size()); i++)
+  // equations belonging to the block
+  vector<set<int>> eqs_in_simblock(num_simblocks);
+  for (int i = 0; i < static_cast<int>(endo2simblock.size()); i++)
     {
-      blocks[endo2block[i]].first++;
-      get<0>(components_set[endo2block[i]]).insert(i);
+      simblock_size[endo2simblock[i]].first++;
+      eqs_in_simblock[endo2simblock[i]].insert(i);
     }
 
-  auto [equation_lag_lead, variable_lag_lead] = getVariableLeadLagByBlock(endo2block, num_scc);
+  auto [equation_lag_lead, variable_lag_lead] = getVariableLeadLagByBlock(endo2simblock, num_simblocks);
 
-  // Add a loop on vertices which could not be normalized or vertices related to lead variables => force those vertices to belong to the feedback set
+  /* Add a loop on vertices which could not be normalized or vertices related
+     to lead variables. This forces those vertices to belong to the feedback set */
   if (select_feedback_variable)
     {
       for (int i = 0; i < n; i++)
@@ -805,126 +778,131 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
       if (Equation_Type[equation_reordered[i+prologue]].first == EquationType::solve || mfs == 0)
         add_edge(vertex(i, G), vertex(i, G), G);
 
+  int num_blocks = prologue+num_simblocks+epilogue;
   // Determines the dynamic structure of each equation
-  vector<int> n_static(prologue+num_scc+epilogue, 0), n_forward(prologue+num_scc+epilogue, 0),
-    n_backward(prologue+num_scc+epilogue, 0), n_mixed(prologue+num_scc+epilogue, 0);
+  vector<int> n_static(num_blocks, 0), n_forward(num_blocks, 0),
+    n_backward(num_blocks, 0), n_mixed(num_blocks, 0);
 
-  vector<int> tmp_equation_reordered(equation_reordered), tmp_variable_reordered(variable_reordered);
+  const vector<int> old_equation_reordered(equation_reordered), old_variable_reordered(variable_reordered);
   for (int i = 0; i < prologue; i++)
-    if (variable_lag_lead[tmp_variable_reordered[i]].first != 0 && variable_lag_lead[tmp_variable_reordered[i]].second != 0)
-      n_mixed[i]++;
-    else if (variable_lag_lead[tmp_variable_reordered[i]].first == 0 && variable_lag_lead[tmp_variable_reordered[i]].second != 0)
-      n_forward[i]++;
-    else if (variable_lag_lead[tmp_variable_reordered[i]].first != 0 && variable_lag_lead[tmp_variable_reordered[i]].second == 0)
-      n_backward[i]++;
-    else if (variable_lag_lead[tmp_variable_reordered[i]].first == 0 && variable_lag_lead[tmp_variable_reordered[i]].second == 0)
-      n_static[i]++;
+    {
+      int max_lag = variable_lag_lead[old_variable_reordered[i]].first;
+      int max_lead = variable_lag_lead[old_variable_reordered[i]].second;
+      if (max_lag != 0 && max_lead != 0)
+        n_mixed[i]++;
+      else if (max_lag == 0 && max_lead != 0)
+        n_forward[i]++;
+      else if (max_lag != 0 && max_lead == 0)
+        n_backward[i]++;
+      else
+        n_static[i]++;
+    }
 
   /* For each block, the minimum set of feedback variable is computed and the
      non-feedback variables are reordered to get a sub-recursive block without
      feedback variables. */
 
-  int order = prologue;
-  for (int i = 0; i < num_scc; i++)
+  int ordidx = prologue;
+  for (int i = 0; i < num_simblocks; i++)
     {
-      auto subG = G.extractSubgraph(get<0>(components_set[i]));
+      auto subG = G.extractSubgraph(eqs_in_simblock[i]);
       auto [G1, feed_back_vertices] = subG.minimalSetOfFeedbackVertices();
       auto v_index1 = get(boost::vertex_index1, subG);
-      get<1>(components_set[i]) = feed_back_vertices;
-      blocks[i].second = feed_back_vertices.size();
+      simblock_size[i].second = feed_back_vertices.size();
       auto reordered_vertices = subG.reorderRecursiveVariables(feed_back_vertices);
 
       // First we have the recursive equations conditional on feedback variables
       for (int j = 0; j < 4; j++)
         for (int its : reordered_vertices)
           {
-            bool something_done = false;
-            if (j == 2 && variable_lag_lead[tmp_variable_reordered[its+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[its+prologue]].second != 0)
+            int max_lag = variable_lag_lead[old_variable_reordered[its+prologue]].first;
+            int max_lead = variable_lag_lead[old_variable_reordered[its+prologue]].second;
+            auto reorder = [&]()
+                           {
+                             equation_reordered[ordidx] = old_equation_reordered[its+prologue];
+                             variable_reordered[ordidx] = old_variable_reordered[its+prologue];
+                             ordidx++;
+                           };
+            if (j == 2 && max_lag != 0 && max_lead != 0)
               {
                 n_mixed[prologue+i]++;
-                something_done = true;
+                reorder();
               }
-            else if (j == 3 && variable_lag_lead[tmp_variable_reordered[its+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[its+prologue]].second != 0)
+            else if (j == 3 && max_lag == 0 && max_lead != 0)
               {
                 n_forward[prologue+i]++;
-                something_done = true;
+                reorder();
               }
-            else if (j == 1 && variable_lag_lead[tmp_variable_reordered[its+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[its+prologue]].second == 0)
+            else if (j == 1 && max_lag != 0 && max_lead == 0)
               {
                 n_backward[prologue+i]++;
-                something_done = true;
+                reorder();
               }
-            else if (j == 0 && variable_lag_lead[tmp_variable_reordered[its+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[its+prologue]].second == 0)
+            else if (j == 0 && max_lag == 0 && max_lead == 0)
               {
                 n_static[prologue+i]++;
-                something_done = true;
-              }
-            if (something_done)
-              {
-                equation_reordered[order] = tmp_equation_reordered[its+prologue];
-                variable_reordered[order] = tmp_variable_reordered[its+prologue];
-                order++;
+                reorder();
               }
           }
 
-      get<2>(components_set[i]) = reordered_vertices;
       // Second we have the equations related to the feedback variables
       for (int j = 0; j < 4; j++)
-        for (int feed_back_vertice : feed_back_vertices)
+        for (int fbvertex : feed_back_vertices)
           {
-            bool something_done = false;
-            if (j == 2 && variable_lag_lead[tmp_variable_reordered[v_index1[vertex(feed_back_vertice, subG)]+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[v_index1[vertex(feed_back_vertice, subG)]+prologue]].second != 0)
+            int idx = v_index1[vertex(fbvertex, subG)];
+            int max_lag = variable_lag_lead[old_variable_reordered[idx+prologue]].first;
+            int max_lead = variable_lag_lead[old_variable_reordered[idx+prologue]].second;
+            auto reorder = [&]()
+                           {
+                             equation_reordered[ordidx] = old_equation_reordered[idx+prologue];
+                             variable_reordered[ordidx] = old_variable_reordered[idx+prologue];
+                             ordidx++;
+                           };
+            if (j == 2 && max_lag != 0 && max_lead != 0)
               {
                 n_mixed[prologue+i]++;
-                something_done = true;
+                reorder();
               }
-            else if (j == 3 && variable_lag_lead[tmp_variable_reordered[v_index1[vertex(feed_back_vertice, subG)]+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[v_index1[vertex(feed_back_vertice, subG)]+prologue]].second != 0)
+            else if (j == 3 && max_lag == 0 && max_lead != 0)
               {
                 n_forward[prologue+i]++;
-                something_done = true;
+                reorder();
               }
-            else if (j == 1 && variable_lag_lead[tmp_variable_reordered[v_index1[vertex(feed_back_vertice, subG)]+prologue]].first != 0 && variable_lag_lead[tmp_variable_reordered[v_index1[vertex(feed_back_vertice, subG)]+prologue]].second == 0)
+            else if (j == 1 && max_lag != 0 && max_lead == 0)
               {
                 n_backward[prologue+i]++;
-                something_done = true;
+                reorder();
               }
-            else if (j == 0 && variable_lag_lead[tmp_variable_reordered[v_index1[vertex(feed_back_vertice, subG)]+prologue]].first == 0 && variable_lag_lead[tmp_variable_reordered[v_index1[vertex(feed_back_vertice, subG)]+prologue]].second == 0)
+            else if (j == 0 && max_lag == 0 && max_lead == 0)
               {
                 n_static[prologue+i]++;
-                something_done = true;
-              }
-            if (something_done)
-              {
-                equation_reordered[order] = tmp_equation_reordered[v_index1[vertex(feed_back_vertice, subG)]+prologue];
-                variable_reordered[order] = tmp_variable_reordered[v_index1[vertex(feed_back_vertice, subG)]+prologue];
-                order++;
+                reorder();
               }
           }
     }
 
   for (int i = 0; i < epilogue; i++)
-    if (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first != 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second != 0)
-      n_mixed[prologue+num_scc+i]++;
-    else if (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first == 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second != 0)
-      n_forward[prologue+num_scc+i]++;
-    else if (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first != 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second == 0)
-      n_backward[prologue+num_scc+i]++;
-    else if (variable_lag_lead[tmp_variable_reordered[prologue+n+i]].first == 0 && variable_lag_lead[tmp_variable_reordered[prologue+n+i]].second == 0)
-      n_static[prologue+num_scc+i]++;
-
-  inv_equation_reordered.resize(nb_var);
-  inv_variable_reordered.resize(nb_var);
-  for (int i = 0; i < nb_var; i++)
     {
-      inv_variable_reordered[variable_reordered[i]] = i;
-      inv_equation_reordered[equation_reordered[i]] = i;
+      int max_lag = variable_lag_lead[old_variable_reordered[prologue+n+i]].first;
+      int max_lead = variable_lag_lead[old_variable_reordered[prologue+n+i]].second;
+      if (max_lag != 0 && max_lead != 0)
+        n_mixed[prologue+num_simblocks+i]++;
+      else if (max_lag == 0 && max_lead != 0)
+        n_forward[prologue+num_simblocks+i]++;
+      else if (max_lag != 0 && max_lead == 0)
+        n_backward[prologue+num_simblocks+i]++;
+      else
+        n_static[prologue+num_simblocks+i]++;
     }
 
-  return { blocks, equation_lag_lead, variable_lag_lead, n_static, n_forward, n_backward, n_mixed };
+  updateReverseVariableEquationOrderings();
+
+  return { simblock_size, equation_lag_lead, variable_lag_lead,
+           n_static, n_forward, n_backward, n_mixed };
 }
 
 void
-ModelTree::printBlockDecomposition(const vector<pair<int, int>> &blocks) const
+ModelTree::printBlockDecomposition() const
 {
   int largest_block = 0,
     Nb_SimulBlocks = 0,
@@ -955,46 +933,41 @@ ModelTree::printBlockDecomposition(const vector<pair<int, int>> &blocks) const
 }
 
 void
-ModelTree::reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &n_static, const vector<int> &n_forward, const vector<int> &n_backward, const vector<int> &n_mixed, bool linear_decomposition)
+ModelTree::reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &simblock_size, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &n_static, const vector<int> &n_forward, const vector<int> &n_backward, const vector<int> &n_mixed, bool linear_decomposition)
 {
-  int i = 0;
-  int count_equ = 0, blck_count_simult = 0;
-  int Blck_Size, MFS_Size;
-  int Lead, Lag;
+  int count_equ = 0, simblock_counter = 0;
   block_type_firstequation_size_mfs.clear();
-  BlockSimulationType Simulation_Type, prev_Type = BlockSimulationType::unknown;
+  BlockSimulationType prev_Type = BlockSimulationType::unknown;
   int eq = 0;
-  int l_n_static = 0, l_n_forward = 0, l_n_backward = 0, l_n_mixed = 0;
-  for (i = 0; i < prologue+static_cast<int>(blocks.size())+epilogue; i++)
+  int num_simblocks = simblock_size.size();
+  for (int i = 0; i < prologue+num_simblocks+epilogue; i++)
     {
+      int Blck_Size, MFS_Size;
       int first_count_equ = count_equ;
       if (i < prologue)
         {
           Blck_Size = 1;
           MFS_Size = 1;
         }
-      else if (i < prologue+static_cast<int>(blocks.size()))
+      else if (i < prologue+num_simblocks)
         {
-          Blck_Size = blocks[blck_count_simult].first;
-          MFS_Size = blocks[blck_count_simult].second;
-          blck_count_simult++;
+          Blck_Size = simblock_size[simblock_counter].first;
+          MFS_Size = simblock_size[simblock_counter].second;
+          simblock_counter++;
         }
-      else if (i < prologue+static_cast<int>(blocks.size())+epilogue)
+      else if (i < prologue+num_simblocks+epilogue)
         {
           Blck_Size = 1;
           MFS_Size = 1;
         }
 
-      Lag = Lead = 0;
-      set<pair<int, int>> endo;
+      int Lag = 0, Lead = 0;
       for (count_equ = first_count_equ; count_equ < Blck_Size+first_count_equ; count_equ++)
         {
-          endo.clear();
-          equations[equation_reordered[count_equ]]->collectEndogenous(endo);
-          for (const auto &it : endo)
+          set<pair<int, int>> endos_and_lags;
+          equations[equation_reordered[count_equ]]->collectEndogenous(endos_and_lags);
+          for (const auto &[curr_variable, curr_lag] : endos_and_lags)
             {
-              int curr_variable = it.first;
-              int curr_lag = it.second;
               if (linear_decomposition)
                 {
                   if (dynamic_jacobian.find({ curr_lag, equation_reordered[count_equ], curr_variable }) != dynamic_jacobian.end())
@@ -1019,6 +992,7 @@ ModelTree::reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks
                 }
             }
         }
+      BlockSimulationType Simulation_Type;
       if (Lag > 0 && Lead > 0)
         {
           if (Blck_Size == 1)
@@ -1040,10 +1014,10 @@ ModelTree::reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &blocks
           else
             Simulation_Type = BlockSimulationType::solveForwardSimple;
         }
-      l_n_static = n_static[i];
-      l_n_forward = n_forward[i];
-      l_n_backward = n_backward[i];
-      l_n_mixed = n_mixed[i];
+      int l_n_static = n_static[i];
+      int l_n_forward = n_forward[i];
+      int l_n_backward = n_backward[i];
+      int l_n_mixed = n_mixed[i];
       if (Blck_Size == 1)
         {
           if (Equation_Type[equation_reordered[eq]].first == EquationType::evaluate
@@ -2385,4 +2359,31 @@ ModelTree::collectFirstOrderDerivativesEndogenous()
         endo_derivatives[{ eq, var, lag }] = d1;
       }
   return endo_derivatives;
+}
+
+ModelTree::jacob_map_t
+ModelTree::computeSymbolicJacobian() const
+{
+  jacob_map_t symbolic_jacobian;
+  for (int i = 0; i < static_cast<int>(equations.size()); i++)
+    {
+      set<pair<int, int>> endos_and_lags;
+      equations[i]->collectEndogenous(endos_and_lags);
+      for (const auto &[endo, lag] : endos_and_lags)
+        symbolic_jacobian[{ i, endo }] = 1;
+    }
+  return symbolic_jacobian;
+}
+
+void
+ModelTree::updateReverseVariableEquationOrderings()
+{
+  int n = equations.size();
+  inv_equation_reordered.resize(n);
+  inv_variable_reordered.resize(n);
+  for (int i = 0; i < n; i++)
+    {
+      inv_variable_reordered[variable_reordered[i]] = i;
+      inv_equation_reordered[equation_reordered[i]] = i;
+    }
 }
