@@ -553,121 +553,21 @@ public:
     return tuple(static_only_equations, static_only_equations_lineno, static_only_equations_equation_tags);
   };
 
-  //! Return the number of blocks
-  int
-  getNbBlocks() const override
-  {
-    return block_type_firstequation_size_mfs.size();
-  };
-  //! Determine the simulation type of each block
-  BlockSimulationType
-  getBlockSimulationType(int block_number) const override
-  {
-    return get<0>(block_type_firstequation_size_mfs[block_number]);
-  };
-  //! Return the first equation number of a block
-  int
-  getBlockFirstEquation(int block_number) const override
-  {
-    return get<1>(block_type_firstequation_size_mfs[block_number]);
-  };
-  //! Return the size of the block block_number
-  int
-  getBlockSize(int block_number) const override
-  {
-    return get<2>(block_type_firstequation_size_mfs[block_number]);
-  };
-  //! Return the number of exogenous variable in the block block_number
   int
   getBlockExoSize(int block_number) const override
   {
     return block_var_exo[block_number].first.size();
   };
-  //! Return the number of colums in the jacobian matrix for exogenous variable in the block block_number
   int
   getBlockExoColSize(int block_number) const override
   {
     return block_var_exo[block_number].second;
   };
-  //! Return the number of feedback variable of the block block_number
-  int
-  getBlockMfs(int block_number) const override
-  {
-    return get<3>(block_type_firstequation_size_mfs[block_number]);
-  };
-  //! Return the maximum lag in a block
-  int
-  getBlockMaxLag(int block_number) const override
-  {
-    return block_lag_lead[block_number].first;
-  };
-  //! Return the maximum lead in a block
-  int
-  getBlockMaxLead(int block_number) const override
-  {
-    return block_lag_lead[block_number].second;
-  };
-  //! Return the type of equation (equation_number) belonging to the block block_number
-  EquationType
-  getBlockEquationType(int block_number, int equation_number) const override
-  {
-    return equation_type_and_normalized_equation[eq_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].first;
-  };
-  //! Return true if the equation has been normalized
-  bool
-  isBlockEquationRenormalized(int block_number, int equation_number) const override
-  {
-    return equation_type_and_normalized_equation[eq_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].first == EquationType::evaluate_s;
-  };
-  //! Return the expr_t of the equation equation_number belonging to the block block_number
-  expr_t
-  getBlockEquationExpr(int block_number, int equation_number) const override
-  {
-    return equations[eq_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]];
-  };
-  //! Return the expr_t of the renormalized equation equation_number belonging to the block block_number
-  expr_t
-  getBlockEquationRenormalizedExpr(int block_number, int equation_number) const override
-  {
-    return equation_type_and_normalized_equation[eq_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].second;
-  };
-  //! Return the original number of equation equation_number belonging to the block block_number
-  int
-  getBlockEquationID(int block_number, int equation_number) const override
-  {
-    return eq_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number];
-  };
-  //! Return the original number of variable variable_number belonging to the block block_number
-  int
-  getBlockVariableID(int block_number, int variable_number) const override
-  {
-    return endo_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+variable_number];
-  };
-  //! Return the original number of the exogenous variable varexo_number belonging to the block block_number
   int
   getBlockVariableExoID(int block_number, int variable_number) const override
   {
     return exo_block[block_number].find(variable_number)->first;
   };
-  //! Return the position of equation_number in the block number belonging to the block block_number
-  int
-  getBlockInitialEquationID(int block_number, int equation_number) const override
-  {
-    return eq_idx_orig2block[equation_number] - get<1>(block_type_firstequation_size_mfs[block_number]);
-  };
-  //! Return the position of variable_number in the block number belonging to the block block_number
-  int
-  getBlockInitialVariableID(int block_number, int variable_number) const override
-  {
-    return endo_idx_orig2block[variable_number] - get<1>(block_type_firstequation_size_mfs[block_number]);
-  };
-  //! Return the block number containing the endogenous variable variable_number
-  int
-  getBlockVariableID(int variable_number) const
-  {
-    return get<0>(variable_block_lead_lag[variable_number]);
-  };
-  //! Return the position of the exogenous variable_number in the block number belonging to the block block_number
   int
   getBlockInitialExogenousID(int block_number, int variable_number) const override
   {
@@ -683,7 +583,6 @@ public:
     else
       return -1;
   };
-  //! Return the position of the deterministic exogenous variable_number in the block number belonging to the block block_number
   int
   getBlockInitialDetExogenousID(int block_number, int variable_number) const override
   {
@@ -699,7 +598,6 @@ public:
     else
       return -1;
   };
-  //! Return the position of the other endogenous variable_number in the block number belonging to the block block_number
   int
   getBlockInitialOtherEndogenousID(int block_number, int variable_number) const override
   {
