@@ -391,7 +391,7 @@ VariableDependencyGraph::reorderRecursiveVariables(const set<int> &feedback_vert
 {
   vector<int> reordered_vertices;
   VariableDependencyGraph G(*this);
-  auto v_index = get(vertex_index, G);
+  auto v_index = get(vertex_index1, G);
   set<int, greater<int>> fv;
   for (auto its = feedback_vertices.begin(); its != feedback_vertices.end(); ++its)
     fv.insert(*its);
