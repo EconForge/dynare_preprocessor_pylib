@@ -970,8 +970,8 @@ DynamicModel::writeModelEquationsCode(const string &basename, const map_idx_t &m
                            simulation_type,
                            0,
                            symbol_table.endo_nbr(),
-                           variable_reordered,
-                           equation_reordered,
+                           endo_idx_block2orig,
+                           eq_idx_block2orig,
                            false,
                            symbol_table.endo_nbr(),
                            max_endo_lag,
@@ -1247,8 +1247,8 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
                                simulation_type,
                                getBlockFirstEquation(block),
                                block_size,
-                               variable_reordered,
-                               equation_reordered,
+                               endo_idx_block2orig,
+                               eq_idx_block2orig,
                                blocks_linear[block],
                                symbol_table.endo_nbr(),
                                block_max_lag,
@@ -3121,9 +3121,9 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
     for (int lag = -max_endo_lag; lag < 0; lag++)
       try
         {
-          getDerivID(symbol_table.getID(SymbolType::endogenous, variable_reordered[endoID]), lag);
-          if (lag < 0 && find(state_var.begin(), state_var.end(), variable_reordered[endoID]+1) == state_var.end())
-            state_var.push_back(variable_reordered[endoID]+1);
+          getDerivID(symbol_table.getID(SymbolType::endogenous, endo_idx_block2orig[endoID]), lag);
+          if (lag < 0 && find(state_var.begin(), state_var.end(), endo_idx_block2orig[endoID]+1) == state_var.end())
+            state_var.push_back(endo_idx_block2orig[endoID]+1);
         }
       catch (UnknownDerivIDException &e)
         {
@@ -3344,19 +3344,19 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
       int nb_endo = symbol_table.endo_nbr();
       output << modstruct << "block_structure.variable_reordered = [";
       for (int i = 0; i < nb_endo; i++)
-        output << " " << variable_reordered[i]+1;
+        output << " " << endo_idx_block2orig[i]+1;
       output << "];" << endl;
       output << modstruct << "block_structure.equation_reordered = [";
       for (int i = 0; i < nb_endo; i++)
-        output << " " << equation_reordered[i]+1;
+        output << " " << eq_idx_block2orig[i]+1;
       output << "];" << endl;
       vector<int> variable_inv_reordered(nb_endo);
 
       for (int i = 0; i < nb_endo; i++)
-        variable_inv_reordered[variable_reordered[i]] = i;
+        variable_inv_reordered[endo_idx_block2orig[i]] = i;
 
       for (int it : state_var)
-        state_equ.push_back(equation_reordered[variable_inv_reordered[it - 1]]+1);
+        state_equ.push_back(eq_idx_block2orig[variable_inv_reordered[it - 1]]+1);
 
       map<tuple<int, int, int>, int> lag_row_incidence;
       for (const auto & [indices, d1] : derivatives[1])
@@ -4874,8 +4874,8 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
         {
           for (int j = 0; j < getBlockSize(i); j++)
             {
-              equation_block[equation_reordered[k]] = i;
-              int l = variable_reordered[k];
+              equation_block[eq_idx_block2orig[k]] = i;
+              int l = endo_idx_block2orig[k];
               variable_block_lead_lag[l] = { i, variable_lag_lead[l].first, variable_lag_lead[l].second };
               k++;
             }
@@ -5101,7 +5101,7 @@ void
 DynamicModel::collect_block_first_order_derivatives()
 {
   //! vector for an equation or a variable indicates the block number
-  vector<int> equation_2_block(equation_reordered.size()), variable_2_block(variable_reordered.size());
+  vector<int> equation_2_block(eq_idx_block2orig.size()), variable_2_block(endo_idx_block2orig.size());
   int nb_blocks = getNbBlocks();
   for (int block = 0; block < nb_blocks; block++)
     {

@@ -248,37 +248,37 @@ public:
   EquationType
   getBlockEquationType(int block_number, int equation_number) const override
   {
-    return (equation_type_and_normalized_equation[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].first);
+    return (equation_type_and_normalized_equation[eq_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].first);
   };
   //! Return true if the equation has been normalized
   bool
   isBlockEquationRenormalized(int block_number, int equation_number) const override
   {
-    return (equation_type_and_normalized_equation[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].first == EquationType::evaluate_s);
+    return (equation_type_and_normalized_equation[eq_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].first == EquationType::evaluate_s);
   };
   //! Return the expr_t of the equation equation_number belonging to the block block_number
   expr_t
   getBlockEquationExpr(int block_number, int equation_number) const override
   {
-    return (equations[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]]);
+    return (equations[eq_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]]);
   };
   //! Return the expr_t of the renormalized equation equation_number belonging to the block block_number
   expr_t
   getBlockEquationRenormalizedExpr(int block_number, int equation_number) const override
   {
-    return (equation_type_and_normalized_equation[equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].second);
+    return (equation_type_and_normalized_equation[eq_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].second);
   };
   //! Return the original number of equation equation_number belonging to the block block_number
   int
   getBlockEquationID(int block_number, int equation_number) const override
   {
-    return (equation_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]);
+    return (eq_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]);
   };
   //! Return the original number of variable variable_number belonging to the block block_number
   int
   getBlockVariableID(int block_number, int variable_number) const override
   {
-    return (variable_reordered[get<1>(block_type_firstequation_size_mfs[block_number])+variable_number]);
+    return (endo_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+variable_number]);
   };
   //! Return the original number of the exogenous variable varexo_number belonging to the block block_number
   int
@@ -290,13 +290,13 @@ public:
   int
   getBlockInitialEquationID(int block_number, int equation_number) const override
   {
-    return inv_equation_reordered[equation_number] - get<1>(block_type_firstequation_size_mfs[block_number]);
+    return eq_idx_orig2block[equation_number] - get<1>(block_type_firstequation_size_mfs[block_number]);
   };
   //! Return the position of variable_number in the block number belonging to the block block_number
   int
   getBlockInitialVariableID(int block_number, int variable_number) const override
   {
-    return inv_variable_reordered[variable_number] - get<1>(block_type_firstequation_size_mfs[block_number]);
+    return endo_idx_orig2block[variable_number] - get<1>(block_type_firstequation_size_mfs[block_number]);
   };
   //! Return the position of variable_number in the block number belonging to the block block_number
   int

@@ -171,9 +171,15 @@ protected:
   //! The jacobian without the elements below the cutoff
   dynamic_jacob_map_t dynamic_jacobian;
 
-  //! vector of block reordered variables and equations
-  // See also updateReverseVariableEquationOrderings()
-  vector<int> equation_reordered, variable_reordered, inv_equation_reordered, inv_variable_reordered;
+  /* Maps indices of equations in the block-decomposition order into original
+     equation IDs */
+  vector<int> eq_idx_block2orig;
+  /* Maps indices of (endogenous) variables in the block-decomposition order into original
+     type-specific endogenous IDs */
+  vector<int> endo_idx_block2orig;
+  /* Maps original variable and equation indices into the block-decomposition order.
+     Set by updateReverseVariableEquationOrderings() */
+  vector<int> eq_idx_orig2block, endo_idx_orig2block;
 
   //! Store the derivatives or the chainrule derivatives:map<tuple<equation, variable, lead_lag>, expr_t>
   using first_chain_rule_derivatives_t = map<tuple<int, int, int>, expr_t>;
@@ -271,7 +277,7 @@ protected:
      depending on whether the variable symbolically appears in the equation */
   jacob_map_t computeSymbolicJacobian() const;
 
-  // Update inv_{equation,variable}_reordered from {equation,variable}_reordered
+  // Compute {var,eq}_idx_orig2block from {var,eq}_idx_block2orig
   void updateReverseVariableEquationOrderings();
 
   //! Compute the matching between endogenous and variable using the jacobian contemporaneous_jacobian

@@ -507,8 +507,8 @@ StaticModel::writeModelEquationsCode(const string &basename, map_idx_t map_idx) 
                            BlockSimulationType::solveForwardComplete,
                            0,
                            symbol_table.endo_nbr(),
-                           variable_reordered,
-                           equation_reordered,
+                           endo_idx_block2orig,
+                           eq_idx_block2orig,
                            false,
                            symbol_table.endo_nbr(),
                            0,
@@ -701,8 +701,8 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
                                simulation_type,
                                getBlockFirstEquation(block),
                                block_size,
-                               variable_reordered,
-                               equation_reordered,
+                               endo_idx_block2orig,
+                               eq_idx_block2orig,
                                blocks_linear[block],
                                symbol_table.endo_nbr(),
                                0,
@@ -2035,11 +2035,11 @@ StaticModel::writeOutput(ostream &output, bool block) const
   int nb_endo = symbol_table.endo_nbr();
   output << "M_.block_structure_stat.variable_reordered = [";
   for (int i = 0; i < nb_endo; i++)
-    output << " " << variable_reordered[i]+1;
+    output << " " << endo_idx_block2orig[i]+1;
   output << "];" << endl
          << "M_.block_structure_stat.equation_reordered = [";
   for (int i = 0; i < nb_endo; i++)
-    output << " " << equation_reordered[i]+1;
+    output << " " << eq_idx_block2orig[i]+1;
   output << "];" << endl;
 
   map<pair<int, int>, int> row_incidence;
@@ -2230,7 +2230,7 @@ void
 StaticModel::collect_block_first_order_derivatives()
 {
   //! vector for an equation or a variable indicates the block number
-  vector<int> equation_2_block(equation_reordered.size()), variable_2_block(variable_reordered.size());
+  vector<int> equation_2_block(eq_idx_block2orig.size()), variable_2_block(endo_idx_block2orig.size());
   int nb_blocks = getNbBlocks();
   for (int block = 0; block < nb_blocks; block++)
     {
