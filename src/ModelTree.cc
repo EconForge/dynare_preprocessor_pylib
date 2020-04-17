@@ -456,8 +456,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, double 
   return { contemporaneous_jacobian, static_jacobian };
 }
 
-tuple<vector<pair<int, int>>, lag_lead_vector_t, lag_lead_vector_t,
-      vector<int>, vector<int>, vector<int>, vector<int>>
+tuple<vector<pair<int, int>>, vector<int>, vector<int>, vector<int>, vector<int>>
 ModelTree::select_non_linear_equations_and_variables(const vector<bool> &is_equation_linear)
 {
   vector<int> eq2endo(equations.size(), 0);
@@ -476,7 +475,7 @@ ModelTree::select_non_linear_equations_and_variables(const vector<bool> &is_equa
         i++;
         j++;
       }
-  auto [equation_lag_lead, variable_lag_lead] = getVariableLeadLagByBlock(endo2block, endo2block.size());
+  auto [equation_lag_lead, variable_lag_lead] = getVariableLeadLagByBlock(endo2block);
   vector<int> n_static(endo2eq.size(), 0), n_forward(endo2eq.size(), 0),
     n_backward(endo2eq.size(), 0), n_mixed(endo2eq.size(), 0);
   for (int i = 0; i < static_cast<int>(endo2eq.size()); i++)
@@ -493,8 +492,7 @@ ModelTree::select_non_linear_equations_and_variables(const vector<bool> &is_equa
   cout.flush();
   vector<pair<int, int>> simblock_size(1, {i, i});
   updateReverseVariableEquationOrderings();
-  return { simblock_size, equation_lag_lead, variable_lag_lead,
-           n_static, n_forward, n_backward, n_mixed };
+  return { simblock_size, n_static, n_forward, n_backward, n_mixed };
 }
 
 bool
@@ -530,18 +528,14 @@ ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian)
 {
   const int n = equations.size();
 
-  /* Compute reverse map (eq→endo) of normalization. Also initialize
-     “eq_idx_block2orig” and “endo_idx_block2orig” to the identity
+  /* Initialize “eq_idx_block2orig” and “endo_idx_block2orig” to the identity
      permutation. */
-  vector<int> eq2endo(n);
   eq_idx_block2orig.resize(n);
   endo_idx_block2orig.resize(n);
   for (int i = 0; i < n; i++)
     {
-      int it = endo2eq[i];
-      eq2endo[it] = i;
       eq_idx_block2orig[i] = i;
-      endo_idx_block2orig[it] = i;
+      endo_idx_block2orig[endo2eq[i]] = i;
     }
 
   /* Compute incidence matrix, equations in rows, variables in columns. Row
@@ -677,53 +671,42 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
 }
 
 pair<lag_lead_vector_t, lag_lead_vector_t>
-ModelTree::getVariableLeadLagByBlock(const vector<int> &endo2simblock, int num_simblocks) const
+ModelTree::getVariableLeadLagByBlock(const vector<int> &endo2simblock) const
 {
   int nb_endo = symbol_table.endo_nbr();
-  lag_lead_vector_t variable_lead_lag(nb_endo, { 0, 0 }), equation_lead_lag(nb_endo, { 0, 0 });
-  vector<int> variable_blck(nb_endo), equation_blck(nb_endo);
-  for (int i = 0; i < nb_endo; i++)
-    {
-      if (i < prologue)
-        {
-          variable_blck[endo_idx_block2orig[i]] = i;
-          equation_blck[eq_idx_block2orig[i]] = i;
-        }
-      else if (i < static_cast<int>(endo2simblock.size()) + prologue)
-        {
-          variable_blck[endo_idx_block2orig[i]] = endo2simblock[i-prologue] + prologue;
-          equation_blck[eq_idx_block2orig[i]] = endo2simblock[i-prologue] + prologue;
-        }
-      else
-        {
-          variable_blck[endo_idx_block2orig[i]] = i - (nb_endo - num_simblocks - prologue - epilogue);
-          equation_blck[eq_idx_block2orig[i]] = i - (nb_endo - num_simblocks - prologue - epilogue);
-        }
-    }
+
+  auto belong_to_same_block = [&](int endo, int eq)
+                              {
+                                int endo2 = endo_idx_orig2block[endo];
+                                int eq2 = eq_idx_orig2block[eq];
+                                if (endo2 < prologue || endo2 >= nb_endo-epilogue
+                                    || eq2 < prologue || eq2 >= nb_endo-epilogue)
+                                  return endo2 == eq2;
+                                else
+                                  return endo2simblock[endo2-prologue] == endo2simblock[eq2-prologue];
+                              };
+
+  lag_lead_vector_t variable_lag_lead(nb_endo, { 0, 0 }), equation_lag_lead(nb_endo, { 0, 0 });
   for (const auto &[key, value] : dynamic_jacobian)
     {
-      auto [lag, j_1, i_1] = key;
-      if (variable_blck[i_1] == equation_blck[j_1])
+      auto [lag, eq, endo] = key;
+      if (belong_to_same_block(endo, eq))
         {
-          if (lag > variable_lead_lag[i_1].second)
-            variable_lead_lag[i_1] = { variable_lead_lag[i_1].first, lag };
-          if (lag < -variable_lead_lag[i_1].first)
-            variable_lead_lag[i_1] = { -lag, variable_lead_lag[i_1].second };
-          if (lag > equation_lead_lag[j_1].second)
-            equation_lead_lag[j_1] = { equation_lead_lag[j_1].first, lag };
-          if (lag < -equation_lead_lag[j_1].first)
-            equation_lead_lag[j_1] = { -lag, equation_lead_lag[j_1].second };
+          variable_lag_lead[endo].first = max(variable_lag_lead[endo].first, -lag);
+          variable_lag_lead[endo].second = max(variable_lag_lead[endo].second, lag);
+          equation_lag_lead[eq].first = max(equation_lag_lead[eq].first, -lag);
+          equation_lag_lead[eq].second = max(equation_lag_lead[eq].second, lag);
         }
     }
-  return { equation_lead_lag, variable_lead_lag };
+  return { equation_lag_lead, variable_lag_lead };
 }
 
-tuple<vector<pair<int, int>>, lag_lead_vector_t, lag_lead_vector_t,
+tuple<vector<pair<int, int>>, lag_lead_vector_t,
       vector<int>, vector<int>, vector<int>, vector<int>>
-ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_, bool select_feedback_variable)
+ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_)
 {
-  int nb_var = endo_idx_block2orig.size();
-  int n = nb_var - prologue - epilogue;
+  int nb_var = symbol_table.endo_nbr();
+  int nb_simvars = nb_var - prologue - epilogue;
 
   /* Construct the graph representing the dependencies between all
      variables that do not belong to the prologue or the epilogue.
@@ -731,7 +714,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
      For detecting dependencies between variables, use the static jacobian,
      except when the cutoff is zero, in which case use the symbolic adjacency
      matrix */
-  VariableDependencyGraph G(n);
+  VariableDependencyGraph G(nb_simvars);
   for (const auto &[key, value] : cutoff == 0 ? computeSymbolicJacobian() : static_jacobian)
     {
       auto [eq, endo] = key;
@@ -758,25 +741,18 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
       eqs_in_simblock[endo2simblock[i]].insert(i);
     }
 
-  auto [equation_lag_lead, variable_lag_lead] = getVariableLeadLagByBlock(endo2simblock, num_simblocks);
+  auto [equation_lag_lead, variable_lag_lead] = getVariableLeadLagByBlock(endo2simblock);
 
   /* Add a loop on vertices which could not be normalized or vertices related
-     to lead variables. This forces those vertices to belong to the feedback set */
-  if (select_feedback_variable)
-    {
-      for (int i = 0; i < n; i++)
-        if (Equation_Type[eq_idx_block2orig[i+prologue]].first == EquationType::solve
-            || variable_lag_lead[endo_idx_block2orig[i+prologue]].second > 0
-            || variable_lag_lead[endo_idx_block2orig[i+prologue]].first > 0
-            || equation_lag_lead[eq_idx_block2orig[i+prologue]].second > 0
-            || equation_lag_lead[eq_idx_block2orig[i+prologue]].first > 0
-            || mfs == 0)
-          add_edge(vertex(i, G), vertex(i, G), G);
-    }
-  else
-    for (int i = 0; i < n; i++)
-      if (Equation_Type[eq_idx_block2orig[i+prologue]].first == EquationType::solve || mfs == 0)
-        add_edge(vertex(i, G), vertex(i, G), G);
+     to lead/lag variables. This forces those vertices to belong to the feedback set */
+  for (int i = 0; i < nb_simvars; i++)
+    if (Equation_Type[eq_idx_block2orig[i+prologue]].first == EquationType::solve
+        || variable_lag_lead[endo_idx_block2orig[i+prologue]].first > 0
+        || variable_lag_lead[endo_idx_block2orig[i+prologue]].second > 0
+        || equation_lag_lead[eq_idx_block2orig[i+prologue]].first > 0
+        || equation_lag_lead[eq_idx_block2orig[i+prologue]].second > 0
+        || mfs == 0)
+      add_edge(vertex(i, G), vertex(i, G), G);
 
   int num_blocks = prologue+num_simblocks+epilogue;
   // Determines the dynamic structure of each equation
@@ -786,8 +762,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   const vector<int> old_eq_idx_block2orig(eq_idx_block2orig), old_endo_idx_block2orig(endo_idx_block2orig);
   for (int i = 0; i < prologue; i++)
     {
-      int max_lag = variable_lag_lead[old_endo_idx_block2orig[i]].first;
-      int max_lead = variable_lag_lead[old_endo_idx_block2orig[i]].second;
+      auto [max_lag, max_lead] = variable_lag_lead[old_endo_idx_block2orig[i]];
       if (max_lag != 0 && max_lead != 0)
         n_mixed[i]++;
       else if (max_lag == 0 && max_lead != 0)
@@ -806,7 +781,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   for (int i = 0; i < num_simblocks; i++)
     {
       auto subG = G.extractSubgraph(eqs_in_simblock[i]);
-      auto [G1, feed_back_vertices] = subG.minimalSetOfFeedbackVertices();
+      auto feed_back_vertices = subG.minimalSetOfFeedbackVertices();
       auto v_index1 = get(boost::vertex_index1, subG);
       simblock_size[i].second = feed_back_vertices.size();
       auto reordered_vertices = subG.reorderRecursiveVariables(feed_back_vertices);
@@ -815,8 +790,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
       for (int j = 0; j < 4; j++)
         for (int its : reordered_vertices)
           {
-            int max_lag = variable_lag_lead[old_endo_idx_block2orig[its+prologue]].first;
-            int max_lead = variable_lag_lead[old_endo_idx_block2orig[its+prologue]].second;
+            auto [max_lag, max_lead] = variable_lag_lead[old_endo_idx_block2orig[its+prologue]];
             auto reorder = [&]()
                            {
                              eq_idx_block2orig[ordidx] = old_eq_idx_block2orig[its+prologue];
@@ -850,8 +824,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
         for (int fbvertex : feed_back_vertices)
           {
             int idx = v_index1[vertex(fbvertex, subG)];
-            int max_lag = variable_lag_lead[old_endo_idx_block2orig[idx+prologue]].first;
-            int max_lead = variable_lag_lead[old_endo_idx_block2orig[idx+prologue]].second;
+            auto [max_lag, max_lead] = variable_lag_lead[old_endo_idx_block2orig[idx+prologue]];
             auto reorder = [&]()
                            {
                              eq_idx_block2orig[ordidx] = old_eq_idx_block2orig[idx+prologue];
@@ -883,8 +856,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
 
   for (int i = 0; i < epilogue; i++)
     {
-      int max_lag = variable_lag_lead[old_endo_idx_block2orig[prologue+n+i]].first;
-      int max_lead = variable_lag_lead[old_endo_idx_block2orig[prologue+n+i]].second;
+      auto [max_lag, max_lead] = variable_lag_lead[old_endo_idx_block2orig[prologue+nb_simvars+i]];
       if (max_lag != 0 && max_lead != 0)
         n_mixed[prologue+num_simblocks+i]++;
       else if (max_lag == 0 && max_lead != 0)
@@ -897,8 +869,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
 
   updateReverseVariableEquationOrderings();
 
-  return { simblock_size, equation_lag_lead, variable_lag_lead,
-           n_static, n_forward, n_backward, n_mixed };
+  return { simblock_size, variable_lag_lead, n_static, n_forward, n_backward, n_mixed };
 }
 
 void

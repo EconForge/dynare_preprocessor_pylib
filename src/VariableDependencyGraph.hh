@@ -56,7 +56,7 @@ public:
   */
   VariableDependencyGraph extractSubgraph(const set<int> &select_index) const;
   //! Return the feedback set
-  pair<VariableDependencyGraph, set<int>> minimalSetOfFeedbackVertices() const;
+  set<int> minimalSetOfFeedbackVertices() const;
   //! Reorder the recursive variables
   /*! They appear first in a quasi triangular form and they are followed by the feedback variables */
   vector<int> reorderRecursiveVariables(const set<int> &feedback_vertices) const;
@@ -65,6 +65,8 @@ public:
      Returns the number of SCCs, and a mapping of vertex indices to sorted SCC
      indices. */
   pair<int, vector<int>> sortedStronglyConnectedComponents() const;
+  // Print on stdout a description of the graph
+  void print() const;
 private:
   // Remove a vertex (including all edges to and from it); takes a vertex descriptor
   void suppress(vertex_descriptor vertex_to_eliminate);
@@ -78,8 +80,6 @@ private:
   bool hasCycleDFS(vertex_descriptor u, color_t &color, vector<int> &circuit_stack) const;
   // Determine whether the graph has a cycle
   bool hasCycle() const;
-  // Print on stdout a description of the graph
-  void print() const;
   bool vertexBelongsToAClique(vertex_descriptor vertex) const;
   bool eliminationOfVerticesWithOneOrLessIndegreeOrOutdegree();
   bool eliminationOfVerticesBelongingToAClique();

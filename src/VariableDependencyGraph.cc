@@ -320,7 +320,7 @@ VariableDependencyGraph::suppressionOfVerticesWithLoop(set<int> &feed_back_verti
   return something_has_been_done;
 }
 
-pair<VariableDependencyGraph, set<int>>
+set<int>
 VariableDependencyGraph::minimalSetOfFeedbackVertices() const
 {
   bool something_has_been_done = true;
@@ -354,7 +354,7 @@ VariableDependencyGraph::minimalSetOfFeedbackVertices() const
 #ifdef verbose
           cout << "has_cycle=false\n";
 #endif
-          return { G, feed_back_vertices };
+          return feed_back_vertices;
         }
       if (num_vertices(G) > 0)
         {
@@ -383,7 +383,7 @@ VariableDependencyGraph::minimalSetOfFeedbackVertices() const
 #ifdef verbose
   cout << "cut_=" << cut_ << "\n";
 #endif
-  return { G, feed_back_vertices };
+  return feed_back_vertices;
 }
 
 vector<int>

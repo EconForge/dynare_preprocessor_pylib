@@ -4809,9 +4809,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
       if (!computeNaturalNormalization())
         computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian);
 
-      lag_lead_vector_t equation_lag_lead, variable_lag_lead;
-
-      tie(simblock_size, equation_lag_lead, variable_lag_lead, n_static, n_forward, n_backward, n_mixed)
+      tie(simblock_size, n_static, n_forward, n_backward, n_mixed)
         = select_non_linear_equations_and_variables(is_equation_linear);
 
       equationTypeDetermination(first_order_endo_derivatives, 0);
@@ -4847,9 +4845,9 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
       cout << "Finding the optimal block decomposition of the model ..." << endl;
 
-      lag_lead_vector_t equation_lag_lead, variable_lag_lead;
+      lag_lead_vector_t variable_lag_lead;
 
-      tie(simblock_size, equation_lag_lead, variable_lag_lead, n_static, n_forward, n_backward, n_mixed) = computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, equation_type_and_normalized_equation, false, true);
+      tie(simblock_size, variable_lag_lead, n_static, n_forward, n_backward, n_mixed) = computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, equation_type_and_normalized_equation, false);
 
       reduceBlocksAndTypeDetermination(simblock_size, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, linear_decomposition);
 
