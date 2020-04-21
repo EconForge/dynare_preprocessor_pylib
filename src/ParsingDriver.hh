@@ -465,13 +465,13 @@ public:
   void end_mshocks(bool overwrite);
   //! Adds a deterministic shock or a path element inside a conditional_forecast_paths block
   void add_det_shock(const string &var, bool conditional_forecast);
-  //! Adds a std error chock
+  //! Adds a std error shock
   void add_stderr_shock(const string &var, expr_t value);
-  //! Adds a variance chock
+  //! Adds a variance shock
   void add_var_shock(const string &var, expr_t value);
-  //! Adds a covariance chock
+  //! Adds a covariance shock
   void add_covar_shock(const string &var1, const string &var2, expr_t value);
-  //! Adds a correlated chock
+  //! Adds a correlated shock
   void add_correl_shock(const string &var1, const string &var2, expr_t value);
   //! Adds a shock period range
   void add_period(const string &p1, const string &p2);

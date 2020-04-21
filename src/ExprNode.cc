@@ -4164,7 +4164,7 @@ BinaryOpNode::cost(int cost, bool is_matlab) const
       case BinaryOpcode::power:
         return cost + 520;
       case BinaryOpcode::powerDeriv:
-        return cost + (min_cost_c/2+1);;
+        return cost + (min_cost_c/2+1);
       case BinaryOpcode::equal:
         return cost;
       }
@@ -4193,7 +4193,7 @@ BinaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
       /* If the node has already been encountered, increment its ref count
          and declare it as a temporary term if it is too costly (except if it is
          an equal node: we don't want them as temporary terms) */
-      reference_count[this2] = { it->second.first + 1, it->second.second };;
+      reference_count[this2] = { it->second.first + 1, it->second.second };
       if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > min_cost(is_matlab)
           && op_code != BinaryOpcode::equal)
         temp_terms_map[reference_count[this2].second].insert(this2);
