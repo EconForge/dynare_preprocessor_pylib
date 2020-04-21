@@ -55,9 +55,6 @@ using equation_type_and_normalized_equation_t = vector<pair<EquationType, expr_t
 //! Vector describing variables: max_lag in the block, max_lead in the block
 using lag_lead_vector_t = vector<pair<int, int>>;
 
-//! for each block contains tuple<Simulation_Type, first_equation, Block_Size, Recursive_part_Size>
-using block_type_firstequation_size_mfs_t = vector<tuple<BlockSimulationType, int, int, int>>;
-
 //! for a block contains derivatives tuple<block_equation_number, block_variable_number, lead_lag, expr_t>
 using block_derivatives_equation_variable_laglead_nodeid_t = vector<tuple<int, int, int, expr_t>>;
 
@@ -190,26 +187,31 @@ protected:
   //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
   equation_type_and_normalized_equation_t equation_type_and_normalized_equation;
 
-  //! For each block contains tuple<Simulation_Type, first_equation, Block_Size, Recursive_part_Size>
-  block_type_firstequation_size_mfs_t block_type_firstequation_size_mfs;
-
   //! for all blocks derivatives description
   blocks_derivatives_t blocks_derivatives;
-
-  //! Vector indicating if the block is linear in endogenous variable (true) or not (false)
-  vector<bool> blocks_linear;
 
   //! Map the derivatives for a block tuple<lag, eq, var>
   using derivative_t = map<tuple<int, int, int>, expr_t>;
   //! Vector of derivative for each blocks
   vector<derivative_t> derivative_endo, derivative_other_endo, derivative_exo, derivative_exo_det;
 
-  //! for each block described the number of static, forward, backward and mixed variables in the block
-  /*! tuple<static, forward, backward, mixed> */
-  vector<tuple<int, int, int, int>> block_col_type;
-
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
   vector<pair<int, int>> endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
+
+  class BlockInfo
+  {
+  public:
+    BlockSimulationType simulation_type;
+    int first_equation; // Stores a block-ordered equation ID
+    int size{0};
+    int mfs_size{0}; // Size of the minimal feedback set
+    bool linear{true}; // Whether the block is linear in endogenous variable
+    int n_static{0}, n_forward{0}, n_backward{0}, n_mixed{0};
+    int max_lag{0}, max_lead{0};
+  };
+
+  // Stores various informations on the blocks
+  vector<BlockInfo> blocks;
 
   //! the file containing the model and the derivatives code
   ofstream code_file;
@@ -270,9 +272,6 @@ protected:
   //! number of equation in the prologue and in the epilogue
   int epilogue, prologue;
 
-  //! for each block contains pair< max_lag, max_lead>
-  lag_lead_vector_t block_lag_lead;
-
   /* Compute a pseudo-Jacobian whose all elements are either zero or one,
      depending on whether the variable symbolically appears in the equation */
   jacob_map_t computeSymbolicJacobian() const;
@@ -302,17 +301,22 @@ protected:
     dynamic_jacobian. Elements below the cutoff are discarded. External functions are evaluated to 1. */
   pair<jacob_map_t, jacob_map_t> evaluateAndReduceJacobian(const eval_context_t &eval_context, double cutoff, bool verbose);
   //! Select and reorder the non linear equations of the model
-  /*! Returns a tuple (blocks, n_static, n_forward, n_backward, n_mixed) */
-  tuple<vector<pair<int, int>>, vector<int>, vector<int>, vector<int>, vector<int>> select_non_linear_equations_and_variables(const vector<bool> &is_equation_linear);
+  void select_non_linear_equations_and_variables();
   //! Search the equations and variables belonging to the prologue and the epilogue of the model
   void computePrologueAndEpilogue(const jacob_map_t &static_jacobian);
   //! Determine the type of each equation of model and try to normalize the unnormalized equation
   void equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives, int mfs);
-  //! Compute the block decomposition and for a non-recusive block find the minimum feedback set
-  /*! Returns a tuple (blocks, variable_lag_lead, n_static, n_forward, n_backward, n_mixed) */
-  tuple<vector<pair<int, int>>, lag_lead_vector_t, vector<int>, vector<int>, vector<int>, vector<int>> computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_);
-  //! Reduce the number of block merging the same type equation in the prologue and the epilogue and determine the type of each block
-  void reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &simblock_size, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &n_static, const vector<int> &n_forward, const vector<int> &n_backward, const vector<int> &n_mixed, bool linear_decomposition);
+  /* Compute the block decomposition and for a non-recusive block find the minimum feedback set
+
+     Initializes the “blocks” structure, and fills the following fields: size,
+     mfs_size, n_static, n_forward, n_backward, n_mixed. */
+  lag_lead_vector_t computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, bool verbose_);
+  /* Reduce the number of block by merging the same type of equations in the
+     prologue and the epilogue, and determine the type of each block.
+
+     Fills the following fields of the “blocks” structure: simulation_type,
+     first_equation, max_lead, max_lag. */
+  void reduceBlocksAndTypeDetermination(bool linear_decomposition);
   /* The 1st output gives, for each equation (in original order) the (max_lag,
      max_lead) across all endogenous that appear in the equation and that
      belong to the same block (i.e. those endogenous are solved in the same
@@ -323,7 +327,7 @@ protected:
      which it belongs. */
   pair<lag_lead_vector_t, lag_lead_vector_t> getVariableLeadLagByBlock(const vector<int> &endo2simblock) const;
   //! For each equation determine if it is linear or not
-  vector<bool> equationLinear(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives) const;
+  void equationLinear(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives);
   //! Print an abstract of the block structure of the model
   void printBlockDecomposition() const;
   //! Determine for each block if it is linear or not
@@ -337,25 +341,25 @@ protected:
   int
   getNbBlocks() const
   {
-    return block_type_firstequation_size_mfs.size();
+    return blocks.size();
   };
   //! Determine the simulation type of each block
   BlockSimulationType
   getBlockSimulationType(int block_number) const
   {
-    return get<0>(block_type_firstequation_size_mfs[block_number]);
+    return blocks[block_number].simulation_type;
   };
   //! Return the first equation number of a block
   int
   getBlockFirstEquation(int block_number) const
   {
-    return get<1>(block_type_firstequation_size_mfs[block_number]);
+    return blocks[block_number].first_equation;
   };
   //! Return the size of the block block_number
   int
   getBlockSize(int block_number) const
   {
-    return get<2>(block_type_firstequation_size_mfs[block_number]);
+    return blocks[block_number].size;
   };
   //! Return the number of exogenous variable in the block block_number
   virtual int getBlockExoSize(int block_number) const = 0;
@@ -365,61 +369,62 @@ protected:
   int
   getBlockMfs(int block_number) const
   {
-    return get<3>(block_type_firstequation_size_mfs[block_number]);
+    return blocks[block_number].mfs_size;
   };
   //! Return the maximum lag in a block
   int
   getBlockMaxLag(int block_number) const
   {
-    return block_lag_lead[block_number].first;
+    return blocks[block_number].max_lag;
   };
   //! Return the maximum lead in a block
   int
   getBlockMaxLead(int block_number) const
   {
-    return block_lag_lead[block_number].second;
+    return blocks[block_number].max_lead;
   };
   inline void
   setBlockLeadLag(int block, int max_lag, int max_lead)
   {
-    block_lag_lead[block] = { max_lag, max_lead };
+    blocks[block].max_lag = max_lag;
+    blocks[block].max_lead = max_lead;
   };
 
   //! Return the type of equation (equation_number) belonging to the block block_number
   EquationType
   getBlockEquationType(int block_number, int equation_number) const
   {
-    return equation_type_and_normalized_equation[eq_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].first;
+    return equation_type_and_normalized_equation[eq_idx_block2orig[getBlockFirstEquation(block_number)+equation_number]].first;
   };
   //! Return true if the equation has been normalized
   bool
   isBlockEquationRenormalized(int block_number, int equation_number) const
   {
-    return equation_type_and_normalized_equation[eq_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].first == EquationType::evaluate_s;
+    return equation_type_and_normalized_equation[eq_idx_block2orig[getBlockFirstEquation(block_number)+equation_number]].first == EquationType::evaluate_s;
   };
   //! Return the expr_t of the equation equation_number belonging to the block block_number
   expr_t
   getBlockEquationExpr(int block_number, int equation_number) const
   {
-    return equations[eq_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]];
+    return equations[eq_idx_block2orig[getBlockFirstEquation(block_number)+equation_number]];
   };
   //! Return the expr_t of the renormalized equation equation_number belonging to the block block_number
   expr_t
   getBlockEquationRenormalizedExpr(int block_number, int equation_number) const
   {
-    return equation_type_and_normalized_equation[eq_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number]].second;
+    return equation_type_and_normalized_equation[eq_idx_block2orig[getBlockFirstEquation(block_number)+equation_number]].second;
   };
   //! Return the original number of equation equation_number belonging to the block block_number
   int
   getBlockEquationID(int block_number, int equation_number) const
   {
-    return eq_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+equation_number];
+    return eq_idx_block2orig[getBlockFirstEquation(block_number)+equation_number];
   };
   //! Return the original number of variable variable_number belonging to the block block_number
   int
   getBlockVariableID(int block_number, int variable_number) const
   {
-    return endo_idx_block2orig[get<1>(block_type_firstequation_size_mfs[block_number])+variable_number];
+    return endo_idx_block2orig[getBlockFirstEquation(block_number)+variable_number];
   };
   //! Return the original number of the exogenous variable varexo_number belonging to the block block_number
   virtual int getBlockVariableExoID(int block_number, int variable_number) const = 0;
@@ -427,13 +432,13 @@ protected:
   int
   getBlockInitialEquationID(int block_number, int equation_number) const
   {
-    return eq_idx_orig2block[equation_number] - get<1>(block_type_firstequation_size_mfs[block_number]);
+    return eq_idx_orig2block[equation_number] - getBlockFirstEquation(block_number);
   };
   //! Return the position of variable_number in the block number belonging to the block block_number
   int
   getBlockInitialVariableID(int block_number, int variable_number) const
   {
-    return endo_idx_orig2block[variable_number] - get<1>(block_type_firstequation_size_mfs[block_number]);
+    return endo_idx_orig2block[variable_number] - getBlockFirstEquation(block_number);
   };
   //! Return the position of variable_number in the block number belonging to the block block_number
   virtual int getBlockInitialExogenousID(int block_number, int variable_number) const = 0;

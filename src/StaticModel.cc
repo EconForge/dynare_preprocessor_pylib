@@ -703,7 +703,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
                                block_size,
                                endo_idx_block2orig,
                                eq_idx_block2orig,
-                               blocks_linear[block],
+                               blocks[block].linear,
                                symbol_table.endo_nbr(),
                                0,
                                0,
@@ -1142,9 +1142,9 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
 
       cout << "Finding the optimal block decomposition of the model ..." << endl;
 
-      auto [blocks, variable_lag_lead, n_static, n_forward, n_backward, n_mixed] = computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, equation_type_and_normalized_equation, false);
+      auto variable_lag_lead = computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, false);
 
-      reduceBlocksAndTypeDetermination(blocks, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, false);
+      reduceBlocksAndTypeDetermination(false);
 
       printBlockDecomposition();
 

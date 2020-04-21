@@ -1249,7 +1249,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
                                block_size,
                                endo_idx_block2orig,
                                eq_idx_block2orig,
-                               blocks_linear[block],
+                               blocks[block].linear,
                                symbol_table.endo_nbr(),
                                block_max_lag,
                                block_max_lead,
@@ -2083,7 +2083,7 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
                             << "  end;" << endl
                             << "  y = solve_one_boundary('" << basename << ".block.dynamic_" <<  block + 1 << "'"
                             << ", y, x, params, steady_state, y_index, " << nze
-                            << ", options_.periods, " << blocks_linear[block]
+                            << ", options_.periods, " << blocks[block].linear
                             << ", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0, M_, options_, oo_);" << endl
                             << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);" << endl
                             << "  if any(isnan(tmp) | isinf(tmp))" << endl
@@ -2115,7 +2115,7 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
                             << "  end;" << endl
                             << "  y = solve_one_boundary('" << basename << ".block.dynamic_" <<  block + 1 << "'"
                             <<", y, x, params, steady_state, y_index, " << nze
-                            <<", options_.periods, " << blocks_linear[block]
+                            <<", options_.periods, " << blocks[block].linear
                             <<", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0, M_, options_, oo_);" << endl
                             << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);" << endl
                             << "  if any(isnan(tmp) | isinf(tmp))" << endl
@@ -2147,7 +2147,7 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
                             <<", y, x, params, steady_state, y_index, " << nze
                             <<", options_.periods, " << max_leadlag_block[block].first
                             <<", " << max_leadlag_block[block].second
-                            <<", " << blocks_linear[block]
+                            <<", " << blocks[block].linear
                             <<", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, options_, M_, oo_);" << endl
                             << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);" << endl
                             << "  if any(isnan(tmp) | isinf(tmp))" << endl
@@ -4793,30 +4793,22 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
       computeParamsDerivatives(paramsDerivsOrder);
     }
 
-  jacob_map_t contemporaneous_jacobian, static_jacobian;
-  map<tuple<int, int, int>, expr_t> first_order_endo_derivatives;
-  // For each simultaneous block contains pair<Size, Num_Feedback_variable>
-  vector<pair<int, int>> simblock_size;
-  vector<int> n_static, n_forward, n_backward, n_mixed;
 
   if (linear_decomposition)
     {
-      first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
-      is_equation_linear = equationLinear(first_order_endo_derivatives);
+      auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
+      equationLinear(first_order_endo_derivatives);
 
-      tie(contemporaneous_jacobian, static_jacobian) = evaluateAndReduceJacobian(eval_context, cutoff, false);
+      auto [contemporaneous_jacobian, static_jacobian] = evaluateAndReduceJacobian(eval_context, cutoff, false);
 
       if (!computeNaturalNormalization())
         computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian);
 
-      tie(simblock_size, n_static, n_forward, n_backward, n_mixed)
-        = select_non_linear_equations_and_variables(is_equation_linear);
+      select_non_linear_equations_and_variables();
 
       equationTypeDetermination(first_order_endo_derivatives, 0);
-      prologue = 0;
-      epilogue = 0;
 
-      reduceBlocksAndTypeDetermination(simblock_size, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, linear_decomposition);
+      reduceBlocksAndTypeDetermination(linear_decomposition);
 
       computeChainRuleJacobian();
 
@@ -4830,26 +4822,23 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
       if (!no_tmp_terms)
         computeTemporaryTermsOrdered();
     }
-
-  if (block)
+  else if (block)
     {
-      tie(contemporaneous_jacobian, static_jacobian) = evaluateAndReduceJacobian(eval_context, cutoff, false);
+      auto [contemporaneous_jacobian, static_jacobian] = evaluateAndReduceJacobian(eval_context, cutoff, false);
 
       computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian);
 
       computePrologueAndEpilogue(static_jacobian);
 
-      first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
+      auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
 
       equationTypeDetermination(first_order_endo_derivatives, mfs);
 
       cout << "Finding the optimal block decomposition of the model ..." << endl;
 
-      lag_lead_vector_t variable_lag_lead;
+      auto variable_lag_lead = computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, false);
 
-      tie(simblock_size, variable_lag_lead, n_static, n_forward, n_backward, n_mixed) = computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, equation_type_and_normalized_equation, false);
-
-      reduceBlocksAndTypeDetermination(simblock_size, equation_type_and_normalized_equation, n_static, n_forward, n_backward, n_mixed, linear_decomposition);
+      reduceBlocksAndTypeDetermination(linear_decomposition);
 
       printBlockDecomposition();
 

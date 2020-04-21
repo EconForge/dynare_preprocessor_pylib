@@ -162,19 +162,16 @@ ModelTree::ModelTree(const ModelTree &m) :
   eq_idx_orig2block{m.eq_idx_orig2block},
   endo_idx_orig2block{m.endo_idx_orig2block},
   map_idx{m.map_idx},
-  block_type_firstequation_size_mfs{m.block_type_firstequation_size_mfs},
-  blocks_linear{m.blocks_linear},
-  block_col_type{m.block_col_type},
   endo_max_leadlag_block{m.endo_max_leadlag_block},
   other_endo_max_leadlag_block{m.other_endo_max_leadlag_block},
   exo_max_leadlag_block{m.exo_max_leadlag_block},
   exo_det_max_leadlag_block{m.exo_det_max_leadlag_block},
   max_leadlag_block{m.max_leadlag_block},
+  blocks{m.blocks},
   is_equation_linear{m.is_equation_linear},
   endo2eq{m.endo2eq},
   epilogue{m.epilogue},
   prologue{m.prologue},
-  block_lag_lead{m.block_lag_lead},
   cutoff{m.cutoff},
   mfs{m.mfs}
 {
@@ -215,25 +212,21 @@ ModelTree::operator=(const ModelTree &m)
   first_chain_rule_derivatives.clear();
   map_idx = m.map_idx;
   equation_type_and_normalized_equation.clear();
-  block_type_firstequation_size_mfs = m.block_type_firstequation_size_mfs;
   blocks_derivatives.clear();
-  blocks_linear = m.blocks_linear;
   derivative_endo.clear();
   derivative_other_endo.clear();
   derivative_exo.clear();
   derivative_exo_det.clear();
-  block_col_type = m.block_col_type;
   endo_max_leadlag_block = m.endo_max_leadlag_block;
   other_endo_max_leadlag_block = m.other_endo_max_leadlag_block;
   exo_max_leadlag_block = m.exo_max_leadlag_block;
   exo_det_max_leadlag_block = m.exo_det_max_leadlag_block;
   max_leadlag_block = m.max_leadlag_block;
-
+  blocks = m.blocks;
   is_equation_linear = m.is_equation_linear;
   endo2eq = m.endo2eq;
   epilogue = m.epilogue;
   prologue = m.prologue;
-  block_lag_lead = m.block_lag_lead;
   cutoff = m.cutoff;
   mfs = m.mfs;
 
@@ -456,43 +449,46 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, double 
   return { contemporaneous_jacobian, static_jacobian };
 }
 
-tuple<vector<pair<int, int>>, vector<int>, vector<int>, vector<int>, vector<int>>
-ModelTree::select_non_linear_equations_and_variables(const vector<bool> &is_equation_linear)
+void
+ModelTree::select_non_linear_equations_and_variables()
 {
-  vector<int> eq2endo(equations.size(), 0);
-  int num = 0;
-  for (auto it : endo2eq)
-    if (!is_equation_linear[it])
-      num++;
-  vector<int> endo2block(endo2eq.size(), 1);
-  int i = 0, j = 0;
-  for (auto it : endo2eq)
-    if (!is_equation_linear[it])
-      {
-        eq_idx_block2orig[i] = it;
-        endo_idx_block2orig[i] = j;
-        endo2block[j] = 0;
-        i++;
-        j++;
-      }
-  auto [equation_lag_lead, variable_lag_lead] = getVariableLeadLagByBlock(endo2block);
-  vector<int> n_static(endo2eq.size(), 0), n_forward(endo2eq.size(), 0),
-    n_backward(endo2eq.size(), 0), n_mixed(endo2eq.size(), 0);
-  for (int i = 0; i < static_cast<int>(endo2eq.size()); i++)
+  prologue = 0;
+  epilogue = 0;
+
+  vector<int> endo2block(endo2eq.size(), 1); // The 1 is a dummy value, distinct from 0
+  int i = 0;
+  for (int endo = 0; endo < static_cast<int>(endo2eq.size()); endo++)
     {
-      if (variable_lag_lead[endo_idx_block2orig[i]].first != 0 && variable_lag_lead[endo_idx_block2orig[i]].second != 0)
-        n_mixed[i]++;
-      else if (variable_lag_lead[endo_idx_block2orig[i]].first == 0 && variable_lag_lead[endo_idx_block2orig[i]].second != 0)
-        n_forward[i]++;
-      else if (variable_lag_lead[endo_idx_block2orig[i]].first != 0 && variable_lag_lead[endo_idx_block2orig[i]].second == 0)
-        n_backward[i]++;
-      else if (variable_lag_lead[endo_idx_block2orig[i]].first == 0 && variable_lag_lead[endo_idx_block2orig[i]].second == 0)
-        n_static[i]++;
+      int eq = endo2eq[endo];
+      if (!is_equation_linear[eq])
+        {
+          eq_idx_block2orig[i] = eq;
+          endo_idx_block2orig[i] = endo;
+          endo2block[i] = 0;
+          i++;
+        }
     }
-  cout.flush();
-  vector<pair<int, int>> simblock_size(1, {i, i});
   updateReverseVariableEquationOrderings();
-  return { simblock_size, n_static, n_forward, n_backward, n_mixed };
+
+  blocks.clear();
+  blocks.resize(1);
+  blocks[0].size = i;
+  blocks[0].mfs_size = i;
+
+  auto [equation_lag_lead, variable_lag_lead] = getVariableLeadLagByBlock(endo2block);
+
+  for (int i = 0; i < blocks[0].size; i++)
+    {
+      auto [max_lag, max_lead] = variable_lag_lead[endo_idx_block2orig[i]];
+      if (max_lag != 0 && max_lead != 0)
+        blocks[0].n_mixed++;
+      else if (max_lag == 0 && max_lead != 0)
+        blocks[0].n_forward++;
+      else if (max_lag != 0 && max_lead == 0)
+        blocks[0].n_backward++;
+      else
+        blocks[0].n_static++;
+    }
 }
 
 bool
@@ -701,9 +697,8 @@ ModelTree::getVariableLeadLagByBlock(const vector<int> &endo2simblock) const
   return { equation_lag_lead, variable_lag_lead };
 }
 
-tuple<vector<pair<int, int>>, lag_lead_vector_t,
-      vector<int>, vector<int>, vector<int>, vector<int>>
-ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, const equation_type_and_normalized_equation_t &Equation_Type, bool verbose_)
+lag_lead_vector_t
+ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, bool verbose_)
 {
   int nb_var = symbol_table.endo_nbr();
   int nb_simvars = nb_var - prologue - epilogue;
@@ -731,13 +726,28 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
      index, starting from 0, in recursive order */
   auto [num_simblocks, endo2simblock] = G.sortedStronglyConnectedComponents();
 
-  vector<pair<int, int>> simblock_size(num_simblocks, { 0, 0 });
+  int num_blocks = prologue+num_simblocks+epilogue;
 
-  // equations belonging to the block
+  blocks.clear();
+  blocks.resize(num_blocks);
+
+  // Initialize size and mfs_size for prologue and epilogue
+  for (int i = 0; i < prologue; i++)
+    {
+      blocks[i].size = 1;
+      blocks[i].mfs_size = 1;
+    }
+  for (int i = 0; i < epilogue; i++)
+    {
+      blocks[prologue+num_simblocks+i].size = 1;
+      blocks[prologue+num_simblocks+i].mfs_size = 1;
+    }
+
+  // Compute size and list of equations for simultaneous blocks
   vector<set<int>> eqs_in_simblock(num_simblocks);
   for (int i = 0; i < static_cast<int>(endo2simblock.size()); i++)
     {
-      simblock_size[endo2simblock[i]].first++;
+      blocks[prologue+endo2simblock[i]].size++;
       eqs_in_simblock[endo2simblock[i]].insert(i);
     }
 
@@ -746,7 +756,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   /* Add a loop on vertices which could not be normalized or vertices related
      to lead/lag variables. This forces those vertices to belong to the feedback set */
   for (int i = 0; i < nb_simvars; i++)
-    if (Equation_Type[eq_idx_block2orig[i+prologue]].first == EquationType::solve
+    if (equation_type_and_normalized_equation[eq_idx_block2orig[i+prologue]].first == EquationType::solve
         || variable_lag_lead[endo_idx_block2orig[i+prologue]].first > 0
         || variable_lag_lead[endo_idx_block2orig[i+prologue]].second > 0
         || equation_lag_lead[eq_idx_block2orig[i+prologue]].first > 0
@@ -754,23 +764,19 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
         || mfs == 0)
       add_edge(vertex(i, G), vertex(i, G), G);
 
-  int num_blocks = prologue+num_simblocks+epilogue;
   // Determines the dynamic structure of each equation
-  vector<int> n_static(num_blocks, 0), n_forward(num_blocks, 0),
-    n_backward(num_blocks, 0), n_mixed(num_blocks, 0);
-
   const vector<int> old_eq_idx_block2orig(eq_idx_block2orig), old_endo_idx_block2orig(endo_idx_block2orig);
   for (int i = 0; i < prologue; i++)
     {
       auto [max_lag, max_lead] = variable_lag_lead[old_endo_idx_block2orig[i]];
       if (max_lag != 0 && max_lead != 0)
-        n_mixed[i]++;
+        blocks[i].n_mixed++;
       else if (max_lag == 0 && max_lead != 0)
-        n_forward[i]++;
+        blocks[i].n_forward++;
       else if (max_lag != 0 && max_lead == 0)
-        n_backward[i]++;
+        blocks[i].n_backward++;
       else
-        n_static[i]++;
+        blocks[i].n_static++;
     }
 
   /* For each block, the minimum set of feedback variable is computed and the
@@ -783,7 +789,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
       auto subG = G.extractSubgraph(eqs_in_simblock[i]);
       auto feed_back_vertices = subG.minimalSetOfFeedbackVertices();
       auto v_index1 = get(boost::vertex_index1, subG);
-      simblock_size[i].second = feed_back_vertices.size();
+      blocks[prologue+i].mfs_size = feed_back_vertices.size();
       auto reordered_vertices = subG.reorderRecursiveVariables(feed_back_vertices);
 
       // First we have the recursive equations conditional on feedback variables
@@ -799,22 +805,22 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
                            };
             if (j == 2 && max_lag != 0 && max_lead != 0)
               {
-                n_mixed[prologue+i]++;
+                blocks[prologue+i].n_mixed++;
                 reorder();
               }
             else if (j == 3 && max_lag == 0 && max_lead != 0)
               {
-                n_forward[prologue+i]++;
+                blocks[prologue+i].n_forward++;
                 reorder();
               }
             else if (j == 1 && max_lag != 0 && max_lead == 0)
               {
-                n_backward[prologue+i]++;
+                blocks[prologue+i].n_backward++;
                 reorder();
               }
             else if (j == 0 && max_lag == 0 && max_lead == 0)
               {
-                n_static[prologue+i]++;
+                blocks[prologue+i].n_static++;
                 reorder();
               }
           }
@@ -833,22 +839,22 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
                            };
             if (j == 2 && max_lag != 0 && max_lead != 0)
               {
-                n_mixed[prologue+i]++;
+                blocks[prologue+i].n_mixed++;
                 reorder();
               }
             else if (j == 3 && max_lag == 0 && max_lead != 0)
               {
-                n_forward[prologue+i]++;
+                blocks[prologue+i].n_forward++;
                 reorder();
               }
             else if (j == 1 && max_lag != 0 && max_lead == 0)
               {
-                n_backward[prologue+i]++;
+                blocks[prologue+i].n_backward++;
                 reorder();
               }
             else if (j == 0 && max_lag == 0 && max_lead == 0)
               {
-                n_static[prologue+i]++;
+                blocks[prologue+i].n_static++;
                 reorder();
               }
           }
@@ -858,18 +864,18 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
     {
       auto [max_lag, max_lead] = variable_lag_lead[old_endo_idx_block2orig[prologue+nb_simvars+i]];
       if (max_lag != 0 && max_lead != 0)
-        n_mixed[prologue+num_simblocks+i]++;
+        blocks[prologue+num_simblocks+i].n_mixed++;
       else if (max_lag == 0 && max_lead != 0)
-        n_forward[prologue+num_simblocks+i]++;
+        blocks[prologue+num_simblocks+i].n_forward++;
       else if (max_lag != 0 && max_lead == 0)
-        n_backward[prologue+num_simblocks+i]++;
+        blocks[prologue+num_simblocks+i].n_backward++;
       else
-        n_static[prologue+num_simblocks+i]++;
+        blocks[prologue+num_simblocks+i].n_static++;
     }
 
   updateReverseVariableEquationOrderings();
 
-  return { simblock_size, variable_lag_lead, n_static, n_forward, n_backward, n_mixed };
+  return variable_lag_lead;
 }
 
 void
@@ -904,185 +910,152 @@ ModelTree::printBlockDecomposition() const
 }
 
 void
-ModelTree::reduceBlocksAndTypeDetermination(const vector<pair<int, int>> &simblock_size, const equation_type_and_normalized_equation_t &Equation_Type, const vector<int> &n_static, const vector<int> &n_forward, const vector<int> &n_backward, const vector<int> &n_mixed, bool linear_decomposition)
+ModelTree::reduceBlocksAndTypeDetermination(bool linear_decomposition)
 {
-  int count_equ = 0, simblock_counter = 0;
-  block_type_firstequation_size_mfs.clear();
-  BlockSimulationType prev_Type = BlockSimulationType::unknown;
-  int eq = 0;
-  int num_simblocks = simblock_size.size();
-  for (int i = 0; i < prologue+num_simblocks+epilogue; i++)
+  for (int i = 0; i < static_cast<int>(blocks.size()); i++)
     {
-      int Blck_Size, MFS_Size;
-      int first_count_equ = count_equ;
-      if (i < prologue)
-        {
-          Blck_Size = 1;
-          MFS_Size = 1;
-        }
-      else if (i < prologue+num_simblocks)
-        {
-          Blck_Size = simblock_size[simblock_counter].first;
-          MFS_Size = simblock_size[simblock_counter].second;
-          simblock_counter++;
-        }
-      else if (i < prologue+num_simblocks+epilogue)
-        {
-          Blck_Size = 1;
-          MFS_Size = 1;
-        }
+      int first_eq = (i == 0) ? 0 : blocks[i-1].first_equation+blocks[i-1].size;
 
-      int Lag = 0, Lead = 0;
-      for (count_equ = first_count_equ; count_equ < Blck_Size+first_count_equ; count_equ++)
+      /* Compute the maximum lead and lag across all endogenous that appear in
+         this block and that belong to it */
+      int max_lag = 0, max_lead = 0;
+      for (int eq = first_eq; eq < first_eq+blocks[i].size; eq++)
         {
           set<pair<int, int>> endos_and_lags;
-          equations[eq_idx_block2orig[count_equ]]->collectEndogenous(endos_and_lags);
-          for (const auto &[curr_variable, curr_lag] : endos_and_lags)
+          equations[eq_idx_block2orig[eq]]->collectEndogenous(endos_and_lags);
+          for (const auto &[endo, lag] : endos_and_lags)
             {
               if (linear_decomposition)
                 {
-                  if (dynamic_jacobian.find({ curr_lag, eq_idx_block2orig[count_equ], curr_variable }) != dynamic_jacobian.end())
+                  if (dynamic_jacobian.find({ lag, eq_idx_block2orig[eq], endo })
+                      != dynamic_jacobian.end())
                     {
-                      if (curr_lag > Lead)
-                        Lead = curr_lag;
-                      else if (-curr_lag > Lag)
-                        Lag = -curr_lag;
+                      max_lead = max(lag, max_lead);
+                      max_lag = max(-lag, max_lag);
                     }
                 }
               else
                 {
-                  if (find(endo_idx_block2orig.begin()+first_count_equ, endo_idx_block2orig.begin()+(first_count_equ+Blck_Size), curr_variable)
-                      != endo_idx_block2orig.begin()+(first_count_equ+Blck_Size)
-                      && dynamic_jacobian.find({ curr_lag, eq_idx_block2orig[count_equ], curr_variable }) != dynamic_jacobian.end())
+                  if (find(endo_idx_block2orig.begin()+first_eq,
+                           endo_idx_block2orig.begin()+first_eq+blocks[i].size, endo)
+                      != endo_idx_block2orig.begin()+first_eq+blocks[i].size
+                      && dynamic_jacobian.find({ lag, eq_idx_block2orig[eq], endo })
+                      != dynamic_jacobian.end())
                     {
-                      if (curr_lag > Lead)
-                        Lead = curr_lag;
-                      else if (-curr_lag > Lag)
-                        Lag = -curr_lag;
+                      max_lead = max(lag, max_lead);
+                      max_lag = max(-lag, max_lag);
                     }
                 }
             }
         }
+
+      // Determine the block type
       BlockSimulationType Simulation_Type;
-      if (Lag > 0 && Lead > 0)
+      if (max_lag > 0 && max_lead > 0)
         {
-          if (Blck_Size == 1)
+          if (blocks[i].size == 1)
             Simulation_Type = BlockSimulationType::solveTwoBoundariesSimple;
           else
             Simulation_Type = BlockSimulationType::solveTwoBoundariesComplete;
         }
-      else if (Blck_Size > 1)
+      else if (blocks[i].size > 1)
         {
-          if (Lead > 0)
+          if (max_lead > 0)
             Simulation_Type = BlockSimulationType::solveBackwardComplete;
           else
             Simulation_Type = BlockSimulationType::solveForwardComplete;
         }
       else
         {
-          if (Lead > 0)
+          if (max_lead > 0)
             Simulation_Type = BlockSimulationType::solveBackwardSimple;
           else
             Simulation_Type = BlockSimulationType::solveForwardSimple;
         }
-      int l_n_static = n_static[i];
-      int l_n_forward = n_forward[i];
-      int l_n_backward = n_backward[i];
-      int l_n_mixed = n_mixed[i];
-      if (Blck_Size == 1)
+
+      if (blocks[i].size == 1)
         {
-          if (Equation_Type[eq_idx_block2orig[eq]].first == EquationType::evaluate
-              || Equation_Type[eq_idx_block2orig[eq]].first == EquationType::evaluate_s)
+          // Determine if the block can simply be evaluated
+          if (equation_type_and_normalized_equation[eq_idx_block2orig[first_eq]].first == EquationType::evaluate
+              || equation_type_and_normalized_equation[eq_idx_block2orig[first_eq]].first == EquationType::evaluate_s)
             {
               if (Simulation_Type == BlockSimulationType::solveBackwardSimple)
                 Simulation_Type = BlockSimulationType::evaluateBackward;
               else if (Simulation_Type == BlockSimulationType::solveForwardSimple)
                 Simulation_Type = BlockSimulationType::evaluateForward;
             }
+
+          /* Try to merge this block with the previous one.
+             This is only possible if the two blocks can simply be evaluated
+             (in the same direction), and if the merge does not break the
+             restrictions on leads/lags. */
           if (i > 0)
             {
               bool is_lead = false, is_lag = false;
-              int c_Size = get<2>(block_type_firstequation_size_mfs[block_type_firstequation_size_mfs.size()-1]);
-              int first_equation = get<1>(block_type_firstequation_size_mfs[block_type_firstequation_size_mfs.size()-1]);
-              if (c_Size > 0
-                  && ((prev_Type == BlockSimulationType::evaluateForward && Simulation_Type == BlockSimulationType::evaluateForward && !is_lead)
-                      || (prev_Type == BlockSimulationType::evaluateBackward && Simulation_Type == BlockSimulationType::evaluateBackward && !is_lag)))
+              for (int j = blocks[i-1].first_equation;
+                   j < blocks[i-1].first_equation+blocks[i-1].size; j++)
                 {
-                  for (int j = first_equation; j < first_equation+c_Size; j++)
-                    {
-                      if (dynamic_jacobian.find({ -1, eq_idx_block2orig[eq], endo_idx_block2orig[j] })
-                          != dynamic_jacobian.end())
-                        is_lag = true;
-                      if (dynamic_jacobian.find({ +1, eq_idx_block2orig[eq], endo_idx_block2orig[j] })
-                          != dynamic_jacobian.end())
-                        is_lead = true;
-                    }
+                  if (dynamic_jacobian.find({ -1, eq_idx_block2orig[first_eq], endo_idx_block2orig[j] })
+                      != dynamic_jacobian.end())
+                    is_lag = true;
+                  if (dynamic_jacobian.find({ +1, eq_idx_block2orig[first_eq], endo_idx_block2orig[j] })
+                      != dynamic_jacobian.end())
+                    is_lead = true;
                 }
-              if ((prev_Type == BlockSimulationType::evaluateForward && Simulation_Type == BlockSimulationType::evaluateForward && !is_lead)
-                  || (prev_Type == BlockSimulationType::evaluateBackward && Simulation_Type == BlockSimulationType::evaluateBackward && !is_lag))
+
+              BlockSimulationType prev_Type = blocks[i-1].simulation_type;
+              if ((prev_Type == BlockSimulationType::evaluateForward
+                   && Simulation_Type == BlockSimulationType::evaluateForward
+                   && !is_lead)
+                  || (prev_Type == BlockSimulationType::evaluateBackward
+                      && Simulation_Type == BlockSimulationType::evaluateBackward
+                      && !is_lag))
                 {
-                  //merge the current block with the previous one
-                  BlockSimulationType c_Type = get<0>(block_type_firstequation_size_mfs[block_type_firstequation_size_mfs.size()-1]);
-                  c_Size++;
-                  block_type_firstequation_size_mfs[block_type_firstequation_size_mfs.size()-1] = { c_Type, first_equation, c_Size, c_Size };
-                  if (block_lag_lead[block_type_firstequation_size_mfs.size()-1].first > Lag)
-                    Lag = block_lag_lead[block_type_firstequation_size_mfs.size()-1].first;
-                  if (block_lag_lead[block_type_firstequation_size_mfs.size()-1].second > Lead)
-                    Lead = block_lag_lead[block_type_firstequation_size_mfs.size()-1].second;
-                  block_lag_lead[block_type_firstequation_size_mfs.size()-1] = { Lag, Lead };
-                  auto tmp = block_col_type[block_col_type.size()-1];
-                  block_col_type[block_col_type.size()-1] = { get<0>(tmp)+l_n_static, get<1>(tmp)+l_n_forward, get<2>(tmp)+l_n_backward, get<3>(tmp)+l_n_mixed };
-                }
-              else
-                {
-                  block_type_firstequation_size_mfs.emplace_back(Simulation_Type, eq, Blck_Size, MFS_Size);
-                  block_lag_lead.emplace_back(Lag, Lead);
-                  block_col_type.emplace_back(l_n_static, l_n_forward, l_n_backward, l_n_mixed);
+                  // Merge the current block into the previous one
+                  blocks[i-1].size++;
+                  blocks[i-1].mfs_size = blocks[i-1].size;
+                  blocks[i-1].max_lag = max(blocks[i-1].max_lag, max_lag);
+                  blocks[i-1].max_lead = max(blocks[i-1].max_lead, max_lead);
+                  blocks[i-1].n_static += blocks[i].n_static;
+                  blocks[i-1].n_forward += blocks[i].n_forward;
+                  blocks[i-1].n_backward += blocks[i].n_backward;
+                  blocks[i-1].n_mixed += blocks[i].n_mixed;
+                  blocks.erase(blocks.begin()+i);
+                  i--;
+                  continue;
                 }
             }
-          else
-            {
-              block_type_firstequation_size_mfs.emplace_back(Simulation_Type, eq, Blck_Size, MFS_Size);
-              block_lag_lead.emplace_back(Lag, Lead);
-              block_col_type.emplace_back(l_n_static, l_n_forward, l_n_backward, l_n_mixed);
-            }
         }
-      else
-        {
-          block_type_firstequation_size_mfs.emplace_back(Simulation_Type, eq, Blck_Size, MFS_Size);
-          block_lag_lead.emplace_back(Lag, Lead);
-          block_col_type.emplace_back(l_n_static, l_n_forward, l_n_backward, l_n_mixed);
-        }
-      prev_Type = Simulation_Type;
-      eq += Blck_Size;
+
+      blocks[i].simulation_type = Simulation_Type;
+      blocks[i].first_equation = first_eq;
+      blocks[i].max_lag = max_lag;
+      blocks[i].max_lead = max_lead;
     }
 }
 
-vector<bool>
-ModelTree::equationLinear(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives) const
+void
+ModelTree::equationLinear(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives)
 {
-  vector<bool> is_linear(symbol_table.endo_nbr(), true);
-  for (const auto &it : first_order_endo_derivatives)
+  is_equation_linear.clear();
+  is_equation_linear.resize(symbol_table.endo_nbr(), true);
+  for (const auto &[indices, expr] : first_order_endo_derivatives)
     {
-      expr_t Id = it.second;
       set<pair<int, int>> endogenous;
-      Id->collectEndogenous(endogenous);
+      expr->collectEndogenous(endogenous);
       if (endogenous.size() > 0)
         {
-          int eq = get<0>(it.first);
-          is_linear[eq] = false;
+          int eq = get<0>(indices);
+          is_equation_linear[eq] = false;
         }
     }
-  return is_linear;
 }
 
 void
 ModelTree::determineLinearBlocks()
 {
-  int nb_blocks = getNbBlocks();
-  blocks_linear.clear();
-  blocks_linear.resize(nb_blocks, true);
-  for (int block = 0; block < nb_blocks; block++)
+  // Note that field “linear” in class BlockInfo defaults to true
+  for (int block = 0; block < getNbBlocks(); block++)
     {
       BlockSimulationType simulation_type = getBlockSimulationType(block);
       int block_size = getBlockSize(block);
@@ -1100,7 +1073,7 @@ ModelTree::determineLinearBlocks()
                   for (int l = 0; l < block_size; l++)
                     if (endogenous.find({ endo_idx_block2orig[first_variable_position+l], 0 }) != endogenous.end())
                       {
-                        blocks_linear[block] = false;
+                        blocks[block].linear = false;
                         goto the_end;
                       }
               }
@@ -1115,7 +1088,7 @@ ModelTree::determineLinearBlocks()
               for (int l = 0; l < block_size; l++)
                 if (endogenous.find({ endo_idx_block2orig[first_variable_position+l], lag }) != endogenous.end())
                   {
-                    blocks_linear[block] = false;
+                    blocks[block].linear = false;
                     goto the_end;
                   }
           }
