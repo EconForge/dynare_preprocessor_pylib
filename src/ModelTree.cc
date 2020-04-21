@@ -881,26 +881,22 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
 void
 ModelTree::printBlockDecomposition() const
 {
-  int largest_block = 0,
-    Nb_SimulBlocks = 0,
-    Nb_feedback_variable = 0;
+  int largest_block = 0, Nb_SimulBlocks = 0, Nb_feedback_variable = 0;
   int Nb_TotalBlocks = getNbBlocks();
   for (int block = 0; block < Nb_TotalBlocks; block++)
-    {
-      BlockSimulationType simulation_type = getBlockSimulationType(block);
-      if (simulation_type == BlockSimulationType::solveForwardComplete
-          || simulation_type == BlockSimulationType::solveBackwardComplete
-          || simulation_type == BlockSimulationType::solveTwoBoundariesComplete)
-        {
-          Nb_SimulBlocks++;
-          int size = getBlockSize(block);
-          if (size > largest_block)
-            {
-              largest_block = size;
-              Nb_feedback_variable = getBlockMfs(block);
-            }
-        }
-    }
+    if (BlockSimulationType simulation_type = getBlockSimulationType(block);
+        simulation_type == BlockSimulationType::solveForwardComplete
+        || simulation_type == BlockSimulationType::solveBackwardComplete
+        || simulation_type == BlockSimulationType::solveTwoBoundariesComplete)
+      {
+        Nb_SimulBlocks++;
+        if (int size = getBlockSize(block);
+            size > largest_block)
+          {
+            largest_block = size;
+            Nb_feedback_variable = getBlockMfs(block);
+          }
+      }
 
   int Nb_RecursBlocks = Nb_TotalBlocks - Nb_SimulBlocks;
   cout << Nb_TotalBlocks << " block(s) found:" << endl

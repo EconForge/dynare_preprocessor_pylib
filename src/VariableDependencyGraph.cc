@@ -197,7 +197,7 @@ VariableDependencyGraph::vertexBelongsToAClique(vertex_descriptor vertex) const
               bool exist1, exist2;
               tie(ed, exist1) = edge(liste[i], liste[j], *this);
               tie(ed, exist2) = edge(liste[j], liste[i], *this);
-              agree = (exist1 && exist2);
+              agree = exist1 && exist2;
               j++;
             }
           i++;
@@ -225,23 +225,11 @@ VariableDependencyGraph::eliminationOfVerticesWithOneOrLessIndegreeOrOutdegree()
               in_edge_iterator it_in, in_end;
               for (tie(it_in, in_end) = in_edges(*it, *this); it_in != in_end; ++it_in)
                 if (source(*it_in, *this) == target(*it_in, *this))
-                  {
-#ifdef verbose
-                    cout << v_index[source(*it_in, *this)] << " == " << v_index[target(*it_in, *this)] << "\n";
-#endif
-                    not_a_loop = false;
-                  }
+                  not_a_loop = false;
             }
           if (not_a_loop)
             {
-#ifdef verbose
-              auto v_index1 = get(vertex_index1, *this);
-              cout << "->eliminate vertex[" << v_index1[*it] + 1 << "]\n";
-#endif
               eliminate(*it);
-#ifdef verbose
-              print();
-#endif
               something_has_been_done = true;
               if (i > 0)
                 it = ita;
@@ -267,10 +255,6 @@ VariableDependencyGraph::eliminationOfVerticesBelongingToAClique()
     {
       if (vertexBelongsToAClique(*it))
         {
-#ifdef verbose
-          auto v_index1 = get(vertex_index1, *this);
-          cout << "eliminate vertex[" << v_index1[*it] + 1 << "]\n";
-#endif
           eliminate(*it);
           something_has_been_done = true;
           if (i > 0)
@@ -299,10 +283,6 @@ VariableDependencyGraph::suppressionOfVerticesWithLoop(set<int> &feed_back_verti
       tie(ed, exist) = edge(*it, *it, *this);
       if (exist)
         {
-#ifdef verbose
-          auto v_index1 = get(vertex_index1, *this);
-          cout << "store v[*it] = " << v_index1[*it]+1 << "\n";
-#endif
           auto v_index = get(vertex_index, *this);
           feed_back_vertices.insert(v_index[*it]);
           suppress(*it);
@@ -323,39 +303,21 @@ VariableDependencyGraph::suppressionOfVerticesWithLoop(set<int> &feed_back_verti
 set<int>
 VariableDependencyGraph::minimalSetOfFeedbackVertices() const
 {
-  bool something_has_been_done = true;
-  int cut_ = 0;
   set<int> feed_back_vertices;
   VariableDependencyGraph G(*this);
   while (num_vertices(G) > 0)
     {
+      bool something_has_been_done = true;
       while (something_has_been_done && num_vertices(G) > 0)
         {
-          //Rule 1
-          something_has_been_done = G.eliminationOfVerticesWithOneOrLessIndegreeOrOutdegree() /*or something_has_been_done*/;
-#ifdef verbose
-          cout << "1 something_has_been_done=" << something_has_been_done << "\n";
-#endif
-
-          //Rule 2
-          something_has_been_done = (G.eliminationOfVerticesBelongingToAClique() || something_has_been_done);
-#ifdef verbose
-          cout << "2 something_has_been_done=" << something_has_been_done << "\n";
-#endif
-
-          //Rule 3
-          something_has_been_done = (G.suppressionOfVerticesWithLoop(feed_back_vertices) || something_has_been_done);
-#ifdef verbose
-          cout << "3 something_has_been_done=" << something_has_been_done << "\n";
-#endif
+          something_has_been_done = G.eliminationOfVerticesWithOneOrLessIndegreeOrOutdegree();
+          something_has_been_done = G.eliminationOfVerticesBelongingToAClique() || something_has_been_done;
+          something_has_been_done = G.suppressionOfVerticesWithLoop(feed_back_vertices) || something_has_been_done;
         }
+
       if (!G.hasCycle())
-        {
-#ifdef verbose
-          cout << "has_cycle=false\n";
-#endif
-          return feed_back_vertices;
-        }
+        return feed_back_vertices;
+
       if (num_vertices(G) > 0)
         {
           /* If nothing has been done in the five previous rule then cut the
@@ -371,18 +333,9 @@ VariableDependencyGraph::minimalSetOfFeedbackVertices() const
 
           auto v_index = get(vertex_index, G);
           feed_back_vertices.insert(v_index[*max_degree_index]);
-          cut_++;
-#ifdef verbose
-          auto v_index1 = get(vertex_index1, G);
-          cout << "--> cut vertex " << v_index1[*max_degree_index] + 1 << "\n";
-#endif
           G.suppress(*max_degree_index);
-          something_has_been_done = true;
         }
     }
-#ifdef verbose
-  cout << "cut_=" << cut_ << "\n";
-#endif
   return feed_back_vertices;
 }
 
@@ -392,17 +345,17 @@ VariableDependencyGraph::reorderRecursiveVariables(const set<int> &feedback_vert
   vector<int> reordered_vertices;
   VariableDependencyGraph G(*this);
   auto v_index = get(vertex_index1, G);
-  set<int, greater<int>> fv;
-  for (auto its = feedback_vertices.begin(); its != feedback_vertices.end(); ++its)
-    fv.insert(*its);
-  int i = 0;
-  for (auto its = fv.begin(); its != fv.end(); ++its, i++)
-    G.suppress(*its);
+
+  // Suppress feedback vertices, in decreasing order
+  for (auto it = feedback_vertices.rbegin(); it != feedback_vertices.rend(); ++it)
+    G.suppress(*it);
+
   bool something_has_been_done = true;
   while (something_has_been_done)
     {
       something_has_been_done = false;
       vertex_iterator it, it_end, ita;
+      int i;
       for (tie(it, it_end) = vertices(G), i = 0; it != it_end; ++it, i++)
         {
           if (in_degree(*it, G) == 0)
@@ -421,8 +374,10 @@ VariableDependencyGraph::reorderRecursiveVariables(const set<int> &feedback_vert
           ita = it;
         }
     }
+
   if (num_vertices(G))
     cout << "Error in the computation of feedback vertex set\n";
+
   return reordered_vertices;
 }
 

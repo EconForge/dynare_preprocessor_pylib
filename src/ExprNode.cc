@@ -1389,7 +1389,7 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recur
         return datatree.One;
       else
         {
-          //if there is in the equation a recursive variable we could use a chaine rule derivation
+          // If there is in the equation a recursive variable we could use a chaine rule derivation
           if (auto it = recursive_variables.find(datatree.getDerivID(symb_id, lag));
               it != recursive_variables.end())
             {
@@ -1400,9 +1400,7 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recur
                 {
                   map<int, expr_t> recursive_vars2(recursive_variables);
                   recursive_vars2.erase(it->first);
-                  //expr_t c = datatree.AddNonNegativeConstant("1");
                   expr_t d = datatree.AddUMinus(it->second->getChainRuleDerivative(deriv_id, recursive_vars2));
-                  //d = datatree.AddTimes(c, d);
                   derivatives[deriv_id] = d;
                   return d;
                 }
