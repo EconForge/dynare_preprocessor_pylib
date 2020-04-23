@@ -2026,7 +2026,7 @@ StaticModel::writeOutput(ostream &output, bool block) const
         }
       output << "block_structure_stat.block(" << b+1 << ").Simulation_Type = " << static_cast<int>(simulation_type) << ";" << endl
              << "block_structure_stat.block(" << b+1 << ").endo_nbr = " << block_size << ";" << endl
-             << "block_structure_stat.block(" << b+1 << ").mfs = " << getBlockMfs(block) << ";" << endl
+             << "block_structure_stat.block(" << b+1 << ").mfs = " << getBlockMfs(b) << ";" << endl
              << "block_structure_stat.block(" << b+1 << ").equation = [" << tmp_s_eq.str() << "];" << endl
              << "block_structure_stat.block(" << b+1 << ").variable = [" << tmp_s.str() << "];" << endl;
     }
