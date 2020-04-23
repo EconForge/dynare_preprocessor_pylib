@@ -882,19 +882,19 @@ void
 ModelTree::printBlockDecomposition() const
 {
   int largest_block = 0, Nb_SimulBlocks = 0, Nb_feedback_variable = 0;
-  int Nb_TotalBlocks = getNbBlocks();
+  int Nb_TotalBlocks = blocks.size();
   for (int block = 0; block < Nb_TotalBlocks; block++)
-    if (BlockSimulationType simulation_type = getBlockSimulationType(block);
+    if (BlockSimulationType simulation_type = blocks[block].simulation_type;
         simulation_type == BlockSimulationType::solveForwardComplete
         || simulation_type == BlockSimulationType::solveBackwardComplete
         || simulation_type == BlockSimulationType::solveTwoBoundariesComplete)
       {
         Nb_SimulBlocks++;
-        if (int size = getBlockSize(block);
+        if (int size = blocks[block].size;
             size > largest_block)
           {
             largest_block = size;
-            Nb_feedback_variable = getBlockMfs(block);
+            Nb_feedback_variable = blocks[block].mfs_size;
           }
       }
 
@@ -1051,12 +1051,12 @@ void
 ModelTree::determineLinearBlocks()
 {
   // Note that field “linear” in class BlockInfo defaults to true
-  for (int block = 0; block < getNbBlocks(); block++)
+  for (int block = 0; block < static_cast<int>(blocks.size()); block++)
     {
-      BlockSimulationType simulation_type = getBlockSimulationType(block);
-      int block_size = getBlockSize(block);
+      BlockSimulationType simulation_type = blocks[block].simulation_type;
+      int block_size = blocks[block].size;
       block_derivatives_equation_variable_laglead_nodeid_t derivatives_block = blocks_derivatives[block];
-      int first_variable_position = getBlockFirstEquation(block);
+      int first_variable_position = blocks[block].first_equation;
       if (simulation_type == BlockSimulationType::solveBackwardComplete
           || simulation_type == BlockSimulationType::solveForwardComplete)
         for (const auto &[ignore, ignore2, lag, d1] : derivatives_block)

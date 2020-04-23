@@ -161,7 +161,7 @@ StaticModel::computeTemporaryTermsOrdered()
   ostringstream tmp_s;
   map_idx.clear();
 
-  int nb_blocks = getNbBlocks();
+  int nb_blocks = blocks.size();
   v_temporary_terms = vector< vector<temporary_terms_t>>(nb_blocks);
   v_temporary_terms_local = vector< vector<temporary_terms_t>>(nb_blocks);
 
@@ -178,9 +178,8 @@ StaticModel::computeTemporaryTermsOrdered()
       map<expr_t, pair<int, int>> first_occurence_local;
       temporary_terms_t temporary_terms_l;
 
-      int block_size = getBlockSize(block);
-      int block_nb_mfs = getBlockMfs(block);
-      int block_nb_recursives = block_size - block_nb_mfs;
+      int block_size = blocks[block].size;
+      int block_nb_recursives = blocks[block].getRecursiveSize();
       v_temporary_terms_local[block] = vector<temporary_terms_t>(block_size);
 
       for (int i = 0; i < block_size; i++)
@@ -206,9 +205,8 @@ StaticModel::computeTemporaryTermsOrdered()
   for (int block = 0; block < nb_blocks; block++)
     {
       // Compute the temporary terms reordered
-      int block_size = getBlockSize(block);
-      int block_nb_mfs = getBlockMfs(block);
-      int block_nb_recursives = block_size - block_nb_mfs;
+      int block_size = blocks[block].size;
+      int block_nb_recursives = blocks[block].getRecursiveSize();
       v_temporary_terms[block] = vector<temporary_terms_t>(block_size);
       for (int i = 0; i < block_size; i++)
         {
@@ -230,9 +228,8 @@ StaticModel::computeTemporaryTermsOrdered()
   for (int block = 0; block < nb_blocks; block++)
     {
       // Collecte the temporary terms reordered
-      int block_size = getBlockSize(block);
-      int block_nb_mfs = getBlockMfs(block);
-      int block_nb_recursives = block_size - block_nb_mfs;
+      int block_size = blocks[block].size;
+      int block_nb_recursives = blocks[block].getRecursiveSize();
       set<int> temporary_terms_in_use;
       for (int i = 0; i < block_size; i++)
         {
@@ -249,7 +246,7 @@ StaticModel::computeTemporaryTermsOrdered()
           expr_t id = get<3>(it);
           id->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
         }
-      for (int i = 0; i < getBlockSize(block); i++)
+      for (int i = 0; i < blocks[block].size; i++)
         for (const auto &it : v_temporary_terms[block][i])
           it->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
       v_temporary_terms_inuse[block] = temporary_terms_in_use;
@@ -286,15 +283,15 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
 
   //----------------------------------------------------------------------
   //For each block
-  for (int block = 0; block < getNbBlocks(); block++)
+  for (int block = 0; block < static_cast<int>(blocks.size()); block++)
     {
       //recursive_variables.clear();
       feedback_variables.clear();
       //For a block composed of a single equation determines wether we have to evaluate or to solve the equation
-      BlockSimulationType simulation_type = getBlockSimulationType(block);
-      int block_size = getBlockSize(block);
-      int block_mfs = getBlockMfs(block);
-      int block_recursive = block_size - block_mfs;
+      BlockSimulationType simulation_type = blocks[block].simulation_type;
+      int block_size = blocks[block].size;
+      int block_mfs = blocks[block].mfs_size;
+      int block_recursive = blocks[block].getRecursiveSize();
 
       tmp1_output.str("");
       tmp1_output << packageDir(basename + ".block") << "/static_" << block+1 << ".m";
@@ -319,13 +316,13 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
                 || simulation_type == BlockSimulationType::solveBackwardSimple
                 || simulation_type == BlockSimulationType::evaluateBackward
                 || simulation_type == BlockSimulationType::evaluateForward)
-               && getBlockFirstEquation(block) < prologue)
+               && blocks[block].first_equation < prologue)
         block_type = BlockType::prologue;
       else if ((simulation_type == BlockSimulationType::solveForwardSimple
                 || simulation_type == BlockSimulationType::solveBackwardSimple
                 || simulation_type == BlockSimulationType::evaluateBackward
                 || simulation_type == BlockSimulationType::evaluateForward)
-               && getBlockFirstEquation(block) >= static_cast<int>(equations.size()) - epilogue)
+               && blocks[block].first_equation >= static_cast<int>(equations.size()) - epilogue)
         block_type = BlockType::epilogue;
       else
         block_type = BlockType::simultans;
@@ -673,7 +670,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
   FDIMST_ fdimst(temporary_terms.size());
   fdimst.write(code_file, instruction_number);
 
-  for (int block = 0; block < getNbBlocks(); block++)
+  for (int block = 0; block < static_cast<int>(blocks.size()); block++)
     {
       feedback_variables.clear();
       if (block > 0)
@@ -683,10 +680,10 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
         }
       int count_u;
       int u_count_int = 0;
-      BlockSimulationType simulation_type = getBlockSimulationType(block);
-      int block_size = getBlockSize(block);
-      int block_mfs = getBlockMfs(block);
-      int block_recursive = block_size - block_mfs;
+      BlockSimulationType simulation_type = blocks[block].simulation_type;
+      int block_size = blocks[block].size;
+      int block_mfs = blocks[block].mfs_size;
+      int block_recursive = blocks[block].getRecursiveSize();
 
       if (simulation_type == BlockSimulationType::solveTwoBoundariesSimple
           || simulation_type == BlockSimulationType::solveTwoBoundariesComplete
@@ -699,7 +696,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename, map_idx_t map
 
       FBEGINBLOCK_ fbeginblock(block_mfs,
                                simulation_type,
-                               getBlockFirstEquation(block),
+                               blocks[block].first_equation,
                                block_size,
                                endo_idx_block2orig,
                                eq_idx_block2orig,
@@ -1055,9 +1052,9 @@ StaticModel::Write_Inf_To_Bin_File_Block(const string &basename, int num,
       exit(EXIT_FAILURE);
     }
   u_count_int = 0;
-  int block_size = getBlockSize(num);
-  int block_mfs = getBlockMfs(num);
-  int block_recursive = block_size - block_mfs;
+  int block_size = blocks[num].size;
+  int block_mfs = blocks[num].mfs_size;
+  int block_recursive = blocks[num].getRecursiveSize();
   for (const auto &[eq, var, ignore, ignore2] : blocks_derivatives[num])
     {
       int lag = 0;
@@ -1970,7 +1967,7 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
          << "  var_index = [];" << endl << endl
          << "  switch nblock" << endl;
 
-  int nb_blocks = getNbBlocks();
+  int nb_blocks = blocks.size();
 
   for (int b = 0; b < nb_blocks; b++)
     {
@@ -1978,14 +1975,14 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
 
       output << "    case " << b+1 << endl;
 
-      BlockSimulationType simulation_type = getBlockSimulationType(b);
+      BlockSimulationType simulation_type = blocks[b].simulation_type;
 
       if (simulation_type == BlockSimulationType::evaluateBackward
           || simulation_type == BlockSimulationType::evaluateForward)
         {
           output << "      y_tmp = " << basename << ".block.static_" << b+1 << "(y, x, params);" << endl;
           ostringstream tmp;
-          for (int i = 0; i < getBlockSize(b); i++)
+          for (int i = 0; i < blocks[b].size; i++)
             tmp << " " << getBlockVariableID(b, i)+1;
           output << "      var_index = [" << tmp.str() << "];" << endl
                  << "      residual  = y(var_index) - y_tmp(var_index);" << endl
@@ -2011,11 +2008,11 @@ StaticModel::writeOutput(ostream &output, bool block) const
   if (!block)
     return;
 
-  int nb_blocks = getNbBlocks();
+  int nb_blocks = blocks.size();
   for (int b = 0; b < nb_blocks; b++)
     {
-      BlockSimulationType simulation_type = getBlockSimulationType(b);
-      int block_size = getBlockSize(b);
+      BlockSimulationType simulation_type = blocks[b].simulation_type;
+      int block_size = blocks[b].size;
       ostringstream tmp_s, tmp_s_eq;
       tmp_s.str("");
       tmp_s_eq.str("");
@@ -2026,7 +2023,7 @@ StaticModel::writeOutput(ostream &output, bool block) const
         }
       output << "block_structure_stat.block(" << b+1 << ").Simulation_Type = " << static_cast<int>(simulation_type) << ";" << endl
              << "block_structure_stat.block(" << b+1 << ").endo_nbr = " << block_size << ";" << endl
-             << "block_structure_stat.block(" << b+1 << ").mfs = " << getBlockMfs(b) << ";" << endl
+             << "block_structure_stat.block(" << b+1 << ").mfs = " << blocks[b].mfs_size << ";" << endl
              << "block_structure_stat.block(" << b+1 << ").equation = [" << tmp_s_eq.str() << "];" << endl
              << "block_structure_stat.block(" << b+1 << ").variable = [" << tmp_s.str() << "];" << endl;
     }
@@ -2111,8 +2108,8 @@ map<tuple<int, int, int, int, int>, int>
 StaticModel::get_Derivatives(int block)
 {
   map<tuple<int, int, int, int, int>, int> Derivatives;
-  int block_size = getBlockSize(block);
-  int block_nb_recursive = block_size - getBlockMfs(block);
+  int block_size = blocks[block].size;
+  int block_nb_recursive = blocks[block].getRecursiveSize();
   int lag = 0;
   for (int eq = 0; eq < block_size; eq++)
     {
@@ -2159,16 +2156,15 @@ void
 StaticModel::computeChainRuleJacobian()
 {
   map<int, expr_t> recursive_variables;
-  int nb_blocks = getNbBlocks();
+  int nb_blocks = blocks.size();
   blocks_derivatives.resize(nb_blocks);
   for (int block = 0; block < nb_blocks; block++)
     {
       block_derivatives_equation_variable_laglead_nodeid_t tmp_derivatives;
       recursive_variables.clear();
-      BlockSimulationType simulation_type = getBlockSimulationType(block);
-      int block_size = getBlockSize(block);
-      int block_nb_mfs = getBlockMfs(block);
-      int block_nb_recursives = block_size - block_nb_mfs;
+      BlockSimulationType simulation_type = blocks[block].simulation_type;
+      int block_size = blocks[block].size;
+      int block_nb_recursives = blocks[block].getRecursiveSize();
       if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
           || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
         {
@@ -2231,10 +2227,10 @@ StaticModel::collect_block_first_order_derivatives()
 {
   //! vector for an equation or a variable indicates the block number
   vector<int> equation_2_block(eq_idx_block2orig.size()), variable_2_block(endo_idx_block2orig.size());
-  int nb_blocks = getNbBlocks();
+  int nb_blocks = blocks.size();
   for (int block = 0; block < nb_blocks; block++)
     {
-      int block_size = getBlockSize(block);
+      int block_size = blocks[block].size;
       for (int i = 0; i < block_size; i++)
         {
           equation_2_block[getBlockEquationID(block, i)] = block;

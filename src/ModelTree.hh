@@ -208,6 +208,8 @@ protected:
     bool linear{true}; // Whether the block is linear in endogenous variable
     int n_static{0}, n_forward{0}, n_backward{0}, n_mixed{0};
     int max_lag{0}, max_lead{0};
+
+    inline int getRecursiveSize() const { return size - mfs_size; };
   };
 
   // Stores various informations on the blocks
@@ -337,108 +339,59 @@ protected:
                                       vector<BinaryOpNode *> &equations, vector<int> &equations_lineno,
                                       EquationTags &equation_tags, bool static_equations) const;
 
-  //! Return the number of blocks
-  int
-  getNbBlocks() const
-  {
-    return blocks.size();
-  };
-  //! Determine the simulation type of each block
-  BlockSimulationType
-  getBlockSimulationType(int block_number) const
-  {
-    return blocks[block_number].simulation_type;
-  };
-  //! Return the first equation number of a block
-  int
-  getBlockFirstEquation(int block_number) const
-  {
-    return blocks[block_number].first_equation;
-  };
-  //! Return the size of the block block_number
-  int
-  getBlockSize(int block_number) const
-  {
-    return blocks[block_number].size;
-  };
   //! Return the number of exogenous variable in the block block_number
   virtual int getBlockExoSize(int block_number) const = 0;
   //! Return the number of colums in the jacobian matrix for exogenous variable in the block block_number
   virtual int getBlockExoColSize(int block_number) const = 0;
-  //! Return the number of feedback variable of the block block_number
-  int
-  getBlockMfs(int block_number) const
-  {
-    return blocks[block_number].mfs_size;
-  };
-  //! Return the maximum lag in a block
-  int
-  getBlockMaxLag(int block_number) const
-  {
-    return blocks[block_number].max_lag;
-  };
-  //! Return the maximum lead in a block
-  int
-  getBlockMaxLead(int block_number) const
-  {
-    return blocks[block_number].max_lead;
-  };
-  inline void
-  setBlockLeadLag(int block, int max_lag, int max_lead)
-  {
-    blocks[block].max_lag = max_lag;
-    blocks[block].max_lead = max_lead;
-  };
-
-  //! Return the type of equation (equation_number) belonging to the block block_number
+  //! Return the type of equation belonging to the block
   EquationType
-  getBlockEquationType(int block_number, int equation_number) const
+  getBlockEquationType(int blk, int eq) const
   {
-    return equation_type_and_normalized_equation[eq_idx_block2orig[getBlockFirstEquation(block_number)+equation_number]].first;
+    return equation_type_and_normalized_equation[eq_idx_block2orig[blocks[blk].first_equation+eq]].first;
   };
   //! Return true if the equation has been normalized
   bool
-  isBlockEquationRenormalized(int block_number, int equation_number) const
+  isBlockEquationRenormalized(int blk, int eq) const
   {
-    return equation_type_and_normalized_equation[eq_idx_block2orig[getBlockFirstEquation(block_number)+equation_number]].first == EquationType::evaluate_s;
+    return equation_type_and_normalized_equation[eq_idx_block2orig[blocks[blk].first_equation + eq]].first == EquationType::evaluate_s;
   };
-  //! Return the expr_t of the equation equation_number belonging to the block block_number
+  //! Return the expr_t of equation belonging to the block
   expr_t
-  getBlockEquationExpr(int block_number, int equation_number) const
+  getBlockEquationExpr(int blk, int eq) const
   {
-    return equations[eq_idx_block2orig[getBlockFirstEquation(block_number)+equation_number]];
+    return equations[eq_idx_block2orig[blocks[blk].first_equation + eq]];
   };
-  //! Return the expr_t of the renormalized equation equation_number belonging to the block block_number
+  //! Return the expr_t of renormalized equation belonging to the block
   expr_t
-  getBlockEquationRenormalizedExpr(int block_number, int equation_number) const
+  getBlockEquationRenormalizedExpr(int blk, int eq) const
   {
-    return equation_type_and_normalized_equation[eq_idx_block2orig[getBlockFirstEquation(block_number)+equation_number]].second;
+    return equation_type_and_normalized_equation[eq_idx_block2orig[blocks[blk].first_equation + eq]].second;
   };
-  //! Return the original number of equation equation_number belonging to the block block_number
+  //! Return the original number of equation belonging to the block
   int
-  getBlockEquationID(int block_number, int equation_number) const
+  getBlockEquationID(int blk, int eq) const
   {
-    return eq_idx_block2orig[getBlockFirstEquation(block_number)+equation_number];
+    return eq_idx_block2orig[blocks[blk].first_equation + eq];
   };
-  //! Return the original number of variable variable_number belonging to the block block_number
+  //! Return the original number of variable belonging to the block
   int
-  getBlockVariableID(int block_number, int variable_number) const
+  getBlockVariableID(int blk, int var) const
   {
-    return endo_idx_block2orig[getBlockFirstEquation(block_number)+variable_number];
+    return endo_idx_block2orig[blocks[blk].first_equation + var];
   };
   //! Return the original number of the exogenous variable varexo_number belonging to the block block_number
   virtual int getBlockVariableExoID(int block_number, int variable_number) const = 0;
-  //! Return the position of equation_number in the block number belonging to the block block_number
+  //! Return the position of an equation (given by its original index) inside its block
   int
-  getBlockInitialEquationID(int block_number, int equation_number) const
+  getBlockInitialEquationID(int blk, int eq) const
   {
-    return eq_idx_orig2block[equation_number] - getBlockFirstEquation(block_number);
+    return eq_idx_orig2block[eq] - blocks[blk].first_equation;
   };
-  //! Return the position of variable_number in the block number belonging to the block block_number
+  //! Return the position of a variable (given by its original index) inside its block
   int
-  getBlockInitialVariableID(int block_number, int variable_number) const
+  getBlockInitialVariableID(int blk, int var) const
   {
-    return endo_idx_orig2block[variable_number] - getBlockFirstEquation(block_number);
+    return endo_idx_orig2block[var] - blocks[blk].first_equation;
   };
   //! Return the position of variable_number in the block number belonging to the block block_number
   virtual int getBlockInitialExogenousID(int block_number, int variable_number) const = 0;
