@@ -751,10 +751,39 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
       eqs_in_simblock[endo2simblock[i]].insert(i);
     }
 
+  // Determine the dynamic structure of each block
   auto [equation_lag_lead, variable_lag_lead] = getVariableLeadLagByBlock(endo2simblock);
 
-  /* Add a loop on vertices which could not be normalized or vertices related
-     to lead/lag variables. This forces those vertices to belong to the feedback set */
+  for (int var = 0; var < nb_var; var++)
+    {
+      auto [max_lag, max_lead] = variable_lag_lead[endo_idx_block2orig[var]];
+      int blk;
+      if (var < prologue)
+        blk = var;
+      else if (var >= nb_var - epilogue)
+        blk = var - nb_simvars + num_simblocks;
+      else
+        blk = endo2simblock[var-prologue] + prologue;
+
+      if (max_lag != 0 && max_lead != 0)
+        blocks[blk].n_mixed++;
+      else if (max_lag == 0 && max_lead != 0)
+        blocks[blk].n_forward++;
+      else if (max_lag != 0 && max_lead == 0)
+        blocks[blk].n_backward++;
+      else
+        blocks[blk].n_static++;
+    }
+
+  /* For each simultaneous block, the minimum set of feedback variable is computed.
+     Then, the variables within the blocks are reordered so that recursive
+     (non-feedback) appear first, to get a sub-recursive block without feedback variables.
+     Within each of the two sub-blocks, variables are reordered depending
+     on their dynamic status: static first, then backward, mixed and forward. */
+
+  /* First, add a loop on vertices which could not be normalized or vertices
+     related to lead/lag variables. This forces those vertices to belong to the
+     feedback set */
   for (int i = 0; i < nb_simvars; i++)
     if (equation_type_and_normalized_equation[eq_idx_block2orig[i+prologue]].first == EquationType::solve
         || variable_lag_lead[endo_idx_block2orig[i+prologue]].first > 0
@@ -764,113 +793,39 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
         || mfs == 0)
       add_edge(vertex(i, G), vertex(i, G), G);
 
-  // Determines the dynamic structure of each equation
   const vector<int> old_eq_idx_block2orig(eq_idx_block2orig), old_endo_idx_block2orig(endo_idx_block2orig);
-  for (int i = 0; i < prologue; i++)
-    {
-      auto [max_lag, max_lead] = variable_lag_lead[old_endo_idx_block2orig[i]];
-      if (max_lag != 0 && max_lead != 0)
-        blocks[i].n_mixed++;
-      else if (max_lag == 0 && max_lead != 0)
-        blocks[i].n_forward++;
-      else if (max_lag != 0 && max_lead == 0)
-        blocks[i].n_backward++;
-      else
-        blocks[i].n_static++;
-    }
-
-  /* For each block, the minimum set of feedback variable is computed and the
-     non-feedback variables are reordered to get a sub-recursive block without
-     feedback variables. */
-
   int ordidx = prologue;
   for (int i = 0; i < num_simblocks; i++)
     {
       auto subG = G.extractSubgraph(eqs_in_simblock[i]);
       auto feed_back_vertices = subG.minimalSetOfFeedbackVertices();
-      auto v_index1 = get(boost::vertex_index1, subG);
       blocks[prologue+i].mfs_size = feed_back_vertices.size();
       auto reordered_vertices = subG.reorderRecursiveVariables(feed_back_vertices);
 
-      // First we have the recursive equations conditional on feedback variables
-      for (int j = 0; j < 4; j++)
+      const vector<pair<int, int>> dynamic_order{ make_pair(0, 0), make_pair(1, 0),
+                                                  make_pair(1, 1), make_pair(0, 1) };
+
+      // First the recursive equations conditional on feedback variables
+      for (auto max_lag_lead : dynamic_order)
         for (int its : reordered_vertices)
-          {
-            auto [max_lag, max_lead] = variable_lag_lead[old_endo_idx_block2orig[its+prologue]];
-            auto reorder = [&]()
-                           {
-                             eq_idx_block2orig[ordidx] = old_eq_idx_block2orig[its+prologue];
-                             endo_idx_block2orig[ordidx] = old_endo_idx_block2orig[its+prologue];
-                             ordidx++;
-                           };
-            if (j == 2 && max_lag != 0 && max_lead != 0)
+            if (variable_lag_lead[old_endo_idx_block2orig[its+prologue]] == max_lag_lead)
               {
-                blocks[prologue+i].n_mixed++;
-                reorder();
+                eq_idx_block2orig[ordidx] = old_eq_idx_block2orig[its+prologue];
+                endo_idx_block2orig[ordidx] = old_endo_idx_block2orig[its+prologue];
+                ordidx++;
               }
-            else if (j == 3 && max_lag == 0 && max_lead != 0)
-              {
-                blocks[prologue+i].n_forward++;
-                reorder();
-              }
-            else if (j == 1 && max_lag != 0 && max_lead == 0)
-              {
-                blocks[prologue+i].n_backward++;
-                reorder();
-              }
-            else if (j == 0 && max_lag == 0 && max_lead == 0)
-              {
-                blocks[prologue+i].n_static++;
-                reorder();
-              }
-          }
 
-      // Second we have the equations related to the feedback variables
-      for (int j = 0; j < 4; j++)
+      // Then the equations related to the feedback variables
+      auto v_index1 = get(boost::vertex_index1, subG);
+      for (auto max_lag_lead : dynamic_order)
         for (int fbvertex : feed_back_vertices)
-          {
-            int idx = v_index1[vertex(fbvertex, subG)];
-            auto [max_lag, max_lead] = variable_lag_lead[old_endo_idx_block2orig[idx+prologue]];
-            auto reorder = [&]()
-                           {
-                             eq_idx_block2orig[ordidx] = old_eq_idx_block2orig[idx+prologue];
-                             endo_idx_block2orig[ordidx] = old_endo_idx_block2orig[idx+prologue];
-                             ordidx++;
-                           };
-            if (j == 2 && max_lag != 0 && max_lead != 0)
-              {
-                blocks[prologue+i].n_mixed++;
-                reorder();
-              }
-            else if (j == 3 && max_lag == 0 && max_lead != 0)
-              {
-                blocks[prologue+i].n_forward++;
-                reorder();
-              }
-            else if (j == 1 && max_lag != 0 && max_lead == 0)
-              {
-                blocks[prologue+i].n_backward++;
-                reorder();
-              }
-            else if (j == 0 && max_lag == 0 && max_lead == 0)
-              {
-                blocks[prologue+i].n_static++;
-                reorder();
-              }
-          }
-    }
-
-  for (int i = 0; i < epilogue; i++)
-    {
-      auto [max_lag, max_lead] = variable_lag_lead[old_endo_idx_block2orig[prologue+nb_simvars+i]];
-      if (max_lag != 0 && max_lead != 0)
-        blocks[prologue+num_simblocks+i].n_mixed++;
-      else if (max_lag == 0 && max_lead != 0)
-        blocks[prologue+num_simblocks+i].n_forward++;
-      else if (max_lag != 0 && max_lead == 0)
-        blocks[prologue+num_simblocks+i].n_backward++;
-      else
-        blocks[prologue+num_simblocks+i].n_static++;
+          if (int idx = v_index1[vertex(fbvertex, subG)];
+              variable_lag_lead[old_endo_idx_block2orig[idx+prologue]] == max_lag_lead)
+            {
+              eq_idx_block2orig[ordidx] = old_eq_idx_block2orig[idx+prologue];
+              endo_idx_block2orig[ordidx] = old_endo_idx_block2orig[idx+prologue];
+              ordidx++;
+            }
     }
 
   updateReverseVariableEquationOrderings();
