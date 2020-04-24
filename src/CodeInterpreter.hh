@@ -116,8 +116,8 @@ enum class BlockType
 enum class EquationType
   {
    unknown, //!< Unknown equation type
-   evaluate, //!< Simple evaluation, normalized variable on left-hand side
-   evaluate_s, //!< Simple evaluation, normalize using the first order derivative
+   evaluate, //!< Simple evaluation, normalized variable on left-hand side (written as such by the user)
+   evaluate_s, //!< Simple evaluation, normalized variable on left-hand side (normalization computed by the preprocessor)
    solve //!< No simple evaluation of the equation, it has to be solved
   };
 
@@ -128,10 +128,10 @@ enum class BlockSimulationType
    evaluateBackward, //!< Simple evaluation, normalized variable on left-hand side, backward
    solveForwardSimple, //!< Block of one equation, newton solver needed, forward
    solveBackwardSimple, //!< Block of one equation, newton solver needed, backward
-   solveTwoBoundariesSimple, //!< Block of one equation, newton solver needed, forward & ackward
-   solveForwardComplete, //!< Block of several equations, newton solver needed, forward
-   solveBackwardComplete, //!< Block of several equations, newton solver needed, backward
-   solveTwoBoundariesComplete //!< Block of several equations, newton solver needed, forward and backwar
+   solveTwoBoundariesSimple, //!< Block of one equation, Newton solver needed, forward and backward
+   solveForwardComplete, //!< Block of several equations, Newton solver needed, forward
+   solveBackwardComplete, //!< Block of several equations, Newton solver needed, backward
+   solveTwoBoundariesComplete //!< Block of several equations, Newton solver needed, forward and backwar
   };
 
 //! Enumeration of possible symbol types
