@@ -103,17 +103,15 @@ ModelTree::copyHelper(const ModelTree &m)
     nonstationary_symbols_map[it.first] = {it.second.first, f(it.second.second)};
   for (const auto &it : m.dynamic_jacobian)
     dynamic_jacobian[it.first] = f(it.second);
-  for (const auto &it : m.first_chain_rule_derivatives)
-    first_chain_rule_derivatives[it.first] = f(it.second);
 
   for (const auto &it : m.equation_type_and_normalized_equation)
     equation_type_and_normalized_equation.emplace_back(it.first, f(it.second));
 
   for (const auto &it : m.blocks_derivatives)
     {
-      block_derivatives_equation_variable_laglead_nodeid_t v;
+      map<tuple<int, int, int>, expr_t> v;
       for (const auto &it2 : it)
-        v.emplace_back(get<0>(it2), get<1>(it2), get<2>(it2), f(get<3>(it2)));
+        v[it2.first] = f(it2.second);
       blocks_derivatives.push_back(v);
     }
 
@@ -209,7 +207,6 @@ ModelTree::operator=(const ModelTree &m)
   endo_idx_block2orig = m.endo_idx_block2orig;
   eq_idx_orig2block = m.eq_idx_orig2block;
   endo_idx_orig2block = m.endo_idx_orig2block;
-  first_chain_rule_derivatives.clear();
   map_idx = m.map_idx;
   equation_type_and_normalized_equation.clear();
   blocks_derivatives.clear();
@@ -965,8 +962,12 @@ ModelTree::reduceBlocksAndTypeDetermination(bool linear_decomposition)
                   // Merge the current block into the previous one
                   blocks[i-1].size++;
                   blocks[i-1].mfs_size = blocks[i-1].size;
-                  blocks[i-1].max_lag = max(blocks[i-1].max_lag, max_lag);
-                  blocks[i-1].max_lead = max(blocks[i-1].max_lead, max_lead);
+                  /* For max lag/lead, the max of the two blocks is not enough.
+                     We need to consider the case where a variable of the
+                     previous block appears with a lag/lead in the current one
+                     (the reverse case is excluded, by construction). */
+                  blocks[i-1].max_lag = is_lag ? 1 : max(blocks[i-1].max_lag, max_lag);
+                  blocks[i-1].max_lead = is_lead ? 1 : max(blocks[i-1].max_lead, max_lead);
                   blocks[i-1].n_static += blocks[i].n_static;
                   blocks[i-1].n_forward += blocks[i].n_forward;
                   blocks[i-1].n_backward += blocks[i].n_backward;
@@ -1010,12 +1011,13 @@ ModelTree::determineLinearBlocks()
     {
       BlockSimulationType simulation_type = blocks[block].simulation_type;
       int block_size = blocks[block].size;
-      block_derivatives_equation_variable_laglead_nodeid_t derivatives_block = blocks_derivatives[block];
+      auto derivatives_block = blocks_derivatives[block];
       int first_variable_position = blocks[block].first_equation;
       if (simulation_type == BlockSimulationType::solveBackwardComplete
           || simulation_type == BlockSimulationType::solveForwardComplete)
-        for (const auto &[ignore, ignore2, lag, d1] : derivatives_block)
+        for (const auto &[indices, d1] : derivatives_block)
           {
+            int lag = get<2>(indices);
             if (lag == 0)
               {
                 set<pair<int, int>> endogenous;
@@ -1031,8 +1033,9 @@ ModelTree::determineLinearBlocks()
           }
       else if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
                || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
-        for (const auto &[ignore, ignore2, lag, d1] : derivatives_block)
+        for (const auto &[indices, d1] : derivatives_block)
           {
+            int lag = get<2>(indices);
             set<pair<int, int>> endogenous;
             d1->collectEndogenous(endogenous);
             if (endogenous.size() > 0)

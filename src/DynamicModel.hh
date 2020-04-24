@@ -128,15 +128,19 @@ private:
   void writeSetAuxiliaryVariables(const string &basename, bool julia) const;
   void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
 
-  //! Computes jacobian and prepares for equation normalization
-  /*! Using values from initval/endval blocks and parameter initializations:
-    - computes the jacobian for the model w.r. to contemporaneous variables
-    - removes edges of the incidence matrix when derivative w.r. to the corresponding variable is too close to zero (below the cutoff)
-  */
-  //void evaluateJacobian(const eval_context_t &eval_context, jacob_map *j_m, bool dynamic);
+  // Used by determineBlockDerivativesType()
+  enum class BlockDerivativeType
+    {
+     standard,
+     chainRule,
+     normalizedChainRule
+    };
 
-  //! return a map on the block jacobian
-  map<tuple<int, int, int, int, int>, int> get_Derivatives(int block);
+  /* For each tuple (lag, eq, var) within the given block, determine the type
+     of the derivative to be computed. Indices are within the block (i.e.
+     between 0 and blocks[blk].size-1). */
+  map<tuple<int, int, int>, BlockDerivativeType> determineBlockDerivativesType(int blk);
+
   //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
   void computeChainRuleJacobian();
 
@@ -150,7 +154,7 @@ private:
   //! Write derivative code of an equation w.r. to a variable
   void compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, int lag, const map_idx_t &map_idx) const;
   //! Write chain rule derivative code of an equation w.r. to a variable
-  void compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int var, int lag, const map_idx_t &map_idx) const;
+  void compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int blk, int eq, int var, int lag, const map_idx_t &map_idx) const;
 
   //! Get the type corresponding to a derivation ID
   SymbolType getTypeByDerivID(int deriv_id) const noexcept(false) override;

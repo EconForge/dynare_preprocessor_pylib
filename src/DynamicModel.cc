@@ -165,9 +165,10 @@ DynamicModel::compileDerivative(ofstream &code_file, unsigned int &instruction_n
 }
 
 void
-DynamicModel::compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int eqr, int varr, int lag, const map_idx_t &map_idx) const
+DynamicModel::compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int blk, int eq, int var, int lag, const map_idx_t &map_idx) const
 {
-  if (auto it = first_chain_rule_derivatives.find({ eqr, varr, lag }); it != first_chain_rule_derivatives.end())
+  if (auto it = blocks_derivatives[blk].find({ eq, var, lag });
+      it != blocks_derivatives[blk].end())
     it->second->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
   else
     {
@@ -182,7 +183,6 @@ DynamicModel::computeTemporaryTermsOrdered()
   map<expr_t, pair<int, int>> first_occurence;
   map<expr_t, int> reference_count;
   BinaryOpNode *eq_node;
-  first_chain_rule_derivatives_t::const_iterator it_chr;
   ostringstream tmp_s;
   v_temporary_terms.clear();
   map_idx.clear();
@@ -211,11 +211,8 @@ DynamicModel::computeTemporaryTermsOrdered()
                   eq_node->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, i);
                 }
             }
-          for (const auto &it : blocks_derivatives[block])
-            {
-              expr_t id = get<3>(it);
-              id->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
-            }
+          for (const auto &[ignore, id] : blocks_derivatives[block])
+            id->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
           for (const auto &it : derivative_endo[block])
             it.second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
           for (const auto &it : derivative_other_endo[block])
@@ -241,11 +238,8 @@ DynamicModel::computeTemporaryTermsOrdered()
                   eq_node->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, i);
                 }
             }
-          for (const auto &it : blocks_derivatives[block])
-            {
-              expr_t id = get<3>(it);
-              id->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
-            }
+          for (const auto &[ignore, id] : blocks_derivatives[block])
+            id->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
           for (const auto &it : derivative_endo[block])
             it.second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
           for (const auto &it : derivative_other_endo[block])
@@ -267,11 +261,8 @@ DynamicModel::computeTemporaryTermsOrdered()
                   eq_node->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
                 }
             }
-          for (const auto &it : blocks_derivatives[block])
-            {
-              expr_t id = get<3>(it);
-              id->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
-            }
+          for (const auto &[ignore, id] : blocks_derivatives[block])
+            id->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
           for (const auto &it : derivative_endo[block])
             it.second->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
           for (const auto &it : derivative_other_endo[block])
@@ -339,8 +330,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       int prev_lag;
       int prev_var, count_col, count_col_endo, count_col_exo, count_col_exo_det, count_col_other_endo;
       map<tuple<int, int, int>, expr_t> tmp_block_endo_derivative;
-      for (const auto &it : blocks_derivatives[block])
-        tmp_block_endo_derivative[{ get<2>(it), get<1>(it), get<0>(it) }] = get<3>(it);
+      for (const auto &[idx, d] : blocks_derivatives[block])
+        tmp_block_endo_derivative[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
       prev_var = 999999999;
       prev_lag = -9999999;
       count_col_endo = 0;
@@ -762,8 +753,9 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
         case BlockSimulationType::solveBackwardComplete:
         case BlockSimulationType::solveForwardComplete:
           output << "  else" << endl;
-          for (const auto &[eq, var, lag, id] : blocks_derivatives[block])
+          for (const auto &[indices, id] : blocks_derivatives[block])
             {
+              auto [eq, var, lag] = indices;
               int eqr = getBlockEquationID(block, eq);
               int varr = getBlockVariableID(block, var);
               if (lag == 0)
@@ -782,8 +774,9 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
         case BlockSimulationType::solveTwoBoundariesSimple:
         case BlockSimulationType::solveTwoBoundariesComplete:
           output << "    else" << endl;
-          for (const auto &[eq, var, lag, id] : blocks_derivatives[block])
+          for (const auto &[indices, id] : blocks_derivatives[block])
             {
+              auto [eq, var, lag] = indices;
               int eqr = getBlockEquationID(block, eq);
               int varr = getBlockVariableID(block, var);
               ostringstream tmp_output;
@@ -1185,8 +1178,8 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
           file_open = true;
         }
       map<tuple<int, int, int>, expr_t> tmp_block_endo_derivative;
-      for (const auto &it : blocks_derivatives[block])
-        tmp_block_endo_derivative[{ get<2>(it), get<1>(it), get<0>(it) }] = get<3>(it);
+      for (const auto &[idx, d] : blocks_derivatives[block])
+        tmp_block_endo_derivative[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
       map<tuple<int, int, int>, expr_t> tmp_exo_derivative;
       for (const auto &it : derivative_exo[block])
         tmp_exo_derivative[{ get<0>(it.first), get<2>(it.first), get<1>(it.first) }] = it.second;
@@ -1393,8 +1386,9 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
             case BlockSimulationType::solveTwoBoundariesComplete:
             case BlockSimulationType::solveTwoBoundariesSimple:
               count_u = feedback_variables.size();
-              for (const auto &[eq, var, lag, ignore] : blocks_derivatives[block])
+              for (const auto &[indices, ignore] : blocks_derivatives[block])
                 {
+                  auto [eq, var, lag] = indices;
                   int eqr = getBlockEquationID(block, eq);
                   int varr = getBlockVariableID(block, var);
                   if (eq >= block_recursive and var >= block_recursive)
@@ -1419,7 +1413,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
                       Uf[eqr].Ufl->lag = lag;
                       FNUMEXPR_ fnumexpr(FirstEndoDerivative, eqr, varr, lag);
                       fnumexpr.write(code_file, instruction_number);
-                      compileChainRuleDerivative(code_file, instruction_number, eqr, varr, lag, map_idx);
+                      compileChainRuleDerivative(code_file, instruction_number, block, eq, var, lag, map_idx);
                       FSTPU_ fstpu(count_u);
                       fstpu.write(code_file, instruction_number);
                       count_u++;
@@ -1808,8 +1802,9 @@ DynamicModel::Write_Inf_To_Bin_File_Block(const string &basename, int num,
   int block_size = blocks[num].size;
   int block_mfs = blocks[num].mfs_size;
   int block_recursive = blocks[num].getRecursiveSize();
-  for (const auto &[eq, var, lag, ignore] : blocks_derivatives[num])
+  for (const auto &[indices, ignore] : blocks_derivatives[num])
     {
+      auto [eq, var, lag] = indices;
       if (lag != 0 && !is_two_boundaries)
         continue;
       if (eq >= block_recursive && var >= block_recursive)
@@ -3240,8 +3235,8 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           tmp_s.str("");
           count_lead_lag_incidence = 0;
           dynamic_jacob_map_t reordered_dynamic_jacobian;
-          for (const auto &it : blocks_derivatives[block])
-            reordered_dynamic_jacobian[{ get<2>(it), get<1>(it), get<0>(it) }] = get<3>(it);
+          for (const auto &[idx, d] : blocks_derivatives[block])
+            reordered_dynamic_jacobian[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
           output << "block_structure.block(" << block+1 << ").lead_lag_incidence = [];" << endl;
           int last_var = -1;
           vector<int> local_state_var;
@@ -3415,10 +3410,10 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               if (block == 0)
                 {
                   set<pair<int, int>> row_state_var_incidence;
-                  for (const auto &it : blocks_derivatives[block])
-                    if (auto it_state_var = find(state_var.begin(), state_var.end(), getBlockVariableID(block, get<1>(it))+1);
+                  for (const auto &[idx, ignore] : blocks_derivatives[block])
+                    if (auto it_state_var = find(state_var.begin(), state_var.end(), getBlockVariableID(block, get<1>(idx))+1);
                         it_state_var != state_var.end())
-                      if (auto it_state_equ = find(state_equ.begin(), state_equ.end(), getBlockEquationID(block, get<0>(it))+1);
+                      if (auto it_state_equ = find(state_equ.begin(), state_equ.end(), getBlockEquationID(block, get<0>(idx))+1);
                           it_state_equ != state_equ.end())
                         row_state_var_incidence.emplace(it_state_equ - state_equ.begin(), it_state_var - state_var.begin());
                   auto row_state_var_incidence_it = row_state_var_incidence.begin();
@@ -4973,108 +4968,80 @@ DynamicModel::writeRevXrefs(ostream &output, const map<pair<int, int>, set<int>>
     }
 }
 
-map<tuple<int, int, int, int, int>, int>
-DynamicModel::get_Derivatives(int block)
-{
-  int max_lag, max_lead;
-  map<tuple<int, int, int, int, int>, int> Derivatives;
-  BlockSimulationType simulation_type = blocks[block].simulation_type;
-  if (simulation_type == BlockSimulationType::evaluateBackward
-      || simulation_type == BlockSimulationType::evaluateForward)
-    {
-      max_lag = 1;
-      max_lead = 1;
-      blocks[block].max_lag = max_lag;
-      blocks[block].max_lead = max_lead;
-    }
-  else
-    {
-      max_lag = blocks[block].max_lag;
-      max_lead = blocks[block].max_lead;
-    }
-  int block_size = blocks[block].size;
-  int block_nb_recursive = blocks[block].getRecursiveSize();
-  for (int lag = -max_lag; lag <= max_lead; lag++)
-    {
-      for (int eq = 0; eq < block_size; eq++)
-        {
-          int eqr = getBlockEquationID(block, eq);
-          for (int var = 0; var < block_size; var++)
-            {
-              int varr = getBlockVariableID(block, var);
-              if (dynamic_jacobian.find({ lag, eqr, varr }) != dynamic_jacobian.end())
-                {
-                  bool OK = true;
-                  if (auto its = Derivatives.find({ lag, eq, var, eqr, varr });
-                      its != Derivatives.end() && its->second == 2)
-                    OK = false;
 
-                  if (OK)
-                    {
-                      if (getBlockEquationType(block, eq) == EquationType::evaluate_s
-                          && eq < block_nb_recursive)
-                        //It's a normalized equation, we have to recompute the derivative using chain rule derivative function
-                        Derivatives[{ lag, eq, var, eqr, varr }] = 1;
-                      else
-                        //It's a feedback equation we can use the derivatives
-                        Derivatives[{ lag, eq, var, eqr, varr }] = 0;
-                    }
-                  if (var < block_nb_recursive)
-                    {
-                      int eqs = getBlockEquationID(block, var);
-                      for (int vars = block_nb_recursive; vars < block_size; vars++)
-                        {
-                          int varrs = getBlockVariableID(block, vars);
-                          //A new derivative needs to be computed using the chain rule derivative function (a feedback variable appears in a recursive equation)
-                          if (Derivatives.find({ lag, var, vars, eqs, varrs }) != Derivatives.end())
-                            Derivatives[{ lag, eq, vars, eqr, varrs }] = 2;
-                        }
-                    }
-                }
-            }
-        }
-    }
-  return Derivatives;
+map<tuple<int, int, int>, DynamicModel::BlockDerivativeType>
+DynamicModel::determineBlockDerivativesType(int blk)
+{
+  map<tuple<int, int, int>, BlockDerivativeType> derivType;
+  int size = blocks[blk].size;
+  int nb_recursive = blocks[blk].getRecursiveSize();
+  for (int lag = -blocks[blk].max_lag; lag <= blocks[blk].max_lead; lag++)
+    for (int eq = 0; eq < size; eq++)
+      for (int var = 0; var < size; var++)
+        if (int eq_orig = getBlockEquationID(blk, eq), var_orig = getBlockVariableID(blk, var);
+            dynamic_jacobian.find({ lag, eq_orig, var_orig }) != dynamic_jacobian.end())
+          {
+            if (getBlockEquationType(blk, eq) == EquationType::evaluate_s
+                && eq < nb_recursive)
+              /* It’s a normalized recursive equation, we have to recompute
+                 the derivative using the chain rule */
+              derivType[{ lag, eq, var }] = BlockDerivativeType::normalizedChainRule;
+            else if (derivType.find({ lag, eq, var }) == derivType.end())
+              derivType[{ lag, eq, var }] = BlockDerivativeType::standard;
+
+            if (var < nb_recursive)
+              for (int feedback_var = nb_recursive; feedback_var < size; feedback_var++)
+                if (derivType.find({ lag, var, feedback_var }) != derivType.end())
+                  /* A new derivative needs to be computed using the chain rule
+                     (a feedback variable appears in the recursive equation
+                     defining the current variable) */
+                  derivType[{ lag, eq, feedback_var }] = BlockDerivativeType::chainRule;
+          }
+  return derivType;
 }
 
 void
 DynamicModel::computeChainRuleJacobian()
 {
-  map<int, expr_t> recursive_variables;
   int nb_blocks = blocks.size();
   blocks_derivatives.resize(nb_blocks);
-  for (int block = 0; block < nb_blocks; block++)
+  for (int blk = 0; blk < nb_blocks; blk++)
     {
-      block_derivatives_equation_variable_laglead_nodeid_t tmp_derivatives;
-      recursive_variables.clear();
-      int block_nb_recursives = blocks[block].getRecursiveSize();
-      for (int i = 0; i < block_nb_recursives; i++)
+      int nb_recursives = blocks[blk].getRecursiveSize();
+
+      // Create a map from recursive vars to their defining (normalized) equation
+      map<int, expr_t> recursive_vars;
+      for (int i = 0; i < nb_recursives; i++)
         {
-          if (getBlockEquationType(block, i) == EquationType::evaluate_s)
-            recursive_variables[getDerivID(symbol_table.getID(SymbolType::endogenous, getBlockVariableID(block, i)), 0)] = getBlockEquationRenormalizedExpr(block, i);
+          int deriv_id = getDerivID(symbol_table.getID(SymbolType::endogenous, getBlockVariableID(blk, i)), 0);
+          if (getBlockEquationType(blk, i) == EquationType::evaluate_s)
+            recursive_vars[deriv_id] = getBlockEquationRenormalizedExpr(blk, i);
           else
-            recursive_variables[getDerivID(symbol_table.getID(SymbolType::endogenous, getBlockVariableID(block, i)), 0)] = getBlockEquationExpr(block, i);
+            recursive_vars[deriv_id] = getBlockEquationExpr(blk, i);
         }
-      auto Derivatives = get_Derivatives(block);
-      for (const auto &it : Derivatives)
+
+      // Compute the block derivatives
+      for (const auto &[indices, derivType] : determineBlockDerivativesType(blk))
         {
-          int Deriv_type = it.second;
-          auto [lag, eq, var, eqr, varr] = it.first;
-          if (Deriv_type == 0)
-            first_chain_rule_derivatives[{ eqr, varr, lag }] = derivatives[1][{ eqr, getDerivID(symbol_table.getID(SymbolType::endogenous, varr), lag) }];
-          else if (Deriv_type == 1)
-            first_chain_rule_derivatives[{ eqr, varr, lag }] = (equation_type_and_normalized_equation[eqr].second)->getChainRuleDerivative(getDerivID(symbol_table.getID(SymbolType::endogenous, varr), lag), recursive_variables);
-          else if (Deriv_type == 2)
+          auto [lag, eq, var] = indices;
+          int eq_orig = getBlockEquationID(blk, eq), var_orig = getBlockVariableID(blk, var);
+          int deriv_id = getDerivID(symbol_table.getID(SymbolType::endogenous, var_orig), lag);
+          expr_t d{nullptr};
+          switch (derivType)
             {
-              if (getBlockEquationType(block, eq) == EquationType::evaluate_s
-                  && eq < block_nb_recursives)
-                first_chain_rule_derivatives[{ eqr, varr, lag }] = (equation_type_and_normalized_equation[eqr].second)->getChainRuleDerivative(getDerivID(symbol_table.getID(SymbolType::endogenous, varr), lag), recursive_variables);
-              else
-                first_chain_rule_derivatives[{ eqr, varr, lag }] = equations[eqr]->getChainRuleDerivative(getDerivID(symbol_table.getID(SymbolType::endogenous, varr), lag), recursive_variables);
+            case BlockDerivativeType::standard:
+              d = derivatives[1][{ eq_orig, deriv_id }];
+              break;
+            case BlockDerivativeType::chainRule:
+              d = equations[eq_orig]->getChainRuleDerivative(deriv_id, recursive_vars);
+              break;
+            case BlockDerivativeType::normalizedChainRule:
+              d = equation_type_and_normalized_equation[eq_orig].second->getChainRuleDerivative(deriv_id, recursive_vars);
+              break;
             }
-          tmp_derivatives.emplace_back(eq, var, lag, first_chain_rule_derivatives[{ eqr, varr, lag }]);
+
+          blocks_derivatives[blk][{ eq, var, lag }] = d;
         }
-      blocks_derivatives[block] = tmp_derivatives;
     }
 }
 

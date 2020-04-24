@@ -77,7 +77,7 @@ private:
   //! Write derivative code of an equation w.r. to a variable
   void compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, map_idx_t &map_idx, temporary_terms_t temporary_terms) const;
   //! Write chain rule derivative code of an equation w.r. to a variable
-  void compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int var, int lag, map_idx_t &map_idx, temporary_terms_t temporary_terms) const;
+  void compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int blk, int eq, int var, int lag, map_idx_t &map_idx, temporary_terms_t temporary_terms) const;
 
   //! Get the type corresponding to a derivation ID
   SymbolType getTypeByDerivID(int deriv_id) const noexcept(false) override;
@@ -87,8 +87,6 @@ private:
   int getSymbIDByDerivID(int deriv_id) const noexcept(false) override;
   //! Compute the column indices of the static Jacobian
   void computeStatJacobianCols();
-  //! return a map on the block jacobian
-  map<tuple<int, int, int, int, int>, int> get_Derivatives(int block);
   //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
   void computeChainRuleJacobian();
 

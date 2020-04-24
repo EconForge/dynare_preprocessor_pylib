@@ -55,12 +55,6 @@ using equation_type_and_normalized_equation_t = vector<pair<EquationType, expr_t
 //! Vector describing variables: max_lag in the block, max_lead in the block
 using lag_lead_vector_t = vector<pair<int, int>>;
 
-//! for a block contains derivatives tuple<block_equation_number, block_variable_number, lead_lag, expr_t>
-using block_derivatives_equation_variable_laglead_nodeid_t = vector<tuple<int, int, int, expr_t>>;
-
-//! for all blocks derivatives description
-using blocks_derivatives_t = vector<block_derivatives_equation_variable_laglead_nodeid_t>;
-
 //! Shared code for static and dynamic models
 class ModelTree : public DataTree
 {
@@ -178,17 +172,15 @@ protected:
      Set by updateReverseVariableEquationOrderings() */
   vector<int> eq_idx_orig2block, endo_idx_orig2block;
 
-  //! Store the derivatives or the chainrule derivatives:map<tuple<equation, variable, lead_lag>, expr_t>
-  using first_chain_rule_derivatives_t = map<tuple<int, int, int>, expr_t>;
-  first_chain_rule_derivatives_t first_chain_rule_derivatives;
-
   map_idx_t map_idx;
 
   //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
   equation_type_and_normalized_equation_t equation_type_and_normalized_equation;
 
-  //! for all blocks derivatives description
-  blocks_derivatives_t blocks_derivatives;
+  /* Stores derivatives of each block.
+     The tuple is: equation number (inside the block), variable number (inside
+     the block), lead/lag */
+  vector<map<tuple<int, int, int>, expr_t>> blocks_derivatives;
 
   //! Map the derivatives for a block tuple<lag, eq, var>
   using derivative_t = map<tuple<int, int, int>, expr_t>;
