@@ -185,7 +185,7 @@ protected:
   //! Map the derivatives for a block tuple<lag, eq, var>
   using derivative_t = map<tuple<int, int, int>, expr_t>;
   //! Vector of derivative for each blocks
-  vector<derivative_t> derivative_endo, derivative_other_endo, derivative_exo, derivative_exo_det;
+  vector<derivative_t> derivative_other_endo, derivative_exo, derivative_exo_det;
 
   //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
   vector<pair<int, int>> endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;

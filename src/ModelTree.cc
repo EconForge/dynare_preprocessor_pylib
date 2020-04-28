@@ -122,8 +122,6 @@ ModelTree::copyHelper(const ModelTree &m)
                                   dt2[it.first] = f(it.second);
                                 return dt2;
                               };
-  for (const auto &it : m.derivative_endo)
-    derivative_endo.push_back(convert_derivative_t(it));
   for (const auto &it : m.derivative_other_endo)
     derivative_other_endo.push_back(convert_derivative_t(it));
   for (const auto &it : m.derivative_exo)
@@ -210,7 +208,6 @@ ModelTree::operator=(const ModelTree &m)
   map_idx = m.map_idx;
   equation_type_and_normalized_equation.clear();
   blocks_derivatives.clear();
-  derivative_endo.clear();
   derivative_other_endo.clear();
   derivative_exo.clear();
   derivative_exo_det.clear();

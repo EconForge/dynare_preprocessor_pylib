@@ -326,7 +326,7 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
       //The Temporary terms
       if (simulation_type != BlockSimulationType::evaluateBackward
           && simulation_type != BlockSimulationType::evaluateForward)
-        output << " g1 = spalloc("  << block_mfs << ", " << block_mfs << ", " << derivative_endo[block].size() << ");" << endl;
+        output << " g1 = spalloc("  << block_mfs << ", " << block_mfs << ", " << blocks_derivatives[block].size() << ");" << endl;
 
       if (v_temporary_terms_inuse[block].size())
         {
@@ -2141,41 +2141,10 @@ StaticModel::computeChainRuleJacobian()
 void
 StaticModel::collect_block_first_order_derivatives()
 {
-  //! vector for an equation or a variable indicates the block number
-  vector<int> equation_2_block(eq_idx_block2orig.size()), variable_2_block(endo_idx_block2orig.size());
-  int nb_blocks = blocks.size();
-  for (int block = 0; block < nb_blocks; block++)
-    {
-      int block_size = blocks[block].size;
-      for (int i = 0; i < block_size; i++)
-        {
-          equation_2_block[getBlockEquationID(block, i)] = block;
-          variable_2_block[getBlockVariableID(block, i)] = block;
-        }
-    }
-  derivative_endo = vector<derivative_t>(nb_blocks);
-  endo_max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
-  max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
-  for (auto &first_derivative : derivatives[1])
-    {
-      int eq = first_derivative.first[0];
-      int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(first_derivative.first[1]));
-      int lag = 0;
-      int block_eq = equation_2_block[eq];
-      int block_var = variable_2_block[var];
-      max_leadlag_block[block_eq] = { 0, 0 };
-      max_leadlag_block[block_eq] = { 0, 0 };
-      endo_max_leadlag_block[block_eq] = { 0, 0 };
-      endo_max_leadlag_block[block_eq] = { 0, 0 };
-      derivative_t tmp_derivative;
-      lag_var_t lag_var;
-      if (getTypeByDerivID(first_derivative.first[1]) == SymbolType::endogenous && block_eq == block_var)
-        {
-          tmp_derivative = derivative_endo[block_eq];
-          tmp_derivative[{ lag, eq, var }] = derivatives[1][{ eq, getDerivID(symbol_table.getID(SymbolType::endogenous, var), lag) }];
-          derivative_endo[block_eq] = tmp_derivative;
-        }
-    }
+  endo_max_leadlag_block.clear();
+  endo_max_leadlag_block.resize(blocks.size(), { 0, 0 });
+  max_leadlag_block.clear();
+  max_leadlag_block.resize(blocks.size(), { 0, 0 });
 }
 
 void

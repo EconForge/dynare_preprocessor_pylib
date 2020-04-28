@@ -213,8 +213,6 @@ DynamicModel::computeTemporaryTermsOrdered()
             }
           for (const auto &[ignore, id] : blocks_derivatives[block])
             id->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
-          for (const auto &it : derivative_endo[block])
-            it.second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
           for (const auto &it : derivative_other_endo[block])
             it.second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
           v_temporary_terms_inuse[block] = {};
@@ -240,8 +238,6 @@ DynamicModel::computeTemporaryTermsOrdered()
             }
           for (const auto &[ignore, id] : blocks_derivatives[block])
             id->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
-          for (const auto &it : derivative_endo[block])
-            it.second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
           for (const auto &it : derivative_other_endo[block])
             it.second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
         }
@@ -263,8 +259,6 @@ DynamicModel::computeTemporaryTermsOrdered()
             }
           for (const auto &[ignore, id] : blocks_derivatives[block])
             id->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
-          for (const auto &it : derivative_endo[block])
-            it.second->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
           for (const auto &it : derivative_other_endo[block])
             it.second->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
           for (const auto &it : derivative_exo[block])
@@ -314,7 +308,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       //recursive_variables.clear();
       feedback_variables.clear();
       //For a block composed of a single equation determines wether we have to evaluate or to solve the equation
-      nze = derivative_endo[block].size();
+      nze = blocks_derivatives[block].size();
       nze_other_endo = derivative_other_endo[block].size();
       nze_exo = derivative_exo[block].size();
       nze_exo_det = derivative_exo_det[block].size();
@@ -5060,7 +5054,6 @@ DynamicModel::collect_block_first_order_derivatives()
   other_endo_block = vector<lag_var_t>(nb_blocks);
   exo_block = vector<lag_var_t>(nb_blocks);
   exo_det_block = vector<lag_var_t>(nb_blocks);
-  derivative_endo = vector<derivative_t>(nb_blocks);
   derivative_other_endo = vector<derivative_t>(nb_blocks);
   derivative_exo = vector<derivative_t>(nb_blocks);
   derivative_exo_det = vector<derivative_t>(nb_blocks);
@@ -5088,9 +5081,6 @@ DynamicModel::collect_block_first_order_derivatives()
                 endo_max_leadlag_block[block_eq] = { -lag, endo_max_leadlag_block[block_eq].second };
               if (lag > 0 && lag > endo_max_leadlag_block[block_eq].second)
                 endo_max_leadlag_block[block_eq] = { endo_max_leadlag_block[block_eq].first, lag };
-              tmp_derivative = derivative_endo[block_eq];
-              tmp_derivative[{ lag, eq, var }] = derivatives[1][{ eq, getDerivID(symbol_table.getID(SymbolType::endogenous, var), lag) }];
-              derivative_endo[block_eq] = tmp_derivative;
             }
           else
             {
