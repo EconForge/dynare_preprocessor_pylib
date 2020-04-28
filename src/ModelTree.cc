@@ -1007,48 +1007,49 @@ void
 ModelTree::determineLinearBlocks()
 {
   // Note that field “linear” in class BlockInfo defaults to true
-  for (int block = 0; block < static_cast<int>(blocks.size()); block++)
-    {
-      BlockSimulationType simulation_type = blocks[block].simulation_type;
-      int block_size = blocks[block].size;
-      auto derivatives_block = blocks_derivatives[block];
-      int first_variable_position = blocks[block].first_equation;
-      if (simulation_type == BlockSimulationType::solveBackwardComplete
-          || simulation_type == BlockSimulationType::solveForwardComplete)
-        for (const auto &[indices, d1] : derivatives_block)
+  for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
+    switch (blocks[blk].simulation_type)
+      {
+      case BlockSimulationType::solveBackwardComplete:
+      case BlockSimulationType::solveForwardComplete:
+        for (const auto &[indices, d1] : blocks_derivatives[blk])
           {
             int lag = get<2>(indices);
             if (lag == 0)
               {
                 set<pair<int, int>> endogenous;
                 d1->collectEndogenous(endogenous);
-                if (endogenous.size() > 0)
-                  for (int l = 0; l < block_size; l++)
-                    if (endogenous.find({ endo_idx_block2orig[first_variable_position+l], 0 }) != endogenous.end())
-                      {
-                        blocks[block].linear = false;
-                        goto the_end;
-                      }
+                for (int l = 0; l < blocks[blk].size; l++)
+                  if (endogenous.find({ endo_idx_block2orig[blocks[blk].first_equation+l], 0 })
+                      != endogenous.end())
+                    {
+                      blocks[blk].linear = false;
+                      goto the_end;
+                    }
               }
           }
-      else if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
-               || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
-        for (const auto &[indices, d1] : derivatives_block)
+      the_end:
+        break;
+      case BlockSimulationType::solveTwoBoundariesComplete:
+      case BlockSimulationType::solveTwoBoundariesSimple:
+        for (const auto &[indices, d1] : blocks_derivatives[blk])
           {
             int lag = get<2>(indices);
             set<pair<int, int>> endogenous;
             d1->collectEndogenous(endogenous);
-            if (endogenous.size() > 0)
-              for (int l = 0; l < block_size; l++)
-                if (endogenous.find({ endo_idx_block2orig[first_variable_position+l], lag }) != endogenous.end())
-                  {
-                    blocks[block].linear = false;
-                    goto the_end;
-                  }
+            for (int l = 0; l < blocks[blk].size; l++)
+              if (endogenous.find({ endo_idx_block2orig[blocks[blk].first_equation+l], lag })
+                  != endogenous.end())
+                {
+                  blocks[blk].linear = false;
+                  goto the_end2;
+                }
           }
-    the_end:
-      ;
-    }
+      the_end2:
+        break;
+      default:
+        break;
+      }
 }
 
 int
