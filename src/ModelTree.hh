@@ -155,13 +155,6 @@ protected:
   //! Nonstationary variables and their deflators
   nonstationary_symbols_map_t nonstationary_symbols_map;
 
-  //! Sparse matrix of double to store the values of the Jacobian
-  /*! First index is lag, second index is equation number, third index is endogenous type specific ID */
-  using dynamic_jacob_map_t = map<tuple<int, int, int>, expr_t>;
-
-  //! The jacobian without the elements below the cutoff
-  dynamic_jacob_map_t dynamic_jacobian;
-
   /* Maps indices of equations in the block-decomposition order into original
      equation IDs */
   vector<int> eq_idx_block2orig;
@@ -255,7 +248,7 @@ protected:
   //! Writes LaTeX model file
   void writeLatexModelFile(const string &mod_basename, const string &latex_basename, ExprNodeOutputType output_type, bool write_equation_tags) const;
 
-  //! Sparse matrix of double to store the values of the Jacobian
+  //! Sparse matrix of double to store the values of the static Jacobian
   /*! First index is equation number, second index is endogenous type specific ID */
   using jacob_map_t = map<pair<int, int>, double>;
 
@@ -287,24 +280,24 @@ protected:
     If no matching is found with a zero cutoff, an error message is printed.
     The resulting normalization is stored in endo2eq.
   */
-  void computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian, double cutoff, jacob_map_t &static_jacobian);
+  void computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian, double cutoff, const jacob_map_t &static_jacobian);
   //! Try to find a natural normalization if all equations are matched to an endogenous variable on the LHS
   bool computeNaturalNormalization();
   //! Evaluate the jacobian (w.r.t. endogenous) and suppress all the elements below the cutoff
-  /*! Returns a pair (contemporaneous_jacobian, static_jacobian). Also fills
-    dynamic_jacobian. Elements below the cutoff are discarded. External functions are evaluated to 1. */
-  pair<jacob_map_t, jacob_map_t> evaluateAndReduceJacobian(const eval_context_t &eval_context, double cutoff, bool verbose);
+  /*! Returns a pair (contemporaneous_jacobian, static_jacobian).
+      Elements below the cutoff are discarded. External functions are evaluated to 1. */
+  pair<jacob_map_t, jacob_map_t> evaluateAndReduceJacobian(const eval_context_t &eval_context, double cutoff, bool verbose) const;
   //! Select and reorder the non linear equations of the model
   void select_non_linear_equations_and_variables();
   //! Search the equations and variables belonging to the prologue and the epilogue of the model
-  void computePrologueAndEpilogue(const jacob_map_t &static_jacobian);
+  void computePrologueAndEpilogue();
   //! Determine the type of each equation of model and try to normalize the unnormalized equation
   void equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives, int mfs);
   /* Compute the block decomposition and for a non-recusive block find the minimum feedback set
 
      Initializes the “blocks” structure, and fills the following fields: size,
      mfs_size, n_static, n_forward, n_backward, n_mixed. */
-  lag_lead_vector_t computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, bool verbose_);
+  lag_lead_vector_t computeBlockDecompositionAndFeedbackVariablesForEachBlock();
   /* Reduce the number of block by merging the same type of equations in the
      prologue and the epilogue, and determine the type of each block.
 

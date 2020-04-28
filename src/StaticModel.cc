@@ -1125,7 +1125,7 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
 
       computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian);
 
-      computePrologueAndEpilogue(static_jacobian);
+      computePrologueAndEpilogue();
 
       auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
 
@@ -1133,7 +1133,7 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
 
       cout << "Finding the optimal block decomposition of the model ..." << endl;
 
-      auto variable_lag_lead = computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, false);
+      auto variable_lag_lead = computeBlockDecompositionAndFeedbackVariablesForEachBlock();
 
       reduceBlocksAndTypeDetermination(false);
 

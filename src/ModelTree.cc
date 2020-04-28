@@ -101,8 +101,6 @@ ModelTree::copyHelper(const ModelTree &m)
     trend_symbols_map[it.first] = f(it.second);
   for (const auto &it : m.nonstationary_symbols_map)
     nonstationary_symbols_map[it.first] = {it.second.first, f(it.second.second)};
-  for (const auto &it : m.dynamic_jacobian)
-    dynamic_jacobian[it.first] = f(it.second);
 
   for (const auto &it : m.equation_type_and_normalized_equation)
     equation_type_and_normalized_equation.emplace_back(it.first, f(it.second));
@@ -200,7 +198,6 @@ ModelTree::operator=(const ModelTree &m)
   trend_symbols_map.clear();
   nonstationary_symbols_map.clear();
 
-  dynamic_jacobian.clear();
   eq_idx_block2orig = m.eq_idx_block2orig;
   endo_idx_block2orig = m.endo_idx_block2orig;
   eq_idx_orig2block = m.eq_idx_orig2block;
@@ -285,7 +282,7 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
 }
 
 void
-ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian, double cutoff, jacob_map_t &static_jacobian)
+ModelTree::computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian, double cutoff, const jacob_map_t &static_jacobian)
 {
   cout << "Normalizing the model..." << endl;
 
@@ -338,33 +335,6 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
          TODO: Explain why symbolic_jacobian is not contemporaneous. */
       auto symbolic_jacobian = computeSymbolicJacobian();
       found_normalization = computeNormalization(symbolic_jacobian, true);
-      if (found_normalization)
-        {
-          /* Update the Jacobian matrices by ensuring that they have a
-             numerical value associated to each symbolic occurrence.
-             TODO: Explain why this is needed. Maybe in order to have the
-             right incidence matrix in computePrologueAndEpilogue? */
-          for (const auto &[eq_and_endo, ignore] : symbolic_jacobian)
-            {
-              if (static_jacobian.find(eq_and_endo) == static_jacobian.end())
-                static_jacobian[eq_and_endo] = 0;
-              if (dynamic_jacobian.find({ 0, eq_and_endo.first, eq_and_endo.second }) == dynamic_jacobian.end())
-                dynamic_jacobian[{ 0, eq_and_endo.first, eq_and_endo.second }] = Zero;
-              if (contemporaneous_jacobian.find(eq_and_endo) == contemporaneous_jacobian.end())
-                contemporaneous_jacobian[eq_and_endo] = 0;
-              try
-                {
-                  if (derivatives[1].find({ eq_and_endo.first, getDerivID(symbol_table.getID(SymbolType::endogenous, eq_and_endo.second), 0) }) == derivatives[1].end())
-                    derivatives[1][{ eq_and_endo.first, getDerivID(symbol_table.getID(SymbolType::endogenous, eq_and_endo.second), 0) }] = Zero;
-                }
-              catch (DataTree::UnknownDerivIDException &e)
-                {
-                  cerr << "The variable " << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, eq_and_endo.second))
-                       << " does not appear at the current period (i.e. with no lead and no lag); this case is not handled by the 'block' option of the 'model' block." << endl;
-                  exit(EXIT_FAILURE);
-                }
-            }
-        }
     }
 
   if (!found_normalization)
@@ -375,7 +345,7 @@ ModelTree::computeNonSingularNormalization(jacob_map_t &contemporaneous_jacobian
 }
 
 pair<ModelTree::jacob_map_t, ModelTree::jacob_map_t>
-ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, double cutoff, bool verbose)
+ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, double cutoff, bool verbose) const
 {
   jacob_map_t contemporaneous_jacobian, static_jacobian;
   int nb_elements_contemporaneous_jacobian = 0;
@@ -423,16 +393,9 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, double 
                 static_jacobian[{ eq, var }] += val;
               else
                 static_jacobian[{ eq, var }] = val;
-
-              dynamic_jacobian[{ lag, eq, var }] = d1;
             }
         }
     }
-
-  // Get rid of the elements of the Jacobian matrix below the cutoff
-  // TODO: Why?
-  for (const auto &it : jacobian_elements_to_delete)
-    derivatives[1].erase(it);
 
   if (jacobian_elements_to_delete.size() > 0)
     {
@@ -514,7 +477,7 @@ ModelTree::computeNaturalNormalization()
 }
 
 void
-ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian)
+ModelTree::computePrologueAndEpilogue()
 {
   const int n = equations.size();
 
@@ -533,17 +496,13 @@ ModelTree::computePrologueAndEpilogue(const jacob_map_t &static_jacobian)
      “eq_idx_block2orig” (resp. “endo_idx_block2orig”). Stored in row-major
      order. */
   vector<bool> IM(n*n, false);
-  if (cutoff == 0)
-    for (int i = 0; i < n; i++)
-      {
-        set<pair<int, int>> endos_and_lags;
-        equations[i]->collectEndogenous(endos_and_lags);
-        for (const auto &[endo, lag] : endos_and_lags)
-          IM[i * n + endo2eq[endo]] = true;
-      }
-  else
-    for (const auto &[eq_and_endo, val] : static_jacobian)
-      IM[eq_and_endo.first * n + endo2eq[eq_and_endo.second]] = true;
+  for (int i = 0; i < n; i++)
+    {
+      set<pair<int, int>> endos_and_lags;
+      equations[i]->collectEndogenous(endos_and_lags);
+      for (auto [endo, lag] : endos_and_lags)
+        IM[i * n + endo2eq[endo]] = true;
+    }
 
   bool something_has_been_done;
   // Find the prologue equations and place first the AR(1) shock equations first
@@ -677,22 +636,24 @@ ModelTree::getVariableLeadLagByBlock(const vector<int> &endo2simblock) const
                               };
 
   lag_lead_vector_t variable_lag_lead(nb_endo, { 0, 0 }), equation_lag_lead(nb_endo, { 0, 0 });
-  for (const auto &[key, value] : dynamic_jacobian)
+  for (int eq = 0; eq < nb_endo; eq++)
     {
-      auto [lag, eq, endo] = key;
-      if (belong_to_same_block(endo, eq))
-        {
-          variable_lag_lead[endo].first = max(variable_lag_lead[endo].first, -lag);
-          variable_lag_lead[endo].second = max(variable_lag_lead[endo].second, lag);
-          equation_lag_lead[eq].first = max(equation_lag_lead[eq].first, -lag);
-          equation_lag_lead[eq].second = max(equation_lag_lead[eq].second, lag);
-        }
+      set<pair<int, int>> endos_and_lags;
+      equations[eq]->collectEndogenous(endos_and_lags);
+      for (auto [endo, lag] : endos_and_lags)
+        if (belong_to_same_block(endo, eq))
+          {
+            variable_lag_lead[endo].first = max(variable_lag_lead[endo].first, -lag);
+            variable_lag_lead[endo].second = max(variable_lag_lead[endo].second, lag);
+            equation_lag_lead[eq].first = max(equation_lag_lead[eq].first, -lag);
+            equation_lag_lead[eq].second = max(equation_lag_lead[eq].second, lag);
+          }
     }
   return { equation_lag_lead, variable_lag_lead };
 }
 
 lag_lead_vector_t
-ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob_map_t &static_jacobian, bool verbose_)
+ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock()
 {
   int nb_var = symbol_table.endo_nbr();
   int nb_simvars = nb_var - prologue - epilogue;
@@ -700,11 +661,10 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock(const jacob
   /* Construct the graph representing the dependencies between all
      variables that do not belong to the prologue or the epilogue.
 
-     For detecting dependencies between variables, use the static jacobian,
-     except when the cutoff is zero, in which case use the symbolic adjacency
+     For detecting dependencies between variables, use the symbolic adjacency
      matrix */
   VariableDependencyGraph G(nb_simvars);
-  for (const auto &[key, value] : cutoff == 0 ? computeSymbolicJacobian() : static_jacobian)
+  for (const auto &[key, value] : computeSymbolicJacobian())
     {
       auto [eq, endo] = key;
       if (eq_idx_orig2block[eq] >= prologue
@@ -869,29 +829,14 @@ ModelTree::reduceBlocksAndTypeDetermination(bool linear_decomposition)
           set<pair<int, int>> endos_and_lags;
           equations[eq_idx_block2orig[eq]]->collectEndogenous(endos_and_lags);
           for (const auto &[endo, lag] : endos_and_lags)
-            {
-              if (linear_decomposition)
-                {
-                  if (dynamic_jacobian.find({ lag, eq_idx_block2orig[eq], endo })
-                      != dynamic_jacobian.end())
-                    {
-                      max_lead = max(lag, max_lead);
-                      max_lag = max(-lag, max_lag);
-                    }
-                }
-              else
-                {
-                  if (find(endo_idx_block2orig.begin()+first_eq,
-                           endo_idx_block2orig.begin()+first_eq+blocks[i].size, endo)
-                      != endo_idx_block2orig.begin()+first_eq+blocks[i].size
-                      && dynamic_jacobian.find({ lag, eq_idx_block2orig[eq], endo })
-                      != dynamic_jacobian.end())
-                    {
-                      max_lead = max(lag, max_lead);
-                      max_lag = max(-lag, max_lag);
-                    }
-                }
-            }
+            if (linear_decomposition ||
+                find(endo_idx_block2orig.begin()+first_eq,
+                        endo_idx_block2orig.begin()+first_eq+blocks[i].size, endo)
+                != endo_idx_block2orig.begin()+first_eq+blocks[i].size)
+              {
+                max_lead = max(lag, max_lead);
+                max_lag = max(-lag, max_lag);
+              }
         }
 
       // Determine the block type
@@ -940,12 +885,10 @@ ModelTree::reduceBlocksAndTypeDetermination(bool linear_decomposition)
               for (int j = blocks[i-1].first_equation;
                    j < blocks[i-1].first_equation+blocks[i-1].size; j++)
                 {
-                  if (dynamic_jacobian.find({ -1, eq_idx_block2orig[first_eq], endo_idx_block2orig[j] })
-                      != dynamic_jacobian.end())
-                    is_lag = true;
-                  if (dynamic_jacobian.find({ +1, eq_idx_block2orig[first_eq], endo_idx_block2orig[j] })
-                      != dynamic_jacobian.end())
-                    is_lead = true;
+                  set<pair<int, int>> endos_and_lags;
+                  equations[eq_idx_block2orig[first_eq]]->collectEndogenous(endos_and_lags);
+                  is_lag = endos_and_lags.find({ endo_idx_block2orig[j], -1 }) != endos_and_lags.end();
+                  is_lead = endos_and_lags.find({ endo_idx_block2orig[j], 1 }) != endos_and_lags.end();
                 }
 
               BlockSimulationType prev_Type = blocks[i-1].simulation_type;

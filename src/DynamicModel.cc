@@ -3228,7 +3228,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
 
           tmp_s.str("");
           count_lead_lag_incidence = 0;
-          dynamic_jacob_map_t reordered_dynamic_jacobian;
+          map<tuple<int, int, int>, expr_t> reordered_dynamic_jacobian;
           for (const auto &[idx, d] : blocks_derivatives[block])
             reordered_dynamic_jacobian[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
           output << "block_structure.block(" << block+1 << ").lead_lag_incidence = [];" << endl;
@@ -4812,7 +4812,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
       computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian);
 
-      computePrologueAndEpilogue(static_jacobian);
+      computePrologueAndEpilogue();
 
       auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
 
@@ -4820,7 +4820,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
       cout << "Finding the optimal block decomposition of the model ..." << endl;
 
-      auto variable_lag_lead = computeBlockDecompositionAndFeedbackVariablesForEachBlock(static_jacobian, false);
+      auto variable_lag_lead = computeBlockDecompositionAndFeedbackVariablesForEachBlock();
 
       reduceBlocksAndTypeDetermination(linear_decomposition);
 
@@ -4971,26 +4971,31 @@ DynamicModel::determineBlockDerivativesType(int blk)
   int nb_recursive = blocks[blk].getRecursiveSize();
   for (int lag = -blocks[blk].max_lag; lag <= blocks[blk].max_lead; lag++)
     for (int eq = 0; eq < size; eq++)
-      for (int var = 0; var < size; var++)
-        if (int eq_orig = getBlockEquationID(blk, eq), var_orig = getBlockVariableID(blk, var);
-            dynamic_jacobian.find({ lag, eq_orig, var_orig }) != dynamic_jacobian.end())
-          {
-            if (getBlockEquationType(blk, eq) == EquationType::evaluate_s
-                && eq < nb_recursive)
-              /* It’s a normalized recursive equation, we have to recompute
-                 the derivative using the chain rule */
-              derivType[{ lag, eq, var }] = BlockDerivativeType::normalizedChainRule;
-            else if (derivType.find({ lag, eq, var }) == derivType.end())
-              derivType[{ lag, eq, var }] = BlockDerivativeType::standard;
+      {
+        set<pair<int, int>> endos_and_lags;
+        int eq_orig = getBlockEquationID(blk, eq);
+        equations[eq_orig]->collectEndogenous(endos_and_lags);
+        for (int var = 0; var < size; var++)
+          if (int var_orig = getBlockVariableID(blk, var);
+              endos_and_lags.find({ var_orig, lag }) != endos_and_lags.end())
+            {
+              if (getBlockEquationType(blk, eq) == EquationType::evaluate_s
+                  && eq < nb_recursive)
+                /* It’s a normalized recursive equation, we have to recompute
+                   the derivative using the chain rule */
+                derivType[{ lag, eq, var }] = BlockDerivativeType::normalizedChainRule;
+              else if (derivType.find({ lag, eq, var }) == derivType.end())
+                derivType[{ lag, eq, var }] = BlockDerivativeType::standard;
 
-            if (var < nb_recursive)
-              for (int feedback_var = nb_recursive; feedback_var < size; feedback_var++)
-                if (derivType.find({ lag, var, feedback_var }) != derivType.end())
-                  /* A new derivative needs to be computed using the chain rule
-                     (a feedback variable appears in the recursive equation
-                     defining the current variable) */
-                  derivType[{ lag, eq, feedback_var }] = BlockDerivativeType::chainRule;
-          }
+              if (var < nb_recursive)
+                for (int feedback_var = nb_recursive; feedback_var < size; feedback_var++)
+                  if (derivType.find({ lag, var, feedback_var }) != derivType.end())
+                    /* A new derivative needs to be computed using the chain rule
+                       (a feedback variable appears in the recursive equation
+                       defining the current variable) */
+                    derivType[{ lag, eq, feedback_var }] = BlockDerivativeType::chainRule;
+            }
+      }
   return derivType;
 }
 
