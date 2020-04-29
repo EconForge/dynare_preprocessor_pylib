@@ -1133,7 +1133,7 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
 
       cout << "Finding the optimal block decomposition of the model ..." << endl;
 
-      auto variable_lag_lead = computeBlockDecompositionAndFeedbackVariablesForEachBlock();
+      computeBlockDecompositionAndFeedbackVariablesForEachBlock();
 
       reduceBlocksAndTypeDetermination(false);
 

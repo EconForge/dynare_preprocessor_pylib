@@ -647,7 +647,7 @@ ModelTree::getVariableLeadLagByBlock() const
   return { equation_lag_lead, variable_lag_lead };
 }
 
-lag_lead_vector_t
+void
 ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock()
 {
   int nb_var = symbol_table.endo_nbr();
@@ -783,8 +783,6 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock()
     }
 
   updateReverseVariableEquationOrderings();
-
-  return variable_lag_lead;
 }
 
 void

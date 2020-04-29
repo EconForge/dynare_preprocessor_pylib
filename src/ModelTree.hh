@@ -304,7 +304,7 @@ protected:
      Initializes the “blocks” structure, and fills the following fields: size,
      mfs_size, n_static, n_forward, n_backward, n_mixed.
      Also initializes the endo2block and eq2block structures. */
-  lag_lead_vector_t computeBlockDecompositionAndFeedbackVariablesForEachBlock();
+  void computeBlockDecompositionAndFeedbackVariablesForEachBlock();
   /* Reduce the number of block by merging the same type of equations in the
      prologue and the epilogue, and determine the type of each block.
 

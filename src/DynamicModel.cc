@@ -88,7 +88,6 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   block_exo_index{m.block_exo_index},
   block_det_exo_index{m.block_det_exo_index},
   block_other_endo_index{m.block_other_endo_index},
-  variable_block_lead_lag{m.variable_block_lead_lag},
   var_expectation_functions_to_write{m.var_expectation_functions_to_write}
 {
   copyHelper(m);
@@ -141,7 +140,6 @@ DynamicModel::operator=(const DynamicModel &m)
   block_exo_index = m.block_exo_index;
   block_det_exo_index = m.block_det_exo_index;
   block_other_endo_index = m.block_other_endo_index;
-  variable_block_lead_lag = m.variable_block_lead_lag;
   var_expectation_functions_to_write = m.var_expectation_functions_to_write;
 
   copyHelper(m);
@@ -4812,7 +4810,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
       cout << "Finding the optimal block decomposition of the model ..." << endl;
 
-      auto variable_lag_lead = computeBlockDecompositionAndFeedbackVariablesForEachBlock();
+      computeBlockDecompositionAndFeedbackVariablesForEachBlock();
 
       reduceBlocksAndTypeDetermination(linear_decomposition);
 
@@ -4829,18 +4827,6 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
       global_temporary_terms = true;
       if (!no_tmp_terms)
         computeTemporaryTermsOrdered();
-      int k = 0;
-      variable_block_lead_lag.clear();
-      variable_block_lead_lag.resize(equations.size());
-      for (int i = 0; i < static_cast<int>(blocks.size()); i++)
-        {
-          for (int j = 0; j < blocks[i].size; j++)
-            {
-              int l = endo_idx_block2orig[k];
-              variable_block_lead_lag[l] = { i, variable_lag_lead[l].first, variable_lag_lead[l].second };
-              k++;
-            }
-        }
     }
   else
     {

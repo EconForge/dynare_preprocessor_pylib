@@ -203,11 +203,6 @@ private:
   //! Write reverse cross references
   void writeRevXrefs(ostream &output, const map<pair<int, int>, set<int>> &xrefmap, const string &type) const;
 
-  //! List for each variable its block number and its maximum lag and lead inside the block
-  vector<tuple<int, int, int>> variable_block_lead_lag;
-  //! List for each equation its block number
-  vector<int> equation_block;
-
   //! Used for var_expectation and var_model
   map<string, set<int>> var_expectation_functions_to_write;
 

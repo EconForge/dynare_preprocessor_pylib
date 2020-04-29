@@ -96,10 +96,6 @@ private:
   //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
   bool global_temporary_terms{true};
 
-  //!List for each block and for each lag-leag all the other endogenous variables and exogenous variables
-  using var_t = set<int>;
-  using lag_var_t = map<int, var_t>;
-
   //! Helper functions for writeStaticModel
   void writeStaticModelHelper(const string &basename,
                               const string &name, const string &retvalname,
