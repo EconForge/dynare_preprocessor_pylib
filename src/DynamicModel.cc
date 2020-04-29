@@ -89,7 +89,6 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   block_det_exo_index{m.block_det_exo_index},
   block_other_endo_index{m.block_other_endo_index},
   variable_block_lead_lag{m.variable_block_lead_lag},
-  equation_block{m.equation_block},
   var_expectation_functions_to_write{m.var_expectation_functions_to_write}
 {
   copyHelper(m);
@@ -143,7 +142,6 @@ DynamicModel::operator=(const DynamicModel &m)
   block_det_exo_index = m.block_det_exo_index;
   block_other_endo_index = m.block_other_endo_index;
   variable_block_lead_lag = m.variable_block_lead_lag;
-  equation_block = m.equation_block;
   var_expectation_functions_to_write = m.var_expectation_functions_to_write;
 
   copyHelper(m);
@@ -3201,13 +3199,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           for (int other_endo : other_endogenous)
             if (other_endo >= 0)
               {
-                bool OK = true;
-                int j;
-                for (j = 0; j < block && OK; j++)
-                  for (int k = 0; k < blocks[j].size && OK; k++)
-                    OK = other_endo != getBlockVariableID(j, k);
-                if (!OK)
-                  output << " " << j;
+                output << " " << endo2block[other_endo]+1;
                 i++;
               }
           output << "];" << endl;
@@ -4838,14 +4830,12 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
       if (!no_tmp_terms)
         computeTemporaryTermsOrdered();
       int k = 0;
-      equation_block.resize(equations.size());
       variable_block_lead_lag.clear();
       variable_block_lead_lag.resize(equations.size());
       for (int i = 0; i < static_cast<int>(blocks.size()); i++)
         {
           for (int j = 0; j < blocks[i].size; j++)
             {
-              equation_block[eq_idx_block2orig[k]] = i;
               int l = endo_idx_block2orig[k];
               variable_block_lead_lag[l] = { i, variable_lag_lead[l].first, variable_lag_lead[l].second };
               k++;
@@ -5047,15 +5037,7 @@ DynamicModel::computeChainRuleJacobian()
 void
 DynamicModel::collect_block_first_order_derivatives()
 {
-  //! vector for an equation or a variable indicates the block number
-  vector<int> equation_2_block(eq_idx_block2orig.size()), variable_2_block(endo_idx_block2orig.size());
   int nb_blocks = blocks.size();
-  for (int block = 0; block < nb_blocks; block++)
-    for (int i = 0; i < blocks[block].size; i++)
-      {
-        equation_2_block[getBlockEquationID(block, i)] = block;
-        variable_2_block[getBlockVariableID(block, i)] = block;
-      }
   other_endo_block = vector<lag_var_t>(nb_blocks);
   exo_block = vector<lag_var_t>(nb_blocks);
   exo_det_block = vector<lag_var_t>(nb_blocks);
@@ -5072,14 +5054,14 @@ DynamicModel::collect_block_first_order_derivatives()
       int eq = indices[0];
       int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(indices[1]));
       int lag = getLagByDerivID(indices[1]);
-      int block_eq = equation_2_block[eq];
+      int block_eq = eq2block[eq];
       int block_var = 0;
       derivative_t tmp_derivative;
       lag_var_t lag_var;
       switch (getTypeByDerivID(indices[1]))
         {
         case SymbolType::endogenous:
-          block_var = variable_2_block[var];
+          block_var = endo2block[var];
           if (block_eq == block_var)
             {
               if (lag < 0 && lag < -endo_max_leadlag_block[block_eq].first)

@@ -162,6 +162,8 @@ ModelTree::ModelTree(const ModelTree &m) :
   exo_det_max_leadlag_block{m.exo_det_max_leadlag_block},
   max_leadlag_block{m.max_leadlag_block},
   blocks{m.blocks},
+  endo2block{m.endo2block},
+  eq2block{m.eq2block},
   is_equation_linear{m.is_equation_linear},
   endo2eq{m.endo2eq},
   epilogue{m.epilogue},
@@ -214,6 +216,8 @@ ModelTree::operator=(const ModelTree &m)
   exo_det_max_leadlag_block = m.exo_det_max_leadlag_block;
   max_leadlag_block = m.max_leadlag_block;
   blocks = m.blocks;
+  endo2block = m.endo2block;
+  eq2block = m.eq2block;
   is_equation_linear = m.is_equation_linear;
   endo2eq = m.endo2eq;
   epilogue = m.epilogue;
@@ -412,7 +416,8 @@ ModelTree::select_non_linear_equations_and_variables()
   prologue = 0;
   epilogue = 0;
 
-  vector<int> endo2block(endo2eq.size(), 1); // The 1 is a dummy value, distinct from 0
+  endo2block.resize(endo2eq.size(), 1); // The 1 is a dummy value, distinct from 0
+  eq2block.resize(endo2eq.size(), 1);
   int i = 0;
   for (int endo = 0; endo < static_cast<int>(endo2eq.size()); endo++)
     {
@@ -421,7 +426,8 @@ ModelTree::select_non_linear_equations_and_variables()
         {
           eq_idx_block2orig[i] = eq;
           endo_idx_block2orig[i] = endo;
-          endo2block[i] = 0;
+          endo2block[endo] = 0;
+          eq2block[eq] = 0;
           i++;
         }
     }
@@ -432,7 +438,7 @@ ModelTree::select_non_linear_equations_and_variables()
   blocks[0].size = i;
   blocks[0].mfs_size = i;
 
-  auto [equation_lag_lead, variable_lag_lead] = getVariableLeadLagByBlock(endo2block);
+  auto [equation_lag_lead, variable_lag_lead] = getVariableLeadLagByBlock();
 
   for (int i = 0; i < blocks[0].size; i++)
     {
@@ -620,20 +626,9 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
 }
 
 pair<lag_lead_vector_t, lag_lead_vector_t>
-ModelTree::getVariableLeadLagByBlock(const vector<int> &endo2simblock) const
+ModelTree::getVariableLeadLagByBlock() const
 {
   int nb_endo = symbol_table.endo_nbr();
-
-  auto belong_to_same_block = [&](int endo, int eq)
-                              {
-                                int endo2 = endo_idx_orig2block[endo];
-                                int eq2 = eq_idx_orig2block[eq];
-                                if (endo2 < prologue || endo2 >= nb_endo-epilogue
-                                    || eq2 < prologue || eq2 >= nb_endo-epilogue)
-                                  return endo2 == eq2;
-                                else
-                                  return endo2simblock[endo2-prologue] == endo2simblock[eq2-prologue];
-                              };
 
   lag_lead_vector_t variable_lag_lead(nb_endo, { 0, 0 }), equation_lag_lead(nb_endo, { 0, 0 });
   for (int eq = 0; eq < nb_endo; eq++)
@@ -641,7 +636,7 @@ ModelTree::getVariableLeadLagByBlock(const vector<int> &endo2simblock) const
       set<pair<int, int>> endos_and_lags;
       equations[eq]->collectEndogenous(endos_and_lags);
       for (auto [endo, lag] : endos_and_lags)
-        if (belong_to_same_block(endo, eq))
+        if (endo2block[endo] == eq2block[eq])
           {
             variable_lag_lead[endo].first = max(variable_lag_lead[endo].first, -lag);
             variable_lag_lead[endo].second = max(variable_lag_lead[endo].second, lag);
@@ -684,40 +679,45 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock()
 
   blocks.clear();
   blocks.resize(num_blocks);
+  endo2block.resize(nb_var);
+  eq2block.resize(nb_var);
 
-  // Initialize size and mfs_size for prologue and epilogue
+  // Initialize size and mfs_size for prologue and epilogue, plus eq/endo→block mappings
   for (int i = 0; i < prologue; i++)
     {
       blocks[i].size = 1;
       blocks[i].mfs_size = 1;
+      endo2block[endo_idx_block2orig[i]] = i;
+      eq2block[eq_idx_block2orig[i]] = i;
     }
   for (int i = 0; i < epilogue; i++)
     {
-      blocks[prologue+num_simblocks+i].size = 1;
-      blocks[prologue+num_simblocks+i].mfs_size = 1;
+      int blk = prologue+num_simblocks+i;
+      int var_eq = prologue+nb_simvars+i;
+      blocks[blk].size = 1;
+      blocks[blk].mfs_size = 1;
+      endo2block[endo_idx_block2orig[var_eq]] = blk;
+      eq2block[eq_idx_block2orig[var_eq]] = blk;
     }
 
   // Compute size and list of equations for simultaneous blocks
   vector<set<int>> eqs_in_simblock(num_simblocks);
   for (int i = 0; i < static_cast<int>(endo2simblock.size()); i++)
     {
-      blocks[prologue+endo2simblock[i]].size++;
       eqs_in_simblock[endo2simblock[i]].insert(i);
+      int blk = prologue+endo2simblock[i];
+      blocks[blk].size++;
+      endo2block[endo_idx_block2orig[prologue+i]] = blk;
+      eq2block[eq_idx_block2orig[prologue+i]] = blk;
     }
 
   // Determine the dynamic structure of each block
-  auto [equation_lag_lead, variable_lag_lead] = getVariableLeadLagByBlock(endo2simblock);
+  auto [equation_lag_lead, variable_lag_lead] = getVariableLeadLagByBlock();
 
   for (int var = 0; var < nb_var; var++)
     {
       auto [max_lag, max_lead] = variable_lag_lead[endo_idx_block2orig[var]];
-      int blk;
-      if (var < prologue)
-        blk = var;
-      else if (var >= nb_var - epilogue)
-        blk = var - nb_simvars + num_simblocks;
-      else
-        blk = endo2simblock[var-prologue] + prologue;
+      int blk = endo2block[endo_idx_block2orig[var]];
 
       if (max_lag != 0 && max_lead != 0)
         blocks[blk].n_mixed++;
@@ -829,10 +829,7 @@ ModelTree::reduceBlocksAndTypeDetermination(bool linear_decomposition)
           set<pair<int, int>> endos_and_lags;
           equations[eq_idx_block2orig[eq]]->collectEndogenous(endos_and_lags);
           for (const auto &[endo, lag] : endos_and_lags)
-            if (linear_decomposition ||
-                find(endo_idx_block2orig.begin()+first_eq,
-                        endo_idx_block2orig.begin()+first_eq+blocks[i].size, endo)
-                != endo_idx_block2orig.begin()+first_eq+blocks[i].size)
+            if (linear_decomposition || endo2block[endo] == i)
               {
                 max_lead = max(lag, max_lead);
                 max_lag = max(-lag, max_lag);
@@ -913,6 +910,12 @@ ModelTree::reduceBlocksAndTypeDetermination(bool linear_decomposition)
                   blocks[i-1].n_backward += blocks[i].n_backward;
                   blocks[i-1].n_mixed += blocks[i].n_mixed;
                   blocks.erase(blocks.begin()+i);
+                  for (auto &b : endo2block)
+                    if (b >= i)
+                      b--;
+                  for (auto &b : eq2block)
+                    if (b >= i)
+                      b--;
                   i--;
                   continue;
                 }

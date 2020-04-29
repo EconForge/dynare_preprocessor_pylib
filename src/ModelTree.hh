@@ -200,6 +200,12 @@ protected:
   // Stores various informations on the blocks
   vector<BlockInfo> blocks;
 
+  // Maps endogenous type-specific IDs to the block number to which it belongs
+  vector<int> endo2block;
+  /* Maps (original) equation number to the block number to which it belongs.
+     It verifies: ∀i, eq2block[endo2eq[i]] = endo2block[i] */
+  vector<int> eq2block;
+
   //! the file containing the model and the derivatives code
   ofstream code_file;
 
@@ -296,7 +302,8 @@ protected:
   /* Compute the block decomposition and for a non-recusive block find the minimum feedback set
 
      Initializes the “blocks” structure, and fills the following fields: size,
-     mfs_size, n_static, n_forward, n_backward, n_mixed. */
+     mfs_size, n_static, n_forward, n_backward, n_mixed.
+     Also initializes the endo2block and eq2block structures. */
   lag_lead_vector_t computeBlockDecompositionAndFeedbackVariablesForEachBlock();
   /* Reduce the number of block by merging the same type of equations in the
      prologue and the epilogue, and determine the type of each block.
@@ -312,7 +319,7 @@ protected:
      The 2nd output gives, for each type-specific endo IDs, its (max_lag,
      max_lead) across all its occurences inside the equations of the block to
      which it belongs. */
-  pair<lag_lead_vector_t, lag_lead_vector_t> getVariableLeadLagByBlock(const vector<int> &endo2simblock) const;
+  pair<lag_lead_vector_t, lag_lead_vector_t> getVariableLeadLagByBlock() const;
   //! For each equation determine if it is linear or not
   void equationLinear(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives);
   //! Print an abstract of the block structure of the model
