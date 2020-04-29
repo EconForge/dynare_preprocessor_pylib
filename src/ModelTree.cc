@@ -673,7 +673,7 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock()
 
   /* Identify the simultaneous blocks. Each simultaneous block is given an
      index, starting from 0, in recursive order */
-  auto [num_simblocks, endo2simblock] = G.sortedStronglyConnectedComponents();
+  auto [num_simblocks, simvar2simblock] = G.sortedStronglyConnectedComponents();
 
   int num_blocks = prologue+num_simblocks+epilogue;
 
@@ -683,29 +683,23 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock()
   eq2block.resize(nb_var);
 
   // Initialize size and mfs_size for prologue and epilogue, plus eq/endo→block mappings
-  for (int i = 0; i < prologue; i++)
-    {
-      blocks[i].size = 1;
-      blocks[i].mfs_size = 1;
-      endo2block[endo_idx_block2orig[i]] = i;
-      eq2block[eq_idx_block2orig[i]] = i;
-    }
-  for (int i = 0; i < epilogue; i++)
-    {
-      int blk = prologue+num_simblocks+i;
-      int var_eq = prologue+nb_simvars+i;
-      blocks[blk].size = 1;
-      blocks[blk].mfs_size = 1;
-      endo2block[endo_idx_block2orig[var_eq]] = blk;
-      eq2block[eq_idx_block2orig[var_eq]] = blk;
-    }
+  for (int blk = 0; blk < num_blocks; blk++)
+    if (blk < prologue || blk >= num_blocks-epilogue)
+      {
+        int var_eq = (blk < prologue ? blk : blk-num_simblocks+nb_simvars);
+        blocks[blk].size = 1;
+        blocks[blk].mfs_size = 1;
+        blocks[blk].first_equation = var_eq;
+        endo2block[endo_idx_block2orig[var_eq]] = blk;
+        eq2block[eq_idx_block2orig[var_eq]] = blk;
+      }
 
-  // Compute size and list of equations for simultaneous blocks
-  vector<vector<int>> eqs_in_simblock(num_simblocks);
-  for (int i = 0; i < static_cast<int>(endo2simblock.size()); i++)
+  // Initialize size for simultaneous blocks, plus eq/endo→block mappings
+  vector<vector<int>> simblock2simvars(num_simblocks);
+  for (int i = 0; i < static_cast<int>(simvar2simblock.size()); i++)
     {
-      eqs_in_simblock[endo2simblock[i]].push_back(i);
-      int blk = prologue+endo2simblock[i];
+      simblock2simvars[simvar2simblock[i]].push_back(i);
+      int blk = prologue+simvar2simblock[i];
       blocks[blk].size++;
       endo2block[endo_idx_block2orig[prologue+i]] = blk;
       eq2block[eq_idx_block2orig[prologue+i]] = blk;
@@ -749,11 +743,12 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock()
 
   const vector<int> old_eq_idx_block2orig(eq_idx_block2orig), old_endo_idx_block2orig(endo_idx_block2orig);
   int ordidx = prologue;
-  for (int i = 0; i < num_simblocks; i++)
+  for (int blk = prologue; blk < prologue+num_simblocks; blk++)
     {
-      auto subG = G.extractSubgraph(eqs_in_simblock[i]);
+      blocks[blk].first_equation = (blk == 0 ? 0 : blocks[blk-1].first_equation + blocks[blk-1].size);
+      auto subG = G.extractSubgraph(simblock2simvars[blk-prologue]);
       auto feed_back_vertices = subG.minimalSetOfFeedbackVertices();
-      blocks[prologue+i].mfs_size = feed_back_vertices.size();
+      blocks[blk].mfs_size = feed_back_vertices.size();
       auto recursive_vertices = subG.reorderRecursiveVariables(feed_back_vertices);
       auto v_index1 = get(boost::vertex_index1, subG);
 
@@ -816,19 +811,17 @@ ModelTree::printBlockDecomposition() const
 void
 ModelTree::reduceBlocksAndTypeDetermination(bool linear_decomposition)
 {
-  for (int i = 0; i < static_cast<int>(blocks.size()); i++)
+  for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
-      int first_eq = (i == 0) ? 0 : blocks[i-1].first_equation+blocks[i-1].size;
-
       /* Compute the maximum lead and lag across all endogenous that appear in
          this block and that belong to it */
       int max_lag = 0, max_lead = 0;
-      for (int eq = first_eq; eq < first_eq+blocks[i].size; eq++)
+      for (int eq = 0; eq < blocks[blk].size; eq++)
         {
           set<pair<int, int>> endos_and_lags;
-          equations[eq_idx_block2orig[eq]]->collectEndogenous(endos_and_lags);
+          getBlockEquationExpr(blk, eq)->collectEndogenous(endos_and_lags);
           for (const auto &[endo, lag] : endos_and_lags)
-            if (linear_decomposition || endo2block[endo] == i)
+            if (linear_decomposition || endo2block[endo] == blk)
               {
                 max_lead = max(lag, max_lead);
                 max_lag = max(-lag, max_lag);
@@ -839,12 +832,12 @@ ModelTree::reduceBlocksAndTypeDetermination(bool linear_decomposition)
       BlockSimulationType Simulation_Type;
       if (max_lag > 0 && max_lead > 0)
         {
-          if (blocks[i].size == 1)
+          if (blocks[blk].size == 1)
             Simulation_Type = BlockSimulationType::solveTwoBoundariesSimple;
           else
             Simulation_Type = BlockSimulationType::solveTwoBoundariesComplete;
         }
-      else if (blocks[i].size > 1)
+      else if (blocks[blk].size > 1)
         {
           if (max_lead > 0)
             Simulation_Type = BlockSimulationType::solveBackwardComplete;
@@ -859,11 +852,11 @@ ModelTree::reduceBlocksAndTypeDetermination(bool linear_decomposition)
             Simulation_Type = BlockSimulationType::solveForwardSimple;
         }
 
-      if (blocks[i].size == 1)
+      if (blocks[blk].size == 1)
         {
           // Determine if the block can simply be evaluated
-          if (equation_type_and_normalized_equation[eq_idx_block2orig[first_eq]].first == EquationType::evaluate
-              || equation_type_and_normalized_equation[eq_idx_block2orig[first_eq]].first == EquationType::evaluate_s)
+          if (getBlockEquationType(blk, 0) == EquationType::evaluate
+              || getBlockEquationType(blk, 0) == EquationType::evaluate_s)
             {
               if (Simulation_Type == BlockSimulationType::solveBackwardSimple)
                 Simulation_Type = BlockSimulationType::evaluateBackward;
@@ -875,19 +868,18 @@ ModelTree::reduceBlocksAndTypeDetermination(bool linear_decomposition)
              This is only possible if the two blocks can simply be evaluated
              (in the same direction), and if the merge does not break the
              restrictions on leads/lags. */
-          if (i > 0)
+          if (blk > 0)
             {
+              set<pair<int, int>> endos_and_lags;
+              getBlockEquationExpr(blk, 0)->collectEndogenous(endos_and_lags);
               bool is_lead = false, is_lag = false;
-              for (int j = blocks[i-1].first_equation;
-                   j < blocks[i-1].first_equation+blocks[i-1].size; j++)
+              for (int var = 0; var < blocks[blk-1].size; var++)
                 {
-                  set<pair<int, int>> endos_and_lags;
-                  equations[eq_idx_block2orig[first_eq]]->collectEndogenous(endos_and_lags);
-                  is_lag = endos_and_lags.find({ endo_idx_block2orig[j], -1 }) != endos_and_lags.end();
-                  is_lead = endos_and_lags.find({ endo_idx_block2orig[j], 1 }) != endos_and_lags.end();
+                  is_lag = endos_and_lags.find({ getBlockVariableID(blk-1, var), -1 }) != endos_and_lags.end();
+                  is_lead = endos_and_lags.find({ getBlockVariableID(blk-1, var), 1 }) != endos_and_lags.end();
                 }
 
-              BlockSimulationType prev_Type = blocks[i-1].simulation_type;
+              BlockSimulationType prev_Type = blocks[blk-1].simulation_type;
               if ((prev_Type == BlockSimulationType::evaluateForward
                    && Simulation_Type == BlockSimulationType::evaluateForward
                    && !is_lead)
@@ -896,35 +888,34 @@ ModelTree::reduceBlocksAndTypeDetermination(bool linear_decomposition)
                       && !is_lag))
                 {
                   // Merge the current block into the previous one
-                  blocks[i-1].size++;
-                  blocks[i-1].mfs_size = blocks[i-1].size;
+                  blocks[blk-1].size++;
+                  blocks[blk-1].mfs_size = blocks[blk-1].size;
                   /* For max lag/lead, the max of the two blocks is not enough.
                      We need to consider the case where a variable of the
                      previous block appears with a lag/lead in the current one
                      (the reverse case is excluded, by construction). */
-                  blocks[i-1].max_lag = is_lag ? 1 : max(blocks[i-1].max_lag, max_lag);
-                  blocks[i-1].max_lead = is_lead ? 1 : max(blocks[i-1].max_lead, max_lead);
-                  blocks[i-1].n_static += blocks[i].n_static;
-                  blocks[i-1].n_forward += blocks[i].n_forward;
-                  blocks[i-1].n_backward += blocks[i].n_backward;
-                  blocks[i-1].n_mixed += blocks[i].n_mixed;
-                  blocks.erase(blocks.begin()+i);
+                  blocks[blk-1].max_lag = is_lag ? 1 : max(blocks[blk-1].max_lag, max_lag);
+                  blocks[blk-1].max_lead = is_lead ? 1 : max(blocks[blk-1].max_lead, max_lead);
+                  blocks[blk-1].n_static += blocks[blk].n_static;
+                  blocks[blk-1].n_forward += blocks[blk].n_forward;
+                  blocks[blk-1].n_backward += blocks[blk].n_backward;
+                  blocks[blk-1].n_mixed += blocks[blk].n_mixed;
+                  blocks.erase(blocks.begin()+blk);
                   for (auto &b : endo2block)
-                    if (b >= i)
+                    if (b >= blk)
                       b--;
                   for (auto &b : eq2block)
-                    if (b >= i)
+                    if (b >= blk)
                       b--;
-                  i--;
+                  blk--;
                   continue;
                 }
             }
         }
 
-      blocks[i].simulation_type = Simulation_Type;
-      blocks[i].first_equation = first_eq;
-      blocks[i].max_lag = max_lag;
-      blocks[i].max_lead = max_lead;
+      blocks[blk].simulation_type = Simulation_Type;
+      blocks[blk].max_lag = max_lag;
+      blocks[blk].max_lead = max_lead;
     }
 }
 

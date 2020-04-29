@@ -301,7 +301,7 @@ protected:
   void equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives, int mfs);
   /* Compute the block decomposition and for a non-recusive block find the minimum feedback set
 
-     Initializes the “blocks” structure, and fills the following fields: size,
+     Initializes the “blocks” structure, and fills the following fields: size, first_equation,
      mfs_size, n_static, n_forward, n_backward, n_mixed.
      Also initializes the endo2block and eq2block structures. */
   void computeBlockDecompositionAndFeedbackVariablesForEachBlock();
@@ -309,7 +309,7 @@ protected:
      prologue and the epilogue, and determine the type of each block.
 
      Fills the following fields of the “blocks” structure: simulation_type,
-     first_equation, max_lead, max_lag. */
+     max_lead, max_lag. */
   void reduceBlocksAndTypeDetermination(bool linear_decomposition);
   /* The 1st output gives, for each equation (in original order) the (max_lag,
      max_lead) across all endogenous that appear in the equation and that
