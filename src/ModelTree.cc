@@ -701,10 +701,10 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock()
     }
 
   // Compute size and list of equations for simultaneous blocks
-  vector<set<int>> eqs_in_simblock(num_simblocks);
+  vector<vector<int>> eqs_in_simblock(num_simblocks);
   for (int i = 0; i < static_cast<int>(endo2simblock.size()); i++)
     {
-      eqs_in_simblock[endo2simblock[i]].insert(i);
+      eqs_in_simblock[endo2simblock[i]].push_back(i);
       int blk = prologue+endo2simblock[i];
       blocks[blk].size++;
       endo2block[endo_idx_block2orig[prologue+i]] = blk;

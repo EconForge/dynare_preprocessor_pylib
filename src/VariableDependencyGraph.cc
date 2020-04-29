@@ -58,19 +58,12 @@ void
 VariableDependencyGraph::eliminate(vertex_descriptor vertex_to_eliminate)
 {
   if (in_degree(vertex_to_eliminate, *this) > 0 && out_degree(vertex_to_eliminate, *this) > 0)
-    {
-      in_edge_iterator it_in, in_end;
-      out_edge_iterator it_out, out_end;
-      for (tie(it_in, in_end) = in_edges(vertex_to_eliminate, *this); it_in != in_end; ++it_in)
-        for (tie(it_out, out_end) = out_edges(vertex_to_eliminate, *this); it_out != out_end; ++it_out)
-          {
-            edge_descriptor ed;
-            bool exist;
-            tie(ed, exist) = edge(source(*it_in, *this), target(*it_out, *this), *this);
-            if (!exist)
-              add_edge(source(*it_in, *this), target(*it_out, *this), *this);
-          }
-    }
+    for (auto [it_in, in_end] = in_edges(vertex_to_eliminate, *this); it_in != in_end; ++it_in)
+      for (auto [it_out, out_end] = out_edges(vertex_to_eliminate, *this); it_out != out_end; ++it_out)
+        if (auto [ed, exist] = edge(source(*it_in, *this), target(*it_out, *this), *this);
+            !exist)
+          add_edge(source(*it_in, *this), target(*it_out, *this), *this);
+
   suppress(vertex_to_eliminate);
 }
 
@@ -79,9 +72,9 @@ VariableDependencyGraph::hasCycleDFS(vertex_descriptor u, color_t &color, vector
 {
   auto v_index = get(vertex_index, *this);
   color[u] = gray_color;
-  out_edge_iterator vi, vi_end;
-  for (tie(vi, vi_end) = out_edges(u, *this); vi != vi_end; ++vi)
-    if (color[target(*vi, *this)] == white_color && hasCycleDFS(target(*vi, *this), color, circuit_stack))
+  for (auto [vi, vi_end] = out_edges(u, *this); vi != vi_end; ++vi)
+    if (color[target(*vi, *this)] == white_color
+        && hasCycleDFS(target(*vi, *this), color, circuit_stack))
       {
         // cycle detected, return immediately
         circuit_stack.push_back(v_index[target(*vi, *this)]);
@@ -103,12 +96,11 @@ VariableDependencyGraph::hasCycle() const
   // Initialize color map to white
   color_t color;
   vector<int> circuit_stack;
-  vertex_iterator vi, vi_end;
-  for (tie(vi, vi_end) = vertices(*this); vi != vi_end; ++vi)
+  for (auto [vi, vi_end] = vertices(*this); vi != vi_end; ++vi)
     color[*vi] = white_color;
 
   // Perform depth-first search
-  for (tie(vi, vi_end) = vertices(*this); vi != vi_end; ++vi)
+  for (auto [vi, vi_end] = vertices(*this); vi != vi_end; ++vi)
     if (color[*vi] == white_color && hasCycleDFS(*vi, color, circuit_stack))
       return true;
 
@@ -118,50 +110,41 @@ VariableDependencyGraph::hasCycle() const
 void
 VariableDependencyGraph::print() const
 {
-  vertex_iterator it, it_end;
   auto v_index = get(vertex_index, *this);
   cout << "Graph\n"
        << "-----\n";
-  for (tie(it, it_end) = vertices(*this); it != it_end; ++it)
+  for (auto [it, it_end] = vertices(*this); it != it_end; ++it)
     {
       cout << "vertex[" << v_index[*it] + 1 << "] <-";
-      in_edge_iterator it_in, in_end;
-      for (tie(it_in, in_end) = in_edges(*it, *this); it_in != in_end; ++it_in)
+      for (auto [it_in, in_end] = in_edges(*it, *this); it_in != in_end; ++it_in)
         cout << v_index[source(*it_in, *this)] + 1 << " ";
       cout << "\n       ->";
-      out_edge_iterator it_out, out_end;
-      for (tie(it_out, out_end) = out_edges(*it, *this); it_out != out_end; ++it_out)
+      for (auto [it_out, out_end] = out_edges(*it, *this); it_out != out_end; ++it_out)
         cout << v_index[target(*it_out, *this)] + 1 << " ";
       cout << "\n";
     }
 }
 
 VariableDependencyGraph
-VariableDependencyGraph::extractSubgraph(const set<int> &select_index) const
+VariableDependencyGraph::extractSubgraph(const vector<int> &select_index) const
 {
   int n = select_index.size();
   VariableDependencyGraph G(n);
   auto v_index = get(vertex_index, *this);
   auto v_index1_G = get(vertex_index1, G); // Maps new vertices to original indices
   map<int, int> reverse_index; // Maps orig indices to new ones
-  set<int>::iterator it;
-  int i;
-  for (it = select_index.begin(), i = 0; i < n; i++, ++it)
+  for (int i = 0; i < n; i++)
     {
-      reverse_index[get(v_index, vertex(*it, *this))] = i;
-      put(v_index1_G, vertex(i, G), get(v_index, vertex(*it, *this)));
+      reverse_index[select_index[i]] = i;
+      v_index1_G[vertex(i, G)] = select_index[i];
     }
-  for (it = select_index.begin(), i = 0; i < n; i++, ++it)
+  for (int i = 0; i < n; i++)
     {
-      out_edge_iterator it_out, out_end;
-      auto vi = vertex(*it, *this);
-      for (tie(it_out, out_end) = out_edges(vi, *this); it_out != out_end; ++it_out)
-        {
-          int ii = v_index[target(*it_out, *this)];
-          if (select_index.find(ii) != select_index.end())
-            add_edge(vertex(reverse_index[get(v_index, source(*it_out, *this))], G),
-                     vertex(reverse_index[get(v_index, target(*it_out, *this))], G), G);
-        }
+      auto vi = vertex(select_index[i], *this);
+      for (auto [it_out, out_end] = out_edges(vi, *this); it_out != out_end; ++it_out)
+        if (auto it = reverse_index.find(v_index[target(*it_out, *this)]);
+            it != reverse_index.end())
+          add_edge(vertex(i, G), vertex(it->second, G), G);
     }
   return G;
 }
@@ -171,10 +154,8 @@ VariableDependencyGraph::vertexBelongsToAClique(vertex_descriptor vertex) const
 {
   vector<vertex_descriptor> liste;
   bool agree = true;
-  in_edge_iterator it_in, in_end;
-  out_edge_iterator it_out, out_end;
-  tie(it_in, in_end) = in_edges(vertex, *this);
-  tie(it_out, out_end) = out_edges(vertex, *this);
+  auto [it_in, in_end] = in_edges(vertex, *this);
+  auto [it_out, out_end] = out_edges(vertex, *this);
   while (it_in != in_end && it_out != out_end && agree)
     {
       agree = (source(*it_in, *this) == target(*it_out, *this)
@@ -193,10 +174,8 @@ VariableDependencyGraph::vertexBelongsToAClique(vertex_descriptor vertex) const
           int j = i + 1;
           while (j < static_cast<int>(liste.size()) && agree)
             {
-              edge_descriptor ed;
-              bool exist1, exist2;
-              tie(ed, exist1) = edge(liste[i], liste[j], *this);
-              tie(ed, exist2) = edge(liste[j], liste[i], *this);
+              auto [ed1, exist1] = edge(liste[i], liste[j], *this);
+              auto [ed2, exist2] = edge(liste[j], liste[i], *this);
               agree = exist1 && exist2;
               j++;
             }
@@ -212,7 +191,7 @@ VariableDependencyGraph::eliminationOfVerticesWithOneOrLessIndegreeOrOutdegree()
   bool something_has_been_done = false;
   bool not_a_loop;
   int i;
-  vertex_iterator it, it1, ita, it_end;
+  vertex_iterator it, ita, it_end;
   for (tie(it, it_end) = vertices(*this), i = 0; it != it_end; ++it, i++)
     {
       int in_degree_n = in_degree(*it, *this);
@@ -221,12 +200,9 @@ VariableDependencyGraph::eliminationOfVerticesWithOneOrLessIndegreeOrOutdegree()
         {
           not_a_loop = true;
           if (in_degree_n >= 1 && out_degree_n >= 1) // Do not eliminate a vertex if it loops on itself!
-            {
-              in_edge_iterator it_in, in_end;
-              for (tie(it_in, in_end) = in_edges(*it, *this); it_in != in_end; ++it_in)
-                if (source(*it_in, *this) == target(*it_in, *this))
-                  not_a_loop = false;
-            }
+            for (auto [it_in, in_end] = in_edges(*it, *this); it_in != in_end; ++it_in)
+              if (source(*it_in, *this) == target(*it_in, *this))
+                not_a_loop = false;
           if (not_a_loop)
             {
               eliminate(*it);
@@ -248,7 +224,7 @@ VariableDependencyGraph::eliminationOfVerticesWithOneOrLessIndegreeOrOutdegree()
 bool
 VariableDependencyGraph::eliminationOfVerticesBelongingToAClique()
 {
-  vertex_iterator it, it1, ita, it_end;
+  vertex_iterator it, ita, it_end;
   bool something_has_been_done = false;
   int i;
   for (tie(it, it_end) = vertices(*this), i = 0; it != it_end; ++it, i++)
@@ -274,13 +250,11 @@ bool
 VariableDependencyGraph::suppressionOfVerticesWithLoop(set<int> &feed_back_vertices)
 {
   bool something_has_been_done = false;
-  vertex_iterator it, it_end, ita;
+  vertex_iterator ita;
   int i = 0;
-  for (tie(it, it_end) = vertices(*this); it != it_end; ++it, i++)
+  for (auto [it, it_end] = vertices(*this); it != it_end; ++it, i++)
     {
-      edge_descriptor ed;
-      bool exist;
-      tie(ed, exist) = edge(*it, *it, *this);
+      auto [ed, exist] = edge(*it, *it, *this);
       if (exist)
         {
           auto v_index = get(vertex_index, *this);
@@ -323,8 +297,8 @@ VariableDependencyGraph::minimalSetOfFeedbackVertices() const
           /* If nothing has been done in the five previous rule then cut the
              vertex with the maximum in_degree+out_degree */
           int max_degree = 0, num = 0;
-          vertex_iterator it, it_end, max_degree_index;
-          for (tie(it, it_end) = vertices(G); it != it_end; ++it, num++)
+          vertex_iterator max_degree_index;
+          for (auto [it, it_end] = vertices(G); it != it_end; ++it, num++)
             if (static_cast<int>(in_degree(*it, G) + out_degree(*it, G)) > max_degree)
               {
                 max_degree = in_degree(*it, G) + out_degree(*it, G);
@@ -394,15 +368,12 @@ VariableDependencyGraph::sortedStronglyConnectedComponents() const
   adjacency_list<vecS, vecS, directedS> dag(num_scc);
   for (int i = 0; i < static_cast<int>(num_vertices(*this)); i++)
     {
-      out_edge_iterator it_out, out_end;
       auto vi = vertex(i, *this);
-      for (tie(it_out, out_end) = out_edges(vi, *this); it_out != out_end; ++it_out)
-        {
-          int t_b = vertex2scc[v_index[target(*it_out, *this)]];
-          int s_b = vertex2scc[v_index[source(*it_out, *this)]];
-          if (s_b != t_b)
-            add_edge(s_b, t_b, dag);
-        }
+      for (auto [it_out, out_end] = out_edges(vi, *this); it_out != out_end; ++it_out)
+        if (int t_b = vertex2scc[v_index[target(*it_out, *this)]],
+            s_b = vertex2scc[v_index[source(*it_out, *this)]];
+            s_b != t_b)
+          add_edge(s_b, t_b, dag);
     }
 
   /* Compute topological sort of DAG (ordered list of unordered SCC)

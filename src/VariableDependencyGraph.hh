@@ -54,7 +54,7 @@ public:
     The property vertex_index1 of the subgraph contains indices of the original
     graph.
   */
-  VariableDependencyGraph extractSubgraph(const set<int> &select_index) const;
+  VariableDependencyGraph extractSubgraph(const vector<int> &select_index) const;
   //! Return the feedback set
   set<int> minimalSetOfFeedbackVertices() const;
   //! Reorder the recursive variables
