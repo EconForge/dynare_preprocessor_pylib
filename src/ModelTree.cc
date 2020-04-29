@@ -754,30 +754,31 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock()
       auto subG = G.extractSubgraph(eqs_in_simblock[i]);
       auto feed_back_vertices = subG.minimalSetOfFeedbackVertices();
       blocks[prologue+i].mfs_size = feed_back_vertices.size();
-      auto reordered_vertices = subG.reorderRecursiveVariables(feed_back_vertices);
+      auto recursive_vertices = subG.reorderRecursiveVariables(feed_back_vertices);
+      auto v_index1 = get(boost::vertex_index1, subG);
 
       const vector<pair<int, int>> dynamic_order{ make_pair(0, 0), make_pair(1, 0),
                                                   make_pair(1, 1), make_pair(0, 1) };
 
       // First the recursive equations conditional on feedback variables
       for (auto max_lag_lead : dynamic_order)
-        for (int its : reordered_vertices)
-            if (variable_lag_lead[old_endo_idx_block2orig[its+prologue]] == max_lag_lead)
-              {
-                eq_idx_block2orig[ordidx] = old_eq_idx_block2orig[its+prologue];
-                endo_idx_block2orig[ordidx] = old_endo_idx_block2orig[its+prologue];
-                ordidx++;
-              }
+        for (int vtx : recursive_vertices)
+          if (int simvar = v_index1[vertex(vtx, subG)];
+              variable_lag_lead[old_endo_idx_block2orig[simvar+prologue]] == max_lag_lead)
+            {
+              eq_idx_block2orig[ordidx] = old_eq_idx_block2orig[simvar+prologue];
+              endo_idx_block2orig[ordidx] = old_endo_idx_block2orig[simvar+prologue];
+              ordidx++;
+            }
 
       // Then the equations related to the feedback variables
-      auto v_index1 = get(boost::vertex_index1, subG);
       for (auto max_lag_lead : dynamic_order)
-        for (int fbvertex : feed_back_vertices)
-          if (int idx = v_index1[vertex(fbvertex, subG)];
-              variable_lag_lead[old_endo_idx_block2orig[idx+prologue]] == max_lag_lead)
+        for (int vtx : feed_back_vertices)
+          if (int simvar = v_index1[vertex(vtx, subG)];
+              variable_lag_lead[old_endo_idx_block2orig[simvar+prologue]] == max_lag_lead)
             {
-              eq_idx_block2orig[ordidx] = old_eq_idx_block2orig[idx+prologue];
-              endo_idx_block2orig[ordidx] = old_endo_idx_block2orig[idx+prologue];
+              eq_idx_block2orig[ordidx] = old_eq_idx_block2orig[simvar+prologue];
+              endo_idx_block2orig[ordidx] = old_endo_idx_block2orig[simvar+prologue];
               ordidx++;
             }
     }
