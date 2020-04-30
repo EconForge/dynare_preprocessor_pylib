@@ -298,27 +298,9 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
       else
         output << "function [residual, y, g1] = static_" << block+1 << "(y, x, params)" << endl;
 
-      BlockType block_type;
-      if (simulation_type == BlockSimulationType::solveForwardComplete
-          || simulation_type == BlockSimulationType::solveBackwardComplete)
-        block_type = BlockType::simultans;
-      else if ((simulation_type == BlockSimulationType::solveForwardSimple
-                || simulation_type == BlockSimulationType::solveBackwardSimple
-                || simulation_type == BlockSimulationType::evaluateBackward
-                || simulation_type == BlockSimulationType::evaluateForward)
-               && blocks[block].first_equation < prologue)
-        block_type = BlockType::prologue;
-      else if ((simulation_type == BlockSimulationType::solveForwardSimple
-                || simulation_type == BlockSimulationType::solveBackwardSimple
-                || simulation_type == BlockSimulationType::evaluateBackward
-                || simulation_type == BlockSimulationType::evaluateForward)
-               && blocks[block].first_equation >= static_cast<int>(equations.size()) - epilogue)
-        block_type = BlockType::epilogue;
-      else
-        block_type = BlockType::simultans;
       output << "  % ////////////////////////////////////////////////////////////////////////" << endl
-             << "  % //" << string("                     Block ").substr(int (log10(block + 1))) << block + 1 << " " << BlockType0(block_type)
-             << "          //" << endl
+             << "  % //" << string("                     Block ").substr(int (log10(block + 1))) << block + 1
+             << "                                        //" << endl
              << "  % //                     Simulation type "
              << BlockSim(simulation_type) << "  //" << endl
              << "  % ////////////////////////////////////////////////////////////////////////" << endl;
@@ -1125,7 +1107,7 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
 
       computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian);
 
-      computePrologueAndEpilogue();
+      auto [prologue, epilogue] = computePrologueAndEpilogue();
 
       auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
 
@@ -1133,9 +1115,9 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
 
       cout << "Finding the optimal block decomposition of the model ..." << endl;
 
-      computeBlockDecompositionAndFeedbackVariablesForEachBlock();
+      computeBlockDecomposition(prologue, epilogue);
 
-      reduceBlocksAndTypeDetermination();
+      reduceBlockDecomposition();
 
       printBlockDecomposition();
 

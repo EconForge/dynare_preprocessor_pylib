@@ -263,9 +263,6 @@ protected:
   /*! Maps endogenous type specific IDs to equation numbers */
   vector<int> endo2eq;
 
-  //! number of equation in the prologue and in the epilogue
-  int epilogue, prologue;
-
   /* Compute a pseudo-Jacobian whose all elements are either zero or one,
      depending on whether the variable symbolically appears in the equation */
   jacob_map_t computeSymbolicJacobian() const;
@@ -296,25 +293,27 @@ protected:
   pair<jacob_map_t, jacob_map_t> evaluateAndReduceJacobian(const eval_context_t &eval_context, double cutoff, bool verbose) const;
   //! Select and reorder the non linear equations of the model
   void select_non_linear_equations_and_variables();
-  //! Search the equations and variables belonging to the prologue and the epilogue of the model
-  void computePrologueAndEpilogue();
+  /* Search the equations and variables belonging to the prologue and the
+     epilogue of the model.
+     Initializes “eq_idx_block2orig” and “endo_idx_block2orig”.
+     Returns the sizes of the prologue and epilogue. */
+  pair<int, int> computePrologueAndEpilogue();
   //! Determine the type of each equation of model and try to normalize the unnormalized equation
   void equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives, int mfs);
   /* Fills the max lags/leads and n_{static,mixed,forward,backward} fields of a
      given block.
      Needs the fields size and first_equation. */
   void computeDynamicStructureOfBlock(int blk);
+  /* Fills the simulation_type field of a given block.
+     Needs the fields size, max_endo_lag and max_endo_lead. */
+  void computeSimulationTypeOfBlock(int blk);
   /* Compute the block decomposition and for a non-recusive block find the minimum feedback set
 
-     Initializes the “blocks” structure, and fills the following fields: size, first_equation,
-     mfs_size, n_static, n_forward, n_backward, n_mixed, maximum lags/leads.
-     Also initializes the endo2block and eq2block structures. */
-  void computeBlockDecompositionAndFeedbackVariablesForEachBlock();
+     Initializes the “blocks”, “endo2block” and “eq2block” structures. */
+  void computeBlockDecomposition(int prologue, int epilogue);
   /* Reduce the number of block by merging the same type of equations in the
-     prologue and the epilogue, and determine the type of each block.
-
-     Fills the “simulation_type” field of the “blocks” structure.  */
-  void reduceBlocksAndTypeDetermination();
+     prologue and the epilogue */
+  void reduceBlockDecomposition();
   /* The 1st output gives, for each equation (in original order) the (max_lag,
      max_lead) across all endogenous that appear in the equation and that
      belong to the same block (i.e. those endogenous are solved in the same
@@ -483,24 +482,6 @@ public:
         return "SOLVE     ";
       default:
         return "UNKNOWN   ";
-      }
-  }
-
-  inline static string
-  BlockType0(BlockType type)
-  {
-    switch (type)
-      {
-      case BlockType::simultans:
-        return "SIMULTANEOUS TIME SEPARABLE  ";
-      case BlockType::prologue:
-        return "PROLOGUE                     ";
-      case BlockType::epilogue:
-        return "EPILOGUE                     ";
-      case BlockType::simultan:
-        return "SIMULTANEOUS TIME UNSEPARABLE";
-      default:
-        return "UNKNOWN                      ";
       }
   }
 

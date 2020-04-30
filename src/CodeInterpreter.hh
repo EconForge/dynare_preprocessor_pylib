@@ -105,14 +105,6 @@ enum Tags
 
   };
 
-enum class BlockType
-  {
-   simultans, //!< Simultaneous time separable block
-   prologue, //!< Prologue block (one equation at the beginning, later merged)
-   epilogue, //!< Epilogue block (one equation at the beginning, later merged)
-   simultan //!< Simultaneous time unseparable block
-  };
-
 enum class EquationType
   {
    unknown, //!< Unknown equation type

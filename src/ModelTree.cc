@@ -161,8 +161,6 @@ ModelTree::ModelTree(const ModelTree &m) :
   eq2block{m.eq2block},
   is_equation_linear{m.is_equation_linear},
   endo2eq{m.endo2eq},
-  epilogue{m.epilogue},
-  prologue{m.prologue},
   cutoff{m.cutoff},
   mfs{m.mfs}
 {
@@ -210,8 +208,6 @@ ModelTree::operator=(const ModelTree &m)
   eq2block = m.eq2block;
   is_equation_linear = m.is_equation_linear;
   endo2eq = m.endo2eq;
-  epilogue = m.epilogue;
-  prologue = m.prologue;
   cutoff = m.cutoff;
   mfs = m.mfs;
 
@@ -403,9 +399,6 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, double 
 void
 ModelTree::select_non_linear_equations_and_variables()
 {
-  prologue = 0;
-  epilogue = 0;
-
   endo2block.resize(endo2eq.size(), 1); // The 1 is a dummy value, distinct from 0
   eq2block.resize(endo2eq.size(), 1);
   int i = 0;
@@ -429,6 +422,7 @@ ModelTree::select_non_linear_equations_and_variables()
   blocks[0].mfs_size = i;
   blocks[0].first_equation = 0;
   computeDynamicStructureOfBlock(0);
+  computeSimulationTypeOfBlock(0);
 }
 
 bool
@@ -459,7 +453,7 @@ ModelTree::computeNaturalNormalization()
   return bool_result;
 }
 
-void
+pair<int, int>
 ModelTree::computePrologueAndEpilogue()
 {
   const int n = equations.size();
@@ -489,7 +483,7 @@ ModelTree::computePrologueAndEpilogue()
 
   bool something_has_been_done;
   // Find the prologue equations and place first the AR(1) shock equations first
-  prologue = 0;
+  int prologue = 0;
   do
     {
       something_has_been_done = false;
@@ -525,7 +519,7 @@ ModelTree::computePrologueAndEpilogue()
   while (something_has_been_done);
   
   // Find the epilogue equations
-  epilogue = 0;
+  int epilogue = 0;
   do
     {
       something_has_been_done = false;
@@ -559,6 +553,8 @@ ModelTree::computePrologueAndEpilogue()
   while (something_has_been_done);
 
   updateReverseVariableEquationOrderings();
+
+  return { prologue, epilogue };
 }
 
 void
@@ -671,6 +667,37 @@ ModelTree::computeDynamicStructureOfBlock(int blk)
     }
 }
 
+void
+ModelTree::computeSimulationTypeOfBlock(int blk)
+{
+  auto &type = blocks[blk].simulation_type;
+  if (blocks[blk].max_endo_lag > 0 && blocks[blk].max_endo_lead > 0)
+    {
+      if (blocks[blk].size == 1)
+        type = BlockSimulationType::solveTwoBoundariesSimple;
+      else
+        type = BlockSimulationType::solveTwoBoundariesComplete;
+    }
+  else if (blocks[blk].size > 1)
+    {
+      if (blocks[blk].max_endo_lead > 0)
+        type = BlockSimulationType::solveBackwardComplete;
+      else
+        type = BlockSimulationType::solveForwardComplete;
+    }
+  else
+    {
+      bool can_eval = (getBlockEquationType(blk, 0) == EquationType::evaluate
+                       || getBlockEquationType(blk, 0) == EquationType::evaluate_s);
+      if (blocks[blk].max_endo_lead > 0)
+        type = can_eval ? BlockSimulationType::evaluateBackward :
+          BlockSimulationType::solveBackwardSimple;
+      else
+        type = can_eval ? BlockSimulationType::evaluateForward :
+          BlockSimulationType::solveForwardSimple;
+    }
+}
+
 pair<lag_lead_vector_t, lag_lead_vector_t>
 ModelTree::getVariableLeadLagByBlock() const
 {
@@ -694,7 +721,7 @@ ModelTree::getVariableLeadLagByBlock() const
 }
 
 void
-ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock()
+ModelTree::computeBlockDecomposition(int prologue, int epilogue)
 {
   int nb_var = symbol_table.endo_nbr();
   int nb_simvars = nb_var - prologue - epilogue;
@@ -812,7 +839,10 @@ ModelTree::computeBlockDecompositionAndFeedbackVariablesForEachBlock()
   updateReverseVariableEquationOrderings();
 
   for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
-    computeDynamicStructureOfBlock(blk);
+    {
+      computeDynamicStructureOfBlock(blk);
+      computeSimulationTypeOfBlock(blk);
+    }
 }
 
 void
@@ -843,92 +873,46 @@ ModelTree::printBlockDecomposition() const
 }
 
 void
-ModelTree::reduceBlocksAndTypeDetermination()
+ModelTree::reduceBlockDecomposition()
 {
-  for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
-    {
-      // Determine the block type
-      BlockSimulationType Simulation_Type;
-      if (blocks[blk].max_endo_lag > 0 && blocks[blk].max_endo_lead > 0)
-        {
-          if (blocks[blk].size == 1)
-            Simulation_Type = BlockSimulationType::solveTwoBoundariesSimple;
-          else
-            Simulation_Type = BlockSimulationType::solveTwoBoundariesComplete;
-        }
-      else if (blocks[blk].size > 1)
-        {
-          if (blocks[blk].max_endo_lead > 0)
-            Simulation_Type = BlockSimulationType::solveBackwardComplete;
-          else
-            Simulation_Type = BlockSimulationType::solveForwardComplete;
-        }
-      else
-        {
-          if (blocks[blk].max_endo_lead > 0)
-            Simulation_Type = BlockSimulationType::solveBackwardSimple;
-          else
-            Simulation_Type = BlockSimulationType::solveForwardSimple;
-        }
+  for (int blk = 1; blk < static_cast<int>(blocks.size()); blk++)
+    if (blocks[blk].size == 1)
+      {
+        /* Try to merge this block with the previous one.
+           This is only possible if the two blocks can simply be evaluated
+           (in the same direction), and if the merge does not break the
+           restrictions on leads/lags. */
+        set<pair<int, int>> endos_and_lags;
+        getBlockEquationExpr(blk, 0)->collectEndogenous(endos_and_lags);
+        bool is_lead = false, is_lag = false;
+        for (int var = 0; var < blocks[blk-1].size; var++)
+          {
+            is_lag = endos_and_lags.find({ getBlockVariableID(blk-1, var), -1 }) != endos_and_lags.end();
+            is_lead = endos_and_lags.find({ getBlockVariableID(blk-1, var), 1 }) != endos_and_lags.end();
+          }
 
-      if (blocks[blk].size == 1)
-        {
-          // Determine if the block can simply be evaluated
-          if (getBlockEquationType(blk, 0) == EquationType::evaluate
-              || getBlockEquationType(blk, 0) == EquationType::evaluate_s)
-            {
-              if (Simulation_Type == BlockSimulationType::solveBackwardSimple)
-                Simulation_Type = BlockSimulationType::evaluateBackward;
-              else if (Simulation_Type == BlockSimulationType::solveForwardSimple)
-                Simulation_Type = BlockSimulationType::evaluateForward;
-            }
-
-          /* Try to merge this block with the previous one.
-             This is only possible if the two blocks can simply be evaluated
-             (in the same direction), and if the merge does not break the
-             restrictions on leads/lags. */
-          if (blk > 0)
-            {
-              set<pair<int, int>> endos_and_lags;
-              getBlockEquationExpr(blk, 0)->collectEndogenous(endos_and_lags);
-              bool is_lead = false, is_lag = false;
-              for (int var = 0; var < blocks[blk-1].size; var++)
-                {
-                  is_lag = endos_and_lags.find({ getBlockVariableID(blk-1, var), -1 }) != endos_and_lags.end();
-                  is_lead = endos_and_lags.find({ getBlockVariableID(blk-1, var), 1 }) != endos_and_lags.end();
-                }
-
-              BlockSimulationType prev_Type = blocks[blk-1].simulation_type;
-              if ((prev_Type == BlockSimulationType::evaluateForward
-                   && Simulation_Type == BlockSimulationType::evaluateForward
-                   && !is_lead)
-                  || (prev_Type == BlockSimulationType::evaluateBackward
-                      && Simulation_Type == BlockSimulationType::evaluateBackward
-                      && !is_lag))
-                {
-                  // Merge the current block into the previous one
-                  blocks[blk-1].size++;
-                  blocks[blk-1].mfs_size = blocks[blk-1].size;
-                  /* For max lag/lead, the max of the two blocks is not enough.
-                     We need to consider the case where a variable of the
-                     previous block appears with a lag/lead in the current one
-                     (the reverse case is excluded, by construction). */
-                  computeDynamicStructureOfBlock(blk-1);
-                  blocks.erase(blocks.begin()+blk);
-                  for (auto &b : endo2block)
-                    if (b >= blk)
-                      b--;
-                  for (auto &b : eq2block)
-                    if (b >= blk)
-                      b--;
-                  blk--;
-                  continue;
-                }
-            }
-        }
-
-      blocks[blk].simulation_type = Simulation_Type;
-    }
+        if ((blocks[blk-1].simulation_type == BlockSimulationType::evaluateForward
+             && blocks[blk].simulation_type == BlockSimulationType::evaluateForward
+             && !is_lead)
+            || (blocks[blk-1].simulation_type == BlockSimulationType::evaluateBackward
+                && blocks[blk].simulation_type == BlockSimulationType::evaluateBackward
+                && !is_lag))
+          {
+            // Merge the current block into the previous one
+            blocks[blk-1].size++;
+            blocks[blk-1].mfs_size = blocks[blk-1].size;
+            computeDynamicStructureOfBlock(blk-1);
+            blocks.erase(blocks.begin()+blk);
+            for (auto &b : endo2block)
+              if (b >= blk)
+                b--;
+            for (auto &b : eq2block)
+              if (b >= blk)
+                b--;
+            blk--;
+            continue;
+          }
+      }
 }
 
 void
