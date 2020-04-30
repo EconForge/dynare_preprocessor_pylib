@@ -112,20 +112,6 @@ ModelTree::copyHelper(const ModelTree &m)
         v[it2.first] = f(it2.second);
       blocks_derivatives.push_back(v);
     }
-
-  auto convert_derivative_t = [f](derivative_t dt)
-                              {
-                                derivative_t dt2;
-                                for (const auto &it : dt)
-                                  dt2[it.first] = f(it.second);
-                                return dt2;
-                              };
-  for (const auto &it : m.derivative_other_endo)
-    derivative_other_endo.push_back(convert_derivative_t(it));
-  for (const auto &it : m.derivative_exo)
-    derivative_exo.push_back(convert_derivative_t(it));
-  for (const auto &it : m.derivative_exo_det)
-    derivative_exo_det.push_back(convert_derivative_t(it));
 }
 
 ModelTree::ModelTree(SymbolTable &symbol_table_arg,
@@ -200,9 +186,6 @@ ModelTree::operator=(const ModelTree &m)
   map_idx = m.map_idx;
   equation_type_and_normalized_equation.clear();
   blocks_derivatives.clear();
-  derivative_other_endo.clear();
-  derivative_exo.clear();
-  derivative_exo_det.clear();
   blocks = m.blocks;
   endo2block = m.endo2block;
   eq2block = m.eq2block;

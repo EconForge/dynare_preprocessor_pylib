@@ -34,6 +34,20 @@ DynamicModel::copyHelper(const DynamicModel &m)
 
   for (const auto &it : m.static_only_equations)
     static_only_equations.push_back(dynamic_cast<BinaryOpNode *>(f(it)));
+
+    auto convert_block_derivative = [f](const map<tuple<int, int, int>, expr_t> &dt)
+                                    {
+                                      map<tuple<int, int, int>, expr_t> dt2;
+                                      for (const auto &it : dt)
+                                        dt2[it.first] = f(it.second);
+                                      return dt2;
+                                    };
+  for (const auto &it : m.blocks_derivatives_other_endo)
+    blocks_derivatives_other_endo.emplace_back(convert_block_derivative(it));
+  for (const auto &it : m.blocks_derivatives_exo)
+    blocks_derivatives_exo.emplace_back(convert_block_derivative(it));
+  for (const auto &it : m.blocks_derivatives_exo_det)
+    blocks_derivatives_exo_det.emplace_back(convert_block_derivative(it));
 }
 
 DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
@@ -134,6 +148,9 @@ DynamicModel::operator=(const DynamicModel &m)
   nonzero_hessian_eqs = m.nonzero_hessian_eqs;
   dynJacobianColsNbr = m.dynJacobianColsNbr;
   variableMapping = m.variableMapping;
+  blocks_derivatives_other_endo.clear();
+  blocks_derivatives_exo.clear();
+  blocks_derivatives_exo_det.clear();
   global_temporary_terms = m.global_temporary_terms;
 
   other_endo_block = m.other_endo_block;
@@ -210,10 +227,10 @@ DynamicModel::computeTemporaryTermsOrdered()
                   eq_node->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, i);
                 }
             }
-          for (const auto &[ignore, id] : blocks_derivatives[block])
-            id->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
-          for (const auto &it : derivative_other_endo[block])
-            it.second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
+          for (const auto &[ignore, d] : blocks_derivatives[block])
+            d->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
+          for (const auto &[ignore, d] : blocks_derivatives_other_endo[block])
+            d->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
           v_temporary_terms_inuse[block] = {};
         }
     }
@@ -235,10 +252,10 @@ DynamicModel::computeTemporaryTermsOrdered()
                   eq_node->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, i);
                 }
             }
-          for (const auto &[ignore, id] : blocks_derivatives[block])
-            id->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
-          for (const auto &it : derivative_other_endo[block])
-            it.second->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
+          for (const auto &[ignore, d] : blocks_derivatives[block])
+            d->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
+          for (const auto &[ignore, d] : blocks_derivatives_other_endo[block])
+            d->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, block_size-1);
         }
       for (int block = 0; block < nb_blocks; block++)
         {
@@ -256,14 +273,14 @@ DynamicModel::computeTemporaryTermsOrdered()
                   eq_node->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
                 }
             }
-          for (const auto &[ignore, id] : blocks_derivatives[block])
-            id->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
-          for (const auto &it : derivative_other_endo[block])
-            it.second->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
-          for (const auto &it : derivative_exo[block])
-            it.second->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
-          for (const auto &it : derivative_exo_det[block])
-            it.second->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
+          for (const auto &[ignore, d] : blocks_derivatives[block])
+            d->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
+          for (const auto &[ignore, d] : blocks_derivatives_other_endo[block])
+            d->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
+          for (const auto &[ignore, d] : blocks_derivatives_exo[block])
+            d->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
+          for (const auto &[ignore, d] : blocks_derivatives_exo_det[block])
+            d->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
           v_temporary_terms_inuse[block] = temporary_terms_in_use;
         }
       computeTemporaryTermsMapping();
@@ -308,9 +325,9 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       feedback_variables.clear();
       //For a block composed of a single equation determines wether we have to evaluate or to solve the equation
       nze = blocks_derivatives[block].size();
-      nze_other_endo = derivative_other_endo[block].size();
-      nze_exo = derivative_exo[block].size();
-      nze_exo_det = derivative_exo_det[block].size();
+      nze_other_endo = blocks_derivatives_other_endo[block].size();
+      nze_exo = blocks_derivatives_exo[block].size();
+      nze_exo_det = blocks_derivatives_exo_det[block].size();
       BlockSimulationType simulation_type = blocks[block].simulation_type;
       int block_size = blocks[block].size;
       int block_mfs = blocks[block].mfs_size;
@@ -339,8 +356,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
             }
         }
       map<tuple<int, int, int>, expr_t> tmp_block_exo_derivative;
-      for (const auto &it : derivative_exo[block])
-        tmp_block_exo_derivative[{ get<0>(it.first), get<2>(it.first), get<1>(it.first) }] = it.second;
+      for (const auto &[idx, d] : blocks_derivatives_exo[block])
+        tmp_block_exo_derivative[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
       prev_var = 999999999;
       prev_lag = -9999999;
       count_col_exo = 0;
@@ -355,8 +372,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
             }
         }
       map<tuple<int, int, int>, expr_t> tmp_block_exo_det_derivative;
-      for (const auto &it : derivative_exo_det[block])
-        tmp_block_exo_det_derivative[{ get<0>(it.first), get<2>(it.first), get<1>(it.first) }] = it.second;
+      for (const auto &[idx, d] : blocks_derivatives_exo_det[block])
+        tmp_block_exo_det_derivative[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
       prev_var = 999999999;
       prev_lag = -9999999;
       count_col_exo_det = 0;
@@ -371,8 +388,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
             }
         }
       map<tuple<int, int, int>, expr_t> tmp_block_other_endo_derivative;
-      for (const auto &it : derivative_other_endo[block])
-        tmp_block_other_endo_derivative[{ get<0>(it.first), get<2>(it.first), get<1>(it.first) }] = it.second;
+      for (const auto &[idx, d] : blocks_derivatives_other_endo[block])
+        tmp_block_other_endo_derivative[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
       prev_var = 999999999;
       prev_lag = -9999999;
       count_col_other_endo = 0;
@@ -651,8 +668,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       count_col = 0;
       for (const auto &it : tmp_block_exo_derivative)
         {
-          auto [lag, var, eq] = it.first;
-          int eqr = getBlockInitialEquationID(block, eq);
+          auto [lag, var, eqr] = it.first;
+          int eq = getBlockEquationID(block, eqr);
           if (var != prev_var || lag != prev_lag)
             {
               prev_var = var;
@@ -672,8 +689,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       count_col = 0;
       for (const auto &it : tmp_block_exo_det_derivative)
         {
-          auto [lag, var, eq] = it.first;
-          int eqr = getBlockInitialEquationID(block, eq);
+          auto [lag, var, eqr] = it.first;
+          int eq = getBlockEquationID(block, eqr);
           if (var != prev_var || lag != prev_lag)
             {
               prev_var = var;
@@ -693,8 +710,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       count_col = 0;
       for (const auto &it : tmp_block_other_endo_derivative)
         {
-          auto [lag, var, eq] = it.first;
-          int eqr = getBlockInitialEquationID(block, eq);
+          auto [lag, var, eqr] = it.first;
+          int eq = getBlockEquationID(block, eqr);
           if (var != prev_var || lag != prev_lag)
             {
               prev_var = var;
@@ -1154,14 +1171,14 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
       for (const auto &[idx, d] : blocks_derivatives[block])
         tmp_block_endo_derivative[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
       map<tuple<int, int, int>, expr_t> tmp_exo_derivative;
-      for (const auto &it : derivative_exo[block])
-        tmp_exo_derivative[{ get<0>(it.first), get<2>(it.first), get<1>(it.first) }] = it.second;
+      for (const auto &[idx, d] : blocks_derivatives_exo[block])
+        tmp_exo_derivative[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
       map<tuple<int, int, int>, expr_t> tmp_exo_det_derivative;
-      for (const auto &it : derivative_exo_det[block])
-        tmp_exo_det_derivative[{ get<0>(it.first), get<2>(it.first), get<1>(it.first) }] = it.second;
+      for (const auto &[idx, d] : blocks_derivatives_exo_det[block])
+        tmp_exo_det_derivative[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
       map<tuple<int, int, int>, expr_t> tmp_other_endo_derivative;
-      for (const auto &it : derivative_other_endo[block])
-        tmp_other_endo_derivative[{ get<0>(it.first), get<2>(it.first), get<1>(it.first) }] = it.second;
+      for (const auto &[idx, d] : blocks_derivatives_other_endo[block])
+        tmp_other_endo_derivative[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
       int prev_var = -1;
       int prev_lag = -999999999;
       int count_col_endo = 0;
@@ -1473,8 +1490,8 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
       count_col_exo = 0;
       for (const auto &it : tmp_exo_derivative)
         {
-          auto [lag, var, eq] = it.first;
-          int eqr = getBlockInitialEquationID(block, eq);
+          auto [lag, var, eqr] = it.first;
+          int eq = getBlockEquationID(block, eqr);
           int varr = getBlockInitialExogenousID(block, var);
           if (prev_var != var || prev_lag != lag)
             {
@@ -1495,8 +1512,8 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
       int count_col_exo_det = 0;
       for (const auto &it : tmp_exo_det_derivative)
         {
-          auto [lag, var, eq] = it.first;
-          int eqr = getBlockInitialEquationID(block, eq);
+          auto [lag, var, eqr] = it.first;
+          int eq = getBlockEquationID(block, eqr);
           int varr = getBlockInitialDetExogenousID(block, var);
           if (prev_var != var || prev_lag != lag)
             {
@@ -1517,8 +1534,8 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
       count_col_other_endo = 0;
       for (const auto &it : tmp_other_endo_derivative)
         {
-          auto [lag, var, eq] = it.first;
-          int eqr = getBlockInitialEquationID(block, eq);
+          auto [lag, var, eqr] = it.first;
+          int eq = getBlockEquationID(block, eqr);
           int varr = getBlockInitialOtherEndogenousID(block, var);;
           if (prev_var != var || prev_lag != lag)
             {
@@ -3247,18 +3264,15 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               for (int other_endo : other_endogenous)
                 {
                   bool done = false;
-                  for (int i = 0; i < block_size; i++)
-                    {
-                      int eq = getBlockEquationID(block, i);
-                      if (derivative_other_endo[block].find({ lag, eq, other_endo })
-                          != derivative_other_endo[block].end())
-                        {
-                          count_lead_lag_incidence++;
-                          tmp_s << " " << count_lead_lag_incidence;
-                          done = true;
-                          break;
-                        }
-                    }
+                  for (int eq = 0; eq < block_size; eq++)
+                    if (blocks_derivatives_other_endo[block].find({ eq, other_endo, lag })
+                        != blocks_derivatives_other_endo[block].end())
+                      {
+                        count_lead_lag_incidence++;
+                        tmp_s << " " << count_lead_lag_incidence;
+                        done = true;
+                        break;
+                      }
                   if (!done)
                     tmp_s << " 0";
                 }
@@ -4983,24 +4997,24 @@ DynamicModel::collect_block_first_order_derivatives()
   other_endo_block = vector<lag_var_t>(nb_blocks);
   exo_block = vector<lag_var_t>(nb_blocks);
   exo_det_block = vector<lag_var_t>(nb_blocks);
-  derivative_other_endo = vector<derivative_t>(nb_blocks);
-  derivative_exo = vector<derivative_t>(nb_blocks);
-  derivative_exo_det = vector<derivative_t>(nb_blocks);
+  blocks_derivatives_other_endo.clear();
+  blocks_derivatives_other_endo.resize(nb_blocks);
+  blocks_derivatives_exo.clear();
+  blocks_derivatives_exo.resize(nb_blocks);
+  blocks_derivatives_exo_det.clear();
+  blocks_derivatives_exo_det.resize(nb_blocks);
   for (auto & [indices, d1] : derivatives[1])
     {
-      int eq = indices[0];
+      int eq_orig = indices[0];
+      int block_eq = eq2block[eq_orig];
+      int eq = getBlockInitialEquationID(block_eq, eq_orig);
       int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(indices[1]));
       int lag = getLagByDerivID(indices[1]);
-      int block_eq = eq2block[eq];
-      derivative_t tmp_derivative;
-      lag_var_t lag_var;
       switch (getTypeByDerivID(indices[1]))
         {
         case SymbolType::endogenous:
           if (block_eq != endo2block[var])
             {
-              tmp_derivative = derivative_other_endo[block_eq];
-
               if (auto it = block_other_endo_index.find(block_eq);
                   it == block_other_endo_index.end())
                 block_other_endo_index[block_eq][var] = 0;
@@ -5012,18 +5026,17 @@ DynamicModel::collect_block_first_order_derivatives()
                     block_other_endo_index[block_eq][var] = size;
                   }
 
-              tmp_derivative[{ lag, eq, var }] = derivatives[1][{ eq, getDerivID(symbol_table.getID(SymbolType::endogenous, var), lag) }];
-              derivative_other_endo[block_eq] = tmp_derivative;
-              lag_var = other_endo_block[block_eq];
-              if (lag_var.find(lag) == lag_var.end())
-                lag_var[lag].clear();
-              lag_var[lag].insert(var);
-              other_endo_block[block_eq] = lag_var;
+              blocks_derivatives_other_endo[block_eq][{ eq, var, lag }] = derivatives[1][{ eq_orig, getDerivID(symbol_table.getID(SymbolType::endogenous, var), lag) }];
+
+              {
+                auto &lag_var = other_endo_block[block_eq];
+                if (lag_var.find(lag) == lag_var.end())
+                  lag_var[lag].clear();
+                lag_var[lag].insert(var);
+              }
             }
           break;
         case SymbolType::exogenous:
-          tmp_derivative = derivative_exo[block_eq];
-
           if (auto it = block_exo_index.find(block_eq);
               it == block_exo_index.end())
             block_exo_index[block_eq][var] = 0;
@@ -5035,17 +5048,16 @@ DynamicModel::collect_block_first_order_derivatives()
                 block_exo_index[block_eq][var] = size;
               }
 
-          tmp_derivative[{ lag, eq, var }] = derivatives[1][{ eq, getDerivID(symbol_table.getID(SymbolType::exogenous, var), lag) }];
-          derivative_exo[block_eq] = tmp_derivative;
-          lag_var = exo_block[block_eq];
-          if (lag_var.find(lag) == lag_var.end())
-            lag_var[lag].clear();
-          lag_var[lag].insert(var);
-          exo_block[block_eq] = lag_var;
+          blocks_derivatives_exo[block_eq][{ eq, var, lag }] = derivatives[1][{ eq_orig, getDerivID(symbol_table.getID(SymbolType::exogenous, var), lag) }];
+
+          {
+            auto &lag_var = exo_block[block_eq];
+            if (lag_var.find(lag) == lag_var.end())
+              lag_var[lag].clear();
+            lag_var[lag].insert(var);
+          }
           break;
         case SymbolType::exogenousDet:
-          tmp_derivative = derivative_exo_det[block_eq];
-
           if (auto it = block_det_exo_index.find(block_eq);
               it == block_det_exo_index.end())
             block_det_exo_index[block_eq][var] = 0;
@@ -5057,13 +5069,14 @@ DynamicModel::collect_block_first_order_derivatives()
                 block_det_exo_index[block_eq][var] = size;
               }
 
-          tmp_derivative[{ lag, eq, var }] = derivatives[1][{ eq, getDerivID(symbol_table.getID(SymbolType::exogenous, var), lag) }];
-          derivative_exo_det[block_eq] = tmp_derivative;
-          lag_var = exo_det_block[block_eq];
-          if (lag_var.find(lag) == lag_var.end())
-            lag_var[lag].clear();
-          lag_var[lag].insert(var);
-          exo_det_block[block_eq] = lag_var;
+          blocks_derivatives_exo_det[block_eq][{ eq, var, lag }] = derivatives[1][{ eq_orig, getDerivID(symbol_table.getID(SymbolType::exogenous, var), lag) }];
+
+          {
+            auto &lag_var = exo_det_block[block_eq];
+            if (lag_var.find(lag) == lag_var.end())
+              lag_var[lag].clear();
+            lag_var[lag].insert(var);
+          }
           break;
         default:
           break;

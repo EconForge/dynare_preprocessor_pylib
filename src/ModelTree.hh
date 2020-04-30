@@ -170,15 +170,10 @@ protected:
   //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
   equation_type_and_normalized_equation_t equation_type_and_normalized_equation;
 
-  /* Stores derivatives of each block.
+  /* Stores derivatives of each block w.r.t. endogenous that belong to it.
      The tuple is: equation number (inside the block), variable number (inside
      the block), lead/lag */
   vector<map<tuple<int, int, int>, expr_t>> blocks_derivatives;
-
-  //! Map the derivatives for a block tuple<lag, eq, var>
-  using derivative_t = map<tuple<int, int, int>, expr_t>;
-  //! Vector of derivative for each blocks
-  vector<derivative_t> derivative_other_endo, derivative_exo, derivative_exo_det;
 
   class BlockInfo
   {

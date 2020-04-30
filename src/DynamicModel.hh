@@ -104,6 +104,12 @@ private:
   //! Creates mapping for variables and equations they are present in
   map<int, set<int>> variableMapping;
 
+  /* Derivatives of block equations with respect to: endogenous that do not
+     belong to the block, exogenous, deterministic exogenous.
+     Tuples are of the form (equation no. within the block, type-specific ID, lag) */
+  vector<map<tuple<int, int, int>, expr_t>> blocks_derivatives_other_endo,
+    blocks_derivatives_exo, blocks_derivatives_exo_det;
+
   //! Writes dynamic model file (Matlab version)
   void writeDynamicMFile(const string &basename) const;
   //! Writes dynamic model file (Julia version)
