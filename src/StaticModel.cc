@@ -1135,15 +1135,13 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
 
       computeBlockDecompositionAndFeedbackVariablesForEachBlock();
 
-      reduceBlocksAndTypeDetermination(false);
+      reduceBlocksAndTypeDetermination();
 
       printBlockDecomposition();
 
       computeChainRuleJacobian();
 
       determineLinearBlocks();
-
-      collect_block_first_order_derivatives();
 
       global_temporary_terms = true;
       if (!no_tmp_terms)
@@ -2136,15 +2134,6 @@ StaticModel::computeChainRuleJacobian()
             }
         }
     }
-}
-
-void
-StaticModel::collect_block_first_order_derivatives()
-{
-  endo_max_leadlag_block.clear();
-  endo_max_leadlag_block.resize(blocks.size(), { 0, 0 });
-  max_leadlag_block.clear();
-  max_leadlag_block.resize(blocks.size(), { 0, 0 });
 }
 
 void

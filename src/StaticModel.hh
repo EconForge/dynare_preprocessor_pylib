@@ -90,9 +90,6 @@ private:
   //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
   void computeChainRuleJacobian();
 
-  //! Collecte the derivatives w.r. to endogenous of the block, to endogenous of previouys blocks and to exogenous
-  void collect_block_first_order_derivatives();
-
   //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
   bool global_temporary_terms{true};
 

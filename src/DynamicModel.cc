@@ -455,7 +455,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
           if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
               || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
             output << "    g1 = spalloc(" << block_mfs << "*Periods, "
-                   << block_mfs << "*(Periods+" << max_leadlag_block[block].first+max_leadlag_block[block].second+1 << ")"
+                   << block_mfs << "*(Periods+" << blocks[block].max_lag+blocks[block].max_lead+1 << ")"
                    << ", " << nze << "*Periods);" << endl;
           else
             output << "    g1 = spalloc(" << block_mfs
@@ -1155,8 +1155,8 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
       int block_size = blocks[block].size;
       int block_mfs = blocks[block].mfs_size;
       int block_recursive = blocks[block].getRecursiveSize();
-      int block_max_lag = max_leadlag_block[block].first;
-      int block_max_lead = max_leadlag_block[block].second;
+      int block_max_lag = blocks[block].max_lag;
+      int block_max_lead = blocks[block].max_lead;
 
       if (simulation_type == BlockSimulationType::solveTwoBoundariesSimple
           || simulation_type == BlockSimulationType::solveTwoBoundariesComplete
@@ -2125,8 +2125,8 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
                             << "  end;" << endl
                             << "  [y oo_] = solve_two_boundaries('" << basename << ".block.dynamic_" <<  block + 1 << "'"
                             <<", y, x, params, steady_state, y_index, " << nze
-                            <<", options_.periods, " << max_leadlag_block[block].first
-                            <<", " << max_leadlag_block[block].second
+                            <<", options_.periods, " << blocks[block].max_lag
+                            <<", " << blocks[block].max_lead
                             <<", " << blocks[block].linear
                             <<", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, options_, M_, oo_);" << endl
                             << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);" << endl
@@ -3122,14 +3122,14 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           count_lead_lag_incidence = 0;
           BlockSimulationType simulation_type = blocks[block].simulation_type;
           int block_size = blocks[block].size;
-          max_lag = max_leadlag_block[block].first;
-          max_lead = max_leadlag_block[block].second;
-          max_lag_endo = endo_max_leadlag_block[block].first;
-          max_lead_endo = endo_max_leadlag_block[block].second;
-          max_lag_exo = exo_max_leadlag_block[block].first;
-          max_lead_exo = exo_max_leadlag_block[block].second;
-          max_lag_exo_det = exo_det_max_leadlag_block[block].first;
-          max_lead_exo_det = exo_det_max_leadlag_block[block].second;
+          max_lag = blocks[block].max_lag;
+          max_lead = blocks[block].max_lead;
+          max_lag_endo = blocks[block].max_endo_lag;
+          max_lead_endo = blocks[block].max_endo_lead;
+          max_lag_exo = blocks[block].max_exo_lag;
+          max_lead_exo = blocks[block].max_exo_lead;
+          max_lag_exo_det = blocks[block].max_exo_det_lag;
+          max_lead_exo_det = blocks[block].max_exo_det_lead;
           ostringstream tmp_s, tmp_s_eq;
           tmp_s.str("");
           tmp_s_eq.str("");
@@ -3224,8 +3224,6 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           output << "block_structure.block(" << block+1 << ").lead_lag_incidence = [];" << endl;
           int last_var = -1;
           vector<int> local_state_var;
-          vector<int> local_stat_var;
-          int n_static = 0, n_backward = 0, n_forward = 0, n_mixed = 0;
           for (int lag = -1; lag < 1+1; lag++)
             {
               last_var = -1;
@@ -3234,32 +3232,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                   if (lag == get<0>(it.first) && last_var != get<1>(it.first))
                     {
                       if (lag == -1)
-                        {
-                          local_state_var.push_back(getBlockVariableID(block, get<1>(it.first))+1);
-                          n_backward++;
-                        }
-                      else if (lag == 0)
-                        {
-                          if (find(local_state_var.begin(), local_state_var.end(), getBlockVariableID(block, get<1>(it.first))+1) == local_state_var.end())
-                            {
-                              local_stat_var.push_back(getBlockVariableID(block, get<1>(it.first))+1);
-                              n_static++;
-                            }
-                        }
-                      else
-                        {
-                          if (find(local_state_var.begin(), local_state_var.end(), getBlockVariableID(block, get<1>(it.first))+1) != local_state_var.end())
-                            {
-                              n_backward--;
-                              n_mixed++;
-                            }
-                          else
-                            {
-                              if (find(local_stat_var.begin(), local_stat_var.end(), getBlockVariableID(block, get<1>(it.first))+1) != local_stat_var.end())
-                                n_static--;
-                              n_forward++;
-                            }
-                        }
+                        local_state_var.push_back(getBlockVariableID(block, get<1>(it.first))+1);
                       count_lead_lag_incidence++;
                       for (int i = last_var; i < get<1>(it.first)-1; i++)
                         tmp_s << " 0";
@@ -3308,10 +3281,10 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                 }
               output << "block_structure.block(" << block+1 << ").lead_lag_incidence_other = [ block_structure.block(" << block+1 << ").lead_lag_incidence_other; " << tmp_s.str() << "]; %lag = " << lag << endl;
             }
-          output << "block_structure.block(" << block+1 << ").n_static = " << n_static << ";" << endl
-                 << "block_structure.block(" << block+1 << ").n_forward = " << n_forward << ";" << endl
-                 << "block_structure.block(" << block+1 << ").n_backward = " << n_backward << ";" << endl
-                 << "block_structure.block(" << block+1 << ").n_mixed = " << n_mixed << ";" << endl;
+          output << "block_structure.block(" << block+1 << ").n_static = " << blocks[block].n_static << ";" << endl
+                 << "block_structure.block(" << block+1 << ").n_forward = " << blocks[block].n_forward << ";" << endl
+                 << "block_structure.block(" << block+1 << ").n_backward = " << blocks[block].n_backward << ";" << endl
+                 << "block_structure.block(" << block+1 << ").n_mixed = " << blocks[block].n_mixed << ";" << endl;
         }
       output << modstruct << "block_structure.block = block_structure.block;" << endl;
       string cst_s;
@@ -4782,7 +4755,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
       equationTypeDetermination(first_order_endo_derivatives, 0);
 
-      reduceBlocksAndTypeDetermination(linear_decomposition);
+      reduceBlocksAndTypeDetermination();
 
       computeChainRuleJacobian();
 
@@ -4812,7 +4785,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
       computeBlockDecompositionAndFeedbackVariablesForEachBlock();
 
-      reduceBlocksAndTypeDetermination(linear_decomposition);
+      reduceBlocksAndTypeDetermination();
 
       printBlockDecomposition();
 
@@ -5030,37 +5003,19 @@ DynamicModel::collect_block_first_order_derivatives()
   derivative_other_endo = vector<derivative_t>(nb_blocks);
   derivative_exo = vector<derivative_t>(nb_blocks);
   derivative_exo_det = vector<derivative_t>(nb_blocks);
-  endo_max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
-  other_endo_max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
-  exo_max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
-  exo_det_max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
-  max_leadlag_block = vector<pair<int, int>>(nb_blocks, { 0, 0 });
   for (auto & [indices, d1] : derivatives[1])
     {
       int eq = indices[0];
       int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(indices[1]));
       int lag = getLagByDerivID(indices[1]);
       int block_eq = eq2block[eq];
-      int block_var = 0;
       derivative_t tmp_derivative;
       lag_var_t lag_var;
       switch (getTypeByDerivID(indices[1]))
         {
         case SymbolType::endogenous:
-          block_var = endo2block[var];
-          if (block_eq == block_var)
+          if (block_eq != endo2block[var])
             {
-              if (lag < 0 && lag < -endo_max_leadlag_block[block_eq].first)
-                endo_max_leadlag_block[block_eq] = { -lag, endo_max_leadlag_block[block_eq].second };
-              if (lag > 0 && lag > endo_max_leadlag_block[block_eq].second)
-                endo_max_leadlag_block[block_eq] = { endo_max_leadlag_block[block_eq].first, lag };
-            }
-          else
-            {
-              if (lag < 0 && lag < -other_endo_max_leadlag_block[block_eq].first)
-                other_endo_max_leadlag_block[block_eq] = { -lag, other_endo_max_leadlag_block[block_eq].second };
-              if (lag > 0 && lag > other_endo_max_leadlag_block[block_eq].second)
-                other_endo_max_leadlag_block[block_eq] = { other_endo_max_leadlag_block[block_eq].first, lag };
               tmp_derivative = derivative_other_endo[block_eq];
 
               if (auto it = block_other_endo_index.find(block_eq);
@@ -5084,10 +5039,6 @@ DynamicModel::collect_block_first_order_derivatives()
             }
           break;
         case SymbolType::exogenous:
-          if (lag < 0 && lag < -exo_max_leadlag_block[block_eq].first)
-            exo_max_leadlag_block[block_eq] = { -lag, exo_max_leadlag_block[block_eq].second };
-          if (lag > 0 && lag > exo_max_leadlag_block[block_eq].second)
-            exo_max_leadlag_block[block_eq] = { exo_max_leadlag_block[block_eq].first, lag };
           tmp_derivative = derivative_exo[block_eq];
 
           if (auto it = block_exo_index.find(block_eq);
@@ -5110,10 +5061,6 @@ DynamicModel::collect_block_first_order_derivatives()
           exo_block[block_eq] = lag_var;
           break;
         case SymbolType::exogenousDet:
-          if (lag < 0 && lag < -exo_det_max_leadlag_block[block_eq].first)
-            exo_det_max_leadlag_block[block_eq] = { -lag, exo_det_max_leadlag_block[block_eq].second };
-          if (lag > 0 && lag > exo_det_max_leadlag_block[block_eq].second)
-            exo_det_max_leadlag_block[block_eq] = { exo_det_max_leadlag_block[block_eq].first, lag };
           tmp_derivative = derivative_exo_det[block_eq];
 
           if (auto it = block_det_exo_index.find(block_eq);
@@ -5138,10 +5085,6 @@ DynamicModel::collect_block_first_order_derivatives()
         default:
           break;
         }
-      if (lag < 0 && lag < -max_leadlag_block[block_eq].first)
-        max_leadlag_block[block_eq] = { -lag, max_leadlag_block[block_eq].second };
-      if (lag > 0 && lag > max_leadlag_block[block_eq].second)
-        max_leadlag_block[block_eq] = { max_leadlag_block[block_eq].first, lag };
     }
 }
 

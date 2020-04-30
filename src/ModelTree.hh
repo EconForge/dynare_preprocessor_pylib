@@ -180,9 +180,6 @@ protected:
   //! Vector of derivative for each blocks
   vector<derivative_t> derivative_other_endo, derivative_exo, derivative_exo_det;
 
-  //!Maximum lead and lag for each block on endogenous of the block, endogenous of the previous blocks, exogenous and deterministic exogenous
-  vector<pair<int, int>> endo_max_leadlag_block, other_endo_max_leadlag_block, exo_max_leadlag_block, exo_det_max_leadlag_block, max_leadlag_block;
-
   class BlockInfo
   {
   public:
@@ -192,7 +189,11 @@ protected:
     int mfs_size{0}; // Size of the minimal feedback set
     bool linear{true}; // Whether the block is linear in endogenous variable
     int n_static{0}, n_forward{0}, n_backward{0}, n_mixed{0};
-    int max_lag{0}, max_lead{0};
+    int max_endo_lag{0}, max_endo_lead{0}; // Maximum lag/lead on endos that appear in and *that belong to* the block
+    int max_other_endo_lag{0}, max_other_endo_lead{0}; // Maximum lag/lead on endos that appear in but do not belong to the block
+    int max_exo_lag{0}, max_exo_lead{0};
+    int max_exo_det_lag{0}, max_exo_det_lead{0};
+    int max_lag{0}, max_lead{0}; // The max over all endo/exo variables
 
     inline int getRecursiveSize() const { return size - mfs_size; };
   };
@@ -299,18 +300,21 @@ protected:
   void computePrologueAndEpilogue();
   //! Determine the type of each equation of model and try to normalize the unnormalized equation
   void equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives, int mfs);
+  /* Fills the max lags/leads and n_{static,mixed,forward,backward} fields of a
+     given block.
+     Needs the fields size and first_equation. */
+  void computeDynamicStructureOfBlock(int blk);
   /* Compute the block decomposition and for a non-recusive block find the minimum feedback set
 
      Initializes the “blocks” structure, and fills the following fields: size, first_equation,
-     mfs_size, n_static, n_forward, n_backward, n_mixed.
+     mfs_size, n_static, n_forward, n_backward, n_mixed, maximum lags/leads.
      Also initializes the endo2block and eq2block structures. */
   void computeBlockDecompositionAndFeedbackVariablesForEachBlock();
   /* Reduce the number of block by merging the same type of equations in the
      prologue and the epilogue, and determine the type of each block.
 
-     Fills the following fields of the “blocks” structure: simulation_type,
-     max_lead, max_lag. */
-  void reduceBlocksAndTypeDetermination(bool linear_decomposition);
+     Fills the “simulation_type” field of the “blocks” structure.  */
+  void reduceBlocksAndTypeDetermination();
   /* The 1st output gives, for each equation (in original order) the (max_lag,
      max_lead) across all endogenous that appear in the equation and that
      belong to the same block (i.e. those endogenous are solved in the same
