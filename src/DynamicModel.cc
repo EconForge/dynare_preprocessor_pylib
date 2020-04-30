@@ -80,6 +80,8 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   xref_exo{m.xref_exo},
   xref_exo_det{m.xref_exo_det},
   nonzero_hessian_eqs{m.nonzero_hessian_eqs},
+  dynJacobianColsNbr{m.dynJacobianColsNbr},
+  variableMapping{m.variableMapping},
   global_temporary_terms{m.global_temporary_terms},
   other_endo_block{m.other_endo_block},
   exo_block{m.exo_block},
@@ -130,7 +132,8 @@ DynamicModel::operator=(const DynamicModel &m)
   xref_exo = m.xref_exo;
   xref_exo_det = m.xref_exo_det;
   nonzero_hessian_eqs = m.nonzero_hessian_eqs;
-
+  dynJacobianColsNbr = m.dynJacobianColsNbr;
+  variableMapping = m.variableMapping;
   global_temporary_terms = m.global_temporary_terms;
 
   other_endo_block = m.other_endo_block;
