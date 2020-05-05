@@ -1336,7 +1336,7 @@ public:
   bool containsExogenous() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
-  void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms, const string &ending) const;
+  void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
   expr_t clone(DataTree &datatree) const override = 0;
