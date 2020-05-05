@@ -195,8 +195,6 @@ private:
   using lag_var_t = map<int, var_t>;
   vector<lag_var_t> other_endo_block, exo_block, exo_det_block;
 
-  map< int, map<int, int>> block_exo_index, block_det_exo_index, block_other_endo_index;
-
   //! Help computeXrefs to compute the reverse references (i.e. param->eqs, endo->eqs, etc)
   void computeRevXref(map<pair<int, int>, set<int>> &xrefset, const set<pair<int, int>> &eiref, int eqn);
 
@@ -552,54 +550,6 @@ public:
     return tuple(static_only_equations, static_only_equations_lineno, static_only_equations_equation_tags);
   };
 
-  //! Return the position of variable_number in the block number belonging to the block block_number
-  int
-  getBlockInitialExogenousID(int block_number, int variable_number) const
-  {
-    if (auto it = block_exo_index.find(block_number);
-        it != block_exo_index.end())
-      {
-        if (auto it1 = it->second.find(variable_number);
-            it1 != it->second.end())
-          return it1->second;
-        else
-          return -1;
-      }
-    else
-      return -1;
-  };
-  //! Return the position of the deterministic exogenous variable_number in the block number belonging to the block block_number
-  int
-  getBlockInitialDetExogenousID(int block_number, int variable_number) const
-  {
-    if (auto it = block_det_exo_index.find(block_number);
-        it != block_det_exo_index.end())
-      {
-        if (auto it1 = it->second.find(variable_number);
-            it1 != it->second.end())
-          return it1->second;
-        else
-          return -1;
-      }
-    else
-      return -1;
-  };
-  //! Return the position of the other endogenous variable_number in the block number belonging to the block block_number
-  int
-  getBlockInitialOtherEndogenousID(int block_number, int variable_number) const
-  {
-    if (auto it = block_other_endo_index.find(block_number);
-        it != block_other_endo_index.end())
-      {
-        if (auto it1 = it->second.find(variable_number);
-            it1 != it->second.end())
-          return it1->second;
-        else
-          return -1;
-      }
-    else
-      return -1;
-  };
   bool isModelLocalVariableUsed() const;
 
   //! Returns true if a parameter was used in the model block with a lead or lag

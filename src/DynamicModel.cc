@@ -103,9 +103,6 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   other_endo_block{m.other_endo_block},
   exo_block{m.exo_block},
   exo_det_block{m.exo_det_block},
-  block_exo_index{m.block_exo_index},
-  block_det_exo_index{m.block_det_exo_index},
-  block_other_endo_index{m.block_other_endo_index},
   var_expectation_functions_to_write{m.var_expectation_functions_to_write},
   pac_mce_alpha_symb_ids{m.pac_mce_alpha_symb_ids},
   pac_h0_indices{m.pac_h0_indices},
@@ -165,9 +162,6 @@ DynamicModel::operator=(const DynamicModel &m)
   other_endo_block = m.other_endo_block;
   exo_block = m.exo_block;
   exo_det_block = m.exo_det_block;
-  block_exo_index = m.block_exo_index;
-  block_det_exo_index = m.block_det_exo_index;
-  block_other_endo_index = m.block_other_endo_index;
   var_expectation_functions_to_write = m.var_expectation_functions_to_write;
 
   pac_mce_alpha_symb_ids = m.pac_mce_alpha_symb_ids;
@@ -1509,7 +1503,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
         {
           auto [lag, var, eqr] = it.first;
           int eq = getBlockEquationID(block, eqr);
-          int varr = getBlockInitialExogenousID(block, var);
+          int varr = 0; // Dummy value, actually unused by the bytecode MEX
           if (prev_var != var || prev_lag != lag)
             {
               prev_var = var;
@@ -1531,7 +1525,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
         {
           auto [lag, var, eqr] = it.first;
           int eq = getBlockEquationID(block, eqr);
-          int varr = getBlockInitialDetExogenousID(block, var);
+          int varr = 0; // Dummy value, actually unused by the bytecode MEX
           if (prev_var != var || prev_lag != lag)
             {
               prev_var = var;
@@ -1553,7 +1547,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
         {
           auto [lag, var, eqr] = it.first;
           int eq = getBlockEquationID(block, eqr);
-          int varr = getBlockInitialOtherEndogenousID(block, var);;
+          int varr = 0; // Dummy value, actually unused by the bytecode MEX
           if (prev_var != var || prev_lag != lag)
             {
               prev_var = var;
@@ -5029,17 +5023,6 @@ DynamicModel::collect_block_first_order_derivatives()
         case SymbolType::endogenous:
           if (block_eq != endo2block[var])
             {
-              if (auto it = block_other_endo_index.find(block_eq);
-                  it == block_other_endo_index.end())
-                block_other_endo_index[block_eq][var] = 0;
-              else
-                if (auto it1 = it->second.find(var);
-                    it1 == it->second.end())
-                  {
-                    int size = block_other_endo_index[block_eq].size();
-                    block_other_endo_index[block_eq][var] = size;
-                  }
-
               blocks_derivatives_other_endo[block_eq][{ eq, var, lag }] = derivatives[1][{ eq_orig, getDerivID(symbol_table.getID(SymbolType::endogenous, var), lag) }];
 
               {
@@ -5051,17 +5034,6 @@ DynamicModel::collect_block_first_order_derivatives()
             }
           break;
         case SymbolType::exogenous:
-          if (auto it = block_exo_index.find(block_eq);
-              it == block_exo_index.end())
-            block_exo_index[block_eq][var] = 0;
-          else
-            if (auto it1 = it->second.find(var);
-                it1 == it->second.end())
-              {
-                int size = block_exo_index[block_eq].size();
-                block_exo_index[block_eq][var] = size;
-              }
-
           blocks_derivatives_exo[block_eq][{ eq, var, lag }] = derivatives[1][{ eq_orig, getDerivID(symbol_table.getID(SymbolType::exogenous, var), lag) }];
 
           {
@@ -5072,17 +5044,6 @@ DynamicModel::collect_block_first_order_derivatives()
           }
           break;
         case SymbolType::exogenousDet:
-          if (auto it = block_det_exo_index.find(block_eq);
-              it == block_det_exo_index.end())
-            block_det_exo_index[block_eq][var] = 0;
-          else
-            if (auto it1 = it->second.find(var);
-                it1 == it->second.end())
-              {
-                int size = block_det_exo_index[block_eq].size();
-                block_det_exo_index[block_eq][var] = size;
-              }
-
           blocks_derivatives_exo_det[block_eq][{ eq, var, lag }] = derivatives[1][{ eq_orig, getDerivID(symbol_table.getID(SymbolType::exogenous, var), lag) }];
 
           {
