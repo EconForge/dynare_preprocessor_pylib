@@ -256,38 +256,27 @@ StaticModel::computeTemporaryTermsMapping(temporary_terms_t &temporary_terms, ma
 void
 StaticModel::writeModelEquationsOrdered_M(const string &basename) const
 {
-  string tmp_s, sps;
-  ostringstream tmp_output, tmp1_output, global_output;
-  expr_t lhs = nullptr, rhs = nullptr;
-  BinaryOpNode *eq_node;
-  map<expr_t, int> reference_count;
   temporary_terms_t local_temporary_terms;
-  ofstream output;
-  vector<int> feedback_variables;
-  deriv_node_temp_terms_t tef_terms;
-  ExprNodeOutputType local_output_type;
-
-  local_output_type = ExprNodeOutputType::matlabStaticModelSparse;
   if (global_temporary_terms)
     local_temporary_terms = temporary_terms;
+
+  constexpr ExprNodeOutputType local_output_type = ExprNodeOutputType::matlabStaticModelSparse;
 
   //----------------------------------------------------------------------
   //For each block
   for (int block = 0; block < static_cast<int>(blocks.size()); block++)
     {
-      //recursive_variables.clear();
-      feedback_variables.clear();
-      //For a block composed of a single equation determines wether we have to evaluate or to solve the equation
+      // For a block composed of a single equation determines wether we have to evaluate or to solve the equation
       BlockSimulationType simulation_type = blocks[block].simulation_type;
       int block_size = blocks[block].size;
       int block_mfs = blocks[block].mfs_size;
       int block_recursive = blocks[block].getRecursiveSize();
 
-      tmp1_output.str("");
-      tmp1_output << packageDir(basename + ".block") << "/static_" << block+1 << ".m";
-      output.open(tmp1_output.str(), ios::out | ios::binary);
+      string filename = packageDir(basename + ".block") + "/static_" + to_string(block+1) + ".m";
+      ofstream output;
+      output.open(filename, ios::out | ios::binary);
       output << "%" << endl
-             << "% " << tmp1_output.str() << " : Computes static model for Dynare" << endl
+             << "% " << filename << " : Computes static model for Dynare" << endl
              << "%" << endl
              << "% Warning : this file is generated automatically by Dynare" << endl
              << "%           from model file (.mod)" << endl << endl
@@ -303,19 +292,19 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
              << "                                        //" << endl
              << "  % //                     Simulation type "
              << BlockSim(simulation_type) << "  //" << endl
-             << "  % ////////////////////////////////////////////////////////////////////////" << endl;
-      output << "  global options_;" << endl;
-      //The Temporary terms
+             << "  % ////////////////////////////////////////////////////////////////////////" << endl
+             << "  global options_;" << endl;
+      // The Temporary terms
       if (simulation_type != BlockSimulationType::evaluateBackward
           && simulation_type != BlockSimulationType::evaluateForward)
         output << " g1 = spalloc("  << block_mfs << ", " << block_mfs << ", " << blocks_derivatives[block].size() << ");" << endl;
 
       if (v_temporary_terms_inuse[block].size())
         {
-          tmp_output.str("");
+          output << "  global";
           for (int it : v_temporary_terms_inuse[block])
-            tmp_output << " T" << it;
-          output << "  global" << tmp_output.str() << ";" << endl;
+            output << " T" << it;
+          output << ";" << endl;
         }
 
       if (simulation_type != BlockSimulationType::evaluateBackward
@@ -323,69 +312,54 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
         output << "  residual=zeros(" << block_mfs << ",1);" << endl;
 
       // The equations
-      temporary_terms_idxs_t temporary_terms_idxs;
+      deriv_node_temp_terms_t tef_terms;
       for (int i = 0; i < block_size; i++)
         {
           if (!global_temporary_terms)
             local_temporary_terms = v_temporary_terms[block][i];
           temporary_terms_t tt2;
           if (v_temporary_terms[block].size())
-            {
-              output << "  " << "% //Temporary variables" << endl;
-              for (auto it : v_temporary_terms[block][i])
-                {
-                  if (dynamic_cast<AbstractExternalFunctionNode *>(it))
-                    it->writeExternalFunctionOutput(output, local_output_type, tt2, {}, tef_terms);
+            for (auto it : v_temporary_terms[block][i])
+              {
+                if (dynamic_cast<AbstractExternalFunctionNode *>(it))
+                  it->writeExternalFunctionOutput(output, local_output_type, tt2, {}, tef_terms);
 
-                  output << "  " <<  sps;
-                  it->writeOutput(output, local_output_type, local_temporary_terms, {}, tef_terms);
-                  output << " = ";
-                  it->writeOutput(output, local_output_type, tt2, {}, tef_terms);
-                  // Insert current node into tt2
-                  tt2.insert(it);
-                  output << ";" << endl;
-                }
-            }
+                output << "  ";
+                it->writeOutput(output, local_output_type, local_temporary_terms, {}, tef_terms);
+                output << " = ";
+                it->writeOutput(output, local_output_type, tt2, {}, tef_terms);
+                // Insert current node into tt2
+                tt2.insert(it);
+                output << ";" << endl;
+              }
 
           int variable_ID = getBlockVariableID(block, i);
           int equation_ID = getBlockEquationID(block, i);
           EquationType equ_type = getBlockEquationType(block, i);
           string sModel = symbol_table.getName(symbol_table.getID(SymbolType::endogenous, variable_ID));
-          eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
-          lhs = eq_node->arg1;
-          rhs = eq_node->arg2;
-          tmp_output.str("");
+          BinaryOpNode *eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
+          expr_t lhs = eq_node->arg1, rhs = eq_node->arg2;
+          ostringstream tmp_output;
           lhs->writeOutput(tmp_output, local_output_type, local_temporary_terms, {});
           switch (simulation_type)
             {
             case BlockSimulationType::evaluateBackward:
             case BlockSimulationType::evaluateForward:
             evaluation:
-              output << "  % equation " << getBlockEquationID(block, i)+1 << " variable : " << sModel
-                     << " (" << variable_ID+1 << ") " << c_Equation_Type(equ_type) << endl;
               output << "  ";
               if (equ_type == EquationType::evaluate)
                 {
-                  output << tmp_output.str();
-                  output << " = ";
+                  output << tmp_output.str() << " = ";
                   rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
                 }
               else if (equ_type == EquationType::evaluate_s)
                 {
-                  output << "%" << tmp_output.str();
+                  eq_node = static_cast<BinaryOpNode *>(getBlockEquationRenormalizedExpr(block, i));
+                  lhs = eq_node->arg1;
+                  rhs = eq_node->arg2;
+                  lhs->writeOutput(output, local_output_type, local_temporary_terms, {});
                   output << " = ";
-                  if (isBlockEquationRenormalized(block, i))
-                    {
-                      rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
-                      output << endl << "  ";
-                      tmp_output.str("");
-                      eq_node = static_cast<BinaryOpNode *>(getBlockEquationRenormalizedExpr(block, i));
-                      lhs = eq_node->arg1;
-                      rhs = eq_node->arg2;
-                      lhs->writeOutput(output, local_output_type, local_temporary_terms, {});
-                      output << " = ";
-                      rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
-                    }
+                  rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
                 }
               else
                 {
@@ -400,25 +374,17 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
             case BlockSimulationType::solveForwardComplete:
               if (i < block_recursive)
                 goto evaluation;
-              feedback_variables.push_back(variable_ID);
-              output << "  % equation " << equation_ID+1 << " variable : " << sModel
-                     << " (" << variable_ID+1 << ") " << c_Equation_Type(equ_type) << endl;
-              output << "  " << "residual(" << i+1-block_recursive << ") = (";
-              goto end;
-            default:
-            end:
-              output << tmp_output.str();
-              output << ") - (";
+              output << "  " << "residual(" << i+1-block_recursive << ") = ("
+                     << tmp_output.str() << ") - (";
               rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
               output << ");" << endl;
+              break;
+            default:
+              cerr << "Incorrect type for block " << block+1 << endl;
+              exit(EXIT_FAILURE);
             }
         }
       // The Jacobian if we have to solve the block
-      if (simulation_type == BlockSimulationType::solveBackwardSimple
-          || simulation_type == BlockSimulationType::solveForwardSimple
-          || simulation_type == BlockSimulationType::solveBackwardComplete
-          || simulation_type == BlockSimulationType::solveForwardComplete)
-        output << "  " << sps << "% Jacobian  " << endl;
       switch (simulation_type)
         {
         case BlockSimulationType::solveBackwardSimple:
@@ -427,15 +393,10 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
         case BlockSimulationType::solveForwardComplete:
           for (const auto &[indices, id] : blocks_derivatives[block])
             {
-              auto &[eq, var, ignore] = indices;
-              int eqr = getBlockEquationID(block, eq);
-              int varr = getBlockVariableID(block, var);
+              auto [eq, var, ignore] = indices;
               output << "    g1(" << eq+1-block_recursive << ", " << var+1-block_recursive << ") = ";
               id->writeOutput(output, local_output_type, local_temporary_terms, {});
-              output << "; % variable=" << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, varr))
-                     << "(" << 0
-                     << ") " << varr+1
-                     << ", equation=" << eqr+1 << endl;
+              output << ";" << endl;
             }
           break;
         default:
@@ -1982,53 +1943,43 @@ StaticModel::writeOutput(ostream &output, bool block) const
   if (!block)
     return;
 
-  int nb_blocks = blocks.size();
-  for (int b = 0; b < nb_blocks; b++)
+  for (int b = 0; b < static_cast<int>(blocks.size()); b++)
     {
-      BlockSimulationType simulation_type = blocks[b].simulation_type;
-      int block_size = blocks[b].size;
-      ostringstream tmp_s, tmp_s_eq;
-      tmp_s.str("");
-      tmp_s_eq.str("");
-      for (int i = 0; i < block_size; i++)
-        {
-          tmp_s << " " << getBlockVariableID(b, i)+1;
-          tmp_s_eq << " " << getBlockEquationID(b, i)+1;
-        }
-      output << "block_structure_stat.block(" << b+1 << ").Simulation_Type = " << static_cast<int>(simulation_type) << ";" << endl
-             << "block_structure_stat.block(" << b+1 << ").endo_nbr = " << block_size << ";" << endl
+      output << "block_structure_stat.block(" << b+1 << ").Simulation_Type = " << static_cast<int>(blocks[b].simulation_type) << ";" << endl
+             << "block_structure_stat.block(" << b+1 << ").endo_nbr = " << blocks[b].size << ";" << endl
              << "block_structure_stat.block(" << b+1 << ").mfs = " << blocks[b].mfs_size << ";" << endl
-             << "block_structure_stat.block(" << b+1 << ").equation = [" << tmp_s_eq.str() << "];" << endl
-             << "block_structure_stat.block(" << b+1 << ").variable = [" << tmp_s.str() << "];" << endl;
+             << "block_structure_stat.block(" << b+1 << ").equation = [";
+      for (int i = 0; i < blocks[b].size; i++)
+        output << " " << getBlockEquationID(b, i)+1;
+      output << "];" << endl
+             << "block_structure_stat.block(" << b+1 << ").variable = [";
+      for (int i = 0; i < blocks[b].size; i++)
+        output << " " << getBlockVariableID(b, i)+1;
+      output << "];" << endl;
     }
-  output << "M_.block_structure_stat.block = block_structure_stat.block;" << endl;
-  string cst_s;
-  int nb_endo = symbol_table.endo_nbr();
-  output << "M_.block_structure_stat.variable_reordered = [";
-  for (int i = 0; i < nb_endo; i++)
+  output << "M_.block_structure_stat.block = block_structure_stat.block;" << endl
+         << "M_.block_structure_stat.variable_reordered = [";
+  for (int i = 0; i < symbol_table.endo_nbr(); i++)
     output << " " << endo_idx_block2orig[i]+1;
   output << "];" << endl
          << "M_.block_structure_stat.equation_reordered = [";
-  for (int i = 0; i < nb_endo; i++)
+  for (int i = 0; i < symbol_table.endo_nbr(); i++)
     output << " " << eq_idx_block2orig[i]+1;
   output << "];" << endl;
 
-  map<pair<int, int>, int> row_incidence;
-  for (const auto & [indices, d1] : derivatives[1])
-    {
-      int deriv_id = indices[1];
-      if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
-        {
-          int eq = indices[0];
-          int symb = getSymbIDByDerivID(deriv_id);
-          int var = symbol_table.getTypeSpecificID(symb);
-          //int lag = getLagByDerivID(deriv_id);
-          row_incidence[{ eq, var }] = 1;
-        }
-    }
+  set<pair<int, int>> row_incidence;
+  for (const auto &[indices, d1] : derivatives[1])
+    if (int deriv_id = indices[1];
+        getTypeByDerivID(deriv_id) == SymbolType::endogenous)
+      {
+        int eq = indices[0];
+        int symb = getSymbIDByDerivID(deriv_id);
+        int var = symbol_table.getTypeSpecificID(symb);
+        row_incidence.emplace(eq, var);
+      }
   output << "M_.block_structure_stat.incidence.sparse_IM = [";
-  for (const auto &it : row_incidence)
-    output << it.first.first+1 << " " << it.first.second+1 << ";" << endl;
+  for (auto [eq, var] : row_incidence)
+    output << eq+1 << " " << var+1 << ";" << endl;
   output << "];" << endl;
 }
 
