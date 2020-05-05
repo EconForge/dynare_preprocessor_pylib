@@ -48,6 +48,9 @@ DynamicModel::copyHelper(const DynamicModel &m)
     blocks_derivatives_exo.emplace_back(convert_block_derivative(it));
   for (const auto &it : m.blocks_derivatives_exo_det)
     blocks_derivatives_exo_det.emplace_back(convert_block_derivative(it));
+
+  for (const auto &[key, expr] : m.pac_expectation_substitution)
+    pac_expectation_substitution.emplace(key, f(expr));
 }
 
 DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
@@ -103,7 +106,14 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   block_exo_index{m.block_exo_index},
   block_det_exo_index{m.block_det_exo_index},
   block_other_endo_index{m.block_other_endo_index},
-  var_expectation_functions_to_write{m.var_expectation_functions_to_write}
+  var_expectation_functions_to_write{m.var_expectation_functions_to_write},
+  pac_mce_alpha_symb_ids{m.pac_mce_alpha_symb_ids},
+  pac_h0_indices{m.pac_h0_indices},
+  pac_h1_indices{m.pac_h1_indices},
+  pac_mce_z1_symb_ids{m.pac_mce_z1_symb_ids},
+  pac_eqtag_and_lag{m.pac_eqtag_and_lag},
+  pac_model_info{m.pac_model_info},
+  pac_equation_info{m.pac_equation_info}
 {
   copyHelper(m);
 }
@@ -159,6 +169,15 @@ DynamicModel::operator=(const DynamicModel &m)
   block_det_exo_index = m.block_det_exo_index;
   block_other_endo_index = m.block_other_endo_index;
   var_expectation_functions_to_write = m.var_expectation_functions_to_write;
+
+  pac_mce_alpha_symb_ids = m.pac_mce_alpha_symb_ids;
+  pac_h0_indices = m.pac_h0_indices;
+  pac_h1_indices = m.pac_h1_indices;
+  pac_mce_z1_symb_ids = m.pac_mce_z1_symb_ids;
+  pac_eqtag_and_lag = m.pac_eqtag_and_lag;
+  pac_expectation_substitution.clear();
+  pac_model_info = m.pac_model_info;
+  pac_equation_info = m.pac_equation_info;
 
   copyHelper(m);
 
