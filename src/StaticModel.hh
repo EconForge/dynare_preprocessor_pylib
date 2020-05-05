@@ -180,37 +180,6 @@ public:
 
   int getDerivID(int symb_id, int lag) const noexcept(false) override;
   void addAllParamDerivId(set<int> &deriv_id_set) override;
-
-  int
-  getBlockExoSize(int block_number) const override
-  {
-    return 0;
-  };
-  int
-  getBlockExoColSize(int block_number) const override
-  {
-    return 0;
-  }
-  int
-  getBlockVariableExoID(int block_number, int variable_number) const override
-  {
-    return 0;
-  };
-  int
-  getBlockInitialExogenousID(int block_number, int variable_number) const override
-  {
-    return -1;
-  };
-  int
-  getBlockInitialDetExogenousID(int block_number, int variable_number) const override
-  {
-    return -1;
-  };
-  int
-  getBlockInitialOtherEndogenousID(int block_number, int variable_number) const override
-  {
-    return -1;
-  };
 };
 
 #endif

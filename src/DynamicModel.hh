@@ -180,9 +180,6 @@ private:
   //! Collecte the derivatives w.r. to endogenous of the block, to endogenous of previouys blocks and to exogenous
   void collect_block_first_order_derivatives();
 
-  //! Collecte the informations about exogenous, deterministic exogenous and endogenous from the previous block for each block
-  void collectBlockVariables();
-
   //! Factorized code for substitutions of leads/lags
   /*! \param[in] type determines which type of variables is concerned
     \param[in] deterministic_model whether we are in a deterministic model (only for exogenous leads/lags)
@@ -197,9 +194,6 @@ private:
   using var_t = set<int>;
   using lag_var_t = map<int, var_t>;
   vector<lag_var_t> other_endo_block, exo_block, exo_det_block;
-
-  //!List for each block the exogenous variables
-  vector<pair<var_t, int>> block_var_exo;
 
   map< int, map<int, int>> block_exo_index, block_det_exo_index, block_other_endo_index;
 
@@ -558,23 +552,9 @@ public:
     return tuple(static_only_equations, static_only_equations_lineno, static_only_equations_equation_tags);
   };
 
+  //! Return the position of variable_number in the block number belonging to the block block_number
   int
-  getBlockExoSize(int block_number) const override
-  {
-    return block_var_exo[block_number].first.size();
-  };
-  int
-  getBlockExoColSize(int block_number) const override
-  {
-    return block_var_exo[block_number].second;
-  };
-  int
-  getBlockVariableExoID(int block_number, int variable_number) const override
-  {
-    return exo_block[block_number].find(variable_number)->first;
-  };
-  int
-  getBlockInitialExogenousID(int block_number, int variable_number) const override
+  getBlockInitialExogenousID(int block_number, int variable_number) const
   {
     if (auto it = block_exo_index.find(block_number);
         it != block_exo_index.end())
@@ -588,8 +568,9 @@ public:
     else
       return -1;
   };
+  //! Return the position of the deterministic exogenous variable_number in the block number belonging to the block block_number
   int
-  getBlockInitialDetExogenousID(int block_number, int variable_number) const override
+  getBlockInitialDetExogenousID(int block_number, int variable_number) const
   {
     if (auto it = block_det_exo_index.find(block_number);
         it != block_det_exo_index.end())
@@ -603,8 +584,9 @@ public:
     else
       return -1;
   };
+  //! Return the position of the other endogenous variable_number in the block number belonging to the block block_number
   int
-  getBlockInitialOtherEndogenousID(int block_number, int variable_number) const override
+  getBlockInitialOtherEndogenousID(int block_number, int variable_number) const
   {
     if (auto it = block_other_endo_index.find(block_number);
         it != block_other_endo_index.end())

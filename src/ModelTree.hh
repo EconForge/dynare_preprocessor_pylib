@@ -329,10 +329,6 @@ protected:
                                       vector<BinaryOpNode *> &equations, vector<int> &equations_lineno,
                                       EquationTags &equation_tags, bool static_equations) const;
 
-  //! Return the number of exogenous variable in the block block_number
-  virtual int getBlockExoSize(int block_number) const = 0;
-  //! Return the number of colums in the jacobian matrix for exogenous variable in the block block_number
-  virtual int getBlockExoColSize(int block_number) const = 0;
   //! Return the type of equation belonging to the block
   EquationType
   getBlockEquationType(int blk, int eq) const
@@ -369,8 +365,6 @@ protected:
   {
     return endo_idx_block2orig[blocks[blk].first_equation + var];
   };
-  //! Return the original number of the exogenous variable varexo_number belonging to the block block_number
-  virtual int getBlockVariableExoID(int block_number, int variable_number) const = 0;
   //! Return the position of an equation (given by its original index) inside its block
   int
   getBlockInitialEquationID(int blk, int eq) const
@@ -383,12 +377,6 @@ protected:
   {
     return endo_idx_orig2block[var] - blocks[blk].first_equation;
   };
-  //! Return the position of variable_number in the block number belonging to the block block_number
-  virtual int getBlockInitialExogenousID(int block_number, int variable_number) const = 0;
-  //! Return the position of the deterministic exogenous variable_number in the block number belonging to the block block_number
-  virtual int getBlockInitialDetExogenousID(int block_number, int variable_number) const = 0;
-  //! Return the position of the other endogenous variable_number in the block number belonging to the block block_number
-  virtual int getBlockInitialOtherEndogenousID(int block_number, int variable_number) const = 0;
   //! Initialize equation_reordered & variable_reordered
   void initializeVariablesAndEquations();
   //! Returns the 1st derivatives w.r.t. endogenous in a different format

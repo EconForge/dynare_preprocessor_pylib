@@ -100,7 +100,6 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   other_endo_block{m.other_endo_block},
   exo_block{m.exo_block},
   exo_det_block{m.exo_det_block},
-  block_var_exo{m.block_var_exo},
   block_exo_index{m.block_exo_index},
   block_det_exo_index{m.block_det_exo_index},
   block_other_endo_index{m.block_other_endo_index},
@@ -156,7 +155,6 @@ DynamicModel::operator=(const DynamicModel &m)
   other_endo_block = m.other_endo_block;
   exo_block = m.exo_block;
   exo_det_block = m.exo_det_block;
-  block_var_exo = m.block_var_exo;
   block_exo_index = m.block_exo_index;
   block_det_exo_index = m.block_det_exo_index;
   block_other_endo_index = m.block_other_endo_index;
@@ -1238,7 +1236,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
                                exo_det.size(),
                                count_col_det_exo,
                                exo.size(),
-                               getBlockExoColSize(block),
+                               count_col_exo,
                                other_endo.size(),
                                count_col_other_endo,
                                exo_det,
@@ -3163,7 +3161,6 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                  << "block_structure.block(" << block+1 << ").mfs = " << blocks[block].mfs_size << ";" << endl
                  << "block_structure.block(" << block+1 << ").equation = [" << tmp_s_eq.str() << "];" << endl
                  << "block_structure.block(" << block+1 << ").variable = [" << tmp_s.str() << "];" << endl
-                 << "block_structure.block(" << block+1 << ").exo_nbr = " << getBlockExoSize(block) << ";" << endl
                  << "block_structure.block(" << block+1 << ").exogenous = [";
           int i = 0;
           for (int exo : exogenous)
@@ -3173,6 +3170,8 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                 i++;
               }
           output << "];" << endl
+                 << "block_structure.block(" << block+1 << ").exo_nbr = " << i << ";" << endl
+
                  << "block_structure.block(" << block+1 << ").exogenous_det = [";
           i = 0;
           for (int exo_det : exogenous_det)
@@ -4760,8 +4759,6 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
       collect_block_first_order_derivatives();
 
-      collectBlockVariables();
-
       global_temporary_terms = true;
       if (!no_tmp_terms)
         computeTemporaryTermsOrdered();
@@ -4791,8 +4788,6 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
       determineLinearBlocks();
 
       collect_block_first_order_derivatives();
-
-      collectBlockVariables();
 
       global_temporary_terms = true;
       if (!no_tmp_terms)
@@ -5081,33 +5076,6 @@ DynamicModel::collect_block_first_order_derivatives()
         default:
           break;
         }
-    }
-}
-
-void
-DynamicModel::collectBlockVariables()
-{
-  for (int block = 0; block < static_cast<int>(blocks.size()); block++)
-    {
-      int prev_var = -1;
-      int prev_lag = -999999999;
-      int count_col_exo = 0;
-      var_t tmp_var_exo;
-      for (const auto &it : exo_block[block])
-        {
-          int lag = it.first;
-          for (int var : it.second)
-            {
-              tmp_var_exo.insert(var);
-              if (prev_var != var || prev_lag != lag)
-                {
-                  prev_var = var;
-                  prev_lag = lag;
-                  count_col_exo++;
-                }
-            }
-        }
-      block_var_exo.emplace_back(tmp_var_exo, count_col_exo);
     }
 }
 
