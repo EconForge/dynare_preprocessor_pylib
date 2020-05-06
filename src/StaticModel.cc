@@ -2060,10 +2060,8 @@ StaticModel::computeChainRuleJacobian()
             {
               int var_orig = getBlockVariableID(blk, var);
               expr_t d1 = equations[eq_orig]->getChainRuleDerivative(getDerivID(symbol_table.getID(SymbolType::endogenous, var_orig), 0), recursive_vars);
-              if (d1 == Zero)
-                continue;
-
-              blocks_derivatives[blk][{ eq, var, 0 }] = d1;
+              if (d1 != Zero)
+                blocks_derivatives[blk][{ eq, var, 0 }] = d1;
             }
         }
     }

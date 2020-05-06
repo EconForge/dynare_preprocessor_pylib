@@ -4746,7 +4746,8 @@ DynamicModel::computeChainRuleJacobian()
               break;
             }
 
-          blocks_derivatives[blk][{ eq, var, lag }] = d;
+          if (d != Zero)
+            blocks_derivatives[blk][{ eq, var, lag }] = d;
         }
     }
 }
