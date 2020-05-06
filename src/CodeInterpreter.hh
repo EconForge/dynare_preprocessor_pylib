@@ -1406,9 +1406,9 @@ private:
   uint8_t type;
   vector<int> variable;
   vector<int> equation;
-  vector<unsigned int> other_endogenous;
-  vector<unsigned int> exogenous;
-  vector<unsigned int> det_exogenous;
+  vector<int> other_endogenous;
+  vector<int> exogenous;
+  vector<int> det_exogenous;
   bool is_linear;
   vector<Block_contain_type> Block_Contain_;
   int endo_nbr;
@@ -1429,14 +1429,14 @@ public:
                const vector<int> &variable_arg, const vector<int> &equation_arg,
                bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int &u_count_int_arg, int nb_col_jacob_arg,
                unsigned int det_exo_size_arg, unsigned int nb_col_det_exo_jacob_arg, unsigned int exo_size_arg, unsigned int nb_col_exo_jacob_arg, unsigned int other_endo_size_arg, unsigned int nb_col_other_endo_jacob_arg,
-               const vector<unsigned int> &det_exogenous_arg, const vector<unsigned int> &exogenous_arg, const vector<unsigned int> &other_endogenous_arg) :
+               vector<int> det_exogenous_arg, vector<int> exogenous_arg, vector<int> other_endogenous_arg) :
     size{static_cast<int>(size_arg)},
     type{static_cast<uint8_t>(type_arg)},
     variable{variable_arg.begin()+first_element, variable_arg.begin()+(first_element+block_size)},
     equation{equation_arg.begin()+first_element, equation_arg.begin()+(first_element+block_size)},
-    other_endogenous{other_endogenous_arg},
-    exogenous{exogenous_arg},
-    det_exogenous{det_exogenous_arg},
+    other_endogenous{move(other_endogenous_arg)},
+    exogenous{move(exogenous_arg)},
+    det_exogenous{move(det_exogenous_arg)},
     is_linear{is_linear_arg},
     endo_nbr{endo_nbr_arg},
     Max_Lag{Max_Lag_arg},
@@ -1553,7 +1553,7 @@ public:
   {
     return variable;
   }
-  inline vector<unsigned int>
+  inline vector<int>
   get_exogenous()
   {
     return exogenous;
@@ -1632,19 +1632,19 @@ public:
 
     for (unsigned int i = 0; i < det_exo_size; i++)
       {
-        unsigned int tmp_i;
+        int tmp_i;
         memcpy(&tmp_i, code, sizeof(tmp_i)); code += sizeof(tmp_i);
         det_exogenous.push_back(tmp_i);
       }
     for (unsigned int i = 0; i < exo_size; i++)
       {
-        unsigned int tmp_i;
+        int tmp_i;
         memcpy(&tmp_i, code, sizeof(tmp_i)); code += sizeof(tmp_i);
         exogenous.push_back(tmp_i);
       }
     for (unsigned int i = 0; i < other_endo_size; i++)
       {
-        unsigned int tmp_i;
+        int tmp_i;
         memcpy(&tmp_i, code, sizeof(tmp_i)); code += sizeof(tmp_i);
         other_endogenous.push_back(tmp_i);
       }

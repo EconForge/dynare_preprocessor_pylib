@@ -99,10 +99,14 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   nonzero_hessian_eqs{m.nonzero_hessian_eqs},
   dynJacobianColsNbr{m.dynJacobianColsNbr},
   variableMapping{m.variableMapping},
+  blocks_other_endo{m.blocks_other_endo},
+  blocks_exo{m.blocks_exo},
+  blocks_exo_det{m.blocks_exo_det},
+  blocks_jacob_cols_endo{m.blocks_jacob_cols_endo},
+  blocks_jacob_cols_other_endo{m.blocks_jacob_cols_other_endo},
+  blocks_jacob_cols_exo{m.blocks_jacob_cols_exo},
+  blocks_jacob_cols_exo_det{m.blocks_jacob_cols_exo_det},
   global_temporary_terms{m.global_temporary_terms},
-  other_endo_block{m.other_endo_block},
-  exo_block{m.exo_block},
-  exo_det_block{m.exo_det_block},
   var_expectation_functions_to_write{m.var_expectation_functions_to_write},
   pac_mce_alpha_symb_ids{m.pac_mce_alpha_symb_ids},
   pac_h0_indices{m.pac_h0_indices},
@@ -157,11 +161,15 @@ DynamicModel::operator=(const DynamicModel &m)
   blocks_derivatives_other_endo.clear();
   blocks_derivatives_exo.clear();
   blocks_derivatives_exo_det.clear();
+  blocks_other_endo = m.blocks_other_endo;
+  blocks_exo = m.blocks_exo;
+  blocks_exo_det = m.blocks_exo_det;
+  blocks_jacob_cols_endo = m.blocks_jacob_cols_endo;
+  blocks_jacob_cols_other_endo = m.blocks_jacob_cols_other_endo;
+  blocks_jacob_cols_exo = m.blocks_jacob_cols_exo;
+  blocks_jacob_cols_exo_det = m.blocks_jacob_cols_exo_det;
   global_temporary_terms = m.global_temporary_terms;
 
-  other_endo_block = m.other_endo_block;
-  exo_block = m.exo_block;
-  exo_det_block = m.exo_det_block;
   var_expectation_functions_to_write = m.var_expectation_functions_to_write;
 
   pac_mce_alpha_symb_ids = m.pac_mce_alpha_symb_ids;
@@ -348,73 +356,6 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       if (global_temporary_terms)
         local_temporary_terms = temporary_terms;
 
-      int prev_lag;
-      int prev_var, count_col, count_col_endo, count_col_exo, count_col_exo_det, count_col_other_endo;
-      map<tuple<int, int, int>, expr_t> tmp_block_endo_derivative;
-      for (const auto &[idx, d] : blocks_derivatives[block])
-        tmp_block_endo_derivative[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
-      prev_var = 999999999;
-      prev_lag = -9999999;
-      count_col_endo = 0;
-      for (const auto &it : tmp_block_endo_derivative)
-        {
-          auto [lag, var, ignore] = it.first;
-          if (var != prev_var || lag != prev_lag)
-            {
-              prev_var = var;
-              prev_lag = lag;
-              count_col_endo++;
-            }
-        }
-      map<tuple<int, int, int>, expr_t> tmp_block_exo_derivative;
-      for (const auto &[idx, d] : blocks_derivatives_exo[block])
-        tmp_block_exo_derivative[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
-      prev_var = 999999999;
-      prev_lag = -9999999;
-      count_col_exo = 0;
-      for (const auto &it : tmp_block_exo_derivative)
-        {
-          auto [lag, var, ignore] = it.first;
-          if (var != prev_var || lag != prev_lag)
-            {
-              prev_var = var;
-              prev_lag = lag;
-              count_col_exo++;
-            }
-        }
-      map<tuple<int, int, int>, expr_t> tmp_block_exo_det_derivative;
-      for (const auto &[idx, d] : blocks_derivatives_exo_det[block])
-        tmp_block_exo_det_derivative[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
-      prev_var = 999999999;
-      prev_lag = -9999999;
-      count_col_exo_det = 0;
-      for (const auto &it : tmp_block_exo_det_derivative)
-        {
-          auto [lag, var, ignore] = it.first;
-          if (var != prev_var || lag != prev_lag)
-            {
-              prev_var = var;
-              prev_lag = lag;
-              count_col_exo_det++;
-            }
-        }
-      map<tuple<int, int, int>, expr_t> tmp_block_other_endo_derivative;
-      for (const auto &[idx, d] : blocks_derivatives_other_endo[block])
-        tmp_block_other_endo_derivative[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
-      prev_var = 999999999;
-      prev_lag = -9999999;
-      count_col_other_endo = 0;
-      for (const auto &it : tmp_block_other_endo_derivative)
-        {
-          auto [lag, var, ignore] = it.first;
-          if (var != prev_var || lag != prev_lag)
-            {
-              prev_var = var;
-              prev_lag = lag;
-              count_col_other_endo++;
-            }
-        }
-
       tmp1_output.str("");
       tmp1_output << packageDir(basename + ".block") << "/dynamic_" << block+1 << ".m";
       output.open(tmp1_output.str(), ios::out | ios::binary);
@@ -449,19 +390,19 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
           || simulation_type == BlockSimulationType::evaluateForward)
         {
           output << "  if(jacobian_eval)" << endl
-                 << "    g1 = spalloc(" << block_mfs  << ", " << count_col_endo << ", " << nze << ");" << endl
-                 << "    g1_x=spalloc(" << block_size << ", " << count_col_exo  << ", " << nze_exo << ");" << endl
-                 << "    g1_xd=spalloc(" << block_size << ", " << count_col_exo_det  << ", " << nze_exo_det << ");" << endl
-                 << "    g1_o=spalloc(" << block_size << ", " << count_col_other_endo << ", " << nze_other_endo << ");" << endl
+                 << "    g1 = spalloc(" << block_mfs  << ", " << blocks_jacob_cols_endo[block].size() << ", " << nze << ");" << endl
+                 << "    g1_x=spalloc(" << block_size << ", " << blocks_jacob_cols_exo[block].size() << ", " << nze_exo << ");" << endl
+                 << "    g1_xd=spalloc(" << block_size << ", " << blocks_jacob_cols_exo_det[block].size() << ", " << nze_exo_det << ");" << endl
+                 << "    g1_o=spalloc(" << block_size << ", " << blocks_jacob_cols_other_endo[block].size() << ", " << nze_other_endo << ");" << endl
                  << "  end;" << endl;
         }
       else
         {
           output << "  if(jacobian_eval)" << endl
-                 << "    g1 = spalloc(" << block_size << ", " << count_col_endo << ", " << nze << ");" << endl
-                 << "    g1_x=spalloc(" << block_size << ", " << count_col_exo  << ", " << nze_exo << ");" << endl
-                 << "    g1_xd=spalloc(" << block_size << ", " << count_col_exo_det  << ", " << nze_exo_det << ");" << endl
-                 << "    g1_o=spalloc(" << block_size << ", " << count_col_other_endo << ", " << nze_other_endo << ");" << endl
+                 << "    g1 = spalloc(" << block_size << ", " << blocks_jacob_cols_endo[block].size() << ", " << nze << ");" << endl
+                 << "    g1_x=spalloc(" << block_size << ", " << blocks_jacob_cols_exo[block].size() << ", " << nze_exo << ");" << endl
+                 << "    g1_xd=spalloc(" << block_size << ", " << blocks_jacob_cols_exo_det[block].size() << ", " << nze_exo_det << ");" << endl
+                 << "    g1_o=spalloc(" << block_size << ", " << blocks_jacob_cols_other_endo[block].size() << ", " << nze_other_endo << ");" << endl
                  << "  else" << endl;
           if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
               || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
@@ -650,93 +591,37 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
           output << "  % Jacobian  " << endl << "  if jacobian_eval" << endl;
         else
           output << "    % Jacobian  " << endl << "    if jacobian_eval" << endl;
-      prev_var = 999999999;
-      prev_lag = -9999999;
-      count_col = 0;
-      for (const auto &it : tmp_block_endo_derivative)
+      for (const auto &[indices, d] : blocks_derivatives[block])
         {
-          auto [lag, var, eq] = it.first;
-          int eqr = getBlockEquationID(block, eq);
-          int varr = getBlockVariableID(block, var);
-          if (var != prev_var || lag != prev_lag)
-            {
-              prev_var = var;
-              prev_lag = lag;
-              count_col++;
-            }
-
-          expr_t id = it.second;
-
-          output << "      g1(" << eq+1 << ", " << count_col << ") = ";
-          id->writeOutput(output, local_output_type, local_temporary_terms, {});
-          output << "; % variable=" << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, varr))
-                 << "(" << lag
-                 << ") " << varr+1 << ", " << var+1
-                 << ", equation=" << eqr+1 << ", " << eq+1 << endl;
+          auto [eq, var, lag] = indices;
+          int jacob_col = blocks_jacob_cols_endo[block].at({ var, lag });
+          output << "      g1(" << eq+1 << ", " << jacob_col+1 << ") = ";
+          d->writeOutput(output, local_output_type, local_temporary_terms, {});
+          output << ";" << endl;
         }
-      prev_var = 999999999;
-      prev_lag = -9999999;
-      count_col = 0;
-      for (const auto &it : tmp_block_exo_derivative)
+      for (const auto &[indices, d] : blocks_derivatives_exo[block])
         {
-          auto [lag, var, eqr] = it.first;
-          int eq = getBlockEquationID(block, eqr);
-          if (var != prev_var || lag != prev_lag)
-            {
-              prev_var = var;
-              prev_lag = lag;
-              count_col++;
-            }
-          expr_t id = it.second;
-          output << "      g1_x(" << eqr+1 << ", " << count_col << ") = ";
-          id->writeOutput(output, local_output_type, local_temporary_terms, {});
-          output << "; % variable=" << symbol_table.getName(symbol_table.getID(SymbolType::exogenous, var))
-                 << "(" << lag
-                 << ") " << var+1
-                 << ", equation=" << eq+1 << endl;
+          auto [eq, var, lag] = indices;
+          int jacob_col = blocks_jacob_cols_exo[block].at({ var, lag });
+          output << "      g1_x(" << eq+1 << ", " << jacob_col+1 << ") = ";
+          d->writeOutput(output, local_output_type, local_temporary_terms, {});
+          output << ";" << endl;
         }
-      prev_var = 999999999;
-      prev_lag = -9999999;
-      count_col = 0;
-      for (const auto &it : tmp_block_exo_det_derivative)
+      for (const auto &[indices, d] : blocks_derivatives_exo_det[block])
         {
-          auto [lag, var, eqr] = it.first;
-          int eq = getBlockEquationID(block, eqr);
-          if (var != prev_var || lag != prev_lag)
-            {
-              prev_var = var;
-              prev_lag = lag;
-              count_col++;
-            }
-          expr_t id = it.second;
-          output << "      g1_xd(" << eqr+1 << ", " << count_col << ") = ";
-          id->writeOutput(output, local_output_type, local_temporary_terms, {});
-          output << "; % variable=" << symbol_table.getName(symbol_table.getID(SymbolType::exogenous, var))
-                 << "(" << lag
-                 << ") " << var+1
-                 << ", equation=" << eq+1 << endl;
+          auto [eq, var, lag] = indices;
+          int jacob_col = blocks_jacob_cols_exo_det[block].at({ var, lag });
+          output << "      g1_xd(" << eq+1 << ", " << jacob_col+1 << ") = ";
+          d->writeOutput(output, local_output_type, local_temporary_terms, {});
+          output << ";" << endl;
         }
-      prev_var = 999999999;
-      prev_lag = -9999999;
-      count_col = 0;
-      for (const auto &it : tmp_block_other_endo_derivative)
+      for (const auto &[indices, d] : blocks_derivatives_other_endo[block])
         {
-          auto [lag, var, eqr] = it.first;
-          int eq = getBlockEquationID(block, eqr);
-          if (var != prev_var || lag != prev_lag)
-            {
-              prev_var = var;
-              prev_lag = lag;
-              count_col++;
-            }
-          expr_t id = it.second;
-
-          output << "      g1_o(" << eqr+1 << ", " << /*var+1+(lag+block_max_lag)*block_size*/ count_col << ") = ";
-          id->writeOutput(output, local_output_type, local_temporary_terms, {});
-          output << "; % variable=" << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, var))
-                 << "(" << lag
-                 << ") " << var+1
-                 << ", equation=" << eq+1 << endl;
+          auto [eq, var, lag] = indices;
+          int jacob_col = blocks_jacob_cols_other_endo[block].at({ var, lag });
+          output << "      g1_o(" << eq+1 << ", " << jacob_col+1 << ") = ";
+          d->writeOutput(output, local_output_type, local_temporary_terms, {});
+          output << ";" << endl;
         }
       output << "      varargout{1}=g1_x;" << endl
              << "      varargout{2}=g1_xd;" << endl
@@ -899,7 +784,7 @@ DynamicModel::writeModelEquationsCode(const string &basename, const map_idx_t &m
   FDIMT_ fdimt(temporary_terms.size());
   fdimt.write(code_file, instruction_number);
 
-  vector<unsigned int> exo, exo_det, other_endo;
+  vector<int> exo, exo_det, other_endo;
 
   for (int i = 0; i < symbol_table.exo_det_nbr(); i++)
     exo_det.push_back(i);
@@ -977,8 +862,7 @@ DynamicModel::writeModelEquationsCode(const string &basename, const map_idx_t &m
                            0,
                            exo_det,
                            exo,
-                           other_endo
-                           );
+                           other_endo);
   fbeginblock.write(code_file, instruction_number);
 
   compileTemporaryTerms(code_file, instruction_number, temporary_terms, map_idx, true, false);
@@ -1178,61 +1062,6 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
                                       simulation_type == BlockSimulationType::solveTwoBoundariesComplete || simulation_type == BlockSimulationType::solveTwoBoundariesSimple, linear_decomposition);
           file_open = true;
         }
-      map<tuple<int, int, int>, expr_t> tmp_block_endo_derivative;
-      for (const auto &[idx, d] : blocks_derivatives[block])
-        tmp_block_endo_derivative[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
-      map<tuple<int, int, int>, expr_t> tmp_exo_derivative;
-      for (const auto &[idx, d] : blocks_derivatives_exo[block])
-        tmp_exo_derivative[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
-      map<tuple<int, int, int>, expr_t> tmp_exo_det_derivative;
-      for (const auto &[idx, d] : blocks_derivatives_exo_det[block])
-        tmp_exo_det_derivative[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
-      map<tuple<int, int, int>, expr_t> tmp_other_endo_derivative;
-      for (const auto &[idx, d] : blocks_derivatives_other_endo[block])
-        tmp_other_endo_derivative[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
-      int prev_var = -1;
-      int prev_lag = -999999999;
-      int count_col_endo = 0;
-      for (const auto &it : tmp_block_endo_derivative)
-        {
-          int lag, var;
-          tie(lag, var, ignore) = it.first;
-          if (prev_var != var || prev_lag != lag)
-            {
-              prev_var = var;
-              prev_lag = lag;
-              count_col_endo++;
-            }
-        }
-      int count_col_det_exo = 0;
-      vector<unsigned int> exo_det;
-      for (const auto &it : exo_det_block[block])
-        for (const auto &it1 : it.second)
-          {
-            count_col_det_exo++;
-            if (find(exo_det.begin(), exo_det.end(), it1) == exo_det.end())
-              exo_det.push_back(it1);
-          }
-
-      int count_col_exo = 0;
-      vector<unsigned int> exo;
-      for (const auto &it : exo_block[block])
-        for (const auto &it1 : it.second)
-          {
-            count_col_exo++;
-            if (find(exo.begin(), exo.end(), it1) == exo.end())
-              exo.push_back(it1);
-          }
-
-      vector<unsigned int> other_endo;
-      int count_col_other_endo = 0;
-      for (const auto &it : other_endo_block[block])
-        for (const auto &it1 : it.second)
-          {
-            count_col_other_endo++;
-            if (find(other_endo.begin(), other_endo.end(), it1) == other_endo.end())
-              other_endo.push_back(it1);
-          }
 
       FBEGINBLOCK_ fbeginblock(block_mfs,
                                simulation_type,
@@ -1245,17 +1074,16 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
                                block_max_lag,
                                block_max_lead,
                                u_count_int,
-                               count_col_endo,
-                               exo_det.size(),
-                               count_col_det_exo,
-                               exo.size(),
-                               count_col_exo,
-                               other_endo.size(),
-                               count_col_other_endo,
-                               exo_det,
-                               exo,
-                               other_endo
-                               );
+                               blocks_jacob_cols_endo[block].size(),
+                               blocks_exo_det[block].size(),
+                               blocks_jacob_cols_exo_det[block].size(),
+                               blocks_exo[block].size(),
+                               blocks_jacob_cols_exo[block].size(),
+                               blocks_other_endo[block].size(),
+                               blocks_jacob_cols_other_endo[block].size(),
+                               vector<int>(blocks_exo_det[block].begin(), blocks_exo_det[block].end()),
+                               vector<int>(blocks_exo[block].begin(), blocks_exo[block].end()),
+                               vector<int>(blocks_other_endo[block].begin(), blocks_other_endo[block].end()));
       fbeginblock.write(code_file, instruction_number);
 
       if (linear_decomposition)
@@ -1476,90 +1304,48 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
       prev_instruction_number = instruction_number;
       // The Jacobian if we have to solve the block determinsitic block
 
-      prev_var = -1;
-      prev_lag = -999999999;
-      count_col_endo = 0;
-      for (const auto &it : tmp_block_endo_derivative)
+      for (const auto &[indices, d] : blocks_derivatives[block])
         {
-          auto [lag, var, eq] = it.first;
+          auto [eq, var, lag] = indices;
           int eqr = getBlockEquationID(block, eq);
           int varr = getBlockVariableID(block, var);
-          if (prev_var != var || prev_lag != lag)
-            {
-              prev_var = var;
-              prev_lag = lag;
-              count_col_endo++;
-            }
           FNUMEXPR_ fnumexpr(FirstEndoDerivative, eqr, varr, lag);
           fnumexpr.write(code_file, instruction_number);
           compileDerivative(code_file, instruction_number, eqr, varr, lag, map_idx);
-          FSTPG3_ fstpg3(eq, var, lag, count_col_endo-1);
+          FSTPG3_ fstpg3(eq, var, lag, blocks_jacob_cols_endo[block].at({ var, lag }));
           fstpg3.write(code_file, instruction_number);
         }
-      prev_var = -1;
-      prev_lag = -999999999;
-      count_col_exo = 0;
-      for (const auto &it : tmp_exo_derivative)
+      for (const auto &[indices, d] : blocks_derivatives_exo[block])
         {
-          auto [lag, var, eqr] = it.first;
+          auto [eqr, var, lag] = indices;
           int eq = getBlockEquationID(block, eqr);
           int varr = 0; // Dummy value, actually unused by the bytecode MEX
-          if (prev_var != var || prev_lag != lag)
-            {
-              prev_var = var;
-              prev_lag = lag;
-              count_col_exo++;
-            }
-          expr_t id = it.second;
-
           FNUMEXPR_ fnumexpr(FirstExoDerivative, eqr, varr, lag);
           fnumexpr.write(code_file, instruction_number);
-          id->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
-          FSTPG3_ fstpg3(eq, var, lag, count_col_exo-1);
+          d->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
+          FSTPG3_ fstpg3(eq, var, lag, blocks_jacob_cols_exo[block].at({ var, lag }));
           fstpg3.write(code_file, instruction_number);
         }
-      prev_var = -1;
-      prev_lag = -999999999;
-      int count_col_exo_det = 0;
-      for (const auto &it : tmp_exo_det_derivative)
+      for (const auto &[indices, d] : blocks_derivatives_exo_det[block])
         {
-          auto [lag, var, eqr] = it.first;
+          auto [eqr, var, lag] = indices;
           int eq = getBlockEquationID(block, eqr);
           int varr = 0; // Dummy value, actually unused by the bytecode MEX
-          if (prev_var != var || prev_lag != lag)
-            {
-              prev_var = var;
-              prev_lag = lag;
-              count_col_exo_det++;
-            }
-          expr_t id = it.second;
-
           FNUMEXPR_ fnumexpr(FirstExodetDerivative, eqr, varr, lag);
           fnumexpr.write(code_file, instruction_number);
-          id->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
-          FSTPG3_ fstpg3(eq, var, lag, count_col_exo_det-1);
+          d->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
+          FSTPG3_ fstpg3(eq, var, lag, blocks_jacob_cols_exo_det[block].at({ var, lag }));
           fstpg3.write(code_file, instruction_number);
         }
-      prev_var = -1;
-      prev_lag = -999999999;
-      count_col_other_endo = 0;
-      for (const auto &it : tmp_other_endo_derivative)
+      for (const auto &[indices, d] : blocks_derivatives_other_endo[block])
         {
-          auto [lag, var, eqr] = it.first;
+          auto [eqr, var, lag] = indices;
           int eq = getBlockEquationID(block, eqr);
           int varr = 0; // Dummy value, actually unused by the bytecode MEX
-          if (prev_var != var || prev_lag != lag)
-            {
-              prev_var = var;
-              prev_lag = lag;
-              count_col_other_endo++;
-            }
-          expr_t id = it.second;
-
           FNUMEXPR_ fnumexpr(FirstOtherEndoDerivative, eqr, varr, lag);
           fnumexpr.write(code_file, instruction_number);
-          id->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
-          FSTPG3_ fstpg3(eq, var, lag, count_col_other_endo-1);
+          d->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
+          FSTPG3_ fstpg3(eq, var, lag, blocks_jacob_cols_other_endo[block].at({ var, lag }));
           fstpg3.write(code_file, instruction_number);
         }
 
@@ -3149,18 +2935,6 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
               tmp_s << " " << getBlockVariableID(block, i)+1;
               tmp_s_eq << " " << getBlockEquationID(block, i)+1;
             }
-          set<int> exogenous;
-          for (const auto &it : exo_block[block])
-            for (int it1 : it.second)
-              exogenous.insert(it1);
-          set<int> exogenous_det;
-          for (const auto &it : exo_det_block[block])
-            for (int it1 : it.second)
-              exogenous_det.insert(it1);
-          set<int> other_endogenous;
-          for (const auto &it : other_endo_block[block])
-            for (int it1 : it.second)
-              other_endogenous.insert(it1);
           output << "block_structure.block(" << block+1 << ").Simulation_Type = " << static_cast<int>(simulation_type) << ";" << endl
                  << "block_structure.block(" << block+1 << ").maximum_lag = " << max_lag << ";" << endl
                  << "block_structure.block(" << block+1 << ").maximum_lead = " << max_lead << ";" << endl
@@ -3175,58 +2949,37 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
                  << "block_structure.block(" << block+1 << ").equation = [" << tmp_s_eq.str() << "];" << endl
                  << "block_structure.block(" << block+1 << ").variable = [" << tmp_s.str() << "];" << endl
                  << "block_structure.block(" << block+1 << ").exogenous = [";
-          int i = 0;
-          for (int exo : exogenous)
-            if (exo >= 0)
-              {
-                output << " " << exo+1;
-                i++;
-              }
+          for (int exo : blocks_exo[block])
+            output << " " << exo+1;
           output << "];" << endl
-                 << "block_structure.block(" << block+1 << ").exo_nbr = " << i << ";" << endl
+                 << "block_structure.block(" << block+1 << ").exo_nbr = " << blocks_exo[block].size() << ";" << endl
 
                  << "block_structure.block(" << block+1 << ").exogenous_det = [";
-          i = 0;
-          for (int exo_det : exogenous_det)
-            if (exo_det >= 0)
-              {
-                output << " " << exo_det+1;
-                i++;
-              }
+          for (int exo_det : blocks_exo_det[block])
+            output << " " << exo_det+1;
           output << "];" << endl
-                 << "block_structure.block(" << block+1 << ").exo_det_nbr = " << i << ";" << endl
+                 << "block_structure.block(" << block+1 << ").exo_det_nbr = " << blocks_exo_det[block].size() << ";" << endl
                  << "block_structure.block(" << block+1 << ").other_endogenous = [";
-          i = 0;
-          for (int other_endo : other_endogenous)
-            if (other_endo >= 0)
-              {
-                output << " " << other_endo+1;
-                i++;
-              }
+          for (int other_endo : blocks_other_endo[block])
+            output << " " << other_endo+1;
           output << "];" << endl
                  << "block_structure.block(" << block+1 << ").other_endogenous_block = [";
-          i = 0;
-          for (int other_endo : other_endogenous)
-            if (other_endo >= 0)
-              {
-                output << " " << endo2block[other_endo]+1;
-                i++;
-              }
+          for (int other_endo : blocks_other_endo[block])
+            output << " " << endo2block[other_endo]+1;
           output << "];" << endl;
 
-          output << "block_structure.block(" << block+1 << ").tm1 = zeros(" << i << ", " << state_var.size() << ");" << endl;
-          int count_other_endogenous = 1;
-          for (int other_endo : other_endogenous)
+          output << "block_structure.block(" << block+1 << ").tm1 = zeros(" << blocks_other_endo[block].size() << ", " << state_var.size() << ");" << endl;
+          int line = 1;
+          for (auto other_endo : blocks_other_endo[block])
             {
               for (auto it = state_var.begin(); it != state_var.end(); ++it)
                 if (*it == other_endo + 1)
                   output << "block_structure.block(" << block+1 << ").tm1("
-                         << count_other_endogenous << ", "
+                         << line << ", "
                          << it - state_var.begin()+1 << ") = 1;" << endl;
-              count_other_endogenous++;
+              line++;
             }
-
-          output << "block_structure.block(" << block+1 << ").other_endo_nbr = " << i << ";" << endl;
+          output << "block_structure.block(" << block+1 << ").other_endo_nbr = " << blocks_other_endo[block].size() << ";" << endl;
 
           tmp_s.str("");
           count_lead_lag_incidence = 0;
@@ -3273,7 +3026,7 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
           for (int lag = -1; lag <= 1; lag++)
             {
               tmp_s.str("");
-              for (int other_endo : other_endogenous)
+              for (int other_endo : blocks_other_endo[block])
                 {
                   bool done = false;
                   for (int eq = 0; eq < block_size; eq++)
@@ -4770,7 +4523,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
       determineLinearBlocks();
 
-      collect_block_first_order_derivatives();
+      computeBlockDynJacobianCols();
 
       global_temporary_terms = true;
       if (!no_tmp_terms)
@@ -4800,7 +4553,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
       determineLinearBlocks();
 
-      collect_block_first_order_derivatives();
+      computeBlockDynJacobianCols();
 
       global_temporary_terms = true;
       if (!no_tmp_terms)
@@ -4999,18 +4752,19 @@ DynamicModel::computeChainRuleJacobian()
 }
 
 void
-DynamicModel::collect_block_first_order_derivatives()
+DynamicModel::computeBlockDynJacobianCols()
 {
   int nb_blocks = blocks.size();
-  other_endo_block = vector<lag_var_t>(nb_blocks);
-  exo_block = vector<lag_var_t>(nb_blocks);
-  exo_det_block = vector<lag_var_t>(nb_blocks);
-  blocks_derivatives_other_endo.clear();
   blocks_derivatives_other_endo.resize(nb_blocks);
-  blocks_derivatives_exo.clear();
   blocks_derivatives_exo.resize(nb_blocks);
-  blocks_derivatives_exo_det.clear();
   blocks_derivatives_exo_det.resize(nb_blocks);
+  blocks_other_endo.resize(nb_blocks);
+  blocks_exo.resize(nb_blocks);
+  blocks_exo_det.resize(nb_blocks);
+  // Structures used for lexicographic ordering over (lag, var ID)
+  vector<set<pair<int, int>>> dynamic_endo(nb_blocks), dynamic_other_endo(nb_blocks),
+    dynamic_exo(nb_blocks), dynamic_exo_det(nb_blocks);
+
   for (auto & [indices, d1] : derivatives[1])
     {
       int eq_orig = indices[0];
@@ -5021,41 +4775,55 @@ DynamicModel::collect_block_first_order_derivatives()
       switch (getTypeByDerivID(indices[1]))
         {
         case SymbolType::endogenous:
-          if (block_eq != endo2block[var])
+          if (block_eq == endo2block[var])
+            {
+              int var_in_block = getBlockInitialVariableID(block_eq, var);
+              dynamic_endo[block_eq].emplace(lag, var_in_block);
+            }
+          else
             {
               blocks_derivatives_other_endo[block_eq][{ eq, var, lag }] = derivatives[1][{ eq_orig, getDerivID(symbol_table.getID(SymbolType::endogenous, var), lag) }];
-
-              {
-                auto &lag_var = other_endo_block[block_eq];
-                if (lag_var.find(lag) == lag_var.end())
-                  lag_var[lag].clear();
-                lag_var[lag].insert(var);
-              }
+              blocks_other_endo[block_eq].insert(var);
+              dynamic_other_endo[block_eq].emplace(lag, var);
             }
           break;
         case SymbolType::exogenous:
           blocks_derivatives_exo[block_eq][{ eq, var, lag }] = derivatives[1][{ eq_orig, getDerivID(symbol_table.getID(SymbolType::exogenous, var), lag) }];
-
-          {
-            auto &lag_var = exo_block[block_eq];
-            if (lag_var.find(lag) == lag_var.end())
-              lag_var[lag].clear();
-            lag_var[lag].insert(var);
-          }
+          blocks_exo[block_eq].insert(var);
+          dynamic_exo[block_eq].emplace(lag, var);
           break;
         case SymbolType::exogenousDet:
           blocks_derivatives_exo_det[block_eq][{ eq, var, lag }] = derivatives[1][{ eq_orig, getDerivID(symbol_table.getID(SymbolType::exogenous, var), lag) }];
-
-          {
-            auto &lag_var = exo_det_block[block_eq];
-            if (lag_var.find(lag) == lag_var.end())
-              lag_var[lag].clear();
-            lag_var[lag].insert(var);
-          }
+          blocks_exo_det[block_eq].insert(var);
+          dynamic_exo_det[block_eq].emplace(lag, var);
           break;
         default:
           break;
         }
+    }
+
+  // Compute Jacobian column indices
+  blocks_jacob_cols_endo.resize(nb_blocks);
+  blocks_jacob_cols_other_endo.resize(nb_blocks);
+  blocks_jacob_cols_exo.resize(nb_blocks);
+  blocks_jacob_cols_exo_det.resize(nb_blocks);
+  for (int blk = 0; blk < nb_blocks; blk++)
+    {
+      int index = 0;
+      for (auto [lag, var] : dynamic_endo[blk])
+        blocks_jacob_cols_endo[blk][{ var, lag }] = index++;
+
+      index = 0;
+      for (auto [lag, var] : dynamic_other_endo[blk])
+        blocks_jacob_cols_other_endo[blk][{ var, lag }] = index++;
+
+      index = 0;
+      for (auto [lag, var] : dynamic_exo[blk])
+        blocks_jacob_cols_exo[blk][{ var, lag }] = index++;
+
+      index = 0;
+      for (auto [lag, var] : dynamic_exo_det[blk])
+        blocks_jacob_cols_exo_det[blk][{ var, lag }] = index++;
     }
 }
 

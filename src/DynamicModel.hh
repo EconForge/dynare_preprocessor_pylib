@@ -110,6 +110,15 @@ private:
   vector<map<tuple<int, int, int>, expr_t>> blocks_derivatives_other_endo,
     blocks_derivatives_exo, blocks_derivatives_exo_det;
 
+  // For each block, gives type-specific other endos / exo / exo det that appear in it
+  vector<set<int>> blocks_other_endo, blocks_exo, blocks_exo_det;
+
+  /* For each block, and for each variable type, maps (variable ID, lag) to
+     Jacobian column.
+     For the “endo” version, the variable ID is the index within the block. For
+     the three others, it’s the type-specific ID */
+  vector<map<pair<int, int>, int>> blocks_jacob_cols_endo, blocks_jacob_cols_other_endo, blocks_jacob_cols_exo, blocks_jacob_cols_exo_det;
+
   //! Writes dynamic model file (Matlab version)
   void writeDynamicMFile(const string &basename) const;
   //! Writes dynamic model file (Julia version)
@@ -177,8 +186,11 @@ private:
   /*! Also computes max_{endo,exo}_{lead_lag}, and initializes dynJacobianColsNbr to the number of dynamic endos */
   void computeDerivIDs();
 
-  //! Collecte the derivatives w.r. to endogenous of the block, to endogenous of previouys blocks and to exogenous
-  void collect_block_first_order_derivatives();
+  /* Compute the Jacobian column indices in the block decomposition case
+     (stored in blocks_jacob_cols_*).
+     Also fills auxiliary structures related to “other” endogenous and
+     exogenous: blocks{,_derivatives}_{other_endo,exo_exo_det} */
+  void computeBlockDynJacobianCols();
 
   //! Factorized code for substitutions of leads/lags
   /*! \param[in] type determines which type of variables is concerned
@@ -189,11 +201,6 @@ private:
 
   //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
   bool global_temporary_terms{true};
-
-  //!List for each block and for each lag-lead all the other endogenous variables and exogenous variables
-  using var_t = set<int>;
-  using lag_var_t = map<int, var_t>;
-  vector<lag_var_t> other_endo_block, exo_block, exo_det_block;
 
   //! Help computeXrefs to compute the reverse references (i.e. param->eqs, endo->eqs, etc)
   void computeRevXref(map<pair<int, int>, set<int>> &xrefset, const set<pair<int, int>> &eiref, int eqn);
