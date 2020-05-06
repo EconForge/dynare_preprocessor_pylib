@@ -39,18 +39,6 @@ void
 ModelTree::copyHelper(const ModelTree &m)
 {
   auto f = [this](expr_t e) { return e->clone(*this); };
-  auto convert_vector_tt = [f](vector<temporary_terms_t> vtt)
-                           {
-                             vector<temporary_terms_t> vtt2;
-                             for (const auto &tt : vtt)
-                               {
-                                 temporary_terms_t tt2;
-                                 for (const auto &it : tt)
-                                   tt2.insert(f(it));
-                                 vtt2.push_back(tt2);
-                               }
-                             return vtt2;
-                           };
 
   // Equations
   for (const auto &it : m.equations)
@@ -81,16 +69,12 @@ ModelTree::copyHelper(const ModelTree &m)
                                    };
 
   // Temporary terms
-  for (const auto &it : m.temporary_terms)
-    temporary_terms.insert(f(it));
   for (const auto &it : m.temporary_terms_mlv)
     temporary_terms_mlv[f(it.first)] = f(it.second);
   for (const auto &it : m.temporary_terms_derivatives)
     temporary_terms_derivatives.push_back(convert_temporary_terms_t(it));
   for (const auto &it : m.temporary_terms_idxs)
     temporary_terms_idxs[f(it.first)] = it.second;
-  for (const auto &it : m.v_temporary_terms)
-    v_temporary_terms.push_back(convert_vector_tt(it));
   for (const auto &it : m.params_derivs_temporary_terms)
     params_derivs_temporary_terms[it.first] = convert_temporary_terms_t(it.second);
   for (const auto &it : m.params_derivs_temporary_terms_idxs)
@@ -112,6 +96,11 @@ ModelTree::copyHelper(const ModelTree &m)
         v[it2.first] = f(it2.second);
       blocks_derivatives.push_back(v);
     }
+
+  for (const auto &it : m.blocks_temporary_terms)
+    blocks_temporary_terms.push_back(convert_temporary_terms_t(it));
+  for (const auto &it : m.blocks_temporary_terms_idxs)
+    blocks_temporary_terms_idxs[f(it.first)] = it.second;
 }
 
 ModelTree::ModelTree(SymbolTable &symbol_table_arg,
@@ -136,12 +125,10 @@ ModelTree::ModelTree(const ModelTree &m) :
   equation_tags{m.equation_tags},
   computed_derivs_order{m.computed_derivs_order},
   NNZDerivatives{m.NNZDerivatives},
-  v_temporary_terms_inuse{m.v_temporary_terms_inuse},
   eq_idx_block2orig{m.eq_idx_block2orig},
   endo_idx_block2orig{m.endo_idx_block2orig},
   eq_idx_orig2block{m.eq_idx_orig2block},
   endo_idx_orig2block{m.endo_idx_orig2block},
-  map_idx{m.map_idx},
   blocks{m.blocks},
   endo2block{m.endo2block},
   eq2block{m.eq2block},
@@ -168,11 +155,8 @@ ModelTree::operator=(const ModelTree &m)
   derivatives.clear();
   params_derivatives.clear();
 
-  temporary_terms.clear();
   temporary_terms_mlv.clear();
   temporary_terms_derivatives.clear();
-  v_temporary_terms.clear();
-  v_temporary_terms_inuse = m.v_temporary_terms_inuse;
   params_derivs_temporary_terms.clear();
   params_derivs_temporary_terms_idxs.clear();
 
@@ -183,12 +167,13 @@ ModelTree::operator=(const ModelTree &m)
   endo_idx_block2orig = m.endo_idx_block2orig;
   eq_idx_orig2block = m.eq_idx_orig2block;
   endo_idx_orig2block = m.endo_idx_orig2block;
-  map_idx = m.map_idx;
   equation_type_and_normalized_equation.clear();
   blocks_derivatives.clear();
   blocks = m.blocks;
   endo2block = m.endo2block;
   eq2block = m.eq2block;
+  blocks_temporary_terms.clear();
+  blocks_temporary_terms_idxs.clear();
   is_equation_linear = m.is_equation_linear;
   endo2eq = m.endo2eq;
   cutoff = m.cutoff;
@@ -342,7 +327,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context) const
           catch (ExprNode::EvalException &e)
             {
               cerr << "ERROR: evaluation of Jacobian failed for equation " << eq+1 << " (line " << equations_lineno[eq] << ") and variable " << symbol_table.getName(symb) << "(" << lag << ") [" << symb << "] !" << endl;
-              d1->writeOutput(cerr, ExprNodeOutputType::matlabDynamicModelSparse, temporary_terms, {});
+              d1->writeOutput(cerr, ExprNodeOutputType::matlabDynamicModelSparse, {}, {});
               cerr << endl;
               exit(EXIT_FAILURE);
             }
@@ -1050,12 +1035,7 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
         else
           ++it2;
 
-  // Fill the (now obsolete) temporary_terms structure
-  temporary_terms.clear();
-  for (const auto &it : temp_terms_map)
-    temporary_terms.insert(it.second.begin(), it.second.end());
-
-  // Fill the new structure
+  // Fill the structures
   temporary_terms_derivatives.clear();
   temporary_terms_derivatives.resize(derivatives.size());
   for (int order = 0; order < static_cast<int>(derivatives.size()); order++)
@@ -1068,6 +1048,43 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
   for (int order = 0; order < static_cast<int>(derivatives.size()); order++)
     for (const auto &it : temporary_terms_derivatives[order])
       temporary_terms_idxs[it] = idx++;
+}
+
+void
+ModelTree::computeBlockTemporaryTerms()
+{
+  int nb_blocks = blocks.size();
+  blocks_temporary_terms.resize(nb_blocks);
+
+  map<expr_t, pair<int, int>> reference_count;
+  for (int blk = 0; blk < nb_blocks; blk++)
+    {
+      for (int eq = 0; eq < blocks[blk].size; eq++)
+        {
+          if (eq < blocks[blk].getRecursiveSize() && isBlockEquationRenormalized(blk, eq))
+            getBlockEquationRenormalizedExpr(blk, eq)->computeBlockTemporaryTerms(blk, blocks_temporary_terms, reference_count);
+          else
+            getBlockEquationExpr(blk, eq)->computeBlockTemporaryTerms(blk, blocks_temporary_terms, reference_count);
+        }
+      for (const auto &[ignore, d] : blocks_derivatives[blk])
+        d->computeBlockTemporaryTerms(blk, blocks_temporary_terms, reference_count);
+
+      additionalBlockTemporaryTerms(blk, blocks_temporary_terms, reference_count);
+    }
+
+  // Compute indices in the temporary terms vector
+  int idx = 0;
+  blocks_temporary_terms_idxs.clear();
+  for (int blk = 0; blk < nb_blocks; blk++)
+    for (auto tt : blocks_temporary_terms[blk])
+      blocks_temporary_terms_idxs[tt] = idx++;
+}
+
+void
+ModelTree::additionalBlockTemporaryTerms(int blk,
+                                         vector<temporary_terms_t> &blocks_temporary_terms,
+                                         map<expr_t, pair<int, int>> &reference_count) const
+{
 }
 
 void
@@ -1297,34 +1314,28 @@ ModelTree::testNestedParenthesis(const string &str) const
 }
 
 void
-ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, map_idx_t map_idx, bool dynamic, bool steady_dynamic) const
+ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_number, bool dynamic, bool steady_dynamic) const
 {
-  // Local var used to keep track of temp nodes already written
-  temporary_terms_t tt2;
   // To store the functions that have already been written in the form TEF* = ext_fun();
   deriv_node_temp_terms_t tef_terms;
-  for (auto it : tt)
+  for (auto [tt, idx] : temporary_terms_idxs)
     {
-      if (dynamic_cast<AbstractExternalFunctionNode *>(it))
-        {
-          it->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic, tef_terms);
-        }
+      if (dynamic_cast<AbstractExternalFunctionNode *>(tt))
+        tt->compileExternalFunctionOutput(code_file, instruction_number, false, blocks_temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
 
-      FNUMEXPR_ fnumexpr(TemporaryTerm, static_cast<int>(map_idx.find(it->idx)->second));
+      FNUMEXPR_ fnumexpr(TemporaryTerm, idx);
       fnumexpr.write(code_file, instruction_number);
-      it->compile(code_file, instruction_number, false, tt2, map_idx, dynamic, steady_dynamic, tef_terms);
+      tt->compile(code_file, instruction_number, false, blocks_temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
       if (dynamic)
         {
-          FSTPT_ fstpt(static_cast<int>(map_idx.find(it->idx)->second));
+          FSTPT_ fstpt(idx);
           fstpt.write(code_file, instruction_number);
         }
       else
         {
-          FSTPST_ fstpst(static_cast<int>(map_idx.find(it->idx)->second));
+          FSTPST_ fstpst(idx);
           fstpst.write(code_file, instruction_number);
         }
-      // Insert current node into tt2
-      tt2.insert(it);
     }
 }
 
@@ -1444,7 +1455,7 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type,
 }
 
 void
-ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const
+ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_number, bool dynamic, bool steady_dynamic) const
 {
   for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     {
@@ -1465,8 +1476,8 @@ ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_n
 
       if (vrhs != 0) // The right hand side of the equation is not empty ==> residual=lhs-rhs;
         {
-          lhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, dynamic, steady_dynamic);
-          rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, dynamic, steady_dynamic);
+          lhs->compile(code_file, instruction_number, false, blocks_temporary_terms_idxs, dynamic, steady_dynamic);
+          rhs->compile(code_file, instruction_number, false, blocks_temporary_terms_idxs, dynamic, steady_dynamic);
 
           FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
           fbinary.write(code_file, instruction_number);
@@ -1476,7 +1487,7 @@ ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_n
         }
       else // The right hand side of the equation is empty ==> residual=lhs;
         {
-          lhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, dynamic, steady_dynamic);
+          lhs->compile(code_file, instruction_number, false, blocks_temporary_terms_idxs, dynamic, steady_dynamic);
           FSTPR_ fstpr(eq);
           fstpr.write(code_file, instruction_number);
         }
@@ -1876,19 +1887,19 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
         {
           output << R"({"residual": {)"
                  << R"("lhs": ")";
-          lhs->writeJsonOutput(output, temporary_terms, {});
+          lhs->writeJsonOutput(output, {}, {});
           output << R"(")";
 
           output << R"(, "rhs": ")";
-          rhs->writeJsonOutput(output, temporary_terms, {});
+          rhs->writeJsonOutput(output, {}, {});
           output << R"(")";
           try
             {
               // Test if the right hand side of the equation is empty.
-              if (rhs->eval(eval_context_t()) != 0)
+              if (rhs->eval({}) != 0)
                 {
                   output << R"(, "rhs": ")";
-                  rhs->writeJsonOutput(output, temporary_terms, {});
+                  rhs->writeJsonOutput(output, {}, {});
                   output << R"(")";
                 }
             }

@@ -136,9 +136,9 @@ private:
   //! Writes the Block reordred structure of the model in M output
   void writeModelEquationsOrdered_M(const string &basename) const;
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
-  void writeModelEquationsCode_Block(const string &basename, const map_idx_t &map_idx, bool linear_decomposition) const;
+  void writeModelEquationsCode_Block(const string &basename, bool linear_decomposition) const;
   //! Writes the code of the model in virtual machine bytecode
-  void writeModelEquationsCode(const string &basename, const map_idx_t &map_idx) const;
+  void writeModelEquationsCode(const string &basename) const;
 
   void writeSetAuxiliaryVariables(const string &basename, bool julia) const;
   void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
@@ -161,15 +161,14 @@ private:
 
   string reform(const string &name) const;
 
-  //! sorts the temporary terms in the blocks order
-  void computeTemporaryTermsOrdered();
+  void additionalBlockTemporaryTerms(int blk,
+                                     vector<temporary_terms_t> &blocks_temporary_terms,
+                                     map<expr_t, pair<int, int>> &reference_count) const override;
 
-  //! creates a mapping from the index of temporary terms to a natural index
-  void computeTemporaryTermsMapping();
   //! Write derivative code of an equation w.r. to a variable
-  void compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, int lag, const map_idx_t &map_idx) const;
+  void compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, int lag) const;
   //! Write chain rule derivative code of an equation w.r. to a variable
-  void compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int blk, int eq, int var, int lag, const map_idx_t &map_idx) const;
+  void compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int blk, int eq, int var, int lag) const;
 
   //! Get the type corresponding to a derivation ID
   SymbolType getTypeByDerivID(int deriv_id) const noexcept(false) override;
@@ -198,9 +197,6 @@ private:
     \param[in] subset variables to which to apply the transformation (only for diff of forward vars)
   */
   void substituteLeadLagInternal(AuxVarType type, bool deterministic_model, const vector<string> &subset);
-
-  //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
-  bool global_temporary_terms{true};
 
   //! Help computeXrefs to compute the reverse references (i.e. param->eqs, endo->eqs, etc)
   void computeRevXref(map<pair<int, int>, set<int>> &xrefset, const set<pair<int, int>> &eiref, int eqn);

@@ -121,9 +121,6 @@ protected:
   then the IDs of parameters (in non-decreasing order)*/
   map<pair<int,int>, map<vector<int>, expr_t>> params_derivatives;
 
-  //! Storage for temporary terms in block/bytecode mode
-  temporary_terms_t temporary_terms;
-
   //! Used model local variables, that will be treated as temporary terms
   /*! See the comments in ModelTree::computeTemporaryTerms() */
   map<expr_t, expr_t, ExprNodeLess> temporary_terms_mlv;
@@ -134,10 +131,6 @@ protected:
 
   //! Stores, for each temporary term, its index in the MATLAB/Julia vector
   temporary_terms_idxs_t temporary_terms_idxs;
-
-  //! Temporary terms for block decomposed models
-  vector<vector<temporary_terms_t>> v_temporary_terms;
-  vector<temporary_terms_inuse_t> v_temporary_terms_inuse;
 
   //! Temporary terms for parameter derivatives, under a disaggregated form
   /*! The pair of integers is to be interpreted as in param_derivatives */
@@ -164,8 +157,6 @@ protected:
   /* Maps original variable and equation indices into the block-decomposition order.
      Set by updateReverseVariableEquationOrderings() */
   vector<int> eq_idx_orig2block, endo_idx_orig2block;
-
-  map_idx_t map_idx;
 
   //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
   equation_type_and_normalized_equation_t equation_type_and_normalized_equation;
@@ -202,6 +193,13 @@ protected:
      It verifies: ∀i, eq2block[endo2eq[i]] = endo2block[i] */
   vector<int> eq2block;
 
+  //! Temporary terms for block decomposed models (one block per element of the vector)
+  vector<temporary_terms_t> blocks_temporary_terms;
+
+  /* Stores, for each temporary term in block decomposed models, its index in
+     the vector of all temporary terms */
+  temporary_terms_idxs_t blocks_temporary_terms_idxs;
+
   //! the file containing the model and the derivatives code
   ofstream code_file;
 
@@ -218,13 +216,22 @@ protected:
   void writeDerivative(ostream &output, int eq, int symb_id, int lag, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
   //! Computes temporary terms (for all equations and derivatives)
   void computeTemporaryTerms(bool is_matlab, bool no_tmp_terms);
+  //! Computes temporary terms per block
+  void computeBlockTemporaryTerms();
+  /* Add additional temporary terms for a given block. This method is called by
+     computeBlockTemporaryTerms(). It does nothing by default, but is meant to
+     be overriden by subclasses (actually by DynamicModel, who needs extra
+     temporary terms for derivatives w.r.t. exogenous and other endogenous) */
+  virtual void additionalBlockTemporaryTerms(int blk,
+                                             vector<temporary_terms_t> &blocks_temporary_terms,
+                                             map<expr_t, pair<int, int>> &reference_count) const;
   //! Computes temporary terms for the file containing parameters derivatives
   void computeParamsDerivativesTemporaryTerms();
   //! Writes temporary terms
   void writeTemporaryTerms(const temporary_terms_t &tt, temporary_terms_t &temp_term_union, const temporary_terms_idxs_t &tt_idxs, ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const;
   void writeJsonTemporaryTerms(const temporary_terms_t &tt, temporary_terms_t &temp_term_union, ostream &output, deriv_node_temp_terms_t &tef_terms, const string &concat) const;
   //! Compiles temporary terms
-  void compileTemporaryTerms(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, map_idx_t map_idx, bool dynamic, bool steady_dynamic) const;
+  void compileTemporaryTerms(ostream &code_file, unsigned int &instruction_number, bool dynamic, bool steady_dynamic) const;
   //! Adds informations for simulation in a binary file
   void Write_Inf_To_Bin_File(const string &filename, int &u_count_int, bool &file_open, bool is_two_boundaries, int block_mfs) const;
   //! Fixes output when there are more than 32 nested parens, Issue #1201
@@ -245,7 +252,7 @@ protected:
   void writeJsonModelEquations(ostream &output, bool residuals) const;
   void writeJsonModelLocalVariables(ostream &output, deriv_node_temp_terms_t &tef_terms) const;
   //! Compiles model equations
-  void compileModelEquations(ostream &code_file, unsigned int &instruction_number, const temporary_terms_t &tt, const map_idx_t &map_idx, bool dynamic, bool steady_dynamic) const;
+  void compileModelEquations(ostream &code_file, unsigned int &instruction_number, bool dynamic, bool steady_dynamic) const;
 
   //! Writes LaTeX model file
   void writeLatexModelFile(const string &mod_basename, const string &latex_basename, ExprNodeOutputType output_type, bool write_equation_tags) const;

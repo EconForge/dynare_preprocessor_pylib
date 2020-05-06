@@ -33,9 +33,6 @@ class DynamicModel;
 class StaticModel : public ModelTree
 {
 private:
-  //! local temporary terms for block decomposed models
-  vector<vector<temporary_terms_t>> v_temporary_terms_local;
-
   //! Writes static model file (standard Matlab version)
   void writeStaticMFile(const string &basename) const;
 
@@ -55,10 +52,10 @@ private:
   void writeModelEquationsOrdered_M(const string &basename) const;
 
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
-  void writeModelEquationsCode_Block(const string &basename, map_idx_t map_idx, vector<map_idx_t> map_idx2) const;
+  void writeModelEquationsCode_Block(const string &basename) const;
 
   //! Writes the code of the model in virtual machine bytecode
-  void writeModelEquationsCode(const string &basename, map_idx_t map_idx) const;
+  void writeModelEquationsCode(const string &basename) const;
 
   //! Computes jacobian and prepares for equation normalization
   /*! Using values from initval/endval blocks and parameter initializations:
@@ -67,17 +64,10 @@ private:
   */
   void evaluateJacobian(const eval_context_t &eval_context, jacob_map_t *j_m, bool dynamic);
 
-  vector<map_idx_t> map_idx2;
-
-  //! sorts the temporary terms in the blocks order
-  void computeTemporaryTermsOrdered();
-  //! creates a mapping from the index of temporary terms to a natural index
-  void computeTemporaryTermsMapping(temporary_terms_t &temporary_terms, map_idx_t &map_idx);
-
   //! Write derivative code of an equation w.r. to a variable
-  void compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, map_idx_t &map_idx, temporary_terms_t temporary_terms) const;
+  void compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id) const;
   //! Write chain rule derivative code of an equation w.r. to a variable
-  void compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int blk, int eq, int var, int lag, map_idx_t &map_idx, temporary_terms_t temporary_terms) const;
+  void compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int blk, int eq, int var, int lag) const;
 
   //! Get the type corresponding to a derivation ID
   SymbolType getTypeByDerivID(int deriv_id) const noexcept(false) override;
@@ -89,9 +79,6 @@ private:
   void computeStatJacobianCols();
   //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
   void computeChainRuleJacobian();
-
-  //! Indicate if the temporary terms are computed for the overall model (true) or not (false). Default value true
-  bool global_temporary_terms{true};
 
   //! Helper functions for writeStaticModel
   void writeStaticModelHelper(const string &basename,
