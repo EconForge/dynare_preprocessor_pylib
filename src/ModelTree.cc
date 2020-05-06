@@ -255,7 +255,7 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
 }
 
 void
-ModelTree::computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian, double cutoff, const jacob_map_t &static_jacobian)
+ModelTree::computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian)
 {
   cout << "Normalizing the model..." << endl;
 
@@ -317,12 +317,10 @@ ModelTree::computeNonSingularNormalization(const jacob_map_t &contemporaneous_ja
     }
 }
 
-pair<ModelTree::jacob_map_t, ModelTree::jacob_map_t>
-ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, double cutoff, bool verbose) const
+ModelTree::jacob_map_t
+ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context) const
 {
-  jacob_map_t contemporaneous_jacobian, static_jacobian;
-  int nb_elements_contemporaneous_jacobian = 0;
-  set<vector<int>> jacobian_elements_to_delete;
+  jacob_map_t contemporaneous_jacobian;
   for (const auto &[indices, d1] : derivatives[1])
     {
       int deriv_id = indices[1];
@@ -348,35 +346,12 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context, double 
               cerr << endl;
               exit(EXIT_FAILURE);
             }
-          if (fabs(val) < cutoff)
-            {
-              if (verbose)
-                cout << "The coefficient related to variable " << var << " with lag " << lag << " in equation " << eq << " is equal to " << val << " and is set to 0 in the incidence matrix (size=" << symbol_table.endo_nbr() << ")." << endl;
-              jacobian_elements_to_delete.insert({ eq, deriv_id });
-            }
-          else
-            {
-              if (lag == 0)
-                {
-                  nb_elements_contemporaneous_jacobian++;
-                  contemporaneous_jacobian[{ eq, var }] = val;
-                }
-
-              if (static_jacobian.find({ eq, var }) != static_jacobian.end())
-                static_jacobian[{ eq, var }] += val;
-              else
-                static_jacobian[{ eq, var }] = val;
-            }
+          if (lag == 0)
+            contemporaneous_jacobian[{ eq, var }] = val;
         }
     }
 
-  if (jacobian_elements_to_delete.size() > 0)
-    {
-      cout << jacobian_elements_to_delete.size() << " elements among " << derivatives[1].size() << " in the incidence matrices are below the cutoff (" << cutoff << ") and are discarded." << endl
-           << "The contemporaneous incidence matrix has " << nb_elements_contemporaneous_jacobian << " elements." << endl;
-    }
-
-  return { contemporaneous_jacobian, static_jacobian };
+  return contemporaneous_jacobian;
 }
 
 void

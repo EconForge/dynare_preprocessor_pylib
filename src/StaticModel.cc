@@ -1064,9 +1064,9 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
 
   if (block)
     {
-      auto [contemporaneous_jacobian, static_jacobian] = evaluateAndReduceJacobian(eval_context, cutoff, false);
+      auto contemporaneous_jacobian = evaluateAndReduceJacobian(eval_context);
 
-      computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian);
+      computeNonSingularNormalization(contemporaneous_jacobian);
 
       auto [prologue, epilogue] = computePrologueAndEpilogue();
 

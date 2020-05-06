@@ -279,13 +279,13 @@ protected:
     If no matching is found with a zero cutoff, an error message is printed.
     The resulting normalization is stored in endo2eq.
   */
-  void computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian, double cutoff, const jacob_map_t &static_jacobian);
+  void computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian);
   //! Try to find a natural normalization if all equations are matched to an endogenous variable on the LHS
   bool computeNaturalNormalization();
   //! Evaluate the jacobian (w.r.t. endogenous) and suppress all the elements below the cutoff
-  /*! Returns a pair (contemporaneous_jacobian, static_jacobian).
+  /*! Returns the contemporaneous_jacobian.
       Elements below the cutoff are discarded. External functions are evaluated to 1. */
-  pair<jacob_map_t, jacob_map_t> evaluateAndReduceJacobian(const eval_context_t &eval_context, double cutoff, bool verbose) const;
+  jacob_map_t evaluateAndReduceJacobian(const eval_context_t &eval_context) const;
   //! Select and reorder the non linear equations of the model
   void select_non_linear_equations_and_variables();
   /* Search the equations and variables belonging to the prologue and the

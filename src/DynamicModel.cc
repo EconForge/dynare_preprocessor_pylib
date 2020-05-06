@@ -4508,10 +4508,10 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
       auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
       equationLinear(first_order_endo_derivatives);
 
-      auto [contemporaneous_jacobian, static_jacobian] = evaluateAndReduceJacobian(eval_context, cutoff, false);
+      auto contemporaneous_jacobian = evaluateAndReduceJacobian(eval_context);
 
       if (!computeNaturalNormalization())
-        computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian);
+        computeNonSingularNormalization(contemporaneous_jacobian);
 
       select_non_linear_equations_and_variables();
 
@@ -4531,9 +4531,9 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
     }
   else if (block)
     {
-      auto [contemporaneous_jacobian, static_jacobian] = evaluateAndReduceJacobian(eval_context, cutoff, false);
+      auto contemporaneous_jacobian = evaluateAndReduceJacobian(eval_context);
 
-      computeNonSingularNormalization(contemporaneous_jacobian, cutoff, static_jacobian);
+      computeNonSingularNormalization(contemporaneous_jacobian);
 
       auto [prologue, epilogue] = computePrologueAndEpilogue();
 
