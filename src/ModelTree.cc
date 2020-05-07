@@ -346,7 +346,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context) const
               cerr << endl;
               exit(EXIT_FAILURE);
             }
-          if (lag == 0)
+          if ((isnan(val) || fabs(val) >= cutoff) && lag == 0)
             contemporaneous_jacobian[{ eq, var }] = val;
         }
     }
