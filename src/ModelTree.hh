@@ -50,7 +50,7 @@ vectorToTuple(const vector<T> &v)
 }
 
 //! Vector describing equations: BlockSimulationType, if BlockSimulationType == EVALUATE_s then a expr_t on the new normalized equation
-using equation_type_and_normalized_equation_t = vector<pair<EquationType, expr_t>>;
+using equation_type_and_normalized_equation_t = vector<pair<EquationType, BinaryOpNode *>>;
 
 //! Vector describing variables: max_lag in the block, max_lead in the block
 using lag_lead_vector_t = vector<pair<int, int>>;
@@ -342,13 +342,13 @@ protected:
     return equation_type_and_normalized_equation[eq_idx_block2orig[blocks[blk].first_equation + eq]].first == EquationType::evaluate_s;
   };
   //! Return the expr_t of equation belonging to the block
-  expr_t
+  BinaryOpNode *
   getBlockEquationExpr(int blk, int eq) const
   {
     return equations[eq_idx_block2orig[blocks[blk].first_equation + eq]];
   };
   //! Return the expr_t of renormalized equation belonging to the block
-  expr_t
+  BinaryOpNode *
   getBlockEquationRenormalizedExpr(int blk, int eq) const
   {
     return equation_type_and_normalized_equation[eq_idx_block2orig[blocks[blk].first_equation + eq]].second;

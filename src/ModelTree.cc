@@ -103,7 +103,7 @@ ModelTree::copyHelper(const ModelTree &m)
     nonstationary_symbols_map[it.first] = {it.second.first, f(it.second.second)};
 
   for (const auto &it : m.equation_type_and_normalized_equation)
-    equation_type_and_normalized_equation.emplace_back(it.first, f(it.second));
+    equation_type_and_normalized_equation.emplace_back(it.first, dynamic_cast<BinaryOpNode *>(f(it.second)));
 
   for (const auto &it : m.blocks_derivatives)
     {

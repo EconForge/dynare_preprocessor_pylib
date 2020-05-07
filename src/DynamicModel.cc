@@ -242,7 +242,7 @@ DynamicModel::computeTemporaryTermsOrdered()
                 getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, i);
               else
                 {
-                  eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
+                  eq_node = getBlockEquationExpr(block, i);
                   eq_node->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, i);
                 }
             }
@@ -267,7 +267,7 @@ DynamicModel::computeTemporaryTermsOrdered()
                 getBlockEquationRenormalizedExpr(block, i)->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, i);
               else
                 {
-                  eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
+                  eq_node = getBlockEquationExpr(block, i);
                   eq_node->computeTemporaryTerms(reference_count, temporary_terms, first_occurence, block, v_temporary_terms, i);
                 }
             }
@@ -288,7 +288,7 @@ DynamicModel::computeTemporaryTermsOrdered()
                 getBlockEquationRenormalizedExpr(block, i)->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
               else
                 {
-                  eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
+                  eq_node = getBlockEquationExpr(block, i);
                   eq_node->collectTemporary_terms(temporary_terms, temporary_terms_in_use, block);
                 }
             }
@@ -499,7 +499,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
           int equation_ID = getBlockEquationID(block, i);
           EquationType equ_type = getBlockEquationType(block, i);
           string sModel = symbol_table.getName(symbol_table.getID(SymbolType::endogenous, variable_ID));
-          eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
+          eq_node = getBlockEquationExpr(block, i);
           lhs = eq_node->arg1;
           rhs = eq_node->arg2;
           tmp_output.str("");
@@ -528,7 +528,7 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
                       rhs->writeOutput(output, local_output_type, local_temporary_terms, {});
                       output << endl << "    ";
                       tmp_output.str("");
-                      eq_node = static_cast<BinaryOpNode *>(getBlockEquationRenormalizedExpr(block, i));
+                      eq_node = getBlockEquationRenormalizedExpr(block, i);
                       lhs = eq_node->arg1;
                       rhs = eq_node->arg2;
                       lhs->writeOutput(output, local_output_type, local_temporary_terms, {});
@@ -1141,7 +1141,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
               }
               if (equ_type == EquationType::evaluate)
                 {
-                  eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
+                  eq_node = getBlockEquationExpr(block, i);
                   lhs = eq_node->arg1;
                   rhs = eq_node->arg2;
                   rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
@@ -1149,7 +1149,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
                 }
               else if (equ_type == EquationType::evaluate_s)
                 {
-                  eq_node = static_cast<BinaryOpNode *>(getBlockEquationRenormalizedExpr(block, i));
+                  eq_node = getBlockEquationRenormalizedExpr(block, i);
                   lhs = eq_node->arg1;
                   rhs = eq_node->arg2;
                   rhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
@@ -1171,7 +1171,7 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, const map_id
             end:
               FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
               fnumexpr.write(code_file, instruction_number);
-              eq_node = static_cast<BinaryOpNode *>(getBlockEquationExpr(block, i));
+              eq_node = getBlockEquationExpr(block, i);
               lhs = eq_node->arg1;
               rhs = eq_node->arg2;
               lhs->compile(code_file, instruction_number, false, temporary_terms, map_idx, true, false);
