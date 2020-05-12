@@ -2324,9 +2324,10 @@ UnaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
     }
   else
     {
-      reference_count[this2] = { it->second.first + 1, it->second.second };
-      if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > min_cost(is_matlab))
-        temp_terms_map[reference_count[this2].second].insert(this2);
+      auto &[nref, min_order] = it->second;
+      nref++;
+      if (nref * cost(temp_terms_map, is_matlab) > min_cost(is_matlab))
+        temp_terms_map[min_order].insert(this2);
     }
 }
 
@@ -4134,10 +4135,11 @@ BinaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
       /* If the node has already been encountered, increment its ref count
          and declare it as a temporary term if it is too costly (except if it is
          an equal node: we don't want them as temporary terms) */
-      reference_count[this2] = { it->second.first + 1, it->second.second };
-      if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > min_cost(is_matlab)
+      auto &[nref, min_order] = it->second;
+      nref++;
+      if (nref * cost(temp_terms_map, is_matlab) > min_cost(is_matlab)
           && op_code != BinaryOpcode::equal)
-        temp_terms_map[reference_count[this2].second].insert(this2);
+        temp_terms_map[min_order].insert(this2);
     }
 }
 
@@ -5896,9 +5898,10 @@ TrinaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
     {
       // If the node has already been encountered, increment its ref count
       //  and declare it as a temporary term if it is too costly
-      reference_count[this2] = { it->second.first + 1, it->second.second };
-      if (reference_count[this2].first * cost(temp_terms_map, is_matlab) > min_cost(is_matlab))
-        temp_terms_map[reference_count[this2].second].insert(this2);
+      auto &[nref, min_order] = it->second;
+      nref++;
+      if (nref * cost(temp_terms_map, is_matlab) > min_cost(is_matlab))
+        temp_terms_map[min_order].insert(this2);
     }
 }
 
@@ -6960,15 +6963,16 @@ AbstractExternalFunctionNode::computeTemporaryTerms(const pair<int, int> &derivO
      corresponding to the same external function call is present in that
      previous level. */
 
+  expr_t this2 = const_cast<AbstractExternalFunctionNode *>(this);
   for (auto &tt : temp_terms_map)
     if (auto it = find_if(tt.second.cbegin(), tt.second.cend(), sameTefTermPredicate());
         it != tt.second.cend())
       {
-        tt.second.insert(const_cast<AbstractExternalFunctionNode *>(this));
+        tt.second.insert(this2);
         return;
       }
 
-  temp_terms_map[derivOrder].insert(const_cast<AbstractExternalFunctionNode *>(this));
+  temp_terms_map[derivOrder].insert(this2);
 }
 
 void
