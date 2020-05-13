@@ -683,13 +683,8 @@ DynamicModel::writeModelEquationsCode(const string &basename) const
   Write_Inf_To_Bin_File(basename + "/model/bytecode/dynamic.bin", u_count_int, file_open, simulation_type == BlockSimulationType::solveTwoBoundariesComplete, symbol_table.endo_nbr());
   file_open = true;
 
-  // Compute the union of temporary terms from residuals and 1st derivatives
-  temporary_terms_t temporary_terms = temporary_terms_derivatives[0];
-  copy(temporary_terms_derivatives[1].begin(), temporary_terms_derivatives[1].end(),
-       inserter(temporary_terms, temporary_terms.end()));
-
   //Temporary variables declaration
-  FDIMT_ fdimt(temporary_terms.size());
+  FDIMT_ fdimt(temporary_terms_idxs.size());
   fdimt.write(code_file, instruction_number);
 
   vector<int> exo, exo_det, other_endo;
