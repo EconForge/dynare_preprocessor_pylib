@@ -187,10 +187,10 @@ ExprNode::writeOutput(ostream &output, ExprNodeOutputType output_type, const tem
 
 void
 ExprNode::compile(ostream &CompileCode, unsigned int &instruction_number,
-                  bool lhs_rhs,
+                  bool lhs_rhs, const temporary_terms_t &temporary_terms,
                   const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic) const
 {
-  compile(CompileCode, instruction_number, lhs_rhs, temporary_terms_idxs, dynamic, steady_dynamic, {});
+  compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic, {});
 }
 
 void
@@ -213,7 +213,7 @@ ExprNode::writeJsonExternalFunctionOutput(vector<string> &efout,
 
 void
 ExprNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                        bool lhs_rhs,
+                                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                         const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                                         deriv_node_temp_terms_t &tef_terms) const
 {
@@ -459,7 +459,7 @@ NumConstNode::eval(const eval_context_t &eval_context) const noexcept(false)
 
 void
 NumConstNode::compile(ostream &CompileCode, unsigned int &instruction_number,
-                      bool lhs_rhs,
+                      bool lhs_rhs, const temporary_terms_t &temporary_terms,
                       const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                       const deriv_node_temp_terms_t &tef_terms) const
 {
@@ -1232,13 +1232,13 @@ VariableNode::eval(const eval_context_t &eval_context) const noexcept(false)
 
 void
 VariableNode::compile(ostream &CompileCode, unsigned int &instruction_number,
-                      bool lhs_rhs,
+                      bool lhs_rhs, const temporary_terms_t &temporary_terms,
                       const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                       const deriv_node_temp_terms_t &tef_terms) const
 {
   auto type = get_type();
   if (type == SymbolType::modelLocalVariable || type == SymbolType::modFileLocalVariable)
-    datatree.getLocalVariable(symb_id)->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+    datatree.getLocalVariable(symb_id)->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
   else
     {
       int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
@@ -2866,12 +2866,12 @@ UnaryOpNode::writeJsonExternalFunctionOutput(vector<string> &efout,
 
 void
 UnaryOpNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                           bool lhs_rhs,
+                                           bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                            const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                                            deriv_node_temp_terms_t &tef_terms) const
 {
-  arg->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs, temporary_terms_idxs,
-                                     dynamic, steady_dynamic, tef_terms);
+  arg->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs, temporary_terms,
+                                     temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
 }
 
 double
@@ -2952,30 +2952,30 @@ UnaryOpNode::eval(const eval_context_t &eval_context) const noexcept(false)
 
 void
 UnaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
-                     bool lhs_rhs,
+                     bool lhs_rhs, const temporary_terms_t &temporary_terms,
                      const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                      const deriv_node_temp_terms_t &tef_terms) const
 {
-  if (auto it = temporary_terms_idxs.find(const_cast<UnaryOpNode *>(this));
-      it != temporary_terms_idxs.end())
+  if (auto this2 = const_cast<UnaryOpNode *>(this);
+      temporary_terms.find(this2) != temporary_terms.end())
     {
       if (dynamic)
         {
-          FLDT_ fldt(it->second);
+          FLDT_ fldt(temporary_terms_idxs.at(this2));
           fldt.write(CompileCode, instruction_number);
         }
       else
         {
-          FLDST_ fldst(it->second);
+          FLDST_ fldst(temporary_terms_idxs.at(this2));
           fldst.write(CompileCode, instruction_number);
         }
       return;
     }
   if (op_code == UnaryOpcode::steadyState)
-    arg->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms_idxs, dynamic, true, tef_terms);
+    arg->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, temporary_terms_idxs, dynamic, true, tef_terms);
   else
     {
-      arg->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+      arg->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
       FUNARY_ funary{static_cast<uint8_t>(op_code)};
       funary.write(CompileCode, instruction_number);
     }
@@ -4231,22 +4231,22 @@ BinaryOpNode::eval(const eval_context_t &eval_context) const noexcept(false)
 
 void
 BinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
-                      bool lhs_rhs,
+                      bool lhs_rhs, const temporary_terms_t &temporary_terms,
                       const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                       const deriv_node_temp_terms_t &tef_terms) const
 {
   // If current node is a temporary term
-  if (auto it = temporary_terms_idxs.find(const_cast<BinaryOpNode *>(this));
-      it != temporary_terms_idxs.end())
+  if (auto this2 = const_cast<BinaryOpNode *>(this);
+      temporary_terms.find(this2) != temporary_terms.end())
     {
       if (dynamic)
         {
-          FLDT_ fldt(it->second);
+          FLDT_ fldt(temporary_terms_idxs.at(this2));
           fldt.write(CompileCode, instruction_number);
         }
       else
         {
-          FLDST_ fldst(it->second);
+          FLDST_ fldst(temporary_terms_idxs.at(this2));
           fldst.write(CompileCode, instruction_number);
         }
       return;
@@ -4256,8 +4256,8 @@ BinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
       FLDC_ fldc(powerDerivOrder);
       fldc.write(CompileCode, instruction_number);
     }
-  arg1->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
-  arg2->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+  arg1->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+  arg2->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
   FBINARY_ fbinary{static_cast<int>(op_code)};
   fbinary.write(CompileCode, instruction_number);
 }
@@ -4653,14 +4653,14 @@ BinaryOpNode::writeJsonExternalFunctionOutput(vector<string> &efout,
 
 void
 BinaryOpNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                            bool lhs_rhs,
+                                            bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                             const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                                             deriv_node_temp_terms_t &tef_terms) const
 {
-  arg1->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs, temporary_terms_idxs,
-                                      dynamic, steady_dynamic, tef_terms);
-  arg2->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs, temporary_terms_idxs,
-                                      dynamic, steady_dynamic, tef_terms);
+  arg1->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs, temporary_terms,
+                                      temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+  arg2->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs, temporary_terms,
+                                      temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
 }
 
 int
@@ -5953,29 +5953,29 @@ TrinaryOpNode::eval(const eval_context_t &eval_context) const noexcept(false)
 
 void
 TrinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
-                       bool lhs_rhs,
+                       bool lhs_rhs, const temporary_terms_t &temporary_terms,
                        const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                        const deriv_node_temp_terms_t &tef_terms) const
 {
   // If current node is a temporary term
-  if (auto it = temporary_terms_idxs.find(const_cast<TrinaryOpNode *>(this));
-      it != temporary_terms_idxs.end())
+  if (auto this2 = const_cast<TrinaryOpNode *>(this);
+      temporary_terms.find(this2) != temporary_terms.end())
     {
       if (dynamic)
         {
-          FLDT_ fldt(it->second);
+          FLDT_ fldt(temporary_terms_idxs.at(this2));
           fldt.write(CompileCode, instruction_number);
         }
       else
         {
-          FLDST_ fldst(it->second);
+          FLDST_ fldst(temporary_terms_idxs.at(this2));
           fldst.write(CompileCode, instruction_number);
         }
       return;
     }
-  arg1->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
-  arg2->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
-  arg3->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+  arg1->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+  arg2->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+  arg3->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
   FTRINARY_ ftrinary{static_cast<int>(op_code)};
   ftrinary.write(CompileCode, instruction_number);
 }
@@ -6128,16 +6128,16 @@ TrinaryOpNode::writeJsonExternalFunctionOutput(vector<string> &efout,
 
 void
 TrinaryOpNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                             bool lhs_rhs,
+                                             bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                              const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                                              deriv_node_temp_terms_t &tef_terms) const
 {
-  arg1->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs, temporary_terms_idxs,
-                                      dynamic, steady_dynamic, tef_terms);
-  arg2->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs, temporary_terms_idxs,
-                                      dynamic, steady_dynamic, tef_terms);
-  arg3->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs, temporary_terms_idxs,
-                                      dynamic, steady_dynamic, tef_terms);
+  arg1->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs, temporary_terms,
+                                      temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+  arg2->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs, temporary_terms,
+                                      temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+  arg3->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs, temporary_terms,
+                                      temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
 }
 
 void
@@ -6636,13 +6636,13 @@ AbstractExternalFunctionNode::getChainRuleDerivative(int deriv_id, const map<int
 
 unsigned int
 AbstractExternalFunctionNode::compileExternalFunctionArguments(ostream &CompileCode, unsigned int &instruction_number,
-                                                               bool lhs_rhs,
+                                                               bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                                                const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                                                                const deriv_node_temp_terms_t &tef_terms) const
 {
   for (auto argument : arguments)
-    argument->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms_idxs,
-                      dynamic, steady_dynamic, tef_terms);
+    argument->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms,
+                      temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
   return (arguments.size());
 }
 
@@ -7226,21 +7226,21 @@ ExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
 
 void
 ExternalFunctionNode::compile(ostream &CompileCode, unsigned int &instruction_number,
-                              bool lhs_rhs,
+                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                               const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                               const deriv_node_temp_terms_t &tef_terms) const
 {
-  if (auto it = temporary_terms_idxs.find(const_cast<ExternalFunctionNode *>(this));
-      it != temporary_terms_idxs.end())
+  if (auto this2 = const_cast<ExternalFunctionNode *>(this);
+      temporary_terms.find(this2) != temporary_terms.end())
     {
       if (dynamic)
         {
-          FLDT_ fldt(it->second);
+          FLDT_ fldt(temporary_terms_idxs.at(this2));
           fldt.write(CompileCode, instruction_number);
         }
       else
         {
-          FLDST_ fldst(it->second);
+          FLDST_ fldst(temporary_terms_idxs.at(this2));
           fldst.write(CompileCode, instruction_number);
         }
       return;
@@ -7260,7 +7260,7 @@ ExternalFunctionNode::compile(ostream &CompileCode, unsigned int &instruction_nu
 
 void
 ExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                                    bool lhs_rhs,
+                                                    bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                                     const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                                                     deriv_node_temp_terms_t &tef_terms) const
 {
@@ -7268,7 +7268,7 @@ ExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCode, unsign
   assert(first_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
   for (auto argument : arguments)
-    argument->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs,
+    argument->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs, temporary_terms,
                                             temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
 
   if (!alreadyWrittenAsTefTerm(symb_id, tef_terms))
@@ -7286,7 +7286,7 @@ ExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCode, unsign
         nb_output_arguments = 2;
       else
         nb_output_arguments = 1;
-      unsigned int nb_input_arguments = compileExternalFunctionArguments(CompileCode, instruction_number, lhs_rhs,
+      unsigned int nb_input_arguments = compileExternalFunctionArguments(CompileCode, instruction_number, lhs_rhs, temporary_terms,
                                                                          temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
 
       FCALL_ fcall(nb_output_arguments, nb_input_arguments, datatree.symbol_table.getName(symb_id), indx);
@@ -7616,21 +7616,21 @@ FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType 
 
 void
 FirstDerivExternalFunctionNode::compile(ostream &CompileCode, unsigned int &instruction_number,
-                                        bool lhs_rhs,
+                                        bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                         const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                                         const deriv_node_temp_terms_t &tef_terms) const
 {
-  if (auto it = temporary_terms_idxs.find(const_cast<FirstDerivExternalFunctionNode *>(this));
-      it != temporary_terms_idxs.end())
+  if (auto this2 = const_cast<FirstDerivExternalFunctionNode *>(this);
+      temporary_terms.find(this2) != temporary_terms.end())
     {
       if (dynamic)
         {
-          FLDT_ fldt(it->second);
+          FLDT_ fldt(temporary_terms_idxs.at(this2));
           fldt.write(CompileCode, instruction_number);
         }
       else
         {
-          FLDST_ fldst(it->second);
+          FLDST_ fldst(temporary_terms_idxs.at(this2));
           fldst.write(CompileCode, instruction_number);
         }
       return;
@@ -7797,7 +7797,7 @@ FirstDerivExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> &
 
 void
 FirstDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                                              bool lhs_rhs,
+                                                              bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                                               const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                                                               deriv_node_temp_terms_t &tef_terms) const
 {
@@ -7807,7 +7807,7 @@ FirstDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCo
   if (first_deriv_symb_id == symb_id || alreadyWrittenAsTefTerm(first_deriv_symb_id, tef_terms))
     return;
 
-  unsigned int nb_add_input_arguments = compileExternalFunctionArguments(CompileCode, instruction_number, lhs_rhs,
+  unsigned int nb_add_input_arguments = compileExternalFunctionArguments(CompileCode, instruction_number, lhs_rhs, temporary_terms,
                                                                          temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
   if (first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
     {
@@ -8183,7 +8183,7 @@ SecondDerivExternalFunctionNode::computeXrefs(EquationInfo &ei) const
 
 void
 SecondDerivExternalFunctionNode::compile(ostream &CompileCode, unsigned int &instruction_number,
-                                         bool lhs_rhs,
+                                         bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                          const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                                          const deriv_node_temp_terms_t &tef_terms) const
 {
@@ -8193,7 +8193,7 @@ SecondDerivExternalFunctionNode::compile(ostream &CompileCode, unsigned int &ins
 
 void
 SecondDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                                               bool lhs_rhs,
+                                                               bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                                                const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                                                                deriv_node_temp_terms_t &tef_terms) const
 {
@@ -8429,7 +8429,7 @@ VarExpectationNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, i
 
 void
 VarExpectationNode::compile(ostream &CompileCode, unsigned int &instruction_number,
-                            bool lhs_rhs,
+                            bool lhs_rhs, const temporary_terms_t &temporary_terms,
                             const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                             const deriv_node_temp_terms_t &tef_terms) const
 {
@@ -8845,7 +8845,7 @@ PacExpectationNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, i
 
 void
 PacExpectationNode::compile(ostream &CompileCode, unsigned int &instruction_number,
-                            bool lhs_rhs,
+                            bool lhs_rhs, const temporary_terms_t &temporary_terms,
                             const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                             const deriv_node_temp_terms_t &tef_terms) const
 {
