@@ -173,16 +173,17 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
       // Declare global temp terms from this block and the previous ones
       bool global_keyword_written = false;
       for (int blk2 = 0; blk2 <= block; blk2++)
-        for (auto tt : blocks_temporary_terms[blk2])
-          {
-            if (!global_keyword_written)
-              {
-                output << "  global";
-                global_keyword_written = true;
-              }
-            output << " ";
-            tt->writeOutput(output, local_output_type, blocks_temporary_terms[blk2], {});
-          }
+        for (auto &eq_tt : blocks_temporary_terms[blk2])
+          for (auto tt : eq_tt)
+            {
+              if (!global_keyword_written)
+                {
+                  output << "  global";
+                  global_keyword_written = true;
+                }
+              output << " ";
+              tt->writeOutput(output, local_output_type, eq_tt, {});
+            }
       if (global_keyword_written)
         output << ";" << endl;
 
@@ -191,23 +192,28 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
         output << "  residual=zeros(" << block_mfs << ",1);" << endl;
 
       // The equations
-
       deriv_node_temp_terms_t tef_terms;
-      for (auto it : blocks_temporary_terms[block])
-        {
-          if (dynamic_cast<AbstractExternalFunctionNode *>(it))
-            it->writeExternalFunctionOutput(output, local_output_type, temporary_terms, {}, tef_terms);
 
-          output << "  ";
-          it->writeOutput(output, local_output_type, blocks_temporary_terms[block], {}, tef_terms);
-          output << " = ";
-          it->writeOutput(output, local_output_type, temporary_terms, {}, tef_terms);
-          temporary_terms.insert(it);
-          output << ";" << endl;
-        }
+      auto write_eq_tt = [&](int eq)
+                         {
+                           for (auto it : blocks_temporary_terms[block][eq])
+                             {
+                               if (dynamic_cast<AbstractExternalFunctionNode *>(it))
+                                 it->writeExternalFunctionOutput(output, local_output_type, temporary_terms, {}, tef_terms);
+
+                               output << "  ";
+                               it->writeOutput(output, local_output_type, blocks_temporary_terms[block][eq], {}, tef_terms);
+                               output << " = ";
+                               it->writeOutput(output, local_output_type, temporary_terms, {}, tef_terms);
+                               temporary_terms.insert(it);
+                               output << ";" << endl;
+                             }
+                         };
 
       for (int i = 0; i < block_size; i++)
         {
+          write_eq_tt(i);
+
           int variable_ID = getBlockVariableID(block, i);
           int equation_ID = getBlockEquationID(block, i);
           EquationType equ_type = getBlockEquationType(block, i);
@@ -266,6 +272,9 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
         case BlockSimulationType::solveForwardSimple:
         case BlockSimulationType::solveBackwardComplete:
         case BlockSimulationType::solveForwardComplete:
+          // Write temporary terms for derivatives
+          write_eq_tt(blocks[block].size);
+
           for (const auto &[indices, id] : blocks_derivatives[block])
             {
               auto [eq, var, ignore] = indices;
@@ -528,24 +537,30 @@ StaticModel::writeModelEquationsCode_Block(const string &basename) const
 
       //The Temporary terms
       deriv_node_temp_terms_t tef_terms;
-      /* We are force to use a copy of tt_union here, since temp. terms are
+      /* Keep a backup of temporary_terms_union here, since temp. terms are
          written a second time below. This is probably unwanted… */
-      temporary_terms_t tt2 = temporary_terms_union;
-      for (auto it : blocks_temporary_terms[block])
-        {
-          if (dynamic_cast<AbstractExternalFunctionNode *>(it))
-            it->compileExternalFunctionOutput(code_file, instruction_number, false, tt2, blocks_temporary_terms_idxs, false, false, tef_terms);
+      temporary_terms_t ttu_old = temporary_terms_union;
 
-          FNUMEXPR_ fnumexpr(TemporaryTerm, static_cast<int>(blocks_temporary_terms_idxs.at(it)));
-          fnumexpr.write(code_file, instruction_number);
-          it->compile(code_file, instruction_number, false, tt2, blocks_temporary_terms_idxs, false, false, tef_terms);
-          FSTPST_ fstpst(static_cast<int>(blocks_temporary_terms_idxs.at(it)));
-          fstpst.write(code_file, instruction_number);
-          tt2.insert(it);
-        }
+      auto write_eq_tt = [&](int eq)
+                         {
+                           for (auto it : blocks_temporary_terms[block][eq])
+                             {
+                               if (dynamic_cast<AbstractExternalFunctionNode *>(it))
+                                 it->compileExternalFunctionOutput(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false, tef_terms);
+
+                               FNUMEXPR_ fnumexpr(TemporaryTerm, static_cast<int>(blocks_temporary_terms_idxs.at(it)));
+                               fnumexpr.write(code_file, instruction_number);
+                               it->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false, tef_terms);
+                               FSTPST_ fstpst(static_cast<int>(blocks_temporary_terms_idxs.at(it)));
+                               fstpst.write(code_file, instruction_number);
+                               temporary_terms_union.insert(it);
+                             }
+                         };
 
       for (i = 0; i < block_size; i++)
         {
+          write_eq_tt(i);
+
           // The equations
           int variable_ID, equation_ID;
           EquationType equ_type;
@@ -564,16 +579,16 @@ StaticModel::writeModelEquationsCode_Block(const string &basename) const
                   eq_node = getBlockEquationExpr(block, i);
                   lhs = eq_node->arg1;
                   rhs = eq_node->arg2;
-                  rhs->compile(code_file, instruction_number, false, tt2, blocks_temporary_terms_idxs, false, false);
-                  lhs->compile(code_file, instruction_number, true, tt2, blocks_temporary_terms_idxs, false, false);
+                  rhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false);
+                  lhs->compile(code_file, instruction_number, true, temporary_terms_union, blocks_temporary_terms_idxs, false, false);
                 }
               else if (equ_type == EquationType::evaluate_s)
                 {
                   eq_node = getBlockEquationRenormalizedExpr(block, i);
                   lhs = eq_node->arg1;
                   rhs = eq_node->arg2;
-                  rhs->compile(code_file, instruction_number, false, tt2, blocks_temporary_terms_idxs, false, false);
-                  lhs->compile(code_file, instruction_number, true, tt2, blocks_temporary_terms_idxs, false, false);
+                  rhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false);
+                  lhs->compile(code_file, instruction_number, true, temporary_terms_union, blocks_temporary_terms_idxs, false, false);
                 }
               break;
             case BlockSimulationType::solveBackwardComplete:
@@ -592,8 +607,8 @@ StaticModel::writeModelEquationsCode_Block(const string &basename) const
               eq_node = getBlockEquationExpr(block, i);
               lhs = eq_node->arg1;
               rhs = eq_node->arg2;
-              lhs->compile(code_file, instruction_number, false, tt2, blocks_temporary_terms_idxs, false, false);
-              rhs->compile(code_file, instruction_number, false, tt2, blocks_temporary_terms_idxs, false, false);
+              lhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false);
+              rhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false);
 
               FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
               fbinary.write(code_file, instruction_number);
@@ -609,6 +624,9 @@ StaticModel::writeModelEquationsCode_Block(const string &basename) const
       if (simulation_type != BlockSimulationType::evaluateBackward
           && simulation_type != BlockSimulationType::evaluateForward)
         {
+          // Write temporary terms for derivatives
+          write_eq_tt(blocks[block].size);
+
           switch (simulation_type)
             {
             case BlockSimulationType::solveBackwardSimple:
@@ -617,7 +635,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename) const
                 FNUMEXPR_ fnumexpr(FirstEndoDerivative, 0, 0);
                 fnumexpr.write(code_file, instruction_number);
               }
-              compileDerivative(code_file, instruction_number, getBlockEquationID(block, 0), getBlockVariableID(block, 0), tt2, blocks_temporary_terms_idxs);
+              compileDerivative(code_file, instruction_number, getBlockEquationID(block, 0), getBlockVariableID(block, 0), temporary_terms_union, blocks_temporary_terms_idxs);
               {
                 FSTPG_ fstpg(0);
                 fstpg.write(code_file, instruction_number);
@@ -649,7 +667,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename) const
                       Uf[eqr].Ufl->var = varr;
                       FNUMEXPR_ fnumexpr(FirstEndoDerivative, eqr, varr);
                       fnumexpr.write(code_file, instruction_number);
-                      compileChainRuleDerivative(code_file, instruction_number, block, eq, var, 0, tt2, blocks_temporary_terms_idxs);
+                      compileChainRuleDerivative(code_file, instruction_number, block, eq, var, 0, temporary_terms_union, blocks_temporary_terms_idxs);
                       FSTPSU_ fstpsu(count_u);
                       fstpsu.write(code_file, instruction_number);
                       count_u++;
@@ -713,21 +731,12 @@ StaticModel::writeModelEquationsCode_Block(const string &basename) const
       prev_instruction_number = instruction_number;
 
       tef_terms.clear();
-      for (auto it : blocks_temporary_terms[block])
-        {
-          if (dynamic_cast<AbstractExternalFunctionNode *>(it))
-            it->compileExternalFunctionOutput(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false, tef_terms);
-
-          FNUMEXPR_ fnumexpr(TemporaryTerm, static_cast<int>(blocks_temporary_terms_idxs.at(it)));
-          fnumexpr.write(code_file, instruction_number);
-          it->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false, tef_terms);
-          FSTPST_ fstpst(static_cast<int>(blocks_temporary_terms_idxs.at(it)));
-          fstpst.write(code_file, instruction_number);
-          temporary_terms_union.insert(it);
-        }
+      temporary_terms_union = ttu_old;
 
       for (i = 0; i < block_size; i++)
         {
+          write_eq_tt(i);
+
           // The equations
           int variable_ID, equation_ID;
           EquationType equ_type;
@@ -788,6 +797,10 @@ StaticModel::writeModelEquationsCode_Block(const string &basename) const
       fendequ_l.write(code_file, instruction_number);
 
       // The Jacobian if we have to solve the block determinsitic bloc
+
+      // Write temporary terms for derivatives
+      write_eq_tt(blocks[block].size);
+
       switch (simulation_type)
         {
         case BlockSimulationType::solveBackwardSimple:

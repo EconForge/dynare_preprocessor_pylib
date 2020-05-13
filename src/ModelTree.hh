@@ -193,8 +193,18 @@ protected:
      It verifies: ∀i, eq2block[endo2eq[i]] = endo2block[i] */
   vector<int> eq2block;
 
-  //! Temporary terms for block decomposed models (one block per element of the vector)
-  vector<temporary_terms_t> blocks_temporary_terms;
+  /* Temporary terms for block decomposed models.
+     - the outer vector has as many elements as there are blocks in the model
+     - the inner vector has as many elements as there are equations in the
+       block, plus a last one which contains the temporary terms for
+       derivatives
+
+     It’s necessary to track temporary terms per equation, because some
+     equations are evaluated instead of solved, and an equation E1 may depend
+     on the value of an endogenous Y computed by a previously evaluated equation
+     E2; in this case, if some temporary term TT of equation E2 contains Y,
+     then TT needs to be computed after E1, but before E2. */
+  vector<vector<temporary_terms_t>> blocks_temporary_terms;
 
   /* Stores, for each temporary term in block decomposed models, its index in
      the vector of all temporary terms */
@@ -223,8 +233,8 @@ protected:
      be overriden by subclasses (actually by DynamicModel, who needs extra
      temporary terms for derivatives w.r.t. exogenous and other endogenous) */
   virtual void additionalBlockTemporaryTerms(int blk,
-                                             vector<temporary_terms_t> &blocks_temporary_terms,
-                                             map<expr_t, pair<int, int>> &reference_count) const;
+                                             vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                             map<expr_t, tuple<int, int, int>> &reference_count) const;
   //! Computes temporary terms for the file containing parameters derivatives
   void computeParamsDerivativesTemporaryTerms();
   //! Writes temporary terms

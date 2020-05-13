@@ -162,8 +162,8 @@ private:
   string reform(const string &name) const;
 
   void additionalBlockTemporaryTerms(int blk,
-                                     vector<temporary_terms_t> &blocks_temporary_terms,
-                                     map<expr_t, pair<int, int>> &reference_count) const override;
+                                     vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                     map<expr_t, tuple<int, int, int>> &reference_count) const override;
 
   //! Write derivative code of an equation w.r. to a variable
   void compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, int lag, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs) const;

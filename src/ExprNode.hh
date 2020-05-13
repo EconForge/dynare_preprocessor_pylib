@@ -225,7 +225,7 @@ protected:
   //! Cost of computing current node
   /*! Nodes included in temporary_terms are considered having a null cost */
   virtual int cost(int cost, bool is_matlab) const;
-  virtual int cost(const vector<temporary_terms_t> &blocks_temporary_terms, bool is_matlab) const;
+  virtual int cost(const vector<vector<temporary_terms_t>> &blocks_temporary_terms, bool is_matlab) const;
   virtual int cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const;
 
   //! For creating equation cross references
@@ -304,17 +304,19 @@ public:
   //! Compute temporary terms in this expression for block decomposed model
   /*!
     \param[in] blk the block number
+    \param[in] eq the equation number (within the block)
     \param[out] blocks_temporary_terms the computed temporary terms, per block
+                and per equation in the block
     \param[out] reference_count a temporary structure, used to count
     references to each node (first integer is the
     reference count, second integer is the number of the block in which the
-    expression first appears)
+    expression first appears, third integer is the equation number within the block)
 
     Same rules as computeTemporaryTerms() for computing cost.
   */
-  virtual void computeBlockTemporaryTerms(int blk,
-                                          vector<temporary_terms_t> &blocks_temporary_terms,
-                                          map<expr_t, pair<int, int>> &reference_count) const;
+  virtual void computeBlockTemporaryTerms(int blk, int eq,
+                                          vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                          map<expr_t, tuple<int, int, int>> &reference_count) const;
 
   //! Writes output of node, using a Txxx notation for nodes in temporary_terms, and specifiying the set of already written external functions
   /*!
@@ -899,7 +901,7 @@ public:
 private:
   expr_t computeDerivative(int deriv_id) override;
   int cost(int cost, bool is_matlab) const override;
-  int cost(const vector<temporary_terms_t> &blocks_temporary_terms, bool is_matlab) const override;
+  int cost(const vector<vector<temporary_terms_t>> &blocks_temporary_terms, bool is_matlab) const override;
   int cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
   //! Returns the derivative of this node if darg is the derivative of the argument
   expr_t composeDerivatives(expr_t darg, int deriv_id);
@@ -910,8 +912,8 @@ public:
                              map<pair<int, int>, temporary_terms_t> &temp_terms_map,
                              map<expr_t, pair<int, pair<int, int>>> &reference_count,
                              bool is_matlab) const override;
-  void computeBlockTemporaryTerms(int blk, vector<temporary_terms_t> &blocks_temporary_terms,
-                                  map<expr_t, pair<int, int>> &reference_count) const override;
+  void computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                  map<expr_t, tuple<int, int, int>> &reference_count) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
@@ -1003,7 +1005,7 @@ public:
 private:
   expr_t computeDerivative(int deriv_id) override;
   int cost(int cost, bool is_matlab) const override;
-  int cost(const vector<temporary_terms_t> &blocks_temporary_terms, bool is_matlab) const override;
+  int cost(const vector<vector<temporary_terms_t>> &blocks_temporary_terms, bool is_matlab) const override;
   int cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
   //! Returns the derivative of this node if darg1 and darg2 are the derivatives of the arguments
   expr_t composeDerivatives(expr_t darg1, expr_t darg2);
@@ -1017,8 +1019,8 @@ public:
                              map<pair<int, int>, temporary_terms_t> &temp_terms_map,
                              map<expr_t, pair<int, pair<int, int>>> &reference_count,
                              bool is_matlab) const override;
-  void computeBlockTemporaryTerms(int blk, vector<temporary_terms_t> &blocks_temporary_terms,
-                                  map<expr_t, pair<int, int>> &reference_count) const override;
+  void computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                  map<expr_t, tuple<int, int, int>> &reference_count) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
@@ -1135,7 +1137,7 @@ public:
 private:
   expr_t computeDerivative(int deriv_id) override;
   int cost(int cost, bool is_matlab) const override;
-  int cost(const vector<temporary_terms_t> &blocks_temporary_terms, bool is_matlab) const override;
+  int cost(const vector<vector<temporary_terms_t>> &blocks_temporary_terms, bool is_matlab) const override;
   int cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
   //! Returns the derivative of this node if darg1, darg2 and darg3 are the derivatives of the arguments
   expr_t composeDerivatives(expr_t darg1, expr_t darg2, expr_t darg3);
@@ -1148,8 +1150,8 @@ public:
                              map<pair<int, int>, temporary_terms_t> &temp_terms_map,
                              map<expr_t, pair<int, pair<int, int>>> &reference_count,
                              bool is_matlab) const override;
-  void computeBlockTemporaryTerms(int blk, vector<temporary_terms_t> &blocks_temporary_terms,
-                                  map<expr_t, pair<int, int>> &reference_count) const override;
+  void computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                  map<expr_t, tuple<int, int, int>> &reference_count) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
@@ -1260,8 +1262,8 @@ public:
                              map<pair<int, int>, temporary_terms_t> &temp_terms_map,
                              map<expr_t, pair<int, pair<int, int>>> &reference_count,
                              bool is_matlab) const override;
-  void computeBlockTemporaryTerms(int blk, vector<temporary_terms_t> &blocks_temporary_terms,
-                                  map<expr_t, pair<int, int>> &reference_count) const override;
+  void computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                  map<expr_t, tuple<int, int, int>> &reference_count) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override = 0;
   void writeJsonAST(ostream &output) const override = 0;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic = true) const override = 0;
@@ -1462,8 +1464,8 @@ public:
                              map<pair<int, int>, temporary_terms_t> &temp_terms_map,
                              map<expr_t, pair<int, pair<int, int>>> &reference_count,
                              bool is_matlab) const override;
-  void computeBlockTemporaryTerms(int blk, vector<temporary_terms_t> &blocks_temporary_terms,
-                                  map<expr_t, pair<int, int>> &reference_count) const override;
+  void computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                  map<expr_t, tuple<int, int, int>> &reference_count) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   expr_t clone(DataTree &datatree) const override;
@@ -1539,8 +1541,8 @@ public:
                              map<pair<int, int>, temporary_terms_t> &temp_terms_map,
                              map<expr_t, pair<int, pair<int, int>>> &reference_count,
                              bool is_matlab) const override;
-  void computeBlockTemporaryTerms(int blk, vector<temporary_terms_t> &blocks_temporary_terms,
-                                  map<expr_t, pair<int, int>> &reference_count) const override;
+  void computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                  map<expr_t, tuple<int, int, int>> &reference_count) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   expr_t clone(DataTree &datatree) const override;

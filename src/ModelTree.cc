@@ -97,8 +97,20 @@ ModelTree::copyHelper(const ModelTree &m)
       blocks_derivatives.push_back(v);
     }
 
+  auto convert_vector_tt = [f](vector<temporary_terms_t> vtt)
+                           {
+                             vector<temporary_terms_t> vtt2;
+                             for (const auto &tt : vtt)
+                               {
+                                 temporary_terms_t tt2;
+                                 for (const auto &it : tt)
+                                   tt2.insert(f(it));
+                                 vtt2.push_back(tt2);
+                               }
+                             return vtt2;
+                           };
   for (const auto &it : m.blocks_temporary_terms)
-    blocks_temporary_terms.push_back(convert_temporary_terms_t(it));
+    blocks_temporary_terms.push_back(convert_vector_tt(it));
   for (const auto &it : m.blocks_temporary_terms_idxs)
     blocks_temporary_terms_idxs[f(it.first)] = it.second;
 }
@@ -1056,18 +1068,19 @@ ModelTree::computeBlockTemporaryTerms()
   int nb_blocks = blocks.size();
   blocks_temporary_terms.resize(nb_blocks);
 
-  map<expr_t, pair<int, int>> reference_count;
+  map<expr_t, tuple<int, int, int>> reference_count;
   for (int blk = 0; blk < nb_blocks; blk++)
     {
+      blocks_temporary_terms[blk].resize(blocks[blk].size + 1);
       for (int eq = 0; eq < blocks[blk].size; eq++)
         {
           if (eq < blocks[blk].getRecursiveSize() && isBlockEquationRenormalized(blk, eq))
-            getBlockEquationRenormalizedExpr(blk, eq)->computeBlockTemporaryTerms(blk, blocks_temporary_terms, reference_count);
+            getBlockEquationRenormalizedExpr(blk, eq)->computeBlockTemporaryTerms(blk, eq, blocks_temporary_terms, reference_count);
           else
-            getBlockEquationExpr(blk, eq)->computeBlockTemporaryTerms(blk, blocks_temporary_terms, reference_count);
+            getBlockEquationExpr(blk, eq)->computeBlockTemporaryTerms(blk, eq, blocks_temporary_terms, reference_count);
         }
       for (const auto &[ignore, d] : blocks_derivatives[blk])
-        d->computeBlockTemporaryTerms(blk, blocks_temporary_terms, reference_count);
+        d->computeBlockTemporaryTerms(blk, blocks[blk].size, blocks_temporary_terms, reference_count);
 
       additionalBlockTemporaryTerms(blk, blocks_temporary_terms, reference_count);
     }
@@ -1075,15 +1088,16 @@ ModelTree::computeBlockTemporaryTerms()
   // Compute indices in the temporary terms vector
   int idx = 0;
   blocks_temporary_terms_idxs.clear();
-  for (int blk = 0; blk < nb_blocks; blk++)
-    for (auto tt : blocks_temporary_terms[blk])
-      blocks_temporary_terms_idxs[tt] = idx++;
+  for (auto &blk_tt : blocks_temporary_terms)
+    for (auto &eq_tt : blk_tt)
+      for (auto tt : eq_tt)
+        blocks_temporary_terms_idxs[tt] = idx++;
 }
 
 void
 ModelTree::additionalBlockTemporaryTerms(int blk,
-                                         vector<temporary_terms_t> &blocks_temporary_terms,
-                                         map<expr_t, pair<int, int>> &reference_count) const
+                                         vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                         map<expr_t, tuple<int, int, int>> &reference_count) const
 {
 }
 

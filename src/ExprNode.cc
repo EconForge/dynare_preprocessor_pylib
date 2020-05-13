@@ -75,7 +75,7 @@ ExprNode::cost(int cost, bool is_matlab) const
 }
 
 int
-ExprNode::cost(const vector<temporary_terms_t> &blocks_temporary_terms, bool is_matlab) const
+ExprNode::cost(const vector<vector<temporary_terms_t>> &blocks_temporary_terms, bool is_matlab) const
 {
   // For a terminal node, the cost is null
   return 0;
@@ -161,8 +161,8 @@ ExprNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
 }
 
 void
-ExprNode::computeBlockTemporaryTerms(int blk, vector<temporary_terms_t> &blocks_temporary_terms,
-                                     map<expr_t, pair<int, int>> &reference_count) const
+ExprNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                     map<expr_t, tuple<int, int, int>> &reference_count) const
 {
   // Nothing to do for a terminal node
 }
@@ -2192,12 +2192,13 @@ UnaryOpNode::cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, 
 }
 
 int
-UnaryOpNode::cost(const vector<temporary_terms_t> &blocks_temporary_terms, bool is_matlab) const
+UnaryOpNode::cost(const vector<vector<temporary_terms_t>> &blocks_temporary_terms, bool is_matlab) const
 {
   // For a temporary term, the cost is null
-  for (const auto &it : blocks_temporary_terms)
-    if (it.find(const_cast<UnaryOpNode *>(this)) != it.end())
-      return 0;
+  for (const auto &blk_tt : blocks_temporary_terms)
+    for (const auto &eq_tt : blk_tt)
+      if (eq_tt.find(const_cast<UnaryOpNode *>(this)) != eq_tt.end())
+        return 0;
 
   return cost(arg->cost(blocks_temporary_terms, is_matlab), is_matlab);
 }
@@ -2332,22 +2333,22 @@ UnaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
 }
 
 void
-UnaryOpNode::computeBlockTemporaryTerms(int blk, vector<temporary_terms_t> &blocks_temporary_terms,
-                                        map<expr_t, pair<int, int>> &reference_count) const
+UnaryOpNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                        map<expr_t, tuple<int, int, int>> &reference_count) const
 {
   expr_t this2 = const_cast<UnaryOpNode *>(this);
   if (auto it = reference_count.find(this2);
       it == reference_count.end())
     {
-      reference_count[this2] = { 1, blk };
-      arg->computeBlockTemporaryTerms(blk, blocks_temporary_terms, reference_count);
+      reference_count[this2] = { 1, blk, eq };
+      arg->computeBlockTemporaryTerms(blk, eq, blocks_temporary_terms, reference_count);
     }
   else
     {
-      auto &[nref, first_blk] = it->second;
+      auto &[nref, first_blk, first_eq] = it->second;
       nref++;
       if (nref * cost(blocks_temporary_terms, false) > min_cost_c)
-        blocks_temporary_terms[first_blk].insert(this2);
+        blocks_temporary_terms[first_blk][first_eq].insert(this2);
     }
 }
 
@@ -4042,12 +4043,13 @@ BinaryOpNode::cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map,
 }
 
 int
-BinaryOpNode::cost(const vector<temporary_terms_t> &blocks_temporary_terms, bool is_matlab) const
+BinaryOpNode::cost(const vector<vector<temporary_terms_t>> &blocks_temporary_terms, bool is_matlab) const
 {
   // For a temporary term, the cost is null
-  for (const auto &it : blocks_temporary_terms)
-    if (it.find(const_cast<BinaryOpNode *>(this)) != it.end())
-      return 0;
+  for (const auto &blk_tt : blocks_temporary_terms)
+    for (const auto &eq_tt : blk_tt)
+      if (eq_tt.find(const_cast<BinaryOpNode *>(this)) != eq_tt.end())
+        return 0;
 
   int arg_cost = arg1->cost(blocks_temporary_terms, is_matlab) + arg2->cost(blocks_temporary_terms, is_matlab);
 
@@ -4144,24 +4146,24 @@ BinaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
 }
 
 void
-BinaryOpNode::computeBlockTemporaryTerms(int blk, vector<temporary_terms_t> &blocks_temporary_terms,
-                                         map<expr_t, pair<int, int>> &reference_count) const
+BinaryOpNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                         map<expr_t, tuple<int, int, int>> &reference_count) const
 {
   expr_t this2 = const_cast<BinaryOpNode *>(this);
   if (auto it = reference_count.find(this2);
       it == reference_count.end())
     {
-      reference_count[this2] = { 1, blk };
-      arg1->computeBlockTemporaryTerms(blk, blocks_temporary_terms, reference_count);
-      arg2->computeBlockTemporaryTerms(blk, blocks_temporary_terms, reference_count);
+      reference_count[this2] = { 1, blk, eq };
+      arg1->computeBlockTemporaryTerms(blk, eq, blocks_temporary_terms, reference_count);
+      arg2->computeBlockTemporaryTerms(blk, eq, blocks_temporary_terms, reference_count);
     }
   else
     {
-      auto &[nref, first_blk] = it->second;
+      auto &[nref, first_blk, first_eq] = it->second;
       nref++;
       if (nref * cost(blocks_temporary_terms, false) > min_cost_c
           && op_code != BinaryOpcode::equal)
-        blocks_temporary_terms[first_blk].insert(this2);
+        blocks_temporary_terms[first_blk][first_eq].insert(this2);
     }
 }
 
@@ -5840,12 +5842,13 @@ TrinaryOpNode::cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map
 }
 
 int
-TrinaryOpNode::cost(const vector<temporary_terms_t> &blocks_temporary_terms, bool is_matlab) const
+TrinaryOpNode::cost(const vector<vector<temporary_terms_t>> &blocks_temporary_terms, bool is_matlab) const
 {
   // For a temporary term, the cost is null
-  for (const auto &it : blocks_temporary_terms)
-    if (it.find(const_cast<TrinaryOpNode *>(this)) != it.end())
-      return 0;
+  for (const auto &blk_tt : blocks_temporary_terms)
+    for (const auto &eq_tt : blk_tt)
+      if (eq_tt.find(const_cast<TrinaryOpNode *>(this)) != eq_tt.end())
+        return 0;
 
   int arg_cost = arg1->cost(blocks_temporary_terms, is_matlab)
     + arg2->cost(blocks_temporary_terms, is_matlab)
@@ -5906,24 +5909,24 @@ TrinaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
 }
 
 void
-TrinaryOpNode::computeBlockTemporaryTerms(int blk, vector<temporary_terms_t> &blocks_temporary_terms,
-                                          map<expr_t, pair<int, int>> &reference_count) const
+TrinaryOpNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                          map<expr_t, tuple<int, int, int>> &reference_count) const
 {
   expr_t this2 = const_cast<TrinaryOpNode *>(this);
   if (auto it = reference_count.find(this2);
       it == reference_count.end())
     {
-      reference_count[this2] = { 1, blk };
-      arg1->computeBlockTemporaryTerms(blk, blocks_temporary_terms, reference_count);
-      arg2->computeBlockTemporaryTerms(blk, blocks_temporary_terms, reference_count);
-      arg3->computeBlockTemporaryTerms(blk, blocks_temporary_terms, reference_count);
+      reference_count[this2] = { 1, blk, eq };
+      arg1->computeBlockTemporaryTerms(blk, eq, blocks_temporary_terms, reference_count);
+      arg2->computeBlockTemporaryTerms(blk, eq, blocks_temporary_terms, reference_count);
+      arg3->computeBlockTemporaryTerms(blk, eq, blocks_temporary_terms, reference_count);
     }
   else
     {
-      auto &[nref, first_blk] = it->second;
+      auto &[nref, first_blk, first_eq] = it->second;
       nref++;
       if (nref * cost(blocks_temporary_terms, false) > min_cost_c)
-        blocks_temporary_terms[first_blk].insert(this2);
+        blocks_temporary_terms[first_blk][first_eq].insert(this2);
     }
 }
 
@@ -6976,20 +6979,21 @@ AbstractExternalFunctionNode::computeTemporaryTerms(const pair<int, int> &derivO
 }
 
 void
-AbstractExternalFunctionNode::computeBlockTemporaryTerms(int blk, vector<temporary_terms_t> &blocks_temporary_terms,
-                                                         map<expr_t, pair<int, int>> &reference_count) const
+AbstractExternalFunctionNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                                         map<expr_t, tuple<int, int, int>> &reference_count) const
 {
   // See comments in computeTemporaryTerms() for the logic
   expr_t this2 = const_cast<AbstractExternalFunctionNode *>(this);
-  for (auto &tt : blocks_temporary_terms)
-    if (auto it = find_if(tt.cbegin(), tt.cend(), sameTefTermPredicate());
-        it != tt.cend())
-      {
-        tt.insert(this2);
-        return;
-      }
+  for (auto &btt : blocks_temporary_terms)
+    for (auto &tt : btt)
+      if (auto it = find_if(tt.cbegin(), tt.cend(), sameTefTermPredicate());
+          it != tt.cend())
+        {
+          tt.insert(this2);
+          return;
+        }
 
-  blocks_temporary_terms[blk].insert(this2);
+  blocks_temporary_terms[blk][eq].insert(this2);
 }
 
 bool
@@ -8236,8 +8240,8 @@ VarExpectationNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
 }
 
 void
-VarExpectationNode::computeBlockTemporaryTerms(int blk, vector<temporary_terms_t> &blocks_temporary_terms,
-                                               map<expr_t, pair<int, int>> &reference_count) const
+VarExpectationNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                               map<expr_t, tuple<int, int, int>> &reference_count) const
 {
   cerr << "VarExpectationNode::computeBlocksTemporaryTerms not implemented." << endl;
   exit(EXIT_FAILURE);
@@ -8682,10 +8686,10 @@ PacExpectationNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
 }
 
 void
-PacExpectationNode::computeBlockTemporaryTerms(int blk, vector<temporary_terms_t> &blocks_temporary_terms,
-                                               map<expr_t, pair<int, int>> &reference_count) const
+PacExpectationNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                               map<expr_t, tuple<int, int, int>> &reference_count) const
 {
-  blocks_temporary_terms[blk].insert(const_cast<PacExpectationNode *>(this));
+  blocks_temporary_terms[blk][eq].insert(const_cast<PacExpectationNode *>(this));
 }
 
 expr_t
