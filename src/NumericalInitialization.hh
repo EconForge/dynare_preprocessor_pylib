@@ -123,9 +123,9 @@ public:
 class InitvalFileStatement : public Statement
 {
 private:
-  const string filename;
+  const OptionsList options_list;
 public:
-  explicit InitvalFileStatement(string filename_arg);
+  explicit InitvalFileStatement(OptionsList options_list_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -133,9 +133,9 @@ public:
 class HistvalFileStatement : public Statement
 {
 private:
-  const string filename;
+  const OptionsList options_list;
 public:
-  explicit HistvalFileStatement(string filename_arg);
+  explicit HistvalFileStatement(OptionsList options_list_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };

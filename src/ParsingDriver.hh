@@ -375,7 +375,7 @@ public:
   //! balanced_growth_test_tol option of model block
   void balanced_growth_test_tol(const string &value);
   //! Sets the FILENAME for the initial value in initval
-  void initval_file(const string &filename);
+  void initval_file();
   //! Declares an endogenous variable
   void declare_endogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
   //! Declares an exogenous variable
@@ -889,7 +889,7 @@ public:
   //! End init2shocks declaration
   void end_init2shocks(const string &name);
   void smoother2histval();
-  void histval_file(const string &filename);
+  void histval_file();
   void perfect_foresight_setup();
   void perfect_foresight_solver();
   void prior_posterior_function(bool prior_func);
