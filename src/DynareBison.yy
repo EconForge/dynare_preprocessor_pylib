@@ -82,7 +82,8 @@ class ParsingDriver;
 %token COMMA CONSIDER_ALL_ENDOGENOUS CONSIDER_ONLY_OBSERVED INITIAL_CONDITION_DECOMPOSITION
 %token DATAFILE FILE SERIES DET_COND_FORECAST DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR EXPRESSION
-%token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS LAST_OBS SET_TIME OSR_PARAMS_BOUNDS KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED
+%token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS FIRST_SIMULATION_PERIOD LAST_OBS 
+%token SET_TIME OSR_PARAMS_BOUNDS KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED
 %token <string> FLOAT_NUMBER DATES
 %token DEFAULT FIXED_POINT FLIP OPT_ALGO COMPILATION_SETUP COMPILER ADD_FLAGS SUBSTITUTE_FLAGS ADD_LIBS SUBSTITUTE_LIBS
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
@@ -851,9 +852,27 @@ initval : INITVAL ';' initval_list END ';'
           { driver.end_initval(true); }
         ;
 
-initval_file : INITVAL_FILE '(' FILENAME EQUAL filename ')' ';'
-               { driver.initval_file($5); }
-             ;
+histval_file : HISTVAL_FILE '(' h_options_list ')' ';'
+              { driver.histval_file();};
+
+initval_file : INITVAL_FILE '(' h_options_list ')' ';'
+              { driver.initval_file();};
+
+h_options_list: h_options_list COMMA h_options
+               | h_options
+               ;
+
+h_options: o_filename
+          | o_datafile
+          | o_first_obs
+          | o_data_first_obs
+          | o_first_simulation_period
+          | o_date_first_simulation_period
+          | o_last_obs
+          | o_data_last_obs
+          | o_nobs
+          | o_series2
+          ;
 
 endval : ENDVAL ';' initval_list END ';'
          { driver.end_endval(false); }
@@ -878,10 +897,6 @@ histval_list : histval_list histval_elem
              ;
 
 histval_elem : symbol '(' signed_integer ')' EQUAL expression ';' { driver.hist_val($1, $3, $6); };
-
-histval_file : HISTVAL_FILE '(' FILENAME EQUAL filename ')' ';'
-               { driver.histval_file($5); }
-             ;
 
 epilogue : EPILOGUE ';' { driver.begin_epilogue(); }
            epilogue_equation_list END ';' { driver.end_epilogue(); }
@@ -3227,7 +3242,9 @@ o_pac_steady_state_growth : STEADY_STATE_GROWTH EQUAL signed_number { driver.set
 o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var.model_name", $3); };
 o_var_order : ORDER EQUAL INT_NUMBER { driver.option_num("var.order", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
+o_series2 : SERIES EQUAL symbol { driver.option_num("series", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
+o_filename : FILENAME EQUAL filename { driver.option_str("filename", $3); };
 o_var_datafile : DATAFILE EQUAL filename { driver.option_str("var_estimation.datafile", $3); };
 o_var_model_name : symbol { driver.option_str("var_estimation.model_name", $1); };
 o_var_eq_tags : EQTAGS EQUAL vec_str { driver.option_vec_str("var.eqtags", $3); }
@@ -3255,6 +3272,9 @@ o_posterior_sampling_method : POSTERIOR_SAMPLING_METHOD EQUAL QUOTED_STRING
                               { driver.option_str("posterior_sampler_options.posterior_sampling_method", $3); } ;
 o_first_obs : FIRST_OBS EQUAL INT_NUMBER { driver.option_num("first_obs", $3); };
 o_data_first_obs : FIRST_OBS EQUAL date_expr { driver.option_date("firstobs", $3); } ;
+o_first_simulation_period : FIRST_SIMULATION_PERIOD EQUAL INT_NUMBER { driver.option_num("first_simulation_period", $3); };
+o_date_first_simulation_period : FIRST_SIMULATION_PERIOD EQUAL date_expr { driver.option_date("firstsimulationperiod", $3); } ;
+o_last_obs : LAST_OBS EQUAL INT_NUMBER { driver.option_num("last_obs", $3); };
 o_data_last_obs : LAST_OBS EQUAL date_expr { driver.option_date("lastobs", $3); } ;
 o_keep_kalman_algo_if_singularity_is_detected : KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED { driver.option_num("kalman.keep_kalman_algo_if_singularity_is_detected", "true"); } ;
 o_data_nobs : NOBS EQUAL INT_NUMBER { driver.option_num("nobs", $3); };

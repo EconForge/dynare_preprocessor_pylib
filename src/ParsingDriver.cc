@@ -647,9 +647,10 @@ ParsingDriver::init_val(const string &name, expr_t rhs)
 }
 
 void
-ParsingDriver::initval_file(const string &filename)
+ParsingDriver::initval_file()
 {
-  mod_file->addStatement(make_unique<InitvalFileStatement>(filename));
+  mod_file->addStatement(make_unique<InitvalFileStatement>(options_list));
+  options_list.clear(); 
 }
 
 void
@@ -3345,9 +3346,10 @@ ParsingDriver::smoother2histval()
 }
 
 void
-ParsingDriver::histval_file(const string &filename)
+ParsingDriver::histval_file()
 {
-  mod_file->addStatement(make_unique<HistvalFileStatement>(filename));
+  mod_file->addStatement(make_unique<HistvalFileStatement>(options_list));
+  options_list.clear();
 }
 
 void

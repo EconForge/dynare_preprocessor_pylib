@@ -146,7 +146,9 @@ SimulStatement::writeOutput(ostream &output, const string &basename, bool minima
       it != options_list_new.string_options.end())
     {
       output << "options_.initval_file = true;" << endl
-             << "initvalf('" << it->second << "');" << endl;
+             << "options_initvalf = struct();" << endl
+             << "options_initvalf.datafile = '" << it->second << "';" << endl
+             << "oo_.initval_series = histvalf_initvalf('INITVALF', M_, options_initvalf);" << endl;
       options_list_new.string_options.erase(it);
     }
   options_list_new.writeOutput(output);
@@ -179,7 +181,9 @@ PerfectForesightSetupStatement::writeOutput(ostream &output, const string &basen
       it != options_list_new.string_options.end())
     {
       output << "options_.initval_file = true;" << endl
-             << "initvalf('" << it->second << "');" << endl;
+             << "options_initvalf = struct();" << endl
+             << "options_initvalf.datafile = '" << it->second << "';" << endl
+             << "oo_.initval_series = histvalf_initvalf('INITVALF', M_, options_initvalf);" << endl;
       options_list_new.string_options.erase(it);
     }
   options_list_new.writeOutput(output);

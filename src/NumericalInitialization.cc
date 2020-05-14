@@ -411,8 +411,8 @@ HistValStatement::writeJsonOutput(ostream &output) const
   output << "]}";
 }
 
-InitvalFileStatement::InitvalFileStatement(string filename_arg) :
-  filename{move(filename_arg)}
+InitvalFileStatement::InitvalFileStatement(OptionsList options_list_arg) :
+  options_list{move(options_list_arg)}
 {
 }
 
@@ -422,35 +422,49 @@ InitvalFileStatement::writeOutput(ostream &output, const string &basename, bool 
   output << "%" << endl
          << "% INITVAL_FILE statement" << endl
          << "%" << endl
-         << "options_.initval_file = true;" << endl
-         << "initvalf('" << filename << "');" << endl;
+         << "options_.initval_file = true;" << endl;
+  options_list.writeOutput(output, "options_initvalf");
+  output << "oo_.initval_series = initvalf(M_, options_initvalf);" << endl;
 }
 
 void
 InitvalFileStatement::writeJsonOutput(ostream &output) const
 {
-  output << R"({"statementName": "init_val_file")"
-         << R"(, "filename": ")" << filename << R"(")"
-         << "}";
+  output << R"({"statementName": "initval_file")";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
-HistvalFileStatement::HistvalFileStatement(string filename_arg) :
-  filename{move(filename_arg)}
+HistvalFileStatement::HistvalFileStatement(OptionsList options_list_arg) :
+  options_list{move(options_list_arg)}
 {
 }
 
 void
 HistvalFileStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  output << "histvalf('" << filename << "');" << endl;
+  output << "%" << endl
+         << "% HISTVAL_FILE statement" << endl
+         << "%" << endl
+         << "options_.histval_file = true;" << endl;
+  options_list.writeOutput(output, "options_histvalf");
+  output << "[M_.endo_histval, M_.exo_histval, M_.exo_det_histval] = histvalf(M_, options_histvalf);" << endl;
 }
 
 void
 HistvalFileStatement::writeJsonOutput(ostream &output) const
 {
-  output << R"({"statementName": "hist_val_file")"
-         << R"(, "filename": ")" << filename << R"(")"
-         << "}";
+  output << R"({"statementName": "histval_file")";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
 }
 
 HomotopyStatement::HomotopyStatement(homotopy_values_t homotopy_values_arg,
