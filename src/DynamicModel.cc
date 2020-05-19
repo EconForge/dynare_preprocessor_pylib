@@ -562,9 +562,8 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
 }
 
 void
-DynamicModel::writeModelEquationsCode(const string &basename) const
+DynamicModel::writeDynamicBytecode(const string &basename) const
 {
-
   ostringstream tmp_output;
   ofstream code_file;
   unsigned int instruction_number = 0;
@@ -590,7 +589,7 @@ DynamicModel::writeModelEquationsCode(const string &basename) const
   else
     simulation_type = BlockSimulationType::solveBackwardComplete;
 
-  Write_Inf_To_Bin_File(basename + "/model/bytecode/dynamic.bin", u_count_int, file_open, simulation_type == BlockSimulationType::solveTwoBoundariesComplete, symbol_table.endo_nbr());
+  writeBytecodeBinFile(basename + "/model/bytecode/dynamic.bin", u_count_int, file_open, simulation_type == BlockSimulationType::solveTwoBoundariesComplete);
   file_open = true;
 
   //Temporary variables declaration
@@ -808,7 +807,7 @@ DynamicModel::writeModelEquationsCode(const string &basename) const
 }
 
 void
-DynamicModel::writeModelEquationsCode_Block(const string &basename, bool linear_decomposition) const
+DynamicModel::writeDynamicBlockBytecode(const string &basename, bool linear_decomposition) const
 {
   struct Uff_l
   {
@@ -871,8 +870,8 @@ DynamicModel::writeModelEquationsCode_Block(const string &basename, bool linear_
           || simulation_type == BlockSimulationType::solveBackwardComplete
           || simulation_type == BlockSimulationType::solveForwardComplete)
         {
-          Write_Inf_To_Bin_File_Block(basename, block, u_count_int, file_open,
-                                      simulation_type == BlockSimulationType::solveTwoBoundariesComplete || simulation_type == BlockSimulationType::solveTwoBoundariesSimple, linear_decomposition);
+          writeBlockBytecodeBinFile(basename, block, u_count_int, file_open,
+                                    simulation_type == BlockSimulationType::solveTwoBoundariesComplete || simulation_type == BlockSimulationType::solveTwoBoundariesSimple, linear_decomposition);
           file_open = true;
         }
 
@@ -1377,8 +1376,8 @@ DynamicModel::printNonZeroHessianEquations(ostream &output) const
 }
 
 void
-DynamicModel::Write_Inf_To_Bin_File_Block(const string &basename, int num,
-                                          int &u_count_int, bool &file_open, bool is_two_boundaries, bool linear_decomposition) const
+DynamicModel::writeBlockBytecodeBinFile(const string &basename, int num, int &u_count_int,
+                                        bool &file_open, bool is_two_boundaries, bool linear_decomposition) const
 {
   int j;
   std::ofstream SaveCode;
@@ -4636,14 +4635,10 @@ DynamicModel::computeBlockDynJacobianCols()
 void
 DynamicModel::writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const
 {
-  if (block && bytecode)
-    writeModelEquationsCode_Block(basename, linear_decomposition);
+  if ((block && bytecode) || linear_decomposition)
+    writeDynamicBlockBytecode(basename, linear_decomposition);
   else if (!block && bytecode)
-    {
-      if (linear_decomposition)
-        writeModelEquationsCode_Block(basename, linear_decomposition);
-      writeModelEquationsCode(basename);
-    }
+    writeDynamicBytecode(basename);
   else if (block && !bytecode)
     {
       writeDynamicPerBlockMFiles(basename);

@@ -135,10 +135,13 @@ private:
   void writeDynamicBlockMFile(const string &basename) const;
   //! Writes the per-block dynamic files of block decomposed model (MATLAB version)
   void writeDynamicPerBlockMFiles(const string &basename) const;
-  //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
-  void writeModelEquationsCode_Block(const string &basename, bool linear_decomposition) const;
+  //! Writes the code of the block-decomposed model in virtual machine bytecode
+  void writeDynamicBlockBytecode(const string &basename, bool linear_decomposition) const;
   //! Writes the code of the model in virtual machine bytecode
-  void writeModelEquationsCode(const string &basename) const;
+  void writeDynamicBytecode(const string &basename) const;
+  //! Adds per-block information for bytecode simulation in a separate .bin file
+  void writeBlockBytecodeBinFile(const string &basename, int num, int &u_count_int, bool &file_open,
+                                 bool is_two_boundaries, bool linear_decomposition) const;
 
   void writeSetAuxiliaryVariables(const string &basename, bool julia) const;
   void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
@@ -368,9 +371,6 @@ public:
   //! Substitutes pac_expectation operator with expectation based on auxiliary model
   void substitutePacExpectation(const string &pac_model_name);
 
-  //! Adds informations for simulation in a binary file
-  void Write_Inf_To_Bin_File_Block(const string &basename,
-                                   int num, int &u_count_int, bool &file_open, bool is_two_boundaries, bool linear_decomposition) const;
   //! Writes dynamic model file
   void writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const;
   //! Writes file containing parameters derivatives

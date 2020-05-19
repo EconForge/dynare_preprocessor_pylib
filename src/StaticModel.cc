@@ -279,7 +279,7 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
 }
 
 void
-StaticModel::writeModelEquationsCode(const string &basename) const
+StaticModel::writeStaticBytecode(const string &basename) const
 {
   ostringstream tmp_output;
   ofstream code_file;
@@ -298,7 +298,7 @@ StaticModel::writeModelEquationsCode(const string &basename) const
   int count_u;
   int u_count_int = 0;
 
-  Write_Inf_To_Bin_File(basename + "/model/bytecode/static.bin", u_count_int, file_open, false, symbol_table.endo_nbr());
+  writeBytecodeBinFile(basename + "/model/bytecode/static.bin", u_count_int, file_open, false);
   file_open = true;
 
   // Compute the union of temporary terms from residuals and 1st derivatives
@@ -436,7 +436,7 @@ StaticModel::writeModelEquationsCode(const string &basename) const
 }
 
 void
-StaticModel::writeModelEquationsCode_Block(const string &basename) const
+StaticModel::writeStaticBlockBytecode(const string &basename) const
 {
   struct Uff_l
   {
@@ -497,7 +497,7 @@ StaticModel::writeModelEquationsCode_Block(const string &basename) const
           || simulation_type == BlockSimulationType::solveBackwardComplete
           || simulation_type == BlockSimulationType::solveForwardComplete)
         {
-          Write_Inf_To_Bin_File_Block(basename, block, u_count_int, file_open);
+          writeBlockBytecodeBinFile(basename, block, u_count_int, file_open);
           file_open = true;
         }
 
@@ -839,8 +839,8 @@ StaticModel::writeModelEquationsCode_Block(const string &basename) const
 }
 
 void
-StaticModel::Write_Inf_To_Bin_File_Block(const string &basename, int num,
-                                         int &u_count_int, bool &file_open) const
+StaticModel::writeBlockBytecodeBinFile(const string &basename, int num,
+                                       int &u_count_int, bool &file_open) const
 {
   int j;
   std::ofstream SaveCode;
@@ -1718,9 +1718,9 @@ void
 StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const
 {
   if (block && bytecode)
-    writeModelEquationsCode_Block(basename);
+    writeStaticBlockBytecode(basename);
   else if (!block && bytecode)
-    writeModelEquationsCode(basename);
+    writeStaticBytecode(basename);
   else if (block && !bytecode)
     {
       writeStaticPerBlockMFiles(basename);

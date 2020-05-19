@@ -51,11 +51,15 @@ private:
   //! Writes the per-block static files of block decomposed model (MATLAB version)
   void writeStaticPerBlockMFiles(const string &basename) const;
 
-  //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
-  void writeModelEquationsCode_Block(const string &basename) const;
+  //! Writes the code of the block-decomposed model in virtual machine bytecode
+  void writeStaticBlockBytecode(const string &basename) const;
 
   //! Writes the code of the model in virtual machine bytecode
-  void writeModelEquationsCode(const string &basename) const;
+  void writeStaticBytecode(const string &basename) const;
+
+  //! Adds per-block information for bytecode simulation in a separate .bin file
+  void writeBlockBytecodeBinFile(const string &basename, int num,
+                                 int &u_count_int, bool &file_open) const;
 
   //! Computes jacobian and prepares for equation normalization
   /*! Using values from initval/endval blocks and parameter initializations:
@@ -129,10 +133,6 @@ public:
     \param paramsDerivsOrder order of derivatives w.r. to a pair (endogenous, parameter) to be computed
   */
   void computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool bytecode);
-
-  //! Adds informations for simulation in a binary file for a block decomposed model
-  void Write_Inf_To_Bin_File_Block(const string &basename, int num,
-                                   int &u_count_int, bool &file_open) const;
 
   //! Writes static model file
   void writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const;

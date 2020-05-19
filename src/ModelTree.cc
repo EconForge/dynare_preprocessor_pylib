@@ -1509,8 +1509,8 @@ ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_n
 }
 
 void
-ModelTree::Write_Inf_To_Bin_File(const string &filename,
-                                 int &u_count_int, bool &file_open, bool is_two_boundaries, int block_mfs) const
+ModelTree::writeBytecodeBinFile(const string &filename, int &u_count_int, bool &file_open,
+                                bool is_two_boundaries) const
 {
   int j;
   std::ofstream SaveCode;
@@ -1534,10 +1534,10 @@ ModelTree::Write_Inf_To_Bin_File(const string &filename,
           int var = symbol_table.getTypeSpecificID(symb);
           int lag = getLagByDerivID(deriv_id);
           SaveCode.write(reinterpret_cast<char *>(&eq), sizeof(eq));
-          int varr = var + lag * block_mfs;
+          int varr = var + lag * symbol_table.endo_nbr();
           SaveCode.write(reinterpret_cast<char *>(&varr), sizeof(varr));
           SaveCode.write(reinterpret_cast<char *>(&lag), sizeof(lag));
-          int u = u_count_int + block_mfs;
+          int u = u_count_int + symbol_table.endo_nbr();
           SaveCode.write(reinterpret_cast<char *>(&u), sizeof(u));
           u_count_int++;
         }
