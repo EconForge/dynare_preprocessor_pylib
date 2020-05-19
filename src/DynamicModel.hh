@@ -126,15 +126,15 @@ private:
   //! Writes dynamic model file (C version)
   /*! \todo add third derivatives handling */
   void writeDynamicCFile(const string &basename) const;
-  //! Writes dynamic model file when SparseDLL option is on
-  void writeSparseDynamicMFile(const string &basename) const;
   //! Writes the dynamic model equations and its derivatives
   /*! \todo add third derivatives handling in C output */
   void writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia) const;
   void writeDynamicModel(const string &basename, bool use_dll, bool julia) const;
   void writeDynamicModel(const string &basename, ostream &DynamicOutput, bool use_dll, bool julia) const;
-  //! Writes the Block reordred structure of the model in M output
-  void writeModelEquationsOrdered_M(const string &basename) const;
+  //! Writes the main dynamic function of block decomposed model (MATLAB version)
+  void writeDynamicBlockMFile(const string &basename) const;
+  //! Writes the per-block dynamic files of block decomposed model (MATLAB version)
+  void writeDynamicPerBlockMFiles(const string &basename) const;
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
   void writeModelEquationsCode_Block(const string &basename, bool linear_decomposition) const;
   //! Writes the code of the model in virtual machine bytecode

@@ -45,11 +45,11 @@ private:
   //! Writes the static model equations and its derivatives
   void writeStaticModel(const string &basename, ostream &StaticOutput, bool use_dll, bool julia) const;
 
-  //! Writes the static function calling the block to solve (Matlab version)
-  void writeStaticBlockMFSFile(const string &basename) const;
+  //! Writes the main static function of block decomposed model (MATLAB version)
+  void writeStaticBlockMFile(const string &basename) const;
 
-  //! Writes the Block reordred structure of the model in M output
-  void writeModelEquationsOrdered_M(const string &basename) const;
+  //! Writes the per-block static files of block decomposed model (MATLAB version)
+  void writeStaticPerBlockMFiles(const string &basename) const;
 
   //! Writes the code of the Block reordred structure of the model in virtual machine bytecode
   void writeModelEquationsCode_Block(const string &basename) const;

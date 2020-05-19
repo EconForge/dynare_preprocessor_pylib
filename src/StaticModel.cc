@@ -128,51 +128,47 @@ StaticModel::compileChainRuleDerivative(ofstream &code_file, unsigned int &instr
 }
 
 void
-StaticModel::writeModelEquationsOrdered_M(const string &basename) const
+StaticModel::writeStaticPerBlockMFiles(const string &basename) const
 {
   temporary_terms_t temporary_terms; // Temp terms written so far
   constexpr ExprNodeOutputType local_output_type = ExprNodeOutputType::matlabStaticModelSparse;
 
-  //----------------------------------------------------------------------
-  //For each block
-  for (int block = 0; block < static_cast<int>(blocks.size()); block++)
+  for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
       // For a block composed of a single equation determines wether we have to evaluate or to solve the equation
-      BlockSimulationType simulation_type = blocks[block].simulation_type;
-      int block_size = blocks[block].size;
-      int block_mfs = blocks[block].mfs_size;
-      int block_recursive = blocks[block].getRecursiveSize();
+      BlockSimulationType simulation_type = blocks[blk].simulation_type;
+      int block_recursive_size = blocks[blk].getRecursiveSize();
 
-      string filename = packageDir(basename + ".block") + "/static_" + to_string(block+1) + ".m";
+      string filename = packageDir(basename + ".block") + "/static_" + to_string(blk+1) + ".m";
       ofstream output;
       output.open(filename, ios::out | ios::binary);
       output << "%" << endl
-             << "% " << filename << " : Computes static model for Dynare" << endl
+             << "% " << filename << " : Computes static version of one block" << endl
              << "%" << endl
              << "% Warning : this file is generated automatically by Dynare" << endl
              << "%           from model file (.mod)" << endl << endl
-             << "%/" << endl;
+             << "%" << endl;
       if (simulation_type == BlockSimulationType::evaluateBackward
           || simulation_type == BlockSimulationType::evaluateForward)
-        output << "function y = static_" << block+1 << "(y, x, params)" << endl;
+        output << "function y = static_" << blk+1 << "(y, x, params)" << endl;
       else
-        output << "function [residual, y, g1] = static_" << block+1 << "(y, x, params)" << endl;
+        output << "function [residual, y, g1] = static_" << blk+1 << "(y, x, params)" << endl;
 
       output << "  % ////////////////////////////////////////////////////////////////////////" << endl
-             << "  % //" << string("                     Block ").substr(int (log10(block + 1))) << block + 1
+             << "  % //" << string("                     Block ").substr(static_cast<int>(log10(blk + 1))) << blk+1
              << "                                        //" << endl
              << "  % //                     Simulation type "
              << BlockSim(simulation_type) << "  //" << endl
-             << "  % ////////////////////////////////////////////////////////////////////////" << endl
-             << "  global options_;" << endl;
-      // The Temporary terms
+             << "  % ////////////////////////////////////////////////////////////////////////" << endl;
+
       if (simulation_type != BlockSimulationType::evaluateBackward
           && simulation_type != BlockSimulationType::evaluateForward)
-        output << " g1 = spalloc("  << block_mfs << ", " << block_mfs << ", " << blocks_derivatives[block].size() << ");" << endl;
+        output << "  g1=spalloc("  << blocks[blk].mfs_size << "," << blocks[blk].mfs_size
+               << "," << blocks_derivatives[blk].size() << ");" << endl;
 
       // Declare global temp terms from this block and the previous ones
       bool global_keyword_written = false;
-      for (int blk2 = 0; blk2 <= block; blk2++)
+      for (int blk2 = 0; blk2 <= blk; blk2++)
         for (auto &eq_tt : blocks_temporary_terms[blk2])
           for (auto tt : eq_tt)
             {
@@ -189,20 +185,20 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
 
       if (simulation_type != BlockSimulationType::evaluateBackward
           && simulation_type != BlockSimulationType::evaluateForward)
-        output << "  residual=zeros(" << block_mfs << ",1);" << endl;
+        output << "  residual=zeros(" << blocks[blk].mfs_size << ",1);" << endl;
 
       // The equations
       deriv_node_temp_terms_t tef_terms;
 
       auto write_eq_tt = [&](int eq)
                          {
-                           for (auto it : blocks_temporary_terms[block][eq])
+                           for (auto it : blocks_temporary_terms[blk][eq])
                              {
                                if (dynamic_cast<AbstractExternalFunctionNode *>(it))
                                  it->writeExternalFunctionOutput(output, local_output_type, temporary_terms, {}, tef_terms);
 
                                output << "  ";
-                               it->writeOutput(output, local_output_type, blocks_temporary_terms[block][eq], {}, tef_terms);
+                               it->writeOutput(output, local_output_type, blocks_temporary_terms[blk][eq], {}, tef_terms);
                                output << " = ";
                                it->writeOutput(output, local_output_type, temporary_terms, {}, tef_terms);
                                temporary_terms.insert(it);
@@ -210,58 +206,49 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
                              }
                          };
 
-      for (int i = 0; i < block_size; i++)
+      for (int eq = 0; eq < blocks[blk].size; eq++)
         {
-          write_eq_tt(i);
+          write_eq_tt(eq);
 
-          int variable_ID = getBlockVariableID(block, i);
-          int equation_ID = getBlockEquationID(block, i);
-          EquationType equ_type = getBlockEquationType(block, i);
-          string sModel = symbol_table.getName(symbol_table.getID(SymbolType::endogenous, variable_ID));
-          BinaryOpNode *eq_node = getBlockEquationExpr(block, i);
-          expr_t lhs = eq_node->arg1, rhs = eq_node->arg2;
-          ostringstream tmp_output;
-          lhs->writeOutput(tmp_output, local_output_type, temporary_terms, {});
+          EquationType equ_type = getBlockEquationType(blk, eq);
+          BinaryOpNode *e = getBlockEquationExpr(blk, eq);
+          expr_t lhs = e->arg1, rhs = e->arg2;
           switch (simulation_type)
             {
             case BlockSimulationType::evaluateBackward:
             case BlockSimulationType::evaluateForward:
             evaluation:
-              output << "  ";
-              if (equ_type == EquationType::evaluate)
+              if (equ_type == EquationType::evaluate_s)
                 {
-                  output << tmp_output.str() << " = ";
-                  rhs->writeOutput(output, local_output_type, temporary_terms, {});
+                  e = getBlockEquationRenormalizedExpr(blk, eq);
+                  lhs = e->arg1;
+                  rhs = e->arg2;
                 }
-              else if (equ_type == EquationType::evaluate_s)
+              else if (equ_type != EquationType::evaluate)
                 {
-                  eq_node = getBlockEquationRenormalizedExpr(block, i);
-                  lhs = eq_node->arg1;
-                  rhs = eq_node->arg2;
-                  lhs->writeOutput(output, local_output_type, temporary_terms, {});
-                  output << " = ";
-                  rhs->writeOutput(output, local_output_type, temporary_terms, {});
-                }
-              else
-                {
-                  cerr << "Type mismatch for equation " << equation_ID+1  << endl;
+                  cerr << "Type mismatch for equation " << getBlockEquationID(blk, eq)+1  << endl;
                   exit(EXIT_FAILURE);
                 }
+              output << "  ";
+              lhs->writeOutput(output, local_output_type, temporary_terms, {});
+              output << " = ";
+              rhs->writeOutput(output, local_output_type, temporary_terms, {});
               output << ";" << endl;
               break;
             case BlockSimulationType::solveBackwardSimple:
             case BlockSimulationType::solveForwardSimple:
             case BlockSimulationType::solveBackwardComplete:
             case BlockSimulationType::solveForwardComplete:
-              if (i < block_recursive)
+              if (eq < block_recursive_size)
                 goto evaluation;
-              output << "  " << "residual(" << i+1-block_recursive << ") = ("
-                     << tmp_output.str() << ") - (";
+              output << "  residual(" << eq+1-block_recursive_size << ") = (";
+              lhs->writeOutput(output, local_output_type, temporary_terms, {});
+              output << ") - (";
               rhs->writeOutput(output, local_output_type, temporary_terms, {});
               output << ");" << endl;
               break;
             default:
-              cerr << "Incorrect type for block " << block+1 << endl;
+              cerr << "Incorrect type for block " << blk+1 << endl;
               exit(EXIT_FAILURE);
             }
         }
@@ -273,13 +260,13 @@ StaticModel::writeModelEquationsOrdered_M(const string &basename) const
         case BlockSimulationType::solveBackwardComplete:
         case BlockSimulationType::solveForwardComplete:
           // Write temporary terms for derivatives
-          write_eq_tt(blocks[block].size);
+          write_eq_tt(blocks[blk].size);
 
-          for (const auto &[indices, id] : blocks_derivatives[block])
+          for (const auto &[indices, d] : blocks_derivatives[blk])
             {
               auto [eq, var, ignore] = indices;
-              output << "    g1(" << eq+1-block_recursive << ", " << var+1-block_recursive << ") = ";
-              id->writeOutput(output, local_output_type, temporary_terms, {});
+              output << "    g1(" << eq+1-block_recursive_size << ", " << var+1-block_recursive_size << ") = ";
+              d->writeOutput(output, local_output_type, temporary_terms, {});
               output << ";" << endl;
             }
           break;
@@ -1736,8 +1723,8 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, 
     writeModelEquationsCode(basename);
   else if (block && !bytecode)
     {
-      writeModelEquationsOrdered_M(basename);
-      writeStaticBlockMFSFile(basename);
+      writeStaticPerBlockMFiles(basename);
+      writeStaticBlockMFile(basename);
     }
   else if (use_dll)
     {
@@ -1761,7 +1748,7 @@ StaticModel::exoPresentInEqs() const
 }
 
 void
-StaticModel::writeStaticBlockMFSFile(const string &basename) const
+StaticModel::writeStaticBlockMFile(const string &basename) const
 {
   string filename = packageDir(basename) + "/static.m";
 
@@ -1779,29 +1766,27 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
          << "  var_index = [];" << endl << endl
          << "  switch nblock" << endl;
 
-  int nb_blocks = blocks.size();
-
-  for (int b = 0; b < nb_blocks; b++)
+  for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
       set<int> local_var;
 
-      output << "    case " << b+1 << endl;
+      output << "    case " << blk+1 << endl;
 
-      BlockSimulationType simulation_type = blocks[b].simulation_type;
+      BlockSimulationType simulation_type = blocks[blk].simulation_type;
 
       if (simulation_type == BlockSimulationType::evaluateBackward
           || simulation_type == BlockSimulationType::evaluateForward)
         {
-          output << "      y_tmp = " << basename << ".block.static_" << b+1 << "(y, x, params);" << endl;
-          ostringstream tmp;
-          for (int i = 0; i < blocks[b].size; i++)
-            tmp << " " << getBlockVariableID(b, i)+1;
-          output << "      var_index = [" << tmp.str() << "];" << endl
+          output << "      y_tmp = " << basename << ".block.static_" << blk+1 << "(y, x, params);" << endl
+                 << "      var_index = [";
+          for (int var = 0; var < blocks[blk].size; var++)
+            output << " " << getBlockVariableID(blk, var)+1;
+          output << "];" << endl
                  << "      residual  = y(var_index) - y_tmp(var_index);" << endl
                  << "      y = y_tmp;" << endl;
         }
       else
-        output << "      [residual, y, g1] = " << basename << ".block.static_" << b+1 << "(y, x, params);" << endl;
+        output << "      [residual, y, g1] = " << basename << ".block.static_" << blk+1 << "(y, x, params);" << endl;
 
     }
   output << "  end" << endl

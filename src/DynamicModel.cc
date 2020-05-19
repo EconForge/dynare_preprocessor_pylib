@@ -224,104 +224,88 @@ DynamicModel::additionalBlockTemporaryTerms(int blk,
 }
 
 void
-DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
+DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
 {
-  string tmp_s, sps;
-  ostringstream tmp_output, tmp1_output, global_output;
-  expr_t lhs = nullptr, rhs = nullptr;
-  BinaryOpNode *eq_node;
-  ostringstream Ufoss;
-  vector<string> Uf(symbol_table.endo_nbr(), "");
-  map<expr_t, int> reference_count;
-  ofstream output;
-  int nze, nze_exo, nze_exo_det, nze_other_endo;
-  vector<int> feedback_variables;
-
   temporary_terms_t temporary_terms; // Temp terms written so far
-  ExprNodeOutputType local_output_type = ExprNodeOutputType::matlabDynamicModelSparse;
+  constexpr ExprNodeOutputType local_output_type = ExprNodeOutputType::matlabDynamicModelSparse;
 
-  //----------------------------------------------------------------------
-  //For each block
-  for (int block = 0; block < static_cast<int>(blocks.size()); block++)
+  for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
+      int nze = blocks_derivatives[blk].size();
+      int nze_other_endo = blocks_derivatives_other_endo[blk].size();
+      int nze_exo = blocks_derivatives_exo[blk].size();
+      int nze_exo_det = blocks_derivatives_exo_det[blk].size();
+      BlockSimulationType simulation_type = blocks[blk].simulation_type;
+      int block_size = blocks[blk].size;
+      int block_mfs_size = blocks[blk].mfs_size;
+      int block_recursive_size = blocks[blk].getRecursiveSize();
 
-      //recursive_variables.clear();
-      feedback_variables.clear();
-      //For a block composed of a single equation determines wether we have to evaluate or to solve the equation
-      nze = blocks_derivatives[block].size();
-      nze_other_endo = blocks_derivatives_other_endo[block].size();
-      nze_exo = blocks_derivatives_exo[block].size();
-      nze_exo_det = blocks_derivatives_exo_det[block].size();
-      BlockSimulationType simulation_type = blocks[block].simulation_type;
-      int block_size = blocks[block].size;
-      int block_mfs = blocks[block].mfs_size;
-      int block_recursive = blocks[block].getRecursiveSize();
-      local_output_type = ExprNodeOutputType::matlabDynamicModelSparse;
+      string filename = packageDir(basename + ".block") + "/dynamic_" + to_string(blk+1) + ".m";
+      ofstream output;
+      output.open(filename, ios::out | ios::binary);
 
-      tmp1_output.str("");
-      tmp1_output << packageDir(basename + ".block") << "/dynamic_" << block+1 << ".m";
-      output.open(tmp1_output.str(), ios::out | ios::binary);
+      vector<ostringstream> Uf(block_size);
+
       output << "%" << endl
-             << "% " << tmp1_output.str() << " : Computes dynamic model for Dynare" << endl
+             << "% " << filename << " : Computes dynamic version of one block" << endl
              << "%" << endl
              << "% Warning : this file is generated automatically by Dynare" << endl
              << "%           from model file (.mod)" << endl << endl
-             << "%/" << endl;
+             << "%" << endl;
       if (simulation_type == BlockSimulationType::evaluateBackward
           || simulation_type == BlockSimulationType::evaluateForward)
-        {
-          output << "function [y, g1, g2, g3, varargout] = dynamic_" << block+1 << "(y, x, params, steady_state, jacobian_eval, y_kmin, periods)" << endl;
-        }
+        output << "function [y, g1, g2, g3, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, jacobian_eval, y_kmin, periods)" << endl;
       else if (simulation_type == BlockSimulationType::solveForwardComplete
                || simulation_type == BlockSimulationType::solveBackwardComplete)
-        output << "function [residual, y, g1, g2, g3, varargout] = dynamic_" << block+1 << "(y, x, params, steady_state, it_, jacobian_eval)" << endl;
+        output << "function [residual, y, g1, g2, g3, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, it_, jacobian_eval)" << endl;
       else if (simulation_type == BlockSimulationType::solveBackwardSimple
                || simulation_type == BlockSimulationType::solveForwardSimple)
-        output << "function [residual, y, g1, g2, g3, varargout] = dynamic_" << block+1 << "(y, x, params, steady_state, it_, jacobian_eval)" << endl;
+        output << "function [residual, y, g1, g2, g3, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, it_, jacobian_eval)" << endl;
       else
-        output << "function [residual, y, g1, g2, g3, b, varargout] = dynamic_" << block+1 << "(y, x, params, steady_state, periods, jacobian_eval, y_kmin, y_size, Periods)" << endl;
+        output << "function [residual, y, g1, g2, g3, b, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, periods, jacobian_eval, y_kmin, y_size, Periods)" << endl;
 
       output << "  % ////////////////////////////////////////////////////////////////////////" << endl
-             << "  % //" << string("                     Block ").substr(int (log10(block + 1))) << block + 1
+             << "  % //" << string("                     Block ").substr(static_cast<int>(log10(blk + 1))) << blk+1
              << "                                        //" << endl
              << "  % //                     Simulation type "
              << BlockSim(simulation_type) << "  //" << endl
              << "  % ////////////////////////////////////////////////////////////////////////" << endl;
-      //The Temporary terms
+
       if (simulation_type == BlockSimulationType::evaluateBackward
           || simulation_type == BlockSimulationType::evaluateForward)
         {
-          output << "  if(jacobian_eval)" << endl
-                 << "    g1 = spalloc(" << block_mfs  << ", " << blocks_jacob_cols_endo[block].size() << ", " << nze << ");" << endl
-                 << "    g1_x=spalloc(" << block_size << ", " << blocks_jacob_cols_exo[block].size() << ", " << nze_exo << ");" << endl
-                 << "    g1_xd=spalloc(" << block_size << ", " << blocks_jacob_cols_exo_det[block].size() << ", " << nze_exo_det << ");" << endl
-                 << "    g1_o=spalloc(" << block_size << ", " << blocks_jacob_cols_other_endo[block].size() << ", " << nze_other_endo << ");" << endl
+          output << "  if jacobian_eval" << endl
+                 << "    g1 = spalloc(" << block_mfs_size  << ", " << blocks_jacob_cols_endo[blk].size() << ", " << nze << ");" << endl
+                 << "    g1_x = spalloc(" << block_size << ", " << blocks_jacob_cols_exo[blk].size() << ", " << nze_exo << ");" << endl
+                 << "    g1_xd = spalloc(" << block_size << ", " << blocks_jacob_cols_exo_det[blk].size() << ", " << nze_exo_det << ");" << endl
+                 << "    g1_o = spalloc(" << block_size << ", " << blocks_jacob_cols_other_endo[blk].size() << ", " << nze_other_endo << ");" << endl
                  << "  end;" << endl;
         }
       else
         {
-          output << "  if(jacobian_eval)" << endl
-                 << "    g1 = spalloc(" << block_size << ", " << blocks_jacob_cols_endo[block].size() << ", " << nze << ");" << endl
-                 << "    g1_x=spalloc(" << block_size << ", " << blocks_jacob_cols_exo[block].size() << ", " << nze_exo << ");" << endl
-                 << "    g1_xd=spalloc(" << block_size << ", " << blocks_jacob_cols_exo_det[block].size() << ", " << nze_exo_det << ");" << endl
-                 << "    g1_o=spalloc(" << block_size << ", " << blocks_jacob_cols_other_endo[block].size() << ", " << nze_other_endo << ");" << endl
+          output << "  if jacobian_eval" << endl
+                 << "    g1 = spalloc(" << block_size << ", " << blocks_jacob_cols_endo[blk].size() << ", " << nze << ");" << endl
+                 << "    g1_x = spalloc(" << block_size << ", " << blocks_jacob_cols_exo[blk].size() << ", " << nze_exo << ");" << endl
+                 << "    g1_xd = spalloc(" << block_size << ", " << blocks_jacob_cols_exo_det[blk].size() << ", " << nze_exo_det << ");" << endl
+                 << "    g1_o = spalloc(" << block_size << ", " << blocks_jacob_cols_other_endo[blk].size() << ", " << nze_other_endo << ");" << endl
                  << "  else" << endl;
           if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
               || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
-            output << "    g1 = spalloc(" << block_mfs << "*Periods, "
-                   << block_mfs << "*(Periods+" << blocks[block].max_lag+blocks[block].max_lead+1 << ")"
+            output << "    g1 = spalloc(" << block_mfs_size << "*Periods, "
+                   << block_mfs_size << "*(Periods+" << blocks[blk].max_lag+blocks[blk].max_lead+1 << ")"
                    << ", " << nze << "*Periods);" << endl;
           else
-            output << "    g1 = spalloc(" << block_mfs
-                   << ", " << block_mfs << ", " << nze << ");" << endl;
-          output << "  end;" << endl;
+            output << "    g1 = spalloc(" << block_mfs_size
+                   << ", " << block_mfs_size << ", " << nze << ");" << endl;
+          output << "  end" << endl;
         }
 
-      output << "  g2=0;g3=0;" << endl;
+      output << "  g2=0;" << endl
+             << "  g3=0;" << endl;
 
       // Declare global temp terms from this block and the previous ones
       bool global_keyword_written = false;
-      for (int blk2 = 0; blk2 <= block; blk2++)
+      for (int blk2 = 0; blk2 <= blk; blk2++)
         for (auto &eq_tt : blocks_temporary_terms[blk2])
           for (auto tt : eq_tt)
             {
@@ -341,9 +325,8 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
       if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
           || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
         {
-          output << "  " << "% //Temporary variables initialization" << endl
-                 << "  " << "T_zeros = zeros(y_kmin+periods, 1);" << endl;
-          for (auto &eq_tt : blocks_temporary_terms[block])
+          output << "  " << "T_zeros = zeros(y_kmin+periods, 1);" << endl;
+          for (auto &eq_tt : blocks_temporary_terms[blk])
             for (auto tt : eq_tt)
               {
                 output << "  ";
@@ -356,10 +339,10 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
           || simulation_type == BlockSimulationType::solveForwardSimple
           || simulation_type == BlockSimulationType::solveBackwardComplete
           || simulation_type == BlockSimulationType::solveForwardComplete)
-        output << "  residual=zeros(" << block_mfs << ",1);" << endl;
+        output << "  residual=zeros(" << block_mfs_size << ",1);" << endl;
       else if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
                || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
-        output << "  residual=zeros(" << block_mfs << ",y_kmin+periods);" << endl;
+        output << "  residual=zeros(" << block_mfs_size << ",y_kmin+periods);" << endl;
       if (simulation_type == BlockSimulationType::evaluateBackward)
         output << "  for it_ = (y_kmin+periods):y_kmin+1" << endl;
       if (simulation_type == BlockSimulationType::evaluateForward)
@@ -367,32 +350,30 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
 
       if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
           || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
-        {
-          output << "  b = zeros(periods*y_size,1);" << endl
-                 << "  for it_ = y_kmin+1:(periods+y_kmin)" << endl
-                 << "    Per_y_=it_*y_size;" << endl
-                 << "    Per_J_=(it_-y_kmin-1)*y_size;" << endl
-                 << "    Per_K_=(it_-1)*y_size;" << endl;
-          sps = "  ";
-        }
-      else
-        if (simulation_type == BlockSimulationType::evaluateBackward
-            || simulation_type == BlockSimulationType::evaluateForward)
-          sps = "  ";
-        else
-          sps = "";
+        output << "  b = zeros(periods*y_size,1);" << endl
+               << "  for it_ = y_kmin+1:(periods+y_kmin)" << endl
+               << "    Per_y_=it_*y_size;" << endl
+               << "    Per_J_=(it_-y_kmin-1)*y_size;" << endl
+               << "    Per_K_=(it_-1)*y_size;" << endl;
+
+      string indent_prefix = "  ";
+      if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
+          || simulation_type == BlockSimulationType::solveTwoBoundariesSimple
+          || simulation_type == BlockSimulationType::evaluateBackward
+          || simulation_type == BlockSimulationType::evaluateForward)
+        indent_prefix += "  ";
 
       deriv_node_temp_terms_t tef_terms;
 
       auto write_eq_tt = [&](int eq)
                          {
-                           for (auto it : blocks_temporary_terms[block][eq])
+                           for (auto it : blocks_temporary_terms[blk][eq])
                              {
                                if (dynamic_cast<AbstractExternalFunctionNode *>(it))
                                  it->writeExternalFunctionOutput(output, local_output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 
-                               output << "  " <<  sps;
-                               it->writeOutput(output, local_output_type, blocks_temporary_terms[block][eq], {}, tef_terms);
+                               output << indent_prefix;
+                               it->writeOutput(output, local_output_type, blocks_temporary_terms[blk][eq], {}, tef_terms);
                                output << " = ";
                                it->writeOutput(output, local_output_type, temporary_terms, {}, tef_terms);
                                temporary_terms.insert(it);
@@ -401,258 +382,176 @@ DynamicModel::writeModelEquationsOrdered_M(const string &basename) const
                          };
 
       // The equations
-      for (int i = 0; i < block_size; i++)
+      for (int eq = 0; eq < block_size; eq++)
         {
-          write_eq_tt(i);
+          write_eq_tt(eq);
 
-          int variable_ID = getBlockVariableID(block, i);
-          int equation_ID = getBlockEquationID(block, i);
-          EquationType equ_type = getBlockEquationType(block, i);
-          string sModel = symbol_table.getName(symbol_table.getID(SymbolType::endogenous, variable_ID));
-          eq_node = getBlockEquationExpr(block, i);
-          lhs = eq_node->arg1;
-          rhs = eq_node->arg2;
-          tmp_output.str("");
-          lhs->writeOutput(tmp_output, local_output_type, temporary_terms, {});
+          EquationType equ_type = getBlockEquationType(blk, eq);
+          BinaryOpNode *e = getBlockEquationExpr(blk, eq);
+          expr_t lhs = e->arg1, rhs = e->arg2;
           switch (simulation_type)
             {
             case BlockSimulationType::evaluateBackward:
             case BlockSimulationType::evaluateForward:
-            evaluation:     if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
-                                || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
-                output << "    % equation " << getBlockEquationID(block, i)+1 << " variable : " << sModel
-                       << " (" << variable_ID+1 << ") " << c_Equation_Type(equ_type) << endl;
-              output << "    ";
-              if (equ_type == EquationType::evaluate)
+            evaluation:
+              if (equ_type == EquationType::evaluate_s)
                 {
-                  output << tmp_output.str();
-                  output << " = ";
-                  rhs->writeOutput(output, local_output_type, temporary_terms, {});
+                  e = getBlockEquationRenormalizedExpr(blk, eq);
+                  lhs = e->arg1;
+                  rhs = e->arg2;
                 }
-              else if (equ_type == EquationType::evaluate_s)
+              else if (equ_type != EquationType::evaluate)
                 {
-                  output << "%" << tmp_output.str();
-                  output << " = ";
-                  if (isBlockEquationRenormalized(block, i))
-                    {
-                      rhs->writeOutput(output, local_output_type, temporary_terms, {});
-                      output << endl << "    ";
-                      tmp_output.str("");
-                      eq_node = getBlockEquationRenormalizedExpr(block, i);
-                      lhs = eq_node->arg1;
-                      rhs = eq_node->arg2;
-                      lhs->writeOutput(output, local_output_type, temporary_terms, {});
-                      output << " = ";
-                      rhs->writeOutput(output, local_output_type, temporary_terms, {});
-                    }
-                }
-              else
-                {
-                  cerr << "Type mismatch for equation " << equation_ID+1  << endl;
+                  cerr << "Type mismatch for equation " << getBlockEquationID(blk, eq)+1  << endl;
                   exit(EXIT_FAILURE);
                 }
+              output << indent_prefix;
+              lhs->writeOutput(output, local_output_type, temporary_terms, {});
+              output << " = ";
+              rhs->writeOutput(output, local_output_type, temporary_terms, {});
               output << ";" << endl;
               break;
             case BlockSimulationType::solveBackwardSimple:
             case BlockSimulationType::solveForwardSimple:
             case BlockSimulationType::solveBackwardComplete:
             case BlockSimulationType::solveForwardComplete:
-              if (i < block_recursive)
+              if (eq < block_recursive_size)
                 goto evaluation;
-              feedback_variables.push_back(variable_ID);
-              output << "  % equation " << equation_ID+1 << " variable : " << sModel
-                     << " (" << variable_ID+1 << ") " << c_Equation_Type(equ_type) << " symb_id=" << symbol_table.getID(SymbolType::endogenous, variable_ID) << endl;
-              output << "  " << "residual(" << i+1-block_recursive << ") = (";
+              output << indent_prefix << "residual(" << eq+1-block_recursive_size << ") = (";
               goto end;
             case BlockSimulationType::solveTwoBoundariesComplete:
             case BlockSimulationType::solveTwoBoundariesSimple:
-              if (i < block_recursive)
+              if (eq < block_recursive_size)
                 goto evaluation;
-              feedback_variables.push_back(variable_ID);
-              output << "    % equation " << equation_ID+1 << " variable : " << sModel
-                     << " (" << variable_ID+1 << ") " << c_Equation_Type(equ_type) << " symb_id=" << symbol_table.getID(SymbolType::endogenous, variable_ID) << endl;
-              Ufoss << "    b(" << i+1-block_recursive << "+Per_J_) = -residual(" << i+1-block_recursive << ", it_)";
-              Uf[equation_ID] += Ufoss.str();
-              Ufoss.str("");
-              output << "    residual(" << i+1-block_recursive << ", it_) = (";
+              Uf[eq] << "b(" << eq+1-block_recursive_size << "+Per_J_) = -residual(" << eq+1-block_recursive_size << ", it_)";
+              output << indent_prefix << "residual(" << eq+1-block_recursive_size << ", it_) = (";
               goto end;
             default:
             end:
-              output << tmp_output.str();
+              lhs->writeOutput(output, local_output_type, temporary_terms, {});
               output << ") - (";
               rhs->writeOutput(output, local_output_type, temporary_terms, {});
               output << ");" << endl;
-#ifdef CONDITION
-              if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
-                  || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
-                output << "  condition(" << i+1 << ")=0;" << endl;
-#endif
             }
         }
+
       // The Jacobian if we have to solve the block
 
       // Write temporary terms for derivatives
-      write_eq_tt(blocks[block].size);
+      write_eq_tt(blocks[blk].size);
 
-      if (simulation_type == BlockSimulationType::solveTwoBoundariesSimple
-          || simulation_type == BlockSimulationType::solveTwoBoundariesComplete)
-        output << "  " << sps << "% Jacobian  " << endl << "    if jacobian_eval" << endl;
-      else
-        if (simulation_type == BlockSimulationType::solveBackwardSimple
-            || simulation_type == BlockSimulationType::solveForwardSimple
-            || simulation_type == BlockSimulationType::solveBackwardComplete
-            || simulation_type == BlockSimulationType::solveForwardComplete)
-          output << "  % Jacobian  " << endl << "  if jacobian_eval" << endl;
-        else
-          output << "    % Jacobian  " << endl << "    if jacobian_eval" << endl;
-      for (const auto &[indices, d] : blocks_derivatives[block])
+      output << indent_prefix << "% Jacobian" << endl
+             << indent_prefix << "if jacobian_eval" << endl;
+      indent_prefix += "  ";
+      for (const auto &[indices, d] : blocks_derivatives[blk])
         {
           auto [eq, var, lag] = indices;
-          int jacob_col = blocks_jacob_cols_endo[block].at({ var, lag });
-          output << "      g1(" << eq+1 << ", " << jacob_col+1 << ") = ";
+          int jacob_col = blocks_jacob_cols_endo[blk].at({ var, lag });
+          output << indent_prefix << "g1(" << eq+1 << ", " << jacob_col+1 << ") = ";
           d->writeOutput(output, local_output_type, temporary_terms, {});
           output << ";" << endl;
         }
-      for (const auto &[indices, d] : blocks_derivatives_exo[block])
+      for (const auto &[indices, d] : blocks_derivatives_exo[blk])
         {
           auto [eq, var, lag] = indices;
-          int jacob_col = blocks_jacob_cols_exo[block].at({ var, lag });
-          output << "      g1_x(" << eq+1 << ", " << jacob_col+1 << ") = ";
+          int jacob_col = blocks_jacob_cols_exo[blk].at({ var, lag });
+          output << indent_prefix << "g1_x(" << eq+1 << ", " << jacob_col+1 << ") = ";
           d->writeOutput(output, local_output_type, temporary_terms, {});
           output << ";" << endl;
         }
-      for (const auto &[indices, d] : blocks_derivatives_exo_det[block])
+      for (const auto &[indices, d] : blocks_derivatives_exo_det[blk])
         {
           auto [eq, var, lag] = indices;
-          int jacob_col = blocks_jacob_cols_exo_det[block].at({ var, lag });
-          output << "      g1_xd(" << eq+1 << ", " << jacob_col+1 << ") = ";
+          int jacob_col = blocks_jacob_cols_exo_det[blk].at({ var, lag });
+          output << indent_prefix << "g1_xd(" << eq+1 << ", " << jacob_col+1 << ") = ";
           d->writeOutput(output, local_output_type, temporary_terms, {});
           output << ";" << endl;
         }
-      for (const auto &[indices, d] : blocks_derivatives_other_endo[block])
+      for (const auto &[indices, d] : blocks_derivatives_other_endo[blk])
         {
           auto [eq, var, lag] = indices;
-          int jacob_col = blocks_jacob_cols_other_endo[block].at({ var, lag });
-          output << "      g1_o(" << eq+1 << ", " << jacob_col+1 << ") = ";
+          int jacob_col = blocks_jacob_cols_other_endo[blk].at({ var, lag });
+          output << indent_prefix << "g1_o(" << eq+1 << ", " << jacob_col+1 << ") = ";
           d->writeOutput(output, local_output_type, temporary_terms, {});
           output << ";" << endl;
         }
-      output << "      varargout{1}=g1_x;" << endl
-             << "      varargout{2}=g1_xd;" << endl
-             << "      varargout{3}=g1_o;" << endl;
+      output << indent_prefix << "varargout{1}=g1_x;" << endl
+             << indent_prefix << "varargout{2}=g1_xd;" << endl
+             << indent_prefix << "varargout{3}=g1_o;" << endl;
 
       switch (simulation_type)
         {
         case BlockSimulationType::evaluateForward:
         case BlockSimulationType::evaluateBackward:
-          output << "    end;" << endl
-                 << "  end;" << endl;
+          output << "    end" << endl
+                 << "  end" << endl;
           break;
         case BlockSimulationType::solveBackwardSimple:
         case BlockSimulationType::solveForwardSimple:
         case BlockSimulationType::solveBackwardComplete:
         case BlockSimulationType::solveForwardComplete:
           output << "  else" << endl;
-          for (const auto &[indices, id] : blocks_derivatives[block])
+          for (const auto &[indices, d] : blocks_derivatives[blk])
             {
               auto [eq, var, lag] = indices;
-              int eqr = getBlockEquationID(block, eq);
-              int varr = getBlockVariableID(block, var);
               if (lag == 0)
                 {
-                  output << "    g1(" << eq+1 << ", " << var+1-block_recursive << ") = ";
-                  id->writeOutput(output, local_output_type, temporary_terms, {});
-                  output << "; % variable=" << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, varr))
-                         << "(" << lag
-                         << ") " << varr+1
-                         << ", equation=" << eqr+1 << endl;
+                  output << "    g1(" << eq+1 << ", " << var+1-block_recursive_size << ") = ";
+                  d->writeOutput(output, local_output_type, temporary_terms, {});
+                  output << ";" << endl;
                 }
-
             }
-          output << "  end;" << endl;
+          output << "  end" << endl;
           break;
         case BlockSimulationType::solveTwoBoundariesSimple:
         case BlockSimulationType::solveTwoBoundariesComplete:
           output << "    else" << endl;
-          for (const auto &[indices, id] : blocks_derivatives[block])
+          for (const auto &[indices, d] : blocks_derivatives[blk])
             {
               auto [eq, var, lag] = indices;
-              int eqr = getBlockEquationID(block, eq);
-              int varr = getBlockVariableID(block, var);
-              ostringstream tmp_output;
-              if (eq >= block_recursive && var >= block_recursive)
+              int varr = getBlockVariableID(blk, var);
+              if (eq >= block_recursive_size && var >= block_recursive_size)
                 {
                   if (lag == 0)
-                    Ufoss << "+g1(" << eq+1-block_recursive
-                          << "+Per_J_, " << var+1-block_recursive
-                          << "+Per_K_)*y(it_, " << varr+1 << ")";
+                    Uf[eq] << "+g1(" << eq+1-block_recursive_size
+                            << "+Per_J_, " << var+1-block_recursive_size
+                            << "+Per_K_)*y(it_, " << varr+1 << ")";
                   else if (lag == 1)
-                    Ufoss << "+g1(" << eq+1-block_recursive
-                          << "+Per_J_, " << var+1-block_recursive
-                          << "+Per_y_)*y(it_+1, " << varr+1 << ")";
+                    Uf[eq] << "+g1(" << eq+1-block_recursive_size
+                            << "+Per_J_, " << var+1-block_recursive_size
+                            << "+Per_y_)*y(it_+1, " << varr+1 << ")";
                   else if (lag > 0)
-                    Ufoss << "+g1(" << eq+1-block_recursive
-                          << "+Per_J_, " << var+1-block_recursive
-                          << "+y_size*(it_+" << lag-1 << "))*y(it_+" << lag << ", " << varr+1 << ")";
+                    Uf[eq] << "+g1(" << eq+1-block_recursive_size
+                            << "+Per_J_, " << var+1-block_recursive_size
+                            << "+y_size*(it_+" << lag-1 << "))*y(it_+" << lag << ", " << varr+1 << ")";
                   else
-                    Ufoss << "+g1(" << eq+1-block_recursive
-                          << "+Per_J_, " << var+1-block_recursive
-                          << "+y_size*(it_" << lag-1 << "))*y(it_" << lag << ", " << varr+1 << ")";
-                  Uf[eqr] += Ufoss.str();
-                  Ufoss.str("");
+                    Uf[eq] << "+g1(" << eq+1-block_recursive_size
+                            << "+Per_J_, " << var+1-block_recursive_size
+                            << "+y_size*(it_" << lag-1 << "))*y(it_" << lag << ", " << varr+1 << ")";
 
+                  output << " ";
                   if (lag == 0)
-                    tmp_output << "     g1(" << eq+1-block_recursive << "+Per_J_, "
-                               << var+1-block_recursive << "+Per_K_) = ";
+                    output << "     g1(" << eq+1-block_recursive_size << "+Per_J_, "
+                           << var+1-block_recursive_size << "+Per_K_) = ";
                   else if (lag == 1)
-                    tmp_output << "     g1(" << eq+1-block_recursive << "+Per_J_, "
-                               << var+1-block_recursive << "+Per_y_) = ";
+                    output << "     g1(" << eq+1-block_recursive_size << "+Per_J_, "
+                           << var+1-block_recursive_size << "+Per_y_) = ";
                   else if (lag > 0)
-                    tmp_output << "     g1(" << eq+1-block_recursive << "+Per_J_, "
-                               << var+1-block_recursive << "+y_size*(it_+" << lag-1 << ")) = ";
+                    output << "     g1(" << eq+1-block_recursive_size << "+Per_J_, "
+                           << var+1-block_recursive_size << "+y_size*(it_+" << lag-1 << ")) = ";
                   else if (lag < 0)
-                    tmp_output << "     g1(" << eq+1-block_recursive << "+Per_J_, "
-                               << var+1-block_recursive << "+y_size*(it_" << lag-1 << ")) = ";
-                  output << " " << tmp_output.str();
-                  id->writeOutput(output, local_output_type, temporary_terms, {});
-                  output << ";";
-                  output << " %2 variable=" << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, varr))
-                         << "(" << lag << ") " << varr+1
-                         << ", equation=" << eqr+1 << " (" << eq+1 << ")" << endl;
+                    output << "     g1(" << eq+1-block_recursive_size << "+Per_J_, "
+                           << var+1-block_recursive_size << "+y_size*(it_" << lag-1 << ")) = ";
+                  d->writeOutput(output, local_output_type, temporary_terms, {});
+                  output << ";" << endl;
                 }
+            }
+          for (int eq = 0; eq < block_size; eq++)
+            if (eq >= block_recursive_size)
+              output << "      " << Uf[eq].str() << ";" << endl;
 
-#ifdef CONDITION
-              output << "  if (fabs(condition[" << eqr << "])<fabs(u[" << u << "+Per_u_]))" << endl
-                     << "    condition(" << eqr << ")=u(" << u << "+Per_u_);" << endl;
-#endif
-            }
-          for (int i = 0; i < block_size; i++)
-            {
-              if (i >= block_recursive)
-                output << "  " << Uf[getBlockEquationID(block, i)] << ";" << endl;
-#ifdef CONDITION
-              output << "  if (fabs(condition(" << i+1 << "))<fabs(u(" << i << "+Per_u_)))" << endl
-                     << "    condition(" << i+1 << ")=u(" << i+1 << "+Per_u_);" << endl;
-#endif
-            }
-#ifdef CONDITION
-          for (m = 0; m <= ModelBlock->Block_List[block].Max_Lead+ModelBlock->Block_List[block].Max_Lag; m++)
-            {
-              k = m-ModelBlock->Block_List[block].Max_Lag;
-              for (i = 0; i < ModelBlock->Block_List[block].IM_lead_lag[m].size; i++)
-                {
-                  int eq = ModelBlock->Block_List[block].IM_lead_lag[m].Equ_Index[i];
-                  int var = ModelBlock->Block_List[block].IM_lead_lag[m].Var_Index[i];
-                  int u = ModelBlock->Block_List[block].IM_lead_lag[m].u[i];
-                  int eqr = ModelBlock->Block_List[block].IM_lead_lag[m].Equ[i];
-                  output << "  u(" << u+1 << "+Per_u_) = u(" << u+1 << "+Per_u_) / condition(" << eqr+1 << ");" << endl;
-                }
-            }
-          for (i = 0; i < ModelBlock->Block_List[block].Size; i++)
-            output << "  u(" << i+1 << "+Per_u_) = u(" << i+1 << "+Per_u_) / condition(" << i+1 << ");" << endl;
-#endif
-          output << "    end;" << endl
-                 << "  end;" << endl;
+          output << "    end" << endl
+                 << "  end" << endl;
           break;
         default:
           break;
@@ -1537,7 +1436,7 @@ DynamicModel::Write_Inf_To_Bin_File_Block(const string &basename, int num,
 }
 
 void
-DynamicModel::writeSparseDynamicMFile(const string &basename) const
+DynamicModel::writeDynamicBlockMFile(const string &basename) const
 {
   string sp;
   ofstream mDynamicModelFile;
@@ -1857,8 +1756,6 @@ DynamicModel::writeSparseDynamicMFile(const string &basename) const
                     << "end" << endl;
 
   mDynamicModelFile.close();
-
-  writeModelEquationsOrdered_M(basename);
 }
 
 void
@@ -4748,7 +4645,10 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool linear_d
       writeModelEquationsCode(basename);
     }
   else if (block && !bytecode)
-    writeSparseDynamicMFile(basename);
+    {
+      writeDynamicPerBlockMFiles(basename);
+      writeDynamicBlockMFile(basename);
+    }
   else if (use_dll)
     {
       writeDynamicCFile(basename);
