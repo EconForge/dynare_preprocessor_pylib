@@ -210,9 +210,6 @@ protected:
      the vector of all temporary terms */
   temporary_terms_idxs_t blocks_temporary_terms_idxs;
 
-  //! the file containing the model and the derivatives code
-  ofstream code_file;
-
   //! Vector indicating if the equation is linear in endogenous variable (true) or not (false)
   vector<bool> is_equation_linear;
 
