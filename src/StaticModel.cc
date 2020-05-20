@@ -1795,7 +1795,7 @@ StaticModel::writeStaticBlockMFile(const string &basename) const
 }
 
 void
-StaticModel::writeOutput(ostream &output, bool block) const
+StaticModel::writeDriverOutput(ostream &output, bool block) const
 {
   output << "M_.static_tmp_nbr = [";
   for (const auto &temporary_terms_derivative : temporary_terms_derivatives)

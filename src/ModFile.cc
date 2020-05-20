@@ -1021,10 +1021,10 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   if (dynamic_model.equation_number() > 0)
     {
       if (linear_decomposition)
-        non_linear_equations_dynamic_model.writeOutput(mOutputFile, basename, block, true, use_dll, mod_file_struct.estimation_present, compute_xrefs, false);
-      dynamic_model.writeOutput(mOutputFile, basename, block, false, use_dll, mod_file_struct.estimation_present, compute_xrefs, false);
+        non_linear_equations_dynamic_model.writeDriverOutput(mOutputFile, basename, block, true, use_dll, mod_file_struct.estimation_present, compute_xrefs, false);
+      dynamic_model.writeDriverOutput(mOutputFile, basename, block, false, use_dll, mod_file_struct.estimation_present, compute_xrefs, false);
       if (!no_static)
-        static_model.writeOutput(mOutputFile, block);
+        static_model.writeDriverOutput(mOutputFile, block);
     }
 
   if (onlymodel || gui)
@@ -1252,8 +1252,8 @@ ModFile::writeExternalFilesJulia(const string &basename) const
 
   if (dynamic_model.equation_number() > 0)
     {
-      dynamic_model.writeOutput(jlOutputFile, basename, false, false, false,
-                                mod_file_struct.estimation_present, false, true);
+      dynamic_model.writeDriverOutput(jlOutputFile, basename, false, false, false,
+                                      mod_file_struct.estimation_present, false, true);
       if (!no_static)
         {
           static_model.writeStaticFile(basename, false, false, false, "", {}, {}, true);

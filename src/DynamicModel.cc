@@ -2820,7 +2820,7 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename, co
 }
 
 void
-DynamicModel::writeOutput(ostream &output, const string &basename, bool block_decomposition, bool linear_decomposition, bool use_dll, bool estimation_present, bool compute_xrefs, bool julia) const
+DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool block_decomposition, bool linear_decomposition, bool use_dll, bool estimation_present, bool compute_xrefs, bool julia) const
 {
   /* Writing initialisation for M_.lead_lag_incidence matrix
      M_.lead_lag_incidence is a matrix with as many columns as there are

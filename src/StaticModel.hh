@@ -122,8 +122,8 @@ public:
   //! Creates the static version of a dynamic model
   explicit StaticModel(const DynamicModel &m);
 
-  //! Writes information on block decomposition when relevant
-  void writeOutput(ostream &output, bool block) const;
+  //! Writes information about the static model to the driver file
+  void writeDriverOutput(ostream &output, bool block) const;
 
   //! Execute computations (variable sorting + derivation)
   /*!
