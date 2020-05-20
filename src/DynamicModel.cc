@@ -394,7 +394,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
             case BlockSimulationType::evaluateBackward:
             case BlockSimulationType::evaluateForward:
             evaluation:
-              if (equ_type == EquationType::evaluate_s)
+              if (equ_type == EquationType::evaluateRenormalized)
                 {
                   e = getBlockEquationRenormalizedExpr(blk, eq);
                   lhs = e->arg1;
@@ -955,7 +955,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename, bool linear_deco
                   rhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false);
                   lhs->compile(code_file, instruction_number, true, temporary_terms_union, blocks_temporary_terms_idxs, true, false);
                 }
-              else if (equ_type == EquationType::evaluate_s)
+              else if (equ_type == EquationType::evaluateRenormalized)
                 {
                   eq_node = getBlockEquationRenormalizedExpr(block, i);
                   lhs = eq_node->arg1;
@@ -4449,7 +4449,7 @@ DynamicModel::determineBlockDerivativesType(int blk)
           if (int var_orig = getBlockVariableID(blk, var);
               endos_and_lags.find({ var_orig, lag }) != endos_and_lags.end())
             {
-              if (getBlockEquationType(blk, eq) == EquationType::evaluate_s
+              if (getBlockEquationType(blk, eq) == EquationType::evaluateRenormalized
                   && eq < nb_recursive)
                 /* It’s a normalized recursive equation, we have to recompute
                    the derivative using the chain rule */
@@ -4483,7 +4483,7 @@ DynamicModel::computeChainRuleJacobian()
       for (int i = 0; i < nb_recursives; i++)
         {
           int deriv_id = getDerivID(symbol_table.getID(SymbolType::endogenous, getBlockVariableID(blk, i)), 0);
-          if (getBlockEquationType(blk, i) == EquationType::evaluate_s)
+          if (getBlockEquationType(blk, i) == EquationType::evaluateRenormalized)
             recursive_vars[deriv_id] = getBlockEquationRenormalizedExpr(blk, i);
           else
             recursive_vars[deriv_id] = getBlockEquationExpr(blk, i);

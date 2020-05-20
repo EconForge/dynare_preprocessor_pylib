@@ -542,7 +542,7 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
                 {
                   normalized_eq = equations[eq]->normalizeEquation(symbol_table.getID(SymbolType::endogenous, var), 0);
                   if ((mfs == 2 && variable_not_in_derivative) || mfs == 3)
-                    Equation_Simulation_Type = EquationType::evaluate_s;
+                    Equation_Simulation_Type = EquationType::evaluateRenormalized;
                 }
               catch (ExprNode::NormalizationFailed &e)
                 {
@@ -643,7 +643,7 @@ ModelTree::computeSimulationTypeOfBlock(int blk)
   else
     {
       bool can_eval = (getBlockEquationType(blk, 0) == EquationType::evaluate
-                       || getBlockEquationType(blk, 0) == EquationType::evaluate_s);
+                       || getBlockEquationType(blk, 0) == EquationType::evaluateRenormalized);
       if (blocks[blk].max_endo_lead > 0)
         type = can_eval ? BlockSimulationType::evaluateBackward :
           BlockSimulationType::solveBackwardSimple;

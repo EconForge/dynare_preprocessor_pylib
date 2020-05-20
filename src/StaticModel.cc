@@ -218,7 +218,7 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
             case BlockSimulationType::evaluateBackward:
             case BlockSimulationType::evaluateForward:
             evaluation:
-              if (equ_type == EquationType::evaluate_s)
+              if (equ_type == EquationType::evaluateRenormalized)
                 {
                   e = getBlockEquationRenormalizedExpr(blk, eq);
                   lhs = e->arg1;
@@ -569,7 +569,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
                   rhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false);
                   lhs->compile(code_file, instruction_number, true, temporary_terms_union, blocks_temporary_terms_idxs, false, false);
                 }
-              else if (equ_type == EquationType::evaluate_s)
+              else if (equ_type == EquationType::evaluateRenormalized)
                 {
                   eq_node = getBlockEquationRenormalizedExpr(block, i);
                   lhs = eq_node->arg1;
@@ -745,7 +745,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
                   rhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false);
                   lhs->compile(code_file, instruction_number, true, temporary_terms_union, blocks_temporary_terms_idxs, false, false);
                 }
-              else if (equ_type == EquationType::evaluate_s)
+              else if (equ_type == EquationType::evaluateRenormalized)
                 {
                   eq_node = getBlockEquationRenormalizedExpr(block, i);
                   lhs = eq_node->arg1;
@@ -1903,7 +1903,7 @@ StaticModel::computeChainRuleJacobian()
       for (int i = 0; i < nb_recursives; i++)
         {
           int deriv_id = getDerivID(symbol_table.getID(SymbolType::endogenous, getBlockVariableID(blk, i)), 0);
-          if (getBlockEquationType(blk, i) == EquationType::evaluate_s)
+          if (getBlockEquationType(blk, i) == EquationType::evaluateRenormalized)
             recursive_vars[deriv_id] = getBlockEquationRenormalizedExpr(blk, i);
           else
             recursive_vars[deriv_id] = getBlockEquationExpr(blk, i);

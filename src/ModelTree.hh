@@ -353,7 +353,7 @@ protected:
   bool
   isBlockEquationRenormalized(int blk, int eq) const
   {
-    return equation_type_and_normalized_equation[eq_idx_block2orig[blocks[blk].first_equation + eq]].first == EquationType::evaluate_s;
+    return equation_type_and_normalized_equation[eq_idx_block2orig[blocks[blk].first_equation + eq]].first == EquationType::evaluateRenormalized;
   };
   //! Return the expr_t of equation belonging to the block
   BinaryOpNode *

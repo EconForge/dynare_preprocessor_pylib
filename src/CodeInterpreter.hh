@@ -109,7 +109,7 @@ enum class EquationType
   {
    unknown, //!< Unknown equation type
    evaluate, //!< Simple evaluation, normalized variable on left-hand side (written as such by the user)
-   evaluate_s, //!< Simple evaluation, normalized variable on left-hand side (normalization computed by the preprocessor)
+   evaluateRenormalized, //!< Simple evaluation, normalized variable on left-hand side (normalization computed by the preprocessor)
    solve //!< No simple evaluation of the equation, it has to be solved
   };
 
