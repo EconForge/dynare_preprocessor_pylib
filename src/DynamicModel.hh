@@ -146,6 +146,10 @@ private:
   void writeSetAuxiliaryVariables(const string &basename, bool julia) const;
   void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
 
+  // Write the block structure of the model in the driver file
+  void writeBlockDriverOutput(ostream &output, const string &basename, const string &modstruct,
+                              const vector<int> &state_var, bool estimation_present) const;
+
   // Used by determineBlockDerivativesType()
   enum class BlockDerivativeType
     {

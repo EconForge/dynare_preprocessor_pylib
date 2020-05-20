@@ -2552,6 +2552,274 @@ DynamicModel::includeExcludeEquations(const string &eqs, bool exclude_eqs)
 }
 
 void
+DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename, const string &modstruct,
+                                     const vector<int> &state_var, bool estimation_present) const
+{
+  for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
+    {
+      int block_size = blocks[blk].size;
+      output << modstruct << "block_structure.block(" << blk+1 << ").Simulation_Type = " << static_cast<int>(blocks[blk].simulation_type) << ";" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").maximum_lag = " << blocks[blk].max_lag << ";" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").maximum_lead = " << blocks[blk].max_lead << ";" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").maximum_endo_lag = " << blocks[blk].max_endo_lag << ";" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").maximum_endo_lead = " << blocks[blk].max_endo_lead << ";" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").maximum_exo_lag = " << blocks[blk].max_exo_lag << ";" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").maximum_exo_lead = " << blocks[blk].max_exo_lead << ";" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").maximum_exo_det_lag = " << blocks[blk].max_exo_det_lag << ";" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").maximum_exo_det_lead = " << blocks[blk].max_exo_det_lead << ";" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").endo_nbr = " << block_size << ";" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").mfs = " << blocks[blk].mfs_size << ";" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").equation = [";
+      for (int eq = 0; eq < block_size; eq++)
+        output << " " << getBlockEquationID(blk, eq)+1;
+      output << "];" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").variable = [";
+      for (int var = 0; var < block_size; var++)
+        output << " " << getBlockVariableID(blk, var)+1;
+      output << "];" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").exogenous = [";
+      for (int exo : blocks_exo[blk])
+        output << " " << exo+1;
+      output << "];" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").exo_nbr = " << blocks_exo[blk].size() << ";" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").exogenous_det = [";
+      for (int exo_det : blocks_exo_det[blk])
+        output << " " << exo_det+1;
+      output << "];" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").exo_det_nbr = " << blocks_exo_det[blk].size() << ";" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").other_endogenous = [";
+      for (int other_endo : blocks_other_endo[blk])
+        output << " " << other_endo+1;
+      output << "];" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").other_endogenous_block = [";
+      for (int other_endo : blocks_other_endo[blk])
+        output << " " << endo2block[other_endo]+1;
+      output << "];" << endl;
+
+      output << modstruct << "block_structure.block(" << blk+1 << ").tm1 = zeros(" << blocks_other_endo[blk].size() << ", " << state_var.size() << ");" << endl;
+      int line = 1;
+      for (auto other_endo : blocks_other_endo[blk])
+        {
+          if (auto it = find(state_var.begin(), state_var.end(), other_endo);
+              it != state_var.end())
+            output << modstruct << "block_structure.block(" << blk+1 << ").tm1("
+                   << line << ", "
+                   << distance(state_var.begin(), it)+1 << ") = 1;" << endl;
+          line++;
+        }
+
+      output << modstruct << "block_structure.block(" << blk+1 << ").other_endo_nbr = " << blocks_other_endo[blk].size() << ";" << endl;
+
+      int count_lead_lag_incidence = 0;
+      vector<int> local_state_var;
+      output << modstruct << "block_structure.block(" << blk+1 << ").lead_lag_incidence = [" << endl;
+      for (int lag = -1; lag <= 1; lag++)
+        {
+          for (int var = 0; var < block_size; var++)
+            {
+              for (int eq = 0; eq < block_size; eq++)
+                if (blocks_derivatives[blk].find({ eq, var, lag })
+                    != blocks_derivatives[blk].end())
+                  {
+                    if (lag == -1)
+                      local_state_var.push_back(getBlockVariableID(blk, var));
+                    output << " " << ++count_lead_lag_incidence;
+                    goto var_found;
+                  }
+              output << " 0";
+            var_found:
+              ;
+            }
+          output << ";" << endl;
+        }
+      output << "];" << endl;
+
+      output << modstruct << "block_structure.block(" << blk+1 << ").sorted_col_dr_ghx = [";
+      for (int lsv : local_state_var)
+        output << distance(state_var.begin(), find(state_var.begin(), state_var.end(), lsv))+1 << " ";
+      output << "];" << endl;
+
+      count_lead_lag_incidence = 0;
+      output << modstruct << "block_structure.block(" << blk+1 << ").lead_lag_incidence_other = [" << endl;
+      for (int lag = -1; lag <= 1; lag++)
+        {
+          for (int other_endo : blocks_other_endo[blk])
+            {
+              for (int eq = 0; eq < block_size; eq++)
+                if (blocks_derivatives_other_endo[blk].find({ eq, other_endo, lag })
+                    != blocks_derivatives_other_endo[blk].end())
+                  {
+                    output << " " << ++count_lead_lag_incidence;
+                    goto other_endo_found;
+                  }
+              output << " 0";
+            other_endo_found:
+              ;
+            }
+          output << ";" << endl;
+        }
+      output << "];" << endl;
+
+      output << modstruct << "block_structure.block(" << blk+1 << ").n_static = " << blocks[blk].n_static << ";" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").n_forward = " << blocks[blk].n_forward << ";" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").n_backward = " << blocks[blk].n_backward << ";" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").n_mixed = " << blocks[blk].n_mixed << ";" << endl;
+    }
+
+  output << modstruct << "block_structure.variable_reordered = [";
+  for (int i = 0; i < symbol_table.endo_nbr(); i++)
+    output << " " << endo_idx_block2orig[i]+1;
+  output << "];" << endl
+         << modstruct << "block_structure.equation_reordered = [";
+  for (int i = 0; i < symbol_table.endo_nbr(); i++)
+    output << " " << eq_idx_block2orig[i]+1;
+  output << "];" << endl;
+
+  map<int, set<pair<int, int>>> lag_row_incidence;
+  for (const auto &[indices, d1] : derivatives[1])
+    if (int deriv_id = indices[1];
+        getTypeByDerivID(deriv_id) == SymbolType::endogenous)
+      {
+        int eq = indices[0];
+        int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(deriv_id));
+        int lag = getLagByDerivID(deriv_id);
+        lag_row_incidence[lag].insert({ eq, var });
+      }
+  for (auto [lag, eq_var_set] : lag_row_incidence)
+    {
+      output << modstruct << "block_structure.incidence(" << max_endo_lag+lag+1 << ").lead_lag = " << lag << ";" << endl
+             << modstruct << "block_structure.incidence(" << max_endo_lag+lag+1 << ").sparse_IM = [" << endl;
+      for (auto [eq, var] : eq_var_set)
+        output << " " << eq+1 << " " << var+1 << ";" << endl;
+      output << "];" << endl;
+    }
+
+  if (estimation_present)
+    {
+      filesystem::create_directories(basename + "/model/bytecode");
+      string main_name = basename + "/model/bytecode/kfi";
+      ofstream KF_index_file;
+      KF_index_file.open(main_name, ios::out | ios::binary | ios::ate);
+      int n_obs = symbol_table.observedVariablesNbr();
+      int n_state = state_var.size();
+      for (int it : state_var)
+        if (symbol_table.isObservedVariable(symbol_table.getID(SymbolType::endogenous, it)))
+          n_obs--;
+
+      int n = n_obs + n_state;
+      output << modstruct << "nobs_non_statevar = " << n_obs << ";" << endl;
+      int nb_diag = 0;
+
+      vector<int> i_nz_state_var(n);
+      for (int i = 0; i < n_obs; i++)
+        i_nz_state_var[i] = n;
+      int lp = n_obs;
+
+      vector<int> state_equ;
+      for (int it : state_var)
+        state_equ.push_back(eq_idx_block2orig[endo_idx_orig2block[it]]);
+
+      for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
+        {
+          int nze = 0;
+          for (int i = 0; i < blocks[blk].size; i++)
+            if (int var = getBlockVariableID(blk, i);
+                find(state_var.begin(), state_var.end(), var) != state_var.end())
+              nze++;
+
+          if (blk == 0)
+            {
+              set<pair<int, int>> row_state_var_incidence;
+              for (const auto &[idx, ignore] : blocks_derivatives[blk])
+                if (auto it_state_var = find(state_var.begin(), state_var.end(), getBlockVariableID(blk, get<1>(idx)));
+                    it_state_var != state_var.end())
+                  if (auto it_state_equ = find(state_equ.begin(), state_equ.end(), getBlockEquationID(blk, get<0>(idx)));
+                      it_state_equ != state_equ.end())
+                    row_state_var_incidence.emplace(it_state_equ - state_equ.begin(), it_state_var - state_var.begin());
+              auto row_state_var_incidence_it = row_state_var_incidence.begin();
+              bool diag = true;
+              int nb_diag_r = 0;
+              while (row_state_var_incidence_it != row_state_var_incidence.end() && diag)
+                {
+                  diag = (row_state_var_incidence_it->first == row_state_var_incidence_it->second);
+                  if (diag)
+                    {
+                      int equ = row_state_var_incidence_it->first;
+                      row_state_var_incidence_it++;
+                      if (equ != row_state_var_incidence_it->first)
+                        nb_diag_r++;
+                    }
+
+                }
+              set<pair<int, int>> col_state_var_incidence;
+              for (auto [equ, var] : row_state_var_incidence)
+                col_state_var_incidence.emplace(var, equ);
+              auto col_state_var_incidence_it = col_state_var_incidence.begin();
+              diag = true;
+              int nb_diag_c = 0;
+              while (col_state_var_incidence_it != col_state_var_incidence.end() && diag)
+                {
+                  diag = (col_state_var_incidence_it->first == col_state_var_incidence_it->second);
+                  if (diag)
+                    {
+                      int var = col_state_var_incidence_it->first;
+                      col_state_var_incidence_it++;
+                      if (var != col_state_var_incidence_it->first)
+                        nb_diag_c++;
+                    }
+                }
+              nb_diag = min(nb_diag_r, nb_diag_c);
+              row_state_var_incidence.clear();
+              col_state_var_incidence.clear();
+            }
+          for (int i = 0; i < nze; i++)
+            i_nz_state_var[lp + i] = lp + nze;
+          lp += nze;
+        }
+      output << modstruct << "nz_state_var = [";
+      for (int i = 0; i < lp; i++)
+        output << i_nz_state_var[i] << " ";
+      output << "];" << endl
+             << modstruct << "n_diag = " << nb_diag << ";" << endl;
+      KF_index_file.write(reinterpret_cast<char *>(&nb_diag), sizeof(nb_diag));
+
+      using index_KF = pair<int, pair<int, int >>;
+      vector<index_KF> v_index_KF;
+      for (int i = 0; i < n; i++)
+        for (int j = n_obs; j < n; j++)
+          {
+            int j1 = j - n_obs;
+            int j1_n_state = j1 * n_state - n_obs;
+            if ((i < n_obs) || (i >= nb_diag + n_obs) || (j1 >= nb_diag))
+              for (int k = n_obs; k < i_nz_state_var[i]; k++)
+                v_index_KF.emplace_back(i + j1 * n, pair(i + k * n, k + j1_n_state));
+          }
+      int size_v_index_KF = v_index_KF.size();
+
+      KF_index_file.write(reinterpret_cast<char *>(&size_v_index_KF), sizeof(size_v_index_KF));
+      for (auto &it : v_index_KF)
+        KF_index_file.write(reinterpret_cast<char *>(&it), sizeof(index_KF));
+
+      vector<index_KF> v_index_KF_2;
+      int n_n_obs = n * n_obs;
+      for (int i = 0; i < n; i++)
+        for (int j = i; j < n; j++)
+          if ((i < n_obs) || (i >= nb_diag + n_obs) || (j < n_obs) || (j >= nb_diag + n_obs))
+            for (int k = n_obs; k < i_nz_state_var[j]; k++)
+              {
+                int k_n = k * n;
+                v_index_KF_2.emplace_back(i * n + j, pair(i + k_n - n_n_obs, j + k_n));
+              }
+      int size_v_index_KF_2 = v_index_KF_2.size();
+
+      KF_index_file.write(reinterpret_cast<char *>(&size_v_index_KF_2), sizeof(size_v_index_KF_2));
+      for (auto &it : v_index_KF_2)
+        KF_index_file.write(reinterpret_cast<char *>(&it), sizeof(index_KF));
+      KF_index_file.close();
+    }
+}
+
+void
 DynamicModel::writeOutput(ostream &output, const string &basename, bool block_decomposition, bool linear_decomposition, bool byte_code, bool use_dll, bool estimation_present, bool compute_xrefs, bool julia) const
 {
   /* Writing initialisation for M_.lead_lag_incidence matrix
@@ -2700,337 +2968,28 @@ DynamicModel::writeOutput(ostream &output, const string &basename, bool block_de
          << (has_external_function ? "true" : "false")
          << ';' << endl;
 
+  // Compute list of state variables, ordered in block-order
   vector<int> state_var;
   for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
-    // Loop on periods
+    // Loop on negative lags
     for (int lag = -max_endo_lag; lag < 0; lag++)
       try
         {
           getDerivID(symbol_table.getID(SymbolType::endogenous, endo_idx_block2orig[endoID]), lag);
-          if (lag < 0 && find(state_var.begin(), state_var.end(), endo_idx_block2orig[endoID]+1) == state_var.end())
-            state_var.push_back(endo_idx_block2orig[endoID]+1);
+          if (find(state_var.begin(), state_var.end(), endo_idx_block2orig[endoID]) == state_var.end())
+            state_var.push_back(endo_idx_block2orig[endoID]);
         }
       catch (UnknownDerivIDException &e)
         {
         }
 
-  //In case of sparse model, writes the block_decomposition structure of the model
+  // Write the block structure of the model
   if (block_decomposition || linear_decomposition)
-    {
-      vector<int> state_equ;
-      int count_lead_lag_incidence = 0;
-      int max_lead, max_lag, max_lag_endo, max_lead_endo, max_lag_exo, max_lead_exo, max_lag_exo_det, max_lead_exo_det;
-      int nb_blocks = blocks.size();
-      for (int block = 0; block < nb_blocks; block++)
-        {
-          //For a block composed of a single equation determines wether we have to evaluate or to solve the equation
-          count_lead_lag_incidence = 0;
-          BlockSimulationType simulation_type = blocks[block].simulation_type;
-          int block_size = blocks[block].size;
-          max_lag = blocks[block].max_lag;
-          max_lead = blocks[block].max_lead;
-          max_lag_endo = blocks[block].max_endo_lag;
-          max_lead_endo = blocks[block].max_endo_lead;
-          max_lag_exo = blocks[block].max_exo_lag;
-          max_lead_exo = blocks[block].max_exo_lead;
-          max_lag_exo_det = blocks[block].max_exo_det_lag;
-          max_lead_exo_det = blocks[block].max_exo_det_lead;
-          ostringstream tmp_s, tmp_s_eq;
-          tmp_s.str("");
-          tmp_s_eq.str("");
-          for (int i = 0; i < block_size; i++)
-            {
-              tmp_s << " " << getBlockVariableID(block, i)+1;
-              tmp_s_eq << " " << getBlockEquationID(block, i)+1;
-            }
-          output << "block_structure.block(" << block+1 << ").Simulation_Type = " << static_cast<int>(simulation_type) << ";" << endl
-                 << "block_structure.block(" << block+1 << ").maximum_lag = " << max_lag << ";" << endl
-                 << "block_structure.block(" << block+1 << ").maximum_lead = " << max_lead << ";" << endl
-                 << "block_structure.block(" << block+1 << ").maximum_endo_lag = " << max_lag_endo << ";" << endl
-                 << "block_structure.block(" << block+1 << ").maximum_endo_lead = " << max_lead_endo << ";" << endl
-                 << "block_structure.block(" << block+1 << ").maximum_exo_lag = " << max_lag_exo << ";" << endl
-                 << "block_structure.block(" << block+1 << ").maximum_exo_lead = " << max_lead_exo << ";" << endl
-                 << "block_structure.block(" << block+1 << ").maximum_exo_det_lag = " << max_lag_exo_det << ";" << endl
-                 << "block_structure.block(" << block+1 << ").maximum_exo_det_lead = " << max_lead_exo_det << ";" << endl
-                 << "block_structure.block(" << block+1 << ").endo_nbr = " << block_size << ";" << endl
-                 << "block_structure.block(" << block+1 << ").mfs = " << blocks[block].mfs_size << ";" << endl
-                 << "block_structure.block(" << block+1 << ").equation = [" << tmp_s_eq.str() << "];" << endl
-                 << "block_structure.block(" << block+1 << ").variable = [" << tmp_s.str() << "];" << endl
-                 << "block_structure.block(" << block+1 << ").exogenous = [";
-          for (int exo : blocks_exo[block])
-            output << " " << exo+1;
-          output << "];" << endl
-                 << "block_structure.block(" << block+1 << ").exo_nbr = " << blocks_exo[block].size() << ";" << endl
-
-                 << "block_structure.block(" << block+1 << ").exogenous_det = [";
-          for (int exo_det : blocks_exo_det[block])
-            output << " " << exo_det+1;
-          output << "];" << endl
-                 << "block_structure.block(" << block+1 << ").exo_det_nbr = " << blocks_exo_det[block].size() << ";" << endl
-                 << "block_structure.block(" << block+1 << ").other_endogenous = [";
-          for (int other_endo : blocks_other_endo[block])
-            output << " " << other_endo+1;
-          output << "];" << endl
-                 << "block_structure.block(" << block+1 << ").other_endogenous_block = [";
-          for (int other_endo : blocks_other_endo[block])
-            output << " " << endo2block[other_endo]+1;
-          output << "];" << endl;
-
-          output << "block_structure.block(" << block+1 << ").tm1 = zeros(" << blocks_other_endo[block].size() << ", " << state_var.size() << ");" << endl;
-          int line = 1;
-          for (auto other_endo : blocks_other_endo[block])
-            {
-              for (auto it = state_var.begin(); it != state_var.end(); ++it)
-                if (*it == other_endo + 1)
-                  output << "block_structure.block(" << block+1 << ").tm1("
-                         << line << ", "
-                         << it - state_var.begin()+1 << ") = 1;" << endl;
-              line++;
-            }
-          output << "block_structure.block(" << block+1 << ").other_endo_nbr = " << blocks_other_endo[block].size() << ";" << endl;
-
-          tmp_s.str("");
-          count_lead_lag_incidence = 0;
-          map<tuple<int, int, int>, expr_t> reordered_dynamic_jacobian;
-          for (const auto &[idx, d] : blocks_derivatives[block])
-            reordered_dynamic_jacobian[{ get<2>(idx), get<1>(idx), get<0>(idx) }] = d;
-          output << "block_structure.block(" << block+1 << ").lead_lag_incidence = [];" << endl;
-          int last_var = -1;
-          vector<int> local_state_var;
-          for (int lag = -1; lag < 1+1; lag++)
-            {
-              last_var = -1;
-              for (const auto &it : reordered_dynamic_jacobian)
-                {
-                  if (lag == get<0>(it.first) && last_var != get<1>(it.first))
-                    {
-                      if (lag == -1)
-                        local_state_var.push_back(getBlockVariableID(block, get<1>(it.first))+1);
-                      count_lead_lag_incidence++;
-                      for (int i = last_var; i < get<1>(it.first)-1; i++)
-                        tmp_s << " 0";
-                      if (tmp_s.str().length())
-                        tmp_s << " ";
-                      tmp_s << count_lead_lag_incidence;
-                      last_var = get<1>(it.first);
-                    }
-                }
-              for (int i = last_var + 1; i < block_size; i++)
-                tmp_s << " 0";
-              output << "block_structure.block(" << block+1 << ").lead_lag_incidence = [ block_structure.block(" << block+1 << ").lead_lag_incidence; " << tmp_s.str() << "]; %lag = " << lag << endl;
-              tmp_s.str("");
-            }
-          vector<int> inter_state_var;
-          for (int &it_l : local_state_var)
-            for (auto it = state_var.begin(); it != state_var.end(); ++it)
-              if (*it == it_l)
-                inter_state_var.push_back(it - state_var.begin()+1);
-          output << "block_structure.block(" << block+1 << ").sorted_col_dr_ghx = [";
-          for (int it : inter_state_var)
-            output << it << " ";
-          output << "];" << endl;
-          count_lead_lag_incidence = 0;
-          output << "block_structure.block(" << block+1 << ").lead_lag_incidence_other = [];" << endl;
-          for (int lag = -1; lag <= 1; lag++)
-            {
-              tmp_s.str("");
-              for (int other_endo : blocks_other_endo[block])
-                {
-                  bool done = false;
-                  for (int eq = 0; eq < block_size; eq++)
-                    if (blocks_derivatives_other_endo[block].find({ eq, other_endo, lag })
-                        != blocks_derivatives_other_endo[block].end())
-                      {
-                        count_lead_lag_incidence++;
-                        tmp_s << " " << count_lead_lag_incidence;
-                        done = true;
-                        break;
-                      }
-                  if (!done)
-                    tmp_s << " 0";
-                }
-              output << "block_structure.block(" << block+1 << ").lead_lag_incidence_other = [ block_structure.block(" << block+1 << ").lead_lag_incidence_other; " << tmp_s.str() << "]; %lag = " << lag << endl;
-            }
-          output << "block_structure.block(" << block+1 << ").n_static = " << blocks[block].n_static << ";" << endl
-                 << "block_structure.block(" << block+1 << ").n_forward = " << blocks[block].n_forward << ";" << endl
-                 << "block_structure.block(" << block+1 << ").n_backward = " << blocks[block].n_backward << ";" << endl
-                 << "block_structure.block(" << block+1 << ").n_mixed = " << blocks[block].n_mixed << ";" << endl;
-        }
-      output << modstruct << "block_structure.block = block_structure.block;" << endl;
-      string cst_s;
-      int nb_endo = symbol_table.endo_nbr();
-      output << modstruct << "block_structure.variable_reordered = [";
-      for (int i = 0; i < nb_endo; i++)
-        output << " " << endo_idx_block2orig[i]+1;
-      output << "];" << endl;
-      output << modstruct << "block_structure.equation_reordered = [";
-      for (int i = 0; i < nb_endo; i++)
-        output << " " << eq_idx_block2orig[i]+1;
-      output << "];" << endl;
-      vector<int> variable_inv_reordered(nb_endo);
-
-      for (int i = 0; i < nb_endo; i++)
-        variable_inv_reordered[endo_idx_block2orig[i]] = i;
-
-      for (int it : state_var)
-        state_equ.push_back(eq_idx_block2orig[variable_inv_reordered[it - 1]]+1);
-
-      map<tuple<int, int, int>, int> lag_row_incidence;
-      for (const auto & [indices, d1] : derivatives[1])
-        {
-          int deriv_id = indices[1];
-          if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
-            {
-              int eq = indices[0];
-              int symb = getSymbIDByDerivID(deriv_id);
-              int var = symbol_table.getTypeSpecificID(symb);
-              int lag = getLagByDerivID(deriv_id);
-              lag_row_incidence[{ lag, eq, var }] = 1;
-            }
-        }
-      int prev_lag = -1000000;
-      for (const auto &it : lag_row_incidence)
-        {
-          if (prev_lag != get<0>(it.first))
-            {
-              if (prev_lag != -1000000)
-                output << "];" << endl;
-              prev_lag = get<0>(it.first);
-              output << modstruct << "block_structure.incidence(" << max_endo_lag+get<0>(it.first)+1 << ").lead_lag = " << prev_lag << ";" << endl
-                     << modstruct << "block_structure.incidence(" << max_endo_lag+get<0>(it.first)+1 << ").sparse_IM = [";
-            }
-          output << get<1>(it.first)+1 << " " << get<2>(it.first)+1 << ";" << endl;
-        }
-      output << "];" << endl;
-      if (estimation_present)
-        {
-          ofstream KF_index_file;
-          filesystem::create_directories(basename + "/model/bytecode");
-          string main_name = basename + "/model/bytecode/kfi";
-          KF_index_file.open(main_name, ios::out | ios::binary | ios::ate);
-          int n_obs = symbol_table.observedVariablesNbr();
-          int n_state = state_var.size();
-          for (int it : state_var)
-            if (symbol_table.isObservedVariable(symbol_table.getID(SymbolType::endogenous, it-1)))
-              n_obs--;
-
-          int n = n_obs + n_state;
-          output << modstruct << "nobs_non_statevar = " << n_obs << ";" << endl;
-          int nb_diag = 0;
-
-          vector<int> i_nz_state_var(n);
-          for (int i = 0; i < n_obs; i++)
-            i_nz_state_var[i] = n;
-          int lp = n_obs;
-
-          for (int block = 0; block < nb_blocks; block++)
-            {
-              int block_size = blocks[block].size;
-              int nze = 0;
-
-              for (int i = 0; i < block_size; i++)
-                {
-                  int var = getBlockVariableID(block, i);
-                  if (find(state_var.begin(), state_var.end(), var+1) != state_var.end())
-                    nze++;
-                }
-              if (block == 0)
-                {
-                  set<pair<int, int>> row_state_var_incidence;
-                  for (const auto &[idx, ignore] : blocks_derivatives[block])
-                    if (auto it_state_var = find(state_var.begin(), state_var.end(), getBlockVariableID(block, get<1>(idx))+1);
-                        it_state_var != state_var.end())
-                      if (auto it_state_equ = find(state_equ.begin(), state_equ.end(), getBlockEquationID(block, get<0>(idx))+1);
-                          it_state_equ != state_equ.end())
-                        row_state_var_incidence.emplace(it_state_equ - state_equ.begin(), it_state_var - state_var.begin());
-                  auto row_state_var_incidence_it = row_state_var_incidence.begin();
-                  bool diag = true;
-                  int nb_diag_r = 0;
-                  while (row_state_var_incidence_it != row_state_var_incidence.end() && diag)
-                    {
-                      diag = (row_state_var_incidence_it->first == row_state_var_incidence_it->second);
-                      if (diag)
-                        {
-                          int equ = row_state_var_incidence_it->first;
-                          row_state_var_incidence_it++;
-                          if (equ != row_state_var_incidence_it->first)
-                            nb_diag_r++;
-                        }
-
-                    }
-                  set<pair<int, int>> col_state_var_incidence;
-                  for (const auto &it : row_state_var_incidence)
-                    col_state_var_incidence.emplace(it.second, it.first);
-                  auto col_state_var_incidence_it = col_state_var_incidence.begin();
-                  diag = true;
-                  int nb_diag_c = 0;
-                  while (col_state_var_incidence_it != col_state_var_incidence.end() && diag)
-                    {
-                      diag = (col_state_var_incidence_it->first == col_state_var_incidence_it->second);
-                      if (diag)
-                        {
-                          int var = col_state_var_incidence_it->first;
-                          col_state_var_incidence_it++;
-                          if (var != col_state_var_incidence_it->first)
-                            nb_diag_c++;
-                        }
-                    }
-                  nb_diag = min(nb_diag_r, nb_diag_c);
-                  row_state_var_incidence.clear();
-                  col_state_var_incidence.clear();
-                }
-              for (int i = 0; i < nze; i++)
-                i_nz_state_var[lp + i] = lp + nze;
-              lp += nze;
-            }
-          output << modstruct << "nz_state_var = [";
-          for (int i = 0; i < lp; i++)
-            output << i_nz_state_var[i] << " ";
-          output << "];" << endl;
-          output << modstruct << "n_diag = " << nb_diag << ";" << endl;
-          KF_index_file.write(reinterpret_cast<char *>(&nb_diag), sizeof(nb_diag));
-
-          using index_KF = pair<int, pair<int, int >>;
-          vector<index_KF> v_index_KF;
-          for (int i = 0; i < n; i++)
-            for (int j = n_obs; j < n; j++)
-              {
-                int j1 = j - n_obs;
-                int j1_n_state = j1 * n_state - n_obs;
-                if ((i < n_obs) || (i >= nb_diag + n_obs) || (j1 >= nb_diag))
-                  for (int k = n_obs; k < i_nz_state_var[i]; k++)
-                    v_index_KF.emplace_back(i + j1 * n, pair(i + k * n, k + j1_n_state));
-              }
-          int size_v_index_KF = v_index_KF.size();
-
-          KF_index_file.write(reinterpret_cast<char *>(&size_v_index_KF), sizeof(size_v_index_KF));
-          for (auto &it : v_index_KF)
-            KF_index_file.write(reinterpret_cast<char *>(&it), sizeof(index_KF));
-
-          vector<index_KF> v_index_KF_2;
-          int n_n_obs = n * n_obs;
-          for (int i = 0; i < n; i++)
-            for (int j = i; j < n; j++)
-              {
-                if ((i < n_obs) || (i >= nb_diag + n_obs) || (j < n_obs) || (j >= nb_diag + n_obs))
-                  for (int k = n_obs; k < i_nz_state_var[j]; k++)
-                    {
-                      int k_n = k * n;
-                      v_index_KF_2.emplace_back(i * n + j, pair(i + k_n - n_n_obs, j + k_n));
-                    }
-              }
-          int size_v_index_KF_2 = v_index_KF_2.size();
-
-          KF_index_file.write(reinterpret_cast<char *>(&size_v_index_KF_2), sizeof(size_v_index_KF_2));
-          for (auto &it : v_index_KF_2)
-            KF_index_file.write(reinterpret_cast<char *>(&it), sizeof(index_KF));
-          KF_index_file.close();
-        }
-    }
+    writeBlockDriverOutput(output, basename, modstruct, state_var, estimation_present);
 
   output << modstruct << "state_var = [";
   for (int it : state_var)
-    output << it << (julia ? "," : " ");
+    output << it+1 << (julia ? "," : " ");
   output << "];" << endl;
 
   // Writing initialization for some other variables

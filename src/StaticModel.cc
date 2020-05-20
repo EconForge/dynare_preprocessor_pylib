@@ -1805,18 +1805,18 @@ StaticModel::writeOutput(ostream &output, bool block) const
   if (!block)
     return;
 
-  for (int b = 0; b < static_cast<int>(blocks.size()); b++)
+  for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
-      output << "block_structure_stat.block(" << b+1 << ").Simulation_Type = " << static_cast<int>(blocks[b].simulation_type) << ";" << endl
-             << "block_structure_stat.block(" << b+1 << ").endo_nbr = " << blocks[b].size << ";" << endl
-             << "block_structure_stat.block(" << b+1 << ").mfs = " << blocks[b].mfs_size << ";" << endl
-             << "block_structure_stat.block(" << b+1 << ").equation = [";
-      for (int i = 0; i < blocks[b].size; i++)
-        output << " " << getBlockEquationID(b, i)+1;
+      output << "block_structure_stat.block(" << blk+1 << ").Simulation_Type = " << static_cast<int>(blocks[blk].simulation_type) << ";" << endl
+             << "block_structure_stat.block(" << blk+1 << ").endo_nbr = " << blocks[blk].size << ";" << endl
+             << "block_structure_stat.block(" << blk+1 << ").mfs = " << blocks[blk].mfs_size << ";" << endl
+             << "block_structure_stat.block(" << blk+1 << ").equation = [";
+      for (int eq = 0; eq < blocks[blk].size; eq++)
+        output << " " << getBlockEquationID(blk, eq)+1;
       output << "];" << endl
-             << "block_structure_stat.block(" << b+1 << ").variable = [";
-      for (int i = 0; i < blocks[b].size; i++)
-        output << " " << getBlockVariableID(b, i)+1;
+             << "block_structure_stat.block(" << blk+1 << ").variable = [";
+      for (int var = 0; var < blocks[blk].size; var++)
+        output << " " << getBlockVariableID(blk, var)+1;
       output << "];" << endl;
     }
   output << "M_.block_structure_stat.block = block_structure_stat.block;" << endl
@@ -1835,13 +1835,12 @@ StaticModel::writeOutput(ostream &output, bool block) const
         getTypeByDerivID(deriv_id) == SymbolType::endogenous)
       {
         int eq = indices[0];
-        int symb = getSymbIDByDerivID(deriv_id);
-        int var = symbol_table.getTypeSpecificID(symb);
+        int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(deriv_id));
         row_incidence.emplace(eq, var);
       }
-  output << "M_.block_structure_stat.incidence.sparse_IM = [";
+  output << "M_.block_structure_stat.incidence.sparse_IM = [" << endl;
   for (auto [eq, var] : row_incidence)
-    output << eq+1 << " " << var+1 << ";" << endl;
+    output << " " << eq+1 << " " << var+1 << ";" << endl;
   output << "];" << endl;
 }
 
