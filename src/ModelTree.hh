@@ -467,22 +467,6 @@ public:
   }
 
   inline static string
-  c_Equation_Type(EquationType type)
-  {
-    switch (type)
-      {
-      case EquationType::evaluate:
-        return "EVALUATE  ";
-      case EquationType::evaluate_s:
-        return "EVALUATE_S";
-      case EquationType::solve:
-        return "SOLVE     ";
-      default:
-        return "UNKNOWN   ";
-      }
-  }
-
-  inline static string
   BlockSim(BlockSimulationType type)
   {
     switch (type)
