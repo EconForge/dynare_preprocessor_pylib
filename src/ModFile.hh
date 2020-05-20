@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2019 Dynare Team
+ * Copyright © 2006-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -82,8 +82,8 @@ public:
   //! Is the model block decomposed?
   bool block{false};
 
-  //! Is the model stored in bytecode format (byte_code=true) or in a M-file (byte_code=false)
-  bool byte_code{false};
+  //! Is the model stored in bytecode format (bytecode=true) or in a M-file (bytecode=false)
+  bool bytecode{false};
 
   //! Is the model stored in a MEX file ? (option "use_dll" of "model")
   bool use_dll{false};

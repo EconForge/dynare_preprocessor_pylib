@@ -291,7 +291,7 @@ public:
   void computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsOrder,
                      const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode, bool linear_decomposition);
   //! Writes model initialization and lead/lag incidence matrix to output
-  void writeOutput(ostream &output, const string &basename, bool block, bool linear_decomposition, bool byte_code, bool use_dll, bool estimation_present, bool compute_xrefs, bool julia) const;
+  void writeOutput(ostream &output, const string &basename, bool block, bool linear_decomposition, bool use_dll, bool estimation_present, bool compute_xrefs, bool julia) const;
 
   //! Write JSON AST
   void writeJsonAST(ostream &output) const;

@@ -181,13 +181,13 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
-  if (mod_file_struct.k_order_solver && byte_code)
+  if (mod_file_struct.k_order_solver && bytecode)
     {
       cerr << "ERROR: 'k_order_solver' (which is implicit if order >= 3), is not yet compatible with 'bytecode'." << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (use_dll && (block || byte_code || linear_decomposition))
+  if (use_dll && (block || bytecode || linear_decomposition))
     {
       cerr << "ERROR: In 'model' block, 'use_dll' option is not compatible with 'block', 'bytecode' or 'linear_decomposition'" << endl;
       exit(EXIT_FAILURE);
@@ -198,13 +198,13 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
-  if (!byte_code && linear_decomposition)
+  if (!bytecode && linear_decomposition)
     {
       cerr << "ERROR: For the moment in 'model' block, 'linear_decomposition' option is compatible only with 'bytecode' option" << endl;
       exit(EXIT_FAILURE);
     }
 
-  if ((block || byte_code) && dynamic_model.isModelLocalVariableUsed())
+  if ((block || bytecode) && dynamic_model.isModelLocalVariableUsed())
     {
       cerr << "ERROR: In 'model' block, 'block' or 'bytecode' options are not yet compatible with pound expressions" << endl;
       exit(EXIT_FAILURE);
@@ -739,7 +739,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
         {
           non_linear_equations_dynamic_model = dynamic_model;
           non_linear_equations_dynamic_model.set_cutoff_to_zero();
-          non_linear_equations_dynamic_model.computingPass(true, 1, 0, global_eval_context, no_tmp_terms, block, use_dll, byte_code, linear_decomposition);
+          non_linear_equations_dynamic_model.computingPass(true, 1, 0, global_eval_context, no_tmp_terms, block, use_dll, bytecode, linear_decomposition);
         }
       if (!no_static)
         {
@@ -756,7 +756,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
               derivsOrder = 2;
               paramsDerivsOrder = params_derivs_order;
             }
-          static_model.computingPass(derivsOrder, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, byte_code);
+          static_model.computingPass(derivsOrder, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, bytecode);
         }
       // Set things to compute for dynamic model
       if (mod_file_struct.perfect_foresight_solver_present || mod_file_struct.check_present
@@ -766,7 +766,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
           || mod_file_struct.calib_smoother_present)
         {
           if (mod_file_struct.perfect_foresight_solver_present)
-            dynamic_model.computingPass(true, 1, 0, global_eval_context, no_tmp_terms, block, use_dll, byte_code, linear_decomposition);
+            dynamic_model.computingPass(true, 1, 0, global_eval_context, no_tmp_terms, block, use_dll, bytecode, linear_decomposition);
           else
             {
               if (mod_file_struct.stoch_simul_present
@@ -788,13 +788,13 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
               int paramsDerivsOrder = 0;
               if (mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation)
                 paramsDerivsOrder = params_derivs_order;
-              dynamic_model.computingPass(true, derivsOrder, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code, linear_decomposition);
+              dynamic_model.computingPass(true, derivsOrder, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, bytecode, linear_decomposition);
               if (linear && mod_file_struct.ramsey_model_present)
-                orig_ramsey_dynamic_model.computingPass(true, 2, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, byte_code, linear_decomposition);
+                orig_ramsey_dynamic_model.computingPass(true, 2, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, bytecode, linear_decomposition);
             }
         }
       else // No computing task requested, compute derivatives up to 2nd order by default
-        dynamic_model.computingPass(true, 2, 0, global_eval_context, no_tmp_terms, block, use_dll, byte_code, linear_decomposition);
+        dynamic_model.computingPass(true, 2, 0, global_eval_context, no_tmp_terms, block, use_dll, bytecode, linear_decomposition);
 
       /* Check that the model is linear.
          FIXME: this check always passes if derivsOrder = 1, i.e. for a perfect
@@ -976,7 +976,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 
   mOutputFile << "options_.linear = " << to_matlab_logical(linear) << ";" << endl
               << "options_.block = " << to_matlab_logical(block) << ";" << endl
-              << "options_.bytecode = " << to_matlab_logical(byte_code) << ";" << endl
+              << "options_.bytecode = " << to_matlab_logical(bytecode) << ";" << endl
               << "options_.use_dll = " << to_matlab_logical(use_dll) << ";" << endl
               << "options_.linear_decomposition = " << to_matlab_logical(linear_decomposition) << ";" << endl;
 
@@ -1006,7 +1006,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   if (!onlymodel)
     config_file.writeCluster(mOutputFile);
 
-  if (byte_code)
+  if (bytecode)
     mOutputFile << "if exist('bytecode') ~= 3" << endl
                 << "  error('DYNARE: Can''t find bytecode DLL. Please compile it or remove the ''bytecode'' option.')" << endl
                 << "end" << endl;
@@ -1021,8 +1021,8 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   if (dynamic_model.equation_number() > 0)
     {
       if (linear_decomposition)
-        non_linear_equations_dynamic_model.writeOutput(mOutputFile, basename, block, true, byte_code, use_dll, mod_file_struct.estimation_present, compute_xrefs, false);
-      dynamic_model.writeOutput(mOutputFile, basename, block, false, byte_code, use_dll, mod_file_struct.estimation_present, compute_xrefs, false);
+        non_linear_equations_dynamic_model.writeOutput(mOutputFile, basename, block, true, use_dll, mod_file_struct.estimation_present, compute_xrefs, false);
+      dynamic_model.writeOutput(mOutputFile, basename, block, false, use_dll, mod_file_struct.estimation_present, compute_xrefs, false);
       if (!no_static)
         static_model.writeOutput(mOutputFile, block);
     }
@@ -1128,17 +1128,17 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
         {
           if (!no_static)
             {
-              static_model.writeStaticFile(basename, block, byte_code, use_dll, mexext, matlabroot, dynareroot, false);
+              static_model.writeStaticFile(basename, block, bytecode, use_dll, mexext, matlabroot, dynareroot, false);
               static_model.writeParamsDerivativesFile(basename, false);
             }
 
           if (linear_decomposition)
             {
-              non_linear_equations_dynamic_model.writeDynamicFile(basename, block, linear_decomposition, byte_code, use_dll, mexext, matlabroot, dynareroot, false);
+              non_linear_equations_dynamic_model.writeDynamicFile(basename, block, linear_decomposition, bytecode, use_dll, mexext, matlabroot, dynareroot, false);
               non_linear_equations_dynamic_model.writeParamsDerivativesFile(basename, false);
             }
 
-          dynamic_model.writeDynamicFile(basename, block, false, byte_code, use_dll, mexext, matlabroot, dynareroot, false);
+          dynamic_model.writeDynamicFile(basename, block, false, bytecode, use_dll, mexext, matlabroot, dynareroot, false);
 
           dynamic_model.writeParamsDerivativesFile(basename, false);
 
@@ -1252,14 +1252,14 @@ ModFile::writeExternalFilesJulia(const string &basename) const
 
   if (dynamic_model.equation_number() > 0)
     {
-      dynamic_model.writeOutput(jlOutputFile, basename, false, false, false, false,
+      dynamic_model.writeOutput(jlOutputFile, basename, false, false, false,
                                 mod_file_struct.estimation_present, false, true);
       if (!no_static)
         {
           static_model.writeStaticFile(basename, false, false, false, "", {}, {}, true);
           static_model.writeParamsDerivativesFile(basename, true);
         }
-      dynamic_model.writeDynamicFile(basename, block, linear_decomposition, byte_code, use_dll,
+      dynamic_model.writeDynamicFile(basename, block, linear_decomposition, bytecode, use_dll,
                                      "", {}, {}, true);
       dynamic_model.writeParamsDerivativesFile(basename, true);
     }

@@ -931,7 +931,7 @@ compilation_setup_option : SUBSTITUTE_FLAGS EQUAL QUOTED_STRING
 model_options : BLOCK { driver.block(); }
               | o_cutoff
               | o_mfs
-              | BYTECODE { driver.byte_code(); }
+              | BYTECODE { driver.bytecode(); }
               | USE_DLL { driver.use_dll(); }
               | NO_STATIC { driver.no_static();}
               | DIFFERENTIATE_FORWARD_VARS { driver.differentiate_forward_vars_all(); }

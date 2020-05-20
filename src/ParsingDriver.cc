@@ -760,9 +760,9 @@ ParsingDriver::no_static()
 }
 
 void
-ParsingDriver::byte_code()
+ParsingDriver::bytecode()
 {
-  mod_file->byte_code = true;
+  mod_file->bytecode = true;
 }
 
 void

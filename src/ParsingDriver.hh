@@ -351,7 +351,7 @@ public:
   void linear_decomposition();
 
   //! the model is stored in a binary file
-  void byte_code();
+  void bytecode();
   //! the static model is not computed
   void no_static();
   //! the differentiate_forward_vars option is enabled (for all vars)
