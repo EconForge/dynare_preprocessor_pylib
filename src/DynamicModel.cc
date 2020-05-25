@@ -1215,14 +1215,7 @@ DynamicModel::writeDynamicCFile(const string &basename) const
 
   if (external_functions_table.get_total_number_of_unique_model_block_external_functions())
     // External Matlab function, implies Dynamic function will call mex
-    mDynamicModelFile
-#ifndef __APPLE__
-      << "#include <uchar.h>" << endl // For MATLAB ≤ R2011a
-#else
-      << "typedef uint_least16_t char16_t;" << endl
-      << "typedef uint_least32_t char32_t;" << endl // uchar.h does not exist on macOS
-#endif
-      << R"(#include "mex.h")" << endl;
+    mDynamicModelFile << R"(#include "mex.h")" << endl;
 
   mDynamicModelFile << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
                     << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
@@ -1258,12 +1251,6 @@ DynamicModel::writeDynamicCFile(const string &basename) const
                   << " */" << endl
                   << endl
                   << "#include <stdlib.h>" << endl
-#ifndef __APPLE__
-                  << "#include <uchar.h>" << endl // For MATLAB ≤ R2011a
-#else
-                  << "typedef uint_least16_t char16_t;" << endl
-                  << "typedef uint_least32_t char32_t;" << endl // uchar.h does not exist on macOS
-#endif
                   << R"(#include "mex.h")" << endl
                   << endl
                   << "void dynamic_resid_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T);" << endl
