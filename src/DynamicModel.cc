@@ -1670,8 +1670,8 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
                             << "  end;" << endl
                             << "  y = solve_one_boundary('" << basename << ".block.dynamic_" <<  block + 1 << "'"
                             << ", y, x, params, steady_state, y_index, " << nze
-                            << ", options_.periods, " << blocks[block].linear
-                            << ", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0, M_, options_, oo_);" << endl
+                            << ", options_.periods, " << (blocks[block].linear ? "true" : "false")
+                            << ", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, true, true, false, M_, options_, oo_);" << endl
                             << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);" << endl
                             << "  if any(isnan(tmp) | isinf(tmp))" << endl
                             << "    disp(['Inf or Nan value during the resolution of block " << block <<"']);" << endl
@@ -1702,8 +1702,8 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
                             << "  end;" << endl
                             << "  y = solve_one_boundary('" << basename << ".block.dynamic_" <<  block + 1 << "'"
                             <<", y, x, params, steady_state, y_index, " << nze
-                            <<", options_.periods, " << blocks[block].linear
-                            <<", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, 1, 1, 0, M_, options_, oo_);" << endl
+                            <<", options_.periods, " << (blocks[block].linear ? "true" : "false")
+                            <<", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, true, true, false, M_, options_, oo_);" << endl
                             << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);" << endl
                             << "  if any(isnan(tmp) | isinf(tmp))" << endl
                             << "    disp(['Inf or Nan value during the resolution of block " << block <<"']);" << endl
@@ -1734,7 +1734,7 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
                             <<", y, x, params, steady_state, y_index, " << nze
                             <<", options_.periods, " << blocks[block].max_lag
                             <<", " << blocks[block].max_lead
-                            <<", " << blocks[block].linear
+                            <<", " << (blocks[block].linear ? "true" : "false")
                             <<", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, options_, M_, oo_);" << endl
                             << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);" << endl
                             << "  if any(isnan(tmp) | isinf(tmp))" << endl
