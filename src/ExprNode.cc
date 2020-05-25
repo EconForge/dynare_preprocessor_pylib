@@ -980,7 +980,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 
     case SymbolType::modelLocalVariable:
       if (output_type == ExprNodeOutputType::matlabDynamicModelSparse || output_type == ExprNodeOutputType::matlabStaticModelSparse
-          || output_type == ExprNodeOutputType::matlabDynamicSteadyStateOperator || output_type == ExprNodeOutputType::matlabDynamicSparseSteadyStateOperator
+          || output_type == ExprNodeOutputType::matlabDynamicSteadyStateOperator
           || output_type == ExprNodeOutputType::CDynamicSteadyStateOperator)
         {
           output << "(";
@@ -1027,7 +1027,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           break;
         case ExprNodeOutputType::juliaDynamicSteadyStateOperator:
         case ExprNodeOutputType::matlabDynamicSteadyStateOperator:
-        case ExprNodeOutputType::matlabDynamicSparseSteadyStateOperator:
           output << "steady_state" << LEFT_ARRAY_SUBSCRIPT(output_type) << tsid + 1 << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case ExprNodeOutputType::CDynamicSteadyStateOperator:
@@ -2745,6 +2744,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       switch (output_type)
         {
         case ExprNodeOutputType::matlabDynamicModel:
+        case ExprNodeOutputType::matlabDynamicModelSparse:
           new_output_type = ExprNodeOutputType::matlabDynamicSteadyStateOperator;
           break;
         case ExprNodeOutputType::latexDynamicModel:
@@ -2755,9 +2755,6 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           break;
         case ExprNodeOutputType::juliaDynamicModel:
           new_output_type = ExprNodeOutputType::juliaDynamicSteadyStateOperator;
-          break;
-        case ExprNodeOutputType::matlabDynamicModelSparse:
-          new_output_type = ExprNodeOutputType::matlabDynamicSparseSteadyStateOperator;
           break;
         default:
           new_output_type = output_type;

@@ -94,7 +94,6 @@ enum class ExprNodeOutputType
    latexDynamicModel, //!< LaTeX code, dynamic model
    latexDynamicSteadyStateOperator, //!< LaTeX code, dynamic model, inside a steady state operator
    matlabDynamicSteadyStateOperator, //!< Matlab code, dynamic model, inside a steady state operator
-   matlabDynamicSparseSteadyStateOperator, //!< Matlab code, dynamic block decomposed model, inside a steady state operator
    CDynamicSteadyStateOperator, //!< C code, dynamic model, inside a steady state operator
    juliaDynamicSteadyStateOperator, //!< Julia code, dynamic model, inside a steady state operator
    steadyStateFile, //!< Matlab code, in the generated steady state file
@@ -112,7 +111,6 @@ isMatlabOutput(ExprNodeOutputType output_type)
     || output_type == ExprNodeOutputType::matlabStaticModelSparse
     || output_type == ExprNodeOutputType::matlabDynamicModelSparse
     || output_type == ExprNodeOutputType::matlabDynamicSteadyStateOperator
-    || output_type == ExprNodeOutputType::matlabDynamicSparseSteadyStateOperator
     || output_type == ExprNodeOutputType::steadyStateFile
     || output_type == ExprNodeOutputType::matlabDseries
     || output_type == ExprNodeOutputType::epilogueFile;
