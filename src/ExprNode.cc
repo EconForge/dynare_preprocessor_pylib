@@ -979,8 +979,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       break;
 
     case SymbolType::modelLocalVariable:
-      if (output_type == ExprNodeOutputType::matlabDynamicModelSparse || output_type == ExprNodeOutputType::matlabStaticModelSparse
-          || output_type == ExprNodeOutputType::matlabDynamicSteadyStateOperator
+      if (output_type == ExprNodeOutputType::matlabDynamicSteadyStateOperator
           || output_type == ExprNodeOutputType::CDynamicSteadyStateOperator)
         {
           output << "(";
