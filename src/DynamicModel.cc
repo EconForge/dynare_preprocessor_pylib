@@ -1656,7 +1656,7 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
                             << "    blck_num = 1;" << endl
                             << "  end;" << endl
                             << "  y = solve_one_boundary('" << basename << ".block.dynamic_" <<  block + 1 << "'"
-                            << ", y, x, params, steady_state, y_index, " << nze
+                            << ", y, x, params, steady_state, [], y_index, " << nze
                             << ", options_.periods, " << (blocks[block].linear ? "true" : "false")
                             << ", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, true, true, false, M_, options_, oo_);" << endl
                             << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);" << endl
@@ -1688,7 +1688,7 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
                             << "    blck_num = 1;" << endl
                             << "  end;" << endl
                             << "  y = solve_one_boundary('" << basename << ".block.dynamic_" <<  block + 1 << "'"
-                            <<", y, x, params, steady_state, y_index, " << nze
+                            <<", y, x, params, steady_state, [], y_index, " << nze
                             <<", options_.periods, " << (blocks[block].linear ? "true" : "false")
                             <<", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, true, true, false, M_, options_, oo_);" << endl
                             << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);" << endl

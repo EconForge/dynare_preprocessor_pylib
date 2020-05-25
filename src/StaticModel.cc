@@ -131,7 +131,7 @@ void
 StaticModel::writeStaticPerBlockMFiles(const string &basename) const
 {
   temporary_terms_t temporary_terms; // Temp terms written so far
-  constexpr ExprNodeOutputType local_output_type = ExprNodeOutputType::matlabStaticModelSparse;
+  constexpr ExprNodeOutputType local_output_type = ExprNodeOutputType::matlabStaticModel;
 
   for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
@@ -150,9 +150,9 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
              << "%" << endl;
       if (simulation_type == BlockSimulationType::evaluateBackward
           || simulation_type == BlockSimulationType::evaluateForward)
-        output << "function y = static_" << blk+1 << "(y, x, params)" << endl;
+        output << "function [y, T] = static_" << blk+1 << "(y, x, params, T)" << endl;
       else
-        output << "function [residual, y, g1] = static_" << blk+1 << "(y, x, params)" << endl;
+        output << "function [residual, y, g1, T] = static_" << blk+1 << "(y, x, params, T)" << endl;
 
       output << "  % ////////////////////////////////////////////////////////////////////////" << endl
              << "  % //" << string("                     Block ").substr(static_cast<int>(log10(blk + 1))) << blk+1
@@ -166,23 +166,6 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
         output << "  g1=spalloc("  << blocks[blk].mfs_size << "," << blocks[blk].mfs_size
                << "," << blocks_derivatives[blk].size() << ");" << endl;
 
-      // Declare global temp terms from this block and the previous ones
-      bool global_keyword_written = false;
-      for (int blk2 = 0; blk2 <= blk; blk2++)
-        for (auto &eq_tt : blocks_temporary_terms[blk2])
-          for (auto tt : eq_tt)
-            {
-              if (!global_keyword_written)
-                {
-                  output << "  global";
-                  global_keyword_written = true;
-                }
-              output << " ";
-              tt->writeOutput(output, local_output_type, eq_tt, {});
-            }
-      if (global_keyword_written)
-        output << ";" << endl;
-
       if (simulation_type != BlockSimulationType::evaluateBackward
           && simulation_type != BlockSimulationType::evaluateForward)
         output << "  residual=zeros(" << blocks[blk].mfs_size << ",1);" << endl;
@@ -195,12 +178,12 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
                            for (auto it : blocks_temporary_terms[blk][eq])
                              {
                                if (dynamic_cast<AbstractExternalFunctionNode *>(it))
-                                 it->writeExternalFunctionOutput(output, local_output_type, temporary_terms, {}, tef_terms);
+                                 it->writeExternalFunctionOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs, tef_terms);
 
                                output << "  ";
-                               it->writeOutput(output, local_output_type, blocks_temporary_terms[blk][eq], {}, tef_terms);
+                               it->writeOutput(output, local_output_type, blocks_temporary_terms[blk][eq], blocks_temporary_terms_idxs, tef_terms);
                                output << " = ";
-                               it->writeOutput(output, local_output_type, temporary_terms, {}, tef_terms);
+                               it->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs, tef_terms);
                                temporary_terms.insert(it);
                                output << ";" << endl;
                              }
@@ -230,9 +213,9 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
                   exit(EXIT_FAILURE);
                 }
               output << "  ";
-              lhs->writeOutput(output, local_output_type, temporary_terms, {});
+              lhs->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
               output << " = ";
-              rhs->writeOutput(output, local_output_type, temporary_terms, {});
+              rhs->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
               output << ";" << endl;
               break;
             case BlockSimulationType::solveBackwardSimple:
@@ -242,9 +225,9 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
               if (eq < block_recursive_size)
                 goto evaluation;
               output << "  residual(" << eq+1-block_recursive_size << ") = (";
-              lhs->writeOutput(output, local_output_type, temporary_terms, {});
+              lhs->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
               output << ") - (";
-              rhs->writeOutput(output, local_output_type, temporary_terms, {});
+              rhs->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
               output << ");" << endl;
               break;
             default:
@@ -266,7 +249,7 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
             {
               auto [eq, var, ignore] = indices;
               output << "    g1(" << eq+1-block_recursive_size << ", " << var+1-block_recursive_size << ") = ";
-              d->writeOutput(output, local_output_type, temporary_terms, {});
+              d->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
               output << ";" << endl;
             }
           break;
@@ -1747,7 +1730,7 @@ StaticModel::writeStaticBlockMFile(const string &basename) const
       exit(EXIT_FAILURE);
     }
 
-  output << "function [residual, g1, y, var_index] = static(nblock, y, x, params)" << endl
+  output << "function [residual, g1, y, var_index, T] = static(nblock, y, x, params, T)" << endl
          << "  residual = [];" << endl
          << "  g1 = [];" << endl
          << "  var_index = [];" << endl << endl
@@ -1764,7 +1747,7 @@ StaticModel::writeStaticBlockMFile(const string &basename) const
       if (simulation_type == BlockSimulationType::evaluateBackward
           || simulation_type == BlockSimulationType::evaluateForward)
         {
-          output << "      y_tmp = " << basename << ".block.static_" << blk+1 << "(y, x, params);" << endl
+          output << "      [y_tmp, T] = " << basename << ".block.static_" << blk+1 << "(y, x, params, T);" << endl
                  << "      var_index = [";
           for (int var = 0; var < blocks[blk].size; var++)
             output << " " << getBlockVariableID(blk, var)+1;
@@ -1773,7 +1756,7 @@ StaticModel::writeStaticBlockMFile(const string &basename) const
                  << "      y = y_tmp;" << endl;
         }
       else
-        output << "      [residual, y, g1] = " << basename << ".block.static_" << blk+1 << "(y, x, params);" << endl;
+        output << "      [residual, y, g1, T] = " << basename << ".block.static_" << blk+1 << "(y, x, params, T);" << endl;
 
     }
   output << "  end" << endl
@@ -1828,7 +1811,9 @@ StaticModel::writeDriverOutput(ostream &output, bool block) const
   output << "M_.block_structure_stat.incidence.sparse_IM = [" << endl;
   for (auto [eq, var] : row_incidence)
     output << " " << eq+1 << " " << var+1 << ";" << endl;
-  output << "];" << endl;
+  output << "];" << endl
+         << "M_.block_structure_stat.tmp_nbr = " << blocks_temporary_terms_idxs.size()
+         << ";" << endl;
 }
 
 SymbolType
