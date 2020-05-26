@@ -312,7 +312,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
                || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
         output << "  residual=zeros(" << block_mfs_size << ",y_kmin+periods);" << endl;
       if (simulation_type == BlockSimulationType::evaluateBackward)
-        output << "  for it_ = (y_kmin+periods):y_kmin+1" << endl;
+        output << "  for it_ = (y_kmin+periods):-1:y_kmin+1" << endl;
       if (simulation_type == BlockSimulationType::evaluateForward)
         output << "  for it_ = y_kmin+1:(y_kmin+periods)" << endl;
 
@@ -1575,7 +1575,7 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
                             << "  oo_.deterministic_simulation.block(blck_num).error = 0;" << endl
                             << "  oo_.deterministic_simulation.block(blck_num).iterations = 0;" << endl
                             << "  g1=[];g2=[];g3=[];" << endl
-                            << "  [~, T] = " << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, T, false, y_kmin, periods);" << endl
+                            << "  [y, T] = " << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, T, false, y_kmin, periods);" << endl
                             << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);" << endl
                             << "  if any(isnan(tmp) | isinf(tmp))" << endl
                             << "    disp(['Inf or Nan value during the evaluation of block " << block <<"']);" << endl
