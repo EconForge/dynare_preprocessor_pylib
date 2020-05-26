@@ -83,8 +83,7 @@ enum class ExprNodeOutputType
   {
    matlabStaticModel, //!< Matlab code, static model
    matlabDynamicModel, //!< Matlab code, dynamic model
-   matlabStaticModelSparse, //!< Matlab code, static block decomposed model
-   matlabDynamicModelSparse, //!< Matlab code, dynamic block decomposed model
+   matlabDynamicBlockModel, //!< Matlab code, dynamic block-decomposed model
    CDynamicModel, //!< C code, dynamic model
    CStaticModel, //!< C code, static model
    juliaStaticModel, //!< Julia code, static model
@@ -108,8 +107,7 @@ isMatlabOutput(ExprNodeOutputType output_type)
   return output_type == ExprNodeOutputType::matlabStaticModel
     || output_type == ExprNodeOutputType::matlabDynamicModel
     || output_type == ExprNodeOutputType::matlabOutsideModel
-    || output_type == ExprNodeOutputType::matlabStaticModelSparse
-    || output_type == ExprNodeOutputType::matlabDynamicModelSparse
+    || output_type == ExprNodeOutputType::matlabDynamicBlockModel
     || output_type == ExprNodeOutputType::matlabDynamicSteadyStateOperator
     || output_type == ExprNodeOutputType::steadyStateFile
     || output_type == ExprNodeOutputType::matlabDseries

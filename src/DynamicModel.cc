@@ -227,7 +227,7 @@ void
 DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
 {
   temporary_terms_t temporary_terms; // Temp terms written so far
-  constexpr ExprNodeOutputType local_output_type = ExprNodeOutputType::matlabDynamicModelSparse;
+  constexpr ExprNodeOutputType local_output_type = ExprNodeOutputType::matlabDynamicBlockModel;
 
   for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
@@ -254,15 +254,15 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
              << "%" << endl;
       if (simulation_type == BlockSimulationType::evaluateBackward
           || simulation_type == BlockSimulationType::evaluateForward)
-        output << "function [y, g1, g2, g3, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, jacobian_eval, y_kmin, periods)" << endl;
+        output << "function [y, T, g1, g2, g3, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, jacobian_eval, y_kmin, periods)" << endl;
       else if (simulation_type == BlockSimulationType::solveForwardComplete
                || simulation_type == BlockSimulationType::solveBackwardComplete)
-        output << "function [residual, y, g1, g2, g3, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, it_, jacobian_eval)" << endl;
+        output << "function [residual, y, T, g1, g2, g3, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, jacobian_eval)" << endl;
       else if (simulation_type == BlockSimulationType::solveBackwardSimple
                || simulation_type == BlockSimulationType::solveForwardSimple)
-        output << "function [residual, y, g1, g2, g3, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, it_, jacobian_eval)" << endl;
+        output << "function [residual, y, T, g1, g2, g3, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, jacobian_eval)" << endl;
       else
-        output << "function [residual, y, g1, g2, g3, b, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, periods, jacobian_eval, y_kmin, y_size, Periods)" << endl;
+        output << "function [residual, y, T, g1, g2, g3, b, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, periods, jacobian_eval, y_kmin, y_size, Periods)" << endl;
 
       output << "  % ////////////////////////////////////////////////////////////////////////" << endl
              << "  % //" << string("                     Block ").substr(static_cast<int>(log10(blk + 1))) << blk+1
@@ -303,38 +303,6 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
       output << "  g2=0;" << endl
              << "  g3=0;" << endl;
 
-      // Declare global temp terms from this block and the previous ones
-      bool global_keyword_written = false;
-      for (int blk2 = 0; blk2 <= blk; blk2++)
-        for (auto &eq_tt : blocks_temporary_terms[blk2])
-          for (auto tt : eq_tt)
-            {
-              if (!global_keyword_written)
-                {
-                  output << "  global";
-                  global_keyword_written = true;
-                }
-              output << " ";
-              // In the following, "Static" is used to avoid getting the "(it_)" subscripting
-              tt->writeOutput(output, ExprNodeOutputType::matlabStaticModelSparse, eq_tt, {});
-            }
-      if (global_keyword_written)
-        output << ";" << endl;
-
-      // Initialize temp terms of this block
-      if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
-          || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
-        {
-          output << "  " << "T_zeros = zeros(y_kmin+periods, 1);" << endl;
-          for (auto &eq_tt : blocks_temporary_terms[blk])
-            for (auto tt : eq_tt)
-              {
-                output << "  ";
-                // In the following, "Static" is used to avoid getting the "(it_)" subscripting
-                tt->writeOutput(output, ExprNodeOutputType::matlabStaticModelSparse, eq_tt, {});
-                output << " = T_zeros;" << endl;
-              }
-        }
       if (simulation_type == BlockSimulationType::solveBackwardSimple
           || simulation_type == BlockSimulationType::solveForwardSimple
           || simulation_type == BlockSimulationType::solveBackwardComplete
@@ -370,12 +338,12 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
                            for (auto it : blocks_temporary_terms[blk][eq])
                              {
                                if (dynamic_cast<AbstractExternalFunctionNode *>(it))
-                                 it->writeExternalFunctionOutput(output, local_output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+                                 it->writeExternalFunctionOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs, tef_terms);
 
                                output << indent_prefix;
-                               it->writeOutput(output, local_output_type, blocks_temporary_terms[blk][eq], {}, tef_terms);
+                               it->writeOutput(output, local_output_type, blocks_temporary_terms[blk][eq], blocks_temporary_terms_idxs, tef_terms);
                                output << " = ";
-                               it->writeOutput(output, local_output_type, temporary_terms, {}, tef_terms);
+                               it->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs, tef_terms);
                                temporary_terms.insert(it);
                                output << ";" << endl;
                              }
@@ -406,9 +374,9 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
                   exit(EXIT_FAILURE);
                 }
               output << indent_prefix;
-              lhs->writeOutput(output, local_output_type, temporary_terms, {});
+              lhs->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
               output << " = ";
-              rhs->writeOutput(output, local_output_type, temporary_terms, {});
+              rhs->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
               output << ";" << endl;
               break;
             case BlockSimulationType::solveBackwardSimple:
@@ -428,9 +396,9 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
               goto end;
             default:
             end:
-              lhs->writeOutput(output, local_output_type, temporary_terms, {});
+              lhs->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
               output << ") - (";
-              rhs->writeOutput(output, local_output_type, temporary_terms, {});
+              rhs->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
               output << ");" << endl;
             }
         }
@@ -448,7 +416,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
           auto [eq, var, lag] = indices;
           int jacob_col = blocks_jacob_cols_endo[blk].at({ var, lag });
           output << indent_prefix << "g1(" << eq+1 << ", " << jacob_col+1 << ") = ";
-          d->writeOutput(output, local_output_type, temporary_terms, {});
+          d->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
           output << ";" << endl;
         }
       for (const auto &[indices, d] : blocks_derivatives_exo[blk])
@@ -456,7 +424,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
           auto [eq, var, lag] = indices;
           int jacob_col = blocks_jacob_cols_exo[blk].at({ var, lag });
           output << indent_prefix << "g1_x(" << eq+1 << ", " << jacob_col+1 << ") = ";
-          d->writeOutput(output, local_output_type, temporary_terms, {});
+          d->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
           output << ";" << endl;
         }
       for (const auto &[indices, d] : blocks_derivatives_exo_det[blk])
@@ -464,7 +432,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
           auto [eq, var, lag] = indices;
           int jacob_col = blocks_jacob_cols_exo_det[blk].at({ var, lag });
           output << indent_prefix << "g1_xd(" << eq+1 << ", " << jacob_col+1 << ") = ";
-          d->writeOutput(output, local_output_type, temporary_terms, {});
+          d->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
           output << ";" << endl;
         }
       for (const auto &[indices, d] : blocks_derivatives_other_endo[blk])
@@ -472,7 +440,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
           auto [eq, var, lag] = indices;
           int jacob_col = blocks_jacob_cols_other_endo[blk].at({ var, lag });
           output << indent_prefix << "g1_o(" << eq+1 << ", " << jacob_col+1 << ") = ";
-          d->writeOutput(output, local_output_type, temporary_terms, {});
+          d->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
           output << ";" << endl;
         }
       output << indent_prefix << "varargout{1}=g1_x;" << endl
@@ -497,7 +465,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
               if (lag == 0)
                 {
                   output << "    g1(" << eq+1 << ", " << var+1-block_recursive_size << ") = ";
-                  d->writeOutput(output, local_output_type, temporary_terms, {});
+                  d->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
                   output << ";" << endl;
                 }
             }
@@ -542,7 +510,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
                   else if (lag < 0)
                     output << "     g1(" << eq+1-block_recursive_size << "+Per_J_, "
                            << var+1-block_recursive_size << "+y_size*(it_" << lag-1 << ")) = ";
-                  d->writeOutput(output, local_output_type, temporary_terms, {});
+                  d->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
                   output << ";" << endl;
                 }
             }
@@ -1446,30 +1414,10 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
 
   mDynamicModelFile << "function [varargout] = dynamic(options_, M_, oo_, varargin)" << endl
                     << "  g2=[];g3=[];" << endl;
-  //Temporary variables declaration
-  if (blocks_temporary_terms_idxs.size() > 0)
-    {
-      temporary_terms_t tt_all;
-      for (auto [tt, idx] : blocks_temporary_terms_idxs)
-        tt_all.insert(tt);
 
-      mDynamicModelFile << "  global";
-      for (auto tt : tt_all)
-        {
-          mDynamicModelFile << " ";
-          // In the following, "Static" is used to avoid getting the "(it_)" subscripting
-          tt->writeOutput(mDynamicModelFile, ExprNodeOutputType::matlabStaticModelSparse, tt_all, {});
-        }
-      mDynamicModelFile << ";" << endl
-                        << "  T_init=zeros(1,options_.periods+M_.maximum_lag+M_.maximum_lead);" << endl;
-      for (auto tt : tt_all)
-        {
-          mDynamicModelFile << "  ";
-          // In the following, "Static" is used to avoid getting the "(it_)" subscripting
-          tt->writeOutput(mDynamicModelFile, ExprNodeOutputType::matlabStaticModelSparse, tt_all, {});
-          mDynamicModelFile << "=T_init;" << endl;
-        }
-    }
+  if (blocks_temporary_terms_idxs.size() > 0)
+    mDynamicModelFile << "  T=NaN(" << blocks_temporary_terms_idxs.size()
+                      << ",options_.periods+M_.maximum_lag+M_.maximum_lead);" << endl;
 
   mDynamicModelFile << "  y_kmin=M_.maximum_lag;" << endl
                     << "  y_kmax=M_.maximum_lead;" << endl
@@ -1519,22 +1467,22 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
         {
         case BlockSimulationType::evaluateForward:
         case BlockSimulationType::evaluateBackward:
-          mDynamicModelFile << "    [y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, 1, it_-1, 1);" << endl
+          mDynamicModelFile << "    [y, T, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, T, true, it_-1, 1);" << endl
                             << "    residual(y_index_eq)=ys(y_index)-y(it_, y_index);" << endl;
           break;
         case BlockSimulationType::solveForwardSimple:
         case BlockSimulationType::solveBackwardSimple:
-          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, it_, 1);" << endl
+          mDynamicModelFile << "    [r, y, T, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, T, it_, true);" << endl
                             << "    residual(y_index_eq)=r;" << endl;
           break;
         case BlockSimulationType::solveForwardComplete:
         case BlockSimulationType::solveBackwardComplete:
-          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, it_, 1);" << endl
+          mDynamicModelFile << "    [r, y, T, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, T, it_, true);" << endl
                             << "    residual(y_index_eq)=r;" << endl;
           break;
         case BlockSimulationType::solveTwoBoundariesComplete:
         case BlockSimulationType::solveTwoBoundariesSimple:
-          mDynamicModelFile << "    [r, y, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, b, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << basename << ".block.dynamic_" <<  block + 1 << "(y, x, params, steady_state, it_-" << max_lag << ", 1, " << max_lag << ", " << block_recursive << "," << "options_.periods" << ");" << endl
+          mDynamicModelFile << "    [r, y, T, dr(" << count_call << ").g1, dr(" << count_call << ").g2, dr(" << count_call << ").g3, b, dr(" << count_call << ").g1_x, dr(" << count_call << ").g1_xd, dr(" << count_call << ").g1_o]=" << basename << ".block.dynamic_" <<  block + 1 << "(y, x, params, steady_state, T, it_-" << max_lag << ", true, " << max_lag << ", " << block_recursive << "," << "options_.periods" << ");" << endl
                             << "    residual(y_index_eq)=r(:,M_.maximum_lag+1);" << endl;
           break;
         default:
@@ -1601,7 +1549,7 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
                             << "  oo_.deterministic_simulation.block(blck_num).error = 0;" << endl
                             << "  oo_.deterministic_simulation.block(blck_num).iterations = 0;" << endl
                             << "  g1=[];g2=[];g3=[];" << endl
-                            << "  y=" << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, 0, y_kmin, periods);" << endl
+                            << "  [y, T] = " << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, T, false, y_kmin, periods);" << endl
                             << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);" << endl
                             << "  if any(isnan(tmp) | isinf(tmp))" << endl
                             << "    disp(['Inf or Nan value during the evaluation of block " << block <<"']);" << endl
@@ -1627,7 +1575,7 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
                             << "  oo_.deterministic_simulation.block(blck_num).error = 0;" << endl
                             << "  oo_.deterministic_simulation.block(blck_num).iterations = 0;" << endl
                             << "  g1=[];g2=[];g3=[];" << endl
-                            << "  " << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, 0, y_kmin, periods);" << endl
+                            << "  [~, T] = " << basename << ".block.dynamic_" << block + 1 << "(y, x, params, steady_state, T, false, y_kmin, periods);" << endl
                             << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);" << endl
                             << "  if any(isnan(tmp) | isinf(tmp))" << endl
                             << "    disp(['Inf or Nan value during the evaluation of block " << block <<"']);" << endl
@@ -1655,8 +1603,8 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
                             << "  else" << endl
                             << "    blck_num = 1;" << endl
                             << "  end;" << endl
-                            << "  y = solve_one_boundary('" << basename << ".block.dynamic_" <<  block + 1 << "'"
-                            << ", y, x, params, steady_state, [], y_index, " << nze
+                            << "  [y, T] = solve_one_boundary('" << basename << ".block.dynamic_" <<  block + 1 << "'"
+                            << ", y, x, params, steady_state, T, y_index, " << nze
                             << ", options_.periods, " << (blocks[block].linear ? "true" : "false")
                             << ", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, true, true, false, M_, options_, oo_);" << endl
                             << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);" << endl
@@ -1687,8 +1635,8 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
                             << "  else" << endl
                             << "    blck_num = 1;" << endl
                             << "  end;" << endl
-                            << "  y = solve_one_boundary('" << basename << ".block.dynamic_" <<  block + 1 << "'"
-                            <<", y, x, params, steady_state, [], y_index, " << nze
+                            << "  [y, T] = solve_one_boundary('" << basename << ".block.dynamic_" <<  block + 1 << "'"
+                            <<", y, x, params, steady_state, T, y_index, " << nze
                             <<", options_.periods, " << (blocks[block].linear ? "true" : "false")
                             <<", blck_num, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, true, true, false, M_, options_, oo_);" << endl
                             << "  tmp = y(:,M_.block_structure.block(" << block + 1 << ").variable);" << endl
@@ -1717,8 +1665,8 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
                             << "  else" << endl
                             << "    blck_num = 1;" << endl
                             << "  end;" << endl
-                            << "  [y oo_] = solve_two_boundaries('" << basename << ".block.dynamic_" <<  block + 1 << "'"
-                            <<", y, x, params, steady_state, y_index, " << nze
+                            << "  [y, T, oo_] = solve_two_boundaries('" << basename << ".block.dynamic_" <<  block + 1 << "'"
+                            <<", y, x, params, steady_state, T, y_index, " << nze
                             <<", options_.periods, " << blocks[block].max_lag
                             <<", " << blocks[block].max_lead
                             <<", " << (blocks[block].linear ? "true" : "false")
@@ -5885,7 +5833,7 @@ DynamicModel::isChecksumMatching(const string &basename, bool block) const
   // Write equation tags
   equation_tags.writeCheckSumInfo(buffer);
 
-  ExprNodeOutputType buffer_type = block ? ExprNodeOutputType::matlabDynamicModelSparse : ExprNodeOutputType::CDynamicModel;
+  ExprNodeOutputType buffer_type = block ? ExprNodeOutputType::matlabDynamicBlockModel : ExprNodeOutputType::CDynamicModel;
 
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;

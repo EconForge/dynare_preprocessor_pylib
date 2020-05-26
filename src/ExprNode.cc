@@ -96,20 +96,15 @@ ExprNode::checkIfTemporaryTermThenWrite(ostream &output, ExprNodeOutputType outp
   if (auto it = temporary_terms.find(const_cast<ExprNode *>(this)); it == temporary_terms.end())
     return false;
 
-  if (output_type == ExprNodeOutputType::matlabDynamicModelSparse)
-    output << "T" << idx << "(it_)";
-  else
-    if (output_type == ExprNodeOutputType::matlabStaticModelSparse)
-      output << "T" << idx;
-    else
-      {
-        auto it2 = temporary_terms_idxs.find(const_cast<ExprNode *>(this));
-        // It is the responsibility of the caller to ensure that all temporary terms have their index
-        assert(it2 != temporary_terms_idxs.end());
-        output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-               << it2->second + ARRAY_SUBSCRIPT_OFFSET(output_type)
-               << RIGHT_ARRAY_SUBSCRIPT(output_type);
-      }
+  auto it2 = temporary_terms_idxs.find(const_cast<ExprNode *>(this));
+  // It is the responsibility of the caller to ensure that all temporary terms have their index
+  assert(it2 != temporary_terms_idxs.end());
+  output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
+         << it2->second + ARRAY_SUBSCRIPT_OFFSET(output_type);
+  if (output_type == ExprNodeOutputType::matlabDynamicBlockModel)
+    output << ",it_";
+  output << RIGHT_ARRAY_SUBSCRIPT(output_type);
+
   return true;
 }
 
@@ -1008,11 +1003,10 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case ExprNodeOutputType::CStaticModel:
         case ExprNodeOutputType::juliaStaticModel:
         case ExprNodeOutputType::matlabStaticModel:
-        case ExprNodeOutputType::matlabStaticModelSparse:
           i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
           output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case ExprNodeOutputType::matlabDynamicModelSparse:
+        case ExprNodeOutputType::matlabDynamicBlockModel:
           i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
           if (lag > 0)
             output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -1059,7 +1053,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         {
         case ExprNodeOutputType::juliaDynamicModel:
         case ExprNodeOutputType::matlabDynamicModel:
-        case ExprNodeOutputType::matlabDynamicModelSparse:
+        case ExprNodeOutputType::matlabDynamicBlockModel:
           if (lag > 0)
             output <<  "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i
                    << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -1081,7 +1075,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case ExprNodeOutputType::CStaticModel:
         case ExprNodeOutputType::juliaStaticModel:
         case ExprNodeOutputType::matlabStaticModel:
-        case ExprNodeOutputType::matlabStaticModelSparse:
           output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case ExprNodeOutputType::matlabOutsideModel:
@@ -1119,7 +1112,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         {
         case ExprNodeOutputType::juliaDynamicModel:
         case ExprNodeOutputType::matlabDynamicModel:
-        case ExprNodeOutputType::matlabDynamicModelSparse:
+        case ExprNodeOutputType::matlabDynamicBlockModel:
           if (lag > 0)
             output <<  "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i
                    << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -1141,7 +1134,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case ExprNodeOutputType::CStaticModel:
         case ExprNodeOutputType::juliaStaticModel:
         case ExprNodeOutputType::matlabStaticModel:
-        case ExprNodeOutputType::matlabStaticModelSparse:
           output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case ExprNodeOutputType::matlabOutsideModel:
@@ -2743,7 +2735,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       switch (output_type)
         {
         case ExprNodeOutputType::matlabDynamicModel:
-        case ExprNodeOutputType::matlabDynamicModelSparse:
+        case ExprNodeOutputType::matlabDynamicBlockModel:
           new_output_type = ExprNodeOutputType::matlabDynamicSteadyStateOperator;
           break;
         case ExprNodeOutputType::latexDynamicModel:

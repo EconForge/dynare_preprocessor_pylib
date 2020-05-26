@@ -152,7 +152,7 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
           || simulation_type == BlockSimulationType::evaluateForward)
         output << "function [y, T] = static_" << blk+1 << "(y, x, params, T)" << endl;
       else
-        output << "function [residual, y, g1, T] = static_" << blk+1 << "(y, x, params, T)" << endl;
+        output << "function [residual, y, T, g1] = static_" << blk+1 << "(y, x, params, T)" << endl;
 
       output << "  % ////////////////////////////////////////////////////////////////////////" << endl
              << "  % //" << string("                     Block ").substr(static_cast<int>(log10(blk + 1))) << blk+1
@@ -1730,7 +1730,7 @@ StaticModel::writeStaticBlockMFile(const string &basename) const
       exit(EXIT_FAILURE);
     }
 
-  output << "function [residual, g1, y, var_index, T] = static(nblock, y, x, params, T)" << endl
+  output << "function [residual, y, T, g1, var_index] = static(nblock, y, x, params, T)" << endl
          << "  residual = [];" << endl
          << "  g1 = [];" << endl
          << "  var_index = [];" << endl << endl
@@ -1756,7 +1756,7 @@ StaticModel::writeStaticBlockMFile(const string &basename) const
                  << "      y = y_tmp;" << endl;
         }
       else
-        output << "      [residual, y, g1, T] = " << basename << ".block.static_" << blk+1 << "(y, x, params, T);" << endl;
+        output << "      [residual, y, T, g1] = " << basename << ".block.static_" << blk+1 << "(y, x, params, T);" << endl;
 
     }
   output << "  end" << endl
