@@ -1,7 +1,7 @@
 variables:
   TERM: linux
-  MINGW32_BOOST_VERSION: 1.71.0-1
-  MINGW64_BOOST_VERSION: 1.71.0-1
+  MINGW32_BOOST_VERSION: 1.73.0-3
+  MINGW64_BOOST_VERSION: 1.73.0-3
   WGET_OPTIONS: '--no-verbose --no-use-server-timestamps --retry-connrefused --retry-on-host-error'
 
 before_script:
@@ -49,9 +49,9 @@ build_windows_32:
   stage: build
   script:
     - mkdir -p ~/tarballs
-    - '[[ -f ~/tarballs/mingw-w64-i686-boost-$MINGW32_BOOST_VERSION-any.pkg.tar.xz ]] || wget $WGET_OPTIONS -P ~/tarballs http://repo.msys2.org/mingw/i686/mingw-w64-i686-boost-$MINGW32_BOOST_VERSION-any.pkg.tar.xz'
+    - '[[ -f ~/tarballs/mingw-w64-i686-boost-$MINGW32_BOOST_VERSION-any.pkg.tar.zst ]] || wget $WGET_OPTIONS -P ~/tarballs http://repo.msys2.org/mingw/i686/mingw-w64-i686-boost-$MINGW32_BOOST_VERSION-any.pkg.tar.zst'
     - mkdir -p deps
-    - tar xf ~/tarballs/mingw-w64-i686-boost-$MINGW32_BOOST_VERSION-any.pkg.tar.xz --directory deps
+    - tar xf ~/tarballs/mingw-w64-i686-boost-$MINGW32_BOOST_VERSION-any.pkg.tar.zst --directory deps
     - autoreconf -si
     - './configure --host=i686-w64-mingw32 --with-boost=$(pwd)/deps/mingw32/include LDFLAGS="-static -static-libgcc -static-libstdc++"'
     - make -j$(nproc)
@@ -70,9 +70,9 @@ build_windows_64:
   stage: build
   script:
     - mkdir -p ~/tarballs
-    - '[[ -f ~/tarballs/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.xz ]] || wget $WGET_OPTIONS -P ~/tarballs http://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.xz'
+    - '[[ -f ~/tarballs/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.zst ]] || wget $WGET_OPTIONS -P ~/tarballs http://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.zst'
     - mkdir -p deps
-    - tar xf ~/tarballs/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.xz --directory deps
+    - tar xf ~/tarballs/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.zst --directory deps
     - autoreconf -si
     - './configure --host=x86_64-w64-mingw32 --with-boost=$(pwd)/deps/mingw64/include LDFLAGS="-static -static-libgcc -static-libstdc++"'
     - make -j$(nproc)
