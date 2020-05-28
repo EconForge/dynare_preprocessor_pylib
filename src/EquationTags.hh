@@ -24,6 +24,7 @@ using namespace std;
 
 #include <map>
 #include <set>
+#include <string>
 
 class EquationTags
 {
