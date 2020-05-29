@@ -405,8 +405,8 @@ private:
   void copyHelper(const ModelTree &m);
   //! Returns the name of the MATLAB architecture given the extension used for MEX files
   static string matlab_arch(const string &mexext);
-  //! Compiles the MEX file
-  void compileDll(const string &basename, const string &static_or_dynamic, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
+  //! Compiles a MEX file
+  void compileMEX(const string &basename, const string &funcname, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
 
 public:
   ModelTree(SymbolTable &symbol_table_arg,

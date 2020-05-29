@@ -1978,7 +1978,7 @@ ModelTree::matlab_arch(const string &mexext)
 }
 
 void
-ModelTree::compileDll(const string &basename, const string &static_or_dynamic, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
+ModelTree::compileMEX(const string &basename, const string &funcname, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
 {
   const string opt_flags = "-O3 -g0 --param ira-max-conflict-table-size=1 -fno-forward-propagate -fno-gcse -fno-dce -fno-dse -fno-tree-fre -fno-tree-pre -fno-tree-cselim -fno-tree-dse -fno-tree-dce -fno-tree-pta -fno-gcse-after-reload";
 
@@ -2058,11 +2058,9 @@ ModelTree::compileDll(const string &basename, const string &static_or_dynamic, c
     }
 
   auto model_dir = filesystem::path{basename} / "model" / "src";
-  filesystem::path main_src{model_dir / (static_or_dynamic + ".c")},
-    mex_src{model_dir / (static_or_dynamic + "_mex.c")};
-
+  filesystem::path src{model_dir / (funcname + ".c")};
   filesystem::path mex_dir{"+" + basename};
-  filesystem::path binary{mex_dir / (static_or_dynamic + "." + mexext)};
+  filesystem::path binary{mex_dir / (funcname + "." + mexext)};
 
   ostringstream cmd;
 
@@ -2092,7 +2090,7 @@ ModelTree::compileDll(const string &basename, const string &static_or_dynamic, c
   if (!user_set_add_flags.empty())
     cmd << user_set_add_flags << " ";
 
-  cmd << main_src << " " << mex_src << " -o " << binary << " ";
+  cmd << src << " -o " << binary << " ";
 
   if (user_set_subst_libs.empty())
     cmd << libs;
@@ -2106,7 +2104,7 @@ ModelTree::compileDll(const string &basename, const string &static_or_dynamic, c
   cmd << '"';
 #endif
 
-  cout << "Compiling " << static_or_dynamic << " MEX..." << endl << cmd.str() << endl;
+  cout << "Compiling " << funcname << " MEX..." << endl << cmd.str() << endl;
 
   if (system(cmd.str().c_str()))
     {

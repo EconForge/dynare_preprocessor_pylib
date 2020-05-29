@@ -1160,140 +1160,88 @@ DynamicModel::writeDynamicCFile(const string &basename) const
 {
   filesystem::create_directories(basename + "/model/src");
   string filename = basename + "/model/src/dynamic.c";
-  string filename_mex = basename + "/model/src/dynamic_mex.c";
-  ofstream mDynamicModelFile, mDynamicMexFile;
 
   int ntt = temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size();
 
-  mDynamicModelFile.open(filename, ios::out | ios::binary);
-  if (!mDynamicModelFile.is_open())
+  ofstream output;
+  output.open(filename, ios::out | ios::binary);
+  if (!output.is_open())
     {
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
-  mDynamicModelFile << "/*" << endl
-                    << " * " << filename << " : Computes dynamic model for Dynare" << endl
-                    << " *" << endl
-                    << " * Warning : this file is generated automatically by Dynare" << endl
-                    << " *           from model file (.mod)" << endl
-                    << " */" << endl
-                    << "#include <math.h>" << endl;
-
-  mDynamicModelFile << "#include <stdlib.h>" << endl;
-
-  if (external_functions_table.get_total_number_of_unique_model_block_external_functions())
-    // External Matlab function, implies Dynamic function will call mex
-    mDynamicModelFile << R"(#include "mex.h")" << endl;
-
-  mDynamicModelFile << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
-                    << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
+  output << "/*" << endl
+         << " * " << filename << " : Computes dynamic model for Dynare" << endl
+         << " *" << endl
+         << " * Warning : this file is generated automatically by Dynare" << endl
+         << " *           from model file (.mod)" << endl
+         << " */" << endl
+         << endl
+         << "#include <math.h>" << endl
+         << "#include <stdlib.h>" << endl
+         << R"(#include "mex.h")" << endl
+         << endl
+         << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
+         << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl
+         << endl;
 
   // Write function definition if BinaryOpcode::powerDeriv is used
-  writePowerDerivCHeader(mDynamicModelFile);
+  writePowerDeriv(output);
 
-  mDynamicModelFile << endl;
+  output << endl;
 
-  // Writing the function body
-  writeDynamicModel(mDynamicModelFile, true, false);
+  writeDynamicModel(output, true, false);
 
-  mDynamicModelFile << endl;
+  output << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
+         << "{" << endl
+         << "  if (nlhs > " << computed_derivs_order + 1 << ")" << endl
+         << R"(    mexErrMsgTxt("Derivatives of higher order than computed have been requested");)" << endl
+         << endl
+         << "  double *y = mxGetPr(prhs[0]);" << endl
+         << "  double *x = mxGetPr(prhs[1]);" << endl
+         << "  double *params = mxGetPr(prhs[2]);" << endl
+         << "  double *steady_state = mxGetPr(prhs[3]);" << endl
+         << "  int it_ = (int) mxGetScalar(prhs[4]) - 1;" << endl
+         << "  int nb_row_x = mxGetM(prhs[1]);" << endl
+         << endl
+         << "  double *T = (double *) malloc(sizeof(double)*" << ntt << ");" << endl
+         << endl
+         << "  if (nlhs >= 1)" << endl
+         << "    {" << endl
+         << "       plhs[0] = mxCreateDoubleMatrix(" << equations.size() << ",1, mxREAL);" << endl
+         << "       double *residual = mxGetPr(plhs[0]);" << endl
+         << "       dynamic_resid_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
+         << "       dynamic_resid(y, x, nb_row_x, params, steady_state, it_, T, residual);" << endl
+         << "    }" << endl
+         << endl
+         << "  if (nlhs >= 2)" << endl
+         << "    {" << endl
+         << "       plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << dynJacobianColsNbr << ", mxREAL);" << endl
+         << "       double *g1 = mxGetPr(plhs[1]);" << endl
+         << "       dynamic_g1_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
+         << "       dynamic_g1(y, x, nb_row_x, params, steady_state, it_, T, g1);" << endl
+         << "    }" << endl
+         << endl
+         << "  if (nlhs >= 3)" << endl
+         << "    {" << endl
+         << "      plhs[2] = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 3 << ", mxREAL);" << endl
+         << "      double *v2 = mxGetPr(plhs[2]);" << endl
+         << "      dynamic_g2_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
+         << "      dynamic_g2(y, x, nb_row_x, params, steady_state, it_, T, v2);" << endl
+         << "    }" << endl
+         << endl
+         << "  if (nlhs >= 4)" << endl
+         << "    {" << endl
+         << "      plhs[3] = mxCreateDoubleMatrix(" << NNZDerivatives[3] << ", " << 3 << ", mxREAL);" << endl
+         << "      double *v3 = mxGetPr(plhs[3]);" << endl
+         << "      dynamic_g3_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
+         << "      dynamic_g3(y, x, nb_row_x, params, steady_state, it_, T, v3);" << endl
+         << "    }" << endl
+         << endl
+         << "  free(T);"
+         << "}" << endl;
 
-  writePowerDeriv(mDynamicModelFile);
-  mDynamicModelFile.close();
-
-  mDynamicMexFile.open(filename_mex, ios::out | ios::binary);
-  if (!mDynamicMexFile.is_open())
-    {
-      cerr << "Error: Can't open file " << filename_mex << " for writing" << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  // Writing the gateway routine
-  mDynamicMexFile << "/*" << endl
-                  << " * " << filename_mex << " : The gateway routine used to call the Dynamic function "
-                  << "located in " << filename << endl
-                  << " *" << endl
-                  << " * Warning : this file is generated automatically by Dynare" << endl
-                  << " *           from model file (.mod)" << endl
-                  << endl
-                  << " */" << endl
-                  << endl
-                  << "#include <stdlib.h>" << endl
-                  << R"(#include "mex.h")" << endl
-                  << endl
-                  << "void dynamic_resid_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T);" << endl
-                  << "void dynamic_resid(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *residual);" << endl
-                  << "void dynamic_g1_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T);" << endl
-                  << "void dynamic_g1(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *g1);" << endl
-                  << "void dynamic_g2_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T);" << endl
-                  << "void dynamic_g2(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *v2);" << endl
-                  << "void dynamic_g3_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T);" << endl
-                  << "void dynamic_g3(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *v3);" << endl
-                  << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
-                  << "{" << endl
-                  << "  /* Check that no derivatives of higher order than computed are being requested */" << endl
-                  << "  if (nlhs > " << computed_derivs_order + 1 << ")" << endl
-                  << R"(    mexErrMsgTxt("Derivatives of higher order than computed have been requested");)" << endl
-                  << "  /* Create a pointer to the input matrix y. */" << endl
-                  << "  double *y = mxGetPr(prhs[0]);" << endl
-                  << endl
-                  << "  /* Create a pointer to the input matrix x. */" << endl
-                  << "  double *x = mxGetPr(prhs[1]);" << endl
-                  << endl
-                  << "  /* Create a pointer to the input matrix params. */" << endl
-                  << "  double *params = mxGetPr(prhs[2]);" << endl
-                  << endl
-                  << "  /* Create a pointer to the input matrix steady_state. */" << endl
-                  << "  double *steady_state = mxGetPr(prhs[3]);" << endl
-                  << endl
-                  << "  /* Fetch time index */" << endl
-                  << "  int it_ = (int) mxGetScalar(prhs[4]) - 1;" << endl
-                  << endl
-                  << "  /* Gets number of rows of matrix x. */" << endl
-                  << "  int nb_row_x = mxGetM(prhs[1]);" << endl
-                  << endl
-                  << "  double *T = (double *) malloc(sizeof(double)*" << ntt << ");"
-                  << endl
-                  << "  if (nlhs >= 1)" << endl
-                  << "  {" << endl
-                  << "     /* Set the output pointer to the output matrix residual. */" << endl
-                  << "     plhs[0] = mxCreateDoubleMatrix(" << equations.size() << ",1, mxREAL);" << endl
-                  << "     double *residual = mxGetPr(plhs[0]);" << endl
-                  << "     dynamic_resid_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
-                  << "     dynamic_resid(y, x, nb_row_x, params, steady_state, it_, T, residual);" << endl
-                  << "  }" << endl
-                  << endl
-                  << "  if (nlhs >= 2)" << endl
-                  << "  {" << endl
-                  << "     /* Set the output pointer to the output matrix g1. */" << endl
-                  << "     plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << dynJacobianColsNbr << ", mxREAL);" << endl
-                  << "     double *g1 = mxGetPr(plhs[1]);" << endl
-                  << "     dynamic_g1_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
-                  << "     dynamic_g1(y, x, nb_row_x, params, steady_state, it_, T, g1);" << endl
-                  << "  }" << endl
-                  << endl
-                  << " if (nlhs >= 3)" << endl
-                  << "  {" << endl
-                  << "     /* Set the output pointer to the output matrix v2. */" << endl
-                  << "     plhs[2] = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 3
-                  << ", mxREAL);" << endl
-                  << "     double *v2 = mxGetPr(plhs[2]);" << endl
-                  << "     dynamic_g2_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
-                  << "     dynamic_g2(y, x, nb_row_x, params, steady_state, it_, T, v2);" << endl
-                  << "  }" << endl
-                  << endl
-                  << " if (nlhs >= 4)" << endl
-                  << "  {" << endl
-                  << "     /* Set the output pointer to the output matrix v3. */" << endl
-                  << "     plhs[3] = mxCreateDoubleMatrix(" << NNZDerivatives[3] << ", " << 3 << ", mxREAL);" << endl
-                  << "     double *v3 = mxGetPr(plhs[3]);" << endl
-                  << "     dynamic_g3_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
-                  << "     dynamic_g3(y, x, nb_row_x, params, steady_state, it_, T, v3);" << endl
-                  << "  }" << endl
-                  << endl
-                  << " free(T);"
-                  << "}" << endl;
-  mDynamicMexFile.close();
+  output.close();
 }
 
 string
@@ -4541,7 +4489,7 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool linear_d
   else if (use_dll)
     {
       writeDynamicCFile(basename);
-      compileDll(basename, "dynamic", mexext, matlabroot, dynareroot);
+      compileMEX(basename, "dynamic", mexext, matlabroot, dynareroot);
     }
   else if (julia)
     writeDynamicJuliaFile(basename);

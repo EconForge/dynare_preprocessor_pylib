@@ -905,13 +905,6 @@ DataTree::minLagForSymbol(int symb_id) const
 }
 
 void
-DataTree::writePowerDerivCHeader(ostream &output) const
-{
-  if (isBinaryOpUsed(BinaryOpcode::powerDeriv))
-    output << "double getPowerDeriv(double, double, int);" << endl;
-}
-
-void
 DataTree::writePowerDeriv(ostream &output) const
 {
   if (isBinaryOpUsed(BinaryOpcode::powerDeriv))

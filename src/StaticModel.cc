@@ -1562,7 +1562,6 @@ StaticModel::writeStaticCFile(const string &basename) const
   // Writing comments and function definition command
   filesystem::create_directories(basename + "/model/src");
   string filename = basename + "/model/src/static.c";
-  string filename_mex = basename + "/model/src/static_mex.c";
 
   int ntt = temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size();
 
@@ -1580,74 +1579,33 @@ StaticModel::writeStaticCFile(const string &basename) const
          << " * Warning : this file is generated automatically by Dynare" << endl
          << " *           from model file (.mod)" << endl << endl
          << " */" << endl
-         << "#include <math.h>" << endl;
-
-  output << "#include <stdlib.h>" << endl;
-
-  if (external_functions_table.get_total_number_of_unique_model_block_external_functions())
-    // External Matlab function, implies Static function will call mex
-    output << R"(#include "mex.h")" << endl;
-
-  output << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
-         << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl;
-
-  // Write function definition if BinaryOpcode::powerDeriv is used
-  writePowerDerivCHeader(output);
-
-  output << endl;
-
-  // Writing the function body
-  writeStaticModel(output, true, false);
-
-  output << endl;
-
-  writePowerDeriv(output);
-  output.close();
-
-  output.open(filename_mex, ios::out | ios::binary);
-  if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename_mex << " for writing" << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  // Writing the gateway routine
-  output << "/*" << endl
-         << " * " << filename_mex << " : The gateway routine used to call the Static function "
-         << "located in " << filename << endl
-         << " *" << endl
-         << " * Warning : this file is generated automatically by Dynare" << endl
-         << " *           from model file (.mod)" << endl << endl
-         << " */" << endl
          << endl
+         << "#include <math.h>" << endl
          << "#include <stdlib.h>" << endl
          << R"(#include "mex.h")" << endl
          << endl
-         << "void static_resid_tt(const double *y, const double *x, int nb_row_x, const double *params, double *T);" << endl
-         << "void static_resid(const double *y, const double *x, int nb_row_x, const double *params, const double *T, double *residual);" << endl
-         << "void static_g1_tt(const double *y, const double *x, int nb_row_x, const double *params, double *T);" << endl
-         << "void static_g1(const double *y, const double *x, int nb_row_x, const double *params, const double *T, double *g1);" << endl
-         << "void static_g2_tt(const double *y, const double *x, int nb_row_x, const double *params, double *T);" << endl
-         << "void static_g2(const double *y, const double *x, int nb_row_x, const double *params, const double *T, double *v2);" << endl
-         << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
+         << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
+         << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl
+         << endl;
+
+  // Write function definition if BinaryOpcode::powerDeriv is used
+  writePowerDeriv(output);
+
+  output << endl;
+
+  writeStaticModel(output, true, false);
+
+  output << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
          << "{" << endl
-         << "  /* Create a pointer to the input matrix y. */" << endl
          << "  double *y = mxGetPr(prhs[0]);" << endl
-         << endl
-         << "  /* Create a pointer to the input matrix x. */" << endl
          << "  double *x = mxGetPr(prhs[1]);" << endl
-         << endl
-         << "  /* Create a pointer to the input matrix params. */" << endl
          << "  double *params = mxGetPr(prhs[2]);" << endl
-         << endl
-         << "  /* Gets number of rows of matrix x. */" << endl
          << "  int nb_row_x = mxGetM(prhs[1]);" << endl
          << endl
-         << "  double *T = (double *) malloc(sizeof(double)*" << ntt << ");"
+         << "  double *T = (double *) malloc(sizeof(double)*" << ntt << ");" << endl
          << endl
          << "  if (nlhs >= 1)" << endl
          << "    {" << endl
-         << "      /* Set the output pointer to the output matrix residual. */" << endl
          << "      plhs[0] = mxCreateDoubleMatrix(" << equations.size() << ",1, mxREAL);" << endl
          << "      double *residual = mxGetPr(plhs[0]);" << endl
          << "      static_resid_tt(y, x, nb_row_x, params, T);" << endl
@@ -1656,7 +1614,6 @@ StaticModel::writeStaticCFile(const string &basename) const
          << endl
          << "  if (nlhs >= 2)" << endl
          << "    {" << endl
-         << "      /* Set the output pointer to the output matrix g1. */" << endl
          << "      plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << symbol_table.endo_nbr() << ", mxREAL);" << endl
          << "      double *g1 = mxGetPr(plhs[1]);" << endl
          << "      static_g1_tt(y, x, nb_row_x, params, T);" << endl
@@ -1665,9 +1622,7 @@ StaticModel::writeStaticCFile(const string &basename) const
          << endl
          << "  if (nlhs >= 3)" << endl
          << "    {" << endl
-         << "      /* Set the output pointer to the output matrix v2. */" << endl
-         << "      plhs[2] = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 3
-         << ", mxREAL);" << endl
+         << "      plhs[2] = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 3 << ", mxREAL);" << endl
          << "      double *v2 = mxGetPr(plhs[2]);" << endl
          << "      static_g2_tt(y, x, nb_row_x, params, T);" << endl
          << "      static_g2(y, x, nb_row_x, params, T, v2);" << endl
@@ -1675,6 +1630,7 @@ StaticModel::writeStaticCFile(const string &basename) const
          << endl
          << "  free(T);" << endl
          << "}" << endl;
+
   output.close();
 }
 
@@ -1699,7 +1655,7 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, 
   else if (use_dll)
     {
       writeStaticCFile(basename);
-      compileDll(basename, "static", mexext, matlabroot, dynareroot);
+      compileMEX(basename, "static", mexext, matlabroot, dynareroot);
     }
   else if (julia)
     writeStaticJuliaFile(basename);
