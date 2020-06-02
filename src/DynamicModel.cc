@@ -1355,9 +1355,7 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
                     << "%           from model file (.mod)" << endl << endl
                     << "%" << endl
                     << endl
-                    << "function [varargout] = dynamic(options_, M_, oo_, varargin)" << endl
-                    << "  g2=[];" << endl
-                    << "  g3=[];" << endl;
+                    << "function [residual, dr] = dynamic(options_, M_, oo_, y, x, params, steady_state, it_, dr)" << endl;
 
   if (blocks_temporary_terms_idxs.size() > 0)
     mDynamicModelFile << "  T=NaN(" << blocks_temporary_terms_idxs.size()
@@ -1366,17 +1364,9 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
   mDynamicModelFile << "  y_kmin=M_.maximum_lag;" << endl
                     << "  y_kmax=M_.maximum_lead;" << endl
                     << "  y_size=M_.endo_nbr;" << endl
-                    << "  if length(varargin)>0" << endl
-                    << "    % It is a simple evaluation of the dynamic model for period 'it_'" << endl
-                    << "    y=varargin{1};" << endl
-                    << "    x=varargin{2};" << endl
-                    << "    params=varargin{3};" << endl
-                    << "    steady_state=varargin{4};" << endl
-                    << "    it_=varargin{5};" << endl
-                    << "    dr=varargin{6};" << endl
-                    << "    Per_u_=0;" << endl
-                    << "    Per_y_=it_*y_size;" << endl
-                    << "    ys=y(it_,:);" << endl;
+                    << "  Per_u_=0;" << endl
+                    << "  Per_y_=it_*y_size;" << endl
+                    << "  ys=y(it_,:);" << endl;
 
   for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
@@ -1384,13 +1374,13 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
         block_recursive_size = blocks[blk].getRecursiveSize();
       BlockSimulationType simulation_type = blocks[blk].simulation_type;
 
-      mDynamicModelFile << "    y_index_eq=[";
+      mDynamicModelFile << "  y_index_eq=[";
       for (int eq = (simulation_type == BlockSimulationType::evaluateForward
                       || simulation_type == BlockSimulationType::evaluateBackward)
              ? 0 : block_recursive_size; eq < block_size; eq++)
         mDynamicModelFile << " " << getBlockEquationID(blk, eq)+1;
       mDynamicModelFile << "];" << endl
-                        << "    y_index=[";
+                        << "  y_index=[";
       for (int var = (simulation_type == BlockSimulationType::evaluateForward
                       || simulation_type == BlockSimulationType::evaluateBackward)
              ? 0 : block_recursive_size; var < block_size; var++)
@@ -1401,200 +1391,27 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
         {
         case BlockSimulationType::evaluateForward:
         case BlockSimulationType::evaluateBackward:
-          mDynamicModelFile << "    [y, T, dr(" << blk + 1 << ").g1, dr(" << blk + 1 << ").g2, dr(" << blk + 1 << ").g3, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" << blk + 1 << "(y, x, params, steady_state, T, true, it_-1, 1);" << endl
-                            << "    residual(y_index_eq)=ys(y_index)-y(it_, y_index);" << endl;
+          mDynamicModelFile << "  [y, T, dr(" << blk + 1 << ").g1, dr(" << blk + 1 << ").g2, dr(" << blk + 1 << ").g3, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" << blk + 1 << "(y, x, params, steady_state, T, true, it_-1, 1);" << endl
+                            << "  residual(y_index_eq)=ys(y_index)-y(it_, y_index);" << endl;
           break;
         case BlockSimulationType::solveForwardSimple:
         case BlockSimulationType::solveBackwardSimple:
-          mDynamicModelFile << "    [r, y, T, dr(" << blk + 1 << ").g1, dr(" << blk + 1 << ").g2, dr(" << blk + 1 << ").g3, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" << blk + 1 << "(y, x, params, steady_state, T, it_, true);" << endl
-                            << "    residual(y_index_eq)=r;" << endl;
-          break;
         case BlockSimulationType::solveForwardComplete:
         case BlockSimulationType::solveBackwardComplete:
-          mDynamicModelFile << "    [r, y, T, dr(" << blk + 1 << ").g1, dr(" << blk + 1 << ").g2, dr(" << blk + 1 << ").g3, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" << blk + 1 << "(y, x, params, steady_state, T, it_, true);" << endl
-                            << "    residual(y_index_eq)=r;" << endl;
+          mDynamicModelFile << "  [r, y, T, dr(" << blk + 1 << ").g1, dr(" << blk + 1 << ").g2, dr(" << blk + 1 << ").g3, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" << blk + 1 << "(y, x, params, steady_state, T, it_, true);" << endl
+                            << "  residual(y_index_eq)=r;" << endl;
           break;
         case BlockSimulationType::solveTwoBoundariesComplete:
         case BlockSimulationType::solveTwoBoundariesSimple:
-          mDynamicModelFile << "    [r, y, T, dr(" << blk + 1 << ").g1, dr(" << blk + 1 << ").g2, dr(" << blk + 1 << ").g3, b, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" <<  blk + 1 << "(y, x, params, steady_state, T, it_-" << max_lag << ", true, " << max_lag << ", " << block_recursive_size << "," << "options_.periods" << ");" << endl
-                            << "    residual(y_index_eq)=r(:,M_.maximum_lag+1);" << endl;
+          mDynamicModelFile << "  [r, y, T, dr(" << blk + 1 << ").g1, dr(" << blk + 1 << ").g2, dr(" << blk + 1 << ").g3, b, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" <<  blk + 1 << "(y, x, params, steady_state, T, it_-" << max_lag << ", true, " << max_lag << ", " << block_recursive_size << "," << "options_.periods" << ");" << endl
+                            << "  residual(y_index_eq)=r(:,M_.maximum_lag+1);" << endl;
           break;
         default:
           break;
         }
     }
 
-  mDynamicModelFile << "    varargout{1}=residual;" << endl
-                    << "    varargout{2}=dr;" << endl
-                    << "    return" << endl
-                    << "  end" << endl
-                    << "  % It is the deterministic simulation of the block decomposed dynamic model" << endl
-                    << "  if options_.stack_solve_algo==0" << endl
-                    << "    mthd='Sparse LU';" << endl
-                    << "  elseif options_.stack_solve_algo==1" << endl
-                    << "    mthd='Relaxation';" << endl
-                    << "  elseif options_.stack_solve_algo==2" << endl
-                    << "    mthd='GMRES';" << endl
-                    << "  elseif options_.stack_solve_algo==3" << endl
-                    << "    mthd='BICGSTAB';" << endl
-                    << "  elseif options_.stack_solve_algo==4" << endl
-                    << "    mthd='OPTIMPATH';" << endl
-                    << "  else" << endl
-                    << "    mthd='UNKNOWN';" << endl
-                    << "  end" << endl
-                    << "  if options_.verbosity" << endl
-                    << "    printline(41)" << endl
-                    << "    disp(sprintf('MODEL SIMULATION (method=%s):',mthd))" << endl
-                    << "    skipline()" << endl
-                    << "  end" << endl
-                    << "  periods=options_.periods;" << endl
-                    << "  maxit_=options_.simul.maxit;" << endl
-                    << "  solve_tolf=options_.solve_tolf;" << endl
-                    << "  y=oo_.endo_simul';" << endl
-                    << "  x=oo_.exo_simul;" << endl
-                    << "  params=M_.params;" << endl
-                    << "  steady_state=oo_.steady_state;" << endl
-                    << "  oo_.deterministic_simulation.status = 0;" << endl;
-  for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
-    {
-      int block_size = blocks[blk].size;
-      int block_recursive_size = blocks[blk].getRecursiveSize();
-      BlockSimulationType simulation_type = blocks[blk].simulation_type;
-
-      if (simulation_type == BlockSimulationType::evaluateForward && block_size)
-        {
-          mDynamicModelFile << "  oo_.deterministic_simulation.status = 1;" << endl
-                            << "  oo_.deterministic_simulation.error = 0;" << endl
-                            << "  oo_.deterministic_simulation.iterations = 0;" << endl
-                            << "  if(isfield(oo_.deterministic_simulation,'block'))" << endl
-                            << "    blk = length(oo_.deterministic_simulation.block)+1;" << endl
-                            << "  else" << endl
-                            << "    blk = 1;" << endl
-                            << "  end" << endl
-                            << "  oo_.deterministic_simulation.block(blk).status = 1;" << endl
-                            << "  oo_.deterministic_simulation.block(blk).error = 0;" << endl
-                            << "  oo_.deterministic_simulation.block(blk).iterations = 0;" << endl
-                            << "  g1=[];g2=[];g3=[];" << endl
-                            << "  [y, T] = " << basename << ".block.dynamic_" << blk + 1 << "(y, x, params, steady_state, T, false, y_kmin, periods);" << endl
-                            << "  tmp = y(:,M_.block_structure.block(" << blk + 1 << ").variable);" << endl
-                            << "  if any(isnan(tmp) | isinf(tmp))" << endl
-                            << "    disp(['Inf or Nan value during the evaluation of block " << blk <<"']);" << endl
-                            << "    oo_.deterministic_simulation.status = 0;" << endl
-                            << "    oo_.deterministic_simulation.error = 100;" << endl
-                            << "    varargout{1} = oo_;" << endl
-                            << "    return" << endl
-                            << "  end" << endl;
-        }
-      else if (simulation_type == BlockSimulationType::evaluateBackward && block_size)
-        {
-          mDynamicModelFile << "  oo_.deterministic_simulation.status = 1;" << endl
-                            << "  oo_.deterministic_simulation.error = 0;" << endl
-                            << "  oo_.deterministic_simulation.iterations = 0;" << endl
-                            << "  if isfield(oo_.deterministic_simulation,'block')" << endl
-                            << "    blk = length(oo_.deterministic_simulation.block)+1;" << endl
-                            << "  else" << endl
-                            << "    blk = 1;" << endl
-                            << "  end" << endl
-                            << "  oo_.deterministic_simulation.block(blk).status = 1;" << endl
-                            << "  oo_.deterministic_simulation.block(blk).error = 0;" << endl
-                            << "  oo_.deterministic_simulation.block(blk).iterations = 0;" << endl
-                            << "  g1=[];g2=[];g3=[];" << endl
-                            << "  [y, T] = " << basename << ".block.dynamic_" << blk + 1 << "(y, x, params, steady_state, T, false, y_kmin, periods);" << endl
-                            << "  tmp = y(:,M_.block_structure.block(" << blk + 1 << ").variable);" << endl
-                            << "  if any(isnan(tmp) | isinf(tmp))" << endl
-                            << "    disp(['Inf or Nan value during the evaluation of block " << blk <<"']);" << endl
-                            << "    oo_.deterministic_simulation.status = 0;" << endl
-                            << "    oo_.deterministic_simulation.error = 100;" << endl
-                            << "    varargout{1} = oo_;" << endl
-                            << "    return" << endl
-                            << "  end" << endl;
-        }
-      else if ((simulation_type == BlockSimulationType::solveForwardComplete
-                || simulation_type == BlockSimulationType::solveForwardSimple) && block_size)
-        {
-          mDynamicModelFile << "  g1=0;" << endl
-                            << "  r=0;" << endl
-                            << "  y_index = [";
-          for (int var = block_recursive_size; var < block_size; var++)
-            mDynamicModelFile << " " << getBlockVariableID(blk, var)+1;
-          mDynamicModelFile << "];" << endl
-                            << "  if isfield(oo_.deterministic_simulation,'block')" << endl
-                            << "    blk = length(oo_.deterministic_simulation.block)+1;" << endl
-                            << "  else" << endl
-                            << "    blk = 1;" << endl
-                            << "  end" << endl
-                            << "  [y, T] = solve_one_boundary('" << basename << ".block.dynamic_" <<  blk + 1 << "'"
-                            << ", y, x, params, steady_state, T, y_index, " << blocks_derivatives[blk].size()
-                            << ", options_.periods, " << (blocks[blk].linear ? "true" : "false")
-                            << ", blk, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, true, true, false, M_, options_, oo_);" << endl
-                            << "  tmp = y(:,M_.block_structure.block(" << blk + 1 << ").variable);" << endl
-                            << "  if any(isnan(tmp) | isinf(tmp))" << endl
-                            << "    disp(['Inf or Nan value during the resolution of block " << blk <<"']);" << endl
-                            << "    oo_.deterministic_simulation.status = 0;" << endl
-                            << "    oo_.deterministic_simulation.error = 100;" << endl
-                            << "    varargout{1} = oo_;" << endl
-                            << "    return" << endl
-                            << "  end" << endl;
-        }
-      else if ((simulation_type == BlockSimulationType::solveBackwardComplete
-                || simulation_type == BlockSimulationType::solveBackwardSimple) && block_size)
-        {
-          mDynamicModelFile << "  g1=0;" << endl
-                            << "  r=0;" << endl
-                            << "  y_index = [";
-          for (int var = block_recursive_size; var < block_size; var++)
-            mDynamicModelFile << " " << getBlockVariableID(blk, var)+1;
-          mDynamicModelFile << "];" << endl
-                            << "  if isfield(oo_.deterministic_simulation,'block')" << endl
-                            << "    blk = length(oo_.deterministic_simulation.block)+1;" << endl
-                            << "  else" << endl
-                            << "    blk = 1;" << endl
-                            << "  end" << endl
-                            << "  [y, T] = solve_one_boundary('" << basename << ".block.dynamic_" <<  blk + 1 << "'"
-                            << ", y, x, params, steady_state, T, y_index, " << blocks_derivatives[blk].size()
-                            << ", options_.periods, " << (blocks[blk].linear ? "true" : "false")
-                            << ", blk, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, true, true, false, M_, options_, oo_);" << endl
-                            << "  tmp = y(:,M_.block_structure.block(" << blk + 1 << ").variable);" << endl
-                            << "  if any(isnan(tmp) | isinf(tmp))" << endl
-                            << "    disp(['Inf or Nan value during the resolution of block " << blk <<"']);" << endl
-                            << "    oo_.deterministic_simulation.status = 0;" << endl
-                            << "    oo_.deterministic_simulation.error = 100;" << endl
-                            << "    varargout{1} = oo_;" << endl
-                            << "    return" << endl
-                            << "  end" << endl;
-        }
-      else if ((simulation_type == BlockSimulationType::solveTwoBoundariesComplete
-                || simulation_type == BlockSimulationType::solveTwoBoundariesSimple) && block_size)
-        {
-          mDynamicModelFile << "  y_index = [";
-          for (int var = block_recursive_size; var < block_size; var++)
-            mDynamicModelFile << " " << getBlockVariableID(blk, var)+1;
-          mDynamicModelFile << "  ];" << endl
-                            << "  if isfield(oo_.deterministic_simulation,'block')" << endl
-                            << "    blk = length(oo_.deterministic_simulation.block)+1;" << endl
-                            << "  else" << endl
-                            << "    blk = 1;" << endl
-                            << "  end" << endl
-                            << "  [y, T, oo_] = solve_two_boundaries('" << basename << ".block.dynamic_" <<  blk + 1 << "'"
-                            << ", y, x, params, steady_state, T, y_index, " << blocks_derivatives[blk].size()
-                            << ", options_.periods, " << blocks[blk].max_lag
-                            << ", " << blocks[blk].max_lead
-                            << ", " << (blocks[blk].linear ? "true" : "false")
-                            << ", blk, y_kmin, options_.simul.maxit, options_.solve_tolf, options_.slowc, " << cutoff << ", options_.stack_solve_algo, options_, M_, oo_);" << endl
-                            << "  tmp = y(:,M_.block_structure.block(" << blk + 1 << ").variable);" << endl
-                            << "  if any(isnan(tmp) | isinf(tmp))" << endl
-                            << "    disp(['Inf or Nan value during the resolution of block " << blk <<"']);" << endl
-                            << "    oo_.deterministic_simulation.status = 0;" << endl
-                            << "    oo_.deterministic_simulation.error = 100;" << endl
-                            << "    varargout{1} = oo_;" << endl
-                            << "    return" << endl
-                            << "  end" << endl;
-        }
-    }
-  mDynamicModelFile << "  oo_.endo_simul = y';" << endl
-                    << "  varargout{1} = oo_;" << endl
-                    << "  return" << endl
-                    << "end" << endl;
+  mDynamicModelFile << "end" << endl;
 
   mDynamicModelFile.close();
 }
@@ -2505,7 +2322,9 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename, co
       output << modstruct << "block_structure.block(" << blk+1 << ").n_static = " << blocks[blk].n_static << ";" << endl
              << modstruct << "block_structure.block(" << blk+1 << ").n_forward = " << blocks[blk].n_forward << ";" << endl
              << modstruct << "block_structure.block(" << blk+1 << ").n_backward = " << blocks[blk].n_backward << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").n_mixed = " << blocks[blk].n_mixed << ";" << endl;
+             << modstruct << "block_structure.block(" << blk+1 << ").n_mixed = " << blocks[blk].n_mixed << ";" << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").is_linear = " << (blocks[blk].linear ? "true" : "false" ) << ';' << endl
+             << modstruct << "block_structure.block(" << blk+1 << ").NNZDerivatives = " << blocks_derivatives[blk].size() << ';' << endl;
     }
 
   output << modstruct << "block_structure.variable_reordered = [";
@@ -2535,6 +2354,7 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename, co
         output << " " << eq+1 << " " << var+1 << ";" << endl;
       output << "];" << endl;
     }
+  output << modstruct << "block_structure.dyn_tmp_nbr = " << blocks_temporary_terms.size() << ';' << endl;
 
   if (estimation_present)
     {
