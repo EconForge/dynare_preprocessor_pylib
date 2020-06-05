@@ -1055,10 +1055,10 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
 
   // Compute indices in MATLAB/Julia vector
   int idx = 0;
-  for (auto &it : temporary_terms_mlv)
-    temporary_terms_idxs[it.first] = idx++;
+  for (auto [mlv, value] : temporary_terms_mlv)
+    temporary_terms_idxs[mlv] = idx++;
   for (int order = 0; order < static_cast<int>(derivatives.size()); order++)
-    for (const auto &it : temporary_terms_derivatives[order])
+    for (auto it : temporary_terms_derivatives[order])
       temporary_terms_idxs[it] = idx++;
 }
 
@@ -1108,19 +1108,19 @@ ModelTree::writeModelLocalVariableTemporaryTerms(temporary_terms_t &temp_term_un
                                                  deriv_node_temp_terms_t &tef_terms) const
 {
   temporary_terms_t tto;
-  for (auto it : temporary_terms_mlv)
-    tto.insert(it.first);
+  for (auto [mlv, value] : temporary_terms_mlv)
+    tto.insert(mlv);
 
-  for (auto &it : temporary_terms_mlv)
+  for (auto [mlv, value] : temporary_terms_mlv)
     {
-      it.second->writeExternalFunctionOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
+      value->writeExternalFunctionOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
 
       if (isJuliaOutput(output_type))
         output << "    @inbounds const ";
 
-      it.first->writeOutput(output, output_type, tto, tt_idxs, tef_terms);
+      mlv->writeOutput(output, output_type, tto, tt_idxs, tef_terms);
       output << " = ";
-      it.second->writeOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
+      value->writeOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
 
       if (isCOutput(output_type) || isMatlabOutput(output_type))
         output << ";";
@@ -1129,7 +1129,7 @@ ModelTree::writeModelLocalVariableTemporaryTerms(temporary_terms_t &temp_term_un
       /* We put in temp_term_union the VariableNode corresponding to the MLV,
          not its definition, so that when equations use the MLV,
          T(XXX) is printed instead of the MLV name */
-      temp_term_union.insert(it.first);
+      temp_term_union.insert(mlv);
     }
 }
 
@@ -1363,28 +1363,24 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, bool write_tef_terms, d
      ticket #101). */
   set<int> used_local_vars;
 
-  // Use an empty set for the temporary terms
-  const temporary_terms_t tt;
-
   for (auto equation : equations)
     equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
 
   output << R"("model_local_variables": [)";
   bool printed = false;
-  for (int it : local_variables_vector)
-    if (used_local_vars.find(it) != used_local_vars.end())
+  for (int id : local_variables_vector)
+    if (used_local_vars.find(id) != used_local_vars.end())
       {
         if (printed)
           output << ", ";
         else
           printed = true;
 
-        int id = it;
         expr_t value = local_variables_table.find(id)->second;
         if (write_tef_terms)
           {
             vector<string> efout;
-            value->writeJsonExternalFunctionOutput(efout, tt, tef_terms);
+            value->writeJsonExternalFunctionOutput(efout, {}, tef_terms);
             for (auto it1 = efout.begin(); it1 != efout.end(); ++it1)
               {
                 if (it1 != efout.begin())
@@ -1398,7 +1394,7 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, bool write_tef_terms, d
 
         output << R"({"variable": ")" << symbol_table.getName(id)
                << R"(", "value": ")";
-        value->writeJsonOutput(output, tt, tef_terms);
+        value->writeJsonOutput(output, {}, tef_terms);
         output << R"("})" << endl;
       }
   output << "]";
