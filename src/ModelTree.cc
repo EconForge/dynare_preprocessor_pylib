@@ -1113,6 +1113,8 @@ ModelTree::writeModelLocalVariableTemporaryTerms(temporary_terms_t &temp_term_un
 
   for (auto &it : temporary_terms_mlv)
     {
+      it.second->writeExternalFunctionOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
+
       if (isJuliaOutput(output_type))
         output << "    @inbounds const ";
 
