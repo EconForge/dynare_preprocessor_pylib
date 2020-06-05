@@ -7321,9 +7321,18 @@ ExternalFunctionNode::writeJsonOutput(ostream &output,
       return;
     }
 
-  output << datatree.symbol_table.getName(symb_id) << "(";
-  writeJsonExternalFunctionArguments(output, temporary_terms, tef_terms, isdynamic);
-  output << ")";
+  try
+    {
+      int tef_idx = getIndxInTefTerms(symb_id, tef_terms);
+      output << "TEF_" << tef_idx;
+    }
+  catch (UnknownFunctionNameAndArgs &)
+    {
+      // When writing the JSON output at parsing pass, we don’t use TEF terms
+      output << datatree.symbol_table.getName(symb_id) << "(";
+      writeJsonExternalFunctionArguments(output, temporary_terms, tef_terms, isdynamic);
+      output << ")";
+    }
 }
 
 void
