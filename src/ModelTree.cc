@@ -1393,10 +1393,8 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, deriv_node_temp_terms_t
         if (!efout.empty())
           output << ", ";
 
-        /* We append underscores to avoid name clashes with "g1" or "oo_" (see
-           also VariableNode::writeOutput) */
-        output << R"({"variable": ")" << symbol_table.getName(id) << R"(__")"
-               << R"(, "value": ")";
+        output << R"({"variable": ")" << symbol_table.getName(id)
+               << R"(", "value": ")";
         value->writeJsonOutput(output, tt, tef_terms);
         output << R"("})" << endl;
       }
