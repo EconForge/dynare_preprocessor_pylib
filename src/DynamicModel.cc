@@ -5603,6 +5603,9 @@ DynamicModel::isChecksumMatching(const string &basename, bool block) const
 void
 DynamicModel::writeJsonOutput(ostream &output) const
 {
+  deriv_node_temp_terms_t tef_terms;
+  writeJsonModelLocalVariables(output, false, tef_terms);
+  output << ", ";
   writeJsonModelEquations(output, false);
   output << ", ";
   writeJsonXrefs(output);
@@ -5778,7 +5781,7 @@ DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) c
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;
 
-  writeJsonModelLocalVariables(model_local_vars_output, tef_terms);
+  writeJsonModelLocalVariables(model_local_vars_output, true, tef_terms);
 
   writeJsonTemporaryTerms(temporary_terms_derivatives[0], temp_term_union, d_output[0], tef_terms, "");
   d_output[0] << ", ";
@@ -5866,7 +5869,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
   ostringstream g3p_output; // 1st deriv. of 3rd deriv. matrix w.r.t. parameters
 
   deriv_node_temp_terms_t tef_terms;
-  writeJsonModelLocalVariables(model_local_vars_output, tef_terms);
+  writeJsonModelLocalVariables(model_local_vars_output, true, tef_terms);
 
   temporary_terms_t temp_term_union;
   for (const auto &it : params_derivs_temporary_terms)

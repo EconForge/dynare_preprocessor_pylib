@@ -2245,6 +2245,9 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
 void
 StaticModel::writeJsonOutput(ostream &output) const
 {
+  deriv_node_temp_terms_t tef_terms;
+  writeJsonModelLocalVariables(output, false, tef_terms);
+  output << ", ";
   writeJsonModelEquations(output, false);
 }
 
@@ -2257,7 +2260,7 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;
 
-  writeJsonModelLocalVariables(model_local_vars_output, tef_terms);
+  writeJsonModelLocalVariables(model_local_vars_output, true, tef_terms);
 
   writeJsonTemporaryTerms(temporary_terms_derivatives[0], temp_term_union, d_output[0], tef_terms, "");
   d_output[0] << ", ";
@@ -2344,7 +2347,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
   ostringstream third_derivs1_output; // Used for storing third order derivatives equations
 
   deriv_node_temp_terms_t tef_terms;
-  writeJsonModelLocalVariables(model_local_vars_output, tef_terms);
+  writeJsonModelLocalVariables(model_local_vars_output, true, tef_terms);
 
   temporary_terms_t temp_term_union;
   for (const auto &it : params_derivs_temporary_terms)

@@ -257,7 +257,9 @@ protected:
   //! if residuals = true, we are writing the dynamic/static model.
   //! Otherwise, just the model equations (with line numbers, no tmp terms)
   void writeJsonModelEquations(ostream &output, bool residuals) const;
-  void writeJsonModelLocalVariables(ostream &output, deriv_node_temp_terms_t &tef_terms) const;
+  /* Writes JSON model local variables.
+     Optionally put the external function variable calls into TEF terms */
+  void writeJsonModelLocalVariables(ostream &output, bool write_tef_terms, deriv_node_temp_terms_t &tef_terms) const;
   //! Compiles model equations
   void compileModelEquations(ostream &code_file, unsigned int &instruction_number, bool dynamic, bool steady_dynamic, const temporary_terms_t &temporary_terms_union, const temporary_terms_idxs_t &temporary_terms_idxs) const;
 
