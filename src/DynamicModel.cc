@@ -2575,6 +2575,14 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
       for (size_t i = 0; i < temporary_terms_derivatives.size(); i++)
         output << temporary_terms_derivatives[i].size() + (i == 0 ? temporary_terms_mlv.size() : 0) << "; ";
       output << "];" << endl;
+
+      /* Write mapping between model local variables and indices in the temporary
+         terms vector (dynare#1722) */
+      output << modstruct << "model_local_variables_dynamic_tt_idxs = {" << endl;
+      for (auto [mlv, value] : temporary_terms_mlv)
+        output << "  '" << symbol_table.getName(mlv->symb_id) << "', "
+               << temporary_terms_idxs.at(mlv)+1 << ';' << endl;
+      output << "};" << endl;
     }
 
   // Write equation tags

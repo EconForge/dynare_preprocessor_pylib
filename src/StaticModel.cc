@@ -1728,6 +1728,14 @@ StaticModel::writeDriverOutput(ostream &output, bool block) const
     output << temporary_terms_derivative.size() << "; ";
   output << "];" << endl;
 
+  /* Write mapping between model local variables and indices in the temporary
+     terms vector (dynare#1722) */
+  output << "M_.model_local_variables_static_tt_idxs = {" << endl;
+  for (auto [mlv, value] : temporary_terms_mlv)
+    output << "  '" << symbol_table.getName(mlv->symb_id) << "', "
+           << temporary_terms_idxs.at(mlv)+1 << ';' << endl;
+  output << "};" << endl;
+
   if (!block)
     return;
 

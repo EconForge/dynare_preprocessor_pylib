@@ -123,7 +123,7 @@ protected:
 
   //! Used model local variables, that will be treated as temporary terms
   /*! See the comments in ModelTree::computeTemporaryTerms() */
-  map<expr_t, expr_t, ExprNodeLess> temporary_terms_mlv;
+  map<VariableNode *, expr_t, ExprNodeLess> temporary_terms_mlv;
 
   //! Temporary terms for residuals and derivatives
   /*! Index 0 is temp. terms of residuals, index 1 for first derivatives, ... */

@@ -70,7 +70,7 @@ ModelTree::copyHelper(const ModelTree &m)
 
   // Temporary terms
   for (const auto &it : m.temporary_terms_mlv)
-    temporary_terms_mlv[f(it.first)] = f(it.second);
+    temporary_terms_mlv[dynamic_cast<VariableNode *>(f(it.first))] = f(it.second);
   for (const auto &it : m.temporary_terms_derivatives)
     temporary_terms_derivatives.push_back(convert_temporary_terms_t(it));
   for (const auto &it : m.temporary_terms_idxs)
