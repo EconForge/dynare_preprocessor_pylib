@@ -261,7 +261,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
                || simulation_type == BlockSimulationType::solveForwardSimple)
         output << "function [residual, y, T, g1, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, jacobian_eval)" << endl;
       else
-        output << "function [residual, y, T, g1, b, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, periods, jacobian_eval, y_kmin, y_size, Periods)" << endl;
+        output << "function [residual, y, T, g1, b, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, periods, jacobian_eval, y_kmin, y_size)" << endl;
 
       output << "  % ////////////////////////////////////////////////////////////////////////" << endl
              << "  % //" << string("                     Block ").substr(static_cast<int>(log10(blk + 1))) << blk+1
@@ -290,9 +290,9 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
                  << "  else" << endl;
           if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
               || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
-            output << "    g1 = spalloc(" << block_mfs_size << "*Periods, "
-                   << block_mfs_size << "*(Periods+" << blocks[blk].max_lag+blocks[blk].max_lead+1 << ")"
-                   << ", " << nze << "*Periods);" << endl;
+            output << "    g1 = spalloc(" << block_mfs_size << "*periods, "
+                   << block_mfs_size << "*(periods+" << blocks[blk].max_lag+blocks[blk].max_lead+1 << ")"
+                   << ", " << nze << "*periods);" << endl;
           else
             output << "    g1 = spalloc(" << block_mfs_size
                    << ", " << block_mfs_size << ", " << nze << ");" << endl;
@@ -1399,7 +1399,7 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
           break;
         case BlockSimulationType::solveTwoBoundariesComplete:
         case BlockSimulationType::solveTwoBoundariesSimple:
-          mDynamicModelFile << "  [r, y, T, dr(" << blk + 1 << ").g1, b, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" <<  blk + 1 << "(y, x, params, steady_state, T, it_-" << max_lag << ", true, " << max_lag << ", " << block_recursive_size << "," << "options_.periods" << ");" << endl
+          mDynamicModelFile << "  [r, y, T, dr(" << blk + 1 << ").g1, b, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" <<  blk + 1 << "(y, x, params, steady_state, T, it_-" << max_lag << ", true, " << max_lag << ", " << block_recursive_size << ");" << endl
                             << "  residual(y_index_eq)=r(:,M_.maximum_lag+1);" << endl;
           break;
         default:
