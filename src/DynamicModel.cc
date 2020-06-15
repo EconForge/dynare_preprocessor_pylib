@@ -254,7 +254,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
              << "%" << endl;
       if (simulation_type == BlockSimulationType::evaluateBackward
           || simulation_type == BlockSimulationType::evaluateForward)
-        output << "function [y, T, g1, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, jacobian_eval, y_kmin, periods)" << endl;
+        output << "function [y, T, g1, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, jacobian_eval)" << endl;
       else if (simulation_type == BlockSimulationType::solveForwardComplete
                || simulation_type == BlockSimulationType::solveBackwardComplete
                || simulation_type == BlockSimulationType::solveBackwardSimple
@@ -278,7 +278,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
                  << "    g1_x = spalloc(" << block_size << ", " << blocks_jacob_cols_exo[blk].size() << ", " << nze_exo << ");" << endl
                  << "    g1_xd = spalloc(" << block_size << ", " << blocks_jacob_cols_exo_det[blk].size() << ", " << nze_exo_det << ");" << endl
                  << "    g1_o = spalloc(" << block_size << ", " << blocks_jacob_cols_other_endo[blk].size() << ", " << nze_other_endo << ");" << endl
-                 << "  end;" << endl;
+                 << "  end" << endl;
         }
       else
         {
@@ -307,10 +307,6 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
       else if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
                || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
         output << "  residual=zeros(" << block_mfs_size << ",y_kmin+periods);" << endl;
-      if (simulation_type == BlockSimulationType::evaluateBackward)
-        output << "  for it_ = (y_kmin+periods):-1:y_kmin+1" << endl;
-      if (simulation_type == BlockSimulationType::evaluateForward)
-        output << "  for it_ = y_kmin+1:(y_kmin+periods)" << endl;
 
       if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
           || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
@@ -322,9 +318,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
 
       string indent_prefix = "  ";
       if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
-          || simulation_type == BlockSimulationType::solveTwoBoundariesSimple
-          || simulation_type == BlockSimulationType::evaluateBackward
-          || simulation_type == BlockSimulationType::evaluateForward)
+          || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
         indent_prefix += "  ";
 
       deriv_node_temp_terms_t tef_terms;
@@ -447,8 +441,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
         {
         case BlockSimulationType::evaluateForward:
         case BlockSimulationType::evaluateBackward:
-          output << "    end" << endl
-                 << "  end" << endl;
+          output << "  end" << endl;
           break;
         case BlockSimulationType::solveBackwardSimple:
         case BlockSimulationType::solveForwardSimple:
@@ -1387,7 +1380,7 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
         {
         case BlockSimulationType::evaluateForward:
         case BlockSimulationType::evaluateBackward:
-          mDynamicModelFile << "  [y, T, dr(" << blk + 1 << ").g1, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" << blk + 1 << "(y, x, params, steady_state, T, true, it_-1, 1);" << endl
+          mDynamicModelFile << "  [y, T, dr(" << blk + 1 << ").g1, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" << blk + 1 << "(y, x, params, steady_state, T, it_, true);" << endl
                             << "  residual(y_index_eq)=ys(y_index)-y(it_, y_index);" << endl;
           break;
         case BlockSimulationType::solveForwardSimple:
