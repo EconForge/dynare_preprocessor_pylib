@@ -252,9 +252,9 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
              << "%" << endl;
       if (simulation_type == BlockSimulationType::evaluateBackward
           || simulation_type == BlockSimulationType::evaluateForward)
-        output << "function [y, T, g1, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, jacobian_eval)" << endl;
+        output << "function [y, T, g1, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, stochastic_mode)" << endl;
       else
-        output << "function [residual, T, g1, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, jacobian_eval)" << endl;
+        output << "function [residual, T, g1, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, stochastic_mode)" << endl;
 
       output << "  % ////////////////////////////////////////////////////////////////////////" << endl
              << "  % //" << string("                     Block ").substr(static_cast<int>(log10(blk + 1))) << blk+1
@@ -266,7 +266,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
       if (simulation_type == BlockSimulationType::evaluateBackward
           || simulation_type == BlockSimulationType::evaluateForward)
         {
-          output << "  if jacobian_eval" << endl
+          output << "  if stochastic_mode" << endl
                  << "    g1 = spalloc(" << block_mfs_size  << ", " << blocks_jacob_cols_endo[blk].size() << ", " << nze << ");" << endl
                  << "    g1_x = spalloc(" << block_size << ", " << blocks_jacob_cols_exo[blk].size() << ", " << nze_exo << ");" << endl
                  << "    g1_xd = spalloc(" << block_size << ", " << blocks_jacob_cols_exo_det[blk].size() << ", " << nze_exo_det << ");" << endl
@@ -275,7 +275,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
         }
       else
         {
-          output << "  if jacobian_eval" << endl
+          output << "  if stochastic_mode" << endl
                  << "    g1 = spalloc(" << block_size << ", " << blocks_jacob_cols_endo[blk].size() << ", " << nze << ");" << endl
                  << "    g1_x = spalloc(" << block_size << ", " << blocks_jacob_cols_exo[blk].size() << ", " << nze_exo << ");" << endl
                  << "    g1_xd = spalloc(" << block_size << ", " << blocks_jacob_cols_exo_det[blk].size() << ", " << nze_exo_det << ");" << endl
@@ -372,7 +372,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
       write_eq_tt(blocks[blk].size);
 
       output << "  % Jacobian" << endl
-             << "  if jacobian_eval" << endl;
+             << "  if stochastic_mode" << endl;
       for (const auto &[indices, d] : blocks_derivatives[blk])
         {
           auto [eq, var, lag] = indices;
