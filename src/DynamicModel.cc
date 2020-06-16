@@ -259,9 +259,9 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
                || simulation_type == BlockSimulationType::solveBackwardComplete
                || simulation_type == BlockSimulationType::solveBackwardSimple
                || simulation_type == BlockSimulationType::solveForwardSimple)
-        output << "function [residual, y, T, g1, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, jacobian_eval)" << endl;
+        output << "function [residual, T, g1, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, jacobian_eval)" << endl;
       else
-        output << "function [residual, y, T, g1, b, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, periods, jacobian_eval, y_kmin, y_size)" << endl;
+        output << "function [residual, T, g1, b, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, periods, jacobian_eval, y_kmin, y_size)" << endl;
 
       output << "  % ////////////////////////////////////////////////////////////////////////" << endl
              << "  % //" << string("                     Block ").substr(static_cast<int>(log10(blk + 1))) << blk+1
@@ -1387,12 +1387,12 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
         case BlockSimulationType::solveBackwardSimple:
         case BlockSimulationType::solveForwardComplete:
         case BlockSimulationType::solveBackwardComplete:
-          mDynamicModelFile << "  [r, y, T, dr(" << blk + 1 << ").g1, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" << blk + 1 << "(y, x, params, steady_state, T, it_, true);" << endl
+          mDynamicModelFile << "  [r, T, dr(" << blk + 1 << ").g1, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" << blk + 1 << "(y, x, params, steady_state, T, it_, true);" << endl
                             << "  residual(y_index_eq)=r;" << endl;
           break;
         case BlockSimulationType::solveTwoBoundariesComplete:
         case BlockSimulationType::solveTwoBoundariesSimple:
-          mDynamicModelFile << "  [r, y, T, dr(" << blk + 1 << ").g1, b, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" <<  blk + 1 << "(y, x, params, steady_state, T, it_-" << max_lag << ", true, " << max_lag << ", " << block_recursive_size << ");" << endl
+          mDynamicModelFile << "  [r, T, dr(" << blk + 1 << ").g1, b, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" <<  blk + 1 << "(y, x, params, steady_state, T, it_-" << max_lag << ", true, " << max_lag << ", " << block_recursive_size << ");" << endl
                             << "  residual(y_index_eq)=r(:,M_.maximum_lag+1);" << endl;
           break;
         default:
