@@ -100,10 +100,8 @@ ExprNode::checkIfTemporaryTermThenWrite(ostream &output, ExprNodeOutputType outp
   // It is the responsibility of the caller to ensure that all temporary terms have their index
   assert(it2 != temporary_terms_idxs.end());
   output << "T" << LEFT_ARRAY_SUBSCRIPT(output_type)
-         << it2->second + ARRAY_SUBSCRIPT_OFFSET(output_type);
-  if (output_type == ExprNodeOutputType::matlabDynamicBlockModel)
-    output << ",it_";
-  output << RIGHT_ARRAY_SUBSCRIPT(output_type);
+         << it2->second + ARRAY_SUBSCRIPT_OFFSET(output_type)
+         << RIGHT_ARRAY_SUBSCRIPT(output_type);
 
   return true;
 }
@@ -1006,15 +1004,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
           output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case ExprNodeOutputType::matlabDynamicBlockModel:
-          i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
-          if (lag > 0)
-            output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
-          else if (lag < 0)
-            output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_" << lag << ", " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
-          else
-            output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_, " << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
-          break;
         case ExprNodeOutputType::matlabOutsideModel:
           output << "oo_.steady_state(" << tsid + 1 << ")";
           break;
@@ -1053,7 +1042,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         {
         case ExprNodeOutputType::juliaDynamicModel:
         case ExprNodeOutputType::matlabDynamicModel:
-        case ExprNodeOutputType::matlabDynamicBlockModel:
           if (lag > 0)
             output <<  "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i
                    << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -1112,7 +1100,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         {
         case ExprNodeOutputType::juliaDynamicModel:
         case ExprNodeOutputType::matlabDynamicModel:
-        case ExprNodeOutputType::matlabDynamicBlockModel:
           if (lag > 0)
             output <<  "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i
                    << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -2735,7 +2722,6 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       switch (output_type)
         {
         case ExprNodeOutputType::matlabDynamicModel:
-        case ExprNodeOutputType::matlabDynamicBlockModel:
           new_output_type = ExprNodeOutputType::matlabDynamicSteadyStateOperator;
           break;
         case ExprNodeOutputType::latexDynamicModel:

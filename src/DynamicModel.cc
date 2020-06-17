@@ -227,7 +227,7 @@ void
 DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
 {
   temporary_terms_t temporary_terms; // Temp terms written so far
-  constexpr ExprNodeOutputType local_output_type = ExprNodeOutputType::matlabDynamicBlockModel;
+  constexpr ExprNodeOutputType local_output_type = ExprNodeOutputType::matlabDynamicModel;
 
   for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
@@ -1294,10 +1294,10 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
                     << "function [residual, dr] = dynamic(options_, M_, oo_, y, x, params, steady_state, it_, dr)" << endl;
 
   if (blocks_temporary_terms_idxs.size() > 0)
-    mDynamicModelFile << "  T=NaN(" << blocks_temporary_terms_idxs.size()
-                      << ",options_.periods+M_.maximum_lag+M_.maximum_lead);" << endl;
+    mDynamicModelFile << "  T=NaN(" << blocks_temporary_terms_idxs.size() << ");" << endl;
 
-  mDynamicModelFile << "  ys=y(it_,:);" << endl;
+  mDynamicModelFile << "  ys=y;" << endl
+                    << "  ll_index=M_.lead_lag_incidence(M_.maximum_endo_lag+1, :);" << endl;
 
   for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
@@ -1323,7 +1323,9 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
         case BlockSimulationType::evaluateForward:
         case BlockSimulationType::evaluateBackward:
           mDynamicModelFile << "  [y, T, dr(" << blk + 1 << ").g1, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" << blk + 1 << "(y, x, params, steady_state, T, it_, true);" << endl
-                            << "  residual(y_index_eq)=ys(y_index)-y(it_, y_index);" << endl;
+                            << "  r=NaN(M_.endo_nbr,1);" << endl
+                            << "  r(nonzeros(ll_index))=ys(find(ll_index))-y(find(ll_index));" << endl
+                            << "  residual(y_index_eq)=r(y_index);" << endl;
           break;
         case BlockSimulationType::solveForwardSimple:
         case BlockSimulationType::solveBackwardSimple:
@@ -5496,7 +5498,7 @@ DynamicModel::isChecksumMatching(const string &basename, bool block) const
   // Write equation tags
   equation_tags.writeCheckSumInfo(buffer);
 
-  ExprNodeOutputType buffer_type = block ? ExprNodeOutputType::matlabDynamicBlockModel : ExprNodeOutputType::CDynamicModel;
+  ExprNodeOutputType buffer_type = ExprNodeOutputType::CDynamicModel;
 
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;

@@ -339,7 +339,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context) const
           catch (ExprNode::EvalException &e)
             {
               cerr << "ERROR: evaluation of Jacobian failed for equation " << eq+1 << " (line " << equations_lineno[eq] << ") and variable " << symbol_table.getName(symb) << "(" << lag << ") [" << symb << "] !" << endl;
-              d1->writeOutput(cerr, ExprNodeOutputType::matlabDynamicBlockModel, {}, {});
+              d1->writeOutput(cerr, ExprNodeOutputType::matlabDynamicModel, {}, {});
               cerr << endl;
               exit(EXIT_FAILURE);
             }
