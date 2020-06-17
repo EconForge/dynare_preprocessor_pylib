@@ -842,8 +842,8 @@ ModelTree::reduceBlockDecomposition()
         bool is_lead = false, is_lag = false;
         for (int var = 0; var < blocks[blk-1].size; var++)
           {
-            is_lag = endos_and_lags.find({ getBlockVariableID(blk-1, var), -1 }) != endos_and_lags.end();
-            is_lead = endos_and_lags.find({ getBlockVariableID(blk-1, var), 1 }) != endos_and_lags.end();
+            is_lag = is_lag || endos_and_lags.find({ getBlockVariableID(blk-1, var), -1 }) != endos_and_lags.end();
+            is_lead = is_lead || endos_and_lags.find({ getBlockVariableID(blk-1, var), 1 }) != endos_and_lags.end();
           }
 
         if ((blocks[blk-1].simulation_type == BlockSimulationType::evaluateForward
