@@ -2282,7 +2282,7 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename, co
         output << " " << eq+1 << " " << var+1 << ";" << endl;
       output << "];" << endl;
     }
-  output << modstruct << "block_structure.dyn_tmp_nbr = " << blocks_temporary_terms.size() << ';' << endl;
+  output << modstruct << "block_structure.dyn_tmp_nbr = " << blocks_temporary_terms_idxs.size() << ';' << endl;
 
   if (estimation_present)
     {
