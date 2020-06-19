@@ -280,25 +280,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
              << "                                        //" << endl
              << "  % //                     Simulation type "
              << BlockSim(simulation_type) << "  //" << endl
-             << "  % ////////////////////////////////////////////////////////////////////////" << endl
-             << "  if stochastic_mode" << endl
-             << "    g1 = spalloc(" << block_size << ", " << blocks_jacob_cols_endo[blk].size() << ", " << nze_stochastic << ");" << endl
-             << "    g1_x = spalloc(" << block_size << ", " << blocks_jacob_cols_exo[blk].size() << ", " << nze_exo << ");" << endl
-             << "    g1_xd = spalloc(" << block_size << ", " << blocks_jacob_cols_exo_det[blk].size() << ", " << nze_exo_det << ");" << endl
-             << "    g1_o = spalloc(" << block_size << ", " << blocks_jacob_cols_other_endo[blk].size() << ", " << nze_other_endo << ");" << endl;
-        if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
-            || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
-          output << "  else" << endl
-                 << "    g1 = spalloc(" << block_mfs_size
-                 << ", " << 3*block_mfs_size << ", " << nze_deterministic << ");" << endl;
-        else if (simulation_type == BlockSimulationType::solveBackwardSimple
-                 || simulation_type == BlockSimulationType::solveForwardSimple
-                 || simulation_type == BlockSimulationType::solveBackwardComplete
-                 || simulation_type == BlockSimulationType::solveForwardComplete)
-          output << "  else" << endl
-                 << "    g1 = spalloc(" << block_mfs_size
-                 << ", " << block_mfs_size << ", " << nze_deterministic << ");" << endl;
-      output << "  end" << endl;
+             << "  % ////////////////////////////////////////////////////////////////////////" << endl;
 
       if (simulation_type == BlockSimulationType::solveBackwardSimple
           || simulation_type == BlockSimulationType::solveForwardSimple
@@ -381,42 +363,96 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
       write_eq_tt(blocks[blk].size);
 
       output << "  % Jacobian" << endl
-             << "  if stochastic_mode" << endl;
+             << "  if stochastic_mode" << endl
+             << "    g1_i = zeros(" << nze_stochastic << ", 1);" << endl
+             << "    g1_j = zeros(" << nze_stochastic << ", 1);" << endl
+             << "    g1_v = zeros(" << nze_stochastic << ", 1);" << endl
+             << "    g1_x_i = zeros(" << nze_exo << ", 1);" << endl
+             << "    g1_x_j = zeros(" << nze_exo << ", 1);" << endl
+             << "    g1_x_v = zeros(" << nze_exo << ", 1);" << endl
+             << "    g1_xd_i = zeros(" << nze_exo_det << ", 1);" << endl
+             << "    g1_xd_j = zeros(" << nze_exo_det << ", 1);" << endl
+             << "    g1_xd_v = zeros(" << nze_exo_det << ", 1);" << endl
+             << "    g1_o_i = zeros(" << nze_other_endo << ", 1);" << endl
+             << "    g1_o_j = zeros(" << nze_other_endo << ", 1);" << endl
+             << "    g1_o_v = zeros(" << nze_other_endo << ", 1);" << endl;
+      ostringstream i_output, j_output, v_output;
+      int line_counter = 1;
       for (const auto &[indices, d] : blocks_derivatives[blk])
         {
           auto [eq, var, lag] = indices;
           int jacob_col = blocks_jacob_cols_endo[blk].at({ var, lag });
-          output << "    g1(" << eq+1 << ", " << jacob_col+1 << ") = ";
-          d->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
-          output << ";" << endl;
+          i_output << "    g1_i(" << line_counter << ")="<< eq+1 << ";" << endl;
+          j_output << "    g1_j(" << line_counter << ")="<< jacob_col+1 << ";" << endl;
+          v_output << "    g1_v(" << line_counter << ")=";
+          d->writeOutput(v_output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
+          v_output << ";" << endl;
+          line_counter++;
         }
+      assert(line_counter == nze_stochastic+1);
+      output << i_output.str() << j_output.str() << v_output.str();
+      i_output.str("");
+      j_output.str("");
+      v_output.str("");
+
+      line_counter = 1;
       for (const auto &[indices, d] : blocks_derivatives_exo[blk])
         {
           auto [eq, var, lag] = indices;
           int jacob_col = blocks_jacob_cols_exo[blk].at({ var, lag });
-          output << "    g1_x(" << eq+1 << ", " << jacob_col+1 << ") = ";
-          d->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
-          output << ";" << endl;
+          i_output << "    g1_x_i(" << line_counter << ")="<< eq+1 << ";" << endl;
+          j_output << "    g1_x_j(" << line_counter << ")="<< jacob_col+1 << ";" << endl;
+          v_output << "    g1_x_v(" << line_counter << ")=";
+          d->writeOutput(v_output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
+          v_output << ";" << endl;
+          line_counter++;
         }
+      assert(line_counter == nze_exo+1);
+      output << i_output.str() << j_output.str() << v_output.str();
+      i_output.str("");
+      j_output.str("");
+      v_output.str("");
+
+      line_counter = 1;
       for (const auto &[indices, d] : blocks_derivatives_exo_det[blk])
         {
           auto [eq, var, lag] = indices;
           int jacob_col = blocks_jacob_cols_exo_det[blk].at({ var, lag });
-          output << "    g1_xd(" << eq+1 << ", " << jacob_col+1 << ") = ";
-          d->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
-          output << ";" << endl;
+          i_output << "    g1_xd_i(" << line_counter << ")="<< eq+1 << ";" << endl;
+          j_output << "    g1_xd_j(" << line_counter << ")="<< jacob_col+1 << ";" << endl;
+          v_output << "    g1_xd_v(" << line_counter << ")=";
+          d->writeOutput(v_output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
+          v_output << ";" << endl;
+          line_counter++;
         }
+      assert(line_counter == nze_exo_det+1);
+      output << i_output.str() << j_output.str() << v_output.str();
+      i_output.str("");
+      j_output.str("");
+      v_output.str("");
+
+      line_counter = 1;
       for (const auto &[indices, d] : blocks_derivatives_other_endo[blk])
         {
           auto [eq, var, lag] = indices;
           int jacob_col = blocks_jacob_cols_other_endo[blk].at({ var, lag });
-          output << "    g1_o(" << eq+1 << ", " << jacob_col+1 << ") = ";
-          d->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
-          output << ";" << endl;
+          i_output << "    g1_o_i(" << line_counter << ")="<< eq+1 << ";" << endl;
+          j_output << "    g1_o_j(" << line_counter << ")="<< jacob_col+1 << ";" << endl;
+          v_output << "    g1_o_v(" << line_counter << ")=";
+          d->writeOutput(v_output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
+          v_output << ";" << endl;
+          line_counter++;
         }
-      output << "    varargout{1}=g1_x;" << endl
-             << "    varargout{2}=g1_xd;" << endl
-             << "    varargout{3}=g1_o;" << endl;
+      assert(line_counter == nze_other_endo+1);
+      output << i_output.str() << j_output.str() << v_output.str();
+      i_output.str("");
+      j_output.str("");
+      v_output.str("");
+
+      output << "    g1=sparse(g1_i, g1_j, g1_v, " << block_size << ", " << blocks_jacob_cols_endo[blk].size() << ");" << endl
+             << "    varargout{1}=sparse(g1_x_i, g1_x_j, g1_x_v, " << block_size << ", " << blocks_jacob_cols_exo[blk].size() << ");" << endl
+             << "    varargout{2}=sparse(g1_xd_i, g1_xd_j, g1_xd_v, " << block_size << ", " << blocks_jacob_cols_exo_det[blk].size() << ");" << endl
+             << "    varargout{3}=sparse(g1_o_i, g1_o_j, g1_o_v, " << block_size << ", " << blocks_jacob_cols_other_endo[blk].size() << ");" << endl;
 
       switch (simulation_type)
         {
@@ -428,43 +464,56 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
         case BlockSimulationType::solveForwardSimple:
         case BlockSimulationType::solveBackwardComplete:
         case BlockSimulationType::solveForwardComplete:
-          output << "  else" << endl;
+          output << "  else" << endl
+                 << "    g1_i = zeros(" << nze_deterministic << ", 1);" << endl
+                 << "    g1_j = zeros(" << nze_deterministic << ", 1);" << endl
+                 << "    g1_v = zeros(" << nze_deterministic << ", 1);" << endl;
+          line_counter = 1;
           for (const auto &[indices, d] : blocks_derivatives[blk])
             {
               auto [eq, var, lag] = indices;
               if (lag == 0)
                 {
-                  output << "    g1(" << eq+1 << ", " << var+1-block_recursive_size << ") = ";
-                  d->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
-                  output << ";" << endl;
+                  i_output << "    g1_i(" << line_counter << ")="<< eq+1 << ";" << endl;
+                  j_output << "    g1_j(" << line_counter << ")="<< var+1-block_recursive_size << ";" << endl;
+                  v_output << "    g1_v(" << line_counter << ")=";
+                  d->writeOutput(v_output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
+                  v_output << ";" << endl;
+                  line_counter++;
                 }
             }
-          output << "  end" << endl;
+          assert(line_counter == nze_deterministic+1);
+          output << i_output.str() << j_output.str() << v_output.str()
+                 << "    g1=sparse(g1_i, g1_j, g1_v, " << block_mfs_size
+                 << ", " << block_mfs_size << ");" << endl
+                 << "  end" << endl;
           break;
         case BlockSimulationType::solveTwoBoundariesSimple:
         case BlockSimulationType::solveTwoBoundariesComplete:
-          output << "  else" << endl;
+          output << "  else" << endl
+                 << "    g1_i = zeros(" << nze_deterministic << ", 1);" << endl
+                 << "    g1_j = zeros(" << nze_deterministic << ", 1);" << endl
+                 << "    g1_v = zeros(" << nze_deterministic << ", 1);" << endl;
+          line_counter = 1;
           for (const auto &[indices, d] : blocks_derivatives[blk])
             {
               auto [eq, var, lag] = indices;
               assert(lag >= -1 && lag <= 1);
               if (eq >= block_recursive_size && var >= block_recursive_size)
                 {
-                  if (lag == 0)
-                    output << "    g1(" << eq+1-block_recursive_size << ", "
-                           << var+1-block_recursive_size+block_mfs_size << ") = ";
-                  else if (lag == 1)
-                    output << "    g1(" << eq+1-block_recursive_size << ", "
-                           << var+1-block_recursive_size+2*block_mfs_size << ") = ";
-                  else
-                    output << "    g1(" << eq+1-block_recursive_size << ", "
-                           << var+1-block_recursive_size << ") = ";
-                  d->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
-                  output << ";" << endl;
+                  i_output << "    g1_i(" << line_counter << ")="<< eq+1-block_recursive_size << ";" << endl;
+                  j_output << "    g1_j(" << line_counter << ")="<< var+1-block_recursive_size+block_mfs_size*(lag+1) << ";" << endl;
+                  v_output << "    g1_v(" << line_counter << ")=";
+                  d->writeOutput(v_output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
+                  v_output << ";" << endl;
+                  line_counter++;
                 }
             }
-
-          output << "  end" << endl;
+          assert(line_counter == nze_deterministic+1);
+          output << i_output.str() << j_output.str() << v_output.str()
+                 << "    g1=sparse(g1_i, g1_j, g1_v, " << block_mfs_size
+                 << ", " << 3*block_mfs_size << ");" << endl
+                 << "  end" << endl;
           break;
         default:
           break;

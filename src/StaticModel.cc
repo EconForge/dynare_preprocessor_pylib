@@ -163,11 +163,6 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
 
       if (simulation_type != BlockSimulationType::evaluateBackward
           && simulation_type != BlockSimulationType::evaluateForward)
-        output << "  g1=spalloc("  << blocks[blk].mfs_size << "," << blocks[blk].mfs_size
-               << "," << blocks_derivatives[blk].size() << ");" << endl;
-
-      if (simulation_type != BlockSimulationType::evaluateBackward
-          && simulation_type != BlockSimulationType::evaluateForward)
         output << "  residual=zeros(" << blocks[blk].mfs_size << ",1);" << endl;
 
       // The equations
@@ -236,25 +231,32 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
             }
         }
       // The Jacobian if we have to solve the block
-      switch (simulation_type)
+      if (simulation_type == BlockSimulationType::solveBackwardSimple
+          || simulation_type ==  BlockSimulationType::solveForwardSimple
+          || simulation_type == BlockSimulationType::solveBackwardComplete
+          || simulation_type == BlockSimulationType::solveForwardComplete)
         {
-        case BlockSimulationType::solveBackwardSimple:
-        case BlockSimulationType::solveForwardSimple:
-        case BlockSimulationType::solveBackwardComplete:
-        case BlockSimulationType::solveForwardComplete:
           // Write temporary terms for derivatives
           write_eq_tt(blocks[blk].size);
 
+          output << "  g1_i=zeros(" << blocks_derivatives[blk].size() << ", 1);" << endl
+                 << "  g1_j=zeros(" << blocks_derivatives[blk].size() << ", 1);" << endl
+                 << "  g1_v=zeros(" << blocks_derivatives[blk].size() << ", 1);" << endl;
+
+          ostringstream i_output, j_output, v_output;
+          int line_counter = 1;
           for (const auto &[indices, d] : blocks_derivatives[blk])
             {
               auto [eq, var, ignore] = indices;
-              output << "    g1(" << eq+1-block_recursive_size << ", " << var+1-block_recursive_size << ") = ";
-              d->writeOutput(output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
-              output << ";" << endl;
+              i_output << "    g1_i(" << line_counter << ")=" << eq+1-block_recursive_size << ";" << endl;
+              j_output << "    g1_j(" << line_counter << ")=" << var+1-block_recursive_size << ";";
+              v_output << "    g1_v(" << line_counter << ")=";
+              d->writeOutput(v_output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
+              v_output << ";" << endl;
+              line_counter++;
             }
-          break;
-        default:
-          break;
+          output << i_output.str() << j_output.str() << v_output.str()
+                 << "  g1=sparse(g1_i, g1_j, g1_v, "  << blocks[blk].mfs_size << "," << blocks[blk].mfs_size << ");" << endl;
         }
       output << "end" << endl;
       output.close();
