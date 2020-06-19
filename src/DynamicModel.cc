@@ -452,20 +452,20 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
       output << "    g1=sparse(g1_i, g1_j, g1_v, " << block_size << ", " << blocks_jacob_cols_endo[blk].size() << ");" << endl
              << "    varargout{1}=sparse(g1_x_i, g1_x_j, g1_x_v, " << block_size << ", " << blocks_jacob_cols_exo[blk].size() << ");" << endl
              << "    varargout{2}=sparse(g1_xd_i, g1_xd_j, g1_xd_v, " << block_size << ", " << blocks_jacob_cols_exo_det[blk].size() << ");" << endl
-             << "    varargout{3}=sparse(g1_o_i, g1_o_j, g1_o_v, " << block_size << ", " << blocks_jacob_cols_other_endo[blk].size() << ");" << endl;
+             << "    varargout{3}=sparse(g1_o_i, g1_o_j, g1_o_v, " << block_size << ", " << blocks_jacob_cols_other_endo[blk].size() << ");" << endl
+             << "  else" << endl;
 
       switch (simulation_type)
         {
         case BlockSimulationType::evaluateForward:
         case BlockSimulationType::evaluateBackward:
-          output << "  end" << endl;
+          output << "    g1 = [];" << endl;
           break;
         case BlockSimulationType::solveBackwardSimple:
         case BlockSimulationType::solveForwardSimple:
         case BlockSimulationType::solveBackwardComplete:
         case BlockSimulationType::solveForwardComplete:
-          output << "  else" << endl
-                 << "    g1_i = zeros(" << nze_deterministic << ", 1);" << endl
+          output << "    g1_i = zeros(" << nze_deterministic << ", 1);" << endl
                  << "    g1_j = zeros(" << nze_deterministic << ", 1);" << endl
                  << "    g1_v = zeros(" << nze_deterministic << ", 1);" << endl;
           line_counter = 1;
@@ -485,13 +485,11 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
           assert(line_counter == nze_deterministic+1);
           output << i_output.str() << j_output.str() << v_output.str()
                  << "    g1=sparse(g1_i, g1_j, g1_v, " << block_mfs_size
-                 << ", " << block_mfs_size << ");" << endl
-                 << "  end" << endl;
+                 << ", " << block_mfs_size << ");" << endl;
           break;
         case BlockSimulationType::solveTwoBoundariesSimple:
         case BlockSimulationType::solveTwoBoundariesComplete:
-          output << "  else" << endl
-                 << "    g1_i = zeros(" << nze_deterministic << ", 1);" << endl
+          output << "    g1_i = zeros(" << nze_deterministic << ", 1);" << endl
                  << "    g1_j = zeros(" << nze_deterministic << ", 1);" << endl
                  << "    g1_v = zeros(" << nze_deterministic << ", 1);" << endl;
           line_counter = 1;
@@ -512,13 +510,13 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
           assert(line_counter == nze_deterministic+1);
           output << i_output.str() << j_output.str() << v_output.str()
                  << "    g1=sparse(g1_i, g1_j, g1_v, " << block_mfs_size
-                 << ", " << 3*block_mfs_size << ");" << endl
-                 << "  end" << endl;
+                 << ", " << 3*block_mfs_size << ");" << endl;
           break;
         default:
           break;
         }
-      output << "end" << endl;
+      output << "  end" << endl
+             << "end" << endl;
       output.close();
     }
 }
@@ -1334,23 +1332,35 @@ DynamicModel::writeBlockBytecodeBinFile(const string &basename, int num, int &u_
 void
 DynamicModel::writeDynamicBlockMFile(const string &basename) const
 {
-  ofstream mDynamicModelFile;
+  ofstream output;
   string filename = packageDir(basename) + "/dynamic.m";
-  mDynamicModelFile.open(filename, ios::out | ios::binary);
-  if (!mDynamicModelFile.is_open())
+  output.open(filename, ios::out | ios::binary);
+  if (!output.is_open())
     {
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
-  mDynamicModelFile << "%" << endl
-                    << "% " << filename << " : Computes dynamic model for Dynare" << endl
-                    << "%" << endl
-                    << "% Warning : this file is generated automatically by Dynare" << endl
-                    << "%           from model file (.mod)" << endl << endl
-                    << "%" << endl
-                    << endl;
 
-  mDynamicModelFile.close();
+  output << "function [residual, y, T, g1, varargout] = dynamic(nblock, y, x, params, steady_state, T, it_, stochastic_mode)" << endl
+         << "  switch nblock" << endl;
+
+  for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
+    {
+      output << "    case " << blk+1 << endl;
+
+      BlockSimulationType simulation_type = blocks[blk].simulation_type;
+
+      if (simulation_type == BlockSimulationType::evaluateBackward
+          || simulation_type == BlockSimulationType::evaluateForward)
+        output << "      [y, T, g1, varargout{1:nargout-4}] = " << basename << ".block.dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, stochastic_mode);" << endl
+               << "      residual = [];" << endl;
+      else
+        output << "      [residual, T, g1, varargout{1:nargout-4}] = " << basename << ".block.dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, stochastic_mode);" << endl;
+    }
+  output << "  end" << endl
+         << "end" << endl;
+
+  output.close();
 }
 
 void
