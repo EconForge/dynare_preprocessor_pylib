@@ -231,14 +231,33 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
 
   for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
-      int nze = blocks_derivatives[blk].size();
-      int nze_other_endo = blocks_derivatives_other_endo[blk].size();
-      int nze_exo = blocks_derivatives_exo[blk].size();
-      int nze_exo_det = blocks_derivatives_exo_det[blk].size();
       BlockSimulationType simulation_type = blocks[blk].simulation_type;
       int block_size = blocks[blk].size;
       int block_mfs_size = blocks[blk].mfs_size;
       int block_recursive_size = blocks[blk].getRecursiveSize();
+
+      // Number of nonzero derivatives for the various Jacobians
+      int nze_stochastic = blocks_derivatives[blk].size();
+      int nze_deterministic = 0;
+      if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
+          || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
+        nze_deterministic = count_if(blocks_derivatives[blk].begin(), blocks_derivatives[blk].end(),
+                                     [=](const auto &kv) {
+                                       auto [eq, var, lag] = kv.first;
+                                       return eq >= block_recursive_size && var >= block_recursive_size;
+                                     });
+      else if (simulation_type == BlockSimulationType::solveBackwardSimple
+               || simulation_type == BlockSimulationType::solveForwardSimple
+               || simulation_type == BlockSimulationType::solveBackwardComplete
+               || simulation_type == BlockSimulationType::solveForwardComplete)
+        nze_deterministic = count_if(blocks_derivatives[blk].begin(), blocks_derivatives[blk].end(),
+                                     [](const auto &kv) {
+                                       auto [eq, var, lag] = kv.first;
+                                       return lag == 0;
+                                     });
+      int nze_other_endo = blocks_derivatives_other_endo[blk].size();
+      int nze_exo = blocks_derivatives_exo[blk].size();
+      int nze_exo_det = blocks_derivatives_exo_det[blk].size();
 
       string filename = packageDir(basename + ".block") + "/dynamic_" + to_string(blk+1) + ".m";
       ofstream output;
@@ -263,7 +282,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
              << BlockSim(simulation_type) << "  //" << endl
              << "  % ////////////////////////////////////////////////////////////////////////" << endl
              << "  if stochastic_mode" << endl
-             << "    g1 = spalloc(" << block_size << ", " << blocks_jacob_cols_endo[blk].size() << ", " << nze << ");" << endl
+             << "    g1 = spalloc(" << block_size << ", " << blocks_jacob_cols_endo[blk].size() << ", " << nze_stochastic << ");" << endl
              << "    g1_x = spalloc(" << block_size << ", " << blocks_jacob_cols_exo[blk].size() << ", " << nze_exo << ");" << endl
              << "    g1_xd = spalloc(" << block_size << ", " << blocks_jacob_cols_exo_det[blk].size() << ", " << nze_exo_det << ");" << endl
              << "    g1_o = spalloc(" << block_size << ", " << blocks_jacob_cols_other_endo[blk].size() << ", " << nze_other_endo << ");" << endl;
@@ -271,14 +290,14 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
             || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
           output << "  else" << endl
                  << "    g1 = spalloc(" << block_mfs_size
-                 << ", " << 3*block_mfs_size << ", " << nze << ");" << endl;
+                 << ", " << 3*block_mfs_size << ", " << nze_deterministic << ");" << endl;
         else if (simulation_type == BlockSimulationType::solveBackwardSimple
                  || simulation_type == BlockSimulationType::solveForwardSimple
                  || simulation_type == BlockSimulationType::solveBackwardComplete
                  || simulation_type == BlockSimulationType::solveForwardComplete)
           output << "  else" << endl
                  << "    g1 = spalloc(" << block_mfs_size
-                 << ", " << block_mfs_size << ", " << nze << ");" << endl;
+                 << ", " << block_mfs_size << ", " << nze_deterministic << ");" << endl;
       output << "  end" << endl;
 
       if (simulation_type == BlockSimulationType::solveBackwardSimple
