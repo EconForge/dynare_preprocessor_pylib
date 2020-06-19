@@ -261,35 +261,25 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
              << "                                        //" << endl
              << "  % //                     Simulation type "
              << BlockSim(simulation_type) << "  //" << endl
-             << "  % ////////////////////////////////////////////////////////////////////////" << endl;
-
-      if (simulation_type == BlockSimulationType::evaluateBackward
-          || simulation_type == BlockSimulationType::evaluateForward)
-        {
-          output << "  if stochastic_mode" << endl
-                 << "    g1 = spalloc(" << block_mfs_size  << ", " << blocks_jacob_cols_endo[blk].size() << ", " << nze << ");" << endl
-                 << "    g1_x = spalloc(" << block_size << ", " << blocks_jacob_cols_exo[blk].size() << ", " << nze_exo << ");" << endl
-                 << "    g1_xd = spalloc(" << block_size << ", " << blocks_jacob_cols_exo_det[blk].size() << ", " << nze_exo_det << ");" << endl
-                 << "    g1_o = spalloc(" << block_size << ", " << blocks_jacob_cols_other_endo[blk].size() << ", " << nze_other_endo << ");" << endl
-                 << "  end" << endl;
-        }
-      else
-        {
-          output << "  if stochastic_mode" << endl
-                 << "    g1 = spalloc(" << block_size << ", " << blocks_jacob_cols_endo[blk].size() << ", " << nze << ");" << endl
-                 << "    g1_x = spalloc(" << block_size << ", " << blocks_jacob_cols_exo[blk].size() << ", " << nze_exo << ");" << endl
-                 << "    g1_xd = spalloc(" << block_size << ", " << blocks_jacob_cols_exo_det[blk].size() << ", " << nze_exo_det << ");" << endl
-                 << "    g1_o = spalloc(" << block_size << ", " << blocks_jacob_cols_other_endo[blk].size() << ", " << nze_other_endo << ");" << endl
-                 << "  else" << endl;
-          if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
-              || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
-            output << "    g1 = spalloc(" << block_mfs_size
-                   << ", " << 3*block_mfs_size << ", " << nze << ");" << endl;
-          else
-            output << "    g1 = spalloc(" << block_mfs_size
-                   << ", " << block_mfs_size << ", " << nze << ");" << endl;
-          output << "  end" << endl;
-        }
+             << "  % ////////////////////////////////////////////////////////////////////////" << endl
+             << "  if stochastic_mode" << endl
+             << "    g1 = spalloc(" << block_size << ", " << blocks_jacob_cols_endo[blk].size() << ", " << nze << ");" << endl
+             << "    g1_x = spalloc(" << block_size << ", " << blocks_jacob_cols_exo[blk].size() << ", " << nze_exo << ");" << endl
+             << "    g1_xd = spalloc(" << block_size << ", " << blocks_jacob_cols_exo_det[blk].size() << ", " << nze_exo_det << ");" << endl
+             << "    g1_o = spalloc(" << block_size << ", " << blocks_jacob_cols_other_endo[blk].size() << ", " << nze_other_endo << ");" << endl;
+        if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
+            || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
+          output << "  else" << endl
+                 << "    g1 = spalloc(" << block_mfs_size
+                 << ", " << 3*block_mfs_size << ", " << nze << ");" << endl;
+        else if (simulation_type == BlockSimulationType::solveBackwardSimple
+                 || simulation_type == BlockSimulationType::solveForwardSimple
+                 || simulation_type == BlockSimulationType::solveBackwardComplete
+                 || simulation_type == BlockSimulationType::solveForwardComplete)
+          output << "  else" << endl
+                 << "    g1 = spalloc(" << block_mfs_size
+                 << ", " << block_mfs_size << ", " << nze << ");" << endl;
+      output << "  end" << endl;
 
       if (simulation_type == BlockSimulationType::solveBackwardSimple
           || simulation_type == BlockSimulationType::solveForwardSimple
