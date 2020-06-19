@@ -1348,58 +1348,7 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
                     << "% Warning : this file is generated automatically by Dynare" << endl
                     << "%           from model file (.mod)" << endl << endl
                     << "%" << endl
-                    << endl
-                    << "function [residual, dr] = dynamic(options_, M_, oo_, y, x, params, steady_state, it_, dr)" << endl;
-
-  if (blocks_temporary_terms_idxs.size() > 0)
-    mDynamicModelFile << "  T=NaN(" << blocks_temporary_terms_idxs.size() << ");" << endl;
-
-  mDynamicModelFile << "  ys=y;" << endl
-                    << "  ll_index=M_.lead_lag_incidence(M_.maximum_endo_lag+1, :);" << endl;
-
-  for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
-    {
-      int block_size = blocks[blk].size,
-        block_recursive_size = blocks[blk].getRecursiveSize();
-      BlockSimulationType simulation_type = blocks[blk].simulation_type;
-
-      mDynamicModelFile << "  y_index_eq=[";
-      for (int eq = (simulation_type == BlockSimulationType::evaluateForward
-                      || simulation_type == BlockSimulationType::evaluateBackward)
-             ? 0 : block_recursive_size; eq < block_size; eq++)
-        mDynamicModelFile << " " << getBlockEquationID(blk, eq)+1;
-      mDynamicModelFile << "];" << endl
-                        << "  y_index=[";
-      for (int var = (simulation_type == BlockSimulationType::evaluateForward
-                      || simulation_type == BlockSimulationType::evaluateBackward)
-             ? 0 : block_recursive_size; var < block_size; var++)
-        mDynamicModelFile << " " << getBlockVariableID(blk, var)+1;
-      mDynamicModelFile << "];" << endl;
-
-      switch (simulation_type)
-        {
-        case BlockSimulationType::evaluateForward:
-        case BlockSimulationType::evaluateBackward:
-          mDynamicModelFile << "  [y, T, dr(" << blk + 1 << ").g1, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" << blk + 1 << "(y, x, params, steady_state, T, it_, true);" << endl
-                            << "  r=NaN(M_.endo_nbr,1);" << endl
-                            << "  r(nonzeros(ll_index))=ys(find(ll_index))-y(find(ll_index));" << endl
-                            << "  residual(y_index_eq)=r(y_index);" << endl;
-          break;
-        case BlockSimulationType::solveForwardSimple:
-        case BlockSimulationType::solveBackwardSimple:
-        case BlockSimulationType::solveForwardComplete:
-        case BlockSimulationType::solveBackwardComplete:
-        case BlockSimulationType::solveTwoBoundariesComplete:
-        case BlockSimulationType::solveTwoBoundariesSimple:
-          mDynamicModelFile << "  [r, T, dr(" << blk + 1 << ").g1, dr(" << blk + 1 << ").g1_x, dr(" << blk + 1 << ").g1_xd, dr(" << blk + 1 << ").g1_o]=" << basename << ".block.dynamic_" <<  blk + 1 << "(y, x, params, steady_state, T, it_, true);" << endl
-                            << "  residual(y_index_eq)=r;" << endl;
-          break;
-        default:
-          break;
-        }
-    }
-
-  mDynamicModelFile << "end" << endl;
+                    << endl;
 
   mDynamicModelFile.close();
 }
