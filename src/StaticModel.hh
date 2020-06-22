@@ -48,6 +48,9 @@ private:
   //! Writes the main static function of block decomposed model (MATLAB version)
   void writeStaticBlockMFile(const string &basename) const;
 
+  //! Helper for writing a per-block static file of block decomposed model
+  void writeStaticPerBlockHelper(int blk, ostream &output, ExprNodeOutputType output_type, temporary_terms_t &temporary_terms) const;
+
   //! Writes the per-block static files of block decomposed model (MATLAB version)
   void writeStaticPerBlockMFiles(const string &basename) const;
 

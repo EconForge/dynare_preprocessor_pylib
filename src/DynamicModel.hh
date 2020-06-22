@@ -133,6 +133,8 @@ private:
   void writeDynamicModel(const string &basename, ostream &DynamicOutput, bool use_dll, bool julia) const;
   //! Writes the main dynamic function of block decomposed model (MATLAB version)
   void writeDynamicBlockMFile(const string &basename) const;
+  //! Helper for writing the per-block dynamic files of block decomposed models
+  void writeDynamicPerBlockHelper(int blk, ostream &output, ExprNodeOutputType output_type, temporary_terms_t &temporary_terms, int nze_stochastic, int nze_deterministic, int nze_exo, int nze_exo_det, int nze_other_endo) const;
   //! Writes the per-block dynamic files of block decomposed model (MATLAB version)
   void writeDynamicPerBlockMFiles(const string &basename) const;
   //! Writes the code of the block-decomposed model in virtual machine bytecode
