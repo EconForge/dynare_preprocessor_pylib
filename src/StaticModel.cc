@@ -248,9 +248,9 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
           for (const auto &[indices, d] : blocks_derivatives[blk])
             {
               auto [eq, var, ignore] = indices;
-              i_output << "    g1_i(" << line_counter << ")=" << eq+1-block_recursive_size << ";" << endl;
-              j_output << "    g1_j(" << line_counter << ")=" << var+1-block_recursive_size << ";";
-              v_output << "    g1_v(" << line_counter << ")=";
+              i_output << "  g1_i(" << line_counter << ")=" << eq+1-block_recursive_size << ";" << endl;
+              j_output << "  g1_j(" << line_counter << ")=" << var+1-block_recursive_size << ";";
+              v_output << "  g1_v(" << line_counter << ")=";
               d->writeOutput(v_output, local_output_type, temporary_terms, blocks_temporary_terms_idxs);
               v_output << ";" << endl;
               line_counter++;
