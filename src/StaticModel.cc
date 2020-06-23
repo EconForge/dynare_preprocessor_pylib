@@ -307,9 +307,6 @@ StaticModel::writeStaticPerBlockCFiles(const string &basename) const
              << "#include <math.h>" << endl
              << "#include <stdlib.h>" << endl
              << R"(#include "mex.h")" << endl
-             << endl
-             << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
-             << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl
              << endl;
 
       // Write function definition if BinaryOpcode::powerDeriv is used
@@ -1695,9 +1692,6 @@ StaticModel::writeStaticCFile(const string &basename) const
          << "#include <math.h>" << endl
          << "#include <stdlib.h>" << endl
          << R"(#include "mex.h")" << endl
-         << endl
-         << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
-         << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl
          << endl;
 
   // Write function definition if BinaryOpcode::powerDeriv is used

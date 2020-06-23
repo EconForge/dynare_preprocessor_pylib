@@ -4472,10 +4472,16 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << "pow(";
           break;
         case BinaryOpcode::max:
-          output << "max(";
+          if (isCOutput(output_type))
+            output << "fmax(";
+          else
+            output << "max(";
           break;
         case BinaryOpcode::min:
-          output << "min(";
+          if (isCOutput(output_type))
+            output << "fmin(";
+          else
+            output << "min(";
           break;
         default:
           ;

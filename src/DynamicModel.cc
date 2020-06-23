@@ -623,9 +623,6 @@ DynamicModel::writeDynamicPerBlockCFiles(const string &basename) const
              << "#include <stdlib.h>" << endl
              << "#include <stdbool.h>" << endl
              << R"(#include "mex.h")" << endl
-             << endl
-             << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
-             << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl
              << endl;
 
       // Write function definition if BinaryOpcode::powerDeriv is used
@@ -1436,9 +1433,6 @@ DynamicModel::writeDynamicCFile(const string &basename) const
          << "#include <math.h>" << endl
          << "#include <stdlib.h>" << endl
          << R"(#include "mex.h")" << endl
-         << endl
-         << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
-         << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl
          << endl;
 
   // Write function definition if BinaryOpcode::powerDeriv is used
