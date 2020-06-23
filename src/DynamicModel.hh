@@ -133,10 +133,17 @@ private:
   void writeDynamicModel(const string &basename, ostream &DynamicOutput, bool use_dll, bool julia) const;
   //! Writes the main dynamic function of block decomposed model (MATLAB version)
   void writeDynamicBlockMFile(const string &basename) const;
+  //! Writes the main dynamic function of block decomposed model (C version)
+  void writeDynamicBlockCFile(const string &basename) const;
+  /* Computes the number of nonzero elements in deterministic Jacobian of
+     block-decomposed model */
+  int nzeDeterministicJacobianForBlock(int blk) const;
   //! Helper for writing the per-block dynamic files of block decomposed models
   void writeDynamicPerBlockHelper(int blk, ostream &output, ExprNodeOutputType output_type, temporary_terms_t &temporary_terms, int nze_stochastic, int nze_deterministic, int nze_exo, int nze_exo_det, int nze_other_endo) const;
   //! Writes the per-block dynamic files of block decomposed model (MATLAB version)
   void writeDynamicPerBlockMFiles(const string &basename) const;
+  //! Writes the per-block dynamic files of block decomposed model (C version)
+  void writeDynamicPerBlockCFiles(const string &basename) const;
   //! Writes the code of the block-decomposed model in virtual machine bytecode
   void writeDynamicBlockBytecode(const string &basename, bool linear_decomposition) const;
   //! Writes the code of the model in virtual machine bytecode

@@ -187,9 +187,9 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
-  if (use_dll && (block || bytecode || linear_decomposition))
+  if (use_dll && bytecode)
     {
-      cerr << "ERROR: In 'model' block, 'use_dll' option is not compatible with 'block', 'bytecode' or 'linear_decomposition'" << endl;
+      cerr << "ERROR: In 'model' block, 'use_dll' option is not compatible with 'bytecode'" << endl;
       exit(EXIT_FAILURE);
     }
   if (block && linear_decomposition)

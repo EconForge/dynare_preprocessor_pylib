@@ -408,7 +408,7 @@ private:
   //! Returns the name of the MATLAB architecture given the extension used for MEX files
   static string matlab_arch(const string &mexext);
   //! Compiles a MEX file
-  void compileMEX(const string &basename, const string &funcname, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
+  void compileMEX(const string &basename, const string &funcname, const string &mexext, const vector<filesystem::path> &src_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
 
 public:
   ModelTree(SymbolTable &symbol_table_arg,

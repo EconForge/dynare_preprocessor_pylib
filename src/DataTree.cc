@@ -929,6 +929,13 @@ DataTree::writePowerDeriv(ostream &output) const
            << "}" << endl;
 }
 
+void
+DataTree::writePowerDerivHeader(ostream &output) const
+{
+  if (isBinaryOpUsed(BinaryOpcode::powerDeriv))
+    output << "double getPowerDeriv(double x, double p, int k);" << endl;
+}
+
 string
 DataTree::packageDir(const string &package)
 {

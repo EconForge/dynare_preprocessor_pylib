@@ -278,8 +278,10 @@ public:
   //! Returns the minimum lag (as a negative number) of the given symbol in the whole data tree (and not only in the equations !!)
   /*! Returns 0 if the symbol is not used */
   int minLagForSymbol(int symb_id) const;
-  //! Write getPowerDeriv in C
+  //! Write getPowerDeriv in C (function body)
   void writePowerDeriv(ostream &output) const;
+  //! Write getPowerDeriv in C (prototype)
+  void writePowerDerivHeader(ostream &output) const;
   //! Thrown when trying to access an unknown variable by deriv_id
   class UnknownDerivIDException
   {

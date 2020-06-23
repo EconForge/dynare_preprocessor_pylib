@@ -1977,7 +1977,7 @@ ModelTree::matlab_arch(const string &mexext)
 }
 
 void
-ModelTree::compileMEX(const string &basename, const string &funcname, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
+ModelTree::compileMEX(const string &basename, const string &funcname, const string &mexext, const vector<filesystem::path> &src_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
 {
   const string opt_flags = "-O3 -g0 --param ira-max-conflict-table-size=1 -fno-forward-propagate -fno-gcse -fno-dce -fno-dse -fno-tree-fre -fno-tree-pre -fno-tree-cselim -fno-tree-dse -fno-tree-dce -fno-tree-pta -fno-gcse-after-reload";
 
@@ -2056,8 +2056,6 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
         }
     }
 
-  auto model_dir = filesystem::path{basename} / "model" / "src";
-  filesystem::path src{model_dir / (funcname + ".c")};
   filesystem::path mex_dir{"+" + basename};
   filesystem::path binary{mex_dir / (funcname + "." + mexext)};
 
@@ -2089,7 +2087,9 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
   if (!user_set_add_flags.empty())
     cmd << user_set_add_flags << " ";
 
-  cmd << src << " -o " << binary << " ";
+  for (auto &src : src_files)
+    cmd << src << " ";
+  cmd << "-o " << binary << " ";
 
   if (user_set_subst_libs.empty())
     cmd << libs;

@@ -240,6 +240,11 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
       string filename = packageDir(basename + ".block") + "/static_" + to_string(blk+1) + ".m";
       ofstream output;
       output.open(filename, ios::out | ios::binary);
+      if (!output.is_open())
+        {
+          cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+          exit(EXIT_FAILURE);
+        }
       output << "%" << endl
              << "% " << filename << " : Computes static version of one block" << endl
              << "%" << endl
@@ -280,14 +285,106 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
 }
 
 void
+StaticModel::writeStaticPerBlockCFiles(const string &basename) const
+{
+  temporary_terms_t temporary_terms; // Temp terms written so far
+
+  for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
+    {
+      BlockSimulationType simulation_type = blocks[blk].simulation_type;
+
+      string filename = basename + "/model/src/static_" + to_string(blk+1) + ".c";
+      ofstream output;
+      output.open(filename, ios::out | ios::binary);
+      if (!output.is_open())
+        {
+          cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+          exit(EXIT_FAILURE);
+        }
+      output << "/* Block " << blk+1 << endl
+             << "   " << BlockSim(simulation_type) << " */" << endl
+             << endl
+             << "#include <math.h>" << endl
+             << "#include <stdlib.h>" << endl
+             << R"(#include "mex.h")" << endl
+             << endl
+             << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
+             << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl
+             << endl;
+
+      // Write function definition if BinaryOpcode::powerDeriv is used
+      writePowerDerivHeader(output);
+
+      output << endl;
+
+      if (simulation_type == BlockSimulationType::evaluateBackward
+          || simulation_type == BlockSimulationType::evaluateForward)
+        output << "void static_" << blk+1 << "(double *y, const double *x, const double *params, double *T)" << endl;
+      else
+        output << "void static_" << blk+1 << "(const double *y, const double *x, const double *params, double *T, double *residual, double *g1_i, double *g1_j, double *g1_v)" << endl;
+      output << '{' << endl;
+
+      writeStaticPerBlockHelper(blk, output, ExprNodeOutputType::CStaticModel, temporary_terms);
+
+      output << '}' << endl
+             << endl;
+
+      ostringstream header;
+      if (simulation_type == BlockSimulationType::evaluateBackward
+          || simulation_type == BlockSimulationType::evaluateForward)
+        {
+          header << "void static_" << blk+1 << "_mx(mxArray *y, const mxArray *x, const mxArray *params, mxArray *T)";
+          output << header.str() << endl
+                 << '{' << endl
+                 << "  static_" << blk+1 << "(mxGetPr(y), mxGetPr(x), mxGetPr(params), mxGetPr(T));" << endl
+                 << '}' << endl;
+        }
+      else
+        {
+          header << "void static_" << blk+1 << "_mx(const mxArray *y, const mxArray *x, const mxArray *params, mxArray *T, mxArray **residual, mxArray **g1)";
+          output << header.str() << endl
+                 << '{' << endl
+                 << "  *residual = mxCreateDoubleMatrix(" << blocks[blk].mfs_size << ",1,mxREAL);" << endl
+                 << "  mxArray *g1_i = mxCreateDoubleMatrix(" << blocks_derivatives[blk].size() << ",1,mxREAL);" << endl
+                 << "  mxArray *g1_j = mxCreateDoubleMatrix(" << blocks_derivatives[blk].size() << ",1,mxREAL);" << endl
+                 << "  mxArray *g1_v = mxCreateDoubleMatrix(" << blocks_derivatives[blk].size() << ",1,mxREAL);" << endl
+                 << "  static_" << blk+1 << "(mxGetPr(y), mxGetPr(x), mxGetPr(params), mxGetPr(T), mxGetPr(*residual), mxGetPr(g1_i), mxGetPr(g1_j), mxGetPr(g1_v));" << endl
+                 << "  mxArray *plhs[1];" << endl
+                 << "  mxArray *m = mxCreateDoubleScalar(" << blocks[blk].mfs_size << ");" << endl
+                 << "  mxArray *n = mxCreateDoubleScalar(" << blocks[blk].mfs_size << ");" << endl
+                 << "  mxArray *prhs[5] = { g1_i, g1_j, g1_v, m, n };" << endl
+                 << R"(  mexCallMATLAB(1, plhs, 5, prhs, "sparse");)" << endl
+                 << "  *g1 = plhs[0];" << endl
+                 << "  mxDestroyArray(g1_i);" << endl
+                 << "  mxDestroyArray(g1_j);" << endl
+                 << "  mxDestroyArray(g1_v);" << endl
+                 << "  mxDestroyArray(m);" << endl
+                 << "  mxDestroyArray(n);" << endl
+                 << '}' << endl;
+        }
+
+      output.close();
+
+      filename = basename + "/model/src/static_" + to_string(blk+1) + ".h";
+      ofstream header_output;
+      header_output.open(filename, ios::out | ios::binary);
+      if (!header_output.is_open())
+        {
+          cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+          exit(EXIT_FAILURE);
+        }
+      header_output << header.str() << ';' << endl;
+      header_output.close();
+    }
+}
+
+void
 StaticModel::writeStaticBytecode(const string &basename) const
 {
   ostringstream tmp_output;
   ofstream code_file;
   unsigned int instruction_number = 0;
   bool file_open = false;
-
-  filesystem::create_directories(basename + "/model/bytecode");
 
   string main_name = basename + "/model/bytecode/static.cod";
   code_file.open(main_name, ios::out | ios::binary | ios::ate);
@@ -461,8 +558,6 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
   map<expr_t, int> reference_count;
   vector<int> feedback_variables;
   bool file_open = false;
-
-  filesystem::create_directories(basename + "/model/bytecode");
 
   string main_name = basename + "/model/bytecode/static.cod";
   code_file.open(main_name, ios::out | ios::binary | ios::ate);
@@ -1578,7 +1673,6 @@ void
 StaticModel::writeStaticCFile(const string &basename) const
 {
   // Writing comments and function definition command
-  filesystem::create_directories(basename + "/model/src");
   string filename = basename + "/model/src/static.c";
 
   int ntt = temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size();
@@ -1661,24 +1755,54 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
 void
 StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const
 {
-  if (block && bytecode)
-    writeStaticBlockBytecode(basename);
-  else if (!block && bytecode)
-    writeStaticBytecode(basename);
-  else if (block && !bytecode)
+  filesystem::path model_dir{basename};
+  model_dir /= "model";
+  if (use_dll)
+    filesystem::create_directories(model_dir / "src");
+  if (bytecode)
+    filesystem::create_directories(model_dir / "bytecode");
+
+  if (block)
     {
-      writeStaticPerBlockMFiles(basename);
-      writeStaticBlockMFile(basename);
+      if (bytecode)
+        writeStaticBlockBytecode(basename);
+      else if (use_dll)
+        {
+          writeStaticPerBlockCFiles(basename);
+          writeStaticBlockCFile(basename);
+          vector<filesystem::path> src_files{blocks.size() + 1};
+          for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
+            src_files[blk] = model_dir / "src" / ("static_" + to_string(blk+1) + ".c");
+          src_files[blocks.size()] = model_dir / "src" / "static.c";
+          compileMEX(basename, "static", mexext, src_files, matlabroot, dynareroot);
+        }
+      else if (julia)
+        {
+          cerr << "'block' option is not available with Julia" << endl;
+          exit(EXIT_FAILURE);
+        }
+      else // M-files
+        {
+          writeStaticPerBlockMFiles(basename);
+          writeStaticBlockMFile(basename);
+        }
     }
-  else if (use_dll)
-    {
-      writeStaticCFile(basename);
-      compileMEX(basename, "static", mexext, matlabroot, dynareroot);
-    }
-  else if (julia)
-    writeStaticJuliaFile(basename);
   else
-    writeStaticMFile(basename);
+    {
+      if (bytecode)
+        writeStaticBytecode(basename);
+      else if (use_dll)
+        {
+          writeStaticCFile(basename);
+          compileMEX(basename, "static", mexext, { model_dir / "src" / "static.c" },
+                     matlabroot, dynareroot);
+        }
+      else if (julia)
+        writeStaticJuliaFile(basename);
+      else // M-files
+        writeStaticMFile(basename);
+    }
+
   writeSetAuxiliaryVariables(basename, julia);
 }
 
@@ -1724,6 +1848,80 @@ StaticModel::writeStaticBlockMFile(const string &basename) const
     }
   output << "  end" << endl
          << "end" << endl;
+  output.close();
+}
+
+void
+StaticModel::writeStaticBlockCFile(const string &basename) const
+{
+  string filename = basename + "/model/src/static.c";
+
+  ofstream output;
+  output.open(filename, ios::out | ios::binary);
+  if (!output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  output << "#include <math.h>" << endl
+         << R"(#include "mex.h")" << endl;
+
+  for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
+    output << R"(#include "static_)" << blk+1 << R"(.h")" << endl;
+
+  output << endl;
+  writePowerDeriv(output);
+
+  output << endl
+         << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
+         << "{" << endl
+         << "  if (nrhs != 5)" << endl
+         << R"(    mexErrMsgTxt("Requires exactly 5 input arguments");)" << endl
+         << "  if (nlhs > 4)" << endl
+         << R"(    mexErrMsgTxt("Accepts at most 4 output arguments");)" << endl
+         << "  int nblock = (int) mxGetScalar(prhs[0]);" << endl
+         << "  const mxArray *y = prhs[1], *x = prhs[2], *params = prhs[3], *T = prhs[4];" << endl
+         << "  mxArray *T_new = mxDuplicateArray(T);" << endl
+         << "  mxArray *y_new = mxDuplicateArray(y);" << endl
+         << "  mxArray *residual, *g1;" << endl
+         << "  switch (nblock)" << endl
+         << "    {" << endl;
+
+  for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
+    {
+      output << "    case " << blk+1 << ':' << endl;
+
+      BlockSimulationType simulation_type = blocks[blk].simulation_type;
+
+      if (simulation_type == BlockSimulationType::evaluateBackward
+          || simulation_type == BlockSimulationType::evaluateForward)
+        output << "      static_" << blk+1 << "_mx(y_new, x, params, T_new);" << endl
+               << "      residual = mxCreateDoubleMatrix(0,0,mxREAL);" << endl
+               << "      g1 = mxCreateDoubleMatrix(0,0,mxREAL);" << endl;
+      else
+        output << "      static_" << blk+1 << "_mx(y, x, params, T_new, &residual, &g1);" << endl;
+      output << "      break;" << endl;
+    }
+  output << "    }" << endl
+         << endl
+         << "  if (nlhs >= 1)" << endl
+         << "    plhs[0] = residual;" << endl
+         << "  else" << endl
+         << "    mxDestroyArray(residual);" << endl
+         << "  if (nlhs >= 2)" << endl
+         << "    plhs[1] = y_new;" << endl
+         << "  else" << endl
+         << "    mxDestroyArray(y_new);" << endl
+         << "  if (nlhs >= 3)" << endl
+         << "    plhs[2] = T_new;" << endl
+         << "  else" << endl
+         << "    mxDestroyArray(T_new);" << endl
+         << "  if (nlhs >= 4)" << endl
+         << "    plhs[3] = g1;" << endl
+         << "  else" << endl
+         << "    mxDestroyArray(g1);" << endl
+         << "}" << endl;
   output.close();
 }
 

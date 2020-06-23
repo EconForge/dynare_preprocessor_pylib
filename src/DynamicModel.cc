@@ -305,7 +305,10 @@ DynamicModel::writeDynamicPerBlockHelper(int blk, ostream &output, ExprNodeOutpu
   // Write temporary terms for derivatives
   write_eq_tt(blocks[blk].size);
 
-  output << "  if stochastic_mode" << endl;
+  if (isCOutput(output_type))
+    output << "  if (stochastic_mode) {" << endl;
+  else
+    output << "  if stochastic_mode" << endl;
 
   ostringstream i_output, j_output, v_output;
   int line_counter = ARRAY_SUBSCRIPT_OFFSET(output_type);
@@ -323,7 +326,7 @@ DynamicModel::writeDynamicPerBlockHelper(int blk, ostream &output, ExprNodeOutpu
       v_output << ';' << endl;
       line_counter++;
     }
-  assert(line_counter == nze_stochastic+1);
+  assert(line_counter == nze_stochastic+ARRAY_SUBSCRIPT_OFFSET(output_type));
   output << i_output.str() << j_output.str() << v_output.str();
 
   i_output.str("");
@@ -344,7 +347,7 @@ DynamicModel::writeDynamicPerBlockHelper(int blk, ostream &output, ExprNodeOutpu
       v_output << ';' << endl;
       line_counter++;
     }
-  assert(line_counter == nze_exo+1);
+  assert(line_counter == nze_exo+ARRAY_SUBSCRIPT_OFFSET(output_type));
   output << i_output.str() << j_output.str() << v_output.str();
 
   i_output.str("");
@@ -365,7 +368,7 @@ DynamicModel::writeDynamicPerBlockHelper(int blk, ostream &output, ExprNodeOutpu
       v_output << ';' << endl;
       line_counter++;
     }
-  assert(line_counter == nze_exo_det+1);
+  assert(line_counter == nze_exo_det+ARRAY_SUBSCRIPT_OFFSET(output_type));
   output << i_output.str() << j_output.str() << v_output.str();
 
   i_output.str("");
@@ -386,14 +389,17 @@ DynamicModel::writeDynamicPerBlockHelper(int blk, ostream &output, ExprNodeOutpu
       v_output << ';' << endl;
       line_counter++;
     }
-  assert(line_counter == nze_other_endo+1);
+  assert(line_counter == nze_other_endo+ARRAY_SUBSCRIPT_OFFSET(output_type));
   output << i_output.str() << j_output.str() << v_output.str();
 
   // Deterministic mode
   if (simulation_type != BlockSimulationType::evaluateForward
       && simulation_type != BlockSimulationType::evaluateBackward)
     {
-      output << "  else" << endl;
+      if (isCOutput(output_type))
+        output << "  } else {" << endl;
+      else
+        output << "  else" << endl;
       i_output.str("");
       j_output.str("");
       v_output.str("");
@@ -439,10 +445,39 @@ DynamicModel::writeDynamicPerBlockHelper(int blk, ostream &output, ExprNodeOutpu
               line_counter++;
             }
         }
-      assert(line_counter == nze_deterministic+1);
+      assert(line_counter == nze_deterministic+ARRAY_SUBSCRIPT_OFFSET(output_type));
       output << i_output.str() << j_output.str() << v_output.str();
     }
-  output << "  end" << endl;
+  if (isCOutput(output_type))
+    output << "  }" << endl;
+  else
+    output << "  end" << endl;
+}
+
+int
+DynamicModel::nzeDeterministicJacobianForBlock(int blk) const
+{
+  BlockSimulationType simulation_type = blocks[blk].simulation_type;
+  int block_recursive_size = blocks[blk].getRecursiveSize();
+
+  int nze_deterministic = 0;
+  if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
+      || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
+    nze_deterministic = count_if(blocks_derivatives[blk].begin(), blocks_derivatives[blk].end(),
+                                 [=](const auto &kv) {
+                                   auto [eq, var, lag] = kv.first;
+                                   return eq >= block_recursive_size && var >= block_recursive_size;
+                                 });
+  else if (simulation_type == BlockSimulationType::solveBackwardSimple
+           || simulation_type == BlockSimulationType::solveForwardSimple
+           || simulation_type == BlockSimulationType::solveBackwardComplete
+           || simulation_type == BlockSimulationType::solveForwardComplete)
+    nze_deterministic = count_if(blocks_derivatives[blk].begin(), blocks_derivatives[blk].end(),
+                                 [](const auto &kv) {
+                                   auto [eq, var, lag] = kv.first;
+                                   return lag == 0;
+                                 });
+  return nze_deterministic;
 }
 
 void
@@ -455,27 +490,10 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
       BlockSimulationType simulation_type = blocks[blk].simulation_type;
       int block_size = blocks[blk].size;
       int block_mfs_size = blocks[blk].mfs_size;
-      int block_recursive_size = blocks[blk].getRecursiveSize();
 
       // Number of nonzero derivatives for the various Jacobians
       int nze_stochastic = blocks_derivatives[blk].size();
-      int nze_deterministic = 0;
-      if (simulation_type == BlockSimulationType::solveTwoBoundariesComplete
-          || simulation_type == BlockSimulationType::solveTwoBoundariesSimple)
-        nze_deterministic = count_if(blocks_derivatives[blk].begin(), blocks_derivatives[blk].end(),
-                                     [=](const auto &kv) {
-                                       auto [eq, var, lag] = kv.first;
-                                       return eq >= block_recursive_size && var >= block_recursive_size;
-                                     });
-      else if (simulation_type == BlockSimulationType::solveBackwardSimple
-               || simulation_type == BlockSimulationType::solveForwardSimple
-               || simulation_type == BlockSimulationType::solveBackwardComplete
-               || simulation_type == BlockSimulationType::solveForwardComplete)
-        nze_deterministic = count_if(blocks_derivatives[blk].begin(), blocks_derivatives[blk].end(),
-                                     [](const auto &kv) {
-                                       auto [eq, var, lag] = kv.first;
-                                       return lag == 0;
-                                     });
+      int nze_deterministic = nzeDeterministicJacobianForBlock(blk);
       int nze_other_endo = blocks_derivatives_other_endo[blk].size();
       int nze_exo = blocks_derivatives_exo[blk].size();
       int nze_exo_det = blocks_derivatives_exo_det[blk].size();
@@ -483,6 +501,11 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
       string filename = packageDir(basename + ".block") + "/dynamic_" + to_string(blk+1) + ".m";
       ofstream output;
       output.open(filename, ios::out | ios::binary);
+      if (!output.is_open())
+        {
+          cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+          exit(EXIT_FAILURE);
+        }
 
       output << "%" << endl
              << "% " << filename << " : Computes dynamic version of one block" << endl
@@ -567,14 +590,212 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
 }
 
 void
+DynamicModel::writeDynamicPerBlockCFiles(const string &basename) const
+{
+  temporary_terms_t temporary_terms; // Temp terms written so far
+
+  for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
+    {
+      BlockSimulationType simulation_type = blocks[blk].simulation_type;
+      int block_size = blocks[blk].size;
+      int block_mfs_size = blocks[blk].mfs_size;
+
+      // Number of nonzero derivatives for the various Jacobians
+      int nze_stochastic = blocks_derivatives[blk].size();
+      int nze_deterministic = nzeDeterministicJacobianForBlock(blk);
+      int nze_other_endo = blocks_derivatives_other_endo[blk].size();
+      int nze_exo = blocks_derivatives_exo[blk].size();
+      int nze_exo_det = blocks_derivatives_exo_det[blk].size();
+
+      string filename = basename + "/model/src/dynamic_" + to_string(blk+1) + ".c";
+      ofstream output;
+      output.open(filename, ios::out | ios::binary);
+      if (!output.is_open())
+        {
+          cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      output << "/* Block " << blk+1 << endl
+             << "   " << BlockSim(simulation_type) << " */" << endl
+             << endl
+             << "#include <math.h>" << endl
+             << "#include <stdlib.h>" << endl
+             << "#include <stdbool.h>" << endl
+             << R"(#include "mex.h")" << endl
+             << endl
+             << "#define max(a, b) (((a) > (b)) ? (a) : (b))" << endl
+             << "#define min(a, b) (((a) > (b)) ? (b) : (a))" << endl
+             << endl;
+
+      // Write function definition if BinaryOpcode::powerDeriv is used
+      writePowerDerivHeader(output);
+
+      output << endl;
+
+      if (simulation_type == BlockSimulationType::evaluateBackward
+          || simulation_type == BlockSimulationType::evaluateForward)
+        output << "void dynamic_" << blk+1 << "(double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, double *T, int it_, bool stochastic_mode, double *g1_i, double *g1_j, double *g1_v, double *g1_x_i, double *g1_x_j, double *g1_x_v, double *g1_xd_i, double *g1_xd_j, double *g1_xd_v, double *g1_o_i, double *g1_o_j, double *g1_o_v)" << endl;
+      else
+        output << "void dynamic_" << blk+1 << "(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, double *T, int it_, bool stochastic_mode, double *residual, double *g1_i, double *g1_j, double *g1_v, double *g1_x_i, double *g1_x_j, double *g1_x_v, double *g1_xd_i, double *g1_xd_j, double *g1_xd_v, double *g1_o_i, double *g1_o_j, double *g1_o_v)" << endl;
+      output << '{' << endl;
+
+      writeDynamicPerBlockHelper(blk, output, ExprNodeOutputType::CDynamicModel, temporary_terms,
+                                 nze_stochastic, nze_deterministic, nze_exo, nze_exo_det, nze_other_endo);
+
+      output << '}' << endl
+             << endl;
+
+      ostringstream header;
+      if (simulation_type == BlockSimulationType::evaluateBackward
+          || simulation_type == BlockSimulationType::evaluateForward)
+        header << "void dynamic_" << blk+1 << "_mx(mxArray *y, const mxArray *x, const mxArray *params, const mxArray *steady_state, mxArray *T, const mxArray *it_, const mxArray *stochastic_mode, mxArray **g1, mxArray **g1_x, mxArray **g1_xd, mxArray **g1_o)";
+      else
+        header << "void dynamic_" << blk+1 << "_mx(const mxArray *y, const mxArray *x, const mxArray *params, const mxArray *steady_state, mxArray *T, const mxArray *it_, const mxArray *stochastic_mode, mxArray **residual, mxArray **g1, mxArray **g1_x, mxArray **g1_xd, mxArray **g1_o)";
+      output << header.str() << endl
+             << '{' << endl
+             << "  int nb_row_x = mxGetM(x);" << endl;
+
+      if (simulation_type != BlockSimulationType::evaluateForward
+          && simulation_type != BlockSimulationType::evaluateBackward)
+        output << "  *residual = mxCreateDoubleMatrix(" << block_mfs_size << ",1,mxREAL);" << endl;
+
+      output << "  mxArray *g1_i = NULL, *g1_j = NULL, *g1_v = NULL;" << endl
+             << "  mxArray *g1_x_i = NULL, *g1_x_j = NULL, *g1_x_v = NULL;" << endl
+             << "  mxArray *g1_xd_i = NULL, *g1_xd_j = NULL, *g1_xd_v = NULL;" << endl
+             << "  mxArray *g1_o_i = NULL, *g1_o_j = NULL, *g1_o_v = NULL;" << endl
+             << "  if (mxGetScalar(stochastic_mode)) {" << endl
+             << "    g1_i=mxCreateDoubleMatrix(" << nze_stochastic << ",1,mxREAL);" << endl
+             << "    g1_j=mxCreateDoubleMatrix(" << nze_stochastic << ",1,mxREAL);" << endl
+             << "    g1_v=mxCreateDoubleMatrix(" << nze_stochastic << ",1,mxREAL);" << endl
+             << "    g1_x_i=mxCreateDoubleMatrix(" << nze_exo << ",1,mxREAL);" << endl
+             << "    g1_x_j=mxCreateDoubleMatrix(" << nze_exo << ",1,mxREAL);" << endl
+             << "    g1_x_v=mxCreateDoubleMatrix(" << nze_exo << ",1,mxREAL);" << endl
+             << "    g1_xd_i=mxCreateDoubleMatrix(" << nze_exo_det << ",1,mxREAL);" << endl
+             << "    g1_xd_j=mxCreateDoubleMatrix(" << nze_exo_det << ",1,mxREAL);" << endl
+             << "    g1_xd_v=mxCreateDoubleMatrix(" << nze_exo_det << ",1,mxREAL);" << endl
+             << "    g1_o_i=mxCreateDoubleMatrix(" << nze_other_endo << ",1,mxREAL);" << endl
+             << "    g1_o_j=mxCreateDoubleMatrix(" << nze_other_endo << ",1,mxREAL);" << endl
+             << "    g1_o_v=mxCreateDoubleMatrix(" << nze_other_endo << ",1,mxREAL);" << endl;
+      if (simulation_type != BlockSimulationType::evaluateForward
+          && simulation_type != BlockSimulationType::evaluateBackward)
+        output << "  } else {" << endl
+               << "    g1_i=mxCreateDoubleMatrix(" << nze_deterministic << ",1,mxREAL);" << endl
+               << "    g1_j=mxCreateDoubleMatrix(" << nze_deterministic << ",1,mxREAL);" << endl
+               << "    g1_v=mxCreateDoubleMatrix(" << nze_deterministic << ",1,mxREAL);" << endl;
+      output << "  }" << endl
+             << endl;
+
+      if (simulation_type == BlockSimulationType::evaluateBackward
+          || simulation_type == BlockSimulationType::evaluateForward)
+        output << "  dynamic_" << blk+1 << "(mxGetPr(y), mxGetPr(x), nb_row_x, mxGetPr(params), mxGetPr(steady_state), mxGetPr(T), mxGetScalar(it_), mxGetScalar(stochastic_mode), g1_i ? mxGetPr(g1_i) : NULL, g1_j ? mxGetPr(g1_j) : NULL, g1_v ? mxGetPr(g1_v) : NULL, g1_x_i ? mxGetPr(g1_x_i) : NULL, g1_x_j ? mxGetPr(g1_x_j) : NULL, g1_x_v ? mxGetPr(g1_x_v) : NULL, g1_xd_i ? mxGetPr(g1_xd_i) : NULL, g1_xd_j ? mxGetPr(g1_xd_j) : NULL, g1_xd_v ? mxGetPr(g1_xd_v) : NULL, g1_o_i ? mxGetPr(g1_o_i) : NULL, g1_o_j ? mxGetPr(g1_o_j) : NULL, g1_o_v ? mxGetPr(g1_o_v) : NULL);" << endl;
+      else
+        output << "  dynamic_" << blk+1 << "(mxGetPr(y), mxGetPr(x), nb_row_x, mxGetPr(params), mxGetPr(steady_state), mxGetPr(T), mxGetScalar(it_), mxGetScalar(stochastic_mode), mxGetPr(*residual), g1_i ? mxGetPr(g1_i) : NULL, g1_j ? mxGetPr(g1_j) : NULL, g1_v ? mxGetPr(g1_v) : NULL, g1_x_i ? mxGetPr(g1_x_i) : NULL, g1_x_j ? mxGetPr(g1_x_j) : NULL, g1_x_v ? mxGetPr(g1_x_v) : NULL, g1_xd_i ? mxGetPr(g1_xd_i) : NULL, g1_xd_j ? mxGetPr(g1_xd_j) : NULL, g1_xd_v ? mxGetPr(g1_xd_v) : NULL, g1_o_i ? mxGetPr(g1_o_i) : NULL, g1_o_j ? mxGetPr(g1_o_j) : NULL, g1_o_v ? mxGetPr(g1_o_v) : NULL);" << endl;
+
+      output << endl
+             << "  if (mxGetScalar(stochastic_mode)) {" << endl
+             << "    mxArray *m = mxCreateDoubleScalar(" << block_size << ");" << endl
+             << "    mxArray *n = mxCreateDoubleScalar(" << blocks_jacob_cols_endo[blk].size() << ");" << endl
+             << "    mxArray *plhs[1];" << endl
+             << "    mxArray *prhs[5] = { g1_i, g1_j, g1_v, m, n };" << endl
+             << R"(    mexCallMATLAB(1, plhs, 5, prhs, "sparse");)" << endl
+             << "    *g1=plhs[0];" << endl
+             << "    mxDestroyArray(g1_i);" << endl
+             << "    mxDestroyArray(g1_j);" << endl
+             << "    mxDestroyArray(g1_v);" << endl
+             << "    mxDestroyArray(n);" << endl
+             << "    n = mxCreateDoubleScalar(" << blocks_jacob_cols_exo[blk].size() << ");" << endl
+             << "    mxArray *prhs_x[5] = { g1_x_i, g1_x_j, g1_x_v, m, n };" << endl
+             << R"(    mexCallMATLAB(1, plhs, 5, prhs_x, "sparse");)" << endl
+             << "    *g1_x=plhs[0];" << endl
+             << "    mxDestroyArray(g1_x_i);" << endl
+             << "    mxDestroyArray(g1_x_j);" << endl
+             << "    mxDestroyArray(g1_x_v);" << endl
+             << "    mxDestroyArray(n);" << endl
+             << "    n = mxCreateDoubleScalar(" << blocks_jacob_cols_exo_det[blk].size() << ");" << endl
+             << "    mxArray *prhs_xd[5] = { g1_xd_i, g1_xd_j, g1_xd_v, m, n };" << endl
+             << R"(    mexCallMATLAB(1, plhs, 5, prhs_xd, "sparse");)" << endl
+             << "    *g1_xd=plhs[0];" << endl
+             << "    mxDestroyArray(g1_xd_i);" << endl
+             << "    mxDestroyArray(g1_xd_j);" << endl
+             << "    mxDestroyArray(g1_xd_v);" << endl
+             << "    mxDestroyArray(n);" << endl
+             << "    n = mxCreateDoubleScalar(" << blocks_jacob_cols_other_endo[blk].size() << ");" << endl
+             << "    mxArray *prhs_o[5] = { g1_o_i, g1_o_j, g1_o_v, m, n };" << endl
+             << R"(    mexCallMATLAB(1, plhs, 5, prhs_o, "sparse");)" << endl
+             << "    *g1_o=plhs[0];" << endl
+             << "    mxDestroyArray(g1_o_i);" << endl
+             << "    mxDestroyArray(g1_o_j);" << endl
+             << "    mxDestroyArray(g1_o_v);" << endl
+             << "    mxDestroyArray(n);" << endl
+             << "    mxDestroyArray(m);" << endl
+             << "  } else {" << endl;
+      switch (simulation_type)
+        {
+        case BlockSimulationType::evaluateForward:
+        case BlockSimulationType::evaluateBackward:
+          output << "    *g1=mxCreateDoubleMatrix(0,0,mxREAL);" << endl;
+          break;
+        case BlockSimulationType::solveBackwardSimple:
+        case BlockSimulationType::solveForwardSimple:
+        case BlockSimulationType::solveBackwardComplete:
+        case BlockSimulationType::solveForwardComplete:
+          output << "    mxArray *m = mxCreateDoubleScalar(" << block_mfs_size << ");" << endl
+                 << "    mxArray *n = mxCreateDoubleScalar(" << block_mfs_size << ");" << endl
+                 << "    mxArray *plhs[1];" << endl
+                 << "    mxArray *prhs[5] = { g1_i, g1_j, g1_v, m, n };" << endl
+                 << R"(    mexCallMATLAB(1, plhs, 5, prhs, "sparse");)" << endl
+                 << "    *g1=plhs[0];" << endl
+                 << "    mxDestroyArray(g1_i);" << endl
+                 << "    mxDestroyArray(g1_j);" << endl
+                 << "    mxDestroyArray(g1_v);" << endl
+                 << "    mxDestroyArray(n);" << endl
+                 << "    mxDestroyArray(m);" << endl;
+          break;
+        case BlockSimulationType::solveTwoBoundariesSimple:
+        case BlockSimulationType::solveTwoBoundariesComplete:
+          output << "    mxArray *m = mxCreateDoubleScalar(" << block_mfs_size << ");" << endl
+                 << "    mxArray *n = mxCreateDoubleScalar(" << 3*block_mfs_size << ");" << endl
+                 << "    mxArray *plhs[1];" << endl
+                 << "    mxArray *prhs[5] = { g1_i, g1_j, g1_v, m, n };" << endl
+                 << R"(    mexCallMATLAB(1, plhs, 5, prhs, "sparse");)" << endl
+                 << "    *g1=plhs[0];" << endl
+                 << "    mxDestroyArray(g1_i);" << endl
+                 << "    mxDestroyArray(g1_j);" << endl
+                 << "    mxDestroyArray(g1_v);" << endl
+                 << "    mxDestroyArray(n);" << endl
+                 << "    mxDestroyArray(m);" << endl;
+          break;
+        default:
+          break;
+        }
+      output << "    *g1_x=mxCreateDoubleMatrix(0,0,mxREAL);" << endl
+             << "    *g1_xd=mxCreateDoubleMatrix(0,0,mxREAL);" << endl
+             << "    *g1_o=mxCreateDoubleMatrix(0,0,mxREAL);" << endl
+             << "  }" << endl
+             << "}" << endl;
+      output.close();
+
+      filename = basename + "/model/src/dynamic_" + to_string(blk+1) + ".h";
+      ofstream header_output;
+      header_output.open(filename, ios::out | ios::binary);
+      if (!header_output.is_open())
+        {
+          cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+          exit(EXIT_FAILURE);
+        }
+      header_output << header.str() << ';' << endl;
+      header_output.close();
+    }
+}
+
+void
 DynamicModel::writeDynamicBytecode(const string &basename) const
 {
   ostringstream tmp_output;
   ofstream code_file;
   unsigned int instruction_number = 0;
   bool file_open = false;
-
-  filesystem::create_directories(basename + "/model/bytecode");
 
   string main_name = basename + "/model/bytecode/dynamic.cod";
   code_file.open(main_name, ios::out | ios::binary | ios::ate);
@@ -837,7 +1058,6 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename, bool linear_deco
   vector<int> feedback_variables;
   bool file_open = false;
   string main_name;
-  filesystem::create_directories(basename + "/model/bytecode");
   if (linear_decomposition)
     main_name = basename + "/model/bytecode/non_linear.cod";
   else
@@ -1195,7 +1415,6 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
 void
 DynamicModel::writeDynamicCFile(const string &basename) const
 {
-  filesystem::create_directories(basename + "/model/src");
   string filename = basename + "/model/src/dynamic.c";
 
   int ntt = temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size();
@@ -1404,6 +1623,92 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
     }
   output << "  end" << endl
          << "end" << endl;
+
+  output.close();
+}
+
+void
+DynamicModel::writeDynamicBlockCFile(const string &basename) const
+{
+  string filename = basename + "/model/src/dynamic.c";
+
+  ofstream output;
+  output.open(filename, ios::out | ios::binary);
+  if (!output.is_open())
+    {
+      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  output << "#include <math.h>" << endl
+         << R"(#include "mex.h")" << endl;
+
+  for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
+    output << R"(#include "dynamic_)" << blk+1 << R"(.h")" << endl;
+
+  output << endl;
+  writePowerDeriv(output);
+
+  output << endl
+         << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
+         << "{" << endl
+         << "  if (nrhs != 8)" << endl
+         << R"(    mexErrMsgTxt("Requires exactly 8 input arguments");)" << endl
+         << "  if (nlhs > 7)" << endl
+         << R"(    mexErrMsgTxt("Accepts at most 7 output arguments");)" << endl
+         << "  int nblock = (int) mxGetScalar(prhs[0]);" << endl
+         << "  const mxArray *y = prhs[1], *x = prhs[2], *params = prhs[3], *steady_state = prhs[4], *T = prhs[5], *it_ = prhs[6], *stochastic_mode = prhs[7];" << endl
+         << "  mxArray *T_new = mxDuplicateArray(T);" << endl
+         << "  mxArray *y_new = mxDuplicateArray(y);" << endl
+         << "  mxArray *residual, *g1, *g1_x, *g1_xd, *g1_o;" << endl
+         << "  switch (nblock)" << endl
+         << "    {" << endl;
+
+  for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
+    {
+      output << "    case " << blk+1 << ':' << endl;
+
+      BlockSimulationType simulation_type = blocks[blk].simulation_type;
+
+      if (simulation_type == BlockSimulationType::evaluateBackward
+          || simulation_type == BlockSimulationType::evaluateForward)
+        output << "      dynamic_" << blk+1 << "_mx(y_new, x, params, steady_state, T_new, it_, stochastic_mode, &g1, &g1_x, &g1_xd, &g1_o);" << endl
+               << "      residual = mxCreateDoubleMatrix(0,0,mxREAL);" << endl;
+      else
+        output << "      dynamic_" << blk+1 << "_mx(y, x, params, steady_state, T_new, it_, stochastic_mode, &residual, &g1, &g1_x, &g1_xd, &g1_o);" << endl;
+      output << "      break;" << endl;
+    }
+  output << "    }" << endl
+         << endl
+         << "  if (nlhs >= 1)" << endl
+         << "    plhs[0] = residual;" << endl
+         << "  else" << endl
+         << "    mxDestroyArray(residual);" << endl
+         << "  if (nlhs >= 2)" << endl
+         << "    plhs[1] = y_new;" << endl
+         << "  else" << endl
+         << "    mxDestroyArray(y_new);" << endl
+         << "  if (nlhs >= 3)" << endl
+         << "    plhs[2] = T_new;" << endl
+         << "  else" << endl
+         << "    mxDestroyArray(T_new);" << endl
+         << "  if (nlhs >= 4)" << endl
+         << "    plhs[3] = g1;" << endl
+         << "  else" << endl
+         << "    mxDestroyArray(g1);" << endl
+         << "  if (nlhs >= 5)" << endl
+         << "    plhs[4] = g1_x;" << endl
+         << "  else" << endl
+         << "    mxDestroyArray(g1_x);" << endl
+         << "  if (nlhs >= 6)" << endl
+         << "    plhs[5] = g1_xd;" << endl
+         << "  else" << endl
+         << "    mxDestroyArray(g1_xd);" << endl
+         << "  if (nlhs >= 7)" << endl
+         << "    plhs[6] = g1_o;" << endl
+         << "  else" << endl
+         << "    mxDestroyArray(g1_o);" << endl
+         << "}" << endl;
 
   output.close();
 }
@@ -4256,24 +4561,64 @@ DynamicModel::computeBlockDynJacobianCols()
 void
 DynamicModel::writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const
 {
-  if ((block && bytecode) || linear_decomposition)
-    writeDynamicBlockBytecode(basename, linear_decomposition);
-  else if (!block && bytecode)
-    writeDynamicBytecode(basename);
-  else if (block && !bytecode)
+  filesystem::path model_dir{basename};
+  model_dir /= "model";
+  if (use_dll)
+    filesystem::create_directories(model_dir / "src");
+  if (bytecode)
+    filesystem::create_directories(model_dir / "bytecode");
+
+  if (linear_decomposition)
     {
-      writeDynamicPerBlockMFiles(basename);
-      writeDynamicBlockMFile(basename);
+      if (bytecode)
+        writeDynamicBlockBytecode(basename, linear_decomposition);
+      else
+        {
+          cerr << "'linear_decomposition' option requires the 'bytecode' option" << endl;
+          exit(EXIT_FAILURE);
+        }
     }
-  else if (use_dll)
+  else if (block)
     {
-      writeDynamicCFile(basename);
-      compileMEX(basename, "dynamic", mexext, matlabroot, dynareroot);
+      if (bytecode)
+        writeDynamicBlockBytecode(basename, linear_decomposition);
+      else if (use_dll)
+        {
+          writeDynamicPerBlockCFiles(basename);
+          writeDynamicBlockCFile(basename);
+          vector<filesystem::path> src_files{blocks.size() + 1};
+          for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
+            src_files[blk] = model_dir / "src" / ("dynamic_" + to_string(blk+1) + ".c");
+          src_files[blocks.size()] = model_dir / "src" / "dynamic.c";
+          compileMEX(basename, "dynamic", mexext, src_files, matlabroot, dynareroot);
+        }
+      else if (julia)
+        {
+          cerr << "'block' option is not available with Julia" << endl;
+          exit(EXIT_FAILURE);
+        }
+      else // M-files
+        {
+          writeDynamicPerBlockMFiles(basename);
+          writeDynamicBlockMFile(basename);
+        }
     }
-  else if (julia)
-    writeDynamicJuliaFile(basename);
   else
-    writeDynamicMFile(basename);
+    {
+      if (bytecode)
+        writeDynamicBytecode(basename);
+      else if (use_dll)
+        {
+          writeDynamicCFile(basename);
+          compileMEX(basename, "dynamic", mexext, { model_dir / "src" / "dynamic.c" },
+                     matlabroot, dynareroot);
+        }
+      else if (julia)
+        writeDynamicJuliaFile(basename);
+      else
+        writeDynamicMFile(basename);
+    }
+
   writeSetAuxiliaryVariables(basename, julia);
 }
 
