@@ -1793,17 +1793,6 @@ ModelTree::jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutput
 }
 
 void
-ModelTree::sparseHelper(int order, ostream &output, int row_nb, int col_nb, ExprNodeOutputType output_type) const
-{
-  output << "v" << order << LEFT_ARRAY_SUBSCRIPT(output_type);
-  if (isMatlabOutput(output_type) || isJuliaOutput(output_type))
-    output << row_nb + 1 << "," << col_nb + 1;
-  else
-    output << row_nb + col_nb * NNZDerivatives[order];
-  output << RIGHT_ARRAY_SUBSCRIPT(output_type);
-}
-
-void
 ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
 {
   assert(paramsDerivsOrder >= 1);

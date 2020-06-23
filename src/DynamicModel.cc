@@ -1476,18 +1476,40 @@ DynamicModel::writeDynamicCFile(const string &basename) const
          << endl
          << "  if (nlhs >= 3)" << endl
          << "    {" << endl
-         << "      plhs[2] = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 3 << ", mxREAL);" << endl
-         << "      double *v2 = mxGetPr(plhs[2]);" << endl
+         << "      mxArray *g2_i = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 1 << ", mxREAL);" << endl
+         << "      mxArray *g2_j = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 1 << ", mxREAL);" << endl
+         << "      mxArray *g2_v = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 1 << ", mxREAL);" << endl
          << "      dynamic_g2_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
-         << "      dynamic_g2(y, x, nb_row_x, params, steady_state, it_, T, v2);" << endl
+         << "      dynamic_g2(y, x, nb_row_x, params, steady_state, it_, T, mxGetPr(g2_i), mxGetPr(g2_j), mxGetPr(g2_v));" << endl
+         << "      mxArray *m = mxCreateDoubleScalar(" << equations.size() << ");" << endl
+         << "      mxArray *n = mxCreateDoubleScalar(" << dynJacobianColsNbr*dynJacobianColsNbr << ");" << endl
+         << "      mxArray *plhs_sparse[1], *prhs_sparse[5] = { g2_i, g2_j, g2_v, m, n };" << endl
+         << R"(      mexCallMATLAB(1, plhs_sparse, 5, prhs_sparse, "sparse");)" << endl
+         << "      plhs[2] = plhs_sparse[0];" << endl
+         << "      mxDestroyArray(g2_i);" << endl
+         << "      mxDestroyArray(g2_j);" << endl
+         << "      mxDestroyArray(g2_v);" << endl
+         << "      mxDestroyArray(m);" << endl
+         << "      mxDestroyArray(n);" << endl
          << "    }" << endl
          << endl
          << "  if (nlhs >= 4)" << endl
          << "    {" << endl
-         << "      plhs[3] = mxCreateDoubleMatrix(" << NNZDerivatives[3] << ", " << 3 << ", mxREAL);" << endl
-         << "      double *v3 = mxGetPr(plhs[3]);" << endl
+         << "      mxArray *g3_i = mxCreateDoubleMatrix(" << NNZDerivatives[3] << ", " << 1 << ", mxREAL);" << endl
+         << "      mxArray *g3_j = mxCreateDoubleMatrix(" << NNZDerivatives[3] << ", " << 1 << ", mxREAL);" << endl
+         << "      mxArray *g3_v = mxCreateDoubleMatrix(" << NNZDerivatives[3] << ", " << 1 << ", mxREAL);" << endl
          << "      dynamic_g3_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
-         << "      dynamic_g3(y, x, nb_row_x, params, steady_state, it_, T, v3);" << endl
+         << "      dynamic_g3(y, x, nb_row_x, params, steady_state, it_, T, mxGetPr(g3_i), mxGetPr(g3_j), mxGetPr(g3_v));" << endl
+         << "      mxArray *m = mxCreateDoubleScalar(" << equations.size() << ");" << endl
+         << "      mxArray *n = mxCreateDoubleScalar(" << dynJacobianColsNbr*dynJacobianColsNbr*dynJacobianColsNbr << ");" << endl
+         << "      mxArray *plhs_sparse[1], *prhs_sparse[5] = { g3_i, g3_j, g3_v, m, n };" << endl
+         << R"(      mexCallMATLAB(1, plhs_sparse, 5, prhs_sparse, "sparse");)" << endl
+         << "      plhs[3] = plhs_sparse[0];" << endl
+         << "      mxDestroyArray(g3_i);" << endl
+         << "      mxDestroyArray(g3_j);" << endl
+         << "      mxDestroyArray(g3_v);" << endl
+         << "      mxDestroyArray(m);" << endl
+         << "      mxDestroyArray(n);" << endl
          << "    }" << endl
          << endl
          << "  free(T);" << endl
@@ -1951,7 +1973,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
            then the third. This gives a significant performance boost in use_dll
            mode (at both compilation and runtime), because it facilitates memory
            accesses and expression reusage. */
-        ostringstream col0_output, col1_output, col2_output;
+        ostringstream i_output, j_output, v_output;
 
         int k = 0; // Current line index in the 3-column matrix
         for (const auto &[vidx, d] : derivatives[i])
@@ -1973,16 +1995,19 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
               }
             else
               {
-                sparseHelper(i, col0_output, k, 0, output_type);
-                col0_output << "=" << eq + 1 << ";" << endl;
-
-                sparseHelper(i, col1_output, k, 1, output_type);
-                col1_output << "=" << col_idx + 1 << ";" << endl;
-
-                sparseHelper(i, col2_output, k, 2, output_type);
-                col2_output << "=";
-                d->writeOutput(col2_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
-                col2_output << ";" << endl;
+                i_output << "g" << i << "_i" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                         << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                         << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                         << "=" << eq + 1 << ";" << endl;
+                j_output << "g" << i << "_j" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                         << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                         << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                         << "=" << col_idx + 1 << ";" << endl;
+                v_output << "g" << i << "_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                         << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                         << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+                d->writeOutput(v_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
+                v_output << ";" << endl;
 
                 k++;
               }
@@ -1997,23 +2022,27 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
                               << "g2[" << eq + 1 << "," << col_idx + 1 << "]" << endl;
                 else
                   {
-                    sparseHelper(2, col0_output, k, 0, output_type);
-                    col0_output << "=" << eq + 1 << ";" << endl;
-
-                    sparseHelper(2, col1_output, k, 1, output_type);
-                    col1_output << "=" << col_idx_sym + 1 << ";" << endl;
-
-                    sparseHelper(2, col2_output, k, 2, output_type);
-                    col2_output << "=";
-                    sparseHelper(2, col2_output, k-1, 2, output_type);
-                    col2_output << ";" << endl;
+                    i_output << "g" << i << "_i" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                             << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                             << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                             << "=" << eq + 1 << ";" << endl;
+                    j_output << "g" << i << "_j" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                             << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                             << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                             << "=" << col_idx_sym + 1 << ";" << endl;
+                    v_output << "g" << i << "_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                             << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                             << RIGHT_ARRAY_SUBSCRIPT(output_type) << "="
+                             << "g" << i << "_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                             << k-1 + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                             << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
 
                     k++;
                   }
               }
           }
         if (output_type != ExprNodeOutputType::juliaDynamicModel)
-          d_output[i] << col0_output.str() << col1_output.str() << col2_output.str();
+          d_output[i] << i_output.str() << j_output.str() << v_output.str();
       }
 
   if (output_type == ExprNodeOutputType::matlabDynamicModel)
@@ -2052,18 +2081,17 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
           ncols *= dynJacobianColsNbr;
           ntt += temporary_terms_derivatives[i].size();
           string gname = "g" + to_string(i);
-          string vname = "v" + to_string(i);
           string gprevname = "g" + to_string(i-1);
 
           init_output.str("");
           end_output.str("");
           if (derivatives[i].size())
             {
-              init_output << vname << " = zeros(" << NNZDerivatives[i] << ",3);";
+              init_output << gname << "_i = zeros(" << NNZDerivatives[i] << ",1);" << endl
+                          << gname << "_j = zeros(" << NNZDerivatives[i] << ",1);" << endl
+                          << gname << "_v = zeros(" << NNZDerivatives[i] << ",1);" << endl;
               end_output << gname << " = sparse("
-                         << vname << "(:,1),"
-                         << vname << "(:,2),"
-                         << vname << "(:,3),"
+                         << gname << "_i," << gname << "_j," << gname << "_v,"
                          << nrows << "," << ncols << ");";
             }
           else
@@ -2085,13 +2113,19 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
       for (size_t i = 0; i < d_output.size(); i++)
         {
           string funcname = i == 0 ? "resid" : "g" + to_string(i);
-          string argname = i == 0 ? "residual" : i == 1 ? "g1" : "v" + to_string(i);
           DynamicOutput << "void dynamic_" << funcname << "_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T)" << endl
                         << "{" << endl
                         << tt_output[i].str()
                         << "}" << endl
                         << endl
-                        << "void dynamic_" << funcname << "(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, double *" << argname << ")" << endl
+                        << "void dynamic_" << funcname << "(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, ";
+          if (i == 0)
+            DynamicOutput << "double *residual";
+          else if (i == 1)
+            DynamicOutput << "double *g1";
+          else
+            DynamicOutput << "double *" << funcname << "_i, double *" << funcname << "_j, double *" << funcname << "_v";
+          DynamicOutput << ")" << endl
                         << "{" << endl;
           if (i == 0)
             DynamicOutput << "  double lhs, rhs;" << endl;
