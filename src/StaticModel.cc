@@ -1703,6 +1703,10 @@ StaticModel::writeStaticCFile(const string &basename) const
 
   output << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
          << "{" << endl
+         << "  if (nrhs > 3)" << endl
+         << R"(    mexErrMsgTxt("Accepts at most 3 output arguments");)" << endl
+         << "  if (nrhs != 3)" << endl
+         << R"(    mexErrMsgTxt("Requires exactly 3 input arguments");)" << endl
          << "  double *y = mxGetPr(prhs[0]);" << endl
          << "  double *x = mxGetPr(prhs[1]);" << endl
          << "  double *params = mxGetPr(prhs[2]);" << endl

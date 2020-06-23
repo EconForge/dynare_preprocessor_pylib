@@ -1444,8 +1444,10 @@ DynamicModel::writeDynamicCFile(const string &basename) const
 
   output << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
          << "{" << endl
-         << "  if (nlhs > " << computed_derivs_order + 1 << ")" << endl
+         << "  if (nlhs > " << min(computed_derivs_order + 1, 4) << ")" << endl
          << R"(    mexErrMsgTxt("Derivatives of higher order than computed have been requested");)" << endl
+         << "  if (nrhs != 5)" << endl
+         << R"(    mexErrMsgTxt("Requires exactly 5 input arguments");)" << endl
          << endl
          << "  double *y = mxGetPr(prhs[0]);" << endl
          << "  double *x = mxGetPr(prhs[1]);" << endl
@@ -1488,7 +1490,7 @@ DynamicModel::writeDynamicCFile(const string &basename) const
          << "      dynamic_g3(y, x, nb_row_x, params, steady_state, it_, T, v3);" << endl
          << "    }" << endl
          << endl
-         << "  free(T);"
+         << "  free(T);" << endl
          << "}" << endl;
 
   output.close();
