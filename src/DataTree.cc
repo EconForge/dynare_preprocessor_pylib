@@ -913,10 +913,7 @@ DataTree::writePowerDeriv(ostream &output) const
            << " */" << endl
            << "double getPowerDeriv(double x, double p, int k)" << endl
            << "{" << endl
-           << "#ifdef _MSC_VER" << endl
-           << "# define nearbyint(x) (fabs((x)-floor(x)) < fabs((x)-ceil(x)) ? floor(x) : ceil(x))" << endl
-           << "#endif" << endl
-           << "  if ( fabs(x) < " << near_zero << " && p > 0 && k > p && fabs(p-nearbyint(p)) < " << near_zero << " )" << endl
+           << "  if (fabs(x) < " << near_zero << " && p > 0 && k > p && fabs(p-nearbyint(p)) < " << near_zero << ')' << endl
            << "    return 0.0;" << endl
            << "  else" << endl
            << "    {" << endl
