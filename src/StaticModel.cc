@@ -1446,12 +1446,12 @@ StaticModel::writeStaticModel(const string &basename,
       for (size_t i = 0; i < d_output.size(); i++)
         {
           string funcname = i == 0 ? "resid" : "g" + to_string(i);
-          StaticOutput << "void static_" << funcname << "_tt(const double *y, const double *x, int nb_row_x, const double *params, double *T)" << endl
+          StaticOutput << "void static_" << funcname << "_tt(const double *y, const double *x, const double *params, double *T)" << endl
                        << "{" << endl
                        << tt_output[i].str()
                        << "}" << endl
                        << endl
-                       << "void static_" << funcname << "(const double *y, const double *x, int nb_row_x, const double *params, const double *T, ";
+                       << "void static_" << funcname << "(const double *y, const double *x, const double *params, const double *T, ";
           if (i == 0)
             StaticOutput << "double *residual";
           else if (i == 1)
@@ -1722,7 +1722,6 @@ StaticModel::writeStaticCFile(const string &basename) const
          << "  double *y = mxGetPr(prhs[0]);" << endl
          << "  double *x = mxGetPr(prhs[1]);" << endl
          << "  double *params = mxGetPr(prhs[2]);" << endl
-         << "  int nb_row_x = mxGetM(prhs[1]);" << endl
          << endl
          << "  double *T = (double *) malloc(sizeof(double)*" << ntt << ");" << endl
          << endl
@@ -1730,16 +1729,16 @@ StaticModel::writeStaticCFile(const string &basename) const
          << "    {" << endl
          << "      plhs[0] = mxCreateDoubleMatrix(" << equations.size() << ",1, mxREAL);" << endl
          << "      double *residual = mxGetPr(plhs[0]);" << endl
-         << "      static_resid_tt(y, x, nb_row_x, params, T);" << endl
-         << "      static_resid(y, x, nb_row_x, params, T, residual);" << endl
+         << "      static_resid_tt(y, x, params, T);" << endl
+         << "      static_resid(y, x, params, T, residual);" << endl
          << "    }" << endl
          << endl
          << "  if (nlhs >= 2)" << endl
          << "    {" << endl
          << "      plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << symbol_table.endo_nbr() << ", mxREAL);" << endl
          << "      double *g1 = mxGetPr(plhs[1]);" << endl
-         << "      static_g1_tt(y, x, nb_row_x, params, T);" << endl
-         << "      static_g1(y, x, nb_row_x, params, T, g1);" << endl
+         << "      static_g1_tt(y, x, params, T);" << endl
+         << "      static_g1(y, x, params, T, g1);" << endl
          << "    }" << endl
          << endl
          << "  if (nlhs >= 3)" << endl
@@ -1747,8 +1746,8 @@ StaticModel::writeStaticCFile(const string &basename) const
          << "      mxArray *g2_i = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 1 << ", mxREAL);" << endl
          << "      mxArray *g2_j = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 1 << ", mxREAL);" << endl
          << "      mxArray *g2_v = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 1 << ", mxREAL);" << endl
-         << "      static_g2_tt(y, x, nb_row_x, params, T);" << endl
-         << "      static_g2(y, x, nb_row_x, params, T, mxGetPr(g2_i), mxGetPr(g2_j), mxGetPr(g2_v));" << endl
+         << "      static_g2_tt(y, x, params, T);" << endl
+         << "      static_g2(y, x, params, T, mxGetPr(g2_i), mxGetPr(g2_j), mxGetPr(g2_v));" << endl
          << "      mxArray *m = mxCreateDoubleScalar(" << equations.size() << ");" << endl
          << "      mxArray *n = mxCreateDoubleScalar(" << symbol_table.endo_nbr()*symbol_table.endo_nbr() << ");" << endl
          << "      mxArray *plhs_sparse[1], *prhs_sparse[5] = { g2_i, g2_j, g2_v, m, n };" << endl
