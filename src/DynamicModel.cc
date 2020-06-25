@@ -683,11 +683,12 @@ DynamicModel::writeDynamicPerBlockCFiles(const string &basename) const
       output << "  }" << endl
              << endl;
 
+      // N.B.: In the following, it_ is decreased by 1, to follow C convention
       if (simulation_type == BlockSimulationType::evaluateBackward
           || simulation_type == BlockSimulationType::evaluateForward)
-        output << "  dynamic_" << blk+1 << "(mxGetPr(y), mxGetPr(x), nb_row_x, mxGetPr(params), mxGetPr(steady_state), mxGetPr(T), mxGetScalar(it_), mxGetScalar(stochastic_mode), g1_i ? mxGetPr(g1_i) : NULL, g1_j ? mxGetPr(g1_j) : NULL, g1_v ? mxGetPr(g1_v) : NULL, g1_x_i ? mxGetPr(g1_x_i) : NULL, g1_x_j ? mxGetPr(g1_x_j) : NULL, g1_x_v ? mxGetPr(g1_x_v) : NULL, g1_xd_i ? mxGetPr(g1_xd_i) : NULL, g1_xd_j ? mxGetPr(g1_xd_j) : NULL, g1_xd_v ? mxGetPr(g1_xd_v) : NULL, g1_o_i ? mxGetPr(g1_o_i) : NULL, g1_o_j ? mxGetPr(g1_o_j) : NULL, g1_o_v ? mxGetPr(g1_o_v) : NULL);" << endl;
+        output << "  dynamic_" << blk+1 << "(mxGetPr(y), mxGetPr(x), nb_row_x, mxGetPr(params), mxGetPr(steady_state), mxGetPr(T), mxGetScalar(it_)-1, mxGetScalar(stochastic_mode), g1_i ? mxGetPr(g1_i) : NULL, g1_j ? mxGetPr(g1_j) : NULL, g1_v ? mxGetPr(g1_v) : NULL, g1_x_i ? mxGetPr(g1_x_i) : NULL, g1_x_j ? mxGetPr(g1_x_j) : NULL, g1_x_v ? mxGetPr(g1_x_v) : NULL, g1_xd_i ? mxGetPr(g1_xd_i) : NULL, g1_xd_j ? mxGetPr(g1_xd_j) : NULL, g1_xd_v ? mxGetPr(g1_xd_v) : NULL, g1_o_i ? mxGetPr(g1_o_i) : NULL, g1_o_j ? mxGetPr(g1_o_j) : NULL, g1_o_v ? mxGetPr(g1_o_v) : NULL);" << endl;
       else
-        output << "  dynamic_" << blk+1 << "(mxGetPr(y), mxGetPr(x), nb_row_x, mxGetPr(params), mxGetPr(steady_state), mxGetPr(T), mxGetScalar(it_), mxGetScalar(stochastic_mode), mxGetPr(*residual), g1_i ? mxGetPr(g1_i) : NULL, g1_j ? mxGetPr(g1_j) : NULL, g1_v ? mxGetPr(g1_v) : NULL, g1_x_i ? mxGetPr(g1_x_i) : NULL, g1_x_j ? mxGetPr(g1_x_j) : NULL, g1_x_v ? mxGetPr(g1_x_v) : NULL, g1_xd_i ? mxGetPr(g1_xd_i) : NULL, g1_xd_j ? mxGetPr(g1_xd_j) : NULL, g1_xd_v ? mxGetPr(g1_xd_v) : NULL, g1_o_i ? mxGetPr(g1_o_i) : NULL, g1_o_j ? mxGetPr(g1_o_j) : NULL, g1_o_v ? mxGetPr(g1_o_v) : NULL);" << endl;
+        output << "  dynamic_" << blk+1 << "(mxGetPr(y), mxGetPr(x), nb_row_x, mxGetPr(params), mxGetPr(steady_state), mxGetPr(T), mxGetScalar(it_)-1, mxGetScalar(stochastic_mode), mxGetPr(*residual), g1_i ? mxGetPr(g1_i) : NULL, g1_j ? mxGetPr(g1_j) : NULL, g1_v ? mxGetPr(g1_v) : NULL, g1_x_i ? mxGetPr(g1_x_i) : NULL, g1_x_j ? mxGetPr(g1_x_j) : NULL, g1_x_v ? mxGetPr(g1_x_v) : NULL, g1_xd_i ? mxGetPr(g1_xd_i) : NULL, g1_xd_j ? mxGetPr(g1_xd_j) : NULL, g1_xd_v ? mxGetPr(g1_xd_v) : NULL, g1_o_i ? mxGetPr(g1_o_i) : NULL, g1_o_j ? mxGetPr(g1_o_j) : NULL, g1_o_v ? mxGetPr(g1_o_v) : NULL);" << endl;
 
       output << endl
              << "  if (mxGetScalar(stochastic_mode)) {" << endl
