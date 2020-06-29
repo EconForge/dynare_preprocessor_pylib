@@ -1061,6 +1061,48 @@ SymbolTable::writeJsonOutput(ostream &output) const
 
   output << R"(, "parameters": )";
   writeJsonVarVector(output, param_ids);
+
+  if (observedVariablesNbr() > 0)
+    {
+      output << R"(, "varobs": [)";
+      for (size_t i = 0; i < varobs.size(); i++)
+	{
+	  if (i != 0)
+	    output << ", ";
+	  output << R"(")" << getName(varobs[i]) << R"(")";
+	}
+      output << "]" << endl;
+      
+      output << R"(, "varobs_ids": [)";
+      for (size_t i = 0; i < varobs.size(); i++)
+	{
+	  if (i != 0)
+	    output << ", ";
+	  output << getTypeSpecificID(varobs[i])+1;
+	}
+      output << "]" << endl;
+    }
+
+  if (observedExogenousVariablesNbr() > 0)
+    {
+      output << R"(, "varexobs": [)";
+      for (size_t i = 0; i < varexobs.size(); i++)
+	{
+	  if (i != 0)
+	    output << ", ";
+	  output << R"(")" << getName(varexobs[i]) << R"(")";
+	}
+      output << "]" << endl;
+      
+      output << R"(, "varexobs_ids": [)";
+      for (size_t i = 0; i < varexobs.size(); i++)
+	{
+	  if (i != 0)
+	    output << ", ";
+	  output << getTypeSpecificID(varexobs[i])+1;
+	}
+      output << "]" << endl;
+    }
 }
 
 void
