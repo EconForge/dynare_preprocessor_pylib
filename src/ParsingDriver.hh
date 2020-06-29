@@ -597,6 +597,7 @@ public:
   //! Forecast Statement
   void forecast();
   void set_trends();
+  void set_deterministic_trends();
   void set_trend_element(string arg1, expr_t arg2);
   //! filter_initial_state block
   void set_filter_initial_state();

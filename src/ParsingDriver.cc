@@ -1873,10 +1873,10 @@ ParsingDriver::set_trends()
 }
 
 void
-ParsingDriver::set_filter_initial_state()
+ParsingDriver::set_deterministic_trends()
 {
-  mod_file->addStatement(make_unique<FilterInitialStateStatement>(filter_initial_state_elements, mod_file->symbol_table));
-  filter_initial_state_elements.clear();
+  mod_file->addStatement(make_unique<DeterministicTrendsStatement>(trend_elements, mod_file->symbol_table));
+  trend_elements.clear();
 }
 
 void
@@ -1886,6 +1886,13 @@ ParsingDriver::set_trend_element(string arg1, expr_t arg2)
   if (trend_elements.find(arg1) != trend_elements.end())
     error("observation_trends: " + arg1 + " declared twice");
   trend_elements[move(arg1)] = arg2;
+}
+
+void
+ParsingDriver::set_filter_initial_state()
+{
+  mod_file->addStatement(make_unique<FilterInitialStateStatement>(filter_initial_state_elements, mod_file->symbol_table));
+  filter_initial_state_elements.clear();
 }
 
 void

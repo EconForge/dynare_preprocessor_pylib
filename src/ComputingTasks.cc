@@ -1647,6 +1647,56 @@ EstimatedParamsBoundsStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
+DeterministicTrendsStatement::DeterministicTrendsStatement(trend_elements_t trend_elements_arg,
+                                                       const SymbolTable &symbol_table_arg) :
+  trend_elements{move(trend_elements_arg)},
+  symbol_table{symbol_table_arg}
+{
+}
+
+void
+DeterministicTrendsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << "options_.trend_coeff = {};" << endl;
+  for (const auto &trend_element : trend_elements)
+    {
+      SymbolType type = symbol_table.getType(trend_element.first);
+      if (type == SymbolType::endogenous)
+        {
+          output << "tmp1 = strmatch('" << trend_element.first << "',M_.endogenous_names,'exact');" << endl;
+          output << "options_.deterministic_trend_coeffs{tmp1} = '";
+          trend_element.second->writeOutput(output);
+          output << "';" << endl;
+        }
+      else
+        cerr << "Warning : Non-variable symbol used in deterministic_trends: " << trend_element.first << endl;
+    }
+}
+
+void
+DeterministicTrendsStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "deterministic_trends", )"
+         << R"("trends" : {)";
+  bool printed = false;
+  for (const auto &trend_element : trend_elements)
+    {
+      if (symbol_table.getType(trend_element.first) == SymbolType::endogenous)
+        {
+          if (printed)
+            output << ", ";
+          output << R"(")" << trend_element.first << R"(": ")";
+          trend_element.second->writeJsonOutput(output, {}, {});
+          output << R"(")" << endl;
+          printed = true;
+        }
+      else
+        cerr << "Warning : Non-variable symbol used in deterministic_trends: " << trend_element.first << endl;
+    }
+  output << "}"
+         << "}";
+}
+
 ObservationTrendsStatement::ObservationTrendsStatement(trend_elements_t trend_elements_arg,
                                                        const SymbolTable &symbol_table_arg) :
   trend_elements{move(trend_elements_arg)},

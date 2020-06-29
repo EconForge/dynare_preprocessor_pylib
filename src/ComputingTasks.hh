@@ -301,6 +301,20 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
+class DeterministicTrendsStatement : public Statement
+{
+public:
+  using trend_elements_t = map<string, expr_t>;
+private:
+  const trend_elements_t trend_elements;
+  const SymbolTable &symbol_table;
+public:
+  DeterministicTrendsStatement(trend_elements_t trend_elements_arg,
+                             const SymbolTable &symbol_table_arg);
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
+};
+
 class FilterInitialStateStatement : public Statement
 {
 public:
