@@ -2739,7 +2739,8 @@ ParsingDriver::pac_model()
         && (pac_steady_state_growth_rate_number >= 0 || pac_steady_state_growth_rate_symb_id >= 0))
       warning("If growth option is constant, steady_state_growth is ignored");
     else if (pac_growth && !pac_growth_is_param
-             && (pac_steady_state_growth_rate_number < 0 || pac_steady_state_growth_rate_symb_id < 0))
+             && pac_steady_state_growth_rate_number < 0
+             && pac_steady_state_growth_rate_symb_id < 0)
       error("The steady state growth rate of the target must be provided (steady_state_growth option) if option growth is not constant");
 
   if (pac_steady_state_growth_rate_symb_id >= 0
