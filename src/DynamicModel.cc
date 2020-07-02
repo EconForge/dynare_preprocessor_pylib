@@ -6123,13 +6123,31 @@ DynamicModel::writeJsonDynamicModelInfo(ostream &output) const
       output << "]";
     }
   output << "], "
-         << R"("nstatic": )" << nstatic << ", "
-         << R"("nfwrd": )" << nfwrd << ", "
-         << R"("npred": )" << npred << ", "
-         << R"("nboth": )" << nboth << ", "
-         << R"("nsfwrd": )" << nfwrd+nboth << ", "
-         << R"("nspred": )" << npred+nboth << ", "
-         << R"("ndynamic": )" << npred+nboth+nfwrd << endl;
+         << R"("nstatic": )" << nstatic << ", " << endl
+         << R"("nfwrd": )" << nfwrd << ", " << endl
+         << R"("npred": )" << npred << ", " << endl
+         << R"("nboth": )" << nboth << ", " << endl
+         << R"("nsfwrd": )" << nfwrd+nboth << ", " << endl
+         << R"("nspred": )" << npred+nboth << ", " << endl
+         << R"("ndynamic": )" << npred+nboth+nfwrd << ", " << endl
+         << R"("maximum_endo_lag": )" << max_endo_lag << ", " << endl
+         << R"("maximum_endo_lead": )" << max_endo_lead << ", " << endl
+         << R"("maximum_exo_lag": )" << max_exo_lag << ", " << endl
+         << R"("maximum_exo_lead": )" << max_exo_lead << ", " << endl
+         << R"("maximum_exo_det_lag": )" << max_exo_det_lag << ", " << endl
+         << R"("maximum_exo_det_lead": )" << max_exo_det_lead << ", " << endl
+         << R"("maximum_lag": )" << max_lag << ", " << endl
+         << R"("maximum_lead": )" << max_lead << ", " << endl
+         << R"("orig_maximum_endo_lag": )" << max_endo_lag_orig << "," << endl
+         << R"("orig_maximum_endo_lead": )" << max_endo_lead_orig << "," << endl
+         << R"("orig_maximum_exo_lag": )" << max_exo_lag_orig << "," << endl
+         << R"("orig_maximum_exo_lead": )" << max_exo_lead_orig << "," << endl
+         << R"("orig_maximum_exo_det_lag": )" << max_exo_det_lag_orig << "," << endl
+         << R"("orig_maximum_exo_det_lead": )" << max_exo_det_lead_orig << "," << endl
+         << R"("orig_maximum_lag": )" << max_lag_orig << "," << endl
+         << R"("orig_maximum_lead": )" << max_lead_orig << "," << endl
+         << R"("orig_maximum_lag_with_diffs_expanded": )" << max_lag_with_diffs_expanded_orig
+         << endl;
   output << "}";
 }
 
