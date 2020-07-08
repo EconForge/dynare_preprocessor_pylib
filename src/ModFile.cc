@@ -138,6 +138,7 @@ ModFile::checkPass(bool nostrict, bool stochastic)
     || mod_file_struct.discretionary_policy_present
     || mod_file_struct.calib_smoother_present
     || mod_file_struct.identification_present
+    || mod_file_struct.mom_estimation_present
     || mod_file_struct.sensitivity_present
     || stochastic;
 
@@ -619,6 +620,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       || mod_file_struct.discretionary_policy_present
       || mod_file_struct.calib_smoother_present
       || mod_file_struct.identification_present
+      || mod_file_struct.mom_estimation_present
       || mod_file_struct.sensitivity_present
       || stochastic)
     {
@@ -746,7 +748,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
           if (mod_file_struct.stoch_simul_present
               || mod_file_struct.estimation_present || mod_file_struct.osr_present
               || mod_file_struct.ramsey_model_present || mod_file_struct.identification_present
-              || mod_file_struct.calib_smoother_present)
+              || mod_file_struct.calib_smoother_present || mod_file_struct.mom_estimation_present)
             static_model.set_cutoff_to_zero();
 
           int derivsOrder = 1;
@@ -763,7 +765,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
           || mod_file_struct.stoch_simul_present
           || mod_file_struct.estimation_present || mod_file_struct.osr_present
           || mod_file_struct.ramsey_model_present || mod_file_struct.identification_present
-          || mod_file_struct.calib_smoother_present)
+          || mod_file_struct.calib_smoother_present || mod_file_struct.mom_estimation_present)
         {
           if (mod_file_struct.perfect_foresight_solver_present)
             dynamic_model.computingPass(true, 1, 0, global_eval_context, no_tmp_terms, block, use_dll, bytecode, linear_decomposition);
@@ -772,7 +774,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
               if (mod_file_struct.stoch_simul_present
                   || mod_file_struct.estimation_present || mod_file_struct.osr_present
                   || mod_file_struct.ramsey_model_present || mod_file_struct.identification_present
-                  || mod_file_struct.calib_smoother_present)
+                  || mod_file_struct.calib_smoother_present || mod_file_struct.mom_estimation_present)
                 dynamic_model.set_cutoff_to_zero();
               if (mod_file_struct.order_option < 1)
                 {

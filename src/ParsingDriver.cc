@@ -1457,6 +1457,19 @@ ParsingDriver::option_vec_str(string name_option, vector<string> opt)
 }
 
 void
+ParsingDriver::option_vec_cellstr(string name_option, vector<string> opt)
+{
+  if (options_list.vector_cellstr_options.find(name_option)
+      != options_list.vector_cellstr_options.end())
+    error("option " + name_option + " declared twice");
+
+  if (opt.empty())
+    error("option " + name_option + " was passed an empty vector.");
+
+  options_list.vector_cellstr_options[move(name_option)] = move(opt);
+}
+
+void
 ParsingDriver::linear()
 {
   mod_file->linear = true;
@@ -3367,17 +3380,9 @@ ParsingDriver::perfect_foresight_solver()
 }
 
 void
-ParsingDriver::gmm_estimation()
+ParsingDriver::method_of_moments()
 {
-  mod_file->addStatement(make_unique<GMMEstimationStatement>(symbol_list, options_list));
-  symbol_list.clear();
-  options_list.clear();
-}
-
-void
-ParsingDriver::smm_estimation()
-{
-  mod_file->addStatement(make_unique<SMMEstimationStatement>(symbol_list, options_list));
+  mod_file->addStatement(make_unique<MethodOfMomentsStatement>(symbol_list, options_list));
   symbol_list.clear();
   options_list.clear();
 }

@@ -94,7 +94,7 @@ class ParsingDriver;
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD IRF_CALIBRATION
 %token FAST_KALMAN_FILTER KALMAN_ALGO KALMAN_TOL DIFFUSE_KALMAN_TOL SUBSAMPLES OPTIONS TOLF TOLX PLOT_INIT_DATE PLOT_END_DATE
 %token LAPLACE LIK_ALGO LIK_INIT LINEAR LINEAR_DECOMPOSITION LOAD_IDENT_FILES LOAD_MH_FILE LOAD_RESULTS_AFTER_LOAD_MH LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV LINEAR_APPROXIMATION
-%token LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
+%token LYAPUNOV_COMPLEX_THRESHOLD LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_CONF_SIG MH_DROP MH_INIT_SCALE MH_JSCALE MH_TUNE_JSCALE MH_TUNE_GUESS MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
 %token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO CONTEMPORANEOUS_CORRELATION DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL RAFTERY_LEWIS_QRS RAFTERY_LEWIS_DIAGNOSTICS MCMC_JUMPING_COVARIANCE MOMENT_CALIBRATION
@@ -140,7 +140,7 @@ class ParsingDriver;
 %token VLISTLOG VLISTPER SPECTRAL_DENSITY INIT2SHOCKS
 %token RESTRICTION RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST
 %token DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR SPECIFICATION SIMS_ZHA
-%token <string> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX DIRICHLET DIAGONAL OPTIMAL
+%token <string> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX DIRICHLET DIAGONAL OPTIMAL GMM SMM
 %token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD WEIBULL WEIBULL_PDF
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
 %token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE FILTER_DECOMPOSITION SMOOTHED_STATE_UNCERTAINTY
@@ -157,15 +157,18 @@ class ParsingDriver;
 %token SHOCK_DRAWS FREE_PARAMETERS MEDIAN DATA_OBS_NBR NEIGHBORHOOD_WIDTH PVALUE_KS PVALUE_CORR
 %token FILTERED_PROBABILITIES REAL_TIME_SMOOTHED PRIOR_FUNCTION POSTERIOR_FUNCTION SAMPLING_DRAWS
 %token PROPOSAL_TYPE PROPOSAL_UPPER_BOUND PROPOSAL_LOWER_BOUND PROPOSAL_DRAWS USE_MEAN_CENTER
-%token ADAPTIVE_MH_DRAWS THINNING_FACTOR COEFFICIENTS_PRIOR_HYPERPARAMETERS SMM_ESTIMATION GMM_ESTIMATION
+%token ADAPTIVE_MH_DRAWS THINNING_FACTOR COEFFICIENTS_PRIOR_HYPERPARAMETERS
 %token CONVERGENCE_STARTING_VALUE CONVERGENCE_ENDING_VALUE CONVERGENCE_INCREMENT_VALUE
 %token MAX_ITERATIONS_STARTING_VALUE MAX_ITERATIONS_INCREMENT_VALUE MAX_BLOCK_ITERATIONS
 %token MAX_REPEATED_OPTIMIZATION_RUNS FUNCTION_CONVERGENCE_CRITERION SAVE_REALTIME
 %token PARAMETER_CONVERGENCE_CRITERION NUMBER_OF_LARGE_PERTURBATIONS NUMBER_OF_SMALL_PERTURBATIONS
 %token NUMBER_OF_POSTERIOR_DRAWS_AFTER_PERTURBATION MAX_NUMBER_OF_STAGES
 %token RANDOM_FUNCTION_CONVERGENCE_CRITERION RANDOM_PARAMETER_CONVERGENCE_CRITERION
-%token CENTERED_MOMENTS AUTOLAG RECURSIVE_ORDER_ESTIMATION BARTLETT_KERNEL_LAG WEIGHTING_MATRIX PENALIZED_ESTIMATOR VERBOSE
-%token SIMULATION_MULTIPLE SEED BOUNDED_SHOCK_SUPPORT EQTAGS STEADY_STATE_GROWTH
+/* Method of Moments */
+%token METHOD_OF_MOMENTS MOM_METHOD
+%token BARTLETT_KERNEL_LAG WEIGHTING_MATRIX WEIGHTING_MATRIX_SCALING_FACTOR PENALIZED_ESTIMATOR VERBOSE 
+%token SIMULATION_MULTIPLE MOM_SEED SEED BOUNDED_SHOCK_SUPPORT ADDITIONAL_OPTIMIZER_STEPS MOM_SE_TOLX SE_TOLX MOM_BURNIN BURNIN 
+%token EQTAGS STEADY_STATE_GROWTH
 %token ANALYTICAL_GIRF IRF_IN_PERCENT EMAS_GIRF EMAS_DROP EMAS_TOLF EMAS_MAX_ITER
 %token NO_IDENTIFICATION_STRENGTH NO_IDENTIFICATION_REDUCEDFORM NO_IDENTIFICATION_MOMENTS
 %token NO_IDENTIFICATION_MINIMAL NO_IDENTIFICATION_SPECTRUM NORMALIZE_JACOBIANS GRID_NBR
@@ -307,8 +310,7 @@ statement : parameters
           | perfect_foresight_solver
           | prior_function
           | posterior_function
-          | gmm_estimation
-          | smm_estimation
+          | method_of_moments
           | shock_groups
           | init2shocks
           | det_cond_forecast
@@ -1341,99 +1343,69 @@ perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_print
                                  ;
 
-gmm_smm_common_option : o_datafile
-                      | o_nobs
-                      | o_first_obs
-                      | o_optim
-                      | o_mode_file
-                      | o_mode_compute
-                      | o_prior_trunc
-                      | o_loglinear
-                      | o_logdata
-                      | o_relative_irf
-                      | o_irf
-                      | o_tex
-                      | o_xls_sheet
-                      | o_xls_range
-                      | o_solve_algo
-                      | o_plot_priors
-                      | o_aim_solver
-                      | o_selected_variables_only
-                      | o_irf_shocks
-                      | o_sylvester
-                      | o_sylvester_fixed_point_tol
-                      | o_lyapunov
-                      | o_lyapunov_fixed_point_tol
-                      | o_lyapunov_doubling_tol
-                      | o_dr
-                      | o_dr_cycle_reduction_tol
-                      | o_dr_logarithmic_reduction_tol
-                      | o_dr_logarithmic_reduction_maxiter
-                      | o_qz_zero_threshold
-                      | o_irf_plot_threshold
-                      | o_consider_all_endogenous
-                      | o_consider_only_observed
-                      | o_dirname
-                      | o_huge_number
-                      | o_silent_optimizer
-                      | o_nograph
-                      | o_nodisplay
-                      | o_graph_format
-                      | o_analytical_girf
-                      | o_irf_in_percent
-                      | o_emas_girf
-                      | o_emas_drop
-                      | o_emas_tolf
-                      | o_emas_max_iter
-                      | o_stderr_multiples
-                      | o_diagonal_only
-                      ;
+method_of_moments : METHOD_OF_MOMENTS ';'
+                    { driver.method_of_moments(); }
+                  | METHOD_OF_MOMENTS '(' method_of_moments_options_list ')' ';'
+                    { driver.method_of_moments(); }
+                  | METHOD_OF_MOMENTS '(' method_of_moments_options_list ')' symbol_list ';'
+                    { driver.method_of_moments(); }
 
-gmm_estimation : GMM_ESTIMATION '(' gmm_estimation_options_list ')' ';'
-                { driver.gmm_estimation(); }
-               | GMM_ESTIMATION '(' gmm_estimation_options_list ')' symbol_list ';'
-                { driver.gmm_estimation(); }
-               ;
+method_of_moments_options_list : method_of_moments_option COMMA method_of_moments_options_list
+                               | method_of_moments_option
+                               ;
 
-gmm_estimation_options_list : gmm_estimation_option COMMA gmm_estimation_options_list
-                            | gmm_estimation_option
-                            ;
-
-gmm_estimation_option : gmm_smm_common_option
-                       | o_gmm_order
-                       | o_gmm_centered_moments
-                       | o_gmm_autolag
-                       | o_gmm_recursive_order_estimation
-                       | o_gmm_bartlett_kernel_lag
-                       | o_gmm_weighting_matrix
-                       | o_gmm_penalized_estimator
-                       | o_gmm_verbose
-                       ;
-
-smm_estimation : SMM_ESTIMATION '(' smm_estimation_options_list ')' ';'
-                { driver.smm_estimation(); }
-               | SMM_ESTIMATION '(' smm_estimation_options_list ')' symbol_list ';'
-                { driver.smm_estimation(); }
-               ;
-
-smm_estimation_options_list : smm_estimation_option COMMA smm_estimation_options_list
-                            | smm_estimation_option
-                            ;
-
-smm_estimation_option : gmm_smm_common_option
-                       | o_smm_order
-                       | o_smm_centered_moments
-                       | o_smm_autolag
-                       | o_smm_recursive_order_estimation
-                       | o_smm_bartlett_kernel_lag
-                       | o_smm_weighting_matrix
-                       | o_smm_penalized_estimator
-                       | o_smm_verbose
-                       | o_smm_simulation_multiple
-                       | o_smm_drop
-                       | o_smm_seed
-                       | o_smm_bounded_shock_support
-                       ;
+method_of_moments_option : o_mom_method
+                         | o_datafile
+                         | o_bartlett_kernel_lag
+                         | o_order
+                         | o_penalized_estimator
+                         | o_pruning
+                         | o_verbose
+                         | o_weighting_matrix
+                         | o_weighting_matrix_scaling_factor
+                         | o_additional_optimizer_steps
+                         | o_prefilter
+                         | o_bounded_shock_support
+                         | o_mom_seed
+                         | o_simulation_multiple
+                         | o_mom_burnin
+                         | o_dirname
+                         | o_graph_format
+                         | o_nodisplay
+                         | o_nograph
+                         | o_noprint
+                         | o_plot_priors
+                         | o_prior_trunc
+                         | o_tex
+                         | o_first_obs
+                         | o_logdata
+                         | o_nobs
+                         | o_xls_sheet
+                         | o_xls_range
+                         | o_huge_number
+                         | o_mode_compute
+                         | o_optim
+                         | o_silent_optimizer
+                         | o_mom_se_tolx
+                         | o_aim_solver
+                         | o_dr
+                         | o_dr_cycle_reduction_tol
+                         | o_dr_logarithmic_reduction_tol
+                         | o_dr_logarithmic_reduction_maxiter
+                         | o_k_order_solver
+                         | o_lyapunov
+                         | o_lyapunov_complex_threshold
+                         | o_lyapunov_fixed_point_tol
+                         | o_lyapunov_doubling_tol
+                         | o_sylvester
+                         | o_sylvester_fixed_point_tol
+                         | o_qz_criterium
+                         | o_qz_zero_threshold
+                         | o_mode_check
+                         | o_mode_check_neighbourhood_size
+                         | o_mode_check_symmetric_plots
+                         | o_mode_check_number_of_points
+                         ;
 
 prior_function : PRIOR_FUNCTION '(' prior_posterior_function_options_list ')' ';'
                 { driver.prior_posterior_function(true); }
@@ -3444,6 +3416,7 @@ o_lyapunov : LYAPUNOV EQUAL FIXED_POINT {driver.option_num("lyapunov_fp", "true"
               | LYAPUNOV EQUAL DOUBLING {driver.option_num("lyapunov_db", "true"); }
               | LYAPUNOV EQUAL SQUARE_ROOT_SOLVER {driver.option_num("lyapunov_srs", "true"); }
               | LYAPUNOV EQUAL DEFAULT {driver.option_num("lyapunov_fp", "false"); driver.option_num("lyapunov_db", "false"); driver.option_num("lyapunov_srs", "false");};
+o_lyapunov_complex_threshold : LYAPUNOV_COMPLEX_THRESHOLD EQUAL non_negative_number {driver.option_num("lyapunov_complex_threshold",$3);};
 o_lyapunov_fixed_point_tol : LYAPUNOV_FIXED_POINT_TOL EQUAL non_negative_number {driver.option_num("lyapunov_fixed_point_tol",$3);};
 o_lyapunov_doubling_tol : LYAPUNOV_DOUBLING_TOL EQUAL non_negative_number {driver.option_num("lyapunov_doubling_tol",$3);};
 o_dr : DR EQUAL CYCLE_REDUCTION {driver.option_num("dr_cycle_reduction", "true"); }
@@ -3800,51 +3773,28 @@ o_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("plot_shock_decomp.use
 o_colormap : COLORMAP EQUAL symbol { driver.option_num("plot_shock_decomp.colormap",$3); };
 o_icd_colormap : COLORMAP EQUAL symbol { driver.option_num("initial_condition_decomp.colormap",$3); };
 
-o_gmm_order : ORDER EQUAL INT_NUMBER { driver.option_num("gmm.order", $3); };
-o_smm_order : ORDER EQUAL INT_NUMBER { driver.option_num("smm.order", $3); };
-o_gmm_centered_moments : CENTERED_MOMENTS { driver.option_num("gmm.centered_moments", "true"); };
-o_smm_centered_moments : CENTERED_MOMENTS { driver.option_num("smm.centered_moments", "true"); };
-o_gmm_autolag : AUTOLAG EQUAL vec_int
-                { driver.option_vec_int("gmm.autolag", $3); }
-              | AUTOLAG EQUAL vec_int_number
-                { driver.option_vec_int("gmm.autolag", $3); }
-              ;
-o_smm_autolag : AUTOLAG EQUAL vec_int
-                { driver.option_vec_int("smm.autolag", $3); }
-              | AUTOLAG EQUAL vec_int_number
-                { driver.option_vec_int("smm.autolag", $3); }
-              ;
-o_gmm_recursive_order_estimation : RECURSIVE_ORDER_ESTIMATION { driver.option_num("gmm.recursive_estimation", "true"); };
-o_smm_recursive_order_estimation : RECURSIVE_ORDER_ESTIMATION { driver.option_num("smm.recursive_estimation", "true"); };
-o_gmm_bartlett_kernel_lag : BARTLETT_KERNEL_LAG EQUAL INT_NUMBER { driver.option_num("gmm.qLag", $3); };
-o_smm_bartlett_kernel_lag : BARTLETT_KERNEL_LAG EQUAL INT_NUMBER { driver.option_num("smm.qLag", $3); };
-o_gmm_weighting_matrix : WEIGHTING_MATRIX EQUAL OPTIMAL
-                     { driver.option_str("gmm.weighting_matrix", $3); }
-                   | WEIGHTING_MATRIX EQUAL IDENTITY_MATRIX
-                     { driver.option_str("gmm.weighting_matrix", $3); }
-                   | WEIGHTING_MATRIX EQUAL DIAGONAL
-                     { driver.option_str("gmm.weighting_matrix", $3); }
-                   | WEIGHTING_MATRIX EQUAL filename
-                     { driver.option_str("gmm.weighting_matrix", $3); }
-                   ;
-o_smm_weighting_matrix : WEIGHTING_MATRIX EQUAL OPTIMAL
-                     { driver.option_str("smm.weighting_matrix", $3); }
-                   | WEIGHTING_MATRIX EQUAL IDENTITY_MATRIX
-                     { driver.option_str("smm.weighting_matrix", $3); }
-                   | WEIGHTING_MATRIX EQUAL DIAGONAL
-                     { driver.option_str("smm.weighting_matrix", $3); }
-                   | WEIGHTING_MATRIX EQUAL filename
-                     { driver.option_str("smm.weighting_matrix", $3); }
-                   ;
-o_gmm_penalized_estimator : PENALIZED_ESTIMATOR { driver.option_num("gmm.penalized_estimator", "true"); };
-o_smm_penalized_estimator : PENALIZED_ESTIMATOR { driver.option_num("smm.penalized_estimator", "true"); };
-o_gmm_verbose : VERBOSE { driver.option_num("gmm.verbose", "true"); };
-o_smm_verbose : VERBOSE { driver.option_num("smm.verbose", "true"); };
+// Some options to "method_of_moments"
+o_bartlett_kernel_lag : BARTLETT_KERNEL_LAG EQUAL INT_NUMBER { driver.option_num("mom.bartlett_kernel_lag", $3); };
 
-o_smm_simulation_multiple : SIMULATION_MULTIPLE EQUAL INT_NUMBER { driver.option_num("smm.simulation_multiple", $3); };
-o_smm_drop : DROP EQUAL INT_NUMBER { driver.option_num("smm.drop", $3); };
-o_smm_seed : SEED EQUAL INT_NUMBER { driver.option_num("smm.seed", $3); };
-o_smm_bounded_shock_support : BOUNDED_SHOCK_SUPPORT { driver.option_num("smm.bounded_support", "true"); };
+o_weighting_matrix : WEIGHTING_MATRIX EQUAL vec_str { driver.option_vec_cellstr("mom.weighting_matrix", $3); }
+
+o_weighting_matrix_scaling_factor : WEIGHTING_MATRIX_SCALING_FACTOR EQUAL non_negative_number { driver.option_num("mom.weighting_matrix_scaling_factor", $3); };
+
+o_mom_method : MOM_METHOD EQUAL GMM
+               { driver.option_str("mom.mom_method", $3); }
+             | MOM_METHOD EQUAL SMM
+               { driver.option_str("mom.mom_method", $3); }                    
+             ;
+o_penalized_estimator : PENALIZED_ESTIMATOR { driver.option_num("mom.penalized_estimator", "true"); };
+o_verbose : VERBOSE { driver.option_num("mom.verbose", "true"); };
+
+o_simulation_multiple : SIMULATION_MULTIPLE EQUAL INT_NUMBER { driver.option_num("mom.simulation_multiple", $3); };
+o_mom_burnin : BURNIN EQUAL INT_NUMBER { driver.option_num("mom.burnin", $3); };
+o_bounded_shock_support : BOUNDED_SHOCK_SUPPORT { driver.option_num("mom.bounded_shock_support", "true"); };
+o_mom_seed : SEED EQUAL INT_NUMBER { driver.option_num("mom.seed", $3); };
+o_additional_optimizer_steps : ADDITIONAL_OPTIMIZER_STEPS EQUAL vec_int { driver.option_vec_int("additional_optimizer_steps", $3); };
+
+o_mom_se_tolx : SE_TOLX EQUAL non_negative_number { driver.option_num("mom.se_tolx", $3); };
 
 o_analytical_girf : ANALYTICAL_GIRF { driver.option_num("irf_opt.analytical_GIRF", "true"); };
 o_irf_in_percent : IRF_IN_PERCENT { driver.option_num("irf_opt.percent", "true"); };
