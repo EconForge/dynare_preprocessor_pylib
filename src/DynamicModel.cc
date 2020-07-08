@@ -4095,9 +4095,11 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
         {
           int symb_id = symbol_table.addDiffAuxiliaryVar(diff_node_to_search->idx, diff_node_to_search);
           target_base_diff_node = AddVariable(symb_id);
-          addEquation(AddEqual(const_cast<VariableNode *>(target_base_diff_node),
-                               AddMinus(AddVariable(pac_target_symb_id),
-                                        AddVariable(pac_target_symb_id, -1))), -1);
+          auto neweq = AddEqual(const_cast<VariableNode *>(target_base_diff_node),
+                                AddMinus(AddVariable(pac_target_symb_id),
+                                         AddVariable(pac_target_symb_id, -1)));
+          addEquation(neweq, -1);
+          addAuxEquation(neweq);
           neqs++;
         }
 
@@ -4109,8 +4111,9 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
           int symb_id = symbol_table.addDiffLeadAuxiliaryVar(this_diff_node->idx, this_diff_node,
                                                              last_aux_var->symb_id, last_aux_var->lag);
           VariableNode *current_aux_var = AddVariable(symb_id);
-          addEquation(AddEqual(current_aux_var,
-                               AddVariable(last_aux_var->symb_id, 1)), -1);
+          auto neweq = AddEqual(current_aux_var, AddVariable(last_aux_var->symb_id, 1));
+          addEquation(neweq, -1);
+          addAuxEquation(neweq);
           last_aux_var = current_aux_var;
           target_aux_var_to_add[i] = current_aux_var;
         }
@@ -4136,8 +4139,10 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
             }
           fs = AddPlus(fs, AddTimes(ssum, target_aux_var_to_add[k]));
         }
-      addEquation(AddEqual(AddVariable(mce_z1_symb_id),
-                           AddMinus(AddTimes(A, AddMinus(const_cast<VariableNode *>(target_base_diff_node), fs)), fp)), -1);
+      auto neweq = AddEqual(AddVariable(mce_z1_symb_id),
+                            AddMinus(AddTimes(A, AddMinus(const_cast<VariableNode *>(target_base_diff_node), fs)), fp));
+      addEquation(neweq, -1);
+      addAuxEquation(neweq);
       neqs++;
       pac_expectation_substitution[{name, eqtag}] = AddVariable(mce_z1_symb_id);
     }
