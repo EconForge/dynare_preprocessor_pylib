@@ -4689,16 +4689,12 @@ void
 DynamicModel::writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const
 {
   deriv_node_temp_terms_t tef_terms;
-  temporary_terms_t temporary_terms;
-  temporary_terms_idxs_t temporary_terms_idxs;
   for (auto aux_eq : aux_equations)
-    if (auto aux_eq2 = dynamic_cast<ExprNode *>(aux_eq);
-        aux_eq2->containsExternalFunction())
-      aux_eq2->writeExternalFunctionOutput(output, output_type, temporary_terms,
-                                           temporary_terms_idxs, tef_terms);
+    if (aux_eq->containsExternalFunction())
+      aux_eq->writeExternalFunctionOutput(output, output_type, {}, {}, tef_terms);
   for (auto aux_eq : aux_equations)
     {
-      dynamic_cast<ExprNode *>(aux_eq)->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+      aux_eq->writeOutput(output, output_type, {}, {}, tef_terms);
       output << ";" << endl;
     }
 }
