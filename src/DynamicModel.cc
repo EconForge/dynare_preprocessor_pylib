@@ -4142,7 +4142,6 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
       auto neweq = AddEqual(AddVariable(mce_z1_symb_id),
                             AddMinus(AddTimes(A, AddMinus(const_cast<VariableNode *>(target_base_diff_node), fs)), fp));
       addEquation(neweq, -1);
-      addAuxEquation(neweq);
       neqs++;
       pac_expectation_substitution[{name, eqtag}] = AddVariable(mce_z1_symb_id);
     }
