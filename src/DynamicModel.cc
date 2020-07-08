@@ -5677,9 +5677,8 @@ DynamicModel::substituteUnaryOps(const vector<int> &eqnumbers)
   set<int> used_local_vars;
   for (int eqnumber : eqnumbers)
     equations[eqnumber]->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
-  for (auto &it : local_variables_table)
-    if (used_local_vars.find(it.first) != used_local_vars.end())
-      it.second->findUnaryOpNodesForAuxVarCreation(nodes);
+  for (int mlv : used_local_vars)
+    local_variables_table[mlv]->findUnaryOpNodesForAuxVarCreation(nodes);
 
   // Mark unary ops to be substituted in selected equations
   for (int eqnumber : eqnumbers)
@@ -5687,16 +5686,16 @@ DynamicModel::substituteUnaryOps(const vector<int> &eqnumbers)
 
   // Substitute in model local variables
   vector<BinaryOpNode *> neweqs;
-  for (auto &it : local_variables_table)
-    it.second = it.second->substituteUnaryOpNodes(nodes, subst_table, neweqs);
+  for (int mlv : used_local_vars)
+    local_variables_table[mlv] = local_variables_table[mlv]->substituteUnaryOpNodes(nodes, subst_table, neweqs);
 
   // Substitute in equations
-  for (auto &equation : equations)
+  for (int eq : eqnumbers)
     {
-      auto substeq = dynamic_cast<BinaryOpNode *>(equation->
+      auto substeq = dynamic_cast<BinaryOpNode *>(equations[eq]->
                                                   substituteUnaryOpNodes(nodes, subst_table, neweqs));
       assert(substeq);
-      equation = substeq;
+      equations[eq] = substeq;
     }
 
   // Add new equations

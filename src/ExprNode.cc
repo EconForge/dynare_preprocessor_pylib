@@ -3530,7 +3530,9 @@ UnaryOpNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_
     else
       subst_table[rit->second] = dynamic_cast<VariableNode *>(aux_var->decreaseLeadsLags(base_index - rit->first));
 
-  return const_cast<VariableNode *>(subst_table.find(this)->second);
+  assert(subst_table.find(this) != subst_table.end());
+
+  return const_cast<VariableNode *>(subst_table.at(this));
 }
 
 expr_t
