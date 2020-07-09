@@ -1089,6 +1089,7 @@ pound_expression: '#' symbol EQUAL hand_side ';'
 
 shocks : SHOCKS ';' shock_list END ';' { driver.end_shocks(false); }
        | SHOCKS '(' OVERWRITE ')' ';' shock_list END ';' { driver.end_shocks(true); }
+       | SHOCKS '(' OVERWRITE ')' ';'  END ';' { driver.end_shocks(true); }
        ;
 
 shock_list : shock_list shock_elem
