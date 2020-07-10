@@ -480,6 +480,9 @@ public:
   virtual int PacMaxLag(int lhs_symb_id) const = 0;
 
   //! Get the target variable of the PAC model
+  /* The algorithm is rather crude. For a BinaryOpNode, it inspects both
+     arguments. If one of the argument contains the (lagged) LHS, the first
+     variable that is not the (lagged) LHS is returned as the target */
   virtual int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const = 0;
 
   virtual expr_t undiff() const = 0;

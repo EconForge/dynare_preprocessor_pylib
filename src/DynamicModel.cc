@@ -3997,11 +3997,9 @@ DynamicModel::getPacTargetSymbId(const string &pac_model_name) const
   for (auto &equation : equations)
     if (equation->containsPacExpectation(pac_model_name))
       {
-        pair<int, int> lhs(-1, -1);
         set<pair<int, int>> lhss;
         equation->arg1->collectDynamicVariables(SymbolType::endogenous, lhss);
-        lhs = *lhss.begin();
-        int lhs_symb_id = lhs.first;
+        int lhs_symb_id = lhss.begin()->first;
         int lhs_orig_symb_id = lhs_symb_id;
         if (symbol_table.isAuxiliaryVariable(lhs_symb_id))
           try
@@ -4011,7 +4009,17 @@ DynamicModel::getPacTargetSymbId(const string &pac_model_name) const
           catch (...)
             {
             }
-        return equation->arg2->getPacTargetSymbId(lhs_symb_id, lhs_orig_symb_id);
+        auto barg2 = dynamic_cast<BinaryOpNode *>(equation->arg2);
+        assert(barg2);
+        auto [optim_share_index, optim_part, non_optim_part, additive_part]
+          = barg2->getPacOptimizingShareAndExprNodes(lhs_symb_id, lhs_orig_symb_id);
+        /* The algorithm for identifying the target is fragile. Hence, if there
+           is an optimization part, we restrict the search to that part to
+           avoid wrong results. */
+        if (optim_part)
+          return optim_part->getPacTargetSymbId(lhs_symb_id, lhs_orig_symb_id);
+        else
+          return equation->arg2->getPacTargetSymbId(lhs_symb_id, lhs_orig_symb_id);
       }
   return -1;
 }

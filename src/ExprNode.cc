@@ -4939,8 +4939,11 @@ BinaryOpNode::getPacTargetSymbIdHelper(int lhs_symb_id, int undiff_lhs_symb_id, 
     {
       int id = datatree.symbol_table.getUltimateOrigSymbID(it.first);
       if (id == lhs_symb_id || id == undiff_lhs_symb_id)
-        found_lagged_lhs = true;
+        found_lagged_lhs = true; // This expression contains the (lagged) LHS
       if (id != lhs_symb_id && id != undiff_lhs_symb_id)
+        /* The first variable that is not the (lagged) LHS is a
+           candidate for the target. FIXME: What happens if there are several
+           such variables? The detection order is not meaningful… */
         if (target_symb_id < 0)
           target_symb_id = it.first;
     }
