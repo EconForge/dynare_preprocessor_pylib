@@ -78,6 +78,8 @@ public:
   bool partial_information{false};
   //! Whether the "k_order_solver" option is used (explictly, or implicitly if order >= 3)
   bool k_order_solver{false};
+  //! Whether an method_of_moments statement is present
+  bool mom_estimation_present{false};
   //! Whether there is a calibrated measurement error
   bool calibrated_measurement_errors{false};
   //! Whether dsge_prior_weight was initialized as a parameter
@@ -197,6 +199,7 @@ public:
   using symbol_list_options_t = map<string, SymbolList>;
   using vec_int_options_t = map<string, vector<int>>;
   using vec_str_options_t = map<string, vector<string >>;
+  using vec_cellstr_options_t = map<string, vector<string >>;
   num_options_t num_options;
   paired_num_options_t paired_num_options;
   string_options_t string_options;
@@ -204,6 +207,7 @@ public:
   symbol_list_options_t symbol_list_options;
   vec_int_options_t vector_int_options;
   vec_str_options_t vector_str_options;
+  vec_cellstr_options_t vector_cellstr_options;
   int getNumberOfOptions() const;
   void writeOutput(ostream &output) const;
   void writeOutput(ostream &output, const string &option_group) const;

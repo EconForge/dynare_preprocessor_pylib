@@ -135,6 +135,20 @@ OptionsList::writeOutput(ostream &output) const
       else
         output << vals.front() << ";" << endl;
     }
+  
+  /* vector_cellstr_options should ideally be merged into vector_str_options
+     only difference is treatment of vals.size==1, where vector_str_options
+     does not add quotes and curly brackets, i.e. allows for type conversion of
+     '2' into the number 2 
+  */
+ 
+  for (const auto & [name, vals] : vector_cellstr_options)
+    {
+      output << "options_." << name << " = {";
+      for (const auto &viit : vals)
+        output << "'" << viit << "';";
+      output << "};" << endl;
+    }
 }
 
 void
@@ -194,6 +208,14 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
       else
         output << vals.front() << ";" << endl;
     }
+
+  for (const auto & [name, vals] : vector_cellstr_options)
+    {
+      output << option_group << "." << name << " = {";
+      for (const auto &viit : vals)
+        output << "'" << viit << "';";
+      output << "};" << endl;
+    }
 }
 
 void
@@ -213,7 +235,9 @@ OptionsList::writeJsonOutput(ostream &output) const
                && string_options.empty()
                && date_options.empty()
                && symbol_list_options.empty()
-               && vector_int_options.empty()))
+               && vector_int_options.empty()
+               && vector_str_options.empty()
+               && vector_cellstr_options.empty()))
         output << ", ";
     }
 
@@ -226,7 +250,9 @@ OptionsList::writeJsonOutput(ostream &output) const
           || !(string_options.empty()
                && date_options.empty()
                && symbol_list_options.empty()
-               && vector_int_options.empty()))
+               && vector_int_options.empty()
+               && vector_str_options.empty()
+               && vector_cellstr_options.empty()))
         output << ", ";
     }
 
@@ -238,7 +264,9 @@ OptionsList::writeJsonOutput(ostream &output) const
       if (it != string_options.end()
           || !(date_options.empty()
                && symbol_list_options.empty()
-               && vector_int_options.empty()))
+               && vector_int_options.empty()
+               && vector_str_options.empty()
+               && vector_cellstr_options.empty()))
         output << ", ";
     }
 
@@ -249,7 +277,9 @@ OptionsList::writeJsonOutput(ostream &output) const
       ++it;
       if (it != date_options.end()
           || !(symbol_list_options.empty()
-               && vector_int_options.empty()))
+               && vector_int_options.empty()
+               && vector_str_options.empty()
+               && vector_cellstr_options.empty()))
         output << ", ";
     }
 
@@ -261,7 +291,9 @@ OptionsList::writeJsonOutput(ostream &output) const
       output << "}";
       ++it;
       if (it != symbol_list_options.end()
-          || !vector_int_options.empty())
+          || !(vector_int_options.empty()
+               && vector_str_options.empty()
+               && vector_cellstr_options.empty()))
         output << ", ";
     }
 
@@ -276,7 +308,9 @@ OptionsList::writeJsonOutput(ostream &output) const
             {
               output << *viit;
               ++viit;
-              if (viit != it->second.end())
+              if (viit != it->second.end()
+                  || !(vector_str_options.empty()
+                       && vector_cellstr_options.empty()))
                 output << ", ";
             }
         }
@@ -284,7 +318,9 @@ OptionsList::writeJsonOutput(ostream &output) const
         output << it->second.front() << endl;
       output << "]";
       ++it;
-      if (it != vector_int_options.end())
+      if (it != vector_int_options.end()
+          || !(vector_str_options.empty()
+               && vector_cellstr_options.empty()))
         output << ", ";
     }
 
@@ -299,7 +335,8 @@ OptionsList::writeJsonOutput(ostream &output) const
             {
               output << R"(")" << *viit << R"(")";
               ++viit;
-              if (viit != it->second.end())
+              if (viit != it->second.end()
+                  || !(vector_cellstr_options.empty()))
                 output << ", ";
             }
         }
@@ -307,7 +344,26 @@ OptionsList::writeJsonOutput(ostream &output) const
         output << it->second.front() << endl;
       output << "]";
       ++it;
-      if (it != vector_str_options.end())
+      if (it != vector_str_options.end()
+          || !(vector_cellstr_options.empty()))
+        output << ", ";
+    }
+
+  for (auto it = vector_cellstr_options.begin();
+       it != vector_cellstr_options.end();)
+    {
+      output << R"(")"<< it->first << R"(": [)";
+        for (auto viit = it->second.begin();
+             viit != it->second.end();)
+          {
+            output << R"(")" << *viit << R"(")";
+            ++viit;
+            if (viit != it->second.end())
+              output << ", ";
+          }
+      output << "]";
+      ++it;
+      if (it != vector_cellstr_options.end())
         output << ", ";
     }
 
@@ -324,6 +380,7 @@ OptionsList::clear()
   symbol_list_options.clear();
   vector_int_options.clear();
   vector_str_options.clear();
+  vector_cellstr_options.clear();
 }
 
 int
@@ -335,5 +392,6 @@ OptionsList::getNumberOfOptions() const
     + date_options.size()
     + symbol_list_options.size()
     + vector_int_options.size()
-    + vector_str_options.size();
+    + vector_str_options.size()
+    + vector_cellstr_options.size();
 }

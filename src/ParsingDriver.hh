@@ -506,6 +506,8 @@ public:
   void option_vec_int(string name_option, vector<int> opt);
   //! Sets an option to a vector of strings
   void option_vec_str(string name_option, vector<string> opt);
+  //! Sets an option to a celll array of strings
+  void option_vec_cellstr(string name_option, vector<string> opt);
   //! Indicates that the model is linear
   void linear();
   //! Adds a variable to temporary symbol list
@@ -907,10 +909,8 @@ public:
   void add_VAR_covariance_pair_restriction(const string &name11, const string &name12, const string &name21, const string &name22);
   //! Runs VAR estimation process
   void run_var_estimation();
-  //! GMM Estimation statement
-  void gmm_estimation();
-  //! SMM Estimation statement
-  void smm_estimation();
+  //! Method of Moments estimation statement
+  void method_of_moments();
   //! Add a var_expectation_model statement
   void var_expectation_model();
 };

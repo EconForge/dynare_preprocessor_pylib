@@ -173,8 +173,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>ms_variance_decomposition {BEGIN DYNARE_STATEMENT; return token::MS_VARIANCE_DECOMPOSITION;}
 <INITIAL>conditional_forecast {BEGIN DYNARE_STATEMENT; return token::CONDITIONAL_FORECAST;}
 <INITIAL>plot_conditional_forecast {BEGIN DYNARE_STATEMENT; return token::PLOT_CONDITIONAL_FORECAST;}
-<INITIAL>gmm_estimation {BEGIN DYNARE_STATEMENT; return token::GMM_ESTIMATION;}
-<INITIAL>smm_estimation {BEGIN DYNARE_STATEMENT; return token::SMM_ESTIMATION;}
+<INITIAL>method_of_moments {BEGIN DYNARE_STATEMENT; return token::METHOD_OF_MOMENTS;}
 
 <INITIAL>markov_switching {BEGIN DYNARE_STATEMENT; return token::MARKOV_SWITCHING;}
 <INITIAL>svar {BEGIN DYNARE_STATEMENT; return token::SVAR;}
@@ -670,9 +669,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>silent_optimizer {return token::SILENT_OPTIMIZER;}
 <DYNARE_STATEMENT>lmmcp {return token::LMMCP;}
 <DYNARE_STATEMENT>occbin {return token::OCCBIN;}
-<DYNARE_STATEMENT>centered_moments {return token::CENTERED_MOMENTS; }
-<DYNARE_STATEMENT>autolag {return token::AUTOLAG; }
-<DYNARE_STATEMENT>recursive_order_estimation {return token::RECURSIVE_ORDER_ESTIMATION; }
+<DYNARE_STATEMENT>additional_optimizer_steps	{return token::ADDITIONAL_OPTIMIZER_STEPS;}
 <DYNARE_STATEMENT>bartlett_kernel_lag {return token::BARTLETT_KERNEL_LAG; }
 <DYNARE_STATEMENT>optimal {
   yylval->build<string>(yytext);
@@ -682,11 +679,23 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
   yylval->build<string>(yytext);
   return token::DIAGONAL;
 }
+<DYNARE_STATEMENT>gmm  {
+  yylval->build<string>(yytext);
+  return token::GMM;
+}
+<DYNARE_STATEMENT>smm  {
+  yylval->build<string>(yytext);
+  return token::SMM;
+}
 <DYNARE_STATEMENT>weighting_matrix {return token::WEIGHTING_MATRIX; }
+<DYNARE_STATEMENT>weighting_matrix_scaling_factor {return token::WEIGHTING_MATRIX_SCALING_FACTOR; }
+<DYNARE_STATEMENT>mom_method {return token::MOM_METHOD; }
 <DYNARE_STATEMENT>penalized_estimator {return token::PENALIZED_ESTIMATOR; }
 <DYNARE_STATEMENT>verbose {return token::VERBOSE; }
 <DYNARE_STATEMENT>simulation_multiple {return token::SIMULATION_MULTIPLE; }
+<DYNARE_STATEMENT>burnin {return token::BURNIN; }
 <DYNARE_STATEMENT>seed {return token::SEED; }
+<DYNARE_STATEMENT>se_tolx {return token::SE_TOLX;}
 <DYNARE_STATEMENT>bounded_shock_support {return token::BOUNDED_SHOCK_SUPPORT; }
 <DYNARE_STATEMENT>analytical_girf {return token::ANALYTICAL_GIRF; }
 <DYNARE_STATEMENT>irf_in_percent {return token::IRF_IN_PERCENT; }
@@ -755,6 +764,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
   return token::DR;
  }
 <DYNARE_STATEMENT>sylvester_fixed_point_tol {return token::SYLVESTER_FIXED_POINT_TOL;}
+<DYNARE_STATEMENT>lyapunov_complex_threshold {return token::LYAPUNOV_COMPLEX_THRESHOLD;}
 <DYNARE_STATEMENT>lyapunov_fixed_point_tol {return token::LYAPUNOV_FIXED_POINT_TOL;}
 <DYNARE_STATEMENT>lyapunov_doubling_tol {return token::LYAPUNOV_DOUBLING_TOL;}
 <DYNARE_STATEMENT>dr_cycle_reduction_tol {return token::DR_CYCLE_REDUCTION_TOL;}

@@ -4883,15 +4883,15 @@ Smoother2histvalStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-GMMEstimationStatement::GMMEstimationStatement(SymbolList symbol_list_arg,
-                                               OptionsList options_list_arg) :
+MethodOfMomentsStatement::MethodOfMomentsStatement(SymbolList symbol_list_arg,
+                                                     OptionsList options_list_arg) :
   symbol_list{move(symbol_list_arg)},
   options_list{move(options_list_arg)}
 {
 }
 
 void
-GMMEstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+MethodOfMomentsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   try
     {
@@ -4899,24 +4899,48 @@ GMMEstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningCons
     }
   catch (SymbolList::SymbolListException &e)
     {
-      cerr << "ERROR: gmm_estimation: " << e.message << endl;
+      cerr << "ERROR: method_of_moments: " << e.message << endl;
+      exit(EXIT_FAILURE);
+    }
+  mod_file_struct.mom_estimation_present = true;
+  // Fill in option_order of mod_file_struct
+  if (auto it = options_list.num_options.find("order");
+      it != options_list.num_options.end())
+    {
+      int order = stoi(it->second);
+
+      if (order > 2)
+        mod_file_struct.k_order_solver = true;
+
+      mod_file_struct.order_option = max(mod_file_struct.order_option, order);
+    }
+
+    if (options_list.string_options.find("datafile") == options_list.string_options.end())
+    {
+      cerr << "ERROR: The method_of_moments statement requires a data file to be supplied via the datafile option." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+    if (options_list.string_options.find("mom.mom_method") == options_list.string_options.end())
+    {
+      cerr << "ERROR: The method_of_moments statement requires a method to be supplied via the mom_method option. Possible values are GMM or SMM." << endl;
       exit(EXIT_FAILURE);
     }
 }
 
 void
-GMMEstimationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+MethodOfMomentsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
-  options_list.writeOutput(output);
-  output << "[M_, oo_, estim_params_, bayestopt_, dataset_, dataset_info] = "
-         << "GMM_SMM_estimation_core(var_list_, M_, options_, oo_, estim_params_, bayestopt_, dataset_, dataset_info, 'GMM');" << endl;
+  options_list.writeOutput(output, "options_mom_");
+
+  output << "[oo_, options_mom_, M_] = method_of_moments(bayestopt_, options_, oo_, estim_params_, M_, matched_moments_, options_mom_);" << endl;  
 }
 
 void
-GMMEstimationStatement::writeJsonOutput(ostream &output) const
+MethodOfMomentsStatement::writeJsonOutput(ostream &output) const
 {
-  output << R"({"statementName": "gmm_estimation")";
+  output << R"({"statementName": "method_of_moments")";
   if (options_list.getNumberOfOptions())
     {
       output << ", ";
@@ -4930,52 +4954,6 @@ GMMEstimationStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-SMMEstimationStatement::SMMEstimationStatement(SymbolList symbol_list_arg,
-                                               OptionsList options_list_arg) :
-  symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)}
-{
-}
-
-void
-SMMEstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
-{
-  try
-    {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous });
-    }
-  catch (SymbolList::SymbolListException &e)
-    {
-      cerr << "ERROR: smm_estimation: " << e.message << endl;
-      exit(EXIT_FAILURE);
-    }
-}
-
-void
-SMMEstimationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
-{
-  symbol_list.writeOutput("var_list_", output);
-  options_list.writeOutput(output);
-  output << "[M_, oo_, estim_params_, bayestopt_, dataset_, dataset_info] = "
-         << "GMM_SMM_estimation_core(var_list_, M_, options_, oo_, estim_params_, bayestopt_, dataset_, dataset_info, 'SMM');" << endl;
-}
-
-void
-SMMEstimationStatement::writeJsonOutput(ostream &output) const
-{
-  output << R"({"statementName": "smm_estimation")";
-  if (options_list.getNumberOfOptions())
-    {
-      output << ", ";
-      options_list.writeJsonOutput(output);
-    }
-  if (!symbol_list.empty())
-    {
-      output << ", ";
-      symbol_list.writeJsonOutput(output);
-    }
-  output << "}";
-}
 
 GenerateIRFsStatement::GenerateIRFsStatement(OptionsList options_list_arg,
                                              vector<string> generate_irf_names_arg,
