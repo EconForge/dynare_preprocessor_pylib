@@ -1219,19 +1219,21 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       exit(EXIT_FAILURE);
     }
 
-  if (options_list.num_options.find("mh_tune_jscale.target") != options_list.num_options.end()
-      && options_list.num_options.find("mh_jscale") != options_list.num_options.end())
+  if (auto it = options_list.num_options.find("mh_tune_jscale.status"); 
+      it != options_list.num_options.end() && it->second == "true")
     {
-      cerr << "ERROR: The mh_tune_jscale and mh_jscale options of the estimation statement are incompatible." << endl;
-      exit(EXIT_FAILURE);
+      if (options_list.num_options.find("mh_jscale") != options_list.num_options.end())      
+      {
+        cerr << "ERROR: The mh_tune_jscale and mh_jscale options of the estimation statement are incompatible." << endl;
+        exit(EXIT_FAILURE);
+      }
     }
-
-  if (options_list.num_options.find("mh_tune_jscale.guess") != options_list.num_options.end()
-      && options_list.num_options.find("mh_tune_jscale.target") == options_list.num_options.end())
+  else if (options_list.num_options.find("mh_tune_jscale.guess") != options_list.num_options.end())
     {
       cerr << "ERROR: The option mh_tune_guess in estimation statement cannot be used without option mh_tune_jscale." << endl;
       exit(EXIT_FAILURE);
     }
+    
 
   /* Check that we are not trying to estimate a parameter appearing in the
      planner discount factor (see dynare#1173) */
