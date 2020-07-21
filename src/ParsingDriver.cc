@@ -1491,6 +1491,10 @@ ParsingDriver::rplot()
 void
 ParsingDriver::stoch_simul()
 {
+  //make sure default order is known to preprocessor, see #49
+  if (options_list.num_options.find("order") == options_list.num_options.end())
+    options_list.num_options["order"] = "2";
+
   mod_file->addStatement(make_unique<StochSimulStatement>(symbol_list, options_list));
   symbol_list.clear();
   options_list.clear();
