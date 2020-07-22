@@ -4154,7 +4154,7 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
       neqs++;
       pac_expectation_substitution[{name, eqtag}] = AddVariable(mce_z1_symb_id);
     }
-  cout << "Pac Model Consistent Expectation: added " << neqs << " auxiliary variables and equations." << endl;
+  cout << "Pac Model Consistent Expectation: added " << neqs << " auxiliary variables and equations for model " << name << "." << endl;
 }
 
 void
