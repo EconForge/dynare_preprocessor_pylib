@@ -3884,7 +3884,7 @@ DynamicModel::walkPacParameters(const string &name)
       set<pair<int, pair<int, int>>> ar_params_and_vars;
       vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants, optim_additive_vars_params_and_constants, additive_vars_params_and_constants;
 
-      if (equation->containsPacExpectation())
+      if (equation->containsPacExpectation(name))
         {
           set<pair<int, int>> lhss;
           equation->arg1->collectDynamicVariables(SymbolType::endogenous, lhss);
@@ -4029,7 +4029,7 @@ DynamicModel::declarePacModelConsistentExpectationEndogs(const string &name)
 {
   int i = 0;
   for (auto &equation : equations)
-    if (equation->containsPacExpectation())
+    if (equation->containsPacExpectation(name))
       {
         if (!equation_tags.exists(&equation - &equations[0], "name"))
           {
@@ -4060,6 +4060,7 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
   int neqs = 0;
   for (auto &it : eqtag_and_lag)
     {
+      assert(it.first.first == name);
       string eqtag = it.first.second;
       string standard_eqtag = it.second.first;
       int pac_max_lag_m = it.second.second + 1;
