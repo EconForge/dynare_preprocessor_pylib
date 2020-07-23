@@ -1632,12 +1632,15 @@ ModelTree::includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_
 
   // Get equation numbers of tags
   set<int> tag_eqns;
-  for (auto &it : eqs)
-    if (auto tmp = equation_tags.getEqnsByTag(it.first, it.second); !tmp.empty())
+  for (auto it = eqs.begin(); it != eqs.end();)
+    if (auto tmp = equation_tags.getEqnsByTag(it->first, it->second);
+        !tmp.empty())
       {
         tag_eqns.insert(tmp.begin(), tmp.end());
-        eqs.erase(it);
+        it = eqs.erase(it);
       }
+    else
+      ++it;
 
   if (tag_eqns.empty())
     return excluded_vars;
@@ -1658,8 +1661,9 @@ ModelTree::includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_
     if (eqns.find(i) != eqns.end())
       {
         if (auto tmp = equation_tags.getTagValueByEqnAndKey(i, "endogenous"); !tmp.empty())
+          excluded_vars.push_back(symbol_table.getID(tmp));
+        else
           {
-            excluded_vars.push_back(symbol_table.getID(tmp));
             set<pair<int, int>> result;
             equations[i]->arg1->collectDynamicVariables(SymbolType::endogenous, result);
             if (result.size() == 1)
