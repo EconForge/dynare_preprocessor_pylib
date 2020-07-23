@@ -508,6 +508,16 @@ public:
   //! Return max lag of pac equation
   void getPacMaxLag(const string &pac_model_name, map<pair<string, string>, pair<string, int>> &eqtag_and_lag) const;
 
+  // Exception thrown by getPacTargetSymbId()
+  class PacTargetNotIdentifiedException
+  {
+  public:
+    const string model_name, message;
+    PacTargetNotIdentifiedException(string model_name_arg, string message_arg) : model_name{move(model_name_arg)}, message{move(message_arg)}
+    {
+    }
+  };
+
   //! Return target of the pac equation
   int getPacTargetSymbId(const string &pac_model_name) const;
 

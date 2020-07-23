@@ -573,12 +573,6 @@ NumConstNode::PacMaxLag(int lhs_symb_id) const
   return 0;
 }
 
-int
-NumConstNode::getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const
-{
-  return -1;
-}
-
 expr_t
 NumConstNode::decreaseLeadsLags(int n) const
 {
@@ -1559,12 +1553,6 @@ VariableNode::PacMaxLag(int lhs_symb_id) const
   if (lhs_symb_id == symb_id)
     return -lag;
   return 0;
-}
-
-int
-VariableNode::getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const
-{
-  return -1;
 }
 
 expr_t
@@ -3212,12 +3200,6 @@ UnaryOpNode::PacMaxLag(int lhs_symb_id) const
 {
   //This will never be an UnaryOpcode::diff node
   return arg->PacMaxLag(lhs_symb_id);
-}
-
-int
-UnaryOpNode::getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const
-{
-  return arg->getPacTargetSymbId(lhs_symb_id, undiff_lhs_symb_id);
 }
 
 expr_t
@@ -4930,50 +4912,6 @@ BinaryOpNode::PacMaxLag(int lhs_symb_id) const
   return max(arg1->PacMaxLag(lhs_symb_id), arg2->PacMaxLag(lhs_symb_id));
 }
 
-int
-BinaryOpNode::getPacTargetSymbIdHelper(int lhs_symb_id, int undiff_lhs_symb_id, const set<pair<int, int>> &endogs) const
-{
-  int target_symb_id = -1;
-  bool found_lagged_lhs = false;
-  for (auto &it : endogs)
-    {
-      int id = datatree.symbol_table.getUltimateOrigSymbID(it.first);
-      if (id == lhs_symb_id || id == undiff_lhs_symb_id)
-        found_lagged_lhs = true; // This expression contains the (lagged) LHS
-      if (id != lhs_symb_id && id != undiff_lhs_symb_id)
-        /* The first variable that is not the (lagged) LHS is a
-           candidate for the target. FIXME: What happens if there are several
-           such variables? The detection order is not meaningful… */
-        if (target_symb_id < 0)
-          target_symb_id = it.first;
-    }
-  if (!found_lagged_lhs)
-    target_symb_id = -1;
-  return target_symb_id;
-}
-
-int
-BinaryOpNode::getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const
-{
-  set<pair<int, int>> endogs;
-  arg1->collectDynamicVariables(SymbolType::endogenous, endogs);
-  int target_symb_id = getPacTargetSymbIdHelper(lhs_symb_id, undiff_lhs_symb_id, endogs);
-  if (target_symb_id >= 0)
-    return target_symb_id;
-
-  endogs.clear();
-  arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
-  target_symb_id = getPacTargetSymbIdHelper(lhs_symb_id, undiff_lhs_symb_id, endogs);
-
-  if (target_symb_id < 0)
-    {
-      cerr << "Error finding target variable in PAC equation" << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  return target_symb_id;
-}
-
 expr_t
 BinaryOpNode::decreaseLeadsLags(int n) const
 {
@@ -5290,80 +5228,28 @@ BinaryOpNode::findTargetVariable(int lhs_symb_id) const
   return retval;
 }
 
-pair<int, vector<tuple<int, bool, int>>>
-BinaryOpNode::getPacEC(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id) const
-{
-  pair<int, vector<tuple<int, bool, int>>> ec_params_and_vars = {-1, vector<tuple<int, bool, int>>()};
-  int optim_param_symb_id = -1;
-  expr_t optim_part = nullptr;
-  set<pair<int, int>> endogs;
-  bopn->collectDynamicVariables(SymbolType::endogenous, endogs);
-  int target_symb_id = getPacTargetSymbIdHelper(lhs_symb_id, lhs_orig_symb_id, endogs);
-  if (target_symb_id >= 0 && bopn->isParamTimesEndogExpr())
-    {
-      optim_part = bopn->arg2;
-      auto vn = dynamic_cast<VariableNode *>(bopn->arg1);
-      if (!vn || datatree.symbol_table.getType(vn->symb_id) != SymbolType::parameter)
-        {
-          optim_part = bopn->arg1;
-          vn = dynamic_cast<VariableNode *>(bopn->arg2);
-        }
-      if (!vn || datatree.symbol_table.getType(vn->symb_id) != SymbolType::parameter)
-        return ec_params_and_vars;
-      optim_param_symb_id = vn->symb_id;
-    }
-  if (optim_param_symb_id >= 0)
-    {
-      endogs.clear();
-      optim_part->collectDynamicVariables(SymbolType::endogenous, endogs);
-      optim_part->collectDynamicVariables(SymbolType::exogenous, endogs);
-      if (endogs.size() != 2)
-        {
-          cerr << "Error getting EC part of PAC equation" << endl;
-          exit(EXIT_FAILURE);
-        }
-      vector<pair<expr_t, int>> terms;
-      vector<tuple<int, bool, int>> ordered_symb_ids;
-      optim_part->decomposeAdditiveTerms(terms, 1);
-      for (const auto &it : terms)
-        {
-          int scale = it.second;
-          auto vn = dynamic_cast<VariableNode *>(it.first);
-          if (!vn
-              || !(datatree.symbol_table.getType(vn->symb_id) == SymbolType::endogenous
-                   || datatree.symbol_table.getType(vn->symb_id) == SymbolType::exogenous))
-            {
-              cerr << "Problem with error component portion of PAC equation" << endl;
-              exit(EXIT_FAILURE);
-            }
-          int id = vn->symb_id;
-          int orig_id = datatree.symbol_table.getUltimateOrigSymbID(id);
-          bool istarget = true;
-          if (orig_id == lhs_symb_id || orig_id == lhs_orig_symb_id)
-            istarget = false;
-          ordered_symb_ids.emplace_back(id, istarget, scale);
-        }
-      ec_params_and_vars = { optim_param_symb_id, ordered_symb_ids };
-    }
-  return ec_params_and_vars;
-}
-
 void
 BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
                          pair<int, vector<tuple<int, bool, int>>> &ec_params_and_vars,
                          set<pair<int, pair<int, int>>> &ar_params_and_vars,
                          vector<tuple<int, int, int, double>> &additive_vars_params_and_constants) const
 {
+  ec_params_and_vars.first = -1;
+
   vector<pair<expr_t, int>> terms;
   decomposeAdditiveTerms(terms, 1);
   for (auto it = terms.begin(); it != terms.end(); ++it)
     if (auto bopn = dynamic_cast<BinaryOpNode *>(it->first); bopn)
       {
-        ec_params_and_vars = getPacEC(bopn, lhs_symb_id, lhs_orig_symb_id);
-        if (ec_params_and_vars.first >= 0)
+        try
           {
+            auto [param_id, target_id] = bopn->matchParamTimesTargetMinusVariable(lhs_orig_symb_id);
+            ec_params_and_vars = { param_id, { { target_id, true, 1 }, { lhs_orig_symb_id, false, -1 }}};
             terms.erase(it);
             break;
+          }
+        catch (MatchFailureException &e)
+          {
           }
       }
 
@@ -5498,26 +5384,26 @@ BinaryOpNode::getPacNonOptimizingPart(BinaryOpNode *bopn, int optim_share) const
 }
 
 pair<int, expr_t>
-BinaryOpNode::getPacOptimizingShareAndExprNodesHelper(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id) const
+BinaryOpNode::getPacOptimizingShareAndExprNodesHelper(int lhs_symb_id, int lhs_orig_symb_id) const
 {
   int optim_param_symb_id = -1;
   expr_t optim_part = nullptr;
-  set<pair<int, int>> endogs;
-  bopn->collectDynamicVariables(SymbolType::endogenous, endogs);
-  int target_symb_id = getPacTargetSymbIdHelper(lhs_symb_id, lhs_orig_symb_id, endogs);
-  if (target_symb_id >= 0)
+  set<int> endogs;
+  collectVariables(SymbolType::endogenous, endogs);
+  // Test whether it contains the LHS in level
+  if (endogs.count(lhs_orig_symb_id) > 0)
     {
       set<int> params;
-      if (bopn->arg1->isParamTimesEndogExpr() && !bopn->arg2->isParamTimesEndogExpr())
+      if (arg1->isParamTimesEndogExpr() && !arg2->isParamTimesEndogExpr())
         {
-          optim_part = bopn->arg1;
-          bopn->arg2->collectVariables(SymbolType::parameter, params);
+          optim_part = arg1;
+          arg2->collectVariables(SymbolType::parameter, params);
           optim_param_symb_id = *(params.begin());
         }
-      else if (bopn->arg2->isParamTimesEndogExpr() && !bopn->arg1->isParamTimesEndogExpr())
+      else if (arg2->isParamTimesEndogExpr() && !arg1->isParamTimesEndogExpr())
         {
-          optim_part = bopn->arg2;
-          bopn->arg1->collectVariables(SymbolType::parameter, params);
+          optim_part = arg2;
+          arg1->collectVariables(SymbolType::parameter, params);
           optim_param_symb_id = *(params.begin());
         }
     }
@@ -5543,7 +5429,7 @@ BinaryOpNode::getPacOptimizingShareAndExprNodes(int lhs_symb_id, int lhs_orig_sy
     if (auto bopn = dynamic_cast<BinaryOpNode *>(it->first); bopn)
       {
         tie(optim_share, optim_part)
-          = getPacOptimizingShareAndExprNodesHelper(bopn, lhs_symb_id, lhs_orig_symb_id);
+          = bopn->getPacOptimizingShareAndExprNodesHelper(lhs_symb_id, lhs_orig_symb_id);
         if (optim_share >= 0 && optim_part)
           {
             terms.erase(it);
@@ -6280,20 +6166,6 @@ TrinaryOpNode::PacMaxLag(int lhs_symb_id) const
   return max(arg1->PacMaxLag(lhs_symb_id), max(arg2->PacMaxLag(lhs_symb_id), arg3->PacMaxLag(lhs_symb_id)));
 }
 
-int
-TrinaryOpNode::getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const
-{
-  int symb_id = arg1->getPacTargetSymbId(lhs_symb_id, undiff_lhs_symb_id);
-  if (symb_id >= 0)
-    return symb_id;
-
-  symb_id = arg2->getPacTargetSymbId(lhs_symb_id, undiff_lhs_symb_id);
-  if (symb_id >= 0)
-    return symb_id;
-
-  return arg3->getPacTargetSymbId(lhs_symb_id, undiff_lhs_symb_id);
-}
-
 expr_t
 TrinaryOpNode::decreaseLeadsLags(int n) const
 {
@@ -6751,19 +6623,6 @@ AbstractExternalFunctionNode::PacMaxLag(int lhs_symb_id) const
   for (auto argument : arguments)
     val = max(val, argument->PacMaxLag(lhs_symb_id));
   return val;
-}
-
-int
-AbstractExternalFunctionNode::getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const
-{
-  int symb_id = -1;
-  for (auto argument : arguments)
-    {
-      symb_id = argument->getPacTargetSymbId(lhs_symb_id, undiff_lhs_symb_id);
-      if (symb_id >= 0)
-        return symb_id;
-    }
-  return -1;
 }
 
 expr_t
@@ -8355,12 +8214,6 @@ VarExpectationNode::PacMaxLag(int lhs_symb_id) const
   exit(EXIT_FAILURE);
 }
 
-int
-VarExpectationNode::getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const
-{
-  return -1;
-}
-
 expr_t
 VarExpectationNode::decreaseLeadsLags(int n) const
 {
@@ -8777,12 +8630,6 @@ int
 PacExpectationNode::PacMaxLag(int lhs_symb_id) const
 {
   return 0;
-}
-
-int
-PacExpectationNode::getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const
-{
-  return -1;
 }
 
 expr_t
@@ -9218,4 +9065,39 @@ ExprNode::matchParamTimesLinearCombinationOfVariables() const
     }
 
   return { dynamic_cast<VariableNode *>(param)->symb_id, lincomb->matchLinearCombinationOfVariables() };
+}
+
+pair<int, int>
+ExprNode::matchParamTimesTargetMinusVariable(int symb_id) const
+{
+  auto bopn = dynamic_cast<const BinaryOpNode *>(this);
+  if (!bopn || bopn->op_code != BinaryOpcode::times)
+    throw MatchFailureException{"Not a multiplicative expression"};
+
+  expr_t param = bopn->arg1, minus = bopn->arg2;
+
+  auto is_param = [](expr_t e) {
+                    auto vn = dynamic_cast<VariableNode *>(e);
+                    return vn && vn->get_type() == SymbolType::parameter;
+                  };
+
+  if (!is_param(param))
+    {
+      swap(param, minus);
+      if (!is_param(param))
+        throw MatchFailureException{"No parameter on either side of the multiplication"};
+    }
+
+  auto bminus = dynamic_cast<const BinaryOpNode *>(minus);
+  if (!bminus || bminus->op_code != BinaryOpcode::minus)
+    throw MatchFailureException{"Neither factor is a minus operator"};
+
+  auto lhs_level = dynamic_cast<const VariableNode *>(bminus->arg2);
+  auto target = dynamic_cast<const VariableNode *>(bminus->arg1);
+  if (lhs_level && lhs_level->symb_id == symb_id && target
+      && (target->get_type() == SymbolType::endogenous
+          || target->get_type() == SymbolType::exogenous))
+    return { dynamic_cast<VariableNode *>(param)->symb_id, target->symb_id };
+  else
+    throw MatchFailureException{"Neither factor is of the form (target-variable) where target is endo or exo"};
 }

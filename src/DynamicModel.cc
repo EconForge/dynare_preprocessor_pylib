@@ -3994,34 +3994,40 @@ DynamicModel::getPacMaxLag(const string &pac_model_name, map<pair<string, string
 int
 DynamicModel::getPacTargetSymbId(const string &pac_model_name) const
 {
-  for (auto &equation : equations)
+  for (auto equation : equations)
     if (equation->containsPacExpectation(pac_model_name))
       {
         set<pair<int, int>> lhss;
         equation->arg1->collectDynamicVariables(SymbolType::endogenous, lhss);
+        if (lhss.size() != 1)
+          throw PacTargetNotIdentifiedException{pac_model_name, "LHS must contain a single endogenous"};
         int lhs_symb_id = lhss.begin()->first;
-        int lhs_orig_symb_id = lhs_symb_id;
-        if (symbol_table.isAuxiliaryVariable(lhs_symb_id))
+        if (!symbol_table.isDiffAuxiliaryVariable(lhs_symb_id))
+          throw PacTargetNotIdentifiedException{pac_model_name, "LHS must be a diff operator"};
+        int undiff_lhs_symb_id = symbol_table.getOrigSymbIdForAuxVar(lhs_symb_id);
+        auto barg2 = dynamic_cast<BinaryOpNode *>(equation->arg2);
+        if (!barg2)
+          throw PacTargetNotIdentifiedException{pac_model_name, "RHS must be a binary operator"};
+        auto [optim_share_index, optim_part, non_optim_part, additive_part]
+          = barg2->getPacOptimizingShareAndExprNodes(lhs_symb_id, undiff_lhs_symb_id);
+        /* If there is an optimization part, restrict the search to that part,
+           since it contains the MCE . */
+        expr_t mce = optim_part ? optim_part : equation->arg2;
+
+        vector<pair<expr_t, int>> terms;
+        mce->decomposeAdditiveTerms(terms);
+        for (auto [term, sign] : terms)
           try
             {
-              lhs_orig_symb_id = symbol_table.getOrigSymbIdForAuxVar(lhs_symb_id);
+              auto [param_id, target_id] = term->matchParamTimesTargetMinusVariable(undiff_lhs_symb_id);
+              return target_id;
             }
-          catch (...)
+          catch (ExprNode::MatchFailureException &)
             {
             }
-        auto barg2 = dynamic_cast<BinaryOpNode *>(equation->arg2);
-        assert(barg2);
-        auto [optim_share_index, optim_part, non_optim_part, additive_part]
-          = barg2->getPacOptimizingShareAndExprNodes(lhs_symb_id, lhs_orig_symb_id);
-        /* The algorithm for identifying the target is fragile. Hence, if there
-           is an optimization part, we restrict the search to that part to
-           avoid wrong results. */
-        if (optim_part)
-          return optim_part->getPacTargetSymbId(lhs_symb_id, lhs_orig_symb_id);
-        else
-          return equation->arg2->getPacTargetSymbId(lhs_symb_id, lhs_orig_symb_id);
+        throw PacTargetNotIdentifiedException{pac_model_name, "No term of the form parameter*(target-LHS_level)"};
       }
-  return -1;
+  throw PacTargetNotIdentifiedException{pac_model_name, "No equation with the corresponding pac_expectation operator"};
 }
 
 void
@@ -4055,7 +4061,16 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
                                                        const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
                                                        ExprNode::subst_table_t &diff_subst_table)
 {
-  int pac_target_symb_id = getPacTargetSymbId(name);
+  int pac_target_symb_id;
+  try
+    {
+      pac_target_symb_id = getPacTargetSymbId(name);
+    }
+  catch (PacTargetNotIdentifiedException &e)
+    {
+      cerr << "Can't identify target for PAC model " << name << ": " << e.message;
+      exit(EXIT_FAILURE);
+    }
   pac_eqtag_and_lag.insert(eqtag_and_lag.begin(), eqtag_and_lag.end());
   int neqs = 0;
   for (auto &it : eqtag_and_lag)

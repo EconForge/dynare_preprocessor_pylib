@@ -479,12 +479,6 @@ public:
   //! Takes account of undiffed LHS variables in calculating the max lag
   virtual int PacMaxLag(int lhs_symb_id) const = 0;
 
-  //! Get the target variable of the PAC model
-  /* The algorithm is rather crude. For a BinaryOpNode, it inspects both
-     arguments. If one of the argument contains the (lagged) LHS, the first
-     variable that is not the (lagged) LHS is returned as the target */
-  virtual int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const = 0;
-
   virtual expr_t undiff() const = 0;
 
   //! Returns a new expression where all the leads/lags have been shifted backwards by the same amount
@@ -663,6 +657,13 @@ public:
 
   pair<int, vector<tuple<int, int, int, double>>> matchParamTimesLinearCombinationOfVariables() const;
 
+  /* Matches an expression of the form parameter*(var1-endo2).
+     endo2 must correspond to symb_id. var1 must be an endogenous or an
+     exogenous.
+     Returns the symbol IDs of the parameter and of var1.
+     Throws a MatchFailureException otherwise */
+  pair<int, int> matchParamTimesTargetMinusVariable(int symb_id) const;
+
   //! Returns true if expression is of the form:
   //! param * (endog op endog op ...) + param * (endog op endog op ...) + ...
   virtual bool isParamTimesEndogExpr() const = 0;
@@ -766,7 +767,6 @@ public:
   int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   int PacMaxLag(int lhs_symb_id) const override;
-  int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -843,7 +843,6 @@ public:
   int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   int PacMaxLag(int lhs_symb_id) const override;
-  int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -947,7 +946,6 @@ public:
   int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   int PacMaxLag(int lhs_symb_id) const override;
-  int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -1058,8 +1056,6 @@ public:
   int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   int PacMaxLag(int lhs_symb_id) const override;
-  int getPacTargetSymbIdHelper(int lhs_symb_id, int undiff_lhs_symb_id, const set<pair<int, int>> &endogs) const;
-  int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -1101,7 +1097,14 @@ public:
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
-  pair<int, vector<tuple<int, bool, int>>> getPacEC(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id) const;
+  /*
+    ec_params_and_vars:
+    - 1st element = feedback force parameter
+    - 2nd element = list of terms in the cointegration relationship (symb_id,
+      is target ?, multiplicative scalar); this form theoretically allows for a
+      linear combination in the cointegration, though for the time being we allow
+      less than that
+   */
   void getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
                   pair<int, vector<tuple<int, bool, int>>> &ec_params_and_vars,
                   set<pair<int, pair<int, int>>> &ar_params_and_vars,
@@ -1111,7 +1114,7 @@ public:
   //! the expr node associated with it,
   //! and the expr node associated with the non-optimizing part
   tuple<int, expr_t, expr_t, expr_t> getPacOptimizingShareAndExprNodes(int lhs_symb_id, int lhs_orig_symb_id) const;
-  pair<int, expr_t> getPacOptimizingShareAndExprNodesHelper(BinaryOpNode *bopn, int lhs_symb_id, int lhs_orig_symb_id) const;
+  pair<int, expr_t> getPacOptimizingShareAndExprNodesHelper(int lhs_symb_id, int lhs_orig_symb_id) const;
   expr_t getPacNonOptimizingPart(BinaryOpNode *bopn, int optim_share) const;
   bool getPacNonOptimizingPartHelper(BinaryOpNode *bopn, int optim_share) const;
   bool isParamTimesEndogExpr() const override;
@@ -1185,7 +1188,6 @@ public:
   int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   int PacMaxLag(int lhs_symb_id) const override;
-  int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -1301,7 +1303,6 @@ public:
   int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   int PacMaxLag(int lhs_symb_id) const override;
-  int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -1476,7 +1477,6 @@ public:
   int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   int PacMaxLag(int lhs_symb_id) const override;
-  int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   void prepareForDerivation() override;
@@ -1553,7 +1553,6 @@ public:
   int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   int PacMaxLag(int lhs_symb_id) const override;
-  int getPacTargetSymbId(int lhs_symb_id, int undiff_lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   void prepareForDerivation() override;
