@@ -42,13 +42,15 @@ enum class AuxVarType
    exoLead = 2, //!< Substitute for exo leads >= 1
    exoLag = 3, //!< Substitute for exo lags >= 1
    expectation = 4, //!< Substitute for Expectation Operator
-   diffForward = 5, //!< Substitute for the differentiate of a forward variable
+   diffForward = 5, /* Substitute for the differentiate of a forward variable,
+                       for the differentiate_forward_vars option.
+                       N.B.: nothing to do with the diff() operator! */
    multiplier = 6, //!< Multipliers for FOC of Ramsey Problem
    varModel = 7, //!< Variable for var_model with order > abs(min_lag()) present in model
    diff = 8, //!< Variable for Diff operator
-   diffLag = 9, //!< Variable for timing between Diff operators
+   diffLag = 9, //!< Variable for timing between Diff operators (lag)
    unaryOp = 10, //!< Variable for allowing the undiff operator to work when diff was taken of unary op, eg diff(log(x))
-   diffLead = 11 //!< Variable for timing between Diff operators
+   diffLead = 11 //!< Variable for timing between Diff operators (lead)
   };
 
 //! Information on some auxiliary variables
@@ -57,8 +59,13 @@ class AuxVarInfo
 private:
   int symb_id; //!< Symbol ID of the auxiliary variable
   AuxVarType type; //!< Its type
-  int orig_symb_id; //!< Symbol ID of the endo of the original model represented by this aux var. Only used for avEndoLag and avExoLag.
-  int orig_lead_lag; //!< Lead/lag of the endo of the original model represented by this aux var. Only used for avEndoLag and avExoLag.
+  int orig_symb_id; /* Symbol ID of the endo of the original model represented
+                       by this aux var. Used by endoLag, endoLead, exoLag,
+                       exoLead, diffForward, varModel, diff, diffLag, diffLead
+                       and unaryOp */
+  int orig_lead_lag; /* Lead/lag of the endo of the original model represented
+                        by this aux var. Used by endoLag, endoLead, exoLag,
+                        exoLead, varModel, unaryOp, diff, diffLag, diffLead */
   int equation_number_for_multiplier; //!< Stores the original constraint equation number associated with this aux var. Only used for avMultiplier.
   int information_set; //! Argument of expectation operator. Only used for avExpectation.
   expr_t expr_node; //! Auxiliary variable definition
@@ -105,7 +112,7 @@ public:
   {
     return expr_node;
   };
-  string
+  const string &
   get_unary_op() const
   {
     return unary_op;
@@ -295,7 +302,12 @@ public:
     Throws an exception if match not found.
   */
   int searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const noexcept(false);
-  //! Serches aux_vars for the aux var represented by aux_var_symb_id and returns its associated orig_symb_id
+  /* Searches aux_vars for the aux var represented by aux_var_symb_id and
+     returns its associated orig_symb_id.
+     Works only for endoLag, exoLag, diff, diffLag, diffLead.
+     Throws an UnknownSymbolIDException otherwise.
+     N.B.: some code might rely on the fact that, in particular, it does not work on unaryOp
+     type (to be verified) */
   int getOrigSymbIdForAuxVar(int aux_var_symb_id) const noexcept(false);
   //! Searches for diff aux var and finds the original lag associated with this variable
   int getOrigLeadLagForDiffAuxVar(int diff_aux_var_symb_id) const noexcept(false);
@@ -414,6 +426,9 @@ public:
   int getUltimateOrigSymbID(int symb_id) const;
   //! If this is a Lagrange multiplier, return its associated equation number; otherwise return -1
   int getEquationNumberForMultiplier(int symb_id) const;
+  /* Return all the information about a given auxiliary variable. Throws
+     UnknownSymbolIDException if it is not an aux var */
+  const AuxVarInfo &getAuxVarInfo(int symb_id) const;
 };
 
 inline void
@@ -536,6 +551,15 @@ inline int
 SymbolTable::orig_endo_nbr() const noexcept(false)
 {
   return endo_nbr() - aux_vars.size();
+}
+
+inline const AuxVarInfo &
+SymbolTable::getAuxVarInfo(int symb_id) const
+{
+  for (const auto &aux_var : aux_vars)
+    if (aux_var.get_symb_id() == symb_id)
+      return aux_var;
+  throw UnknownSymbolIDException(symb_id);
 }
 
 #endif

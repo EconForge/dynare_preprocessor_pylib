@@ -4111,7 +4111,22 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
 
       // Add diff nodes and eqs for pac_target_symb_id
       const VariableNode *target_base_diff_node;
-      expr_t diff_node_to_search = AddDiff(AddVariable(pac_target_symb_id));
+      auto create_target_lag = [&](int lag)
+        {
+          if (symbol_table.isAuxiliaryVariable(pac_target_symb_id))
+            {
+              // We know it is a log, see ExprNode::matchParamTimesTargetMinusVariable()
+              /* We don’t use SymbolTable::getOrigSymbIdForAuxVar(), because it
+                 does not work for unary ops, and changing this behaviour might
+                 break stuff that relies on an exception in this case. */
+              auto avi = symbol_table.getAuxVarInfo(pac_target_symb_id);
+              return AddLog(AddVariable(avi.get_orig_symb_id(), lag));
+            }
+          else
+            return dynamic_cast<ExprNode *>(AddVariable(pac_target_symb_id, lag));
+        };
+
+      expr_t diff_node_to_search = AddDiff(create_target_lag(0));
       if (auto sit = diff_subst_table.find(diff_node_to_search);
           sit != diff_subst_table.end())
         target_base_diff_node = sit->second;
@@ -4120,8 +4135,8 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
           int symb_id = symbol_table.addDiffAuxiliaryVar(diff_node_to_search->idx, diff_node_to_search);
           target_base_diff_node = AddVariable(symb_id);
           auto neweq = AddEqual(const_cast<VariableNode *>(target_base_diff_node),
-                                AddMinus(AddVariable(pac_target_symb_id),
-                                         AddVariable(pac_target_symb_id, -1)));
+                                AddMinus(create_target_lag(0),
+                                         create_target_lag(-1)));
           addEquation(neweq, -1);
           addAuxEquation(neweq);
           neqs++;
@@ -4131,7 +4146,7 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
       const VariableNode *last_aux_var = target_base_diff_node;
       for (int i = 1; i <= pac_max_lag_m - 1; i++, neqs++)
         {
-          expr_t this_diff_node = AddDiff(AddVariable(pac_target_symb_id, i));
+          expr_t this_diff_node = AddDiff(create_target_lag(i));
           int symb_id = symbol_table.addDiffLeadAuxiliaryVar(this_diff_node->idx, this_diff_node,
                                                              last_aux_var->symb_id, last_aux_var->lag);
           VariableNode *current_aux_var = AddVariable(symb_id);

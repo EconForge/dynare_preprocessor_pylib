@@ -659,7 +659,8 @@ public:
 
   /* Matches an expression of the form parameter*(var1-endo2).
      endo2 must correspond to symb_id. var1 must be an endogenous or an
-     exogenous.
+     exogenous; it must be of the form X(-1) or log(X(-1)) or log(X)(-1) (unary ops aux var),
+     where X itself is *not* an aux var.
      Returns the symbol IDs of the parameter and of var1.
      Throws a MatchFailureException otherwise */
   pair<int, int> matchParamTimesTargetMinusVariable(int symb_id) const;

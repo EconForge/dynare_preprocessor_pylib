@@ -9094,10 +9094,27 @@ ExprNode::matchParamTimesTargetMinusVariable(int symb_id) const
 
   auto lhs_level = dynamic_cast<const VariableNode *>(bminus->arg2);
   auto target = dynamic_cast<const VariableNode *>(bminus->arg1);
-  if (lhs_level && lhs_level->symb_id == symb_id && target
-      && (target->get_type() == SymbolType::endogenous
-          || target->get_type() == SymbolType::exogenous))
+
+  auto check_target = [&]()
+    {
+      if (target->get_type() != SymbolType::endogenous
+          && target->get_type() != SymbolType::exogenous)
+        return false;
+      if (datatree.symbol_table.isAuxiliaryVariable(target->symb_id))
+        {
+          auto avi = datatree.symbol_table.getAuxVarInfo(target->symb_id);
+          return (avi.get_type() == AuxVarType::unaryOp
+                  && avi.get_unary_op() == "log"
+                  && avi.get_orig_symb_id() != -1
+                  && !datatree.symbol_table.isAuxiliaryVariable(avi.get_orig_symb_id())
+                  && target->lag + avi.get_orig_lead_lag() == -1);
+        }
+      else
+        return target->lag == -1;
+    };
+
+  if (lhs_level && lhs_level->symb_id == symb_id && target && check_target())
     return { dynamic_cast<VariableNode *>(param)->symb_id, target->symb_id };
   else
-    throw MatchFailureException{"Neither factor is of the form (target-variable) where target is endo or exo"};
+    throw MatchFailureException{"Neither factor is of the form (target-variable) where target is endo or exo (possibly logged), and has one lag"};
 }
