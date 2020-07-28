@@ -3543,3 +3543,29 @@ ParsingDriver::var_expectation_model()
   var_expectation_model_discount = nullptr;
   var_expectation_model_expression = nullptr;
 }
+
+void
+ParsingDriver::begin_matched_moments()
+{
+  set_current_data_tree(&mod_file->dynamic_model);
+}
+
+void
+ParsingDriver::end_matched_moments(const vector<expr_t> &moments)
+{
+  vector<tuple<vector<int>, vector<int>, vector<int>>> parsed_moments;
+  for (auto m : moments)
+    try
+      {
+        vector<int> symb_ids, lags, powers;
+        m->matchMatchedMoment(symb_ids, lags, powers);
+        parsed_moments.emplace_back(symb_ids, lags, powers);
+      }
+    catch (ExprNode::MatchFailureException &e)
+      {
+        error("Matched moment expression has incorrect format: " + e.message);
+      }
+  mod_file->addStatement(make_unique<MatchedMomentsStatement>(mod_file->symbol_table, parsed_moments));
+
+  reset_data_tree();
+}

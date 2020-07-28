@@ -94,7 +94,8 @@ class ParsingDriver;
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD IRF_CALIBRATION
 %token FAST_KALMAN_FILTER KALMAN_ALGO KALMAN_TOL DIFFUSE_KALMAN_TOL SUBSAMPLES OPTIONS TOLF TOLX PLOT_INIT_DATE PLOT_END_DATE
 %token LAPLACE LIK_ALGO LIK_INIT LINEAR LINEAR_DECOMPOSITION LOAD_IDENT_FILES LOAD_MH_FILE LOAD_RESULTS_AFTER_LOAD_MH LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV LINEAR_APPROXIMATION
-%token LYAPUNOV_COMPLEX_THRESHOLD LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR MARKOWITZ MARGINAL_DENSITY MAX MAXIT
+%token LYAPUNOV_COMPLEX_THRESHOLD LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR
+%token MATCHED_MOMENTS MARKOWITZ MARGINAL_DENSITY MAX MAXIT
 %token MFS MH_CONF_SIG MH_DROP MH_INIT_SCALE MH_JSCALE MH_TUNE_JSCALE MH_TUNE_GUESS MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
 %token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO CONTEMPORANEOUS_CORRELATION DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL RAFTERY_LEWIS_QRS RAFTERY_LEWIS_DIAGNOSTICS MCMC_JUMPING_COVARIANCE MOMENT_CALIBRATION
@@ -195,6 +196,7 @@ class ParsingDriver;
 %type <pair<string,string>> named_var_elem subsamples_eq_opt integer_range_w_inf
 %type <vector<pair<string,string>>> named_var named_var_1
 %type <tuple<string,string,string,string>> prior_eq_opt options_eq_opt
+%type <vector<expr_t>> matched_moments_list
 %%
 
 %start statement_list;
@@ -316,6 +318,7 @@ statement : parameters
           | det_cond_forecast
           | var_expectation_model
           | compilation_setup
+          | matched_moments
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -929,6 +932,19 @@ compilation_setup_option : SUBSTITUTE_FLAGS EQUAL QUOTED_STRING
                          | COMPILER EQUAL QUOTED_STRING
                            { driver.compilation_setup_compiler($3); }
                          ;
+
+matched_moments : MATCHED_MOMENTS ';' { driver.begin_matched_moments(); }
+                  matched_moments_list END ';' { driver.end_matched_moments($4); }
+                ;
+
+matched_moments_list : hand_side ';'
+                       { $$ = { $1 }; }
+                     | matched_moments_list hand_side ';'
+                       {
+                         $$ = $1;
+                         $$.push_back($2);
+                       }
+                     ;
 
 model_options : BLOCK { driver.block(); }
               | o_cutoff

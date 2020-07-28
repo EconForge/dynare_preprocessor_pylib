@@ -716,6 +716,13 @@ public:
     {
     };
   };
+
+  /* Match an expression of the form ∏ x(l)ᵏ, where x are endogenous, as used
+     in the match_moments block.
+     For each factor, adds an integer in the 3 vectors in argument (symb_id in
+     the first, lag in the second, exponent in the third).
+     Throws a MatchFailureException if not of the right form. */
+  virtual void matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<int> &powers) const;
 };
 
 //! Object used to compare two nodes (using their indexes)
@@ -879,6 +886,7 @@ public:
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
   expr_t substituteStaticAuxiliaryVariable() const override;
+  void matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<int> &powers) const override;
 };
 
 //! Unary operator node
@@ -1126,6 +1134,7 @@ public:
   //! Substitute auxiliary variables by their expression in static model auxiliary variable definition
   expr_t substituteStaticAuxiliaryDefinition() const;
   void decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign) const override;
+  void matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<int> &powers) const override;
 };
 
 //! Trinary operator node

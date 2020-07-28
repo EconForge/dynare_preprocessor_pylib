@@ -1198,4 +1198,18 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
+class MatchedMomentsStatement : public Statement
+{
+private:
+  const SymbolTable &symbol_table;
+public:
+  /* Each moment is represented by a three vectors: symb_ids, lags, powers.
+     See the definition of ExprNode::matchMatchedMoment() for more details */
+  const vector<tuple<vector<int>, vector<int>, vector<int>>> moments;
+  MatchedMomentsStatement(const SymbolTable &symbol_table_arg,
+                          vector<tuple<vector<int>, vector<int>, vector<int>>> moments_arg);
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
+};
+
 #endif

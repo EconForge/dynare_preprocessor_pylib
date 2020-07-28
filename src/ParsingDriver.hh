@@ -913,6 +913,10 @@ public:
   void method_of_moments();
   //! Add a var_expectation_model statement
   void var_expectation_model();
+  //! Start parsing a matched_moments block
+  void begin_matched_moments();
+  //! Add a matched_moments block
+  void end_matched_moments(const vector<expr_t> &moments);
 };
 
 #endif // ! PARSING_DRIVER_HH

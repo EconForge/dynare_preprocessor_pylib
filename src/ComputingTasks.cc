@@ -5146,3 +5146,65 @@ VarExpectationModelStatement::writeJsonOutput(ostream &output) const
   discount->writeOutput(output);
   output << R"("})";
 }
+
+MatchedMomentsStatement::MatchedMomentsStatement(const SymbolTable &symbol_table_arg,
+                                                 vector<tuple<vector<int>, vector<int>, vector<int>>> moments_arg) :
+  symbol_table{symbol_table_arg}, moments{move(moments_arg)}
+{
+}
+
+void
+MatchedMomentsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << "M_.matched_moments = {" << endl;
+  for (const auto &[symb_ids, lags, powers] : moments)
+    {
+      output << "  [";
+      for (int s : symb_ids)
+        output << symbol_table.getTypeSpecificID(s)+1 << ',';
+      output << "], [";
+      for (int l : lags)
+        output << l << ',';
+      output << "], [";
+      for (int p : powers)
+        output << p << ',';
+      output << "]," << endl;
+    }
+  output << "};" << endl;
+}
+
+void
+MatchedMomentsStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "matched_moments", "moments": [)" << endl;
+  for (auto it = moments.begin(); it != moments.end(); ++it)
+    {
+      const auto &[symb_ids, lags, powers] = *it;
+      output << R"(  { "endos": [)";
+      for (auto it2 = symb_ids.begin(); it2 != symb_ids.end(); ++it2)
+        {
+          if (it2 != symb_ids.begin())
+            output << ',';
+          output << symbol_table.getTypeSpecificID(*it2)+1;
+        }
+      output << R"(], "lags": [)";
+      for (auto it2 = lags.begin(); it2 != lags.end(); ++it2)
+        {
+          if (it2 != lags.begin())
+            output << ',';
+          output << *it2;
+        }
+      output << R"(], "powers": [)";
+      for (auto it2 = powers.begin(); it2 != powers.end(); ++it2)
+        {
+          if (it2 != powers.begin())
+            output << ',';
+          output << *it2;
+        }
+      output << "]}";
+      if (next(it) != moments.end())
+        output << ',';
+      output << endl;
+    }
+  output << "]}" << endl;
+}

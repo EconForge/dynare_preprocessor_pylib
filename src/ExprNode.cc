@@ -387,6 +387,13 @@ ExprNode::fillErrorCorrectionRow(int eqn,
     }
 }
 
+void
+ExprNode::matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<int> &powers) const
+{
+  throw MatchFailureException{"Unsupported expression"};
+}
+
+
 NumConstNode::NumConstNode(DataTree &datatree_arg, int idx_arg, int id_arg) :
   ExprNode{datatree_arg, idx_arg},
   id{id_arg}
@@ -1966,6 +1973,17 @@ VariableNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) 
     if (it.first->symb_id == symb_id)
       return it.second;
   return const_cast<VariableNode *>(this);
+}
+
+void
+VariableNode::matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<int> &powers) const
+{
+  if (get_type() != SymbolType::endogenous)
+    throw MatchFailureException{"Variable " + datatree.symbol_table.getName(symb_id) + " is not an endogenous"};
+
+  symb_ids.push_back(symb_id);
+  lags.push_back(lag);
+  powers.push_back(1);
 }
 
 UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, int idx_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, string adl_param_name_arg, vector<int> adl_lags_arg) :
@@ -5565,6 +5583,32 @@ BinaryOpNode::substituteStaticAuxiliaryDefinition() const
   expr_t arg2subst = arg2->substituteStaticAuxiliaryVariable();
   return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
 }
+
+void
+BinaryOpNode::matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<int> &powers) const
+{
+  if (op_code == BinaryOpcode::times)
+    {
+      arg1->matchMatchedMoment(symb_ids, lags, powers);
+      arg2->matchMatchedMoment(symb_ids, lags, powers);
+    }
+  else if (op_code == BinaryOpcode::power)
+    {
+      if (!dynamic_cast<const VariableNode *>(arg1))
+        throw MatchFailureException("First argument of power expression must be a variable");
+      auto ncn = dynamic_cast<const NumConstNode *>(arg2);
+      if (!ncn)
+        throw MatchFailureException("Second argument of power expression must be a positive integer");
+      double c = datatree.num_constants.getDouble(ncn->id);
+      if (c <= 0 || round(c) != c)
+        throw MatchFailureException("Second argument of power expression must be a positive integer");
+      arg1->matchMatchedMoment(symb_ids, lags, powers);
+      powers.back() = static_cast<int>(c);
+    }
+  else
+    throw MatchFailureException("Unsupported binary operator");
+}
+
 
 TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, int idx_arg, const expr_t arg1_arg,
                              TrinaryOpcode op_code_arg, const expr_t arg2_arg, const expr_t arg3_arg) :

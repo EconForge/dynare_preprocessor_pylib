@@ -223,6 +223,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>ramsey_constraints {BEGIN DYNARE_BLOCK; return token::RAMSEY_CONSTRAINTS;}
 <INITIAL>restrictions {BEGIN DYNARE_BLOCK; return token::RESTRICTIONS;}
 <INITIAL>generate_irfs {BEGIN DYNARE_BLOCK; return token::GENERATE_IRFS;}
+<INITIAL>matched_moments {BEGIN DYNARE_BLOCK; return token::MATCHED_MOMENTS;}
 
  /* For the semicolon after an "end" keyword */
 <INITIAL>; {return Dynare::parser::token_type (yytext[0]);}
