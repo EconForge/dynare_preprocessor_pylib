@@ -31,7 +31,7 @@ class EquationTags
 private:
   map<int, map<string, string>> eqn_tags;
 public:
-  // Add multiple equatoin tags for the given equation
+  // Add multiple equation tags for the given equation
   inline void add(int eqn, map<string, string> tags)
   {
     if (eqn_tags.find(eqn) == eqn_tags.end())
