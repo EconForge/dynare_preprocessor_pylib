@@ -316,9 +316,9 @@ StaticModel::writeStaticPerBlockCFiles(const string &basename) const
 
       if (simulation_type == BlockSimulationType::evaluateBackward
           || simulation_type == BlockSimulationType::evaluateForward)
-        output << "void static_" << blk+1 << "(double *y, const double *x, const double *params, double *T)" << endl;
+        output << "void static_" << blk+1 << "(double *restrict y, const double *restrict x, const double *restrict params, double *restrict T)" << endl;
       else
-        output << "void static_" << blk+1 << "(const double *y, const double *x, const double *params, double *T, double *residual, double *g1_i, double *g1_j, double *g1_v)" << endl;
+        output << "void static_" << blk+1 << "(const double *restrict y, const double *restrict x, const double *restrict params, double *restrict T, double *restrict residual, double *restrict g1_i, double *restrict g1_j, double *restrict g1_v)" << endl;
       output << '{' << endl;
 
       writeStaticPerBlockHelper(blk, output, ExprNodeOutputType::CStaticModel, temporary_terms);
@@ -1446,18 +1446,18 @@ StaticModel::writeStaticModel(const string &basename,
       for (size_t i = 0; i < d_output.size(); i++)
         {
           string funcname = i == 0 ? "resid" : "g" + to_string(i);
-          StaticOutput << "void static_" << funcname << "_tt(const double *y, const double *x, const double *params, double *T)" << endl
+          StaticOutput << "void static_" << funcname << "_tt(const double *restrict y, const double *restrict x, const double *restrict params, double *restrict T)" << endl
                        << "{" << endl
                        << tt_output[i].str()
                        << "}" << endl
                        << endl
-                       << "void static_" << funcname << "(const double *y, const double *x, const double *params, const double *T, ";
+                       << "void static_" << funcname << "(const double *restrict y, const double *restrict x, const double *restrict params, const double *restrict T, ";
           if (i == 0)
-            StaticOutput << "double *residual";
+            StaticOutput << "double *restrict residual";
           else if (i == 1)
-            StaticOutput << "double *g1";
+            StaticOutput << "double *restrict g1";
           else
-            StaticOutput << "double *" << funcname << "_i, double *" << funcname << "_j, double *" << funcname << "_v";
+            StaticOutput << "double *restrict " << funcname << "_i, double *restrict " << funcname << "_j, double *restrict " << funcname << "_v";
           StaticOutput << ")" << endl
                        << "{" << endl;
           if (i == 0)

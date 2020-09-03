@@ -632,9 +632,9 @@ DynamicModel::writeDynamicPerBlockCFiles(const string &basename) const
 
       if (simulation_type == BlockSimulationType::evaluateBackward
           || simulation_type == BlockSimulationType::evaluateForward)
-        output << "void dynamic_" << blk+1 << "(double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, double *T, int it_, bool stochastic_mode, double *g1_i, double *g1_j, double *g1_v, double *g1_x_i, double *g1_x_j, double *g1_x_v, double *g1_xd_i, double *g1_xd_j, double *g1_xd_v, double *g1_o_i, double *g1_o_j, double *g1_o_v)" << endl;
+        output << "void dynamic_" << blk+1 << "(double *restrict y, const double *restrict x, int nb_row_x, const double *restrict params, const double *restrict steady_state, double *restrict T, int it_, bool stochastic_mode, double *restrict g1_i, double *restrict g1_j, double *restrict g1_v, double *restrict g1_x_i, double *restrict g1_x_j, double *restrict g1_x_v, double *restrict g1_xd_i, double *restrict g1_xd_j, double *restrict g1_xd_v, double *restrict g1_o_i, double *restrict g1_o_j, double *restrict g1_o_v)" << endl;
       else
-        output << "void dynamic_" << blk+1 << "(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, double *T, int it_, bool stochastic_mode, double *residual, double *g1_i, double *g1_j, double *g1_v, double *g1_x_i, double *g1_x_j, double *g1_x_v, double *g1_xd_i, double *g1_xd_j, double *g1_xd_v, double *g1_o_i, double *g1_o_j, double *g1_o_v)" << endl;
+        output << "void dynamic_" << blk+1 << "(const double *restrict y, const double *restrict x, int nb_row_x, const double *restrict params, const double *restrict steady_state, double *restrict T, int it_, bool stochastic_mode, double *restrict residual, double *restrict g1_i, double *restrict g1_j, double *restrict g1_v, double *restrict g1_x_i, double *restrict g1_x_j, double *restrict g1_x_v, double *restrict g1_xd_i, double *restrict g1_xd_j, double *restrict g1_xd_v, double *restrict g1_o_i, double *restrict g1_o_j, double *restrict g1_o_v)" << endl;
       output << '{' << endl;
 
       writeDynamicPerBlockHelper(blk, output, ExprNodeOutputType::CDynamicModel, temporary_terms,
@@ -2114,18 +2114,18 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
       for (size_t i = 0; i < d_output.size(); i++)
         {
           string funcname = i == 0 ? "resid" : "g" + to_string(i);
-          DynamicOutput << "void dynamic_" << funcname << "_tt(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, double *T)" << endl
+          DynamicOutput << "void dynamic_" << funcname << "_tt(const double *restrict y, const double *restrict x, int nb_row_x, const double *restrict params, const double *restrict steady_state, int it_, double *restrict T)" << endl
                         << "{" << endl
                         << tt_output[i].str()
                         << "}" << endl
                         << endl
-                        << "void dynamic_" << funcname << "(const double *y, const double *x, int nb_row_x, const double *params, const double *steady_state, int it_, const double *T, ";
+                        << "void dynamic_" << funcname << "(const double *restrict y, const double *restrict x, int nb_row_x, const double *restrict params, const double *restrict steady_state, int it_, const double *restrict T, ";
           if (i == 0)
-            DynamicOutput << "double *residual";
+            DynamicOutput << "double *restrict residual";
           else if (i == 1)
-            DynamicOutput << "double *g1";
+            DynamicOutput << "double *restrict g1";
           else
-            DynamicOutput << "double *" << funcname << "_i, double *" << funcname << "_j, double *" << funcname << "_v";
+            DynamicOutput << "double *restrict " << funcname << "_i, double *restrict " << funcname << "_j, double *restrict " << funcname << "_v";
           DynamicOutput << ")" << endl
                         << "{" << endl;
           if (i == 0)
