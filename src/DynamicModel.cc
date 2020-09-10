@@ -6542,3 +6542,15 @@ DynamicModel::substituteVarExpectation(const map<string, expr_t> &subst_table)
   for (auto &equation : equations)
     equation = dynamic_cast<BinaryOpNode *>(equation->substituteVarExpectation(subst_table));
 }
+
+void
+DynamicModel::checkNoRemainingPacExpectation() const
+{
+  for (size_t eq = 0; eq < equations.size(); eq++)
+    if (equations[eq]->containsPacExpectation())
+      {
+        cerr << "ERROR: in equation " << equation_tags.getTagValueByEqnAndKey(eq, "name")
+             << ", the pac_expectation operator references an unknown pac_model" << endl;
+        exit(EXIT_FAILURE);
+      }
+}

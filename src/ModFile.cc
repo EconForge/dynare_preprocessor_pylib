@@ -503,6 +503,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
                                          eqtag_and_lag, nonstationary, pms->growth);
         dynamic_model.substitutePacExpectation(pms->name);
       }
+  dynamic_model.checkNoRemainingPacExpectation();
 
   dynamic_model.addEquationsForVar();
 

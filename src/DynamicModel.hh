@@ -570,6 +570,10 @@ public:
   //! Fills eval context with values of model local variables and auxiliary variables
   void fillEvalContext(eval_context_t &eval_context) const;
 
+  /*! Checks that all pac_expectation operators have been substituted, error
+    out otherwise */
+  void checkNoRemainingPacExpectation() const;
+
   auto
   getStaticOnlyEquationsInfo() const
   {
