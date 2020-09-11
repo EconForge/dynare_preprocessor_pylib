@@ -718,12 +718,11 @@ SymbolTable::getOrigSymbIdForAuxVar(int aux_var_symb_id) const noexcept(false)
 int
 SymbolTable::getOrigLeadLagForDiffAuxVar(int diff_aux_var_symb_id) const noexcept(false)
 {
-  int lag = 0;
   for (const auto &aux_var : aux_vars)
     if ((aux_var.get_type() == AuxVarType::diffLag || aux_var.get_type() == AuxVarType::diffLead)
         && aux_var.get_symb_id() == diff_aux_var_symb_id)
-      lag += 1 + getOrigLeadLagForDiffAuxVar(aux_var.get_orig_symb_id());
-  return lag;
+      return (aux_var.get_type() == AuxVarType::diffLag ? 1 : -1) + getOrigLeadLagForDiffAuxVar(aux_var.get_orig_symb_id());
+  return 0;
 }
 
 int
