@@ -3144,16 +3144,16 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
           }
       output << "];" << endl
              << modstruct << "pac." << substruct << "ar.params = [";
-      for (auto &it : ar_params_and_vars)
-        output << symbol_table.getTypeSpecificID(it.first) + 1 << " ";
+      for (auto &[pid, vid, vlag] : ar_params_and_vars)
+        output << (pid != -1 ? symbol_table.getTypeSpecificID(pid) + 1 : -1) << " ";
       output << "];" << endl
              << modstruct << "pac." << substruct << "ar.vars = [";
-      for (auto &it : ar_params_and_vars)
-        output << symbol_table.getTypeSpecificID(it.second.first) + 1 << " ";
+      for (auto &[pid, vid, vlag] : ar_params_and_vars)
+        output << (vid != -1 ? symbol_table.getTypeSpecificID(vid) + 1 : -1) << " ";
       output << "];" << endl
              << modstruct << "pac." << substruct << "ar.lags = [";
-      for (auto &it : ar_params_and_vars)
-        output << it.second.second << " ";
+      for (auto &[pid, vid, vlag] : ar_params_and_vars)
+        output << vlag << " ";
       output << "];" << endl;
       if (!non_optim_vars_params_and_constants.empty())
         {
@@ -3882,7 +3882,7 @@ DynamicModel::walkPacParameters(const string &name)
     {
       pair<int, int> lhs(-1, -1);
       pair<int, vector<tuple<int, bool, int>>> ec_params_and_vars;
-      set<pair<int, pair<int, int>>> ar_params_and_vars;
+      vector<tuple<int, int, int>> ar_params_and_vars;
       vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants, optim_additive_vars_params_and_constants, additive_vars_params_and_constants;
 
       if (equation->containsPacExpectation(name))
@@ -3954,7 +3954,7 @@ DynamicModel::walkPacParameters(const string &name)
               cerr << "walkPacParameters: error obtaining LHS variable." << endl;
               exit(EXIT_FAILURE);
             }
-          if (ec_params_and_vars.second.empty() || ar_params_and_vars.empty())
+          if (ec_params_and_vars.second.empty())
             {
               cerr << "walkPacParameters: error obtaining RHS parameters." << endl;
               exit(EXIT_FAILURE);
@@ -3965,31 +3965,11 @@ DynamicModel::walkPacParameters(const string &name)
                                            non_optim_vars_params_and_constants,
                                            additive_vars_params_and_constants,
                                            optim_additive_vars_params_and_constants};
-          eqtag_and_lag[{name, eqtag}] = {eq, 0};
+          int max_lag = ar_params_and_vars.size();
+          eqtag_and_lag[{name, eqtag}] = {eq, max_lag};
         }
     }
   return eqtag_and_lag;
-}
-
-void
-DynamicModel::getPacMaxLag(const string &pac_model_name, map<pair<string, string>, pair<string, int>> &eqtag_and_lag) const
-{
-  for (auto &equation : equations)
-    if (equation->containsPacExpectation(pac_model_name))
-      {
-        set<pair<int, int>> endogs;
-        equation->arg1->collectDynamicVariables(SymbolType::endogenous, endogs);
-        if (endogs.size() != 1)
-          {
-            cerr << "The LHS of the PAC equation may only be comprised of one endogenous variable"
-                 << endl;
-            exit(EXIT_FAILURE);
-          }
-
-        string eqtag = equation_tags.getTagValueByEqnAndKey(&equation - &equations[0], "name");
-        string eq = eqtag_and_lag[{pac_model_name, eqtag}].first;
-        eqtag_and_lag[{pac_model_name, eqtag}] = {eq, equation->PacMaxLag(endogs.begin()->first)};
-      }
 }
 
 int

@@ -467,10 +467,6 @@ public:
     maxLagWithDiffsExpanded() returns 3. */
   virtual int maxLagWithDiffsExpanded() const = 0;
 
-  //! Get Max lag of var associated with Pac model
-  //! Takes account of undiffed LHS variables in calculating the max lag
-  virtual int PacMaxLag(int lhs_symb_id) const = 0;
-
   virtual expr_t undiff() const = 0;
 
   //! Returns a new expression where all the leads/lags have been shifted backwards by the same amount
@@ -757,7 +753,6 @@ public:
   int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
-  int PacMaxLag(int lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -830,7 +825,6 @@ public:
   int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
-  int PacMaxLag(int lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -931,7 +925,6 @@ public:
   int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
-  int PacMaxLag(int lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -1038,7 +1031,6 @@ public:
   int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
-  int PacMaxLag(int lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -1086,10 +1078,14 @@ public:
       is target ?, multiplicative scalar); this form theoretically allows for a
       linear combination in the cointegration, though for the time being we allow
       less than that
+    ar_params_and_vars: elements are indexed according to lag (index 0 is lag
+      1); each tuple is (parameter_id, variable_id, variable_lag) where
+      variable_lag is *not* the lag order in the AR
+      (because variable is an AUX_DIFF_LAG)
    */
   void getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
                   pair<int, vector<tuple<int, bool, int>>> &ec_params_and_vars,
-                  set<pair<int, pair<int, int>>> &ar_params_and_vars,
+                  vector<tuple<int, int, int>> &ar_params_and_vars,
                   vector<tuple<int, int, int, double>> &additive_vars_params_and_constants) const;
 
   //! Finds the share of optimizing agents in the PAC equation,
@@ -1170,7 +1166,6 @@ public:
   int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
-  int PacMaxLag(int lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -1282,7 +1277,6 @@ public:
   int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
-  int PacMaxLag(int lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
@@ -1453,7 +1447,6 @@ public:
   int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
-  int PacMaxLag(int lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   void prepareForDerivation() override;
@@ -1526,7 +1519,6 @@ public:
   int maxLagWithDiffsExpanded() const override;
   int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
-  int PacMaxLag(int lhs_symb_id) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
   void prepareForDerivation() override;

@@ -505,9 +505,6 @@ public:
   //! Substitute VarExpectation operators
   void substituteVarExpectation(const map<string, expr_t> &subst_table);
 
-  //! Return max lag of pac equation
-  void getPacMaxLag(const string &pac_model_name, map<pair<string, string>, pair<string, int>> &eqtag_and_lag) const;
-
   // Exception thrown by getPacTargetSymbId()
   class PacTargetNotIdentifiedException
   {
@@ -553,7 +550,7 @@ public:
   //! (pac_model_name, standardized_eqtag) ->
   //!     (lhs, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants)
   map<pair<string, string>,
-      tuple<pair<int, int>, int, set<pair<int, pair<int, int>>>, pair<int, vector<tuple<int, bool, int>>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>>> pac_equation_info;
+      tuple<pair<int, int>, int, vector<tuple<int, int, int>>, pair<int, vector<tuple<int, bool, int>>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>>> pac_equation_info;
 
   //! Table to undiff LHS variables for pac vector z
   vector<int> getUndiffLHSForPac(const string &aux_model_name,

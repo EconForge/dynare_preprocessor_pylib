@@ -494,7 +494,6 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
             exit(EXIT_FAILURE);
           }
         auto eqtag_and_lag = dynamic_model.walkPacParameters(pms->name);
-        original_model.getPacMaxLag(pms->name, eqtag_and_lag);
         if (pms->aux_model_name.empty())
           dynamic_model.addPacModelConsistentExpectationEquation(pms->name, symbol_table.getID(pms->discount),
                                                                  eqtag_and_lag, diff_subst_table);

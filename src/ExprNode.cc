@@ -565,12 +565,6 @@ NumConstNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
   return 0;
 }
 
-int
-NumConstNode::PacMaxLag(int lhs_symb_id) const
-{
-  return 0;
-}
-
 expr_t
 NumConstNode::decreaseLeadsLags(int n) const
 {
@@ -1536,17 +1530,6 @@ VariableNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
   if (lhs_lag_equiv.find(lag_equiv_repr) == lhs_lag_equiv.end())
     return 0;
   return maxLag();
-}
-
-int
-VariableNode::PacMaxLag(int lhs_symb_id) const
-{
-  if (get_type() == SymbolType::modelLocalVariable)
-    return datatree.getLocalVariable(symb_id)->PacMaxLag(lhs_symb_id);
-
-  if (lhs_symb_id == symb_id)
-    return -lag;
-  return 0;
 }
 
 expr_t
@@ -3243,13 +3226,6 @@ UnaryOpNode::VarMinLag() const
   return arg->VarMinLag();
 }
 
-int
-UnaryOpNode::PacMaxLag(int lhs_symb_id) const
-{
-  //This will never be an UnaryOpcode::diff node
-  return arg->PacMaxLag(lhs_symb_id);
-}
-
 expr_t
 UnaryOpNode::substituteAdl() const
 {
@@ -4935,12 +4911,6 @@ BinaryOpNode::undiff() const
   return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
 }
 
-int
-BinaryOpNode::PacMaxLag(int lhs_symb_id) const
-{
-  return max(arg1->PacMaxLag(lhs_symb_id), arg2->PacMaxLag(lhs_symb_id));
-}
-
 expr_t
 BinaryOpNode::decreaseLeadsLags(int n) const
 {
@@ -5248,7 +5218,7 @@ BinaryOpNode::findTargetVariable(int lhs_symb_id) const
 void
 BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
                          pair<int, vector<tuple<int, bool, int>>> &ec_params_and_vars,
-                         set<pair<int, pair<int, int>>> &ar_params_and_vars,
+                         vector<tuple<int, int, int>> &ar_params_and_vars,
                          vector<tuple<int, int, int, double>> &additive_vars_params_and_constants) const
 {
   ec_params_and_vars.first = -1;
@@ -5303,7 +5273,7 @@ BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
         get<3>(t) *= it.second; // Update sign of constants
 
       int pid = get<0>(m);
-      for (auto [vid, lag, pidtmp, constant] : m.second)
+      for (auto [vid, vlag, pidtmp, constant] : m.second)
         {
           if (pid == -1)
             pid = pidtmp;
@@ -5317,16 +5287,19 @@ BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
               vidorig == lhs_symb_id || vidorig == lhs_orig_symb_id)
             {
               // This is an autoregressive term
-              if (constant != 1 || pid == -1)
+              if (constant != 1 || pid == -1 || !datatree.symbol_table.isDiffAuxiliaryVariable(vid))
                 {
-                  cerr << "BinaryOpNode::getPacAREC: autoregressive terms must be of the form 'parameter*lagged_variable" << endl;
+                  cerr << "BinaryOpNode::getPacAREC: autoregressive terms must be of the form 'parameter*diff_lagged_variable" << endl;
                   exit(EXIT_FAILURE);
                 }
-              ar_params_and_vars.insert({pid, { vid, lag }});
+              int ar_lag = datatree.symbol_table.getOrigLeadLagForDiffAuxVar(vid);
+              if (static_cast<int>(ar_params_and_vars.size()) < ar_lag)
+                ar_params_and_vars.resize(ar_lag, { -1, -1, 0 });
+              ar_params_and_vars[ar_lag-1] = { pid, vid, vlag };
             }
           else
             // This is a residual additive term
-            additive_vars_params_and_constants.emplace_back(vid, lag, pid, constant);
+            additive_vars_params_and_constants.emplace_back(vid, vlag, pid, constant);
         }
     }
 }
@@ -6198,12 +6171,6 @@ TrinaryOpNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
                  arg3->VarMaxLag(lhs_lag_equiv)));
 }
 
-int
-TrinaryOpNode::PacMaxLag(int lhs_symb_id) const
-{
-  return max(arg1->PacMaxLag(lhs_symb_id), max(arg2->PacMaxLag(lhs_symb_id), arg3->PacMaxLag(lhs_symb_id)));
-}
-
 expr_t
 TrinaryOpNode::decreaseLeadsLags(int n) const
 {
@@ -6632,15 +6599,6 @@ AbstractExternalFunctionNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
   for (auto argument : arguments)
     max_lag = max(max_lag, argument->VarMaxLag(lhs_lag_equiv));
   return max_lag;
-}
-
-int
-AbstractExternalFunctionNode::PacMaxLag(int lhs_symb_id) const
-{
-  int val = 0;
-  for (auto argument : arguments)
-    val = max(val, argument->PacMaxLag(lhs_symb_id));
-  return val;
 }
 
 expr_t
@@ -8151,13 +8109,6 @@ VarExpectationNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
   exit(EXIT_FAILURE);
 }
 
-int
-VarExpectationNode::PacMaxLag(int lhs_symb_id) const
-{
-  cerr << "VarExpectationNode::PacMaxLag not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
 expr_t
 VarExpectationNode::decreaseLeadsLags(int n) const
 {
@@ -8546,12 +8497,6 @@ PacExpectationNode::VarMinLag() const
 
 int
 PacExpectationNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
-{
-  return 0;
-}
-
-int
-PacExpectationNode::PacMaxLag(int lhs_symb_id) const
 {
   return 0;
 }
