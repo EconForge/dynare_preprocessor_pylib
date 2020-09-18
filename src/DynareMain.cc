@@ -57,7 +57,7 @@ usage()
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=matlab|julia]"
        << " [params_derivs_order=0|1|2] [transform_unary_ops] [exclude_eqs=<equation_tag_list_or_file>] [include_eqs=<equation_tag_list_or_file>]"
        << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] [nopathchange] [nopreprocessoroutput]"
-       << " [mexext=<extension>] [matlabroot=<path>] [onlymodel] [notime]"
+       << " [mexext=<extension>] [matlabroot=<path>] [onlymodel] [notime] [use_dll]"
        << endl;
   exit(EXIT_FAILURE);
 }
@@ -166,6 +166,7 @@ main(int argc, char **argv)
   dynareroot = dynareroot.parent_path();
   dynareroot = dynareroot / ".." / "..";
   bool onlymodel = false;
+  bool use_dll = false;
 
   for (auto s : options)
     {
@@ -400,6 +401,8 @@ main(int argc, char **argv)
         onlymodel = true;
       else if (s == "gui")
         gui = true;
+      else if (s == "use_dll")
+        use_dll = true;
       else
         {
           cerr << "Unknown option: " << s << endl;
@@ -454,6 +457,11 @@ main(int argc, char **argv)
 
   // Do parsing and construct internal representation of mod file
   unique_ptr<ModFile> mod_file = p.parse(macro_output, debug);
+
+  // Handle use_dll option specified on the command line
+  if (use_dll)
+    mod_file->use_dll = true;
+
   if (json == JsonOutputPointType::parsing)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
 

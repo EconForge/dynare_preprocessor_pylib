@@ -85,7 +85,8 @@ public:
   //! Is the model stored in bytecode format (bytecode=true) or in a M-file (bytecode=false)
   bool bytecode{false};
 
-  //! Is the model stored in a MEX file ? (option "use_dll" of "model")
+  /*! Is the model stored in a MEX file ? (option “use_dll”, either in the
+    “model” block or on the preprocessor command line) */
   bool use_dll{false};
 
   //! Is the static model have to computed (no_static=false) or not (no_static=true). Option of 'model'
