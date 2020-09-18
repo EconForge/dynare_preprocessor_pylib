@@ -1978,6 +1978,12 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
   ostringstream flags;
   string libs;
 
+  if (matlabroot.empty())
+    {
+      cerr << "ERROR: 'matlabroot' option to preprocessor is not set, needed with 'use_dll'" << endl;
+      exit(EXIT_FAILURE);
+    }
+
   if (mexext == "mex")
     {
       // Octave
