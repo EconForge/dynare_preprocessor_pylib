@@ -2191,6 +2191,9 @@ UnaryOpNode::cost(const vector<vector<temporary_terms_t>> &blocks_temporary_term
 int
 UnaryOpNode::cost(int cost, bool is_matlab) const
 {
+  if (op_code == UnaryOpcode::uminus && dynamic_cast<NumConstNode *>(arg))
+    return 0; // Cost is zero for a negative constant, as for a positive one
+
   if (is_matlab)
     // Cost for Matlab files
     switch (op_code)
