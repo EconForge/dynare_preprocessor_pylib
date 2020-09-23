@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -130,10 +130,9 @@ SymbolTable::freeze() noexcept(false)
           param_ids.push_back(i);
           break;
         default:
-          tsi = -1;
-          break;
+          continue;
         }
-      type_specific_ids.push_back(tsi);
+      type_specific_ids[i] = tsi;
     }
 }
 

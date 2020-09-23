@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -151,7 +151,7 @@ private:
   vector<SymbolType> type_table;
 
   //! Maps symbol IDs to type specific IDs
-  vector<int> type_specific_ids;
+  map<int, int> type_specific_ids;
 
   //! Maps type specific IDs of endogenous to symbol IDs
   vector<int> endo_ids;
@@ -201,6 +201,16 @@ public:
     int tsid;
     SymbolType type;
     UnknownTypeSpecificIDException(int tsid_arg, SymbolType type_arg) : tsid{tsid_arg}, type{type_arg}
+    {
+    }
+  };
+  /* Thrown when requesting the type specific ID of a symbol which doesn’t
+     have one */
+  class NoTypeSpecificIDException
+  {
+  public:
+    const int symb_id;
+    explicit NoTypeSpecificIDException(int symb_id_arg) : symb_id{symb_id_arg}
     {
     }
   };
@@ -496,7 +506,11 @@ SymbolTable::getTypeSpecificID(int id) const noexcept(false)
 
   validateSymbID(id);
 
-  return type_specific_ids[id];
+  if (auto it = type_specific_ids.find(id);
+      it != type_specific_ids.end())
+    return it->second;
+  else
+    throw NoTypeSpecificIDException(id);
 }
 
 inline int

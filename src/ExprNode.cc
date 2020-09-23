@@ -963,10 +963,11 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
 
   int i;
-  switch (int tsid = datatree.symbol_table.getTypeSpecificID(symb_id); type)
+  switch (type)
     {
     case SymbolType::parameter:
-      if (output_type == ExprNodeOutputType::matlabOutsideModel)
+      if (int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
+          output_type == ExprNodeOutputType::matlabOutsideModel)
         output << "M_.params" << "(" << tsid + 1 << ")";
       else
         output << "params" << LEFT_ARRAY_SUBSCRIPT(output_type) << tsid + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -991,7 +992,8 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       break;
 
     case SymbolType::endogenous:
-      switch (output_type)
+      switch (int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
+              output_type)
         {
         case ExprNodeOutputType::juliaDynamicModel:
         case ExprNodeOutputType::matlabDynamicModel:
@@ -1038,7 +1040,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       break;
 
     case SymbolType::exogenous:
-      i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
+      i = datatree.symbol_table.getTypeSpecificID(symb_id) + ARRAY_SUBSCRIPT_OFFSET(output_type);
       switch (output_type)
         {
         case ExprNodeOutputType::juliaDynamicModel:
@@ -1096,7 +1098,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       break;
 
     case SymbolType::exogenousDet:
-      i = tsid + datatree.symbol_table.exo_nbr() + ARRAY_SUBSCRIPT_OFFSET(output_type);
+      i = datatree.symbol_table.getTypeSpecificID(symb_id) + datatree.symbol_table.exo_nbr() + ARRAY_SUBSCRIPT_OFFSET(output_type);
       switch (output_type)
         {
         case ExprNodeOutputType::juliaDynamicModel:
@@ -1126,10 +1128,10 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           break;
         case ExprNodeOutputType::matlabOutsideModel:
           assert(lag == 0);
-          output <<  "oo_.exo_det_steady_state(" << tsid + 1 << ")";
+          output <<  "oo_.exo_det_steady_state(" << datatree.symbol_table.getTypeSpecificID(symb_id) + 1 << ")";
           break;
         case ExprNodeOutputType::matlabDynamicSteadyStateOperator:
-          output <<  "oo_.exo_det_steady_state(" << tsid + 1 << ")";
+          output <<  "oo_.exo_det_steady_state(" << datatree.symbol_table.getTypeSpecificID(symb_id) + 1 << ")";
           break;
         case ExprNodeOutputType::juliaSteadyStateFile:
         case ExprNodeOutputType::steadyStateFile:
