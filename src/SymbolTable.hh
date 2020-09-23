@@ -179,7 +179,7 @@ public:
   {
   public:
     //! Symbol name
-    string name;
+    const string name;
     explicit UnknownSymbolNameException(string name_arg) : name{move(name_arg)}
     {
     }
@@ -189,7 +189,7 @@ public:
   {
   public:
     //! Symbol ID
-    int id;
+    const int id;
     explicit UnknownSymbolIDException(int id_arg) : id{id_arg}
     {
     }
@@ -198,8 +198,8 @@ public:
   class UnknownTypeSpecificIDException
   {
   public:
-    int tsid;
-    SymbolType type;
+    const int tsid;
+    const SymbolType type;
     UnknownTypeSpecificIDException(int tsid_arg, SymbolType type_arg) : tsid{tsid_arg}, type{type_arg}
     {
     }
@@ -219,9 +219,9 @@ public:
   {
   public:
     //! Symbol name
-    string name;
+    const string name;
     //! Was the previous declaration done with the same symbol type ?
-    bool same_type;
+    const bool same_type;
     AlreadyDeclaredException(string name_arg, bool same_type_arg) : name{move(name_arg)}, same_type{same_type_arg}
     {
     }
