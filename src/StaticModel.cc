@@ -1830,8 +1830,13 @@ bool
 StaticModel::exoPresentInEqs() const
 {
   for (auto equation : equations)
-    if (equation->containsExogenous())
-      return true;
+    {
+      set<int> result;
+      equation->collectVariables(SymbolType::exogenous, result);
+      equation->collectVariables(SymbolType::exogenousDet, result);
+      if (!result.empty())
+        return true;
+    }
   return false;
 }
 

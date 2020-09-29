@@ -691,12 +691,6 @@ NumConstNode::containsPacExpectation(const string &pac_model_name) const
   return false;
 }
 
-bool
-NumConstNode::containsExogenous() const
-{
-  return false;
-}
-
 expr_t
 NumConstNode::replaceTrendVar() const
 {
@@ -1858,15 +1852,6 @@ VariableNode::containsPacExpectation(const string &pac_model_name) const
     return datatree.getLocalVariable(symb_id)->containsPacExpectation(pac_model_name);
 
   return false;
-}
-
-bool
-VariableNode::containsExogenous() const
-{
-  if (get_type() == SymbolType::modelLocalVariable)
-    return datatree.getLocalVariable(symb_id)->containsExogenous();
-
-  return get_type() == SymbolType::exogenous || get_type() == SymbolType::exogenousDet;
 }
 
 expr_t
@@ -3718,12 +3703,6 @@ UnaryOpNode::containsPacExpectation(const string &pac_model_name) const
   return arg->containsPacExpectation(pac_model_name);
 }
 
-bool
-UnaryOpNode::containsExogenous() const
-{
-  return arg->containsExogenous();
-}
-
 expr_t
 UnaryOpNode::replaceTrendVar() const
 {
@@ -5186,12 +5165,6 @@ BinaryOpNode::containsPacExpectation(const string &pac_model_name) const
   return arg1->containsPacExpectation(pac_model_name) || arg2->containsPacExpectation(pac_model_name);
 }
 
-bool
-BinaryOpNode::containsExogenous() const
-{
-  return arg1->containsExogenous() || arg2->containsExogenous();
-}
-
 expr_t
 BinaryOpNode::replaceTrendVar() const
 {
@@ -6419,12 +6392,6 @@ TrinaryOpNode::containsPacExpectation(const string &pac_model_name) const
   return (arg1->containsPacExpectation(pac_model_name) || arg2->containsPacExpectation(pac_model_name) || arg3->containsPacExpectation(pac_model_name));
 }
 
-bool
-TrinaryOpNode::containsExogenous() const
-{
-  return (arg1->containsExogenous() || arg2->containsExogenous() || arg3->containsExogenous());
-}
-
 expr_t
 TrinaryOpNode::replaceTrendVar() const
 {
@@ -6913,15 +6880,6 @@ AbstractExternalFunctionNode::containsPacExpectation(const string &pac_model_nam
 {
   for (auto argument : arguments)
     if (argument->containsPacExpectation(pac_model_name))
-      return true;
-  return false;
-}
-
-bool
-AbstractExternalFunctionNode::containsExogenous() const
-{
-  for (auto argument : arguments)
-    if (argument->containsExogenous())
       return true;
   return false;
 }
@@ -8391,13 +8349,6 @@ VarExpectationNode::containsPacExpectation(const string &pac_model_name) const
 }
 
 bool
-VarExpectationNode::containsExogenous() const
-{
-  cerr << "VarExpectationNode::containsExogenous not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-bool
 VarExpectationNode::isNumConstNodeEqualTo(double value) const
 {
   return false;
@@ -8777,12 +8728,6 @@ PacExpectationNode::containsPacExpectation(const string &pac_model_name) const
     return true;
   else
     return pac_model_name == model_name;
-}
-
-bool
-PacExpectationNode::containsExogenous() const
-{
-  return false;
 }
 
 bool
