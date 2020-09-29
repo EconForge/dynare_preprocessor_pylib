@@ -98,15 +98,17 @@ DataTree::operator=(const DataTree &d)
   // Constants must be initialized first because they are used in some Add* methods
   initConstants();
 
+  /* Model local variables must be next, because they can be evaluated in Add*
+     methods when the model equations are added */
+  for (const auto &it : d.local_variables_table)
+    local_variables_table[it.first] = it.second->clone(*this);
+
   for (const auto &it : d.node_list)
     it->clone(*this);
 
   assert(node_list.size() == d.node_list.size());
 
   local_variables_vector = d.local_variables_vector;
-
-  for (const auto &it : d.local_variables_table)
-    local_variables_table[it.first] = it.second->clone(*this);
 
   return *this;
 }
