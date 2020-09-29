@@ -674,10 +674,7 @@ public:
                               map<tuple<int, int, int>, expr_t> &A0,
                               map<tuple<int, int, int>, expr_t> &A0star) const;
 
-  //! Finds equations where a variable is equal to a constant
-  virtual void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const = 0;
-
-  //! Replaces variables found in findConstantEquations() with their constant values
+  //! Replaces variables found in BinaryOpNode::findConstantEquations() with their constant values
   virtual expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const = 0;
 
   //! Returns true if PacExpectationNode encountered
@@ -802,7 +799,6 @@ public:
   expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
@@ -878,7 +874,6 @@ public:
   expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
@@ -985,7 +980,6 @@ public:
   expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
@@ -1103,7 +1097,8 @@ public:
   expr_t getNonZeroPartofEquation() const;
   bool isInStaticForm() const override;
   void fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<int, int, int>, expr_t> &AR) const;
-  void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
+  //! Finds equations where a variable is equal to a constant
+  void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   /*
@@ -1227,7 +1222,6 @@ public:
   expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
@@ -1342,7 +1336,6 @@ public:
   expr_t clone(DataTree &datatree) const override = 0;
   expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
@@ -1527,7 +1520,6 @@ public:
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
   expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
@@ -1603,7 +1595,6 @@ public:
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
   expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
-  void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;

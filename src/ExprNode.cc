@@ -754,12 +754,6 @@ NumConstNode::substituteStaticAuxiliaryVariable() const
   return const_cast<NumConstNode *>(this);
 }
 
-void
-NumConstNode::findConstantEquations(map<VariableNode *, NumConstNode *> &table) const
-{
-  return;
-}
-
 expr_t
 NumConstNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
@@ -2037,12 +2031,6 @@ VariableNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
       model_endos_and_lags[varname] = min(model_endos_and_lags[varname], lag);
     else
       model_endos_and_lags[varname] = lag;
-}
-
-void
-VariableNode::findConstantEquations(map<VariableNode *, NumConstNode *> &table) const
-{
-  return;
 }
 
 expr_t
@@ -3832,12 +3820,6 @@ UnaryOpNode::substituteStaticAuxiliaryVariable() const
     return buildSimilarUnaryOpNode(argsubst, datatree);
 }
 
-void
-UnaryOpNode::findConstantEquations(map<VariableNode *, NumConstNode *> &table) const
-{
-  arg->findConstantEquations(table);
-}
-
 expr_t
 UnaryOpNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
@@ -5624,11 +5606,6 @@ BinaryOpNode::findConstantEquations(map<VariableNode *, NumConstNode *> &table) 
       else if (dynamic_cast<VariableNode *>(arg2) && dynamic_cast<NumConstNode *>(arg1))
         table[dynamic_cast<VariableNode *>(arg2)] = dynamic_cast<NumConstNode *>(arg1);
     }
-  else
-    {
-      arg1->findConstantEquations(table);
-      arg2->findConstantEquations(table);
-    }
 }
 
 expr_t
@@ -6559,14 +6536,6 @@ TrinaryOpNode::substituteStaticAuxiliaryVariable() const
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
 
-void
-TrinaryOpNode::findConstantEquations(map<VariableNode *, NumConstNode *> &table) const
-{
-  arg1->findConstantEquations(table);
-  arg2->findConstantEquations(table);
-  arg3->findConstantEquations(table);
-}
-
 expr_t
 TrinaryOpNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
@@ -7163,13 +7132,6 @@ AbstractExternalFunctionNode::substituteStaticAuxiliaryVariable() const
   for (auto argument : arguments)
     arguments_subst.push_back(argument->substituteStaticAuxiliaryVariable());
   return buildSimilarExternalFunctionNode(arguments_subst, datatree);
-}
-
-void
-AbstractExternalFunctionNode::findConstantEquations(map<VariableNode *, NumConstNode *> &table) const
-{
-  for (auto argument : arguments)
-    argument->findConstantEquations(table);
 }
 
 expr_t
@@ -8568,12 +8530,6 @@ VarExpectationNode::substituteStaticAuxiliaryVariable() const
   return const_cast<VarExpectationNode *>(this);
 }
 
-void
-VarExpectationNode::findConstantEquations(map<VariableNode *, NumConstNode *> &table) const
-{
-  return;
-}
-
 expr_t
 VarExpectationNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
@@ -8953,12 +8909,6 @@ expr_t
 PacExpectationNode::substituteStaticAuxiliaryVariable() const
 {
   return const_cast<PacExpectationNode *>(this);
-}
-
-void
-PacExpectationNode::findConstantEquations(map<VariableNode *, NumConstNode *> &table) const
-{
-  return;
 }
 
 expr_t
