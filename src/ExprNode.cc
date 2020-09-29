@@ -136,15 +136,6 @@ ExprNode::collectEndogenous(set<pair<int, int>> &result) const
 }
 
 void
-ExprNode::collectExogenous(set<pair<int, int>> &result) const
-{
-  set<pair<int, int>> symb_ids_and_lags;
-  collectDynamicVariables(SymbolType::exogenous, symb_ids_and_lags);
-  for (const auto &[symb_id, lag] : symb_ids_and_lags)
-    result.emplace(datatree.symbol_table.getTypeSpecificID(symb_id), lag);
-}
-
-void
 ExprNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
                                 map<pair<int, int>, temporary_terms_t> &temp_terms_map,
                                 map<expr_t, pair<int, pair<int, int>>> &reference_count,

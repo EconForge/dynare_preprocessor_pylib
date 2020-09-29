@@ -397,14 +397,6 @@ public:
   */
   virtual void collectEndogenous(set<pair<int, int>> &result) const;
 
-  //! Computes the set of exogenous variables in the expression
-  /*!
-    Exogenous are stored as integer pairs of the form (type_specific_id, lag).
-    They are added to the set given in argument.
-    Note that model local variables are substituted by their expression in the computation.
-  */
-  virtual void collectExogenous(set<pair<int, int>> &result) const;
-
   class EvalException
   {
   };
