@@ -395,7 +395,7 @@ public:
     They are added to the set given in argument.
     Note that model local variables are substituted by their expression in the computation.
   */
-  virtual void collectEndogenous(set<pair<int, int>> &result) const;
+  void collectEndogenous(set<pair<int, int>> &result) const;
 
   class EvalException
   {
