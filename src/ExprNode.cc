@@ -701,12 +701,6 @@ NumConstNode::containsPacExpectation(const string &pac_model_name) const
 }
 
 bool
-NumConstNode::containsEndogenous() const
-{
-  return false;
-}
-
-bool
 NumConstNode::containsExogenous() const
 {
   return false;
@@ -1873,18 +1867,6 @@ VariableNode::containsPacExpectation(const string &pac_model_name) const
     return datatree.getLocalVariable(symb_id)->containsPacExpectation(pac_model_name);
 
   return false;
-}
-
-bool
-VariableNode::containsEndogenous() const
-{
-  if (get_type() == SymbolType::modelLocalVariable)
-    return datatree.getLocalVariable(symb_id)->containsEndogenous();
-
-  if (get_type() == SymbolType::endogenous)
-    return true;
-  else
-    return false;
 }
 
 bool
@@ -3746,12 +3728,6 @@ UnaryOpNode::containsPacExpectation(const string &pac_model_name) const
 }
 
 bool
-UnaryOpNode::containsEndogenous() const
-{
-  return arg->containsEndogenous();
-}
-
-bool
 UnaryOpNode::containsExogenous() const
 {
   return arg->containsExogenous();
@@ -5220,12 +5196,6 @@ BinaryOpNode::containsPacExpectation(const string &pac_model_name) const
 }
 
 bool
-BinaryOpNode::containsEndogenous() const
-{
-  return arg1->containsEndogenous() || arg2->containsEndogenous();
-}
-
-bool
 BinaryOpNode::containsExogenous() const
 {
   return arg1->containsExogenous() || arg2->containsExogenous();
@@ -6459,12 +6429,6 @@ TrinaryOpNode::containsPacExpectation(const string &pac_model_name) const
 }
 
 bool
-TrinaryOpNode::containsEndogenous() const
-{
-  return (arg1->containsEndogenous() || arg2->containsEndogenous() || arg3->containsEndogenous());
-}
-
-bool
 TrinaryOpNode::containsExogenous() const
 {
   return (arg1->containsExogenous() || arg2->containsExogenous() || arg3->containsExogenous());
@@ -6958,15 +6922,6 @@ AbstractExternalFunctionNode::containsPacExpectation(const string &pac_model_nam
 {
   for (auto argument : arguments)
     if (argument->containsPacExpectation(pac_model_name))
-      return true;
-  return false;
-}
-
-bool
-AbstractExternalFunctionNode::containsEndogenous() const
-{
-  for (auto argument : arguments)
-    if (argument->containsEndogenous())
       return true;
   return false;
 }
@@ -8445,13 +8400,6 @@ VarExpectationNode::containsPacExpectation(const string &pac_model_name) const
 }
 
 bool
-VarExpectationNode::containsEndogenous() const
-{
-  cerr << "VarExpectationNode::containsEndogenous not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-bool
 VarExpectationNode::containsExogenous() const
 {
   cerr << "VarExpectationNode::containsExogenous not implemented." << endl;
@@ -8838,12 +8786,6 @@ PacExpectationNode::containsPacExpectation(const string &pac_model_name) const
     return true;
   else
     return pac_model_name == model_name;
-}
-
-bool
-PacExpectationNode::containsEndogenous() const
-{
-  return true;
 }
 
 bool

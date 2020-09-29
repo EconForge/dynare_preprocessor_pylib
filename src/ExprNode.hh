@@ -575,9 +575,6 @@ public:
   */
   virtual bool isNumConstNodeEqualTo(double value) const = 0;
 
-  //! Returns true if the expression contains one or several endogenous variable
-  virtual bool containsEndogenous() const = 0;
-
   //! Returns true if the expression contains one or several exogenous variable
   virtual bool containsExogenous() const = 0;
 
@@ -790,7 +787,6 @@ public:
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
-  bool containsEndogenous() const override;
   bool containsExogenous() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
@@ -865,7 +861,6 @@ public:
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
-  bool containsEndogenous() const override;
   bool containsExogenous() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
@@ -971,7 +966,6 @@ public:
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
-  bool containsEndogenous() const override;
   bool containsExogenous() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
@@ -1081,7 +1075,6 @@ public:
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
-  bool containsEndogenous() const override;
   bool containsExogenous() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
@@ -1213,7 +1206,6 @@ public:
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
-  bool containsEndogenous() const override;
   bool containsExogenous() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
@@ -1326,7 +1318,6 @@ public:
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
-  bool containsEndogenous() const override;
   bool containsExogenous() const override;
   int countDiffs() const override;
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
@@ -1509,7 +1500,6 @@ public:
                const deriv_node_temp_terms_t &tef_terms) const override;
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
-  bool containsEndogenous() const override;
   bool containsExogenous() const override;
   int countDiffs() const override;
   bool isNumConstNodeEqualTo(double value) const override;
@@ -1584,7 +1574,6 @@ public:
                const deriv_node_temp_terms_t &tef_terms) const override;
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
-  bool containsEndogenous() const override;
   bool containsExogenous() const override;
   int countDiffs() const override;
   bool isNumConstNodeEqualTo(double value) const override;
