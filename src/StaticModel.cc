@@ -2065,7 +2065,7 @@ StaticModel::computeChainRuleJacobian()
     {
       int nb_recursives = blocks[blk].getRecursiveSize();
 
-      map<int, expr_t> recursive_vars;
+      map<int, BinaryOpNode *> recursive_vars;
       for (int i = 0; i < nb_recursives; i++)
         {
           int deriv_id = getDerivID(symbol_table.getID(SymbolType::endogenous, getBlockVariableID(blk, i)), 0);

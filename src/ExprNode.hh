@@ -268,7 +268,7 @@ public:
     \param deriv_id The derivation ID with respect to which we are derivating
     \param recursive_variables Contains the derivation ID for which chain rules must be applied. Keys are derivation IDs, values are equations of the form x=f(y) where x is the key variable and x doesn't appear in y
   */
-  virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) = 0;
+  virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) = 0;
 
   //! Returns precedence of node
   /*! Equals 100 for constants, variables, unary ops, and temporary terms */
@@ -747,7 +747,7 @@ public:
   void computeXrefs(EquationInfo &ei) const override;
   void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
   BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
-  expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
+  expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
   int maxEndoLag() const override;
@@ -820,7 +820,7 @@ public:
   SymbolType get_type() const;
   void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
   BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
-  expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
+  expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
   int maxEndoLag() const override;
@@ -921,7 +921,7 @@ public:
   void computeXrefs(EquationInfo &ei) const override;
   void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
   BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
-  expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
+  expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
   int maxEndoLag() const override;
@@ -1028,7 +1028,7 @@ public:
   //! Try to normalize an equation with respect to a given dynamic variable.
   /*! Should only be called on Equal nodes. The variable must appear in the equation. */
   BinaryOpNode *normalizeEquation(int symb_id, int lag) const;
-  expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
+  expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
   int maxEndoLag() const override;
@@ -1160,7 +1160,7 @@ public:
   void computeXrefs(EquationInfo &ei) const override;
   void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
   BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
-  expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
+  expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
   int maxEndoLag() const override;
@@ -1272,7 +1272,7 @@ public:
   void computeXrefs(EquationInfo &ei) const override = 0;
   void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
   BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
-  expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
+  expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
   int maxEndoLag() const override;
@@ -1458,7 +1458,7 @@ public:
   expr_t decreaseLeadsLags(int n) const override;
   void prepareForDerivation() override;
   expr_t computeDerivative(int deriv_id) override;
-  expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
+  expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) override;
   bool containsExternalFunction() const override;
   double eval(const eval_context_t &eval_context) const noexcept(false) override;
   void computeXrefs(EquationInfo &ei) const override;
@@ -1531,7 +1531,7 @@ public:
   expr_t decreaseLeadsLags(int n) const override;
   void prepareForDerivation() override;
   expr_t computeDerivative(int deriv_id) override;
-  expr_t getChainRuleDerivative(int deriv_id, const map<int, expr_t> &recursive_variables) override;
+  expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) override;
   bool containsExternalFunction() const override;
   double eval(const eval_context_t &eval_context) const noexcept(false) override;
   void computeXrefs(EquationInfo &ei) const override;
