@@ -255,7 +255,7 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
           || simulation_type == BlockSimulationType::evaluateForward)
         output << "function [y, T] = static_" << blk+1 << "(y, x, params, T)" << endl;
       else
-        output << "function [residual, T, g1] = static_" << blk+1 << "(y, x, params, T)" << endl;
+        output << "function [residual, y, T, g1] = static_" << blk+1 << "(y, x, params, T)" << endl;
 
       output << "  % ////////////////////////////////////////////////////////////////////////" << endl
              << "  % //" << string("                     Block ").substr(static_cast<int>(log10(blk + 1))) << blk+1
@@ -318,7 +318,7 @@ StaticModel::writeStaticPerBlockCFiles(const string &basename) const
           || simulation_type == BlockSimulationType::evaluateForward)
         output << "void static_" << blk+1 << "(double *restrict y, const double *restrict x, const double *restrict params, double *restrict T)" << endl;
       else
-        output << "void static_" << blk+1 << "(const double *restrict y, const double *restrict x, const double *restrict params, double *restrict T, double *restrict residual, double *restrict g1_i, double *restrict g1_j, double *restrict g1_v)" << endl;
+        output << "void static_" << blk+1 << "(double *restrict y, const double *restrict x, const double *restrict params, double *restrict T, double *restrict residual, double *restrict g1_i, double *restrict g1_j, double *restrict g1_v)" << endl;
       output << '{' << endl;
 
       writeStaticPerBlockHelper(blk, output, ExprNodeOutputType::CStaticModel, temporary_terms);
@@ -338,7 +338,7 @@ StaticModel::writeStaticPerBlockCFiles(const string &basename) const
         }
       else
         {
-          header << "void static_" << blk+1 << "_mx(const mxArray *y, const mxArray *x, const mxArray *params, mxArray *T, mxArray **residual, mxArray **g1)";
+          header << "void static_" << blk+1 << "_mx(mxArray *y, const mxArray *x, const mxArray *params, mxArray *T, mxArray **residual, mxArray **g1)";
           output << header.str() << endl
                  << '{' << endl
                  << "  *residual = mxCreateDoubleMatrix(" << blocks[blk].mfs_size << ",1,mxREAL);" << endl
@@ -1868,7 +1868,7 @@ StaticModel::writeStaticBlockMFile(const string &basename) const
                << "      residual = [];" << endl
                << "      g1 = [];" << endl;
       else
-        output << "      [residual, T, g1] = " << basename << ".block.static_" << blk+1 << "(y, x, params, T);" << endl;
+        output << "      [residual, y, T, g1] = " << basename << ".block.static_" << blk+1 << "(y, x, params, T);" << endl;
 
     }
   output << "  end" << endl
@@ -1925,7 +1925,7 @@ StaticModel::writeStaticBlockCFile(const string &basename) const
                << "      residual = mxCreateDoubleMatrix(0,0,mxREAL);" << endl
                << "      g1 = mxCreateDoubleMatrix(0,0,mxREAL);" << endl;
       else
-        output << "      static_" << blk+1 << "_mx(y, x, params, T_new, &residual, &g1);" << endl;
+        output << "      static_" << blk+1 << "_mx(y_new, x, params, T_new, &residual, &g1);" << endl;
       output << "      break;" << endl;
     }
   output << "    }" << endl

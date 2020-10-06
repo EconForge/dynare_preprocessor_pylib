@@ -517,7 +517,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
           || simulation_type == BlockSimulationType::evaluateForward)
         output << "function [y, T, g1, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, stochastic_mode)" << endl;
       else
-        output << "function [residual, T, g1, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, stochastic_mode)" << endl;
+        output << "function [residual, y, T, g1, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, stochastic_mode)" << endl;
 
       output << "  % ////////////////////////////////////////////////////////////////////////" << endl
              << "  % //" << string("                     Block ").substr(static_cast<int>(log10(blk + 1))) << blk+1
@@ -634,7 +634,7 @@ DynamicModel::writeDynamicPerBlockCFiles(const string &basename) const
           || simulation_type == BlockSimulationType::evaluateForward)
         output << "void dynamic_" << blk+1 << "(double *restrict y, const double *restrict x, int nb_row_x, const double *restrict params, const double *restrict steady_state, double *restrict T, int it_, bool stochastic_mode, double *restrict g1_i, double *restrict g1_j, double *restrict g1_v, double *restrict g1_x_i, double *restrict g1_x_j, double *restrict g1_x_v, double *restrict g1_xd_i, double *restrict g1_xd_j, double *restrict g1_xd_v, double *restrict g1_o_i, double *restrict g1_o_j, double *restrict g1_o_v)" << endl;
       else
-        output << "void dynamic_" << blk+1 << "(const double *restrict y, const double *restrict x, int nb_row_x, const double *restrict params, const double *restrict steady_state, double *restrict T, int it_, bool stochastic_mode, double *restrict residual, double *restrict g1_i, double *restrict g1_j, double *restrict g1_v, double *restrict g1_x_i, double *restrict g1_x_j, double *restrict g1_x_v, double *restrict g1_xd_i, double *restrict g1_xd_j, double *restrict g1_xd_v, double *restrict g1_o_i, double *restrict g1_o_j, double *restrict g1_o_v)" << endl;
+        output << "void dynamic_" << blk+1 << "(double *restrict y, const double *restrict x, int nb_row_x, const double *restrict params, const double *restrict steady_state, double *restrict T, int it_, bool stochastic_mode, double *restrict residual, double *restrict g1_i, double *restrict g1_j, double *restrict g1_v, double *restrict g1_x_i, double *restrict g1_x_j, double *restrict g1_x_v, double *restrict g1_xd_i, double *restrict g1_xd_j, double *restrict g1_xd_v, double *restrict g1_o_i, double *restrict g1_o_j, double *restrict g1_o_v)" << endl;
       output << '{' << endl;
 
       writeDynamicPerBlockHelper(blk, output, ExprNodeOutputType::CDynamicModel, temporary_terms,
@@ -648,7 +648,7 @@ DynamicModel::writeDynamicPerBlockCFiles(const string &basename) const
           || simulation_type == BlockSimulationType::evaluateForward)
         header << "void dynamic_" << blk+1 << "_mx(mxArray *y, const mxArray *x, const mxArray *params, const mxArray *steady_state, mxArray *T, const mxArray *it_, const mxArray *stochastic_mode, mxArray **g1, mxArray **g1_x, mxArray **g1_xd, mxArray **g1_o)";
       else
-        header << "void dynamic_" << blk+1 << "_mx(const mxArray *y, const mxArray *x, const mxArray *params, const mxArray *steady_state, mxArray *T, const mxArray *it_, const mxArray *stochastic_mode, mxArray **residual, mxArray **g1, mxArray **g1_x, mxArray **g1_xd, mxArray **g1_o)";
+        header << "void dynamic_" << blk+1 << "_mx(mxArray *y, const mxArray *x, const mxArray *params, const mxArray *steady_state, mxArray *T, const mxArray *it_, const mxArray *stochastic_mode, mxArray **residual, mxArray **g1, mxArray **g1_x, mxArray **g1_xd, mxArray **g1_o)";
       output << header.str() << endl
              << '{' << endl
              << "  int nb_row_x = mxGetM(x);" << endl;
@@ -1638,7 +1638,7 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
         output << "      [y, T, g1, varargout{1:nargout-4}] = " << basename << ".block.dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, stochastic_mode);" << endl
                << "      residual = [];" << endl;
       else
-        output << "      [residual, T, g1, varargout{1:nargout-4}] = " << basename << ".block.dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, stochastic_mode);" << endl;
+        output << "      [residual, y, T, g1, varargout{1:nargout-4}] = " << basename << ".block.dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, stochastic_mode);" << endl;
     }
   output << "  end" << endl
          << "end" << endl;
@@ -1694,7 +1694,7 @@ DynamicModel::writeDynamicBlockCFile(const string &basename) const
         output << "      dynamic_" << blk+1 << "_mx(y_new, x, params, steady_state, T_new, it_, stochastic_mode, &g1, &g1_x, &g1_xd, &g1_o);" << endl
                << "      residual = mxCreateDoubleMatrix(0,0,mxREAL);" << endl;
       else
-        output << "      dynamic_" << blk+1 << "_mx(y, x, params, steady_state, T_new, it_, stochastic_mode, &residual, &g1, &g1_x, &g1_xd, &g1_o);" << endl;
+        output << "      dynamic_" << blk+1 << "_mx(y_new, x, params, steady_state, T_new, it_, stochastic_mode, &residual, &g1, &g1_x, &g1_xd, &g1_o);" << endl;
       output << "      break;" << endl;
     }
   output << "    }" << endl
