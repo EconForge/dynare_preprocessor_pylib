@@ -411,10 +411,11 @@ DynamicModel::writeDynamicPerBlockHelper(int blk, ostream &output, ExprNodeOutpu
         for (const auto &[indices, d] : blocks_derivatives[blk])
           {
             auto [eq, var, lag] = indices;
-            if (lag == 0)
+            if (lag == 0 && eq >= block_recursive_size && var >= block_recursive_size)
               {
                 i_output << "    g1_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-                         << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << eq+1 << ';' << endl;
+                         << RIGHT_ARRAY_SUBSCRIPT(output_type) << '='
+                         << eq+1-block_recursive_size << ';' << endl;
                 j_output << "    g1_j" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
                          << RIGHT_ARRAY_SUBSCRIPT(output_type) << '='
                          << var+1-block_recursive_size << ';' << endl;
@@ -473,9 +474,9 @@ DynamicModel::nzeDeterministicJacobianForBlock(int blk) const
            || simulation_type == BlockSimulationType::solveBackwardComplete
            || simulation_type == BlockSimulationType::solveForwardComplete)
     nze_deterministic = count_if(blocks_derivatives[blk].begin(), blocks_derivatives[blk].end(),
-                                 [](const auto &kv) {
+                                 [=](const auto &kv) {
                                    auto [eq, var, lag] = kv.first;
-                                   return lag == 0;
+                                   return lag == 0 && eq >= block_recursive_size && var >= block_recursive_size;
                                  });
   return nze_deterministic;
 }
