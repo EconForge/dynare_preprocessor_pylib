@@ -3819,6 +3819,7 @@ BinaryOpNode::composeDerivatives(expr_t darg1, expr_t darg2)
     case BinaryOpcode::plus:
       return datatree.AddPlus(darg1, darg2);
     case BinaryOpcode::minus:
+    case BinaryOpcode::equal:
       return datatree.AddMinus(darg1, darg2);
     case BinaryOpcode::times:
       t11 = datatree.AddTimes(darg1, arg2);
@@ -3909,8 +3910,6 @@ BinaryOpNode::composeDerivatives(expr_t darg1, expr_t darg2)
       t13 = datatree.AddMinus(datatree.One, t11);
       t14 = datatree.AddTimes(t13, darg2);
       return datatree.AddPlus(t14, t12);
-    case BinaryOpcode::equal:
-      return datatree.AddMinus(darg1, darg2);
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
