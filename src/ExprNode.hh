@@ -672,6 +672,13 @@ public:
     If current_sign == -1, then all signs are inverted */
   virtual void decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign = 1) const;
 
+  //! Decompose an expression into its multiplicative factors
+  /*! Returns a list of factors, with their exponents (either 1 or -1, depending
+    on whether the factors appear at the numerator or the denominator).
+    The current_exponent argument should normally be left to 1.
+    If current_exponent == -1, then all exponents are inverted */
+  virtual void decomposeMultiplicativeFactors(vector<pair<expr_t, int>> &factors, int current_exponent = 1) const;
+
   // Matches an expression of the form variable*constant*parameter
   /* Returns a tuple (variable_id, lag, param_id, constant).
      The variable must be an exogenous or an endogenous.
@@ -1093,8 +1100,7 @@ public:
   //! and the expr node associated with the non-optimizing part
   tuple<int, expr_t, expr_t, expr_t> getPacOptimizingShareAndExprNodes(int lhs_symb_id, int lhs_orig_symb_id) const;
   pair<int, expr_t> getPacOptimizingShareAndExprNodesHelper(int lhs_symb_id, int lhs_orig_symb_id) const;
-  expr_t getPacNonOptimizingPart(BinaryOpNode *bopn, int optim_share) const;
-  bool getPacNonOptimizingPartHelper(BinaryOpNode *bopn, int optim_share) const;
+  expr_t getPacNonOptimizingPart(int optim_share_symb_id) const;
   bool isParamTimesEndogExpr() const override;
   bool isVarModelReferenced(const string &model_info_name) const override;
   void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
@@ -1103,6 +1109,7 @@ public:
   //! Substitute auxiliary variables by their expression in static model auxiliary variable definition
   expr_t substituteStaticAuxiliaryDefinition() const;
   void decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign) const override;
+  void decomposeMultiplicativeFactors(vector<pair<expr_t, int>> &factors, int current_exponent = 1) const override;
   void matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<int> &powers) const override;
 };
 

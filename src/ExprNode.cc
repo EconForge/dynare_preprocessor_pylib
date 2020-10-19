@@ -5346,31 +5346,41 @@ BinaryOpNode::isParamTimesEndogExpr() const
   return false;
 }
 
-bool
-BinaryOpNode::getPacNonOptimizingPartHelper(BinaryOpNode *bopn, int optim_share) const
-{
-  set<int> params;
-  bopn->collectVariables(SymbolType::parameter, params);
-  if (params.size() == 1 && *params.begin() == optim_share)
-    return true;
-  return false;
-}
-
 expr_t
-BinaryOpNode::getPacNonOptimizingPart(BinaryOpNode *bopn, int optim_share) const
+BinaryOpNode::getPacNonOptimizingPart(int optim_share_symb_id) const
 {
-  auto a1 = dynamic_cast<BinaryOpNode *>(bopn->arg1);
-  auto a2 = dynamic_cast<BinaryOpNode *>(bopn->arg2);
-  if (!a1 && !a2)
+  vector<pair<expr_t, int>> factors;
+  decomposeMultiplicativeFactors(factors);
+
+  // Search for a factor of the form 1-optim_share
+  expr_t one_minus_optim_share = nullptr;
+  for (auto [factor, exponent] : factors)
+    {
+      auto bopn = dynamic_cast<BinaryOpNode *>(factor);
+      if (exponent != 1 || !bopn || bopn->op_code != BinaryOpcode::minus)
+        continue;
+      auto arg1 = dynamic_cast<NumConstNode *>(bopn->arg1);
+      auto arg2 = dynamic_cast<VariableNode *>(bopn->arg2);
+      if (arg1 && arg2 && arg1->eval({}) == 1 && arg2->symb_id == optim_share_symb_id)
+        {
+          one_minus_optim_share = factor;
+          break;
+        }
+    }
+
+  if (!one_minus_optim_share)
     return nullptr;
 
-  if (a1 && getPacNonOptimizingPartHelper(a1, optim_share))
-    return bopn->arg2;
+  // Construct the product formed by the other factors and return it
+  expr_t non_optim_part = datatree.One;
+  for (auto [factor, exponent] : factors)
+    if (factor != one_minus_optim_share)
+      if (exponent == 1)
+        non_optim_part = datatree.AddTimes(non_optim_part, factor);
+      else
+        non_optim_part = datatree.AddDivide(non_optim_part, factor);
 
-  if (a2 && getPacNonOptimizingPartHelper(a2, optim_share))
-    return bopn->arg1;
-
-  return nullptr;
+  return non_optim_part;
 }
 
 pair<int, expr_t>
@@ -5433,7 +5443,7 @@ BinaryOpNode::getPacOptimizingShareAndExprNodes(int lhs_symb_id, int lhs_orig_sy
   for (auto it = terms.begin(); it != terms.end(); ++it)
     if (auto bopn = dynamic_cast<BinaryOpNode *>(it->first); bopn)
       {
-        non_optim_part = getPacNonOptimizingPart(bopn, optim_share);
+        non_optim_part = bopn->getPacNonOptimizingPart(optim_share);
         if (non_optim_part)
           {
             terms.erase(it);
@@ -8795,6 +8805,27 @@ BinaryOpNode::decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int curre
     }
   else
     ExprNode::decomposeAdditiveTerms(terms, current_sign);
+}
+
+void
+ExprNode::decomposeMultiplicativeFactors(vector<pair<expr_t, int>> &factors, int current_exponent) const
+{
+  factors.emplace_back(const_cast<ExprNode *>(this), current_exponent);
+}
+
+void
+BinaryOpNode::decomposeMultiplicativeFactors(vector<pair<expr_t, int>> &factors, int current_exponent) const
+{
+  if (op_code == BinaryOpcode::times || op_code == BinaryOpcode::divide)
+    {
+      arg1->decomposeMultiplicativeFactors(factors, current_exponent);
+      if (op_code == BinaryOpcode::times)
+        arg2->decomposeMultiplicativeFactors(factors, current_exponent);
+      else
+        arg2->decomposeMultiplicativeFactors(factors, -current_exponent);
+    }
+  else
+    ExprNode::decomposeMultiplicativeFactors(factors, current_exponent);
 }
 
 tuple<int, int, int, double>
