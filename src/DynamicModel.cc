@@ -2935,7 +2935,7 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
       }
   else
     {
-      output << modstruct << "mapping.eqidx = Dict(\n";
+      output << modstruct << "mapping = Dict(\n";
       for (const auto &variable : variableMapping)
 	{
 	  output << "        \""
