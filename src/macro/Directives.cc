@@ -245,19 +245,35 @@ For::interpret(ostream &output, vector<filesystem::path> &paths)
 void
 If::interpret(ostream &output, vector<filesystem::path> &paths)
 {
+  bool first_clause = true;
   for (const auto & [expr, body] : expr_and_body)
     try
       {
-        auto tmp = expr->eval();
-        RealPtr dp = dynamic_pointer_cast<Real>(tmp);
-        BoolPtr bp = dynamic_pointer_cast<Bool>(tmp);
-        if (!bp && !dp)
-          error(StackTrace("@#if",
-                           "The condition must evaluate to a boolean or a double", location));
-        if ((bp && *bp) || (dp && *dp))
+        if ((ifdef || ifndef) && first_clause)
           {
-            interpretBody(body, output, paths);
-            break;
+            first_clause = false;
+            VariablePtr vp = dynamic_pointer_cast<Variable>(expr);
+            assert(vp);
+            if ((ifdef && env.isVariableDefined(vp->getName()))
+                || (ifndef && !env.isVariableDefined(vp->getName())))
+              {
+                interpretBody(body, output, paths);
+                break;
+              }
+          }
+        else
+          {
+            auto tmp = expr->eval();
+            RealPtr dp = dynamic_pointer_cast<Real>(tmp);
+            BoolPtr bp = dynamic_pointer_cast<Bool>(tmp);
+            if (!bp && !dp)
+              error(StackTrace("@#if",
+                               "The condition must evaluate to a boolean or a double", location));
+            if ((bp && *bp) || (dp && *dp))
+              {
+                interpretBody(body, output, paths);
+                break;
+              }
           }
       }
     catch (StackTrace &ex)
@@ -285,32 +301,4 @@ If::interpretBody(const vector<DirectivePtr> &body, ostream &output, vector<file
         }
       statement->interpret(output, paths);
     }
-}
-
-void
-Ifdef::interpret(ostream &output, vector<filesystem::path> &paths)
-{
-  for (const auto & [expr, body] : expr_and_body)
-    if (VariablePtr vp = dynamic_pointer_cast<Variable>(expr);
-        dynamic_pointer_cast<BaseType>(expr)
-        || (vp && env.isVariableDefined(vp->getName())))
-      {
-        interpretBody(body, output, paths);
-        break;
-      }
-  printEndLineInfo(output);
-}
-
-void
-Ifndef::interpret(ostream &output, vector<filesystem::path> &paths)
-{
-  for (const auto & [expr, body] : expr_and_body)
-    if (VariablePtr vp = dynamic_pointer_cast<Variable>(expr);
-        dynamic_pointer_cast<BaseType>(expr)
-        || (vp && !env.isVariableDefined(vp->getName())))
-      {
-        interpretBody(body, output, paths);
-        break;
-      }
-  printEndLineInfo(output);
 }

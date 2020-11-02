@@ -175,24 +175,25 @@ namespace macro
      * If there is an `else` statement it is the last element in the vector. Its condition is true.
      */
     const vector<pair<ExpressionPtr, vector<DirectivePtr>>> expr_and_body;
+    const bool ifdef, ifndef;
   public:
     If(vector<pair<ExpressionPtr, vector<DirectivePtr>>> expr_and_body_arg,
-       Environment &env_arg, Tokenizer::location location_arg) :
-      Directive(env_arg, move(location_arg)), expr_and_body{move(expr_and_body_arg)} { }
+       Environment &env_arg, Tokenizer::location location_arg,
+       bool ifdef_arg = false, bool ifndef_arg = false) :
+      Directive(env_arg, move(location_arg)), expr_and_body{move(expr_and_body_arg)},
+      ifdef{ifdef_arg}, ifndef{ifndef_arg} { }
     void interpret(ostream &output, vector<filesystem::path> &paths) override;
   protected:
     void interpretBody(const vector<DirectivePtr> &body, ostream &output,
                        vector<filesystem::path> &paths);
   };
 
-
   class Ifdef : public If
   {
   public:
     Ifdef(vector<pair<ExpressionPtr, vector<DirectivePtr>>> expr_and_body_arg,
           Environment &env_arg, Tokenizer::location location_arg) :
-      If(move(expr_and_body_arg), env_arg, move(location_arg)) { }
-    void interpret(ostream &output, vector<filesystem::path> &paths) override;
+      If(move(expr_and_body_arg), env_arg, move(location_arg), true, false) { }
   };
 
 
@@ -201,8 +202,7 @@ namespace macro
   public:
     Ifndef(vector<pair<ExpressionPtr, vector<DirectivePtr>>> expr_and_body_arg,
            Environment &env_arg, Tokenizer::location location_arg) :
-      If(move(expr_and_body_arg), env_arg, move(location_arg)) { }
-    void interpret(ostream &output, vector<filesystem::path> &paths) override;
+      If(move(expr_and_body_arg), env_arg, move(location_arg), false, true) { }
   };
 }
 #endif
