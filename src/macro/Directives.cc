@@ -306,8 +306,8 @@ Ifndef::interpret(ostream &output, vector<filesystem::path> &paths)
 {
   for (const auto & [expr, body] : expr_and_body)
     if (VariablePtr vp = dynamic_pointer_cast<Variable>(expr);
-        !(dynamic_pointer_cast<BaseType>(expr)
-          || (vp && env.isVariableDefined(vp->getName()))))
+        dynamic_pointer_cast<BaseType>(expr)
+        || (vp && !env.isVariableDefined(vp->getName())))
       {
         interpretBody(body, output, paths);
         break;
