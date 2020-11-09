@@ -613,29 +613,24 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   dynamic_model.substituteVarExpectation(var_expectation_subst_table);
   dynamic_model.createVariableMapping(original_model.equation_number());
 
-  if (mod_file_struct.stoch_simul_present
-      || mod_file_struct.estimation_present
-      || mod_file_struct.osr_present
-      || mod_file_struct.ramsey_policy_present
-      || mod_file_struct.discretionary_policy_present
-      || mod_file_struct.calib_smoother_present
-      || mod_file_struct.identification_present
-      || mod_file_struct.mom_estimation_present
-      || mod_file_struct.sensitivity_present
-      || stochastic)
-    {
-      // In stochastic models, create auxiliary vars for leads and lags greater than 2, on both endos and exos
-      dynamic_model.substituteEndoLeadGreaterThanTwo(false);
-      dynamic_model.substituteExoLead(false);
-      dynamic_model.substituteEndoLagGreaterThanTwo(false);
-      dynamic_model.substituteExoLag(false);
-    }
-  else
-    {
-      // In deterministic models, create auxiliary vars for leads and lags endogenous greater than 2, only on endos (useless on exos)
-      dynamic_model.substituteEndoLeadGreaterThanTwo(true);
-      dynamic_model.substituteEndoLagGreaterThanTwo(true);
-    }
+  /* Create auxiliary vars for leads and lags greater than 2, on both endos and
+     exos. The transformation is not exactly the same on stochastic and
+     deterministic models, because there is no need to take into account the
+     Jensen inequality on the latter. */
+  bool deterministic_model = !(mod_file_struct.stoch_simul_present
+                               || mod_file_struct.estimation_present
+                               || mod_file_struct.osr_present
+                               || mod_file_struct.ramsey_policy_present
+                               || mod_file_struct.discretionary_policy_present
+                               || mod_file_struct.calib_smoother_present
+                               || mod_file_struct.identification_present
+                               || mod_file_struct.mom_estimation_present
+                               || mod_file_struct.sensitivity_present
+                               || stochastic);
+  dynamic_model.substituteEndoLeadGreaterThanTwo(deterministic_model);
+  dynamic_model.substituteExoLead(deterministic_model);
+  dynamic_model.substituteEndoLagGreaterThanTwo(deterministic_model);
+  dynamic_model.substituteExoLag(deterministic_model);
 
   dynamic_model.updateVarAndTrendModel();
 
