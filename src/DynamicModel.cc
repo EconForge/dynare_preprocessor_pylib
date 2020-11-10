@@ -4843,14 +4843,6 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
     addEquation(neweqs[i], neweqs_lineno[i], neweqs_tags[i]);
 }
 
-void
-DynamicModel::toNonlinearPart(DynamicModel &non_linear_equations_dynamic_model) const
-{
-  // Convert model local variables (need to be done first)
-  for (const auto &it : local_variables_table)
-    non_linear_equations_dynamic_model.AddLocalVariable(it.first, it.second);
-}
-
 bool
 DynamicModel::ParamUsedWithLeadLag() const
 {

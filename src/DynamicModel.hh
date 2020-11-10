@@ -393,10 +393,6 @@ public:
   /*! Used by the perfect_foresight_problem MEX */
   void writeDynamicJacobianNonZeroElts(const string &basename) const;
 
-  //! Converts to nonlinear model (only the equations)
-  /*! It assumes that the nonlinear model given in argument has just been allocated */
-  void toNonlinearPart(DynamicModel &non_linear_equations_dynamic_model) const;
-
   //! Creates mapping for variables and equations they are present in
   void createVariableMapping(int orig_eq_nbr);
 
