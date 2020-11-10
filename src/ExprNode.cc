@@ -614,6 +614,12 @@ NumConstNode::substituteAdl() const
 }
 
 expr_t
+NumConstNode::substituteModelLocalVariables() const
+{
+  return const_cast<NumConstNode *>(this);
+}
+
+expr_t
 NumConstNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
 {
   return const_cast<NumConstNode *>(this);
@@ -1537,6 +1543,15 @@ VariableNode::substituteAdl() const
 {
   if (get_type() == SymbolType::modelLocalVariable)
     return datatree.getLocalVariable(symb_id)->substituteAdl();
+
+  return const_cast<VariableNode *>(this);
+}
+
+expr_t
+VariableNode::substituteModelLocalVariables() const
+{
+  if (get_type() == SymbolType::modelLocalVariable)
+    return datatree.getLocalVariable(symb_id);
 
   return const_cast<VariableNode *>(this);
 }
@@ -3257,6 +3272,13 @@ UnaryOpNode::substituteAdl() const
                                                     arg1subst->decreaseLeadsLags(*it)));
       }
   return retval;
+}
+
+expr_t
+UnaryOpNode::substituteModelLocalVariables() const
+{
+  expr_t argsubst = arg->substituteModelLocalVariables();
+  return buildSimilarUnaryOpNode(argsubst, datatree);
 }
 
 expr_t
@@ -5044,6 +5066,14 @@ BinaryOpNode::substituteAdl() const
 }
 
 expr_t
+BinaryOpNode::substituteModelLocalVariables() const
+{
+  expr_t arg1subst = arg1->substituteModelLocalVariables();
+  expr_t arg2subst = arg2->substituteModelLocalVariables();
+  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+}
+
+expr_t
 BinaryOpNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
 {
   expr_t arg1subst = arg1->substituteVarExpectation(subst_table);
@@ -6268,6 +6298,15 @@ TrinaryOpNode::substituteAdl() const
 }
 
 expr_t
+TrinaryOpNode::substituteModelLocalVariables() const
+{
+  expr_t arg1subst = arg1->substituteModelLocalVariables();
+  expr_t arg2subst = arg2->substituteModelLocalVariables();
+  expr_t arg3subst = arg3->substituteModelLocalVariables();
+  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+}
+
+expr_t
 TrinaryOpNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
 {
   expr_t arg1subst = arg1->substituteVarExpectation(subst_table);
@@ -6680,6 +6719,15 @@ AbstractExternalFunctionNode::substituteAdl() const
   vector<expr_t> arguments_subst;
   for (auto argument : arguments)
     arguments_subst.push_back(argument->substituteAdl());
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+}
+
+expr_t
+AbstractExternalFunctionNode::substituteModelLocalVariables() const
+{
+  vector<expr_t> arguments_subst;
+  for (auto argument : arguments)
+    arguments_subst.push_back(argument->substituteModelLocalVariables());
   return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
@@ -8245,6 +8293,12 @@ VarExpectationNode::substituteAdl() const
 }
 
 expr_t
+VarExpectationNode::substituteModelLocalVariables() const
+{
+  return const_cast<VarExpectationNode *>(this);
+}
+
+expr_t
 VarExpectationNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
 {
   auto it = subst_table.find(model_name);
@@ -8626,6 +8680,12 @@ PacExpectationNode::substituteExpectation(subst_table_t &subst_table, vector<Bin
 
 expr_t
 PacExpectationNode::substituteAdl() const
+{
+  return const_cast<PacExpectationNode *>(this);
+}
+
+expr_t
+PacExpectationNode::substituteModelLocalVariables() const
 {
   return const_cast<PacExpectationNode *>(this);
 }

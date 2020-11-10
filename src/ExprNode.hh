@@ -588,6 +588,9 @@ public:
   //! Substitute adl operator
   virtual expr_t substituteAdl() const = 0;
 
+  //! Substitute out model-local variables
+  virtual expr_t substituteModelLocalVariables() const = 0;
+
   //! Substitute VarExpectation nodes
   virtual expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const = 0;
 
@@ -768,6 +771,7 @@ public:
   expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const override;
   expr_t substituteAdl() const override;
+  expr_t substituteModelLocalVariables() const override;
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(lag_equivalence_table_t &nodes) const override;
   void findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const override;
@@ -840,6 +844,7 @@ public:
   expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const override;
   expr_t substituteAdl() const override;
+  expr_t substituteModelLocalVariables() const override;
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(lag_equivalence_table_t &nodes) const override;
   void findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const override;
@@ -942,6 +947,7 @@ public:
   expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const override;
   expr_t substituteAdl() const override;
+  expr_t substituteModelLocalVariables() const override;
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(lag_equivalence_table_t &nodes) const override;
   bool createAuxVarForUnaryOpNode() const;
@@ -1048,6 +1054,7 @@ public:
   expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const override;
   expr_t substituteAdl() const override;
+  expr_t substituteModelLocalVariables() const override;
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(lag_equivalence_table_t &nodes) const override;
   void findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const override;
@@ -1183,6 +1190,7 @@ public:
   expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const override;
   expr_t substituteAdl() const override;
+  expr_t substituteModelLocalVariables() const override;
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(lag_equivalence_table_t &nodes) const override;
   void findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const override;
@@ -1292,6 +1300,7 @@ public:
   expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const override;
   expr_t substituteAdl() const override;
+  expr_t substituteModelLocalVariables() const override;
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(lag_equivalence_table_t &nodes) const override;
   void findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const override;
@@ -1468,6 +1477,7 @@ public:
   expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const override;
   expr_t substituteAdl() const override;
+  expr_t substituteModelLocalVariables() const override;
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(lag_equivalence_table_t &nodes) const override;
   void findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const override;
@@ -1540,6 +1550,7 @@ public:
   expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const override;
   expr_t substituteAdl() const override;
+  expr_t substituteModelLocalVariables() const override;
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(lag_equivalence_table_t &nodes) const override;
   void findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const override;

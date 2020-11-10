@@ -486,6 +486,9 @@ public:
   //! Substitutes adl operator
   void substituteAdl();
 
+  //! Substitutes out all model-local variables
+  void substituteModelLocalVariables();
+
   //! Creates aux vars for all unary operators
   pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps();
 
@@ -572,8 +575,6 @@ public:
   {
     return tuple(static_only_equations, static_only_equations_lineno, static_only_equations_equation_tags);
   };
-
-  bool isModelLocalVariableUsed() const;
 
   //! Returns true if a parameter was used in the model block with a lead or lag
   bool ParamUsedWithLeadLag() const;

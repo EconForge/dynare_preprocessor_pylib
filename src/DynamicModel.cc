@@ -5632,6 +5632,20 @@ DynamicModel::substituteAdl()
     equation = dynamic_cast<BinaryOpNode *>(equation->substituteAdl());
 }
 
+void
+DynamicModel::substituteModelLocalVariables()
+{
+  for (auto &equation : equations)
+    equation = dynamic_cast<BinaryOpNode *>(equation->substituteModelLocalVariables());
+
+  /* We can’t clear local_variables_table at this point, because in case of
+     ramsey_policy, the original model is saved via DynamicModel::operator=()
+     before computing the FOC. But since DataTree::operator=() clones all
+     nodes, it will try to clone nodes containing model-local variables, and
+     this will fail at the point where DataTree methods try to evaluate those
+     nodes to a numerical value. */
+}
+
 set<int>
 DynamicModel::getEquationNumbersFromTags(const set<string> &eqtags) const
 {
@@ -5905,15 +5919,6 @@ DynamicModel::fillEvalContext(eval_context_t &eval_context) const
   //Third, trend variables
   for (int trendVar : symbol_table.getTrendVarIds())
     eval_context[trendVar] = 2; //not <= 0 bc of log, not 1 bc of powers
-}
-
-bool
-DynamicModel::isModelLocalVariableUsed() const
-{
-  set<int> used_local_vars;
-  for (size_t i = 0; i < equations.size() && used_local_vars.empty(); i++)
-    equations[i]->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
-  return !used_local_vars.empty();
 }
 
 void
