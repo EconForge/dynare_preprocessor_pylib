@@ -734,7 +734,8 @@ ConfigFile::writeCluster(ostream &output) const
              << "'Password', '" << slave_node.second.password << "', "
              << "'RemoteDrive', '" << slave_node.second.remoteDrive << "', "
              << "'RemoteDirectory', '" << slave_node.second.remoteDirectory << "', "
-             << "'ProgramPath', '" << slave_node.second.programPath << "', "
+        // The following should be switched back to “ProgramPath” once we move to Dragonfly
+             << "'DynarePath', '" << slave_node.second.programPath << "', "
              << "'ProgramConfig', '" << slave_node.second.programConfig << "', "
              << "'MatlabOctavePath', '" << slave_node.second.matlabOctavePath << "', "
              << "'OperatingSystem', '" << slave_node.second.operatingSystem << "', "
