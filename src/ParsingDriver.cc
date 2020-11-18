@@ -1414,8 +1414,12 @@ ParsingDriver::option_symbol_list(string name_option)
     {
       vector<string> shocks = symbol_list.get_symbols();
       for (auto &shock : shocks)
-        if (mod_file->symbol_table.getType(shock) != SymbolType::exogenous)
-          error("Variables passed to irf_shocks must be exogenous. Caused by: " + shock);
+        {
+          if (!mod_file->symbol_table.exists(shock))
+            error("Unknown symbol: " + shock);
+          if (mod_file->symbol_table.getType(shock) != SymbolType::exogenous)
+            error("Variables passed to irf_shocks must be exogenous. Caused by: " + shock);
+        }
     }
 
   if (name_option.compare("ms.parameters") == 0)
