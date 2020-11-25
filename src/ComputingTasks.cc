@@ -738,9 +738,9 @@ ForecastStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-DetCondForecast::DetCondForecast(SymbolList symbol_list_arg,
-                                 OptionsList options_list_arg,
-                                 const bool linear_decomposition_arg) :
+DetCondForecastStatement::DetCondForecastStatement(SymbolList symbol_list_arg,
+                                                   OptionsList options_list_arg,
+                                                   const bool linear_decomposition_arg) :
   options_list{move(options_list_arg)},
   symbol_list{move(symbol_list_arg)},
   linear_decomposition{linear_decomposition_arg}
@@ -749,7 +749,7 @@ DetCondForecast::DetCondForecast(SymbolList symbol_list_arg,
 }
 
 void
-DetCondForecast::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+DetCondForecastStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   if (linear_decomposition)

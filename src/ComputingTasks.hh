@@ -95,16 +95,16 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
-class DetCondForecast : public Statement
+class DetCondForecastStatement : public Statement
 {
 private:
   const OptionsList options_list;
   const SymbolList symbol_list;
   const bool linear_decomposition;
 public:
-  DetCondForecast(SymbolList symbol_list_arg,
-                  OptionsList options_list_arg,
-                  const bool linear_decompositiontion_arg);
+  DetCondForecastStatement(SymbolList symbol_list_arg,
+                           OptionsList options_list_arg,
+                           const bool linear_decompositiontion_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
 };
 
