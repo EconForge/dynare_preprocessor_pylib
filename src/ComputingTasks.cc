@@ -482,7 +482,7 @@ VarRestrictionsStatement::writeOutput(ostream &output, const string &basename, b
   if (itvs == var_map.end())
     {
       cerr << "ERROR: you are imposing restrictions on a VAR named " << var_model_name
-           << " but this VAR has not been declared via thevar_model statement." << endl;
+           << " but this VAR has not been declared via the var_model statement." << endl;
       exit(EXIT_FAILURE);
     }
   vector<string> vars = itvs->second;
