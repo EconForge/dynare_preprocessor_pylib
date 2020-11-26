@@ -90,6 +90,7 @@ public:
                    const det_shocks_t &det_shocks_arg,
                    const SymbolTable &symbol_table_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class ConditionalForecastPathsStatement : public Statement

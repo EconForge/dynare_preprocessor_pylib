@@ -593,6 +593,25 @@ DetCondForecastStatement::writeOutput(ostream &output, const string &basename, b
   output << ");" << endl;
 }
 
+void
+DetCondForecastStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "det_cond_forecast")";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << R"(, "linear_decomposition": )"
+         << (linear_decomposition ? "true" : "false")
+         << "}";
+}
+
 RamseyModelStatement::RamseyModelStatement(OptionsList options_list_arg) :
   options_list{move(options_list_arg)}
 {

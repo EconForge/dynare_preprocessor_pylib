@@ -151,11 +151,7 @@ void
 ShocksStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "shocks")"
-         << R"(, "overwrite": )";
-  if (overwrite)
-    output << "true";
-  else
-    output << "false";
+         << R"(, "overwrite": )" << (overwrite ? "true" : "false");
   if (!det_shocks.empty())
     {
       output << ", ";
@@ -420,6 +416,19 @@ MShocksStatement::writeOutput(ostream &output, const string &basename, bool mini
     output << "M_.det_shocks = [];" << endl;
 
   writeDetShocks(output);
+}
+
+void
+MShocksStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "mshocks")"
+         << R"(, "overwrite": )" << (overwrite ? "true" : "false");
+  if (!det_shocks.empty())
+    {
+      output << ", ";
+      writeJsonDetShocks(output);
+    }
+  output << "}";
 }
 
 ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(AbstractShocksStatement::det_shocks_t paths_arg,

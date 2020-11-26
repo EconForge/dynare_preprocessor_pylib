@@ -106,6 +106,7 @@ public:
                            OptionsList options_list_arg,
                            const bool linear_decompositiontion_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 class ModelInfoStatement : public Statement

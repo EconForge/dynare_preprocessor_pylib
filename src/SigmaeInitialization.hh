@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2015 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -58,6 +58,7 @@ private:
 public:
   explicit SigmaeStatement(matrix_t matrix_arg) noexcept(false);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
 };
 
 #endif

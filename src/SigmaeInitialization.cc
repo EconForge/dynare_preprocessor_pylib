@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -83,7 +83,7 @@ SigmaeStatement::writeOutput(ostream &output, const string &basename, bool minim
               ic1 = ir;
               ir1 = ic;
             }
-          else // ic <= ir && matrix_form == eLower
+          else // ic <= ir && matrix_form == MatrixForm::lower
             {
               ic1 = ic;
               ir1 = ir;
@@ -95,4 +95,26 @@ SigmaeStatement::writeOutput(ostream &output, const string &basename, bool minim
       output << ";..." << endl;
     }
   output << "];" << endl;
+}
+
+void
+SigmaeStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "Sigma_e", "value": [)";
+  for (auto it = matrix.begin(); it != matrix.end(); ++it)
+    {
+      if (it != matrix.begin())
+        output << ", ";
+      output << "[";
+      for (auto it2 = it->begin(); it2 != it->end(); ++it2)
+        {
+          if (it2 != it->begin())
+            output << ", ";
+          output << '"';
+          (*it2)->writeJsonOutput(output, {}, {});
+          output << '"';
+        }
+      output << "]";
+    }
+  output << "] }";
 }

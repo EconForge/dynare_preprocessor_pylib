@@ -35,11 +35,6 @@ Statement::writeJuliaOutput(ostream &output, const string &basename)
 }
 
 void
-Statement::writeJsonOutput(ostream &output) const
-{
-}
-
-void
 Statement::computingPass()
 {
 }
