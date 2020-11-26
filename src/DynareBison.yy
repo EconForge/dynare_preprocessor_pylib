@@ -130,7 +130,7 @@ class ParsingDriver;
 %precedence UNARY
 %nonassoc POWER
 %token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN ERF DIFF ADL AUXILIARY_MODEL_NAME
-%token SQRT CBRT NORMCDF NORMPDF STEADY_STATE EXPECTATION VAR_ESTIMATION OCCBIN_LIKELIHOOD OCCBIN_SMOOTHER
+%token SQRT CBRT NORMCDF NORMPDF STEADY_STATE EXPECTATION OCCBIN_LIKELIHOOD OCCBIN_SMOOTHER
 /* GSA analysis */
 %token DYNARE_SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU MORRIS_NLIV
 %token MORRIS_NTRA NSAM LOAD_REDFORM LOAD_RMSE LOAD_STAB ALPHA2_STAB LOGTRANS_REDFORM THRESHOLD_REDFORM
@@ -227,7 +227,6 @@ statement : parameters
           | simul
           | stoch_simul
           | estimation
-          | var_estimation
           | estimated_params
           | estimated_params_bounds
           | estimated_params_init
@@ -444,18 +443,6 @@ var_expectation_model_option : VARIABLE EQUAL symbol
                              | DISCOUNT EQUAL expression
                                { driver.var_expectation_model_discount = $3; }
                              ;
-
-var_estimation : VAR_ESTIMATION '(' var_estimation_options_list ')' ';'
-                 { driver.run_var_estimation(); }
-               ;
-
-var_estimation_options_list : var_estimation_options_list COMMA var_estimation_options
-                            | var_estimation_options
-                            ;
-
-var_estimation_options : o_var_datafile
-                       | o_var_model_name
-                       ;
 
 nonstationary_var_list : nonstationary_var_list symbol
                          { driver.declare_nonstationary_var($2); }
@@ -3156,8 +3143,6 @@ o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
 o_series2 : SERIES EQUAL symbol { driver.option_num("series", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_filename : FILENAME EQUAL filename { driver.option_str("filename", $3); };
-o_var_datafile : DATAFILE EQUAL filename { driver.option_str("var_estimation.datafile", $3); };
-o_var_model_name : symbol { driver.option_str("var_estimation.model_name", $1); };
 o_var_eq_tags : EQTAGS EQUAL vec_str { driver.option_vec_str("var.eqtags", $3); }
 o_dirname : DIRNAME EQUAL filename { driver.option_str("dirname", $3); };
 o_huge_number : HUGE_NUMBER EQUAL non_negative_number { driver.option_num("huge_number", $3); };

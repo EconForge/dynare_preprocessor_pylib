@@ -471,12 +471,6 @@ ParsingDriver::end_nonstationary_var(bool log_deflator, expr_t deflator)
 }
 
 void
-ParsingDriver::run_var_estimation()
-{
-  mod_file->addStatement(make_unique<VarEstimationStatement>(options_list));
-}
-
-void
 ParsingDriver::periods(const string &periods)
 {
   warning("periods: this command is now deprecated and may be removed in a future version of Dynare. Please use the ''periods'' option of the ''simul'' command instead.");

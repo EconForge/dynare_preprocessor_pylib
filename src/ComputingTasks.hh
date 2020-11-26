@@ -156,16 +156,6 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
-class VarEstimationStatement : public Statement
-{
-private:
-  const OptionsList options_list;
-public:
-  explicit VarEstimationStatement(OptionsList options_list_arg);
-  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
-  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
-};
-
 class ForecastStatement : public Statement
 {
 private:

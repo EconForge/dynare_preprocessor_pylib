@@ -874,8 +874,6 @@ public:
   void perfect_foresight_setup();
   void perfect_foresight_solver();
   void prior_posterior_function(bool prior_func);
-  //! Runs VAR estimation process
-  void run_var_estimation();
   //! Method of Moments estimation statement
   void method_of_moments();
   //! Add a var_expectation_model statement

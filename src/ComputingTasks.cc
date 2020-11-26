@@ -412,29 +412,6 @@ PacModelStatement::writeJsonOutput(ostream &output) const
   output << "}" << endl;
 }
 
-VarEstimationStatement::VarEstimationStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
-{
-}
-
-void
-VarEstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
-{
-  if (auto it = options_list.string_options.find("var_estimation.model_name");
-      it == options_list.string_options.end())
-    {
-      cerr << "ERROR: You must provide the model name to the var_estimation statement." << endl;
-      exit(EXIT_FAILURE);
-    }
-}
-
-void
-VarEstimationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
-{
-  options_list.writeOutput(output);
-  output << "oo_ = var_estimation(M_, options_, oo_);" << endl;
-}
-
 StochSimulStatement::StochSimulStatement(SymbolList symbol_list_arg,
                                          OptionsList options_list_arg) :
   symbol_list{move(symbol_list_arg)},
