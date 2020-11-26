@@ -121,7 +121,7 @@ class ParsingDriver;
 %token <string> TEX_NAME
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VARIABLE VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION VAR_EXPECTATION_MODEL PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
-%token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL CROSSEQUATIONS COVARIANCE WRITE_LATEX_STEADY_STATE_MODEL
+%token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL WRITE_LATEX_STEADY_STATE_MODEL
 %token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP VAR_MODEL PAC_MODEL QOQ YOY AOA PAC_EXPECTATION TREND_COMPONENT_MODEL
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -182,7 +182,7 @@ class ParsingDriver;
 %type <expr_t> equation hand_side
 %type <string> non_negative_number signed_number signed_integer date_str
 %type <string> filename symbol namespace_qualified_filename namespace_qualified_symbol
-%type <string> vec_of_vec_value vec_value_list date_expr number
+%type <string> vec_of_vec_value vec_value_list date_expr
 %type <string> vec_value_1 vec_value signed_inf signed_number_w_inf
 %type <string> range vec_value_w_inf vec_value_1_w_inf
 %type <string> integer_range signed_integer_range
@@ -237,7 +237,6 @@ statement : parameters
           | var_model
           | pac_model
           | trend_component_model
-          | restrictions
           | prior
           | prior_eq
           | subsamples
@@ -445,83 +444,6 @@ var_expectation_model_option : VARIABLE EQUAL symbol
                              | DISCOUNT EQUAL expression
                                { driver.var_expectation_model_discount = $3; }
                              ;
-
-restrictions : RESTRICTIONS '(' symbol ')' ';' { driver.begin_VAR_restrictions(); }
-               restrictions_list END ';' { driver.end_VAR_restrictions($3); }
-             ;
-
-restrictions_list : restrictions_list restriction
-                  | restriction
-                  ;
-
-restriction : EXCLUSION LAG INT_NUMBER ';' restriction_exclusion_equation_list
-              { driver.add_VAR_exclusion_restriction($3); }
-            | RESTRICTION EQUATION '(' symbol ')' restriction_equation_equality ';'
-              { driver.add_VAR_restriction_equation_or_crossequation_final($4); }
-            | RESTRICTION CROSSEQUATIONS restriction_crossequation_equality ';'
-              { driver.add_VAR_restriction_equation_or_crossequation_final(""); }
-            | RESTRICTION COVARIANCE '(' symbol COMMA symbol ')' EQUAL number ';'
-              { driver.add_VAR_covariance_number_restriction($4, $6, $9); }
-            | RESTRICTION COVARIANCE '(' symbol COMMA symbol ')' EQUAL '(' symbol COMMA symbol ')' ';'
-              { driver.add_VAR_covariance_pair_restriction($4, $6, $10, $12); }
-            ;
-
-restriction_equation_equality : restriction_equation_equality_side PLUS restriction_equation_equality_side EQUAL number
-                                { driver.add_VAR_restriction_equation_or_crossequation($5); }
-                              | restriction_equation_equality_side MINUS restriction_equation_equality_side EQUAL number
-                                {
-                                  driver.multiply_arg2_by_neg_one();
-                                  driver.add_VAR_restriction_equation_or_crossequation($5);
-                                }
-                              | restriction_equation_equality_side EQUAL number
-                                { driver.add_VAR_restriction_equation_or_crossequation($3); }
-                              ;
-
-restriction_equation_equality_side : coeff_def TIMES expression
-                                     { driver.add_VAR_restriction_eq_or_crosseq($3); }
-                                   | coeff_def DIVIDE expression
-                                     {
-                                       expr_t one = driver.add_non_negative_constant("1");
-                                       driver.add_VAR_restriction_eq_or_crosseq(driver.add_divide(one, $3));
-                                     }
-                                   ;
-
-coeff_def : COEFF '(' symbol COMMA INT_NUMBER ')'
-            { driver.add_VAR_restriction_coeff($3, "", $5); }
-          ;
-
-
-restriction_crossequation_equality : restriction_crossequation_equality_side PLUS restriction_crossequation_equality_side EQUAL number
-                                     { driver.add_VAR_restriction_equation_or_crossequation($5); }
-                                   | restriction_crossequation_equality_side MINUS restriction_crossequation_equality_side EQUAL number
-                                     {
-                                       driver.multiply_arg2_by_neg_one();
-                                       driver.add_VAR_restriction_equation_or_crossequation($5);
-                                     }
-                                   | restriction_crossequation_equality_side EQUAL number
-                                     { driver.add_VAR_restriction_equation_or_crossequation($3); }
-                                   ;
-
-restriction_crossequation_equality_side : coeff_def1 TIMES expression
-                                          { driver.add_VAR_restriction_eq_or_crosseq($3); }
-                                        | coeff_def1 DIVIDE expression
-                                          {
-                                            expr_t one = driver.add_non_negative_constant("1");
-                                            driver.add_VAR_restriction_eq_or_crosseq(driver.add_divide(one, $3));
-                                          }
-                                        ;
-
-coeff_def1 : COEFF '(' symbol COMMA symbol COMMA INT_NUMBER ')'
-             { driver.add_VAR_restriction_coeff($3, $5, $7); }
-           ;
-
-restriction_exclusion_equation_list : restriction_exclusion_equation_list restriction_exclusion_equation
-                                    | restriction_exclusion_equation
-                                    ;
-
-restriction_exclusion_equation : EQUATION '(' symbol ')' symbol_list ';'
-                                 { driver.add_VAR_restriction_exclusion_equation($3); }
-                               ;
 
 var_estimation : VAR_ESTIMATION '(' var_estimation_options_list ')' ';'
                  { driver.run_var_estimation(); }
@@ -3961,10 +3883,6 @@ symbol : NAME
        | PRIOR
        ;
 
-
-number : INT_NUMBER
-       | FLOAT_NUMBER
-       ;
 %%
 
 void

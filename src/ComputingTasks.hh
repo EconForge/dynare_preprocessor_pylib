@@ -156,33 +156,6 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
-class VarRestrictionsStatement : public Statement
-{
-private:
-  using var_restriction_eq_crosseq_t = pair<pair<int, pair<int, int>>, expr_t>;
-  const string var_model_name;
-  const map<string, vector<string>> var_map;
-  const map<int, map<int, SymbolList>> exclusion_restrictions;
-  using equation_restrictions_t = map<int, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double>>;
-  const equation_restrictions_t equation_restrictions;
-  using crossequation_restrictions_t = vector<pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double>>;
-  const crossequation_restrictions_t crossequation_restrictions;
-  const map<pair<int, int>, double> covariance_number_restriction;
-  const map<pair<int, int>, pair<int, int>> covariance_pair_restriction;
-  const SymbolTable &symbol_table;
-  int findIdxInVector(const vector<string> &vecvars, const string &var) const;
-public:
-  VarRestrictionsStatement(string var_model_name_arg,
-                           map<string, vector<string>> var_map_arg,
-                           map<int, map<int, SymbolList>> exclusion_restrictions_arg,
-                           equation_restrictions_t equation_restrictions_arg,
-                           crossequation_restrictions_t crossequation_restrictions_arg,
-                           map<pair<int, int>, double> covariance_number_restriction_arg,
-                           map<pair<int, int>, pair<int, int>> covariance_pair_restriction_arg,
-                           const SymbolTable &symbol_table_arg);
-  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
-};
-
 class VarEstimationStatement : public Statement
 {
 private:

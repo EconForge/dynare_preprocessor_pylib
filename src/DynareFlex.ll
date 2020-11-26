@@ -221,7 +221,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>moment_calibration {BEGIN DYNARE_BLOCK; return token::MOMENT_CALIBRATION;}
 <INITIAL>irf_calibration {BEGIN DYNARE_BLOCK; return token::IRF_CALIBRATION;}
 <INITIAL>ramsey_constraints {BEGIN DYNARE_BLOCK; return token::RAMSEY_CONSTRAINTS;}
-<INITIAL>restrictions {BEGIN DYNARE_BLOCK; return token::RESTRICTIONS;}
 <INITIAL>generate_irfs {BEGIN DYNARE_BLOCK; return token::GENERATE_IRFS;}
 <INITIAL>matched_moments {BEGIN DYNARE_BLOCK; return token::MATCHED_MOMENTS;}
 
@@ -387,8 +386,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>restriction_fname {return token::RESTRICTION_FNAME;}
 <DYNARE_STATEMENT>nlags {return token::NLAGS;}
 <DYNARE_STATEMENT>restrictions {return token::RESTRICTIONS;}
-<DYNARE_BLOCK>crossequations {return token::CROSSEQUATIONS;}
-<DYNARE_BLOCK>covariance {return token::COVARIANCE;}
 <DYNARE_BLOCK>adl {return token::ADL;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>diff {return token::DIFF;}
 <DYNARE_STATEMENT>cross_restrictions {return token::CROSS_RESTRICTIONS;}

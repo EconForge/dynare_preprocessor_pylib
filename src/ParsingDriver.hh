@@ -250,9 +250,6 @@ private:
   //! Temporary storage for equation tags
   map<string, string> eq_tags;
 
-  //! Map Var name to variables
-  map<string, vector<string>> var_map;
-
   //! The mod file representation constructed by this ParsingDriver
   unique_ptr<ModFile> mod_file;
 
@@ -267,9 +264,6 @@ private:
 
   vector<pair<string, string>> model_errors;
   vector<pair<string, string>> undeclared_model_variable_errors;
-
-  //! Used by VAR restrictions
-  void clear_VAR_storage();
 
   //! True when parsing the epilogue block
   bool parsing_epilogue{false};
@@ -305,21 +299,6 @@ public:
 
   //! Temporary storage for the prior shape
   PriorDistributions prior_shape;
-
-  //! VAR restrictions
-  //! > exclusion restrictions
-  map<int, SymbolList> exclusion_restriction;
-  map<int, map<int, SymbolList>> exclusion_restrictions;
-  //! > equation and crossequation restrictions
-  pair<int, pair<int, int>> var_restriction_coeff;
-  using var_restriction_eq_crosseq_t = pair<pair<int, pair<int, int>>, expr_t>;
-  vector<var_restriction_eq_crosseq_t> var_restriction_eq_or_crosseq;
-  pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double> var_restriction_equation_or_crossequation;
-  map<int, pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double>> equation_restrictions;
-  vector<pair<pair<var_restriction_eq_crosseq_t, var_restriction_eq_crosseq_t>, double>> crossequation_restrictions;
-  //! > covariance restrictions
-  map<pair<int, int>, double> covariance_number_restriction;
-  map<pair<int, int>, pair<int, int>> covariance_pair_restriction;
 
   //! Temporary storage for "expression" option of VAR_EXPECTATION_MODEL
   expr_t var_expectation_model_expression{nullptr};
@@ -895,18 +874,6 @@ public:
   void perfect_foresight_setup();
   void perfect_foresight_solver();
   void prior_posterior_function(bool prior_func);
-  //! VAR Restrictions
-  void begin_VAR_restrictions();
-  void end_VAR_restrictions(const string &var_model_name);
-  void add_VAR_exclusion_restriction(const string &lagstr);
-  void add_VAR_restriction_exclusion_equation(const string &name);
-  void add_VAR_restriction_coeff(const string &name1, const string &name2, const string &lagstr);
-  void add_VAR_restriction_eq_or_crosseq(expr_t expr);
-  void add_VAR_restriction_equation_or_crossequation(const string &numberstr);
-  void multiply_arg2_by_neg_one();
-  void add_VAR_restriction_equation_or_crossequation_final(const string &name);
-  void add_VAR_covariance_number_restriction(const string &name1, const string &name2, const string &valuestr);
-  void add_VAR_covariance_pair_restriction(const string &name11, const string &name12, const string &name21, const string &name22);
   //! Runs VAR estimation process
   void run_var_estimation();
   //! Method of Moments estimation statement

@@ -471,129 +471,6 @@ ParsingDriver::end_nonstationary_var(bool log_deflator, expr_t deflator)
 }
 
 void
-ParsingDriver::begin_VAR_restrictions()
-{
-  clear_VAR_storage();
-}
-
-void
-ParsingDriver::end_VAR_restrictions(const string &var_model_name)
-{
-  mod_file->addStatement(make_unique<VarRestrictionsStatement>(var_model_name,
-                                                               var_map,
-                                                               exclusion_restrictions,
-                                                               equation_restrictions,
-                                                               crossequation_restrictions,
-                                                               covariance_number_restriction,
-                                                               covariance_pair_restriction,
-                                                               mod_file->symbol_table));
-  clear_VAR_storage();
-}
-
-void
-ParsingDriver::clear_VAR_storage()
-{
-  exclusion_restriction.clear();
-  exclusion_restrictions.clear();
-  symbol_list.clear();
-  var_restriction_eq_or_crosseq.clear();
-  equation_restrictions.clear();
-  crossequation_restrictions.clear();
-  covariance_number_restriction.clear();
-  covariance_pair_restriction.clear();
-}
-
-void
-ParsingDriver::add_VAR_exclusion_restriction(const string &lagstr)
-{
-  int lag = stoi(lagstr);
-  if (auto it = exclusion_restrictions.find(lag);
-      it == exclusion_restrictions.end())
-    exclusion_restrictions[lag] = exclusion_restriction;
-  else
-    for (auto &it1 : exclusion_restriction)
-      it->second[it1.first] = it1.second;
-
-  exclusion_restriction.clear();
-}
-
-void
-ParsingDriver::add_VAR_restriction_coeff(const string &name1, const string &name2, const string &lagstr)
-{
-  int symb_id1 = mod_file->symbol_table.getID(name1);
-  int symb_id2 = name2.empty() ? -1 : mod_file->symbol_table.getID(name2);
-  int lag = stoi(lagstr);
-
-  var_restriction_coeff = { symb_id1, { symb_id2, lag } };
-}
-
-void
-ParsingDriver::add_VAR_restriction_eq_or_crosseq(expr_t expr)
-{
-  var_restriction_eq_or_crosseq.emplace_back(var_restriction_coeff, expr);
-}
-
-void
-ParsingDriver::add_VAR_restriction_equation_or_crossequation(const string &numberstr)
-{
-  assert(var_restriction_eq_or_crosseq.size() > 0 && var_restriction_eq_or_crosseq.size() < 3);
-  double number = stod(numberstr);
-  if (var_restriction_eq_or_crosseq.size() == 1)
-    var_restriction_equation_or_crossequation = { { var_restriction_eq_or_crosseq[0], { { -1, { -1, -1 } }, nullptr } }, number };
-  else
-    var_restriction_equation_or_crossequation = { { var_restriction_eq_or_crosseq[0], var_restriction_eq_or_crosseq[1] }, number };
-  var_restriction_eq_or_crosseq.clear();
-}
-
-void
-ParsingDriver::multiply_arg2_by_neg_one()
-{
-  assert(var_restriction_eq_or_crosseq.size() == 2);
-  expr_t exprtm1 = add_times(var_restriction_eq_or_crosseq[1].second,
-                             add_uminus(add_non_negative_constant("-1")));
-  var_restriction_eq_or_crosseq[1] = { var_restriction_eq_or_crosseq[1].first, exprtm1 };
-}
-
-void
-ParsingDriver::add_VAR_restriction_equation_or_crossequation_final(const string &name)
-{
-  if (!name.empty())
-    {
-      int symb_id = mod_file->symbol_table.getID(name);
-      equation_restrictions[symb_id] = var_restriction_equation_or_crossequation;
-    }
-  else
-    crossequation_restrictions.push_back(var_restriction_equation_or_crossequation);
-}
-
-void
-ParsingDriver::add_VAR_restriction_exclusion_equation(const string &name)
-{
-  int symb_id = mod_file->symbol_table.getID(name);
-  exclusion_restriction[symb_id] = symbol_list;
-  symbol_list.clear();
-}
-
-void
-ParsingDriver::add_VAR_covariance_number_restriction(const string &name1, const string &name2, const string &valuestr)
-{
-  int symb_id1 = mod_file->symbol_table.getID(name1);
-  int symb_id2 = mod_file->symbol_table.getID(name2);
-  double value = stod(valuestr);
-  covariance_number_restriction[{ symb_id1, symb_id2 }] = value;
-}
-
-void
-ParsingDriver::add_VAR_covariance_pair_restriction(const string &name11, const string &name12, const string &name21, const string &name22)
-{
-  int symb_id11 = mod_file->symbol_table.getID(name11);
-  int symb_id12 = mod_file->symbol_table.getID(name12);
-  int symb_id21 = mod_file->symbol_table.getID(name21);
-  int symb_id22 = mod_file->symbol_table.getID(name22);
-  covariance_pair_restriction[{ symb_id11, symb_id12 }] = { symb_id21, symb_id22 };
-}
-
-void
 ParsingDriver::run_var_estimation()
 {
   mod_file->addStatement(make_unique<VarEstimationStatement>(options_list));
@@ -1556,7 +1433,6 @@ ParsingDriver::var_model()
   mod_file->var_model_table.addVarModel(name, eqtags, {symbol_list, order});
   symbol_list.clear();
   options_list.clear();
-  var_map[its->second] = symbol_list.getSymbols();
 }
 
 void
