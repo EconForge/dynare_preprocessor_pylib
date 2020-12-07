@@ -34,8 +34,8 @@ macroExpandModFile(const string &filename, const string &basename, const istream
   // Do macro processing
   stringstream macro_output;
   macro::Environment env = macro::Environment();
-  macro::Driver m(env);
-  m.parse(filename, basename, modfile, debug, defines, paths, macro_output);
+  macro::Driver m;
+  m.parse(filename, basename, modfile, debug, defines, env, paths, macro_output);
   if (save_macro)
     {
       if (save_macro_file.empty())

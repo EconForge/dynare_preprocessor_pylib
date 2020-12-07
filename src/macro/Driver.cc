@@ -25,7 +25,7 @@ using namespace macro;
 void
 Driver::parse(const string &file_arg, const string &basename_arg, const istream &modfile,
               bool debug, const vector<pair<string, string>> &defines,
-              vector<filesystem::path> &paths, ostream &output)
+              Environment &env, vector<filesystem::path> &paths, ostream &output)
 {
   file = file_arg;
   basename = basename_arg;
@@ -35,9 +35,9 @@ Driver::parse(const string &file_arg, const string &basename_arg, const istream 
       stringstream command_line_defines_with_endl;
       for (const auto & [var, val] : defines)
         command_line_defines_with_endl << "@#define " << var << " = " << val << endl;
-      Driver m(env);
+      Driver m;
       istream is(command_line_defines_with_endl.rdbuf());
-      m.parse("command_line_defines", "command_line_defines", is, debug, {}, paths, output);
+      m.parse("command_line_defines", "command_line_defines", is, debug, {}, env, paths, output);
     }
 
   // Handle empty files
@@ -65,7 +65,7 @@ Driver::parse(const string &file_arg, const string &basename_arg, const istream 
           statement->printLineInfo(output);
           printLine = false;
         }
-      statement->interpret(output, paths);
+      statement->interpret(output, env, paths);
     }
 }
 

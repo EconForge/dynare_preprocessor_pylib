@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Dynare Team
+ * Copyright © 2019-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -28,7 +28,7 @@ Environment::define(VariablePtr var, ExpressionPtr value)
   string name = var->getName();
   if (functions.count(name))
     throw StackTrace("Variable " + name + " was previously defined as a function");
-  variables[move(name)] = value->eval();
+  variables[move(name)] = value->eval(*this);
 }
 
 void
@@ -67,7 +67,7 @@ Environment::getFunction(const string &name) const
 codes::BaseType
 Environment::getType(const string &name) const
 {
-  return getVariable(name)->eval()->getType();
+  return getVariable(name)->eval(const_cast<Environment &>(*this))->getType();
 }
 
 bool
@@ -132,7 +132,7 @@ Environment::printVariable(ostream &output, const string &name, int line, bool s
 {
   output << (save ? "options_.macrovars_line_" + to_string(line) + "." : "  ")
          << name << " = ";
-  getVariable(name)->eval()->print(output, save);
+  getVariable(name)->eval(const_cast<Environment &>(*this))->print(output, save);
   if (save)
     output << ";";
   output << endl;

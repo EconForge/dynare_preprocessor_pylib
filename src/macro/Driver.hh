@@ -61,14 +61,11 @@ namespace macro
   //! Implements the macro expansion using a Flex scanner and a Bison parser
   class Driver
   {
-  public:
-    Environment &env;
   private:
     vector<DirectivePtr> statements;
     stack<vector<DirectivePtr>> directive_stack;
   public:
-    Driver(Environment &env_arg) :
-      env{env_arg} { }
+    Driver() = default;
     Driver(const Driver &) = delete;
     Driver(Driver &&) = delete;
     Driver &operator=(const Driver &) = delete;
@@ -84,12 +81,11 @@ namespace macro
       }
     };
 
-    //! Starts parsing a file, modifies `paths` and `output`
-    //! Both `paths` and `output` are passed as reference
+    //! Starts parsing a file, modifies `env`, `paths` and `output`
     //! as they are modified by various macro directives
     void parse(const string &file, const string &basename, const istream &modfile,
                bool debug, const vector<pair<string, string>> &defines,
-               vector<filesystem::path> &paths, ostream &output);
+               Environment &env, vector<filesystem::path> &paths, ostream &output);
 
     //! Name of main file being parsed
     string file;

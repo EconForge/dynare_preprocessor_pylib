@@ -81,11 +81,10 @@ namespace macro
   class Node
   {
   protected:
-    Environment &env;
     const Tokenizer::location location;
   public:
-    Node(Environment &env_arg, Tokenizer::location location_arg) :
-      env{env_arg}, location{move(location_arg)} { }
+    explicit Node(Tokenizer::location location_arg) :
+      location{move(location_arg)} { }
     virtual ~Node() = default;
   public:
     inline Tokenizer::location getLocation() const noexcept { return location; }
@@ -113,11 +112,11 @@ namespace macro
   class Expression : public Node
   {
   public:
-    Expression(Environment &env_arg, Tokenizer::location location_arg) :
-      Node(env_arg, move(location_arg)) { }
+    explicit Expression(Tokenizer::location location_arg) :
+      Node(move(location_arg)) { }
     virtual string to_string() const noexcept = 0;
     virtual void print(ostream &output, bool matlab_output = false) const noexcept = 0;
-    virtual BaseTypePtr eval() = 0;
+    virtual BaseTypePtr eval(Environment &env) = 0;
     virtual ExpressionPtr clone() const noexcept = 0;
   };
 
@@ -125,10 +124,10 @@ namespace macro
   class BaseType : public Expression, public enable_shared_from_this<BaseType>
   {
   public:
-    BaseType(Environment &env_arg, Tokenizer::location location_arg = Tokenizer::location()) :
-      Expression(env_arg, move(location_arg)) { }
+    explicit BaseType(Tokenizer::location location_arg = Tokenizer::location()) :
+      Expression(move(location_arg)) { }
     virtual codes::BaseType getType() const noexcept = 0;
-    inline BaseTypePtr eval() override { return shared_from_this(); }
+    inline BaseTypePtr eval(Environment &env) override { return shared_from_this(); }
   public:
     virtual BaseTypePtr plus(const BaseTypePtr &bt) const { throw StackTrace("Operator + does not exist for this type"); }
     virtual BaseTypePtr unary_plus() const { throw StackTrace("Unary operator + does not exist for this type"); }
@@ -143,20 +142,20 @@ namespace macro
     virtual BoolPtr is_greater_equal(const BaseTypePtr &btp) const { throw StackTrace("Operator >= does not exist for this type"); }
     virtual BoolPtr is_equal(const BaseTypePtr &btp) const = 0;
     virtual BoolPtr is_different(const BaseTypePtr &btp) const final;
-    virtual BoolPtr logical_and(const ExpressionPtr &ep) const { throw StackTrace("Operator && does not exist for this type"); }
-    virtual BoolPtr logical_or(const ExpressionPtr &ep) const { throw StackTrace("Operator || does not exist for this type"); }
+    virtual BoolPtr logical_and(const ExpressionPtr &ep, Environment &env) const { throw StackTrace("Operator && does not exist for this type"); }
+    virtual BoolPtr logical_or(const ExpressionPtr &ep, Environment &env) const { throw StackTrace("Operator || does not exist for this type"); }
     virtual BoolPtr logical_not() const { throw StackTrace("Operator ! does not exist for this type"); }
     virtual ArrayPtr set_union(const BaseTypePtr &btp) const { throw StackTrace("Operator | does not exist for this type"); }
     virtual ArrayPtr set_intersection(const BaseTypePtr &btp) const { throw StackTrace("Operator & does not exist for this type"); }
     virtual BoolPtr contains(const BaseTypePtr &btp) const { throw StackTrace("Second argument of `in` operator must be an array"); }
     virtual RealPtr length() const { throw StackTrace("Operator `length` does not exist for this type"); }
     virtual BoolPtr isempty() const { throw StackTrace("Operator `isempty` does not exist for this type"); }
-    virtual BoolPtr isboolean() const noexcept { return make_shared<Bool>(false, env, location); }
-    virtual BoolPtr isreal() const noexcept { return make_shared<Bool>(false, env, location); }
-    virtual BoolPtr isinteger() const noexcept { return make_shared<Bool>(false, env, location); }
-    virtual BoolPtr isstring() const noexcept { return make_shared<Bool>(false, env, location); }
-    virtual BoolPtr istuple() const noexcept { return make_shared<Bool>(false, env, location); }
-    virtual BoolPtr isarray() const noexcept { return make_shared<Bool>(false, env, location); }
+    virtual BoolPtr isboolean() const noexcept { return make_shared<Bool>(false, location); }
+    virtual BoolPtr isreal() const noexcept { return make_shared<Bool>(false, location); }
+    virtual BoolPtr isinteger() const noexcept { return make_shared<Bool>(false, location); }
+    virtual BoolPtr isstring() const noexcept { return make_shared<Bool>(false, location); }
+    virtual BoolPtr istuple() const noexcept { return make_shared<Bool>(false, location); }
+    virtual BoolPtr isarray() const noexcept { return make_shared<Bool>(false, location); }
     virtual RealPtr max(const BaseTypePtr &btp) const { throw StackTrace("Operator `max` does not exist for this type"); }
     virtual RealPtr min(const BaseTypePtr &btp) const { throw StackTrace("Operator `min` does not exist for this type"); }
     virtual RealPtr mod(const BaseTypePtr &btp) const { throw StackTrace("Operator `mod` does not exist for this type"); }
@@ -189,12 +188,12 @@ namespace macro
     virtual RealPtr normpdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const { throw StackTrace("Operator `normpdf` does not exist for this type"); }
     virtual RealPtr normcdf() const { throw StackTrace("Operator `normcdf` does not exist for this type"); }
     virtual RealPtr normcdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const { throw StackTrace("Operator `normcdf` does not exist for this type"); }
-    virtual BoolPtr cast_bool() const { throw StackTrace("This type cannot be cast to a boolean"); }
-    virtual RealPtr cast_real() const { throw StackTrace("This type cannot be cast to a real"); }
+    virtual BoolPtr cast_bool(Environment &env) const { throw StackTrace("This type cannot be cast to a boolean"); }
+    virtual RealPtr cast_real(Environment &env) const { throw StackTrace("This type cannot be cast to a real"); }
     virtual StringPtr cast_string() const { throw StackTrace("This type cannot be cast to a string"); }
     virtual TuplePtr cast_tuple() const { throw StackTrace("This type cannot be cast to a tuple"); }
     virtual ArrayPtr cast_array() const { throw StackTrace("This type cannot be cast to an array"); }
-    virtual BoolPtr defined() const { throw StackTrace("Operator `defined` does not exist for this type"); }
+    virtual BoolPtr defined(const Environment &env) const { throw StackTrace("Operator `defined` does not exist for this type"); }
   };
 
 
@@ -204,30 +203,30 @@ namespace macro
     const bool value;
   public:
     Bool(bool value_arg,
-         Environment &env_arg, Tokenizer::location location_arg = Tokenizer::location()) :
-      BaseType(env_arg, move(location_arg)),
+         Tokenizer::location location_arg = Tokenizer::location()) :
+      BaseType(move(location_arg)),
       value{value_arg} { }
     inline codes::BaseType getType() const noexcept override { return codes::BaseType::Bool; }
     inline string to_string() const noexcept override { return value ? "true" : "false"; }
     inline void print(ostream &output, bool matlab_output = false) const noexcept override { output << to_string(); }
-    inline ExpressionPtr clone() const noexcept override { return make_shared<Bool>(value, env, location); }
+    inline ExpressionPtr clone() const noexcept override { return make_shared<Bool>(value, location); }
   public:
     operator bool() const { return value; }
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
-    BoolPtr logical_and(const ExpressionPtr &ep) const override;
-    BoolPtr logical_or(const ExpressionPtr &ep) const override;
+    BoolPtr logical_and(const ExpressionPtr &ep, Environment &env) const override;
+    BoolPtr logical_or(const ExpressionPtr &ep, Environment &env) const override;
     BoolPtr logical_not() const override;
-    inline BoolPtr isboolean() const noexcept override { return make_shared<Bool>(true, env, location); }
-    inline BoolPtr cast_bool() const override { return make_shared<Bool>(value, env); }
-    inline RealPtr cast_real() const override { return value ? make_shared<Real>(1, env) : make_shared<Real>(0, env); }
-    inline StringPtr cast_string() const override { return make_shared<String>(this->to_string(), env); }
+    inline BoolPtr isboolean() const noexcept override { return make_shared<Bool>(true, location); }
+    inline BoolPtr cast_bool(Environment &env) const override { return make_shared<Bool>(value); }
+    inline RealPtr cast_real(Environment &env) const override { return value ? make_shared<Real>(1) : make_shared<Real>(0); }
+    inline StringPtr cast_string() const override { return make_shared<String>(this->to_string()); }
     inline TuplePtr cast_tuple() const override
     {
-      return make_shared<Tuple>(vector<ExpressionPtr>{make_shared<Bool>(value, env)}, env);
+      return make_shared<Tuple>(vector<ExpressionPtr>{make_shared<Bool>(value)});
     }
     inline ArrayPtr cast_array() const override
     {
-      return make_shared<Array>(vector<ExpressionPtr>{make_shared<Bool>(value, env)}, env);
+      return make_shared<Array>(vector<ExpressionPtr>{make_shared<Bool>(value)});
     }
   };
 
@@ -240,12 +239,12 @@ namespace macro
     // Use strtod to handle extreme cases (e.g. 1e500, 1e-500), nan, inf
     // See Note in NumericalConstants::AddNonNegativeConstant
     Real(const string &value_arg,
-         Environment &env_arg, Tokenizer::location location_arg = Tokenizer::location()) :
-      BaseType(env_arg, move(location_arg)),
+         Tokenizer::location location_arg = Tokenizer::location()) :
+      BaseType(move(location_arg)),
       value{strtod(value_arg.c_str(), nullptr)} { }
     Real(double value_arg,
-         Environment &env_arg, Tokenizer::location location_arg = Tokenizer::location()) :
-      BaseType(env_arg, move(location_arg)),
+         Tokenizer::location location_arg = Tokenizer::location()) :
+      BaseType(move(location_arg)),
       value{value_arg} { }
     inline codes::BaseType getType() const noexcept override { return codes::BaseType::Real; }
     inline string to_string() const noexcept override
@@ -255,13 +254,13 @@ namespace macro
       return strs.str();
     }
     inline void print(ostream &output, bool matlab_output = false) const noexcept override { output << to_string(); }
-    inline ExpressionPtr clone() const noexcept override { return make_shared<Real>(value, env, location); }
+    inline ExpressionPtr clone() const noexcept override { return make_shared<Real>(value, location); }
   public:
     operator double() const { return value; }
     BaseTypePtr plus(const BaseTypePtr &bt) const override;
-    inline BaseTypePtr unary_plus() const override { return make_shared<Real>(value, env); }
+    inline BaseTypePtr unary_plus() const override { return make_shared<Real>(value); }
     BaseTypePtr minus(const BaseTypePtr &bt) const override;
-    inline BaseTypePtr unary_minus() const override { return make_shared<Real>(-value, env); }
+    inline BaseTypePtr unary_minus() const override { return make_shared<Real>(-value); }
     BaseTypePtr times(const BaseTypePtr &bt) const override;
     BaseTypePtr divide(const BaseTypePtr &bt) const override;
     BaseTypePtr power(const BaseTypePtr &btp) const override;
@@ -270,65 +269,65 @@ namespace macro
     BoolPtr is_less_equal(const BaseTypePtr &btp) const override;
     BoolPtr is_greater_equal(const BaseTypePtr &btp) const override;
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
-    inline BoolPtr isreal() const noexcept override { return make_shared<Bool>(true, env, location); }
+    inline BoolPtr isreal() const noexcept override { return make_shared<Bool>(true, location); }
     inline BoolPtr isinteger() const noexcept override
     {
       double intpart;
-      return make_shared<Bool>(modf(value, &intpart) == 0.0, env, location);
+      return make_shared<Bool>(modf(value, &intpart) == 0.0, location);
     }
-    BoolPtr logical_and(const ExpressionPtr &ep) const override;
-    BoolPtr logical_or(const ExpressionPtr &ep) const override;
+    BoolPtr logical_and(const ExpressionPtr &ep, Environment &env) const override;
+    BoolPtr logical_or(const ExpressionPtr &ep, Environment &env) const override;
     BoolPtr logical_not() const override;
     RealPtr max(const BaseTypePtr &btp) const override;
     RealPtr min(const BaseTypePtr &btp) const override;
     RealPtr mod(const BaseTypePtr &btp) const override;
-    inline RealPtr exp() const override { return make_shared<Real>(std::exp(value), env); }
-    inline RealPtr ln() const override { return make_shared<Real>(std::log(value), env); }
-    inline RealPtr log10() const override { return make_shared<Real>(std::log10(value), env); }
-    inline BoolPtr isinf() const override { return make_shared<Bool>(std::isinf(value), env); }
-    inline BoolPtr isnan() const override { return make_shared<Bool>(std::isnan(value), env); }
-    inline BoolPtr isfinite() const override { return make_shared<Bool>(std::isfinite(value), env); }
-    inline BoolPtr isnormal() const override { return make_shared<Bool>(std::isnormal(value), env); }
-    inline RealPtr sin() const override { return make_shared<Real>(std::sin(value), env); }
-    inline RealPtr cos() const override { return make_shared<Real>(std::cos(value), env); }
-    inline RealPtr tan() const override { return make_shared<Real>(std::tan(value), env); }
-    inline RealPtr asin() const override { return make_shared<Real>(std::asin(value), env); }
-    inline RealPtr acos() const override { return make_shared<Real>(std::acos(value), env); }
-    inline RealPtr atan() const override { return make_shared<Real>(std::atan(value), env); }
-    inline RealPtr sqrt() const override { return make_shared<Real>(std::sqrt(value), env); }
-    inline RealPtr cbrt() const override { return make_shared<Real>(std::cbrt(value), env); }
+    inline RealPtr exp() const override { return make_shared<Real>(std::exp(value)); }
+    inline RealPtr ln() const override { return make_shared<Real>(std::log(value)); }
+    inline RealPtr log10() const override { return make_shared<Real>(std::log10(value)); }
+    inline BoolPtr isinf() const override { return make_shared<Bool>(std::isinf(value)); }
+    inline BoolPtr isnan() const override { return make_shared<Bool>(std::isnan(value)); }
+    inline BoolPtr isfinite() const override { return make_shared<Bool>(std::isfinite(value)); }
+    inline BoolPtr isnormal() const override { return make_shared<Bool>(std::isnormal(value)); }
+    inline RealPtr sin() const override { return make_shared<Real>(std::sin(value)); }
+    inline RealPtr cos() const override { return make_shared<Real>(std::cos(value)); }
+    inline RealPtr tan() const override { return make_shared<Real>(std::tan(value)); }
+    inline RealPtr asin() const override { return make_shared<Real>(std::asin(value)); }
+    inline RealPtr acos() const override { return make_shared<Real>(std::acos(value)); }
+    inline RealPtr atan() const override { return make_shared<Real>(std::atan(value)); }
+    inline RealPtr sqrt() const override { return make_shared<Real>(std::sqrt(value)); }
+    inline RealPtr cbrt() const override { return make_shared<Real>(std::cbrt(value)); }
     inline RealPtr sign() const override
     {
-      return make_shared<Real>((value > 0) ? 1. : ((value < 0) ? -1. : 0.), env);
+      return make_shared<Real>((value > 0) ? 1. : ((value < 0) ? -1. : 0.));
     }
-    inline RealPtr floor() const override { return make_shared<Real>(std::floor(value), env); }
-    inline RealPtr ceil() const override { return make_shared<Real>(std::ceil(value), env); }
-    inline RealPtr trunc() const override { return make_shared<Real>(std::trunc(value), env); }
-    inline RealPtr erf() const override { return make_shared<Real>(std::erf(value), env); }
-    inline RealPtr erfc() const override { return make_shared<Real>(std::erfc(value), env); }
-    inline RealPtr gamma() const override { return make_shared<Real>(std::tgamma(value), env); }
-    inline RealPtr lgamma() const override { return make_shared<Real>(std::lgamma(value), env); }
-    inline RealPtr round() const override { return make_shared<Real>(std::round(value), env); }
+    inline RealPtr floor() const override { return make_shared<Real>(std::floor(value)); }
+    inline RealPtr ceil() const override { return make_shared<Real>(std::ceil(value)); }
+    inline RealPtr trunc() const override { return make_shared<Real>(std::trunc(value)); }
+    inline RealPtr erf() const override { return make_shared<Real>(std::erf(value)); }
+    inline RealPtr erfc() const override { return make_shared<Real>(std::erfc(value)); }
+    inline RealPtr gamma() const override { return make_shared<Real>(std::tgamma(value)); }
+    inline RealPtr lgamma() const override { return make_shared<Real>(std::lgamma(value)); }
+    inline RealPtr round() const override { return make_shared<Real>(std::round(value)); }
     inline RealPtr normpdf() const override
     {
-      return normpdf(make_shared<Real>(0, env), make_shared<Real>(1, env));
+      return normpdf(make_shared<Real>(0), make_shared<Real>(1));
     }
     RealPtr normpdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const override;
     inline RealPtr normcdf() const override
     {
-      return normcdf(make_shared<Real>(0, env), make_shared<Real>(1, env));
+      return normcdf(make_shared<Real>(0), make_shared<Real>(1));
     }
     RealPtr normcdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const override;
-    inline BoolPtr cast_bool() const override { return make_shared<Bool>(static_cast<bool>(value), env); }
-    inline RealPtr cast_real() const override { return make_shared<Real>(value, env); }
-    inline StringPtr cast_string() const override { return make_shared<String>(this->to_string(), env); }
+    inline BoolPtr cast_bool(Environment &env) const override { return make_shared<Bool>(static_cast<bool>(value)); }
+    inline RealPtr cast_real(Environment &env) const override { return make_shared<Real>(value); }
+    inline StringPtr cast_string() const override { return make_shared<String>(this->to_string()); }
     inline TuplePtr cast_tuple() const override
     {
-      return make_shared<Tuple>(vector<ExpressionPtr>{make_shared<Real>(value, env)}, env);
+      return make_shared<Tuple>(vector<ExpressionPtr>{make_shared<Real>(value)});
     }
     inline ArrayPtr cast_array() const override
     {
-      return make_shared<Array>(vector<ExpressionPtr>{make_shared<Real>(value, env)}, env);
+      return make_shared<Array>(vector<ExpressionPtr>{make_shared<Real>(value)});
     }
   };
 
@@ -338,13 +337,13 @@ namespace macro
     const string value;
   public:
     String(string value_arg,
-           Environment &env_arg, Tokenizer::location location_arg = Tokenizer::location()) :
-      BaseType(env_arg, move(location_arg)),
+           Tokenizer::location location_arg = Tokenizer::location()) :
+      BaseType(move(location_arg)),
       value{move(value_arg)} { }
     inline codes::BaseType getType() const noexcept override { return codes::BaseType::String; }
     inline string to_string() const noexcept override { return value; }
     void print(ostream &output, bool matlab_output = false) const noexcept override;
-    inline ExpressionPtr clone() const noexcept override { return make_shared<String>(value, env, location); }
+    inline ExpressionPtr clone() const noexcept override { return make_shared<String>(value, location); }
   public:
     operator string() const { return value; }
     BaseTypePtr plus(const BaseTypePtr &bt) const override;
@@ -353,23 +352,23 @@ namespace macro
     BoolPtr is_less_equal(const BaseTypePtr &btp) const override;
     BoolPtr is_greater_equal(const BaseTypePtr &btp) const override;
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
-    inline BoolPtr isstring() const noexcept override { return make_shared<Bool>(true, env, location); }
-    inline RealPtr length() const override { return make_shared<Real>(value.size(), env); }
-    inline BoolPtr isempty() const override { return make_shared<Bool>(value.empty(), env); }
-    BoolPtr cast_bool() const override;
-    RealPtr cast_real() const override;
-    inline StringPtr cast_string() const override { return make_shared<String>(value, env); }
+    inline BoolPtr isstring() const noexcept override { return make_shared<Bool>(true, location); }
+    inline RealPtr length() const override { return make_shared<Real>(value.size()); }
+    inline BoolPtr isempty() const override { return make_shared<Bool>(value.empty()); }
+    BoolPtr cast_bool(Environment &env) const override;
+    RealPtr cast_real(Environment &env) const override;
+    inline StringPtr cast_string() const override { return make_shared<String>(value); }
     inline TuplePtr cast_tuple() const override
     {
-      return make_shared<Tuple>(vector<ExpressionPtr>{make_shared<String>(value, env)}, env);
+      return make_shared<Tuple>(vector<ExpressionPtr>{make_shared<String>(value)});
     }
     inline ArrayPtr cast_array() const override
     {
-      return make_shared<Array>(vector<ExpressionPtr>{make_shared<String>(value, env)}, env);
+      return make_shared<Array>(vector<ExpressionPtr>{make_shared<String>(value)});
     }
-    inline BoolPtr defined() const override
+    inline BoolPtr defined(const Environment &env) const override
     {
-      return make_shared<Bool>(env.isSymbolDefined(value), env);
+      return make_shared<Bool>(env.isSymbolDefined(value));
     }
   };
 
@@ -380,13 +379,13 @@ namespace macro
     const vector<ExpressionPtr> tup;
   public:
     Tuple(vector<ExpressionPtr> tup_arg,
-          Environment &env_arg, Tokenizer::location location_arg = Tokenizer::location()) :
-      BaseType(env_arg, move(location_arg)),
+          Tokenizer::location location_arg = Tokenizer::location()) :
+      BaseType(move(location_arg)),
       tup{move(tup_arg)} { }
     inline codes::BaseType getType() const noexcept override { return codes::BaseType::Tuple; }
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
-    BaseTypePtr eval() override;
+    BaseTypePtr eval(Environment &env) override;
     ExpressionPtr clone() const noexcept override;
   public:
     inline size_t size() const { return tup.size(); }
@@ -394,15 +393,15 @@ namespace macro
     inline const vector<ExpressionPtr> &getValue() const { return tup; }
     inline const ExpressionPtr &at(int i) const { return tup.at(i); }
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
-    inline BoolPtr istuple() const noexcept override { return make_shared<Bool>(true, env, location); }
+    inline BoolPtr istuple() const noexcept override { return make_shared<Bool>(true, location); }
     BoolPtr contains(const BaseTypePtr &btp) const override;
-    inline RealPtr length() const override { return make_shared<Real>(tup.size(), env); }
-    inline BoolPtr isempty() const override { return make_shared<Bool>(empty(), env); }
-    BoolPtr cast_bool() const override;
-    RealPtr cast_real() const override;
-    inline StringPtr cast_string() const override { return make_shared<String>(this->to_string(), env); }
-    inline TuplePtr cast_tuple() const override { return make_shared<Tuple>(tup, env); }
-    inline ArrayPtr cast_array() const override { return make_shared<Array>(tup, env); }
+    inline RealPtr length() const override { return make_shared<Real>(tup.size()); }
+    inline BoolPtr isempty() const override { return make_shared<Bool>(empty()); }
+    BoolPtr cast_bool(Environment &env) const override;
+    RealPtr cast_real(Environment &env) const override;
+    inline StringPtr cast_string() const override { return make_shared<String>(this->to_string()); }
+    inline TuplePtr cast_tuple() const override { return make_shared<Tuple>(tup); }
+    inline ArrayPtr cast_array() const override { return make_shared<Array>(tup); }
   };
 
 
@@ -412,12 +411,12 @@ namespace macro
     const vector<ExpressionPtr> arr;
   public:
     Array(vector<ExpressionPtr> arr_arg,
-          Environment &env_arg, Tokenizer::location location_arg = Tokenizer::location()) :
-      BaseType(env_arg, move(location_arg)), arr{move(arr_arg)} { }
+          Tokenizer::location location_arg = Tokenizer::location()) :
+      BaseType(move(location_arg)), arr{move(arr_arg)} { }
     inline codes::BaseType getType() const noexcept override { return codes::BaseType::Array; }
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
-    BaseTypePtr eval() override;
+    BaseTypePtr eval(Environment &env) override;
     ExpressionPtr clone() const noexcept override;
   public:
     inline size_t size() const { return arr.size(); }
@@ -429,18 +428,18 @@ namespace macro
     BaseTypePtr times(const BaseTypePtr &bt) const override;
     BaseTypePtr power(const BaseTypePtr &btp) const override;
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
-    inline BoolPtr isarray() const noexcept override { return make_shared<Bool>(true, env, location); }
+    inline BoolPtr isarray() const noexcept override { return make_shared<Bool>(true, location); }
     ArrayPtr set_union(const BaseTypePtr &btp) const override;
     ArrayPtr set_intersection(const BaseTypePtr &btp) const override;
     BoolPtr contains(const BaseTypePtr &btp) const override;
-    inline RealPtr length() const override { return make_shared<Real>(arr.size(), env); }
-    inline BoolPtr isempty() const override { return make_shared<Bool>(empty(), env); }
+    inline RealPtr length() const override { return make_shared<Real>(arr.size()); }
+    inline BoolPtr isempty() const override { return make_shared<Bool>(empty()); }
     RealPtr sum() const override;
-    BoolPtr cast_bool() const override;
-    RealPtr cast_real() const override;
-    inline StringPtr cast_string() const override { return make_shared<String>(this->to_string(), env); }
-    inline TuplePtr cast_tuple() const override { return make_shared<Tuple>(arr, env); }
-    inline ArrayPtr cast_array() const override { return make_shared<Array>(arr, env); }
+    BoolPtr cast_bool(Environment &env) const override;
+    RealPtr cast_real(Environment &env) const override;
+    inline StringPtr cast_string() const override { return make_shared<String>(this->to_string()); }
+    inline TuplePtr cast_tuple() const override { return make_shared<Tuple>(arr); }
+    inline ArrayPtr cast_array() const override { return make_shared<Array>(arr); }
   };
 
 
@@ -450,11 +449,11 @@ namespace macro
     const ExpressionPtr start, inc, end;
   public:
     Range(ExpressionPtr start_arg, ExpressionPtr end_arg,
-          Environment &env_arg, Tokenizer::location location_arg) :
-      BaseType(env_arg, move(location_arg)), start{move(start_arg)}, end{move(end_arg)} { }
+          Tokenizer::location location_arg) :
+      BaseType(move(location_arg)), start{move(start_arg)}, end{move(end_arg)} { }
     Range(ExpressionPtr start_arg, ExpressionPtr inc_arg, ExpressionPtr end_arg,
-          Environment &env_arg, Tokenizer::location location_arg) :
-      BaseType(env_arg, move(location_arg)),
+          Tokenizer::location location_arg) :
+      BaseType(move(location_arg)),
       start{move(start_arg)}, inc{move(inc_arg)}, end{move(end_arg)} { }
     inline codes::BaseType getType() const noexcept override { return codes::BaseType::Range; }
     inline string to_string() const noexcept override
@@ -465,12 +464,12 @@ namespace macro
       return retval + end->to_string() + "]";
     }
     inline void print(ostream &output, bool matlab_output = false) const noexcept override { output << to_string(); }
-    BaseTypePtr eval() override;
+    BaseTypePtr eval(Environment &env) override;
     inline ExpressionPtr clone() const noexcept override
     {
       return inc ?
-        make_shared<Range>(start, inc, end, env, location)
-        : make_shared<Range>(start, end, env, location);
+        make_shared<Range>(start, inc, end, location)
+        : make_shared<Range>(start, end, location);
     }
   public:
     inline BoolPtr is_equal(const BaseTypePtr &btp) const override
@@ -487,22 +486,22 @@ namespace macro
     const ArrayPtr indices; // for indexing strings/arrays
   public:
     Variable(string name_arg,
-             Environment &env_arg, Tokenizer::location location_arg) :
-      Expression(env_arg, move(location_arg)), name{move(name_arg)} { }
+             Tokenizer::location location_arg) :
+      Expression(move(location_arg)), name{move(name_arg)} { }
     Variable(string name_arg, ArrayPtr indices_arg,
-             Environment &env_arg, Tokenizer::location location_arg) :
-      Expression(env_arg, move(location_arg)), name{move(name_arg)}, indices{move(indices_arg)} { }
+             Tokenizer::location location_arg) :
+      Expression(move(location_arg)), name{move(name_arg)}, indices{move(indices_arg)} { }
     inline string to_string() const noexcept override { return name; }
     inline void print(ostream &output, bool matlab_output = false) const noexcept override { output << name; }
-    BaseTypePtr eval() override;
+    BaseTypePtr eval(Environment &env) override;
     inline ExpressionPtr clone() const noexcept override
     {
-      return indices ? make_shared<Variable>(name, indices, env, location) :
-        make_shared<Variable>(name, env, location);
+      return indices ? make_shared<Variable>(name, indices, location) :
+        make_shared<Variable>(name, location);
     }
   public:
     inline const string &getName() const noexcept { return name; }
-    inline codes::BaseType getType() const { return env.getType(name); }
+    inline codes::BaseType getType(const Environment &env) const { return env.getType(name); }
   };
 
 
@@ -514,14 +513,14 @@ namespace macro
   public:
     Function(string name_arg,
              vector<ExpressionPtr> args_arg,
-             Environment &env_arg, Tokenizer::location location_arg) :
-      Expression(env_arg, move(location_arg)), name{move(name_arg)}, args{move(args_arg)} { }
+             Tokenizer::location location_arg) :
+      Expression(move(location_arg)), name{move(name_arg)}, args{move(args_arg)} { }
     string to_string() const noexcept override;
     inline void print(ostream &output, bool matlab_output = false) const noexcept override
     {
       printName(output); printArgs(output);
     }
-    BaseTypePtr eval() override;
+    BaseTypePtr eval(Environment &env) override;
     ExpressionPtr clone() const noexcept override;
   public:
     inline void printName(ostream &output) const noexcept { output << name; }
@@ -539,14 +538,14 @@ namespace macro
   public:
     UnaryOp(codes::UnaryOp op_code_arg,
             ExpressionPtr arg_arg,
-            Environment &env_arg, Tokenizer::location location_arg) :
-      Expression(env_arg, move(location_arg)), op_code{move(op_code_arg)}, arg{move(arg_arg)} { }
+            Tokenizer::location location_arg) :
+      Expression(move(location_arg)), op_code{move(op_code_arg)}, arg{move(arg_arg)} { }
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
-    BaseTypePtr eval() override;
+    BaseTypePtr eval(Environment &env) override;
     inline ExpressionPtr clone() const noexcept override
     {
-      return make_shared<UnaryOp>(op_code, arg->clone(), env, location);
+      return make_shared<UnaryOp>(op_code, arg->clone(), location);
     }
   };
 
@@ -559,16 +558,16 @@ namespace macro
   public:
     BinaryOp(codes::BinaryOp op_code_arg,
              ExpressionPtr arg1_arg, ExpressionPtr arg2_arg,
-             Environment &env_arg, Tokenizer::location location_arg) :
-      Expression(env_arg, move(location_arg)), op_code{op_code_arg},
+             Tokenizer::location location_arg) :
+      Expression(move(location_arg)), op_code{op_code_arg},
       arg1{move(arg1_arg)}, arg2{move(arg2_arg)} { }
   public:
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
-    BaseTypePtr eval() override;
+    BaseTypePtr eval(Environment &env) override;
     inline ExpressionPtr clone() const noexcept override
     {
-      return make_shared<BinaryOp>(op_code, arg1->clone(), arg2->clone(), env, location);
+      return make_shared<BinaryOp>(op_code, arg1->clone(), arg2->clone(), location);
     }
   };
 
@@ -581,15 +580,15 @@ namespace macro
   public:
     TrinaryOp(codes::TrinaryOp op_code_arg,
               ExpressionPtr arg1_arg, ExpressionPtr arg2_arg, ExpressionPtr arg3_arg,
-              Environment &env_arg, Tokenizer::location location_arg) :
-      Expression(env_arg, move(location_arg)), op_code{op_code_arg},
+              Tokenizer::location location_arg) :
+      Expression(move(location_arg)), op_code{op_code_arg},
       arg1{move(arg1_arg)}, arg2{move(arg2_arg)}, arg3{move(arg3_arg)} { }
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
-    BaseTypePtr eval() override;
+    BaseTypePtr eval(Environment &env) override;
     inline ExpressionPtr clone() const noexcept override
     {
-      return make_shared<TrinaryOp>(op_code, arg1->clone(), arg2->clone(), arg3->clone(), env, location);
+      return make_shared<TrinaryOp>(op_code, arg1->clone(), arg2->clone(), arg3->clone(), location);
     }
   };
 
@@ -608,26 +607,26 @@ namespace macro
                   ExpressionPtr c_vars_arg,
                   ExpressionPtr c_set_arg,
                   ExpressionPtr c_when_arg,
-                  Environment &env_arg, Tokenizer::location location_arg) :
-      Expression(env_arg, move(location_arg)),
+                  Tokenizer::location location_arg) :
+      Expression(move(location_arg)),
       c_expr{move(c_expr_arg)}, c_vars{move(c_vars_arg)},
       c_set{move(c_set_arg)}, c_when{move(c_when_arg)} { }
     Comprehension(ExpressionPtr c_expr_arg,
                   ExpressionPtr c_vars_arg,
                   ExpressionPtr c_set_arg,
-                  Environment &env_arg, Tokenizer::location location_arg) :
-      Expression(env_arg, move(location_arg)),
+                  Tokenizer::location location_arg) :
+      Expression(move(location_arg)),
       c_expr{move(c_expr_arg)}, c_vars{move(c_vars_arg)}, c_set{move(c_set_arg)} { }
     Comprehension(bool filter_only_arg,
                   ExpressionPtr c_vars_arg,
                   ExpressionPtr c_set_arg,
                   ExpressionPtr c_when_arg,
-                  Environment &env_arg, Tokenizer::location location_arg) :
-      Expression(env_arg, move(location_arg)),
+                  Tokenizer::location location_arg) :
+      Expression(move(location_arg)),
       c_vars{move(c_vars_arg)}, c_set{move(c_set_arg)}, c_when{move(c_when_arg)} { }
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
-    BaseTypePtr eval() override;
+    BaseTypePtr eval(Environment &env) override;
     ExpressionPtr clone() const noexcept override;
   };
 }

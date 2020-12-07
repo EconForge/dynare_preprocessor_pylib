@@ -25,11 +25,11 @@
 using namespace macro;
 
 void
-Eval::interpret(ostream &output, vector<filesystem::path> &paths)
+Eval::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
 {
   try
     {
-      output << expr->eval()->to_string();
+      output << expr->eval(env)->to_string();
     }
   catch (StackTrace &ex)
     {
@@ -43,12 +43,12 @@ Eval::interpret(ostream &output, vector<filesystem::path> &paths)
 }
 
 void
-Include::interpret(ostream &output, vector<filesystem::path> &paths)
+Include::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
 {
   using namespace filesystem;
   try
     {
-      StringPtr msp = dynamic_pointer_cast<String>(expr->eval());
+      StringPtr msp = dynamic_pointer_cast<String>(expr->eval(env));
       if (!msp)
         throw StackTrace("File name does not evaluate to a string");
       path filename = msp->to_string();
@@ -71,11 +71,11 @@ Include::interpret(ostream &output, vector<filesystem::path> &paths)
                                +". The following directories were searched:\n" + errmsg.str(), location));
             }
         }
-      Driver m(env);
+      Driver m;
       // Calling `string()` method on filename and filename.stem() because of bug in
       // MinGW 8.3.0 that ignores implicit conversion to string from filename::path.
       // Test if bug exists when version of MinGW is upgraded on Debian runners
-      m.parse(filename.string(), filename.stem().string(), incfile, false, {}, paths, output);
+      m.parse(filename.string(), filename.stem().string(), incfile, false, {}, env, paths, output);
     }
   catch (StackTrace &ex)
     {
@@ -90,12 +90,12 @@ Include::interpret(ostream &output, vector<filesystem::path> &paths)
 }
 
 void
-IncludePath::interpret(ostream &output, vector<filesystem::path> &paths)
+IncludePath::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
 {
   using namespace filesystem;
   try
     {
-      StringPtr msp = dynamic_pointer_cast<String>(expr->eval());
+      StringPtr msp = dynamic_pointer_cast<String>(expr->eval(env));
       if (!msp)
         throw StackTrace("File name does not evaluate to a string");
       path ip = static_cast<string>(*msp);
@@ -117,7 +117,7 @@ IncludePath::interpret(ostream &output, vector<filesystem::path> &paths)
 }
 
 void
-Define::interpret(ostream &output, vector<filesystem::path> &paths)
+Define::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
 {
   try
     {
@@ -140,11 +140,11 @@ Define::interpret(ostream &output, vector<filesystem::path> &paths)
 }
 
 void
-Echo::interpret(ostream &output, vector<filesystem::path> &paths)
+Echo::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
 {
   try
     {
-      cout << "@#echo (" << getLocation() << "): " << expr->eval()->to_string() << endl;
+      cout << "@#echo (" << getLocation() << "): " << expr->eval(env)->to_string() << endl;
     }
   catch (StackTrace &ex)
     {
@@ -159,11 +159,11 @@ Echo::interpret(ostream &output, vector<filesystem::path> &paths)
 }
 
 void
-Error::interpret(ostream &output, vector<filesystem::path> &paths)
+Error::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
 {
   try
     {
-      throw StackTrace(expr->eval()->to_string());
+      throw StackTrace(expr->eval(env)->to_string());
     }
   catch (StackTrace &ex)
     {
@@ -177,7 +177,7 @@ Error::interpret(ostream &output, vector<filesystem::path> &paths)
 }
 
 void
-EchoMacroVars::interpret(ostream &output, vector<filesystem::path> &paths)
+EchoMacroVars::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
 {
   if (save)
     env.print(output, vars, location.begin.line, true);
@@ -187,12 +187,12 @@ EchoMacroVars::interpret(ostream &output, vector<filesystem::path> &paths)
 }
 
 void
-For::interpret(ostream &output, vector<filesystem::path> &paths)
+For::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
 {
   ArrayPtr ap;
   try
     {
-      ap = dynamic_pointer_cast<Array>(index_vals->eval());
+      ap = dynamic_pointer_cast<Array>(index_vals->eval(env));
       if (!ap)
         throw StackTrace("The index must loop through an array");
     }
@@ -236,14 +236,14 @@ For::interpret(ostream &output, vector<filesystem::path> &paths)
               statement->printLineInfo(output);
               printLine = false;
             }
-          statement->interpret(output, paths);
+          statement->interpret(output, env, paths);
         }
     }
   printEndLineInfo(output);
 }
 
 void
-If::interpret(ostream &output, vector<filesystem::path> &paths)
+If::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
 {
   bool first_clause = true;
   for (const auto & [expr, body] : expr_and_body)
@@ -257,13 +257,13 @@ If::interpret(ostream &output, vector<filesystem::path> &paths)
             if ((ifdef && env.isVariableDefined(vp->getName()))
                 || (ifndef && !env.isVariableDefined(vp->getName())))
               {
-                interpretBody(body, output, paths);
+                interpretBody(body, output, env, paths);
                 break;
               }
           }
         else
           {
-            auto tmp = expr->eval();
+            auto tmp = expr->eval(env);
             RealPtr dp = dynamic_pointer_cast<Real>(tmp);
             BoolPtr bp = dynamic_pointer_cast<Bool>(tmp);
             if (!bp && !dp)
@@ -271,7 +271,7 @@ If::interpret(ostream &output, vector<filesystem::path> &paths)
                                "The condition must evaluate to a boolean or a double", location));
             if ((bp && *bp) || (dp && *dp))
               {
-                interpretBody(body, output, paths);
+                interpretBody(body, output, env, paths);
                 break;
               }
           }
@@ -289,7 +289,7 @@ If::interpret(ostream &output, vector<filesystem::path> &paths)
 }
 
 void
-If::interpretBody(const vector<DirectivePtr> &body, ostream &output, vector<filesystem::path> &paths)
+If::interpretBody(const vector<DirectivePtr> &body, ostream &output, Environment &env, vector<filesystem::path> &paths)
 {
   bool printLine = true;
   for (const auto &statement : body)
@@ -299,6 +299,6 @@ If::interpretBody(const vector<DirectivePtr> &body, ostream &output, vector<file
           statement->printLineInfo(output);
           printLine = false;
         }
-      statement->interpret(output, paths);
+      statement->interpret(output, env, paths);
     }
 }

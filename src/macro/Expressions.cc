@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Dynare Team
+ * Copyright © 2019-2020 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -25,8 +25,8 @@ BoolPtr
 BaseType::is_different(const BaseTypePtr &btp) const
 {
   if (*(this->is_equal(btp)))
-    return make_shared<Bool>(false, env);
-  return make_shared<Bool>(true, env);
+    return make_shared<Bool>(false);
+  return make_shared<Bool>(true);
 }
 
 BoolPtr
@@ -34,38 +34,38 @@ Bool::is_equal(const BaseTypePtr &btp) const
 {
   auto btp2 = dynamic_pointer_cast<Bool>(btp);
   if (!btp2)
-    return make_shared<Bool>(false, env);
-  return make_shared<Bool>(value == btp2->value, env);
+    return make_shared<Bool>(false);
+  return make_shared<Bool>(value == btp2->value);
 }
 
 BoolPtr
-Bool::logical_and(const ExpressionPtr &ep) const
+Bool::logical_and(const ExpressionPtr &ep, Environment &env) const
 {
   if (!value)
-    return make_shared<Bool>(false, env);
+    return make_shared<Bool>(false);
 
-  auto btp = ep->eval();
+  auto btp = ep->eval(env);
   if (auto btp2 = dynamic_pointer_cast<Bool>(btp); btp2)
-    return make_shared<Bool>(*btp2, env);
+    return make_shared<Bool>(*btp2);
 
   if (auto btp2 = dynamic_pointer_cast<Real>(btp); btp2)
-    return make_shared<Bool>(*btp2, env);
+    return make_shared<Bool>(*btp2);
 
   throw StackTrace("Type mismatch for operands of && operator");
 }
 
 BoolPtr
-Bool::logical_or(const ExpressionPtr &ep) const
+Bool::logical_or(const ExpressionPtr &ep, Environment &env) const
 {
   if (value)
-    return make_shared<Bool>(true, env);
+    return make_shared<Bool>(true);
 
-  auto btp = ep->eval();
+  auto btp = ep->eval(env);
   if (auto btp2 = dynamic_pointer_cast<Bool>(btp); btp2)
-    return make_shared<Bool>(*btp2, env);
+    return make_shared<Bool>(*btp2);
 
   if (auto btp2 = dynamic_pointer_cast<Real>(btp); btp2)
-    return make_shared<Bool>(*btp2, env);
+    return make_shared<Bool>(*btp2);
 
   throw StackTrace("Type mismatch for operands of || operator");
 }
@@ -73,7 +73,7 @@ Bool::logical_or(const ExpressionPtr &ep) const
 BoolPtr
 Bool::logical_not() const
 {
-  return make_shared<Bool>(!value, env);
+  return make_shared<Bool>(!value);
 }
 
 BaseTypePtr
@@ -82,7 +82,7 @@ Real::plus(const BaseTypePtr &btp) const
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of + operator");
-  return make_shared<Real>(value + btp2->value, env);
+  return make_shared<Real>(value + btp2->value);
 }
 
 BaseTypePtr
@@ -91,7 +91,7 @@ Real::minus(const BaseTypePtr &btp) const
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of - operator");
-  return make_shared<Real>(value - btp2->value, env);
+  return make_shared<Real>(value - btp2->value);
 }
 
 BaseTypePtr
@@ -100,7 +100,7 @@ Real::times(const BaseTypePtr &btp) const
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of * operator");
-  return make_shared<Real>(value * btp2->value, env);
+  return make_shared<Real>(value * btp2->value);
 }
 
 BaseTypePtr
@@ -109,7 +109,7 @@ Real::divide(const BaseTypePtr &btp) const
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of / operator");
-  return make_shared<Real>(value / btp2->value, env);
+  return make_shared<Real>(value / btp2->value);
 }
 
 BaseTypePtr
@@ -118,7 +118,7 @@ Real::power(const BaseTypePtr &btp) const
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of ^ operator");
-  return make_shared<Real>(pow(value, btp2->value), env);
+  return make_shared<Real>(pow(value, btp2->value));
 }
 
 BoolPtr
@@ -127,7 +127,7 @@ Real::is_less(const BaseTypePtr &btp) const
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of < operator");
-  return make_shared<Bool>(isless(value, btp2->value), env);
+  return make_shared<Bool>(isless(value, btp2->value));
 }
 
 BoolPtr
@@ -136,7 +136,7 @@ Real::is_greater(const BaseTypePtr &btp) const
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of > operator");
-  return make_shared<Bool>(isgreater(value, btp2->value), env);
+  return make_shared<Bool>(isgreater(value, btp2->value));
 }
 
 BoolPtr
@@ -145,7 +145,7 @@ Real::is_less_equal(const BaseTypePtr &btp) const
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of <= operator");
-  return make_shared<Bool>(islessequal(value, btp2->value), env);
+  return make_shared<Bool>(islessequal(value, btp2->value));
 }
 
 BoolPtr
@@ -154,7 +154,7 @@ Real::is_greater_equal(const BaseTypePtr &btp) const
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of >= operator");
-  return make_shared<Bool>(isgreaterequal(value, btp2->value), env);
+  return make_shared<Bool>(isgreaterequal(value, btp2->value));
 }
 
 BoolPtr
@@ -162,38 +162,38 @@ Real::is_equal(const BaseTypePtr &btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
-    return make_shared<Bool>(false, env);
-  return make_shared<Bool>(value == btp2->value, env);
+    return make_shared<Bool>(false);
+  return make_shared<Bool>(value == btp2->value);
 }
 
 BoolPtr
-Real::logical_and(const ExpressionPtr &ep) const
+Real::logical_and(const ExpressionPtr &ep, Environment &env) const
 {
   if (!value)
-    return make_shared<Bool>(false, env);
+    return make_shared<Bool>(false);
 
-  auto btp = ep->eval();
+  auto btp = ep->eval(env);
   if (auto btp2 = dynamic_pointer_cast<Real>(btp); btp2)
-    return make_shared<Bool>(*btp2, env);
+    return make_shared<Bool>(*btp2);
 
   if (auto btp2 = dynamic_pointer_cast<Bool>(btp); btp2)
-    return make_shared<Bool>(*btp2, env);
+    return make_shared<Bool>(*btp2);
 
   throw StackTrace("Type mismatch for operands of && operator");
 }
 
 BoolPtr
-Real::logical_or(const ExpressionPtr &ep) const
+Real::logical_or(const ExpressionPtr &ep, Environment &env) const
 {
   if (value)
-    return make_shared<Bool>(true, env);
+    return make_shared<Bool>(true);
 
-  auto btp = ep->eval();
+  auto btp = ep->eval(env);
   if (auto btp2 = dynamic_pointer_cast<Real>(btp); btp2)
-    return make_shared<Bool>(*btp2, env);
+    return make_shared<Bool>(*btp2);
 
   if (auto btp2 = dynamic_pointer_cast<Bool>(btp); btp2)
-    return make_shared<Bool>(*btp2, env);
+    return make_shared<Bool>(*btp2);
 
   throw StackTrace("Type mismatch for operands of || operator");
 }
@@ -201,7 +201,7 @@ Real::logical_or(const ExpressionPtr &ep) const
 BoolPtr
 Real::logical_not() const
 {
-  return make_shared<Bool>(!value, env);
+  return make_shared<Bool>(!value);
 }
 
 RealPtr
@@ -210,7 +210,7 @@ Real::max(const BaseTypePtr &btp) const
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of `max` operator");
-  return make_shared<Real>(std::max(value, btp2->value), env);
+  return make_shared<Real>(std::max(value, btp2->value));
 }
 
 RealPtr
@@ -219,7 +219,7 @@ Real::min(const BaseTypePtr &btp) const
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of `min` operator");
-  return make_shared<Real>(std::min(value, btp2->value), env);
+  return make_shared<Real>(std::min(value, btp2->value));
 }
 
 RealPtr
@@ -228,7 +228,7 @@ Real::mod(const BaseTypePtr &btp) const
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of `mod` operator");
-  return make_shared<Real>(std::fmod(value, btp2->value), env);
+  return make_shared<Real>(std::fmod(value, btp2->value));
 }
 
 RealPtr
@@ -238,7 +238,7 @@ Real::normpdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const
   auto btp22 = dynamic_pointer_cast<Real>(btp2);
   if (!btp12 || !btp22)
     throw StackTrace("Type mismatch for operands of `normpdf` operator");
-  return make_shared<Real>((1/(btp22->value*std::sqrt(2*M_PI)*std::exp(pow((value-btp12->value)/btp22->value, 2)/2))), env);
+  return make_shared<Real>((1/(btp22->value*std::sqrt(2*M_PI)*std::exp(pow((value-btp12->value)/btp22->value, 2)/2))));
 }
 
 RealPtr
@@ -248,7 +248,7 @@ Real::normcdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const
   auto btp22 = dynamic_pointer_cast<Real>(btp2);
   if (!btp12 || !btp22)
     throw StackTrace("Type mismatch for operands of `normpdf` operator");
-  return make_shared<Real>((0.5*(1+std::erf((value-btp12->value)/btp22->value/M_SQRT2))), env);
+  return make_shared<Real>((0.5*(1+std::erf((value-btp12->value)/btp22->value/M_SQRT2))));
 }
 
 BaseTypePtr
@@ -257,7 +257,7 @@ String::plus(const BaseTypePtr &btp) const
   auto btp2 = dynamic_pointer_cast<String>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of + operator");
-  return make_shared<String>(value + btp2->value, env);
+  return make_shared<String>(value + btp2->value);
 }
 
 BoolPtr
@@ -266,7 +266,7 @@ String::is_less(const BaseTypePtr &btp) const
   auto btp2 = dynamic_pointer_cast<String>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of < operator");
-  return make_shared<Bool>(value < btp2->value, env);
+  return make_shared<Bool>(value < btp2->value);
 }
 
 BoolPtr
@@ -275,7 +275,7 @@ String::is_greater(const BaseTypePtr &btp) const
   auto btp2 = dynamic_pointer_cast<String>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of > operator");
-  return make_shared<Bool>(value > btp2->value, env);
+  return make_shared<Bool>(value > btp2->value);
 }
 
 BoolPtr
@@ -284,7 +284,7 @@ String::is_less_equal(const BaseTypePtr &btp) const
   auto btp2 = dynamic_pointer_cast<String>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of <= operator");
-  return make_shared<Bool>(value <= btp2->value, env);
+  return make_shared<Bool>(value <= btp2->value);
 }
 
 BoolPtr
@@ -293,7 +293,7 @@ String::is_greater_equal(const BaseTypePtr &btp) const
   auto btp2 = dynamic_pointer_cast<String>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of >= operator");
-  return make_shared<Bool>(value >= btp2->value, env);
+  return make_shared<Bool>(value >= btp2->value);
 }
 
 BoolPtr
@@ -301,20 +301,20 @@ String::is_equal(const BaseTypePtr &btp) const
 {
   auto btp2 = dynamic_pointer_cast<String>(btp);
   if (!btp2)
-    return make_shared<Bool>(false, env);
-  return make_shared<Bool>(value == btp2->value, env);
+    return make_shared<Bool>(false);
+  return make_shared<Bool>(value == btp2->value);
 }
 
 BoolPtr
-String::cast_bool() const
+String::cast_bool(Environment &env) const
 {
   auto f = [](const char &a, const char &b) { return (tolower(a) == tolower(b)); };
 
   if (string tf = "true"; equal(value.begin(), value.end(), tf.begin(), tf.end(), f))
-    return make_shared<Bool>(true, env);
+    return make_shared<Bool>(true);
 
   if (string tf = "false"; equal(value.begin(), value.end(), tf.begin(), tf.end(), f))
-    return make_shared<Bool>(false, env);
+    return make_shared<Bool>(false);
 
   try
     {
@@ -322,7 +322,7 @@ String::cast_bool() const
       double value_d = stod(value, &pos);
       if (pos != value.length())
         throw StackTrace("Entire string not converted");
-      return make_shared<Bool>(static_cast<bool>(value_d), env);
+      return make_shared<Bool>(static_cast<bool>(value_d));
     }
   catch (...)
     {
@@ -331,7 +331,7 @@ String::cast_bool() const
 }
 
 RealPtr
-String::cast_real() const
+String::cast_real(Environment &env) const
 {
   try
     {
@@ -339,7 +339,7 @@ String::cast_real() const
       double value_d = stod(value, &pos);
       if (pos != value.length())
         throw StackTrace("Entire string not converted");
-      return make_shared<Real>(value_d, env);
+      return make_shared<Real>(value_d);
     }
   catch (...)
     {
@@ -356,7 +356,7 @@ Array::plus(const BaseTypePtr &btp) const
 
   vector<ExpressionPtr> arr_copy{arr};
   arr_copy.insert(arr_copy.end(), btp2->arr.begin(), btp2->arr.end());
-  return make_shared<Array>(arr_copy, env);
+  return make_shared<Array>(arr_copy);
 }
 
 BaseTypePtr
@@ -379,7 +379,7 @@ Array::minus(const BaseTypePtr &btp) const
       if (it2 == btp2->arr.cend())
         arr_copy.emplace_back(itbtp);
     }
-  return make_shared<Array>(arr_copy, env);
+  return make_shared<Array>(arr_copy);
 }
 
 BaseTypePtr
@@ -409,10 +409,10 @@ Array::times(const BaseTypePtr &btp) const
         else
           throw StackTrace("Array::times: unsupported type on rhs");
 
-        values.emplace_back(make_shared<Tuple>(new_tuple, env));
+        values.emplace_back(make_shared<Tuple>(new_tuple));
       }
 
-  return make_shared<Array>(values, env);
+  return make_shared<Array>(values);
 }
 
 BaseTypePtr
@@ -422,11 +422,11 @@ Array::power(const BaseTypePtr &btp) const
   if (!btp2 || !*(btp2->isinteger()))
     throw StackTrace("The second argument of the power operator (^) must be an integer");
 
-  auto retval = make_shared<Array>(arr, env);
+  auto retval = make_shared<Array>(arr);
   for (int i = 1; i < *btp2; i++)
     {
-      auto btpv = retval->times(make_shared<Array>(arr, env));
-      retval = make_shared<Array>(dynamic_pointer_cast<Array>(btpv)->getValue(), env);
+      auto btpv = retval->times(make_shared<Array>(arr));
+      retval = make_shared<Array>(dynamic_pointer_cast<Array>(btpv)->getValue());
     }
   return retval;
 }
@@ -436,19 +436,19 @@ Array::is_equal(const BaseTypePtr &btp) const
 {
   auto btp2 = dynamic_pointer_cast<Array>(btp);
   if (!btp2)
-    return make_shared<Bool>(false, env);
+    return make_shared<Bool>(false);
 
   if (arr.size() != btp2->arr.size())
-    return make_shared<Bool>(false, env);
+    return make_shared<Bool>(false);
 
   for (size_t i = 0; i < arr.size(); i++)
     {
       auto bt = dynamic_pointer_cast<BaseType>(arr[i]);
       auto bt2 = dynamic_pointer_cast<BaseType>(btp2->arr[i]);
       if (!*(bt->is_equal(bt2)))
-        return make_shared<Bool>(false, env);
+        return make_shared<Bool>(false);
     }
-  return make_shared<Bool>(true, env);
+  return make_shared<Bool>(true);
 }
 
 ArrayPtr
@@ -479,7 +479,7 @@ Array::set_union(const BaseTypePtr &btp) const
       if (!found)
         new_values.push_back(it);
     }
-  return make_shared<Array>(new_values, env);
+  return make_shared<Array>(new_values);
 }
 
 ArrayPtr
@@ -507,7 +507,7 @@ Array::set_intersection(const BaseTypePtr &btp) const
             }
         }
     }
-  return make_shared<Array>(new_values, env);
+  return make_shared<Array>(new_values);
 }
 
 BoolPtr
@@ -519,9 +519,9 @@ Array::contains(const BaseTypePtr &btp) const
       if (!v2)
         throw StackTrace("Type mismatch for operands of in operator");
       if (*(v2->is_equal(btp)))
-        return make_shared<Bool>(true, env);
+        return make_shared<Bool>(true);
     }
-  return make_shared<Bool>(false, env);
+  return make_shared<Bool>(false);
 }
 
 RealPtr
@@ -535,23 +535,23 @@ Array::sum() const
         throw StackTrace("Type mismatch for operands of in operator");
       retval += *v2;
     }
-  return make_shared<Real>(retval, env);
+  return make_shared<Real>(retval);
 }
 
 BoolPtr
-Array::cast_bool() const
+Array::cast_bool(Environment &env) const
 {
   if (arr.size() != 1)
     throw StackTrace("Array must be of size 1 to be cast to a boolean");
-  return arr.at(0)->eval()->cast_bool();
+  return arr.at(0)->eval(env)->cast_bool(env);
 }
 
 RealPtr
-Array::cast_real() const
+Array::cast_real(Environment &env) const
 {
   if (arr.size() != 1)
     throw StackTrace("Array must be of size 1 to be cast to a real");
-  return arr.at(0)->eval()->cast_real();
+  return arr.at(0)->eval(env)->cast_real(env);
 }
 
 BoolPtr
@@ -559,19 +559,19 @@ Tuple::is_equal(const BaseTypePtr &btp) const
 {
   auto btp2 = dynamic_pointer_cast<Tuple>(btp);
   if (!btp2)
-    return make_shared<Bool>(false, env);
+    return make_shared<Bool>(false);
 
   if (tup.size() != btp2->tup.size())
-    return make_shared<Bool>(false, env);
+    return make_shared<Bool>(false);
 
   for (size_t i = 0; i < tup.size(); i++)
     {
       auto bt = dynamic_pointer_cast<BaseType>(tup[i]);
       auto bt2 = dynamic_pointer_cast<BaseType>(btp2->tup[i]);
       if (!*(bt->is_equal(bt2)))
-        return make_shared<Bool>(false, env);
+        return make_shared<Bool>(false);
     }
-  return make_shared<Bool>(true, env);
+  return make_shared<Bool>(true);
 }
 
 BoolPtr
@@ -583,35 +583,35 @@ Tuple::contains(const BaseTypePtr &btp) const
       if (!v2)
         throw StackTrace("Type mismatch for operands of in operator");
       if (*(v2->is_equal(btp)))
-        return make_shared<Bool>(true, env);
+        return make_shared<Bool>(true);
     }
-  return make_shared<Bool>(false, env);
+  return make_shared<Bool>(false);
 }
 
 BoolPtr
-Tuple::cast_bool() const
+Tuple::cast_bool(Environment &env) const
 {
   if (tup.size() != 1)
     throw StackTrace("Tuple must be of size 1 to be cast to a boolean");
-  return tup.at(0)->eval()->cast_bool();
+  return tup.at(0)->eval(env)->cast_bool(env);
 }
 
 RealPtr
-Tuple::cast_real() const
+Tuple::cast_real(Environment &env) const
 {
   if (tup.size() != 1)
     throw StackTrace("Tuple must be of size 1 to be cast to a real");
-  return tup.at(0)->eval()->cast_real();
+  return tup.at(0)->eval(env)->cast_real(env);
 }
 
 BaseTypePtr
-Range::eval()
+Range::eval(Environment &env)
 {
-  RealPtr incdbl = make_shared<Real>(1, env);
+  RealPtr incdbl = make_shared<Real>(1);
   if (inc)
-    incdbl = dynamic_pointer_cast<Real>(inc->eval());
-  RealPtr startdbl = dynamic_pointer_cast<Real>(start->eval());
-  RealPtr enddbl = dynamic_pointer_cast<Real>(end->eval());
+    incdbl = dynamic_pointer_cast<Real>(inc->eval(env));
+  RealPtr startdbl = dynamic_pointer_cast<Real>(start->eval(env));
+  RealPtr enddbl = dynamic_pointer_cast<Real>(end->eval(env));
   if (!startdbl || !enddbl || !incdbl)
     throw StackTrace("To create an array from a range using the colon operator, "
                      "the arguments must evaluate to reals");
@@ -619,38 +619,38 @@ Range::eval()
   vector<ExpressionPtr> arr;
   if (*incdbl > 0 && *startdbl <= *enddbl)
     for (double i = *startdbl; i <= *enddbl; i += *incdbl)
-      arr.emplace_back(make_shared<Real>(i, env));
+      arr.emplace_back(make_shared<Real>(i));
   else if (*startdbl >= *enddbl && *incdbl < 0)
     for (double i = *startdbl; i >= *enddbl; i += *incdbl)
-      arr.emplace_back(make_shared<Real>(i, env));
+      arr.emplace_back(make_shared<Real>(i));
 
-  return make_shared<Array>(arr, env, location);
+  return make_shared<Array>(arr, location);
 }
 
 BaseTypePtr
-Array::eval()
+Array::eval(Environment &env)
 {
   vector<ExpressionPtr> retval;
   for (const auto &it : arr)
-    retval.emplace_back(it->eval());
-  return make_shared<Array>(retval, env);
+    retval.emplace_back(it->eval(env));
+  return make_shared<Array>(retval);
 }
 
 BaseTypePtr
-Tuple::eval()
+Tuple::eval(Environment &env)
 {
   vector<ExpressionPtr> retval;
   for (const auto &it : tup)
-    retval.emplace_back(it->eval());
-  return make_shared<Tuple>(retval, env);
+    retval.emplace_back(it->eval(env));
+  return make_shared<Tuple>(retval);
 }
 
 BaseTypePtr
-Variable::eval()
+Variable::eval(Environment &env)
 {
   if (indices && !indices->empty())
     {
-      ArrayPtr map = dynamic_pointer_cast<Array>(indices->eval());
+      ArrayPtr map = dynamic_pointer_cast<Array>(indices->eval(env));
       vector<ExpressionPtr> index = map->getValue();
       vector<int> ind;
       for (const auto &it : index)
@@ -703,7 +703,7 @@ Variable::eval()
                 {
                   throw StackTrace("variable", "Index out of range", location);
                 }
-            return make_shared<String>(retvals, env);
+            return make_shared<String>(retvals);
           }
         case codes::BaseType::Array:
           {
@@ -712,7 +712,7 @@ Variable::eval()
             for (auto it : ind)
               try
                 {
-                  retval.emplace_back(ap->at(it - 1)->eval());
+                  retval.emplace_back(ap->at(it - 1)->eval(env));
                 }
               catch (const out_of_range &ex)
                 {
@@ -722,15 +722,15 @@ Variable::eval()
             if (retval.size() == 1)
               return retval.at(0);
             vector<ExpressionPtr> retvala(retval.begin(), retval.end());
-            return make_shared<Array>(retvala, env);
+            return make_shared<Array>(retvala);
           }
         }
     }
-  return env.getVariable(name)->eval();
+  return env.getVariable(name)->eval(env);
 }
 
 BaseTypePtr
-Function::eval()
+Function::eval(Environment &env)
 {
   FunctionPtr func;
   ExpressionPtr body;
@@ -755,9 +755,9 @@ Function::eval()
       for (size_t i = 0; i < func->args.size(); i++)
         {
           VariablePtr mvp = dynamic_pointer_cast<Variable>(func->args.at(i));
-          env.define(mvp, args.at(i)->eval());
+          env.define(mvp, args.at(i)->eval(env));
         }
-      auto retval = body->eval();
+      auto retval = body->eval(env);
       env = env_orig;
       return retval;
     }
@@ -769,90 +769,90 @@ Function::eval()
 }
 
 BaseTypePtr
-UnaryOp::eval()
+UnaryOp::eval(Environment &env)
 {
   try
     {
       switch (op_code)
         {
         case codes::UnaryOp::cast_bool:
-          return arg->eval()->cast_bool();
+          return arg->eval(env)->cast_bool(env);
         case codes::UnaryOp::cast_real:
-          return arg->eval()->cast_real();
+          return arg->eval(env)->cast_real(env);
         case codes::UnaryOp::cast_string:
-          return arg->eval()->cast_string();
+          return arg->eval(env)->cast_string();
         case codes::UnaryOp::cast_tuple:
-          return arg->eval()->cast_tuple();
+          return arg->eval(env)->cast_tuple();
         case codes::UnaryOp::cast_array:
-          return arg->eval()->cast_array();
+          return arg->eval(env)->cast_array();
         case codes::UnaryOp::logical_not:
-          return arg->eval()->logical_not();
+          return arg->eval(env)->logical_not();
         case codes::UnaryOp::unary_minus:
-          return arg->eval()->unary_minus();
+          return arg->eval(env)->unary_minus();
         case codes::UnaryOp::unary_plus:
-          return arg->eval()->unary_plus();
+          return arg->eval(env)->unary_plus();
         case codes::UnaryOp::length:
-          return arg->eval()->length();
+          return arg->eval(env)->length();
         case codes::UnaryOp::isempty:
-          return arg->eval()->isempty();
+          return arg->eval(env)->isempty();
         case codes::UnaryOp::isboolean:
-          return arg->eval()->isboolean();
+          return arg->eval(env)->isboolean();
         case codes::UnaryOp::isreal:
-          return arg->eval()->isreal();
+          return arg->eval(env)->isreal();
         case codes::UnaryOp::isstring:
-          return arg->eval()->isstring();
+          return arg->eval(env)->isstring();
         case codes::UnaryOp::istuple:
-          return arg->eval()->istuple();
+          return arg->eval(env)->istuple();
         case codes::UnaryOp::isarray:
-          return arg->eval()->isarray();
+          return arg->eval(env)->isarray();
         case codes::UnaryOp::exp:
-          return arg->eval()->exp();
+          return arg->eval(env)->exp();
         case codes::UnaryOp::ln:
-          return arg->eval()->ln();
+          return arg->eval(env)->ln();
         case codes::UnaryOp::log10:
-          return arg->eval()->log10();
+          return arg->eval(env)->log10();
         case codes::UnaryOp::sin:
-          return arg->eval()->sin();
+          return arg->eval(env)->sin();
         case codes::UnaryOp::cos:
-          return arg->eval()->cos();
+          return arg->eval(env)->cos();
         case codes::UnaryOp::tan:
-          return arg->eval()->tan();
+          return arg->eval(env)->tan();
         case codes::UnaryOp::asin:
-          return arg->eval()->asin();
+          return arg->eval(env)->asin();
         case codes::UnaryOp::acos:
-          return arg->eval()->acos();
+          return arg->eval(env)->acos();
         case codes::UnaryOp::atan:
-          return arg->eval()->atan();
+          return arg->eval(env)->atan();
         case codes::UnaryOp::sqrt:
-          return arg->eval()->sqrt();
+          return arg->eval(env)->sqrt();
         case codes::UnaryOp::cbrt:
-          return arg->eval()->cbrt();
+          return arg->eval(env)->cbrt();
         case codes::UnaryOp::sign:
-          return arg->eval()->sign();
+          return arg->eval(env)->sign();
         case codes::UnaryOp::floor:
-          return arg->eval()->floor();
+          return arg->eval(env)->floor();
         case codes::UnaryOp::ceil:
-          return arg->eval()->ceil();
+          return arg->eval(env)->ceil();
         case codes::UnaryOp::trunc:
-          return arg->eval()->trunc();
+          return arg->eval(env)->trunc();
         case codes::UnaryOp::sum:
-          return arg->eval()->sum();
+          return arg->eval(env)->sum();
         case codes::UnaryOp::erf:
-          return arg->eval()->erf();
+          return arg->eval(env)->erf();
         case codes::UnaryOp::erfc:
-          return arg->eval()->erfc();
+          return arg->eval(env)->erfc();
         case codes::UnaryOp::gamma:
-          return arg->eval()->gamma();
+          return arg->eval(env)->gamma();
         case codes::UnaryOp::lgamma:
-          return arg->eval()->lgamma();
+          return arg->eval(env)->lgamma();
         case codes::UnaryOp::round:
-          return arg->eval()->round();
+          return arg->eval(env)->round();
         case codes::UnaryOp::normpdf:
-          return arg->eval()->normpdf();
+          return arg->eval(env)->normpdf();
         case codes::UnaryOp::normcdf:
-          return arg->eval()->normcdf();
+          return arg->eval(env)->normcdf();
         case codes::UnaryOp::defined:
-          return arg->eval()->defined();
+          return arg->eval(env)->defined(env);
         }
     }
   catch (StackTrace &ex)
@@ -869,50 +869,50 @@ UnaryOp::eval()
 }
 
 BaseTypePtr
-BinaryOp::eval()
+BinaryOp::eval(Environment &env)
 {
   try
     {
       switch (op_code)
         {
         case codes::BinaryOp::plus:
-          return arg1->eval()->plus(arg2->eval());
+          return arg1->eval(env)->plus(arg2->eval(env));
         case codes::BinaryOp::minus:
-          return arg1->eval()->minus(arg2->eval());
+          return arg1->eval(env)->minus(arg2->eval(env));
         case codes::BinaryOp::times:
-          return arg1->eval()->times(arg2->eval());
+          return arg1->eval(env)->times(arg2->eval(env));
         case codes::BinaryOp::divide:
-          return arg1->eval()->divide(arg2->eval());
+          return arg1->eval(env)->divide(arg2->eval(env));
         case codes::BinaryOp::power:
-          return arg1->eval()->power(arg2->eval());
+          return arg1->eval(env)->power(arg2->eval(env));
         case codes::BinaryOp::equal_equal:
-          return arg1->eval()->is_equal(arg2->eval());
+          return arg1->eval(env)->is_equal(arg2->eval(env));
         case codes::BinaryOp::not_equal:
-          return arg1->eval()->is_different(arg2->eval());
+          return arg1->eval(env)->is_different(arg2->eval(env));
         case codes::BinaryOp::less:
-          return arg1->eval()->is_less(arg2->eval());
+          return arg1->eval(env)->is_less(arg2->eval(env));
         case codes::BinaryOp::greater:
-          return arg1->eval()->is_greater(arg2->eval());
+          return arg1->eval(env)->is_greater(arg2->eval(env));
         case codes::BinaryOp::less_equal:
-          return arg1->eval()->is_less_equal(arg2->eval());
+          return arg1->eval(env)->is_less_equal(arg2->eval(env));
         case codes::BinaryOp::greater_equal:
-          return arg1->eval()->is_greater_equal(arg2->eval());
+          return arg1->eval(env)->is_greater_equal(arg2->eval(env));
         case codes::BinaryOp::logical_and:
-          return arg1->eval()->logical_and(arg2);
+          return arg1->eval(env)->logical_and(arg2, env);
         case codes::BinaryOp::logical_or:
-          return arg1->eval()->logical_or(arg2);
+          return arg1->eval(env)->logical_or(arg2, env);
         case codes::BinaryOp::in:
-          return arg2->eval()->contains(arg1->eval());
+          return arg2->eval(env)->contains(arg1->eval(env));
         case codes::BinaryOp::set_union:
-          return arg1->eval()->set_union(arg2->eval());
+          return arg1->eval(env)->set_union(arg2->eval(env));
         case codes::BinaryOp::set_intersection:
-          return arg1->eval()->set_intersection(arg2->eval());
+          return arg1->eval(env)->set_intersection(arg2->eval(env));
         case codes::BinaryOp::max:
-          return arg1->eval()->max(arg2->eval());
+          return arg1->eval(env)->max(arg2->eval(env));
         case codes::BinaryOp::min:
-          return arg1->eval()->min(arg2->eval());
+          return arg1->eval(env)->min(arg2->eval(env));
         case codes::BinaryOp::mod:
-          return arg1->eval()->mod(arg2->eval());
+          return arg1->eval(env)->mod(arg2->eval(env));
         }
     }
   catch (StackTrace &ex)
@@ -929,16 +929,16 @@ BinaryOp::eval()
 }
 
 BaseTypePtr
-TrinaryOp::eval()
+TrinaryOp::eval(Environment &env)
 {
   try
     {
       switch (op_code)
         {
         case codes::TrinaryOp::normpdf:
-          return arg1->eval()->normpdf(arg2->eval(), arg3->eval());
+          return arg1->eval(env)->normpdf(arg2->eval(env), arg3->eval(env));
         case codes::TrinaryOp::normcdf:
-          return arg1->eval()->normcdf(arg2->eval(), arg3->eval());
+          return arg1->eval(env)->normcdf(arg2->eval(env), arg3->eval(env));
         }
     }
   catch (StackTrace &ex)
@@ -955,14 +955,14 @@ TrinaryOp::eval()
 }
 
 BaseTypePtr
-Comprehension::eval()
+Comprehension::eval(Environment &env)
 {
   ArrayPtr input_set;
   VariablePtr vp;
   TuplePtr mt;
   try
     {
-      input_set = dynamic_pointer_cast<Array>(c_set->eval());
+      input_set = dynamic_pointer_cast<Array>(c_set->eval(env));
       if (!input_set)
         throw StackTrace("Comprehension", "The input set must evaluate to an array", location);
       vp = dynamic_pointer_cast<Variable>(c_vars);
@@ -1009,14 +1009,14 @@ Comprehension::eval()
         if (!c_expr)
           throw StackTrace("Comprehension", "Internal Error: Impossible case", location);
         else
-          values.emplace_back(c_expr->clone()->eval());
+          values.emplace_back(c_expr->clone()->eval(env));
       else
         {
           RealPtr dp;
           BoolPtr bp;
           try
             {
-              auto tmp = c_when->eval();
+              auto tmp = c_when->eval(env);
               dp = dynamic_pointer_cast<Real>(tmp);
               bp = dynamic_pointer_cast<Bool>(tmp);
               if (!bp && !dp)
@@ -1029,12 +1029,12 @@ Comprehension::eval()
             }
           if ((bp && *bp) || (dp && *dp))
             if (c_expr)
-              values.emplace_back(c_expr->clone()->eval());
+              values.emplace_back(c_expr->clone()->eval(env));
             else
               values.emplace_back(btp);
         }
     }
-  return make_shared<Array>(values, env);
+  return make_shared<Array>(values);
 }
 
 ExpressionPtr
@@ -1043,7 +1043,7 @@ Tuple::clone() const noexcept
   vector<ExpressionPtr> tup_copy;
   for (const auto &it : tup)
     tup_copy.emplace_back(it->clone());
-  return make_shared<Tuple>(tup_copy, env, location);
+  return make_shared<Tuple>(tup_copy, location);
 }
 
 ExpressionPtr
@@ -1052,7 +1052,7 @@ Array::clone() const noexcept
   vector<ExpressionPtr> arr_copy;
   for (const auto &it : arr)
     arr_copy.emplace_back(it->clone());
-  return make_shared<Array>(arr_copy, env, location);
+  return make_shared<Array>(arr_copy, location);
 }
 
 ExpressionPtr
@@ -1061,18 +1061,18 @@ Function::clone() const noexcept
   vector<ExpressionPtr> args_copy;
   for (const auto &it : args)
     args_copy.emplace_back(it->clone());
-  return make_shared<Function>(name, args_copy, env, location);
+  return make_shared<Function>(name, args_copy, location);
 }
 
 ExpressionPtr
 Comprehension::clone() const noexcept
 {
   if (c_expr && c_when)
-    return make_shared<Comprehension>(c_expr->clone(), c_vars->clone(), c_set->clone(), c_when->clone(), env, location);
+    return make_shared<Comprehension>(c_expr->clone(), c_vars->clone(), c_set->clone(), c_when->clone(), location);
   else if (c_expr)
-    return make_shared<Comprehension>(c_expr->clone(), c_vars->clone(), c_set->clone(), env, location);
+    return make_shared<Comprehension>(c_expr->clone(), c_vars->clone(), c_set->clone(), location);
   else
-    return make_shared<Comprehension>(true, c_vars->clone(), c_set->clone(), c_when->clone(), env, location);
+    return make_shared<Comprehension>(true, c_vars->clone(), c_set->clone(), c_when->clone(), location);
 }
 
 string
