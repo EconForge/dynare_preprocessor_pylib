@@ -6037,17 +6037,24 @@ void
 DynamicModel::writeJsonVariableMapping(ostream &output) const
 {
   output << R"("variable_mapping":[)" << endl;
-  int ii = 0;
-  int end_idx_map = static_cast<int>(variableMapping.size()-1);
-  for (const auto &variable : variableMapping)
+  for (auto it = variableMapping.begin(); it != variableMapping.end(); ++it)
     {
-      output << R"({"name": ")" << symbol_table.getName(variable.first) << R"(", "equations":[)";
-      int it = 0;
-      int end_idx_eq = static_cast<int>(variable.second.size())-1;
-      for (const auto &equation : variable.second)
-        if (auto tmp = equation_tags.getTagValueByEqnAndKey(equation, "name"); !tmp.empty())
-          output << R"(")" << tmp << (it++ == end_idx_eq ? R"("])" : R"(", )");
-      output << (ii++ == end_idx_map ? R"(})" : R"(},)") << endl;
+      if (it != variableMapping.begin())
+        output << ", ";
+      auto [var, eqs] = *it;
+      output << R"({"name": ")" << symbol_table.getName(var) << R"(", "equations":[)";
+      bool first_eq = true;
+      for (auto it2 = eqs.begin(); it2 != eqs.end(); ++it2)
+        if (auto tmp = equation_tags.getTagValueByEqnAndKey(*it2, "name");
+            !tmp.empty())
+          {
+            if (first_eq)
+              first_eq = false;
+            else
+              output << ", ";
+            output << '"' << tmp << '"';
+          }
+      output << "]}" << endl;
     }
   output << "]";
 }
