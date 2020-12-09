@@ -608,7 +608,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
     }
   // And finally perform the substitutions
   dynamic_model.substituteVarExpectation(var_expectation_subst_table);
-  dynamic_model.createVariableMapping(original_model.equation_number());
+  dynamic_model.createVariableMapping(mod_file_struct.orig_eq_nbr +
+                                      (mod_file_struct.ramsey_model_present ?
+                                       mod_file_struct.ramsey_eq_nbr : 0));
 
   /* Create auxiliary vars for leads and lags greater than 2, on both endos and
      exos. The transformation is not exactly the same on stochastic and
