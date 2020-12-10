@@ -123,6 +123,8 @@ EquationTags::writeOccbinOutput(ostream &output, const string &modstruct, bool j
       for (const auto & [key, value] : tags)
         output << modstruct << "occbin.constraint(" << idx << ")."
                << key << " = '" << value << "';" << endl;
+      output << modstruct << "occbin.constraint(" << idx << ").equation = "
+             << eqn+1 << ";" << endl;
     }
 }
 
