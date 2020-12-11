@@ -141,8 +141,8 @@ class ParsingDriver;
 %token VLISTLOG VLISTPER SPECTRAL_DENSITY INIT2SHOCKS
 %token RESTRICTION RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST
 %token DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR SPECIFICATION SIMS_ZHA
-%token <string> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX DIRICHLET DIAGONAL OPTIMAL GMM SMM
-%token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD WEIBULL WEIBULL_PDF
+%token <string> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX DIRICHLET DIAGONAL OPTIMAL
+%token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD WEIBULL WEIBULL_PDF GMM SMM
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
 %token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE FILTER_DECOMPOSITION SMOOTHED_STATE_UNCERTAINTY
 %token EQ_CMS TLINDX TLNUMBER RESTRICTIONS POSTERIOR_SAMPLER_OPTIONS
@@ -167,7 +167,7 @@ class ParsingDriver;
 %token RANDOM_FUNCTION_CONVERGENCE_CRITERION RANDOM_PARAMETER_CONVERGENCE_CRITERION
 /* Method of Moments */
 %token METHOD_OF_MOMENTS MOM_METHOD
-%token BARTLETT_KERNEL_LAG WEIGHTING_MATRIX WEIGHTING_MATRIX_SCALING_FACTOR PENALIZED_ESTIMATOR VERBOSE 
+%token BARTLETT_KERNEL_LAG WEIGHTING_MATRIX WEIGHTING_MATRIX_SCALING_FACTOR ANALYTIC_STANDARD_ERRORS PENALIZED_ESTIMATOR VERBOSE 
 %token SIMULATION_MULTIPLE MOM_SEED SEED BOUNDED_SHOCK_SUPPORT ADDITIONAL_OPTIMIZER_STEPS MOM_SE_TOLX SE_TOLX MOM_BURNIN BURNIN 
 %token EQTAGS STEADY_STATE_GROWTH
 %token ANALYTICAL_GIRF IRF_IN_PERCENT EMAS_GIRF EMAS_DROP EMAS_TOLF EMAS_MAX_ITER
@@ -1289,6 +1289,7 @@ method_of_moments_option : o_mom_method
                          | o_verbose
                          | o_weighting_matrix
                          | o_weighting_matrix_scaling_factor
+                         | o_analytic_standard_errors
                          | o_additional_optimizer_steps
                          | o_prefilter
                          | o_bounded_shock_support
@@ -3704,10 +3705,12 @@ o_weighting_matrix : WEIGHTING_MATRIX EQUAL vec_str { driver.option_vec_cellstr(
 
 o_weighting_matrix_scaling_factor : WEIGHTING_MATRIX_SCALING_FACTOR EQUAL non_negative_number { driver.option_num("mom.weighting_matrix_scaling_factor", $3); };
 
+o_analytic_standard_errors : ANALYTIC_STANDARD_ERRORS { driver.option_num("mom.analytic_standard_errors", "true"); };
+
 o_mom_method : MOM_METHOD EQUAL GMM
-               { driver.option_str("mom.mom_method", $3); }
+               { driver.option_str("mom.mom_method", "GMM"); }
              | MOM_METHOD EQUAL SMM
-               { driver.option_str("mom.mom_method", $3); }                    
+               { driver.option_str("mom.mom_method", "SMM"); }                    
              ;
 o_penalized_estimator : PENALIZED_ESTIMATOR { driver.option_num("mom.penalized_estimator", "true"); };
 o_verbose : VERBOSE { driver.option_num("mom.verbose", "true"); };

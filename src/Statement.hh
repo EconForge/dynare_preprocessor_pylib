@@ -80,6 +80,12 @@ public:
   bool k_order_solver{false};
   //! Whether an method_of_moments statement is present
   bool mom_estimation_present{false};
+  //! Whether an GMM-option is present
+  bool GMM_present{false};
+  //! Whether an analytic_standard_errors-option is present
+  bool analytic_standard_errors_present{false};
+  //! The maximum of the “order” option in method_of_moments statements
+  int mom_order{0};
   //! Whether there is a calibrated measurement error
   bool calibrated_measurement_errors{false};
   //! Whether dsge_prior_weight was initialized as a parameter
