@@ -676,14 +676,8 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
   yylval->build<string>(yytext);
   return token::DIAGONAL;
 }
-<DYNARE_STATEMENT>gmm  {
-  yylval->build<string>(yytext);
-  return token::GMM;
-}
-<DYNARE_STATEMENT>smm  {
-  yylval->build<string>(yytext);
-  return token::SMM;
-}
+<DYNARE_STATEMENT>gmm {return token::GMM;}
+<DYNARE_STATEMENT>smm {return token::SMM;}
 <DYNARE_STATEMENT>weighting_matrix {return token::WEIGHTING_MATRIX; }
 <DYNARE_STATEMENT>weighting_matrix_scaling_factor {return token::WEIGHTING_MATRIX_SCALING_FACTOR; }
 <DYNARE_STATEMENT>analytic_standard_errors {return token::ANALYTIC_STANDARD_ERRORS; }
