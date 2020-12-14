@@ -748,10 +748,13 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
           int derivsOrder = 1;
           int paramsDerivsOrder = 0;
           if (mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation)
-            {
-              derivsOrder = 2;
-              paramsDerivsOrder = params_derivs_order;
-            }
+            derivsOrder = 2;
+
+          if (mod_file_struct.identification_present 
+              || mod_file_struct.estimation_analytic_derivation
+              || (mod_file_struct.GMM_present && mod_file_struct.analytic_standard_errors_present))
+            paramsDerivsOrder = params_derivs_order;
+
           static_model.computingPass(derivsOrder, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, bytecode);
         }
       // Set things to compute for dynamic model
@@ -775,14 +778,19 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
                   cerr << "ERROR: Incorrect order option..." << endl;
                   exit(EXIT_FAILURE);
                 }
-              int derivsOrder = max(mod_file_struct.order_option,
-                                    mod_file_struct.identification_order + 1); // See preprocessor#40
+              int derivsOrder = max(mod_file_struct.order_option,mod_file_struct.identification_order + 1); // See preprocessor#40
+              if (mod_file_struct.GMM_present && mod_file_struct.analytic_standard_errors_present) //analytic standard errors require one order more
+                derivsOrder = max(mod_file_struct.order_option,
+                                    max(mod_file_struct.identification_order,mod_file_struct.mom_order) + 1); // See preprocessor#40
+
               if (mod_file_struct.sensitivity_present || linear || output == FileOutputType::second)
                 derivsOrder = max(derivsOrder, 2);
               if (mod_file_struct.estimation_analytic_derivation || output == FileOutputType::third)
                 derivsOrder = max(derivsOrder, 3);
               int paramsDerivsOrder = 0;
-              if (mod_file_struct.identification_present || mod_file_struct.estimation_analytic_derivation)
+              if (mod_file_struct.identification_present 
+                  || mod_file_struct.estimation_analytic_derivation
+                  || (mod_file_struct.GMM_present && mod_file_struct.analytic_standard_errors_present))
                 paramsDerivsOrder = params_derivs_order;
               dynamic_model.computingPass(true, derivsOrder, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, bytecode, linear_decomposition);
               if (linear && mod_file_struct.ramsey_model_present)

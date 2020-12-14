@@ -4738,20 +4738,35 @@ MethodOfMomentsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
       if (order > 2)
         mod_file_struct.k_order_solver = true;
 
+      mod_file_struct.mom_order = order;
       mod_file_struct.order_option = max(mod_file_struct.order_option, order);
     }
 
     if (options_list.string_options.find("datafile") == options_list.string_options.end())
-    {
-      cerr << "ERROR: The method_of_moments statement requires a data file to be supplied via the datafile option." << endl;
-      exit(EXIT_FAILURE);
-    }
+      {
+        cerr << "ERROR: The method_of_moments statement requires a data file to be supplied via the datafile option." << endl;
+        exit(EXIT_FAILURE);
+      }
 
     if (options_list.string_options.find("mom.mom_method") == options_list.string_options.end())
-    {
-      cerr << "ERROR: The method_of_moments statement requires a method to be supplied via the mom_method option. Possible values are GMM or SMM." << endl;
-      exit(EXIT_FAILURE);
-    }
+      {
+        cerr << "ERROR: The method_of_moments statement requires a method to be supplied via the mom_method option. Possible values are GMM or SMM." << endl;
+        exit(EXIT_FAILURE);
+      }
+ 
+    if (auto it = options_list.string_options.find("mom.mom_method");
+        it != options_list.string_options.end() && it->second == "GMM")
+      mod_file_struct.GMM_present = true;     
+
+    if (auto it = options_list.num_options.find("mom.analytic_standard_errors");
+        it != options_list.num_options.end() && it->second == "true")
+      mod_file_struct.analytic_standard_errors_present = true;
+    
+    if (!mod_file_struct.GMM_present && mod_file_struct.analytic_standard_errors_present)
+      {
+        cerr << "ERROR: The analytic_standard_errors statement requires the GMM option." << endl;
+        exit(EXIT_FAILURE);
+      }              
 }
 
 void
