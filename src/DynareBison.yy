@@ -92,7 +92,7 @@ class ParsingDriver;
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT INFILE INVARS
 %token <string> INT_NUMBER
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD IRF_CALIBRATION
-%token FAST_KALMAN_FILTER KALMAN_ALGO KALMAN_TOL DIFFUSE_KALMAN_TOL SUBSAMPLES OPTIONS TOLF TOLX PLOT_INIT_DATE PLOT_END_DATE
+%token FAST_KALMAN_FILTER KALMAN_ALGO KALMAN_TOL DIFFUSE_KALMAN_TOL SCHUR_VEC_TOL SUBSAMPLES OPTIONS TOLF TOLX PLOT_INIT_DATE PLOT_END_DATE
 %token LAPLACE LIK_ALGO LIK_INIT LINEAR LINEAR_DECOMPOSITION LOAD_IDENT_FILES LOAD_MH_FILE LOAD_RESULTS_AFTER_LOAD_MH LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV LINEAR_APPROXIMATION
 %token LYAPUNOV_COMPLEX_THRESHOLD LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR
 %token MATCHED_MOMENTS MARKOWITZ MARGINAL_DENSITY MAX MAXIT
@@ -1328,6 +1328,7 @@ method_of_moments_option : o_mom_method
                          | o_sylvester_fixed_point_tol
                          | o_qz_criterium
                          | o_qz_zero_threshold
+                         | o_schur_vec_tol
                          | o_mode_check
                          | o_mode_check_neighbourhood_size
                          | o_mode_check_symmetric_plots
@@ -2186,6 +2187,7 @@ identification_option : o_ar
                       | o_checks_via_subsets
                       | o_max_dim_subsets_groups
                       | o_order
+                      | o_schur_vec_tol
                       ;
 
 model_comparison : MODEL_COMPARISON mc_filename_list ';'
@@ -3310,6 +3312,7 @@ o_fast_kalman_filter : FAST_KALMAN_FILTER  { driver.option_num("fast_kalman_filt
 o_kalman_algo : KALMAN_ALGO EQUAL INT_NUMBER { driver.option_num("kalman_algo", $3); };
 o_kalman_tol : KALMAN_TOL EQUAL non_negative_number { driver.option_num("kalman_tol", $3); };
 o_diffuse_kalman_tol : DIFFUSE_KALMAN_TOL EQUAL non_negative_number { driver.option_num("diffuse_kalman_tol", $3); };
+o_schur_vec_tol : SCHUR_VEC_TOL EQUAL non_negative_number { driver.option_num("schur_vec_tol", $3); };
 o_marginal_density : MARGINAL_DENSITY EQUAL LAPLACE
                      { driver.option_str("mc_marginal_density", "laplace"); }
                    | MARGINAL_DENSITY EQUAL MODIFIEDHARMONICMEAN
