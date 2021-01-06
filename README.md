@@ -9,12 +9,9 @@
 
 The Dynare Preprocessor defines the Dynare model language. It takes in a `.mod`
 file, computes the derivatives of the model represented therein, and produces
-MATLAB/Octave, C, Julia, or JSON output.
-
-There is more to come here. For the moment, see the [Dynare
-repository](https://git.dynare.org/Dynare/dynare)
+MATLAB/Octave, Julia, or JSON output.
 
 # License
 
 Most of the source files are covered by the GNU General Public Licence version
-3 or later. There are some exceptions. See [license.txt](license.txt) for specifics.
+3 or later. There are some exceptions, see the respective file headers.
