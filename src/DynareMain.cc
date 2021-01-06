@@ -52,9 +52,6 @@ macroExpandModFile(const string &filename, const string &basename, const istream
 void
 usage()
 {
-  /* "nolog" is in the following output, even though it is not parsed by the
-     preprocessor but by dynare.m, so that users get the right list of options
-     if they call the preprocessor from MATLAB/Octave. */
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] [savemacro[=macro_file]] [onlymacro] [linemacro] [notmpterms] [nolog] [warn_uninit]"
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test]"
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=matlab|julia]"
@@ -212,6 +209,11 @@ main(int argc, char **argv)
         line_macro = true;
       else if (s == "notmpterms")
         no_tmp_terms = true;
+      else if (s == "nolog")
+        {
+          // Do nothing, the option is implemented at the dynare.m level.
+          // We nevertheless accept it, to avoid an “unknown option” error.
+        }
       else if (s == "nowarn")
         no_warn = true;
       else if (s == "warn_uninit")
