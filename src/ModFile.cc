@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2020 Dynare Team
+ * Copyright © 2006-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -839,7 +839,7 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
 }
 
 void
-ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_log, bool no_warn,
+ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_warn,
                           bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
                           bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
                           const string &mexext,
@@ -928,10 +928,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
               << "%" << endl;
   if (!onlymodel)
     config_file.writeHooks(mOutputFile);
-  mOutputFile << "global_initialization;" << endl
-              << "diary off;" << endl;
-  if (!no_log)
-    mOutputFile << "diary('" << basename << ".log');" << endl;
+  mOutputFile << "global_initialization;" << endl;
 
   if (minimal_workspace)
     mOutputFile << "options_.minimal_workspace = true;" << endl;
@@ -1119,9 +1116,6 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
                       << "end" << endl;
         }
     }
-
-  if (!no_log)
-    mOutputFile << "diary off" << endl;
 
   mOutputFile.close();
 

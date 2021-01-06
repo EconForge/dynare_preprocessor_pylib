@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2020 Dynare Team
+ * Copyright © 2006-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -165,7 +165,7 @@ public:
     \param mingw Should the MEX command of use_dll be adapted for MinGW?
     \param compute_xrefs if true, equation cross references will be computed
   */
-  void writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_log, bool no_warn,
+  void writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_warn,
                         bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
                         bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
                         const string &mexext, const filesystem::path &matlabroot,
