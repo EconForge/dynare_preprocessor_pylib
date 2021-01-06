@@ -2,10 +2,10 @@ SUBDIRS = macro
 
 BUILT_SOURCES = DynareBison.hh location.hh DynareBison.cc DynareFlex.cc FlexLexer.h
 
-bin_PROGRAMS = dynare_m
+bin_PROGRAMS = dynare-preprocessor
 
-# We don't put BUILT_SOURCES in dynare_m_SOURCES, otherwise DynareBison.o and DynareFlex.o will be linked two times (Automake translates DynareFlex.ll and DynareBison.yy into their respective .o); so BUILT_SOURCES is in EXTRA_DIST
-dynare_m_SOURCES = \
+# We don't put BUILT_SOURCES in dynare_preprocessor_SOURCES, otherwise DynareBison.o and DynareFlex.o will be linked two times (Automake translates DynareFlex.ll and DynareBison.yy into their respective .o); so BUILT_SOURCES is in EXTRA_DIST
+dynare_preprocessor_SOURCES = \
 	DynareFlex.ll \
 	DynareBison.yy \
 	ComputingTasks.cc \
@@ -65,9 +65,9 @@ EXTRA_DIST = \
 	$(BUILT_SOURCES)
 
 # The -I. is for <FlexLexer.h>
-dynare_m_CPPFLAGS = $(BOOST_CPPFLAGS) -I.
-dynare_m_LDFLAGS = $(AM_LDFLAGS) $(BOOST_LDFLAGS)
-dynare_m_LDADD = macro/libmacro.a -lstdc++fs
+dynare_preprocessor_CPPFLAGS = $(BOOST_CPPFLAGS) -I.
+dynare_preprocessor_LDFLAGS = $(AM_LDFLAGS) $(BOOST_LDFLAGS)
+dynare_preprocessor_LDADD = macro/libmacro.a -lstdc++fs
 
 # -Ca flag comes from hitting a hard-coded size limit.
 # Partial explanation: https://www.owlfolio.org/possibly-useful/flex-input-scanner-rules-are-too-complicated
@@ -78,7 +78,7 @@ DynareFlex.cc: DynareFlex.ll
 FlexLexer.h:
 	cp $(LEXINC)/FlexLexer.h . || test -f ./FlexLexer.h
 
-dynare_m-DynareFlex.$(OBJEXT): CXXFLAGS += -Wno-old-style-cast
+dynare_preprocessor-DynareFlex.$(OBJEXT): CXXFLAGS += -Wno-old-style-cast
 
 # We do not use a multiple target rule for Bison, because otherwise it will be
 # run several times in parallel builds

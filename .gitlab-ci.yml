@@ -17,9 +17,9 @@ build_linux_32:
     - autoreconf -si
     - './configure LDFLAGS="-m32 -static -static-libgcc -static-libstdc++" CXXFLAGS=-m32'
     - make -j$(nproc)
-    - strip src/dynare_m
+    - strip src/dynare-preprocessor
     - mkdir -p bin
-    - mv src/dynare_m bin
+    - mv src/dynare-preprocessor bin
     - mkdir -p $CI_COMMIT_SHORT_SHA/linux/32
     - tar cfz $CI_COMMIT_SHORT_SHA/linux/32/preprocessor.tar.gz bin
     - cd $CI_COMMIT_SHORT_SHA/linux/32 && sha256sum preprocessor.tar.gz > sha256sum
@@ -34,9 +34,9 @@ build_linux_64:
     - autoreconf -si
     - './configure LDFLAGS="-static -static-libgcc -static-libstdc++"'
     - make -j$(nproc)
-    - strip src/dynare_m
+    - strip src/dynare-preprocessor
     - mkdir -p bin
-    - mv src/dynare_m bin
+    - mv src/dynare-preprocessor bin
     - mkdir -p $CI_COMMIT_SHORT_SHA/linux/64
     - tar cfz $CI_COMMIT_SHORT_SHA/linux/64/preprocessor.tar.gz bin
     - cd $CI_COMMIT_SHORT_SHA/linux/64 && sha256sum preprocessor.tar.gz > sha256sum
@@ -55,9 +55,9 @@ build_windows_32:
     - autoreconf -si
     - './configure --host=i686-w64-mingw32 --with-boost=$(pwd)/deps/mingw32/include LDFLAGS="-static -static-libgcc -static-libstdc++"'
     - make -j$(nproc)
-    - i686-w64-mingw32-strip src/dynare_m.exe
+    - i686-w64-mingw32-strip src/dynare-preprocessor.exe
     - mkdir -p bin
-    - mv src/dynare_m.exe bin
+    - mv src/dynare-preprocessor.exe bin
     - mkdir -p $CI_COMMIT_SHORT_SHA/windows/32
     - tar cfz $CI_COMMIT_SHORT_SHA/windows/32/preprocessor.tar.gz bin
     - cd $CI_COMMIT_SHORT_SHA/windows/32 && sha256sum preprocessor.tar.gz > sha256sum
@@ -76,9 +76,9 @@ build_windows_64:
     - autoreconf -si
     - './configure --host=x86_64-w64-mingw32 --with-boost=$(pwd)/deps/mingw64/include LDFLAGS="-static -static-libgcc -static-libstdc++"'
     - make -j$(nproc)
-    - x86_64-w64-mingw32-strip src/dynare_m.exe
+    - x86_64-w64-mingw32-strip src/dynare-preprocessor.exe
     - mkdir -p bin
-    - mv src/dynare_m.exe bin
+    - mv src/dynare-preprocessor.exe bin
     - mkdir -p $CI_COMMIT_SHORT_SHA/windows/64
     - tar cfz $CI_COMMIT_SHORT_SHA/windows/64/preprocessor.tar.gz bin
     - cd $CI_COMMIT_SHORT_SHA/windows/64 && sha256sum preprocessor.tar.gz > sha256sum
@@ -95,9 +95,9 @@ build_macOS:
     - autoreconf -si
     - './configure CXX=g++-10 CXXFLAGS=-static-libgcc'
     - make -j$(nproc)
-    - strip src/dynare_m
+    - strip src/dynare-preprocessor
     - mkdir -p bin
-    - mv src/dynare_m bin
+    - mv src/dynare-preprocessor bin
     - mkdir -p $CI_COMMIT_SHORT_SHA/macOS/64
     - tar cfz $CI_COMMIT_SHORT_SHA/macOS/64/preprocessor.tar.gz bin
     - cd $CI_COMMIT_SHORT_SHA/macOS/64 && sha256sum preprocessor.tar.gz > sha256sum

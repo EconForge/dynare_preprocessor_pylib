@@ -23,9 +23,8 @@ aclocal.m4
 autom4te.cache
 TAGS
 
-# Preprocessor
-/src/dynare_m
-/src/dynare_m.exe
+/src/dynare-preprocessor
+/src/dynare-preprocessor.exe
 /src/DynareBison.cc
 /src/DynareBison.hh
 /src/FlexLexer.h
@@ -40,6 +39,10 @@ TAGS
 /src/macro/position.hh
 /src/macro/stack.hh
 /src/doc/
+
+# Symlinks created by Dynare/MATLAB’s main Makefile.am
+/dynare-preprocessor
+/dynare-preprocessor.exe
 
 # macOS stuff
 .DS_Store
