@@ -611,7 +611,7 @@ LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &ba
 void
 LoadParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
 {
-  output << R"({"statementName": "load_params_and_steady_state")"
+  output << R"({"statementName": "load_params_and_steady_state",)"
          << R"("values": [)";
   for (auto it = content.begin(); it != content.end(); ++it)
     {
