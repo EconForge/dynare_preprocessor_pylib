@@ -55,8 +55,7 @@ AM_PROG_AR
 
 AM_PROG_LEX
 # Hack to get lex include dir, ticket #575
-AC_PATH_PROG([LEXPATH], [$LEX])
-AC_SUBST([LEXINC], [$(eval "echo $LEXPATH | sed 's|\(.*\)$LEX$|\1../include|'")])
+AC_SUBST([LEXINC], [$(echo "$(dirname "$(which $LEX)")"/../include)])
 
 AC_CHECK_PROG([YACC], [bison], [bison])
 if test -z "$YACC"; then
