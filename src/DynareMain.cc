@@ -54,7 +54,7 @@ usage()
 {
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] [savemacro[=macro_file]] [onlymacro] [linemacro] [notmpterms] [nolog] [warn_uninit]"
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test]"
-       << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=dynamic|first|second|third] [language=matlab|julia]"
+       << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=second|third] [language=matlab|julia]"
        << " [params_derivs_order=0|1|2] [transform_unary_ops] [exclude_eqs=<equation_tag_list_or_file>] [include_eqs=<equation_tag_list_or_file>]"
        << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] [nopathchange] [nopreprocessoroutput]"
        << " [mexext=<extension>] [matlabroot=<path>] [onlymodel] [notime] [use_dll]"
@@ -153,7 +153,7 @@ main(int argc, char **argv)
   string exclude_eqs, include_eqs;
   vector<pair<string, string>> defines;
   vector<filesystem::path> paths;
-  FileOutputType output_mode{FileOutputType::none};
+  OutputType output_mode{OutputType::standard};
   JsonOutputPointType json{JsonOutputPointType::nojson};
   JsonFileOutputType json_output_mode{JsonFileOutputType::file};
   bool onlyjson = false;
@@ -297,14 +297,10 @@ main(int argc, char **argv)
 
           s.erase(0, 7);
 
-          if (s == "dynamic")
-            output_mode = FileOutputType::dynamic;
-          else if (s == "first")
-            output_mode = FileOutputType::first;
-          else if (s == "second")
-            output_mode = FileOutputType::second;
+          if (s == "second")
+            output_mode = OutputType::second;
           else if (s == "third")
-            output_mode = FileOutputType::third;
+            output_mode = OutputType::third;
           else
             {
               cerr << "Incorrect syntax for output option" << endl;
@@ -495,13 +491,13 @@ main(int argc, char **argv)
   if (json == JsonOutputPointType::computingpass)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, jsonderivsimple);
 
-  // Write outputs
-  if (output_mode != FileOutputType::none)
-    mod_file->writeExternalFiles(basename, language);
+  // Write output files
+  if (language == LanguageOutputType::julia)
+    mod_file->writeJuliaOutput(basename);
   else
-    mod_file->writeOutputFiles(basename, clear_all, clear_global, no_warn, console, nograph,
-                               nointeractive, config_file, check_model_changes, minimal_workspace, compute_xrefs,
-                               mexext, matlabroot, dynareroot, onlymodel, gui, notime);
+    mod_file->writeMOutput(basename, clear_all, clear_global, no_warn, console, nograph,
+                           nointeractive, config_file, check_model_changes, minimal_workspace, compute_xrefs,
+                           mexext, matlabroot, dynareroot, onlymodel, gui, notime);
 
   cout << "Preprocessing completed." << endl;
   return EXIT_SUCCESS;

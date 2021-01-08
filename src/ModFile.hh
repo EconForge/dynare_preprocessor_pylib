@@ -152,7 +152,7 @@ public:
   //! Execute computations
   /*! \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic files */
   /*! \param params_derivs_order compute this order of derivs wrt parameters */
-  void computingPass(bool no_tmp_terms, FileOutputType output, int params_derivs_order);
+  void computingPass(bool no_tmp_terms, OutputType output, int params_derivs_order);
   //! Writes Matlab/Octave output files
   /*!
     \param basename The base name used for writing output files. Should be the name of the mod file without its extension
@@ -165,13 +165,13 @@ public:
     \param mingw Should the MEX command of use_dll be adapted for MinGW?
     \param compute_xrefs if true, equation cross references will be computed
   */
-  void writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_warn,
-                        bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
-                        bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
-                        const string &mexext, const filesystem::path &matlabroot,
-                        const filesystem::path &dynareroot, bool onlymodel, bool gui, bool notime) const;
-  void writeExternalFiles(const string &basename, LanguageOutputType language) const;
-  void writeExternalFilesJulia(const string &basename) const;
+  void writeMOutput(const string &basename, bool clear_all, bool clear_global, bool no_warn,
+                    bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
+                    bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
+                    const string &mexext, const filesystem::path &matlabroot,
+                    const filesystem::path &dynareroot, bool onlymodel, bool gui, bool notime) const;
+
+  void writeJuliaOutput(const string &basename) const;
 
   void computeChecksum();
   //! Write JSON representation of ModFile object

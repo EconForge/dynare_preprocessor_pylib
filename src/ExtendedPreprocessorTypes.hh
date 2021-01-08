@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2019 Dynare Team
+ * Copyright © 2014-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,18 +20,18 @@
 #ifndef _EXTENDED_PREPROCESSOR_TYPES_HH
 #define _EXTENDED_PREPROCESSOR_TYPES_HH
 
-enum class FileOutputType
+// Values for the “output” option
+enum class OutputType
   {
-   none, // outputs files for Matlab/Octave processing
-   dynamic, // outputs <fname>_dynamic.* and related files
-   first, // outputs <fname>_first_derivatives.* and related files
-   second, // outputs <fname>_first_derivatives.*, <fname>_second_derivatives.* and related files
-   third, // outputs <fname>_first_derivatives.*, <fname>_second_derivatives.*, <fname>_third_derivatives.*  and related files
+   standard, // Default value, infer the derivation order from .mod file only
+   second, // Output at least 2nd dynamic derivatives
+   third, // Output at least 3rd dynamic derivatives
   };
 
+// Values for the “language” option
 enum class LanguageOutputType
   {
-   matlab, // outputs files for Matlab/Octave processing
+   matlab, // outputs files for MATLAB/Octave processing
    julia, // outputs files for Julia
   };
 
@@ -41,6 +41,7 @@ enum class JsonFileOutputType
    standardout, // output JSON files to stdout
   };
 
+// Values for the “json” option
 enum class JsonOutputPointType
   {
    nojson, // don't output JSON
@@ -49,4 +50,5 @@ enum class JsonOutputPointType
    transformpass, // output JSON after the transform pass
    computingpass // output JSON after the computing pass
   };
+
 #endif

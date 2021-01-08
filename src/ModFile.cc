@@ -721,7 +721,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
 }
 
 void
-ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_derivs_order)
+ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_order)
 {
   // Mod file may have no equation (for example in a standalone BVAR estimation)
   if (dynamic_model.equation_number() > 0)
@@ -765,7 +765,14 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
           || mod_file_struct.calib_smoother_present || mod_file_struct.mom_estimation_present)
         {
           if (mod_file_struct.perfect_foresight_solver_present)
-            dynamic_model.computingPass(true, 1, 0, global_eval_context, no_tmp_terms, block, use_dll, bytecode, linear_decomposition);
+            {
+              int derivsOrder = 1;
+              if (output == OutputType::second)
+                derivsOrder = 2;
+              else if  (output == OutputType::third)
+                derivsOrder = 3;
+              dynamic_model.computingPass(true, derivsOrder, 0, global_eval_context, no_tmp_terms, block, use_dll, bytecode, linear_decomposition);
+            }
           else
             {
               if (mod_file_struct.stoch_simul_present
@@ -783,9 +790,9 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
                 derivsOrder = max(mod_file_struct.order_option,
                                     max(mod_file_struct.identification_order,mod_file_struct.mom_order) + 1); // See preprocessor#40
 
-              if (mod_file_struct.sensitivity_present || linear || output == FileOutputType::second)
+              if (mod_file_struct.sensitivity_present || linear || output == OutputType::second)
                 derivsOrder = max(derivsOrder, 2);
-              if (mod_file_struct.estimation_analytic_derivation || output == FileOutputType::third)
+              if (mod_file_struct.estimation_analytic_derivation || output == OutputType::third)
                 derivsOrder = max(derivsOrder, 3);
               int paramsDerivsOrder = 0;
               if (mod_file_struct.identification_present 
@@ -839,12 +846,12 @@ ModFile::computingPass(bool no_tmp_terms, FileOutputType output, int params_deri
 }
 
 void
-ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_global, bool no_warn,
-                          bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
-                          bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
-                          const string &mexext,
-                          const filesystem::path &matlabroot,
-                          const filesystem::path &dynareroot, bool onlymodel, bool gui, bool notime) const
+ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global, bool no_warn,
+                      bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
+                      bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
+                      const string &mexext,
+                      const filesystem::path &matlabroot,
+                      const filesystem::path &dynareroot, bool onlymodel, bool gui, bool notime) const
 {
   bool hasModelChanged = !dynamic_model.isChecksumMatching(basename, block) || !check_model_changes;
   if (hasModelChanged)
@@ -1154,21 +1161,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 }
 
 void
-ModFile::writeExternalFiles(const string &basename, LanguageOutputType language) const
-{
-  switch (language)
-    {
-    case LanguageOutputType::julia:
-      writeExternalFilesJulia(basename);
-      break;
-    case LanguageOutputType::matlab:
-      cerr << "The 'output' option cannot be used when language=matlab" << endl;
-      exit(EXIT_FAILURE);
-    }
-}
-
-void
-ModFile::writeExternalFilesJulia(const string &basename) const
+ModFile::writeJuliaOutput(const string &basename) const
 {
   ofstream jlOutputFile;
   if (basename.size())
