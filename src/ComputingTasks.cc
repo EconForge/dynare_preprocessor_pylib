@@ -4761,12 +4761,22 @@ MethodOfMomentsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
     if (auto it = options_list.num_options.find("mom.analytic_standard_errors");
         it != options_list.num_options.end() && it->second == "true")
       mod_file_struct.analytic_standard_errors_present = true;
-    
+
     if (!mod_file_struct.GMM_present && mod_file_struct.analytic_standard_errors_present)
       {
         cerr << "ERROR: The analytic_standard_errors statement requires the GMM option." << endl;
         exit(EXIT_FAILURE);
-      }              
+      }
+    
+    if (auto it = options_list.num_options.find("mom.analytic_jacobian");
+        it != options_list.num_options.end() && it->second == "true")
+      mod_file_struct.analytic_jacobian_present = true;
+    
+    if (!mod_file_struct.GMM_present && mod_file_struct.analytic_jacobian_present)
+      {
+        cerr << "ERROR: The analytic_jacobian statement requires the GMM option." << endl;
+        exit(EXIT_FAILURE);
+      }
 }
 
 void

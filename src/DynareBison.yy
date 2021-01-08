@@ -167,7 +167,7 @@ class ParsingDriver;
 %token RANDOM_FUNCTION_CONVERGENCE_CRITERION RANDOM_PARAMETER_CONVERGENCE_CRITERION
 /* Method of Moments */
 %token METHOD_OF_MOMENTS MOM_METHOD
-%token BARTLETT_KERNEL_LAG WEIGHTING_MATRIX WEIGHTING_MATRIX_SCALING_FACTOR ANALYTIC_STANDARD_ERRORS PENALIZED_ESTIMATOR VERBOSE 
+%token BARTLETT_KERNEL_LAG WEIGHTING_MATRIX WEIGHTING_MATRIX_SCALING_FACTOR ANALYTIC_STANDARD_ERRORS ANALYTIC_JACOBIAN PENALIZED_ESTIMATOR VERBOSE 
 %token SIMULATION_MULTIPLE MOM_SEED SEED BOUNDED_SHOCK_SUPPORT ADDITIONAL_OPTIMIZER_STEPS MOM_SE_TOLX SE_TOLX MOM_BURNIN BURNIN 
 %token EQTAGS STEADY_STATE_GROWTH
 %token ANALYTICAL_GIRF IRF_IN_PERCENT EMAS_GIRF EMAS_DROP EMAS_TOLF EMAS_MAX_ITER
@@ -1289,13 +1289,12 @@ method_of_moments_option : o_mom_method
                          | o_verbose
                          | o_weighting_matrix
                          | o_weighting_matrix_scaling_factor
-                         | o_analytic_standard_errors
-                         | o_additional_optimizer_steps
-                         | o_prefilter
+                         | o_mom_se_tolx
+                         | o_mom_burnin
                          | o_bounded_shock_support
                          | o_mom_seed
                          | o_simulation_multiple
-                         | o_mom_burnin
+                         | o_analytic_standard_errors
                          | o_dirname
                          | o_graph_format
                          | o_nodisplay
@@ -1307,13 +1306,15 @@ method_of_moments_option : o_mom_method
                          | o_first_obs
                          | o_logdata
                          | o_nobs
+                         | o_prefilter
                          | o_xls_sheet
                          | o_xls_range
-                         | o_huge_number
                          | o_mode_compute
+                         | o_additional_optimizer_steps
                          | o_optim
                          | o_silent_optimizer
-                         | o_mom_se_tolx
+                         | o_huge_number
+                         | o_analytic_jacobian
                          | o_aim_solver
                          | o_dr
                          | o_dr_cycle_reduction_tol
@@ -3709,6 +3710,8 @@ o_weighting_matrix : WEIGHTING_MATRIX EQUAL vec_str { driver.option_vec_cellstr(
 o_weighting_matrix_scaling_factor : WEIGHTING_MATRIX_SCALING_FACTOR EQUAL non_negative_number { driver.option_num("mom.weighting_matrix_scaling_factor", $3); };
 
 o_analytic_standard_errors : ANALYTIC_STANDARD_ERRORS { driver.option_num("mom.analytic_standard_errors", "true"); };
+
+o_analytic_jacobian : ANALYTIC_JACOBIAN { driver.option_num("mom.analytic_jacobian", "true"); };
 
 o_mom_method : MOM_METHOD EQUAL GMM
                { driver.option_str("mom.mom_method", "GMM"); }

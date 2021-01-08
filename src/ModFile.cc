@@ -752,7 +752,7 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
 
           if (mod_file_struct.identification_present 
               || mod_file_struct.estimation_analytic_derivation
-              || (mod_file_struct.GMM_present && mod_file_struct.analytic_standard_errors_present))
+              || (mod_file_struct.GMM_present && (mod_file_struct.analytic_standard_errors_present || mod_file_struct.analytic_jacobian_present)))
             paramsDerivsOrder = params_derivs_order;
 
           static_model.computingPass(derivsOrder, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, bytecode);
@@ -786,7 +786,8 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
                   exit(EXIT_FAILURE);
                 }
               int derivsOrder = max(mod_file_struct.order_option,mod_file_struct.identification_order + 1); // See preprocessor#40
-              if (mod_file_struct.GMM_present && mod_file_struct.analytic_standard_errors_present) //analytic standard errors require one order more
+              if (mod_file_struct.GMM_present 
+                  && (mod_file_struct.analytic_standard_errors_present || mod_file_struct.analytic_jacobian_present)) //analytic_standard_errors or analytic_jacobian require one order more
                 derivsOrder = max(mod_file_struct.order_option,
                                     max(mod_file_struct.identification_order,mod_file_struct.mom_order) + 1); // See preprocessor#40
 
@@ -797,7 +798,7 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
               int paramsDerivsOrder = 0;
               if (mod_file_struct.identification_present 
                   || mod_file_struct.estimation_analytic_derivation
-                  || (mod_file_struct.GMM_present && mod_file_struct.analytic_standard_errors_present))
+                  || (mod_file_struct.GMM_present && (mod_file_struct.analytic_standard_errors_present || mod_file_struct.analytic_jacobian_present)))
                 paramsDerivsOrder = params_derivs_order;
               dynamic_model.computingPass(true, derivsOrder, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll, bytecode, linear_decomposition);
               if (linear && mod_file_struct.ramsey_model_present)

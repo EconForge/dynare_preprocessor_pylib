@@ -682,6 +682,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>weighting_matrix {return token::WEIGHTING_MATRIX; }
 <DYNARE_STATEMENT>weighting_matrix_scaling_factor {return token::WEIGHTING_MATRIX_SCALING_FACTOR; }
 <DYNARE_STATEMENT>analytic_standard_errors {return token::ANALYTIC_STANDARD_ERRORS; }
+<DYNARE_STATEMENT>analytic_jacobian {return token::ANALYTIC_JACOBIAN; }
 <DYNARE_STATEMENT>mom_method {return token::MOM_METHOD; }
 <DYNARE_STATEMENT>penalized_estimator {return token::PENALIZED_ESTIMATOR; }
 <DYNARE_STATEMENT>verbose {return token::VERBOSE; }

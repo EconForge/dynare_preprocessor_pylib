@@ -84,6 +84,8 @@ public:
   bool GMM_present{false};
   //! Whether an analytic_standard_errors-option is present
   bool analytic_standard_errors_present{false};
+  //! Whether an analytic_jacobian-option is present
+  bool analytic_jacobian_present{false};
   //! The maximum of the “order” option in method_of_moments statements
   int mom_order{0};
   //! Whether there is a calibrated measurement error
