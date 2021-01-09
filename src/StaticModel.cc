@@ -2114,7 +2114,8 @@ void
 StaticModel::writeSetAuxiliaryVariables(const string &basename, bool julia) const
 {
   ostringstream output_func_body;
-  writeAuxVarRecursiveDefinitions(output_func_body, ExprNodeOutputType::matlabStaticModel);
+  ExprNodeOutputType output_type = julia ? ExprNodeOutputType::juliaStaticModel : ExprNodeOutputType::matlabStaticModel;
+  writeAuxVarRecursiveDefinitions(output_func_body, output_type);
 
   if (output_func_body.str().empty())
     return;
@@ -2131,13 +2132,21 @@ StaticModel::writeSetAuxiliaryVariables(const string &basename, bool julia) cons
       exit(EXIT_FAILURE);
     }
 
-  output << "function y = " << func_name + "(y, x, params)" << endl
+  output << "function ";
+  if (!julia)
+    output << "y = ";
+  output << func_name;
+  if (julia)
+    output << "!";
+  output << "(y, x, params)" << endl
          << comment << endl
          << comment << " Status : Computes static model for Dynare" << endl
          << comment << endl
          << comment << " Warning : this file is generated automatically by Dynare" << endl
          << comment << "           from model file (.mod)" << endl << endl
          << output_func_body.str();
+  if (julia)
+    output << "end" << endl;
 
   output.close();
 }
