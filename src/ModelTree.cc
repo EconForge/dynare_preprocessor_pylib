@@ -2050,7 +2050,7 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
               exit(EXIT_FAILURE);
             }
 #endif
-          flags << " -fno-common -mmacosx-version-min=10.9 -Wl,-twolevel_namespace -undefined error -bundle";
+          flags << " -fno-common -Wl,-twolevel_namespace -undefined error -bundle";
           libs += " -lm -lstdc++";
         }
     }
