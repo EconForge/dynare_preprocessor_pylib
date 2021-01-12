@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -2050,7 +2050,7 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
               exit(EXIT_FAILURE);
             }
 #endif
-          flags << " -fno-common -arch x86_64 -mmacosx-version-min=10.9 -Wl,-twolevel_namespace -undefined error -bundle";
+          flags << " -fno-common -mmacosx-version-min=10.9 -Wl,-twolevel_namespace -undefined error -bundle";
           libs += " -lm -lstdc++";
         }
     }
