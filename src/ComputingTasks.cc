@@ -1700,6 +1700,71 @@ ObservationTrendsStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
+FilterInitialStateStatement::FilterInitialStateStatement(filter_initial_state_elements_t filter_initial_state_elements_arg,
+                                                         const SymbolTable &symbol_table_arg) :
+  filter_initial_state_elements{move(filter_initial_state_elements_arg)},
+  symbol_table{symbol_table_arg}
+{
+}
+
+void
+FilterInitialStateStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << "M_.filter_initial_state = cell(M_.endo_nbr, 2);" << endl;
+  for (const auto &[key, val] : filter_initial_state_elements)
+    {
+      auto [symb_id, lag] = key;
+      SymbolType type = symbol_table.getType(symb_id);
+
+      if ((type == SymbolType::endogenous && lag < 0) || type == SymbolType::exogenous)
+        {
+          try
+            {
+              // This function call must remain the 1st statement in this block
+              symb_id = symbol_table.searchAuxiliaryVars(symb_id, lag);
+            }
+          catch (SymbolTable::SearchFailedException &e)
+            {
+              if (type == SymbolType::endogenous)
+                {
+                  cerr << "filter_initial_state: internal error, please contact the developers";
+                  exit(EXIT_FAILURE);
+                }
+              // We don't fail for exogenous, because they are not replaced by
+              // auxiliary variables in deterministic mode.
+            }
+        }
+
+      output << "M_.filter_initial_state("
+             << symbol_table.getTypeSpecificID(symb_id) + 1
+             << ",:) = {'" << symbol_table.getName(symb_id) << "', '";
+      val->writeOutput(output);
+      output << ";'};" << endl;
+    }
+}
+
+void
+FilterInitialStateStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "filter_initial_state", )"
+         << R"("states": [)";
+
+  for (auto it = filter_initial_state_elements.begin();
+       it != filter_initial_state_elements.end(); ++it)
+    {
+      if (it != filter_initial_state_elements.begin())
+        output << ", ";
+      auto &[key, val] = *it;
+      auto &[symb_id, lag] = key;
+      output << R"({ "var": ")" << symbol_table.getName(symb_id)
+             << R"(", "lag": )" << lag
+             << R"(, "value": ")";
+      val->writeJsonOutput(output, {}, {});
+      output << R"(" })";
+    }
+  output << "] }";
+}
+
 OsrParamsStatement::OsrParamsStatement(SymbolList symbol_list_arg, const SymbolTable &symbol_table_arg) :
   symbol_list{move(symbol_list_arg)},
   symbol_table{symbol_table_arg}

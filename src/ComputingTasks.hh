@@ -301,6 +301,20 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
+class FilterInitialStateStatement : public Statement
+{
+public:
+  using filter_initial_state_elements_t = map<pair<int, int>, expr_t>;
+private:
+  const filter_initial_state_elements_t filter_initial_state_elements;
+  const SymbolTable &symbol_table;
+public:
+  FilterInitialStateStatement(filter_initial_state_elements_t filter_initial_state_elements_arg,
+                              const SymbolTable &symbol_table_arg);
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
+};
+
 class OsrParamsStatement : public Statement
 {
 private:

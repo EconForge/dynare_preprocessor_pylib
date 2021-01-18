@@ -200,6 +200,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>initval {BEGIN DYNARE_BLOCK; return token::INITVAL;}
 <INITIAL>endval {BEGIN DYNARE_BLOCK; return token::ENDVAL;}
 <INITIAL>histval {BEGIN DYNARE_BLOCK; return token::HISTVAL;}
+<INITIAL>filter_initial_state {BEGIN DYNARE_BLOCK; return token::FILTER_INITIAL_STATE;}
 <INITIAL>shocks {BEGIN DYNARE_BLOCK; return token::SHOCKS;}
 <INITIAL>shock_groups {BEGIN DYNARE_BLOCK; return token::SHOCK_GROUPS;}
 <INITIAL>init2shocks {BEGIN DYNARE_BLOCK; return token::INIT2SHOCKS;}
