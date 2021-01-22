@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2020 Dynare Team
+ * Copyright © 2019-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -253,7 +253,9 @@ If::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths
           {
             first_clause = false;
             VariablePtr vp = dynamic_pointer_cast<Variable>(expr);
-            assert(vp);
+            if (!vp)
+              error(StackTrace(ifdef ? "@#ifdef" : "@ifndef",
+                               "The condition must be a variable name", location));
             if ((ifdef && env.isVariableDefined(vp->getName()))
                 || (ifndef && !env.isVariableDefined(vp->getName())))
               {
