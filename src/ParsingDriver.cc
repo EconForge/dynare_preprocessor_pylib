@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -397,6 +397,10 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
   if (type == SymbolType::externalFunction)
     error("Symbol " + mod_file->symbol_table.getName(symb_id)
           +" is a function name external to Dynare. It cannot be used like a variable without input argument inside model.");
+
+  // See dynare#1765
+  if (type == SymbolType::exogenousDet && lag != 0)
+    error("Exogenous deterministic variable " + mod_file->symbol_table.getName(symb_id) + " cannot be given a lead or a lag.");
 
   if (type == SymbolType::modelLocalVariable && lag != 0)
     error("Model local variable " + mod_file->symbol_table.getName(symb_id) + " cannot be given a lead or a lag.");
