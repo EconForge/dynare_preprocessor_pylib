@@ -254,7 +254,7 @@ If::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths
             first_clause = false;
             VariablePtr vp = dynamic_pointer_cast<Variable>(expr);
             if (!vp)
-              error(StackTrace(ifdef ? "@#ifdef" : "@ifndef",
+              error(StackTrace(ifdef ? "@#ifdef" : "@#ifndef",
                                "The condition must be a variable name", location));
             if ((ifdef && env.isVariableDefined(vp->getName()))
                 || (ifndef && !env.isVariableDefined(vp->getName())))
