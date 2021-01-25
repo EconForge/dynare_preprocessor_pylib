@@ -210,9 +210,6 @@ protected:
      the vector of all temporary terms */
   temporary_terms_idxs_t blocks_temporary_terms_idxs;
 
-  //! Vector indicating if the equation is linear in endogenous variable (true) or not (false)
-  vector<bool> is_equation_linear;
-
   //! Computes derivatives
   /*! \param order the derivation order
       \param vars the derivation IDs w.r.t. which compute the derivatives */
@@ -296,8 +293,6 @@ protected:
     The resulting normalization is stored in endo2eq.
   */
   void computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian);
-  //! Try to find a natural normalization if all equations are matched to an endogenous variable on the LHS
-  bool computeNaturalNormalization();
   //! Evaluate the jacobian (w.r.t. endogenous) and suppress all the elements below the cutoff
   /*! Returns the contemporaneous_jacobian.
       Elements below the cutoff are discarded. External functions are evaluated to 1. */

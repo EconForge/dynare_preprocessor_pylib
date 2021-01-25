@@ -144,7 +144,6 @@ ModelTree::ModelTree(const ModelTree &m) :
   blocks{m.blocks},
   endo2block{m.endo2block},
   eq2block{m.eq2block},
-  is_equation_linear{m.is_equation_linear},
   endo2eq{m.endo2eq},
   cutoff{m.cutoff},
   mfs{m.mfs}
@@ -186,7 +185,6 @@ ModelTree::operator=(const ModelTree &m)
   eq2block = m.eq2block;
   blocks_temporary_terms.clear();
   blocks_temporary_terms_idxs.clear();
-  is_equation_linear = m.is_equation_linear;
   endo2eq = m.endo2eq;
   cutoff = m.cutoff;
   mfs = m.mfs;
@@ -349,34 +347,6 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context) const
     }
 
   return contemporaneous_jacobian;
-}
-
-bool
-ModelTree::computeNaturalNormalization()
-{
-  bool bool_result = true;
-  set<pair<int, int>> result;
-  endo2eq.resize(equations.size());
-  for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
-    if (!is_equation_linear[eq])
-      {
-        BinaryOpNode *eq_node = equations[eq];
-        expr_t lhs = eq_node->arg1;
-        result.clear();
-        lhs->collectDynamicVariables(SymbolType::endogenous, result);
-        if (result.size() == 1 && result.begin()->second == 0)
-          {
-            //check if the endogenous variable has not been already used in an other match !
-            if (find(endo2eq.begin(), endo2eq.end(), result.begin()->first) == endo2eq.end())
-              endo2eq[result.begin()->first] = eq;
-            else
-              {
-                bool_result = false;
-                break;
-              }
-          }
-      }
-  return bool_result;
 }
 
 pair<int, int>
