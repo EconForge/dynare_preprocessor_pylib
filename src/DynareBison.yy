@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -80,7 +80,7 @@ class ParsingDriver;
 %token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED PROPOSAL_DISTRIBUTION REALTIME VINTAGE
 %token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
 %token COMMA CONSIDER_ALL_ENDOGENOUS CONSIDER_ONLY_OBSERVED INITIAL_CONDITION_DECOMPOSITION
-%token DATAFILE FILE SERIES DET_COND_FORECAST DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
+%token DATAFILE FILE SERIES DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR EXPRESSION
 %token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS FIRST_SIMULATION_PERIOD LAST_OBS 
 %token SET_TIME OSR_PARAMS_BOUNDS KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED
@@ -313,7 +313,6 @@ statement : parameters
           | method_of_moments
           | shock_groups
           | init2shocks
-          | det_cond_forecast
           | var_expectation_model
           | compilation_setup
           | matched_moments
@@ -865,7 +864,6 @@ model_options : BLOCK { driver.block(); }
               | DIFFERENTIATE_FORWARD_VARS EQUAL '(' symbol_list ')' { driver.differentiate_forward_vars_some(); }
               | o_linear
               | PARALLEL_LOCAL_FILES EQUAL '(' parallel_local_filename_list ')'
-              | LINEAR_DECOMPOSITION { driver.linear_decomposition(); }
               | BALANCED_GROWTH_TEST_TOL EQUAL non_negative_number { driver.balanced_growth_test_tol($3); }
               ;
 
@@ -1351,16 +1349,6 @@ prior_posterior_function_options_list : prior_posterior_function_options_list CO
 prior_posterior_function_options : o_function
                                  | o_sampling_draws
                                  ;
-
-det_cond_forecast : DET_COND_FORECAST '(' symbol ')' ';'
-                    { driver.det_cond_forecast_linear_decomposition($3); }
-                  | DET_COND_FORECAST '(' symbol COMMA symbol ')' ';'
-                    { driver.det_cond_forecast_linear_decomposition($3,$5); }
-                  | DET_COND_FORECAST '(' symbol COMMA simul_options_list ')' ';'
-                    { driver.det_cond_forecast_linear_decomposition($3); }
-                  | DET_COND_FORECAST '(' symbol COMMA symbol COMMA simul_options_list ')' ';'
-                    { driver.det_cond_forecast_linear_decomposition($3,$5); }
-                  ;
 
 simul : SIMUL ';'
         { driver.simul(); }

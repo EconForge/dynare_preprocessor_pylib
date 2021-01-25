@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -541,75 +541,6 @@ ForecastStatement::writeJsonOutput(ostream &output) const
       symbol_list.writeJsonOutput(output);
     }
   output << "}";
-}
-
-DetCondForecastStatement::DetCondForecastStatement(SymbolList symbol_list_arg,
-                                                   OptionsList options_list_arg,
-                                                   const bool linear_decomposition_arg) :
-  options_list{move(options_list_arg)},
-  symbol_list{move(symbol_list_arg)},
-  linear_decomposition{linear_decomposition_arg}
-{
-
-}
-
-void
-DetCondForecastStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
-{
-  options_list.writeOutput(output);
-  if (linear_decomposition)
-    {
-      output << "first_order_solution_to_compute = 1;" << endl
-             << "if isfield(oo_, 'dr')" << endl
-             << "    if isfield(oo_.dr, 'ghx') && isfield(oo_.dr, 'ghu') && isfield(oo_.dr, 'state_var') && isfield(oo_.dr, 'order_var')" << endl
-             << "        first_order_solution_to_compute = 0;" << endl
-             << "    end" << endl
-             << "end" << endl
-             << "if first_order_solution_to_compute" << endl
-             << "  fprintf('%s','Computing the first order solution ...');" << endl
-             << "  options_.nograph = true;" << endl
-             << "  options_.order = 1;" << endl
-             << "  options_.noprint = true;" << endl
-             << "  options_.nocorr = true;" << endl
-             << "  options_.nomoments = true;" << endl
-             << "  options_.nodecomposition = true;" << endl
-             << "  options_.nofunctions = true;" << endl
-             << "  options_.irf = 0;" << endl
-             << "  tmp_periods = options_.periods;" << endl
-             << "  options_.periods = 0;" << endl
-             << "  var_list_ = char();" << endl
-             << "  info = stoch_simul(var_list_);" << endl
-             << R"(  fprintf('%s\n','done');)" << endl
-             << "  options_.periods = tmp_periods;" << endl
-             << "end" << endl;
-    }
-  vector<string> symbols = symbol_list.get_symbols();
-  if (symbols.size() > 0)
-    output << symbols[1] << " = det_cond_forecast(";
-  for (unsigned int i = 0; i < symbols.size() - 1; i++)
-    output << symbols[i] << ", ";
-  if (symbols.size() > 0)
-    output << symbols[symbols.size() - 1];
-  output << ");" << endl;
-}
-
-void
-DetCondForecastStatement::writeJsonOutput(ostream &output) const
-{
-  output << R"({"statementName": "det_cond_forecast")";
-  if (options_list.getNumberOfOptions())
-    {
-      output << ", ";
-      options_list.writeJsonOutput(output);
-    }
-  if (!symbol_list.empty())
-    {
-      output << ", ";
-      symbol_list.writeJsonOutput(output);
-    }
-  output << R"(, "linear_decomposition": )"
-         << (linear_decomposition ? "true" : "false")
-         << "}";
 }
 
 RamseyModelStatement::RamseyModelStatement(OptionsList options_list_arg) :

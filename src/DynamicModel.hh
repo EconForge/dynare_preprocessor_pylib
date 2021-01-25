@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -145,12 +145,12 @@ private:
   //! Writes the per-block dynamic files of block decomposed model (C version)
   void writeDynamicPerBlockCFiles(const string &basename) const;
   //! Writes the code of the block-decomposed model in virtual machine bytecode
-  void writeDynamicBlockBytecode(const string &basename, bool linear_decomposition) const;
+  void writeDynamicBlockBytecode(const string &basename) const;
   //! Writes the code of the model in virtual machine bytecode
   void writeDynamicBytecode(const string &basename) const;
   //! Adds per-block information for bytecode simulation in a separate .bin file
   void writeBlockBytecodeBinFile(const string &basename, int num, int &u_count_int, bool &file_open,
-                                 bool is_two_boundaries, bool linear_decomposition) const;
+                                 bool is_two_boundaries) const;
 
   void writeSetAuxiliaryVariables(const string &basename, bool julia) const;
   void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
@@ -298,9 +298,9 @@ public:
     \param no_tmp_terms if true, no temporary terms will be computed in the dynamic files
   */
   void computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsOrder,
-                     const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode, bool linear_decomposition);
+                     const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode);
   //! Writes information about the dynamic model to the driver file
-  void writeDriverOutput(ostream &output, const string &basename, bool block, bool linear_decomposition, bool use_dll, bool estimation_present, bool compute_xrefs, bool julia) const;
+  void writeDriverOutput(ostream &output, const string &basename, bool block, bool use_dll, bool estimation_present, bool compute_xrefs, bool julia) const;
 
   //! Write JSON AST
   void writeJsonAST(ostream &output) const;
@@ -385,7 +385,7 @@ public:
   void substitutePacExpectation(const string &pac_model_name);
 
   //! Writes dynamic model file
-  void writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const;
+  void writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const;
   //! Writes file containing parameters derivatives
   void writeParamsDerivativesFile(const string &basename, bool julia) const;
 

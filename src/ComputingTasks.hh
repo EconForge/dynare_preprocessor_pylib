@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -91,20 +91,6 @@ private:
 public:
   PriorPosteriorFunctionStatement(const bool prior_func_arg, OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
-  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
-  void writeJsonOutput(ostream &output) const override;
-};
-
-class DetCondForecastStatement : public Statement
-{
-private:
-  const OptionsList options_list;
-  const SymbolList symbol_list;
-  const bool linear_decomposition;
-public:
-  DetCondForecastStatement(SymbolList symbol_list_arg,
-                           OptionsList options_list_arg,
-                           const bool linear_decompositiontion_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };

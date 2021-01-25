@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -185,7 +185,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>smoother2histval {BEGIN DYNARE_STATEMENT; return token::SMOOTHER2HISTVAL;}
 <INITIAL>perfect_foresight_setup {BEGIN DYNARE_STATEMENT; return token::PERFECT_FORESIGHT_SETUP;}
 <INITIAL>perfect_foresight_solver {BEGIN DYNARE_STATEMENT; return token::PERFECT_FORESIGHT_SOLVER;}
-<INITIAL>det_cond_forecast {BEGIN DYNARE_STATEMENT; return token::DET_COND_FORECAST;}
 <INITIAL>compilation_setup {BEGIN DYNARE_STATEMENT; return token::COMPILATION_SETUP;}
 
 <DYNARE_STATEMENT>; {
@@ -813,7 +812,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_BLOCK>use_dll {return token::USE_DLL;}
 <DYNARE_BLOCK>block {return token::BLOCK;}
 <DYNARE_BLOCK>bytecode {return token::BYTECODE;}
-<DYNARE_BLOCK>linear_decomposition {return token::LINEAR_DECOMPOSITION;}
 <DYNARE_BLOCK>all_values_required {return token::ALL_VALUES_REQUIRED;}
 <DYNARE_BLOCK>no_static {return token::NO_STATIC;}
 <DYNARE_BLOCK>differentiate_forward_vars {return token::DIFFERENTIATE_FORWARD_VARS;}

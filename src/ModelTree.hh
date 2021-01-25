@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -302,8 +302,6 @@ protected:
   /*! Returns the contemporaneous_jacobian.
       Elements below the cutoff are discarded. External functions are evaluated to 1. */
   jacob_map_t evaluateAndReduceJacobian(const eval_context_t &eval_context) const;
-  //! Select and reorder the non linear equations of the model
-  void select_non_linear_equations_and_variables();
   /* Search the equations and variables belonging to the prologue and the
      epilogue of the model.
      Initializes “eq_idx_block2orig” and “endo_idx_block2orig”.
@@ -334,8 +332,6 @@ protected:
      max_lead) across all its occurences inside the equations of the block to
      which it belongs. */
   pair<lag_lead_vector_t, lag_lead_vector_t> getVariableLeadLagByBlock() const;
-  //! For each equation determine if it is linear or not
-  void equationLinear(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives);
   //! Print an abstract of the block structure of the model
   void printBlockDecomposition() const;
   //! Determine for each block if it is linear or not

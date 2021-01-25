@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1032,7 +1032,7 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
 }
 
 void
-DynamicModel::writeDynamicBlockBytecode(const string &basename, bool linear_decomposition) const
+DynamicModel::writeDynamicBlockBytecode(const string &basename) const
 {
   struct Uff_l
   {
@@ -1056,11 +1056,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename, bool linear_deco
   map<expr_t, int> reference_count;
   vector<int> feedback_variables;
   bool file_open = false;
-  string main_name;
-  if (linear_decomposition)
-    main_name = basename + "/model/bytecode/non_linear.cod";
-  else
-    main_name = basename + "/model/bytecode/dynamic.cod";
+  string main_name = basename + "/model/bytecode/dynamic.cod";
   code_file.open(main_name, ios::out | ios::binary | ios::ate);
   if (!code_file.is_open())
     {
@@ -1095,7 +1091,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename, bool linear_deco
           || simulation_type == BlockSimulationType::solveForwardComplete)
         {
           writeBlockBytecodeBinFile(basename, block, u_count_int, file_open,
-                                    simulation_type == BlockSimulationType::solveTwoBoundariesComplete || simulation_type == BlockSimulationType::solveTwoBoundariesSimple, linear_decomposition);
+                                    simulation_type == BlockSimulationType::solveTwoBoundariesComplete || simulation_type == BlockSimulationType::solveTwoBoundariesSimple);
           file_open = true;
         }
 
@@ -1123,8 +1119,6 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename, bool linear_deco
       fbeginblock.write(code_file, instruction_number);
 
       temporary_terms_t temporary_terms_union;
-      if (linear_decomposition)
-        compileTemporaryTerms(code_file, instruction_number, true, false, temporary_terms_union, blocks_temporary_terms_idxs);
 
       //The Temporary terms
       deriv_node_temp_terms_t tef_terms;
@@ -1155,8 +1149,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename, bool linear_deco
       // The equations
       for (i = 0; i < block_size; i++)
         {
-          if (!linear_decomposition)
-            write_eq_tt(i);
+          write_eq_tt(i);
 
           int variable_ID, equation_ID;
           EquationType equ_type;
@@ -1228,8 +1221,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename, bool linear_deco
           && simulation_type != BlockSimulationType::evaluateForward)
         {
           // Write temporary terms for derivatives
-          if (!linear_decomposition)
-            write_eq_tt(blocks[block].size);
+          write_eq_tt(blocks[block].size);
 
           switch (simulation_type)
             {
@@ -1556,16 +1548,11 @@ DynamicModel::printNonZeroHessianEquations(ostream &output) const
 
 void
 DynamicModel::writeBlockBytecodeBinFile(const string &basename, int num, int &u_count_int,
-                                        bool &file_open, bool is_two_boundaries, bool linear_decomposition) const
+                                        bool &file_open, bool is_two_boundaries) const
 {
   int j;
   std::ofstream SaveCode;
-  string filename;
-
-  if (!linear_decomposition)
-    filename = basename + "/model/bytecode/dynamic.bin";
-  else
-    filename = basename + "/model/bytecode/non_linear.bin";
+  string filename = basename + "/model/bytecode/dynamic.bin";
 
   if (file_open)
     SaveCode.open(filename, ios::out | ios::in | ios::binary | ios::ate);
@@ -2811,7 +2798,7 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename, co
 }
 
 void
-DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool block_decomposition, bool linear_decomposition, bool use_dll, bool estimation_present, bool compute_xrefs, bool julia) const
+DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool block_decomposition, bool use_dll, bool estimation_present, bool compute_xrefs, bool julia) const
 {
   /* Writing initialisation for M_.lead_lag_incidence matrix
      M_.lead_lag_incidence is a matrix with as many columns as there are
@@ -2983,7 +2970,7 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
         }
 
   // Write the block structure of the model
-  if (block_decomposition || linear_decomposition)
+  if (block_decomposition)
     writeBlockDriverOutput(output, basename, modstruct, state_var, estimation_present);
 
   output << modstruct << "state_var = [";
@@ -4254,7 +4241,7 @@ DynamicModel::substitutePacExpectation(const string &pac_model_name)
 void
 DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsOrder,
                             const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll,
-                            bool bytecode, bool linear_decomposition)
+                            bool bytecode)
 {
   assert(jacobianExo || (derivsOrder < 2 && paramsDerivsOrder == 0));
 
@@ -4276,8 +4263,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
     }
 
   // Launch computations
-  cout << "Computing " << (linear_decomposition ? "nonlinear " : "")
-       << "dynamic model derivatives (order " << derivsOrder << ")." << endl;
+  cout << "Computing dynamic model derivatives (order " << derivsOrder << ")." << endl;
 
   computeDerivatives(derivsOrder, vars);
 
@@ -4292,32 +4278,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
     }
 
 
-  if (linear_decomposition)
-    {
-      auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
-      equationLinear(first_order_endo_derivatives);
-
-      auto contemporaneous_jacobian = evaluateAndReduceJacobian(eval_context);
-
-      if (!computeNaturalNormalization())
-        computeNonSingularNormalization(contemporaneous_jacobian);
-
-      select_non_linear_equations_and_variables();
-
-      equationTypeDetermination(first_order_endo_derivatives, 0);
-
-      reduceBlockDecomposition();
-
-      computeChainRuleJacobian();
-
-      determineLinearBlocks();
-
-      computeBlockDynJacobianCols();
-
-      if (!no_tmp_terms)
-        computeBlockTemporaryTerms();
-    }
-  else if (block)
+  if (block)
     {
       auto contemporaneous_jacobian = evaluateAndReduceJacobian(eval_context);
 
@@ -4614,7 +4575,7 @@ DynamicModel::computeBlockDynJacobianCols()
 }
 
 void
-DynamicModel::writeDynamicFile(const string &basename, bool block, bool linear_decomposition, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const
+DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const
 {
   filesystem::path model_dir{basename};
   model_dir /= "model";
@@ -4623,20 +4584,10 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool linear_d
   if (bytecode)
     filesystem::create_directories(model_dir / "bytecode");
 
-  if (linear_decomposition)
+  if (block)
     {
       if (bytecode)
-        writeDynamicBlockBytecode(basename, linear_decomposition);
-      else
-        {
-          cerr << "'linear_decomposition' option requires the 'bytecode' option" << endl;
-          exit(EXIT_FAILURE);
-        }
-    }
-  else if (block)
-    {
-      if (bytecode)
-        writeDynamicBlockBytecode(basename, linear_decomposition);
+        writeDynamicBlockBytecode(basename);
       else if (use_dll)
         {
           writeDynamicPerBlockCFiles(basename);

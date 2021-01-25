@@ -351,35 +351,6 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context) const
   return contemporaneous_jacobian;
 }
 
-void
-ModelTree::select_non_linear_equations_and_variables()
-{
-  endo2block.resize(endo2eq.size(), 1); // The 1 is a dummy value, distinct from 0
-  eq2block.resize(endo2eq.size(), 1);
-  int i = 0;
-  for (int endo = 0; endo < static_cast<int>(endo2eq.size()); endo++)
-    {
-      int eq = endo2eq[endo];
-      if (!is_equation_linear[eq])
-        {
-          eq_idx_block2orig[i] = eq;
-          endo_idx_block2orig[i] = endo;
-          endo2block[endo] = 0;
-          eq2block[eq] = 0;
-          i++;
-        }
-    }
-  updateReverseVariableEquationOrderings();
-
-  blocks.clear();
-  blocks.resize(1);
-  blocks[0].size = i;
-  blocks[0].mfs_size = i;
-  blocks[0].first_equation = 0;
-  computeDynamicStructureOfBlock(0);
-  computeSimulationTypeOfBlock(0);
-}
-
 bool
 ModelTree::computeNaturalNormalization()
 {
@@ -868,23 +839,6 @@ ModelTree::reduceBlockDecomposition()
             continue;
           }
       }
-}
-
-void
-ModelTree::equationLinear(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives)
-{
-  is_equation_linear.clear();
-  is_equation_linear.resize(symbol_table.endo_nbr(), true);
-  for (const auto &[indices, expr] : first_order_endo_derivatives)
-    {
-      set<pair<int, int>> endogenous;
-      expr->collectEndogenous(endogenous);
-      if (endogenous.size() > 0)
-        {
-          int eq = get<0>(indices);
-          is_equation_linear[eq] = false;
-        }
-    }
 }
 
 void
