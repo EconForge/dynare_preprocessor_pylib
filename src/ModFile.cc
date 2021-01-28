@@ -1093,7 +1093,8 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
 
       if (!notime)
           mOutputFile << endl << endl
-                      << "disp(['Total computing time : ' dynsec2hms(toc(tic0)) ]);" << endl;
+                      << "oo_.time = toc(tic0);" << endl
+                      << "disp(['Total computing time : ' dynsec2hms(oo_.time) ]);" << endl;
 
       if (!no_warn)
         {
