@@ -26,10 +26,6 @@
 
 #include <cstdlib>
 
-#ifndef PACKAGE_VERSION
-# define PACKAGE_VERSION 4.
-#endif
-
 #include <unistd.h>
 
 #include "ParsingDriver.hh"
