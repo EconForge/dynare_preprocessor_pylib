@@ -1263,7 +1263,7 @@ ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_n
       if (dynamic_cast<AbstractExternalFunctionNode *>(tt))
         tt->compileExternalFunctionOutput(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
 
-      FNUMEXPR_ fnumexpr(TemporaryTerm, idx);
+      FNUMEXPR_ fnumexpr(ExpressionType::TemporaryTerm, idx);
       fnumexpr.write(code_file, instruction_number);
       tt->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
       if (dynamic)
@@ -1399,7 +1399,7 @@ ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_n
       BinaryOpNode *eq_node = equations[eq];
       expr_t lhs = eq_node->arg1;
       expr_t rhs = eq_node->arg2;
-      FNUMEXPR_ fnumexpr(ModelEquation, eq);
+      FNUMEXPR_ fnumexpr(ExpressionType::ModelEquation, eq);
       fnumexpr.write(code_file, instruction_number);
       // Test if the right hand side of the equation is empty.
       double vrhs = 1.0;

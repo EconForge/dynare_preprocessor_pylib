@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -442,7 +442,7 @@ StaticModel::writeStaticBytecode(const string &basename) const
           int eq = indices[0];
           int symb = getSymbIDByDerivID(deriv_id);
           int var = symbol_table.getTypeSpecificID(symb);
-          FNUMEXPR_ fnumexpr(FirstEndoDerivative, eq, var);
+          FNUMEXPR_ fnumexpr(ExpressionType::FirstEndoDerivative, eq, var);
           fnumexpr.write(code_file, instruction_number);
           if (!my_derivatives[eq].size())
             my_derivatives[eq].clear();
@@ -504,7 +504,7 @@ StaticModel::writeStaticBytecode(const string &basename) const
           int eq = indices[0];
           int symb = getSymbIDByDerivID(deriv_id);
           int var = symbol_table.getTypeSpecificID(symb);
-          FNUMEXPR_ fnumexpr(FirstEndoDerivative, eq, var);
+          FNUMEXPR_ fnumexpr(ExpressionType::FirstEndoDerivative, eq, var);
           fnumexpr.write(code_file, instruction_number);
           if (!my_derivatives[eq].size())
             my_derivatives[eq].clear();
@@ -628,7 +628,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
                                if (dynamic_cast<AbstractExternalFunctionNode *>(it))
                                  it->compileExternalFunctionOutput(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false, tef_terms);
 
-                               FNUMEXPR_ fnumexpr(TemporaryTerm, static_cast<int>(blocks_temporary_terms_idxs.at(it)));
+                               FNUMEXPR_ fnumexpr(ExpressionType::TemporaryTerm, static_cast<int>(blocks_temporary_terms_idxs.at(it)));
                                fnumexpr.write(code_file, instruction_number);
                                it->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false, tef_terms);
                                FSTPST_ fstpst(static_cast<int>(blocks_temporary_terms_idxs.at(it)));
@@ -651,7 +651,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
             case BlockSimulationType::evaluateForward:
               equ_type = getBlockEquationType(block, i);
               {
-                FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
+                FNUMEXPR_ fnumexpr(ExpressionType::ModelEquation, getBlockEquationID(block, i));
                 fnumexpr.write(code_file, instruction_number);
               }
               if (equ_type == EquationType::evaluate)
@@ -682,7 +682,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
               goto end;
             default:
             end:
-              FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
+              FNUMEXPR_ fnumexpr(ExpressionType::ModelEquation, getBlockEquationID(block, i));
               fnumexpr.write(code_file, instruction_number);
               eq_node = getBlockEquationExpr(block, i);
               lhs = eq_node->arg1;
@@ -712,7 +712,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
             case BlockSimulationType::solveBackwardSimple:
             case BlockSimulationType::solveForwardSimple:
               {
-                FNUMEXPR_ fnumexpr(FirstEndoDerivative, 0, 0);
+                FNUMEXPR_ fnumexpr(ExpressionType::FirstEndoDerivative, 0, 0);
                 fnumexpr.write(code_file, instruction_number);
               }
               compileDerivative(code_file, instruction_number, getBlockEquationID(block, 0), getBlockVariableID(block, 0), temporary_terms_union, blocks_temporary_terms_idxs);
@@ -745,7 +745,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
                       Uf[eqr].Ufl->pNext = nullptr;
                       Uf[eqr].Ufl->u = count_u;
                       Uf[eqr].Ufl->var = varr;
-                      FNUMEXPR_ fnumexpr(FirstEndoDerivative, eqr, varr);
+                      FNUMEXPR_ fnumexpr(ExpressionType::FirstEndoDerivative, eqr, varr);
                       fnumexpr.write(code_file, instruction_number);
                       compileChainRuleDerivative(code_file, instruction_number, block, eq, var, 0, temporary_terms_union, blocks_temporary_terms_idxs);
                       FSTPSU_ fstpsu(count_u);
@@ -827,7 +827,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
             case BlockSimulationType::evaluateForward:
               equ_type = getBlockEquationType(block, i);
               {
-                FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
+                FNUMEXPR_ fnumexpr(ExpressionType::ModelEquation, getBlockEquationID(block, i));
                 fnumexpr.write(code_file, instruction_number);
               }
               if (equ_type == EquationType::evaluate)
@@ -858,7 +858,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
               goto end_l;
             default:
             end_l:
-              FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
+              FNUMEXPR_ fnumexpr(ExpressionType::ModelEquation, getBlockEquationID(block, i));
               fnumexpr.write(code_file, instruction_number);
               eq_node = getBlockEquationExpr(block, i);
               lhs = eq_node->arg1;
@@ -886,7 +886,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
         case BlockSimulationType::solveBackwardSimple:
         case BlockSimulationType::solveForwardSimple:
           {
-            FNUMEXPR_ fnumexpr(FirstEndoDerivative, 0, 0);
+            FNUMEXPR_ fnumexpr(ExpressionType::FirstEndoDerivative, 0, 0);
             fnumexpr.write(code_file, instruction_number);
           }
           compileDerivative(code_file, instruction_number, getBlockEquationID(block, 0), getBlockVariableID(block, 0), temporary_terms_union, blocks_temporary_terms_idxs);
@@ -905,7 +905,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
               auto &[eq, var, ignore] = indices;
               int eqr = getBlockEquationID(block, eq);
               int varr = getBlockVariableID(block, var);
-              FNUMEXPR_ fnumexpr(FirstEndoDerivative, eqr, varr, 0);
+              FNUMEXPR_ fnumexpr(ExpressionType::FirstEndoDerivative, eqr, varr, 0);
               fnumexpr.write(code_file, instruction_number);
 
               compileChainRuleDerivative(code_file, instruction_number, block, eq, var, 0, temporary_terms_union, blocks_temporary_terms_idxs);

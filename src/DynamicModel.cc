@@ -927,7 +927,7 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
           int symb = getSymbIDByDerivID(deriv_id);
           int var = symbol_table.getTypeSpecificID(symb);
           int lag = getLagByDerivID(deriv_id);
-          FNUMEXPR_ fnumexpr(FirstEndoDerivative, eq, var, lag);
+          FNUMEXPR_ fnumexpr(ExpressionType::FirstEndoDerivative, eq, var, lag);
           fnumexpr.write(code_file, instruction_number);
           if (!my_derivatives[eq].size())
             my_derivatives[eq].clear();
@@ -986,7 +986,7 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
     {
       auto [lag, var, eq] = it.first;
       expr_t d1 = it.second;
-      FNUMEXPR_ fnumexpr(FirstEndoDerivative, eq, var, lag);
+      FNUMEXPR_ fnumexpr(ExpressionType::FirstEndoDerivative, eq, var, lag);
       fnumexpr.write(code_file, instruction_number);
       if (prev_var != var || prev_lag != lag)
         {
@@ -1005,7 +1005,7 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
     {
       auto [lag, ignore, var, eq] = it.first;
       expr_t d1 = it.second;
-      FNUMEXPR_ fnumexpr(FirstExoDerivative, eq, var, lag);
+      FNUMEXPR_ fnumexpr(ExpressionType::FirstExoDerivative, eq, var, lag);
       fnumexpr.write(code_file, instruction_number);
       if (prev_var != var || prev_lag != lag)
         {
@@ -1130,7 +1130,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
                                if (dynamic_cast<AbstractExternalFunctionNode *>(it))
                                  it->compileExternalFunctionOutput(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
 
-                               FNUMEXPR_ fnumexpr(TemporaryTerm, static_cast<int>(blocks_temporary_terms_idxs.at(it)));
+                               FNUMEXPR_ fnumexpr(ExpressionType::TemporaryTerm, static_cast<int>(blocks_temporary_terms_idxs.at(it)));
                                fnumexpr.write(code_file, instruction_number);
                                it->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
                                FSTPT_ fstpt(static_cast<int>(blocks_temporary_terms_idxs.at(it)));
@@ -1161,7 +1161,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
             case BlockSimulationType::evaluateForward:
               equ_type = getBlockEquationType(block, i);
               {
-                FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
+                FNUMEXPR_ fnumexpr(ExpressionType::ModelEquation, getBlockEquationID(block, i));
                 fnumexpr.write(code_file, instruction_number);
               }
               if (equ_type == EquationType::evaluate)
@@ -1194,7 +1194,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
               goto end;
             default:
             end:
-              FNUMEXPR_ fnumexpr(ModelEquation, getBlockEquationID(block, i));
+              FNUMEXPR_ fnumexpr(ExpressionType::ModelEquation, getBlockEquationID(block, i));
               fnumexpr.write(code_file, instruction_number);
               eq_node = getBlockEquationExpr(block, i);
               lhs = eq_node->arg1;
@@ -1228,7 +1228,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
             case BlockSimulationType::solveBackwardSimple:
             case BlockSimulationType::solveForwardSimple:
               {
-                FNUMEXPR_ fnumexpr(FirstEndoDerivative, getBlockEquationID(block, 0), getBlockVariableID(block, 0), 0);
+                FNUMEXPR_ fnumexpr(ExpressionType::FirstEndoDerivative, getBlockEquationID(block, 0), getBlockVariableID(block, 0), 0);
                 fnumexpr.write(code_file, instruction_number);
               }
               compileDerivative(code_file, instruction_number, getBlockEquationID(block, 0), getBlockVariableID(block, 0), 0, temporary_terms_union, blocks_temporary_terms_idxs);
@@ -1268,7 +1268,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
                       Uf[eqr].Ufl->u = count_u;
                       Uf[eqr].Ufl->var = varr;
                       Uf[eqr].Ufl->lag = lag;
-                      FNUMEXPR_ fnumexpr(FirstEndoDerivative, eqr, varr, lag);
+                      FNUMEXPR_ fnumexpr(ExpressionType::FirstEndoDerivative, eqr, varr, lag);
                       fnumexpr.write(code_file, instruction_number);
                       compileChainRuleDerivative(code_file, instruction_number, block, eq, var, lag, temporary_terms_union, blocks_temporary_terms_idxs);
                       FSTPU_ fstpu(count_u);
@@ -1337,7 +1337,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
           auto [eq, var, lag] = indices;
           int eqr = getBlockEquationID(block, eq);
           int varr = getBlockVariableID(block, var);
-          FNUMEXPR_ fnumexpr(FirstEndoDerivative, eqr, varr, lag);
+          FNUMEXPR_ fnumexpr(ExpressionType::FirstEndoDerivative, eqr, varr, lag);
           fnumexpr.write(code_file, instruction_number);
           compileDerivative(code_file, instruction_number, eqr, varr, lag, temporary_terms_union, blocks_temporary_terms_idxs);
           FSTPG3_ fstpg3(eq, var, lag, blocks_jacob_cols_endo[block].at({ var, lag }));
@@ -1348,7 +1348,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
           auto [eqr, var, lag] = indices;
           int eq = getBlockEquationID(block, eqr);
           int varr = 0; // Dummy value, actually unused by the bytecode MEX
-          FNUMEXPR_ fnumexpr(FirstExoDerivative, eqr, varr, lag);
+          FNUMEXPR_ fnumexpr(ExpressionType::FirstExoDerivative, eqr, varr, lag);
           fnumexpr.write(code_file, instruction_number);
           d->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false);
           FSTPG3_ fstpg3(eq, var, lag, blocks_jacob_cols_exo[block].at({ var, lag }));
@@ -1359,7 +1359,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
           auto [eqr, var, lag] = indices;
           int eq = getBlockEquationID(block, eqr);
           int varr = 0; // Dummy value, actually unused by the bytecode MEX
-          FNUMEXPR_ fnumexpr(FirstExodetDerivative, eqr, varr, lag);
+          FNUMEXPR_ fnumexpr(ExpressionType::FirstExodetDerivative, eqr, varr, lag);
           fnumexpr.write(code_file, instruction_number);
           d->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false);
           FSTPG3_ fstpg3(eq, var, lag, blocks_jacob_cols_exo_det[block].at({ var, lag }));
@@ -1370,7 +1370,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
           auto [eqr, var, lag] = indices;
           int eq = getBlockEquationID(block, eqr);
           int varr = 0; // Dummy value, actually unused by the bytecode MEX
-          FNUMEXPR_ fnumexpr(FirstOtherEndoDerivative, eqr, varr, lag);
+          FNUMEXPR_ fnumexpr(ExpressionType::FirstOtherEndoDerivative, eqr, varr, lag);
           fnumexpr.write(code_file, instruction_number);
           d->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false);
           FSTPG3_ fstpg3(eq, var, lag, blocks_jacob_cols_other_endo[block].at({ var, lag }));

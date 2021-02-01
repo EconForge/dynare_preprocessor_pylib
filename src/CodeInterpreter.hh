@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2020 Dynare Team
+ * Copyright © 2007-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -19,7 +19,6 @@
 
 #ifndef _CODEINTERPRETER_HH
 #define _CODEINTERPRETER_HH
-//#define DEBUGL
 
 #include <fstream>
 #include <cstring>
@@ -44,7 +43,7 @@ const double near_zero{1e-12};
  * \enum Tags
  * \brief The differents flags of the bytecode
  */
-enum Tags
+enum class Tags
   {
    FLDZ, //!< Stores zero in the stack - 0 (0)
    FLDC, //!< Stores a constant term in the stack - 1 (1)
@@ -146,7 +145,7 @@ enum class SymbolType
    excludedVariable = 19 //!< Type to use when an equation is excluded via include/exclude_eqs and the LHS variable is not used elsewhere in the model
   };
 
-enum ExpressionType
+enum class ExpressionType
   {
    TemporaryTerm,
    ModelEquation,
@@ -258,7 +257,7 @@ protected:
   uint8_t op_code;
 public:
   inline explicit
-  TagWithoutArgument(uint8_t op_code_arg) : op_code{op_code_arg}
+  TagWithoutArgument(Tags op_code_arg) : op_code{static_cast<uint8_t>(op_code_arg)}
   {
   };
   inline void
@@ -277,11 +276,12 @@ protected:
   T1 arg1;
 public:
   inline explicit
-  TagWithOneArgument(uint8_t op_code_arg) : op_code{op_code_arg}
+  TagWithOneArgument(Tags op_code_arg) : op_code{static_cast<uint8_t>(op_code_arg)}
   {
   };
   inline
-  TagWithOneArgument(uint8_t op_code_arg, T1 arg_arg1) : op_code{op_code_arg}, arg1{arg_arg1}
+  TagWithOneArgument(Tags op_code_arg, T1 arg_arg1) : op_code{static_cast<uint8_t>(op_code_arg)},
+                                                      arg1{arg_arg1}
   {
   };
   inline void
@@ -301,11 +301,12 @@ protected:
   T2 arg2;
 public:
   inline explicit
-  TagWithTwoArguments(uint8_t op_code_arg) : op_code{op_code_arg}
+  TagWithTwoArguments(Tags op_code_arg) : op_code{static_cast<uint8_t>(op_code_arg)}
   {
   };
   inline
-  TagWithTwoArguments(uint8_t op_code_arg, T1 arg_arg1, T2 arg_arg2) : op_code{op_code_arg}, arg1{arg_arg1}, arg2{arg_arg2}
+  TagWithTwoArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2) :
+    op_code{static_cast<uint8_t>(op_code_arg)}, arg1{arg_arg1}, arg2{arg_arg2}
   {
   };
   inline void
@@ -326,11 +327,12 @@ protected:
   T3 arg3;
 public:
   inline explicit
-  TagWithThreeArguments(uint8_t op_code_arg) : op_code{op_code_arg}
+  TagWithThreeArguments(Tags op_code_arg) : op_code{static_cast<uint8_t>(op_code_arg)}
   {
   };
   inline
-  TagWithThreeArguments(uint8_t op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3) : op_code{op_code_arg}, arg1{arg_arg1}, arg2{arg_arg2}, arg3{arg_arg3}
+  TagWithThreeArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3) :
+    op_code{static_cast<uint8_t>(op_code_arg)}, arg1{arg_arg1}, arg2{arg_arg2}, arg3{arg_arg3}
   {
   };
   inline void
@@ -352,11 +354,13 @@ protected:
   T4 arg4;
 public:
   inline explicit
-  TagWithFourArguments(uint8_t op_code_arg) : op_code{op_code_arg}
+  TagWithFourArguments(Tags op_code_arg) : op_code{static_cast<uint8_t>(op_code_arg)}
   {
   };
   inline
-  TagWithFourArguments(uint8_t op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3, T4 arg_arg4) : op_code{op_code_arg}, arg1{arg_arg1}, arg2{arg_arg2}, arg3{move(arg_arg3)}, arg4{arg_arg4}
+  TagWithFourArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3, T4 arg_arg4) :
+    op_code{static_cast<uint8_t>(op_code_arg)}, arg1{arg_arg1}, arg2{arg_arg2},
+    arg3{move(arg_arg3)}, arg4{arg_arg4}
   {
   };
   inline void
@@ -371,7 +375,7 @@ class FLDZ_ : public TagWithoutArgument
 {
 public:
   inline
-  FLDZ_() : TagWithoutArgument{FLDZ}
+  FLDZ_() : TagWithoutArgument{Tags::FLDZ}
   {
   };
 };
@@ -380,7 +384,7 @@ class FEND_ : public TagWithoutArgument
 {
 public:
   inline
-  FEND_() : TagWithoutArgument{FEND}
+  FEND_() : TagWithoutArgument{Tags::FEND}
   {
   };
 };
@@ -389,7 +393,7 @@ class FENDBLOCK_ : public TagWithoutArgument
 {
 public:
   inline
-  FENDBLOCK_() : TagWithoutArgument{FENDBLOCK}
+  FENDBLOCK_() : TagWithoutArgument{Tags::FENDBLOCK}
   {
   };
 };
@@ -398,7 +402,7 @@ class FENDEQU_ : public TagWithoutArgument
 {
 public:
   inline
-  FENDEQU_() : TagWithoutArgument{FENDEQU}
+  FENDEQU_() : TagWithoutArgument{Tags::FENDEQU}
   {
   };
 };
@@ -407,7 +411,7 @@ class FCUML_ : public TagWithoutArgument
 {
 public:
   inline
-  FCUML_() : TagWithoutArgument{FCUML}
+  FCUML_() : TagWithoutArgument{Tags::FCUML}
   {
   };
 };
@@ -416,7 +420,7 @@ class FPUSH_ : public TagWithoutArgument
 {
 public:
   inline
-  FPUSH_() : TagWithoutArgument{FPUSH}
+  FPUSH_() : TagWithoutArgument{Tags::FPUSH}
   {
   };
 };
@@ -425,7 +429,7 @@ class FPOP_ : public TagWithoutArgument
 {
 public:
   inline
-  FPOP_() : TagWithoutArgument{FPOP}
+  FPOP_() : TagWithoutArgument{Tags::FPOP}
   {
   };
 };
@@ -434,11 +438,11 @@ class FDIMT_ : public TagWithOneArgument<unsigned int>
 {
 public:
   inline
-  FDIMT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{FDIMT}
+  FDIMT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FDIMT}
   {
   };
   inline explicit
-  FDIMT_(unsigned int size_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FDIMT, size_arg}
+  FDIMT_(unsigned int size_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FDIMT, size_arg}
   {
   };
   inline unsigned int
@@ -452,11 +456,11 @@ class FDIMST_ : public TagWithOneArgument<unsigned int>
 {
 public:
   inline
-  FDIMST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{FDIMST}
+  FDIMST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FDIMST}
   {
   };
   inline explicit
-  FDIMST_(const unsigned int size_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FDIMST, size_arg}
+  FDIMST_(const unsigned int size_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FDIMST, size_arg}
   {
   };
   inline unsigned int
@@ -470,11 +474,11 @@ class FLDC_ : public TagWithOneArgument<double>
 {
 public:
   inline
-  FLDC_() : TagWithOneArgument<double>::TagWithOneArgument{FLDC}
+  FLDC_() : TagWithOneArgument<double>::TagWithOneArgument{Tags::FLDC}
   {
   };
   inline explicit
-  FLDC_(double value_arg) : TagWithOneArgument<double>::TagWithOneArgument{FLDC, value_arg}
+  FLDC_(double value_arg) : TagWithOneArgument<double>::TagWithOneArgument{Tags::FLDC, value_arg}
   {
   };
   inline double
@@ -488,11 +492,11 @@ class FLDU_ : public TagWithOneArgument<unsigned int>
 {
 public:
   inline
-  FLDU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDU}
+  FLDU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDU}
   {
   };
   inline explicit
-  FLDU_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDU, pos_arg}
+  FLDU_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDU, pos_arg}
   {
   };
   inline unsigned int
@@ -506,11 +510,11 @@ class FLDSU_ : public TagWithOneArgument<unsigned int>
 {
 public:
   inline
-  FLDSU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDSU}
+  FLDSU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDSU}
   {
   };
   inline explicit
-  FLDSU_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDSU, pos_arg}
+  FLDSU_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDSU, pos_arg}
   {
   };
   inline unsigned int
@@ -524,11 +528,11 @@ class FLDR_ : public TagWithOneArgument<unsigned int>
 {
 public:
   inline
-  FLDR_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDR}
+  FLDR_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDR}
   {
   };
   inline explicit
-  FLDR_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDR, pos_arg}
+  FLDR_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDR, pos_arg}
   {
   };
   inline unsigned int
@@ -542,11 +546,11 @@ class FLDT_ : public TagWithOneArgument<unsigned int>
 {
 public:
   inline
-  FLDT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDT}
+  FLDT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDT}
   {
   };
   inline explicit
-  FLDT_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDT, pos_arg}
+  FLDT_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDT, pos_arg}
   {
   };
   inline unsigned int
@@ -560,11 +564,11 @@ class FLDST_ : public TagWithOneArgument<unsigned int>
 {
 public:
   inline
-  FLDST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDST}
+  FLDST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDST}
   {
   };
   inline explicit
-  FLDST_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDST, pos_arg}
+  FLDST_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDST, pos_arg}
   {
   };
   inline unsigned int
@@ -578,11 +582,11 @@ class FSTPT_ : public TagWithOneArgument<unsigned int>
 {
 public:
   inline
-  FSTPT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPT}
+  FSTPT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPT}
   {
   };
   inline explicit
-  FSTPT_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPT, pos_arg}
+  FSTPT_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPT, pos_arg}
   {
   };
   inline unsigned int
@@ -596,11 +600,11 @@ class FSTPST_ : public TagWithOneArgument<unsigned int>
 {
 public:
   inline
-  FSTPST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPST}
+  FSTPST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPST}
   {
   };
   inline explicit
-  FSTPST_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPST, pos_arg}
+  FSTPST_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPST, pos_arg}
   {
   };
   inline unsigned int
@@ -614,11 +618,11 @@ class FSTPR_ : public TagWithOneArgument<unsigned int>
 {
 public:
   inline
-  FSTPR_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPR}
+  FSTPR_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPR}
   {
   };
   inline explicit
-  FSTPR_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPR, pos_arg}
+  FSTPR_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPR, pos_arg}
   {
   };
   inline unsigned int
@@ -632,11 +636,11 @@ class FSTPU_ : public TagWithOneArgument<unsigned int>
 {
 public:
   inline
-  FSTPU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPU}
+  FSTPU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPU}
   {
   };
   inline explicit
-  FSTPU_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPU, pos_arg}
+  FSTPU_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPU, pos_arg}
   {
   };
   inline unsigned int
@@ -650,11 +654,11 @@ class FSTPSU_ : public TagWithOneArgument<unsigned int>
 {
 public:
   inline
-  FSTPSU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPSU}
+  FSTPSU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPSU}
   {
   };
   inline explicit
-  FSTPSU_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPSU, pos_arg}
+  FSTPSU_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPSU, pos_arg}
   {
   };
   inline unsigned int
@@ -668,11 +672,11 @@ class FSTPG_ : public TagWithOneArgument<unsigned int>
 {
 public:
   inline
-  FSTPG_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPG, 0}
+  FSTPG_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPG, 0}
   {
   };
   inline explicit
-  FSTPG_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPG, pos_arg}
+  FSTPG_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPG, pos_arg}
   {
   };
   inline unsigned int
@@ -686,11 +690,11 @@ class FSTPG2_ : public TagWithTwoArguments<unsigned int, unsigned int>
 {
 public:
   inline
-  FSTPG2_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{FSTPG2, 0, 0}
+  FSTPG2_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{Tags::FSTPG2, 0, 0}
   {
   };
   inline
-  FSTPG2_(unsigned int pos_arg1, unsigned int pos_arg2) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{FSTPG2, pos_arg1, pos_arg2}
+  FSTPG2_(unsigned int pos_arg1, unsigned int pos_arg2) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{Tags::FSTPG2, pos_arg1, pos_arg2}
   {
   };
   inline unsigned int
@@ -709,11 +713,11 @@ class FSTPG3_ : public TagWithFourArguments<unsigned int, unsigned int, int, uns
 {
 public:
   inline
-  FSTPG3_() : TagWithFourArguments<unsigned int, unsigned int, int, unsigned int>::TagWithFourArguments{FSTPG3, 0, 0, 0, 0}
+  FSTPG3_() : TagWithFourArguments<unsigned int, unsigned int, int, unsigned int>::TagWithFourArguments{Tags::FSTPG3, 0, 0, 0, 0}
   {
   };
   inline
-  FSTPG3_(unsigned int pos_arg1, unsigned int pos_arg2, int pos_arg3, unsigned int pos_arg4) : TagWithFourArguments<unsigned int, unsigned int, int, unsigned int>::TagWithFourArguments{FSTPG3, pos_arg1, pos_arg2, pos_arg3, pos_arg4}
+  FSTPG3_(unsigned int pos_arg1, unsigned int pos_arg2, int pos_arg3, unsigned int pos_arg4) : TagWithFourArguments<unsigned int, unsigned int, int, unsigned int>::TagWithFourArguments{Tags::FSTPG3, pos_arg1, pos_arg2, pos_arg3, pos_arg4}
   {
   };
   inline unsigned int
@@ -742,11 +746,11 @@ class FUNARY_ : public TagWithOneArgument<uint8_t>
 {
 public:
   inline
-  FUNARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument{FUNARY}
+  FUNARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument{Tags::FUNARY}
   {
   };
   inline explicit
-  FUNARY_(uint8_t op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument{FUNARY, op_type_arg}
+  FUNARY_(uint8_t op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument{Tags::FUNARY, op_type_arg}
   {
   };
   inline uint8_t
@@ -760,11 +764,11 @@ class FBINARY_ : public TagWithOneArgument<uint8_t>
 {
 public:
   inline
-  FBINARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument{FBINARY}
+  FBINARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument{Tags::FBINARY}
   {
   };
   inline explicit
-  FBINARY_(int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument{FBINARY, static_cast<uint8_t>(op_type_arg)}
+  FBINARY_(int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument{Tags::FBINARY, static_cast<uint8_t>(op_type_arg)}
   {
   };
   inline uint8_t
@@ -778,11 +782,11 @@ class FTRINARY_ : public TagWithOneArgument<uint8_t>
 {
 public:
   inline
-  FTRINARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument{FTRINARY}
+  FTRINARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument{Tags::FTRINARY}
   {
   };
   inline explicit
-  FTRINARY_(int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument{FTRINARY, static_cast<uint8_t>(op_type_arg)}
+  FTRINARY_(int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument{Tags::FTRINARY, static_cast<uint8_t>(op_type_arg)}
   {
   };
   inline uint8_t
@@ -796,11 +800,11 @@ class FOK_ : public TagWithOneArgument<int>
 {
 public:
   inline
-  FOK_() : TagWithOneArgument<int>::TagWithOneArgument{FOK}
+  FOK_() : TagWithOneArgument<int>::TagWithOneArgument{Tags::FOK}
   {
   };
   inline explicit
-  FOK_(int arg_arg) : TagWithOneArgument<int>::TagWithOneArgument{FOK, arg_arg}
+  FOK_(int arg_arg) : TagWithOneArgument<int>::TagWithOneArgument{Tags::FOK, arg_arg}
   {
   };
   inline int
@@ -814,11 +818,11 @@ class FJMPIFEVAL_ : public TagWithOneArgument<unsigned int>
 {
 public:
   inline
-  FJMPIFEVAL_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{FJMPIFEVAL}
+  FJMPIFEVAL_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FJMPIFEVAL}
   {
   };
   inline explicit
-  FJMPIFEVAL_(unsigned int arg_pos) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FJMPIFEVAL, arg_pos}
+  FJMPIFEVAL_(unsigned int arg_pos) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FJMPIFEVAL, arg_pos}
   {
   };
   inline unsigned int
@@ -832,11 +836,11 @@ class FJMP_ : public TagWithOneArgument<unsigned int>
 {
 public:
   inline
-  FJMP_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{FJMP}
+  FJMP_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FJMP}
   {
   };
   inline explicit
-  FJMP_(unsigned int arg_pos) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FJMP, arg_pos}
+  FJMP_(unsigned int arg_pos) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FJMP, arg_pos}
   {
   };
   inline unsigned int
@@ -850,11 +854,11 @@ class FLDTEF_ : public TagWithOneArgument<unsigned int>
 {
 public:
   inline
-  FLDTEF_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDTEF}
+  FLDTEF_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDTEF}
   {
   };
   inline explicit
-  FLDTEF_(unsigned int number) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FLDTEF, number}
+  FLDTEF_(unsigned int number) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDTEF, number}
   {
   };
   inline unsigned int
@@ -868,11 +872,11 @@ class FSTPTEF_ : public TagWithOneArgument<unsigned int>
 {
 public:
   inline
-  FSTPTEF_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPTEF}
+  FSTPTEF_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPTEF}
   {
   };
   inline explicit
-  FSTPTEF_(unsigned int number) : TagWithOneArgument<unsigned int>::TagWithOneArgument{FSTPTEF, number}
+  FSTPTEF_(unsigned int number) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPTEF, number}
   {
   };
   inline unsigned int
@@ -886,11 +890,11 @@ class FLDTEFD_ : public TagWithTwoArguments<unsigned int, unsigned int>
 {
 public:
   inline
-  FLDTEFD_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{FLDTEFD}
+  FLDTEFD_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{Tags::FLDTEFD}
   {
   };
   inline
-  FLDTEFD_(unsigned int indx, unsigned int row) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{FLDTEFD, indx, row}
+  FLDTEFD_(unsigned int indx, unsigned int row) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{Tags::FLDTEFD, indx, row}
   {
   };
   inline unsigned int
@@ -909,11 +913,11 @@ class FSTPTEFD_ : public TagWithTwoArguments<unsigned int, unsigned int>
 {
 public:
   inline
-  FSTPTEFD_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{FSTPTEFD}
+  FSTPTEFD_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{Tags::FSTPTEFD}
   {
   };
   inline
-  FSTPTEFD_(unsigned int indx, unsigned int row) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{FSTPTEFD, indx, row}
+  FSTPTEFD_(unsigned int indx, unsigned int row) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{Tags::FSTPTEFD, indx, row}
   {
   };
   inline unsigned int
@@ -932,11 +936,11 @@ class FLDTEFDD_ : public TagWithThreeArguments<unsigned int, unsigned int, unsig
 {
 public:
   inline
-  FLDTEFDD_() : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments{FLDTEFDD}
+  FLDTEFDD_() : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments{Tags::FLDTEFDD}
   {
   };
   inline
-  FLDTEFDD_(unsigned int indx, unsigned int row, unsigned int col) : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments{FLDTEFDD, indx, row, col}
+  FLDTEFDD_(unsigned int indx, unsigned int row, unsigned int col) : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments{Tags::FLDTEFDD, indx, row, col}
   {
   };
   inline unsigned int
@@ -960,11 +964,11 @@ class FSTPTEFDD_ : public TagWithThreeArguments<unsigned int, unsigned int, unsi
 {
 public:
   inline
-  FSTPTEFDD_() : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments{FSTPTEFDD}
+  FSTPTEFDD_() : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments{Tags::FSTPTEFDD}
   {
   };
   inline
-  FSTPTEFDD_(unsigned int indx, unsigned int row, unsigned int col) : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments{FSTPTEF, indx, row, col}
+  FSTPTEFDD_(unsigned int indx, unsigned int row, unsigned int col) : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments{Tags::FSTPTEF, indx, row, col}
   {
   };
   inline unsigned int
@@ -988,11 +992,11 @@ class FLDVS_ : public TagWithTwoArguments<uint8_t, unsigned int>
 {
 public:
   inline
-  FLDVS_() : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{FLDVS}
+  FLDVS_() : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{Tags::FLDVS}
   {
   };
   inline
-  FLDVS_(uint8_t type_arg, unsigned int pos_arg) : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{FLDVS, type_arg, pos_arg}
+  FLDVS_(uint8_t type_arg, unsigned int pos_arg) : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{Tags::FLDVS, type_arg, pos_arg}
   {
   };
   inline uint8_t
@@ -1011,12 +1015,12 @@ class FLDSV_ : public TagWithTwoArguments<uint8_t, unsigned int>
 {
 public:
   inline
-  FLDSV_() : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{FLDSV}
+  FLDSV_() : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{Tags::FLDSV}
   {
   };
   inline
   FLDSV_(uint8_t type_arg, unsigned int pos_arg) :
-    TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{FLDSV, type_arg, pos_arg}
+    TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{Tags::FLDSV, type_arg, pos_arg}
   {
   };
   inline uint8_t
@@ -1035,12 +1039,12 @@ class FSTPSV_ : public TagWithTwoArguments<uint8_t, unsigned int>
 {
 public:
   inline
-  FSTPSV_() : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{FSTPSV}
+  FSTPSV_() : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{Tags::FSTPSV}
   {
   };
   inline
   FSTPSV_(uint8_t type_arg, unsigned int pos_arg) :
-    TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{FSTPSV, type_arg, pos_arg}
+    TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{Tags::FSTPSV, type_arg, pos_arg}
   {
   };
   inline uint8_t
@@ -1059,17 +1063,17 @@ class FLDV_ : public TagWithThreeArguments<uint8_t, unsigned int, int>
 {
 public:
   inline
-  FLDV_() : TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{FLDV}
+  FLDV_() : TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{Tags::FLDV}
   {
   };
   inline
   FLDV_(int type_arg, unsigned int pos_arg) :
-    TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{FLDV, static_cast<uint8_t>(type_arg), pos_arg, 0}
+    TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{Tags::FLDV, static_cast<uint8_t>(type_arg), pos_arg, 0}
   {
   };
   inline
   FLDV_(int type_arg, unsigned int pos_arg, int lead_lag_arg) :
-    TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{FLDV, static_cast<uint8_t>(type_arg), pos_arg, lead_lag_arg}
+    TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{Tags::FLDV, static_cast<uint8_t>(type_arg), pos_arg, lead_lag_arg}
   {
   };
   inline uint8_t
@@ -1093,17 +1097,17 @@ class FSTPV_ : public TagWithThreeArguments<uint8_t, unsigned int, int>
 {
 public:
   inline
-  FSTPV_() : TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{FSTPV}
+  FSTPV_() : TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{Tags::FSTPV}
   {
   };
   inline
   FSTPV_(int type_arg, unsigned int pos_arg) :
-    TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{FSTPV, static_cast<uint8_t>(type_arg), pos_arg, 0}
+    TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{Tags::FSTPV, static_cast<uint8_t>(type_arg), pos_arg, 0}
   {
   };
   inline
   FSTPV_(int type_arg, unsigned int pos_arg, int lead_lag_arg) :
-    TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{FSTPV, static_cast<uint8_t>(type_arg), pos_arg, lead_lag_arg}
+    TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{Tags::FSTPV, static_cast<uint8_t>(type_arg), pos_arg, lead_lag_arg}
   {
   };
   inline uint8_t
@@ -1131,7 +1135,7 @@ class FCALL_ : public TagWithFourArguments<unsigned int, unsigned int, string, u
   ExternalFunctionType function_type;
 public:
   inline
-  FCALL_() : TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments{FCALL},
+  FCALL_() : TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments{Tags::FCALL},
     add_input_arguments{0},
     row{0},
     col{0},
@@ -1140,7 +1144,7 @@ public:
   };
   inline
   FCALL_(unsigned int nb_output_arguments, unsigned int nb_input_arguments, string f_name, unsigned int indx) :
-    TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments{FCALL, nb_output_arguments, nb_input_arguments, f_name, indx},
+    TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments{Tags::FCALL, nb_output_arguments, nb_input_arguments, f_name, indx},
     func_name{f_name},
     add_input_arguments{0},
     row{0},
@@ -1245,7 +1249,7 @@ public:
   inline uint8_t *
   load(uint8_t *code)
   {
-    op_code = FCALL; code += sizeof(op_code);
+    op_code = static_cast<uint8_t>(Tags::FCALL); code += sizeof(op_code);
     memcpy(&arg1, code, sizeof(arg1)); code += sizeof(arg1);
     memcpy(&arg2, code, sizeof(arg2)); code += sizeof(arg2);
     memcpy(&arg4, code, sizeof(arg4)); code += sizeof(arg4);
@@ -1279,12 +1283,12 @@ private:
   int8_t lag1, lag2, lag3;
 public:
   inline
-  FNUMEXPR_() : TagWithOneArgument<ExpressionType>::TagWithOneArgument{FNUMEXPR}
+  FNUMEXPR_() : TagWithOneArgument<ExpressionType>::TagWithOneArgument{Tags::FNUMEXPR}
   {
   };
   inline
   FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg) :
-    TagWithOneArgument<ExpressionType>::TagWithOneArgument{FNUMEXPR, expression_type},
+    TagWithOneArgument<ExpressionType>::TagWithOneArgument{Tags::FNUMEXPR, expression_type},
     equation{equation_arg},
     dvariable1{0}, dvariable2{0}, dvariable3{0},
     lag1{0}, lag2{0}, lag3{0}
@@ -1292,7 +1296,7 @@ public:
   };
   inline
   FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg) :
-    TagWithOneArgument<ExpressionType>::TagWithOneArgument{FNUMEXPR, expression_type},
+    TagWithOneArgument<ExpressionType>::TagWithOneArgument{Tags::FNUMEXPR, expression_type},
     equation{equation_arg},
     dvariable1{static_cast<uint16_t>(dvariable1_arg)}, dvariable2{0}, dvariable3{0},
     lag1{0}, lag2{0}, lag3{0}
@@ -1300,7 +1304,7 @@ public:
   };
   inline
   FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg) :
-    TagWithOneArgument<ExpressionType>::TagWithOneArgument{FNUMEXPR, expression_type},
+    TagWithOneArgument<ExpressionType>::TagWithOneArgument{Tags::FNUMEXPR, expression_type},
     equation{equation_arg},
     dvariable1{static_cast<uint16_t>(dvariable1_arg)}, dvariable2{0}, dvariable3{0},
     lag1{static_cast<int8_t>(lag1_arg)}, lag2{0}, lag3{0}
@@ -1308,7 +1312,7 @@ public:
   };
   inline
   FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, unsigned int dvariable2_arg) :
-    TagWithOneArgument<ExpressionType>::TagWithOneArgument{FNUMEXPR, expression_type},
+    TagWithOneArgument<ExpressionType>::TagWithOneArgument{Tags::FNUMEXPR, expression_type},
     equation{equation_arg},
     dvariable1{static_cast<uint16_t>(dvariable1_arg)},
     dvariable2{static_cast<uint16_t>(dvariable2_arg)},
@@ -1318,7 +1322,7 @@ public:
   };
   inline
   FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg, unsigned int dvariable2_arg, int lag2_arg) :
-    TagWithOneArgument<ExpressionType>::TagWithOneArgument{FNUMEXPR, expression_type},
+    TagWithOneArgument<ExpressionType>::TagWithOneArgument{Tags::FNUMEXPR, expression_type},
     equation{equation_arg},
     dvariable1{static_cast<uint16_t>(dvariable1_arg)},
     dvariable2{static_cast<uint16_t>(dvariable2_arg)},
@@ -1330,7 +1334,7 @@ public:
   };
   inline
   FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, unsigned int dvariable2_arg, unsigned int dvariable3_arg) :
-    TagWithOneArgument<ExpressionType>::TagWithOneArgument{FNUMEXPR, expression_type},
+    TagWithOneArgument<ExpressionType>::TagWithOneArgument{Tags::FNUMEXPR, expression_type},
     equation{equation_arg},
     dvariable1{static_cast<uint16_t>(dvariable1_arg)},
     dvariable2{static_cast<uint16_t>(dvariable2_arg)},
@@ -1340,7 +1344,7 @@ public:
   };
   inline
   FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg, unsigned int dvariable2_arg, int lag2_arg, unsigned int dvariable3_arg, int lag3_arg) :
-    TagWithOneArgument<ExpressionType>::TagWithOneArgument{FNUMEXPR, expression_type},
+    TagWithOneArgument<ExpressionType>::TagWithOneArgument{Tags::FNUMEXPR, expression_type},
     equation{equation_arg},
     dvariable1{static_cast<uint16_t>(dvariable1_arg)},
     dvariable2{static_cast<uint16_t>(dvariable2_arg)},
@@ -1401,7 +1405,7 @@ public:
 class FBEGINBLOCK_
 {
 private:
-  uint8_t op_code{FBEGINBLOCK};
+  uint8_t op_code{static_cast<uint8_t>(Tags::FBEGINBLOCK)};
   int size;
   uint8_t type;
   vector<int> variable;
@@ -1601,7 +1605,7 @@ public:
   inline uint8_t *
   load(uint8_t *code)
   {
-    op_code = FBEGINBLOCK; code += sizeof(op_code);
+    op_code = static_cast<uint8_t>(Tags::FBEGINBLOCK); code += sizeof(op_code);
     memcpy(&size, code, sizeof(size)); code += sizeof(size);
     memcpy(&type, code, sizeof(type)); code += sizeof(type);
     for (int i = 0; i < size; i++)
@@ -1701,227 +1705,227 @@ public:
     int instruction = 0;
     while (!done)
       {
-        switch (*code)
+        switch (static_cast<Tags>(*code))
           {
-          case FLDZ:
+          case Tags::FLDZ:
 # ifdef DEBUGL
-            mexPrintf("FLDZ = %d size = %d\n", FLDZ, sizeof(FLDZ_));
+            mexPrintf("FLDZ = %d size = %d\n", Tags::FLDZ, sizeof(FLDZ_));
 # endif
-            tags_liste.emplace_back(FLDZ, code);
+            tags_liste.emplace_back(Tags::FLDZ, code);
             code += sizeof(FLDZ_);
             break;
-          case FEND:
+          case Tags::FEND:
 # ifdef DEBUGL
             mexPrintf("FEND\n");
 # endif
-            tags_liste.emplace_back(FEND, code);
+            tags_liste.emplace_back(Tags::FEND, code);
             code += sizeof(FEND_);
             done = true;
             break;
-          case FENDBLOCK:
+          case Tags::FENDBLOCK:
 # ifdef DEBUGL
             mexPrintf("FENDBLOCK\n");
 # endif
-            tags_liste.emplace_back(FENDBLOCK, code);
+            tags_liste.emplace_back(Tags::FENDBLOCK, code);
             code += sizeof(FENDBLOCK_);
             break;
-          case FENDEQU:
+          case Tags::FENDEQU:
 # ifdef DEBUGL
             mexPrintf("FENDEQU\n");
 # endif
-            tags_liste.emplace_back(FENDEQU, code);
+            tags_liste.emplace_back(Tags::FENDEQU, code);
             code += sizeof(FENDEQU_);
             break;
-          case FCUML:
+          case Tags::FCUML:
 # ifdef DEBUGL
             mexPrintf("FCUML\n");
 # endif
-            tags_liste.emplace_back(FCUML, code);
+            tags_liste.emplace_back(Tags::FCUML, code);
             code += sizeof(FCUML_);
             break;
-          case FDIMT:
+          case Tags::FDIMT:
 # ifdef DEBUGL
-            mexPrintf("FDIMT = %d size = %d\n", FDIMT, sizeof(FDIMT_));
+            mexPrintf("FDIMT = %d size = %d\n", Tags::FDIMT, sizeof(FDIMT_));
 # endif
-            tags_liste.emplace_back(FDIMT, code);
+            tags_liste.emplace_back(Tags::FDIMT, code);
             code += sizeof(FDIMT_);
             break;
-          case FDIMST:
+          case Tags::FDIMST:
 # ifdef DEBUGL
             mexPrintf("FDIMST\n");
 # endif
-            tags_liste.emplace_back(FDIMST, code);
+            tags_liste.emplace_back(Tags::FDIMST, code);
             code += sizeof(FDIMST_);
             break;
-          case FNUMEXPR:
+          case Tags::FNUMEXPR:
 # ifdef DEBUGL
             mexPrintf("FNUMEXPR\n");
 # endif
-            tags_liste.emplace_back(FNUMEXPR, code);
+            tags_liste.emplace_back(Tags::FNUMEXPR, code);
             code += sizeof(FNUMEXPR_);
             break;
-          case FLDC:
+          case Tags::FLDC:
 # ifdef DEBUGL
             mexPrintf("FLDC\n");
 # endif
-            tags_liste.emplace_back(FLDC, code);
+            tags_liste.emplace_back(Tags::FLDC, code);
             code += sizeof(FLDC_);
             break;
-          case FLDU:
+          case Tags::FLDU:
 # ifdef DEBUGL
             mexPrintf("FLDU\n");
 # endif
-            tags_liste.emplace_back(FLDU, code);
+            tags_liste.emplace_back(Tags::FLDU, code);
             code += sizeof(FLDU_);
             break;
-          case FLDSU:
+          case Tags::FLDSU:
 # ifdef DEBUGL
             mexPrintf("FLDSU\n");
 # endif
-            tags_liste.emplace_back(FLDSU, code);
+            tags_liste.emplace_back(Tags::FLDSU, code);
             code += sizeof(FLDSU_);
             break;
-          case FLDR:
+          case Tags::FLDR:
 # ifdef DEBUGL
             mexPrintf("FLDR\n");
 # endif
-            tags_liste.emplace_back(FLDR, code);
+            tags_liste.emplace_back(Tags::FLDR, code);
             code += sizeof(FLDR_);
             break;
-          case FLDT:
+          case Tags::FLDT:
 # ifdef DEBUGL
             mexPrintf("FLDT\n");
 # endif
-            tags_liste.emplace_back(FLDT, code);
+            tags_liste.emplace_back(Tags::FLDT, code);
             code += sizeof(FLDT_);
             break;
-          case FLDST:
+          case Tags::FLDST:
 # ifdef DEBUGL
             mexPrintf("FLDST\n");
 # endif
-            tags_liste.emplace_back(FLDST, code);
+            tags_liste.emplace_back(Tags::FLDST, code);
             code += sizeof(FLDST_);
             break;
-          case FSTPT:
+          case Tags::FSTPT:
 # ifdef DEBUGL
-            mexPrintf("FSTPT = %d size = %d\n", FSTPT, sizeof(FSTPT_));
+            mexPrintf("FSTPT = %d size = %d\n", Tags::FSTPT, sizeof(FSTPT_));
 # endif
-            tags_liste.emplace_back(FSTPT, code);
+            tags_liste.emplace_back(Tags::FSTPT, code);
             code += sizeof(FSTPT_);
             break;
-          case FSTPST:
+          case Tags::FSTPST:
 # ifdef DEBUGL
             mexPrintf("FSTPST\n");
 # endif
-            tags_liste.emplace_back(FSTPST, code);
+            tags_liste.emplace_back(Tags::FSTPST, code);
             code += sizeof(FSTPST_);
             break;
-          case FSTPR:
+          case Tags::FSTPR:
 # ifdef DEBUGL
             mexPrintf("FSTPR\n");
 # endif
-            tags_liste.emplace_back(FSTPR, code);
+            tags_liste.emplace_back(Tags::FSTPR, code);
             code += sizeof(FSTPR_);
             break;
-          case FSTPU:
+          case Tags::FSTPU:
 # ifdef DEBUGL
             mexPrintf("FSTPU\n");
 # endif
-            tags_liste.emplace_back(FSTPU, code);
+            tags_liste.emplace_back(Tags::FSTPU, code);
             code += sizeof(FSTPU_);
             break;
-          case FSTPSU:
+          case Tags::FSTPSU:
 # ifdef DEBUGL
             mexPrintf("FSTPSU\n");
 # endif
-            tags_liste.emplace_back(FSTPSU, code);
+            tags_liste.emplace_back(Tags::FSTPSU, code);
             code += sizeof(FSTPSU_);
             break;
-          case FSTPG:
+          case Tags::FSTPG:
 # ifdef DEBUGL
             mexPrintf("FSTPG\n");
 # endif
-            tags_liste.emplace_back(FSTPG, code);
+            tags_liste.emplace_back(Tags::FSTPG, code);
             code += sizeof(FSTPG_);
             break;
-          case FSTPG2:
+          case Tags::FSTPG2:
 # ifdef DEBUGL
             mexPrintf("FSTPG2\n");
 # endif
-            tags_liste.emplace_back(FSTPG2, code);
+            tags_liste.emplace_back(Tags::FSTPG2, code);
             code += sizeof(FSTPG2_);
             break;
-          case FSTPG3:
+          case Tags::FSTPG3:
 # ifdef DEBUGL
             mexPrintf("FSTPG3\n");
 # endif
-            tags_liste.emplace_back(FSTPG3, code);
+            tags_liste.emplace_back(Tags::FSTPG3, code);
             code += sizeof(FSTPG3_);
             break;
-          case FUNARY:
+          case Tags::FUNARY:
 # ifdef DEBUGL
             mexPrintf("FUNARY\n");
 # endif
-            tags_liste.emplace_back(FUNARY, code);
+            tags_liste.emplace_back(Tags::FUNARY, code);
             code += sizeof(FUNARY_);
             break;
-          case FBINARY:
+          case Tags::FBINARY:
 # ifdef DEBUGL
             mexPrintf("FBINARY\n");
 # endif
-            tags_liste.emplace_back(FBINARY, code);
+            tags_liste.emplace_back(Tags::FBINARY, code);
             code += sizeof(FBINARY_);
             break;
-          case FTRINARY:
+          case Tags::FTRINARY:
 # ifdef DEBUGL
             mexPrintf("FTRINARY\n");
 # endif
-            tags_liste.emplace_back(FTRINARY, code);
+            tags_liste.emplace_back(Tags::FTRINARY, code);
             code += sizeof(FTRINARY_);
             break;
-          case FOK:
+          case Tags::FOK:
 # ifdef DEBUGL
             mexPrintf("FOK\n");
 # endif
-            tags_liste.emplace_back(FOK, code);
+            tags_liste.emplace_back(Tags::FOK, code);
             code += sizeof(FOK_);
             break;
-          case FLDVS:
+          case Tags::FLDVS:
 # ifdef DEBUGL
             mexPrintf("FLDVS\n");
 # endif
-            tags_liste.emplace_back(FLDVS, code);
+            tags_liste.emplace_back(Tags::FLDVS, code);
             code += sizeof(FLDVS_);
             break;
-          case FLDSV:
+          case Tags::FLDSV:
 # ifdef DEBUGL
             mexPrintf("FLDSV\n");
 # endif
-            tags_liste.emplace_back(FLDSV, code);
+            tags_liste.emplace_back(Tags::FLDSV, code);
             code += sizeof(FLDSV_);
             break;
-          case FSTPSV:
+          case Tags::FSTPSV:
 # ifdef DEBUGL
             mexPrintf("FSTPSV\n");
 # endif
-            tags_liste.emplace_back(FSTPSV, code);
+            tags_liste.emplace_back(Tags::FSTPSV, code);
             code += sizeof(FSTPSV_);
             break;
-          case FLDV:
+          case Tags::FLDV:
 # ifdef DEBUGL
             mexPrintf("FLDV\n");
 # endif
-            tags_liste.emplace_back(FLDV, code);
+            tags_liste.emplace_back(Tags::FLDV, code);
             code += sizeof(FLDV_);
             break;
-          case FSTPV:
+          case Tags::FSTPV:
 # ifdef DEBUGL
             mexPrintf("FSTPV\n");
 # endif
-            tags_liste.emplace_back(FSTPV, code);
+            tags_liste.emplace_back(Tags::FSTPV, code);
             code += sizeof(FSTPV_);
             break;
-          case FBEGINBLOCK:
+          case Tags::FBEGINBLOCK:
 # ifdef DEBUGL
             mexPrintf("FBEGINBLOCK\n");
 # endif
@@ -1931,25 +1935,25 @@ public:
               code = fbegin_block->load(code);
 
               begin_block.push_back(tags_liste.size());
-              tags_liste.emplace_back(FBEGINBLOCK, fbegin_block);
+              tags_liste.emplace_back(Tags::FBEGINBLOCK, fbegin_block);
               nb_blocks++;
             }
             break;
-          case FJMPIFEVAL:
+          case Tags::FJMPIFEVAL:
 # ifdef DEBUGL
             mexPrintf("FJMPIFEVAL\n");
 # endif
-            tags_liste.emplace_back(FJMPIFEVAL, code);
+            tags_liste.emplace_back(Tags::FJMPIFEVAL, code);
             code += sizeof(FJMPIFEVAL_);
             break;
-          case FJMP:
+          case Tags::FJMP:
 # ifdef DEBUGL
             mexPrintf("FJMP\n");
 # endif
-            tags_liste.emplace_back(FJMP, code);
+            tags_liste.emplace_back(Tags::FJMP, code);
             code += sizeof(FJMP_);
             break;
-          case FCALL:
+          case Tags::FCALL:
             {
 # ifdef DEBUGL
               mexPrintf("FCALL\n");
@@ -1958,67 +1962,67 @@ public:
 
               code = fcall->load(code);
 
-              tags_liste.emplace_back(FCALL, fcall);
+              tags_liste.emplace_back(Tags::FCALL, fcall);
 # ifdef DEBUGL
               mexPrintf("FCALL finish\n"); mexEvalString("drawnow;");
               mexPrintf("-- *code=%d\n", *code); mexEvalString("drawnow;");
 # endif
             }
             break;
-          case FPUSH:
+          case Tags::FPUSH:
 # ifdef DEBUGL
             mexPrintf("FPUSH\n");
 # endif
-            tags_liste.emplace_back(FPUSH, code);
+            tags_liste.emplace_back(Tags::FPUSH, code);
             code += sizeof(FPUSH_);
             break;
-          case FPOP:
+          case Tags::FPOP:
 # ifdef DEBUGL
             mexPrintf("FPOP\n");
 # endif
-            tags_liste.emplace_back(FPOP, code);
+            tags_liste.emplace_back(Tags::FPOP, code);
             code += sizeof(FPOP_);
             break;
-          case FLDTEF:
+          case Tags::FLDTEF:
 # ifdef DEBUGL
             mexPrintf("FLDTEF\n");
 # endif
-            tags_liste.emplace_back(FLDTEF, code);
+            tags_liste.emplace_back(Tags::FLDTEF, code);
             code += sizeof(FLDTEF_);
             break;
-          case FSTPTEF:
+          case Tags::FSTPTEF:
 # ifdef DEBUGL
             mexPrintf("FSTPTEF\n");
 # endif
-            tags_liste.emplace_back(FSTPTEF, code);
+            tags_liste.emplace_back(Tags::FSTPTEF, code);
             code += sizeof(FSTPTEF_);
             break;
-          case FLDTEFD:
+          case Tags::FLDTEFD:
 # ifdef DEBUGL
             mexPrintf("FLDTEFD\n");
 # endif
-            tags_liste.emplace_back(FLDTEFD, code);
+            tags_liste.emplace_back(Tags::FLDTEFD, code);
             code += sizeof(FLDTEFD_);
             break;
-          case FSTPTEFD:
+          case Tags::FSTPTEFD:
 # ifdef DEBUGL
             mexPrintf("FSTPTEFD\n");
 # endif
-            tags_liste.emplace_back(FSTPTEFD, code);
+            tags_liste.emplace_back(Tags::FSTPTEFD, code);
             code += sizeof(FSTPTEFD_);
             break;
-          case FLDTEFDD:
+          case Tags::FLDTEFDD:
 # ifdef DEBUGL
             mexPrintf("FLDTEFDD\n");
 # endif
-            tags_liste.emplace_back(FLDTEFDD, code);
+            tags_liste.emplace_back(Tags::FLDTEFDD, code);
             code += sizeof(FLDTEFDD_);
             break;
-          case FSTPTEFDD:
+          case Tags::FSTPTEFDD:
 # ifdef DEBUGL
             mexPrintf("FSTPTEFDD\n");
 # endif
-            tags_liste.emplace_back(FSTPTEFDD, code);
+            tags_liste.emplace_back(Tags::FSTPTEFDD, code);
             code += sizeof(FSTPTEFDD_);
             break;
           default:
