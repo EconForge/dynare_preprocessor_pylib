@@ -24,15 +24,8 @@
 #include <cstring>
 #include <utility>
 #include <vector>
-#ifdef LINBCG
-# include "linbcg.hh"
-#endif
 #ifdef BYTE_CODE
-# ifndef DEBUG_EX
-#  include "mex.h"
-# else
-#  include "mex_interface.hh"
-# endif
+# include <dynmex.h>
 #endif
 
 using namespace std;
