@@ -1930,7 +1930,7 @@ public:
             mexPrintf("FBEGINBLOCK\n");
 # endif
             {
-              FBEGINBLOCK_ *fbegin_block = new FBEGINBLOCK_;
+              auto *fbegin_block = new FBEGINBLOCK_;
 
               code = fbegin_block->load(code);
 
@@ -1958,7 +1958,7 @@ public:
 # ifdef DEBUGL
               mexPrintf("FCALL\n");
 # endif
-              FCALL_ *fcall = new FCALL_;
+              auto *fcall = new FCALL_;
 
               code = fcall->load(code);
 
