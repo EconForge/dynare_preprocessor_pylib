@@ -1131,25 +1131,17 @@ class FCALL_ : public TagWithFourArguments<unsigned int, unsigned int, string, u
 {
   string func_name;
   string arg_func_name;
-  unsigned int add_input_arguments, row, col;
-  ExternalFunctionType function_type;
+  unsigned int add_input_arguments{0}, row{0}, col{0};
+  ExternalFunctionType function_type{ExternalFunctionType::withoutDerivative};
 public:
   inline
-  FCALL_() : TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments{Tags::FCALL},
-    add_input_arguments{0},
-    row{0},
-    col{0},
-    function_type{ExternalFunctionType::withoutDerivative}
+  FCALL_() : TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments{Tags::FCALL}
   {
   };
   inline
   FCALL_(unsigned int nb_output_arguments, unsigned int nb_input_arguments, string f_name, unsigned int indx) :
     TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments{Tags::FCALL, nb_output_arguments, nb_input_arguments, f_name, indx},
-    func_name{f_name},
-    add_input_arguments{0},
-    row{0},
-    col{0},
-    function_type{ExternalFunctionType::withoutDerivative}
+    func_name{f_name}
   {
   };
   inline string
@@ -1406,26 +1398,25 @@ class FBEGINBLOCK_
 {
 private:
   uint8_t op_code{static_cast<uint8_t>(Tags::FBEGINBLOCK)};
-  int size;
+  int size{0};
   uint8_t type;
   vector<int> variable;
   vector<int> equation;
   vector<int> other_endogenous;
   vector<int> exogenous;
   vector<int> det_exogenous;
-  bool is_linear;
+  bool is_linear{false};
   vector<Block_contain_type> Block_Contain_;
-  int endo_nbr;
-  int Max_Lag;
-  int Max_Lead;
-  int u_count_int;
-  int nb_col_jacob;
+  int endo_nbr{0};
+  int Max_Lag{0};
+  int Max_Lead{0};
+  int u_count_int{0};
+  int nb_col_jacob{0};
   unsigned int det_exo_size, exo_size, other_endo_size;
   unsigned int nb_col_det_exo_jacob, nb_col_exo_jacob, nb_col_other_endo_jacob;
 public:
   inline
-  FBEGINBLOCK_() : size{0}, type{static_cast<uint8_t>(BlockSimulationType::unknown)},
-                   is_linear{false}, endo_nbr{0}, Max_Lag{0}, Max_Lead{0}, u_count_int{0}, nb_col_jacob{0}
+  FBEGINBLOCK_() :  type{static_cast<uint8_t>(BlockSimulationType::unknown)}
   {
   }
   inline
