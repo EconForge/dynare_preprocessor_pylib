@@ -1652,18 +1652,18 @@ private:
 public:
 
   inline unsigned int
-  get_block_number()
+  get_block_number() const
   {
     return nb_blocks;
   };
 
   size_t inline
-  get_begin_block(int block)
+  get_begin_block(int block) const
   {
     return begin_block[block];
   }
   inline void *
-  get_current_code()
+  get_current_code() const
   {
     return code;
   };
@@ -1675,9 +1675,7 @@ public:
     streamoff Code_Size;
     CompiledCode.open(file_name + ".cod", std::ios::in | std::ios::binary| std::ios::ate);
     if (!CompiledCode.is_open())
-      {
-        return tags_liste;
-      }
+      return tags_liste;
     Code_Size = CompiledCode.tellg();
     CompiledCode.seekg(std::ios::beg);
     code = static_cast<uint8_t *>(mxMalloc(Code_Size));
