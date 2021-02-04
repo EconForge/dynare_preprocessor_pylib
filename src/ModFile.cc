@@ -1075,6 +1075,11 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
             static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
         }
 
+      if (!notime)
+          mOutputFile << endl << endl
+                      << "oo_.time = toc(tic0);" << endl
+                      << "disp(['Total computing time : ' dynsec2hms(oo_.time) ]);" << endl;
+
       mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl
                   << "if exist('estim_params_', 'var') == 1" << endl
                   << "  save('" << basename << "_results.mat', 'estim_params_', '-append');" << endl << "end" << endl
@@ -1090,11 +1095,6 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
                   << "  save('" << basename << "_results.mat', 'oo_recursive_', '-append');" << endl << "end" << endl;
 
       config_file.writeEndParallel(mOutputFile);
-
-      if (!notime)
-          mOutputFile << endl << endl
-                      << "oo_.time = toc(tic0);" << endl
-                      << "disp(['Total computing time : ' dynsec2hms(oo_.time) ]);" << endl;
 
       if (!no_warn)
         {
