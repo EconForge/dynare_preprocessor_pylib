@@ -84,7 +84,7 @@ class ParsingDriver;
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR EXPRESSION
 %token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS FIRST_SIMULATION_PERIOD LAST_OBS 
 %token SET_TIME OSR_PARAMS_BOUNDS KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED
-%token <string> FLOAT_NUMBER DATES
+%token <string> FALSE FLOAT_NUMBER DATES
 %token DEFAULT FIXED_POINT FLIP OPT_ALGO COMPILATION_SETUP COMPILER ADD_FLAGS SUBSTITUTE_FLAGS ADD_LIBS SUBSTITUTE_LIBS
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
 %token GAMMA_PDF GRAPH GRAPH_FORMAT CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
@@ -118,7 +118,7 @@ class ParsingDriver;
 %token STDERR STEADY STOCH_SIMUL SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME REALTIME_SHOCK_DECOMPOSITION CONDITIONAL UNCONDITIONAL
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT PLANNER_DISCOUNT_LATEX_NAME
 %token DISCRETIONARY_POLICY DISCRETIONARY_TOL EVALUATE_PLANNER_OBJECTIVE
-%token <string> TEX_NAME
+%token <string> TEX_NAME TRUE
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VARIABLE VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION VAR_EXPECTATION_MODEL PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL WRITE_LATEX_STEADY_STATE_MODEL
@@ -185,7 +185,7 @@ class ParsingDriver;
 %type <string> vec_of_vec_value vec_value_list date_expr
 %type <string> vec_value_1 vec_value signed_inf signed_number_w_inf
 %type <string> range vec_value_w_inf vec_value_1_w_inf
-%type <string> integer_range signed_integer_range
+%type <string> integer_range signed_integer_range boolean
 %type <string> sub_sampling_options list_sub_sampling_option
 %type <SymbolType> change_type_arg
 %type <vector<string>> vec_str vec_str_1
@@ -1502,6 +1502,10 @@ signed_number_w_inf : signed_inf
                     | signed_number
                     ;
 
+boolean : TRUE
+        | FALSE
+        ;
+
 estimated_params : ESTIMATED_PARAMS ';' estimated_list END ';' { driver.estimated_params(); };
 
 estimated_list : estimated_list estimated_elem
@@ -2013,6 +2017,8 @@ estimation_options : o_datafile
 list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
                     { driver.optim_options_string($1, $3); }
                   | QUOTED_STRING COMMA signed_number
+                    { driver.optim_options_num($1, $3); }
+                  | QUOTED_STRING COMMA boolean
                     { driver.optim_options_num($1, $3); }
                   ;
 
@@ -3872,6 +3878,8 @@ symbol : NAME
        | NONE
        | DR
        | PRIOR
+       | TRUE
+       | FALSE
        ;
 
 %%

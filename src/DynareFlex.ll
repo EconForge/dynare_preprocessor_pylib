@@ -805,6 +805,14 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>coefficients {return token::COEFFICIENTS;}
 <DYNARE_STATEMENT>variances {return token::VARIANCES;}
 <DYNARE_STATEMENT>equations {return token::EQUATIONS;}
+<DYNARE_STATEMENT>true {
+  yylval->build<string>(yytext);
+  return token::TRUE;
+}
+<DYNARE_STATEMENT>false {
+    yylval->build<string>(yytext);
+    return token::FALSE;
+}
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>\. {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_STATEMENT>\\ {return Dynare::parser::token_type (yytext[0]);}
