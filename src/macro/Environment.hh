@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Dynare Team
+ * Copyright © 2019-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -30,11 +30,11 @@ namespace macro
   class Environment
   {
   private:
-    const Environment *parent;
+    const Environment *parent{nullptr};
     map<string, ExpressionPtr> variables;
     map<string, tuple<FunctionPtr, ExpressionPtr>> functions;
   public:
-    Environment() : parent{nullptr} { }
+    Environment() = default;
     Environment(const Environment *parent_arg) : parent{parent_arg} { }
     void define(VariablePtr var, ExpressionPtr value);
     void define(FunctionPtr func, ExpressionPtr value);

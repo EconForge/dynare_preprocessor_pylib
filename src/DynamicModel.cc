@@ -5995,8 +5995,8 @@ DynamicModel::writeJsonVariableMapping(ostream &output) const
       auto [var, eqs] = *it;
       output << R"({"name": ")" << symbol_table.getName(var) << R"(", "equations":[)";
       bool first_eq = true;
-      for (auto it2 = eqs.begin(); it2 != eqs.end(); ++it2)
-        if (auto tmp = equation_tags.getTagValueByEqnAndKey(*it2, "name");
+      for (int it2 : eqs)
+        if (auto tmp = equation_tags.getTagValueByEqnAndKey(it2, "name");
             !tmp.empty())
           {
             if (first_eq)

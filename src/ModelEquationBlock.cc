@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2019 Dynare Team
+ * Copyright © 2010-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -274,7 +274,7 @@ SteadyStateModel::writeJsonSteadyStateFile(ostream &output, bool transformComput
         }
       if (symb_ids.size() > 1)
         output << "]";
-      output << ", \"rhs\":\"";
+      output << R"(, "rhs":")";
       def_table[i].second->writeJsonOutput(output, {}, {}, false);
       output << "\"}" << endl;
     }
