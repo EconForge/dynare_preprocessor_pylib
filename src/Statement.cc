@@ -48,7 +48,7 @@ void
 NativeStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   using namespace boost::xpressive;
-  string date_regex = R"((-?\d+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4])))";
+  string date_regex = R"((-?\d+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[SsHh][1-2])))";
   sregex regex_lookbehind = sregex::compile(R"((?<!\$|\d|[a-zA-Z_]|-|'))" + date_regex);
   sregex regex_dollar = sregex::compile(R"((\$))" + date_regex);
 
