@@ -710,6 +710,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>tol_sv {return token::TOL_SV;}
 <DYNARE_STATEMENT>checks_via_subsets {return token::CHECKS_VIA_SUBSETS;}
 <DYNARE_STATEMENT>max_dim_subsets_groups {return token::MAX_DIM_SUBSETS_GROUPS;}
+<DYNARE_STATEMENT>zero_moments_tolerance {return token::ZERO_MOMENTS_TOLERANCE;}
 <DYNARE_STATEMENT>max_nrows {return token::MAX_NROWS;}
 <DYNARE_STATEMENT>with_epilogue {return token::WITH_EPILOGUE;}
 

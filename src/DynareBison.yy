@@ -173,7 +173,7 @@ class ParsingDriver;
 %token ANALYTICAL_GIRF IRF_IN_PERCENT EMAS_GIRF EMAS_DROP EMAS_TOLF EMAS_MAX_ITER
 %token NO_IDENTIFICATION_STRENGTH NO_IDENTIFICATION_REDUCEDFORM NO_IDENTIFICATION_MOMENTS
 %token NO_IDENTIFICATION_MINIMAL NO_IDENTIFICATION_SPECTRUM NORMALIZE_JACOBIANS GRID_NBR
-%token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS
+%token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS ZERO_MOMENTS_TOLERANCE
 %token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION WITH_EPILOGUE
 
 %token <vector<string>> SYMBOL_VEC
@@ -1329,6 +1329,7 @@ method_of_moments_option : o_mom_method
                          | o_qz_criterium
                          | o_qz_zero_threshold
                          | o_schur_vec_tol
+                         | o_zero_moments_tolerance
                          | o_mode_check
                          | o_mode_check_neighbourhood_size
                          | o_mode_check_symmetric_plots
@@ -2192,6 +2193,7 @@ identification_option : o_ar
                       | o_max_dim_subsets_groups
                       | o_order
                       | o_schur_vec_tol
+                      | o_zero_moments_tolerance
                       ;
 
 model_comparison : MODEL_COMPARISON mc_filename_list ';'
@@ -3752,6 +3754,7 @@ o_tol_deriv : TOL_DERIV EQUAL non_negative_number { driver.option_num("tol_deriv
 o_tol_sv : TOL_SV EQUAL non_negative_number { driver.option_num("tol_sv", $3); };
 o_checks_via_subsets : CHECKS_VIA_SUBSETS EQUAL INT_NUMBER { driver.option_num("checks_via_subsets", $3); };
 o_max_dim_subsets_groups : MAX_DIM_SUBSETS_GROUPS EQUAL INT_NUMBER { driver.option_num("max_dim_subsets_groups", $3); };
+o_zero_moments_tolerance : ZERO_MOMENTS_TOLERANCE EQUAL non_negative_number { driver.option_num("zero_moments_tolerance", $3); };
 
 range : symbol ':' symbol
         { $$ = $1 + ':' + $3; }
