@@ -1636,9 +1636,9 @@ VariableNode::decreaseLeadsLags(int n) const
 expr_t
 VariableNode::decreaseLeadsLagsPredeterminedVariables() const
 {
-  if (get_type() == SymbolType::modelLocalVariable)
-    return datatree.getLocalVariable(symb_id)->decreaseLeadsLagsPredeterminedVariables();
-
+  /* Do not recurse into model-local variables definitions, since MLVs are
+     already handled by DynamicModel::transformPredeterminedVariables().
+     This is also necessary because of #65. */
   if (datatree.symbol_table.isPredetermined(symb_id))
     return decreaseLeadsLags(1);
   else
@@ -1987,8 +1987,9 @@ VariableNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
 expr_t
 VariableNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
-  /* Do not recurse into model-local variables definition, because otherwise
-     this would substitute MLV in the original model (see #65). */
+  /* Do not recurse into model-local variables definitions, since MLVs are
+     already handled by ModelTree::simplifyEquations().
+     This is also necessary because of #65. */
   for (auto &it : table)
     if (it.first->symb_id == symb_id)
       return it.second;
