@@ -924,7 +924,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         output << R"(\bar)";
       output << "{" << datatree.symbol_table.getTeXName(symb_id) << "}";
       if (output_type == ExprNodeOutputType::latexDynamicModel
-          && (type == SymbolType::endogenous || type == SymbolType::exogenous || type == SymbolType::exogenousDet || type == SymbolType::modelLocalVariable || type == SymbolType::trend || type == SymbolType::logTrend))
+          && (type == SymbolType::endogenous || type == SymbolType::exogenous || type == SymbolType::exogenousDet || type == SymbolType::trend || type == SymbolType::logTrend))
         {
           output << "_{t";
           if (lag != 0)
