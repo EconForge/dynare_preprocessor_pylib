@@ -5579,6 +5579,13 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
 void
 DynamicModel::substituteAdl()
 {
+  /* Contrary to other substitution methods, we do the substitution in MLV
+     definitions here, instead of doing it at the ExprNode method level,
+     because otherwise this would substitute MLV in the original model (see
+     #65). */
+  for (auto &[id, definition] : local_variables_table)
+    definition = definition->substituteAdl();
+
   for (auto &equation : equations)
     equation = dynamic_cast<BinaryOpNode *>(equation->substituteAdl());
 }

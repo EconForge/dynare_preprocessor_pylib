@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2020 Dynare Team
+ * Copyright © 2007-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1541,9 +1541,8 @@ VariableNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 expr_t
 VariableNode::substituteAdl() const
 {
-  if (get_type() == SymbolType::modelLocalVariable)
-    return datatree.getLocalVariable(symb_id)->substituteAdl();
-
+  /* Do not recurse into model-local variables definition, rather do it at the
+     DynamicModel method level (see the comment there) */
   return const_cast<VariableNode *>(this);
 }
 
@@ -1988,9 +1987,8 @@ VariableNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
 expr_t
 VariableNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
-  if (get_type() == SymbolType::modelLocalVariable)
-    return datatree.getLocalVariable(symb_id)->replaceVarsInEquation(table);
-
+  /* Do not recurse into model-local variables definition, because otherwise
+     this would substitute MLV in the original model (see #65). */
   for (auto &it : table)
     if (it.first->symb_id == symb_id)
       return it.second;
