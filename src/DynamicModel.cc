@@ -5790,8 +5790,8 @@ DynamicModel::substituteExpectation(bool partial_information_model)
 void
 DynamicModel::transformPredeterminedVariables()
 {
-  for (auto &it : local_variables_table)
-    it.second = it.second->decreaseLeadsLagsPredeterminedVariables();
+  for (auto &[id, definition] : local_variables_table)
+    definition = definition->decreaseLeadsLagsPredeterminedVariables();
 
   for (auto &equation : equations)
     {
