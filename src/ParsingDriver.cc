@@ -635,6 +635,12 @@ ParsingDriver::bytecode()
 }
 
 void
+ParsingDriver::occbin()
+{
+  mod_file->occbin = true;
+}
+
+void
 ParsingDriver::differentiate_forward_vars_all()
 {
   mod_file->differentiate_forward_vars = true;

@@ -686,6 +686,23 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       exit(EXIT_FAILURE);
     }
 
+  if (occbin && !dynamic_model.hasOccbinTags())
+    {
+      cerr << "ERROR: the 'occbin' option is present, but there is no equation with the associated tags (bind/relax/pswitch/pcrit)" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (occbin
+      && (mod_file_struct.stoch_simul_present || mod_file_struct.osr_present
+          || mod_file_struct.ramsey_model_present || mod_file_struct.ramsey_policy_present
+          || mod_file_struct.discretionary_policy_present || mod_file_struct.extended_path_present
+          || mod_file_struct.identification_present || mod_file_struct.sensitivity_present
+          || mod_file_struct.mom_estimation_present || mod_file_struct.calib_smoother_present))
+    {
+      cerr << "ERROR: the 'occbin' option is not compatible with commands other than 'estimation'" << endl;
+      exit(EXIT_FAILURE);
+    }
+
   if (!mod_file_struct.ramsey_model_present)
     cout << "Found " << dynamic_model.equation_number() << " equation(s)." << endl;
   else
@@ -1018,10 +1035,15 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
 
   if (dynamic_model.equation_number() > 0)
     {
-      dynamic_model.writeDriverOutput(mOutputFile, basename, block, use_dll, mod_file_struct.estimation_present, compute_xrefs);
+      dynamic_model.writeDriverOutput(mOutputFile, basename, block, use_dll, occbin, mod_file_struct.estimation_present, compute_xrefs);
       if (!no_static)
         static_model.writeDriverOutput(mOutputFile, block);
     }
+
+  if (occbin)
+    mOutputFile << "options_ = set_default_occbin_options(options_, M_);" << endl
+                << "clear mr_runsim_occbin_fn" << endl
+                << "M_ = get_wish_list(M_);" << endl;
 
   if (onlymodel || gui)
     for (const auto &statement : statements)

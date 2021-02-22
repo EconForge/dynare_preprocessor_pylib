@@ -2798,7 +2798,7 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename,
 }
 
 void
-DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool block_decomposition, bool use_dll, bool estimation_present, bool compute_xrefs) const
+DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool block_decomposition, bool use_dll, bool occbin, bool estimation_present, bool compute_xrefs) const
 {
   /* Writing initialisation for M_.lead_lag_incidence matrix
      M_.lead_lag_incidence is a matrix with as many columns as there are
@@ -2895,7 +2895,8 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
   equation_tags.writeOutput(output);
 
   // Write Occbin tags
-  equation_tags.writeOccbinOutput(output);
+  if (occbin)
+    equation_tags.writeOccbinOutput(output);
 
   // Write mapping for variables and equations they are present in
   for (const auto &variable : variableMapping)

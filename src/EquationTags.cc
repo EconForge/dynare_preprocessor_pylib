@@ -165,3 +165,16 @@ EquationTags::writeJsonAST(ostream &output, const int eqn) const
     }
   output << "}";
 }
+
+bool
+EquationTags::hasOccbinTags() const
+{
+  for (const auto & [eqn, tags] : eqn_tags)
+    for (const auto & [key, value] : tags)
+      if (key == "pswitch"
+          || key == "bind"
+          || key == "relax"
+          || key == "pcrit")
+        return true;
+  return false;
+}

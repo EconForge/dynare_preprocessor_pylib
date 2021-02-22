@@ -434,8 +434,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>rescale_prediction_error_covariance {return token::RESCALE_PREDICTION_ERROR_COVARIANCE;}
 <DYNARE_STATEMENT>use_penalized_objective_for_hessian {return token::USE_PENALIZED_OBJECTIVE_FOR_HESSIAN;}
 <DYNARE_STATEMENT>expression    {return token::EXPRESSION;}
-<DYNARE_STATEMENT>occbin_likelihood {return token::OCCBIN_LIKELIHOOD;}
-<DYNARE_STATEMENT>occbin_smoother {return token::OCCBIN_SMOOTHER;}
 <DYNARE_STATEMENT>first_simulation_period {return token::FIRST_SIMULATION_PERIOD;}
 <DYNARE_STATEMENT>no_init_estimation_check_first_obs {return token::NO_INIT_ESTIMATION_CHECK_FIRST_OBS;}
 
@@ -836,6 +834,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_BLOCK>no_static {return token::NO_STATIC;}
 <DYNARE_BLOCK>differentiate_forward_vars {return token::DIFFERENTIATE_FORWARD_VARS;}
 <DYNARE_BLOCK>parallel_local_files {return token::PARALLEL_LOCAL_FILES;}
+<DYNARE_BLOCK>occbin {return token::OCCBIN;}
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>linear {return token::LINEAR;}
 

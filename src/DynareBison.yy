@@ -107,7 +107,7 @@ class ParsingDriver;
 %token USE_PENALIZED_OBJECTIVE_FOR_HESSIAN INIT_STATE FAST_REALTIME RESCALE_PREDICTION_ERROR_COVARIANCE GENERATE_IRFS
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS NO_HOMOTOPY
 %token NOGRAPH POSTERIOR_NOGRAPH POSTERIOR_GRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS MODEL_NAME STDERR_MULTIPLES DIAGONAL_ONLY
-%token DETERMINISTIC_TRENDS OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS OVERWRITE DISCOUNT
+%token DETERMINISTIC_TRENDS OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS OVERWRITE DISCOUNT OCCBIN
 %token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERIODS PERIOD PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PERFECT_FORESIGHT_SETUP PERFECT_FORESIGHT_SOLVER NO_POSTERIOR_KERNEL_DENSITY FUNCTION
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN MLE_MODE PRUNING PARTICLE_FILTER_OPTIONS
@@ -131,7 +131,7 @@ class ParsingDriver;
 %precedence UNARY
 %nonassoc POWER
 %token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN ERF DIFF ADL AUXILIARY_MODEL_NAME
-%token SQRT CBRT NORMCDF NORMPDF STEADY_STATE EXPECTATION OCCBIN_LIKELIHOOD OCCBIN_SMOOTHER
+%token SQRT CBRT NORMCDF NORMPDF STEADY_STATE EXPECTATION
 /* GSA analysis */
 %token DYNARE_SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU MORRIS_NLIV
 %token MORRIS_NTRA NSAM LOAD_REDFORM LOAD_RMSE LOAD_STAB ALPHA2_STAB LOGTRANS_REDFORM THRESHOLD_REDFORM
@@ -873,6 +873,7 @@ model_options : BLOCK { driver.block(); }
               | o_linear
               | PARALLEL_LOCAL_FILES EQUAL '(' parallel_local_filename_list ')'
               | BALANCED_GROWTH_TEST_TOL EQUAL non_negative_number { driver.balanced_growth_test_tol($3); }
+              | OCCBIN { driver.occbin(); }
               ;
 
 model_options_list : model_options_list COMMA model_options
@@ -2089,8 +2090,6 @@ estimation_options : o_datafile
                    | o_emas_max_iter
                    | o_stderr_multiples
                    | o_diagonal_only
-                   | o_occbin_likelihood
-                   | o_occbin_smoother
                    | o_no_init_estimation_check_first_obs
                    | o_heteroskedastic_filter
                    ;
@@ -3518,8 +3517,6 @@ o_proposal_approximation : PROPOSAL_APPROXIMATION EQUAL CUBATURE {driver.option_
 o_distribution_approximation : DISTRIBUTION_APPROXIMATION EQUAL CUBATURE {driver.option_num("particle.distribution_approximation.cubature", "true"); driver.option_num("particle.distribution_approximation.unscented", "false"); driver.option_num("particle.distribution_approximation.montecarlo", "false");}
 		| DISTRIBUTION_APPROXIMATION EQUAL UNSCENTED {driver.option_num("particle.distribution_approximation.cubature", "false"); driver.option_num("particle.distribution_approximation.unscented", "true"); driver.option_num("particle.distribution_approximation.montecarlo", "false");}
 		| DISTRIBUTION_APPROXIMATION EQUAL MONTECARLO {driver.option_num("particle.distribution_approximation.cubature", "false"); driver.option_num("particle.distribution_approximation.unscented", "false"); driver.option_num("particle.distribution_approximation.montecarlo", "true");} ;
-o_occbin_likelihood : OCCBIN_LIKELIHOOD { driver.option_num("occbin_likelihood", "true"); };
-o_occbin_smoother : OCCBIN_SMOOTHER { driver.option_num("occbin_smoother", "true"); };
 o_gsa_identification : IDENTIFICATION EQUAL INT_NUMBER { driver.option_num("identification", $3); }; /*not in doc */
 o_gsa_morris : MORRIS EQUAL INT_NUMBER { driver.option_num("morris", $3); };
 o_gsa_stab : STAB  EQUAL INT_NUMBER { driver.option_num("stab", $3); };

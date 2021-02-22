@@ -1019,20 +1019,6 @@ EstimationStatement::writeOutput(ostream &output, const string &basename, bool m
 {
   options_list.writeOutput(output);
 
-  bool occbin_option_present = false;
-  if (auto it = options_list.num_options.find("occbin_likelihood");
-      it != options_list.num_options.end() && it->second == "true")
-    occbin_option_present = true;
-
-  if (auto it = options_list.num_options.find("occbin_smoother");
-      it != options_list.num_options.end() && it->second == "true")
-    occbin_option_present = true;
-
-  if (occbin_option_present)
-    output << "options_ = set_default_occbin_options(options_, M_);" << endl
-           << "clear mr_runsim_occbin_fn" << endl
-           << "M_ = get_wish_list(M_);" << endl;
-
   // Special treatment for order option and particle filter
   if (auto it = options_list.num_options.find("order");
       it == options_list.num_options.end())

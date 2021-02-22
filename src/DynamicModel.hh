@@ -300,7 +300,7 @@ public:
   void computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsOrder,
                      const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode);
   //! Writes information about the dynamic model to the driver file
-  void writeDriverOutput(ostream &output, const string &basename, bool block, bool use_dll, bool estimation_present, bool compute_xrefs) const;
+  void writeDriverOutput(ostream &output, const string &basename, bool block, bool use_dll, bool occbin, bool estimation_present, bool compute_xrefs) const;
 
   //! Write JSON AST
   void writeJsonAST(ostream &output) const;

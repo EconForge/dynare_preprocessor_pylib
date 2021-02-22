@@ -99,6 +99,9 @@ public:
     with a lead */
   vector<string> differentiate_forward_vars_subset;
 
+  //! Whether “occbin” option is used
+  bool occbin{false};
+
   //! Are nonstationary variables present ?
   bool nonstationary_variables{false};
 
