@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2020 Dynare Team
+ * Copyright © 2006-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -127,8 +127,6 @@ public:
   bool corr_options_statement_present{false};
   //! Whether a Markov Switching DSGE is present
   bool ms_dsge_present{false};
-  //! Whether occbin is present
-  bool occbin_option{false};
   //! Stores the original number of equations in the model_block
   int orig_eq_nbr{0};
   //! Stores the number of equations added to the Ramsey model

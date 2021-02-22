@@ -666,7 +666,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>posterior_sampler_options {return token::POSTERIOR_SAMPLER_OPTIONS;}
 <DYNARE_STATEMENT>silent_optimizer {return token::SILENT_OPTIMIZER;}
 <DYNARE_STATEMENT>lmmcp {return token::LMMCP;}
-<DYNARE_STATEMENT>occbin {return token::OCCBIN;}
 <DYNARE_STATEMENT>additional_optimizer_steps	{return token::ADDITIONAL_OPTIMIZER_STEPS;}
 <DYNARE_STATEMENT>bartlett_kernel_lag {return token::BARTLETT_KERNEL_LAG; }
 <DYNARE_STATEMENT>optimal {

@@ -122,7 +122,7 @@ class ParsingDriver;
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES VAR VAREXO VAREXO_DET VARIABLE VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION VAR_EXPECTATION_MODEL PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL WRITE_LATEX_STEADY_STATE_MODEL
-%token XLS_SHEET XLS_RANGE LMMCP OCCBIN BANDPASS_FILTER COLORMAP VAR_MODEL PAC_MODEL QOQ YOY AOA PAC_EXPECTATION TREND_COMPONENT_MODEL
+%token XLS_SHEET XLS_RANGE LMMCP BANDPASS_FILTER COLORMAP VAR_MODEL PAC_MODEL QOQ YOY AOA PAC_EXPECTATION TREND_COMPONENT_MODEL
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
 %left PLUS MINUS
@@ -1261,7 +1261,6 @@ perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_solve_algo
                                  | o_robust_lin_solve
                                  | o_lmmcp
-                                 | o_occbin
                                  | o_pf_tolf
                                  | o_pf_tolx
                                  | o_noprint
@@ -2975,7 +2974,6 @@ extended_path_option : o_periods
                      | o_extended_path_order
                      | o_hybrid
 		     | o_lmmcp
-		     | o_occbin
                      ;
 
 model_diagnostics : MODEL_DIAGNOSTICS ';'
@@ -3698,7 +3696,6 @@ o_period : PERIOD EQUAL INT_NUMBER { driver.option_num("period", $3); };
 o_outfile : OUTFILE EQUAL filename { driver.option_str("outfile", $3); };
 o_outvars : OUTVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("outvars"); };
 o_lmmcp : LMMCP {driver.option_num("lmmcp.status", "true"); };
-o_occbin : OCCBIN {driver.option_num("occbin", "true"); };
 o_function : FUNCTION EQUAL filename { driver.option_str("function", $3); };
 o_sampling_draws : SAMPLING_DRAWS EQUAL INT_NUMBER { driver.option_num("sampling_draws",$3); };
 o_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("plot_shock_decomp.use_shock_groups","default"); }
