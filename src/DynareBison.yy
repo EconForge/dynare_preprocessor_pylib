@@ -109,7 +109,7 @@ class ParsingDriver;
 %token OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS OVERWRITE DISCOUNT
 %token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERIODS PERIOD PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PERFECT_FORESIGHT_SETUP PERFECT_FORESIGHT_SOLVER NO_POSTERIOR_KERNEL_DENSITY FUNCTION
-%token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN MLE_MODE PRUNING
+%token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN MLE_MODE PRUNING PARTICLE_FILTER_OPTIONS
 %token <string> QUOTED_STRING
 %token QZ_CRITERIUM QZ_ZERO_THRESHOLD DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE PIPE_E PIPE_X PIPE_P
 %token RELATIVE_IRF REPLIC SIMUL_REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY TARGETS
@@ -1986,6 +1986,7 @@ estimation_options : o_datafile
                    | o_consider_all_endogenous
                    | o_consider_only_observed
                    | o_number_of_particles
+                   | o_particle_filter_options
                    | o_resampling
                    | o_resampling_threshold
                    | o_resampling_method
@@ -3410,6 +3411,7 @@ o_bvar_replic : BVAR_REPLIC EQUAL INT_NUMBER { driver.option_num("bvar_replic", 
 o_stderr_multiples : STDERR_MULTIPLES { driver.option_num("irf_opt.stderr_multiples", "true"); };
 o_diagonal_only : DIAGONAL_ONLY { driver.option_num("irf_opt.diagonal_only", "true"); };
 o_number_of_particles : NUMBER_OF_PARTICLES EQUAL INT_NUMBER { driver.option_num("particle.number_of_particles", $3); };
+o_particle_filter_options : PARTICLE_FILTER_OPTIONS EQUAL '(' name_value_pair_with_boolean_list ')' { driver.option_str("particle.particle_filter_options", $4); }
 o_resampling : RESAMPLING EQUAL SYSTEMATIC
               | RESAMPLING EQUAL NONE {driver.option_num("particle.resampling.status.systematic", "false"); driver.option_num("particle.resampling.status.none", "true"); }
               | RESAMPLING EQUAL GENERIC {driver.option_num("particle.resampling.status.systematic", "false"); driver.option_num("particle.resampling.status.generic", "true"); };
