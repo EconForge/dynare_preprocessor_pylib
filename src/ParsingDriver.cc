@@ -1834,69 +1834,6 @@ ParsingDriver::dynare_sensitivity()
 }
 
 void
-ParsingDriver::optim_options_helper(const string &name)
-{
-  if (options_list.string_options.find("optim_opt") == options_list.string_options.end())
-    options_list.string_options["optim_opt"] = "";
-  else
-    options_list.string_options["optim_opt"] += ",";
-  options_list.string_options["optim_opt"] += "''" + name + "'',";
-}
-
-void
-ParsingDriver::optim_options_string(const string &name, const string &value)
-{
-  optim_options_helper(name);
-  options_list.string_options["optim_opt"] += "''" + value + "''";
-}
-
-void
-ParsingDriver::optim_options_num(const string &name, const string &value)
-{
-  optim_options_helper(name);
-  options_list.string_options["optim_opt"] += value;
-}
-
-void
-ParsingDriver::sampling_options_helper(const string &name)
-{
-  if (options_list.string_options.find("posterior_sampler_options.sampling_opt") ==
-      options_list.string_options.end())
-    options_list.string_options["posterior_sampler_options.sampling_opt"] = "";
-  else
-    options_list.string_options["posterior_sampler_options.sampling_opt"] += ",";
-  options_list.string_options["posterior_sampler_options.sampling_opt"] += "''" + name + "'',";
-}
-
-void
-ParsingDriver::sampling_options_string(const string &name, const string &value)
-{
-  sampling_options_helper(name);
-  options_list.string_options["posterior_sampler_options.sampling_opt"] += "''" + value + "''";
-}
-
-void
-ParsingDriver::sampling_options_num(const string &name, const string &value)
-{
-  sampling_options_helper(name);
-  options_list.string_options["posterior_sampler_options.sampling_opt"] += value;
-}
-
-void
-ParsingDriver::sampling_options_vec_str(const string &name, vector<string> value)
-{
-  sampling_options_helper(name);
-  options_list.string_options["posterior_sampler_options.sampling_opt"] += "{";
-  for (auto &it : value)
-    {
-      if (&it != &value.front())
-        options_list.string_options["posterior_sampler_options.sampling_opt"] += ",";
-      options_list.string_options["posterior_sampler_options.sampling_opt"] += "''" + it + "''";
-    }
-  options_list.string_options["posterior_sampler_options.sampling_opt"] += "}";
-}
-
-void
 ParsingDriver::check_varobs()
 {
   if (mod_file->symbol_table.observedVariablesNbr() > 0)

@@ -111,10 +111,6 @@ private:
   //! Helper to add a symbol declaration
   void declare_symbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string, string>> &partition_value);
 
-  //! Creates option "optim_opt" in OptionsList if it doesn't exist, else add a comma, and adds the option name
-  void optim_options_helper(const string &name);
-  void sampling_options_helper(const string &name);
-
   //! Stores temporary symbol table
   SymbolList symbol_list;
 
@@ -553,16 +549,6 @@ public:
   void run_estimation();
   //! Runs dynare_sensitivy()
   void dynare_sensitivity();
-  //! Adds an optimization option (string value)
-  void optim_options_string(const string &name, const string &value);
-  //! Adds an optimization option (numeric value)
-  void optim_options_num(const string &name, const string &value);
-  //! Adds an sampling option (string value)
-  void sampling_options_string(const string &name, const string &value);
-  //! Adds an sampling option (numeric value)
-  void sampling_options_num(const string &name, const string &value);
-  //! Adds an sampling option (vec_str value)
-  void sampling_options_vec_str(const string &name, vector<string> value);
   //! Check that no observed variable has yet be defined
   void check_varobs();
   //! Add a new observed variable

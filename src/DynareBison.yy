@@ -186,7 +186,9 @@ class ParsingDriver;
 %type <string> vec_value_1 vec_value signed_inf signed_number_w_inf
 %type <string> range vec_value_w_inf vec_value_1_w_inf
 %type <string> integer_range signed_integer_range boolean
-%type <string> sub_sampling_options list_sub_sampling_option
+%type <string> name_value_pair name_value_pair_list
+%type <string> name_value_pair_with_boolean name_value_pair_with_boolean_list
+%type <string> name_value_pair_with_suboptions name_value_pair_with_suboptions_list
 %type <SymbolType> change_type_arg
 %type <vector<string>> vec_str vec_str_1
 %type <vector<string>> change_type_var_list
@@ -2014,42 +2016,48 @@ estimation_options : o_datafile
                    | o_occbin_smoother
                    ;
 
-list_optim_option : QUOTED_STRING COMMA QUOTED_STRING
-                    { driver.optim_options_string($1, $3); }
-                  | QUOTED_STRING COMMA signed_number
-                    { driver.optim_options_num($1, $3); }
-                  | QUOTED_STRING COMMA boolean
-                    { driver.optim_options_num($1, $3); }
-                  ;
+name_value_pair : QUOTED_STRING COMMA QUOTED_STRING
+                  { $$ = "''" + $1 + "'', ''" + $3 + "''"; }
+                | QUOTED_STRING COMMA signed_number
+                  { $$ = "''" + $1 + "''," + $3; }
+                ;
 
-optim_options : list_optim_option
-              | optim_options COMMA list_optim_option;
-              ;
-
-list_sub_sampling_option : QUOTED_STRING COMMA QUOTED_STRING
-                           { $$ = "''" + $1 + "'', ''" + $3 + "''"; }
-                         | QUOTED_STRING COMMA signed_number
-                           { $$ = "''" + $1 + "''," + $3; }
-                         ;
-
-sub_sampling_options : list_sub_sampling_option
-                     | sub_sampling_options COMMA list_sub_sampling_option
+name_value_pair_list : name_value_pair
+                     | name_value_pair_list COMMA name_value_pair
                        { $$ = $1 + ',' + $3; }
                      ;
 
-list_sampling_option : QUOTED_STRING COMMA QUOTED_STRING
-                       { driver.sampling_options_string($1, $3); }
-                     | QUOTED_STRING COMMA signed_number
-                       { driver.sampling_options_num($1, $3); }
-                     | QUOTED_STRING COMMA vec_str
-                       { driver.sampling_options_vec_str($1, $3); }
-                     | QUOTED_STRING COMMA '(' sub_sampling_options ')'
-                       { driver.sampling_options_string($1, '(' + $4 + ')'); }
-                     ;
+name_value_pair_with_boolean : name_value_pair
+                             | QUOTED_STRING COMMA boolean
+                               { $$ = "''" + $1 + "''," + $3; }
+                             ;
 
-sampling_options : list_sampling_option
-                 | sampling_options COMMA list_sampling_option;
-                 ;
+name_value_pair_with_boolean_list : name_value_pair_with_boolean
+                                  | name_value_pair_with_boolean_list COMMA name_value_pair_with_boolean
+                                    { $$ = $1 + ',' + $3; }
+                                  ;
+
+
+name_value_pair_with_suboptions : name_value_pair
+                                | QUOTED_STRING COMMA vec_str
+                                  {
+                                    $$ = "''" + $1 + "'',{";
+                                    for (auto &it : $3)
+                                      {
+                                        if (&it != &($3).front())
+                                          $$ += ",";
+                                        $$ += "''" + it + "''";
+                                      }
+                                    $$ += '}';
+                                  }
+                                | QUOTED_STRING COMMA '(' name_value_pair_list ')'
+                                  { $$ = "''" + $1 + "'',''(" + $4 + ")''"; }
+                                ;
+
+name_value_pair_with_suboptions_list : name_value_pair_with_suboptions
+                                     | name_value_pair_with_suboptions_list COMMA name_value_pair_with_suboptions
+                                       { $$ = $1 + ',' + $3; }
+                                     ;
 
 varobs : VAROBS { driver.check_varobs(); } varobs_list ';';
 
@@ -3273,8 +3281,8 @@ o_mh_tune_jscale : MH_TUNE_JSCALE EQUAL non_negative_number
                  { driver.option_num("mh_tune_jscale.target", $3); driver.option_num("mh_tune_jscale.status", "true");}
                  | MH_TUNE_JSCALE {driver.option_num("mh_tune_jscale.status", "true");};
 o_mh_tune_guess : MH_TUNE_GUESS EQUAL non_negative_number { driver.option_num("mh_tune_jscale.guess", $3); };
-o_optim : OPTIM  EQUAL '(' optim_options ')';
-o_posterior_sampler_options : POSTERIOR_SAMPLER_OPTIONS EQUAL '(' sampling_options ')' ;
+o_optim : OPTIM  EQUAL '(' name_value_pair_with_boolean_list ')' { driver.option_str("optim_opt", $4); };
+o_posterior_sampler_options : POSTERIOR_SAMPLER_OPTIONS EQUAL '(' name_value_pair_with_suboptions_list ')' { driver.option_str("posterior_sampler_options.sampling_opt", $4); };
 o_proposal_distribution : PROPOSAL_DISTRIBUTION EQUAL symbol { driver.option_str("posterior_sampler_options.posterior_sampling_method.proposal_distribution", $3); };
 o_no_posterior_kernel_density : NO_POSTERIOR_KERNEL_DENSITY
                              { driver.option_num("estimation.moments_posterior_density.indicator", "false"); }
