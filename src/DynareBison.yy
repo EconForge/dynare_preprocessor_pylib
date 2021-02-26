@@ -2018,7 +2018,7 @@ estimation_options : o_datafile
                    ;
 
 name_value_pair : QUOTED_STRING COMMA QUOTED_STRING
-                  { $$ = "''" + $1 + "'', ''" + $3 + "''"; }
+                  { $$ = "''" + $1 + "'',''" + $3 + "''"; }
                 | QUOTED_STRING COMMA signed_number
                   { $$ = "''" + $1 + "''," + $3; }
                 ;
