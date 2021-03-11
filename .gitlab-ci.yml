@@ -1,7 +1,7 @@
 variables:
   TERM: linux
-  MINGW32_BOOST_VERSION: 1.74.0-2
-  MINGW64_BOOST_VERSION: 1.74.0-2
+  MINGW32_BOOST_VERSION: 1.75.0-2
+  MINGW64_BOOST_VERSION: 1.75.0-2
   WGET_OPTIONS: '--no-verbose --no-use-server-timestamps --retry-connrefused --retry-on-host-error'
 
 before_script:
