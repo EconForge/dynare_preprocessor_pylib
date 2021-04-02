@@ -59,7 +59,7 @@ for platform in !(Artifacts.toml); do
     echo
     echo [[dynare-preprocessor.download]]
     echo sha256 = \"$sha256\"
-    echo url = "$base_url/$commit_sha/$tarball"
+    echo "url = \"$base_url/$commit_sha/$tarball\""
     echo
     echo
 done > Artifacts.toml
