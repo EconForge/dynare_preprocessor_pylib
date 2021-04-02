@@ -113,6 +113,7 @@ deploy_julia:
   rules:
     - if: '$CI_PROJECT_NAMESPACE == "Dynare" && $CI_COMMIT_REF_NAME == "master"'
       when: manual
+      allow_failure: true
     - when: never
   script:
     - cp -R $CI_COMMIT_SHA /srv/www.dynare.org/preprocessor/
