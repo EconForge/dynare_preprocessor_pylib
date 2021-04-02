@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Creates Julia’s Artifacts.toml for preprocessor binaries.
+# Used by the Gitlab CI file of the preprocessor.
+#
+# Must be given a git commit SHA as first argument, and a base download URL
+# as second argument.
+#
+# In the current directory, there must be a directory whose name is the SHA.
+# This directory must itself contain several directories corresponding to platforms
+# ("linux-i686", "windows-x86_64"…). Each of these directories must contain a
+# dynare-preprocessor.tar.gz file.
+#
+# The Julia executable must be in the path.
+#
+# The Artifacts.toml file is created in directory named after the git commit SHA.
+
+# Copyright © 2021 Dynare Team
+#
+# This file is part of Dynare.
+#
+# Dynare is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Dynare is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Dynare.  If not, see <http://www.gnu.org/licenses/>.
+
+set -e
+shopt -s extglob
+
+commit_sha=${1:?}
+base_url=${2:?}
+
+project_dir=$(mktemp --tmpdir -d)
+
+cd "$commit_sha"
+
+for platform in !(Artifacts.toml); do
+    os=${platform%-*}
+    arch=${platform#*-}
+    tarball=${platform}/dynare-preprocessor.tar.gz
+    sha256=$(sha256sum "$tarball")
+    sha256=${sha256%% *} # Strip filename from output
+    git_tree_sha1=$(julia --project="$project_dir" -q -e "import Pkg; Pkg.add([\"Tar\", \"Inflate\"]); using Tar, Inflate; println(Tar.tree_hash(IOBuffer(inflate_gzip(\"$tarball\"))))")
+    echo [dynare-preprocessor]
+    echo os = \"$os\"
+    echo arch = \"$arch\"
+    if [[ $os == linux ]]; then
+	echo libc = \"glibc\"
+    fi
+    echo git-tree-sha1 = \"$git_tree_sha1\"
+    echo
+    echo [[dynare-preprocessor.download]]
+    echo sha256 = \"$sha256\"
+    echo url = "$base_url/$commit_sha/$tarball"
+    echo
+    echo
+done > Artifacts.toml
