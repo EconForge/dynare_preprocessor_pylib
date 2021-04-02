@@ -49,7 +49,7 @@ for platform in !(Artifacts.toml); do
     sha256=$(sha256sum "$tarball")
     sha256=${sha256%% *} # Strip filename from output
     git_tree_sha1=$(julia --project="$project_dir" -q -e "import Pkg; Pkg.add([\"Tar\", \"Inflate\"]); using Tar, Inflate; println(Tar.tree_hash(IOBuffer(inflate_gzip(\"$tarball\"))))")
-    echo [dynare-preprocessor]
+    echo [[dynare-preprocessor]]
     echo os = \"$os\"
     echo arch = \"$arch\"
     if [[ $os == linux ]]; then
