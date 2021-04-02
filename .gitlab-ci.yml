@@ -7,7 +7,6 @@ variables:
 
 stages:
   - build
-  - aggregate
   - deploy
 
 build_linux_32:
@@ -85,29 +84,8 @@ build_macOS:
     paths:
       - $CI_COMMIT_SHA/macos-x86_64/*
 
-aggregate_julia:
-  stage: aggregate
-  dependencies:
-    - build_linux_32
-    - build_linux_64
-    - build_windows_32
-    - build_windows_64
-    - build_macOS
-  script:
-    - PATH=$PATH:/usr/local/julia/$JULIA_VERSION/bin scripts/create-julia-artifacts-toml $CI_COMMIT_SHA https://www.dynare.org/preprocessor
-  artifacts:
-    paths:
-      - $CI_COMMIT_SHA/Artifacts.toml
-
 deploy_julia:
   stage: deploy
-  dependencies:
-    - build_linux_32
-    - build_linux_64
-    - build_windows_32
-    - build_windows_64
-    - build_macOS
-    - aggregate_julia
   tags:
     - restricted
   rules:
@@ -116,4 +94,8 @@ deploy_julia:
       allow_failure: true
     - when: never
   script:
+    - PATH=$PATH:/usr/local/julia/$JULIA_VERSION/bin scripts/create-julia-artifacts-toml $CI_COMMIT_SHA https://www.dynare.org/preprocessor
     - cp -R $CI_COMMIT_SHA /srv/www.dynare.org/preprocessor/
+  artifacts:
+    paths:
+      - $CI_COMMIT_SHA/Artifacts.toml
