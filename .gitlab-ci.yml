@@ -33,6 +33,18 @@ build_linux_x86_64:
     paths:
       - $CI_COMMIT_SHA/linux-x86_64/*
 
+build_linux_aarch64:
+  stage: build
+  script:
+    - autoreconf -si
+    - './configure --host=aarch64-linux-gnu LDFLAGS="-static-libstdc++ -static-libgcc -s"'
+    - make -j$(nproc)
+    - mkdir -p $CI_COMMIT_SHA/linux-aarch64
+    - tar -caf $CI_COMMIT_SHA/linux-aarch64/dynare-preprocessor.tar.gz -C src dynare-preprocessor
+  artifacts:
+    paths:
+      - $CI_COMMIT_SHA/linux-aarch64/*
+
 build_windows_i686:
   stage: build
   script:
