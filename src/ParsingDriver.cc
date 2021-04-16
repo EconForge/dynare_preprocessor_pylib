@@ -2368,7 +2368,9 @@ ParsingDriver::declare_and_init_model_local_variable(const string &name, expr_t 
     }
   catch (SymbolTable::AlreadyDeclaredException &e)
     {
-      // It can have already been declared in a steady_state_model block, check that it is indeed a ModelLocalVariable
+      /* It can have already been declared in a steady_state_model block or
+         model_local_variable statement, check that it is indeed a
+         ModelLocalVariable */
       symb_id = mod_file->symbol_table.getID(name);
       if (mod_file->symbol_table.getType(symb_id) != SymbolType::modelLocalVariable)
         error(name + " has wrong type or was already used on the right-hand side. You cannot use it on the left-hand side of a pound ('#') expression");

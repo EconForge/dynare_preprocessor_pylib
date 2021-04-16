@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -99,9 +99,12 @@ DataTree::operator=(const DataTree &d)
   initConstants();
 
   /* Model local variables must be next, because they can be evaluated in Add*
-     methods when the model equations are added */
-  for (const auto &it : d.local_variables_table)
-    local_variables_table[it.first] = it.second->clone(*this);
+     methods when the model equations are added. They need to be cloned in
+     order of appearance in the model block (hence with
+     local_variables_vector), because if there is a model_local_variable statement
+     the symbol IDs ordering may not be the right one (see dynare#1782) */
+  for (const auto &id : d.local_variables_vector)
+    local_variables_table[id] = d.local_variables_table.at(id)->clone(*this);
 
   for (const auto &it : d.node_list)
     it->clone(*this);
