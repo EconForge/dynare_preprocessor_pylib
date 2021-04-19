@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Dynare Team
+ * Copyright © 2020-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -111,8 +111,8 @@ public:
 
   //! Various functions to write equation tags
   void writeCheckSumInfo(ostream &output) const;
-  void writeOutput(ostream &output, const string &modstruct, bool julia) const;
-  void writeOccbinOutput(ostream &output, const string &modstruct, bool julia) const;
+  void writeOutput(ostream &output) const;
+  void writeOccbinOutput(ostream &output) const;
   void writeLatexOutput(ostream &output, int eqn) const;
   void writeJsonAST(ostream &output, const int eq) const;
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2020 Dynare Team
+ * Copyright © 2006-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -26,11 +26,6 @@
 
 void
 Statement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
-{
-}
-
-void
-Statement::writeJuliaOutput(ostream &output, const string &basename)
 {
 }
 

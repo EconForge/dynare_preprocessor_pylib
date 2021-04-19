@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -390,8 +390,6 @@ public:
   void writeOutput(ostream &output) const noexcept(false);
   //! Write JSON Output
   void writeJsonOutput(ostream &output) const;
-  //! Write Julia output of this class
-  void writeJuliaOutput(ostream &output) const noexcept(false);
   //! Mark a symbol as predetermined variable
   void markPredetermined(int symb_id) noexcept(false);
   //! Test if a given symbol is a predetermined variable

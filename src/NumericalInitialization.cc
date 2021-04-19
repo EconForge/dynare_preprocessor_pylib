@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -54,15 +54,6 @@ InitParamStatement::writeOutput(ostream &output, const string &basename, bool mi
   output << ";" << endl;
   if (!minimal_workspace)
     output << symbol_table.getName(symb_id) << " = M_.params(" << id << ");" << endl;
-}
-
-void
-InitParamStatement::writeJuliaOutput(ostream &output, const string &basename)
-{
-  int id = symbol_table.getTypeSpecificID(symb_id) + 1;
-  output << "model_.params[ " << id << " ] = ";
-  param_value->writeOutput(output);
-  output << endl;
 }
 
 void

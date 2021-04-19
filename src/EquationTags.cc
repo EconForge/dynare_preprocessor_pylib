@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Dynare Team
+ * Copyright © 2020-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -76,37 +76,19 @@ EquationTags::writeCheckSumInfo(ostream &output) const
 }
 
 void
-EquationTags::writeOutput(ostream &output, const string &modstruct, bool julia) const
+EquationTags::writeOutput(ostream &output) const
 {
-  if (julia)
-    {
-      output << modstruct << "equation_tags = [" << endl;
-      for (const auto & [eqn, tags] : eqn_tags)
-        for (const auto & [key, value] : tags)
-          output << "                       EquationTag("
-                 << eqn + 1 << R"( , ")"
-                 << key << R"(" , ")" << value << R"("))" << endl;
-      output << "                      ]" << endl;
-    }
-  else
-    {
-      output << modstruct << "equations_tags = {" << endl;
-      for (const auto & [eqn, tags] : eqn_tags)
-        {
-          for (const auto & [key, value] : tags)
-            output << "  " << eqn + 1 << " , '"
-                   << key << "' , '" << value << "' ;" << endl;
-        }
-      output << "};" << endl;
-    }
+  output << "M_.equations_tags = {" << endl;
+  for (const auto & [eqn, tags] : eqn_tags)
+    for (const auto & [key, value] : tags)
+      output << "  " << eqn + 1 << " , '"
+             << key << "' , '" << value << "' ;" << endl;
+  output << "};" << endl;
 }
 
 void
-EquationTags::writeOccbinOutput(ostream &output, const string &modstruct, bool julia) const
+EquationTags::writeOccbinOutput(ostream &output) const
 {
-  if (julia)
-    return;
-
   map<int, map<string, string>> occbin_options;
   for (const auto & [eqn, tags] : eqn_tags)
     for (const auto & [key, value] : tags)
@@ -121,9 +103,9 @@ EquationTags::writeOccbinOutput(ostream &output, const string &modstruct, bool j
     {
       idx++;
       for (const auto & [key, value] : tags)
-        output << modstruct << "occbin.constraint(" << idx << ")."
+        output << "M_.occbin.constraint(" << idx << ")."
                << key << " = '" << value << "';" << endl;
-      output << modstruct << "occbin.constraint(" << idx << ").equation = "
+      output << "M_.occbin.constraint(" << idx << ").equation = "
              << eqn+1 << ";" << endl;
     }
 }

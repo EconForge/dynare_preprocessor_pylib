@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -41,7 +41,6 @@ public:
                      const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
-  void writeJuliaOutput(ostream &output, const string &basename) override;
   void writeJsonOutput(ostream &output) const override;
   //! Fill eval context with parameter value
   void fillEvalContext(eval_context_t &eval_context) const;

@@ -2527,67 +2527,67 @@ DynamicModel::includeExcludeEquations(const string &eqs, bool exclude_eqs)
 }
 
 void
-DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename, const string &modstruct,
+DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename,
                                      const vector<int> &state_var, bool estimation_present) const
 {
   for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
       int block_size = blocks[blk].size;
-      output << modstruct << "block_structure.block(" << blk+1 << ").Simulation_Type = " << static_cast<int>(blocks[blk].simulation_type) << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").maximum_lag = " << blocks[blk].max_lag << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").maximum_lead = " << blocks[blk].max_lead << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").maximum_endo_lag = " << blocks[blk].max_endo_lag << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").maximum_endo_lead = " << blocks[blk].max_endo_lead << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").maximum_exo_lag = " << blocks[blk].max_exo_lag << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").maximum_exo_lead = " << blocks[blk].max_exo_lead << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").maximum_exo_det_lag = " << blocks[blk].max_exo_det_lag << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").maximum_exo_det_lead = " << blocks[blk].max_exo_det_lead << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").endo_nbr = " << block_size << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").mfs = " << blocks[blk].mfs_size << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").equation = [";
+      output << "M_.block_structure.block(" << blk+1 << ").Simulation_Type = " << static_cast<int>(blocks[blk].simulation_type) << ";" << endl
+             << "M_.block_structure.block(" << blk+1 << ").maximum_lag = " << blocks[blk].max_lag << ";" << endl
+             << "M_.block_structure.block(" << blk+1 << ").maximum_lead = " << blocks[blk].max_lead << ";" << endl
+             << "M_.block_structure.block(" << blk+1 << ").maximum_endo_lag = " << blocks[blk].max_endo_lag << ";" << endl
+             << "M_.block_structure.block(" << blk+1 << ").maximum_endo_lead = " << blocks[blk].max_endo_lead << ";" << endl
+             << "M_.block_structure.block(" << blk+1 << ").maximum_exo_lag = " << blocks[blk].max_exo_lag << ";" << endl
+             << "M_.block_structure.block(" << blk+1 << ").maximum_exo_lead = " << blocks[blk].max_exo_lead << ";" << endl
+             << "M_.block_structure.block(" << blk+1 << ").maximum_exo_det_lag = " << blocks[blk].max_exo_det_lag << ";" << endl
+             << "M_.block_structure.block(" << blk+1 << ").maximum_exo_det_lead = " << blocks[blk].max_exo_det_lead << ";" << endl
+             << "M_.block_structure.block(" << blk+1 << ").endo_nbr = " << block_size << ";" << endl
+             << "M_.block_structure.block(" << blk+1 << ").mfs = " << blocks[blk].mfs_size << ";" << endl
+             << "M_.block_structure.block(" << blk+1 << ").equation = [";
       for (int eq = 0; eq < block_size; eq++)
         output << " " << getBlockEquationID(blk, eq)+1;
       output << "];" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").variable = [";
+             << "M_.block_structure.block(" << blk+1 << ").variable = [";
       for (int var = 0; var < block_size; var++)
         output << " " << getBlockVariableID(blk, var)+1;
       output << "];" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").exogenous = [";
+             << "M_.block_structure.block(" << blk+1 << ").exogenous = [";
       for (int exo : blocks_exo[blk])
         output << " " << exo+1;
       output << "];" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").exo_nbr = " << blocks_exo[blk].size() << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").exogenous_det = [";
+             << "M_.block_structure.block(" << blk+1 << ").exo_nbr = " << blocks_exo[blk].size() << ";" << endl
+             << "M_.block_structure.block(" << blk+1 << ").exogenous_det = [";
       for (int exo_det : blocks_exo_det[blk])
         output << " " << exo_det+1;
       output << "];" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").exo_det_nbr = " << blocks_exo_det[blk].size() << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").other_endogenous = [";
+             << "M_.block_structure.block(" << blk+1 << ").exo_det_nbr = " << blocks_exo_det[blk].size() << ";" << endl
+             << "M_.block_structure.block(" << blk+1 << ").other_endogenous = [";
       for (int other_endo : blocks_other_endo[blk])
         output << " " << other_endo+1;
       output << "];" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").other_endogenous_block = [";
+             << "M_.block_structure.block(" << blk+1 << ").other_endogenous_block = [";
       for (int other_endo : blocks_other_endo[blk])
         output << " " << endo2block[other_endo]+1;
       output << "];" << endl;
 
-      output << modstruct << "block_structure.block(" << blk+1 << ").tm1 = zeros(" << blocks_other_endo[blk].size() << ", " << state_var.size() << ");" << endl;
+      output << "M_.block_structure.block(" << blk+1 << ").tm1 = zeros(" << blocks_other_endo[blk].size() << ", " << state_var.size() << ");" << endl;
       int line = 1;
       for (auto other_endo : blocks_other_endo[blk])
         {
           if (auto it = find(state_var.begin(), state_var.end(), other_endo);
               it != state_var.end())
-            output << modstruct << "block_structure.block(" << blk+1 << ").tm1("
+            output << "M_.block_structure.block(" << blk+1 << ").tm1("
                    << line << ", "
                    << distance(state_var.begin(), it)+1 << ") = 1;" << endl;
           line++;
         }
 
-      output << modstruct << "block_structure.block(" << blk+1 << ").other_endo_nbr = " << blocks_other_endo[blk].size() << ";" << endl;
+      output << "M_.block_structure.block(" << blk+1 << ").other_endo_nbr = " << blocks_other_endo[blk].size() << ";" << endl;
 
       int count_lead_lag_incidence = 0;
       vector<int> local_state_var;
-      output << modstruct << "block_structure.block(" << blk+1 << ").lead_lag_incidence = [" << endl;
+      output << "M_.block_structure.block(" << blk+1 << ").lead_lag_incidence = [" << endl;
       for (int lag = -1; lag <= 1; lag++)
         {
           for (int var = 0; var < block_size; var++)
@@ -2609,13 +2609,13 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename, co
         }
       output << "];" << endl;
 
-      output << modstruct << "block_structure.block(" << blk+1 << ").sorted_col_dr_ghx = [";
+      output << "M_.block_structure.block(" << blk+1 << ").sorted_col_dr_ghx = [";
       for (int lsv : local_state_var)
         output << distance(state_var.begin(), find(state_var.begin(), state_var.end(), lsv))+1 << " ";
       output << "];" << endl;
 
       count_lead_lag_incidence = 0;
-      output << modstruct << "block_structure.block(" << blk+1 << ").lead_lag_incidence_other = [" << endl;
+      output << "M_.block_structure.block(" << blk+1 << ").lead_lag_incidence_other = [" << endl;
       for (int lag = -1; lag <= 1; lag++)
         {
           for (int other_endo : blocks_other_endo[blk])
@@ -2635,19 +2635,19 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename, co
         }
       output << "];" << endl;
 
-      output << modstruct << "block_structure.block(" << blk+1 << ").n_static = " << blocks[blk].n_static << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").n_forward = " << blocks[blk].n_forward << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").n_backward = " << blocks[blk].n_backward << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").n_mixed = " << blocks[blk].n_mixed << ";" << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").is_linear = " << (blocks[blk].linear ? "true" : "false" ) << ';' << endl
-             << modstruct << "block_structure.block(" << blk+1 << ").NNZDerivatives = " << blocks_derivatives[blk].size() << ';' << endl;
+      output << "M_.block_structure.block(" << blk+1 << ").n_static = " << blocks[blk].n_static << ";" << endl
+             << "M_.block_structure.block(" << blk+1 << ").n_forward = " << blocks[blk].n_forward << ";" << endl
+             << "M_.block_structure.block(" << blk+1 << ").n_backward = " << blocks[blk].n_backward << ";" << endl
+             << "M_.block_structure.block(" << blk+1 << ").n_mixed = " << blocks[blk].n_mixed << ";" << endl
+             << "M_.block_structure.block(" << blk+1 << ").is_linear = " << (blocks[blk].linear ? "true" : "false" ) << ';' << endl
+             << "M_.block_structure.block(" << blk+1 << ").NNZDerivatives = " << blocks_derivatives[blk].size() << ';' << endl;
     }
 
-  output << modstruct << "block_structure.variable_reordered = [";
+  output << "M_.block_structure.variable_reordered = [";
   for (int i = 0; i < symbol_table.endo_nbr(); i++)
     output << " " << endo_idx_block2orig[i]+1;
   output << "];" << endl
-         << modstruct << "block_structure.equation_reordered = [";
+         << "M_.block_structure.equation_reordered = [";
   for (int i = 0; i < symbol_table.endo_nbr(); i++)
     output << " " << eq_idx_block2orig[i]+1;
   output << "];" << endl;
@@ -2664,13 +2664,13 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename, co
       }
   for (auto [lag, eq_var_set] : lag_row_incidence)
     {
-      output << modstruct << "block_structure.incidence(" << max_endo_lag+lag+1 << ").lead_lag = " << lag << ";" << endl
-             << modstruct << "block_structure.incidence(" << max_endo_lag+lag+1 << ").sparse_IM = [" << endl;
+      output << "M_.block_structure.incidence(" << max_endo_lag+lag+1 << ").lead_lag = " << lag << ";" << endl
+             << "M_.block_structure.incidence(" << max_endo_lag+lag+1 << ").sparse_IM = [" << endl;
       for (auto [eq, var] : eq_var_set)
         output << " " << eq+1 << " " << var+1 << ";" << endl;
       output << "];" << endl;
     }
-  output << modstruct << "block_structure.dyn_tmp_nbr = " << blocks_temporary_terms_idxs.size() << ';' << endl;
+  output << "M_.block_structure.dyn_tmp_nbr = " << blocks_temporary_terms_idxs.size() << ';' << endl;
 
   if (estimation_present)
     {
@@ -2685,7 +2685,7 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename, co
           n_obs--;
 
       int n = n_obs + n_state;
-      output << modstruct << "nobs_non_statevar = " << n_obs << ";" << endl;
+      output << "M_.nobs_non_statevar = " << n_obs << ";" << endl;
       int nb_diag = 0;
 
       vector<int> i_nz_state_var(n);
@@ -2754,11 +2754,11 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename, co
             i_nz_state_var[lp + i] = lp + nze;
           lp += nze;
         }
-      output << modstruct << "nz_state_var = [";
+      output << "M_.nz_state_var = [";
       for (int i = 0; i < lp; i++)
         output << i_nz_state_var[i] << " ";
       output << "];" << endl
-             << modstruct << "n_diag = " << nb_diag << ";" << endl;
+             << "M_.n_diag = " << nb_diag << ";" << endl;
       KF_index_file.write(reinterpret_cast<char *>(&nb_diag), sizeof(nb_diag));
 
       using index_KF = pair<int, pair<int, int >>;
@@ -2798,7 +2798,7 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename, co
 }
 
 void
-DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool block_decomposition, bool use_dll, bool estimation_present, bool compute_xrefs, bool julia) const
+DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool block_decomposition, bool use_dll, bool estimation_present, bool compute_xrefs) const
 {
   /* Writing initialisation for M_.lead_lag_incidence matrix
      M_.lead_lag_incidence is a matrix with as many columns as there are
@@ -2809,28 +2809,16 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
      model at a given period.
   */
 
-  string modstruct, outstruct;
-  if (julia)
-    {
-      modstruct = "model_.";
-      outstruct = "oo_.";
-    }
-  else
-    {
-      modstruct = "M_.";
-      outstruct = "oo_.";
-    }
-
-  output << modstruct << "orig_maximum_endo_lag = " << max_endo_lag_orig << ";" << endl
-         << modstruct << "orig_maximum_endo_lead = " << max_endo_lead_orig << ";" << endl
-         << modstruct << "orig_maximum_exo_lag = " << max_exo_lag_orig << ";" << endl
-         << modstruct << "orig_maximum_exo_lead = " << max_exo_lead_orig << ";" << endl
-         << modstruct << "orig_maximum_exo_det_lag = " << max_exo_det_lag_orig << ";" << endl
-         << modstruct << "orig_maximum_exo_det_lead = " << max_exo_det_lead_orig << ";" << endl
-         << modstruct << "orig_maximum_lag = " << max_lag_orig << ";" << endl
-         << modstruct << "orig_maximum_lead = " << max_lead_orig << ";" << endl
-         << modstruct << "orig_maximum_lag_with_diffs_expanded = " << max_lag_with_diffs_expanded_orig << ";" << endl
-         << modstruct << "lead_lag_incidence = [";
+  output << "M_.orig_maximum_endo_lag = " << max_endo_lag_orig << ";" << endl
+         << "M_.orig_maximum_endo_lead = " << max_endo_lead_orig << ";" << endl
+         << "M_.orig_maximum_exo_lag = " << max_exo_lag_orig << ";" << endl
+         << "M_.orig_maximum_exo_lead = " << max_exo_lead_orig << ";" << endl
+         << "M_.orig_maximum_exo_det_lag = " << max_exo_det_lag_orig << ";" << endl
+         << "M_.orig_maximum_exo_det_lead = " << max_exo_det_lead_orig << ";" << endl
+         << "M_.orig_maximum_lag = " << max_lag_orig << ";" << endl
+         << "M_.orig_maximum_lead = " << max_lead_orig << ";" << endl
+         << "M_.orig_maximum_lag_with_diffs_expanded = " << max_lag_with_diffs_expanded_orig << ";" << endl
+         << "M_.lead_lag_incidence = [";
   // Loop on endogenous variables
   int nstatic = 0,
     nfwrd = 0,
@@ -2882,63 +2870,45 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
       output << ";";
     }
   output << "]';" << endl;
-  output << modstruct << "nstatic = " << nstatic << ";" << endl
-         << modstruct << "nfwrd   = " << nfwrd   << ";" << endl
-         << modstruct << "npred   = " << npred   << ";" << endl
-         << modstruct << "nboth   = " << nboth   << ";" << endl
-         << modstruct << "nsfwrd   = " << nfwrd+nboth   << ";" << endl
-         << modstruct << "nspred   = " << npred+nboth   << ";" << endl
-         << modstruct << "ndynamic   = " << npred+nboth+nfwrd << ";" << endl;
-  if (!julia)
-    {
-      output << modstruct << "dynamic_tmp_nbr = [";
-      for (size_t i = 0; i < temporary_terms_derivatives.size(); i++)
-        output << temporary_terms_derivatives[i].size() + (i == 0 ? temporary_terms_mlv.size() : 0) << "; ";
-      output << "];" << endl;
+  output << "M_.nstatic = " << nstatic << ";" << endl
+         << "M_.nfwrd   = " << nfwrd   << ";" << endl
+         << "M_.npred   = " << npred   << ";" << endl
+         << "M_.nboth   = " << nboth   << ";" << endl
+         << "M_.nsfwrd   = " << nfwrd+nboth   << ";" << endl
+         << "M_.nspred   = " << npred+nboth   << ";" << endl
+         << "M_.ndynamic   = " << npred+nboth+nfwrd << ";" << endl;
 
-      /* Write mapping between model local variables and indices in the temporary
-         terms vector (dynare#1722) */
-      output << modstruct << "model_local_variables_dynamic_tt_idxs = {" << endl;
-      for (auto [mlv, value] : temporary_terms_mlv)
-        output << "  '" << symbol_table.getName(mlv->symb_id) << "', "
-               << temporary_terms_idxs.at(mlv)+1 << ';' << endl;
-      output << "};" << endl;
-    }
+  output << "M_.dynamic_tmp_nbr = [";
+  for (size_t i = 0; i < temporary_terms_derivatives.size(); i++)
+    output << temporary_terms_derivatives[i].size() + (i == 0 ? temporary_terms_mlv.size() : 0) << "; ";
+  output << "];" << endl;
+
+  /* Write mapping between model local variables and indices in the temporary
+     terms vector (dynare#1722) */
+  output << "M_.model_local_variables_dynamic_tt_idxs = {" << endl;
+  for (auto [mlv, value] : temporary_terms_mlv)
+    output << "  '" << symbol_table.getName(mlv->symb_id) << "', "
+           << temporary_terms_idxs.at(mlv)+1 << ';' << endl;
+  output << "};" << endl;
 
   // Write equation tags
-  equation_tags.writeOutput(output, modstruct, julia);
+  equation_tags.writeOutput(output);
 
   // Write Occbin tags
-  equation_tags.writeOccbinOutput(output, modstruct, julia);
+  equation_tags.writeOccbinOutput(output);
 
   // Write mapping for variables and equations they are present in
-  if (!julia)
-    for (const auto &variable : variableMapping)
-      {
-	output << modstruct << "mapping." << symbol_table.getName(variable.first) << ".eqidx = [";
-	for (auto equation : variable.second)
-	  output << equation + 1 << " ";
-	output << "];" << endl;
-      }
-  else
+  for (const auto &variable : variableMapping)
     {
-      output << modstruct << "mapping = Dict(\n";
-      for (const auto &variable : variableMapping)
-	{
-	  output << "        \""
-		 << symbol_table.getName(variable.first)
-		 << "\" => [";
-	  for (auto equation : variable.second)
-	    output << equation + 1 << ", ";
-	  output << "]," << endl;
-	}
-      output << ")" << endl;
+      output << "M_.mapping." << symbol_table.getName(variable.first) << ".eqidx = [";
+      for (auto equation : variable.second)
+        output << equation + 1 << " ";
+      output << "];" << endl;
     }
-
 
   /* Say if static and dynamic models differ (because of [static] and [dynamic]
      equation tags) */
-  output << modstruct << "static_and_dynamic_models_differ = "
+  output << "M_.static_and_dynamic_models_differ = "
          << (static_only_equations.size() > 0 ? "true" : "false")
          << ";" << endl;
 
@@ -2950,7 +2920,7 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
         has_external_function = true;
         break;
       }
-  output << modstruct << "has_external_function = "
+  output << "M_.has_external_function = "
          << (has_external_function ? "true" : "false")
          << ';' << endl;
 
@@ -2971,64 +2941,56 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
 
   // Write the block structure of the model
   if (block_decomposition)
-    writeBlockDriverOutput(output, basename, modstruct, state_var, estimation_present);
+    writeBlockDriverOutput(output, basename, state_var, estimation_present);
 
-  output << modstruct << "state_var = [";
+  output << "M_.state_var = [";
   for (int it : state_var)
-    output << it+1 << (julia ? "," : " ");
+    output << it+1 << " ";
   output << "];" << endl;
 
   // Writing initialization for some other variables
-  if (!julia)
-    output << modstruct << "exo_names_orig_ord = [1:" << symbol_table.exo_nbr() << "];" << endl;
-  else
-    output << modstruct << "exo_names_orig_ord = collect(1:" << symbol_table.exo_nbr() << ");" << endl;
+  output << "M_.exo_names_orig_ord = [1:" << symbol_table.exo_nbr() << "];" << endl;
 
-  output << modstruct << "maximum_lag = " << max_lag << ";" << endl
-         << modstruct << "maximum_lead = " << max_lead << ";" << endl;
+  output << "M_.maximum_lag = " << max_lag << ";" << endl
+         << "M_.maximum_lead = " << max_lead << ";" << endl;
 
-  output << modstruct << "maximum_endo_lag = " << max_endo_lag << ";" << endl
-         << modstruct << "maximum_endo_lead = " << max_endo_lead << ";" << endl
-         << outstruct << "steady_state = zeros(" << symbol_table.endo_nbr() << (julia ? ")" : ", 1);") << endl;
+  output << "M_.maximum_endo_lag = " << max_endo_lag << ";" << endl
+         << "M_.maximum_endo_lead = " << max_endo_lead << ";" << endl
+         << "oo_.steady_state = zeros(" << symbol_table.endo_nbr() << ", 1);" << endl;
 
-  output << modstruct << "maximum_exo_lag = " << max_exo_lag << ";" << endl
-         << modstruct << "maximum_exo_lead = " << max_exo_lead << ";" << endl
-         << outstruct << "exo_steady_state = zeros(" << symbol_table.exo_nbr() <<  (julia ? ")" : ", 1);")   << endl;
+  output << "M_.maximum_exo_lag = " << max_exo_lag << ";" << endl
+         << "M_.maximum_exo_lead = " << max_exo_lead << ";" << endl
+         << "oo_.exo_steady_state = zeros(" << symbol_table.exo_nbr() << ", 1);" << endl;
 
   if (symbol_table.exo_det_nbr())
     {
-      output << modstruct << "maximum_exo_det_lag = " << max_exo_det_lag << ";" << endl
-             << modstruct << "maximum_exo_det_lead = " << max_exo_det_lead << ";" << endl
-             << outstruct << "exo_det_steady_state = zeros(" << symbol_table.exo_det_nbr() << (julia ? ")" : ", 1);") << endl;
+      output << "M_.maximum_exo_det_lag = " << max_exo_det_lag << ";" << endl
+             << "M_.maximum_exo_det_lead = " << max_exo_det_lead << ";" << endl
+             << "oo_.exo_det_steady_state = zeros(" << symbol_table.exo_det_nbr() << ", 1);" << endl;
     }
 
-  output << modstruct << "params = " << (julia ? "fill(NaN, " : "NaN(")
-         << symbol_table.param_nbr() << (julia ? ")" : ", 1);") << endl;
+  output << "M_.params = " << "NaN(" << symbol_table.param_nbr() << ", 1);" << endl;
 
-  // FIXME: implement this for Julia
-  if (!julia)
+  string empty_cell = "cell(" + to_string(symbol_table.endo_nbr()) + ", 1)";
+  output << "M_.endo_trends = struct('deflator', " << empty_cell
+         << ", 'log_deflator', " << empty_cell << ", 'growth_factor', " << empty_cell
+         << ", 'log_growth_factor', " << empty_cell << ");" << endl;
+  for (int i = 0; i < symbol_table.endo_nbr(); i++)
     {
-      string empty_cell = "cell(" + to_string(symbol_table.endo_nbr()) + ", 1)";
-      output << modstruct << "endo_trends = struct('deflator', " << empty_cell
-             << ", 'log_deflator', " << empty_cell << ", 'growth_factor', " << empty_cell
-             << ", 'log_growth_factor', " << empty_cell << ");" << endl;
-      for (int i = 0; i < symbol_table.endo_nbr(); i++)
+      int symb_id = symbol_table.getID(SymbolType::endogenous, i);
+      if (auto it = nonstationary_symbols_map.find(symb_id); it != nonstationary_symbols_map.end())
         {
-          int symb_id = symbol_table.getID(SymbolType::endogenous, i);
-          if (auto it = nonstationary_symbols_map.find(symb_id); it != nonstationary_symbols_map.end())
-            {
-              auto [is_log, deflator] = it->second;
-              output << modstruct << "endo_trends(" << i << ")."
-                     << (is_log ? "log_deflator" : "deflator") << " = '";
-              deflator->writeJsonOutput(output, {}, {});
-              output << "';" << endl;
+          auto [is_log, deflator] = it->second;
+          output << "M_.endo_trends(" << i << ")."
+                 << (is_log ? "log_deflator" : "deflator") << " = '";
+          deflator->writeJsonOutput(output, {}, {});
+          output << "';" << endl;
 
-              auto growth_factor = const_cast<DynamicModel *>(this)->AddDivide(deflator, deflator->decreaseLeadsLags(1))->removeTrendLeadLag(trend_symbols_map)->replaceTrendVar();
-              output << modstruct << "endo_trends(" << i << ")."
-                     << (is_log ? "log_growth_factor" : "growth_factor") << " = '";
-              growth_factor->writeJsonOutput(output, {}, {});
-              output << "';" << endl;
-            }
+          auto growth_factor = const_cast<DynamicModel *>(this)->AddDivide(deflator, deflator->decreaseLeadsLags(1))->removeTrendLeadLag(trend_symbols_map)->replaceTrendVar();
+          output << "M_.endo_trends(" << i << ")."
+                 << (is_log ? "log_growth_factor" : "growth_factor") << " = '";
+          growth_factor->writeJsonOutput(output, {}, {});
+          output << "';" << endl;
         }
     }
 
@@ -3037,7 +2999,7 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
 
   // Write number of non-zero derivatives
   // Use -1 if the derivatives have not been computed
-  output << modstruct << (julia ? "nnzderivatives" : "NNZDerivatives") << " = [";
+  output << "M_.NNZDerivatives = [";
   for (int i = 1; i < static_cast<int>(NNZDerivatives.size()); i++)
     output << (i > computed_derivs_order ? -1 : NNZDerivatives[i]) << "; ";
   output << "];" << endl;
@@ -3045,7 +3007,7 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
   // Write Pac Model Consistent Expectation parameter info
   for (auto &it : pac_mce_alpha_symb_ids)
     {
-      output << modstruct << "pac." << it.first.first << ".equations." << it.first.second << ".mce.alpha = [";
+      output << "M_.pac." << it.first.first << ".equations." << it.first.second << ".mce.alpha = [";
       for (auto it : it.second)
         output << symbol_table.getTypeSpecificID(it) + 1 << " ";
       output << "];" << endl;
@@ -3053,12 +3015,12 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
 
   // Write Pac Model Consistent Expectation Z1 info
   for (auto &it : pac_mce_z1_symb_ids)
-    output << modstruct << "pac." << it.first.first << ".equations." << it.first.second << ".mce.z1 = "
+    output << "M_.pac." << it.first.first << ".equations." << it.first.second << ".mce.z1 = "
            << symbol_table.getTypeSpecificID(it.second) + 1 << ";" << endl;
 
   // Write Pac lag info
   for (auto &it : pac_eqtag_and_lag)
-    output << modstruct << "pac." << it.first.first << ".equations." << it.second.first << ".max_lag = " << it.second.second << ";" << endl;
+    output << "M_.pac." << it.first.first << ".equations." << it.second.first << ".max_lag = " << it.second.second << ";" << endl;
 
   // Write Pac equation tag info
   map<string, vector<pair<string, string>>> for_writing;
@@ -3067,7 +3029,7 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
 
   for (auto &it : for_writing)
     {
-      output << modstruct << "pac." << it.first << ".tag_map = [";
+      output << "M_.pac." << it.first << ".tag_map = [";
       for (auto &it1 : it.second)
         output << "{'" << it1.first << "', '" << it1.second << "'};";
       output << "];" << endl;
@@ -3076,17 +3038,17 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
   for (auto &it : pac_model_info)
     {
       vector<int> lhs = get<0>(it.second);
-      output << modstruct << "pac." << it.first << ".lhs = [";
+      output << "M_.pac." << it.first << ".lhs = [";
       for (auto it : lhs)
         output << it + 1 << " ";
       output << "];" << endl;
 
       if (int growth_param_index = get<1>(it.second);
           growth_param_index >= 0)
-        output << modstruct << "pac." << it.first << ".growth_neutrality_param_index = "
+        output << "M_.pac." << it.first << ".growth_neutrality_param_index = "
                << symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl;
 
-      output << modstruct << "pac." << it.first << ".auxiliary_model_type = '" << get<2>(it.second) << "';" << endl;
+      output << "M_.pac." << it.first << ".auxiliary_model_type = '" << get<2>(it.second) << "';" << endl;
     }
 
   for (auto &pit : pac_equation_info)
@@ -3094,28 +3056,28 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
       auto [lhs_pac_var, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants] = pit.second;
       string substruct = pit.first.first + ".equations." + pit.first.second + ".";
 
-      output << modstruct << "pac." << substruct << "lhs_var = "
+      output << "M_.pac." << substruct << "lhs_var = "
              << symbol_table.getTypeSpecificID(lhs_pac_var.first) + 1 << ";" << endl;
 
       if (optim_share_index >= 0)
-        output << modstruct << "pac." << substruct << "share_of_optimizing_agents_index = "
+        output << "M_.pac." << substruct << "share_of_optimizing_agents_index = "
                << symbol_table.getTypeSpecificID(optim_share_index) + 1 << ";" << endl;
 
-      output << modstruct << "pac." << substruct << "ec.params = "
+      output << "M_.pac." << substruct << "ec.params = "
              << symbol_table.getTypeSpecificID(ec_params_and_vars.first) + 1 << ";" << endl
-             << modstruct << "pac." << substruct << "ec.vars = [";
+             << "M_.pac." << substruct << "ec.vars = [";
       for (auto it : ec_params_and_vars.second)
         output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
       output << "];" << endl
-             << modstruct << "pac." << substruct << "ec.istarget = [";
+             << "M_.pac." << substruct << "ec.istarget = [";
       for (auto it : ec_params_and_vars.second)
         output << (get<1>(it) ? "true " : "false ");
       output << "];" << endl
-             << modstruct << "pac." << substruct << "ec.scale = [";
+             << "M_.pac." << substruct << "ec.scale = [";
       for (auto it : ec_params_and_vars.second)
         output << get<2>(it) << " ";
       output << "];" << endl
-             << modstruct << "pac." << substruct << "ec.isendo = [";
+             << "M_.pac." << substruct << "ec.isendo = [";
       for (auto it : ec_params_and_vars.second)
         switch (symbol_table.getType(get<0>(it)))
           {
@@ -3130,32 +3092,32 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
             exit(EXIT_FAILURE);
           }
       output << "];" << endl
-             << modstruct << "pac." << substruct << "ar.params = [";
+             << "M_.pac." << substruct << "ar.params = [";
       for (auto &[pid, vid, vlag] : ar_params_and_vars)
         output << (pid != -1 ? symbol_table.getTypeSpecificID(pid) + 1 : -1) << " ";
       output << "];" << endl
-             << modstruct << "pac." << substruct << "ar.vars = [";
+             << "M_.pac." << substruct << "ar.vars = [";
       for (auto &[pid, vid, vlag] : ar_params_and_vars)
         output << (vid != -1 ? symbol_table.getTypeSpecificID(vid) + 1 : -1) << " ";
       output << "];" << endl
-             << modstruct << "pac." << substruct << "ar.lags = [";
+             << "M_.pac." << substruct << "ar.lags = [";
       for (auto &[pid, vid, vlag] : ar_params_and_vars)
         output << vlag << " ";
       output << "];" << endl;
       if (!non_optim_vars_params_and_constants.empty())
         {
-          output << modstruct << "pac." << substruct << "non_optimizing_behaviour.params = [";
+          output << "M_.pac." << substruct << "non_optimizing_behaviour.params = [";
           for (auto &it : non_optim_vars_params_and_constants)
             if (get<2>(it) >= 0)
               output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
             else
               output << "NaN ";
           output << "];" << endl
-                 << modstruct << "pac." << substruct << "non_optimizing_behaviour.vars = [";
+                 << "M_.pac." << substruct << "non_optimizing_behaviour.vars = [";
           for (auto &it : non_optim_vars_params_and_constants)
             output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
           output << "];" << endl
-                 << modstruct << "pac." << substruct << "non_optimizing_behaviour.isendo = [";
+                 << "M_.pac." << substruct << "non_optimizing_behaviour.isendo = [";
           for (auto &it : non_optim_vars_params_and_constants)
             switch (symbol_table.getType(get<0>(it)))
               {
@@ -3170,29 +3132,29 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
                 exit(EXIT_FAILURE);
               }
           output << "];" << endl
-                 << modstruct << "pac." << substruct << "non_optimizing_behaviour.lags = [";
+                 << "M_.pac." << substruct << "non_optimizing_behaviour.lags = [";
           for (auto &it : non_optim_vars_params_and_constants)
             output << get<1>(it) << " ";
           output << "];" << endl
-                 << modstruct << "pac." << substruct << "non_optimizing_behaviour.scaling_factor = [";
+                 << "M_.pac." << substruct << "non_optimizing_behaviour.scaling_factor = [";
           for (auto &it : non_optim_vars_params_and_constants)
             output << get<3>(it) << " ";
           output << "];" << endl;
         }
       if (!additive_vars_params_and_constants.empty())
         {
-          output << modstruct << "pac." << substruct << "additive.params = [";
+          output << "M_.pac." << substruct << "additive.params = [";
           for (auto &it : additive_vars_params_and_constants)
             if (get<2>(it) >= 0)
               output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
             else
               output << "NaN ";
           output << "];" << endl
-                 << modstruct << "pac." << substruct << "additive.vars = [";
+                 << "M_.pac." << substruct << "additive.vars = [";
           for (auto &it : additive_vars_params_and_constants)
             output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
           output << "];" << endl
-                 << modstruct << "pac." << substruct << "additive.isendo = [";
+                 << "M_.pac." << substruct << "additive.isendo = [";
           for (auto &it : additive_vars_params_and_constants)
             switch (symbol_table.getType(get<0>(it)))
               {
@@ -3207,29 +3169,29 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
                 exit(EXIT_FAILURE);
               }
           output << "];" << endl
-                 << modstruct << "pac." << substruct << "additive.lags = [";
+                 << "M_.pac." << substruct << "additive.lags = [";
           for (auto &it : additive_vars_params_and_constants)
             output << get<1>(it) << " ";
           output << "];" << endl
-                 << modstruct << "pac." << substruct << "additive.scaling_factor = [";
+                 << "M_.pac." << substruct << "additive.scaling_factor = [";
           for (auto &it : additive_vars_params_and_constants)
             output << get<3>(it) << " ";
           output << "];" << endl;
         }
       if (!optim_additive_vars_params_and_constants.empty())
         {
-          output << modstruct << "pac." << substruct << "optim_additive.params = [";
+          output << "M_.pac." << substruct << "optim_additive.params = [";
           for (auto &it : optim_additive_vars_params_and_constants)
             if (get<2>(it) >= 0)
               output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
             else
               output << "NaN ";
           output << "];" << endl
-                 << modstruct << "pac." << substruct << "optim_additive.vars = [";
+                 << "M_.pac." << substruct << "optim_additive.vars = [";
           for (auto &it : optim_additive_vars_params_and_constants)
             output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
           output << "];" << endl
-                 << modstruct << "pac." << substruct << "optim_additive.isendo = [";
+                 << "M_.pac." << substruct << "optim_additive.isendo = [";
           for (auto &it : optim_additive_vars_params_and_constants)
             switch (symbol_table.getType(get<0>(it)))
               {
@@ -3244,23 +3206,23 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
                 exit(EXIT_FAILURE);
               }
           output << "];" << endl
-                 << modstruct << "pac." << substruct << "optim_additive.lags = [";
+                 << "M_.pac." << substruct << "optim_additive.lags = [";
           for (auto &it : optim_additive_vars_params_and_constants)
             output << get<1>(it) << " ";
           output << "];" << endl
-                 << modstruct << "pac." << substruct << "optim_additive.scaling_factor = [";
+                 << "M_.pac." << substruct << "optim_additive.scaling_factor = [";
           for (auto &it : optim_additive_vars_params_and_constants)
             output << get<3>(it) << " ";
           output << "];" << endl;
         }
       // Create empty h0 and h1 substructures that will be overwritten later if not empty
-      output << modstruct << "pac." << substruct << "h0_param_indices = [];" << endl
-             << modstruct << "pac." << substruct << "h1_param_indices = [];" << endl;
+      output << "M_.pac." << substruct << "h0_param_indices = [];" << endl
+             << "M_.pac." << substruct << "h1_param_indices = [];" << endl;
     }
 
   for (auto &it : pac_h0_indices)
     {
-      output << modstruct << "pac." << it.first.first << ".equations." << it.first.second << ".h0_param_indices = [";
+      output << "M_.pac." << it.first.first << ".equations." << it.first.second << ".h0_param_indices = [";
       for (auto it1 : it.second)
         output << symbol_table.getTypeSpecificID(it1) + 1 << " ";
       output << "];" << endl;
@@ -3268,7 +3230,7 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
 
   for (auto &it : pac_h1_indices)
     {
-      output << modstruct << "pac." << it.first.first << ".equations." << it.first.second << ".h1_param_indices = [";
+      output << "M_.pac." << it.first.first << ".equations." << it.first.second << ".h1_param_indices = [";
       for (auto it1 : it.second)
         output << symbol_table.getTypeSpecificID(it1) + 1 << " ";
       output << "];" << endl;

@@ -171,7 +171,6 @@ public:
     \param basename is the name of the modfile (without extension) which can be used to build auxiliary files
   */
   virtual void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const = 0;
-  virtual void writeJuliaOutput(ostream &output, const string &basename);
   virtual void writeJsonOutput(ostream &output) const = 0;
 };
 
