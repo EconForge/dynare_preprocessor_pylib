@@ -787,7 +787,7 @@ h_options: o_filename
           | o_last_obs
           | o_data_last_obs
           | o_nobs
-          | o_series2
+          | o_series
           ;
 
 endval : ENDVAL ';' initval_list END ';'
@@ -3156,7 +3156,6 @@ o_pac_steady_state_growth : STEADY_STATE_GROWTH EQUAL signed_number { driver.set
 o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var.model_name", $3); };
 o_var_order : ORDER EQUAL INT_NUMBER { driver.option_num("var.order", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
-o_series2 : SERIES EQUAL symbol { driver.option_num("series", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_filename : FILENAME EQUAL filename { driver.option_str("filename", $3); };
 o_var_eq_tags : EQTAGS EQUAL vec_str { driver.option_vec_str("var.eqtags", $3); }
