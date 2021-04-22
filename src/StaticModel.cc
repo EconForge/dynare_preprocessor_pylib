@@ -1484,7 +1484,7 @@ StaticModel::writeStaticModel(const string &basename,
              << "#     from " << basename << ".mod" << endl
              << "#" << endl
              << "using Dynare: get_power_deriv" << endl
-             << "using StatFuns" << endl << endl
+             << "using StatsFuns" << endl << endl
              << "export tmp_nbr, static!, staticResid!, staticG1!, staticG2!, staticG3!" << endl << endl
              << "#=" << endl
              << "# The comments below apply to all functions contained in this module #" << endl

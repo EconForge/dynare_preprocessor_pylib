@@ -2140,7 +2140,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
              << "#     from " << basename << ".mod" << endl
              << "#" << endl
              << "using Dynare: get_power_deriv" << endl
-             << "using StatFuns" << endl << endl
+             << "using StatsFuns" << endl << endl
              << "export tmp_nbr, dynamic!, dynamicResid!, dynamicG1!, dynamicG2!, dynamicG3!" << endl << endl
              << "#=" << endl
              << "# The comments below apply to all functions contained in this module #" << endl
