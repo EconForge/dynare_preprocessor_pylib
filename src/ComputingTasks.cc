@@ -2225,6 +2225,10 @@ PlannerObjectiveStatement::computingPass()
 void
 PlannerObjectiveStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
+  output << "M_.NNZDerivatives_objective = [";
+  for (int i=1; i < static_cast<int>(model_tree.getNNZDerivatives().size()); i++)
+    output << (i > model_tree.getComputedDerivsOrder() ? -1 : model_tree.getNNZDerivatives()[i]) << ";";
+  output << "];";
   model_tree.writeStaticFile(basename + ".objective", false, false, false, "", {}, {}, false);
 }
 
