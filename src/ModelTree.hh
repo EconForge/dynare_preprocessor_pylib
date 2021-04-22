@@ -455,6 +455,20 @@ public:
     return equation_tags.getTagsByEqn(eq);
   }
 
+  //! Returns the vector of non-zero derivative counts
+  inline const vector<int> &
+  getNNZDerivatives() const
+  {
+    return NNZDerivatives;
+  }
+
+  //!Returns the maximum order of computed derivatives
+  inline int
+  getComputedDerivsOrder() const
+  {
+    return computed_derivs_order;
+  }
+
   inline static string
   BlockSim(BlockSimulationType type)
   {
