@@ -2125,14 +2125,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
     }
   else
     {
-      string filename = basename + "Dynamic.jl";
-      ofstream output;
-      output.open(filename, ios::out | ios::binary);
-      if (!output.is_open())
-        {
-          cerr << "Error: Can't open file " << filename << " for writing" << endl;
-          exit(EXIT_FAILURE);
-        }
+      stringstream output;
 
       output << "module " << basename << "Dynamic" << endl
              << "#" << endl
@@ -2330,7 +2323,8 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
              << "    return nothing" << endl
              << "end" << endl
              << "end" << endl;
-      output.close();
+
+      writeToFileIfModified(output, basename + "Dynamic.jl");
     }
 }
 

@@ -21,7 +21,8 @@
 #include <cassert>
 #include <iostream>
 #include <regex>
-
+#include <algorithm>
+#include <iterator>
 #include <filesystem>
 
 #include "DataTree.hh"
@@ -945,4 +946,25 @@ DataTree::packageDir(const string &package)
   string dirname = "+" + regex_replace(package, pat, "/+");
   filesystem::create_directories(dirname);
   return dirname;
+}
+
+void
+DataTree::writeToFileIfModified(stringstream &new_contents, const string &filename)
+{
+  ifstream old_file{filename, ios::in | ios::binary};
+  if (old_file.is_open()
+      && equal(istreambuf_iterator<char>{old_file}, istreambuf_iterator<char>{},
+               istreambuf_iterator<char>{new_contents}, istreambuf_iterator<char>{}))
+    return;
+  old_file.close();
+
+  ofstream new_file{filename, ios::out | ios::binary};
+  if (!new_file.is_open())
+    {
+      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+  copy(istreambuf_iterator<char>{new_contents}, istreambuf_iterator<char>{},
+       ostreambuf_iterator<char>{new_file});
+  new_file.close();
 }

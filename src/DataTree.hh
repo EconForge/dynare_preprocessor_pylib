@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -104,6 +104,11 @@ protected:
     In practice the package nesting is used for the planner_objective (stored
     inside +objective subdir). */
   static string packageDir(const string &package);
+
+  /* Writes the contents of “new_contents” to the file “filename”. However, if
+     the file already exists and would not be modified by this operation, then do
+     nothing. */
+  static void writeToFileIfModified(stringstream &new_contents, const string &filename);
 
 private:
   constexpr static int constants_precision{16};
