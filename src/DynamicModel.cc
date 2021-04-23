@@ -4595,19 +4595,28 @@ DynamicModel::writeSetAuxiliaryVariables(const string &basename, bool julia) con
   if (output_func_body.str().empty())
     return;
 
-  string func_name = julia ? basename + "_dynamic_set_auxiliary_series" : "dynamic_set_auxiliary_series";
+  string func_name = julia ? basename + "_dynamic_set_auxiliary_series!" : "dynamic_set_auxiliary_series";
   string comment = julia ? "#" : "%";
 
   stringstream output;
-  output << "function ds = " << func_name + "(ds, params)" << endl
+  if (julia)
+    output << "module " << basename << "DynamicSetAuxiliarySeries" << endl
+           << "export " << func_name << endl;
+  output << "function ";
+  if (!julia)
+    output << "ds = ";
+  output << func_name + "(ds, params)" << endl
          << comment << endl
          << comment << " Status : Computes Auxiliary variables of the dynamic model and returns a dseries" << endl
          << comment << endl
          << comment << " Warning : this file is generated automatically by Dynare" << endl
          << comment << "           from model file (.mod)" << endl << endl
-         << output_func_body.str();
+         << output_func_body.str()
+         << "end" << endl;
+  if (julia)
+    output << "end" << endl;
 
-  writeToFileIfModified(output, julia ? func_name + ".jl" : packageDir(basename) + "/" + func_name + ".m");
+  writeToFileIfModified(output, julia ? basename + "DynamicSetAuxiliarySeries.jl" : packageDir(basename) + "/" + func_name + ".m");
 }
 
 void

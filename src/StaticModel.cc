@@ -2115,27 +2115,28 @@ StaticModel::writeSetAuxiliaryVariables(const string &basename, bool julia) cons
   if (output_func_body.str().empty())
     return;
 
-  string func_name = julia ? basename + "_set_auxiliary_variables" : "set_auxiliary_variables";
+  string func_name = julia ? basename + "_set_auxiliary_variables!" : "set_auxiliary_variables";
   string comment = julia ? "#" : "%";
 
   stringstream output;
+  if (julia)
+    output << "module " << basename << "SetAuxiliaryVariables" << endl
+           << "export " << func_name << endl;
   output << "function ";
   if (!julia)
     output << "y = ";
-  output << func_name;
-  if (julia)
-    output << "!";
-  output << "(y, x, params)" << endl
+  output << func_name << "(y, x, params)" << endl
          << comment << endl
          << comment << " Status : Computes static model for Dynare" << endl
          << comment << endl
          << comment << " Warning : this file is generated automatically by Dynare" << endl
          << comment << "           from model file (.mod)" << endl << endl
-         << output_func_body.str();
+         << output_func_body.str()
+         << "end" << endl;
   if (julia)
     output << "end" << endl;
 
-  writeToFileIfModified(output, julia ? func_name + ".jl" : packageDir(basename) + "/" + func_name + ".m");
+  writeToFileIfModified(output, julia ? basename + "SetAuxiliaryVariables.jl" : packageDir(basename) + "/" + func_name + ".m");
 }
 
 void
