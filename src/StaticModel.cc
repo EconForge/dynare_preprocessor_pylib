@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <algorithm>
+#include <sstream>
 
 #include "StaticModel.hh"
 #include "DynamicModel.hh"
@@ -2115,17 +2116,9 @@ StaticModel::writeSetAuxiliaryVariables(const string &basename, bool julia) cons
     return;
 
   string func_name = julia ? basename + "_set_auxiliary_variables" : "set_auxiliary_variables";
-  string filename = julia ? func_name + ".jl" : packageDir(basename) + "/" + func_name + ".m";
   string comment = julia ? "#" : "%";
 
-  ofstream output;
-  output.open(filename, ios::out | ios::binary);
-  if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
-      exit(EXIT_FAILURE);
-    }
-
+  stringstream output;
   output << "function ";
   if (!julia)
     output << "y = ";
@@ -2142,7 +2135,7 @@ StaticModel::writeSetAuxiliaryVariables(const string &basename, bool julia) cons
   if (julia)
     output << "end" << endl;
 
-  output.close();
+  writeToFileIfModified(output, julia ? func_name + ".jl" : packageDir(basename) + "/" + func_name + ".m");
 }
 
 void

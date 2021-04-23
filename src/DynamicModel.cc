@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <numeric>
 #include <regex>
+#include <sstream>
 
 #include "DynamicModel.hh"
 
@@ -4595,17 +4596,9 @@ DynamicModel::writeSetAuxiliaryVariables(const string &basename, bool julia) con
     return;
 
   string func_name = julia ? basename + "_dynamic_set_auxiliary_series" : "dynamic_set_auxiliary_series";
-  string filename = julia ? func_name + ".jl" : packageDir(basename) + "/" + func_name + ".m";
   string comment = julia ? "#" : "%";
 
-  ofstream output;
-  output.open(filename, ios::out | ios::binary);
-  if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
-      exit(EXIT_FAILURE);
-    }
-
+  stringstream output;
   output << "function ds = " << func_name + "(ds, params)" << endl
          << comment << endl
          << comment << " Status : Computes Auxiliary variables of the dynamic model and returns a dseries" << endl
@@ -4614,7 +4607,7 @@ DynamicModel::writeSetAuxiliaryVariables(const string &basename, bool julia) con
          << comment << "           from model file (.mod)" << endl << endl
          << output_func_body.str();
 
-  output.close();
+  writeToFileIfModified(output, julia ? func_name + ".jl" : packageDir(basename) + "/" + func_name + ".m");
 }
 
 void

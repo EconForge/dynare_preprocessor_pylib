@@ -19,6 +19,7 @@
 
 #include <cassert>
 #include <algorithm>
+#include <sstream>
 
 #include "ModelEquationBlock.hh"
 
@@ -190,17 +191,9 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model
   if (def_table.size() == 0)
     return;
 
-  string filename = julia ? basename + "SteadyState2.jl" : packageDir(basename) + "/steadystate.m";
-  ofstream output;
-  output.open(filename, ios::out | ios::binary);
-  if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
-      exit(EXIT_FAILURE);
-    }
-
   ExprNodeOutputType output_type = (julia ? ExprNodeOutputType::juliaSteadyStateFile : ExprNodeOutputType::steadyStateFile);
 
+  stringstream output;
   if (!julia)
     output << "function [ys_, params, info] = steadystate("
            << "ys_, exo_, params)" << endl
@@ -243,7 +236,8 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model
   output << "end" << endl;
   if (julia)
     output << "end" << endl;
-  output.close();
+
+  writeToFileIfModified(output, julia ? basename + "SteadyState2.jl" : packageDir(basename) + "/steadystate.m");
 }
 
 void
