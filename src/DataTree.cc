@@ -978,6 +978,8 @@ DataTree::writeToFileIfModified(stringstream &new_contents, const string &filena
     return;
   old_file.close();
 
+  new_contents.seekg(0);
+
   ofstream new_file{filename, ios::out | ios::binary};
   if (!new_file.is_open())
     {
