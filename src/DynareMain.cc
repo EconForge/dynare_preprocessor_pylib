@@ -157,9 +157,6 @@ main(int argc, char **argv)
   LanguageOutputType language{LanguageOutputType::matlab};
   string mexext;
   filesystem::path matlabroot;
-  filesystem::path dynareroot{argv[0]};
-  dynareroot = dynareroot.parent_path();
-  dynareroot = dynareroot / ".." / "..";
   bool onlymodel = false;
   bool use_dll = false;
 
@@ -405,6 +402,14 @@ main(int argc, char **argv)
     }
 
   cout << "Starting preprocessing of the model file ..." << endl;
+
+  // Determine root of Dynare installation
+  const filesystem::path argv0{argv[0]};
+  // Normal case: binary is in preprocessor/dynare-preprocessor(.exe)?
+  filesystem::path dynareroot = argv0.parent_path().parent_path();
+  if (argv0.filename().stem() == "dynare_m")
+    // Special case: backward compatibility location in matlab/preprocessor64/dynare_m(.exe)?
+    dynareroot = dynareroot.parent_path();
 
   // Construct basename (i.e. remove file extension if there is one)
   string basename = argv[1];
