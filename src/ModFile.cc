@@ -358,6 +358,12 @@ ModFile::checkPass(bool nostrict, bool stochastic)
           exit(EXIT_FAILURE);
         }
     }
+
+  if ((stochastic_statement_present || mod_file_struct.check_present) && dynamic_model.mfs > 0)
+    {
+      cerr << "ERROR: mfs > 0 is incompatible with check, stoch_simul, estimation, osr, ramsey_policy, discretionary_policy, calib_smoother, identification, methods_of_moments and sensitivity commands" << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
