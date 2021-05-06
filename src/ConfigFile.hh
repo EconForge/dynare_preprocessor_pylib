@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2020 Dynare Team
+ * Copyright © 2010-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -91,10 +91,11 @@ protected:
 class ConfigFile
 {
 public:
-  ConfigFile(bool parallel_arg, bool parallel_test_arg, bool parallel_slave_open_mode_arg, string cluster_name);
+  ConfigFile(bool parallel_arg, bool parallel_test_arg, bool parallel_slave_open_mode_arg,
+             bool parallel_use_psexec_arg, string cluster_name);
 
 private:
-  const bool parallel, parallel_test, parallel_slave_open_mode;
+  const bool parallel, parallel_test, parallel_slave_open_mode, parallel_use_psexec;
   const string cluster_name;
   string firstClusterName;
   //! Hooks

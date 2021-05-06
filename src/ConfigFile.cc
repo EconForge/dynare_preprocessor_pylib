@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2020 Dynare Team
+ * Copyright © 2010-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -98,9 +98,12 @@ Cluster::Cluster(member_nodes_t member_nodes_arg) :
 }
 
 ConfigFile::ConfigFile(bool parallel_arg, bool parallel_test_arg,
-                       bool parallel_slave_open_mode_arg, string cluster_name_arg) :
+                       bool parallel_slave_open_mode_arg, bool parallel_use_psexec_arg,
+                       string cluster_name_arg) :
   parallel{parallel_arg}, parallel_test{parallel_test_arg},
-  parallel_slave_open_mode{parallel_slave_open_mode_arg}, cluster_name{move(cluster_name_arg)}
+  parallel_slave_open_mode{parallel_slave_open_mode_arg},
+  parallel_use_psexec{parallel_use_psexec_arg},
+  cluster_name{move(cluster_name_arg)}
 {
 }
 
@@ -748,8 +751,12 @@ ConfigFile::writeCluster(ostream &output) const
         output << "'SingleCompThread', 'false');" << endl;
     }
 
+  // Default values for the following two are both in DynareMain.cc and matlab/default_option_values.m
   if (parallel_slave_open_mode)
     output << "options_.parallel_info.leaveSlaveOpen = 1;" << endl;
+  if (!parallel_use_psexec)
+    output << "options_.parallel_use_psexec = false;" << endl;
+
   output << "options_.parallel_info.console_mode= isoctave;" << endl;
 
   output << "InitializeComputationalEnvironment();" << endl;

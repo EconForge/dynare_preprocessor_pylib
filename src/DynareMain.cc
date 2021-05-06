@@ -49,7 +49,7 @@ void
 usage()
 {
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] [savemacro[=macro_file]] [onlymacro] [linemacro] [notmpterms] [nolog] [warn_uninit]"
-       << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test]"
+       << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test] [parallel_use_psexec=true|false]"
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=second|third] [language=matlab|julia]"
        << " [params_derivs_order=0|1|2] [transform_unary_ops] [exclude_eqs=<equation_tag_list_or_file>] [include_eqs=<equation_tag_list_or_file>]"
        << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] [nopathchange] [nopreprocessoroutput]"
@@ -137,8 +137,9 @@ main(int argc, char **argv)
   string parallel_config_file;
   bool parallel = false;
   string cluster_name;
-  bool parallel_slave_open_mode = false;
+  bool parallel_slave_open_mode = false; // Must be the same default as in matlab/default_option_values.m
   bool parallel_test = false;
+  bool parallel_use_psexec = true; // Must be the same default as in matlab/default_option_values.m
   bool nostrict = false;
   bool stochastic = false;
   bool check_model_changes = false;
@@ -230,6 +231,26 @@ main(int argc, char **argv)
         parallel_slave_open_mode = true;
       else if (s == "parallel_test")
         parallel_test = true;
+      else if (s.substr(0, 19) == "parallel_use_psexec")
+        {
+          if (s.length() <= 20 || s.at(19) != '=')
+            {
+              cerr << "Incorrect syntax for parallel_use_psexec option" << endl;
+              usage();
+            }
+
+          s.erase(0, 20);
+
+          if (s == "true")
+            parallel_use_psexec = true;
+          else if (s == "false")
+            parallel_use_psexec = false;
+          else
+            {
+              cerr << "Incorrect syntax for parallel_use_psexec option" << endl;
+              usage();
+            }
+        }
       else if (s == "nostrict")
         nostrict = true;
       else if (s == "stochastic")
@@ -429,7 +450,7 @@ main(int argc, char **argv)
   WarningConsolidation warnings(no_warn);
 
   // Process config file
-  ConfigFile config_file(parallel, parallel_test, parallel_slave_open_mode, cluster_name);
+  ConfigFile config_file(parallel, parallel_test, parallel_slave_open_mode, parallel_use_psexec, cluster_name);
   config_file.getConfigFileInfo(parallel_config_file);
   config_file.checkPass(warnings);
   config_file.transformPass();
