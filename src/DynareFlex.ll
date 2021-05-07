@@ -436,6 +436,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>occbin_likelihood {return token::OCCBIN_LIKELIHOOD;}
 <DYNARE_STATEMENT>occbin_smoother {return token::OCCBIN_SMOOTHER;}
 <DYNARE_STATEMENT>first_simulation_period {return token::FIRST_SIMULATION_PERIOD;}
+<DYNARE_STATEMENT>no_init_estimation_check_first_obs {return token::NO_INIT_ESTIMATION_CHECK_FIRST_OBS;}
 
 <DYNARE_STATEMENT>alpha {
   yylval->build<string>(yytext);

@@ -164,7 +164,7 @@ class ParsingDriver;
 %token MAX_REPEATED_OPTIMIZATION_RUNS FUNCTION_CONVERGENCE_CRITERION SAVE_REALTIME
 %token PARAMETER_CONVERGENCE_CRITERION NUMBER_OF_LARGE_PERTURBATIONS NUMBER_OF_SMALL_PERTURBATIONS
 %token NUMBER_OF_POSTERIOR_DRAWS_AFTER_PERTURBATION MAX_NUMBER_OF_STAGES
-%token RANDOM_FUNCTION_CONVERGENCE_CRITERION RANDOM_PARAMETER_CONVERGENCE_CRITERION
+%token RANDOM_FUNCTION_CONVERGENCE_CRITERION RANDOM_PARAMETER_CONVERGENCE_CRITERION NO_INIT_ESTIMATION_CHECK_FIRST_OBS
 /* Method of Moments */
 %token METHOD_OF_MOMENTS MOM_METHOD
 %token BARTLETT_KERNEL_LAG WEIGHTING_MATRIX WEIGHTING_MATRIX_SCALING_FACTOR ANALYTIC_STANDARD_ERRORS ANALYTIC_JACOBIAN PENALIZED_ESTIMATOR VERBOSE 
@@ -2016,6 +2016,7 @@ estimation_options : o_datafile
                    | o_diagonal_only
                    | o_occbin_likelihood
                    | o_occbin_smoother
+                   | o_no_init_estimation_check_first_obs
                    ;
 
 name_value_pair : QUOTED_STRING COMMA QUOTED_STRING
@@ -3714,6 +3715,7 @@ o_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("plot_shock_decomp.use
                    ;
 o_colormap : COLORMAP EQUAL symbol { driver.option_num("plot_shock_decomp.colormap",$3); };
 o_icd_colormap : COLORMAP EQUAL symbol { driver.option_num("initial_condition_decomp.colormap",$3); };
+o_no_init_estimation_check_first_obs : NO_INIT_ESTIMATION_CHECK_FIRST_OBS { driver.option_num("no_init_estimation_check_first_obs", "true"); };
 
 // Some options to "method_of_moments"
 o_bartlett_kernel_lag : BARTLETT_KERNEL_LAG EQUAL INT_NUMBER { driver.option_num("mom.bartlett_kernel_lag", $3); };
