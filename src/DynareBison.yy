@@ -3230,7 +3230,11 @@ o_forecast_type : FORECAST EQUAL UNCONDITIONAL
 o_shock_decomposition_presample : PRESAMPLE EQUAL INT_NUMBER { driver.option_num("shock_decomp.presample", $3); };
 o_shock_decomposition_forecast : FORECAST EQUAL INT_NUMBER { driver.option_num("shock_decomp.forecast", $3); };
 o_save_realtime : SAVE_REALTIME EQUAL vec_int { driver.option_vec_int("shock_decomp.save_realtime", $3); };
-o_fast_realtime : FAST_REALTIME EQUAL INT_NUMBER { driver.option_num("shock_decomp.fast_realtime", $3); };
+o_fast_realtime : FAST_REALTIME EQUAL vec_int
+                  { driver.option_vec_int("shock_decomp.fast_realtime", $3); }
+                | FAST_REALTIME EQUAL vec_int_number
+                  { driver.option_vec_int("shock_decomp.fast_realtime", $3); }
+                ;
 o_nodisplay : NODISPLAY { driver.option_num("nodisplay", "true"); };
 o_icd_nodisplay : NODISPLAY { driver.option_num("initial_condition_decomp.nodisplay", "true"); };
 o_psd_nodisplay : NODISPLAY { driver.option_num("plot_shock_decomp.nodisplay", "true"); };
