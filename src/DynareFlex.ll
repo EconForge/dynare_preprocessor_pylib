@@ -963,7 +963,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_BLOCK>\|x { return token::PIPE_X; }
 <DYNARE_BLOCK>\|p { return token::PIPE_P; }
 
-<DYNARE_STATEMENT,DYNARE_BLOCK>\'[^\']+\' {
+<DYNARE_STATEMENT,DYNARE_BLOCK>\'[^\']*\' {
   yylval->build<string>(yytext + 1).pop_back();
   return token::QUOTED_STRING;
 }
