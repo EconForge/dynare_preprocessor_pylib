@@ -785,6 +785,10 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>xls_range {return token::XLS_RANGE;}
 <DYNARE_STATEMENT>series {return token::SERIES;}
 <DYNARE_STATEMENT>mh_recover {return token::MH_RECOVER;}
+<DYNARE_STATEMENT>mh_initialize_from_previous_mcmc {return token::MH_INITIALIZE_FROM_PREVIOUS_MCMC;}
+<DYNARE_STATEMENT>mh_initialize_from_previous_mcmc_directory {return token::MH_INITIALIZE_FROM_PREVIOUS_MCMC_DIRECTORY;}
+<DYNARE_STATEMENT>mh_initialize_from_previous_mcmc_record {return token::MH_INITIALIZE_FROM_PREVIOUS_MCMC_RECORD;}
+<DYNARE_STATEMENT>mh_initialize_from_previous_mcmc_prior {return token::MH_INITIALIZE_FROM_PREVIOUS_MCMC_PRIOR;}
 <DYNARE_STATEMENT>planner_discount {return token::PLANNER_DISCOUNT;}
 <DYNARE_STATEMENT>planner_discount_latex_name {return token::PLANNER_DISCOUNT_LATEX_NAME;}
 <DYNARE_STATEMENT>calibration {return token::CALIBRATION;}

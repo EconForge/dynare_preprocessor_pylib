@@ -96,7 +96,8 @@ class ParsingDriver;
 %token LAPLACE LIK_ALGO LIK_INIT LINEAR LINEAR_DECOMPOSITION LOAD_IDENT_FILES LOAD_MH_FILE LOAD_RESULTS_AFTER_LOAD_MH LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV LINEAR_APPROXIMATION
 %token LYAPUNOV_COMPLEX_THRESHOLD LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR
 %token MATCHED_MOMENTS MARKOWITZ MARGINAL_DENSITY MAX MAXIT
-%token MFS MH_CONF_SIG MH_DROP MH_INIT_SCALE MH_JSCALE MH_TUNE_JSCALE MH_TUNE_GUESS MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
+%token MFS MH_CONF_SIG MH_DROP MH_INIT_SCALE MH_JSCALE MH_TUNE_JSCALE MH_TUNE_GUESS MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MH_INITIALIZE_FROM_PREVIOUS_MCMC MH_INITIALIZE_FROM_PREVIOUS_MCMC_DIRECTORY MH_INITIALIZE_FROM_PREVIOUS_MCMC_RECORD MH_INITIALIZE_FROM_PREVIOUS_MCMC_PRIOR
+%token POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
 %token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO CONTEMPORANEOUS_CORRELATION DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL RAFTERY_LEWIS_QRS RAFTERY_LEWIS_DIAGNOSTICS MCMC_JUMPING_COVARIANCE MOMENT_CALIBRATION
 %token NUMBER_OF_PARTICLES RESAMPLING SYSTEMATIC GENERIC RESAMPLING_THRESHOLD RESAMPLING_METHOD KITAGAWA STRATIFIED SMOOTH
@@ -1950,6 +1951,10 @@ estimation_options : o_datafile
                    | o_constant
                    | o_noconstant
                    | o_mh_recover
+                   | o_mh_initialize_from_previous_mcmc
+                   | o_mh_initialize_from_previous_mcmc_directory
+                   | o_mh_initialize_from_previous_mcmc_record
+                   | o_mh_initialize_from_previous_mcmc_prior
                    | o_diffuse_filter
                    | o_plot_priors
                    | o_order
@@ -3349,6 +3354,10 @@ o_raftery_lewis_qrs : RAFTERY_LEWIS_QRS EQUAL vec_value { driver.option_num("con
 o_constant : CONSTANT { driver.option_num("noconstant", "false"); };
 o_noconstant : NOCONSTANT { driver.option_num("noconstant", "true"); };
 o_mh_recover : MH_RECOVER { driver.option_num("mh_recover", "true"); };
+o_mh_initialize_from_previous_mcmc : MH_INITIALIZE_FROM_PREVIOUS_MCMC { driver.option_num("mh_initialize_from_previous_mcmc.status", "true"); }
+o_mh_initialize_from_previous_mcmc_directory : MH_INITIALIZE_FROM_PREVIOUS_MCMC_DIRECTORY EQUAL filename { driver.option_str("mh_initialize_from_previous_mcmc.directory", $3); };
+o_mh_initialize_from_previous_mcmc_record : MH_INITIALIZE_FROM_PREVIOUS_MCMC_RECORD EQUAL filename { driver.option_str("mh_initialize_from_previous_mcmc.record", $3); };
+o_mh_initialize_from_previous_mcmc_prior : MH_INITIALIZE_FROM_PREVIOUS_MCMC_PRIOR EQUAL filename { driver.option_str("mh_initialize_from_previous_mcmc.prior", $3); };
 o_diffuse_filter: DIFFUSE_FILTER {driver.option_num("diffuse_filter", "true"); };
 o_plot_priors: PLOT_PRIORS EQUAL INT_NUMBER {driver.option_num("plot_priors", $3); };
 o_aim_solver: AIM_SOLVER {driver.option_num("aim_solver", "true"); };
