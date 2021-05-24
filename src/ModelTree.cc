@@ -1927,24 +1927,19 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
       flags << " -L " << bin_dir;
       flags << " -fexceptions -DNDEBUG";
       libs = "-lmex -lmx";
-      if (mexext == "mexglx" || mexext == "mexa64")
+      if (mexext == "mexa64")
         {
           // GNU/Linux
           flags << " -D_GNU_SOURCE -fPIC -pthread"
                 << " -shared -Wl,--no-undefined -Wl,-rpath-link," << bin_dir;
-          libs += " -lm -lstdc++";
-
-          if (mexext == "mexglx")
-            flags << " -D_FILE_OFFSET_BITS=64 -m32";
-          else
-            flags << " -fno-omit-frame-pointer";
+          libs += " -lm";
         }
-      else if (mexext == "mexw32" || mexext == "mexw64")
+      else if (mexext == "mexw64")
         {
           // Windows
-          flags << " -static-libgcc -static-libstdc++ -shared";
+          flags << " -static-libgcc -shared";
           // Put the MinGW environment shipped with Dynare in the path
-          auto mingwpath = dynareroot / (string{"mingw"} + (mexext == "mexw32" ? "32" : "64")) / "bin";
+          auto mingwpath = dynareroot / "mingw64" / "bin";
           string newpath = "PATH=" + mingwpath.string() + ';' + string{getenv("PATH")};
           if (putenv(const_cast<char *>(newpath.c_str())) != 0)
             {
@@ -1952,13 +1947,13 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
               exit(EXIT_FAILURE);
             }
         }
-      else
+#ifdef __APPLE__
+      else if (mexext == "mexmaci64")
         {
           // macOS
-#ifdef __APPLE__
           char dynare_m_path[PATH_MAX];
           uint32_t size = PATH_MAX;
-          string gcc_relative_path = "";
+          string gcc_relative_path;
           if (_NSGetExecutablePath(dynare_m_path, &size) == 0)
             {
               string str = dynare_m_path;
@@ -1975,9 +1970,14 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
                    << "You can do this via the Dynare installation package." << endl;
               exit(EXIT_FAILURE);
             }
-#endif
           flags << " -fno-common -Wl,-twolevel_namespace -undefined error -bundle";
-          libs += " -lm -lstdc++";
+          libs += " -lm";
+        }
+#endif
+      else
+        {
+          cerr << "ERROR: unsupported value '" << mexext << "' for 'mexext' option" << endl;
+          exit(EXIT_FAILURE);
         }
     }
 
