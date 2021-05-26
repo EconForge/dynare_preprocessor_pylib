@@ -490,9 +490,9 @@ named_var_elem : symbol EQUAL QUOTED_STRING
                  { $$ = { $1, $3 }; }
 
 named_var_1 : '(' named_var_elem
-              { $$ = vector<pair<string, string>>{$2}; }
+              { $$ = { $2 }; }
             | '(' COMMA named_var_elem
-              { $$ = vector<pair<string, string>>{$3}; }
+              { $$ = { $3 }; }
             | named_var_1 named_var_elem
               {
                 $$ = $1;
@@ -650,7 +650,7 @@ change_type_arg : PARAMETERS
                 ;
 
 change_type_var_list : symbol
-                       { $$ = vector<string>{$1}; }
+                       { $$ = { $1 }; }
                      | change_type_var_list symbol
                        {
                          $$ = $1;
@@ -3797,13 +3797,13 @@ signed_integer_range : signed_integer ':' signed_integer
                        { $$ = "-(" + $3 + ':' + $5 + ")"; };
 
 vec_int_number : INT_NUMBER
-                 { $$ = vector<int>{stoi($1)}; }
+                 { $$ = { stoi($1) }; }
                ;
 
 vec_int_elem : vec_int_number
              | INT_NUMBER ':' INT_NUMBER
                {
-                 $$ = vector<int>{};
+                 $$ = {};
                  for (int i = stoi($1); i <= stoi($3); i++)
                    $$.push_back(i);
                }
@@ -3830,9 +3830,9 @@ vec_int : vec_int_1 ']'
         ;
 
 vec_str_1 : '[' QUOTED_STRING
-            { $$ = vector<string>{$2}; }
+            { $$ = { $2 }; }
           | '[' COMMA QUOTED_STRING
-            { $$ = vector<string>{$3}; }
+            { $$ = { $3 }; }
           | vec_str_1 QUOTED_STRING
             {
               $$ = $1;
