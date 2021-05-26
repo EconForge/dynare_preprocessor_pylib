@@ -159,6 +159,8 @@ private:
   ShocksStatement::covar_and_corr_shocks_t covar_shocks;
   //! Temporary storage for correlations of shocks
   ShocksStatement::covar_and_corr_shocks_t corr_shocks;
+  //! Temporary storage for values and scales of heteroskedastic_shocks
+  HeteroskedasticShocksStatement::heteroskedastic_shocks_t heteroskedastic_shocks_values, heteroskedastic_shocks_scales;
   //! Temporary storage for Sigma_e rows
   SigmaeStatement::row_t sigmae_row;
   //! Temporary storage for Sigma_e matrix
@@ -434,8 +436,12 @@ public:
   void end_shocks(bool overwrite);
   //! Writes a mshocks statement
   void end_mshocks(bool overwrite);
+  //! Writes a heteroskedastic_shocks statement
+  void end_heteroskedastic_shocks(bool overwrite);
   //! Adds a deterministic shock or a path element inside a conditional_forecast_paths block
   void add_det_shock(const string &var, const vector<pair<int, int>> &periods, const vector<expr_t> &values, bool conditional_forecast);
+  //! Adds a heteroskedastic shock (either values or scales)
+  void add_heteroskedastic_shock(const string &var, const vector<pair<int, int>> &periods, const vector<expr_t> &values, bool scales);
   //! Adds a std error shock
   void add_stderr_shock(const string &var, expr_t value);
   //! Adds a variance shock

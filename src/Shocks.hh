@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -177,6 +177,23 @@ private:
 public:
   Init2shocksStatement(vector<pair<int, int>> init2shocks_arg, string name_arg, const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
+};
+
+class HeteroskedasticShocksStatement : public Statement
+{
+public:
+  // Maps exo symb_id to list of tuples (period1, period2, value/scale)
+  using heteroskedastic_shocks_t = map<int, vector<tuple<int, int, expr_t>>>;
+private:
+  const bool overwrite;
+  const heteroskedastic_shocks_t values, scales;
+  const SymbolTable &symbol_table;
+public:
+  HeteroskedasticShocksStatement(bool overwrite_arg, const heteroskedastic_shocks_t &values_arg,
+                                 const heteroskedastic_shocks_t &scales_arg,
+                                 const SymbolTable &symbol_table_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };

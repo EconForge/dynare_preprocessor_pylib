@@ -810,6 +810,15 @@ ParsingDriver::end_mshocks(bool overwrite)
 }
 
 void
+ParsingDriver::end_heteroskedastic_shocks(bool overwrite)
+{
+  mod_file->addStatement(make_unique<HeteroskedasticShocksStatement>(overwrite, heteroskedastic_shocks_values,
+                                                                     heteroskedastic_shocks_scales, mod_file->symbol_table));
+  heteroskedastic_shocks_values.clear();
+  heteroskedastic_shocks_scales.clear();
+}
+
+void
 ParsingDriver::add_det_shock(const string &var, const vector<pair<int, int>> &periods, const vector<expr_t> &values, bool conditional_forecast)
 {
   if (conditional_forecast)
@@ -837,6 +846,30 @@ ParsingDriver::add_det_shock(const string &var, const vector<pair<int, int>> &pe
     }
 
   det_shocks[symb_id] = v;
+}
+
+void
+ParsingDriver::add_heteroskedastic_shock(const string &var, const vector<pair<int, int>> &periods, const vector<expr_t> &values, bool scales)
+{
+  check_symbol_is_exogenous(var);
+
+  int symb_id = mod_file->symbol_table.getID(var);
+
+  if ((!scales && heteroskedastic_shocks_values.find(symb_id) != heteroskedastic_shocks_values.end())
+      || (scales && heteroskedastic_shocks_scales.find(symb_id) != heteroskedastic_shocks_scales.end()))
+    error("heteroskedastic_shocks: variable " + var + " declared twice");
+
+  if (periods.size() != values.size())
+    error("heteroskedastic_shocks: variable " + var + ": number of periods is different from number of shock values");
+
+  vector<tuple<int, int, expr_t>> v;
+  for (size_t i = 0; i < periods.size(); i++)
+    v.push_back({ periods[i].first, periods[i].second, values[i] });
+
+  if (scales)
+    heteroskedastic_shocks_scales[symb_id] = v;
+  else
+    heteroskedastic_shocks_values[symb_id] = v;
 }
 
 void

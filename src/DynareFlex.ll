@@ -202,6 +202,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>histval {BEGIN DYNARE_BLOCK; return token::HISTVAL;}
 <INITIAL>filter_initial_state {BEGIN DYNARE_BLOCK; return token::FILTER_INITIAL_STATE;}
 <INITIAL>shocks {BEGIN DYNARE_BLOCK; return token::SHOCKS;}
+<INITIAL>heteroskedastic_shocks {BEGIN DYNARE_BLOCK; return token::HETEROSKEDASTIC_SHOCKS;}
 <INITIAL>shock_groups {BEGIN DYNARE_BLOCK; return token::SHOCK_GROUPS;}
 <INITIAL>init2shocks {BEGIN DYNARE_BLOCK; return token::INIT2SHOCKS;}
 <INITIAL>mshocks {BEGIN DYNARE_BLOCK; return token::MSHOCKS;}
@@ -714,6 +715,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>zero_moments_tolerance {return token::ZERO_MOMENTS_TOLERANCE;}
 <DYNARE_STATEMENT>max_nrows {return token::MAX_NROWS;}
 <DYNARE_STATEMENT>with_epilogue {return token::WITH_EPILOGUE;}
+<DYNARE_STATEMENT>heteroskedastic_filter {return token::HETEROSKEDASTIC_FILTER;}
 
 <DYNARE_STATEMENT>\$[^$]*\$ {
   strtok(yytext+1, "$");
@@ -727,6 +729,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_BLOCK>values {return token::VALUES;}
 <DYNARE_BLOCK>corr {return token::CORR;}
 <DYNARE_BLOCK>periods {return token::PERIODS;}
+<DYNARE_BLOCK>scales {return token::SCALES;}
 <DYNARE_BLOCK>cutoff {return token::CUTOFF;}
 <DYNARE_BLOCK>mfs	{return token::MFS;}
 <DYNARE_BLOCK>balanced_growth_test_tol {return token::BALANCED_GROWTH_TEST_TOL;}

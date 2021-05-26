@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -718,6 +718,92 @@ Init2shocksStatement::writeJsonOutput(ostream &output) const
         output << ",";
       output << R"({"endogenous": ")" << symbol_table.getName(it.first) << R"(", )"
              << R"( "exogenous": ")" << symbol_table.getName(it.second) << R"("})";
+    }
+  output << "]}";
+}
+
+HeteroskedasticShocksStatement::HeteroskedasticShocksStatement(bool overwrite_arg,
+                                                               const heteroskedastic_shocks_t &values_arg,
+                                                               const heteroskedastic_shocks_t &scales_arg,
+                                                               const SymbolTable &symbol_table_arg)
+  : overwrite{overwrite_arg}, values{values_arg}, scales{scales_arg}, symbol_table{symbol_table_arg}
+{
+}
+
+void
+HeteroskedasticShocksStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  if (overwrite)
+    output << "M_.heteroskedastic_shocks.Qhet = [];" << endl;
+
+  for (const auto &[var, vec] : values)
+    {
+      string varname = symbol_table.getName(var);
+      for (const auto &[period1, period2, value] : vec)
+        {
+          output << "M_.heteroskedastic_shocks.Qhet." << varname << ".time_value = " << period1 << ":" << period2 << ";" << endl
+                 << "M_.heteroskedastic_shocks.Qhet." << varname << ".value = ";
+          value->writeOutput(output);
+          output << ";" << endl;
+        }
+    }
+  for (const auto &[var, vec] : scales)
+    {
+      string varname = symbol_table.getName(var);
+      for (const auto &[period1, period2, scale] : vec)
+        {
+          output << "M_.heteroskedastic_shocks.Qhet." << varname << ".time_scale = " << period1 << ":" << period2 << ";" << endl
+                 << "M_.heteroskedastic_shocks.Qhet." << varname << ".scale = ";
+          scale->writeOutput(output);
+          output << ";" << endl;
+        }
+    }
+}
+
+void
+HeteroskedasticShocksStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "heteroskedastic_shocks")"
+         << R"(, "overwrite": )" << (overwrite ? "true" : "false")
+         << R"(, "shocks_values": [)";
+  for (auto it = values.begin(); it != values.end(); ++it)
+    {
+      if (it != values.begin())
+        output << ", ";
+      output << R"({"var": ")" << symbol_table.getName(it->first) << R"(", )"
+             << R"("values": [)";
+      for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+        {
+          if (it1 != it->second.begin())
+            output << ", ";
+          auto [period1, period2, value] = *it1;
+          output << R"({"period1": )" << period1 << ", "
+                 << R"("period2": )" << period2 << ", "
+                 << R"("value": ")";
+          value->writeJsonOutput(output, {}, {});
+          output << R"("})";
+        }
+      output << "]}";
+    }
+  output << R"(], "shocks_scales": [)";
+  for (auto it = scales.begin(); it != scales.end(); ++it)
+    {
+      if (it != scales.begin())
+        output << ", ";
+      output << R"({"var": ")" << symbol_table.getName(it->first) << R"(", )"
+             << R"("scales": [)";
+      for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+        {
+          if (it1 != it->second.begin())
+            output << ", ";
+          auto [period1, period2, value] = *it1;
+          output << R"({"period1": )" << period1 << ", "
+                 << R"("period2": )" << period2 << ", "
+                 << R"("value": ")";
+          value->writeJsonOutput(output, {}, {});
+          output << R"("})";
+        }
+      output << "]}";
     }
   output << "]}";
 }
