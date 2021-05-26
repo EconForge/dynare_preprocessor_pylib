@@ -151,10 +151,6 @@ private:
   OptimWeightsStatement::covar_weights_t covar_weights;
   //! Temporary storage for deterministic shocks
   ShocksStatement::det_shocks_t det_shocks;
-  //! Temporary storage for periods of deterministic shocks
-  vector<pair<int, int>> det_shocks_periods;
-  //! Temporary storage for values of deterministic shocks
-  vector<expr_t> det_shocks_values;
   //! Temporary storage for variances of shocks
   ShocksStatement::var_and_std_shocks_t var_shocks;
   //! Temporary storage for standard errors of shocks
@@ -439,7 +435,7 @@ public:
   //! Writes a mshocks statement
   void end_mshocks(bool overwrite);
   //! Adds a deterministic shock or a path element inside a conditional_forecast_paths block
-  void add_det_shock(const string &var, bool conditional_forecast);
+  void add_det_shock(const string &var, const vector<pair<int, int>> &periods, const vector<expr_t> &values, bool conditional_forecast);
   //! Adds a std error shock
   void add_stderr_shock(const string &var, expr_t value);
   //! Adds a variance shock

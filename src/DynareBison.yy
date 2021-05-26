@@ -199,7 +199,8 @@ class ParsingDriver;
 %type <pair<string,string>> named_var_elem subsamples_eq_opt integer_range_w_inf
 %type <vector<pair<string,string>>> named_var named_var_1
 %type <tuple<string,string,string,string>> prior_eq_opt options_eq_opt
-%type <vector<expr_t>> matched_moments_list
+%type <vector<pair<int, int>>> period_list
+%type <vector<expr_t>> matched_moments_list value_list
 %%
 
 %start statement_list;
@@ -1038,7 +1039,7 @@ shock_elem : det_shock_elem
            ;
 
 det_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
-                 { driver.add_det_shock($2, false); }
+                 { driver.add_det_shock($2, $5, $8, false); }
                ;
 
 svar_identification : SVAR_IDENTIFICATION {driver.begin_svar_identification();} ';' svar_identification_list END ';'
@@ -1137,33 +1138,81 @@ mshock_list : mshock_list det_shock_elem
             ;
 
 period_list : period_list COMMA INT_NUMBER
-              { driver.add_period($3); }
+              {
+                $$ = $1;
+                int p = stoi($3);
+                $$.push_back({ p, p });
+              }
             | period_list INT_NUMBER
-              { driver.add_period($2); }
+              {
+                $$ = $1;
+                int p = stoi($2);
+                $$.push_back({ p, p });
+              }
             | period_list COMMA INT_NUMBER ':' INT_NUMBER
-              { driver.add_period($3, $5); }
+              {
+                $$ = $1;
+                int p1 = stoi($3), p2 = stoi($5);
+                if (p1 > p2)
+                  driver.error("Can't have first period index greater than second index in range specification");
+                $$.push_back({ p1, p2 });
+              }
             | period_list INT_NUMBER ':' INT_NUMBER
-              { driver.add_period($2, $4); }
+              {
+                $$ = $1;
+                int p1 = stoi($2), p2 = stoi($4);
+                if (p1 > p2)
+                  driver.error("Can't have first period index greater than second index in range specification");
+                $$.push_back({ p1, p2 });
+              }
             | INT_NUMBER ':' INT_NUMBER
-              { driver.add_period($1, $3); }
+              {
+                int p1 = stoi($1), p2 = stoi($3);
+                if (p1 > p2)
+                  driver.error("Can't have first period index greater than second index in range specification");
+                $$ = { { p1, p2 } };
+              }
             | INT_NUMBER
-              { driver.add_period($1); }
+              {
+                int p = stoi($1);
+                $$ = { { p, p } };
+              }
             ;
 
 sigma_e : SIGMA_E EQUAL '[' triangular_matrix ']' ';' { driver.do_sigma_e(); };
 
 value_list : value_list COMMA '(' expression ')'
-             { driver.add_value($4); }
+             {
+               $$ = $1;
+               $$.push_back($4);
+             }
            | value_list '(' expression ')'
-             { driver.add_value($3); }
+             {
+               $$ = $1;
+               $$.push_back($3);
+             }
            | '(' expression ')'
-             { driver.add_value($2); }
+             { $$ = { $2 }; }
            | value_list COMMA signed_number
-             { driver.add_value($3); }
+             {
+               $$ = $1;
+               $$.push_back($3.at(0) == '-' ?
+                            driver.add_uminus(driver.add_non_negative_constant($3.substr(1))) :
+                            driver.add_non_negative_constant($3));
+             }
            | value_list signed_number
-             { driver.add_value($2); }
+             {
+               $$ = $1;
+               $$.push_back($2.at(0) == '-' ?
+                            driver.add_uminus(driver.add_non_negative_constant($2.substr(1))) :
+                            driver.add_non_negative_constant($2));
+             }
            | signed_number
-             { driver.add_value($1); }
+             {
+               $$ = { $1.at(0) == '-' ?
+                      driver.add_uminus(driver.add_non_negative_constant($1.substr(1))) :
+                      driver.add_non_negative_constant($1) };
+             }
            ;
 
 triangular_matrix : triangular_matrix ';' triangular_row
@@ -2898,7 +2947,7 @@ conditional_forecast_paths_shock_list : conditional_forecast_paths_shock_elem
                                       ;
 
 conditional_forecast_paths_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
-                                        { driver.add_det_shock($2, true); }
+                                        { driver.add_det_shock($2, $5, $8, true); }
                                       ;
 
 steady_state_model : STEADY_STATE_MODEL ';' { driver.begin_steady_state_model(); }

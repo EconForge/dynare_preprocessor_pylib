@@ -810,7 +810,7 @@ ParsingDriver::end_mshocks(bool overwrite)
 }
 
 void
-ParsingDriver::add_det_shock(const string &var, bool conditional_forecast)
+ParsingDriver::add_det_shock(const string &var, const vector<pair<int, int>> &periods, const vector<expr_t> &values, bool conditional_forecast)
 {
   if (conditional_forecast)
     check_symbol_is_endogenous(var);
@@ -822,24 +822,21 @@ ParsingDriver::add_det_shock(const string &var, bool conditional_forecast)
   if (det_shocks.find(symb_id) != det_shocks.end())
     error("shocks/conditional_forecast_paths: variable " + var + " declared twice");
 
-  if (det_shocks_periods.size() != det_shocks_values.size())
+  if (periods.size() != values.size())
     error("shocks/conditional_forecast_paths: variable " + var + ": number of periods is different from number of shock values");
 
   vector<ShocksStatement::DetShockElement> v;
 
-  for (size_t i = 0; i < det_shocks_periods.size(); i++)
+  for (size_t i = 0; i < periods.size(); i++)
     {
       ShocksStatement::DetShockElement dse;
-      dse.period1 = det_shocks_periods[i].first;
-      dse.period2 = det_shocks_periods[i].second;
-      dse.value = det_shocks_values[i];
+      dse.period1 = periods[i].first;
+      dse.period2 = periods[i].second;
+      dse.value = values[i];
       v.push_back(dse);
     }
 
   det_shocks[symb_id] = v;
-
-  det_shocks_periods.clear();
-  det_shocks_values.clear();
 }
 
 void
@@ -934,42 +931,6 @@ ParsingDriver::add_correl_shock(const string &var1, const string &var2, expr_t v
           + var2 + ") declared twice");
 
   corr_shocks[key] = value;
-}
-
-void
-ParsingDriver::add_period(const string &p1, const string &p2)
-{
-  int p1_val = stoi(p1);
-  int p2_val = stoi(p2);
-  if (p1_val > p2_val)
-    error("shocks/conditional_forecast_paths: can't have first period index greater than second index in range specification");
-  det_shocks_periods.emplace_back(p1_val, p2_val);
-}
-
-void
-ParsingDriver::add_period(const string &p1)
-{
-  int p1_val = stoi(p1);
-  det_shocks_periods.emplace_back(p1_val, p1_val);
-}
-
-void
-ParsingDriver::add_value(expr_t value)
-{
-  det_shocks_values.push_back(value);
-}
-
-void
-ParsingDriver::add_value(const string &v)
-{
-  expr_t id;
-
-  if (v.at(0) == '-')
-    id = data_tree->AddUMinus(data_tree->AddNonNegativeConstant(v.substr(1, string::npos)));
-  else
-    id = data_tree->AddNonNegativeConstant(v);
-
-  det_shocks_values.push_back(id);
 }
 
 void
