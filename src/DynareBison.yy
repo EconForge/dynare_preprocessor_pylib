@@ -2929,8 +2929,10 @@ calib_smoother_option : o_filtered_vars
                       | o_filter_step_ahead
                       | o_datafile
                       | o_prefilter
+                      | o_kalman_algo
                       | o_loglinear
                       | o_first_obs
+                      | o_filter_covariance
                       | o_filter_decomposition
                       | o_diffuse_kalman_tol
                       | o_diffuse_filter
