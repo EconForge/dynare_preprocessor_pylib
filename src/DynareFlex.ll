@@ -640,6 +640,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>filter_covariance {return token::FILTER_COVARIANCE; }
 <DYNARE_STATEMENT>filter_decomposition {return token::FILTER_DECOMPOSITION; }
 <DYNARE_STATEMENT>smoothed_state_uncertainty {return token::SMOOTHED_STATE_UNCERTAINTY; }
+<DYNARE_STATEMENT>smoother_redux {return token::SMOOTHER_REDUX; }
 <DYNARE_STATEMENT>selected_variables_only {return token::SELECTED_VARIABLES_ONLY; }
 <DYNARE_STATEMENT>pruning {return token::PRUNING; }
 <DYNARE_STATEMENT>save_draws {return token::SAVE_DRAWS; }

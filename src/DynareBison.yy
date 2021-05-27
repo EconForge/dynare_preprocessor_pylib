@@ -144,7 +144,7 @@ class ParsingDriver;
 %token <string> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX DIRICHLET DIAGONAL OPTIMAL
 %token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD WEIBULL WEIBULL_PDF GMM SMM
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
-%token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE FILTER_DECOMPOSITION SMOOTHED_STATE_UNCERTAINTY
+%token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE FILTER_DECOMPOSITION SMOOTHED_STATE_UNCERTAINTY SMOOTHER_REDUX
 %token EQ_CMS TLINDX TLNUMBER RESTRICTIONS POSTERIOR_SAMPLER_OPTIONS
 %token OUTPUT_FILE_TAG HORIZON
 %token SBVAR TREND_VAR DEFLATOR GROWTH_FACTOR MS_IRF MS_VARIANCE_DECOMPOSITION GROWTH
@@ -1958,6 +1958,7 @@ estimation_options : o_datafile
                    | o_filter_covariance
                    | o_filter_decomposition
                    | o_smoothed_state_uncertainty
+                   | o_smoother_redux
                    | o_selected_variables_only
                    | o_conditional_variance_decomposition
                    | o_cova_compute
@@ -2934,6 +2935,7 @@ calib_smoother_option : o_filtered_vars
                       | o_diffuse_kalman_tol
                       | o_diffuse_filter
                       | o_smoothed_state_uncertainty
+                      | o_smoother_redux
                       | o_parameter_set
                       | o_xls_sheet
                       | o_xls_range
@@ -3621,6 +3623,9 @@ o_filter_decomposition : FILTER_DECOMPOSITION
 o_smoothed_state_uncertainty : SMOOTHED_STATE_UNCERTAINTY
                            { driver.option_num("smoothed_state_uncertainty","true");}
                          ;
+o_smoother_redux : SMOOTHER_REDUX
+                           { driver.option_num("smoother_redux","true");}
+
 o_selected_variables_only : SELECTED_VARIABLES_ONLY
                            { driver.option_num("selected_variables_only","true");}
                           ;
