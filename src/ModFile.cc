@@ -693,13 +693,12 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
     }
 
   if (occbin
-      && (mod_file_struct.stoch_simul_present || mod_file_struct.osr_present
+      && (mod_file_struct.osr_present || mod_file_struct.mom_estimation_present
           || mod_file_struct.ramsey_model_present || mod_file_struct.ramsey_policy_present
           || mod_file_struct.discretionary_policy_present || mod_file_struct.extended_path_present
-          || mod_file_struct.identification_present || mod_file_struct.sensitivity_present
-          || mod_file_struct.mom_estimation_present || mod_file_struct.calib_smoother_present))
+          || mod_file_struct.identification_present || mod_file_struct.sensitivity_present))
     {
-      cerr << "ERROR: the 'occbin' option is not compatible with commands other than 'estimation'" << endl;
+      cerr << "ERROR: the 'occbin' option is not compatible with commands other than 'estimation', 'stoch_simul', and 'calib_smoother'." << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -1041,9 +1040,8 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
     }
 
   if (occbin)
-    mOutputFile << "options_ = set_default_occbin_options(options_, M_);" << endl
-                << "clear mr_runsim_occbin_fn" << endl
-                << "M_ = get_wish_list(M_);" << endl;
+    mOutputFile << "options_ = occbin.set_default_options(options_, M_);" << endl
+                << "M_ = occbin.get_info(M_);" << endl;
 
   if (onlymodel || gui)
     for (const auto &statement : statements)
