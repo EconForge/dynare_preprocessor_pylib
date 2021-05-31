@@ -3417,7 +3417,9 @@ o_marginal_density : MARGINAL_DENSITY EQUAL LAPLACE
                    ;
 o_print : PRINT { driver.option_num("noprint", "false"); };
 o_noprint : NOPRINT { driver.option_num("noprint", "true"); };
-o_xls_sheet : XLS_SHEET EQUAL symbol { driver.option_str("xls_sheet", $3); };
+o_xls_sheet : XLS_SHEET EQUAL symbol { driver.option_str("xls_sheet", $3); } // Kept for backward compatibility, but no longeer recommended (see #67)
+            | XLS_SHEET EQUAL QUOTED_STRING { driver.option_str("xls_sheet", $3); }
+            ;
 o_xls_range : XLS_RANGE EQUAL range { driver.option_str("xls_range", $3); };
 o_filter_step_ahead : FILTER_STEP_AHEAD EQUAL vec_int { driver.option_vec_int("filter_step_ahead", $3); };
 o_taper_steps : TAPER_STEPS EQUAL vec_int { driver.option_vec_int("convergence.geweke.taper_steps", $3); };
