@@ -164,7 +164,7 @@ public:
     method. Otherwise the default implementation (i.e. a no-op) will apply and
     some checks won't be run. */
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
-  virtual void computingPass();
+  virtual void computingPass(const ModFileStructure &mod_file_struct);
   //! Write Matlab output code
   /*!
     \param output is the output stream of the main matlab file

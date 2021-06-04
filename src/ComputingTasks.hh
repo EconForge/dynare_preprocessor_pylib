@@ -517,7 +517,7 @@ public:
     (no exogenous, no lead/lag) */
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   /*! \todo allow for the possibility of disabling temporary terms */
-  void computingPass() override;
+  void computingPass(const ModFileStructure &mod_file_struct) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
   //! Return a reference the Planner Objective model tree

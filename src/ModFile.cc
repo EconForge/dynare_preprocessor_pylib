@@ -840,7 +840,7 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
     }
 
   for (auto &statement : statements)
-    statement->computingPass();
+    statement->computingPass(mod_file_struct);
 
   // Compute epilogue derivatives (but silence standard output)
   streambuf *oldcout = cout.rdbuf();

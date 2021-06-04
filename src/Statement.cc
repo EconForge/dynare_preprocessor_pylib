@@ -30,7 +30,7 @@ Statement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &wa
 }
 
 void
-Statement::computingPass()
+Statement::computingPass(const ModFileStructure &mod_file_struct)
 {
 }
 
