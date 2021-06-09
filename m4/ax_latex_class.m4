@@ -34,7 +34,7 @@
 #   General Public License for more details.
 #
 #   You should have received a copy of the GNU Lesser General Public License
-#   along with this library. If not, see <http://www.gnu.org/licenses/>.
+#   along with this library. If not, see <https://www.gnu.org/licenses/>.
 
 AC_DEFUN([AX_LATEX_CLASS],[
 AC_CACHE_CHECK([for usability of class $1],[ac_cv_latex_class_]translit($1,[-],[_]),[
