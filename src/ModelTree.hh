@@ -462,6 +462,13 @@ public:
     return NNZDerivatives;
   }
 
+  //! Returns the vector of temporary terms derivatives
+  inline const vector<temporary_terms_t> &
+  getTemporaryTermsDerivatives() const
+  {
+    return temporary_terms_derivatives;
+  }
+
   //!Returns the maximum order of computed derivatives
   inline int
   getComputedDerivsOrder() const
