@@ -870,7 +870,7 @@ ParsingDriver::add_heteroskedastic_shock(const string &var, const vector<pair<in
 
   vector<tuple<int, int, expr_t>> v;
   for (size_t i = 0; i < periods.size(); i++)
-    v.push_back({ periods[i].first, periods[i].second, values[i] });
+    v.emplace_back(periods[i].first, periods[i].second, values[i]);
 
   if (scales)
     heteroskedastic_shocks_scales[symb_id] = v;

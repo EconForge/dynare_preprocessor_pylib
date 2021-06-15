@@ -984,8 +984,10 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
   // May be later modified by a shocks block
   mOutputFile << "M_.sigma_e_is_diagonal = true;" << endl;
 
-  // Initialize M_.det_shocks
-  mOutputFile << "M_.det_shocks = [];" << endl;
+  // Initialize M_.det_shocks and M_.heteroskedastic_shocks
+  mOutputFile << "M_.det_shocks = [];" << endl
+              << "M_.heteroskedastic_shocks.Qvalue_orig = [];" << endl
+              << "M_.heteroskedastic_shocks.Qscale_orig = [];" << endl;
 
   auto to_matlab_logical = [](bool m) { return m ? "true" : "false"; };
 

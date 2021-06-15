@@ -733,29 +733,33 @@ HeteroskedasticShocksStatement::HeteroskedasticShocksStatement(bool overwrite_ar
 void
 HeteroskedasticShocksStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
+  // NB: The first initialization of the fields is done in ModFile::writeMOutput()
   if (overwrite)
-    output << "M_.heteroskedastic_shocks.Qhet = [];" << endl;
+    output << "M_.heteroskedastic_shocks.Qvalue_orig = [];" << endl
+           << "M_.heteroskedastic_shocks.Qscale_orig = [];" << endl;
 
-  for (const auto &[var, vec] : values)
+  for (const auto &[symb_id, vec] : values)
     {
-      string varname = symbol_table.getName(var);
+      int tsid = symbol_table.getTypeSpecificID(symb_id);
       for (const auto &[period1, period2, value] : vec)
         {
-          output << "M_.heteroskedastic_shocks.Qhet." << varname << ".time_value = " << period1 << ":" << period2 << ";" << endl
-                 << "M_.heteroskedastic_shocks.Qhet." << varname << ".value = ";
+          output << "M_.heteroskedastic_shocks.Qvalue_orig = [M_.heteroskedastic_shocks.Qvalue_orig; struct('exo_id', "
+                 << tsid+1 << ",'periods',"
+                 << period1 << ":" << period2 << ",'value',";
           value->writeOutput(output);
-          output << ";" << endl;
+          output << ")];" << endl;
         }
     }
-  for (const auto &[var, vec] : scales)
+  for (const auto &[symb_id, vec] : scales)
     {
-      string varname = symbol_table.getName(var);
+      int tsid = symbol_table.getTypeSpecificID(symb_id);
       for (const auto &[period1, period2, scale] : vec)
         {
-          output << "M_.heteroskedastic_shocks.Qhet." << varname << ".time_scale = " << period1 << ":" << period2 << ";" << endl
-                 << "M_.heteroskedastic_shocks.Qhet." << varname << ".scale = ";
+          output << "M_.heteroskedastic_shocks.Qscale_orig = [M_.heteroskedastic_shocks.Qscale_orig; struct('exo_id', "
+                 << tsid+1 << ",'periods',"
+                 << period1 << ":" << period2 << ",'scale',";
           scale->writeOutput(output);
-          output << ";" << endl;
+          output << ")];" << endl;
         }
     }
 }
