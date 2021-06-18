@@ -15,7 +15,7 @@
 
 \institute[CEPREMAP]{\includegraphics[scale=0.15]{../logos/cepremap.jpg}}
 
-\date{28 June 2019}
+\date{21 June 2021}
 
 
 \setbeamertemplate{title page}
@@ -66,7 +66,7 @@
     \ccbysa
     \column{0.71\textwidth}
     \tiny
-    Copyright © 2008--2019 Dynare Team \\
+    Copyright © 2008--2021 Dynare Team \\
     Licence: \href{http://creativecommons.org/licenses/by-sa/4.0/}{Creative
       Commons Attribution-ShareAlike 4.0}
   \end{columns}
@@ -106,7 +106,7 @@
 \begin{frame}
   \frametitle{Design of the macro language}
   \begin{itemize}
-  \item The Dynare macro language provides a new set of \textbf{macro commands} that can be used in \texttt{.mod} files
+  \item The Dynare macro language provides a set of \textbf{macro commands} that can be used in \texttt{.mod} files
   \item The macro processor transforms a \texttt{.mod} file with macro commands into a \texttt{.mod} file without macro commands (doing text expansions/inclusions) and then feeds it to the Dynare parser
   \item The key point to understand is that the macro processor only does \textbf{text substitution} (like the C preprocessor or the PHP language)
   \end{itemize}
@@ -122,40 +122,38 @@
 \begin{frame}[fragile=singleslide]
   \frametitle{Macro Directives}
   \begin{itemize}
-  \item Directives begin with:\verb+@#+
+  \item Directives begin with: \verb+@#+
   \item A directive gives instructions to the macro processor
   \item Main directives are:
     \begin{itemize}
     \item file inclusion: \verb+@#include+
-    \item definition of a macro processor variable: \verb+@#define+
-    \item conditional statements: \verb+@#if/@#ifdef/@#ifndef/@#else/@#endif+
+    \item definition of a macro processor variable or function: \verb+@#define+
+    \item conditional statements: \verb+@#if/@#ifdef/@#ifndef/@#else/@#elseif/@#endif+
     \item loop statements: \verb+@#for/@#endfor+
     \end{itemize}
   \item Most directives fit on one line. If needed however, two backslashes (i.e. \verb+\\+) at the end of a line indicate that the directive is continued on the next line.
   \end{itemize}
 \end{frame}
 
-
 \begin{frame}
-\frametitle{Variables}
+\frametitle{Values}
 \begin{itemize}
-\item The macro processor has its own list of variables which are different than model variables and MATLAB/Octave variables
-\item There are 6 types of macro-variables:
+\item The macro processor can handle values of 5 different types:
   \begin{itemize}
   \item boolean
   \item real
   \item string
   \item tuple
   \item array
-  \item function
   \end{itemize}
-\item Variables/literals of the types listed above can be cast to other types
+\item Values of the types listed above can be cast to other types
   \begin{itemize}
-  \item \texttt{(bool) -1 \&\& (bool) 2} $\rightarrow$ \texttt{true}
-  \item \texttt{(real) ``3.1''} $\rightarrow$ \texttt{3.1}
+  \item \texttt{(real) "3.1"} $\rightarrow$ \texttt{3.1}
+  \item \texttt{(string) 3.1} $\rightarrow$ \texttt{"3.1"}
   \item \texttt{(array) 4} $\rightarrow$ \texttt{[4]}
   \item \texttt{(real) [5]} $\rightarrow$ \texttt{5}
   \item \texttt{(real) [6, 7]} $\rightarrow$ \texttt{error}
+  \item \texttt{(bool) -1 \&\& (bool) 2} $\rightarrow$ \texttt{true}
   \end{itemize}
 \end{itemize}
 \end{frame}
@@ -163,8 +161,8 @@
 \begin{frame}[fragile=singleslide]
   \frametitle{Macro-expressions (1/8)}
   \begin{itemize}
-    \item Macro-expressions are constructed using literals of the 6 basic types
-      described above, macro-variables, comprehensions, and standard operators.
+    \item Macro-expressions are constructed using literals of the 5 basic types
+      described above, macro-variables, standard operators, function calls and comprehensions.
     \item Macro-expressions can be used in two places:
       \begin{itemize}
       \item inside macro directives; no special markup is required
@@ -176,11 +174,11 @@
 
 \begin{frame}[fragile=singleslide]
   \frametitle{Macro-expressions (2/8): Boolean}
-  It is possible to construct macro-expressions using standard operators.
+  Boolean literals are \texttt{true} and \texttt{false}.
   \begin{block}{Operators on booleans}
     \begin{itemize}
     \item comparison operators: \texttt{== !=}
-    \item logical operators: \verb+&& || !+
+    \item logical operators: \texttt{\&\& || !}
     \end{itemize}
   \end{block}
 \end{frame}
@@ -192,24 +190,26 @@
     \item arithmetic operators: \texttt{+ - * / \^{}}
     \item comparison operators: \texttt{< > <= >= == !=}
     \item logical operators: \verb+&& || !+
-    \item range with increment of \texttt{1}: \texttt{1:4} is equivalent to real array \texttt{[1, 2, 3, 4]}. NB \texttt{[1:4]} is equivalent to an array containing an array of reals \texttt{[[1, 2, 3, 4]]}
+    \item range with unit increment: \texttt{1:4} is equivalent to
+      real array \texttt{[1, 2, 3, 4]}. (NB: \texttt{[1:4]} is equivalent to an
+      array containing an array of reals, i.e. \texttt{[[1, 2, 3, 4]]})
     \item range with user-defined increment: \texttt{4:-1.1:-1} is equivalent to real array \texttt{[4, 2.9, 1.8, 0.7, -0.4]}.
     \end{itemize}
   \end{block}
 
   \begin{block}{Functions for reals}
     \begin{itemize}
-    \item \texttt{min, max, exp, ln (or log), log10}
-    \item \texttt{sin, cos, tan, asin, acos, atan}
-    \item \texttt{sqrt, cbrt, sign, floor, ceil, trunc, mod}
-    \item \texttt{erf, erfc, normpdf, normcdf, gamma, lgamma, round}
+    \item \texttt{min}, \texttt{max}, \texttt{exp}, \texttt{ln} (or \texttt{log}), \texttt{log10}
+    \item \texttt{sin}, \texttt{cos}, \texttt{tan}, \texttt{asin}, \texttt{acos}, \texttt{atan}
+    \item \texttt{sqrt}, \texttt{cbrt}, \texttt{sign}, \texttt{floor}, \texttt{ceil}, \texttt{trunc}, \texttt{mod}
+    \item \texttt{erf}, \texttt{erfc}, \texttt{normpdf}, \texttt{normcdf}, \texttt{gamma}, \texttt{lgamma}, \texttt{round}
     \end{itemize}
   \end{block}
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
   \frametitle{Macro-expressions (4/8): String}
-  String literals have to be declared between \textit{double} quotes, e.g. \texttt{``string''}
+  String literals have to be declared between \textit{double} quotes, e.g. \texttt{"string"}
   \begin{block}{Operators on character strings}
     \begin{itemize}
     \item comparison operators: \texttt{< > <= >= == !=}
@@ -228,43 +228,60 @@
   \begin{block}{Operators on tuples}
     \begin{itemize}
     \item comparison operators: \texttt{== !=}
-    \item functions: \texttt{length, isempty}
+    \item functions: \texttt{length}, \texttt{isempty}
     \item testing membership in tuple: \texttt{in} operator \\ (example:
-      \texttt{"b" in ("a", "b", "c")} returns \texttt{1})
+      \texttt{"b" in ("a", "b", "c")} returns \texttt{true})
     \end{itemize}
   \end{block}
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{Macro-expressions (6/8): Array}
+  \frametitle{Macro-expressions (6/8): Array (1/2)}
   Arrays are enclosed by brackets, and their elements are separated by commas
-  (like \texttt{[1,[2,3],4]} or \texttt{[``US'', ``EA'']}).
+  (like \texttt{[1,[2,3],4]} or \texttt{["US", "EA"]}).
   \begin{block}{Operators on arrays}
     \begin{itemize}
     \item comparison operators: \texttt{== !=}
     \item dereferencing: if \texttt{v} is an array, then \texttt{v[2]} is its $2^{\textrm{nd}}$ element
     \item concatenation: \texttt{+}
-    \item functions: \texttt{sum, length, isempty}
-    \item difference \texttt{-}: returns the first operand from which the elements of the second operand have been removed
-    \item Cartesian product of two arrays: \texttt{*}
-    \item Cartesian product of one array \texttt{N} times: \texttt{\^{}N}
+    \item functions: \texttt{sum}, \texttt{length}, \texttt{isempty}
     \item extraction of sub-arrays: \textit{e.g.} \texttt{v[4:6]}
     \item testing membership of an array: \texttt{in} operator \\ (example:
-      \texttt{"b" in ["a", "b", "c"]} returns \texttt{1})
+      \texttt{"b" in ["a", "b", "c"]} returns \texttt{true})
     \end{itemize}
   \end{block}
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
+  \frametitle{Macro-expressions (6/8): Array (2/2)}
+  Arrays can be seen as representing a set of elements (assuming no element
+  appears twice in the array). Several set operations can thus be performed on
+  arrays: union, intersection, difference, cartesian product and power.
+  \begin{block}{Set operations on arrays}
+    \begin{itemize}
+    \item set union: \texttt{|}
+    \item set intersection: \texttt{\&}
+    \item set difference: \texttt{-}
+    \item Cartesian product of two arrays: \texttt{*}
+    \item Cartesian power of an array: \texttt{\^}
+    \end{itemize}
+  \end{block}
+  For example, if \texttt{A} and \texttt{B} are arrays, then the following
+  set operations are valid: \texttt{A|B}, \texttt{A\&B}, \texttt{A-B},
+  \texttt{A*B}, \texttt{A\^{}3}.
+\end{frame}
+
+\begin{frame}[fragile=singleslide]
   \frametitle{Macro-expressions (7/8): Comprehension (1/3)}
-  Comprehensions are a shorthand way of creating arrays from other arrays. This is done by filtering, mapping, or filtering and mapping
+  Comprehensions are a shorthand way of creating arrays from other arrays. This is done by filtering, mapping, or both.
   \begin{block}{Filtering}
     \begin{itemize}
     \item Allows one to choose those elements from an array for which a condition holds
-    \item Syntax: \texttt{[variable/tuple IN array WHEN condition]}
+    \item Syntax: \texttt{[} \textit{variable/tuple} \texttt{in} \textit{array} \texttt{when}
+      \textit{condition} \texttt{]}
     \item Example: Choose even numbers from array
       \begin{itemize}
-      \item Code: \texttt{@\{[ i in 1:5 when mod(i,2) == 0 ]\}}
+      \item Code: \texttt{[ i in 1:5 when mod(i,2) == 0 ]}
       \item Result: \texttt{[2, 4]}
       \end{itemize}
     \end{itemize}
@@ -276,15 +293,16 @@
   \begin{block}{Mapping}
     \begin{itemize}
     \item Allows one to apply a transformation to every element of an array
-    \item Syntax: \texttt{[expr for variable/tuple IN array]}
+    \item Syntax: \texttt{[} \textit{expr} \texttt{for} \textit{variable/tuple}
+      \texttt{in} \textit{array} \texttt{]}
     \item Example: Square elements in array
       \begin{itemize}
-      \item Code: \texttt{@\{[ i\^{}2 for i in 1:5 ]\}}
+      \item Code: \texttt{[ i\^{}2 for i in 1:5 ]}
       \item Result: \texttt{[1, 4, 9, 16, 25]}
       \end{itemize}
-    \item Example: Reverse order of elements in array
+    \item Example: Swap pairs of an array
       \begin{itemize}
-      \item Code: \texttt{@\{[ (j,i) for (i,j) in (1:2)\^{}2 ]\}}
+      \item Code: \texttt{[ (j,i) for (i,j) in (1:2)\^{}2 ]}
       \item Result: \texttt{[(1, 1), (2, 1), (1, 2), (2, 2)]}
       \end{itemize}
     \end{itemize}
@@ -296,10 +314,11 @@
   \begin{block}{Mapping and Filtering}
     \begin{itemize}
     \item Allows one to apply a transformation to the elements selected from an array
-    \item Syntax: \texttt{[expr for variable/tuple IN array WHEN condition]}
-    \item Example: Square odd numbers from array
+    \item Syntax: \texttt{[} \textit{expr} \texttt{for} \textit{variable/tuple}
+      \texttt{in} \textit{array} \texttt{when} \textit{condition} \texttt{]}
+    \item Example: Square of odd numbers between 1 and 5
       \begin{itemize}
-      \item Code: \texttt{@\{[ i\^{}2 for i in 1:5 when mod(i,2) == 1 ]\}}
+      \item Code: \texttt{[ i\^{}2 for i in 1:5 when mod(i,2) == 1 ]}
       \item Result: \texttt{[1, 9, 25]}
       \end{itemize}
     \end{itemize}
@@ -313,12 +332,27 @@
   \item Dynamic binding: is evaluated when invoked, not when defined
   \item Can be included in expressions; valid operators depend on return type
   \end{itemize}
+
+  \begin{block}{Declaration syntax}
+    \verb+@#define +\textit{function\_signature}\verb+ = +\textit{expression}
+  \end{block}
+
+  \begin{block}{Example}
+If we declare the following function:
+\begin{verbatim}
+@#define distance(x, y) = sqrt(x^2 + y^2)
+\end{verbatim}
+Then \texttt{distance(3, 4)} will be equivalent to \texttt{5}.
+  \end{block}
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{Define directive}
+  \frametitle{Defining macro-variables}
 
-  The value of a macro-variable can be defined with the \verb+@#define+ directive.
+  The value of a macro-variable can be defined with the \verb+@#define+
+  directive.
+
+  The macro processor has its own list of variables which are different from model variables and MATLAB/Octave variables
 
   \begin{block}{Syntax}
     \verb+@#define +\textit{variable\_name}\verb+ = +\textit{expression}
@@ -331,8 +365,7 @@
 @#define v = [ 1, 2, 4 ]    // Real array
 @#define w = [ "US", "EA" ] // String array
 @#define z = 3 + v[2]       // Equals 5
-@#define t = ("US" in w)    // Equals 1 (true)
-@#define f(x) = " " + x + y // Function f with argument x
+@#define t = ("US" in w)    // Equals true
 \end{verbatim}
   \end{block}
   NB: You can define macro variables on the dynare command line by using the \texttt{-D} option
@@ -399,18 +432,18 @@ end;
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{Loop directive (1/2)}
-  \begin{block}{Syntax 1}
+  \frametitle{Loop directive (1/4)}
+  \begin{block}{Syntax 1: Simple iteration over one variable}
 \verb+@#for +\textit{variable\_name}\verb+ in +\textit{array\_expr} \\
 \verb+   +\textit{loop\_body} \\
 \verb+@#endfor+
   \end{block}
-  \begin{block}{Syntax 2}
+  \begin{block}{Syntax 2: Iteration over several variables at the same time}
 \verb+@#for +\textit{tuple}\verb+ in +\textit{array\_expr} \\
 \verb+   +\textit{loop\_body} \\
 \verb+@#endfor+
   \end{block}
-  \begin{block}{Syntax 3}
+  \begin{block}{Syntax 3: Iteration with some values excluded}
 \verb+@#for +\textit{tuple\_or\_variable}\verb+ in +\textit{array\_expr} \verb+ when +\textit{expr}\\
 \verb+   +\textit{loop\_body} \\
 \verb+@#endfor+
@@ -418,7 +451,7 @@ end;
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{Loop directive (2/2)}
+  \frametitle{Loop directive (2/4)}
   \begin{block}{Example: before macro processing}
     \small
 \begin{verbatim}
@@ -440,6 +473,44 @@ model;
 end;
 \end{verbatim}
     \normalsize
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{Loop directive (3/4)}
+  \begin{block}{Example: loop over several variables}
+    \small
+\begin{verbatim}
+@#define A = [ "X", "Y", "Z"]
+@#define B = [ 1, 2, 3]
+
+model;
+@#for (i,j) in A*B
+  e_@{i}_@{j} = …
+@#endfor
+end;
+\end{verbatim}
+    \normalsize
+    This will loop over \texttt{e\_X\_1}, \texttt{e\_X\_2}, …, \texttt{e\_Z\_3} (9
+    variables in total)
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{Loop directive (4/4)}
+  \begin{block}{Example: loop over several variables with filtering}
+    \small
+\begin{verbatim}
+model;
+@#for (i,j,k) in (1:10)^3 when i^2+j^2==k^2
+  e_@{i}_@{j}_@{k} = …
+@#endfor
+end;
+\end{verbatim}
+    \normalsize
+This loop will iterate over only 4 triplets: \texttt{(3,4,5)},
+\texttt{(4,3,5)}, \texttt{(6,8,10)}, \texttt{(8,6,10)}.
+
   \end{block}
 \end{frame}
 
@@ -539,8 +610,8 @@ There is also \verb+@#ifndef+, which is the opposite of \verb+@#ifdef+
 \verb+@#error +\textit{string\_expr} \\
 \verb+@#echomacrovars +\\
 \verb+@#echomacrovars +\textit{list\_of\_variables}\\
-\verb+@#echomacrovars (save)+\\
-\verb+@#echomacrovars (save)+\textit{list\_of\_variables}\\
+\verb+@#echomacrovars(save)+\\
+\verb+@#echomacrovars(save) +\textit{list\_of\_variables}\\
   \end{block}
 
   \begin{block}{Examples}
