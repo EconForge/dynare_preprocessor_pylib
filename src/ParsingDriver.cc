@@ -3216,8 +3216,7 @@ ParsingDriver::perfect_foresight_solver()
 void
 ParsingDriver::method_of_moments()
 {
-  mod_file->addStatement(make_unique<MethodOfMomentsStatement>(symbol_list, options_list));
-  symbol_list.clear();
+  mod_file->addStatement(make_unique<MethodOfMomentsStatement>(options_list));
   options_list.clear();
 }
 

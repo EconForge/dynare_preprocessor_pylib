@@ -1345,8 +1345,7 @@ method_of_moments : METHOD_OF_MOMENTS ';'
                     { driver.method_of_moments(); }
                   | METHOD_OF_MOMENTS '(' method_of_moments_options_list ')' ';'
                     { driver.method_of_moments(); }
-                  | METHOD_OF_MOMENTS '(' method_of_moments_options_list ')' symbol_list ';'
-                    { driver.method_of_moments(); }
+                  ;
 
 method_of_moments_options_list : method_of_moments_option COMMA method_of_moments_options_list
                                | method_of_moments_option
