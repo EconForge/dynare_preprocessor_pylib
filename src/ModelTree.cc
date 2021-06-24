@@ -1957,16 +1957,16 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
           if (_NSGetExecutablePath(dynare_m_path, &size) == 0)
             {
               string str = dynare_m_path;
-              gcc_relative_path = str.substr(0, str.find_last_of("/")) + "/../../.brew/bin/gcc-10";
+              gcc_relative_path = str.substr(0, str.find_last_of("/")) + "/../../.brew/bin/gcc-11";
             }
 
           if (filesystem::exists(gcc_relative_path))
             compiler = gcc_relative_path;
-          else if (filesystem::exists("/usr/local/bin/gcc-10"))
-            compiler = "/usr/local/bin/gcc-10";
+          else if (filesystem::exists("/usr/local/bin/gcc-11"))
+            compiler = "/usr/local/bin/gcc-11";
           else
             {
-              cerr << "ERROR: You must install gcc-10 on your system before using the `use_dll` option of Dynare. "
+              cerr << "ERROR: You must install gcc-11 on your system before using the `use_dll` option of Dynare. "
                    << "You can do this via the Dynare installation package." << endl;
               exit(EXIT_FAILURE);
             }
