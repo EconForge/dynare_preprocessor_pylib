@@ -1957,7 +1957,7 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
           if (_NSGetExecutablePath(dynare_m_path, &size) == 0)
             {
               string str = dynare_m_path;
-              gcc_relative_path = str.substr(0, str.find_last_of("/")) + "/../../.brew/bin/gcc-11";
+              gcc_relative_path = str.substr(0, str.find_last_of("/")) + "/../.brew/bin/gcc-11";
             }
 
           if (filesystem::exists(gcc_relative_path))
