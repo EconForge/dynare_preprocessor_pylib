@@ -4742,9 +4742,7 @@ Smoother2histvalStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-MethodOfMomentsStatement::MethodOfMomentsStatement(SymbolList symbol_list_arg,
-                                                     OptionsList options_list_arg) :
-  symbol_list{move(symbol_list_arg)},
+MethodOfMomentsStatement::MethodOfMomentsStatement(OptionsList options_list_arg) :
   options_list{move(options_list_arg)}
 {
 }
@@ -4752,15 +4750,6 @@ MethodOfMomentsStatement::MethodOfMomentsStatement(SymbolList symbol_list_arg,
 void
 MethodOfMomentsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  try
-    {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous });
-    }
-  catch (SymbolList::SymbolListException &e)
-    {
-      cerr << "ERROR: method_of_moments: " << e.message << endl;
-      exit(EXIT_FAILURE);
-    }
   mod_file_struct.mom_estimation_present = true;
   // Fill in option_order of mod_file_struct
   if (auto it = options_list.num_options.find("order");
@@ -4815,7 +4804,6 @@ MethodOfMomentsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
 void
 MethodOfMomentsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  symbol_list.writeOutput("var_list_", output);
   options_list.writeOutput(output, "options_mom_");
 
   output << "[oo_, options_mom_, M_] = method_of_moments(bayestopt_, options_, oo_, estim_params_, M_, options_mom_);" << endl;  
@@ -4829,11 +4817,6 @@ MethodOfMomentsStatement::writeJsonOutput(ostream &output) const
     {
       output << ", ";
       options_list.writeJsonOutput(output);
-    }
-  if (!symbol_list.empty())
-    {
-      output << ", ";
-      symbol_list.writeJsonOutput(output);
     }
   output << "}";
 }
