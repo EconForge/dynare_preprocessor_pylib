@@ -31,6 +31,16 @@ class EquationTags
 private:
   map<int, map<string, string>> eqn_tags;
 public:
+  class TagNotFoundException
+  {
+  public:
+    const string key, value;
+    explicit TagNotFoundException(string key_arg, string value_arg)
+      : key{move(key_arg)}, value{move(value_arg)}
+    {
+    }
+  };
+
   // Add multiple equation tags for the given equation
   inline void add(int eqn, map<string, string> tags)
   {
@@ -89,7 +99,15 @@ public:
   //! Returns true if equation tag with key and value exists
   inline bool exists(const string &key, const string &value) const
   {
-    return getEqnByTag(key, value) >= 0;
+    try
+      {
+        getEqnByTag(key, value);
+      }
+    catch (TagNotFoundException &e)
+      {
+        return false;
+      }
+    return true;
   }
 
   inline bool exists(const int eqn) const

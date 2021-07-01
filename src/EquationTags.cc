@@ -47,7 +47,7 @@ EquationTags::getEqnByTag(const string &key, const string &value) const
   for (const auto & [eqn, tags] : eqn_tags)
     if (auto tmp = tags.find(key); tmp != tags.end() && tmp->second == value)
       return eqn;
-  return -1;
+  throw TagNotFoundException(key, value);
 }
 
 void

@@ -3353,10 +3353,14 @@ DynamicModel::fillVarModelTable() const
       for (const auto &eqtag : it.second)
         {
           set<pair<int, int>> lhs_set, lhs_tmp_set, rhs_set;
-          int eqn = equation_tags.getEqnByTag("name", eqtag);
-          if (eqn == -1)
+          int eqn;
+          try
             {
-              cerr << "ERROR: equation tag '" << eqtag << "' not found" << endl;
+              eqn = equation_tags.getEqnByTag("name", eqtag);
+            }
+          catch (EquationTags::TagNotFoundException &e)
+            {
+              cerr << "ERROR: no equation is named '" << eqtag << "'" << endl;
               exit(EXIT_FAILURE);
             }
 
@@ -3408,7 +3412,7 @@ DynamicModel::fillVarModelTable() const
   var_model_table.setLhsExprT(lhs_expr_tr);
 
   // Fill AR Matrix
-  var_model_table.setAR(fillAutoregressiveMatrix(true));
+  var_model_table.setAR(computeAutoregressiveMatrices(true));
 }
 
 void
@@ -3482,7 +3486,7 @@ DynamicModel::fillVarModelTableFromOrigModel() const
 }
 
 map<string, map<tuple<int, int, int>, expr_t>>
-DynamicModel::fillAutoregressiveMatrix(bool is_var) const
+DynamicModel::computeAutoregressiveMatrices(bool is_var) const
 {
   map<string, map<tuple<int, int, int>, expr_t>> ARr;
   auto eqnums = is_var ?
@@ -3516,10 +3520,14 @@ DynamicModel::fillTrendComponentModelTable() const
       vector<int> trend_eqnumber;
       for (const auto &eqtag : it.second)
         {
-          int eqn = equation_tags.getEqnByTag("name", eqtag);
-          if (eqn == -1)
+          int eqn;
+          try
             {
-              cerr << "ERROR: trend equation tag '" << eqtag << "' not found" << endl;
+              eqn = equation_tags.getEqnByTag("name", eqtag);
+            }
+          catch (EquationTags::TagNotFoundException &e)
+            {
+              cerr << "ERROR: no equation is named '" << eqtag << "'" << endl;
               exit(EXIT_FAILURE);
             }
           trend_eqnumber.push_back(eqn);
@@ -3536,10 +3544,14 @@ DynamicModel::fillTrendComponentModelTable() const
       for (const auto &eqtag : it.second)
         {
           set<pair<int, int>> lhs_set, lhs_tmp_set, rhs_set;
-          int eqn = equation_tags.getEqnByTag("name", eqtag);
-          if (eqn == -1)
+          int eqn;
+          try
             {
-              cerr << "ERROR: equation tag '" << eqtag << "' not found" << endl;
+              eqn = equation_tags.getEqnByTag("name", eqtag);
+            }
+          catch (EquationTags::TagNotFoundException &e)
+            {
+              cerr << "ERROR: no equation is named '" << eqtag << "'" << endl;
               exit(EXIT_FAILURE);
             }
 
@@ -3590,7 +3602,7 @@ DynamicModel::fillTrendComponentModelTable() const
 }
 
 pair<map<string, map<tuple<int, int, int>, expr_t>>, map<string, map<tuple<int, int, int>, expr_t>>>
-DynamicModel::fillErrorComponentMatrix(const ExprNode::subst_table_t &diff_subst_table) const
+DynamicModel::computeErrorComponentMatrices(const ExprNode::subst_table_t &diff_subst_table) const
 {
   map<string, map<tuple<int, int, int>, expr_t>> A0r, A0starr;
 
@@ -3694,11 +3706,11 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
 }
 
 void
-DynamicModel::fillTrendComponentmodelTableAREC(const ExprNode::subst_table_t &diff_subst_table) const
+DynamicModel::fillTrendComponentModelTableAREC(const ExprNode::subst_table_t &diff_subst_table) const
 {
-  auto ARr = fillAutoregressiveMatrix(false);
+  auto ARr = computeAutoregressiveMatrices(false);
   trend_component_model_table.setAR(ARr);
-  auto [A0r, A0starr] = fillErrorComponentMatrix(diff_subst_table);
+  auto [A0r, A0starr] = computeErrorComponentMatrices(diff_subst_table);
   trend_component_model_table.setA0(A0r, A0starr);
 }
 

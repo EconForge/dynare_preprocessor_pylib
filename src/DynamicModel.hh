@@ -271,6 +271,13 @@ private:
     str.erase(str.find_last_not_of("\t\n\v\f\r ") + 1);
   }
 
+  //! Compute autoregressive matrices of VAR or trend component models
+  map<string, map<tuple<int, int, int>, expr_t>> computeAutoregressiveMatrices(bool is_var) const;
+
+  //! Compute error component matrices of trend component_models
+  /*! Returns a pair (A0r, A0starr) */
+  pair<map<string, map<tuple<int, int, int>, expr_t>>, map<string, map<tuple<int, int, int>, expr_t>>> computeErrorComponentMatrices(const ExprNode::subst_table_t &diff_subst_table) const;
+
 public:
   DynamicModel(SymbolTable &symbol_table_arg,
                NumericalConstants &num_constants_arg,
@@ -345,20 +352,19 @@ public:
     return nonzero_hessian_eqs;
   }
 
-  //! Fill Autoregressive Matrix for var_model
-  map<string, map<tuple<int, int, int>, expr_t>> fillAutoregressiveMatrix(bool is_var) const;
-
-  //! Fill Error Component Matrix for trend_component_model
-  /*! Returns a pair (A0r, A0starr) */
-  pair<map<string, map<tuple<int, int, int>, expr_t>>, map<string, map<tuple<int, int, int>, expr_t>>> fillErrorComponentMatrix(const ExprNode::subst_table_t &diff_subst_table) const;
-
-  //! Fill the Trend Component Model Table
+  //! Fill the trend component model table with information available from the transformed model
   void fillTrendComponentModelTable() const;
+  //! Fill the trend component model table with information available from the original model
   void fillTrendComponentModelTableFromOrigModel() const;
-  void fillTrendComponentmodelTableAREC(const ExprNode::subst_table_t &diff_subst_table) const;
+  /* Fill the trend component model table with information about AR/EC
+     components, available from the transformed model. Needs to be called after
+     fillTrendComponentModelTableFromOrigModel() has been called on the
+     original model */
+  void fillTrendComponentModelTableAREC(const ExprNode::subst_table_t &diff_subst_table) const;
 
-  //! Fill the Var Model Table
+  //! Fill the VAR model table with information available from the transformed model
   void fillVarModelTable() const;
+  //! Fill the VAR model table with information available from the original model
   void fillVarModelTableFromOrigModel() const;
 
   //! Update the rhs references in the var model and trend component tables

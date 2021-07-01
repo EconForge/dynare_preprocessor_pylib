@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018-2019 Dynare Team
+ * Copyright © 2018-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -46,8 +46,8 @@ private:
   map<string, vector<bool>> diff;
   map<string, vector<expr_t>> lhs_expr_t;
   map<string, vector<int>> target_vars;
-  map<string, map<tuple<int, int, int>, expr_t>> AR; // AR: name -> (eqn, lag, lhs_symb_id) -> expr_t
-  map<string, map<tuple<int, int, int>, expr_t>> A0, A0star; // EC: name -> (eqn, lag, col) -> expr_t
+  map<string, map<tuple<int, int, int>, expr_t>> AR; // name -> (eqn, lag, lhs_symb_id) -> expr_t
+  map<string, map<tuple<int, int, int>, expr_t>> A0, A0star; // name -> (eqn, lag, col) -> expr_t
 public:
   explicit TrendComponentModelTable(SymbolTable &symbol_table_arg);
 
@@ -58,23 +58,23 @@ public:
   inline bool isExistingTrendComponentModelName(const string &name_arg) const;
   inline bool empty() const;
 
-  map<string, vector<string>> getEqTags() const;
-  vector<string> getEqTags(const string &name_arg) const;
-  map<string, vector<string>> getTargetEqTags() const;
-  map<string, vector<int>> getEqNums() const;
-  map<string, vector<int>> getTargetEqNums() const;
-  vector<int> getTargetEqNums(const string &name_arg) const;
-  vector<int> getEqNums(const string &name_arg) const;
-  vector<int> getMaxLags(const string &name_arg) const;
+  const map<string, vector<string>> &getEqTags() const;
+  const vector<string> &getEqTags(const string &name_arg) const;
+  const map<string, vector<string>> &getTargetEqTags() const;
+  const map<string, vector<int>> &getEqNums() const;
+  const map<string, vector<int>> &getTargetEqNums() const;
+  const vector<int> &getTargetEqNums(const string &name_arg) const;
+  const vector<int> &getEqNums(const string &name_arg) const;
+  const vector<int> &getMaxLags(const string &name_arg) const;
   int getMaxLag(const string &name_arg) const;
-  vector<int> getLhs(const string &name_arg) const;
-  vector<expr_t> getLhsExprT(const string &name_arg) const;
-  vector<bool> getDiff(const string &name_arg) const;
-  vector<int> getOrigDiffVar(const string &name_arg) const;
-  map<string, vector<int>> getNonTargetEqNums() const;
-  vector<int> getNonTargetEqNums(const string &name_arg) const;
-  vector<int> getNonTargetLhs(const string &name_arg) const;
-  vector<int> getTargetLhs(const string &name_arg) const;
+  const vector<int> &getLhs(const string &name_arg) const;
+  const vector<expr_t> &getLhsExprT(const string &name_arg) const;
+  const vector<bool> &getDiff(const string &name_arg) const;
+  const vector<int> &getOrigDiffVar(const string &name_arg) const;
+  const map<string, vector<int>> &getNonTargetEqNums() const;
+  const vector<int> &getNonTargetEqNums(const string &name_arg) const;
+  const vector<int> &getNonTargetLhs(const string &name_arg) const;
+  const vector<int> &getTargetLhs(const string &name_arg) const;
 
   void setVals(map<string, vector<int>> eqnums_arg, map<string, vector<int>> target_eqnums_arg,
                map<string, vector<int>> lhs_arg,
@@ -119,10 +119,10 @@ private:
   map<string, pair<SymbolList, int>> symbol_list_and_order;
   map<string, vector<string>> eqtags;
   map<string, vector<int>> eqnums, max_lags, lhs, lhs_orig_symb_ids, orig_diff_var;
-  map<string, vector<set<pair<int, int>>>> rhs;
+  map<string, vector<set<pair<int, int>>>> rhs; // name -> for each equation: set of pairs (var, lag)
   map<string, vector<bool>> diff;
   map<string, vector<expr_t>> lhs_expr_t;
-  map<string, map<tuple<int, int, int>, expr_t>> AR; // AR: name -> (eqn, lag, lhs_symb_id) -> param_expr_t
+  map<string, map<tuple<int, int, int>, expr_t>> AR; // name -> (eqn, lag, lhs_symb_id) -> param_expr_t
 public:
   explicit VarModelTable(SymbolTable &symbol_table_arg);
 
@@ -133,18 +133,18 @@ public:
   inline bool isExistingVarModelName(const string &name_arg) const;
   inline bool empty() const;
 
-  map<string, vector<string>> getEqTags() const;
-  vector<string> getEqTags(const string &name_arg) const;
-  map<string, vector<int>> getEqNums() const;
-  vector<bool> getDiff(const string &name_arg) const;
-  vector<int> getEqNums(const string &name_arg) const;
-  vector<int> getMaxLags(const string &name_arg) const;
+  const map<string, vector<string>> &getEqTags() const;
+  const vector<string> &getEqTags(const string &name_arg) const;
+  const map<string, vector<int>> &getEqNums() const;
+  const vector<bool> &getDiff(const string &name_arg) const;
+  const vector<int> &getEqNums(const string &name_arg) const;
+  const vector<int> &getMaxLags(const string &name_arg) const;
   int getMaxLag(const string &name_arg) const;
-  vector<int> getLhs(const string &name_arg) const;
-  vector<int> getLhsOrigIds(const string &name_arg) const;
-  map<string, pair<SymbolList, int>> getSymbolListAndOrder() const;
-  vector<set<pair<int, int>>> getRhs(const string &name_arg) const;
-  vector<expr_t> getLhsExprT(const string &name_arg) const;
+  const vector<int> &getLhs(const string &name_arg) const;
+  const vector<int> &getLhsOrigIds(const string &name_arg) const;
+  const map<string, pair<SymbolList, int>> &getSymbolListAndOrder() const;
+  const vector<set<pair<int, int>>> &getRhs(const string &name_arg) const;
+  const vector<expr_t> &getLhsExprT(const string &name_arg) const;
 
   void setEqNums(map<string, vector<int>> eqnums_arg);
   void setLhs(map<string, vector<int>> lhs_arg);

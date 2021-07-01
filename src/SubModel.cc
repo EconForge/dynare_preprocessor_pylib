@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018-2019 Dynare Team
+ * Copyright © 2018-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -118,13 +118,13 @@ TrendComponentModelTable::setA0(map<string, map<tuple<int, int, int>, expr_t>> A
   A0star = move(A0star_arg);
 }
 
-map<string, vector<string>>
+const map<string, vector<string>> &
 TrendComponentModelTable::getEqTags() const
 {
   return eqtags;
 }
 
-vector<string>
+const vector<string> &
 TrendComponentModelTable::getEqTags(const string &name_arg) const
 {
   checkModelName(name_arg);
@@ -142,80 +142,80 @@ TrendComponentModelTable::checkModelName(const string &name_arg) const
     }
 }
 
-vector<int>
+const vector<int> &
 TrendComponentModelTable::getNonTargetLhs(const string &name_arg) const
 {
   checkModelName(name_arg);
   return nontarget_lhs.find(name_arg)->second;
 }
 
-vector<int>
+const vector<int> &
 TrendComponentModelTable::getTargetLhs(const string &name_arg) const
 {
   checkModelName(name_arg);
   return target_lhs.find(name_arg)->second;
 }
 
-vector<int>
+const vector<int> &
 TrendComponentModelTable::getLhs(const string &name_arg) const
 {
   checkModelName(name_arg);
   return lhs.find(name_arg)->second;
 }
 
-vector<expr_t>
+const vector<expr_t> &
 TrendComponentModelTable::getLhsExprT(const string &name_arg) const
 {
   checkModelName(name_arg);
   return lhs_expr_t.find(name_arg)->second;
 }
 
-map<string, vector<string>>
+const map<string, vector<string>> &
 TrendComponentModelTable::getTargetEqTags() const
 {
   return target_eqtags;
 }
 
-map<string, vector<int>>
+const map<string, vector<int>> &
 TrendComponentModelTable::getEqNums() const
 {
   return eqnums;
 }
 
-map<string, vector<int>>
+const map<string, vector<int>> &
 TrendComponentModelTable::getTargetEqNums() const
 {
   return target_eqnums;
 }
 
-vector<int>
+const vector<int> &
 TrendComponentModelTable::getTargetEqNums(const string &name_arg) const
 {
   checkModelName(name_arg);
   return target_eqnums.find(name_arg)->second;
 }
 
-map<string, vector<int>>
+const map<string, vector<int>> &
 TrendComponentModelTable::getNonTargetEqNums() const
 {
   return nontarget_eqnums;
 }
 
-vector<int>
+const vector<int> &
 TrendComponentModelTable::getNonTargetEqNums(const string &name_arg) const
 {
   checkModelName(name_arg);
   return nontarget_eqnums.find(name_arg)->second;
 }
 
-vector<int>
+const vector<int> &
 TrendComponentModelTable::getEqNums(const string &name_arg) const
 {
   checkModelName(name_arg);
   return eqnums.find(name_arg)->second;
 }
 
-vector<int>
+const vector<int> &
 TrendComponentModelTable::getMaxLags(const string &name_arg) const
 {
   checkModelName(name_arg);
@@ -231,14 +231,14 @@ TrendComponentModelTable::getMaxLag(const string &name_arg) const
   return max_lag_int;
 }
 
-vector<bool>
+const vector<bool> &
 TrendComponentModelTable::getDiff(const string &name_arg) const
 {
   checkModelName(name_arg);
   return diff.find(name_arg)->second;
 }
 
-vector<int>
+const vector<int> &
 TrendComponentModelTable::getOrigDiffVar(const string &name_arg) const
 {
   checkModelName(name_arg);
@@ -306,12 +306,12 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
       for (const auto &it : rhs.at(name))
         {
           output << "M_.trend_component." << name << ".rhs.vars_at_eq{" << i << "}.var = [";
-          for (const auto &it1 : it)
-            output << symbol_table.getTypeSpecificID(it1.first) + 1 << " ";
+          for (auto [var, lag] : it)
+            output << symbol_table.getTypeSpecificID(var) + 1 << " ";
           output << "];" << endl
                  << "M_.trend_component." << name << ".rhs.vars_at_eq{" << i << "}.lag = [";
-          for (const auto &it1 : it)
-            output << it1.second << " ";
+          for (auto [var, lag] : it)
+            output << lag << " ";
           output << "];" << endl;
 
           i++;
@@ -350,42 +350,40 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
       ar_ec_output << "if strcmp(model_name, '" << name << "')" << endl
                    << "    % AR" << endl
                    << "    AR = zeros(" << nontarget_lhs_vec.size() << ", " << nontarget_lhs_vec.size() << ", " << getMaxLag(name) << ");" << endl;
-      for (const auto &it : AR.at(name))
+      for (const auto &[key, expr] : AR.at(name))
         {
-          auto [eqn, lag, lhs_symb_id] = it.first;
+          auto [eqn, lag, lhs_symb_id] = key;
           int colidx = static_cast<int>(distance(nontarget_lhs_vec.begin(), find(nontarget_lhs_vec.begin(), nontarget_lhs_vec.end(), lhs_symb_id)));
           ar_ec_output << "    AR(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
-          it.second->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
+          expr->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
           ar_ec_output << ";" << endl;
         }
 
       int a0_lag = 0;
-      for (const auto &it : A0.at(name))
-        if (get<1>(it.first) > a0_lag)
-          a0_lag = get<1>(it.first);
+      for (const auto &[key, expr] : A0.at(name))
+        a0_lag = max(a0_lag, get<1>(key));
       ar_ec_output << endl
                    << "    % A0" << endl
                    << "    A0 = zeros(" << nontarget_lhs_vec.size() << ", " << nontarget_lhs_vec.size() << ", " << a0_lag << ");" << endl;
-      for (const auto &it : A0.at(name))
+      for (const auto &[key, expr] : A0.at(name))
         {
-          auto [eqn, lag, colidx] = it.first;
+          auto [eqn, lag, colidx] = key;
           ar_ec_output << "    A0(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
-          it.second->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
+          expr->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
           ar_ec_output << ";" << endl;
         }
 
       int a0star_lag = 0;
-      for (const auto &it : A0star.at(name))
-        if (get<1>(it.first) > a0star_lag)
-          a0star_lag = get<1>(it.first);
+      for (const auto &[key, expr] : A0star.at(name))
+        a0star_lag = max(a0star_lag, get<1>(key));
       ar_ec_output << endl
                    << "    % A0star" << endl
                    << "    A0star = zeros(" << nontarget_lhs_vec.size() << ", " << target_lhs_vec.size() << ", " << a0star_lag << ");" << endl;
-      for (const auto &it : A0star.at(name))
+      for (const auto &[key, expr] : A0star.at(name))
         {
-          auto [eqn, lag, colidx] = it.first;
+          auto [eqn, lag, colidx] = key;
           ar_ec_output << "    A0star(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
-          it.second->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
+          expr->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
           ar_ec_output << ";" << endl;
         }
 
@@ -444,7 +442,7 @@ VarModelTable::addVarModel(string name_arg, vector<string> eqtags_arg,
   names.insert(move(name_arg));
 }
 
-map<string, pair<SymbolList, int>>
+const map<string, pair<SymbolList, int>> &
 VarModelTable::getSymbolListAndOrder() const
 {
   return symbol_list_and_order;
@@ -471,11 +469,11 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
   for (const auto &name : names)
     {
       output << "M_.var." << name << ".model_name = '" << name << "';" << endl;
-      if (!symbol_list_and_order.at(name).first.empty())
+      if (auto &[symbol_list, order] = symbol_list_and_order.at(name);
+          !symbol_list.empty())
         {
-          symbol_list_and_order.at(name).first.writeOutput("M_.var." + name + ".var_list_", output);
-          output << "M_.var." << name << ".order = "
-                 << symbol_list_and_order.at(name).second << ";" << endl;
+          symbol_list.writeOutput("M_.var." + name + ".var_list_", output);
+          output << "M_.var." << name << ".order = " << order << ";" << endl;
         }
       output << "M_.var." << name << ".eqtags = {";
       for (const auto &it : eqtags.at(name))
@@ -506,12 +504,12 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
       for (const auto &it : rhs.at(name))
         {
           output << "M_.var." << name << ".rhs.vars_at_eq{" << i << "}.var = [";
-          for (const auto &it1 : it)
-            output << symbol_table.getTypeSpecificID(it1.first) + 1 << " ";
+          for (auto [var, lag] : it)
+            output << symbol_table.getTypeSpecificID(var) + 1 << " ";
           output << "];" << endl
                  << "M_.var." << name << ".rhs.vars_at_eq{" << i << "}.lag = [";
-          for (const auto &it1 : it)
-            output << it1.second << " ";
+          for (auto [var, lag] : it)
+            output << lag << " ";
           output << "];" << endl;
 
           i++;
@@ -520,12 +518,12 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
       vector<int> lhs = getLhsOrigIds(name);
       ar_output << "if strcmp(model_name, '" << name << "')" << endl
                 << "    ar = zeros(" << lhs.size() << ", " << lhs.size() << ", " << getMaxLag(name) << ");" << endl;
-      for (const auto &it : AR.at(name))
+      for (const auto &[key, expr] : AR.at(name))
         {
-          auto [eqn, lag, lhs_symb_id] = it.first;
+          auto [eqn, lag, lhs_symb_id] = key;
           int colidx = static_cast<int>(distance(lhs.begin(), find(lhs.begin(), lhs.end(), lhs_symb_id)));
           ar_output << "    ar(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
-          it.second->writeOutput(ar_output, ExprNodeOutputType::matlabDynamicModel);
+          expr->writeOutput(ar_output, ExprNodeOutputType::matlabDynamicModel);
           ar_output << ";" << endl;
         }
       ar_output << "    return" << endl
@@ -562,13 +560,13 @@ VarModelTable::writeJsonOutput(ostream &output) const
     }
 }
 
-map<string, vector<string>>
+const map<string, vector<string>> &
 VarModelTable::getEqTags() const
 {
   return eqtags;
 }
 
-vector<string>
+const vector<string> &
 VarModelTable::getEqTags(const string &name_arg) const
 {
   checkModelName(name_arg);
@@ -630,20 +628,20 @@ VarModelTable::setLhsExprT(map<string, vector<expr_t>> lhs_expr_t_arg)
   lhs_expr_t = move(lhs_expr_t_arg);
 }
 
-map<string, vector<int>>
+const map<string, vector<int>> &
 VarModelTable::getEqNums() const
 {
   return eqnums;
 }
 
-vector<bool>
+const vector<bool> &
 VarModelTable::getDiff(const string &name_arg) const
 {
   checkModelName(name_arg);
   return diff.find(name_arg)->second;
 }
 
-vector<int>
+const vector<int> &
 VarModelTable::getEqNums(const string &name_arg) const
 {
   checkModelName(name_arg);
@@ -674,7 +672,7 @@ VarModelTable::setAR(map<string, map<tuple<int, int, int>, expr_t>> AR_arg)
   AR = move(AR_arg);
 }
 
-vector<int>
+const vector<int> &
 VarModelTable::getMaxLags(const string &name_arg) const
 {
   checkModelName(name_arg);
@@ -690,28 +688,28 @@ VarModelTable::getMaxLag(const string &name_arg) const
   return max_lag_int;
 }
 
-vector<int>
+const vector<int> &
 VarModelTable::getLhs(const string &name_arg) const
 {
   checkModelName(name_arg);
   return lhs.find(name_arg)->second;
 }
 
-vector<int>
+const vector<int> &
 VarModelTable::getLhsOrigIds(const string &name_arg) const
 {
   checkModelName(name_arg);
   return lhs_orig_symb_ids.find(name_arg)->second;
 }
 
-vector<set<pair<int, int>>>
+const vector<set<pair<int, int>>> &
 VarModelTable::getRhs(const string &name_arg) const
 {
   checkModelName(name_arg);
   return rhs.find(name_arg)->second;
 }
 
-vector<expr_t>
+const vector<expr_t> &
 VarModelTable::getLhsExprT(const string &name_arg) const
 {
   checkModelName(name_arg);

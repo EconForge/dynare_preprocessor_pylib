@@ -442,10 +442,10 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   // Create auxiliary variable and equations for Diff operators
   auto [diff_nodes, diff_subst_table] = dynamic_model.substituteDiff(pac_growth);
 
-  // Fill Trend Component Model Table
+  // Fill trend component and VAR model tables
   dynamic_model.fillTrendComponentModelTable();
   original_model.fillTrendComponentModelTableFromOrigModel();
-  dynamic_model.fillTrendComponentmodelTableAREC(diff_subst_table);
+  dynamic_model.fillTrendComponentModelTableAREC(diff_subst_table);
   dynamic_model.fillVarModelTable();
   original_model.fillVarModelTableFromOrigModel();
 
