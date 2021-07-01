@@ -3364,9 +3364,15 @@ ParsingDriver::var_expectation_model()
   else
     var_expectation_model_discount = data_tree->One;
 
+  int time_shift = 0;
+  it = options_list.num_options.find("time_shift");
+  if (it != options_list.num_options.end())
+    time_shift = stoi(it->second);
+
   mod_file->addStatement(make_unique<VarExpectationModelStatement>(model_name, var_expectation_model_expression,
                                                                    var_model_name, horizon,
-                                                                   var_expectation_model_discount, mod_file->symbol_table));
+                                                                   var_expectation_model_discount, time_shift,
+                                                                   mod_file->symbol_table));
 
   options_list.clear();
   var_expectation_model_discount = nullptr;

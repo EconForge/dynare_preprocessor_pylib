@@ -814,6 +814,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>coefficients {return token::COEFFICIENTS;}
 <DYNARE_STATEMENT>variances {return token::VARIANCES;}
 <DYNARE_STATEMENT>equations {return token::EQUATIONS;}
+<DYNARE_STATEMENT>time_shift {return token::TIME_SHIFT;}
 <DYNARE_STATEMENT>true {
   yylval->build<string>(yytext);
   return token::TRUE;

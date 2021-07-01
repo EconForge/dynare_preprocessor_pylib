@@ -590,7 +590,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
 
             subst_expr = dynamic_model.AddPlus(subst_expr,
                                                dynamic_model.AddTimes(dynamic_model.AddVariable(new_param_id),
-                                                                      dynamic_model.AddVariable(variable, -lag)));
+                                                                      dynamic_model.AddVariable(variable, -lag + vems->time_shift)));
           }
 
       if (var_expectation_subst_table.find(model_name) != var_expectation_subst_table.end())

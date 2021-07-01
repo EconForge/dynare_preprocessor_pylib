@@ -4896,10 +4896,11 @@ VarExpectationModelStatement::VarExpectationModelStatement(string model_name_arg
                                                            string aux_model_name_arg,
                                                            string horizon_arg,
                                                            expr_t discount_arg,
+                                                           int time_shift_arg,
                                                            const SymbolTable &symbol_table_arg) :
   model_name{move(model_name_arg)}, expression{expression_arg},
   aux_model_name{move(aux_model_name_arg)}, horizon{move(horizon_arg)},
-  discount{discount_arg}, symbol_table{symbol_table_arg}
+  discount{discount_arg}, time_shift{time_shift_arg}, symbol_table{symbol_table_arg}
 {
 }
 
@@ -4954,7 +4955,8 @@ VarExpectationModelStatement::writeOutput(ostream &output, const string &basenam
 {
   string mstruct = "M_.var_expectation." + model_name;
   output << mstruct << ".auxiliary_model_name = '" << aux_model_name << "';" << endl
-         << mstruct << ".horizon = " << horizon << ';' << endl;
+         << mstruct << ".horizon = " << horizon << ';' << endl
+         << mstruct << ".time_shift = " << time_shift << ';' << endl;
 
   if (!vars_params_constants.size())
     {
