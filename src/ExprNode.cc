@@ -554,12 +554,6 @@ NumConstNode::undiff() const
 }
 
 int
-NumConstNode::VarMinLag() const
-{
-  return 1;
-}
-
-int
 NumConstNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 {
   return 0;
@@ -1468,25 +1462,6 @@ VariableNode::maxLead() const
       return datatree.getLocalVariable(symb_id)->maxLead();
     default:
       return 0;
-    }
-}
-
-int
-VariableNode::VarMinLag() const
-{
-  switch (get_type())
-    {
-    case SymbolType::endogenous:
-      return -lag;
-    case SymbolType::exogenous:
-      if (lag > 0)
-        return -lag;
-      else
-        return 1; // Can have contemporaneus exog in VAR
-    case SymbolType::modelLocalVariable:
-      return datatree.getLocalVariable(symb_id)->VarMinLag();
-    default:
-      return 1;
     }
 }
 
@@ -3234,12 +3209,6 @@ UnaryOpNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
   return arg->maxLag();
 }
 
-int
-UnaryOpNode::VarMinLag() const
-{
-  return arg->VarMinLag();
-}
-
 expr_t
 UnaryOpNode::substituteAdl() const
 {
@@ -4653,12 +4622,6 @@ BinaryOpNode::compileExternalFunctionOutput(ostream &CompileCode, unsigned int &
                                       temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
   arg2->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs, temporary_terms,
                                       temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
-}
-
-int
-BinaryOpNode::VarMinLag() const
-{
-  return min(arg1->VarMinLag(), arg2->VarMinLag());
 }
 
 int
@@ -6197,12 +6160,6 @@ TrinaryOpNode::undiff() const
 }
 
 int
-TrinaryOpNode::VarMinLag() const
-{
-  return min(min(arg1->VarMinLag(), arg2->VarMinLag()), arg3->VarMinLag());
-}
-
-int
 TrinaryOpNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 {
   return max(arg1->VarMaxLag(lhs_lag_equiv),
@@ -6629,15 +6586,6 @@ AbstractExternalFunctionNode::undiff() const
   for (auto argument : arguments)
     arguments_subst.push_back(argument->undiff());
   return buildSimilarExternalFunctionNode(arguments_subst, datatree);
-}
-
-int
-AbstractExternalFunctionNode::VarMinLag() const
-{
-  int val = 0;
-  for (auto argument : arguments)
-    val = min(val, argument->VarMinLag());
-  return val;
 }
 
 int
@@ -8153,13 +8101,6 @@ VarExpectationNode::undiff() const
 }
 
 int
-VarExpectationNode::VarMinLag() const
-{
-  cerr << "VarExpectationNode::VarMinLag not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-int
 VarExpectationNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 {
   cerr << "VarExpectationNode::VarMaxLag not implemented." << endl;
@@ -8550,12 +8491,6 @@ expr_t
 PacExpectationNode::undiff() const
 {
   return const_cast<PacExpectationNode *>(this);
-}
-
-int
-PacExpectationNode::VarMinLag() const
-{
-  return 1;
 }
 
 int

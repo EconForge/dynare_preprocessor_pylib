@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2020 Dynare Team
+ * Copyright © 2007-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -370,9 +370,6 @@ public:
     (and added if type_arg = ModelLocalVariable).
   */
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const = 0;
-
-  //! Find lowest lag for VAR
-  virtual int VarMinLag() const = 0;
 
   //! Find the maximum lag in a VAR: handles case where LHS is diff
   virtual int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const = 0;
@@ -761,7 +758,6 @@ public:
   int maxLead() const override;
   int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
-  int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
@@ -834,7 +830,6 @@ public:
   int maxLead() const override;
   int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
-  int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
@@ -935,7 +930,6 @@ public:
   int maxLead() const override;
   int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
-  int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
@@ -1042,7 +1036,6 @@ public:
   int maxLead() const override;
   int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
-  int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
@@ -1178,7 +1171,6 @@ public:
   int maxLead() const override;
   int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
-  int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
@@ -1290,7 +1282,6 @@ public:
   int maxLead() const override;
   int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
-  int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
@@ -1461,7 +1452,6 @@ public:
   int maxLead() const override;
   int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
-  int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;
@@ -1534,7 +1524,6 @@ public:
   int maxLead() const override;
   int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
-  int VarMinLag() const override;
   int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
   expr_t undiff() const override;
   expr_t decreaseLeadsLags(int n) const override;

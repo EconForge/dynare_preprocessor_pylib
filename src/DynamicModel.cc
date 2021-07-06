@@ -3392,13 +3392,6 @@ DynamicModel::fillVarModelTable() const
           lhs_expr_t.push_back(*(lhs_expr_t_set.begin()));
 
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_set);
-          for (const auto &itrhs : rhs_set)
-            if (itrhs.second > 0)
-              {
-                cerr << "ERROR: in Equation " << eqtag
-                     << ". A VAR may not have leaded or contemporaneous variables on the RHS. " << endl;
-                exit(EXIT_FAILURE);
-              }
           rhs.push_back(rhs_set);
         }
       eqnums[it.first] = eqnumber;
@@ -3427,15 +3420,25 @@ DynamicModel::fillVarModelTableFromOrigModel() const
       vector<bool> diff_vec;
       for (auto eqn : it.second)
         {
-          // ensure no leads in equations
-          if (equations[eqn]->arg2->VarMinLag() <= 0)
-            {
-              cerr << "ERROR in VAR model Equation (#" << eqn << "). "
-                   << "Leaded exogenous variables "
-                   << "and leaded or contemporaneous endogenous variables not allowed in VAR"
-                   << endl;
-              exit(EXIT_FAILURE);
-            }
+          // Perform some sanity checks on the RHS
+          string eqtag = equation_tags.getTagValueByEqnAndKey(eqn, "name");
+          set<pair<int, int>> rhs_endo_set, rhs_exo_set;
+          equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_endo_set);
+          for (const auto &[symb_id, lag] : rhs_endo_set)
+            if (lag >= 0)
+              {
+                cerr << "ERROR: in Equation " << eqtag
+                     << ". A VAR model may not have leaded or contemporaneous endogenous variables on the RHS. " << endl;
+                exit(EXIT_FAILURE);
+              }
+          equations[eqn]->arg2->collectDynamicVariables(SymbolType::exogenous, rhs_exo_set);
+          for (const auto &[symb_id, lag] : rhs_exo_set)
+            if (lag != 0)
+              {
+                cerr << "ERROR: in Equation " << eqtag
+                     << ". A VAR model may not have lagged or leaded exogenous variables on the RHS. " << endl;
+                exit(EXIT_FAILURE);
+              }
 
           // save lhs variables
           equations[eqn]->arg1->collectVARLHSVariable(lhs);
@@ -3583,13 +3586,6 @@ DynamicModel::fillTrendComponentModelTable() const
           lhs_expr_t.push_back(*(lhs_expr_t_set.begin()));
 
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_set);
-          for (const auto &itrhs : rhs_set)
-            if (itrhs.second > 0)
-              {
-                cerr << "ERROR: in Equation " << eqtag
-                     << ". A trend component model may not have leaded or contemporaneous variables on the RHS. " << endl;
-                exit(EXIT_FAILURE);
-              }
           rhs.push_back(rhs_set);
         }
       eqnums[it.first] = eqnumber;
@@ -3645,15 +3641,25 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
       vector<bool> diff_vec;
       for (auto eqn : it.second)
         {
-          // ensure no leads in equations
-          if (equations[eqn]->arg2->VarMinLag() <= 0)
-            {
-              cerr << "ERROR in trend component model Equation (#" << eqn << "). "
-                   << "Leaded exogenous variables "
-                   << "and leaded or contemporaneous endogenous variables not allowed in VAR"
-                   << endl;
-              exit(EXIT_FAILURE);
-            }
+          // Perform some sanity checks on the RHS
+          string eqtag = equation_tags.getTagValueByEqnAndKey(eqn, "name");
+          set<pair<int, int>> rhs_endo_set, rhs_exo_set;
+          equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_endo_set);
+          for (const auto &[symb_id, lag] : rhs_endo_set)
+            if (lag >= 0)
+              {
+                cerr << "ERROR: in Equation " << eqtag
+                     << ". A trend component model may not have leaded or contemporaneous endogenous variables on the RHS. " << endl;
+                exit(EXIT_FAILURE);
+              }
+          equations[eqn]->arg2->collectDynamicVariables(SymbolType::exogenous, rhs_exo_set);
+          for (const auto &[symb_id, lag] : rhs_exo_set)
+            if (lag != 0)
+              {
+                cerr << "ERROR: in Equation " << eqtag
+                     << ". A trend component model may not have lagged or leaded exogenous variables on the RHS. " << endl;
+                exit(EXIT_FAILURE);
+              }
 
           // save lhs variables
           equations[eqn]->arg1->collectVARLHSVariable(lhs);
