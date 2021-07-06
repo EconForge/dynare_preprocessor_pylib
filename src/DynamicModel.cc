@@ -3342,15 +3342,14 @@ DynamicModel::fillVarModelTable() const
   map<string, vector<int>> eqnums, lhsr;
   map<string, vector<expr_t>> lhs_expr_tr;
   map<string, vector<set<pair<int, int>>>> rhsr;
-  map<string, vector<string>> eqtags = var_model_table.getEqTags();
 
-  for (const auto &it : eqtags)
+  for (const auto &[model_name, eqtags] : var_model_table.getEqTags())
     {
       vector<int> eqnumber, lhs;
       vector<expr_t> lhs_expr_t;
       vector<set<pair<int, int>>> rhs;
 
-      for (const auto &eqtag : it.second)
+      for (const auto &eqtag : eqtags)
         {
           set<pair<int, int>> lhs_set, lhs_tmp_set, rhs_set;
           int eqn;
@@ -3394,10 +3393,10 @@ DynamicModel::fillVarModelTable() const
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_set);
           rhs.push_back(rhs_set);
         }
-      eqnums[it.first] = eqnumber;
-      lhsr[it.first] = lhs;
-      lhs_expr_tr[it.first] = lhs_expr_t;
-      rhsr[it.first] = rhs;
+      eqnums[model_name] = eqnumber;
+      lhsr[model_name] = lhs;
+      lhs_expr_tr[model_name] = lhs_expr_t;
+      rhsr[model_name] = rhs;
     }
   var_model_table.setEqNums(eqnums);
   var_model_table.setLhs(lhsr);
@@ -3413,12 +3412,12 @@ DynamicModel::fillVarModelTableFromOrigModel() const
 {
   map<string, vector<int>> lags, orig_diff_var;
   map<string, vector<bool>> diff;
-  for (const auto &it : var_model_table.getEqNums())
+  for (const auto &[model_name, eqns] : var_model_table.getEqNums())
     {
       set<expr_t> lhs;
       vector<int> orig_diff_var_vec;
       vector<bool> diff_vec;
-      for (auto eqn : it.second)
+      for (auto eqn : eqns)
         {
           // Perform some sanity checks on the RHS
           string eqtag = equation_tags.getTagValueByEqnAndKey(eqn, "name");
@@ -3463,7 +3462,7 @@ DynamicModel::fillVarModelTableFromOrigModel() const
 
         }
 
-      if (it.second.size() != lhs.size())
+      if (eqns.size() != lhs.size())
         {
           cerr << "ERROR: The LHS variables of the VAR model are not unique" << endl;
           exit(EXIT_FAILURE);
@@ -3477,11 +3476,11 @@ DynamicModel::fillVarModelTableFromOrigModel() const
         }
 
       vector<int> max_lag;
-      for (auto eqn : it.second)
+      for (auto eqn : eqns)
         max_lag.push_back(equations[eqn]->arg2->VarMaxLag(lhs_lag_equiv));
-      lags[it.first] = max_lag;
-      diff[it.first] = diff_vec;
-      orig_diff_var[it.first] = orig_diff_var_vec;
+      lags[model_name] = max_lag;
+      diff[model_name] = diff_vec;
+      orig_diff_var[model_name] = orig_diff_var_vec;
     }
   var_model_table.setDiff(diff);
   var_model_table.setMaxLags(lags);
@@ -3492,20 +3491,20 @@ map<string, map<tuple<int, int, int>, expr_t>>
 DynamicModel::computeAutoregressiveMatrices(bool is_var) const
 {
   map<string, map<tuple<int, int, int>, expr_t>> ARr;
-  auto eqnums = is_var ?
+  const auto &all_eqnums = is_var ?
     var_model_table.getEqNums() : trend_component_model_table.getNonTargetEqNums();
-  for (const auto &it : eqnums)
+  for (const auto &[model_name, eqns] : all_eqnums)
     {
       int i = 0;
       map<tuple<int, int, int>, expr_t> AR;
-      vector<int> lhs = is_var ?
-        var_model_table.getLhsOrigIds(it.first) : trend_component_model_table.getNonTargetLhs(it.first);
-      for (auto eqn : it.second)
+      const vector<int> &lhs = is_var ? var_model_table.getLhsOrigIds(model_name)
+        : trend_component_model_table.getNonTargetLhs(model_name);
+      for (auto eqn : eqns)
         {
           auto bopn = dynamic_cast<BinaryOpNode *>(equations[eqn]->arg2);
           bopn->fillAutoregressiveRow(i++, lhs, AR);
         }
-      ARr[it.first] = AR;
+      ARr[model_name] = AR;
     }
   return ARr;
 }
@@ -3516,12 +3515,10 @@ DynamicModel::fillTrendComponentModelTable() const
   map<string, vector<int>> eqnums, trend_eqnums, lhsr;
   map<string, vector<expr_t>> lhs_expr_tr;
   map<string, vector<set<pair<int, int>>>> rhsr;
-  map<string, vector<string>> eqtags = trend_component_model_table.getEqTags();
-  map<string, vector<string>> trend_eqtags = trend_component_model_table.getTargetEqTags();
-  for (const auto &it : trend_eqtags)
+  for (const auto &[model_name, eqtags] : trend_component_model_table.getTargetEqTags())
     {
       vector<int> trend_eqnumber;
-      for (const auto &eqtag : it.second)
+      for (const auto &eqtag : eqtags)
         {
           int eqn;
           try
@@ -3535,16 +3532,16 @@ DynamicModel::fillTrendComponentModelTable() const
             }
           trend_eqnumber.push_back(eqn);
         }
-      trend_eqnums[it.first] = trend_eqnumber;
+      trend_eqnums[model_name] = trend_eqnumber;
     }
 
-  for (const auto &it : eqtags)
+  for (const auto &[model_name, eqtags] : trend_component_model_table.getEqTags())
     {
       vector<int> eqnumber, lhs;
       vector<expr_t> lhs_expr_t;
       vector<set<pair<int, int>>> rhs;
 
-      for (const auto &eqtag : it.second)
+      for (const auto &eqtag : eqtags)
         {
           set<pair<int, int>> lhs_set, lhs_tmp_set, rhs_set;
           int eqn;
@@ -3588,10 +3585,10 @@ DynamicModel::fillTrendComponentModelTable() const
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_set);
           rhs.push_back(rhs_set);
         }
-      eqnums[it.first] = eqnumber;
-      lhsr[it.first] = lhs;
-      lhs_expr_tr[it.first] = lhs_expr_t;
-      rhsr[it.first] = rhs;
+      eqnums[model_name] = eqnumber;
+      lhsr[model_name] = lhs;
+      lhs_expr_tr[model_name] = lhs_expr_t;
+      rhsr[model_name] = rhs;
     }
   trend_component_model_table.setRhs(rhsr);
   trend_component_model_table.setVals(eqnums, trend_eqnums, lhsr, lhs_expr_tr);
@@ -3602,16 +3599,16 @@ DynamicModel::computeErrorComponentMatrices(const ExprNode::subst_table_t &diff_
 {
   map<string, map<tuple<int, int, int>, expr_t>> A0r, A0starr;
 
-  for (const auto &it : trend_component_model_table.getEqNums())
+  for (const auto &[model_name, eqns] : trend_component_model_table.getEqNums())
     {
       int i = 0;
       map<tuple<int, int, int>, expr_t> A0, A0star;
-      vector<int> target_lhs = trend_component_model_table.getTargetLhs(it.first);
-      vector<int> nontarget_eqnums = trend_component_model_table.getNonTargetEqNums(it.first);
-      vector<int> undiff_nontarget_lhs = getUndiffLHSForPac(it.first, diff_subst_table);
+      vector<int> target_lhs = trend_component_model_table.getTargetLhs(model_name);
+      vector<int> nontarget_eqnums = trend_component_model_table.getNonTargetEqNums(model_name);
+      vector<int> undiff_nontarget_lhs = getUndiffLHSForPac(model_name, diff_subst_table);
       vector<int> parsed_undiff_nontarget_lhs;
 
-      for (auto eqn : it.second)
+      for (auto eqn : eqns)
         {
           if (find(nontarget_eqnums.begin(), nontarget_eqnums.end(), eqn) != nontarget_eqnums.end())
             parsed_undiff_nontarget_lhs.push_back(undiff_nontarget_lhs.at(i));
@@ -3619,11 +3616,11 @@ DynamicModel::computeErrorComponentMatrices(const ExprNode::subst_table_t &diff_
         }
 
       i = 0;
-      for (auto eqn : it.second)
+      for (auto eqn : eqns)
         if (find(nontarget_eqnums.begin(), nontarget_eqnums.end(), eqn) != nontarget_eqnums.end())
           equations[eqn]->arg2->fillErrorCorrectionRow(i++, parsed_undiff_nontarget_lhs, target_lhs, A0, A0star);
-      A0r[it.first] = A0;
-      A0starr[it.first] = A0star;
+      A0r[model_name] = A0;
+      A0starr[model_name] = A0star;
     }
 
   return { A0r, A0starr };
@@ -3634,12 +3631,12 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
 {
   map<string, vector<int>> lags, orig_diff_var;
   map<string, vector<bool>> diff;
-  for (const auto &it : trend_component_model_table.getEqNums())
+  for (const auto &[model_name, eqns] : trend_component_model_table.getEqNums())
     {
       set<expr_t> lhs;
       vector<int> orig_diff_var_vec;
       vector<bool> diff_vec;
-      for (auto eqn : it.second)
+      for (auto eqn : eqns)
         {
           // Perform some sanity checks on the RHS
           string eqtag = equation_tags.getTagValueByEqnAndKey(eqn, "name");
@@ -3683,10 +3680,9 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
             }
           else
             orig_diff_var_vec.push_back(-1);
-
         }
 
-      if (it.second.size() != lhs.size())
+      if (eqns.size() != lhs.size())
         {
           cerr << "ERROR: The LHS variables of the trend component model are not unique" << endl;
           exit(EXIT_FAILURE);
@@ -3700,11 +3696,11 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
         }
 
       vector<int> max_lag;
-      for (auto eqn : it.second)
+      for (auto eqn : eqns)
         max_lag.push_back(equations[eqn]->arg2->VarMaxLag(lhs_lag_equiv));
-      lags[it.first] = max_lag;
-      diff[it.first] = diff_vec;
-      orig_diff_var[it.first] = orig_diff_var_vec;
+      lags[model_name] = max_lag;
+      diff[model_name] = diff_vec;
+      orig_diff_var[model_name] = orig_diff_var_vec;
     }
   trend_component_model_table.setDiff(diff);
   trend_component_model_table.setMaxLags(lags);

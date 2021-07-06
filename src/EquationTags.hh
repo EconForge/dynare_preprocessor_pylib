@@ -85,7 +85,7 @@ public:
   int getEqnByTag(const string &key, const string &value) const;
 
   //! Get the tag value given the equation number and key
-  inline string getTagValueByEqnAndKey(const int eqn, const string &key) const
+  inline string getTagValueByEqnAndKey(int eqn, const string &key) const
   {
     return exists(eqn, key) ? eqn_tags.at(eqn).at(key) : "";
   }
