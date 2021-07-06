@@ -3368,6 +3368,8 @@ ParsingDriver::var_expectation_model()
   it = options_list.num_options.find("time_shift");
   if (it != options_list.num_options.end())
     time_shift = stoi(it->second);
+  if (time_shift > 0)
+    error("The 'time_shift' option must be a non-positive integer");
 
   mod_file->addStatement(make_unique<VarExpectationModelStatement>(model_name, var_expectation_model_expression,
                                                                    var_model_name, horizon,
