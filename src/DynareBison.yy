@@ -166,7 +166,7 @@ class ParsingDriver;
 %token PARAMETER_CONVERGENCE_CRITERION NUMBER_OF_LARGE_PERTURBATIONS NUMBER_OF_SMALL_PERTURBATIONS
 %token NUMBER_OF_POSTERIOR_DRAWS_AFTER_PERTURBATION MAX_NUMBER_OF_STAGES
 %token RANDOM_FUNCTION_CONVERGENCE_CRITERION RANDOM_PARAMETER_CONVERGENCE_CRITERION NO_INIT_ESTIMATION_CHECK_FIRST_OBS
-%token HETEROSKEDASTIC_FILTER TIME_SHIFT
+%token HETEROSKEDASTIC_FILTER TIME_SHIFT STRUCTURAL
 /* Method of Moments */
 %token METHOD_OF_MOMENTS MOM_METHOD
 %token BARTLETT_KERNEL_LAG WEIGHTING_MATRIX WEIGHTING_MATRIX_SCALING_FACTOR ANALYTIC_STANDARD_ERRORS ANALYTIC_JACOBIAN PENALIZED_ESTIMATOR VERBOSE 
@@ -386,6 +386,7 @@ var_model_options_list : var_model_options_list COMMA var_model_options
 
 var_model_options : o_var_name
                   | o_var_eq_tags
+                  | o_var_structural
                   ;
 
 trend_component_model : TREND_COMPONENT_MODEL '('  trend_component_model_options_list ')' ';' { driver.trend_component_model(); }
@@ -3230,6 +3231,7 @@ o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_filename : FILENAME EQUAL filename { driver.option_str("filename", $3); };
 o_var_eq_tags : EQTAGS EQUAL vec_str { driver.option_vec_str("var.eqtags", $3); }
+o_var_structural : STRUCTURAL { driver.option_num("var.structural", "true"); }
 o_dirname : DIRNAME EQUAL filename { driver.option_str("dirname", $3); };
 o_huge_number : HUGE_NUMBER EQUAL non_negative_number { driver.option_num("huge_number", $3); };
 o_nobs : NOBS EQUAL vec_int

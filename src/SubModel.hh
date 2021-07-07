@@ -47,6 +47,8 @@ private:
   map<string, vector<expr_t>> lhs_expr_t;
   map<string, vector<int>> target_vars;
   map<string, map<tuple<int, int, int>, expr_t>> AR; // name -> (eqn, lag, lhs_symb_id) -> expr_t
+  /* Note that A0 in the trend-component model context is not the same thing as
+     in the structural VAR context. */
   map<string, map<tuple<int, int, int>, expr_t>> A0, A0star; // name -> (eqn, lag, col) -> expr_t
 public:
   explicit TrendComponentModelTable(SymbolTable &symbol_table_arg);
@@ -116,21 +118,28 @@ class VarModelTable
 private:
   SymbolTable &symbol_table;
   set<string> names;
+  map<string, bool> structural; // Whether VARs are structural or reduced-form
   map<string, vector<string>> eqtags;
   map<string, vector<int>> eqnums, max_lags, lhs, lhs_orig_symb_ids, orig_diff_var;
   map<string, vector<set<pair<int, int>>>> rhs; // name -> for each equation: set of pairs (var, lag)
   map<string, vector<bool>> diff;
   map<string, vector<expr_t>> lhs_expr_t;
   map<string, map<tuple<int, int, int>, expr_t>> AR; // name -> (eqn, lag, lhs_symb_id) -> param_expr_t
+  /* The A0 matrix is mainly for structural VARs. For reduced-form VARs, it
+     will be equal to the identity matrix. Also note that A0 in the structural
+     VAR context is not the same thing as in the trend-component model
+     context. */
+  map<string, map<tuple<int, int>, expr_t>> A0; // name -> (eqn, lhs_symb_id) -> param_expr_t
 public:
   explicit VarModelTable(SymbolTable &symbol_table_arg);
 
   //! Add a VAR model
-  void addVarModel(string name, vector<string> eqtags);
+  void addVarModel(string name, bool structural_arg, vector<string> eqtags);
 
   inline bool isExistingVarModelName(const string &name_arg) const;
   inline bool empty() const;
 
+  const map<string, bool> &getStructural() const;
   const map<string, vector<string>> &getEqTags() const;
   const vector<string> &getEqTags(const string &name_arg) const;
   const map<string, vector<int>> &getEqNums() const;
@@ -151,6 +160,7 @@ public:
   void setMaxLags(map<string, vector<int>> max_lags_arg);
   void setOrigDiffVar(map<string, vector<int>> orig_diff_var_arg);
   void setAR(map<string, map<tuple<int, int, int>, expr_t>> AR_arg);
+  void setA0(map<string, map<tuple<int, int>, expr_t>> A0_arg);
 
   //! Write output of this class
   void writeOutput(const string &basename, ostream &output) const;

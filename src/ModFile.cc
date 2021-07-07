@@ -837,6 +837,9 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
         }
     }
 
+  // Those matrices can only be filled here, because we use derivatives
+  dynamic_model.fillVarModelTableMatrices();
+
   for (auto &statement : statements)
     statement->computingPass(mod_file_struct);
 

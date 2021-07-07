@@ -703,6 +703,10 @@ public:
      the first, lag in the second, exponent in the third).
      Throws a MatchFailureException if not of the right form. */
   virtual void matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<int> &powers) const;
+
+  /* Returns true if the expression contains no endogenous, no exogenous and no
+     exogenous deterministic */
+  bool isConstant() const;
 };
 
 //! Object used to compare two nodes (using their indexes)

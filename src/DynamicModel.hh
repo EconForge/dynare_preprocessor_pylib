@@ -271,12 +271,22 @@ private:
     str.erase(str.find_last_not_of("\t\n\v\f\r ") + 1);
   }
 
-  //! Compute autoregressive matrices of VAR or trend component models
-  map<string, map<tuple<int, int, int>, expr_t>> computeAutoregressiveMatrices(bool is_var) const;
+  //! Compute autoregressive matrices of trend component models
+  /* The algorithm uses matching rules over expression trees. It cannot handle
+     arbitrarily-written expressions. */
+  map<string, map<tuple<int, int, int>, expr_t>> computeAutoregressiveMatrices() const;
 
   //! Compute error component matrices of trend component_models
   /*! Returns a pair (A0r, A0starr) */
   pair<map<string, map<tuple<int, int, int>, expr_t>>, map<string, map<tuple<int, int, int>, expr_t>>> computeErrorComponentMatrices(const ExprNode::subst_table_t &diff_subst_table) const;
+
+  /* For a VAR model, given the symbol ID of a LHS variable, and a (negative)
+     lag, returns all the corresponding deriv_ids (by properly dealing with two
+     types of auxiliary variables: endo lags and diff lags). It returns a
+     vector because in some cases there may be sereval corresponding deriv_ids
+     (for example, in the deriv_id table, AUX_DIFF_nn(-1) may appear as itself
+     (with a lag), and also as a contemporaneous diff lag auxvar). */
+  vector<int> getVARDerivIDs(int lhs_symb_id, int lead_lag) const;
 
 public:
   DynamicModel(SymbolTable &symbol_table_arg,
@@ -363,9 +373,13 @@ public:
   void fillTrendComponentModelTableAREC(const ExprNode::subst_table_t &diff_subst_table) const;
 
   //! Fill the VAR model table with information available from the transformed model
+  // NB: Does not fill the AR and A0 matrices
   void fillVarModelTable() const;
   //! Fill the VAR model table with information available from the original model
   void fillVarModelTableFromOrigModel() const;
+  //! Fill the AR and A0 matrices of the VAR model table
+  // Uses derivatives, hence must be called after computingPass()
+  void fillVarModelTableMatrices();
 
   //! Update the rhs references in the var model and trend component tables
   //! after substitution of auxiliary variables and find the trend variables

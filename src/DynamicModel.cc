@@ -3402,9 +3402,6 @@ DynamicModel::fillVarModelTable() const
   var_model_table.setLhs(lhsr);
   var_model_table.setRhs(rhsr);
   var_model_table.setLhsExprT(lhs_expr_tr);
-
-  // Fill AR Matrix
-  var_model_table.setAR(computeAutoregressiveMatrices(true));
 }
 
 void
@@ -3424,12 +3421,19 @@ DynamicModel::fillVarModelTableFromOrigModel() const
           set<pair<int, int>> rhs_endo_set, rhs_exo_set;
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_endo_set);
           for (const auto &[symb_id, lag] : rhs_endo_set)
-            if (lag >= 0)
+            if (lag > 0)
               {
                 cerr << "ERROR: in Equation " << eqtag
-                     << ". A VAR model may not have leaded or contemporaneous endogenous variables on the RHS. " << endl;
+                     << ". A VAR model may not have leaded endogenous variables on the RHS. " << endl;
                 exit(EXIT_FAILURE);
               }
+            else if (!var_model_table.getStructural().at(model_name) && lag == 0)
+              {
+                cerr << "ERROR: in Equation " << eqtag
+                     << ". A non-structural VAR model may not have contemporaneous endogenous variables on the RHS. " << endl;
+                exit(EXIT_FAILURE);
+              }
+
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::exogenous, rhs_exo_set);
           for (const auto &[symb_id, lag] : rhs_exo_set)
             if (lag != 0)
@@ -3487,18 +3491,122 @@ DynamicModel::fillVarModelTableFromOrigModel() const
   var_model_table.setOrigDiffVar(orig_diff_var);
 }
 
+vector<int>
+DynamicModel::getVARDerivIDs(int lhs_symb_id, int lead_lag) const
+{
+  vector<int> deriv_ids;
+
+  // First directly look for the variable itself
+  if (auto it = deriv_id_table.find({ lhs_symb_id, lead_lag });
+      it != deriv_id_table.end())
+    deriv_ids.push_back(it->second);
+
+  // Then go through auxiliary variables
+  for (auto &[key, deriv_id2] : deriv_id_table)
+    {
+      auto [symb_id2, lead_lag2] = key;
+      const AuxVarInfo *avi;
+      try
+        {
+          avi = &symbol_table.getAuxVarInfo(symb_id2);
+        }
+      catch (SymbolTable::UnknownSymbolIDException)
+        {
+          continue;
+        }
+
+      if (avi->get_type() == AuxVarType::endoLag && avi->get_orig_symb_id() == lhs_symb_id
+          && avi->get_orig_lead_lag() + lead_lag2 == lead_lag)
+        deriv_ids.push_back(deriv_id2);
+
+      // Handle diff lag auxvar, possibly nested several times
+      int diff_lag_depth = 0;
+      while (avi->get_type() == AuxVarType::diffLag)
+        {
+          diff_lag_depth++;
+          if (avi->get_orig_symb_id() == lhs_symb_id && lead_lag2 - diff_lag_depth == lead_lag)
+            {
+              deriv_ids.push_back(deriv_id2);
+              break;
+            }
+          try
+            {
+              avi = &symbol_table.getAuxVarInfo(avi->get_orig_symb_id());
+            }
+          catch (SymbolTable::UnknownSymbolIDException)
+            {
+              break;
+            }
+        }
+    }
+
+  return deriv_ids;
+}
+
+void
+DynamicModel::fillVarModelTableMatrices()
+{
+  map<string, map<tuple<int, int, int>, expr_t>> AR;
+  map<string, map<tuple<int, int>, expr_t>> A0;
+  for (const auto &[model_name, eqns] : var_model_table.getEqNums())
+    {
+      const vector<int> &lhs = var_model_table.getLhs(model_name);
+      int max_lag = var_model_table.getMaxLag(model_name);
+      for (auto lhs_symb_id : lhs)
+        {
+          // Fill autoregressive matrix (AR)
+          for (int lag = 1; lag <= max_lag; lag++)
+            {
+              vector<int> deriv_ids = getVARDerivIDs(lhs_symb_id, -lag);;
+              for (size_t i = 0; i < eqns.size(); i++)
+                {
+                  expr_t d = Zero;
+                  for (int deriv_id : deriv_ids)
+                    d = AddPlus(d, equations[eqns[i]]->getDerivative(deriv_id));
+                  if (d != Zero)
+                    {
+                      if (!d->isConstant())
+                        {
+                          cerr << "ERROR: Equation '" << equation_tags.getTagValueByEqnAndKey(eqns[i], "name") << "' is not linear" << endl;
+                          exit(EXIT_FAILURE);
+                        }
+
+                      AR[model_name][{ i, lag, lhs_symb_id }] = AddUMinus(d);
+                    }
+                }
+            }
+
+          // Fill A0 matrix (for contemporaneous variables)
+          int lhs_deriv_id = getDerivID(lhs_symb_id, 0);
+          for (size_t i = 0; i < eqns.size(); i++)
+            {
+              expr_t d = equations[eqns[i]]->getDerivative(lhs_deriv_id);
+              if (d != Zero)
+                {
+                  if (!d->isConstant())
+                    {
+                      cerr << "ERROR: Equation '" << equation_tags.getTagValueByEqnAndKey(eqns[i], "name") << "' is not linear" << endl;
+                      exit(EXIT_FAILURE);
+                    }
+
+                  A0[model_name][{ i, lhs_symb_id }] = d;
+                }
+            }
+        }
+    }
+  var_model_table.setAR(AR);
+  var_model_table.setA0(A0);
+}
+
 map<string, map<tuple<int, int, int>, expr_t>>
-DynamicModel::computeAutoregressiveMatrices(bool is_var) const
+DynamicModel::computeAutoregressiveMatrices() const
 {
   map<string, map<tuple<int, int, int>, expr_t>> ARr;
-  const auto &all_eqnums = is_var ?
-    var_model_table.getEqNums() : trend_component_model_table.getNonTargetEqNums();
-  for (const auto &[model_name, eqns] : all_eqnums)
+  for (const auto &[model_name, eqns] : trend_component_model_table.getNonTargetEqNums())
     {
       int i = 0;
       map<tuple<int, int, int>, expr_t> AR;
-      const vector<int> &lhs = is_var ? var_model_table.getLhsOrigIds(model_name)
-        : trend_component_model_table.getNonTargetLhs(model_name);
+      const vector<int> &lhs = trend_component_model_table.getNonTargetLhs(model_name);
       for (auto eqn : eqns)
         {
           auto bopn = dynamic_cast<BinaryOpNode *>(equations[eqn]->arg2);
@@ -3710,7 +3818,7 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
 void
 DynamicModel::fillTrendComponentModelTableAREC(const ExprNode::subst_table_t &diff_subst_table) const
 {
-  auto ARr = computeAutoregressiveMatrices(false);
+  auto ARr = computeAutoregressiveMatrices();
   trend_component_model_table.setAR(ARr);
   auto [A0r, A0starr] = computeErrorComponentMatrices(diff_subst_table);
   trend_component_model_table.setA0(A0r, A0starr);

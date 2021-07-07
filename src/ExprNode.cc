@@ -379,6 +379,16 @@ ExprNode::matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<in
   throw MatchFailureException{"Unsupported expression"};
 }
 
+bool
+ExprNode::isConstant() const
+{
+  set<pair<int, int>> symbs_lags;
+  collectDynamicVariables(SymbolType::endogenous, symbs_lags);
+  collectDynamicVariables(SymbolType::exogenous, symbs_lags);
+  collectDynamicVariables(SymbolType::exogenousDet, symbs_lags);
+  return symbs_lags.empty();
+}
+
 
 NumConstNode::NumConstNode(DataTree &datatree_arg, int idx_arg, int id_arg) :
   ExprNode{datatree_arg, idx_arg},

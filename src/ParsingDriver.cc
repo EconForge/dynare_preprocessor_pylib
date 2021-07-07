@@ -1391,7 +1391,12 @@ ParsingDriver::var_model()
     error("You must pass the eqtags option to the var_model statement.");
   auto eqtags = itvs->second;
 
-  mod_file->var_model_table.addVarModel(name, eqtags);
+  bool structural = false;
+  if (auto itn = options_list.num_options.find("var.structural");
+      itn != options_list.num_options.end() && itn->second == "true")
+    structural = true;
+
+  mod_file->var_model_table.addVarModel(name, structural, eqtags);
   options_list.clear();
 }
 
