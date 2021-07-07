@@ -1386,10 +1386,10 @@ ParsingDriver::var_model()
     error("You must pass the model_name option to the var_model statement.");
   auto name = its->second;
 
-  vector<string> eqtags;
   auto itvs = options_list.vector_str_options.find("var.eqtags");
-  if (itvs != options_list.vector_str_options.end())
-    eqtags = itvs->second;
+  if (itvs == options_list.vector_str_options.end())
+    error("You must pass the eqtags option to the var_model statement.");
+  auto eqtags = itvs->second;
 
   mod_file->var_model_table.addVarModel(name, eqtags);
   options_list.clear();
