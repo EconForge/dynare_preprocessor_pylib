@@ -287,11 +287,6 @@ ExprNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_ar
 }
 
 void
-ExprNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
-{
-}
-
-void
 ExprNode::fillErrorCorrectionRow(int eqn,
                                  const vector<int> &nontarget_lhs,
                                  const vector<int> &target_lhs,
@@ -674,11 +669,6 @@ NumConstNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int la
   return false;
 }
 
-void
-NumConstNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
-{
-}
-
 bool
 NumConstNode::containsPacExpectation(const string &pac_model_name) const
 {
@@ -711,12 +701,6 @@ NumConstNode::isInStaticForm() const
 
 bool
 NumConstNode::isParamTimesEndogExpr() const
-{
-  return false;
-}
-
-bool
-NumConstNode::isVarModelReferenced(const string &model_info_name) const
 {
   return false;
 }
@@ -774,7 +758,6 @@ VariableNode::prepareForDerivation()
       // Such a variable is never derived
       break;
     case SymbolType::externalFunction:
-    case SymbolType::endogenousVAR:
     case SymbolType::epilogue:
       cerr << "VariableNode::prepareForDerivation: impossible case" << endl;
       exit(EXIT_FAILURE);
@@ -813,7 +796,6 @@ VariableNode::computeDerivative(int deriv_id)
       cerr << "unusedEndogenous is not derivable" << endl;
       exit(EXIT_FAILURE);
     case SymbolType::externalFunction:
-    case SymbolType::endogenousVAR:
     case SymbolType::epilogue:
     case SymbolType::excludedVariable:
       cerr << "VariableNode::computeDerivative: Impossible case!" << endl;
@@ -871,9 +853,6 @@ VariableNode::writeJsonAST(ostream &output) const
       break;
     case SymbolType::unusedEndogenous:
       output << "unusedEndogenous";
-      break;
-    case SymbolType::endogenousVAR:
-      output << "endogenousVAR";
       break;
     case SymbolType::epilogue:
       output << "epilogue";
@@ -1149,7 +1128,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     case SymbolType::trend:
     case SymbolType::logTrend:
     case SymbolType::statementDeclaredVariable:
-    case SymbolType::endogenousVAR:
     case SymbolType::excludedVariable:
       cerr << "VariableNode::writeOutput: Impossible case" << endl;
       exit(EXIT_FAILURE);
@@ -1332,7 +1310,6 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *
       cerr << "unusedEndogenous is not derivable" << endl;
       exit(EXIT_FAILURE);
     case SymbolType::externalFunction:
-    case SymbolType::endogenousVAR:
     case SymbolType::epilogue:
     case SymbolType::excludedVariable:
       cerr << "VariableNode::getChainRuleDerivative: Impossible case" << endl;
@@ -1374,7 +1351,6 @@ VariableNode::computeXrefs(EquationInfo &ei) const
     case SymbolType::statementDeclaredVariable:
     case SymbolType::unusedEndogenous:
     case SymbolType::externalFunction:
-    case SymbolType::endogenousVAR:
     case SymbolType::epilogue:
     case SymbolType::excludedVariable:
       break;
@@ -1934,29 +1910,6 @@ VariableNode::isParamTimesEndogExpr() const
     return datatree.getLocalVariable(symb_id)->isParamTimesEndogExpr();
 
   return false;
-}
-
-bool
-VariableNode::isVarModelReferenced(const string &model_info_name) const
-{
-  if (get_type() == SymbolType::modelLocalVariable)
-    return datatree.getLocalVariable(symb_id)->isVarModelReferenced(model_info_name);
-
-  return false;
-}
-
-void
-VariableNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
-{
-  if (get_type() == SymbolType::modelLocalVariable)
-    return datatree.getLocalVariable(symb_id)->getEndosAndMaxLags(model_endos_and_lags);
-
-  if (get_type() == SymbolType::endogenous)
-    if (string varname = datatree.symbol_table.getName(symb_id);
-        model_endos_and_lags.find(varname) == model_endos_and_lags.end())
-      model_endos_and_lags[varname] = min(model_endos_and_lags[varname], lag);
-    else
-      model_endos_and_lags[varname] = lag;
 }
 
 expr_t
@@ -3701,18 +3654,6 @@ bool
 UnaryOpNode::isParamTimesEndogExpr() const
 {
   return arg->isParamTimesEndogExpr();
-}
-
-bool
-UnaryOpNode::isVarModelReferenced(const string &model_info_name) const
-{
-  return arg->isVarModelReferenced(model_info_name);
-}
-
-void
-UnaryOpNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
-{
-  arg->getEndosAndMaxLags(model_endos_and_lags);
 }
 
 expr_t
@@ -5524,20 +5465,6 @@ BinaryOpNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) 
   return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
 }
 
-bool
-BinaryOpNode::isVarModelReferenced(const string &model_info_name) const
-{
-  return arg1->isVarModelReferenced(model_info_name)
-    || arg2->isVarModelReferenced(model_info_name);
-}
-
-void
-BinaryOpNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
-{
-  arg1->getEndosAndMaxLags(model_endos_and_lags);
-  arg2->getEndosAndMaxLags(model_endos_and_lags);
-}
-
 expr_t
 BinaryOpNode::substituteStaticAuxiliaryVariable() const
 {
@@ -6400,22 +6327,6 @@ TrinaryOpNode::isParamTimesEndogExpr() const
     || arg3->isParamTimesEndogExpr();
 }
 
-bool
-TrinaryOpNode::isVarModelReferenced(const string &model_info_name) const
-{
-  return arg1->isVarModelReferenced(model_info_name)
-    || arg2->isVarModelReferenced(model_info_name)
-    || arg3->isVarModelReferenced(model_info_name);
-}
-
-void
-TrinaryOpNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
-{
-  arg1->getEndosAndMaxLags(model_endos_and_lags);
-  arg2->getEndosAndMaxLags(model_endos_and_lags);
-  arg3->getEndosAndMaxLags(model_endos_and_lags);
-}
-
 expr_t
 TrinaryOpNode::substituteStaticAuxiliaryVariable() const
 {
@@ -6883,23 +6794,6 @@ AbstractExternalFunctionNode::isParamTimesEndogExpr() const
 {
   return false;
 }
-
-bool
-AbstractExternalFunctionNode::isVarModelReferenced(const string &model_info_name) const
-{
-  for (auto argument : arguments)
-    if (!argument->isVarModelReferenced(model_info_name))
-      return true;
-  return false;
-}
-
-void
-AbstractExternalFunctionNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
-{
-  for (auto argument : arguments)
-    argument->getEndosAndMaxLags(model_endos_and_lags);
-}
-
 
 void
 AbstractExternalFunctionNode::computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const
@@ -8346,19 +8240,6 @@ VarExpectationNode::isInStaticForm() const
 }
 
 bool
-VarExpectationNode::isVarModelReferenced(const string &model_info_name) const
-{
-  /* TODO: should check here whether the var_expectation_model is equal to the
-     argument; we probably need a VarModelTable class to do that elegantly */
-  return false;
-}
-
-void
-VarExpectationNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
-{
-}
-
-bool
 VarExpectationNode::isParamTimesEndogExpr() const
 {
   return false;
@@ -8714,17 +8595,6 @@ bool
 PacExpectationNode::isInStaticForm() const
 {
   return false;
-}
-
-bool
-PacExpectationNode::isVarModelReferenced(const string &model_info_name) const
-{
-  return model_name == model_info_name;
-}
-
-void
-PacExpectationNode::getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const
-{
 }
 
 expr_t

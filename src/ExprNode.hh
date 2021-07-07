@@ -624,9 +624,6 @@ public:
   //! Substitute auxiliary variables by their expression in static model
   virtual expr_t substituteStaticAuxiliaryVariable() const = 0;
 
-  //! Returns true if model_info_name is referenced by a VarExpectationNode
-  virtual bool isVarModelReferenced(const string &model_info_name) const = 0;
-
   //! Matches a linear combination of variables, where scalars can be constant*parameter
   /*! Returns a list of (variable_id, lag, param_id, constant)
     corresponding to the terms in the expression. When there is no
@@ -661,9 +658,6 @@ public:
 
   //! Returns true if PacExpectationNode encountered
   virtual bool containsPacExpectation(const string &pac_model_name = "") const = 0;
-
-  //! Fills map
-  virtual void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const = 0;
 
   //! Decompose an expression into its additive terms
   /*! Returns a list of terms, with their sign (either 1 or -1, depending
@@ -788,8 +782,6 @@ public:
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
-  bool isVarModelReferenced(const string &model_info_name) const override;
-  void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   expr_t substituteStaticAuxiliaryVariable() const override;
 };
 
@@ -860,8 +852,6 @@ public:
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
-  bool isVarModelReferenced(const string &model_info_name) const override;
-  void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
   expr_t substituteStaticAuxiliaryVariable() const override;
   void matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<int> &powers) const override;
@@ -963,8 +953,6 @@ public:
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
-  bool isVarModelReferenced(const string &model_info_name) const override;
-  void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
   expr_t substituteStaticAuxiliaryVariable() const override;
   void decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign) const override;
@@ -1102,8 +1090,6 @@ public:
   pair<int, expr_t> getPacOptimizingShareAndExprNodesHelper(int lhs_symb_id, int lhs_orig_symb_id) const;
   expr_t getPacNonOptimizingPart(int optim_share_symb_id) const;
   bool isParamTimesEndogExpr() const override;
-  bool isVarModelReferenced(const string &model_info_name) const override;
-  void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
   expr_t substituteStaticAuxiliaryVariable() const override;
   //! Substitute auxiliary variables by their expression in static model auxiliary variable definition
@@ -1203,8 +1189,6 @@ public:
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
-  bool isVarModelReferenced(const string &model_info_name) const override;
-  void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
   expr_t substituteStaticAuxiliaryVariable() const override;
 };
@@ -1314,8 +1298,6 @@ public:
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
-  bool isVarModelReferenced(const string &model_info_name) const override;
-  void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   //! Substitute auxiliary variables by their expression in static model
   expr_t substituteStaticAuxiliaryVariable() const override;
 };
@@ -1495,8 +1477,6 @@ public:
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
-  bool isVarModelReferenced(const string &model_info_name) const override;
-  void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   expr_t substituteStaticAuxiliaryVariable() const override;
   void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
@@ -1567,8 +1547,6 @@ public:
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
-  bool isVarModelReferenced(const string &model_info_name) const override;
-  void getEndosAndMaxLags(map<string, int> &model_endos_and_lags) const override;
   expr_t substituteStaticAuxiliaryVariable() const override;
   void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;

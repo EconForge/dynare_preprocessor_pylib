@@ -359,8 +359,6 @@ public:
   void declare_exogenous_det(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
   //! Declares a parameter
   void declare_parameter(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
-  //! Declares a VAR variable and adds to symbol_list
-  void declare_var_endogenous(const string &name);
   //! Declares a model local variable
   void declare_model_local_variable(const string &name, const string &tex_name = "");
   //! Declares a statement local variable

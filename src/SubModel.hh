@@ -116,7 +116,6 @@ class VarModelTable
 private:
   SymbolTable &symbol_table;
   set<string> names;
-  map<string, pair<SymbolList, int>> symbol_list_and_order;
   map<string, vector<string>> eqtags;
   map<string, vector<int>> eqnums, max_lags, lhs, lhs_orig_symb_ids, orig_diff_var;
   map<string, vector<set<pair<int, int>>>> rhs; // name -> for each equation: set of pairs (var, lag)
@@ -127,8 +126,7 @@ public:
   explicit VarModelTable(SymbolTable &symbol_table_arg);
 
   //! Add a VAR model
-  void addVarModel(string name, vector<string> eqtags,
-                   pair<SymbolList, int> symbol_list_and_order_arg);
+  void addVarModel(string name, vector<string> eqtags);
 
   inline bool isExistingVarModelName(const string &name_arg) const;
   inline bool empty() const;
@@ -142,7 +140,6 @@ public:
   int getMaxLag(const string &name_arg) const;
   const vector<int> &getLhs(const string &name_arg) const;
   const vector<int> &getLhsOrigIds(const string &name_arg) const;
-  const map<string, pair<SymbolList, int>> &getSymbolListAndOrder() const;
   const vector<set<pair<int, int>>> &getRhs(const string &name_arg) const;
   const vector<expr_t> &getLhsExprT(const string &name_arg) const;
 

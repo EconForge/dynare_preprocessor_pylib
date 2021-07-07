@@ -202,23 +202,6 @@ ParsingDriver::declare_endogenous(const string &name, const string &tex_name, co
 }
 
 void
-ParsingDriver::declare_var_endogenous(const string &name)
-{
-  if (mod_file->symbol_table.exists(name))
-    {
-      SymbolType type = mod_file->symbol_table.getType(name);
-      if (type != SymbolType::endogenous && type != SymbolType::exogenous && type != SymbolType::exogenousDet)
-        error("Symbol " + name + " used in a VAR must be either endogenous or "
-              +"exogenous if it is also used elsewhere in the .mod file");
-      add_in_symbol_list(name);
-      return;
-    }
-
-  declare_symbol(name, SymbolType::endogenousVAR, "", {});
-  add_in_symbol_list(name);
-}
-
-void
 ParsingDriver::declare_exogenous(const string &name, const string &tex_name, const vector<pair<string, string>> &partition_value)
 {
   declare_symbol(name, SymbolType::exogenous, tex_name, partition_value);
@@ -1403,27 +1386,12 @@ ParsingDriver::var_model()
     error("You must pass the model_name option to the var_model statement.");
   auto name = its->second;
 
-  int order = 0;
-  auto itn = options_list.num_options.find("var.order");
-  if (itn != options_list.num_options.end())
-    order = stoi(itn->second);
-  else
-    if (!symbol_list.empty())
-      error("You must pass the order option when passing a symbol list to the var_model statement");
-
   vector<string> eqtags;
   auto itvs = options_list.vector_str_options.find("var.eqtags");
   if (itvs != options_list.vector_str_options.end())
-    {
-      eqtags = itvs->second;
-      if (!symbol_list.empty())
-        error("You cannot pass a symbol list when passing equation tags to the var_model statement");
-      else if (itn != options_list.num_options.end())
-        error("You cannot pass the order option when passing equation tags to the var_model statement");
-    }
+    eqtags = itvs->second;
 
-  mod_file->var_model_table.addVarModel(name, eqtags, {symbol_list, order});
-  symbol_list.clear();
+  mod_file->var_model_table.addVarModel(name, eqtags);
   options_list.clear();
 }
 

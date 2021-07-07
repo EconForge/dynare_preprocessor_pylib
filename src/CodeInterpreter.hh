@@ -133,7 +133,9 @@ enum class SymbolType
    statementDeclaredVariable = 14, //!< Local variable assigned within a Statement (see subsample statement for example)
    logTrend = 15, //!< Log-trend variable
    unusedEndogenous = 16, //!< Type to mark unused endogenous variables when `nostrict` option is passed
-   endogenousVAR = 17, //!< Variables declared in a var_model statement
+
+   // Value 17 is unused for the time being (but could be reused)
+
    epilogue = 18, //!< Variables created in epilogue block
    excludedVariable = 19 //!< Type to use when an equation is excluded via include/exclude_eqs and the LHS variable is not used elsewhere in the model
   };

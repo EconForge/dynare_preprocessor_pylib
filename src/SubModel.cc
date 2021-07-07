@@ -428,8 +428,7 @@ VarModelTable::VarModelTable(SymbolTable &symbol_table_arg) :
 }
 
 void
-VarModelTable::addVarModel(string name_arg, vector<string> eqtags_arg,
-                           pair<SymbolList, int> symbol_list_and_order_arg)
+VarModelTable::addVarModel(string name_arg, vector<string> eqtags_arg)
 {
   if (isExistingVarModelName(name_arg))
     {
@@ -438,14 +437,7 @@ VarModelTable::addVarModel(string name_arg, vector<string> eqtags_arg,
     }
 
   eqtags[name_arg] = move(eqtags_arg);
-  symbol_list_and_order[name_arg] = move(symbol_list_and_order_arg);
   names.insert(move(name_arg));
-}
-
-const map<string, pair<SymbolList, int>> &
-VarModelTable::getSymbolListAndOrder() const
-{
-  return symbol_list_and_order;
 }
 
 void
@@ -469,12 +461,6 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
   for (const auto &name : names)
     {
       output << "M_.var." << name << ".model_name = '" << name << "';" << endl;
-      if (auto &[symbol_list, order] = symbol_list_and_order.at(name);
-          !symbol_list.empty())
-        {
-          symbol_list.writeOutput("M_.var." + name + ".var_list_", output);
-          output << "M_.var." << name << ".order = " << order << ";" << endl;
-        }
       output << "M_.var." << name << ".eqtags = {";
       for (const auto &it : eqtags.at(name))
         output << "'" << it << "'; ";
@@ -542,21 +528,15 @@ VarModelTable::writeJsonOutput(ostream &output) const
       if (name != *names.begin())
         output << ", ";
       output << R"({"statementName": "var_model",)"
-             << R"("model_name": ")" << name << R"(",)";
-      if (symbol_list_and_order.empty())
+             << R"("model_name": ")" << name << R"(",)"
+             << R"("eqtags": [)";
+      for (const auto &it : eqtags.at(name))
         {
-          output << R"("eqtags": [)";
-          for (const auto &it : eqtags.at(name))
-            {
-              output << R"(")" << it << R"(")";
-              if (&it != &eqtags.at(name).back())
-                output << ", ";
-            }
-          output << "]";
+          output << R"(")" << it << R"(")";
+          if (&it != &eqtags.at(name).back())
+            output << ", ";
         }
-      else
-        output << R"("order": ")" << symbol_list_and_order.at(name).second << R"(")";
-      output << "}";
+      output << "]}";
     }
 }
 

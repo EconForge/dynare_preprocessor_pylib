@@ -3716,59 +3716,6 @@ DynamicModel::fillTrendComponentModelTableAREC(const ExprNode::subst_table_t &di
   trend_component_model_table.setA0(A0r, A0starr);
 }
 
-void
-DynamicModel::addEquationsForVar()
-{
-  if (var_model_table.empty())
-    return;
-  auto var_symbol_list_and_order = var_model_table.getSymbolListAndOrder();
-
-  // List of endogenous variables and the minimum lag value that must exist in the model equations
-  map<string, int> var_endos_and_lags, model_endos_and_lags;
-  for (const auto &it : var_symbol_list_and_order)
-    for (auto &equation : equations)
-      if (equation->isVarModelReferenced(it.first))
-        {
-          vector<string> symbol_list = it.second.first.get_symbols();
-          int order = it.second.second;
-          for (auto &it1 : symbol_list)
-            if (order > 2)
-              if (var_endos_and_lags.find(it1) != var_endos_and_lags.end())
-                var_endos_and_lags[it1] = min(var_endos_and_lags[it1], -order);
-              else
-                var_endos_and_lags[it1] = -order;
-          break;
-        }
-
-  if (var_endos_and_lags.empty())
-    return;
-
-  // Ensure that the minimum lag value exists in the model equations.
-  // If not, add an equation for it
-  for (auto &equation : equations)
-    equation->getEndosAndMaxLags(model_endos_and_lags);
-
-  int count = 0;
-  for (auto &it : var_endos_and_lags)
-    if (auto it2 = model_endos_and_lags.find(it.first);
-        it2 == model_endos_and_lags.end())
-      cerr << "WARNING: Variable used in VAR that is not used in the model: " << it.first << endl;
-    else
-      if (it.second < it2->second)
-        {
-          int symb_id = symbol_table.getID(it.first);
-          expr_t newvar = AddVariable(symb_id, it.second);
-          expr_t auxvar = AddVariable(symbol_table.addVarModelEndoLagAuxiliaryVar(symb_id, it.second, newvar), 0);
-          addEquation(AddEqual(newvar, auxvar), -1);
-          addAuxEquation(AddEqual(newvar, auxvar));
-          count++;
-        }
-
-  if (count > 0)
-    cout << "Accounting for var_model lags not in model block: added "
-         << count << " auxiliary variables and equations." << endl;
-}
-
 vector<int>
 DynamicModel::getUndiffLHSForPac(const string &aux_model_name,
                                  const ExprNode::subst_table_t &diff_subst_table) const

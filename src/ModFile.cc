@@ -495,8 +495,6 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       }
   dynamic_model.checkNoRemainingPacExpectation();
 
-  dynamic_model.addEquationsForVar();
-
   // Create auxiliary vars for Expectation operator
   dynamic_model.substituteExpectation(mod_file_struct.partial_information);
 

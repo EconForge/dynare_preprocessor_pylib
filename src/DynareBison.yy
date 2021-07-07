@@ -378,23 +378,13 @@ var : VAR var_list ';'
     ;
 
 var_model : VAR_MODEL '(' var_model_options_list ')' ';' { driver.var_model(); }
-          | VAR_MODEL '(' var_model_options_list ')' var_symbol_list ';' { driver.var_model(); } ;
           ;
-
-var_symbol_list : var_symbol_list symbol
-                  { driver.declare_var_endogenous($2); }
-                | var_symbol_list COMMA symbol
-                  { driver.declare_var_endogenous($3); }
-                | symbol
-                  { driver.declare_var_endogenous($1); }
-                ;
 
 var_model_options_list : var_model_options_list COMMA var_model_options
                        | var_model_options
                        ;
 
 var_model_options : o_var_name
-                  | o_var_order
                   | o_var_eq_tags
                   ;
 
@@ -3236,7 +3226,6 @@ o_pac_steady_state_growth : STEADY_STATE_GROWTH EQUAL signed_number { driver.set
                           | STEADY_STATE_GROWTH EQUAL symbol { driver.set_pac_steady_state_growth($3); }
                           ;
 o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var.model_name", $3); };
-o_var_order : ORDER EQUAL INT_NUMBER { driver.option_num("var.order", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_filename : FILENAME EQUAL filename { driver.option_str("filename", $3); };

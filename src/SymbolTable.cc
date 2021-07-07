@@ -360,7 +360,6 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
             break;
           case AuxVarType::endoLag:
           case AuxVarType::exoLag:
-          case AuxVarType::varModel:
             output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl
                    << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
             break;
@@ -623,28 +622,6 @@ SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op,
     }
 
   aux_vars.emplace_back(symb_id, AuxVarType::unaryOp, orig_symb_id, orig_lag, 0, 0, expr_arg, unary_op);
-
-  return symb_id;
-}
-
-int
-SymbolTable::addVarModelEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) noexcept(false)
-{
-  int symb_id;
-  ostringstream varname;
-  varname << "AUX_VARMODEL_" << orig_symb_id << "_" << -orig_lead_lag;
-
-  try
-    {
-      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
-    }
-  catch (AlreadyDeclaredException &e)
-    {
-      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  aux_vars.emplace_back(symb_id, AuxVarType::varModel, orig_symb_id, orig_lead_lag, 0, 0, expr_arg, "");
 
   return symb_id;
 }

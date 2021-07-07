@@ -372,10 +372,6 @@ public:
   //! in the trend_component model
   void updateVarAndTrendModel() const;
 
-  //! Add aux equations (and aux variables) for variables declared in var_model
-  //! at max order if they don't already exist
-  void addEquationsForVar();
-
   //! Get Pac equation parameter info
   map<pair<string, string>, pair<string, int>> walkPacParameters(const string &name);
   //! Add var_model info to pac_expectation nodes

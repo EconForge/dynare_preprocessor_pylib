@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -112,9 +112,6 @@ SymbolList::checkPass(WarningConsolidation &warnings,
                 break;
               case SymbolType::unusedEndogenous:
                 valid_types += "unusedEndogenous, ";
-                break;
-              case SymbolType::endogenousVAR:
-                valid_types += "endogenousVAR, ";
                 break;
               case SymbolType::excludedVariable:
                 valid_types += "excludedVariable, ";

@@ -46,7 +46,9 @@ enum class AuxVarType
                        for the differentiate_forward_vars option.
                        N.B.: nothing to do with the diff() operator! */
    multiplier = 6, //!< Multipliers for FOC of Ramsey Problem
-   varModel = 7, //!< Variable for var_model with order > abs(min_lag()) present in model
+
+   // Value 7 is unused for the time being (but could be reused)
+
    diff = 8, //!< Variable for Diff operator
    diffLag = 9, //!< Variable for timing between Diff operators (lag)
    unaryOp = 10, //!< Variable for allowing the undiff operator to work when diff was taken of unary op, eg diff(log(x))
@@ -323,9 +325,6 @@ public:
   int getOrigLeadLagForDiffAuxVar(int diff_aux_var_symb_id) const noexcept(false);
   //! Searches for diff aux var and finds the symb id associated with this variable
   int getOrigSymbIdForDiffAuxVar(int diff_aux_var_symb_id) const noexcept(false);
-  //! Adds an auxiliary variable when var_model is used with an order that is greater in absolute value
-  //! than the largest lag present in the model.
-  int addVarModelEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) noexcept(false);
   //! Adds an auxiliary variable when the diff operator is encountered
   int addDiffAuxiliaryVar(int index, expr_t expr_arg) noexcept(false);
   int addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) noexcept(false);
