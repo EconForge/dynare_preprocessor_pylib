@@ -232,6 +232,60 @@ PerfectForesightSolverStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
+PerfectForesightWithExpectationErrorsSetupStatement::PerfectForesightWithExpectationErrorsSetupStatement(OptionsList options_list_arg) :
+  options_list{move(options_list_arg)}
+{
+}
+
+void
+PerfectForesightWithExpectationErrorsSetupStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  options_list.writeOutput(output);
+  output << "perfect_foresight_with_expectation_errors_setup;" << endl;
+}
+
+void
+PerfectForesightWithExpectationErrorsSetupStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "perfect_foresight_with_expectation_errors_setup")";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
+PerfectForesightWithExpectationErrorsSolverStatement::PerfectForesightWithExpectationErrorsSolverStatement(OptionsList options_list_arg) :
+  options_list(move(options_list_arg))
+{
+}
+
+void
+PerfectForesightWithExpectationErrorsSolverStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  mod_file_struct.perfect_foresight_solver_present = true;
+}
+
+void
+PerfectForesightWithExpectationErrorsSolverStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  options_list.writeOutput(output);
+  output << "perfect_foresight_with_expectation_errors_solver;" << endl;
+}
+
+void
+PerfectForesightWithExpectationErrorsSolverStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "perfect_foresight_with_expectation_errors_solver")";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 PriorPosteriorFunctionStatement::PriorPosteriorFunctionStatement(const bool prior_func_arg,
                                                                  OptionsList options_list_arg) :
   prior_func{prior_func_arg},

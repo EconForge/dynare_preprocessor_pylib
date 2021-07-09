@@ -36,7 +36,7 @@ public:
   bool check_present{false};
   //! Whether steady is present
   bool steady_present{false};
-  //! Whether a perfect_foresight_solver/simul statement is present
+  //! Whether a perfect_foresight_solver/simul/perfect_foresight_with_expectation_errors_solver statement is present
   bool perfect_foresight_solver_present{false};
   //! Whether a stoch_simul statement is present
   bool stoch_simul_present{false};

@@ -185,6 +185,8 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>smoother2histval {BEGIN DYNARE_STATEMENT; return token::SMOOTHER2HISTVAL;}
 <INITIAL>perfect_foresight_setup {BEGIN DYNARE_STATEMENT; return token::PERFECT_FORESIGHT_SETUP;}
 <INITIAL>perfect_foresight_solver {BEGIN DYNARE_STATEMENT; return token::PERFECT_FORESIGHT_SOLVER;}
+<INITIAL>perfect_foresight_with_expectation_errors_setup {BEGIN DYNARE_STATEMENT; return token::PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SETUP;}
+<INITIAL>perfect_foresight_with_expectation_errors_solver {BEGIN DYNARE_STATEMENT; return token::PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SOLVER;}
 <INITIAL>compilation_setup {BEGIN DYNARE_STATEMENT; return token::COMPILATION_SETUP;}
 
 <DYNARE_STATEMENT>; {
@@ -797,6 +799,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>irf_plot_threshold {return token::IRF_PLOT_THRESHOLD;}
 <DYNARE_STATEMENT>no_homotopy {return token::NO_HOMOTOPY;}
 <DYNARE_STATEMENT>particle_filter_options {return token::PARTICLE_FILTER_OPTIONS;}
+<DYNARE_STATEMENT>terminal_steady_state_as_guess_value {return token::TERMINAL_STEADY_STATE_AS_GUESS_VALUE;}
 
 <DYNARE_BLOCK>stderr_multiples {return token::STDERR_MULTIPLES;}
 <DYNARE_BLOCK>diagonal_only {return token::DIAGONAL_ONLY;}

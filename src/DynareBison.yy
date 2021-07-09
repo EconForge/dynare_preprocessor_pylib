@@ -110,6 +110,7 @@ class ParsingDriver;
 %token DETERMINISTIC_TRENDS OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS OVERWRITE DISCOUNT OCCBIN
 %token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERIODS PERIOD PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PERFECT_FORESIGHT_SETUP PERFECT_FORESIGHT_SOLVER NO_POSTERIOR_KERNEL_DENSITY FUNCTION
+%token PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SETUP PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SOLVER
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN MLE_MODE PRUNING PARTICLE_FILTER_OPTIONS
 %token <string> QUOTED_STRING
 %token QZ_CRITERIUM QZ_ZERO_THRESHOLD DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE PIPE_E PIPE_X PIPE_P
@@ -166,7 +167,7 @@ class ParsingDriver;
 %token PARAMETER_CONVERGENCE_CRITERION NUMBER_OF_LARGE_PERTURBATIONS NUMBER_OF_SMALL_PERTURBATIONS
 %token NUMBER_OF_POSTERIOR_DRAWS_AFTER_PERTURBATION MAX_NUMBER_OF_STAGES
 %token RANDOM_FUNCTION_CONVERGENCE_CRITERION RANDOM_PARAMETER_CONVERGENCE_CRITERION NO_INIT_ESTIMATION_CHECK_FIRST_OBS
-%token HETEROSKEDASTIC_FILTER TIME_SHIFT STRUCTURAL
+%token HETEROSKEDASTIC_FILTER TIME_SHIFT STRUCTURAL TERMINAL_STEADY_STATE_AS_GUESS_VALUE
 /* Method of Moments */
 %token METHOD_OF_MOMENTS MOM_METHOD
 %token BARTLETT_KERNEL_LAG WEIGHTING_MATRIX WEIGHTING_MATRIX_SCALING_FACTOR ANALYTIC_STANDARD_ERRORS ANALYTIC_JACOBIAN PENALIZED_ESTIMATOR VERBOSE 
@@ -316,6 +317,8 @@ statement : parameters
           | histval_file
           | perfect_foresight_setup
           | perfect_foresight_solver
+          | perfect_foresight_with_expectation_errors_setup
+          | perfect_foresight_with_expectation_errors_solver
           | prior_function
           | posterior_function
           | method_of_moments
@@ -1333,6 +1336,34 @@ perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_noprint
                                  | o_print
                                  ;
+
+perfect_foresight_with_expectation_errors_setup : PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SETUP ';'
+                                                  { driver.perfect_foresight_with_expectation_errors_setup(); }
+                                                | PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SETUP '(' perfect_foresight_with_expectation_errors_setup_options_list ')' ';'
+                                                  { driver.perfect_foresight_with_expectation_errors_setup(); }
+                                                ;
+
+perfect_foresight_with_expectation_errors_setup_options_list : perfect_foresight_with_expectation_errors_setup_options_list COMMA perfect_foresight_with_expectation_errors_setup_options
+                                                             | perfect_foresight_with_expectation_errors_setup_options
+                                                             ;
+
+perfect_foresight_with_expectation_errors_setup_options : o_periods
+                                                        | o_datafile
+                                                        ;
+
+perfect_foresight_with_expectation_errors_solver : PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SOLVER ';'
+                                                  { driver.perfect_foresight_with_expectation_errors_solver(); }
+                                                 | PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SOLVER '(' perfect_foresight_with_expectation_errors_solver_options_list ')' ';'
+                                                  { driver.perfect_foresight_with_expectation_errors_solver(); }
+                                                 ;
+
+perfect_foresight_with_expectation_errors_solver_options_list : perfect_foresight_with_expectation_errors_solver_options_list COMMA perfect_foresight_solver_options
+                                                              | perfect_foresight_with_expectation_errors_solver_options
+                                                              ;
+
+perfect_foresight_with_expectation_errors_solver_options : o_pfwee_terminal_steady_state_as_guess_value
+                                                         | perfect_foresight_solver_options
+                                                         ;
 
 method_of_moments : METHOD_OF_MOMENTS ';'
                     { driver.method_of_moments(); }
@@ -3798,6 +3829,7 @@ o_colormap : COLORMAP EQUAL symbol { driver.option_num("plot_shock_decomp.colorm
 o_icd_colormap : COLORMAP EQUAL symbol { driver.option_num("initial_condition_decomp.colormap",$3); };
 o_no_init_estimation_check_first_obs : NO_INIT_ESTIMATION_CHECK_FIRST_OBS { driver.option_num("no_init_estimation_check_first_obs", "true"); };
 o_heteroskedastic_filter : HETEROSKEDASTIC_FILTER { driver.option_num("heteroskedastic_filter", "true"); };
+o_pfwee_terminal_steady_state_as_guess_value : TERMINAL_STEADY_STATE_AS_GUESS_VALUE { driver.option_num("pfwee.terminal_steady_state_as_guess_value", "true"); };
 
 // Some options to "method_of_moments"
 o_bartlett_kernel_lag : BARTLETT_KERNEL_LAG EQUAL INT_NUMBER { driver.option_num("mom.bartlett_kernel_lag", $3); };

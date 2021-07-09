@@ -3187,6 +3187,20 @@ ParsingDriver::perfect_foresight_solver()
 }
 
 void
+ParsingDriver::perfect_foresight_with_expectation_errors_setup()
+{
+  mod_file->addStatement(make_unique<PerfectForesightWithExpectationErrorsSetupStatement>(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::perfect_foresight_with_expectation_errors_solver()
+{
+  mod_file->addStatement(make_unique<PerfectForesightWithExpectationErrorsSolverStatement>(options_list));
+  options_list.clear();
+}
+
+void
 ParsingDriver::method_of_moments()
 {
   mod_file->addStatement(make_unique<MethodOfMomentsStatement>(options_list));

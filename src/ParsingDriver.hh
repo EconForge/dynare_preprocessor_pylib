@@ -863,6 +863,8 @@ public:
   void histval_file();
   void perfect_foresight_setup();
   void perfect_foresight_solver();
+  void perfect_foresight_with_expectation_errors_setup();
+  void perfect_foresight_with_expectation_errors_solver();
   void prior_posterior_function(bool prior_func);
   //! Method of Moments estimation statement
   void method_of_moments();
