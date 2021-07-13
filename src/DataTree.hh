@@ -89,6 +89,9 @@ private:
   using second_deriv_external_function_node_map_t = map<tuple<vector<expr_t>, int, int, int>, SecondDerivExternalFunctionNode *>;
   second_deriv_external_function_node_map_t second_deriv_external_function_node_map;
 
+  // Flag to disable simplifications related to commutativity of addition and multiplication
+  static bool no_commutativity;
+
 protected:
   //! Stores local variables value (maps symbol ID to corresponding node)
   map<int, expr_t> local_variables_table;
@@ -339,6 +342,12 @@ public:
       throw UnknownLocalVariableException(symb_id);
 
     return it->second;
+  }
+
+  static void
+  setNoCommutativity()
+  {
+    no_commutativity = true;
   }
 };
 

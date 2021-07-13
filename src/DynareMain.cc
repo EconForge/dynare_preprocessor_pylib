@@ -53,7 +53,7 @@ usage()
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=second|third] [language=matlab|julia]"
        << " [params_derivs_order=0|1|2] [transform_unary_ops] [exclude_eqs=<equation_tag_list_or_file>] [include_eqs=<equation_tag_list_or_file>]"
        << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] [nopathchange] [nopreprocessoroutput]"
-       << " [mexext=<extension>] [matlabroot=<path>] [onlymodel] [notime] [use_dll]"
+       << " [mexext=<extension>] [matlabroot=<path>] [onlymodel] [notime] [use_dll] [nocommutativity]"
        << endl;
   exit(EXIT_FAILURE);
 }
@@ -415,6 +415,8 @@ main(int argc, char **argv)
         gui = true;
       else if (s == "use_dll")
         use_dll = true;
+      else if (s == "nocommutativity")
+        DataTree::setNoCommutativity();
       else
         {
           cerr << "Unknown option: " << s << endl;

@@ -27,6 +27,8 @@
 
 #include "DataTree.hh"
 
+bool DataTree::no_commutativity = false;
+
 void
 DataTree::initConstants()
 {
@@ -205,7 +207,7 @@ DataTree::AddPlus(expr_t iArg1, expr_t iArg2)
 
   // To treat commutativity of "+"
   // Nodes iArg1 and iArg2 are sorted by index
-  if (iArg1->idx > iArg2->idx)
+  if (iArg1->idx > iArg2->idx && !no_commutativity)
     swap(iArg1, iArg2);
   return AddBinaryOp(iArg1, BinaryOpcode::plus, iArg2);
 }
@@ -284,7 +286,7 @@ DataTree::AddTimes(expr_t iArg1, expr_t iArg2)
 
   // To treat commutativity of "*"
   // Nodes iArg1 and iArg2 are sorted by index
-  if (iArg1->idx > iArg2->idx)
+  if (iArg1->idx > iArg2->idx && !no_commutativity)
     swap(iArg1, iArg2);
   return AddBinaryOp(iArg1, BinaryOpcode::times, iArg2);
 }
