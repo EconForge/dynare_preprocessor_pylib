@@ -823,16 +823,10 @@ ParsingDriver::add_det_shock(const string &var, const vector<pair<int, int>> &pe
   if (periods.size() != values.size())
     error("shocks/conditional_forecast_paths: variable " + var + ": number of periods is different from number of shock values");
 
-  vector<ShocksStatement::DetShockElement> v;
+  vector<tuple<int, int, expr_t>> v;
 
   for (size_t i = 0; i < periods.size(); i++)
-    {
-      ShocksStatement::DetShockElement dse;
-      dse.period1 = periods[i].first;
-      dse.period2 = periods[i].second;
-      dse.value = values[i];
-      v.push_back(dse);
-    }
+    v.emplace_back(periods[i].first, periods[i].second, values[i]);
 
   det_shocks[symb_id] = v;
 }

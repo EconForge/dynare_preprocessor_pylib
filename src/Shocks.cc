@@ -44,12 +44,8 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
     {
       bool exo_det = (symbol_table.getType(id) == SymbolType::exogenousDet);
 
-      for (const auto &it : shock_vec)
+      for (const auto &[period1, period2, value] : shock_vec)
         {
-          int period1 = it.period1;
-          int period2 = it.period2;
-          expr_t value = it.value;
-
           output << "M_.det_shocks = [ M_.det_shocks;" << endl
                  << "struct('exo_det'," << static_cast<int>(exo_det)
                  << ",'exo_id'," << symbol_table.getTypeSpecificID(id)+1
@@ -78,12 +74,13 @@ AbstractShocksStatement::writeJsonDetShocks(ostream &output) const
              << R"("values": [)";
       for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
         {
+          auto [period1, period2, value] = *it1;
           if (it1 != it->second.begin())
             output << ", ";
-          output << R"({"period1": )" << it1->period1 << ", "
-                 << R"("period2": )" << it1->period2 << ", "
+          output << R"({"period1": )" << period1 << ", "
+                 << R"("period2": )" << period2 << ", "
                  << R"("value": ")";
-          it1->value->writeJsonOutput(output, {}, {});
+          value->writeJsonOutput(output, {}, {});
           output << R"("})";
         }
       output << "]}";
@@ -92,13 +89,13 @@ AbstractShocksStatement::writeJsonDetShocks(ostream &output) const
 }
 
 ShocksStatement::ShocksStatement(bool overwrite_arg,
-                                 const det_shocks_t &det_shocks_arg,
+                                 det_shocks_t det_shocks_arg,
                                  var_and_std_shocks_t var_shocks_arg,
                                  var_and_std_shocks_t std_shocks_arg,
                                  covar_and_corr_shocks_t covar_shocks_arg,
                                  covar_and_corr_shocks_t corr_shocks_arg,
                                  const SymbolTable &symbol_table_arg) :
-  AbstractShocksStatement{false, overwrite_arg, det_shocks_arg, symbol_table_arg},
+  AbstractShocksStatement{false, overwrite_arg, move(det_shocks_arg), symbol_table_arg},
   var_shocks{move(var_shocks_arg)},
   std_shocks{move(std_shocks_arg)},
   covar_shocks{move(covar_shocks_arg)},
@@ -399,9 +396,9 @@ ShocksStatement::has_calibrated_measurement_errors() const
 }
 
 MShocksStatement::MShocksStatement(bool overwrite_arg,
-                                   const det_shocks_t &det_shocks_arg,
+                                   det_shocks_t det_shocks_arg,
                                    const SymbolTable &symbol_table_arg) :
-  AbstractShocksStatement{true, overwrite_arg, det_shocks_arg, symbol_table_arg}
+  AbstractShocksStatement{true, overwrite_arg, move(det_shocks_arg), symbol_table_arg}
 {
 }
 
@@ -441,13 +438,12 @@ ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(AbstractSho
 void
 ConditionalForecastPathsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  for (const auto &path : paths)
+  for (const auto &[ignore, elems] : paths)
     {
       int this_path_length = 0;
-      const vector<AbstractShocksStatement::DetShockElement> &elems = path.second;
-      for (auto elem : elems)
+      for (auto [period1, period2, value] : elems)
         // Period1 < Period2, as enforced in ParsingDriver::add_period()
-        this_path_length = max(this_path_length, elem.period2);
+        this_path_length = max(this_path_length, period2);
       path_length = max(this_path_length, path_length);
     }
 }
@@ -466,11 +462,11 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
         output << "constrained_vars_ = " << symbol_table.getTypeSpecificID(it->first) + 1 << ";" << endl;
       else
         output << "constrained_vars_ = [constrained_vars_; " << symbol_table.getTypeSpecificID(it->first) + 1 << "];" << endl;
-      for (const auto &elem : it->second)
-        for (int j = elem.period1; j <= elem.period2; j++)
+      for (const auto &[period1, period2, value] : it->second)
+        for (int j = period1; j <= period2; j++)
           {
             output << "constrained_paths_(" << k << "," << j << ")=";
-            elem.value->writeOutput(output);
+            value->writeOutput(output);
             output << ";" << endl;
           }
     }
@@ -489,12 +485,13 @@ ConditionalForecastPathsStatement::writeJsonOutput(ostream &output) const
              << R"("values": [)";
       for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
         {
+          auto [period1, period2, value] = *it1;
           if (it1 != it->second.begin())
             output << ", ";
-          output << R"({"period1": )" << it1->period1 << ", "
-                 << R"("period2": )" << it1->period2 << ", "
+          output << R"({"period1": )" << period1 << ", "
+                 << R"("period2": )" << period2 << ", "
                  << R"("value": ")";
-          it1->value->writeJsonOutput(output, {}, {});
+          value->writeJsonOutput(output, {}, {});
           output << R"("})";
         }
       output << "]}";

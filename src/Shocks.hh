@@ -33,15 +33,8 @@ using namespace std;
 class AbstractShocksStatement : public Statement
 {
 public:
-  struct DetShockElement
-  {
-    int period1;
-    int period2;
-    expr_t value;
-  };
-  //The boolean element indicates if the shock is a surprise (false) or a perfect foresight (true) shock.
-  //This boolean is used only in case of conditional forecast with extended path method (simulation_type = deterministic).
-  using det_shocks_t = map<int, vector<DetShockElement>>;
+  // The tuple is (period1, period2, value)
+  using det_shocks_t = map<int, vector<tuple<int, int, expr_t>>>;
 protected:
   //! Is this statement a "mshocks" statement ? (instead of a "shocks" statement)
   const bool mshocks;
@@ -72,7 +65,7 @@ private:
   bool has_calibrated_measurement_errors() const;
 public:
   ShocksStatement(bool overwrite_arg,
-                  const det_shocks_t &det_shocks_arg,
+                  det_shocks_t det_shocks_arg,
                   var_and_std_shocks_t var_shocks_arg,
                   var_and_std_shocks_t std_shocks_arg,
                   covar_and_corr_shocks_t covar_shocks_arg,
@@ -87,7 +80,7 @@ class MShocksStatement : public AbstractShocksStatement
 {
 public:
   MShocksStatement(bool overwrite_arg,
-                   const det_shocks_t &det_shocks_arg,
+                   det_shocks_t det_shocks_arg,
                    const SymbolTable &symbol_table_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
