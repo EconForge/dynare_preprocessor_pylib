@@ -2059,6 +2059,35 @@ ParsingDriver::evaluate_planner_objective()
 }
 
 void
+ParsingDriver::occbin_setup()
+{
+  mod_file->addStatement(make_unique<OccbinSetupStatement>(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::occbin_solver()
+{
+  mod_file->addStatement(make_unique<OccbinSolverStatement>(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::occbin_write_regimes()
+{
+  mod_file->addStatement(make_unique<OccbinWriteRegimesStatement>(options_list));
+  options_list.clear();
+}
+
+void
+ParsingDriver::occbin_graph()
+{
+  mod_file->addStatement(make_unique<OccbinGraphStatement>(symbol_list, options_list));
+  options_list.clear();
+  symbol_list.clear();
+}
+
+void
 ParsingDriver::discretionary_policy()
 {
   /* The logic here is different from “ramsey_policy” and “ramsey_model”,

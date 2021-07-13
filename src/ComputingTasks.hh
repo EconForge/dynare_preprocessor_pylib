@@ -230,6 +230,48 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
+class OccbinSetupStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  OccbinSetupStatement(OptionsList options_list_arg);
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
+};
+
+class OccbinSolverStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  OccbinSolverStatement(OptionsList options_list_arg);
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
+};
+
+class OccbinWriteRegimesStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  OccbinWriteRegimesStatement(OptionsList options_list_arg);
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
+};
+
+class OccbinGraphStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+  const SymbolList symbol_list;
+public:
+  OccbinGraphStatement(SymbolList symbol_list_arg,
+                       OptionsList options_list_arg);
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
+};
+
 class DiscretionaryPolicyStatement : public Statement
 {
 private:

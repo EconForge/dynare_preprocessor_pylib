@@ -119,7 +119,11 @@ class ParsingDriver;
 %token SMOOTHER SMOOTHER2HISTVAL SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS ROBUST_LIN_SOLVE
 %token STDERR STEADY STOCH_SIMUL SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME REALTIME_SHOCK_DECOMPOSITION CONDITIONAL UNCONDITIONAL
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT PLANNER_DISCOUNT_LATEX_NAME
-%token DISCRETIONARY_POLICY DISCRETIONARY_TOL EVALUATE_PLANNER_OBJECTIVE
+%token DISCRETIONARY_POLICY DISCRETIONARY_TOL EVALUATE_PLANNER_OBJECTIVE 
+%token OCCBIN_SETUP OCCBIN_SOLVER OCCBIN_WRITE_REGIMES OCCBIN_GRAPH SIMUL_MAXIT SMOOTHER_MAXIT SIMUL_PERIODS SMOOTHER_PERIODS SIMUL_CURB_RETRENCH SMOOTHER_CURB_RETRENCH SIMUL_CHECK_AHEAD_PERIODS SMOOTHER_CHECK_AHEAD_PERIODS
+%token SIMUL_DEBUG SMOOTHER_DEBUG
+%token LIKELIHOOD_INVERSION_FILTER SMOOTHER_INVERSION_FILTER FILTER_USE_RELEXATION
+%token LIKELIHOOD_PIECEWISE_KALMAN_FILTER SMOOTHER_PIECEWISE_KALMAN_FILTER
 %token <string> TEX_NAME TRUE
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES SCALES VAR VAREXO VAREXO_DET VARIABLE VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION VAR_EXPECTATION_MODEL PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
@@ -270,6 +274,10 @@ statement : parameters
           | ramsey_policy
           | ramsey_constraints
           | evaluate_planner_objective
+          | occbin_setup
+          | occbin_solver
+          | occbin_write_regimes
+          | occbin_graph
           | discretionary_policy
           | bvar_density
           | bvar_forecast
@@ -2385,6 +2393,79 @@ evaluate_planner_objective : EVALUATE_PLANNER_OBJECTIVE ';'
                              { driver.evaluate_planner_objective(); }
                            ;
 
+occbin_setup : OCCBIN_SETUP ';'
+               { driver.occbin_setup(); }
+             | OCCBIN_SETUP '(' occbin_setup_options_list ')' ';'
+               { driver.occbin_setup(); }
+
+occbin_setup_options_list : occbin_setup_option COMMA occbin_setup_options_list
+                          | occbin_setup_option
+                          ;
+
+occbin_setup_option : o_occbin_simul_periods
+                    | o_occbin_simul_maxit
+                    | o_occbin_simul_curb_retrench
+                    | o_occbin_simul_check_ahead_periods
+                    | o_occbin_simul_debug
+                    | o_occbin_likelihood_inversion_filter
+                    | o_occbin_likelihood_piecewise_kalman_filter
+                    | o_occbin_smoother_inversion_filter
+                    | o_occbin_smoother_piecewise_kalman_filter
+                    | o_occbin_smoother_periods
+                    | o_occbin_smoother_maxit
+                    | o_occbin_smoother_curb_retrench
+                    | o_occbin_smoother_check_ahead_periods
+                    | o_occbin_smoother_debug
+                    | o_occbin_filter_use_relaxation
+                    ;
+                    
+occbin_solver : OCCBIN_SOLVER ';'
+                { driver.occbin_solver(); }
+              | OCCBIN_SOLVER '(' occbin_solver_options_list ')' ';'
+                { driver.occbin_solver(); }
+              | OCCBIN_SOLVER '(' occbin_solver_options_list ')' symbol_list ';'
+                { driver.occbin_solver(); }
+
+occbin_solver_options_list : occbin_solver_option COMMA occbin_solver_options_list
+                           | occbin_solver_option
+                           ;
+
+occbin_solver_option : o_occbin_simul_periods
+                     | o_occbin_simul_maxit
+                     | o_occbin_simul_curb_retrench
+                     | o_occbin_simul_check_ahead_periods
+                     | o_occbin_simul_debug
+                    ;
+
+occbin_write_regimes : OCCBIN_WRITE_REGIMES ';'
+                       { driver.occbin_write_regimes(); }
+                     | OCCBIN_WRITE_REGIMES '(' occbin_write_regimes_options_list ')' ';'
+                       { driver.occbin_write_regimes(); }
+
+occbin_write_regimes_options_list : occbin_write_regimes_option COMMA occbin_write_regimes_options_list
+                                  | occbin_write_regimes_option
+                                  ;
+
+occbin_write_regimes_option : o_occbin_write_regimes_periods
+                            | o_occbin_write_regimes_filename
+                            ;
+
+occbin_graph : OCCBIN_GRAPH ';'
+               { driver.occbin_graph(); }
+             | OCCBIN_GRAPH '(' occbin_graph_options_list ')' ';'
+               { driver.occbin_graph(); }
+             | OCCBIN_GRAPH symbol_list ';'
+               { driver.occbin_graph(); }
+             | OCCBIN_GRAPH '(' occbin_graph_options_list ')' symbol_list ';'
+               { driver.occbin_graph(); }
+             ;
+
+occbin_graph_options_list : occbin_graph_option COMMA occbin_graph_options_list
+                          | occbin_graph_option
+                          ;
+
+occbin_graph_option : o_occbin_graph_noconstant ;
+
 discretionary_policy : DISCRETIONARY_POLICY ';'
                        { driver.discretionary_policy(); }
                      | DISCRETIONARY_POLICY '(' discretionary_policy_options_list ')' ';'
@@ -3879,6 +3960,36 @@ o_tol_sv : TOL_SV EQUAL non_negative_number { driver.option_num("tol_sv", $3); }
 o_checks_via_subsets : CHECKS_VIA_SUBSETS EQUAL INT_NUMBER { driver.option_num("checks_via_subsets", $3); };
 o_max_dim_subsets_groups : MAX_DIM_SUBSETS_GROUPS EQUAL INT_NUMBER { driver.option_num("max_dim_subsets_groups", $3); };
 o_zero_moments_tolerance : ZERO_MOMENTS_TOLERANCE EQUAL non_negative_number { driver.option_num("zero_moments_tolerance", $3); };
+
+
+// Some options to "occbin_solver"
+o_occbin_simul_maxit : SIMUL_MAXIT EQUAL INT_NUMBER { driver.option_num("simul.maxit", $3); };
+o_occbin_simul_periods : SIMUL_PERIODS EQUAL INT_NUMBER { driver.option_num("simul.periods", $3); };
+o_occbin_simul_curb_retrench : SIMUL_CURB_RETRENCH { driver.option_num("simul.curb_retrench", "true"); };
+o_occbin_simul_check_ahead_periods : SIMUL_CHECK_AHEAD_PERIODS EQUAL INT_NUMBER { driver.option_num("simul.check_ahead_periods", $3); };
+o_occbin_simul_debug : SIMUL_DEBUG { driver.option_num("simul.debug", "true"); };
+
+// Some options to "occbin_setup"
+o_occbin_likelihood_inversion_filter : LIKELIHOOD_INVERSION_FILTER { driver.option_num("likelihood.inversion_filter", "true"); };
+o_occbin_likelihood_piecewise_kalman_filter : LIKELIHOOD_PIECEWISE_KALMAN_FILTER { driver.option_num("likelihood.inversion_filter", "false"); };
+o_occbin_smoother_inversion_filter : SMOOTHER_INVERSION_FILTER { driver.option_num("smoother.inversion_filter", "true"); };
+o_occbin_smoother_piecewise_kalman_filter : SMOOTHER_PIECEWISE_KALMAN_FILTER { driver.option_num("smoother.inversion_filter", "false"); };
+o_occbin_filter_use_relaxation : FILTER_USE_RELEXATION { driver.option_num("filter.use_relaxation", "true"); };
+o_occbin_smoother_maxit : SMOOTHER_MAXIT EQUAL INT_NUMBER { driver.option_num("smoother.maxit", $3); };
+o_occbin_smoother_periods : SMOOTHER_PERIODS EQUAL INT_NUMBER { driver.option_num("smoother.periods", $3); };
+o_occbin_smoother_curb_retrench : SMOOTHER_CURB_RETRENCH { driver.option_num("smoother.curb_retrench", "true"); };
+o_occbin_smoother_check_ahead_periods : SMOOTHER_CHECK_AHEAD_PERIODS EQUAL INT_NUMBER { driver.option_num("smoother.check_ahead_periods", $3); };
+o_occbin_smoother_debug : SMOOTHER_DEBUG { driver.option_num("smoother.debug", "true"); };
+
+// Some options to "occbin_write_regimes"
+o_occbin_write_regimes_periods : PERIODS EQUAL vec_int 
+                                 { driver.option_vec_int("write_regimes.periods", $3); };
+                               | PERIODS EQUAL vec_int_number 
+                                 { driver.option_vec_int("write_regimes.periods", $3); }
+o_occbin_write_regimes_filename : FILENAME EQUAL filename { driver.option_str("write_regimes.filename", $3); };
+
+// Some options to "occbin_graph"
+o_occbin_graph_noconstant : NOCONSTANT { driver.option_num("graph.steady_state", "false"); };
 
 range : symbol ':' symbol
         { $$ = $1 + ':' + $3; }

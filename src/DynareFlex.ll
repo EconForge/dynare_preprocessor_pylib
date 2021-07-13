@@ -148,6 +148,10 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>ramsey_model {BEGIN DYNARE_STATEMENT; return token::RAMSEY_MODEL;}
 <INITIAL>ramsey_policy {BEGIN DYNARE_STATEMENT; return token::RAMSEY_POLICY;}
 <INITIAL>evaluate_planner_objective {BEGIN DYNARE_STATEMENT; return token::EVALUATE_PLANNER_OBJECTIVE;}
+<INITIAL>occbin_setup {BEGIN DYNARE_STATEMENT; return token::OCCBIN_SETUP;}
+<INITIAL>occbin_solver {BEGIN DYNARE_STATEMENT; return token::OCCBIN_SOLVER;}
+<INITIAL>occbin_write_regimes {BEGIN DYNARE_STATEMENT; return token::OCCBIN_WRITE_REGIMES;}
+<INITIAL>occbin_graph {BEGIN DYNARE_STATEMENT; return token::OCCBIN_GRAPH;}
 <INITIAL>discretionary_policy {BEGIN DYNARE_STATEMENT; return token::DISCRETIONARY_POLICY;}
 <INITIAL>identification {BEGIN DYNARE_STATEMENT; return token::IDENTIFICATION;}
 
@@ -559,6 +563,20 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>max_block_iterations {return token::MAX_BLOCK_ITERATIONS;}
 <DYNARE_STATEMENT>max_repeated_optimization_runs {return token::MAX_REPEATED_OPTIMIZATION_RUNS;}
 <DYNARE_STATEMENT>maxit {return token::MAXIT;}
+<DYNARE_STATEMENT>simul_maxit {return token::SIMUL_MAXIT;}
+<DYNARE_STATEMENT>smoother_maxit {return token::SMOOTHER_MAXIT;}
+<DYNARE_STATEMENT>simul_periods {return token::SIMUL_PERIODS;}
+<DYNARE_STATEMENT>smoother_periods {return token::SMOOTHER_PERIODS;}
+<DYNARE_STATEMENT>simul_curb_retrench {return token::SIMUL_CURB_RETRENCH;}
+<DYNARE_STATEMENT>smoother_curb_retrench {return token::SMOOTHER_CURB_RETRENCH;}
+<DYNARE_STATEMENT>simul_check_ahead_periods {return token::SIMUL_CHECK_AHEAD_PERIODS;}
+<DYNARE_STATEMENT>smoother_check_ahead_periods {return token::SMOOTHER_CHECK_AHEAD_PERIODS;}
+<DYNARE_STATEMENT>smoother_debug {return token::SMOOTHER_DEBUG;}
+<DYNARE_STATEMENT>likelihood_inversion_filter {return token::LIKELIHOOD_INVERSION_FILTER;}
+<DYNARE_STATEMENT>likelihood_piecewise_kalman_filter {return token::LIKELIHOOD_PIECEWISE_KALMAN_FILTER;}
+<DYNARE_STATEMENT>smoother_inversion_filter {return token::SMOOTHER_INVERSION_FILTER;}
+<DYNARE_STATEMENT>smoother_piecewise_kalman_filter {return token::SMOOTHER_PIECEWISE_KALMAN_FILTER;}
+<DYNARE_STATEMENT>filter_use_relaxation {return token::FILTER_USE_RELEXATION;}
 <DYNARE_STATEMENT>function_convergence_criterion {return token::FUNCTION_CONVERGENCE_CRITERION;}
 <DYNARE_STATEMENT>parameter_convergence_criterion {return token::PARAMETER_CONVERGENCE_CRITERION;}
 <DYNARE_STATEMENT>number_of_large_perturbations {return token::NUMBER_OF_LARGE_PERTURBATIONS;}
