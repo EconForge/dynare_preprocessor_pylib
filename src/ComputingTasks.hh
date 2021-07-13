@@ -263,8 +263,8 @@ public:
 class OccbinGraphStatement : public Statement
 {
 private:
-  const OptionsList options_list;
   const SymbolList symbol_list;
+  const OptionsList options_list;
 public:
   OccbinGraphStatement(SymbolList symbol_list_arg,
                        OptionsList options_list_arg);
