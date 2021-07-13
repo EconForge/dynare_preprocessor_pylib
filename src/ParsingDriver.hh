@@ -149,7 +149,8 @@ private:
   OptimWeightsStatement::var_weights_t var_weights;
   //! Temporary storage of covariances from optim_weights
   OptimWeightsStatement::covar_weights_t covar_weights;
-  //! Temporary storage for deterministic shocks
+  /* Temporary storage for deterministic shocks. Also used for
+     conditional_forecast paths and for surprise shocks. */
   ShocksStatement::det_shocks_t det_shocks;
   //! Temporary storage for variances of shocks
   ShocksStatement::var_and_std_shocks_t var_shocks;
@@ -436,9 +437,12 @@ public:
   void end_shocks(bool overwrite);
   //! Writes a mshocks statement
   void end_mshocks(bool overwrite);
+  //! Writes a shocks(surprise) statement
+  void end_shocks_surprise(bool overwrite);
   //! Writes a heteroskedastic_shocks statement
   void end_heteroskedastic_shocks(bool overwrite);
-  //! Adds a deterministic shock or a path element inside a conditional_forecast_paths block
+  /* Adds a deterministic shock, a path element inside a
+     conditional_forecast_paths block, or a surprise shock */
   void add_det_shock(const string &var, const vector<pair<int, int>> &periods, const vector<expr_t> &values, bool conditional_forecast);
   //! Adds a heteroskedastic shock (either values or scales)
   void add_heteroskedastic_shock(const string &var, const vector<pair<int, int>> &periods, const vector<expr_t> &values, bool scales);

@@ -700,6 +700,12 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       exit(EXIT_FAILURE);
     }
 
+  if (mod_file_struct.shocks_surprise_present && !occbin)
+    {
+      cerr << "ERROR: the 'shocks(surprise)' block can only be used in conjunction with occbin commands." << endl;
+      exit(EXIT_FAILURE);
+    }
+
   if (!mod_file_struct.ramsey_model_present)
     cout << "Found " << dynamic_model.equation_number() << " equation(s)." << endl;
   else
@@ -985,8 +991,9 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
   // May be later modified by a shocks block
   mOutputFile << "M_.sigma_e_is_diagonal = true;" << endl;
 
-  // Initialize M_.det_shocks and M_.heteroskedastic_shocks
+  // Initialize M_.det_shocks, M_.surprise_shocks and M_.heteroskedastic_shocks
   mOutputFile << "M_.det_shocks = [];" << endl
+              << "M_.surprise_shocks = [];" << endl
               << "M_.heteroskedastic_shocks.Qvalue_orig = [];" << endl
               << "M_.heteroskedastic_shocks.Qscale_orig = [];" << endl;
 

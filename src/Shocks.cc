@@ -428,6 +428,69 @@ MShocksStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
+ShocksSurpriseStatement::ShocksSurpriseStatement(bool overwrite_arg,
+                                                 AbstractShocksStatement::det_shocks_t surprise_shocks_arg,
+                                                 const SymbolTable &symbol_table_arg) :
+  overwrite{overwrite_arg}, surprise_shocks{move(surprise_shocks_arg)},
+  symbol_table{symbol_table_arg}
+{
+}
+
+void
+ShocksSurpriseStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  mod_file_struct.shocks_surprise_present = true;
+}
+
+void
+ShocksSurpriseStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  if (overwrite)
+    output << "M_.surprise_shocks = [" << endl;
+  else
+    output << "M_.surprise_shocks = [ M_.surprise_shocks;" << endl;
+  for (const auto &[id, shock_vec] : surprise_shocks)
+    {
+      for (const auto &[period1, period2, value] : shock_vec)
+        {
+          output << "struct('exo_id'," << symbol_table.getTypeSpecificID(id)+1
+                 << ",'periods'," << period1 << ":" << period2
+                 << ",'value',";
+          value->writeOutput(output);
+          output << ");" << endl;
+        }
+    }
+  output << "];" << endl;
+}
+
+void
+ShocksSurpriseStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "shocks")"
+         << R"(, "surprise": true)"
+         << R"(, "surprise_shocks": [)";
+  for (auto it = surprise_shocks.begin(); it != surprise_shocks.end(); ++it)
+    {
+      if (it != surprise_shocks.begin())
+        output << ", ";
+      output << R"({"var": ")" << symbol_table.getName(it->first) << R"(", )"
+             << R"("values": [)";
+      for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+        {
+          auto [period1, period2, value] = *it1;
+          if (it1 != it->second.begin())
+            output << ", ";
+          output << R"({"period1": )" << period1 << ", "
+                 << R"("period2": )" << period2 << ", "
+                 << R"("value": ")";
+          value->writeJsonOutput(output, {}, {});
+          output << R"("})";
+        }
+      output << "]}";
+    }
+  output << "]}";
+}
+
 ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(AbstractShocksStatement::det_shocks_t paths_arg,
                                                                      const SymbolTable &symbol_table_arg) :
   paths{move(paths_arg)},

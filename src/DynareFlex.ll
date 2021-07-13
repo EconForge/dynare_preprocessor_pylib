@@ -761,6 +761,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_BLOCK>uniform_pdf {return token::UNIFORM_PDF;}
 <DYNARE_BLOCK>weibull_pdf {return token::WEIBULL_PDF;}
 <DYNARE_BLOCK>dsge_prior_weight {return token::DSGE_PRIOR_WEIGHT;}
+<DYNARE_BLOCK>surprise {return token::SURPRISE;}
 
 <DYNARE_BLOCK>; {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_BLOCK># {return Dynare::parser::token_type (yytext[0]);}

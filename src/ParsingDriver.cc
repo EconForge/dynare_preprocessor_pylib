@@ -799,6 +799,13 @@ ParsingDriver::end_mshocks(bool overwrite)
 }
 
 void
+ParsingDriver::end_shocks_surprise(bool overwrite)
+{
+  mod_file->addStatement(make_unique<ShocksSurpriseStatement>(overwrite, det_shocks, mod_file->symbol_table));
+  det_shocks.clear();
+}
+
+void
 ParsingDriver::end_heteroskedastic_shocks(bool overwrite)
 {
   mod_file->addStatement(make_unique<HeteroskedasticShocksStatement>(overwrite, heteroskedastic_shocks_values,

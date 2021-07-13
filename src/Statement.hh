@@ -145,6 +145,8 @@ public:
   /* Lists symbol IDs of parameters that appear in a “planner_discount” option.
      See dynare#1173 for more details. */
   set<int> parameters_in_planner_discount;
+  // Whether a shocks(surprise) block appears
+  bool shocks_surprise_present{false};
 };
 
 class Statement

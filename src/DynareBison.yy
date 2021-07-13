@@ -172,6 +172,7 @@ class ParsingDriver;
 %token NUMBER_OF_POSTERIOR_DRAWS_AFTER_PERTURBATION MAX_NUMBER_OF_STAGES
 %token RANDOM_FUNCTION_CONVERGENCE_CRITERION RANDOM_PARAMETER_CONVERGENCE_CRITERION NO_INIT_ESTIMATION_CHECK_FIRST_OBS
 %token HETEROSKEDASTIC_FILTER TIME_SHIFT STRUCTURAL TERMINAL_STEADY_STATE_AS_GUESS_VALUE
+%token SURPRISE
 /* Method of Moments */
 %token METHOD_OF_MOMENTS MOM_METHOD
 %token BARTLETT_KERNEL_LAG WEIGHTING_MATRIX WEIGHTING_MATRIX_SCALING_FACTOR ANALYTIC_STANDARD_ERRORS ANALYTIC_JACOBIAN PENALIZED_ESTIMATOR VERBOSE 
@@ -1028,6 +1029,9 @@ pound_expression: '#' symbol EQUAL hand_side ';'
 shocks : SHOCKS ';' shock_list END ';' { driver.end_shocks(false); }
        | SHOCKS '(' OVERWRITE ')' ';' shock_list END ';' { driver.end_shocks(true); }
        | SHOCKS '(' OVERWRITE ')' ';'  END ';' { driver.end_shocks(true); }
+       | SHOCKS '(' SURPRISE ')' ';' surprise_shock_list END ';' { driver.end_shocks_surprise(false); }
+       | SHOCKS '(' SURPRISE COMMA OVERWRITE ')' ';' surprise_shock_list END ';' { driver.end_shocks_surprise(true); }
+       | SHOCKS '(' OVERWRITE COMMA SURPRISE ')' ';' surprise_shock_list END ';' { driver.end_shocks_surprise(true); }
        ;
 
 shock_list : shock_list shock_elem
@@ -1048,6 +1052,10 @@ shock_elem : det_shock_elem
 det_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
                  { driver.add_det_shock($2, $5, $8, false); }
                ;
+
+surprise_shock_list : surprise_shock_list det_shock_elem
+                    | det_shock_elem
+                    ;
 
 heteroskedastic_shocks : HETEROSKEDASTIC_SHOCKS ';' heteroskedastic_shock_list END ';'
                          { driver.end_heteroskedastic_shocks(false); }
