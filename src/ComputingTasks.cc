@@ -945,6 +945,110 @@ DiscretionaryPolicyStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
+OccbinSetupStatement::OccbinSetupStatement(OptionsList options_list_arg) :
+  options_list{move(options_list_arg)}
+{
+}
+
+void
+OccbinSetupStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  options_list.writeOutput(output, "options_occbin_");
+  output << "[M_, options_] = occbin.setup(M_, options_, options_occbin_);" << endl;  
+}
+
+void
+OccbinSetupStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "occbin_setup")";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
+OccbinSolverStatement::OccbinSolverStatement(OptionsList options_list_arg) :
+  options_list{move(options_list_arg)}
+{
+}
+
+void
+OccbinSolverStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  options_list.writeOutput(output, "options_.occbin");
+  output << "oo_ = occbin.solver(M_, oo_, options_);" << endl;
+}
+
+void
+OccbinSolverStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "occbin_solver")";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
+OccbinWriteRegimesStatement::OccbinWriteRegimesStatement(OptionsList options_list_arg) :
+  options_list{move(options_list_arg)}
+{
+}
+
+void
+OccbinWriteRegimesStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  options_list.writeOutput(output, "options_.occbin");
+  output << "occbin.write_regimes_to_xls(oo_.occbin.regime_history, M_, options_);" << endl;  
+}
+
+void
+OccbinWriteRegimesStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "occbin_write_regimes_xls")";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
+OccbinGraphStatement::OccbinGraphStatement(SymbolList symbol_list_arg,
+                                           OptionsList options_list_arg) :
+  symbol_list{move(symbol_list_arg)},
+  options_list{move(options_list_arg)}
+{
+}
+
+void
+OccbinGraphStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  symbol_list.writeOutput("var_list_", output);
+  options_list.writeOutput(output, "options_occbin_");
+  output << "occbin.graph(M_, options_, options_occbin_, oo_, var_list_);" << endl;
+}
+
+void
+OccbinGraphStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "occbin_graph")";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
 EstimationStatement::EstimationStatement(const SymbolTable &symbol_table_arg,
                                          SymbolList symbol_list_arg,
                                          OptionsList options_list_arg) :

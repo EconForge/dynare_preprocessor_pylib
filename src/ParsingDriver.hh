@@ -640,6 +640,14 @@ public:
   void ramsey_policy();
   //! Evaluate Planner Objective
   void evaluate_planner_objective();
+  //! Set up Occbin
+  void occbin_setup();
+  //! Run Occbin solver
+  void occbin_solver();
+  //! Run Occbin write XLS
+  void occbin_write_regimes();
+  //! Run plotting of Occbin results
+  void occbin_graph();
   //! Discretionary policy statement
   void discretionary_policy();
   //! Adds a write_latex_dynamic_model statement

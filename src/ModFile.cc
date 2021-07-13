@@ -1043,8 +1043,7 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
     }
 
   if (occbin)
-    mOutputFile << "options_ = occbin.set_default_options(options_, M_);" << endl
-                << "M_ = occbin.get_info(M_);" << endl;
+    mOutputFile << "[M_, oo_, options_] = occbin.initialize(M_, oo_, options_);" << endl;
 
   if (onlymodel || gui)
     for (const auto &statement : statements)
