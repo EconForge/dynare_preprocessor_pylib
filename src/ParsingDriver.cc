@@ -618,12 +618,6 @@ ParsingDriver::bytecode()
 }
 
 void
-ParsingDriver::occbin()
-{
-  mod_file->occbin = true;
-}
-
-void
 ParsingDriver::differentiate_forward_vars_all()
 {
   mod_file->differentiate_forward_vars = true;
@@ -3420,6 +3414,28 @@ ParsingDriver::end_matched_moments(const vector<expr_t> &moments)
         error("Matched moment expression has incorrect format: " + e.message);
       }
   mod_file->addStatement(make_unique<MatchedMomentsStatement>(mod_file->symbol_table, parsed_moments));
+
+  reset_data_tree();
+}
+
+void
+ParsingDriver::begin_occbin_constraints()
+{
+  set_current_data_tree(&mod_file->dynamic_model);
+}
+
+void
+ParsingDriver::end_occbin_constraints(const vector<tuple<string, expr_t, expr_t, expr_t, expr_t>> &constraints)
+{
+  // Perform a few checks
+  for (const auto &[name, bind, relax, error_bind, error_relax] : constraints)
+    {
+      check_symbol_is_parameter(name);
+      if (!bind)
+        error("The 'bind' expression is missing in constraint '" + name + "'");
+    }
+
+  mod_file->addStatement(make_unique<OccbinConstraintsStatement>(mod_file->symbol_table, constraints));
 
   reset_data_tree();
 }

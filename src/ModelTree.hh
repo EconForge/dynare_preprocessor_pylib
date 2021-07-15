@@ -501,10 +501,6 @@ public:
         return "UNKNOWN                      ";
       }
   }
-
-  /* Returns true if at least one equation has a tag associated to occbin
-     (bind/relax/pswitch/pcrit) */
-  bool hasOccbinTags() const;
 };
 
 #endif

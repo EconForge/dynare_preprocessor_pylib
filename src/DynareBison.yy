@@ -107,7 +107,7 @@ class ParsingDriver;
 %token USE_PENALIZED_OBJECTIVE_FOR_HESSIAN INIT_STATE FAST_REALTIME RESCALE_PREDICTION_ERROR_COVARIANCE GENERATE_IRFS
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS NO_HOMOTOPY
 %token NOGRAPH POSTERIOR_NOGRAPH POSTERIOR_GRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS MODEL_NAME STDERR_MULTIPLES DIAGONAL_ONLY
-%token DETERMINISTIC_TRENDS OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS OVERWRITE DISCOUNT OCCBIN
+%token DETERMINISTIC_TRENDS OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS OVERWRITE DISCOUNT
 %token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERIODS PERIOD PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PERFECT_FORESIGHT_SETUP PERFECT_FORESIGHT_SOLVER NO_POSTERIOR_KERNEL_DENSITY FUNCTION
 %token PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SETUP PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SOLVER
@@ -124,7 +124,7 @@ class ParsingDriver;
 %token SIMUL_DEBUG SMOOTHER_DEBUG
 %token LIKELIHOOD_INVERSION_FILTER SMOOTHER_INVERSION_FILTER FILTER_USE_RELEXATION
 %token LIKELIHOOD_PIECEWISE_KALMAN_FILTER SMOOTHER_PIECEWISE_KALMAN_FILTER
-%token <string> TEX_NAME TRUE
+%token <string> TEX_NAME TRUE BIND RELAX ERROR_BIND ERROR_RELAX
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES SCALES VAR VAREXO VAREXO_DET VARIABLE VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION VAR_EXPECTATION_MODEL PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL WRITE_LATEX_STEADY_STATE_MODEL
@@ -172,7 +172,7 @@ class ParsingDriver;
 %token NUMBER_OF_POSTERIOR_DRAWS_AFTER_PERTURBATION MAX_NUMBER_OF_STAGES
 %token RANDOM_FUNCTION_CONVERGENCE_CRITERION RANDOM_PARAMETER_CONVERGENCE_CRITERION NO_INIT_ESTIMATION_CHECK_FIRST_OBS
 %token HETEROSKEDASTIC_FILTER TIME_SHIFT STRUCTURAL TERMINAL_STEADY_STATE_AS_GUESS_VALUE
-%token SURPRISE
+%token SURPRISE OCCBIN_CONSTRAINTS
 /* Method of Moments */
 %token METHOD_OF_MOMENTS MOM_METHOD
 %token BARTLETT_KERNEL_LAG WEIGHTING_MATRIX WEIGHTING_MATRIX_SCALING_FACTOR ANALYTIC_STANDARD_ERRORS ANALYTIC_JACOBIAN PENALIZED_ESTIMATOR VERBOSE 
@@ -208,6 +208,10 @@ class ParsingDriver;
 %type <tuple<string,string,string,string>> prior_eq_opt options_eq_opt
 %type <vector<pair<int, int>>> period_list
 %type <vector<expr_t>> matched_moments_list value_list
+%type <tuple<string, expr_t, expr_t, expr_t, expr_t>> occbin_constraints_regime
+%type <vector<tuple<string, expr_t, expr_t, expr_t, expr_t>>> occbin_constraints_regimes_list
+%type <map<string, expr_t>> occbin_constraints_regime_options_list
+%type <pair<string, expr_t>> occbin_constraints_regime_option
 %%
 
 %start statement_list;
@@ -336,6 +340,7 @@ statement : parameters
           | var_expectation_model
           | compilation_setup
           | matched_moments
+          | occbin_constraints
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -867,6 +872,43 @@ matched_moments_list : hand_side ';'
                        }
                      ;
 
+occbin_constraints : OCCBIN_CONSTRAINTS ';' { driver.begin_occbin_constraints(); }
+                     occbin_constraints_regimes_list END ';' { driver.end_occbin_constraints($4); }
+                   ;
+
+
+occbin_constraints_regimes_list : occbin_constraints_regime
+                                  { $$ = { $1 }; }
+                                | occbin_constraints_regimes_list occbin_constraints_regime
+                                  {
+                                    $$ = $1;
+                                    $$.push_back($2);
+                                  }
+                                ;
+
+occbin_constraints_regime : NAME QUOTED_STRING ';' occbin_constraints_regime_options_list
+                            { $$ = { $2, $4["bind"], $4["relax"], $4["error_bind"], $4["error_relax"] }; }
+                          ;
+
+occbin_constraints_regime_options_list : occbin_constraints_regime_option
+                                         { $$ = { $1 }; }
+                                       | occbin_constraints_regime_options_list occbin_constraints_regime_option
+                                         {
+                                           $$ = $1;
+                                           $$.insert($2);
+                                         }
+                                       ;
+
+occbin_constraints_regime_option : BIND hand_side ';'
+                                   { $$ = { "bind", $2 }; }
+                                 | RELAX hand_side ';'
+                                   { $$ = { "relax", $2 }; }
+                                 | ERROR_BIND hand_side ';'
+                                   { $$ = { "error_bind", $2 }; }
+                                 | ERROR_RELAX hand_side ';'
+                                   { $$ = { "error_relax", $2 }; }
+                                 ;
+
 model_options : BLOCK { driver.block(); }
               | o_cutoff
               | o_mfs
@@ -878,7 +920,6 @@ model_options : BLOCK { driver.block(); }
               | o_linear
               | PARALLEL_LOCAL_FILES EQUAL '(' parallel_local_filename_list ')'
               | BALANCED_GROWTH_TEST_TOL EQUAL non_negative_number { driver.balanced_growth_test_tol($3); }
-              | OCCBIN { driver.occbin(); }
               ;
 
 model_options_list : model_options_list COMMA model_options
@@ -911,9 +952,9 @@ tags_list : tags_list COMMA tag_pair
           | tag_pair
           ;
 
-tag_pair : NAME EQUAL QUOTED_STRING
+tag_pair : symbol EQUAL QUOTED_STRING
            { driver.add_equation_tags($1, $3); }
-         | NAME
+         | symbol
            { driver.add_equation_tags($1, ""); }
          ;
 
@@ -4126,6 +4167,10 @@ symbol : NAME
        | PRIOR
        | TRUE
        | FALSE
+       | BIND
+       | RELAX
+       | ERROR_BIND
+       | ERROR_RELAX
        ;
 
 %%

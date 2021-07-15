@@ -147,6 +147,8 @@ public:
   set<int> parameters_in_planner_discount;
   // Whether a shocks(surprise) block appears
   bool shocks_surprise_present{false};
+  // Whether an occbin_constraints block appears
+  bool occbin_constraints_present{false};
 };
 
 class Statement

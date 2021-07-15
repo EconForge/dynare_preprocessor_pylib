@@ -326,8 +326,6 @@ public:
 
   //! the model is stored in a binary file
   void bytecode();
-  //! the model has occasional binding constraints
-  void occbin();
   //! the static model is not computed
   void no_static();
   //! the differentiate_forward_vars option is enabled (for all vars)
@@ -886,6 +884,10 @@ public:
   void begin_matched_moments();
   //! Add a matched_moments block
   void end_matched_moments(const vector<expr_t> &moments);
+  //! Start parsing an occbin_constraints block
+  void begin_occbin_constraints();
+  //! Add an occbin_constraints block
+  void end_occbin_constraints(const vector<tuple<string, expr_t, expr_t, expr_t, expr_t>> &constraints);
 };
 
 #endif // ! PARSING_DRIVER_HH

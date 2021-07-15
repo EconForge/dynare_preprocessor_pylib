@@ -2120,9 +2120,3 @@ ModelTree::updateReverseVariableEquationOrderings()
       eq_idx_orig2block[eq_idx_block2orig[i]] = i;
     }
 }
-
-bool
-ModelTree::hasOccbinTags() const
-{
-  return equation_tags.hasOccbinTags();
-}

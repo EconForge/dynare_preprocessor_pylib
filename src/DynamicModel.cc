@@ -2894,10 +2894,6 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
   // Write equation tags
   equation_tags.writeOutput(output);
 
-  // Write Occbin tags
-  if (occbin)
-    equation_tags.writeOccbinOutput(output);
-
   // Write mapping for variables and equations they are present in
   for (const auto &variable : variableMapping)
     {

@@ -5233,3 +5233,70 @@ MatchedMomentsStatement::writeJsonOutput(ostream &output) const
     }
   output << "]}" << endl;
 }
+
+OccbinConstraintsStatement::OccbinConstraintsStatement(const SymbolTable &symbol_table_arg,
+                                                       const vector<tuple<string, expr_t, expr_t, expr_t, expr_t>> constraints_arg)
+  : symbol_table{symbol_table_arg}, constraints{constraints_arg}
+{
+}
+
+void
+OccbinConstraintsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  if (mod_file_struct.occbin_constraints_present)
+    {
+      cerr << "ERROR: Multiple 'occbin_constraints' blocks are not allowed" << endl;
+      exit(EXIT_FAILURE);
+    }
+  mod_file_struct.occbin_constraints_present = true;
+}
+
+void
+OccbinConstraintsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << "M_.occbin.constraint = [" << endl;
+  for (const auto &[name, bind, relax, error_bind, error_relax] : constraints)
+    {
+      output << "struct('pswitch','" << name << "','bind','";
+      bind->writeJsonOutput(output, {}, {});
+      output << "','relax','";
+      if (relax)
+        relax->writeJsonOutput(output, {}, {});
+      output << "','error_bind','";
+      if (error_bind)
+        error_bind->writeJsonOutput(output, {}, {});
+      output << "','error_relax','";
+      if (error_relax)
+        error_relax->writeJsonOutput(output, {}, {});
+      output << "');" << endl;
+    }
+  output << "];" << endl
+         << "[M_, oo_, options_] = occbin.initialize(M_, oo_, options_);" << endl;
+}
+
+void
+OccbinConstraintsStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "occbin_constraints", "constraints": [)" << endl;
+  for (auto it = constraints.begin(); it != constraints.end(); ++it)
+    {
+      auto [name, bind, relax, error_bind, error_relax] = *it;
+
+      output << R"({ "name": ")" << name << R"(", "bind": ")";
+      bind->writeJsonOutput(output, {}, {});
+      output << R"(", "relax": ")";
+      if (relax)
+        relax->writeJsonOutput(output, {}, {});
+      output << R"(", "error_bind": ")";
+      if (error_bind)
+        error_bind->writeJsonOutput(output, {}, {});
+      output << R"(", "error_relax": ")";
+      if (error_relax)
+        error_relax->writeJsonOutput(output, {}, {});
+      output << R"(" })";
+      if (next(it) != constraints.end())
+        output << ',';
+      output << endl;
+    }
+  output << "]}" << endl;
+}

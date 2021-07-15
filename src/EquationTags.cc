@@ -87,30 +87,6 @@ EquationTags::writeOutput(ostream &output) const
 }
 
 void
-EquationTags::writeOccbinOutput(ostream &output) const
-{
-  map<int, map<string, string>> occbin_options;
-  for (const auto & [eqn, tags] : eqn_tags)
-    for (const auto & [key, value] : tags)
-      if (key == "pswitch"
-          || key == "bind"
-          || key == "relax"
-          || key == "pcrit")
-        occbin_options[eqn][key] = value;
-
-  int idx = 0;
-  for (const auto & [eqn, tags] : occbin_options)
-    {
-      idx++;
-      for (const auto & [key, value] : tags)
-        output << "M_.occbin.constraint(" << idx << ")."
-               << key << " = '" << value << "';" << endl;
-      output << "M_.occbin.constraint(" << idx << ").equation = "
-             << eqn+1 << ";" << endl;
-    }
-}
-
-void
 EquationTags::writeLatexOutput(ostream &output, int eqn) const
 {
   if (!exists(eqn))
@@ -164,17 +140,4 @@ EquationTags::writeJsonAST(ostream &output, const int eqn) const
       output << R"(")" << key << R"(": ")" << value << R"(")";
     }
   output << "}";
-}
-
-bool
-EquationTags::hasOccbinTags() const
-{
-  for (const auto & [eqn, tags] : eqn_tags)
-    for (const auto & [key, value] : tags)
-      if (key == "pswitch"
-          || key == "bind"
-          || key == "relax"
-          || key == "pcrit")
-        return true;
-  return false;
 }

@@ -230,6 +230,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>ramsey_constraints {BEGIN DYNARE_BLOCK; return token::RAMSEY_CONSTRAINTS;}
 <INITIAL>generate_irfs {BEGIN DYNARE_BLOCK; return token::GENERATE_IRFS;}
 <INITIAL>matched_moments {BEGIN DYNARE_BLOCK; return token::MATCHED_MOMENTS;}
+<INITIAL>occbin_constraints {BEGIN DYNARE_BLOCK; return token::OCCBIN_CONSTRAINTS;}
 
  /* For the semicolon after an "end" keyword */
 <INITIAL>; {return Dynare::parser::token_type (yytext[0]);}
@@ -762,6 +763,22 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_BLOCK>weibull_pdf {return token::WEIBULL_PDF;}
 <DYNARE_BLOCK>dsge_prior_weight {return token::DSGE_PRIOR_WEIGHT;}
 <DYNARE_BLOCK>surprise {return token::SURPRISE;}
+<DYNARE_BLOCK>bind {
+    yylval->build<string>(yytext);
+    return token::BIND;
+}
+<DYNARE_BLOCK>relax {
+  yylval->build<string>(yytext);
+  return token::RELAX;
+}
+<DYNARE_BLOCK>error_bind {
+  yylval->build<string>(yytext);
+  return token::ERROR_BIND;
+}
+<DYNARE_BLOCK>error_relax {
+  yylval->build<string>(yytext);
+  return token::ERROR_RELAX;
+}
 
 <DYNARE_BLOCK>; {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_BLOCK># {return Dynare::parser::token_type (yytext[0]);}
@@ -858,7 +875,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_BLOCK>no_static {return token::NO_STATIC;}
 <DYNARE_BLOCK>differentiate_forward_vars {return token::DIFFERENTIATE_FORWARD_VARS;}
 <DYNARE_BLOCK>parallel_local_files {return token::PARALLEL_LOCAL_FILES;}
-<DYNARE_BLOCK>occbin {return token::OCCBIN;}
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>linear {return token::LINEAR;}
 

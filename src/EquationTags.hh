@@ -130,13 +130,8 @@ public:
   //! Various functions to write equation tags
   void writeCheckSumInfo(ostream &output) const;
   void writeOutput(ostream &output) const;
-  void writeOccbinOutput(ostream &output) const;
   void writeLatexOutput(ostream &output, int eqn) const;
   void writeJsonAST(ostream &output, const int eq) const;
-
-  /* Returns true if at least one equation has a tag associated to occbin
-     (bind/relax/pswitch/pcrit) */
-  bool hasOccbinTags() const;
 };
 
 #endif
