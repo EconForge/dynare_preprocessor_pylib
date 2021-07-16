@@ -536,7 +536,7 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
                 << "            a0 = eye(" << lhs.size() << ");" << endl
                 << "        end" << endl
                 << "        if nargout>2" << endl
-                << "            constants = zeros(" << lhs.size() << ");" << endl;
+                << "            constants = zeros(" << lhs.size() << ",1);" << endl;
       for (auto [eqn, expr] : constants.at(name))
         {
           ar_output << "            constants(" << eqn + 1 << ") = ";
