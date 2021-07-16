@@ -119,7 +119,7 @@ DataTree::operator=(const DataTree &d)
   return *this;
 }
 
-expr_t
+NumConstNode *
 DataTree::AddNonNegativeConstant(const string &value)
 {
   int id = num_constants.AddNonNegativeConstant(value);

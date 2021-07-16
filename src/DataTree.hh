@@ -140,7 +140,8 @@ public:
   DataTree &operator=(DataTree &&) = delete;
 
   //! Some predefined constants
-  expr_t Zero, One, Two, Three, MinusOne, NaN, Infinity, MinusInfinity, Pi;
+  NumConstNode *Zero, *One, *Two, *Three, *NaN, *Infinity, *Pi;
+  expr_t MinusOne, MinusInfinity;
 
   //! Raised when a local parameter is declared twice
   class LocalVariableException
@@ -158,7 +159,7 @@ public:
 
   inline expr_t AddPossiblyNegativeConstant(double val);
   //! Adds a non-negative numerical constant (possibly Inf or NaN)
-  expr_t AddNonNegativeConstant(const string &value);
+  NumConstNode *AddNonNegativeConstant(const string &value);
   //! Adds a variable
   VariableNode *AddVariable(int symb_id, int lag = 0);
   //! Gets a variable
