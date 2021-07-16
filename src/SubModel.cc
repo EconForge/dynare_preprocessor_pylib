@@ -533,7 +533,9 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
                 << "            for i=1:" << getMaxLag(name) << endl
                 << "                ar(:,:,i) = a0\\ar(:,:,i);" << endl
                 << "            end" << endl
-                << "            a0 = eye(" << lhs.size() << ");" << endl
+                << "            if nargout<3" << endl
+                << "                a0 = eye(" << lhs.size() << ");" << endl
+                << "            end" << endl
                 << "        end" << endl
                 << "        if nargout>2" << endl
                 << "            constants = zeros(" << lhs.size() << ",1);" << endl;
@@ -544,6 +546,10 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
           ar_output << ";" << endl;
         }
       ar_output << "        end" << endl
+                << "        if reducedform" << endl
+                << "            constants = a0\\constants;" << endl
+                << "            a0 = eye(" << lhs.size() << ");" << endl
+                << "        end" << endl
                 << "    end" << endl
                 << "    return" << endl
                 << "end" << endl << endl;
