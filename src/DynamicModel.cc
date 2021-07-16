@@ -3245,31 +3245,23 @@ DynamicModel::runTrendTest(const eval_context_t &eval_context)
 void
 DynamicModel::updateVarAndTrendModel() const
 {
-  for (int i = 0; i < 2; i++)
+  for (bool var : { true, false })
     {
-      map<string, vector<int>> eqnums, trend_eqnums;
-      if (i == 0)
-        eqnums = var_model_table.getEqNums();
-      else if (i == 1)
-        {
-          eqnums = trend_component_model_table.getEqNums();
-          trend_eqnums = trend_component_model_table.getTargetEqNums();
-        }
-
       map<string, vector<int>> trend_varr;
       map<string, vector<set<pair<int, int>>>> rhsr;
-      for (const auto &it : eqnums)
+      for (const auto &[model_name, eqns] : (var ? var_model_table.getEqNums()
+                                             : trend_component_model_table.getEqNums()))
         {
           vector<int> lhs, trend_var, trend_lhs;
           vector<set<pair<int, int>>> rhs;
 
-          if (i == 1)
+          if (!var)
             {
-              lhs = trend_component_model_table.getLhs(it.first);
-              for (auto teqn : trend_eqnums.at(it.first))
+              lhs = trend_component_model_table.getLhs(model_name);
+              for (auto teqn : trend_component_model_table.getTargetEqNums().at(model_name))
                 {
                   int eqnidx = 0;
-                  for (auto eqn : it.second)
+                  for (auto eqn : eqns)
                     {
                       if (eqn == teqn)
                         trend_lhs.push_back(lhs[eqnidx]);
@@ -3279,13 +3271,13 @@ DynamicModel::updateVarAndTrendModel() const
             }
 
           int lhs_idx = 0;
-          for (auto eqn : it.second)
+          for (auto eqn : eqns)
             {
               set<pair<int, int>> rhs_set;
               equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_set);
               rhs.push_back(rhs_set);
 
-              if (i == 1)
+              if (!var)
                 {
                   int lhs_symb_id = lhs[lhs_idx++];
                   if (symbol_table.isAuxiliaryVariable(lhs_symb_id))
@@ -3318,14 +3310,14 @@ DynamicModel::updateVarAndTrendModel() const
                 }
             }
 
-          rhsr[it.first] = rhs;
-          if (i == 1)
-            trend_varr[it.first] = trend_var;
+          rhsr[model_name] = rhs;
+          if (!var)
+            trend_varr[model_name] = trend_var;
         }
 
-      if (i == 0)
+      if (var)
         var_model_table.setRhs(rhsr);
-      else if (i == 1)
+      else
         {
           trend_component_model_table.setRhs(rhsr);
           trend_component_model_table.setTargetVar(trend_varr);
