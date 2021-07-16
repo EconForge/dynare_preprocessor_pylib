@@ -130,6 +130,7 @@ private:
      VAR context is not the same thing as in the trend-component model
      context. */
   map<string, map<tuple<int, int>, expr_t>> A0; // name -> (eqn, lhs_symb_id) -> param_expr_t
+  map<string, map<int, expr_t>> constants; // name -> eqn -> constant
 public:
   explicit VarModelTable(SymbolTable &symbol_table_arg);
 
@@ -161,6 +162,7 @@ public:
   void setOrigDiffVar(map<string, vector<int>> orig_diff_var_arg);
   void setAR(map<string, map<tuple<int, int, int>, expr_t>> AR_arg);
   void setA0(map<string, map<tuple<int, int>, expr_t>> A0_arg);
+  void setConstants(map<string, map<int, expr_t>> constants_arg);
 
   //! Write output of this class
   void writeOutput(const string &basename, ostream &output) const;

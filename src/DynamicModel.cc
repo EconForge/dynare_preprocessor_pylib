@@ -3537,6 +3537,7 @@ DynamicModel::fillVarModelTableMatrices()
 {
   map<string, map<tuple<int, int, int>, expr_t>> AR;
   map<string, map<tuple<int, int>, expr_t>> A0;
+  map<string, map<int, expr_t>> constants;
   for (const auto &[model_name, eqns] : var_model_table.getEqNums())
     {
       const vector<int> &lhs = var_model_table.getLhs(model_name);
@@ -3581,10 +3582,27 @@ DynamicModel::fillVarModelTableMatrices()
                   A0[model_name][{ i, lhs_symb_id }] = d;
                 }
             }
+
+          // Fill constants vector
+          // Constants are computed by replacing all (transformed) endos and exos by zero
+          constants[model_name] = {}; // Ensure that the map exists, even if constants are all zero
+          for (size_t i = 0; i < eqns.size(); i++)
+            {
+              auto rhs = equations[eqns[i]]->arg2;
+              map<VariableNode *, NumConstNode *> subst_table;
+              auto rhs_vars = var_model_table.getRhs(model_name)[i]; // All the (transformed) endogenous on RHS, as computed by updateVarAndTrendModel()
+              rhs->collectDynamicVariables(SymbolType::exogenous, rhs_vars); // Add exos
+              for (auto [symb_id, lag] : rhs_vars)
+                subst_table[AddVariable(symb_id, lag)] = Zero;
+              expr_t c = rhs->replaceVarsInEquation(subst_table);
+              if (c != Zero)
+                constants[model_name][i] = c;
+            }
         }
     }
   var_model_table.setAR(AR);
   var_model_table.setA0(A0);
+  var_model_table.setConstants(constants);
 }
 
 map<string, map<tuple<int, int, int>, expr_t>>
