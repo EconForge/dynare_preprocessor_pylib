@@ -579,6 +579,15 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       /* Create auxiliary parameters and the expression to be substituted into
          the var_expectations statement */
       expr_t subst_expr = dynamic_model.Zero;
+      if (var_model_table.isExistingVarModelName(vems->aux_model_name))
+        {
+          /* If the auxiliary model is a VAR, add a parameter corresponding to
+             the constant. */
+          string constant_param_name = "var_expectation_model_" + model_name + "_constant";
+          int constant_param_id = symbol_table.addSymbol(constant_param_name, SymbolType::parameter);
+          vems->aux_params_ids.push_back(constant_param_id);
+          subst_expr = dynamic_model.AddPlus(subst_expr, dynamic_model.AddVariable(constant_param_id));
+        }
       for (int lag = 0; lag < max_lag; lag++)
         for (auto variable : lhs)
           {
