@@ -3420,7 +3420,7 @@ ParsingDriver::begin_occbin_constraints()
 }
 
 void
-ParsingDriver::end_occbin_constraints(const vector<tuple<string, expr_t, expr_t, expr_t, expr_t>> &constraints)
+ParsingDriver::end_occbin_constraints(const vector<tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>> &constraints)
 {
   // Perform a few checks
   for (const auto &[name, bind, relax, error_bind, error_relax] : constraints)
@@ -3428,6 +3428,14 @@ ParsingDriver::end_occbin_constraints(const vector<tuple<string, expr_t, expr_t,
       check_symbol_is_parameter(name);
       if (!bind)
         error("The 'bind' expression is missing in constraint '" + name + "'");
+      if (bind->hasExogenous())
+        error("Exogenous variables are not allowed in the context of the 'bind' expression");
+      if (relax && relax->hasExogenous())
+        error("Exogenous variables are not allowed in the context of the 'relax' expression");
+      if (error_bind && error_bind->hasExogenous())
+        error("Exogenous variables are not allowed in the context of the 'error_bind' expression");
+      if (error_relax && error_relax->hasExogenous())
+        error("Exogenous variables are not allowed in the context of the 'error_relax' expression");
     }
 
   mod_file->addStatement(make_unique<OccbinConstraintsStatement>(mod_file->symbol_table, constraints));

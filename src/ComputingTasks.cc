@@ -5235,7 +5235,7 @@ MatchedMomentsStatement::writeJsonOutput(ostream &output) const
 }
 
 OccbinConstraintsStatement::OccbinConstraintsStatement(const SymbolTable &symbol_table_arg,
-                                                       const vector<tuple<string, expr_t, expr_t, expr_t, expr_t>> constraints_arg)
+                                                       const vector<tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>> constraints_arg)
   : symbol_table{symbol_table_arg}, constraints{constraints_arg}
 {
 }
@@ -5248,30 +5248,90 @@ OccbinConstraintsStatement::checkPass(ModFileStructure &mod_file_struct, Warning
       cerr << "ERROR: Multiple 'occbin_constraints' blocks are not allowed" << endl;
       exit(EXIT_FAILURE);
     }
+  if (constraints.size() > 2)
+    {
+      cerr << "ERROR: only up to two constraints are supported in 'occbin_constraints' block" << endl;
+      exit(EXIT_FAILURE);
+    }
   mod_file_struct.occbin_constraints_present = true;
 }
 
 void
 OccbinConstraintsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  output << "M_.occbin.constraint = [" << endl;
+  output << "M_.occbin.constraint_nbr = " << constraints.size() << ';' << endl
+         << "M_.occbin.pswitch = [" << endl;
+  for (const auto &[name, bind, relax, error_bind, error_relax] : constraints)
+    output << symbol_table.getTypeSpecificID(name) + 1 << ' ';
+  output << "];" << endl
+         << "options_.occbin = struct();" << endl
+         << "options_.occbin = occbin.set_default_options(options_.occbin, M_);" << endl
+         << "oo_.dr=set_state_space(oo_.dr,M_,options_);" <<  endl;
+
+  string filename = "+" + basename + "/occbin_difference.m";
+  ofstream diff_output;
+  diff_output.open(filename, ios::out | ios::binary);
+  if (!diff_output.is_open())
+    {
+      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+  diff_output << "function [binding, relax, err] = occbin_difference(zdatalinear, params, steady_state)" << endl;
+  int idx = 1;
   for (const auto &[name, bind, relax, error_bind, error_relax] : constraints)
     {
-      output << "struct('pswitch','" << name << "','bind','";
-      bind->writeJsonOutput(output, {}, {});
-      output << "','relax','";
+      diff_output << "binding.constraint_" << idx << " = ";
+      dynamic_cast<ExprNode *>(bind)->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
+      diff_output << ';' << endl
+                  << "relax.constraint_" << idx << " = ";
       if (relax)
-        relax->writeJsonOutput(output, {}, {});
-      output << "','error_bind','";
+        dynamic_cast<ExprNode *>(relax)->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
+      else
+        diff_output << "~binding.constraint_" << idx;
+      diff_output << ';' << endl
+                  << "err.binding_constraint_" << idx << " = ";
       if (error_bind)
-        error_bind->writeJsonOutput(output, {}, {});
-      output << "','error_relax','";
+        error_bind->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
+      else
+        {
+          diff_output << "abs((";
+          bind->arg1->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
+          diff_output << ")-(";
+          bind->arg2->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
+          diff_output << "))";
+        }
+      diff_output << ';' << endl
+                  << "err.relax_constraint_" << idx << " = ";
       if (error_relax)
-        error_relax->writeJsonOutput(output, {}, {});
-      output << "');" << endl;
+        error_relax->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
+      else if (relax)
+        {
+          diff_output << "abs((";
+          relax->arg1->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
+          diff_output << ")-(";
+          relax->arg2->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
+          diff_output << "))";
+        }
+      else if (!error_bind)
+        /* If relax, error_relax and error_bind have not been specified, then
+           error_bind and error_relax have the same default value. */
+        diff_output << "err.binding_constraint_" << idx;
+      else
+        {
+          /* If relax and error_relax have not been specified, but error_bind
+             has been specified, then we need to compute the default value for
+             error_relax since it is different from error_bind. */
+          diff_output << "abs((";
+          bind->arg1->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
+          diff_output << ")-(";
+          bind->arg2->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
+          diff_output << "))";
+        }
+      diff_output << ';' << endl;
+      idx++;
     }
-  output << "];" << endl
-         << "[M_, oo_, options_] = occbin.initialize(M_, oo_, options_);" << endl;
+  diff_output << "end" << endl;
+  diff_output.close();
 }
 
 void
@@ -5283,10 +5343,10 @@ OccbinConstraintsStatement::writeJsonOutput(ostream &output) const
       auto [name, bind, relax, error_bind, error_relax] = *it;
 
       output << R"({ "name": ")" << name << R"(", "bind": ")";
-      bind->writeJsonOutput(output, {}, {});
+      dynamic_cast<ExprNode *>(bind)->writeJsonOutput(output, {}, {});
       output << R"(", "relax": ")";
       if (relax)
-        relax->writeJsonOutput(output, {}, {});
+        dynamic_cast<ExprNode *>(relax)->writeJsonOutput(output, {}, {});
       output << R"(", "error_bind": ")";
       if (error_bind)
         error_bind->writeJsonOutput(output, {}, {});

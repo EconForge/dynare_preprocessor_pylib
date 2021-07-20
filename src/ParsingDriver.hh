@@ -887,7 +887,7 @@ public:
   //! Start parsing an occbin_constraints block
   void begin_occbin_constraints();
   //! Add an occbin_constraints block
-  void end_occbin_constraints(const vector<tuple<string, expr_t, expr_t, expr_t, expr_t>> &constraints);
+  void end_occbin_constraints(const vector<tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>> &constraints);
 };
 
 #endif // ! PARSING_DRIVER_HH

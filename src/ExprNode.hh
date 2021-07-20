@@ -97,7 +97,8 @@ enum class ExprNodeOutputType
    steadyStateFile, //!< Matlab code, in the generated steady state file
    juliaSteadyStateFile, //!< Julia code, in the generated steady state file
    matlabDseries, //!< Matlab code for dseries
-   epilogueFile //!< Matlab code, in the generated epilogue file
+   epilogueFile, //!< Matlab code, in the generated epilogue file
+   occbinDifferenceFile //!< MATLAB, in the generated occbin_difference file
   };
 
 inline bool
@@ -109,7 +110,8 @@ isMatlabOutput(ExprNodeOutputType output_type)
     || output_type == ExprNodeOutputType::matlabDynamicSteadyStateOperator
     || output_type == ExprNodeOutputType::steadyStateFile
     || output_type == ExprNodeOutputType::matlabDseries
-    || output_type == ExprNodeOutputType::epilogueFile;
+    || output_type == ExprNodeOutputType::epilogueFile
+    || output_type == ExprNodeOutputType::occbinDifferenceFile;
 }
 
 inline bool

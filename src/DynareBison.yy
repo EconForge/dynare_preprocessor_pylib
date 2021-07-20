@@ -208,8 +208,8 @@ class ParsingDriver;
 %type <tuple<string,string,string,string>> prior_eq_opt options_eq_opt
 %type <vector<pair<int, int>>> period_list
 %type <vector<expr_t>> matched_moments_list value_list
-%type <tuple<string, expr_t, expr_t, expr_t, expr_t>> occbin_constraints_regime
-%type <vector<tuple<string, expr_t, expr_t, expr_t, expr_t>>> occbin_constraints_regimes_list
+%type <tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>> occbin_constraints_regime
+%type <vector<tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>>> occbin_constraints_regimes_list
 %type <map<string, expr_t>> occbin_constraints_regime_options_list
 %type <pair<string, expr_t>> occbin_constraints_regime_option
 %%
@@ -887,7 +887,21 @@ occbin_constraints_regimes_list : occbin_constraints_regime
                                 ;
 
 occbin_constraints_regime : NAME QUOTED_STRING ';' occbin_constraints_regime_options_list
-                            { $$ = { $2, $4["bind"], $4["relax"], $4["error_bind"], $4["error_relax"] }; }
+                            {
+                              BinaryOpNode *bind = dynamic_cast<BinaryOpNode *>($4["bind"]);
+                              if (bind && !(bind->op_code == BinaryOpcode::less
+                                            || bind->op_code == BinaryOpcode::greater
+                                            || bind->op_code == BinaryOpcode::lessEqual
+                                            || bind->op_code == BinaryOpcode::greaterEqual))
+                                driver.error("The 'bind' expression must be an inequality constraint");
+                              BinaryOpNode *relax = dynamic_cast<BinaryOpNode *>($4["relax"]);
+                              if (relax && !(relax->op_code == BinaryOpcode::less
+                                             || relax->op_code == BinaryOpcode::greater
+                                             || relax->op_code == BinaryOpcode::lessEqual
+                                             || relax->op_code == BinaryOpcode::greaterEqual))
+                                driver.error("The 'relax' expression must be an inequality constraint");
+                              $$ = { $2, bind, relax, $4["error_bind"], $4["error_relax"] };
+                            }
                           ;
 
 occbin_constraints_regime_options_list : occbin_constraints_regime_option

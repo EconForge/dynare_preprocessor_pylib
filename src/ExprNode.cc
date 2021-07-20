@@ -1001,6 +1001,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output << lag;
           output << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
+        case ExprNodeOutputType::occbinDifferenceFile:
+          output << "zdatalinear(:," << tsid + 1 << ")";
+          break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << endl;
           exit(EXIT_FAILURE);
@@ -2702,6 +2705,7 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       switch (output_type)
         {
         case ExprNodeOutputType::matlabDynamicModel:
+        case ExprNodeOutputType::occbinDifferenceFile:
           new_output_type = ExprNodeOutputType::matlabDynamicSteadyStateOperator;
           break;
         case ExprNodeOutputType::latexDynamicModel:
