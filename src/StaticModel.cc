@@ -1829,13 +1829,8 @@ bool
 StaticModel::exoPresentInEqs() const
 {
   for (auto equation : equations)
-    {
-      set<int> result;
-      equation->collectVariables(SymbolType::exogenous, result);
-      equation->collectVariables(SymbolType::exogenousDet, result);
-      if (!result.empty())
-        return true;
-    }
+    if (equation->hasExogenous())
+      return true;
   return false;
 }
 

@@ -707,6 +707,9 @@ public:
   /* Returns true if the expression contains no endogenous, no exogenous and no
      exogenous deterministic */
   bool isConstant() const;
+
+  // Returns true if the expression contains an exogenous or an exogenous deterministic
+  bool hasExogenous() const;
 };
 
 //! Object used to compare two nodes (using their indexes)

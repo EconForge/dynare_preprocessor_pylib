@@ -2796,13 +2796,8 @@ expr_t
 ParsingDriver::add_steady_state(expr_t arg1)
 {
   // Forbid exogenous variables, see dynare#825
-  set<int> r;
-  arg1->collectVariables(SymbolType::exogenous, r);
-  if (r.size() > 0)
+  if (arg1->hasExogenous())
     error("Exogenous variables are not allowed in the context of the STEADY_STATE() operator.");
-  arg1->collectVariables(SymbolType::exogenousDet, r);
-  if (r.size() > 0)
-    error("Exogenous deterministic variables are not allowed in the context of the STEADY_STATE() operator.");
 
   return data_tree->AddSteadyState(arg1);
 }

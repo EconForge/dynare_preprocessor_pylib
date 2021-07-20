@@ -389,6 +389,15 @@ ExprNode::isConstant() const
   return symbs_lags.empty();
 }
 
+bool
+ExprNode::hasExogenous() const
+{
+  set<pair<int, int>> symbs_lags;
+  collectDynamicVariables(SymbolType::exogenous, symbs_lags);
+  collectDynamicVariables(SymbolType::exogenousDet, symbs_lags);
+  return !symbs_lags.empty();
+}
+
 
 NumConstNode::NumConstNode(DataTree &datatree_arg, int idx_arg, int id_arg) :
   ExprNode{datatree_arg, idx_arg},
