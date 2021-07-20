@@ -279,6 +279,9 @@ ParsingDriver::add_predetermined_variable(const string &name)
 void
 ParsingDriver::add_equation_tags(string key, string value)
 {
+  if (eq_tags.find(key) != eq_tags.end())
+    error("Tag '" + key + "' cannot be declared twice for the same equation");
+
   eq_tags[key] = value;
 
   transform(key.begin(), key.end(), key.begin(), ::tolower);
