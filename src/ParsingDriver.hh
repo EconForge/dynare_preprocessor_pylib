@@ -888,6 +888,15 @@ public:
   void begin_occbin_constraints();
   //! Add an occbin_constraints block
   void end_occbin_constraints(const vector<tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>> &constraints);
+  // Equivalent of MATLAB’s strsplit. Returns an empty vector given an empty string.
+  static vector<string> strsplit(const string &str, char delim);
+  // Returns true iff the string is a legal symbol identifier (see NAME token in lexer)
+  static bool isSymbolIdentifier(const string &str);
+  // Given an Occbin regime name, returns the corresponding auxiliary parameter
+  static string buildOccbinBindParamName(const string &regime)
+  {
+    return "occbin_" + regime + "_bind";
+  }
 };
 
 #endif // ! PARSING_DRIVER_HH

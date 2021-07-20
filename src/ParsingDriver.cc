@@ -2338,15 +2338,46 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
 {
   expr_t id = model_tree->AddEqual(arg1, arg2);
 
-  // Detect if the equation is tagged [static]
   if (eq_tags.find("static") != eq_tags.end())
     {
+      // If the equation is tagged [static]
       if (!id->isInStaticForm())
         error("An equation tagged [static] cannot contain leads, lags, expectations or STEADY_STATE operators");
 
       dynamic_model->addStaticOnlyEquation(id, location.begin.line, eq_tags);
     }
-  else
+  else if (eq_tags.find("bind") != eq_tags.end()
+           || eq_tags.find("relax") != eq_tags.end())
+    {
+      // If the equation has a “bind” or “relax” tag (occbin case)
+      if (eq_tags.find("name") == eq_tags.end())
+        error("An equation with a 'bind' or 'relax' tag must have a 'name' tag");
+      auto regimes_bind = strsplit(eq_tags["bind"], ',');
+      auto regimes_relax = strsplit(eq_tags["relax"], ',');
+      auto regimes_all = regimes_bind;
+      regimes_all.insert(regimes_all.end(), regimes_relax.begin(), regimes_relax.end()); // Concatenate the two vectors
+      for (const auto &regime : regimes_all)
+        {
+          if (!isSymbolIdentifier(regime))
+            error("The string '" + regime + "' is not a valid Occbin regime name (contains unauthorized characters)");
+          string param_name = buildOccbinBindParamName(regime);
+          try
+            {
+              if (mod_file->symbol_table.getType(param_name) != SymbolType::parameter)
+                error("The name '" + param_name + "' is already used. Please use another name for Occbin regime '" + regime + "'");
+            }
+          catch (SymbolTable::UnknownSymbolNameException &e)
+            {
+              // Declare and initialize the new parameter
+              int symb_id = mod_file->symbol_table.addSymbol(param_name, SymbolType::parameter);
+              mod_file->addStatement(make_unique<InitParamStatement>(symb_id, dynamic_model->Zero, mod_file->symbol_table));
+            }
+        }
+      eq_tags.erase("bind");
+      eq_tags.erase("relax");
+      dynamic_model->addOccbinEquation(id, location.begin.line, eq_tags, regimes_bind, regimes_relax);
+    }
+  else // General case
     model_tree->addEquation(id, location.begin.line, eq_tags);
 
   eq_tags.clear();
@@ -3428,7 +3459,9 @@ ParsingDriver::end_occbin_constraints(const vector<tuple<string, BinaryOpNode *,
   // Perform a few checks
   for (const auto &[name, bind, relax, error_bind, error_relax] : constraints)
     {
-      check_symbol_is_parameter(name);
+      string param_name = buildOccbinBindParamName(name);
+      if (!mod_file->symbol_table.exists(param_name))
+        error("No equation has been declared for regime '" + name + "'");
       if (!bind)
         error("The 'bind' expression is missing in constraint '" + name + "'");
       if (bind->hasExogenous())
@@ -3444,4 +3477,41 @@ ParsingDriver::end_occbin_constraints(const vector<tuple<string, BinaryOpNode *,
   mod_file->addStatement(make_unique<OccbinConstraintsStatement>(mod_file->symbol_table, constraints));
 
   reset_data_tree();
+}
+
+vector<string>
+ParsingDriver::strsplit(const string &str, char delim)
+{
+  vector<string> result;
+  size_t idx = 0;
+  while (idx < str.size())
+    {
+      size_t idx2 = str.find(delim, idx);
+      if (idx2 == string::npos)
+        {
+          result.push_back(str.substr(idx));
+          break;
+        }
+      result.push_back(str.substr(idx, idx2-idx));
+      idx = idx2 + 1;
+    }
+  return result;
+}
+
+bool
+ParsingDriver::isSymbolIdentifier(const string &str)
+{
+  if (str.empty())
+    return false;
+  auto myisalpha = [](char ch)
+  {
+    // We cannot use std::isalpha(), because it is locale-dependent
+    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
+  };
+  if (!(myisalpha(str[0]) || str[0] == '_'))
+    return false;
+  for (size_t i = 1; i < str.size(); i++)
+    if (!(myisalpha(str[i]) || isdigit(static_cast<unsigned char>(str[i])) || str[i] == '_'))
+      return false;
+  return true;
 }

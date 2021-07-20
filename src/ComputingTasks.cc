@@ -25,6 +25,7 @@ using namespace std;
 
 #include "ComputingTasks.hh"
 #include "Statement.hh"
+#include "ParsingDriver.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -5262,7 +5263,7 @@ OccbinConstraintsStatement::writeOutput(ostream &output, const string &basename,
   output << "M_.occbin.constraint_nbr = " << constraints.size() << ';' << endl
          << "M_.occbin.pswitch = [" << endl;
   for (const auto &[name, bind, relax, error_bind, error_relax] : constraints)
-    output << symbol_table.getTypeSpecificID(name) + 1 << ' ';
+    output << symbol_table.getTypeSpecificID(ParsingDriver::buildOccbinBindParamName(name)) + 1 << ' ';
   output << "];" << endl
          << "options_.occbin = struct();" << endl
          << "options_.occbin = occbin.set_default_options(options_.occbin, M_);" << endl

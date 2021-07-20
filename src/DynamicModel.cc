@@ -27,6 +27,7 @@
 #include <sstream>
 
 #include "DynamicModel.hh"
+#include "ParsingDriver.hh"
 
 void
 DynamicModel::copyHelper(const DynamicModel &m)
@@ -5929,6 +5930,67 @@ size_t
 DynamicModel::dynamicOnlyEquationsNbr() const
 {
   return equation_tags.getDynamicEqns().size();
+}
+
+void
+DynamicModel::addOccbinEquation(expr_t eq, int lineno, const map<string, string> &eq_tags, const vector<string> &regimes_bind, const vector<string> &regimes_relax)
+{
+  auto beq = dynamic_cast<BinaryOpNode *>(eq);
+  assert(beq && beq->op_code == BinaryOpcode::equal);
+
+  // Construct the term to be added to the corresponding equation
+  expr_t basic_term = AddMinus(beq->arg1, beq->arg2);
+  expr_t term = basic_term;
+  for (auto &regime : regimes_bind)
+    {
+      int param_id = symbol_table.getID(ParsingDriver::buildOccbinBindParamName(regime));
+      term = AddTimes(term, AddVariable(param_id));
+    }
+  for (auto &regime : regimes_relax)
+    {
+      int param_id = symbol_table.getID(ParsingDriver::buildOccbinBindParamName(regime));
+      term = AddTimes(term, AddMinus(One, AddVariable(param_id)));
+    }
+
+  // Create or update the dynamic equation
+  try
+    {
+      int eqn = equation_tags.getEqnByTag("name", eq_tags.at("name"));
+      BinaryOpNode *orig_eq = equations[eqn];
+      /* In the following, we could have kept only orig_eq->arg1, but the
+         following adds a (somewhat bizarre) support for equation snippets
+         without “bind” nor “relax” */
+      equations[eqn] = AddEqual(AddPlus(AddMinus(orig_eq->arg1, orig_eq->arg2), term), Zero);
+      // It’s unclear how to update lineno and tags, so don’t do it
+    }
+  catch (EquationTags::TagNotFoundException &e)
+    {
+      auto eq_tags_dynamic = eq_tags;
+      eq_tags_dynamic["dynamic"] = "";
+      addEquation(AddEqual(term, Zero), lineno, eq_tags_dynamic);
+    }
+
+  // Create or update the static equation (corresponding to the pure relax regime)
+  if (regimes_bind.empty())
+    {
+      try
+        {
+          /* Similar remark as above. We could have entirely skipped this
+             equation updating, since normally there is only one such clause,
+             but the following adds a (somewhat bizarre) support for equation
+             snippets without “bind” nor “relax” */
+          int eqn = static_only_equations_equation_tags.getEqnByTag("name", eq_tags.at("name"));
+          BinaryOpNode *orig_eq = static_only_equations[eqn];
+          static_only_equations[eqn] = AddEqual(AddPlus(AddMinus(orig_eq->arg1, orig_eq->arg2), basic_term), Zero);
+          // It’s unclear how to update lineno and tags, so don’t do it
+        }
+      catch (EquationTags::TagNotFoundException &e)
+        {
+          auto eq_tags_static = eq_tags;
+          eq_tags_static["static"] = "";
+          addStaticOnlyEquation(AddEqual(basic_term, Zero), lineno, eq_tags_static);
+        }
+    }
 }
 
 bool

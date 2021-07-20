@@ -444,6 +444,13 @@ public:
   //! Returns number of dynamic only equations
   size_t dynamicOnlyEquationsNbr() const;
 
+  // Adds an occbin equation (with “bind” and/or “relax” tag)
+  /* This function assumes that there is a “name” tag, and that the relevant
+     auxiliary parameters have already been added to the symbol table.
+     It also assumes that the “bind” and “relax” tags have been cleared from
+     eq_tags. */
+  void addOccbinEquation(expr_t eq, int lineno, const map<string, string> &eq_tags, const vector<string> &regimes_bind, const vector<string> &regimes_relax);
+
   //! Writes LaTeX file with the equations of the dynamic model
   void writeLatexFile(const string &basename, bool write_equation_tags) const;
 
