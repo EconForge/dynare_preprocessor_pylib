@@ -391,14 +391,30 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
   if (type == SymbolType::modelLocalVariable && lag != 0)
     error("Model local variable " + mod_file->symbol_table.getName(symb_id) + " cannot be given a lead or a lag.");
 
-  if (dynamic_cast<StaticModel *>(model_tree) && lag != 0)
-    error("Leads and lags on variables are forbidden in 'planner_objective'.");
+  if (data_tree == planner_objective.get())
+    {
+      if (lag != 0)
+        error("Leads and lags on variables are forbidden in 'planner_objective'.");
 
-  if (dynamic_cast<StaticModel *>(model_tree) && type == SymbolType::modelLocalVariable)
-    error("Model local variable " + mod_file->symbol_table.getName(symb_id) + " cannot be used in 'planner_objective'.");
+      if (type == SymbolType::modelLocalVariable)
+        error("Model local variable " + mod_file->symbol_table.getName(symb_id) + " cannot be used in 'planner_objective'.");
+    }
+
+  if (data_tree == occbin_constraints_tree.get())
+    {
+      if (lag != 0)
+        error("Leads and lags on variables are forbidden in 'occbin_constraints'. Note that you can achieve the same effect by introducing an auxiliary variable in the model.");
+
+      if (type == SymbolType::modelLocalVariable)
+        error("Model local variable " + mod_file->symbol_table.getName(symb_id) + " cannot be used in 'occbin_constraints'.");
+
+      if (type == SymbolType::exogenous || type == SymbolType::exogenousDet)
+        error("Exogenous variable " + mod_file->symbol_table.getName(symb_id) + " cannot be used in 'occbin_constraints'.");
+    }
 
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous and parameters can be swapped
-  return model_tree->AddVariable(symb_id, lag);
+  // NB: we use data_tree here, to avoid a crash in the occbin_constraints case
+  return data_tree->AddVariable(symb_id, lag);
 }
 
 expr_t
@@ -2530,18 +2546,27 @@ ParsingDriver::add_power(expr_t arg1, expr_t arg2)
 expr_t
 ParsingDriver::add_expectation(const string &arg1, expr_t arg2)
 {
+  if (data_tree == occbin_constraints_tree.get())
+    error("The 'expectation' operator is forbidden in 'occbin_constraints'.");
+
   return data_tree->AddExpectation(stoi(arg1), arg2);
 }
 
 expr_t
 ParsingDriver::add_var_expectation(const string &model_name)
 {
+  if (data_tree == occbin_constraints_tree.get())
+    error("The 'var_expectation' operator is forbidden in 'occbin_constraints'.");
+
   return data_tree->AddVarExpectation(model_name);
 }
 
 expr_t
 ParsingDriver::add_pac_expectation(const string &var_model_name)
 {
+  if (data_tree == occbin_constraints_tree.get())
+    error("The 'var_expectation' operator is forbidden in 'occbin_constraints'.");
+
   return data_tree->AddPacExpectation(var_model_name);
 }
 
@@ -3450,7 +3475,15 @@ ParsingDriver::end_matched_moments(const vector<expr_t> &moments)
 void
 ParsingDriver::begin_occbin_constraints()
 {
-  set_current_data_tree(&mod_file->dynamic_model);
+  /* We use a separate data tree, because we will add inequality constraints,
+     and those would trigger the non-linearity warning in a stochastic context
+     if added to the main DynamicModel tree. It also simplifies the
+     enforcement of various constraints at parsing time. */
+  occbin_constraints_tree = make_unique<DataTree>(mod_file->symbol_table,
+                                                  mod_file->num_constants,
+                                                  mod_file->external_functions_table,
+                                                  false);
+  set_current_data_tree(occbin_constraints_tree.get());
 }
 
 void
@@ -3464,17 +3497,9 @@ ParsingDriver::end_occbin_constraints(const vector<tuple<string, BinaryOpNode *,
         error("No equation has been declared for regime '" + name + "'");
       if (!bind)
         error("The 'bind' expression is missing in constraint '" + name + "'");
-      if (bind->hasExogenous())
-        error("Exogenous variables are not allowed in the context of the 'bind' expression");
-      if (relax && relax->hasExogenous())
-        error("Exogenous variables are not allowed in the context of the 'relax' expression");
-      if (error_bind && error_bind->hasExogenous())
-        error("Exogenous variables are not allowed in the context of the 'error_bind' expression");
-      if (error_relax && error_relax->hasExogenous())
-        error("Exogenous variables are not allowed in the context of the 'error_relax' expression");
     }
 
-  mod_file->addStatement(make_unique<OccbinConstraintsStatement>(mod_file->symbol_table, constraints));
+  mod_file->addStatement(make_unique<OccbinConstraintsStatement>(*occbin_constraints_tree, constraints));
 
   reset_data_tree();
 }

@@ -5235,9 +5235,9 @@ MatchedMomentsStatement::writeJsonOutput(ostream &output) const
   output << "]}" << endl;
 }
 
-OccbinConstraintsStatement::OccbinConstraintsStatement(const SymbolTable &symbol_table_arg,
+OccbinConstraintsStatement::OccbinConstraintsStatement(const DataTree &data_tree_arg,
                                                        const vector<tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>> constraints_arg)
-  : symbol_table{symbol_table_arg}, constraints{constraints_arg}
+  : data_tree{data_tree_arg}, constraints{constraints_arg}
 {
 }
 
@@ -5263,7 +5263,7 @@ OccbinConstraintsStatement::writeOutput(ostream &output, const string &basename,
   output << "M_.occbin.constraint_nbr = " << constraints.size() << ';' << endl
          << "M_.occbin.pswitch = [" << endl;
   for (const auto &[name, bind, relax, error_bind, error_relax] : constraints)
-    output << symbol_table.getTypeSpecificID(ParsingDriver::buildOccbinBindParamName(name)) + 1 << ' ';
+    output << data_tree.symbol_table.getTypeSpecificID(ParsingDriver::buildOccbinBindParamName(name)) + 1 << ' ';
   output << "];" << endl
          << "options_.occbin = struct();" << endl
          << "options_.occbin = occbin.set_default_options(options_.occbin, M_);" << endl

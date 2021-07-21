@@ -117,6 +117,9 @@ private:
   //! Temporary store for the planner objective
   unique_ptr<StaticModel> planner_objective;
 
+  //! Temporary store for the occbin_constraints statement
+  unique_ptr<DataTree> occbin_constraints_tree;
+
   //! The data tree in which to add expressions currently parsed
   /*! The object pointed to is not owned by the parsing driver. It is essentially a
       reference. */
