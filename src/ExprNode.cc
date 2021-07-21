@@ -7072,6 +7072,7 @@ ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_typ
   if (output_type == ExprNodeOutputType::matlabOutsideModel || output_type == ExprNodeOutputType::steadyStateFile
       || output_type == ExprNodeOutputType::juliaSteadyStateFile
       || output_type == ExprNodeOutputType::epilogueFile
+      || output_type == ExprNodeOutputType::occbinDifferenceFile
       || isLatexOutput(output_type))
     {
       string name = isLatexOutput(output_type) ? datatree.symbol_table.getTeXName(symb_id)
@@ -7302,7 +7303,8 @@ FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType 
                                             const temporary_terms_idxs_t &temporary_terms_idxs,
                                             const deriv_node_temp_terms_t &tef_terms) const
 {
-  assert(output_type != ExprNodeOutputType::matlabOutsideModel);
+  assert(output_type != ExprNodeOutputType::matlabOutsideModel
+         && output_type != ExprNodeOutputType::occbinDifferenceFile);
 
   if (isLatexOutput(output_type))
     {
@@ -7654,7 +7656,8 @@ SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType
                                              const temporary_terms_idxs_t &temporary_terms_idxs,
                                              const deriv_node_temp_terms_t &tef_terms) const
 {
-  assert(output_type != ExprNodeOutputType::matlabOutsideModel);
+  assert(output_type != ExprNodeOutputType::matlabOutsideModel
+         && output_type != ExprNodeOutputType::occbinDifferenceFile);
 
   if (isLatexOutput(output_type))
     {
