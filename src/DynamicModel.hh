@@ -119,6 +119,35 @@ private:
      the three others, it’s the type-specific ID */
   vector<map<pair<int, int>, int>> blocks_jacob_cols_endo, blocks_jacob_cols_other_endo, blocks_jacob_cols_exo, blocks_jacob_cols_exo_det;
 
+  //! Used for var_expectation and var_model
+  map<string, set<int>> var_expectation_functions_to_write;
+
+  //! store symb_ids for alphas created in addPacModelConsistentExpectationEquation
+  //! (pac_model_name, standardized_eqtag) -> mce_alpha_symb_id
+  map<pair<string, string>, vector<int>> pac_mce_alpha_symb_ids;
+  //! store symb_ids for h0, h1 parameters
+  //! (pac_model_name, standardized_eqtag) -> parameter symb_ids
+  map<pair<string, string>, vector<int>> pac_h0_indices, pac_h1_indices;
+  //! store symb_ids for z1s created in addPacModelConsistentExpectationEquation
+  //! (pac_model_name, standardized_eqtag) -> mce_z1_symb_id
+  map<pair<string, string>, int> pac_mce_z1_symb_ids;
+  //! Store lag info for pac equations
+  //! (pac_model_name, equation_tag) -> (standardized_eqtag, lag)
+  map<pair<string, string>, pair<string, int>> pac_eqtag_and_lag;
+
+  //! (pac_model_name, equation_tag) -> expr_t
+  map<pair<string, string>, expr_t> pac_expectation_substitution;
+
+  //! Store info about pac models:
+  //! pac_model_name -> (lhsvars, growth_param_index, aux_model_type)
+  map<string, tuple<vector<int>, int, string>> pac_model_info;
+
+  //! Store info about pac models specific to the equation they appear in
+  //! (pac_model_name, standardized_eqtag) ->
+  //!     (lhs, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants)
+  map<pair<string, string>,
+      tuple<pair<int, int>, int, vector<tuple<int, int, int>>, pair<int, vector<tuple<int, bool, int>>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>>> pac_equation_info;
+
   //! Writes dynamic model file (Matlab version)
   void writeDynamicMFile(const string &basename) const;
   //! Writes dynamic model file (Julia version)
@@ -219,9 +248,6 @@ private:
 
   //! Write reverse cross references
   void writeRevXrefs(ostream &output, const map<pair<int, int>, set<int>> &xrefmap, const string &type) const;
-
-  //! Used for var_expectation and var_model
-  map<string, set<int>> var_expectation_functions_to_write;
 
   void writeWrapperFunctions(const string &name, const string &ending) const;
   void writeDynamicModelHelper(const string &basename,
@@ -547,32 +573,6 @@ public:
   void addPacModelConsistentExpectationEquation(const string &name, int discount,
                                                 const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
                                                 ExprNode::subst_table_t &diff_subst_table);
-
-  //! store symb_ids for alphas created in addPacModelConsistentExpectationEquation
-  //! (pac_model_name, standardized_eqtag) -> mce_alpha_symb_id
-  map<pair<string, string>, vector<int>> pac_mce_alpha_symb_ids;
-  //! store symb_ids for h0, h1 parameters
-  //! (pac_model_name, standardized_eqtag) -> parameter symb_ids
-  map<pair<string, string>, vector<int>> pac_h0_indices, pac_h1_indices;
-  //! store symb_ids for z1s created in addPacModelConsistentExpectationEquation
-  //! (pac_model_name, standardized_eqtag) -> mce_z1_symb_id
-  map<pair<string, string>, int> pac_mce_z1_symb_ids;
-  //! Store lag info for pac equations
-  //! (pac_model_name, equation_tag) -> (standardized_eqtag, lag)
-  map<pair<string, string>, pair<string, int>> pac_eqtag_and_lag;
-
-  //! (pac_model_name, equation_tag) -> expr_t
-  map<pair<string, string>, expr_t> pac_expectation_substitution;
-
-  //! Store info about pac models:
-  //! pac_model_name -> (lhsvars, growth_param_index, aux_model_type)
-  map<string, tuple<vector<int>, int, string>> pac_model_info;
-
-  //! Store info about pac models specific to the equation they appear in
-  //! (pac_model_name, standardized_eqtag) ->
-  //!     (lhs, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants)
-  map<pair<string, string>,
-      tuple<pair<int, int>, int, vector<tuple<int, int, int>>, pair<int, vector<tuple<int, bool, int>>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>>> pac_equation_info;
 
   //! Table to undiff LHS variables for pac vector z
   vector<int> getUndiffLHSForPac(const string &aux_model_name,
