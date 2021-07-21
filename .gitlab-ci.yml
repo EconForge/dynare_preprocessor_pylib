@@ -1,9 +1,9 @@
 variables:
   TERM: linux
-  MINGW32_BOOST_VERSION: 1.75.0-2
-  MINGW64_BOOST_VERSION: 1.75.0-2
+  MINGW32_BOOST_VERSION: 1.75.0-6
+  MINGW64_BOOST_VERSION: 1.75.0-6
   WGET_OPTIONS: '--no-verbose --no-use-server-timestamps --retry-connrefused --retry-on-host-error'
-  JULIA_VERSION: 1.6.0
+  JULIA_VERSION: 1.6.2
 
 stages:
   - build
