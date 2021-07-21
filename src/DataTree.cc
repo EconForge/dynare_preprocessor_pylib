@@ -862,46 +862,6 @@ DataTree::isBinaryOpUsedOnType(SymbolType type, BinaryOpcode opcode) const
   return false;
 }
 
-bool
-DataTree::isTrinaryOpUsed(TrinaryOpcode opcode) const
-{
-  for (const auto &it : trinary_op_node_map)
-    if (get<3>(it.first) == opcode)
-      return true;
-
-  return false;
-}
-
-bool
-DataTree::isExternalFunctionUsed(int symb_id) const
-{
-  for (const auto &it : external_function_node_map)
-    if (it.first.second == symb_id)
-      return true;
-
-  return false;
-}
-
-bool
-DataTree::isFirstDerivExternalFunctionUsed(int symb_id) const
-{
-  for (const auto &it : first_deriv_external_function_node_map)
-    if (get<2>(it.first) == symb_id)
-      return true;
-
-  return false;
-}
-
-bool
-DataTree::isSecondDerivExternalFunctionUsed(int symb_id) const
-{
-  for (const auto &it : second_deriv_external_function_node_map)
-    if (get<3>(it.first) == symb_id)
-      return true;
-
-  return false;
-}
-
 int
 DataTree::minLagForSymbol(int symb_id) const
 {

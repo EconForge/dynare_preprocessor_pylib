@@ -275,14 +275,6 @@ public:
   bool isBinaryOpUsed(BinaryOpcode opcode) const;
   //! Checks if a given binary op is used somewhere in the data tree on an endogenous variable
   bool isBinaryOpUsedOnType(SymbolType type, BinaryOpcode opcode) const;
-  //! Checks if a given trinary op is used somewhere in the data tree
-  bool isTrinaryOpUsed(TrinaryOpcode opcode) const;
-  //! Checks if a given external function is used somewhere in the data tree
-  bool isExternalFunctionUsed(int symb_id) const;
-  //! Checks if a given first derivative external function is used somewhere in the data tree
-  bool isFirstDerivExternalFunctionUsed(int symb_id) const;
-  //! Checks if a given second derivative external function is used somewhere in the data tree
-  bool isSecondDerivExternalFunctionUsed(int symb_id) const;
   //! Returns the minimum lag (as a negative number) of the given symbol in the whole data tree (and not only in the equations !!)
   /*! Returns 0 if the symbol is not used */
   int minLagForSymbol(int symb_id) const;
