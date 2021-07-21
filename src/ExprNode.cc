@@ -8258,8 +8258,7 @@ VarExpectationNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map
 bool
 VarExpectationNode::isInStaticForm() const
 {
-  cerr << "VarExpectationNode::isInStaticForm not implemented." << endl;
-  exit(EXIT_FAILURE);
+  return false;
 }
 
 bool
