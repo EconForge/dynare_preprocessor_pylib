@@ -8324,13 +8324,14 @@ PacExpectationNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<te
 expr_t
 PacExpectationNode::toStatic(DataTree &static_datatree) const
 {
-  return static_datatree.AddPacExpectation(string(model_name));
+  cerr << "PacExpectationNode::toStatic not implemented." << endl;
+  exit(EXIT_FAILURE);
 }
 
 expr_t
 PacExpectationNode::clone(DataTree &datatree) const
 {
-  return datatree.AddPacExpectation(string(model_name));
+  return datatree.AddPacExpectation(model_name);
 }
 
 void
