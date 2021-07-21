@@ -4222,36 +4222,58 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
       string standard_eqtag = pac_models_and_eqtags.second.first;
       expr_t subExpr = Zero;
       if (stationary_vars_present)
-        for (int i = 1; i < max_lag + 1; i++)
-          for (auto lhsit : lhs)
+        {
+          if (aux_model_type == "var")
             {
-              stringstream param_name_h0;
-              param_name_h0 << "h0_" << pac_model_name
-                            << "_" << standard_eqtag
-                            << "_var_" << symbol_table.getName(lhsit)
-                            << "_lag_" << i;
-              int new_param_symb_id = symbol_table.addSymbol(param_name_h0.str(), SymbolType::parameter);
+              /* If the auxiliary model is a VAR, add a parameter corresponding
+                 to the constant. */
+              string param_name_h0 = "h0_" + pac_model_name + "_" + standard_eqtag + "_constant";
+              int new_param_symb_id = symbol_table.addSymbol(param_name_h0, SymbolType::parameter);
               pac_h0_indices[{pac_model_name, standard_eqtag}].push_back(new_param_symb_id);
-              subExpr = AddPlus(subExpr,
-                                AddTimes(AddVariable(new_param_symb_id),
-                                         AddVariable(lhsit, -i)));
+              subExpr = AddPlus(subExpr, AddVariable(new_param_symb_id));
             }
+          for (int i = 1; i < max_lag + 1; i++)
+            for (auto lhsit : lhs)
+              {
+                stringstream param_name_h0;
+                param_name_h0 << "h0_" << pac_model_name
+                              << "_" << standard_eqtag
+                              << "_var_" << symbol_table.getName(lhsit)
+                              << "_lag_" << i;
+                int new_param_symb_id = symbol_table.addSymbol(param_name_h0.str(), SymbolType::parameter);
+                pac_h0_indices[{pac_model_name, standard_eqtag}].push_back(new_param_symb_id);
+                subExpr = AddPlus(subExpr,
+                                  AddTimes(AddVariable(new_param_symb_id),
+                                           AddVariable(lhsit, -i)));
+              }
+        }
 
       if (nonstationary_vars_present)
-        for (int i = 1; i < max_lag + 1; i++)
-          for (auto lhsit : lhs)
+        {
+          if (aux_model_type == "var")
             {
-              stringstream param_name_h1;
-              param_name_h1 << "h1_" << pac_model_name
-                            << "_" << standard_eqtag
-                            << "_var_" << symbol_table.getName(lhsit)
-                            << "_lag_" << i;
-              int new_param_symb_id = symbol_table.addSymbol(param_name_h1.str(), SymbolType::parameter);
+              /* If the auxiliary model is a VAR, add a parameter corresponding
+                 to the constant. */
+              string param_name_h1 = "h1_" + pac_model_name + "_" + standard_eqtag + "_constant";
+              int new_param_symb_id = symbol_table.addSymbol(param_name_h1, SymbolType::parameter);
               pac_h1_indices[{pac_model_name, standard_eqtag}].push_back(new_param_symb_id);
-              subExpr = AddPlus(subExpr,
-                                AddTimes(AddVariable(new_param_symb_id),
-                                         AddVariable(lhsit, -i)));
+              subExpr = AddPlus(subExpr, AddVariable(new_param_symb_id));
             }
+          for (int i = 1; i < max_lag + 1; i++)
+            for (auto lhsit : lhs)
+              {
+                stringstream param_name_h1;
+                param_name_h1 << "h1_" << pac_model_name
+                              << "_" << standard_eqtag
+                              << "_var_" << symbol_table.getName(lhsit)
+                              << "_lag_" << i;
+                int new_param_symb_id = symbol_table.addSymbol(param_name_h1.str(), SymbolType::parameter);
+                pac_h1_indices[{pac_model_name, standard_eqtag}].push_back(new_param_symb_id);
+                subExpr = AddPlus(subExpr,
+                                  AddTimes(AddVariable(new_param_symb_id),
+                                           AddVariable(lhsit, -i)));
+              }
+        }
 
       if (growth)
         subExpr = AddPlus(subExpr,
