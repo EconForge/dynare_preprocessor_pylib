@@ -89,11 +89,11 @@ InitOrEndValStatement::InitOrEndValStatement(init_values_t init_values_arg,
 void
 InitOrEndValStatement::fillEvalContext(eval_context_t &eval_context) const
 {
-  for (const auto &init_value : init_values)
+  for (auto [symb_id, value] : init_values)
     {
       try
         {
-          eval_context[init_value.first] = (init_value.second)->eval(eval_context);
+          eval_context[symb_id] = value->eval(eval_context);
         }
       catch (ExprNode::EvalException &e)
         {
@@ -119,8 +119,8 @@ InitOrEndValStatement::getUninitializedVariables(SymbolType type)
       exit(EXIT_FAILURE);
     }
 
-  for (const auto &init_value : init_values)
-    if (auto sit = unused.find(init_value.first);
+  for (auto [symb_id, value] : init_values)
+    if (auto sit = unused.find(symb_id);
         sit != unused.end())
       unused.erase(sit);
 
@@ -130,11 +130,8 @@ InitOrEndValStatement::getUninitializedVariables(SymbolType type)
 void
 InitOrEndValStatement::writeInitValues(ostream &output) const
 {
-  for (const auto &init_value : init_values)
+  for (auto [symb_id, value] : init_values)
     {
-      const int symb_id = init_value.first;
-      const expr_t expression = init_value.second;
-
       SymbolType type = symbol_table.getType(symb_id);
       int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
 
@@ -159,7 +156,7 @@ InitOrEndValStatement::writeInitValues(ostream &output) const
         }
 
       output << "(" << tsid << ") = ";
-      expression->writeOutput(output);
+      value->writeOutput(output);
       output << ";" << endl;
     }
 }
@@ -168,12 +165,13 @@ void
 InitOrEndValStatement::writeJsonInitValues(ostream &output) const
 {
   for (auto it = init_values.begin();
-       it != init_values.end(); it++)
+       it != init_values.end(); ++it)
     {
       if (it != init_values.begin())
         output << ", ";
-      output << R"({"name": ")" << symbol_table.getName(it->first) << R"(", )" << R"("value": ")";
-      it->second->writeJsonOutput(output, {}, {});
+      auto [symb_id, value] = *it;
+      output << R"({"name": ")" << symbol_table.getName(symb_id) << R"(", )" << R"("value": ")";
+      value->writeJsonOutput(output, {}, {});
       output << R"("})";
     }
 }
@@ -313,13 +311,14 @@ HistValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
       set<int> unused_endo = symbol_table.getEndogenous();
       set<int> unused_exo = symbol_table.getExogenous();
 
-      for (const auto &hist_value : hist_values)
+      for (const auto &[key, value] : hist_values)
         {
-          if (auto sit = unused_endo.find(hist_value.first.first);
+          int symb_id = key.first;
+          if (auto sit = unused_endo.find(symb_id);
               sit != unused_endo.end())
             unused_endo.erase(sit);
 
-          if (auto sit = unused_exo.find(hist_value.first.first);
+          if (auto sit = unused_exo.find(symb_id);
               sit != unused_exo.end())
             unused_exo.erase(sit);
         }
@@ -361,14 +360,12 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
          << (symbol_table.exo_det_nbr() > 0 ? "M_.exo_det_names; " : "")
          << "]);" << endl;
 
-  for (const auto &hist_value : hist_values)
+  for (const auto &[key, value] : hist_values)
     {
-      int symb_id = hist_value.first.first;
-      int lag = hist_value.first.second;
-      const expr_t expression = hist_value.second;
+      auto [symb_id, lag] = key;
 
       output << "M_.histval_dseries{'" << symbol_table.getName(symb_id) << "'}(dates('" << lag << "Y'))=";
-      expression->writeOutput(output);
+      value->writeOutput(output);
       output << ";" << endl;
     }
 
@@ -391,10 +388,11 @@ HistValStatement::writeJsonOutput(ostream &output) const
   for (auto it = hist_values.begin();
        it != hist_values.end(); ++it)
     {
+      auto [symb_id, lag] = it->first;
       if (it != hist_values.begin())
         output << ", ";
-      output << R"({ "name": ")" << symbol_table.getName(it->first.first) << R"(")"
-             << R"(, "lag": )" << it->first.second
+      output << R"({ "name": ")" << symbol_table.getName(symb_id) << R"(")"
+             << R"(, "lag": )" << lag
              << R"(, "value": ")";
       it->second->writeJsonOutput(output, {}, {});
       output << R"("})";

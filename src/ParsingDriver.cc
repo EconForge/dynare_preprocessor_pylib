@@ -552,7 +552,7 @@ ParsingDriver::hist_val(const string &name, const string &lag, expr_t rhs)
   if (hist_values.find(key) != hist_values.end())
     error("hist_val: (" + name + ", " + lag + ") declared twice");
 
-  hist_values[key] = rhs;
+  hist_values[move(key)] = rhs;
 }
 
 void
