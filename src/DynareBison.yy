@@ -150,7 +150,7 @@ class ParsingDriver;
 %token <string> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX DIRICHLET DIAGONAL OPTIMAL
 %token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD WEIBULL WEIBULL_PDF GMM SMM
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
-%token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE FILTER_DECOMPOSITION SMOOTHED_STATE_UNCERTAINTY SMOOTHER_REDUX
+%token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE UPDATED_COVARIANCE FILTER_DECOMPOSITION SMOOTHED_STATE_UNCERTAINTY SMOOTHER_REDUX
 %token EQ_CMS TLINDX TLNUMBER RESTRICTIONS POSTERIOR_SAMPLER_OPTIONS
 %token OUTPUT_FILE_TAG HORIZON
 %token SBVAR TREND_VAR DEFLATOR GROWTH_FACTOR MS_IRF MS_VARIANCE_DECOMPOSITION GROWTH
@@ -2125,6 +2125,7 @@ estimation_options : o_datafile
                    | o_aim_solver
                    | o_partial_information
                    | o_filter_covariance
+                   | o_updated_covariance
                    | o_filter_decomposition
                    | o_smoothed_state_uncertainty
                    | o_smoother_redux
@@ -3175,6 +3176,7 @@ calib_smoother_option : o_filtered_vars
                       | o_loglinear
                       | o_first_obs
                       | o_filter_covariance
+                      | o_updated_covariance
                       | o_filter_decomposition
                       | o_diffuse_kalman_tol
                       | o_diffuse_filter
@@ -3865,6 +3867,9 @@ o_second_deriv_provided : SECOND_DERIV_PROVIDED EQUAL namespace_qualified_filena
 o_filter_covariance : FILTER_COVARIANCE
                         { driver.option_num("filter_covariance","true");}
                       ;
+o_updated_covariance : UPDATED_COVARIANCE
+                        { driver.option_num("updated_covariance","true");}
+
 o_filter_decomposition : FILTER_DECOMPOSITION
                            { driver.option_num("filter_decomposition","true");}
                          ;
