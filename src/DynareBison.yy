@@ -79,7 +79,7 @@ class ParsingDriver;
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN DETAIL_PLOT TYPE
 %token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED PROPOSAL_DISTRIBUTION REALTIME VINTAGE
 %token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
-%token COMMA CONSIDER_ALL_ENDOGENOUS CONSIDER_ONLY_OBSERVED INITIAL_CONDITION_DECOMPOSITION
+%token COMMA CONSIDER_ALL_ENDOGENOUS CONSIDER_ALL_ENDOGENOUS_AND_AUXILIARY CONSIDER_ONLY_OBSERVED INITIAL_CONDITION_DECOMPOSITION
 %token DATAFILE FILE SERIES DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR EXPRESSION
 %token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS FIRST_SIMULATION_PERIOD LAST_OBS 
@@ -2155,6 +2155,7 @@ estimation_options : o_datafile
                    | o_irf_plot_threshold
                    | o_posterior_max_subsample_draws
                    | o_consider_all_endogenous
+                   | o_consider_all_endogenous_and_auxiliary
                    | o_consider_only_observed
                    | o_number_of_particles
                    | o_particle_filter_options
@@ -3955,6 +3956,7 @@ o_use_penalized_objective_for_hessian : USE_PENALIZED_OBJECTIVE_FOR_HESSIAN { dr
 o_irf_plot_threshold : IRF_PLOT_THRESHOLD EQUAL non_negative_number { driver.option_num("impulse_responses.plot_threshold", $3); };
 o_dr_display_tol : DR_DISPLAY_TOL EQUAL non_negative_number { driver.option_num("dr_display_tol", $3); };
 o_consider_all_endogenous : CONSIDER_ALL_ENDOGENOUS { driver.option_str("endo_vars_for_moment_computations_in_estimation", "all_endogenous_variables"); };
+o_consider_all_endogenous_and_auxiliary : CONSIDER_ALL_ENDOGENOUS_AND_AUXILIARY { driver.option_str("endo_vars_for_moment_computations_in_estimation", "all_endogenous_and_auxiliary_variables"); };
 o_consider_only_observed : CONSIDER_ONLY_OBSERVED { driver.option_str("endo_vars_for_moment_computations_in_estimation", "only_observed_variables"); };
 o_no_homotopy : NO_HOMOTOPY { driver.option_num("no_homotopy", "true"); };
 
