@@ -1115,19 +1115,22 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
                       << "oo_.time = toc(tic0);" << endl
                       << "disp(['Total computing time : ' dynsec2hms(oo_.time) ]);" << endl;
 
-      mOutputFile << "save('" << basename << "_results.mat', 'oo_', 'M_', 'options_');" << endl
+      mOutputFile << "if ~exist([M_.dname filesep 'Output'],'dir')" << endl
+                  << "    mkdir(M_.dname,'Output');" << endl
+                  << "end" << endl
+                  << "save([M_.dname filesep 'Output' filesep '" << basename << "_results.mat'], 'oo_', 'M_', 'options_');" << endl
                   << "if exist('estim_params_', 'var') == 1" << endl
-                  << "  save('" << basename << "_results.mat', 'estim_params_', '-append');" << endl << "end" << endl
+                  << "  save([M_.dname filesep 'Output' filesep '" << basename << "_results.mat'], 'estim_params_', '-append');" << endl << "end" << endl
                   << "if exist('bayestopt_', 'var') == 1" << endl
-                  << "  save('" << basename << "_results.mat', 'bayestopt_', '-append');" << endl << "end" << endl
+                  << "  save([M_.dname filesep 'Output' filesep '" << basename << "_results.mat'], 'bayestopt_', '-append');" << endl << "end" << endl
                   << "if exist('dataset_', 'var') == 1" << endl
-                  << "  save('" << basename << "_results.mat', 'dataset_', '-append');" << endl << "end" << endl
+                  << "  save([M_.dname filesep 'Output' filesep '" << basename << "_results.mat'], 'dataset_', '-append');" << endl << "end" << endl
                   << "if exist('estimation_info', 'var') == 1" << endl
-                  << "  save('" << basename << "_results.mat', 'estimation_info', '-append');" << endl << "end" << endl
+                  << "  save([M_.dname filesep 'Output' filesep '" << basename << "_results.mat'], 'estimation_info', '-append');" << endl << "end" << endl
                   << "if exist('dataset_info', 'var') == 1" << endl
-                  << "  save('" << basename << "_results.mat', 'dataset_info', '-append');" << endl << "end" << endl
+                  << "  save([M_.dname filesep 'Output' filesep '" << basename << "_results.mat'], 'dataset_info', '-append');" << endl << "end" << endl
                   << "if exist('oo_recursive_', 'var') == 1" << endl
-                  << "  save('" << basename << "_results.mat', 'oo_recursive_', '-append');" << endl << "end" << endl;
+                  << "  save([M_.dname filesep 'Output' filesep '" << basename << "_results.mat'], 'oo_recursive_', '-append');" << endl << "end" << endl;
 
       config_file.writeEndParallel(mOutputFile);
 
