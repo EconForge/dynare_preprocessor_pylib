@@ -120,10 +120,11 @@ class ParsingDriver;
 %token STDERR STEADY STOCH_SIMUL SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME REALTIME_SHOCK_DECOMPOSITION CONDITIONAL UNCONDITIONAL
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT PLANNER_DISCOUNT_LATEX_NAME
 %token DISCRETIONARY_POLICY DISCRETIONARY_TOL EVALUATE_PLANNER_OBJECTIVE 
-%token OCCBIN_SETUP OCCBIN_SOLVER OCCBIN_WRITE_REGIMES OCCBIN_GRAPH SIMUL_MAXIT SMOOTHER_MAXIT SIMUL_PERIODS SMOOTHER_PERIODS SIMUL_CURB_RETRENCH SMOOTHER_CURB_RETRENCH SIMUL_CHECK_AHEAD_PERIODS SMOOTHER_CHECK_AHEAD_PERIODS
-%token SIMUL_DEBUG SMOOTHER_DEBUG
+%token OCCBIN_SETUP OCCBIN_SOLVER OCCBIN_WRITE_REGIMES OCCBIN_GRAPH SIMUL_MAXIT LIKELIHOOD_MAXIT SMOOTHER_MAXIT SIMUL_PERIODS LIKELIHOOD_PERIODS SMOOTHER_PERIODS 
+%token SIMUL_CURB_RETRENCH LIKELIHOOD_CURB_RETRENCH SMOOTHER_CURB_RETRENCH SIMUL_CHECK_AHEAD_PERIODS LIKELIHOOD_CHECK_AHEAD_PERIODS SMOOTHER_CHECK_AHEAD_PERIODS
+%token SIMUL_DEBUG SMOOTHER_DEBUG SIMUL_PERIODIC_SOLUTION LIKELIHOOD_PERIODIC_SOLUTION SMOOTHER_PERIODIC_SOLUTION
 %token LIKELIHOOD_INVERSION_FILTER SMOOTHER_INVERSION_FILTER FILTER_USE_RELEXATION
-%token LIKELIHOOD_PIECEWISE_KALMAN_FILTER SMOOTHER_PIECEWISE_KALMAN_FILTER
+%token LIKELIHOOD_PIECEWISE_KALMAN_FILTER SMOOTHER_PIECEWISE_KALMAN_FILTER LIKELIHOOD_MAX_KALMAN_ITERATIONS
 %token <string> TEX_NAME TRUE BIND RELAX ERROR_BIND ERROR_RELAX
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES SCALES VAR VAREXO VAREXO_DET VARIABLE VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION VAR_EXPECTATION_MODEL PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
@@ -2470,15 +2471,22 @@ occbin_setup_option : o_occbin_simul_periods
                     | o_occbin_simul_maxit
                     | o_occbin_simul_curb_retrench
                     | o_occbin_simul_check_ahead_periods
+                    | o_occbin_simul_periodic_solution
                     | o_occbin_simul_debug
+                    | o_occbin_likelihood_periods
+                    | o_occbin_likelihood_maxit
+                    | o_occbin_likelihood_curb_retrench
+                    | o_occbin_likelihood_check_ahead_periods
+                    | o_occbin_likelihood_periodic_solution
                     | o_occbin_likelihood_inversion_filter
                     | o_occbin_likelihood_piecewise_kalman_filter
-                    | o_occbin_smoother_inversion_filter
-                    | o_occbin_smoother_piecewise_kalman_filter
                     | o_occbin_smoother_periods
                     | o_occbin_smoother_maxit
                     | o_occbin_smoother_curb_retrench
                     | o_occbin_smoother_check_ahead_periods
+                    | o_occbin_smoother_periodic_solution
+                    | o_occbin_smoother_inversion_filter
+                    | o_occbin_smoother_piecewise_kalman_filter
                     | o_occbin_smoother_debug
                     | o_occbin_filter_use_relaxation
                     ;
@@ -2499,7 +2507,8 @@ occbin_solver_option : o_occbin_simul_periods
                      | o_occbin_simul_curb_retrench
                      | o_occbin_simul_check_ahead_periods
                      | o_occbin_simul_debug
-                    ;
+                     | o_occbin_simul_periodic_solution
+                     ;
 
 occbin_write_regimes : OCCBIN_WRITE_REGIMES ';'
                        { driver.occbin_write_regimes(); }
@@ -4033,18 +4042,26 @@ o_occbin_simul_periods : SIMUL_PERIODS EQUAL INT_NUMBER { driver.option_num("sim
 o_occbin_simul_curb_retrench : SIMUL_CURB_RETRENCH { driver.option_num("simul.curb_retrench", "true"); };
 o_occbin_simul_check_ahead_periods : SIMUL_CHECK_AHEAD_PERIODS EQUAL INT_NUMBER { driver.option_num("simul.check_ahead_periods", $3); };
 o_occbin_simul_debug : SIMUL_DEBUG { driver.option_num("simul.debug", "true"); };
+o_occbin_simul_periodic_solution : SIMUL_PERIODIC_SOLUTION { driver.option_num("simul.periodic_solution", "true"); };
 
 // Some options to "occbin_setup"
 o_occbin_likelihood_inversion_filter : LIKELIHOOD_INVERSION_FILTER { driver.option_num("likelihood.inversion_filter", "true"); };
 o_occbin_likelihood_piecewise_kalman_filter : LIKELIHOOD_PIECEWISE_KALMAN_FILTER { driver.option_num("likelihood.inversion_filter", "false"); };
+o_occbin_likelihood_maxit : LIKELIHOOD_MAXIT EQUAL INT_NUMBER { driver.option_num("likelihood.maxit", $3); };
+o_occbin_likelihood_periods : LIKELIHOOD_PERIODS EQUAL INT_NUMBER { driver.option_num("likelihood.periods", $3); };
+o_occbin_likelihood_curb_retrench : LIKELIHOOD_CURB_RETRENCH { driver.option_num("likelihood.curb_retrench", "true"); };
+o_occbin_likelihood_check_ahead_periods : LIKELIHOOD_CHECK_AHEAD_PERIODS EQUAL INT_NUMBER { driver.option_num("likelihood.check_ahead_periods", $3); };
+o_occbin_likelihood_periodic_solution : LIKELIHOOD_PERIODIC_SOLUTION { driver.option_num("likelihood.periodic_solution", "true"); };
+o_occbin_likelihood_max_kalman_iterations : LIKELIHOOD_MAX_KALMAN_ITERATIONS EQUAL INT_NUMBER { driver.option_num("likelihood.max_number_of_iterations", $3); };
 o_occbin_smoother_inversion_filter : SMOOTHER_INVERSION_FILTER { driver.option_num("smoother.inversion_filter", "true"); };
 o_occbin_smoother_piecewise_kalman_filter : SMOOTHER_PIECEWISE_KALMAN_FILTER { driver.option_num("smoother.inversion_filter", "false"); };
-o_occbin_filter_use_relaxation : FILTER_USE_RELEXATION { driver.option_num("filter.use_relaxation", "true"); };
 o_occbin_smoother_maxit : SMOOTHER_MAXIT EQUAL INT_NUMBER { driver.option_num("smoother.maxit", $3); };
 o_occbin_smoother_periods : SMOOTHER_PERIODS EQUAL INT_NUMBER { driver.option_num("smoother.periods", $3); };
 o_occbin_smoother_curb_retrench : SMOOTHER_CURB_RETRENCH { driver.option_num("smoother.curb_retrench", "true"); };
 o_occbin_smoother_check_ahead_periods : SMOOTHER_CHECK_AHEAD_PERIODS EQUAL INT_NUMBER { driver.option_num("smoother.check_ahead_periods", $3); };
 o_occbin_smoother_debug : SMOOTHER_DEBUG { driver.option_num("smoother.debug", "true"); };
+o_occbin_smoother_periodic_solution : SMOOTHER_PERIODIC_SOLUTION { driver.option_num("smoother.periodic_solution", "true"); };
+o_occbin_filter_use_relaxation : FILTER_USE_RELEXATION { driver.option_num("filter.use_relaxation", "true"); };
 
 // Some options to "occbin_write_regimes"
 o_occbin_write_regimes_periods : PERIODS EQUAL vec_int 
