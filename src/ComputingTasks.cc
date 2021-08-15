@@ -4965,7 +4965,7 @@ MethodOfMomentsStatement::writeOutput(ostream &output, const string &basename, b
 {
   options_list.writeOutput(output, "options_mom_");
 
-  output << "[oo_, options_mom_, M_] = method_of_moments(bayestopt_, options_, oo_, estim_params_, M_, options_mom_);" << endl;  
+  output << "[oo_, options_mom_, M_] = mom.run(bayestopt_, options_, oo_, estim_params_, M_, options_mom_);" << endl;  
 }
 
 void
