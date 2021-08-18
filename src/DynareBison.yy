@@ -2478,6 +2478,7 @@ occbin_setup_option : o_occbin_simul_periods
                     | o_occbin_likelihood_curb_retrench
                     | o_occbin_likelihood_check_ahead_periods
                     | o_occbin_likelihood_periodic_solution
+                    | o_occbin_likelihood_max_kalman_iterations
                     | o_occbin_likelihood_inversion_filter
                     | o_occbin_likelihood_piecewise_kalman_filter
                     | o_occbin_smoother_periods
