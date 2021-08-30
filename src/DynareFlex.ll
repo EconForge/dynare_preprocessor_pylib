@@ -667,6 +667,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>mle_mode {return token::MLE_MODE; }
 <DYNARE_STATEMENT>k_order_solver {return token::K_ORDER_SOLVER; }
 <DYNARE_STATEMENT>filter_covariance {return token::FILTER_COVARIANCE; }
+<DYNARE_STATEMENT>updated_covariance {return token::UPDATED_COVARIANCE; }
 <DYNARE_STATEMENT>filter_decomposition {return token::FILTER_DECOMPOSITION; }
 <DYNARE_STATEMENT>smoothed_state_uncertainty {return token::SMOOTHED_STATE_UNCERTAINTY; }
 <DYNARE_STATEMENT>smoother_redux {return token::SMOOTHER_REDUX; }
