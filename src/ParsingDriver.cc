@@ -2636,6 +2636,7 @@ ParsingDriver::pac_model()
   if (it == options_list.string_options.end())
     error("You must pass the discount option to the pac_model statement.");
   auto discount = it->second;
+  check_symbol_is_parameter(discount);
 
   mod_file->addStatement(make_unique<PacModelStatement>(name, aux_model_name, discount,
                                                         pac_growth,
