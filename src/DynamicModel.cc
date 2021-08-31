@@ -114,6 +114,7 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   pac_h1_indices{m.pac_h1_indices},
   pac_mce_z1_symb_ids{m.pac_mce_z1_symb_ids},
   pac_eqtag_and_lag{m.pac_eqtag_and_lag},
+  pac_growth_neutrality_params{m.pac_growth_neutrality_params},
   pac_model_info{m.pac_model_info},
   pac_equation_info{m.pac_equation_info}
 {
@@ -178,6 +179,7 @@ DynamicModel::operator=(const DynamicModel &m)
   pac_mce_z1_symb_ids = m.pac_mce_z1_symb_ids;
   pac_eqtag_and_lag = m.pac_eqtag_and_lag;
   pac_expectation_substitution.clear();
+  pac_growth_neutrality_params = m.pac_growth_neutrality_params;
   pac_model_info = m.pac_model_info;
   pac_equation_info = m.pac_equation_info;
 
@@ -3033,20 +3035,19 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
       output << "];" << endl;
     }
 
-  for (auto &it : pac_model_info)
+  for (auto &[model, growth_neutrality_param_index] : pac_growth_neutrality_params)
+    output << "M_.pac." << model << ".growth_neutrality_param_index = "
+           << symbol_table.getTypeSpecificID(growth_neutrality_param_index) + 1 << ";" << endl;
+
+  for (auto &[model, values] : pac_model_info)
     {
-      vector<int> lhs = get<0>(it.second);
-      output << "M_.pac." << it.first << ".lhs = [";
+      auto &[lhs, aux_model_type] = values;
+      output << "M_.pac." << model << ".lhs = [";
       for (auto it : lhs)
         output << it + 1 << " ";
       output << "];" << endl;
 
-      if (int growth_param_index = get<1>(it.second);
-          growth_param_index >= 0)
-        output << "M_.pac." << it.first << ".growth_neutrality_param_index = "
-               << symbol_table.getTypeSpecificID(growth_param_index) + 1 << ";" << endl;
-
-      output << "M_.pac." << it.first << ".auxiliary_model_type = '" << get<2>(it.second) << "';" << endl;
+      output << "M_.pac." << model << ".auxiliary_model_type = '" << aux_model_type << "';" << endl;
     }
 
   for (auto &pit : pac_equation_info)
@@ -4195,6 +4196,14 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
 }
 
 void
+DynamicModel::createPacGrowthNeutralityParameter(const string &pac_model_name)
+{
+  int param_idx = symbol_table.addSymbol(pac_model_name +"_pac_growth_neutrality_correction",
+                                         SymbolType::parameter);
+  pac_growth_neutrality_params[pac_model_name] = param_idx;
+}
+
+void
 DynamicModel::fillPacModelInfo(const string &pac_model_name,
                                vector<int> lhs,
                                int max_lag,
@@ -4207,12 +4216,6 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
 
   bool stationary_vars_present = any_of(nonstationary.begin(), nonstationary.end(), logical_not<bool>());
   bool nonstationary_vars_present = any_of(nonstationary.begin(), nonstationary.end(), [](bool b) { return b; }); // FIXME: use std::identity instead of an anonymous function when we upgrade to C++20
-
-  int growth_param_index = -1;
-  if (growth)
-    growth_param_index = symbol_table.addSymbol(pac_model_name
-                                                +"_pac_growth_neutrality_correction",
-                                                SymbolType::parameter);
 
   for (auto pac_models_and_eqtags : pac_eqtag_and_lag)
     {
@@ -4276,12 +4279,15 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
         }
 
       if (growth)
-        subExpr = AddPlus(subExpr,
-                          AddTimes(AddVariable(growth_param_index), growth));
+        {
+          int growth_param_index = pac_growth_neutrality_params.at(pac_model_name);
+          subExpr = AddPlus(subExpr,
+                            AddTimes(AddVariable(growth_param_index), growth));
+        }
 
       pac_expectation_substitution[{pac_model_name, eqtag}] = subExpr;
     }
-  pac_model_info[pac_model_name] = {move(lhs), growth_param_index, move(aux_model_type)};
+  pac_model_info[pac_model_name] = {move(lhs), move(aux_model_type)};
 }
 
 void

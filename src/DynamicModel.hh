@@ -134,13 +134,16 @@ private:
   //! Store lag info for pac equations
   //! (pac_model_name, equation_tag) -> (standardized_eqtag, lag)
   map<pair<string, string>, pair<string, int>> pac_eqtag_and_lag;
+  // Store indices for growth neutrality parameters
+  // pac_model_name -> growth_param_index
+  map<string, int> pac_growth_neutrality_params;
 
   //! (pac_model_name, equation_tag) -> expr_t
   map<pair<string, string>, expr_t> pac_expectation_substitution;
 
-  //! Store info about pac models:
-  //! pac_model_name -> (lhsvars, growth_param_index, aux_model_type)
-  map<string, tuple<vector<int>, int, string>> pac_model_info;
+  //! Store info about backward PAC models:
+  //! pac_model_name -> (lhsvars, aux_model_type)
+  map<string, pair<vector<int>, string>> pac_model_info;
 
   //! Store info about pac models specific to the equation they appear in
   //! (pac_model_name, standardized_eqtag) ->
@@ -414,7 +417,14 @@ public:
 
   //! Get Pac equation parameter info
   map<pair<string, string>, pair<string, int>> walkPacParameters(const string &name);
+
+  // Create the growth neutrality parameter of a given PAC model (when the
+  // “growth” option has been passed)
+  void createPacGrowthNeutralityParameter(const string &pac_model_name);
+
   //! Add var_model info to pac_expectation nodes
+  // Must be called after createPacGrowthNeutralityParameter() has been called
+  // on the relevant models
   void fillPacModelInfo(const string &pac_model_name,
                         vector<int> lhs,
                         int max_lag,

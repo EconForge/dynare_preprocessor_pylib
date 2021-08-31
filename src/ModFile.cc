@@ -484,6 +484,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
             cerr << "Error: aux_model_name not recognized as VAR model or Trend Component model" << endl;
             exit(EXIT_FAILURE);
           }
+        if (pms->growth)
+          dynamic_model.createPacGrowthNeutralityParameter(pms->name);
+
         auto eqtag_and_lag = dynamic_model.walkPacParameters(pms->name);
         if (pms->aux_model_name.empty())
           dynamic_model.addPacModelConsistentExpectationEquation(pms->name, symbol_table.getID(pms->discount),
