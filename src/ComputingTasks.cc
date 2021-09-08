@@ -20,6 +20,8 @@
 #include <cassert>
 #include <iostream>
 #include <sstream>
+#include <algorithm>
+#include <iterator>
 
 using namespace std;
 
@@ -1399,6 +1401,41 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
               cerr << "ERROR: in `" << blockName() << "' block, the symbol " << it.name << " is declared twice." << endl;
               exit(EXIT_FAILURE);
             }
+        }
+    }
+
+  /* Check that a parameter declared in this block is not used in expressions
+     associated to other parameters in the same block (see issue #77) */
+  // First compute the symbol IDs of parameters declared in this block
+  set<int> declared_params;
+  transform(already_declared.begin(), already_declared.end(), inserter(declared_params, declared_params.end()),
+            [&](const string &name) { return symbol_table.getID(name); });
+  // Then look for (apparently) recursive definitions
+  for (const auto &it : estim_params_list)
+    {
+      set<int> used_params;
+      it.init_val->collectVariables(SymbolType::parameter, used_params);
+      it.low_bound->collectVariables(SymbolType::parameter, used_params);
+      it.up_bound->collectVariables(SymbolType::parameter, used_params);
+      it.mean->collectVariables(SymbolType::parameter, used_params);
+      it.std->collectVariables(SymbolType::parameter, used_params);
+      it.p3->collectVariables(SymbolType::parameter, used_params);
+      it.p4->collectVariables(SymbolType::parameter, used_params);
+      it.jscale->collectVariables(SymbolType::parameter, used_params);
+      vector<int> intersect;
+      set_intersection(declared_params.begin(), declared_params.end(),
+                       used_params.begin(), used_params.end(),
+                       back_inserter(intersect));
+      if (intersect.size() > 0)
+        {
+          cerr << "ERROR: in `" << blockName() << "' block, the value of estimated parameter "
+               << symbol_table.getName(intersect[0]) << " is used in the declaration for ";
+          if (it.type == 3)
+            cerr << "correlation between " << it.name << " and " << it.name2;
+          else // either a parameter, the stderr of an exo, or the measurement error of an endo
+            cerr << "symbol " << it.name;
+          cerr << ". This behaviour is undefined." << endl;
+          exit(EXIT_FAILURE);
         }
     }
 }
