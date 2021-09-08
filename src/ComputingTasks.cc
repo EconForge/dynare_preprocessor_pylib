@@ -1362,16 +1362,58 @@ DsampleStatement::writeJsonOutput(ostream &output) const
          << R"("value2": )" << val2 << "}";
 }
 
-EstimatedParamsStatement::EstimatedParamsStatement(vector<EstimationParams> estim_params_list_arg,
-                                                   const SymbolTable &symbol_table_arg) :
+AbstractEstimatedParamsStatement::AbstractEstimatedParamsStatement(vector<EstimationParams> estim_params_list_arg,
+                                                                   const SymbolTable &symbol_table_arg) :
   estim_params_list{move(estim_params_list_arg)},
   symbol_table{symbol_table_arg}
 {
 }
 
 void
+AbstractEstimatedParamsStatement::commonCheckPass() const
+{
+  // Check that no parameter/endogenous is declared twice in the block
+  set<string> already_declared;
+  set<pair<string, string>> already_declared_corr;
+  for (const auto &it : estim_params_list)
+    {
+      if (it.type == 3) // Correlation
+        {
+          // Use lexical ordering for the pair of symbols
+          auto x = it.name < it.name2 ? make_pair(it.name, it.name2) : make_pair(it.name2, it.name);
+
+          if (already_declared_corr.find(x) == already_declared_corr.end())
+            already_declared_corr.insert(x);
+          else
+            {
+              cerr << "ERROR: in `" << blockName() << "' block, the correlation between " << it.name << " and " << it.name2 << " is declared twice." << endl;
+              exit(EXIT_FAILURE);
+            }
+        }
+      else
+        {
+          if (already_declared.find(it.name) == already_declared.end())
+            already_declared.insert(it.name);
+          else
+            {
+              cerr << "ERROR: in `" << blockName() << "' block, the symbol " << it.name << " is declared twice." << endl;
+              exit(EXIT_FAILURE);
+            }
+        }
+    }
+}
+
+EstimatedParamsStatement::EstimatedParamsStatement(vector<EstimationParams> estim_params_list_arg,
+                                                   const SymbolTable &symbol_table_arg) :
+  AbstractEstimatedParamsStatement(move(estim_params_list_arg), symbol_table_arg)
+{
+}
+
+void
 EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
+  commonCheckPass();
+
   for (const auto &it : estim_params_list)
     {
       if (it.name == "dsge_prior_weight")
@@ -1392,36 +1434,6 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
           {
             // We don't have enough information to compute the numerical value, skip the test
           }
-    }
-
-  // Check that no parameter/endogenous is declared twice in the block
-  set<string> already_declared;
-  set<pair<string, string>> already_declared_corr;
-  for (const auto &it : estim_params_list)
-    {
-      if (it.type == 3) // Correlation
-        {
-          // Use lexical ordering for the pair of symbols
-          auto x = it.name < it.name2 ? pair(it.name, it.name2) : pair(it.name2, it.name);
-
-          if (already_declared_corr.find(x) == already_declared_corr.end())
-            already_declared_corr.insert(x);
-          else
-            {
-              cerr << "ERROR: in `estimated_params' block, the correlation between " << it.name << " and " << it.name2 << " is declared twice." << endl;
-              exit(EXIT_FAILURE);
-            }
-        }
-      else
-        {
-          if (already_declared.find(it.name) == already_declared.end())
-            already_declared.insert(it.name);
-          else
-            {
-              cerr << "ERROR: in `estimated_params' block, the symbol " << it.name << " is declared twice." << endl;
-              exit(EXIT_FAILURE);
-            }
-        }
     }
 
   // Fill in mod_file_struct.estimated_parameters (related to #469)
@@ -1537,8 +1549,7 @@ EstimatedParamsStatement::writeJsonOutput(ostream &output) const
 EstimatedParamsInitStatement::EstimatedParamsInitStatement(vector<EstimationParams> estim_params_list_arg,
                                                            const SymbolTable &symbol_table_arg,
                                                            const bool use_calibration_arg) :
-  estim_params_list{move(estim_params_list_arg)},
-  symbol_table{symbol_table_arg},
+  AbstractEstimatedParamsStatement(move(estim_params_list_arg), symbol_table_arg),
   use_calibration{use_calibration_arg}
 {
 }
@@ -1546,6 +1557,8 @@ EstimatedParamsInitStatement::EstimatedParamsInitStatement(vector<EstimationPara
 void
 EstimatedParamsInitStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
+  commonCheckPass();
+
   if (use_calibration)
     mod_file_struct.estim_params_use_calib = true;
 }
@@ -1675,9 +1688,14 @@ EstimatedParamsInitStatement::writeJsonOutput(ostream &output) const
 
 EstimatedParamsBoundsStatement::EstimatedParamsBoundsStatement(vector<EstimationParams> estim_params_list_arg,
                                                                const SymbolTable &symbol_table_arg) :
-  estim_params_list{move(estim_params_list_arg)},
-  symbol_table{symbol_table_arg}
+  AbstractEstimatedParamsStatement(move(estim_params_list_arg), symbol_table_arg)
 {
+}
+
+void
+EstimatedParamsBoundsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  commonCheckPass();
 }
 
 void

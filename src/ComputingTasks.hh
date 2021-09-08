@@ -511,42 +511,50 @@ public:
   }
 };
 
-class EstimatedParamsStatement : public Statement
+class AbstractEstimatedParamsStatement : public Statement
 {
-private:
+protected:
   const vector<EstimationParams> estim_params_list;
   const SymbolTable &symbol_table;
+  AbstractEstimatedParamsStatement(vector<EstimationParams> estim_params_list_arg,
+                                   const SymbolTable &symbol_table_arg);
+  virtual string blockName() const = 0;
+  // Part of the check pass that is common to the three estimated_params* blocks
+  void commonCheckPass() const;
+};
+
+class EstimatedParamsStatement : public AbstractEstimatedParamsStatement
+{
 public:
   EstimatedParamsStatement(vector<EstimationParams> estim_params_list_arg,
                            const SymbolTable &symbol_table_arg);
+  string blockName() const override { return "estimated_params"; };
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
 
-class EstimatedParamsInitStatement : public Statement
+class EstimatedParamsInitStatement : public AbstractEstimatedParamsStatement
 {
 private:
-  const vector<EstimationParams> estim_params_list;
-  const SymbolTable &symbol_table;
   const bool use_calibration;
 public:
   EstimatedParamsInitStatement(vector<EstimationParams> estim_params_list_arg,
                                const SymbolTable &symbol_table_arg,
                                const bool use_calibration_arg);
+  string blockName() const override { return "estimated_params_init"; };
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
 
-class EstimatedParamsBoundsStatement : public Statement
+class EstimatedParamsBoundsStatement : public AbstractEstimatedParamsStatement
 {
-private:
-  const vector<EstimationParams> estim_params_list;
-  const SymbolTable &symbol_table;
 public:
   EstimatedParamsBoundsStatement(vector<EstimationParams> estim_params_list_arg,
                                  const SymbolTable &symbol_table_arg);
+  string blockName() const override { return "estimated_params_bounds"; };
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
