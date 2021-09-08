@@ -1408,8 +1408,9 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
      associated to other parameters in the same block (see issue #77) */
   // First compute the symbol IDs of parameters declared in this block
   set<int> declared_params;
-  transform(already_declared.begin(), already_declared.end(), inserter(declared_params, declared_params.end()),
-            [&](const string &name) { return symbol_table.getID(name); });
+  for (const string &name : already_declared)
+    if (name != "dsge_prior_weight")
+      declared_params.insert(symbol_table.getID(name));
   // Then look for (apparently) recursive definitions
   for (const auto &it : estim_params_list)
     {
