@@ -398,6 +398,10 @@ private:
   void copyHelper(const ModelTree &m);
   //! Returns the name of the MATLAB architecture given the extension used for MEX files
   static string matlab_arch(const string &mexext);
+#ifdef __APPLE__
+  //! Finds a suitable GCC compiler on macOS
+  static string findGccOnMacos();
+#endif
   //! Compiles a MEX file
   void compileMEX(const string &basename, const string &funcname, const string &mexext, const vector<filesystem::path> &src_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
 

@@ -1895,6 +1895,35 @@ ModelTree::matlab_arch(const string &mexext)
     }
 }
 
+#ifdef __APPLE__
+string
+ModelTree::findGccOnMacos()
+{
+  const string macos_gcc_version{"11"};
+  char dynare_preprocessor_path[PATH_MAX];
+  uint32_t size = PATH_MAX;
+  string local_gcc_path;
+  if (_NSGetExecutablePath(dynare_preprocessor_path, &size) == 0)
+    {
+      string s = dynare_preprocessor_path;
+      local_gcc_path = s.substr(0, s.find_last_of("/")) + "/../.brew/bin/gcc-" + macos_gcc_version;
+    }
+
+  if (filesystem::exists(local_gcc_path))
+    return local_gcc_path;
+  else if (string global_gcc_path = "/usr/local/bin/gcc-" + macos_gcc_version;
+           filesystem::exists(global_gcc_path))
+    return global_gcc_path;
+  else
+    {
+      cerr << "ERROR: You must install gcc-" << macos_gcc_version
+           << " on your system before using the `use_dll` option of Dynare. "
+           << "You can do this via the Dynare installation package." << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+#endif
+
 void
 ModelTree::compileMEX(const string &basename, const string &funcname, const string &mexext, const vector<filesystem::path> &src_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
 {
@@ -1915,6 +1944,22 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
       // Octave
       compiler = matlabroot / "bin" / "mkoctfile";
       flags << "--mex";
+#ifdef __APPLE__
+      /* On macOS, enforce GCC, otherwise Clang will be used, and it does not
+         accept our custom optimization flags (see dynare#1797) */
+      string gcc_path = findGccOnMacos();
+      if (setenv("CC", gcc_path.c_str(), 1) != 0)
+        {
+          cerr << "Can't set CC environment variable" << endl;
+          exit(EXIT_FAILURE);
+        }
+      // We also define CXX, because that is used for linking
+      if (setenv("CXX", gcc_path.c_str(), 1) != 0)
+        {
+          cerr << "Can't set CXX environment variable" << endl;
+          exit(EXIT_FAILURE);
+        }
+#endif
     }
   else
     {
@@ -1941,6 +1986,9 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
           // Put the MinGW environment shipped with Dynare in the path
           auto mingwpath = dynareroot / "mingw64" / "bin";
           string newpath = "PATH=" + mingwpath.string() + ';' + string{getenv("PATH")};
+          /* We can’t use setenv() since it is not available on MinGW. Note
+            that putenv() seems to make a copy of the string on MinGW, contrary
+            to what is done on GNU/Linux and macOS. */
           if (putenv(const_cast<char *>(newpath.c_str())) != 0)
             {
               cerr << "Can't set PATH" << endl;
@@ -1950,26 +1998,7 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
 #ifdef __APPLE__
       else if (mexext == "mexmaci64")
         {
-          // macOS
-          char dynare_m_path[PATH_MAX];
-          uint32_t size = PATH_MAX;
-          string gcc_relative_path;
-          if (_NSGetExecutablePath(dynare_m_path, &size) == 0)
-            {
-              string str = dynare_m_path;
-              gcc_relative_path = str.substr(0, str.find_last_of("/")) + "/../.brew/bin/gcc-11";
-            }
-
-          if (filesystem::exists(gcc_relative_path))
-            compiler = gcc_relative_path;
-          else if (filesystem::exists("/usr/local/bin/gcc-11"))
-            compiler = "/usr/local/bin/gcc-11";
-          else
-            {
-              cerr << "ERROR: You must install gcc-11 on your system before using the `use_dll` option of Dynare. "
-                   << "You can do this via the Dynare installation package." << endl;
-              exit(EXIT_FAILURE);
-            }
+          compiler = findGccOnMacos();
           flags << " -fno-common -Wl,-twolevel_namespace -undefined error -bundle";
           libs += " -lm";
         }
