@@ -96,7 +96,7 @@ class ParsingDriver;
 %token LAPLACE LIK_ALGO LIK_INIT LINEAR LINEAR_DECOMPOSITION LOAD_IDENT_FILES LOAD_MH_FILE LOAD_RESULTS_AFTER_LOAD_MH LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV LINEAR_APPROXIMATION
 %token LYAPUNOV_COMPLEX_THRESHOLD LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR
 %token MATCHED_MOMENTS MARKOWITZ MARGINAL_DENSITY MAX MAXIT
-%token MFS MH_CONF_SIG MH_DROP MH_INIT_SCALE MH_JSCALE MH_TUNE_JSCALE MH_TUNE_GUESS MH_MODE MH_NBLOCKS MH_REPLIC MH_RECOVER MH_INITIALIZE_FROM_PREVIOUS_MCMC MH_INITIALIZE_FROM_PREVIOUS_MCMC_DIRECTORY MH_INITIALIZE_FROM_PREVIOUS_MCMC_RECORD MH_INITIALIZE_FROM_PREVIOUS_MCMC_PRIOR
+%token MFS MH_CONF_SIG MH_DROP MH_INIT_SCALE MH_JSCALE MH_TUNE_JSCALE MH_TUNE_GUESS MH_POSTERIOR_MODE_ESTIMATION MH_NBLOCKS MH_REPLIC MH_RECOVER MH_INITIALIZE_FROM_PREVIOUS_MCMC MH_INITIALIZE_FROM_PREVIOUS_MCMC_DIRECTORY MH_INITIALIZE_FROM_PREVIOUS_MCMC_RECORD MH_INITIALIZE_FROM_PREVIOUS_MCMC_PRIOR
 %token POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
 %token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO CONTEMPORANEOUS_CORRELATION DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL RAFTERY_LEWIS_QRS RAFTERY_LEWIS_DIAGNOSTICS MCMC_JUMPING_COVARIANCE MOMENT_CALIBRATION
@@ -2086,7 +2086,7 @@ estimation_options : o_datafile
                    | o_mode_check_symmetric_plots
                    | o_mode_check_number_of_points
                    | o_prior_trunc
-                   | o_mh_mode
+                   | o_mh_posterior_mode_estimation
                    | o_mh_nblocks
                    | o_load_mh_file
                    | o_load_results_after_load_mh
@@ -3561,7 +3561,7 @@ o_mode_check_neighbourhood_size : MODE_CHECK_NEIGHBOURHOOD_SIZE EQUAL signed_num
 o_mode_check_number_of_points : MODE_CHECK_NUMBER_OF_POINTS EQUAL INT_NUMBER { driver.option_num("mode_check.number_of_points", $3); };
 o_mode_check_symmetric_plots : MODE_CHECK_SYMMETRIC_PLOTS EQUAL INT_NUMBER { driver.option_num("mode_check.symmetric_plots", $3); };
 o_prior_trunc : PRIOR_TRUNC EQUAL non_negative_number { driver.option_num("prior_trunc", $3); };
-o_mh_mode : MH_MODE EQUAL INT_NUMBER { driver.option_num("mh_mode", $3); };
+o_mh_posterior_mode_estimation : MH_POSTERIOR_MODE_ESTIMATION { driver.option_num("mh_posterior_mode_estimation", "true"); };
 o_mh_nblocks : MH_NBLOCKS EQUAL INT_NUMBER { driver.option_num("mh_nblck", $3); };
 o_load_mh_file : LOAD_MH_FILE { driver.option_num("load_mh_file", "true"); };
 o_load_results_after_load_mh : LOAD_RESULTS_AFTER_LOAD_MH { driver.option_num("load_results_after_load_mh", "true"); };
