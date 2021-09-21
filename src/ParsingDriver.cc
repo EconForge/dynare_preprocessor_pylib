@@ -2038,6 +2038,12 @@ ParsingDriver::ramsey_model()
   else if (planner_discount)
     error("ramsey_model: the 'planner_discount' option cannot be used when the 'optimal_policy_discount_factor' parameter is explicitly declared.");
 
+  // Check that instruments are declared endogenous (#72)
+  if (auto it = options_list.symbol_list_options.find("instruments");
+      it != options_list.symbol_list_options.end())
+    for (const auto &s : it->second.getSymbols())
+      check_symbol_is_endogenous(s);
+
   mod_file->addStatement(make_unique<RamseyModelStatement>(options_list));
   options_list.clear();
   planner_discount = nullptr;
@@ -2058,6 +2064,12 @@ ParsingDriver::ramsey_policy()
     }
   else if (planner_discount)
     error("ramsey_policy: the 'planner_discount' option cannot be used when the 'optimal_policy_discount_factor' parameter is explicitly declared.");
+
+  // Check that instruments are declared endogenous (#72)
+  if (auto it = options_list.symbol_list_options.find("instruments");
+      it != options_list.symbol_list_options.end())
+    for (const auto &s : it->second.getSymbols())
+      check_symbol_is_endogenous(s);
 
   mod_file->addStatement(make_unique<RamseyPolicyStatement>(mod_file->symbol_table,
                                                             symbol_list, options_list));
@@ -2113,6 +2125,12 @@ ParsingDriver::discretionary_policy()
   if (!planner_discount)
     planner_discount = data_tree->One;
   init_param("optimal_policy_discount_factor", planner_discount);
+
+  // Check that instruments are declared endogenous (#72)
+  if (auto it = options_list.symbol_list_options.find("instruments");
+      it != options_list.symbol_list_options.end())
+    for (const auto &s : it->second.getSymbols())
+      check_symbol_is_endogenous(s);
 
   mod_file->addStatement(make_unique<DiscretionaryPolicyStatement>(symbol_list, options_list));
   symbol_list.clear();
