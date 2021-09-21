@@ -329,7 +329,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>mode_check_symmetric_plots 		{return token::MODE_CHECK_SYMMETRIC_PLOTS;}
 <DYNARE_STATEMENT>mode_check_number_of_points 		{return token::MODE_CHECK_NUMBER_OF_POINTS;}
 <DYNARE_STATEMENT>prior_trunc 	{return token::PRIOR_TRUNC;}
-<DYNARE_STATEMENT>mh_mode 		{return token::MH_MODE;}
+<DYNARE_STATEMENT>mh_posterior_mode_estimation 		{return token::MH_POSTERIOR_MODE_ESTIMATION;}
 <DYNARE_STATEMENT>mh_nblocks 		{return token::MH_NBLOCKS;}
 <DYNARE_STATEMENT>load_mh_file 	{return token::LOAD_MH_FILE;}
 <DYNARE_STATEMENT>load_results_after_load_mh 	{return token::LOAD_RESULTS_AFTER_LOAD_MH;}
