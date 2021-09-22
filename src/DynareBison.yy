@@ -178,7 +178,7 @@ class ParsingDriver;
 %token METHOD_OF_MOMENTS MOM_METHOD
 %token BARTLETT_KERNEL_LAG WEIGHTING_MATRIX WEIGHTING_MATRIX_SCALING_FACTOR ANALYTIC_STANDARD_ERRORS ANALYTIC_JACOBIAN PENALIZED_ESTIMATOR VERBOSE 
 %token SIMULATION_MULTIPLE MOM_SEED SEED BOUNDED_SHOCK_SUPPORT ADDITIONAL_OPTIMIZER_STEPS MOM_SE_TOLX SE_TOLX MOM_BURNIN BURNIN 
-%token EQTAGS STEADY_STATE_GROWTH
+%token EQTAGS
 %token ANALYTICAL_GIRF IRF_IN_PERCENT EMAS_GIRF EMAS_DROP EMAS_TOLF EMAS_MAX_ITER
 %token NO_IDENTIFICATION_STRENGTH NO_IDENTIFICATION_REDUCEDFORM NO_IDENTIFICATION_MOMENTS
 %token NO_IDENTIFICATION_MINIMAL NO_IDENTIFICATION_SPECTRUM NORMALIZE_JACOBIANS GRID_NBR
@@ -429,7 +429,6 @@ pac_model_options : o_pac_name
                   | o_pac_aux_model_name
                   | o_pac_discount
                   | o_pac_growth
-                  | o_pac_steady_state_growth
                   ;
 
 var_expectation_model : VAR_EXPECTATION_MODEL '(' var_expectation_model_options_list ')' ';'
@@ -3411,9 +3410,6 @@ o_pac_name : MODEL_NAME EQUAL symbol { driver.option_str("pac.model_name", $3); 
 o_pac_aux_model_name : AUXILIARY_MODEL_NAME EQUAL symbol { driver.option_str("pac.aux_model_name", $3); };
 o_pac_discount : DISCOUNT EQUAL symbol { driver.option_str("pac.discount", $3); };
 o_pac_growth : GROWTH { driver.begin_pac_growth(); } EQUAL hand_side { driver.set_pac_growth($4); };
-o_pac_steady_state_growth : STEADY_STATE_GROWTH EQUAL signed_number { driver.set_pac_steady_state_growth($3); }
-                          | STEADY_STATE_GROWTH EQUAL symbol { driver.set_pac_steady_state_growth($3); }
-                          ;
 o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var.model_name", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };

@@ -2599,8 +2599,6 @@ ParsingDriver::begin_pac_model()
 {
   parsing_pac_model = true;
   pac_growth = nullptr;
-  pac_steady_state_growth_rate_number = -1;
-  pac_steady_state_growth_rate_symb_id = -1;
   options_list.clear();
 }
 
@@ -2612,43 +2610,10 @@ ParsingDriver::pac_model()
     error("You must pass the model_name option to the pac_model statement.");
   auto name = it->second;
 
-  bool pac_growth_is_param = false;
-  if (pac_growth && dynamic_cast<VariableNode *>(pac_growth))
-    {
-      set<int> params;
-      pac_growth->collectVariables(SymbolType::parameter, params);
-      if (params.size() == 1)
-        pac_growth_is_param = true;
-      pac_growth->collectVariables(SymbolType::endogenous, params);
-      pac_growth->collectVariables(SymbolType::exogenous, params);
-      if (params.size() != 1)
-        pac_growth_is_param = false;
-    }
-
   string aux_model_name;
   it = options_list.string_options.find("pac.aux_model_name");
   if (it != options_list.string_options.end())
-    {
-      aux_model_name = it->second;
-      if (pac_steady_state_growth_rate_number >= 0 || pac_steady_state_growth_rate_symb_id >= 0)
-        {
-          pac_steady_state_growth_rate_number = -1;
-          pac_steady_state_growth_rate_symb_id = -1;
-          warning("when aux_model_name is used in the pac_model statement, steady_state_growth is ignored");
-        }
-    }
-  else
-    if (pac_growth_is_param
-        && (pac_steady_state_growth_rate_number >= 0 || pac_steady_state_growth_rate_symb_id >= 0))
-      warning("If growth option is constant, steady_state_growth is ignored");
-    else if (pac_growth && !pac_growth_is_param
-             && pac_steady_state_growth_rate_number < 0
-             && pac_steady_state_growth_rate_symb_id < 0)
-      error("The steady state growth rate of the target must be provided (steady_state_growth option) if option growth is not constant");
-
-  if (pac_steady_state_growth_rate_symb_id >= 0
-      && mod_file->symbol_table.getType(pac_steady_state_growth_rate_symb_id) != SymbolType::parameter)
-    error("pac_model: steady_state_growth accepts either a number or a parameter");
+    aux_model_name = it->second;
 
   it = options_list.string_options.find("pac.discount");
   if (it == options_list.string_options.end())
@@ -2658,8 +2623,6 @@ ParsingDriver::pac_model()
 
   mod_file->addStatement(make_unique<PacModelStatement>(name, aux_model_name, discount,
                                                         pac_growth,
-                                                        pac_steady_state_growth_rate_number,
-                                                        pac_steady_state_growth_rate_symb_id,
                                                         mod_file->symbol_table));
   parsing_pac_model = false;
 }
@@ -2669,21 +2632,6 @@ ParsingDriver::set_pac_growth(expr_t pac_growth_arg)
 {
   pac_growth = pac_growth_arg;
   reset_data_tree();
-}
-
-void
-ParsingDriver::set_pac_steady_state_growth(const string &name_or_number)
-{
-  try
-    {
-      pac_steady_state_growth_rate_number = stod(name_or_number);
-    }
-  catch (...)
-    {
-      if (!mod_file->symbol_table.exists(name_or_number))
-        error("Unknown symbol used in pac_steady_state_growth option: " + name_or_number + "\n");
-      pac_steady_state_growth_rate_symb_id = mod_file->symbol_table.getID(name_or_number);
-    }
 }
 
 expr_t

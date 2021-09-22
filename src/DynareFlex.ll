@@ -934,7 +934,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_BLOCK>var_expectation {return token::VAR_EXPECTATION;}
 <DYNARE_BLOCK>pac_expectation {return token::PAC_EXPECTATION;}
 <DYNARE_STATEMENT>discount {return token::DISCOUNT;}
-<DYNARE_STATEMENT>steady_state_growth {return token::STEADY_STATE_GROWTH;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>varobs {return token::VAROBS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>varexobs {return token::VAREXOBS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>nan {return token::NAN_CONSTANT;}

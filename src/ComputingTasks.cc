@@ -337,16 +337,12 @@ PacModelStatement::PacModelStatement(string name_arg,
                                      string aux_model_name_arg,
                                      string discount_arg,
                                      expr_t growth_arg,
-                                     double steady_state_growth_rate_number_arg,
-                                     int steady_state_growth_rate_symb_id_arg,
                                      const SymbolTable &symbol_table_arg) :
   name{move(name_arg)},
   aux_model_name{move(aux_model_name_arg)},
   discount{move(discount_arg)},
   growth{growth_arg},
   original_growth{growth_arg},
-  steady_state_growth_rate_number{steady_state_growth_rate_number_arg},
-  steady_state_growth_rate_symb_id{steady_state_growth_rate_symb_id_arg},
   symbol_table{symbol_table_arg}
 {
 }
@@ -388,12 +384,6 @@ PacModelStatement::writeOutput(ostream &output, const string &basename, bool min
 {
   output << "M_.pac." << name << ".auxiliary_model_name = '" << aux_model_name << "';" << endl
          << "M_.pac." << name << ".discount_index = " << symbol_table.getTypeSpecificID(discount) + 1 << ";" << endl;
-  if (steady_state_growth_rate_symb_id < 0 && steady_state_growth_rate_number > 0)
-    output << "M_.pac." << name << ".steady_state_growth_rate = "
-           << steady_state_growth_rate_number << ";" << endl;
-  else if (steady_state_growth_rate_symb_id >= 0)
-    output << "M_.pac." << name << ".steady_state_growth_rate = "
-           << symbol_table.getTypeSpecificID(steady_state_growth_rate_symb_id) + 1 << ";" << endl;
 
   if (growth)
     {
