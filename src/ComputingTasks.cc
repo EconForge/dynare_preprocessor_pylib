@@ -668,7 +668,7 @@ RamseyConstraintsStatement::RamseyConstraintsStatement(const SymbolTable &symbol
 void
 RamseyConstraintsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  if (!mod_file_struct.ramsey_model_present || !mod_file_struct.ramsey_policy_present)
+  if (!mod_file_struct.ramsey_model_present && !mod_file_struct.ramsey_policy_present)
     cerr << "ramsey_constraints: can only be used with ramsey_model or ramsey_policy" << endl;
 }
 
