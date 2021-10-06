@@ -4198,9 +4198,17 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
 void
 DynamicModel::createPacGrowthNeutralityParameter(const string &pac_model_name)
 {
-  int param_idx = symbol_table.addSymbol(pac_model_name +"_pac_growth_neutrality_correction",
-                                         SymbolType::parameter);
-  pac_growth_neutrality_params[pac_model_name] = param_idx;
+  string param_name = pac_model_name + "_pac_growth_neutrality_correction";
+  try
+    {
+      int param_idx = symbol_table.addSymbol(param_name, SymbolType::parameter);
+      pac_growth_neutrality_params[pac_model_name] = param_idx;
+    }
+  catch (SymbolTable::AlreadyDeclaredException)
+    {
+      cerr << "The parameter '" << param_name << "' conflicts with the auxiliary parameter that will be generated for the growth neutrality correction of the '" << pac_model_name << "' PAC model. Please rename that parameter." << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
