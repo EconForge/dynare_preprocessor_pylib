@@ -1899,7 +1899,8 @@ ModelTree::matlab_arch(const string &mexext)
 string
 ModelTree::findGccOnMacos()
 {
-  const string macos_gcc_version{"11"};
+  const string macos_gcc_version{"11"}; // doc/manual/source/installation-and-configuration.rst
+                                        // should be updated when this is changed
   char dynare_preprocessor_path[PATH_MAX];
   uint32_t size = PATH_MAX;
   string local_gcc_path;
@@ -1918,7 +1919,7 @@ ModelTree::findGccOnMacos()
     {
       cerr << "ERROR: You must install gcc-" << macos_gcc_version
            << " on your system before using the `use_dll` option of Dynare. "
-           << "You can do this via the Dynare installation package." << endl;
+           << "If using MATLAB, you can do this via the Dynare installation package. If using Octave, you should run `brew install gcc-" << macos_gcc_version << "` in a terminal." << endl;
       exit(EXIT_FAILURE);
     }
 }
