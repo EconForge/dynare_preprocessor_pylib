@@ -948,6 +948,63 @@ SymbolTable::writeJsonOutput(ostream &output) const
 	}
       output << "]" << endl;
     }
+  // Write the auxiliary variable table
+  output << R"(, "orig_endo_nbr": )" << orig_endo_nbr() << endl;
+  if (aux_vars.size() == 0)
+    output << R"(, "aux_vars": [])";
+  else
+    {
+      output << R"(, "aux_vars": [)" << endl;
+      for (int i = 0; i < static_cast<int>(aux_vars.size()); i++)
+	{
+	  if (i != 0)
+	    output << ", ";
+	  output << R"({"endo_index": )" << getTypeSpecificID(aux_vars[i].get_symb_id())+1
+		 << R"(, "type": )" << aux_vars[i].get_type_id();
+	  switch (aux_vars[i].get_type())
+	    {
+	    case AuxVarType::endoLead:
+	    case AuxVarType::exoLead:
+	      break;
+	    case AuxVarType::endoLag:
+	    case AuxVarType::exoLag:
+	      output << R"(, "orig_index": )" << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1
+		     << R"(, "orig_lead_lag": )" << aux_vars[i].get_orig_lead_lag();
+	      break;
+	    case AuxVarType::unaryOp:
+	      if (aux_vars[i].get_orig_symb_id() >= 0)
+		output << R"(, "orig_index": )" << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1
+		       << R"(, "orig_lead_lag": )" << aux_vars[i].get_orig_lead_lag()
+		       << R"(, "unary_op": )" << aux_vars[i].get_unary_op();
+	      break;
+	    case AuxVarType::multiplier:
+	      output << R"(, "eq_nbr": )" << aux_vars[i].get_equation_number_for_multiplier() + 1;
+	      break;
+	    case AuxVarType::diffForward:
+	      output << R"(, orig_index": )" << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1;
+	      break;
+	    case AuxVarType::expectation:
+	      break;
+	    case AuxVarType::diff:
+	    case AuxVarType::diffLag:
+	    case AuxVarType::diffLead:
+	      if (aux_vars[i].get_orig_symb_id() >= 0)
+		output << R"(, "orig_index": )" << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1
+		       << R"(, "orig_lead_lag": )" << aux_vars[i].get_orig_lead_lag();
+	      break;
+	    }
+
+	  if (expr_t orig_expr = aux_vars[i].get_expr_node();
+	      orig_expr)
+	    {
+	      output << R"(, "orig_expr": ")";
+	      orig_expr->writeJsonOutput(output, {}, {});
+	      output << R"(")";
+	    }
+	  output << '}' << endl;
+	}
+      output << "]" << endl;
+    }
 }
 
 void
