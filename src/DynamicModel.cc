@@ -2199,7 +2199,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
              << "end" << endl << endl;
 
       // dynamic!
-      output << "function dynamicResid!(T::Vector{Float64}, residual::Vector{Float64}," << endl
+      output << "function dynamicResid!(T::Vector{Float64}, residual::AbstractVector{Float64}," << endl
              << "                       y::Vector{Float64}, x::Matrix{Float64}, "
              << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int, T_flag::Bool)" << endl
              << "    @assert length(T) >= " << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() << endl
@@ -2292,14 +2292,14 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
              << "end" << endl << endl;
 
       // dynamic!
-      output << "function dynamic!(T::Vector{Float64}, residual::Vector{Float64}," << endl
+      output << "function dynamic!(T::Vector{Float64}, residual::AbstractVector{Float64}," << endl
              << "                  y::Vector{Float64}, x::Matrix{Float64}, "
              << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int)" << endl
              << "    dynamicResid!(T, residual, y, x, params, steady_state, it_, true)" << endl
              << "    return nothing" << endl
              << "end" << endl
              << endl
-             << "function dynamic!(T::Vector{Float64}, residual::Vector{Float64}, g1::Matrix{Float64}," << endl
+             << "function dynamic!(T::Vector{Float64}, residual::AbstractVector{Float64}, g1::Matrix{Float64}," << endl
              << "                  y::Vector{Float64}, x::Matrix{Float64}, "
              << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int)" << endl
              << "    dynamicG1!(T, g1, y, x, params, steady_state, it_, true)" << endl
@@ -2307,7 +2307,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
              << "    return nothing" << endl
              << "end" << endl
              << endl
-             << "function dynamic!(T::Vector{Float64}, residual::Vector{Float64}, g1::Matrix{Float64}, g2::Matrix{Float64}," << endl
+             << "function dynamic!(T::Vector{Float64}, residual::AbstractVector{Float64}, g1::Matrix{Float64}, g2::Matrix{Float64}," << endl
              << "                  y::Vector{Float64}, x::Matrix{Float64}, "
              << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int)" << endl
              << "    dynamicG2!(T, g2, y, x, params, steady_state, it_, true)" << endl
@@ -2316,7 +2316,7 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
              << "    return nothing" << endl
              << "end" << endl
              << endl
-             << "function dynamic!(T::Vector{Float64}, residual::Vector{Float64}, g1::Matrix{Float64}, g2::Matrix{Float64}, g3::Matrix{Float64}," << endl
+             << "function dynamic!(T::Vector{Float64}, residual::AbstractVector{Float64}, g1::Matrix{Float64}, g2::Matrix{Float64}, g3::Matrix{Float64}," << endl
              << "                  y::Vector{Float64}, x::Matrix{Float64}, "
              << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int)" << endl
              << "    dynamicG3!(T, g3, y, x, params, steady_state, it_, true)" << endl
@@ -4712,7 +4712,7 @@ DynamicModel::writeSetAuxiliaryVariables(const string &basename, bool julia) con
   if (output_func_body.str().empty())
     return;
 
-  string func_name = julia ? basename + "_dynamic_set_auxiliary_series!" : "dynamic_set_auxiliary_series";
+  string func_name = julia ? "dynamic_set_auxiliary_series!" : "dynamic_set_auxiliary_series";
   string comment = julia ? "#" : "%";
 
   stringstream output;
@@ -6284,8 +6284,16 @@ DynamicModel::writeJsonDynamicModelInfo(ostream &output) const
          << R"("orig_maximum_lag": )" << max_lag_orig << "," << endl
          << R"("orig_maximum_lead": )" << max_lead_orig << "," << endl
          << R"("orig_maximum_lag_with_diffs_expanded": )" << max_lag_with_diffs_expanded_orig
-         << endl;
-  output << "}";
+	 << "," <<endl
+	 << R"("NNZDerivatives": [)"; 
+  for (int i = 1; i < static_cast<int>(NNZDerivatives.size()); i++)
+    {
+      output << (i > computed_derivs_order ? -1 : NNZDerivatives[i]);
+      if (i < static_cast<int>(NNZDerivatives.size()) - 1)
+	output << ", ";
+    }
+  output << "]}" 
+	 << endl;
 }
 
 void

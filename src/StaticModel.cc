@@ -2114,7 +2114,7 @@ StaticModel::writeSetAuxiliaryVariables(const string &basename, bool julia) cons
   if (output_func_body.str().empty())
     return;
 
-  string func_name = julia ? basename + "_set_auxiliary_variables!" : "set_auxiliary_variables";
+  string func_name = julia ? "set_auxiliary_variables!" : "set_auxiliary_variables";
   string comment = julia ? "#" : "%";
 
   stringstream output;
