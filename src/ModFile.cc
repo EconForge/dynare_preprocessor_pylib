@@ -490,7 +490,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
         auto eqtag_and_lag = dynamic_model.walkPacParameters(pms->name);
         if (pms->aux_model_name.empty())
           dynamic_model.addPacModelConsistentExpectationEquation(pms->name, symbol_table.getID(pms->discount),
-                                                                 eqtag_and_lag, diff_subst_table);
+                                                                 eqtag_and_lag, diff_subst_table,
+                                                                 pms->growth);
         else
           dynamic_model.fillPacModelInfo(pms->name, lhs, max_lag, aux_model_type,
                                          eqtag_and_lag, nonstationary, pms->growth);

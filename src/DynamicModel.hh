@@ -582,7 +582,7 @@ public:
   //! Add model consistent expectation equation for pac model
   void addPacModelConsistentExpectationEquation(const string &name, int discount,
                                                 const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
-                                                ExprNode::subst_table_t &diff_subst_table);
+                                                ExprNode::subst_table_t &diff_subst_table, expr_t growth);
 
   //! Table to undiff LHS variables for pac vector z
   vector<int> getUndiffLHSForPac(const string &aux_model_name,

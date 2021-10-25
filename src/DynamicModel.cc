@@ -4067,7 +4067,8 @@ DynamicModel::declarePacModelConsistentExpectationEndogs(const string &name)
 void
 DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int discount_symb_id,
                                                        const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
-                                                       ExprNode::subst_table_t &diff_subst_table)
+                                                       ExprNode::subst_table_t &diff_subst_table,
+                                                       expr_t growth)
 {
   int pac_target_symb_id;
   try
@@ -4190,7 +4191,11 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
                             AddMinus(AddTimes(A, AddMinus(const_cast<VariableNode *>(target_base_diff_node), fs)), fp));
       addEquation(neweq, -1);
       neqs++;
-      pac_expectation_substitution[{name, eqtag}] = AddVariable(mce_z1_symb_id);
+      /* The growth correction term is not added to the definition of Z₁
+         because the latter is recursive. Rather put it at the level of the
+         substition of pac_expectation operator. */
+      expr_t growth_correction = growth ? AddTimes(AddVariable(pac_growth_neutrality_params.at(name)), growth) : Zero;
+      pac_expectation_substitution[{name, eqtag}] = AddPlus(AddVariable(mce_z1_symb_id), growth_correction);
     }
   cout << "Pac Model Consistent Expectation: added " << neqs << " auxiliary variables and equations for model " << name << "." << endl;
 }
