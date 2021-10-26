@@ -975,7 +975,7 @@ SymbolTable::writeJsonOutput(ostream &output) const
 	      if (aux_vars[i].get_orig_symb_id() >= 0)
 		output << R"(, "orig_index": )" << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1
 		       << R"(, "orig_lead_lag": )" << aux_vars[i].get_orig_lead_lag()
-		       << R"(, "unary_op": )" << aux_vars[i].get_unary_op();
+		       << R"(, "unary_op": ")" << aux_vars[i].get_unary_op() << R"(")";
 	      break;
 	    case AuxVarType::multiplier:
 	      output << R"(, "eq_nbr": )" << aux_vars[i].get_equation_number_for_multiplier() + 1;
