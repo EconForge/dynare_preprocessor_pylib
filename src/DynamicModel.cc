@@ -4081,6 +4081,80 @@ DynamicModel::computePacBackwardExpectationSubstitution(const string &name,
 }
 
 void
+DynamicModel::computePacBackwardExpectationSubstitutionWithComponents(const string &name,
+                                                                      const vector<int> &lhs,
+                                                                      int max_lag,
+                                                                      const string &aux_model_type,
+                                                                      vector<PacModelTable::target_component_t> &pac_target_components,
+                                                                      map<string, expr_t> &pac_expectation_substitution)
+{
+  auto create_aux_param = [&](const string &param_name)
+  {
+    try
+      {
+        return symbol_table.addSymbol(param_name, SymbolType::parameter);
+      }
+    catch (SymbolTable::AlreadyDeclaredException)
+      {
+        cerr << "ERROR: the variable/parameter '" << param_name << "' conflicts with some auxiliary parameter that will be generated for the '" << name << "' PAC model. Please rename that parameter." << endl;
+        exit(EXIT_FAILURE);
+      }
+  };
+
+  expr_t substexpr = Zero;
+  int component_idx = 1;
+
+  for (auto &[component, growth, auxname, kind, coeff, growth_neutrality_param, h_indices, original_growth, growth_info] : pac_target_components)
+    {
+      string name_component = name + "_component" + to_string(component_idx);
+
+      // Create the linear combination of the variables from the auxiliary model
+      expr_t auxdef = Zero;
+      if (aux_model_type == "var")
+        {
+          /* If the auxiliary model is a VAR, add a parameter corresponding
+             to the constant. */
+          int new_param_symb_id = create_aux_param("h_" + name_component + "_constant");
+          h_indices.push_back(new_param_symb_id);
+          auxdef = AddPlus(auxdef, AddVariable(new_param_symb_id));
+        }
+      for (int i = 1; i < max_lag + 1; i++)
+        for (auto lhsit : lhs)
+          {
+            int new_param_symb_id = create_aux_param("h_" + name_component + "_var_" + symbol_table.getName(lhsit) + "_lag_" + to_string(i));
+            h_indices.push_back(new_param_symb_id);
+            auxdef = AddPlus(auxdef, AddTimes(AddVariable(new_param_symb_id),
+                                              AddVariable(lhsit, -i)));
+          }
+
+      // If needed, add the growth neutrality correction for this component
+      if (growth)
+        {
+          growth_neutrality_param = create_aux_param(name_component + "_pac_growth_neutrality_correction");
+          auxdef = AddPlus(auxdef, AddTimes(growth, AddVariable(growth_neutrality_param)));
+        }
+      else
+        growth_neutrality_param = -1;
+
+      // Create the auxiliary variable for this component
+      int aux_id = symbol_table.addPacExpectationAuxiliaryVar(auxname, auxdef);
+      expr_t auxvar = AddVariable(aux_id);
+
+      // Add the equation defining the auxiliary variable for this component
+      expr_t neweq = AddEqual(auxvar, auxdef);
+      addEquation(neweq, -1);
+      addAuxEquation(neweq);
+
+      // Update the expression to be substituted for the pac_expectation operator
+      substexpr = AddPlus(substexpr, AddTimes(coeff, auxvar));
+
+      component_idx++;
+    }
+
+  pac_expectation_substitution[name] = substexpr;
+}
+
+void
 DynamicModel::substitutePacExpectation(const map<string, expr_t> &pac_expectation_substitution,
                                        const map<string, string> &pac_eq_name)
 {
@@ -4091,6 +4165,13 @@ DynamicModel::substitutePacExpectation(const map<string, expr_t> &pac_expectatio
       assert(substeq);
       equations[eq] = substeq;
     }
+}
+
+void
+DynamicModel::substitutePacTargetNonstationary(const string &pac_model_name, expr_t substexpr)
+{
+  for (auto &eq : equations)
+    eq = dynamic_cast<BinaryOpNode *>(eq->substitutePacTargetNonstationary(pac_model_name, substexpr));
 }
 
 void
@@ -6481,4 +6562,16 @@ DynamicModel::simplifyEquations()
       subst_table.clear();
       findConstantEquationsWithoutMcpTag(subst_table);
     }
+}
+
+void
+DynamicModel::checkNoRemainingPacTargetNonstationary() const
+{
+  for (size_t eq = 0; eq < equations.size(); eq++)
+    if (equations[eq]->containsPacTargetNonstationary())
+      {
+        cerr << "ERROR: in equation " << equation_tags.getTagValueByEqnAndKey(eq, "name")
+             << ", the pac_target_nonstationary operator does not match a corresponding 'pac_target_info' block" << endl;
+        exit(EXIT_FAILURE);
+      }
 }

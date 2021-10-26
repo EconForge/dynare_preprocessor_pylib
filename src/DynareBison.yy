@@ -174,6 +174,8 @@ class ParsingDriver;
 %token RANDOM_FUNCTION_CONVERGENCE_CRITERION RANDOM_PARAMETER_CONVERGENCE_CRITERION NO_INIT_ESTIMATION_CHECK_FIRST_OBS
 %token HETEROSKEDASTIC_FILTER TIME_SHIFT STRUCTURAL TERMINAL_STEADY_STATE_AS_GUESS_VALUE
 %token SURPRISE OCCBIN_CONSTRAINTS
+%token PAC_TARGET_INFO COMPONENT TARGET AUXNAME AUXNAME_TARGET_NONSTATIONARY PAC_TARGET_NONSTATIONARY
+%token <string> KIND LL DL DD
 /* Method of Moments */
 %token METHOD_OF_MOMENTS MOM_METHOD
 %token BARTLETT_KERNEL_LAG WEIGHTING_MATRIX WEIGHTING_MATRIX_SCALING_FACTOR ANALYTIC_STANDARD_ERRORS ANALYTIC_JACOBIAN PENALIZED_ESTIMATOR VERBOSE 
@@ -214,6 +216,7 @@ class ParsingDriver;
 %type <vector<tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>>> occbin_constraints_regimes_list
 %type <map<string, expr_t>> occbin_constraints_regime_options_list
 %type <pair<string, expr_t>> occbin_constraints_regime_option
+%type <PacTargetKind> pac_target_kind
 %%
 
 %start statement_list;
@@ -348,6 +351,7 @@ statement : parameters
           | model_replace
           | model_options
           | var_remove
+          | pac_target_info
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -945,6 +949,49 @@ occbin_constraints_regime_option : BIND hand_side ';'
                                    { $$ = { "error_relax", $2 }; }
                                  ;
 
+pac_target_info : PAC_TARGET_INFO '(' symbol ')' ';'
+                  { driver.begin_pac_target_info($3); }
+                  pac_target_info_statement_list
+                  END ';'
+                  { driver.end_pac_target_info(); }
+                  ;
+
+pac_target_info_statement_list : pac_target_info_statement
+                               | pac_target_info_statement_list pac_target_info_statement
+                               ;
+
+pac_target_info_statement : TARGET hand_side ';'
+                            { driver.set_pac_target_info_target($2); }
+                          | AUXNAME_TARGET_NONSTATIONARY symbol ';'
+                            { driver.set_pac_target_info_auxname_target_nonstationary($2); }
+                          | pac_target_info_component
+                          ;
+
+pac_target_info_component : COMPONENT hand_side ';'
+                            pac_target_info_component_list
+                            { driver.add_pac_target_info_component($2); }
+                          ;
+
+pac_target_info_component_list : pac_target_info_component_elem
+                               | pac_target_info_component_list pac_target_info_component_elem
+                               ;
+
+pac_target_info_component_elem : GROWTH hand_side ';'
+                                 { driver.set_pac_target_info_component_growth($2); }
+                               | AUXNAME symbol ';'
+                                 { driver.set_pac_target_info_component_auxname($2); }
+                               | KIND pac_target_kind ';'
+                                 { driver.set_pac_target_info_component_kind($2); }
+                               ;
+
+pac_target_kind : LL
+                  { $$ = PacTargetKind::ll; }
+                | DL
+                  { $$ = PacTargetKind::dl; }
+                | DD
+                  { $$ = PacTargetKind::dd; }
+                ;
+
 /* The tokens below must be accepted in both DYNARE_STATEMENT and DYNARE_BLOCK
    states in the lexer, because of model block and model_options statement */
 model_option : BLOCK { driver.block(); }
@@ -1036,6 +1083,8 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_var_expectation($3); }
           | PAC_EXPECTATION '(' symbol ')'
             { $$ = driver.add_pac_expectation($3); }
+          | PAC_TARGET_NONSTATIONARY '(' symbol ')'
+            { $$ = driver.add_pac_target_nonstationary($3); }
           | MINUS hand_side %prec UNARY
             { $$ = driver.add_uminus($2); }
           | PLUS hand_side %prec UNARY
@@ -4301,6 +4350,10 @@ symbol : NAME
        | RELAX
        | ERROR_BIND
        | ERROR_RELAX
+       | KIND
+       | LL
+       | DL
+       | DD
        ;
 
 %%

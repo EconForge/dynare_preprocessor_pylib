@@ -668,6 +668,12 @@ NumConstNode::substitutePacExpectation(const string &name, expr_t subexpr)
 }
 
 expr_t
+NumConstNode::substitutePacTargetNonstationary(const string &name, expr_t subexpr)
+{
+  return const_cast<NumConstNode *>(this);
+}
+
+expr_t
 NumConstNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<NumConstNode *>(this);
@@ -690,6 +696,12 @@ NumConstNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int la
 
 bool
 NumConstNode::containsPacExpectation(const string &pac_model_name) const
+{
+  return false;
+}
+
+bool
+NumConstNode::containsPacTargetNonstationary(const string &pac_model_name) const
 {
   return false;
 }
@@ -1589,6 +1601,15 @@ VariableNode::substitutePacExpectation(const string &name, expr_t subexpr)
 }
 
 expr_t
+VariableNode::substitutePacTargetNonstationary(const string &name, expr_t subexpr)
+{
+  if (get_type() == SymbolType::modelLocalVariable)
+    return datatree.getLocalVariable(symb_id)->substitutePacTargetNonstationary(name, subexpr);
+
+  return const_cast<VariableNode *>(this);
+}
+
+expr_t
 VariableNode::decreaseLeadsLags(int n) const
 {
   switch (get_type())
@@ -1816,6 +1837,15 @@ VariableNode::containsPacExpectation(const string &pac_model_name) const
 {
   if (get_type() == SymbolType::modelLocalVariable)
     return datatree.getLocalVariable(symb_id)->containsPacExpectation(pac_model_name);
+
+  return false;
+}
+
+bool
+VariableNode::containsPacTargetNonstationary(const string &pac_model_name) const
+{
+  if (get_type() == SymbolType::modelLocalVariable)
+    return datatree.getLocalVariable(symb_id)->containsPacTargetNonstationary(pac_model_name);
 
   return false;
 }
@@ -3539,6 +3569,13 @@ UnaryOpNode::substitutePacExpectation(const string &name, expr_t subexpr)
 }
 
 expr_t
+UnaryOpNode::substitutePacTargetNonstationary(const string &name, expr_t subexpr)
+{
+  expr_t argsubst = arg->substitutePacTargetNonstationary(name, subexpr);
+  return buildSimilarUnaryOpNode(argsubst, datatree);
+}
+
+expr_t
 UnaryOpNode::decreaseLeadsLags(int n) const
 {
   expr_t argsubst = arg->decreaseLeadsLags(n);
@@ -3663,6 +3700,12 @@ bool
 UnaryOpNode::containsPacExpectation(const string &pac_model_name) const
 {
   return arg->containsPacExpectation(pac_model_name);
+}
+
+bool
+UnaryOpNode::containsPacTargetNonstationary(const string &pac_model_name) const
+{
+  return arg->containsPacTargetNonstationary(pac_model_name);
 }
 
 expr_t
@@ -5087,6 +5130,14 @@ BinaryOpNode::substitutePacExpectation(const string &name, expr_t subexpr)
 }
 
 expr_t
+BinaryOpNode::substitutePacTargetNonstationary(const string &name, expr_t subexpr)
+{
+  expr_t arg1subst = arg1->substitutePacTargetNonstationary(name, subexpr);
+  expr_t arg2subst = arg2->substitutePacTargetNonstationary(name, subexpr);
+  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+}
+
+expr_t
 BinaryOpNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   expr_t arg1subst = arg1->differentiateForwardVars(subset, subst_table, neweqs);
@@ -5118,6 +5169,12 @@ bool
 BinaryOpNode::containsPacExpectation(const string &pac_model_name) const
 {
   return arg1->containsPacExpectation(pac_model_name) || arg2->containsPacExpectation(pac_model_name);
+}
+
+bool
+BinaryOpNode::containsPacTargetNonstationary(const string &pac_model_name) const
+{
+  return arg1->containsPacTargetNonstationary(pac_model_name) || arg2->containsPacTargetNonstationary(pac_model_name);
 }
 
 expr_t
@@ -6342,6 +6399,15 @@ TrinaryOpNode::substitutePacExpectation(const string &name, expr_t subexpr)
 }
 
 expr_t
+TrinaryOpNode::substitutePacTargetNonstationary(const string &name, expr_t subexpr)
+{
+  expr_t arg1subst = arg1->substitutePacTargetNonstationary(name, subexpr);
+  expr_t arg2subst = arg2->substitutePacTargetNonstationary(name, subexpr);
+  expr_t arg3subst = arg3->substitutePacTargetNonstationary(name, subexpr);
+  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+}
+
+expr_t
 TrinaryOpNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   expr_t arg1subst = arg1->differentiateForwardVars(subset, subst_table, neweqs);
@@ -6366,6 +6432,14 @@ bool
 TrinaryOpNode::containsPacExpectation(const string &pac_model_name) const
 {
   return (arg1->containsPacExpectation(pac_model_name) || arg2->containsPacExpectation(pac_model_name) || arg3->containsPacExpectation(pac_model_name));
+}
+
+bool
+TrinaryOpNode::containsPacTargetNonstationary(const string &pac_model_name) const
+{
+  return arg1->containsPacTargetNonstationary(pac_model_name)
+    || arg2->containsPacTargetNonstationary(pac_model_name)
+    || arg3->containsPacTargetNonstationary(pac_model_name);
 }
 
 expr_t
@@ -6742,6 +6816,15 @@ AbstractExternalFunctionNode::substitutePacExpectation(const string &name, expr_
 }
 
 expr_t
+AbstractExternalFunctionNode::substitutePacTargetNonstationary(const string &name, expr_t subexpr)
+{
+  vector<expr_t> arguments_subst;
+  for (auto argument : arguments)
+    arguments_subst.push_back(argument->substitutePacTargetNonstationary(name, subexpr));
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+}
+
+expr_t
 AbstractExternalFunctionNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   vector<expr_t> arguments_subst;
@@ -6831,6 +6914,15 @@ AbstractExternalFunctionNode::containsPacExpectation(const string &pac_model_nam
 {
   for (auto argument : arguments)
     if (argument->containsPacExpectation(pac_model_name))
+      return true;
+  return false;
+}
+
+bool
+AbstractExternalFunctionNode::containsPacTargetNonstationary(const string &pac_model_name) const
+{
+  for (auto argument : arguments)
+    if (argument->containsPacTargetNonstationary(pac_model_name))
       return true;
   return false;
 }
@@ -8344,8 +8436,20 @@ VarExpectationNode::substitutePacExpectation(const string &name, expr_t subexpr)
   return const_cast<VarExpectationNode *>(this);
 }
 
+expr_t
+VarExpectationNode::substitutePacTargetNonstationary(const string &name, expr_t subexpr)
+{
+  return const_cast<VarExpectationNode *>(this);
+}
+
 bool
 VarExpectationNode::containsPacExpectation(const string &pac_model_name) const
+{
+  return false;
+}
+
+bool
+VarExpectationNode::containsPacTargetNonstationary(const string &pac_model_name) const
 {
   return false;
 }
@@ -8417,6 +8521,12 @@ PacExpectationNode::containsPacExpectation(const string &pac_model_name) const
     return pac_model_name == model_name;
 }
 
+bool
+PacExpectationNode::containsPacTargetNonstationary(const string &pac_model_name) const
+{
+  return false;
+}
+
 void
 PacExpectationNode::writeJsonAST(ostream &output) const
 {
@@ -8440,6 +8550,99 @@ PacExpectationNode::substitutePacExpectation(const string &name, expr_t subexpr)
 {
   if (model_name != name)
     return const_cast<PacExpectationNode *>(this);
+  return subexpr;
+}
+
+expr_t
+PacExpectationNode::substitutePacTargetNonstationary(const string &name, expr_t subexpr)
+{
+  return const_cast<PacExpectationNode *>(this);
+}
+
+PacTargetNonstationaryNode::PacTargetNonstationaryNode(DataTree &datatree_arg,
+                                                       int idx_arg,
+                                                       string model_name_arg) :
+  SubModelNode{datatree_arg, idx_arg, move(model_name_arg)}
+{
+}
+
+expr_t
+PacTargetNonstationaryNode::clone(DataTree &datatree) const
+{
+  return datatree.AddPacTargetNonstationary(model_name);
+}
+
+void
+PacTargetNonstationaryNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
+                                        const temporary_terms_t &temporary_terms,
+                                        const temporary_terms_idxs_t &temporary_terms_idxs,
+                                        const deriv_node_temp_terms_t &tef_terms) const
+{
+  assert(output_type != ExprNodeOutputType::matlabOutsideModel);
+  if (isLatexOutput(output_type))
+    {
+      output << "PAC_TARGET_NONSTATIONARY" << LEFT_PAR(output_type) << model_name << RIGHT_PAR(output_type);
+      return;
+    }
+}
+
+int
+PacTargetNonstationaryNode::maxLagWithDiffsExpanded() const
+{
+  // This node will be replaced by the target lagged by one
+  return 1;
+}
+
+expr_t
+PacTargetNonstationaryNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
+{
+  return const_cast<PacTargetNonstationaryNode *>(this);
+}
+
+bool
+PacTargetNonstationaryNode::containsPacExpectation(const string &pac_model_name) const
+{
+  return false;
+}
+
+bool
+PacTargetNonstationaryNode::containsPacTargetNonstationary(const string &pac_model_name) const
+{
+  if (pac_model_name.empty())
+    return true;
+  else
+    return pac_model_name == model_name;
+}
+
+void
+PacTargetNonstationaryNode::writeJsonAST(ostream &output) const
+{
+  output << R"({"node_type" : "PacTargetNonstationaryNode", )"
+         << R"("name" : ")" << model_name << R"("})";
+}
+
+void
+PacTargetNonstationaryNode::writeJsonOutput(ostream &output,
+                                            const temporary_terms_t &temporary_terms,
+                                            const deriv_node_temp_terms_t &tef_terms,
+                                            bool isdynamic) const
+{
+  output << "pac_target_nonstationary("
+         << "model_name = " << model_name
+         << ")";
+}
+
+expr_t
+PacTargetNonstationaryNode::substitutePacExpectation(const string &name, expr_t subexpr)
+{
+  return const_cast<PacTargetNonstationaryNode *>(this);
+}
+
+expr_t
+PacTargetNonstationaryNode::substitutePacTargetNonstationary(const string &name, expr_t subexpr)
+{
+  if (model_name != name)
+    return const_cast<PacTargetNonstationaryNode *>(this);
   return subexpr;
 }
 
@@ -8649,6 +8852,8 @@ ExprNode::matchParamTimesTargetMinusVariable(int symb_id) const
       if (datatree.symbol_table.isAuxiliaryVariable(target->symb_id))
         {
           auto avi = datatree.symbol_table.getAuxVarInfo(target->symb_id);
+          if (avi.get_type() == AuxVarType::pacTargetNonstationary && target->lag == -1)
+            return true;
           return (avi.get_type() == AuxVarType::unaryOp
                   && avi.get_unary_op() == "log"
                   && avi.get_orig_symb_id() != -1
@@ -8663,4 +8868,60 @@ ExprNode::matchParamTimesTargetMinusVariable(int symb_id) const
     return { dynamic_cast<VariableNode *>(param)->symb_id, target->symb_id };
   else
     throw MatchFailureException{"Neither factor is of the form (target-variable) where target is endo or exo (possibly logged), and has one lag"};
+}
+
+pair<int, expr_t>
+ExprNode::matchEndogenousTimesConstant() const
+{
+  throw MatchFailureException{"This expression is not of the form endogenous*constant"};
+}
+
+pair<int, expr_t>
+VariableNode::matchEndogenousTimesConstant() const
+{
+  if (get_type() == SymbolType::endogenous)
+    return { symb_id, datatree.One };
+  else
+    throw MatchFailureException{"This expression is not of the form endogenous*constant"};
+}
+
+pair<int, expr_t>
+BinaryOpNode::matchEndogenousTimesConstant() const
+{
+  if (op_code == BinaryOpcode::times)
+    {
+      if (auto varg1 = dynamic_cast<VariableNode *>(arg1);
+          varg1 && varg1->get_type() == SymbolType::endogenous && arg2->isConstant())
+        return { varg1->symb_id, arg2 };
+      if (auto varg2 = dynamic_cast<VariableNode *>(arg2);
+          varg2 && varg2->get_type() == SymbolType::endogenous && arg1->isConstant())
+        return { varg2->symb_id, arg1 };
+    }
+  throw MatchFailureException{"This expression is not of the form endogenous*constant"};
+}
+
+pair<vector<pair<int, expr_t>>, expr_t>
+ExprNode::matchLinearCombinationOfEndogenousWithConstant() const
+{
+  vector<pair<expr_t, int>> all_terms;
+  decomposeAdditiveTerms(all_terms);
+
+  vector<pair<int, expr_t>> endo_terms;
+  expr_t intercept = datatree.Zero;
+  for (auto [term, sign] : all_terms)
+    if (term->isConstant())
+      {
+        if (sign == -1)
+          intercept = datatree.AddMinus(intercept, term);
+        else
+          intercept = datatree.AddPlus(intercept, term);
+      }
+    else
+      {
+        auto [endo_id, constant] = term->matchEndogenousTimesConstant();
+        if (sign == -1)
+          constant = datatree.AddUMinus(constant);
+        endo_terms.emplace_back(endo_id, constant);
+      }
+  return { endo_terms, intercept };
 }

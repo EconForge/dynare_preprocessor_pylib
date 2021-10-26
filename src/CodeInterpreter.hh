@@ -241,6 +241,14 @@ enum class PriorDistributions
    weibull = 8
   };
 
+enum class PacTargetKind
+  {
+    unspecified, // Must be the first one, because it’s the default initializer
+    ll,
+    dl,
+    dd
+  };
+
 struct Block_contain_type
 {
   int Equation, Variable, Own_Derivative;

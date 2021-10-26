@@ -2047,3 +2047,12 @@ ModelTree::updateReverseVariableEquationOrderings()
       eq_idx_orig2block[eq_idx_block2orig[i]] = i;
     }
 }
+
+expr_t
+ModelTree::getRHSFromLHS(expr_t lhs) const
+{
+  for (auto eq : equations)
+    if (eq->arg1 == lhs)
+      return eq->arg2;
+  throw ExprNode::MatchFailureException{"Cannot find an equation with the requested LHS"};
+}

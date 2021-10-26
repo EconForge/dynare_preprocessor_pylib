@@ -582,9 +582,27 @@ public:
                                                  map<string, vector<int>> &pac_aux_param_symb_ids,
                                                  map<string, expr_t> &pac_expectation_substitution);
 
+  /* Same as above, but for PAC models which have an associated
+     pac_target_info.
+     Contrary to the above routine, this one will create the growth correction
+     parameters as needed.
+     Those parameter IDs, as well as the IDs for the h parameters, are stored
+     in target_components.
+     The routine also creates the auxiliary variables for the components, and
+     adds the corresponding equations. */
+  void computePacBackwardExpectationSubstitutionWithComponents(const string &name,
+                                                               const vector<int> &lhs,
+                                                               int max_lag,
+                                                               const string &aux_model_type,
+                                                               vector<PacModelTable::target_component_t> &pac_target_components,
+                                                               map<string, expr_t> &pac_expectation_substitution);
+
   //! Substitutes pac_expectation operator with expectation based on auxiliary model
   void substitutePacExpectation(const map<string, expr_t> &pac_expectation_substitution,
                                 const map<string, string> &pac_eq_name);
+
+  //! Substitutes the pac_target_nonstationary operator of a given pac_model
+  void substitutePacTargetNonstationary(const string &pac_model_name, expr_t substexpr);
 
   //! Table to undiff LHS variables for pac vector z
   vector<int> getUndiffLHSForPac(const string &aux_model_name,
@@ -604,6 +622,10 @@ public:
   /*! Checks that all pac_expectation operators have been substituted, error
     out otherwise */
   void checkNoRemainingPacExpectation() const;
+
+  /*! Checks that all pac_target_nonstationary operators have been substituted, error
+    out otherwise */
+  void checkNoRemainingPacTargetNonstationary() const;
 
   auto
   getStaticOnlyEquationsInfo() const

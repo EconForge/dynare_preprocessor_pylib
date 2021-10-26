@@ -249,6 +249,9 @@ private:
   SymbolList graph_formats;
   //! Temporary storage for equation tags
   map<string, string> eq_tags;
+  // Temporary storages for pac_target_info
+  string pac_target_info_name;
+  PacModelTable::target_component_t pac_target_info_component;
 
   //! The mod file representation constructed by this ParsingDriver
   unique_ptr<ModFile> mod_file;
@@ -741,6 +744,8 @@ public:
   expr_t add_var_expectation(const string &model_name);
   //! Writes token "PAC_EXPECTATION(model_name, discount, growth)" to model tree
   expr_t add_pac_expectation(const string &model_name);
+  //! Adds a pac_target_nonstationary(model_name, discount, growth) node to model tree
+  expr_t add_pac_target_nonstationary(const string &model_name);
   //! Creates pac_model statement
   void begin_pac_growth();
   void begin_pac_model();
@@ -897,6 +902,14 @@ public:
   void begin_model_replace(const vector<pair<string, string>> &listed_eqs_by_tags);
   // Add a var_remove statement
   void var_remove();
+  void begin_pac_target_info(string name);
+  void end_pac_target_info();
+  void set_pac_target_info_target(expr_t target);
+  void set_pac_target_info_auxname_target_nonstationary(string auxname);
+  void add_pac_target_info_component(expr_t component_expr);
+  void set_pac_target_info_component_growth(expr_t growth);
+  void set_pac_target_info_component_auxname(string auxname);
+  void set_pac_target_info_component_kind(PacTargetKind kind);
   // Equivalent of MATLAB’s strsplit. Returns an empty vector given an empty string.
   static vector<string> strsplit(const string &str, char delim);
   // Returns true iff the string is a legal symbol identifier (see NAME token in lexer)

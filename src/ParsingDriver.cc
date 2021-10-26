@@ -2615,6 +2615,15 @@ ParsingDriver::add_pac_expectation(const string &model_name)
   return data_tree->AddPacExpectation(model_name);
 }
 
+expr_t
+ParsingDriver::add_pac_target_nonstationary(const string &model_name)
+{
+  if (data_tree == occbin_constraints_tree.get())
+    error("The 'pac_target_nonstationary' operator is forbidden in 'occbin_constraints'.");
+
+  return data_tree->AddPacTargetNonstationary(model_name);
+}
+
 void
 ParsingDriver::begin_pac_growth()
 {
@@ -3500,6 +3509,57 @@ ParsingDriver::end_occbin_constraints(const vector<tuple<string, BinaryOpNode *,
   mod_file->addStatement(make_unique<OccbinConstraintsStatement>(*occbin_constraints_tree, constraints));
 
   reset_data_tree();
+}
+
+void
+ParsingDriver::begin_pac_target_info(string name)
+{
+  pac_target_info_name = move(name);
+  set_current_data_tree(&mod_file->dynamic_model);
+}
+
+void
+ParsingDriver::end_pac_target_info()
+{
+  reset_data_tree();
+}
+
+void
+ParsingDriver::set_pac_target_info_target(expr_t target)
+{
+  mod_file->pac_model_table.setTargetExpr(pac_target_info_name, target);
+}
+
+void
+ParsingDriver::set_pac_target_info_auxname_target_nonstationary(string auxname)
+{
+  mod_file->pac_model_table.setTargetAuxnameNonstationary(pac_target_info_name, move(auxname));
+}
+
+void
+ParsingDriver::add_pac_target_info_component(expr_t component_expr)
+{
+  get<0>(pac_target_info_component) = component_expr;
+  mod_file->pac_model_table.addTargetComponent(pac_target_info_name, pac_target_info_component);
+  pac_target_info_component = {};
+}
+
+void
+ParsingDriver::set_pac_target_info_component_growth(expr_t growth)
+{
+  get<1>(pac_target_info_component) = growth;
+}
+
+void
+ParsingDriver::set_pac_target_info_component_auxname(string auxname)
+{
+  get<2>(pac_target_info_component) = move(auxname);
+}
+
+void
+ParsingDriver::set_pac_target_info_component_kind(PacTargetKind kind)
+{
+  get<3>(pac_target_info_component) = kind;
 }
 
 vector<string>

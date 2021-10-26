@@ -612,6 +612,9 @@ public:
   //! Substitute pac_expectation operator
   virtual expr_t substitutePacExpectation(const string &name, expr_t subexpr) = 0;
 
+  //! Substitute pac_target_nonstationary operator
+  virtual expr_t substitutePacTargetNonstationary(const string &name, expr_t subexpr) = 0;
+
   virtual int findTargetVariable(int lhs_symb_id) const = 0;
 
   //! Add ExprNodes to the provided datatree
@@ -626,7 +629,7 @@ public:
   //! Substitute auxiliary variables by their expression in static model
   virtual expr_t substituteStaticAuxiliaryVariable() const = 0;
 
-  //! Matches a linear combination of variables, where scalars can be constant*parameter
+  //! Matches a linear combination of variables (endo or exo), where scalars can be constant*parameter
   /*! Returns a list of (variable_id, lag, param_id, constant)
     corresponding to the terms in the expression. When there is no
     parameter in a term, param_id == -1.
@@ -637,6 +640,15 @@ public:
     for terms without a variable).
   */
   vector<tuple<int, int, int, double>> matchLinearCombinationOfVariables(bool variable_obligatory_in_each_term = true) const;
+
+  /* Matches a linear combination of endogenous, where scalars can be any
+     constant expression (i.e. containing no endogenous, no exogenous and no
+     exogenous deterministic). The linear combination can contain constant
+     terms (intercept).
+     Returns a pair composed of:
+     – the terms of the form endogenous*scalar, as a list of (endo_id, constant expr);
+     – the sum of all constant (intercept) terms */
+  pair<vector<pair<int, expr_t>>, expr_t> matchLinearCombinationOfEndogenousWithConstant() const;
 
   pair<int, vector<tuple<int, int, int, double>>> matchParamTimesLinearCombinationOfVariables() const;
 
@@ -662,6 +674,9 @@ public:
 
   //! Returns true if PacExpectationNode encountered
   virtual bool containsPacExpectation(const string &pac_model_name = "") const = 0;
+
+  //! Returns true if PacTargetNonstationaryNode encountered
+  virtual bool containsPacTargetNonstationary(const string &pac_model_name = "") const = 0;
 
   //! Decompose an expression into its additive terms
   /*! Returns a list of terms, with their sign (either 1 or -1, depending
@@ -691,7 +706,14 @@ public:
   */
   tuple<int, int, int, double> matchVariableTimesConstantTimesParam(bool variable_obligatory = true) const;
 
-  //! Exception thrown by matchVariableTimesConstantTimesParam when matching fails
+  /* Matches an expression of the form endogenous*constant where constant is an
+     expression containing no endogenous, no exogenous and no exogenous deterministic.
+     Returns (endo_id, constant expr).
+     Note that it will also match a simple endogenous (in which case the
+     constant will of course be equal to one). */
+  virtual pair<int, expr_t> matchEndogenousTimesConstant() const;
+
+  //! Exception thrown when matching fails
   class MatchFailureException
   {
   public:
@@ -780,6 +802,7 @@ public:
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
+  expr_t substitutePacTargetNonstationary(const string &name, expr_t subexpr) override;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
@@ -792,6 +815,7 @@ public:
   bool isInStaticForm() const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
+  bool containsPacTargetNonstationary(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
   expr_t substituteStaticAuxiliaryVariable() const override;
 };
@@ -850,6 +874,7 @@ public:
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
+  expr_t substitutePacTargetNonstationary(const string &name, expr_t subexpr) override;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
@@ -862,10 +887,12 @@ public:
   bool isInStaticForm() const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
+  bool containsPacTargetNonstationary(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
   //! Substitute auxiliary variables by their expression in static model
   expr_t substituteStaticAuxiliaryVariable() const override;
   void matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<int> &powers) const override;
+  pair<int, expr_t> matchEndogenousTimesConstant() const override;
 };
 
 //! Unary operator node
@@ -951,6 +978,7 @@ public:
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
+  expr_t substitutePacTargetNonstationary(const string &name, expr_t subexpr) override;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
@@ -963,6 +991,7 @@ public:
   bool isInStaticForm() const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
+  bool containsPacTargetNonstationary(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
   //! Substitute auxiliary variables by their expression in static model
   expr_t substituteStaticAuxiliaryVariable() const override;
@@ -1056,6 +1085,7 @@ public:
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
+  expr_t substitutePacTargetNonstationary(const string &name, expr_t subexpr) override;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
@@ -1077,6 +1107,7 @@ public:
   void findConstantEquations(map<VariableNode *, NumConstNode *> &table) const;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
+  bool containsPacTargetNonstationary(const string &pac_model_name = "") const override;
   /*
     ec_params_and_vars:
     - 1st element = feedback force parameter
@@ -1108,6 +1139,7 @@ public:
   void decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign) const override;
   void decomposeMultiplicativeFactors(vector<pair<expr_t, int>> &factors, int current_exponent = 1) const override;
   void matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<int> &powers) const override;
+  pair<int, expr_t> matchEndogenousTimesConstant() const override;
 };
 
 //! Trinary operator node
@@ -1187,6 +1219,7 @@ public:
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
+  expr_t substitutePacTargetNonstationary(const string &name, expr_t subexpr) override;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool isNumConstNodeEqualTo(double value) const override;
@@ -1199,6 +1232,7 @@ public:
   bool isInStaticForm() const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
+  bool containsPacTargetNonstationary(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
   //! Substitute auxiliary variables by their expression in static model
   expr_t substituteStaticAuxiliaryVariable() const override;
@@ -1294,6 +1328,7 @@ public:
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
+  expr_t substitutePacTargetNonstationary(const string &name, expr_t subexpr) override;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const = 0;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
@@ -1308,6 +1343,7 @@ public:
   bool isInStaticForm() const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
+  bool containsPacTargetNonstationary(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
   //! Substitute auxiliary variables by their expression in static model
   expr_t substituteStaticAuxiliaryVariable() const override;
@@ -1498,7 +1534,9 @@ public:
   int maxLagWithDiffsExpanded() const override;
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
+  expr_t substitutePacTargetNonstationary(const string &name, expr_t subexpr) override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
+  bool containsPacTargetNonstationary(const string &pac_model_name = "") const override;
   void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
 };
@@ -1512,7 +1550,25 @@ public:
   int maxLagWithDiffsExpanded() const override;
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
+  expr_t substitutePacTargetNonstationary(const string &name, expr_t subexpr) override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
+  bool containsPacTargetNonstationary(const string &pac_model_name = "") const override;
+  void writeJsonAST(ostream &output) const override;
+  void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
+};
+
+class PacTargetNonstationaryNode : public SubModelNode
+{
+public:
+  PacTargetNonstationaryNode(DataTree &datatree_arg, int idx_arg, string model_name);
+  void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
+  expr_t clone(DataTree &datatree) const override;
+  int maxLagWithDiffsExpanded() const override;
+  expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
+  expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
+  expr_t substitutePacTargetNonstationary(const string &name, expr_t subexpr) override;
+  bool containsPacExpectation(const string &pac_model_name = "") const override;
+  bool containsPacTargetNonstationary(const string &pac_model_name = "") const override;
   void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
 };

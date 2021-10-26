@@ -236,6 +236,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>matched_moments {BEGIN DYNARE_BLOCK; return token::MATCHED_MOMENTS;}
 <INITIAL>occbin_constraints {BEGIN DYNARE_BLOCK; return token::OCCBIN_CONSTRAINTS;}
 <INITIAL>model_replace {BEGIN DYNARE_BLOCK; return token::MODEL_REPLACE;}
+<INITIAL>pac_target_info {BEGIN DYNARE_BLOCK; return token::PAC_TARGET_INFO;}
 
  /* For the semicolon after an "end" keyword */
 <INITIAL>; {return Dynare::parser::token_type (yytext[0]);}
@@ -684,7 +685,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>epilogue {return token::EPILOGUE;}
 <DYNARE_STATEMENT>growth_factor {return token::GROWTH_FACTOR;}
 <DYNARE_STATEMENT>log_growth_factor {return token::LOG_GROWTH_FACTOR;}
-<DYNARE_STATEMENT>growth {return token::GROWTH;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>growth {return token::GROWTH;}
 <DYNARE_STATEMENT>cova_compute {return token::COVA_COMPUTE;}
 <DYNARE_STATEMENT>discretionary_tol {return token::DISCRETIONARY_TOL;}
 <DYNARE_STATEMENT>analytic_derivation {return token::ANALYTIC_DERIVATION;}
@@ -800,6 +801,27 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_BLOCK># {return Dynare::parser::token_type (yytext[0]);}
 
 <DYNARE_BLOCK>restriction {return token::RESTRICTION;}
+<DYNARE_BLOCK>component {return token::COMPONENT;}
+<DYNARE_BLOCK>target {return token::TARGET;}
+<DYNARE_BLOCK>auxname {return token::AUXNAME;}
+<DYNARE_BLOCK>auxname_target_nonstationary {return token::AUXNAME_TARGET_NONSTATIONARY;}
+<DYNARE_BLOCK>kind {
+  yylval->build<string>(yytext);
+  return token::KIND;
+}
+<DYNARE_BLOCK>ll {
+  yylval->build<string>(yytext);
+  return token::LL;
+}
+<DYNARE_BLOCK>dl {
+  yylval->build<string>(yytext);
+  return token::DL;
+}
+<DYNARE_BLOCK>dd {
+  yylval->build<string>(yytext);
+  return token::DD;
+}
+
 
  /* Inside Dynare statement */
 <DYNARE_STATEMENT>solve_algo {return token::SOLVE_ALGO;}
@@ -945,6 +967,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT,DYNARE_BLOCK>expectation {return token::EXPECTATION;}
 <DYNARE_BLOCK>var_expectation {return token::VAR_EXPECTATION;}
 <DYNARE_BLOCK>pac_expectation {return token::PAC_EXPECTATION;}
+<DYNARE_BLOCK>pac_target_nonstationary {return token::PAC_TARGET_NONSTATIONARY;}
 <DYNARE_STATEMENT>discount {return token::DISCOUNT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>varobs {return token::VAROBS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>varexobs {return token::VAREXOBS;}

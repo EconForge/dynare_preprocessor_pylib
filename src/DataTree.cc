@@ -93,6 +93,7 @@ DataTree::operator=(const DataTree &d)
   external_function_node_map.clear();
   var_expectation_node_map.clear();
   pac_expectation_node_map.clear();
+  pac_target_nonstationary_node_map.clear();
   first_deriv_external_function_node_map.clear();
   second_deriv_external_function_node_map.clear();
 
@@ -701,6 +702,20 @@ DataTree::AddPacExpectation(const string &model_name)
   auto p = sp.get();
   node_list.push_back(move(sp));
   pac_expectation_node_map[model_name] = p;
+  return p;
+}
+
+expr_t
+DataTree::AddPacTargetNonstationary(const string &model_name)
+{
+  if (auto it = pac_target_nonstationary_node_map.find(model_name);
+      it != pac_target_nonstationary_node_map.end())
+    return it->second;
+
+  auto sp = make_unique<PacTargetNonstationaryNode>(*this, node_list.size(), model_name);
+  auto p = sp.get();
+  node_list.push_back(move(sp));
+  pac_target_nonstationary_node_map[model_name] = p;
   return p;
 }
 

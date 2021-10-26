@@ -18,6 +18,7 @@
  */
 
 #include <algorithm>
+#include <cassert>
 
 #include "SubModel.hh"
 #include "DynamicModel.hh"
@@ -791,7 +792,60 @@ PacModelTable::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation
 {
   for (auto &[name, gv] : growth)
     if (gv)
-      gv->collectVariables(SymbolType::exogenous, mod_file_struct.pac_params);
+      {
+        if (target_info.find(name) != target_info.end())
+          {
+            cerr << "ERROR: for PAC model '" << name << "', it is not possible to declare a 'growth' option in the 'pac_model' command when there is also a 'pac_target_info' block" << endl;
+            exit(EXIT_FAILURE);
+          }
+        gv->collectVariables(SymbolType::exogenous, mod_file_struct.pac_params);
+      }
+
+  for (const auto &[name, ti] : target_info)
+    for (auto &[expr, gv, auxname, kind, coeff, growth_neutrality_param, h_indices, original_gv, gv_info] : get<2>(ti))
+      if (gv)
+        gv->collectVariables(SymbolType::exogenous, mod_file_struct.pac_params);
+
+  for (const auto &[name, ti] : target_info)
+    {
+      auto &[target, auxname_target_nonstationary, components] = ti;
+      if (!target)
+        {
+          cerr << "ERROR: the block 'pac_target_info(" << name << ")' is missing the 'target' statement" << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (auxname_target_nonstationary.empty())
+        {
+          cerr << "ERROR: the block 'pac_target_info(" << name << ")' is missing the 'auxname_target_nonstationary' statement" << endl;
+          exit(EXIT_FAILURE);
+        }
+      int nonstationary_nb = 0;
+      for (auto &[component, growth_component, auxname, kind, coeff, growth_neutrality_param, h_indices, original_growth_component, growth_component_info] : components)
+        {
+          if (auxname.empty())
+            {
+              cerr << "ERROR: the block 'pac_target_info(" << name << ")' is missing the 'auxname' statement in some 'component'" << endl;
+              exit(EXIT_FAILURE);
+            }
+          if (kind == PacTargetKind::unspecified)
+            {
+              cerr << "ERROR: the block 'pac_target_info(" << name << ")' is missing the 'kind' statement in some 'component'" << endl;
+              exit(EXIT_FAILURE);
+            }
+          if (kind == PacTargetKind::ll && growth_component)
+            {
+              cerr << "ERROR: in the block 'pac_target_info(" << name << ")', a component of 'kind ll' (i.e. stationary) has a 'growth' option. This is not permitted." << endl;
+              exit(EXIT_FAILURE);
+            }
+          if (kind == PacTargetKind::dd || kind == PacTargetKind::dl)
+            nonstationary_nb++;
+        }
+      if (!nonstationary_nb)
+        {
+          cerr << "ERROR: the block 'pac_target_info(" << name << ")' must contain at least one nonstationary component (i.e. of 'kind' equal to either 'dd' or 'dl')." << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
 }
 
 void
@@ -800,6 +854,11 @@ PacModelTable::findDiffNodesInGrowth(lag_equivalence_table_t &diff_nodes) const
   for (auto &[name, gv] : growth)
     if (gv)
       gv->findDiffNodes(diff_nodes);
+
+  for (const auto &[name, ti] : target_info)
+    for (auto &[expr, gv, auxname, kind, coeff, growth_neutrality_param, h_indices, original_gv, gv_info] : get<2>(ti))
+      if (gv)
+        gv->findDiffNodes(diff_nodes);
 }
 
 void
@@ -808,10 +867,18 @@ PacModelTable::substituteDiffNodesInGrowth(const lag_equivalence_table_t &diff_n
   for (auto &[name, gv] : growth)
     if (gv)
       gv = gv->substituteDiff(diff_nodes, diff_subst_table, neweqs);
+
+  for (auto &[name, ti] : target_info)
+    for (auto &[expr, gv, auxname, kind, coeff, growth_neutrality_param, h_indices, original_gv, gv_info] : get<2>(ti))
+      if (gv)
+        gv = gv->substituteDiff(diff_nodes, diff_subst_table, neweqs);
 }
 
 void
-PacModelTable::transformPass(ExprNode::subst_table_t &diff_subst_table,
+PacModelTable::transformPass(const lag_equivalence_table_t &unary_ops_nodes,
+                             ExprNode::subst_table_t &unary_ops_subst_table,
+                             const lag_equivalence_table_t &diff_nodes,
+                             ExprNode::subst_table_t &diff_subst_table,
                              DynamicModel &dynamic_model, const VarModelTable &var_model_table,
                              const TrendComponentModelTable &trend_component_model_table)
 {
@@ -833,6 +900,123 @@ PacModelTable::transformPass(ExprNode::subst_table_t &diff_subst_table,
             cerr << "ERROR: PAC growth must be a linear combination of variables" << endl;
             exit(EXIT_FAILURE);
           }
+
+      // Perform transformations for the pac_target_info block (if any)
+      if (target_info.find(name) != target_info.end())
+        {
+          // Substitute unary ops and diffs in the target…
+          expr_t &target = get<0>(target_info[name]);
+          vector<BinaryOpNode *> neweqs;
+          target = target->substituteUnaryOpNodes(unary_ops_nodes, unary_ops_subst_table, neweqs);
+          if (neweqs.size() > 0)
+            {
+              cerr << "ERROR: the 'target' expression of 'pac_target_info(" << name << ")' contains a variable with a unary operator that is not present in the model" << endl;
+              exit(EXIT_FAILURE);
+            }
+          target = target->substituteDiff(diff_nodes, diff_subst_table, neweqs);
+          if (neweqs.size() > 0)
+            {
+              cerr << "ERROR: the 'target' expression of 'pac_target_info(" << name << ")' contains a diff'd variable that is not present in the model" << endl;
+              exit(EXIT_FAILURE);
+            }
+
+          // …and in component expressions
+          auto &components = get<2>(target_info[name]);
+          for (auto &[component, growth_component, auxname, kind, coeff, growth_neutrality_param, h_indices, original_growth_component, growth_component_info] : components)
+            {
+              component = component->substituteUnaryOpNodes(unary_ops_nodes, unary_ops_subst_table, neweqs);
+              if (neweqs.size() > 0)
+                {
+                  cerr << "ERROR: a 'component' expression of 'pac_target_info(" << name << ")' contains a variable with a unary operator that is not present in the model" << endl;
+                  exit(EXIT_FAILURE);
+                }
+              component = component->substituteDiff(diff_nodes, diff_subst_table, neweqs);
+              if (neweqs.size() > 0)
+                {
+                  cerr << "ERROR: a 'component' expression of 'pac_target_info(" << name << ")' contains a diff'd variable that is not present in the model" << endl;
+                  exit(EXIT_FAILURE);
+                }
+            }
+
+          /* Fill the growth_info structure.
+             Cannot be done in an earlier pass since growth terms can be
+             transformed by DynamicModel::substituteDiff(). */
+          for (auto &[component, growth_component, auxname, kind, coeff, growth_neutrality_param, h_indices, original_growth_component, growth_component_info] : components)
+            {
+              if (growth_component)
+                try
+                  {
+                    growth_component_info = growth_component->matchLinearCombinationOfVariables(false);
+                  }
+                catch (ExprNode::MatchFailureException &e)
+                  {
+                    cerr << "ERROR: PAC growth must be a linear combination of variables" << endl;
+                    exit(EXIT_FAILURE);
+                  }
+            }
+
+          // Identify the model equation defining the target
+          expr_t target_expr;
+          try
+            {
+              target_expr = dynamic_model.getRHSFromLHS(target);
+            }
+          catch (ExprNode::MatchFailureException)
+            {
+              cerr << "ERROR: there is no equation whose LHS is equal to the 'target' of 'pac_target_info(" << name << ")'" << endl;
+              exit(EXIT_FAILURE);
+            }
+
+          // Parse that model equation
+          vector<pair<int, expr_t>> terms;
+          expr_t constant;
+          try
+            {
+              tie(terms, constant) = target_expr->matchLinearCombinationOfEndogenousWithConstant();
+            }
+          catch (ExprNode::MatchFailureException)
+            {
+              cerr << "ERROR: the model equation defining the 'target' of 'pac_target_info(" << name << ")' is not of the right form (should be a linear combination of endogenous variables)" << endl;
+              exit(EXIT_FAILURE);
+            }
+
+          // Associate the coefficients of the linear combination with the right components
+          for (auto [var, coeff] : terms)
+            if (auto it = find_if(components.begin(), components.end(),
+                                  [&](const auto &v) { return get<0>(v) == dynamic_model.AddVariable(var); });
+                it != components.end())
+              get<4>(*it) = coeff;
+            else
+              {
+                cerr << "ERROR: the model equation defining the 'target' of 'pac_target_info(" << name << ")' contains a variable (" << symbol_table.getName(var) << ") that is not declared as a 'component'" << endl;
+                exit(EXIT_FAILURE);
+              }
+
+          // Verify that all declared components appear in that equation
+          for (const auto &[component, growth_component, auxname, kind, coeff, growth_neutrality_param, h_indices, original_growth_component, growth_component_info] : components)
+            if (!coeff)
+              {
+                cerr << "ERROR: a 'component' of 'pac_target_info(" << name << ")' does not appear in the model equation defining the 'target'" << endl;
+                exit(EXIT_FAILURE);
+              }
+
+          /* Add the variable and equation defining the stationary part of the
+             target. Note that it includes the constant. */
+          expr_t yns = constant;
+          for (const auto &[component, growth_component, auxname, kind, coeff, growth_neutrality_param, h_indices, original_growth_component, growth_component_info] : components)
+            if (kind != PacTargetKind::ll)
+              yns = dynamic_model.AddPlus(yns, dynamic_model.AddTimes(coeff, component));
+          int target_nonstationary_id = symbol_table.addPacTargetNonstationaryAuxiliaryVar(get<1>(target_info[name]), yns);
+          expr_t neweq = dynamic_model.AddEqual(dynamic_model.AddVariable(target_nonstationary_id), yns);
+          dynamic_model.addEquation(neweq, -1);
+          dynamic_model.addAuxEquation(neweq);
+
+          /* Perform the substitution of the pac_target_nonstationary operator.
+             This needs to be done here, otherwise
+             DynamicModel::analyzePacEquationStructure() will not be able to
+             identify the error-correction part */
+          dynamic_model.substitutePacTargetNonstationary(name, dynamic_model.AddVariable(target_nonstationary_id, -1));
+        }
 
       // Collect some information about PAC models
       int max_lag;
@@ -878,31 +1062,106 @@ PacModelTable::transformPass(ExprNode::subst_table_t &diff_subst_table,
       if (growth[name])
         growth_correction_term = dynamic_model.AddTimes(growth[name], dynamic_model.AddVariable(growth_neutrality_params[name]));
       if (aux_model_name[name].empty())
-        dynamic_model.computePacModelConsistentExpectationSubstitution(name,
-                                                                       symbol_table.getID(discount[name]),
-                                                                       pacEquationMaxLag(name),
-                                                                       growth_correction_term,
-                                                                       diff_subst_table,
-                                                                       aux_var_symb_ids,
-                                                                       aux_param_symb_ids,
-                                                                       pac_expectation_substitution);
+        {
+          if (target_info.find(name) != target_info.end())
+            {
+              cerr << "ERROR: the block 'pac_target_info(" << name << ")' is not supported in the context of a PAC model with model-consistent expectations (MCE)." << endl;
+              exit(EXIT_FAILURE);
+            }
+          else
+            dynamic_model.computePacModelConsistentExpectationSubstitution(name,
+                                                                           symbol_table.getID(discount[name]),
+                                                                           pacEquationMaxLag(name),
+                                                                           growth_correction_term,
+                                                                           diff_subst_table,
+                                                                           aux_var_symb_ids,
+                                                                           aux_param_symb_ids,
+                                                                           pac_expectation_substitution);
+        }
       else
-        dynamic_model.computePacBackwardExpectationSubstitution(name, lhs[name], max_lag,
-                                                                aux_model_type[name],
-                                                                growth_correction_term,
-                                                                aux_var_symb_ids,
-                                                                aux_param_symb_ids,
-                                                                pac_expectation_substitution);
+        {
+          if (target_info.find(name) != target_info.end())
+            {
+              assert(growth_correction_term == dynamic_model.Zero);
+              dynamic_model.computePacBackwardExpectationSubstitutionWithComponents(name, lhs[name],
+                                                                                    max_lag,
+                                                                                    aux_model_type[name],
+                                                                                    get<2>(target_info[name]),
+                                                                                    pac_expectation_substitution);
+            }
+          else
+            dynamic_model.computePacBackwardExpectationSubstitution(name, lhs[name], max_lag,
+                                                                    aux_model_type[name],
+                                                                    growth_correction_term,
+                                                                    aux_var_symb_ids,
+                                                                    aux_param_symb_ids,
+                                                                    pac_expectation_substitution);
+        }
     }
 
   // Actually perform the substitution of pac_expectation
   dynamic_model.substitutePacExpectation(pac_expectation_substitution, eq_name);
   dynamic_model.checkNoRemainingPacExpectation();
+
+  // Check that there is no remaining pac_target_nonstationary operator
+  dynamic_model.checkNoRemainingPacTargetNonstationary();
 }
 
 void
 PacModelTable::writeOutput(const string &basename, ostream &output) const
 {
+  // Helper to print the “growth_info” structure (linear decomposition of growth)
+  auto growth_info_helper = [&](const string &fieldname, const growth_info_t &gi)
+  {
+    int i = 1;
+    for (auto [growth_symb_id, growth_lag, param_id, constant] : gi)
+      {
+        string structname = fieldname + "(" + to_string(i++) + ").";
+        if (growth_symb_id >= 0)
+          {
+            string var_field = "endo_id";
+            if (symbol_table.getType(growth_symb_id) == SymbolType::exogenous)
+              {
+                var_field = "exo_id";
+                output << structname << "endo_id = 0;" << endl;
+              }
+            else
+              output << structname << "exo_id = 0;" << endl;
+            try
+              {
+                // case when this is not the highest lag of the growth variable
+                int aux_symb_id = symbol_table.searchAuxiliaryVars(growth_symb_id, growth_lag);
+                output << structname << var_field << " = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
+                       << structname << "lag = 0;" << endl;
+              }
+            catch (...)
+              {
+                try
+                  {
+                    // case when this is the highest lag of the growth variable
+                    int tmp_growth_lag = growth_lag + 1;
+                    int aux_symb_id = symbol_table.searchAuxiliaryVars(growth_symb_id, tmp_growth_lag);
+                    output << structname << var_field << " = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
+                           << structname << "lag = -1;" << endl;
+                  }
+                catch (...)
+                  {
+                    // case when there is no aux var for the variable
+                    output << structname << var_field << " = "<< symbol_table.getTypeSpecificID(growth_symb_id) + 1 << ";" << endl
+                           << structname << "lag = " << growth_lag << ";" << endl;
+                  }
+              }
+          }
+        else
+          output << structname << "endo_id = 0;" << endl
+                 << structname << "exo_id = 0;" << endl
+                 << structname << "lag = 0;" << endl;
+        output << structname << "param_id = "
+               << (param_id == -1 ? 0 : symbol_table.getTypeSpecificID(param_id) + 1) << ";" << endl
+               << structname << "constant = " << constant << ";" << endl;
+      }
+  };
+
   for (const auto &name : names)
     {
       output << "M_.pac." << name << ".auxiliary_model_name = '" << aux_model_name.at(name) << "';" << endl
@@ -913,53 +1172,7 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
           output << "M_.pac." << name << ".growth_str = '";
           original_growth.at(name)->writeJsonOutput(output, {}, {}, true);
           output << "';" << endl;
-          int i = 0;
-          for (auto [growth_symb_id, growth_lag, param_id, constant] : growth_info.at(name))
-            {
-              string structname = "M_.pac." + name + ".growth_linear_comb(" + to_string(++i) + ").";
-              if (growth_symb_id >= 0)
-                {
-                  string var_field = "endo_id";
-                  if (symbol_table.getType(growth_symb_id) == SymbolType::exogenous)
-                    {
-                      var_field = "exo_id";
-                      output << structname << "endo_id = 0;" << endl;
-                    }
-                  else
-                    output << structname << "exo_id = 0;" << endl;
-                  try
-                    {
-                      // case when this is not the highest lag of the growth variable
-                      int aux_symb_id = symbol_table.searchAuxiliaryVars(growth_symb_id, growth_lag);
-                      output << structname << var_field << " = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
-                             << structname << "lag = 0;" << endl;
-                    }
-                  catch (...)
-                    {
-                      try
-                        {
-                          // case when this is the highest lag of the growth variable
-                          int tmp_growth_lag = growth_lag + 1;
-                          int aux_symb_id = symbol_table.searchAuxiliaryVars(growth_symb_id, tmp_growth_lag);
-                          output << structname << var_field << " = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
-                                 << structname << "lag = -1;" << endl;
-                        }
-                      catch (...)
-                        {
-                          // case when there is no aux var for the variable
-                          output << structname << var_field << " = "<< symbol_table.getTypeSpecificID(growth_symb_id) + 1 << ";" << endl
-                                 << structname << "lag = " << growth_lag << ";" << endl;
-                        }
-                    }
-                }
-              else
-                output << structname << "endo_id = 0;" << endl
-                       << structname << "exo_id = 0;" << endl
-                       << structname << "lag = 0;" << endl;
-              output << structname << "param_id = "
-                     << (param_id == -1 ? 0 : symbol_table.getTypeSpecificID(param_id) + 1) << ";" << endl
-                     << structname << "constant = " << constant << ";" << endl;
-            }
+          growth_info_helper("M_.pac." + name + ".growth_linear_comb", growth_info.at(name));
         }
     }
 
@@ -1160,6 +1373,34 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
           output << "];" << endl;
         }
     }
+
+  for (auto &[name, val] : target_info)
+    {
+      int component_idx = 1;
+      for (auto &[component, growth_component, auxname, kind, coeff, growth_neutrality_param, h_indices, original_growth_component, growth_component_info] : get<2>(val))
+        {
+          string fieldname = "M_.pac." + name + ".components(" + to_string(component_idx) + ")";
+          output << fieldname << ".aux_id = " << symbol_table.getTypeSpecificID(auxname) + 1 << ";" << endl
+                 << fieldname << ".endo_var = " << symbol_table.getTypeSpecificID(dynamic_cast<VariableNode *>(component)->symb_id) + 1 << ";" << endl
+                 << fieldname << ".kind = '" << kindToString(kind) << "';" << endl
+                 << fieldname << ".h_param_indices = [";
+          for (int id : h_indices)
+            output << symbol_table.getTypeSpecificID(id) + 1 << " ";
+          output << "];" << endl
+                 << fieldname << ".coeff_str = '";
+          coeff->writeJsonOutput(output, {}, {}, true);
+          output << "';" << endl;
+          if (growth_component)
+            {
+              output << fieldname << ".growth_neutrality_param_index = " << symbol_table.getTypeSpecificID(growth_neutrality_param) + 1 << ";" << endl
+                     << fieldname << ".growth_str = '";
+              original_growth_component->writeJsonOutput(output, {}, {}, true);
+              output << "';" << endl;
+              growth_info_helper(fieldname + ".growth_linear_comb", growth_component_info);
+            }
+          component_idx++;
+        }
+    }
 }
 
 void
@@ -1167,6 +1408,8 @@ PacModelTable::writeJsonOutput(ostream &output) const
 {
   for (const auto &name : names)
     {
+      /* The calling method has already added a comma, so don’t output one for
+         the first statement */
       if (name != *names.begin())
         output << ", ";
       output << R"({"statementName": "pac_model",)"
@@ -1181,10 +1424,107 @@ PacModelTable::writeJsonOutput(ostream &output) const
         }
       output << "}" << endl;
     }
+
+  for (auto &[name, val] : target_info)
+    {
+      output << R"(, {"statementName": "pac_target_info", "model_name": ")" << name
+             << R"(", "target": ")";
+      get<0>(val)->writeJsonOutput(output, {}, {}, true);
+      output << R"(", "auxname_target_nonstationary": ")" << get<1>(val)
+             << R"(", "components": [)";
+      for (auto &[component, growth_component, auxname, kind, coeff, growth_neutrality_param, h_indices, original_growth_component, growth_component_info] : get<2>(val))
+        {
+          if (component != get<0>(get<2>(val).front()))
+            output << ", ";
+          output << R"({"component": ")";
+          component->writeJsonOutput(output, {}, {}, true);
+          output << R"(", "auxname": ")" << auxname
+                 << R"(", "kind": ")" << kindToString(kind);
+          if (growth_component)
+            {
+              output << R"(", "growth_str": ")";
+              original_growth_component->writeJsonOutput(output, {}, {}, true);
+            }
+          output << R"("})";
+        }
+      output << "]}" << endl;
+    }
 }
 
 int
 PacModelTable::pacEquationMaxLag(const string &name_arg) const
 {
   return get<2>(equation_info.at(name_arg)).size();
+}
+
+string
+PacModelTable::kindToString(PacTargetKind kind)
+{
+  switch (kind)
+    {
+    case PacTargetKind::unspecified:
+      cerr << "Internal error: kind should not be unspecified" << endl;
+      exit(EXIT_FAILURE);
+    case PacTargetKind::ll:
+      return "ll";
+    case PacTargetKind::dl:
+      return "dl";
+    case PacTargetKind::dd:
+      return "dd";
+    }
+  // Silent GCC warning
+  assert(false);
+}
+
+void
+PacModelTable::setTargetExpr(const string &name_arg, expr_t target)
+{
+  get<0>(target_info[name_arg]) = target;
+}
+
+void
+PacModelTable::setTargetAuxnameNonstationary(const string &name_arg, string auxname)
+{
+  get<1>(target_info[name_arg]) = move(auxname);
+}
+
+void
+PacModelTable::addTargetComponent(const string &name_arg, target_component_t component)
+{
+  get<7>(component) = get<1>(component); // original_growth = growth
+  get<2>(target_info[name_arg]).emplace_back(move(component));
+}
+
+void
+PacModelTable::writeTargetCoefficientsFile(const string &basename) const
+{
+  if (target_info.empty())
+    return;
+
+  string filename = DataTree::packageDir(basename) + "/pac_target_coefficients.m";
+  ofstream output;
+  output.open(filename, ios::out | ios::binary);
+  if (!output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+  output << "function coeffs = pac_target_coefficients(model_name, params)" << endl;
+  for (auto &[model_name, val] : target_info)
+    {
+      output << "  if strcmp(model_name, '" << model_name << "')" << endl
+             << "    coeffs = NaN(" << get<2>(val).size() << ",1);" << endl;
+      int i = 1;
+      for (auto &[component, growth_component, auxname, kind, coeff, growth_neutrality_param, h_indices, original_growth_component, growth_component_info] : get<2>(val))
+        {
+          output << "    coeffs(" << i++ << ") = ";
+          coeff->writeOutput(output, ExprNodeOutputType::matlabDynamicModel);
+          output << ";" << endl;
+        }
+      output << "    return" << endl
+             << "  end" << endl;
+    }
+  output << "  error([ 'Unknown PAC model: ' model_name ])" << endl
+         << "end" << endl;
+  output.close();
 }

@@ -442,7 +442,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   original_model.fillVarModelTableFromOrigModel();
 
   // PAC model
-  pac_model_table.transformPass(diff_subst_table, dynamic_model, var_model_table,
+  pac_model_table.transformPass(unary_ops_nodes, unary_ops_subst_table,
+                                diff_nodes, diff_subst_table,
+                                dynamic_model, var_model_table,
                                 trend_component_model_table);
 
   // Create auxiliary vars for Expectation operator
@@ -1119,6 +1121,8 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
 
       // Create epilogue file
       epilogue.writeEpilogueFile(basename);
+
+      pac_model_table.writeTargetCoefficientsFile(basename);
     }
 
   cout << "done" << endl;

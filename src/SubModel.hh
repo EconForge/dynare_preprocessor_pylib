@@ -197,12 +197,15 @@ private:
   set<string> names;
   map<string, string> aux_model_name;
   map<string, string> discount;
-  // The growth expressions belong to the main dynamic_model from the ModFile instance
+  /* The growth expressions belong to the main dynamic_model from the ModFile
+     instance. The growth expression is necessarily nullptr for a model with a
+     pac_target_info block. */
   map<string, expr_t> growth, original_growth;
   /* Information about the structure of growth expressions (which must be a
      linear combination of variables).
      Each tuple represents a term: (endo_id, lag, param_id, constant) */
-  map<string, vector<tuple<int, int, int, double>>> growth_info;
+  using growth_info_t = vector<tuple<int, int, int, double>>;
+  map<string, growth_info_t> growth_info;
 
   /* Stores the name of the PAC equation associated to the model.
      pac_model_name → eq_name */
@@ -214,6 +217,8 @@ private:
      pac_expectation value
      - in the MCE case, this auxiliary represents Z₁ (i.e. without the growth
      correction term)
+     Note that this structure is not used in the presence of the
+     pac_target_info block.
      pac_model_name → symb_id */
   map<string, int> aux_var_symb_ids;
   /* Stores symb_ids for auxiliary parameters created for the expression
@@ -221,10 +226,13 @@ private:
      neutrality correction):
      - in the backward case, contains the “h” parameters
      - in the MCE case, contains the “α” parameters
+     Note that this structure is not used in the presence of the
+     pac_target_info block.
      pac_model_name → symb_ids */
   map<string, vector<int>> aux_param_symb_ids;
   /* Stores indices for growth neutrality parameters
-     pac_model_name → growth_neutrality_param_index */
+     pac_model_name → growth_neutrality_param_index.
+     This map is not used for PAC models with a pac_target_info block. */
   map<string, int> growth_neutrality_params;
 
   // Stores LHS vars (only for backward PAC models)
@@ -243,7 +251,20 @@ public:
 private:
   equation_info_t equation_info;
 
+public:
+  /* (component variable/expr, growth, auxname, kind, coeff. in the linear
+     combination, growth_param ID possibly equal to -1, vector of h parameters,
+     original_growth, growth_info) */
+  using target_component_t = tuple<expr_t, expr_t, string, PacTargetKind, expr_t, int, vector<int>, expr_t, growth_info_t>;
+
+private:
+  // pac_model_name → (target variable/expr, auxname_target_nonstationary, target components)
+  map<string, tuple<expr_t, string, vector<target_component_t>>> target_info;
+
   int pacEquationMaxLag(const string &name_arg) const;
+
+  // Return a text representation of a kind (but fails on “unspecified” kind value)
+  static string kindToString(PacTargetKind kind);
 
 public:
   explicit PacModelTable(SymbolTable &symbol_table_arg);
@@ -255,11 +276,20 @@ public:
   // Called by DynamicModel::substituteDiff()
   void substituteDiffNodesInGrowth(const lag_equivalence_table_t &diff_nodes, ExprNode::subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs);
   // Must be called after substituteDiffNodesInGrowth()
-  void transformPass(ExprNode::subst_table_t &diff_subst_table,
+  void transformPass(const lag_equivalence_table_t &unary_ops_nodes,
+                     ExprNode::subst_table_t &unary_ops_subst_table,
+                     const lag_equivalence_table_t &diff_nodes,
+                     ExprNode::subst_table_t &diff_subst_table,
                      DynamicModel &dynamic_model, const VarModelTable &var_model_table,
                      const TrendComponentModelTable &trend_component_model_table);
   void writeOutput(const string &basename, ostream &output) const;
   void writeJsonOutput(ostream &output) const;
+  void setTargetExpr(const string &name_arg, expr_t target);
+  void setTargetAuxnameNonstationary(const string &name_arg, string auxname);
+  /* Only the first four elements of the tuple are expected to be set by the
+     caller. The other ones will be filled by this class. */
+  void addTargetComponent(const string &name_arg, target_component_t component);
+  void writeTargetCoefficientsFile(const string &basename) const;
 };
 
 

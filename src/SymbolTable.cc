@@ -377,6 +377,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
             break;
           case AuxVarType::expectation:
           case AuxVarType::pacExpectation:
+          case AuxVarType::pacTargetNonstationary:
             break;
           case AuxVarType::diff:
           case AuxVarType::diffLag:
@@ -684,6 +685,24 @@ SymbolTable::addPacExpectationAuxiliaryVar(const string &name, expr_t expr_arg)
     }
 
   aux_vars.emplace_back(symb_id, AuxVarType::pacExpectation, 0, 0, 0, 0, expr_arg, "");
+  return symb_id;
+}
+
+int
+SymbolTable::addPacTargetNonstationaryAuxiliaryVar(const string &name, expr_t expr_arg)
+{
+  int symb_id;
+  try
+    {
+      symb_id = addSymbol(name, SymbolType::endogenous);
+    }
+  catch (AlreadyDeclaredException &e)
+    {
+      cerr << "ERROR: the variable/parameter '" << name << "' conflicts with a variable that will be generated for a 'pac_target_nonstationary' expression. Please rename it." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  aux_vars.emplace_back(symb_id, AuxVarType::pacTargetNonstationary, 0, 0, 0, 0, expr_arg, "");
   return symb_id;
 }
 
@@ -1004,6 +1023,7 @@ SymbolTable::writeJsonOutput(ostream &output) const
 	      break;
 	    case AuxVarType::expectation:
 	    case AuxVarType::pacExpectation:
+            case AuxVarType::pacTargetNonstationary:
 	      break;
 	    case AuxVarType::diff:
 	    case AuxVarType::diffLag:

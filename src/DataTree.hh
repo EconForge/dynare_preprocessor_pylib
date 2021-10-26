@@ -81,6 +81,10 @@ private:
   using pac_expectation_node_map_t = map<string, PacExpectationNode *>;
   pac_expectation_node_map_t pac_expectation_node_map;
 
+  // model_name -> PacTargetNonstationaryNode
+  using pac_target_nonstationary_node_map_t = map<string, PacTargetNonstationaryNode *>;
+  pac_target_nonstationary_node_map_t pac_target_nonstationary_node_map;
+
   // (arguments, deriv_idx, symb_id) -> FirstDerivExternalFunctionNode
   using first_deriv_external_function_node_map_t = map<tuple<vector<expr_t>, int, int>, FirstDerivExternalFunctionNode *>;
   first_deriv_external_function_node_map_t first_deriv_external_function_node_map;
@@ -100,13 +104,6 @@ protected:
 
   //! Internal implementation of ParamUsedWithLeadLag()
   bool ParamUsedWithLeadLagInternal() const;
-
-  /*! Takes a MATLAB/Octave package name (possibly with several levels nested using dots),
-    and returns the name of the corresponding filesystem directory (which
-    is created by the function if it does not exist).
-    In practice the package nesting is used for the planner_objective (stored
-    inside +objective subdir). */
-  static string packageDir(const string &package);
 
   /* Writes the contents of “new_contents” to the file “filename”. However, if
      the file already exists and would not be modified by this operation, then do
@@ -260,6 +257,8 @@ public:
   expr_t AddVarExpectation(const string &model_name);
   //! Adds pac_expectation command to model tree
   expr_t AddPacExpectation(const string &model_name);
+  //! Adds a pac_target_nonstationary node to model tree
+  expr_t AddPacTargetNonstationary(const string &model_name);
   //! Adds a model local variable with its value
   void AddLocalVariable(int symb_id, expr_t value) noexcept(false);
   //! Adds an external function node
@@ -344,6 +343,13 @@ public:
   {
     no_commutativity = true;
   }
+
+  /*! Takes a MATLAB/Octave package name (possibly with several levels nested using dots),
+    and returns the name of the corresponding filesystem directory (which
+    is created by the function if it does not exist).
+    In practice the package nesting is used for the planner_objective (stored
+    inside +objective subdir). */
+  static string packageDir(const string &package);
 };
 
 inline expr_t

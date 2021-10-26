@@ -444,6 +444,10 @@ public:
   //! Helper for writing the Jacobian elements in MATLAB and C
   /*! Writes either (i+1,j+1) or [i+j*no_eq] */
   void jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const;
+  /* Given an expression, searches for the first equation that has exactly this
+     expression on the LHS, and returns the RHS of that equation.
+     If no such equation can be found, throws an ExprNode::MatchFailureExpression */
+  expr_t getRHSFromLHS(expr_t lhs) const;
 
   //! Returns all the equation tags associated to an equation
   inline map<string, string>
