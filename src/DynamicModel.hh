@@ -122,35 +122,6 @@ private:
   //! Used for var_expectation and var_model
   map<string, set<int>> var_expectation_functions_to_write;
 
-  //! store symb_ids for alphas created in addPacModelConsistentExpectationEquation
-  //! (pac_model_name, standardized_eqtag) -> mce_alpha_symb_id
-  map<pair<string, string>, vector<int>> pac_mce_alpha_symb_ids;
-  //! store symb_ids for h0, h1 parameters
-  //! (pac_model_name, standardized_eqtag) -> parameter symb_ids
-  map<pair<string, string>, vector<int>> pac_h0_indices, pac_h1_indices;
-  //! store symb_ids for z1s created in addPacModelConsistentExpectationEquation
-  //! (pac_model_name, standardized_eqtag) -> mce_z1_symb_id
-  map<pair<string, string>, int> pac_mce_z1_symb_ids;
-  //! Store lag info for pac equations
-  //! (pac_model_name, equation_tag) -> (standardized_eqtag, lag)
-  map<pair<string, string>, pair<string, int>> pac_eqtag_and_lag;
-  // Store indices for growth neutrality parameters
-  // pac_model_name -> growth_param_index
-  map<string, int> pac_growth_neutrality_params;
-
-  //! (pac_model_name, equation_tag) -> expr_t
-  map<pair<string, string>, expr_t> pac_expectation_substitution;
-
-  //! Store info about backward PAC models:
-  //! pac_model_name -> (lhsvars, aux_model_type)
-  map<string, pair<vector<int>, string>> pac_model_info;
-
-  //! Store info about pac models specific to the equation they appear in
-  //! (pac_model_name, standardized_eqtag) ->
-  //!     (lhs, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants)
-  map<pair<string, string>,
-      tuple<pair<int, int>, int, vector<tuple<int, int, int>>, pair<int, vector<tuple<int, bool, int>>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>>> pac_equation_info;
-
   //! Writes dynamic model file (Matlab version)
   void writeDynamicMFile(const string &basename) const;
   //! Writes dynamic model file (Julia version)
@@ -415,27 +386,6 @@ public:
   //! in the trend_component model
   void updateVarAndTrendModel() const;
 
-  //! Get Pac equation parameter info
-  map<pair<string, string>, pair<string, int>> walkPacParameters(const string &name);
-
-  // Create the growth neutrality parameter of a given PAC model (when the
-  // “growth” option has been passed)
-  void createPacGrowthNeutralityParameter(const string &pac_model_name);
-
-  //! Add var_model info to pac_expectation nodes
-  // Must be called after createPacGrowthNeutralityParameter() has been called
-  // on the relevant models
-  void fillPacModelInfo(const string &pac_model_name,
-                        vector<int> lhs,
-                        int max_lag,
-                        string aux_model_type,
-                        const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
-                        const vector<bool> &nonstationary,
-                        expr_t growth);
-
-  //! Substitutes pac_expectation operator with expectation based on auxiliary model
-  void substitutePacExpectation(const string &pac_model_name);
-
   //! Writes dynamic model file
   void writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const;
   //! Writes file containing parameters derivatives
@@ -563,6 +513,8 @@ public:
   //! Substitute VarExpectation operators
   void substituteVarExpectation(const map<string, expr_t> &subst_table);
 
+  void analyzePacEquationStructure(const string &name, map<pair<string, string>, pair<string, int>> &eqtag_and_lag, PacModelTable::equation_info_t &pac_equation_info);
+
   // Exception thrown by getPacTargetSymbId()
   class PacTargetNotIdentifiedException
   {
@@ -576,13 +528,42 @@ public:
   //! Return target of the pac equation
   int getPacTargetSymbId(const string &pac_model_name) const;
 
-  //! Declare Z1 variables before creating aux vars so it comes right after the endo names declared by the user
-  void declarePacModelConsistentExpectationEndogs(const string &name);
-
-  //! Add model consistent expectation equation for pac model
+  /* For a PAC MCE model, add the variable and the equation defining Z₁.
+     The symbol IDs of the new endogenous and parameters are also added to
+     pac_mce_{z1,alpha}_symb_ids. */
   void addPacModelConsistentExpectationEquation(const string &name, int discount,
                                                 const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
-                                                ExprNode::subst_table_t &diff_subst_table, expr_t growth);
+                                                ExprNode::subst_table_t &diff_subst_table,
+                                                map<pair<string, string>, int> &pac_mce_z1_symb_ids,
+                                                map<pair<string, string>, vector<int>> &pac_mce_alpha_symb_ids);
+
+  /* For a PAC MCE model, fill pac_expectation_substitution with the
+     expression that will be substituted for the pac_expectation operator */
+  void computePacModelConsistentExpectationSubstitution(const string &name,
+                                                        const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
+                                                        expr_t growth,
+                                                        const map<string, int> &pac_growth_neutrality_params,
+                                                        const map<pair<string, string>, int> &pac_mce_z1_symb_ids,
+                                                        map<pair<string, string>, expr_t> &pac_expectation_substitution);
+
+
+  /* For a PAC backward model, fill pac_expectation_substitution with the
+     expression that will be substituted for the pac_expectation operator.
+     The symbol IDs of the new parameters are also added to pac_{h0,h1}_indices. */
+  void computePacBackwardExpectationSubstitution(const string &name,
+                                                 const vector<int> &lhs,
+                                                 int max_lag,
+                                                 const string &aux_model_type,
+                                                 const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
+                                                 const vector<bool> &nonstationary,
+                                                 expr_t growth,
+                                                 const map<string, int> &pac_growth_neutrality_params,
+                                                 map<pair<string, string>, vector<int>> &pac_h0_indices,
+                                                 map<pair<string, string>, vector<int>> &pac_h1_indices,
+                                                 map<pair<string, string>, expr_t> &pac_expectation_substitution);
+
+  //! Substitutes pac_expectation operator with expectation based on auxiliary model
+  void substitutePacExpectation(const map<pair<string, string>, expr_t> &pac_expectation_substitution);
 
   //! Table to undiff LHS variables for pac vector z
   vector<int> getUndiffLHSForPac(const string &aux_model_name,

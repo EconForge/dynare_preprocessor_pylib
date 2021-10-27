@@ -200,6 +200,39 @@ private:
   // The growth expressions belong to the main dynamic_model from the ModFile instance
   map<string, expr_t> growth, original_growth;
   map<string, vector<tuple<int, int, int, double>>> growth_info;
+
+  /* Stores symb_ids for alphas created by DynamicModel::addPacModelConsistentExpectationEquation()
+     (pac_model_name, standardized_eqtag) -> mce_alpha_symb_ids */
+  map<pair<string, string>, vector<int>> mce_alpha_symb_ids;
+  /* Stores symb_ids for z1s created by DynamicModel::addPacModelConsistentExpectationEquation()
+     (pac_model_name, standardized_eqtag) -> mce_z1_symb_id */
+  map<pair<string, string>, int> mce_z1_symb_ids;
+  /* Stores symb_ids for h0, h1 parameters
+     (pac_model_name, standardized_eqtag) -> parameter symb_ids */
+  map<pair<string, string>, vector<int>> h0_indices, h1_indices;
+  /* Stores indices for growth neutrality parameters
+     pac_model_name -> growth_neutrality_param_index */
+  map<string, int> growth_neutrality_params;
+
+  // Stores LHS vars (only for backward PAC models)
+  map<string, vector<int>> lhs;
+
+  // Stores auxiliary model type (only for backward PAC models)
+  map<string, string> aux_model_type;
+
+  /* Stores lag info for pac equations
+     (pac_model_name, equation_tag) -> (standardized_eqtag, lag) */
+  map<pair<string, string>, pair<string, int>> eqtag_and_lag;
+public:
+  /* Stores info about PAC models specific to the equation they appear in
+     (pac_model_name, standardized_eqtag) ->
+         (lhs, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants)
+  */
+  using equation_info_t = map<pair<string, string>,
+                              tuple<pair<int, int>, int, vector<tuple<int, int, int>>, pair<int, vector<tuple<int, bool, int>>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>>>;
+private:
+  equation_info_t equation_info;
+
 public:
   explicit PacModelTable(SymbolTable &symbol_table_arg);
   void addPacModel(string name_arg, string aux_model_name_arg, string discount_arg, expr_t growth_arg);

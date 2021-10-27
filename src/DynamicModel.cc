@@ -50,9 +50,6 @@ DynamicModel::copyHelper(const DynamicModel &m)
     blocks_derivatives_exo.emplace_back(convert_block_derivative(it));
   for (const auto &it : m.blocks_derivatives_exo_det)
     blocks_derivatives_exo_det.emplace_back(convert_block_derivative(it));
-
-  for (const auto &[key, expr] : m.pac_expectation_substitution)
-    pac_expectation_substitution.emplace(key, f(expr));
 }
 
 DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
@@ -108,15 +105,7 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   blocks_jacob_cols_other_endo{m.blocks_jacob_cols_other_endo},
   blocks_jacob_cols_exo{m.blocks_jacob_cols_exo},
   blocks_jacob_cols_exo_det{m.blocks_jacob_cols_exo_det},
-  var_expectation_functions_to_write{m.var_expectation_functions_to_write},
-  pac_mce_alpha_symb_ids{m.pac_mce_alpha_symb_ids},
-  pac_h0_indices{m.pac_h0_indices},
-  pac_h1_indices{m.pac_h1_indices},
-  pac_mce_z1_symb_ids{m.pac_mce_z1_symb_ids},
-  pac_eqtag_and_lag{m.pac_eqtag_and_lag},
-  pac_growth_neutrality_params{m.pac_growth_neutrality_params},
-  pac_model_info{m.pac_model_info},
-  pac_equation_info{m.pac_equation_info}
+  var_expectation_functions_to_write{m.var_expectation_functions_to_write}
 {
   copyHelper(m);
 }
@@ -172,16 +161,6 @@ DynamicModel::operator=(const DynamicModel &m)
   blocks_jacob_cols_exo_det = m.blocks_jacob_cols_exo_det;
 
   var_expectation_functions_to_write = m.var_expectation_functions_to_write;
-
-  pac_mce_alpha_symb_ids = m.pac_mce_alpha_symb_ids;
-  pac_h0_indices = m.pac_h0_indices;
-  pac_h1_indices = m.pac_h1_indices;
-  pac_mce_z1_symb_ids = m.pac_mce_z1_symb_ids;
-  pac_eqtag_and_lag = m.pac_eqtag_and_lag;
-  pac_expectation_substitution.clear();
-  pac_growth_neutrality_params = m.pac_growth_neutrality_params;
-  pac_model_info = m.pac_model_info;
-  pac_equation_info = m.pac_equation_info;
 
   copyHelper(m);
 
@@ -3003,237 +2982,6 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
   for (int i = 1; i < static_cast<int>(NNZDerivatives.size()); i++)
     output << (i > computed_derivs_order ? -1 : NNZDerivatives[i]) << "; ";
   output << "];" << endl;
-
-  // Write Pac Model Consistent Expectation parameter info
-  for (auto &it : pac_mce_alpha_symb_ids)
-    {
-      output << "M_.pac." << it.first.first << ".equations." << it.first.second << ".mce.alpha = [";
-      for (auto it : it.second)
-        output << symbol_table.getTypeSpecificID(it) + 1 << " ";
-      output << "];" << endl;
-    }
-
-  // Write Pac Model Consistent Expectation Z1 info
-  for (auto &it : pac_mce_z1_symb_ids)
-    output << "M_.pac." << it.first.first << ".equations." << it.first.second << ".mce.z1 = "
-           << symbol_table.getTypeSpecificID(it.second) + 1 << ";" << endl;
-
-  // Write Pac lag info
-  for (auto &it : pac_eqtag_and_lag)
-    output << "M_.pac." << it.first.first << ".equations." << it.second.first << ".max_lag = " << it.second.second << ";" << endl;
-
-  // Write Pac equation tag info
-  map<string, vector<pair<string, string>>> for_writing;
-  for (auto &it : pac_eqtag_and_lag)
-    for_writing[it.first.first].emplace_back(it.first.second, it.second.first);
-
-  for (auto &it : for_writing)
-    {
-      output << "M_.pac." << it.first << ".tag_map = [";
-      for (auto &it1 : it.second)
-        output << "{'" << it1.first << "', '" << it1.second << "'};";
-      output << "];" << endl;
-    }
-
-  for (auto &[model, growth_neutrality_param_index] : pac_growth_neutrality_params)
-    output << "M_.pac." << model << ".growth_neutrality_param_index = "
-           << symbol_table.getTypeSpecificID(growth_neutrality_param_index) + 1 << ";" << endl;
-
-  for (auto &[model, values] : pac_model_info)
-    {
-      auto &[lhs, aux_model_type] = values;
-      output << "M_.pac." << model << ".lhs = [";
-      for (auto it : lhs)
-        output << it + 1 << " ";
-      output << "];" << endl;
-
-      output << "M_.pac." << model << ".auxiliary_model_type = '" << aux_model_type << "';" << endl;
-    }
-
-  for (auto &pit : pac_equation_info)
-    {
-      auto [lhs_pac_var, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants] = pit.second;
-      string substruct = pit.first.first + ".equations." + pit.first.second + ".";
-
-      output << "M_.pac." << substruct << "lhs_var = "
-             << symbol_table.getTypeSpecificID(lhs_pac_var.first) + 1 << ";" << endl;
-
-      if (optim_share_index >= 0)
-        output << "M_.pac." << substruct << "share_of_optimizing_agents_index = "
-               << symbol_table.getTypeSpecificID(optim_share_index) + 1 << ";" << endl;
-
-      output << "M_.pac." << substruct << "ec.params = "
-             << symbol_table.getTypeSpecificID(ec_params_and_vars.first) + 1 << ";" << endl
-             << "M_.pac." << substruct << "ec.vars = [";
-      for (auto it : ec_params_and_vars.second)
-        output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
-      output << "];" << endl
-             << "M_.pac." << substruct << "ec.istarget = [";
-      for (auto it : ec_params_and_vars.second)
-        output << (get<1>(it) ? "true " : "false ");
-      output << "];" << endl
-             << "M_.pac." << substruct << "ec.scale = [";
-      for (auto it : ec_params_and_vars.second)
-        output << get<2>(it) << " ";
-      output << "];" << endl
-             << "M_.pac." << substruct << "ec.isendo = [";
-      for (auto it : ec_params_and_vars.second)
-        switch (symbol_table.getType(get<0>(it)))
-          {
-          case SymbolType::endogenous:
-            output << "true ";
-            break;
-          case SymbolType::exogenous:
-            output << "false ";
-            break;
-          default:
-            cerr << "expecting endogenous or exogenous" << endl;
-            exit(EXIT_FAILURE);
-          }
-      output << "];" << endl
-             << "M_.pac." << substruct << "ar.params = [";
-      for (auto &[pid, vid, vlag] : ar_params_and_vars)
-        output << (pid != -1 ? symbol_table.getTypeSpecificID(pid) + 1 : -1) << " ";
-      output << "];" << endl
-             << "M_.pac." << substruct << "ar.vars = [";
-      for (auto &[pid, vid, vlag] : ar_params_and_vars)
-        output << (vid != -1 ? symbol_table.getTypeSpecificID(vid) + 1 : -1) << " ";
-      output << "];" << endl
-             << "M_.pac." << substruct << "ar.lags = [";
-      for (auto &[pid, vid, vlag] : ar_params_and_vars)
-        output << vlag << " ";
-      output << "];" << endl;
-      if (!non_optim_vars_params_and_constants.empty())
-        {
-          output << "M_.pac." << substruct << "non_optimizing_behaviour.params = [";
-          for (auto &it : non_optim_vars_params_and_constants)
-            if (get<2>(it) >= 0)
-              output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
-            else
-              output << "NaN ";
-          output << "];" << endl
-                 << "M_.pac." << substruct << "non_optimizing_behaviour.vars = [";
-          for (auto &it : non_optim_vars_params_and_constants)
-            output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
-          output << "];" << endl
-                 << "M_.pac." << substruct << "non_optimizing_behaviour.isendo = [";
-          for (auto &it : non_optim_vars_params_and_constants)
-            switch (symbol_table.getType(get<0>(it)))
-              {
-              case SymbolType::endogenous:
-                output << "true ";
-                break;
-              case SymbolType::exogenous:
-                output << "false ";
-                break;
-              default:
-                cerr << "expecting endogenous or exogenous" << endl;
-                exit(EXIT_FAILURE);
-              }
-          output << "];" << endl
-                 << "M_.pac." << substruct << "non_optimizing_behaviour.lags = [";
-          for (auto &it : non_optim_vars_params_and_constants)
-            output << get<1>(it) << " ";
-          output << "];" << endl
-                 << "M_.pac." << substruct << "non_optimizing_behaviour.scaling_factor = [";
-          for (auto &it : non_optim_vars_params_and_constants)
-            output << get<3>(it) << " ";
-          output << "];" << endl;
-        }
-      if (!additive_vars_params_and_constants.empty())
-        {
-          output << "M_.pac." << substruct << "additive.params = [";
-          for (auto &it : additive_vars_params_and_constants)
-            if (get<2>(it) >= 0)
-              output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
-            else
-              output << "NaN ";
-          output << "];" << endl
-                 << "M_.pac." << substruct << "additive.vars = [";
-          for (auto &it : additive_vars_params_and_constants)
-            output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
-          output << "];" << endl
-                 << "M_.pac." << substruct << "additive.isendo = [";
-          for (auto &it : additive_vars_params_and_constants)
-            switch (symbol_table.getType(get<0>(it)))
-              {
-              case SymbolType::endogenous:
-                output << "true ";
-                break;
-              case SymbolType::exogenous:
-                output << "false ";
-                break;
-              default:
-                cerr << "expecting endogenous or exogenous" << endl;
-                exit(EXIT_FAILURE);
-              }
-          output << "];" << endl
-                 << "M_.pac." << substruct << "additive.lags = [";
-          for (auto &it : additive_vars_params_and_constants)
-            output << get<1>(it) << " ";
-          output << "];" << endl
-                 << "M_.pac." << substruct << "additive.scaling_factor = [";
-          for (auto &it : additive_vars_params_and_constants)
-            output << get<3>(it) << " ";
-          output << "];" << endl;
-        }
-      if (!optim_additive_vars_params_and_constants.empty())
-        {
-          output << "M_.pac." << substruct << "optim_additive.params = [";
-          for (auto &it : optim_additive_vars_params_and_constants)
-            if (get<2>(it) >= 0)
-              output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
-            else
-              output << "NaN ";
-          output << "];" << endl
-                 << "M_.pac." << substruct << "optim_additive.vars = [";
-          for (auto &it : optim_additive_vars_params_and_constants)
-            output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
-          output << "];" << endl
-                 << "M_.pac." << substruct << "optim_additive.isendo = [";
-          for (auto &it : optim_additive_vars_params_and_constants)
-            switch (symbol_table.getType(get<0>(it)))
-              {
-              case SymbolType::endogenous:
-                output << "true ";
-                break;
-              case SymbolType::exogenous:
-                output << "false ";
-                break;
-              default:
-                cerr << "expecting endogenous or exogenous" << endl;
-                exit(EXIT_FAILURE);
-              }
-          output << "];" << endl
-                 << "M_.pac." << substruct << "optim_additive.lags = [";
-          for (auto &it : optim_additive_vars_params_and_constants)
-            output << get<1>(it) << " ";
-          output << "];" << endl
-                 << "M_.pac." << substruct << "optim_additive.scaling_factor = [";
-          for (auto &it : optim_additive_vars_params_and_constants)
-            output << get<3>(it) << " ";
-          output << "];" << endl;
-        }
-      // Create empty h0 and h1 substructures that will be overwritten later if not empty
-      output << "M_.pac." << substruct << "h0_param_indices = [];" << endl
-             << "M_.pac." << substruct << "h1_param_indices = [];" << endl;
-    }
-
-  for (auto &it : pac_h0_indices)
-    {
-      output << "M_.pac." << it.first.first << ".equations." << it.first.second << ".h0_param_indices = [";
-      for (auto it1 : it.second)
-        output << symbol_table.getTypeSpecificID(it1) + 1 << " ";
-      output << "];" << endl;
-    }
-
-  for (auto &it : pac_h1_indices)
-    {
-      output << "M_.pac." << it.first.first << ".equations." << it.first.second << ".h1_param_indices = [";
-      for (auto it1 : it.second)
-        output << symbol_table.getTypeSpecificID(it1) + 1 << " ";
-      output << "];" << endl;
-    }
 }
 
 void
@@ -3899,11 +3647,9 @@ DynamicModel::getUndiffLHSForPac(const string &aux_model_name,
   return lhs;
 }
 
-map<pair<string, string>, pair<string, int>>
-DynamicModel::walkPacParameters(const string &name)
+void
+DynamicModel::analyzePacEquationStructure(const string &name, map<pair<string, string>, pair<string, int>> &eqtag_and_lag, PacModelTable::equation_info_t &pac_equation_info)
 {
-  map<pair<string, string>, pair<string, int>> eqtag_and_lag;
-
   int i = 0;
   for (auto &equation : equations)
     {
@@ -3978,12 +3724,12 @@ DynamicModel::walkPacParameters(const string &name)
             }
           if (lhs.first == -1)
             {
-              cerr << "walkPacParameters: error obtaining LHS variable." << endl;
+              cerr << "analyzePacEquationStructure: error obtaining LHS variable." << endl;
               exit(EXIT_FAILURE);
             }
           if (ec_params_and_vars.second.empty())
             {
-              cerr << "walkPacParameters: error obtaining RHS parameters." << endl;
+              cerr << "analyzePacEquationStructure: error obtaining RHS parameters." << endl;
               exit(EXIT_FAILURE);
             }
           string eq = "eq" + to_string(i++);
@@ -3996,7 +3742,6 @@ DynamicModel::walkPacParameters(const string &name)
           eqtag_and_lag[{name, eqtag}] = {eq, max_lag};
         }
     }
-  return eqtag_and_lag;
 }
 
 int
@@ -4039,36 +3784,11 @@ DynamicModel::getPacTargetSymbId(const string &pac_model_name) const
 }
 
 void
-DynamicModel::declarePacModelConsistentExpectationEndogs(const string &name)
-{
-  int i = 0;
-  for (auto &equation : equations)
-    if (equation->containsPacExpectation(name))
-      {
-        if (!equation_tags.exists(&equation - &equations[0], "name"))
-          {
-            cerr << "Every equation with a pac expectation must have been assigned an equation tag name" << endl;
-            exit(EXIT_FAILURE);
-          }
-        string standard_eqtag = "eq" + to_string(i++);
-        try
-          {
-            pac_mce_z1_symb_ids[{name, standard_eqtag}]
-              = symbol_table.addSymbol("mce_Z1_" + name + "_" + standard_eqtag, SymbolType::endogenous);
-          }
-        catch (SymbolTable::AlreadyDeclaredException &e)
-          {
-            cerr << "Variable name needed by PAC (mce_Z1_" << name << "_" << standard_eqtag << endl;
-            exit(EXIT_FAILURE);
-          }
-      }
-}
-
-void
 DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int discount_symb_id,
                                                        const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
                                                        ExprNode::subst_table_t &diff_subst_table,
-                                                       expr_t growth)
+                                                       map<pair<string, string>, int> &pac_mce_z1_symb_ids,
+                                                       map<pair<string, string>, vector<int>> &pac_mce_alpha_symb_ids)
 {
   int pac_target_symb_id;
   try
@@ -4080,43 +3800,53 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
       cerr << "Can't identify target for PAC model " << name << ": " << e.message;
       exit(EXIT_FAILURE);
     }
-  pac_eqtag_and_lag.insert(eqtag_and_lag.begin(), eqtag_and_lag.end());
   int neqs = 0;
-  for (auto &it : eqtag_and_lag)
+  for (const auto &[key, val] : eqtag_and_lag)
     {
-      assert(it.first.first == name);
-      string eqtag = it.first.second;
-      string standard_eqtag = it.second.first;
-      int pac_max_lag_m = it.second.second + 1;
+      auto &[name2, eqtag] = key;
+      if (name2 != name)
+        continue;
+
+      auto &standard_eqtag = val.first;
+      int pac_max_lag_m = val.second + 1;
       string append_to_name = name + "_" + standard_eqtag;
-      if (pac_mce_z1_symb_ids.find({name, standard_eqtag}) == pac_mce_z1_symb_ids.end())
+
+      // Create the endogenous representing Z₁
+      int mce_z1_symb_id;
+      string varname = "mce_Z1_" + append_to_name;
+      try
         {
-          cerr << "Error finding pac MCE Z1 symb id" << endl;
+          mce_z1_symb_id = symbol_table.addSymbol(varname, SymbolType::endogenous);
+        }
+      catch (SymbolTable::AlreadyDeclaredException &e)
+        {
+          cerr << "The variable/parameter '" << varname << "' conflicts with the variable that will be generated for the Z_1 variable of the '" << name << "' PAC model. Please rename it." << endl;
           exit(EXIT_FAILURE);
         }
-      int mce_z1_symb_id = pac_mce_z1_symb_ids[{name, standard_eqtag}];
+      pac_mce_z1_symb_ids[{name, standard_eqtag}] = mce_z1_symb_id;
 
       expr_t A = One;
       expr_t fp = Zero;
       expr_t beta = AddVariable(discount_symb_id);
       for (int i = 1; i <= pac_max_lag_m; i++)
-        try
-          {
-            int alpha_i_symb_id = symbol_table.addSymbol("mce_alpha_" + append_to_name + "_" + to_string(i),
-                                                         SymbolType::parameter);
-            pac_mce_alpha_symb_ids[{name, standard_eqtag}].push_back(alpha_i_symb_id);
-            A = AddPlus(A, AddVariable(alpha_i_symb_id));
-            fp = AddPlus(fp,
-                         AddTimes(AddTimes(AddVariable(alpha_i_symb_id),
-                                           AddPower(beta, AddPossiblyNegativeConstant(i))),
-                                  AddVariable(mce_z1_symb_id, i)));
-
-          }
-        catch (SymbolTable::AlreadyDeclaredException &e)
-          {
-            cerr << "Variable name needed by PAC (mce_alpha_" << append_to_name << "_" << i << ")" << endl;
-            exit(EXIT_FAILURE);
-          }
+        {
+          string param_name = "mce_alpha_" + append_to_name + "_" + to_string(i);
+          try
+            {
+              int alpha_i_symb_id = symbol_table.addSymbol(param_name, SymbolType::parameter);
+              pac_mce_alpha_symb_ids[{name, standard_eqtag}].push_back(alpha_i_symb_id);
+              A = AddPlus(A, AddVariable(alpha_i_symb_id));
+              fp = AddPlus(fp,
+                           AddTimes(AddTimes(AddVariable(alpha_i_symb_id),
+                                             AddPower(beta, AddPossiblyNegativeConstant(i))),
+                                    AddVariable(mce_z1_symb_id, i)));
+            }
+          catch (SymbolTable::AlreadyDeclaredException &e)
+            {
+              cerr << "The variable/parameter '" << param_name << "' conflicts with a parameter that will be generated for the '" << name << "' PAC model. Please rename it." << endl;
+              exit(EXIT_FAILURE);
+            }
+        }
 
       // Add diff nodes and eqs for pac_target_symb_id
       const VariableNode *target_base_diff_node;
@@ -4173,14 +3903,14 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
           for (int j = k+1; j <= pac_max_lag_m; j++)
             {
               int alpha_j_symb_id = -1;
-              string varname = "mce_alpha_" + append_to_name + "_" + to_string(j);
+              string param_name = "mce_alpha_" + append_to_name + "_" + to_string(j);
               try
                 {
-                  alpha_j_symb_id = symbol_table.getID(varname);
+                  alpha_j_symb_id = symbol_table.getID(param_name);
                 }
               catch (SymbolTable::UnknownSymbolNameException &e)
                 {
-                  alpha_j_symb_id = symbol_table.addSymbol(varname, SymbolType::parameter);
+                  alpha_j_symb_id = symbol_table.addSymbol(param_name, SymbolType::parameter);
                 }
               ssum = AddPlus(ssum,
                              AddTimes(AddVariable(alpha_j_symb_id), AddPower(beta, AddPossiblyNegativeConstant(j))));
@@ -4191,51 +3921,56 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
                             AddMinus(AddTimes(A, AddMinus(const_cast<VariableNode *>(target_base_diff_node), fs)), fp));
       addEquation(neweq, -1);
       neqs++;
+    }
+  cout << "PAC Model Consistent Expectation: added " << neqs << " auxiliary variables and equations for model " << name << "." << endl;
+}
+
+void
+DynamicModel::computePacModelConsistentExpectationSubstitution(const string &name,
+                                                               const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
+                                                               expr_t growth,
+                                                               const map<string, int> &pac_growth_neutrality_params,
+                                                               const map<pair<string, string>, int> &pac_mce_z1_symb_ids,
+                                                               map<pair<string, string>, expr_t> &pac_expectation_substitution)
+{
+  for (const auto &[key, val] : eqtag_and_lag)
+    {
+      auto &[name2, eqtag] = key;
+      if (name2 != name)
+        continue;
+
+      int mce_z1_symb_id = pac_mce_z1_symb_ids.at({name, val.first});
+
       /* The growth correction term is not added to the definition of Z₁
          because the latter is recursive. Rather put it at the level of the
          substition of pac_expectation operator. */
       expr_t growth_correction = growth ? AddTimes(AddVariable(pac_growth_neutrality_params.at(name)), growth) : Zero;
       pac_expectation_substitution[{name, eqtag}] = AddPlus(AddVariable(mce_z1_symb_id), growth_correction);
     }
-  cout << "Pac Model Consistent Expectation: added " << neqs << " auxiliary variables and equations for model " << name << "." << endl;
 }
 
 void
-DynamicModel::createPacGrowthNeutralityParameter(const string &pac_model_name)
+DynamicModel::computePacBackwardExpectationSubstitution(const string &name,
+                                                        const vector<int> &lhs,
+                                                        int max_lag,
+                                                        const string &aux_model_type,
+                                                        const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
+                                                        const vector<bool> &nonstationary,
+                                                        expr_t growth,
+                                                        const map<string, int> &pac_growth_neutrality_params,
+                                                        map<pair<string, string>, vector<int>> &pac_h0_indices,
+                                                        map<pair<string, string>, vector<int>> &pac_h1_indices,
+                                                        map<pair<string, string>, expr_t> &pac_expectation_substitution)
 {
-  string param_name = pac_model_name + "_pac_growth_neutrality_correction";
-  try
-    {
-      int param_idx = symbol_table.addSymbol(param_name, SymbolType::parameter);
-      pac_growth_neutrality_params[pac_model_name] = param_idx;
-    }
-  catch (SymbolTable::AlreadyDeclaredException)
-    {
-      cerr << "The parameter '" << param_name << "' conflicts with the auxiliary parameter that will be generated for the growth neutrality correction of the '" << pac_model_name << "' PAC model. Please rename that parameter." << endl;
-      exit(EXIT_FAILURE);
-    }
-}
-
-void
-DynamicModel::fillPacModelInfo(const string &pac_model_name,
-                               vector<int> lhs,
-                               int max_lag,
-                               string aux_model_type,
-                               const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
-                               const vector<bool> &nonstationary,
-                               expr_t growth)
-{
-  pac_eqtag_and_lag.insert(eqtag_and_lag.begin(), eqtag_and_lag.end());
-
   bool stationary_vars_present = any_of(nonstationary.begin(), nonstationary.end(), logical_not<bool>());
   bool nonstationary_vars_present = any_of(nonstationary.begin(), nonstationary.end(), [](bool b) { return b; }); // FIXME: use std::identity instead of an anonymous function when we upgrade to C++20
 
-  for (auto pac_models_and_eqtags : pac_eqtag_and_lag)
+  for (const auto &[key, val] : eqtag_and_lag)
     {
-      if (pac_models_and_eqtags.first.first != pac_model_name)
+      auto &[name2, eqtag] = key;
+      if (name2 != name)
         continue;
-      string eqtag = pac_models_and_eqtags.first.second;
-      string standard_eqtag = pac_models_and_eqtags.second.first;
+      auto &standard_eqtag = val.first;
       expr_t subExpr = Zero;
       if (stationary_vars_present)
         {
@@ -4243,21 +3978,21 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
             {
               /* If the auxiliary model is a VAR, add a parameter corresponding
                  to the constant. */
-              string param_name_h0 = "h0_" + pac_model_name + "_" + standard_eqtag + "_constant";
+              string param_name_h0 = "h0_" + name + "_" + standard_eqtag + "_constant";
               int new_param_symb_id = symbol_table.addSymbol(param_name_h0, SymbolType::parameter);
-              pac_h0_indices[{pac_model_name, standard_eqtag}].push_back(new_param_symb_id);
+              pac_h0_indices[{name, standard_eqtag}].push_back(new_param_symb_id);
               subExpr = AddPlus(subExpr, AddVariable(new_param_symb_id));
             }
           for (int i = 1; i < max_lag + 1; i++)
             for (auto lhsit : lhs)
               {
                 stringstream param_name_h0;
-                param_name_h0 << "h0_" << pac_model_name
+                param_name_h0 << "h0_" << name
                               << "_" << standard_eqtag
                               << "_var_" << symbol_table.getName(lhsit)
                               << "_lag_" << i;
                 int new_param_symb_id = symbol_table.addSymbol(param_name_h0.str(), SymbolType::parameter);
-                pac_h0_indices[{pac_model_name, standard_eqtag}].push_back(new_param_symb_id);
+                pac_h0_indices[{name, standard_eqtag}].push_back(new_param_symb_id);
                 subExpr = AddPlus(subExpr,
                                   AddTimes(AddVariable(new_param_symb_id),
                                            AddVariable(lhsit, -i)));
@@ -4270,21 +4005,21 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
             {
               /* If the auxiliary model is a VAR, add a parameter corresponding
                  to the constant. */
-              string param_name_h1 = "h1_" + pac_model_name + "_" + standard_eqtag + "_constant";
+              string param_name_h1 = "h1_" + name + "_" + standard_eqtag + "_constant";
               int new_param_symb_id = symbol_table.addSymbol(param_name_h1, SymbolType::parameter);
-              pac_h1_indices[{pac_model_name, standard_eqtag}].push_back(new_param_symb_id);
+              pac_h1_indices[{name, standard_eqtag}].push_back(new_param_symb_id);
               subExpr = AddPlus(subExpr, AddVariable(new_param_symb_id));
             }
           for (int i = 1; i < max_lag + 1; i++)
             for (auto lhsit : lhs)
               {
                 stringstream param_name_h1;
-                param_name_h1 << "h1_" << pac_model_name
+                param_name_h1 << "h1_" << name
                               << "_" << standard_eqtag
                               << "_var_" << symbol_table.getName(lhsit)
                               << "_lag_" << i;
                 int new_param_symb_id = symbol_table.addSymbol(param_name_h1.str(), SymbolType::parameter);
-                pac_h1_indices[{pac_model_name, standard_eqtag}].push_back(new_param_symb_id);
+                pac_h1_indices[{name, standard_eqtag}].push_back(new_param_symb_id);
                 subExpr = AddPlus(subExpr,
                                   AddTimes(AddVariable(new_param_symb_id),
                                            AddVariable(lhsit, -i)));
@@ -4293,29 +4028,26 @@ DynamicModel::fillPacModelInfo(const string &pac_model_name,
 
       if (growth)
         {
-          int growth_param_index = pac_growth_neutrality_params.at(pac_model_name);
+          int growth_param_index = pac_growth_neutrality_params.at(name);
           subExpr = AddPlus(subExpr,
                             AddTimes(AddVariable(growth_param_index), growth));
         }
 
-      pac_expectation_substitution[{pac_model_name, eqtag}] = subExpr;
+      pac_expectation_substitution[{name, eqtag}] = subExpr;
     }
-  pac_model_info[pac_model_name] = {move(lhs), move(aux_model_type)};
 }
 
 void
-DynamicModel::substitutePacExpectation(const string &pac_model_name)
+DynamicModel::substitutePacExpectation(const map<pair<string, string>, expr_t> &pac_expectation_substitution)
 {
-  for (auto &it : pac_expectation_substitution)
-    if (it.first.first == pac_model_name)
-      for (auto &equation : equations)
-        if (equation_tags.exists(&equation - &equations[0], "name", it.first.second))
-          {
-            auto substeq = dynamic_cast<BinaryOpNode *>(equation->substitutePacExpectation(pac_model_name, it.second));
-            assert(substeq);
-            equation = substeq;
-            break;
-          }
+  for (auto &[key, substexpr] : pac_expectation_substitution)
+    {
+      auto &[model_name, eq_name] = key;
+      int eq = equation_tags.getEqnByTag("name", eq_name);
+      auto substeq = dynamic_cast<BinaryOpNode *>(equations[eq]->substitutePacExpectation(model_name, substexpr));
+      assert(substeq);
+      equations[eq] = substeq;
+    }
 }
 
 void

@@ -815,6 +815,9 @@ PacModelTable::transformPass(ExprNode::subst_table_t &diff_subst_table,
                              DynamicModel &dynamic_model, const VarModelTable &var_model_table,
                              const TrendComponentModelTable &trend_component_model_table)
 {
+  // (model name, eq_name) → expression for pac_expectation
+  map<pair<string, string>, expr_t> pac_expectation_substitution;
+
   for (const auto &name : names)
     {
       /* Fill the growth_info structure.
@@ -837,32 +840,22 @@ PacModelTable::transformPass(ExprNode::subst_table_t &diff_subst_table,
               }
           }
 
-      // Declare endogenous used for PAC model-consistent expectations
-      if (aux_model_name[name].empty())
-        dynamic_model.declarePacModelConsistentExpectationEndogs(name);
-
-      // Declare parameter for growth neutrality correction
-      if (growth[name])
-        dynamic_model.createPacGrowthNeutralityParameter(name);
-
-      // Substitute pac_expectation operators
+      // Collect some information about PAC models
       int max_lag;
-      vector<int> lhs;
       vector<bool> nonstationary;
-      string aux_model_type;
       if (trend_component_model_table.isExistingTrendComponentModelName(aux_model_name[name]))
         {
-          aux_model_type = "trend_component";
+          aux_model_type[name] = "trend_component";
           max_lag = trend_component_model_table.getMaxLag(aux_model_name[name]) + 1;
-          lhs = dynamic_model.getUndiffLHSForPac(aux_model_name[name], diff_subst_table);
+          lhs[name] = dynamic_model.getUndiffLHSForPac(aux_model_name[name], diff_subst_table);
           // All lhs variables in a trend component model are nonstationary
           nonstationary.insert(nonstationary.end(), trend_component_model_table.getDiff(aux_model_name[name]).size(), true);
         }
       else if (var_model_table.isExistingVarModelName(aux_model_name[name]))
         {
-          aux_model_type = "var";
+          aux_model_type[name] = "var";
           max_lag = var_model_table.getMaxLag(aux_model_name[name]);
-          lhs = var_model_table.getLhs(aux_model_name[name]);
+          lhs[name] = var_model_table.getLhs(aux_model_name[name]);
           // nonstationary variables in a VAR are those that are in diff
           nonstationary = var_model_table.getDiff(aux_model_name[name]);
         }
@@ -873,19 +866,49 @@ PacModelTable::transformPass(ExprNode::subst_table_t &diff_subst_table,
           cerr << "Error: aux_model_name not recognized as VAR model or Trend Component model" << endl;
           exit(EXIT_FAILURE);
         }
+      dynamic_model.analyzePacEquationStructure(name, eqtag_and_lag, equation_info);
 
-      auto eqtag_and_lag = dynamic_model.walkPacParameters(name);
+      // Declare parameter for growth neutrality correction
+      if (growth[name])
+        {
+          string param_name = name + "_pac_growth_neutrality_correction";
+          try
+            {
+              int param_idx = symbol_table.addSymbol(param_name, SymbolType::parameter);
+              growth_neutrality_params[name] = param_idx;
+            }
+          catch (SymbolTable::AlreadyDeclaredException)
+            {
+              cerr << "The variable/parameter '" << param_name << "' conflicts with the auxiliary parameter that will be generated for the growth neutrality correction of the '" << name << "' PAC model. Please rename that parameter." << endl;
+              exit(EXIT_FAILURE);
+            }
+        }
+
+      // In the MCE case, add the variable and the equation defining Z₁
       if (aux_model_name[name].empty())
         dynamic_model.addPacModelConsistentExpectationEquation(name, symbol_table.getID(discount[name]),
                                                                eqtag_and_lag, diff_subst_table,
-                                                               growth[name]);
-      else
-        dynamic_model.fillPacModelInfo(name, lhs, max_lag, aux_model_type,
-                                       eqtag_and_lag, nonstationary, growth[name]);
+                                                               mce_z1_symb_ids, mce_alpha_symb_ids);
 
-      dynamic_model.substitutePacExpectation(name);
+      // Compute the expressions that will be substituted for the pac_expectation operators
+      if (aux_model_name[name].empty())
+        dynamic_model.computePacModelConsistentExpectationSubstitution(name, eqtag_and_lag,
+                                                                       growth[name],
+                                                                       growth_neutrality_params,
+                                                                       mce_z1_symb_ids,
+                                                                       pac_expectation_substitution);
+      else
+        dynamic_model.computePacBackwardExpectationSubstitution(name, lhs[name], max_lag,
+                                                                aux_model_type[name],
+                                                                eqtag_and_lag, nonstationary,
+                                                                growth[name],
+                                                                growth_neutrality_params,
+                                                                h0_indices, h1_indices,
+                                                                pac_expectation_substitution);
     }
 
+  // Actually perform the substitution of pac_expectation
+  dynamic_model.substitutePacExpectation(pac_expectation_substitution);
   dynamic_model.checkNoRemainingPacExpectation();
 }
 
@@ -950,6 +973,237 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
                      << structname << "constant = " << constant << ";" << endl;
             }
         }
+    }
+
+  // Write PAC Model Consistent Expectation parameter info
+  for (auto &[key, ids] : mce_alpha_symb_ids)
+    {
+      output << "M_.pac." << key.first << ".equations." << key.second << ".mce.alpha = [";
+      for (auto id : ids)
+        output << symbol_table.getTypeSpecificID(id) + 1 << " ";
+      output << "];" << endl;
+    }
+
+  // Write PAC Model Consistent Expectation Z1 info
+  for (auto &[key, id] : mce_z1_symb_ids)
+    output << "M_.pac." << key.first << ".equations." << key.second << ".mce.z1 = "
+           << symbol_table.getTypeSpecificID(id) + 1 << ";" << endl;
+
+  // Write PAC lag info
+  for (auto &[key, val] : eqtag_and_lag)
+    output << "M_.pac." << key.first << ".equations." << val.first << ".max_lag = " << val.second << ";" << endl;
+
+  // Write PAC equation tag info
+  map<string, vector<pair<string, string>>> for_writing;
+  for (auto &[key, val] : eqtag_and_lag)
+    for_writing[key.first].emplace_back(key.second, val.first);
+
+  for (auto &[key, val] : for_writing)
+    {
+      output << "M_.pac." << key << ".tag_map = [";
+      for (auto &[eqtag, standard_eqtag] : val)
+        output << "{'" << eqtag << "', '" << standard_eqtag << "'};";
+      output << "];" << endl;
+    }
+
+  for (auto &[model, growth_neutrality_param_index] : growth_neutrality_params)
+    output << "M_.pac." << model << ".growth_neutrality_param_index = "
+           << symbol_table.getTypeSpecificID(growth_neutrality_param_index) + 1 << ";" << endl;
+
+  for (auto &[model, lhs] : lhs)
+    {
+      output << "M_.pac." << model << ".lhs = [";
+      for (auto id : lhs)
+        output << id + 1 << " ";
+      output << "];" << endl;
+    }
+
+  for (auto &[model, type] : aux_model_type)
+      output << "M_.pac." << model << ".auxiliary_model_type = '" << type << "';" << endl;
+
+  for (auto &[key, val] : equation_info)
+    {
+      auto [lhs_pac_var, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants] = val;
+      string substruct = key.first + ".equations." + key.second + ".";
+
+      output << "M_.pac." << substruct << "lhs_var = "
+             << symbol_table.getTypeSpecificID(lhs_pac_var.first) + 1 << ";" << endl;
+
+      if (optim_share_index >= 0)
+        output << "M_.pac." << substruct << "share_of_optimizing_agents_index = "
+               << symbol_table.getTypeSpecificID(optim_share_index) + 1 << ";" << endl;
+
+      output << "M_.pac." << substruct << "ec.params = "
+             << symbol_table.getTypeSpecificID(ec_params_and_vars.first) + 1 << ";" << endl
+             << "M_.pac." << substruct << "ec.vars = [";
+      for (auto it : ec_params_and_vars.second)
+        output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
+      output << "];" << endl
+             << "M_.pac." << substruct << "ec.istarget = [";
+      for (auto it : ec_params_and_vars.second)
+        output << (get<1>(it) ? "true " : "false ");
+      output << "];" << endl
+             << "M_.pac." << substruct << "ec.scale = [";
+      for (auto it : ec_params_and_vars.second)
+        output << get<2>(it) << " ";
+      output << "];" << endl
+             << "M_.pac." << substruct << "ec.isendo = [";
+      for (auto it : ec_params_and_vars.second)
+        switch (symbol_table.getType(get<0>(it)))
+          {
+          case SymbolType::endogenous:
+            output << "true ";
+            break;
+          case SymbolType::exogenous:
+            output << "false ";
+            break;
+          default:
+            cerr << "expecting endogenous or exogenous" << endl;
+            exit(EXIT_FAILURE);
+          }
+      output << "];" << endl
+             << "M_.pac." << substruct << "ar.params = [";
+      for (auto &[pid, vid, vlag] : ar_params_and_vars)
+        output << (pid != -1 ? symbol_table.getTypeSpecificID(pid) + 1 : -1) << " ";
+      output << "];" << endl
+             << "M_.pac." << substruct << "ar.vars = [";
+      for (auto &[pid, vid, vlag] : ar_params_and_vars)
+        output << (vid != -1 ? symbol_table.getTypeSpecificID(vid) + 1 : -1) << " ";
+      output << "];" << endl
+             << "M_.pac." << substruct << "ar.lags = [";
+      for (auto &[pid, vid, vlag] : ar_params_and_vars)
+        output << vlag << " ";
+      output << "];" << endl;
+      if (!non_optim_vars_params_and_constants.empty())
+        {
+          output << "M_.pac." << substruct << "non_optimizing_behaviour.params = [";
+          for (auto &it : non_optim_vars_params_and_constants)
+            if (get<2>(it) >= 0)
+              output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
+            else
+              output << "NaN ";
+          output << "];" << endl
+                 << "M_.pac." << substruct << "non_optimizing_behaviour.vars = [";
+          for (auto &it : non_optim_vars_params_and_constants)
+            output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
+          output << "];" << endl
+                 << "M_.pac." << substruct << "non_optimizing_behaviour.isendo = [";
+          for (auto &it : non_optim_vars_params_and_constants)
+            switch (symbol_table.getType(get<0>(it)))
+              {
+              case SymbolType::endogenous:
+                output << "true ";
+                break;
+              case SymbolType::exogenous:
+                output << "false ";
+                break;
+              default:
+                cerr << "expecting endogenous or exogenous" << endl;
+                exit(EXIT_FAILURE);
+              }
+          output << "];" << endl
+                 << "M_.pac." << substruct << "non_optimizing_behaviour.lags = [";
+          for (auto &it : non_optim_vars_params_and_constants)
+            output << get<1>(it) << " ";
+          output << "];" << endl
+                 << "M_.pac." << substruct << "non_optimizing_behaviour.scaling_factor = [";
+          for (auto &it : non_optim_vars_params_and_constants)
+            output << get<3>(it) << " ";
+          output << "];" << endl;
+        }
+      if (!additive_vars_params_and_constants.empty())
+        {
+          output << "M_.pac." << substruct << "additive.params = [";
+          for (auto &it : additive_vars_params_and_constants)
+            if (get<2>(it) >= 0)
+              output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
+            else
+              output << "NaN ";
+          output << "];" << endl
+                 << "M_.pac." << substruct << "additive.vars = [";
+          for (auto &it : additive_vars_params_and_constants)
+            output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
+          output << "];" << endl
+                 << "M_.pac." << substruct << "additive.isendo = [";
+          for (auto &it : additive_vars_params_and_constants)
+            switch (symbol_table.getType(get<0>(it)))
+              {
+              case SymbolType::endogenous:
+                output << "true ";
+                break;
+              case SymbolType::exogenous:
+                output << "false ";
+                break;
+              default:
+                cerr << "expecting endogenous or exogenous" << endl;
+                exit(EXIT_FAILURE);
+              }
+          output << "];" << endl
+                 << "M_.pac." << substruct << "additive.lags = [";
+          for (auto &it : additive_vars_params_and_constants)
+            output << get<1>(it) << " ";
+          output << "];" << endl
+                 << "M_.pac." << substruct << "additive.scaling_factor = [";
+          for (auto &it : additive_vars_params_and_constants)
+            output << get<3>(it) << " ";
+          output << "];" << endl;
+        }
+      if (!optim_additive_vars_params_and_constants.empty())
+        {
+          output << "M_.pac." << substruct << "optim_additive.params = [";
+          for (auto &it : optim_additive_vars_params_and_constants)
+            if (get<2>(it) >= 0)
+              output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
+            else
+              output << "NaN ";
+          output << "];" << endl
+                 << "M_.pac." << substruct << "optim_additive.vars = [";
+          for (auto &it : optim_additive_vars_params_and_constants)
+            output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
+          output << "];" << endl
+                 << "M_.pac." << substruct << "optim_additive.isendo = [";
+          for (auto &it : optim_additive_vars_params_and_constants)
+            switch (symbol_table.getType(get<0>(it)))
+              {
+              case SymbolType::endogenous:
+                output << "true ";
+                break;
+              case SymbolType::exogenous:
+                output << "false ";
+                break;
+              default:
+                cerr << "expecting endogenous or exogenous" << endl;
+                exit(EXIT_FAILURE);
+              }
+          output << "];" << endl
+                 << "M_.pac." << substruct << "optim_additive.lags = [";
+          for (auto &it : optim_additive_vars_params_and_constants)
+            output << get<1>(it) << " ";
+          output << "];" << endl
+                 << "M_.pac." << substruct << "optim_additive.scaling_factor = [";
+          for (auto &it : optim_additive_vars_params_and_constants)
+            output << get<3>(it) << " ";
+          output << "];" << endl;
+        }
+      // Create empty h0 and h1 substructures that will be overwritten later if not empty
+      output << "M_.pac." << substruct << "h0_param_indices = [];" << endl
+             << "M_.pac." << substruct << "h1_param_indices = [];" << endl;
+    }
+
+  for (auto &[model_eqtag, symb_ids] : h0_indices)
+    {
+      output << "M_.pac." << model_eqtag.first << ".equations." << model_eqtag.second << ".h0_param_indices = [";
+      for (auto it : symb_ids)
+        output << symbol_table.getTypeSpecificID(it) + 1 << " ";
+      output << "];" << endl;
+    }
+
+  for (auto &[model_eqtag, symb_ids] : h1_indices)
+    {
+      output << "M_.pac." << model_eqtag.first << ".equations." << model_eqtag.second << ".h1_param_indices = [";
+      for (auto it : symb_ids)
+        output << symbol_table.getTypeSpecificID(it) + 1 << " ";
+      output << "];" << endl;
     }
 }
 
