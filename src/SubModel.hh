@@ -28,6 +28,10 @@
 #include "ExprNode.hh"
 #include "SymbolTable.hh"
 #include "SymbolList.hh"
+#include "Statement.hh"
+
+// DynamicModel.hh can’t be included here, otherwise it would be a circular dependency
+class DynamicModel;
 
 using namespace std;
 
@@ -185,5 +189,33 @@ VarModelTable::empty() const
 {
   return names.empty();
 }
+
+class PacModelTable
+{
+private:
+  SymbolTable &symbol_table;
+  set<string> names;
+  map<string, string> aux_model_name;
+  map<string, string> discount;
+  // The growth expressions belong to the main dynamic_model from the ModFile instance
+  map<string, expr_t> growth, original_growth;
+  map<string, vector<tuple<int, int, int, double>>> growth_info;
+public:
+  explicit PacModelTable(SymbolTable &symbol_table_arg);
+  void addPacModel(string name_arg, string aux_model_name_arg, string discount_arg, expr_t growth_arg);
+  bool isExistingPacModelName(const string &name_arg) const;
+  bool empty() const;
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  void findDiffNodesInGrowth(lag_equivalence_table_t &diff_nodes) const;
+  // Called by DynamicModel::substituteDiff()
+  void substituteDiffNodesInGrowth(const lag_equivalence_table_t &diff_nodes, ExprNode::subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs);
+  // Must be called after substituteDiffNodesInGrowth()
+  void transformPass(ExprNode::subst_table_t &diff_subst_table,
+                     DynamicModel &dynamic_model, const VarModelTable &var_model_table,
+                     const TrendComponentModelTable &trend_component_model_table);
+  void writeOutput(const string &basename, ostream &output) const;
+  void writeJsonOutput(ostream &output) const;
+};
+
 
 #endif

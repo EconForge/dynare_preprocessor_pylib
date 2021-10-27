@@ -2621,9 +2621,7 @@ ParsingDriver::pac_model()
   auto discount = it->second;
   check_symbol_is_parameter(discount);
 
-  mod_file->addStatement(make_unique<PacModelStatement>(name, aux_model_name, discount,
-                                                        pac_growth,
-                                                        mod_file->symbol_table));
+  mod_file->pac_model_table.addPacModel(name, aux_model_name, discount, pac_growth);
   parsing_pac_model = false;
 }
 

@@ -20,6 +20,7 @@
 #include <algorithm>
 
 #include "SubModel.hh"
+#include "DynamicModel.hh"
 
 TrendComponentModelTable::TrendComponentModelTable(SymbolTable &symbol_table_arg) :
   symbol_table{symbol_table_arg}
@@ -751,3 +752,225 @@ VarModelTable::getLhsExprT(const string &name_arg) const
   checkModelName(name_arg);
   return lhs_expr_t.find(name_arg)->second;
 }
+
+PacModelTable::PacModelTable(SymbolTable &symbol_table_arg) :
+  symbol_table{symbol_table_arg}
+{
+}
+
+void
+PacModelTable::addPacModel(string name_arg, string aux_model_name_arg, string discount_arg, expr_t growth_arg)
+{
+  if (isExistingPacModelName(name_arg))
+    {
+      cerr << "Error: a PAC model already exists with the name " << name_arg << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  aux_model_name[name_arg] = move(aux_model_name_arg);
+  discount[name_arg] = move(discount_arg);
+  growth[name_arg] = growth_arg;
+  original_growth[name_arg] = growth_arg;
+  names.insert(move(name_arg));
+}
+
+bool
+PacModelTable::isExistingPacModelName(const string &name_arg) const
+{
+  return names.find(name_arg) != names.end();
+}
+
+bool
+PacModelTable::empty() const
+{
+  return names.empty();
+}
+
+void
+PacModelTable::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  for (auto &[name, gv] : growth)
+    if (gv)
+      gv->collectVariables(SymbolType::exogenous, mod_file_struct.pac_params);
+}
+
+void
+PacModelTable::findDiffNodesInGrowth(lag_equivalence_table_t &diff_nodes) const
+{
+  for (auto &[name, gv] : growth)
+    if (gv)
+      gv->findDiffNodes(diff_nodes);
+}
+
+void
+PacModelTable::substituteDiffNodesInGrowth(const lag_equivalence_table_t &diff_nodes, ExprNode::subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs)
+{
+  for (auto &[name, gv] : growth)
+    if (gv)
+      gv = gv->substituteDiff(diff_nodes, diff_subst_table, neweqs);
+}
+
+void
+PacModelTable::transformPass(ExprNode::subst_table_t &diff_subst_table,
+                             DynamicModel &dynamic_model, const VarModelTable &var_model_table,
+                             const TrendComponentModelTable &trend_component_model_table)
+{
+  for (const auto &name : names)
+    {
+      /* Fill the growth_info structure.
+         Cannot be done in an earlier pass since growth terms can be
+         transformed by DynamicModel::substituteDiff(). */
+      if (growth[name])
+        try
+          {
+            growth_info[name] = growth[name]->matchLinearCombinationOfVariables(false);
+          }
+        catch (ExprNode::MatchFailureException &e)
+          {
+            auto gv = dynamic_cast<const VariableNode *>(growth[name]);
+            if (gv)
+              growth_info[name].emplace_back(gv->symb_id, gv->lag, -1, 1);
+            else
+              {
+                cerr << "Pac growth must be a linear combination of variables" << endl;
+                exit(EXIT_FAILURE);
+              }
+          }
+
+      // Declare endogenous used for PAC model-consistent expectations
+      if (aux_model_name[name].empty())
+        dynamic_model.declarePacModelConsistentExpectationEndogs(name);
+
+      // Declare parameter for growth neutrality correction
+      if (growth[name])
+        dynamic_model.createPacGrowthNeutralityParameter(name);
+
+      // Substitute pac_expectation operators
+      int max_lag;
+      vector<int> lhs;
+      vector<bool> nonstationary;
+      string aux_model_type;
+      if (trend_component_model_table.isExistingTrendComponentModelName(aux_model_name[name]))
+        {
+          aux_model_type = "trend_component";
+          max_lag = trend_component_model_table.getMaxLag(aux_model_name[name]) + 1;
+          lhs = dynamic_model.getUndiffLHSForPac(aux_model_name[name], diff_subst_table);
+          // All lhs variables in a trend component model are nonstationary
+          nonstationary.insert(nonstationary.end(), trend_component_model_table.getDiff(aux_model_name[name]).size(), true);
+        }
+      else if (var_model_table.isExistingVarModelName(aux_model_name[name]))
+        {
+          aux_model_type = "var";
+          max_lag = var_model_table.getMaxLag(aux_model_name[name]);
+          lhs = var_model_table.getLhs(aux_model_name[name]);
+          // nonstationary variables in a VAR are those that are in diff
+          nonstationary = var_model_table.getDiff(aux_model_name[name]);
+        }
+      else if (aux_model_name[name].empty())
+        max_lag = 0;
+      else
+        {
+          cerr << "Error: aux_model_name not recognized as VAR model or Trend Component model" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      auto eqtag_and_lag = dynamic_model.walkPacParameters(name);
+      if (aux_model_name[name].empty())
+        dynamic_model.addPacModelConsistentExpectationEquation(name, symbol_table.getID(discount[name]),
+                                                               eqtag_and_lag, diff_subst_table,
+                                                               growth[name]);
+      else
+        dynamic_model.fillPacModelInfo(name, lhs, max_lag, aux_model_type,
+                                       eqtag_and_lag, nonstationary, growth[name]);
+
+      dynamic_model.substitutePacExpectation(name);
+    }
+
+  dynamic_model.checkNoRemainingPacExpectation();
+}
+
+void
+PacModelTable::writeOutput(const string &basename, ostream &output) const
+{
+  for (const auto &name : names)
+    {
+      output << "M_.pac." << name << ".auxiliary_model_name = '" << aux_model_name.at(name) << "';" << endl
+             << "M_.pac." << name << ".discount_index = " << symbol_table.getTypeSpecificID(discount.at(name)) + 1 << ";" << endl;
+
+      if (growth.at(name))
+        {
+          output << "M_.pac." << name << ".growth_str = '";
+          original_growth.at(name)->writeJsonOutput(output, {}, {}, true);
+          output << "';" << endl;
+          int i = 0;
+          for (auto [growth_symb_id, growth_lag, param_id, constant] : growth_info.at(name))
+            {
+              string structname = "M_.pac." + name + ".growth_linear_comb(" + to_string(++i) + ").";
+              if (growth_symb_id >= 0)
+                {
+                  string var_field = "endo_id";
+                  if (symbol_table.getType(growth_symb_id) == SymbolType::exogenous)
+                    {
+                      var_field = "exo_id";
+                      output << structname << "endo_id = 0;" << endl;
+                    }
+                  else
+                    output << structname << "exo_id = 0;" << endl;
+                  try
+                    {
+                      // case when this is not the highest lag of the growth variable
+                      int aux_symb_id = symbol_table.searchAuxiliaryVars(growth_symb_id, growth_lag);
+                      output << structname << var_field << " = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
+                             << structname << "lag = 0;" << endl;
+                    }
+                  catch (...)
+                    {
+                      try
+                        {
+                          // case when this is the highest lag of the growth variable
+                          int tmp_growth_lag = growth_lag + 1;
+                          int aux_symb_id = symbol_table.searchAuxiliaryVars(growth_symb_id, tmp_growth_lag);
+                          output << structname << var_field << " = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
+                                 << structname << "lag = -1;" << endl;
+                        }
+                      catch (...)
+                        {
+                          // case when there is no aux var for the variable
+                          output << structname << var_field << " = "<< symbol_table.getTypeSpecificID(growth_symb_id) + 1 << ";" << endl
+                                 << structname << "lag = " << growth_lag << ";" << endl;
+                        }
+                    }
+                }
+              else
+                output << structname << "endo_id = 0;" << endl
+                       << structname << "exo_id = 0;" << endl
+                       << structname << "lag = 0;" << endl;
+              output << structname << "param_id = "
+                     << (param_id == -1 ? 0 : symbol_table.getTypeSpecificID(param_id) + 1) << ";" << endl
+                     << structname << "constant = " << constant << ";" << endl;
+            }
+        }
+    }
+}
+
+void
+PacModelTable::writeJsonOutput(ostream &output) const
+{
+  for (const auto &name : names)
+    {
+      if (name != *names.begin())
+        output << ", ";
+      output << R"({"statementName": "pac_model",)"
+             << R"("model_name": ")" << name << R"(",)"
+             << R"("auxiliary_model_name": ")" << aux_model_name.at(name) << R"(",)"
+             << R"("discount_index": )" << symbol_table.getTypeSpecificID(discount.at(name)) + 1;
+      if (growth.at(name))
+        {
+          output << R"(,"growth_str": ")";
+          original_growth.at(name)->writeJsonOutput(output, {}, {}, true);
+          output << R"(")";
+        }
+      output << "}" << endl;
+    }
+}
+

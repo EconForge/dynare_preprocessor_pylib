@@ -55,6 +55,8 @@ public:
   VarModelTable var_model_table;
   //! Trend Component Model Table used for storing info about trend component models
   TrendComponentModelTable trend_component_model_table;
+  //! PAC Model Table used for storing info about pac models
+  PacModelTable pac_model_table;
   //! Expressions outside model block
   DataTree expressions_tree;
   //! Original model, as declared in the "model" block, that won't be modified by the preprocessor
@@ -124,7 +126,6 @@ private:
   void writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType json_output_mode, bool transformpass, bool computingpass) const;
   void writeJsonComputingPassOutput(const string &basename, JsonFileOutputType json_output_mode, bool jsonderivsimple) const;
   void writeJsonFileHelper(const string &fname, ostringstream &output) const;
-  vector<expr_t> pac_growth;
   /* Generate a random temporary path, in the current directory. Equivalent to
      boost::filesystem::unique_path(). Both are insecure, but currently there
      is no better portable solution. Maybe in a later C++ standard? */

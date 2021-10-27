@@ -558,7 +558,7 @@ public:
   pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(const vector<int> &eqnumbers);
 
   //! Substitutes diff operator
-  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteDiff(vector<expr_t> &pac_growth);
+  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteDiff(PacModelTable &pac_model_table);
 
   //! Substitute VarExpectation operators
   void substituteVarExpectation(const map<string, expr_t> &subst_table);

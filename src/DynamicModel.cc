@@ -5777,7 +5777,7 @@ DynamicModel::substituteUnaryOps(const vector<int> &eqnumbers)
 }
 
 pair<lag_equivalence_table_t, ExprNode::subst_table_t>
-DynamicModel::substituteDiff(vector<expr_t> &pac_growth)
+DynamicModel::substituteDiff(PacModelTable &pac_model_table)
 {
   /* Note: at this point, we know that there is no diff operator with a lead,
      because they have been expanded by DataTree::AddDiff().
@@ -5799,9 +5799,7 @@ DynamicModel::substituteDiff(vector<expr_t> &pac_growth)
   for (const auto &equation : equations)
     equation->findDiffNodes(diff_nodes);
 
-  for (const auto &gv : pac_growth)
-    if (gv)
-      gv->findDiffNodes(diff_nodes);
+  pac_model_table.findDiffNodesInGrowth(diff_nodes);
 
   // Substitute in model local variables
   vector<BinaryOpNode *> neweqs;
@@ -5817,9 +5815,7 @@ DynamicModel::substituteDiff(vector<expr_t> &pac_growth)
       equation = substeq;
     }
 
-  for (auto &it : pac_growth)
-    if (it)
-      it = it->substituteDiff(diff_nodes, diff_subst_table, neweqs);
+  pac_model_table.substituteDiffNodesInGrowth(diff_nodes, diff_subst_table, neweqs);
 
   // Add new equations
   for (auto &neweq : neweqs)

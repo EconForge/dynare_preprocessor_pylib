@@ -34,6 +34,7 @@
 ModFile::ModFile(WarningConsolidation &warnings_arg)
   : var_model_table{symbol_table},
     trend_component_model_table{symbol_table},
+    pac_model_table{symbol_table},
     expressions_tree{symbol_table, num_constants, external_functions_table},
     original_model{symbol_table, num_constants, external_functions_table,
                    trend_component_model_table, var_model_table},
@@ -113,6 +114,8 @@ ModFile::checkPass(bool nostrict, bool stochastic)
 
   // Check epilogue block
   epilogue.checkPass(mod_file_struct, warnings);
+
+  pac_model_table.checkPass(mod_file_struct, warnings);
 
   if (mod_file_struct.write_latex_steady_state_model_present
       && !mod_file_struct.steady_state_model_present)
@@ -409,17 +412,6 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   if (unusedEndogsIsErr)
     exit(EXIT_FAILURE);
 
-  // Declare endogenous used for PAC model-consistent expectations
-  for (auto &statement : statements)
-    if (auto pms = dynamic_cast<PacModelStatement *>(statement.get());
-        pms)
-      {
-        if (pms->growth)
-          pac_growth.push_back(pms->growth);
-        if (pms->aux_model_name.empty())
-          dynamic_model.declarePacModelConsistentExpectationEndogs(pms->name);
-      }
-
   // Get all equation tags associated with VARs and Trend Component Models
   set<string> eqtags;
   for (const auto &it : trend_component_model_table.getEqTags())
@@ -440,7 +432,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
     tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps(eqtags);
 
   // Create auxiliary variable and equations for Diff operators
-  auto [diff_nodes, diff_subst_table] = dynamic_model.substituteDiff(pac_growth);
+  auto [diff_nodes, diff_subst_table] = dynamic_model.substituteDiff(pac_model_table);
 
   // Fill trend component and VAR model tables
   dynamic_model.fillTrendComponentModelTable();
@@ -449,55 +441,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   dynamic_model.fillVarModelTable();
   original_model.fillVarModelTableFromOrigModel();
 
-  // Pac Model
-  int i = 0;
-  for (auto &statement : statements)
-    if (auto pms = dynamic_cast<PacModelStatement *>(statement.get()); pms)
-      {
-        if (pms->growth)
-          pms->overwriteGrowth(pac_growth.at(i++));
-
-        int max_lag;
-        vector<int> lhs;
-        vector<bool> nonstationary;
-        string aux_model_type;
-        if (trend_component_model_table.isExistingTrendComponentModelName(pms->aux_model_name))
-          {
-            aux_model_type = "trend_component";
-            max_lag = trend_component_model_table.getMaxLag(pms->aux_model_name) + 1;
-            lhs = dynamic_model.getUndiffLHSForPac(pms->aux_model_name, diff_subst_table);
-            // All lhs variables in a trend component model are nonstationary
-            nonstationary.insert(nonstationary.end(), trend_component_model_table.getDiff(pms->aux_model_name).size(), true);
-          }
-        else if (var_model_table.isExistingVarModelName(pms->aux_model_name))
-          {
-            aux_model_type = "var";
-            max_lag = var_model_table.getMaxLag(pms->aux_model_name);
-            lhs = var_model_table.getLhs(pms->aux_model_name);
-            // nonstationary variables in a VAR are those that are in diff
-            nonstationary = var_model_table.getDiff(pms->aux_model_name);
-          }
-        else if (pms->aux_model_name.empty())
-          max_lag = 0;
-        else
-          {
-            cerr << "Error: aux_model_name not recognized as VAR model or Trend Component model" << endl;
-            exit(EXIT_FAILURE);
-          }
-        if (pms->growth)
-          dynamic_model.createPacGrowthNeutralityParameter(pms->name);
-
-        auto eqtag_and_lag = dynamic_model.walkPacParameters(pms->name);
-        if (pms->aux_model_name.empty())
-          dynamic_model.addPacModelConsistentExpectationEquation(pms->name, symbol_table.getID(pms->discount),
-                                                                 eqtag_and_lag, diff_subst_table,
-                                                                 pms->growth);
-        else
-          dynamic_model.fillPacModelInfo(pms->name, lhs, max_lag, aux_model_type,
-                                         eqtag_and_lag, nonstationary, pms->growth);
-        dynamic_model.substitutePacExpectation(pms->name);
-      }
-  dynamic_model.checkNoRemainingPacExpectation();
+  // PAC model
+  pac_model_table.transformPass(diff_subst_table, dynamic_model, var_model_table,
+                                trend_component_model_table);
 
   // Create auxiliary vars for Expectation operator
   dynamic_model.substituteExpectation(mod_file_struct.partial_information);
@@ -979,6 +925,7 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
 
   var_model_table.writeOutput(basename, mOutputFile);
   trend_component_model_table.writeOutput(basename, mOutputFile);
+  pac_model_table.writeOutput(basename, mOutputFile);
 
   // Initialize M_.Sigma_e, M_.Correlation_matrix, M_.H, and M_.Correlation_matrix_ME
   mOutputFile << "M_.Sigma_e = zeros(" << symbol_table.exo_nbr() << ", "
@@ -1270,6 +1217,12 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
           output << ", ";
         }
 
+      if (!pac_model_table.empty())
+        {
+          pac_model_table.writeJsonOutput(output);
+          output << ", ";
+        }
+
       for (auto it = statements.begin(); it != statements.end(); ++it)
         {
           if (it != statements.begin())
@@ -1303,6 +1256,11 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
           if (!trend_component_model_table.empty())
             {
               trend_component_model_table.writeJsonOutput(original_model_output);
+              original_model_output << ", ";
+            }
+          if (!pac_model_table.empty())
+            {
+              pac_model_table.writeJsonOutput(original_model_output);
               original_model_output << ", ";
             }
           int i = 0;
