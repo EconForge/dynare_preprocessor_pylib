@@ -513,7 +513,7 @@ public:
   //! Substitute VarExpectation operators
   void substituteVarExpectation(const map<string, expr_t> &subst_table);
 
-  void analyzePacEquationStructure(const string &name, map<pair<string, string>, pair<string, int>> &eqtag_and_lag, PacModelTable::equation_info_t &pac_equation_info);
+  void analyzePacEquationStructure(const string &name, map<string, string> &pac_eq_name, PacModelTable::equation_info_t &pac_equation_info);
 
   // Exception thrown by getPacTargetSymbId()
   class PacTargetNotIdentifiedException
@@ -532,19 +532,17 @@ public:
      The symbol IDs of the new endogenous and parameters are also added to
      pac_mce_{z1,alpha}_symb_ids. */
   void addPacModelConsistentExpectationEquation(const string &name, int discount,
-                                                const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
+                                                int pac_eq_max_lag,
                                                 ExprNode::subst_table_t &diff_subst_table,
-                                                map<pair<string, string>, int> &pac_mce_z1_symb_ids,
-                                                map<pair<string, string>, vector<int>> &pac_mce_alpha_symb_ids);
+                                                map<string, int> &pac_mce_z1_symb_ids,
+                                                map<string, vector<int>> &pac_mce_alpha_symb_ids);
 
   /* For a PAC MCE model, fill pac_expectation_substitution with the
      expression that will be substituted for the pac_expectation operator */
   void computePacModelConsistentExpectationSubstitution(const string &name,
-                                                        const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
-                                                        expr_t growth,
-                                                        const map<string, int> &pac_growth_neutrality_params,
-                                                        const map<pair<string, string>, int> &pac_mce_z1_symb_ids,
-                                                        map<pair<string, string>, expr_t> &pac_expectation_substitution);
+                                                        expr_t growth_correction_term,
+                                                        int pac_mce_z1_symb_id,
+                                                        map<string, expr_t> &pac_expectation_substitution);
 
 
   /* For a PAC backward model, fill pac_expectation_substitution with the
@@ -554,16 +552,15 @@ public:
                                                  const vector<int> &lhs,
                                                  int max_lag,
                                                  const string &aux_model_type,
-                                                 const map<pair<string, string>, pair<string, int>> &eqtag_and_lag,
                                                  const vector<bool> &nonstationary,
-                                                 expr_t growth,
-                                                 const map<string, int> &pac_growth_neutrality_params,
-                                                 map<pair<string, string>, vector<int>> &pac_h0_indices,
-                                                 map<pair<string, string>, vector<int>> &pac_h1_indices,
-                                                 map<pair<string, string>, expr_t> &pac_expectation_substitution);
+                                                 expr_t growth_correction_term,
+                                                 map<string, vector<int>> &pac_h0_indices,
+                                                 map<string, vector<int>> &pac_h1_indices,
+                                                 map<string, expr_t> &pac_expectation_substitution);
 
   //! Substitutes pac_expectation operator with expectation based on auxiliary model
-  void substitutePacExpectation(const map<pair<string, string>, expr_t> &pac_expectation_substitution);
+  void substitutePacExpectation(const map<string, expr_t> &pac_expectation_substitution,
+                                const map<string, string> &pac_eq_name);
 
   //! Table to undiff LHS variables for pac vector z
   vector<int> getUndiffLHSForPac(const string &aux_model_name,

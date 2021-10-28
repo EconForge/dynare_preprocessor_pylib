@@ -201,17 +201,21 @@ private:
   map<string, expr_t> growth, original_growth;
   map<string, vector<tuple<int, int, int, double>>> growth_info;
 
+  /* Stores the name of the PAC equation associated to the model.
+     pac_model_name → eq_name */
+  map<string, string> eq_name;
+
   /* Stores symb_ids for alphas created by DynamicModel::addPacModelConsistentExpectationEquation()
-     (pac_model_name, standardized_eqtag) -> mce_alpha_symb_ids */
-  map<pair<string, string>, vector<int>> mce_alpha_symb_ids;
+     pac_model_name → mce_alpha_symb_ids */
+  map<string, vector<int>> mce_alpha_symb_ids;
   /* Stores symb_ids for z1s created by DynamicModel::addPacModelConsistentExpectationEquation()
-     (pac_model_name, standardized_eqtag) -> mce_z1_symb_id */
-  map<pair<string, string>, int> mce_z1_symb_ids;
+     pac_model_name → mce_z1_symb_id */
+  map<string, int> mce_z1_symb_ids;
   /* Stores symb_ids for h0, h1 parameters
-     (pac_model_name, standardized_eqtag) -> parameter symb_ids */
-  map<pair<string, string>, vector<int>> h0_indices, h1_indices;
+     pac_model_name → parameter symb_ids */
+  map<string, vector<int>> h0_indices, h1_indices;
   /* Stores indices for growth neutrality parameters
-     pac_model_name -> growth_neutrality_param_index */
+     pac_model_name → growth_neutrality_param_index */
   map<string, int> growth_neutrality_params;
 
   // Stores LHS vars (only for backward PAC models)
@@ -220,18 +224,17 @@ private:
   // Stores auxiliary model type (only for backward PAC models)
   map<string, string> aux_model_type;
 
-  /* Stores lag info for pac equations
-     (pac_model_name, equation_tag) -> (standardized_eqtag, lag) */
-  map<pair<string, string>, pair<string, int>> eqtag_and_lag;
 public:
-  /* Stores info about PAC models specific to the equation they appear in
-     (pac_model_name, standardized_eqtag) ->
+  /* Stores info about PAC equations
+     pac_model_name →
          (lhs, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants)
   */
-  using equation_info_t = map<pair<string, string>,
+  using equation_info_t = map<string,
                               tuple<pair<int, int>, int, vector<tuple<int, int, int>>, pair<int, vector<tuple<int, bool, int>>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>>>;
 private:
   equation_info_t equation_info;
+
+  int pacEquationMaxLag(const string &name_arg) const;
 
 public:
   explicit PacModelTable(SymbolTable &symbol_table_arg);
