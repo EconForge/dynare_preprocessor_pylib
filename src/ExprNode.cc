@@ -8521,10 +8521,8 @@ ExprNode::matchLinearCombinationOfVariables(bool variable_obligatory_in_each_ter
 
   vector<tuple<int, int, int, double>> result;
 
-  for (const auto &it : terms)
+  for (auto [term, sign] : terms)
     {
-      expr_t term = it.first;
-      int sign = it.second;
       auto m = term->matchVariableTimesConstantTimesParam(variable_obligatory_in_each_term);
       get<3>(m) *= sign;
       result.push_back(m);
