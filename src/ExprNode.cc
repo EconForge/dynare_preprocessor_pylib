@@ -7901,11 +7901,179 @@ SecondDerivExternalFunctionNode::sameTefTermPredicate() const
     };
 }
 
+SubModelNode::SubModelNode(DataTree &datatree_arg,
+                           int idx_arg,
+                           string model_name_arg) :
+  ExprNode{datatree_arg, idx_arg},
+  model_name{move(model_name_arg)}
+{
+}
+
+expr_t
+SubModelNode::toStatic(DataTree &static_datatree) const
+{
+  cerr << "SubModelNode::toStatic not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
+SubModelNode::prepareForDerivation()
+{
+  cerr << "SubModelNode::prepareForDerivation not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+expr_t
+SubModelNode::computeDerivative(int deriv_id)
+{
+  cerr << "SubModelNode::computeDerivative not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+expr_t
+SubModelNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables)
+{
+  cerr << "SubModelNode::getChainRuleDerivative not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+bool
+SubModelNode::containsExternalFunction() const
+{
+  return false;
+}
+
+double
+SubModelNode::eval(const eval_context_t &eval_context) const noexcept(false)
+{
+  throw EvalException();
+}
+
+void
+SubModelNode::computeXrefs(EquationInfo &ei) const
+{
+}
+
+void
+SubModelNode::collectVARLHSVariable(set<expr_t> &result) const
+{
+  cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
+SubModelNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const
+{
+}
+
+void
+SubModelNode::compile(ostream &CompileCode, unsigned int &instruction_number,
+                            bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                            const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
+                            const deriv_node_temp_terms_t &tef_terms) const
+{
+  cerr << "SubModelNode::compile not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
+SubModelNode::computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const
+{
+}
+
+BinaryOpNode *
+SubModelNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const
+{
+  throw NormalizationFailed();
+}
+
+expr_t
+SubModelNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
+{
+  return const_cast<SubModelNode *>(this);
+}
+
+expr_t
+SubModelNode::substituteAdl() const
+{
+  return const_cast<SubModelNode *>(this);
+}
+
+expr_t
+SubModelNode::substituteModelLocalVariables() const
+{
+  return const_cast<SubModelNode *>(this);
+}
+
+void
+SubModelNode::findDiffNodes(lag_equivalence_table_t &nodes) const
+{
+}
+
+void
+SubModelNode::findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const
+{
+}
+
+int
+SubModelNode::findTargetVariable(int lhs_symb_id) const
+{
+  return -1;
+}
+
+expr_t
+SubModelNode::substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table,
+                                   vector<BinaryOpNode *> &neweqs) const
+{
+  return const_cast<SubModelNode *>(this);
+}
+
+expr_t
+SubModelNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  return const_cast<SubModelNode *>(this);
+}
+
+bool
+SubModelNode::isNumConstNodeEqualTo(double value) const
+{
+  return false;
+}
+
+bool
+SubModelNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
+{
+  return false;
+}
+
+bool
+SubModelNode::isInStaticForm() const
+{
+  return false;
+}
+
+bool
+SubModelNode::isParamTimesEndogExpr() const
+{
+  return false;
+}
+
+expr_t
+SubModelNode::substituteStaticAuxiliaryVariable() const
+{
+  return const_cast<SubModelNode *>(this);
+}
+
+expr_t
+SubModelNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
+{
+  return const_cast<SubModelNode *>(this);
+}
+
 VarExpectationNode::VarExpectationNode(DataTree &datatree_arg,
                                        int idx_arg,
                                        string model_name_arg) :
-  ExprNode{datatree_arg, idx_arg},
-  model_name{move(model_name_arg)}
+  SubModelNode{datatree_arg, idx_arg, move(model_name_arg)}
 {
 }
 
@@ -7924,13 +8092,6 @@ VarExpectationNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<te
                                                map<expr_t, tuple<int, int, int>> &reference_count) const
 {
   cerr << "VarExpectationNode::computeBlocksTemporaryTerms not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-expr_t
-VarExpectationNode::toStatic(DataTree &static_datatree) const
-{
-  cerr << "VarExpectationNode::toStatic not implemented." << endl;
   exit(EXIT_FAILURE);
 }
 
@@ -8034,39 +8195,6 @@ VarExpectationNode::decreaseLeadsLags(int n) const
   exit(EXIT_FAILURE);
 }
 
-void
-VarExpectationNode::prepareForDerivation()
-{
-  cerr << "VarExpectationNode::prepareForDerivation not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-expr_t
-VarExpectationNode::computeDerivative(int deriv_id)
-{
-  cerr << "VarExpectationNode::computeDerivative not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-expr_t
-VarExpectationNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables)
-{
-  cerr << "VarExpectationNode::getChainRuleDerivative not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-bool
-VarExpectationNode::containsExternalFunction() const
-{
-  return false;
-}
-
-double
-VarExpectationNode::eval(const eval_context_t &eval_context) const noexcept(false)
-{
-  throw EvalException();
-}
-
 int
 VarExpectationNode::countDiffs() const
 {
@@ -8074,43 +8202,6 @@ VarExpectationNode::countDiffs() const
   exit(EXIT_FAILURE);
 }
 
-void
-VarExpectationNode::computeXrefs(EquationInfo &ei) const
-{
-}
-
-void
-VarExpectationNode::collectVARLHSVariable(set<expr_t> &result) const
-{
-  cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << endl;
-  exit(EXIT_FAILURE);
-}
-
-void
-VarExpectationNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const
-{
-}
-
-void
-VarExpectationNode::compile(ostream &CompileCode, unsigned int &instruction_number,
-                            bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                            const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
-                            const deriv_node_temp_terms_t &tef_terms) const
-{
-  cerr << "VarExpectationNode::compile not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-void
-VarExpectationNode::computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const
-{
-}
-
-BinaryOpNode *
-VarExpectationNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const
-{
-  throw NormalizationFailed();
-}
 
 expr_t
 VarExpectationNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
@@ -8141,24 +8232,6 @@ VarExpectationNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOp
 }
 
 expr_t
-VarExpectationNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
-{
-  return const_cast<VarExpectationNode *>(this);
-}
-
-expr_t
-VarExpectationNode::substituteAdl() const
-{
-  return const_cast<VarExpectationNode *>(this);
-}
-
-expr_t
-VarExpectationNode::substituteModelLocalVariables() const
-{
-  return const_cast<VarExpectationNode *>(this);
-}
-
-expr_t
 VarExpectationNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
 {
   auto it = subst_table.find(model_name);
@@ -8168,35 +8241,6 @@ VarExpectationNode::substituteVarExpectation(const map<string, expr_t> &subst_ta
       exit(EXIT_FAILURE);
     }
   return it->second;
-}
-
-void
-VarExpectationNode::findDiffNodes(lag_equivalence_table_t &nodes) const
-{
-}
-
-void
-VarExpectationNode::findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const
-{
-}
-
-int
-VarExpectationNode::findTargetVariable(int lhs_symb_id) const
-{
-  return -1;
-}
-
-expr_t
-VarExpectationNode::substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table,
-                                   vector<BinaryOpNode *> &neweqs) const
-{
-  return const_cast<VarExpectationNode *>(this);
-}
-
-expr_t
-VarExpectationNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
-{
-  return const_cast<VarExpectationNode *>(this);
 }
 
 expr_t
@@ -8218,23 +8262,11 @@ VarExpectationNode::containsPacExpectation(const string &pac_model_name) const
   return false;
 }
 
-bool
-VarExpectationNode::isNumConstNodeEqualTo(double value) const
-{
-  return false;
-}
-
 expr_t
 VarExpectationNode::decreaseLeadsLagsPredeterminedVariables() const
 {
   cerr << "VarExpectationNode::decreaseLeadsLagsPredeterminedVariables not implemented." << endl;
   exit(EXIT_FAILURE);
-}
-
-bool
-VarExpectationNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
-{
-  return false;
 }
 
 expr_t
@@ -8258,30 +8290,6 @@ VarExpectationNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map
   exit(EXIT_FAILURE);
 }
 
-bool
-VarExpectationNode::isInStaticForm() const
-{
-  return false;
-}
-
-bool
-VarExpectationNode::isParamTimesEndogExpr() const
-{
-  return false;
-}
-
-expr_t
-VarExpectationNode::substituteStaticAuxiliaryVariable() const
-{
-  return const_cast<VarExpectationNode *>(this);
-}
-
-expr_t
-VarExpectationNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
-{
-  return const_cast<VarExpectationNode *>(this);
-}
-
 void
 VarExpectationNode::writeJsonAST(ostream &output) const
 {
@@ -8303,8 +8311,7 @@ VarExpectationNode::writeJsonOutput(ostream &output,
 PacExpectationNode::PacExpectationNode(DataTree &datatree_arg,
                                        int idx_arg,
                                        string model_name_arg) :
-  ExprNode{datatree_arg, idx_arg},
-  model_name{move(model_name_arg)}
+  SubModelNode{datatree_arg, idx_arg, move(model_name_arg)}
 {
 }
 
@@ -8322,13 +8329,6 @@ PacExpectationNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<te
                                                map<expr_t, tuple<int, int, int>> &reference_count) const
 {
   blocks_temporary_terms[blk][eq].insert(const_cast<PacExpectationNode *>(this));
-}
-
-expr_t
-PacExpectationNode::toStatic(DataTree &static_datatree) const
-{
-  cerr << "PacExpectationNode::toStatic not implemented." << endl;
-  exit(EXIT_FAILURE);
 }
 
 expr_t
@@ -8412,81 +8412,10 @@ PacExpectationNode::decreaseLeadsLags(int n) const
   return const_cast<PacExpectationNode *>(this);
 }
 
-void
-PacExpectationNode::prepareForDerivation()
-{
-  cerr << "PacExpectationNode::prepareForDerivation: shouldn't arrive here." << endl;
-  exit(EXIT_FAILURE);
-}
-
-expr_t
-PacExpectationNode::computeDerivative(int deriv_id)
-{
-  cerr << "PacExpectationNode::computeDerivative: shouldn't arrive here." << endl;
-  exit(EXIT_FAILURE);
-}
-
-expr_t
-PacExpectationNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables)
-{
-  cerr << "PacExpectationNode::getChainRuleDerivative: shouldn't arrive here." << endl;
-  exit(EXIT_FAILURE);
-}
-
-bool
-PacExpectationNode::containsExternalFunction() const
-{
-  return false;
-}
-
-double
-PacExpectationNode::eval(const eval_context_t &eval_context) const noexcept(false)
-{
-  throw EvalException();
-}
-
-void
-PacExpectationNode::computeXrefs(EquationInfo &ei) const
-{
-}
-
-void
-PacExpectationNode::collectVARLHSVariable(set<expr_t> &result) const
-{
-  cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << endl;
-  exit(EXIT_FAILURE);
-}
-
-void
-PacExpectationNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const
-{
-}
-
-void
-PacExpectationNode::compile(ostream &CompileCode, unsigned int &instruction_number,
-                            bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                            const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
-                            const deriv_node_temp_terms_t &tef_terms) const
-{
-  cerr << "PacExpectationNode::compile not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
 int
 PacExpectationNode::countDiffs() const
 {
   return 0;
-}
-
-void
-PacExpectationNode::computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const
-{
-}
-
-BinaryOpNode *
-PacExpectationNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const
-{
-  throw NormalizationFailed();
 }
 
 expr_t
@@ -8514,54 +8443,7 @@ PacExpectationNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOp
 }
 
 expr_t
-PacExpectationNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
-{
-  return const_cast<PacExpectationNode *>(this);
-}
-
-expr_t
-PacExpectationNode::substituteAdl() const
-{
-  return const_cast<PacExpectationNode *>(this);
-}
-
-expr_t
-PacExpectationNode::substituteModelLocalVariables() const
-{
-  return const_cast<PacExpectationNode *>(this);
-}
-
-expr_t
 PacExpectationNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
-{
-  return const_cast<PacExpectationNode *>(this);
-}
-
-void
-PacExpectationNode::findDiffNodes(lag_equivalence_table_t &nodes) const
-{
-}
-
-void
-PacExpectationNode::findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const
-{
-}
-
-int
-PacExpectationNode::findTargetVariable(int lhs_symb_id) const
-{
-  return -1;
-}
-
-expr_t
-PacExpectationNode::substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table,
-                                   vector<BinaryOpNode *> &neweqs) const
-{
-  return const_cast<PacExpectationNode *>(this);
-}
-
-expr_t
-PacExpectationNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<PacExpectationNode *>(this);
 }
@@ -8581,22 +8463,10 @@ PacExpectationNode::containsPacExpectation(const string &pac_model_name) const
     return pac_model_name == model_name;
 }
 
-bool
-PacExpectationNode::isNumConstNodeEqualTo(double value) const
-{
-  return false;
-}
-
 expr_t
 PacExpectationNode::decreaseLeadsLagsPredeterminedVariables() const
 {
   return const_cast<PacExpectationNode *>(this);
-}
-
-bool
-PacExpectationNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
-{
-  return false;
 }
 
 expr_t
@@ -8617,24 +8487,6 @@ PacExpectationNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map
   return const_cast<PacExpectationNode *>(this);
 }
 
-bool
-PacExpectationNode::isInStaticForm() const
-{
-  return false;
-}
-
-expr_t
-PacExpectationNode::substituteStaticAuxiliaryVariable() const
-{
-  return const_cast<PacExpectationNode *>(this);
-}
-
-expr_t
-PacExpectationNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
-{
-  return const_cast<PacExpectationNode *>(this);
-}
-
 void
 PacExpectationNode::writeJsonAST(ostream &output) const
 {
@@ -8651,12 +8503,6 @@ PacExpectationNode::writeJsonOutput(ostream &output,
   output << "pac_expectation("
          << "model_name = " << model_name
          << ")";
-}
-
-bool
-PacExpectationNode::isParamTimesEndogExpr() const
-{
-  return false;
 }
 
 expr_t
