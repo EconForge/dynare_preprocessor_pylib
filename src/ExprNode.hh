@@ -1431,10 +1431,30 @@ class SubModelNode : public ExprNode
 public:
   const string model_name;
   SubModelNode(DataTree &datatree_arg, int idx_arg, string model_name_arg);
+  void computeTemporaryTerms(const pair<int, int> &derivOrder,
+                             map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                             map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                             bool is_matlab) const override;
+  void computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                  map<expr_t, tuple<int, int, int>> &reference_count) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void prepareForDerivation() override;
   expr_t computeDerivative(int deriv_id) override;
   expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) override;
+  int maxEndoLead() const override;
+  int maxExoLead() const override;
+  int maxEndoLag() const override;
+  int maxExoLag() const override;
+  int maxLead() const override;
+  int maxLag() const override;
+  int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
+  expr_t undiff() const override;
+  expr_t decreaseLeadsLags(int n) const override;
+  int countDiffs() const override;
+  expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
+  expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
+  expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   bool containsExternalFunction() const override;
   double eval(const eval_context_t &eval_context) const noexcept(false) override;
   void computeXrefs(EquationInfo &ei) const override;
@@ -1460,42 +1480,22 @@ public:
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool isParamTimesEndogExpr() const override;
   expr_t substituteStaticAuxiliaryVariable() const override;
+  expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
+  expr_t decreaseLeadsLagsPredeterminedVariables() const override;
+  expr_t replaceTrendVar() const override;
+  expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
+  expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
 };
 
 class VarExpectationNode : public SubModelNode
 {
 public:
   VarExpectationNode(DataTree &datatree_arg, int idx_arg, string model_name_arg);
-  void computeTemporaryTerms(const pair<int, int> &derivOrder,
-                             map<pair<int, int>, temporary_terms_t> &temp_terms_map,
-                             map<expr_t, pair<int, pair<int, int>>> &reference_count,
-                             bool is_matlab) const override;
-  void computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                  map<expr_t, tuple<int, int, int>> &reference_count) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t clone(DataTree &datatree) const override;
-  int maxEndoLead() const override;
-  int maxExoLead() const override;
-  int maxEndoLag() const override;
-  int maxExoLag() const override;
-  int maxLead() const override;
-  int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
-  int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
-  expr_t undiff() const override;
-  expr_t decreaseLeadsLags(int n) const override;
-  expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
-  expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
-  expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
-  int countDiffs() const override;
-  expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t decreaseLeadsLagsPredeterminedVariables() const override;
-  expr_t replaceTrendVar() const override;
-  expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
-  expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
@@ -1505,36 +1505,11 @@ class PacExpectationNode : public SubModelNode
 {
 public:
   PacExpectationNode(DataTree &datatree_arg, int idx_arg, string model_name);
-  void computeTemporaryTerms(const pair<int, int> &derivOrder,
-                             map<pair<int, int>, temporary_terms_t> &temp_terms_map,
-                             map<expr_t, pair<int, pair<int, int>>> &reference_count,
-                             bool is_matlab) const override;
-  void computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                  map<expr_t, tuple<int, int, int>> &reference_count) const override;
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t clone(DataTree &datatree) const override;
-  int maxEndoLead() const override;
-  int maxExoLead() const override;
-  int maxEndoLag() const override;
-  int maxExoLag() const override;
-  int maxLead() const override;
-  int maxLag() const override;
   int maxLagWithDiffsExpanded() const override;
-  int VarMaxLag(const set<expr_t> &lhs_lag_equiv) const override;
-  expr_t undiff() const override;
-  expr_t decreaseLeadsLags(int n) const override;
-  expr_t substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
-  expr_t substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const override;
-  expr_t substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
-  int countDiffs() const override;
-  expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
-  expr_t decreaseLeadsLagsPredeterminedVariables() const override;
-  expr_t replaceTrendVar() const override;
-  expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
-  expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;

@@ -7909,6 +7909,24 @@ SubModelNode::SubModelNode(DataTree &datatree_arg,
 {
 }
 
+void
+SubModelNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
+                                          map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                                          map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                          bool is_matlab) const
+{
+  cerr << "SubModelNode::computeTemporaryTerms not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+void
+SubModelNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                               map<expr_t, tuple<int, int, int>> &reference_count) const
+{
+  cerr << "SubModelNode::computeBlocksTemporaryTerms not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
 expr_t
 SubModelNode::toStatic(DataTree &static_datatree) const
 {
@@ -7934,6 +7952,105 @@ expr_t
 SubModelNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables)
 {
   cerr << "SubModelNode::getChainRuleDerivative not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+int
+SubModelNode::maxEndoLead() const
+{
+  cerr << "SubModelNode::maxEndoLead not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+int
+SubModelNode::maxExoLead() const
+{
+  cerr << "SubModelNode::maxExoLead not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+int
+SubModelNode::maxEndoLag() const
+{
+  cerr << "SubModelNode::maxEndoLead not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+int
+SubModelNode::maxExoLag() const
+{
+  cerr << "SubModelNode::maxExoLead not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+int
+SubModelNode::maxLead() const
+{
+  cerr << "SubModelNode::maxLead not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+int
+SubModelNode::maxLag() const
+{
+  cerr << "SubModelNode::maxLag not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+expr_t
+SubModelNode::undiff() const
+{
+  cerr << "SubModelNode::undiff not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+int
+SubModelNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
+{
+  cerr << "SubModelNode::VarMaxLag not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+expr_t
+SubModelNode::decreaseLeadsLags(int n) const
+{
+  cerr << "SubModelNode::decreaseLeadsLags not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+int
+SubModelNode::countDiffs() const
+{
+  cerr << "SubModelNode::countDiffs not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+
+expr_t
+SubModelNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
+{
+  cerr << "SubModelNode::substituteEndoLeadGreaterThanTwo not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+expr_t
+SubModelNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  cerr << "SubModelNode::substituteEndoLagGreaterThanTwo not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+expr_t
+SubModelNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
+{
+  cerr << "SubModelNode::substituteExoLead not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+expr_t
+SubModelNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  cerr << "SubModelNode::substituteExoLag not implemented." << endl;
   exit(EXIT_FAILURE);
 }
 
@@ -8070,6 +8187,41 @@ SubModelNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) 
   return const_cast<SubModelNode *>(this);
 }
 
+expr_t
+SubModelNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+{
+  cerr << "SubModelNode::differentiateForwardVars not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+expr_t
+SubModelNode::decreaseLeadsLagsPredeterminedVariables() const
+{
+  cerr << "SubModelNode::decreaseLeadsLagsPredeterminedVariables not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+expr_t
+SubModelNode::replaceTrendVar() const
+{
+  cerr << "SubModelNode::replaceTrendVar not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+expr_t
+SubModelNode::detrend(int symb_id, bool log_trend, expr_t trend) const
+{
+  cerr << "SubModelNode::detrend not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
+expr_t
+SubModelNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const
+{
+  cerr << "SubModelNode::removeTrendLeadLag not implemented." << endl;
+  exit(EXIT_FAILURE);
+}
+
 VarExpectationNode::VarExpectationNode(DataTree &datatree_arg,
                                        int idx_arg,
                                        string model_name_arg) :
@@ -8077,28 +8229,24 @@ VarExpectationNode::VarExpectationNode(DataTree &datatree_arg,
 {
 }
 
-void
-VarExpectationNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
-                                          map<pair<int, int>, temporary_terms_t> &temp_terms_map,
-                                          map<expr_t, pair<int, pair<int, int>>> &reference_count,
-                                          bool is_matlab) const
-{
-  cerr << "VarExpectationNode::computeTemporaryTerms not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-void
-VarExpectationNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                               map<expr_t, tuple<int, int, int>> &reference_count) const
-{
-  cerr << "VarExpectationNode::computeBlocksTemporaryTerms not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
 expr_t
 VarExpectationNode::clone(DataTree &datatree) const
 {
   return datatree.AddVarExpectation(model_name);
+}
+
+
+int
+VarExpectationNode::maxLagWithDiffsExpanded() const
+{
+  /* This node will be substituted by lagged variables, so in theory we should
+     return a strictly positive value. But from here this value is not easy to
+     compute.
+     We return 0, because currently this function is only called from
+     DynamicModel::setLeadsLagsOrig(), and the maximum lag will nevertheless be
+     correctly computed because the maximum lag of the VAR will be taken into
+     account via the corresponding equations. */
+  return 0;
 }
 
 void
@@ -8116,118 +8264,6 @@ VarExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     }
 
   cerr << "VarExpectationNode::writeOutput not implemented for non-LaTeX." << endl;
-  exit(EXIT_FAILURE);
-}
-
-int
-VarExpectationNode::maxEndoLead() const
-{
-  cerr << "VarExpectationNode::maxEndoLead not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-int
-VarExpectationNode::maxExoLead() const
-{
-  cerr << "VarExpectationNode::maxExoLead not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-int
-VarExpectationNode::maxEndoLag() const
-{
-  cerr << "VarExpectationNode::maxEndoLead not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-int
-VarExpectationNode::maxExoLag() const
-{
-  cerr << "VarExpectationNode::maxExoLead not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-int
-VarExpectationNode::maxLead() const
-{
-  cerr << "VarExpectationNode::maxLead not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-int
-VarExpectationNode::maxLag() const
-{
-  cerr << "VarExpectationNode::maxLag not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-int
-VarExpectationNode::maxLagWithDiffsExpanded() const
-{
-  /* This node will be substituted by lagged variables, so in theory we should
-     return a strictly positive value. But from here this value is not easy to
-     compute.
-     We return 0, because currently this function is only called from
-     DynamicModel::setLeadsLagsOrig(), and the maximum lag will nevertheless be
-     correctly computed because the maximum lag of the VAR will be taken into
-     account via the corresponding equations. */
-  return 0;
-}
-
-expr_t
-VarExpectationNode::undiff() const
-{
-  cerr << "VarExpectationNode::undiff not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-int
-VarExpectationNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
-{
-  cerr << "VarExpectationNode::VarMaxLag not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-expr_t
-VarExpectationNode::decreaseLeadsLags(int n) const
-{
-  cerr << "VarExpectationNode::decreaseLeadsLags not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-int
-VarExpectationNode::countDiffs() const
-{
-  cerr << "VarExpectationNode::countDiffs not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-
-expr_t
-VarExpectationNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
-{
-  cerr << "VarExpectationNode::substituteEndoLeadGreaterThanTwo not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-expr_t
-VarExpectationNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
-{
-  cerr << "VarExpectationNode::substituteEndoLagGreaterThanTwo not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-expr_t
-VarExpectationNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
-{
-  cerr << "VarExpectationNode::substituteExoLead not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-expr_t
-VarExpectationNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
-{
-  cerr << "VarExpectationNode::substituteExoLag not implemented." << endl;
   exit(EXIT_FAILURE);
 }
 
@@ -8249,45 +8285,10 @@ VarExpectationNode::substitutePacExpectation(const string &name, expr_t subexpr)
   return const_cast<VarExpectationNode *>(this);
 }
 
-expr_t
-VarExpectationNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
-{
-  cerr << "VarExpectationNode::differentiateForwardVars not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
 bool
 VarExpectationNode::containsPacExpectation(const string &pac_model_name) const
 {
   return false;
-}
-
-expr_t
-VarExpectationNode::decreaseLeadsLagsPredeterminedVariables() const
-{
-  cerr << "VarExpectationNode::decreaseLeadsLagsPredeterminedVariables not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-expr_t
-VarExpectationNode::replaceTrendVar() const
-{
-  cerr << "VarExpectationNode::replaceTrendVar not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-expr_t
-VarExpectationNode::detrend(int symb_id, bool log_trend, expr_t trend) const
-{
-  cerr << "VarExpectationNode::detrend not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-expr_t
-VarExpectationNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const
-{
-  cerr << "VarExpectationNode::removeTrendLeadLag not implemented." << endl;
-  exit(EXIT_FAILURE);
 }
 
 void
@@ -8315,22 +8316,6 @@ PacExpectationNode::PacExpectationNode(DataTree &datatree_arg,
 {
 }
 
-void
-PacExpectationNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
-                                          map<pair<int, int>, temporary_terms_t> &temp_terms_map,
-                                          map<expr_t, pair<int, pair<int, int>>> &reference_count,
-                                          bool is_matlab) const
-{
-  temp_terms_map[derivOrder].insert(const_cast<PacExpectationNode *>(this));
-}
-
-void
-PacExpectationNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                               map<expr_t, tuple<int, int, int>> &reference_count) const
-{
-  blocks_temporary_terms[blk][eq].insert(const_cast<PacExpectationNode *>(this));
-}
-
 expr_t
 PacExpectationNode::clone(DataTree &datatree) const
 {
@@ -8352,42 +8337,6 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
 }
 
 int
-PacExpectationNode::maxEndoLead() const
-{
-  return 0;
-}
-
-int
-PacExpectationNode::maxExoLead() const
-{
-  return 0;
-}
-
-int
-PacExpectationNode::maxEndoLag() const
-{
-  return 0;
-}
-
-int
-PacExpectationNode::maxExoLag() const
-{
-  return 0;
-}
-
-int
-PacExpectationNode::maxLead() const
-{
-  return 0;
-}
-
-int
-PacExpectationNode::maxLag() const
-{
-  return 0;
-}
-
-int
 PacExpectationNode::maxLagWithDiffsExpanded() const
 {
   // Same comment as in VarExpectationNode::maxLagWithDiffsExpanded()
@@ -8395,61 +8344,7 @@ PacExpectationNode::maxLagWithDiffsExpanded() const
 }
 
 expr_t
-PacExpectationNode::undiff() const
-{
-  return const_cast<PacExpectationNode *>(this);
-}
-
-int
-PacExpectationNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
-{
-  return 0;
-}
-
-expr_t
-PacExpectationNode::decreaseLeadsLags(int n) const
-{
-  return const_cast<PacExpectationNode *>(this);
-}
-
-int
-PacExpectationNode::countDiffs() const
-{
-  return 0;
-}
-
-expr_t
-PacExpectationNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
-{
-  return const_cast<PacExpectationNode *>(this);
-}
-
-expr_t
-PacExpectationNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
-{
-  return const_cast<PacExpectationNode *>(this);
-}
-
-expr_t
-PacExpectationNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
-{
-  return const_cast<PacExpectationNode *>(this);
-}
-
-expr_t
-PacExpectationNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
-{
-  return const_cast<PacExpectationNode *>(this);
-}
-
-expr_t
 PacExpectationNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
-{
-  return const_cast<PacExpectationNode *>(this);
-}
-
-expr_t
-PacExpectationNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<PacExpectationNode *>(this);
 }
@@ -8461,30 +8356,6 @@ PacExpectationNode::containsPacExpectation(const string &pac_model_name) const
     return true;
   else
     return pac_model_name == model_name;
-}
-
-expr_t
-PacExpectationNode::decreaseLeadsLagsPredeterminedVariables() const
-{
-  return const_cast<PacExpectationNode *>(this);
-}
-
-expr_t
-PacExpectationNode::replaceTrendVar() const
-{
-  return const_cast<PacExpectationNode *>(this);
-}
-
-expr_t
-PacExpectationNode::detrend(int symb_id, bool log_trend, expr_t trend) const
-{
-  return const_cast<PacExpectationNode *>(this);
-}
-
-expr_t
-PacExpectationNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const
-{
-  return const_cast<PacExpectationNode *>(this);
 }
 
 void
