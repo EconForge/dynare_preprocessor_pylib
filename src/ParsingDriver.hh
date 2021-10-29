@@ -738,7 +738,7 @@ public:
   //! Writes token "VAR_EXPECTATION(model_name)" to model tree
   expr_t add_var_expectation(const string &model_name);
   //! Writes token "PAC_EXPECTATION(model_name, discount, growth)" to model tree
-  expr_t add_pac_expectation(const string &var_model_name);
+  expr_t add_pac_expectation(const string &model_name);
   //! Creates pac_model statement
   void begin_pac_growth();
   void begin_pac_model();

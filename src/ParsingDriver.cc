@@ -2580,12 +2580,12 @@ ParsingDriver::add_var_expectation(const string &model_name)
 }
 
 expr_t
-ParsingDriver::add_pac_expectation(const string &var_model_name)
+ParsingDriver::add_pac_expectation(const string &model_name)
 {
   if (data_tree == occbin_constraints_tree.get())
-    error("The 'var_expectation' operator is forbidden in 'occbin_constraints'.");
+    error("The 'pac_expectation' operator is forbidden in 'occbin_constraints'.");
 
-  return data_tree->AddPacExpectation(var_model_name);
+  return data_tree->AddPacExpectation(model_name);
 }
 
 void
