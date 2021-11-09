@@ -3965,6 +3965,19 @@ DynamicModel::computePacBackwardExpectationSubstitution(const string &name,
   bool stationary_vars_present = any_of(nonstationary.begin(), nonstationary.end(), logical_not<bool>());
   bool nonstationary_vars_present = any_of(nonstationary.begin(), nonstationary.end(), [](bool b) { return b; }); // FIXME: use std::identity instead of an anonymous function when we upgrade to C++20
 
+  auto create_aux_param = [&](const string &param_name)
+  {
+    try
+      {
+        return symbol_table.addSymbol(param_name, SymbolType::parameter);
+      }
+    catch (SymbolTable::AlreadyDeclaredException)
+      {
+        cerr << "ERROR: the variable/parameter '" << param_name << "' conflicts with some auxiliary parameter that will be generated for the '" << name << "' PAC model. Please rename that parameter." << endl;
+        exit(EXIT_FAILURE);
+      }
+  };
+
   for (const auto &[key, val] : eqtag_and_lag)
     {
       auto &[name2, eqtag] = key;
@@ -3978,20 +3991,16 @@ DynamicModel::computePacBackwardExpectationSubstitution(const string &name,
             {
               /* If the auxiliary model is a VAR, add a parameter corresponding
                  to the constant. */
-              string param_name_h0 = "h0_" + name + "_" + standard_eqtag + "_constant";
-              int new_param_symb_id = symbol_table.addSymbol(param_name_h0, SymbolType::parameter);
+              int new_param_symb_id = create_aux_param("h0_" + name + "_" + standard_eqtag + "_constant");
               pac_h0_indices[{name, standard_eqtag}].push_back(new_param_symb_id);
               subExpr = AddPlus(subExpr, AddVariable(new_param_symb_id));
             }
           for (int i = 1; i < max_lag + 1; i++)
             for (auto lhsit : lhs)
               {
-                stringstream param_name_h0;
-                param_name_h0 << "h0_" << name
-                              << "_" << standard_eqtag
-                              << "_var_" << symbol_table.getName(lhsit)
-                              << "_lag_" << i;
-                int new_param_symb_id = symbol_table.addSymbol(param_name_h0.str(), SymbolType::parameter);
+                int new_param_symb_id = create_aux_param("h0_" + name + "_" + standard_eqtag
+                                                         + "_var_" + symbol_table.getName(lhsit)
+                                                         + "_lag_" + to_string(i));
                 pac_h0_indices[{name, standard_eqtag}].push_back(new_param_symb_id);
                 subExpr = AddPlus(subExpr,
                                   AddTimes(AddVariable(new_param_symb_id),
@@ -4005,20 +4014,16 @@ DynamicModel::computePacBackwardExpectationSubstitution(const string &name,
             {
               /* If the auxiliary model is a VAR, add a parameter corresponding
                  to the constant. */
-              string param_name_h1 = "h1_" + name + "_" + standard_eqtag + "_constant";
-              int new_param_symb_id = symbol_table.addSymbol(param_name_h1, SymbolType::parameter);
+              int new_param_symb_id = create_aux_param("h1_" + name + "_" + standard_eqtag + "_constant");
               pac_h1_indices[{name, standard_eqtag}].push_back(new_param_symb_id);
               subExpr = AddPlus(subExpr, AddVariable(new_param_symb_id));
             }
           for (int i = 1; i < max_lag + 1; i++)
             for (auto lhsit : lhs)
               {
-                stringstream param_name_h1;
-                param_name_h1 << "h1_" << name
-                              << "_" << standard_eqtag
-                              << "_var_" << symbol_table.getName(lhsit)
-                              << "_lag_" << i;
-                int new_param_symb_id = symbol_table.addSymbol(param_name_h1.str(), SymbolType::parameter);
+                int new_param_symb_id = create_aux_param("h1_" + name + "_" + standard_eqtag
+                                                         + "_var_" + symbol_table.getName(lhsit)
+                                                         + "_lag_" + to_string(i));
                 pac_h1_indices[{name, standard_eqtag}].push_back(new_param_symb_id);
                 subExpr = AddPlus(subExpr,
                                   AddTimes(AddVariable(new_param_symb_id),
