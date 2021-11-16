@@ -884,27 +884,25 @@ PacModelTable::transformPass(ExprNode::subst_table_t &diff_subst_table,
             }
         }
 
-      // In the MCE case, add the variable and the equation defining Z₁
-      if (aux_model_name[name].empty())
-        dynamic_model.addPacModelConsistentExpectationEquation(name, symbol_table.getID(discount[name]),
-                                                               pacEquationMaxLag(name),
-                                                               diff_subst_table,
-                                                               mce_z1_symb_ids, mce_alpha_symb_ids);
-
       // Compute the expressions that will be substituted for the pac_expectation operators
       expr_t growth_correction_term = dynamic_model.Zero;
       if (growth[name])
         growth_correction_term = dynamic_model.AddTimes(growth[name], dynamic_model.AddVariable(growth_neutrality_params[name]));
       if (aux_model_name[name].empty())
         dynamic_model.computePacModelConsistentExpectationSubstitution(name,
+                                                                       symbol_table.getID(discount[name]),
+                                                                       pacEquationMaxLag(name),
                                                                        growth_correction_term,
-                                                                       mce_z1_symb_ids[name],
+                                                                       diff_subst_table,
+                                                                       aux_var_symb_ids,
+                                                                       mce_alpha_symb_ids,
                                                                        pac_expectation_substitution);
       else
         dynamic_model.computePacBackwardExpectationSubstitution(name, lhs[name], max_lag,
                                                                 aux_model_type[name],
                                                                 nonstationary,
                                                                 growth_correction_term,
+                                                                aux_var_symb_ids,
                                                                 h0_indices, h1_indices,
                                                                 pac_expectation_substitution);
     }
@@ -986,10 +984,10 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
       output << "];" << endl;
     }
 
-  // Write PAC Model Consistent Expectation Z1 info
-  for (auto &[name, id] : mce_z1_symb_ids)
-    output << "M_.pac." << name << ".mce.z1 = "
-           << symbol_table.getTypeSpecificID(id) + 1 << ";" << endl;
+  // Write the auxiliary variable IDs created for the pac_expectation operator
+  for (auto &[name, id] : aux_var_symb_ids)
+    output << "M_.pac." << name << "." << (aux_model_name.at(name).empty() ? "mce.z1" : "aux_id")
+           << " = " << symbol_table.getTypeSpecificID(id) + 1 << ";" << endl;
 
   // Write PAC equation name info
   for (auto &[name, eq] : eq_name)

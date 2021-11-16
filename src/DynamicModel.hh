@@ -528,20 +528,18 @@ public:
   //! Return target of the pac equation
   int getPacTargetSymbId(const string &pac_model_name) const;
 
-  /* For a PAC MCE model, add the variable and the equation defining Z₁.
-     The symbol IDs of the new endogenous and parameters are also added to
-     pac_mce_{z1,alpha}_symb_ids. */
-  void addPacModelConsistentExpectationEquation(const string &name, int discount,
-                                                int pac_eq_max_lag,
-                                                ExprNode::subst_table_t &diff_subst_table,
-                                                map<string, int> &pac_mce_z1_symb_ids,
-                                                map<string, vector<int>> &pac_mce_alpha_symb_ids);
-
   /* For a PAC MCE model, fill pac_expectation_substitution with the
-     expression that will be substituted for the pac_expectation operator */
+     expression that will be substituted for the pac_expectation operator.
+     In the process, add the variable and the equation defining Z₁.
+     The symbol IDs of the new endogenous are added to pac_aux_var_symb_ids,
+     and the new auxiliary parameters to pac_mce_alpha_symb_ids.
+  */
   void computePacModelConsistentExpectationSubstitution(const string &name,
+                                                        int discount_symb_id, int pac_eq_max_lag,
                                                         expr_t growth_correction_term,
-                                                        int pac_mce_z1_symb_id,
+                                                        ExprNode::subst_table_t &diff_subst_table,
+                                                        map<string, int> &pac_aux_var_symb_ids,
+                                                        map<string, vector<int>> &pac_mce_alpha_symb_ids,
                                                         map<string, expr_t> &pac_expectation_substitution);
 
 
@@ -554,6 +552,7 @@ public:
                                                  const string &aux_model_type,
                                                  const vector<bool> &nonstationary,
                                                  expr_t growth_correction_term,
+                                                 map<string, int> &pac_aux_var_symb_ids,
                                                  map<string, vector<int>> &pac_h0_indices,
                                                  map<string, vector<int>> &pac_h1_indices,
                                                  map<string, expr_t> &pac_expectation_substitution);

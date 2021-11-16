@@ -3783,11 +3783,14 @@ DynamicModel::getPacTargetSymbId(const string &pac_model_name) const
 }
 
 void
-DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int discount_symb_id,
-                                                       int pac_eq_max_lag,
-                                                       ExprNode::subst_table_t &diff_subst_table,
-                                                       map<string, int> &pac_mce_z1_symb_ids,
-                                                       map<string, vector<int>> &pac_mce_alpha_symb_ids)
+DynamicModel::computePacModelConsistentExpectationSubstitution(const string &name,
+                                                               int discount_symb_id,
+                                                               int pac_eq_max_lag,
+                                                               expr_t growth_correction_term,
+                                                               ExprNode::subst_table_t &diff_subst_table,
+                                                               map<string, int> &pac_aux_var_symb_ids,
+                                                               map<string, vector<int>> &pac_mce_alpha_symb_ids,
+                                                               map<string, expr_t> &pac_expectation_substitution)
 {
   int pac_target_symb_id;
   try
@@ -3813,7 +3816,7 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
       cerr << "The variable/parameter '" << varname << "' conflicts with the variable that will be generated for the Z_1 variable of the '" << name << "' PAC model. Please rename it." << endl;
       exit(EXIT_FAILURE);
     }
-  pac_mce_z1_symb_ids[name] = mce_z1_symb_id;
+  pac_aux_var_symb_ids[name] = mce_z1_symb_id;
 
   expr_t A = One;
   expr_t fp = Zero;
@@ -3913,18 +3916,11 @@ DynamicModel::addPacModelConsistentExpectationEquation(const string &name, int d
   neqs++;
 
   cout << "PAC Model Consistent Expectation: added " << neqs << " auxiliary variables and equations for model " << name << "." << endl;
-}
 
-void
-DynamicModel::computePacModelConsistentExpectationSubstitution(const string &name,
-                                                               expr_t growth_correction_term,
-                                                               int pac_mce_z1_symb_id,
-                                                               map<string, expr_t> &pac_expectation_substitution)
-{
   /* The growth correction term is not added to the definition of Z₁
      because the latter is recursive. Rather put it at the level of the
      substition of pac_expectation operator. */
-  pac_expectation_substitution[name] = AddPlus(AddVariable(pac_mce_z1_symb_id), growth_correction_term);
+  pac_expectation_substitution[name] = AddPlus(AddVariable(mce_z1_symb_id), growth_correction_term);
 }
 
 void
@@ -3934,6 +3930,7 @@ DynamicModel::computePacBackwardExpectationSubstitution(const string &name,
                                                         const string &aux_model_type,
                                                         const vector<bool> &nonstationary,
                                                         expr_t growth_correction_term,
+                                                        map<string, int> &pac_aux_var_symb_ids,
                                                         map<string, vector<int>> &pac_h0_indices,
                                                         map<string, vector<int>> &pac_h1_indices,
                                                         map<string, expr_t> &pac_expectation_substitution)
@@ -4001,7 +3998,21 @@ DynamicModel::computePacBackwardExpectationSubstitution(const string &name,
           }
     }
 
-  pac_expectation_substitution[name] = AddPlus(subExpr, growth_correction_term);
+  int expect_var_id;
+  string expect_var_name = "pac_expectation_" + name;
+  try
+    {
+      expect_var_id = symbol_table.addSymbol(expect_var_name, SymbolType::endogenous);
+    }
+  catch (SymbolTable::AlreadyDeclaredException &e)
+    {
+      cerr << "The variable/parameter '" << expect_var_name << "' conflicts with the variable that will be generated for the 'pac_expectation' expression of the '" << name << "' PAC model. Please rename it." << endl;
+      exit(EXIT_FAILURE);
+    }
+  addEquation(AddEqual(AddVariable(expect_var_id), AddPlus(subExpr, growth_correction_term)), -1);
+
+  pac_aux_var_symb_ids[name] = expect_var_id;
+  pac_expectation_substitution[name] = AddVariable(expect_var_id);
 }
 
 void

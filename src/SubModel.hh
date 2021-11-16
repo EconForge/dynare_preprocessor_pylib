@@ -205,12 +205,17 @@ private:
      pac_model_name → eq_name */
   map<string, string> eq_name;
 
+  /* Stores symb_ids for auxiliary endogenous created for the expression
+     substituted to the pac_expectation operator:
+     - in the backward case, this auxiliary contains exactly the
+     pac_expectation value
+     - in the MCE case, this auxiliary represents Z₁ (i.e. without the growth
+     correction term)
+     pac_model_name → symb_id */
+  map<string, int> aux_var_symb_ids;
   /* Stores symb_ids for alphas created by DynamicModel::addPacModelConsistentExpectationEquation()
      pac_model_name → mce_alpha_symb_ids */
   map<string, vector<int>> mce_alpha_symb_ids;
-  /* Stores symb_ids for z1s created by DynamicModel::addPacModelConsistentExpectationEquation()
-     pac_model_name → mce_z1_symb_id */
-  map<string, int> mce_z1_symb_ids;
   /* Stores symb_ids for h0, h1 parameters
      pac_model_name → parameter symb_ids */
   map<string, vector<int>> h0_indices, h1_indices;
