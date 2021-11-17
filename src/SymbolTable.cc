@@ -376,6 +376,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
             output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl;
             break;
           case AuxVarType::expectation:
+          case AuxVarType::pacExpectation:
             break;
           case AuxVarType::diff:
           case AuxVarType::diffLag:
@@ -665,6 +666,24 @@ SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id, expr_t expr_arg) noexc
     }
 
   aux_vars.emplace_back(symb_id, AuxVarType::diffForward, orig_symb_id, 0, 0, 0, expr_arg, "");
+  return symb_id;
+}
+
+int
+SymbolTable::addPacExpectationAuxiliaryVar(const string &name, expr_t expr_arg)
+{
+  int symb_id;
+  try
+    {
+      symb_id = addSymbol(name, SymbolType::endogenous);
+    }
+  catch (AlreadyDeclaredException &e)
+    {
+      cerr << "ERROR: the variable/parameter '" << name << "' conflicts with a variable that will be generated for a 'pac_expectation' expression. Please rename it." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  aux_vars.emplace_back(symb_id, AuxVarType::pacExpectation, 0, 0, 0, 0, expr_arg, "");
   return symb_id;
 }
 
@@ -984,6 +1003,7 @@ SymbolTable::writeJsonOutput(ostream &output) const
 	      output << R"(, orig_index": )" << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1;
 	      break;
 	    case AuxVarType::expectation:
+	    case AuxVarType::pacExpectation:
 	      break;
 	    case AuxVarType::diff:
 	    case AuxVarType::diffLag:

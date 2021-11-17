@@ -52,7 +52,8 @@ enum class AuxVarType
    diff = 8, //!< Variable for Diff operator
    diffLag = 9, //!< Variable for timing between Diff operators (lag)
    unaryOp = 10, //!< Variable for allowing the undiff operator to work when diff was taken of unary op, eg diff(log(x))
-   diffLead = 11 //!< Variable for timing between Diff operators (lead)
+   diffLead = 11, //!< Variable for timing between Diff operators (lead)
+   pacExpectation = 12 //!< Variable created for the substitution of the pac_expectation operator
   };
 
 //! Information on some auxiliary variables
@@ -334,6 +335,8 @@ public:
   int addDiffLeadAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lead) noexcept(false);
   //! An Auxiliary variable for a unary op
   int addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op, int orig_symb_id = -1, int orig_lag = 0) noexcept(false);
+  //! An auxiliary variable for a pac_expectation operator
+  int addPacExpectationAuxiliaryVar(const string &name, expr_t expr_arg);
   //! Returns the number of auxiliary variables
   int
   AuxVarsSize() const

@@ -3804,18 +3804,8 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(const string &nam
     }
   int neqs = 0;
 
-  // Create the endogenous representing Z₁
-  int mce_z1_symb_id;
-  string varname = "mce_Z1_" + name;
-  try
-    {
-      mce_z1_symb_id = symbol_table.addSymbol(varname, SymbolType::endogenous);
-    }
-  catch (SymbolTable::AlreadyDeclaredException &e)
-    {
-      cerr << "The variable/parameter '" << varname << "' conflicts with the variable that will be generated for the Z_1 variable of the '" << name << "' PAC model. Please rename it." << endl;
-      exit(EXIT_FAILURE);
-    }
+  // Create the endogenous representing Z₁ (no orig_expr is given since its definition is recursive)
+  int mce_z1_symb_id = symbol_table.addPacExpectationAuxiliaryVar("mce_Z1_" + name, nullptr);
   pac_aux_var_symb_ids[name] = mce_z1_symb_id;
 
   expr_t A = One;
@@ -3913,6 +3903,8 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(const string &nam
   auto neweq = AddEqual(AddVariable(mce_z1_symb_id),
                         AddMinus(AddTimes(A, AddMinus(const_cast<VariableNode *>(target_base_diff_node), fs)), fp));
   addEquation(neweq, -1);
+  /* This equation is not added to the list of auxiliary equations, because it
+     is recursive, and this would in particular break dynamic_set_auxiliary_series.m */
   neqs++;
 
   cout << "PAC Model Consistent Expectation: added " << neqs << " auxiliary variables and equations for model " << name << "." << endl;
@@ -3967,19 +3959,12 @@ DynamicModel::computePacBackwardExpectationSubstitution(const string &name,
                                    AddVariable(lhsit, -i)));
       }
 
-  int expect_var_id;
-  string expect_var_name = "pac_expectation_" + name;
-  try
-    {
-      expect_var_id = symbol_table.addSymbol(expect_var_name, SymbolType::endogenous);
-    }
-  catch (SymbolTable::AlreadyDeclaredException &e)
-    {
-      cerr << "The variable/parameter '" << expect_var_name << "' conflicts with the variable that will be generated for the 'pac_expectation' expression of the '" << name << "' PAC model. Please rename it." << endl;
-      exit(EXIT_FAILURE);
-    }
-  addEquation(AddEqual(AddVariable(expect_var_id), AddPlus(subExpr, growth_correction_term)), -1);
+  subExpr = AddPlus(subExpr, growth_correction_term);
 
+  int expect_var_id = symbol_table.addPacExpectationAuxiliaryVar("pac_expectation_" + name, subExpr);
+  expr_t neweq = AddEqual(AddVariable(expect_var_id), subExpr);
+  addEquation(neweq, -1);
+  addAuxEquation(neweq);
   pac_aux_var_symb_ids[name] = expect_var_id;
   pac_expectation_substitution[name] = AddVariable(expect_var_id);
 }
