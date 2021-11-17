@@ -3789,7 +3789,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(const string &nam
                                                                expr_t growth_correction_term,
                                                                ExprNode::subst_table_t &diff_subst_table,
                                                                map<string, int> &pac_aux_var_symb_ids,
-                                                               map<string, vector<int>> &pac_mce_alpha_symb_ids,
+                                                               map<string, vector<int>> &pac_aux_param_symb_ids,
                                                                map<string, expr_t> &pac_expectation_substitution)
 {
   int pac_target_symb_id;
@@ -3827,7 +3827,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(const string &nam
       try
         {
           int alpha_i_symb_id = symbol_table.addSymbol(param_name, SymbolType::parameter);
-          pac_mce_alpha_symb_ids[name].push_back(alpha_i_symb_id);
+          pac_aux_param_symb_ids[name].push_back(alpha_i_symb_id);
           A = AddPlus(A, AddVariable(alpha_i_symb_id));
           fp = AddPlus(fp,
                        AddTimes(AddTimes(AddVariable(alpha_i_symb_id),
@@ -3928,16 +3928,11 @@ DynamicModel::computePacBackwardExpectationSubstitution(const string &name,
                                                         const vector<int> &lhs,
                                                         int max_lag,
                                                         const string &aux_model_type,
-                                                        const vector<bool> &nonstationary,
                                                         expr_t growth_correction_term,
                                                         map<string, int> &pac_aux_var_symb_ids,
-                                                        map<string, vector<int>> &pac_h0_indices,
-                                                        map<string, vector<int>> &pac_h1_indices,
+                                                        map<string, vector<int>> &pac_aux_param_symb_ids,
                                                         map<string, expr_t> &pac_expectation_substitution)
 {
-  bool stationary_vars_present = any_of(nonstationary.begin(), nonstationary.end(), logical_not<bool>());
-  bool nonstationary_vars_present = any_of(nonstationary.begin(), nonstationary.end(), [](bool b) { return b; }); // FIXME: use std::identity instead of an anonymous function when we upgrade to C++20
-
   auto create_aux_param = [&](const string &param_name)
   {
     try
@@ -3952,51 +3947,25 @@ DynamicModel::computePacBackwardExpectationSubstitution(const string &name,
   };
 
   expr_t subExpr = Zero;
-  if (stationary_vars_present)
+  if (aux_model_type == "var")
     {
-      if (aux_model_type == "var")
-        {
-          /* If the auxiliary model is a VAR, add a parameter corresponding
-             to the constant. */
-          int new_param_symb_id = create_aux_param("h0_" + name + "_constant");
-          pac_h0_indices[name].push_back(new_param_symb_id);
-          subExpr = AddPlus(subExpr, AddVariable(new_param_symb_id));
-        }
-      for (int i = 1; i < max_lag + 1; i++)
-        for (auto lhsit : lhs)
-          {
-            int new_param_symb_id = create_aux_param("h0_" + name + "_var_"
-                                                     + symbol_table.getName(lhsit)
-                                                     + "_lag_" + to_string(i));
-            pac_h0_indices[name].push_back(new_param_symb_id);
-            subExpr = AddPlus(subExpr,
-                              AddTimes(AddVariable(new_param_symb_id),
-                                       AddVariable(lhsit, -i)));
-          }
+      /* If the auxiliary model is a VAR, add a parameter corresponding
+         to the constant. */
+      int new_param_symb_id = create_aux_param("h_" + name + "_constant");
+      pac_aux_param_symb_ids[name].push_back(new_param_symb_id);
+      subExpr = AddPlus(subExpr, AddVariable(new_param_symb_id));
     }
-
-  if (nonstationary_vars_present)
-    {
-      if (aux_model_type == "var")
-        {
-          /* If the auxiliary model is a VAR, add a parameter corresponding
-             to the constant. */
-          int new_param_symb_id = create_aux_param("h1_" + name + "_constant");
-          pac_h1_indices[name].push_back(new_param_symb_id);
-          subExpr = AddPlus(subExpr, AddVariable(new_param_symb_id));
-        }
-      for (int i = 1; i < max_lag + 1; i++)
-        for (auto lhsit : lhs)
-          {
-            int new_param_symb_id = create_aux_param("h1_" + name + "_var_"
-                                                     + symbol_table.getName(lhsit)
-                                                     + "_lag_" + to_string(i));
-            pac_h1_indices[name].push_back(new_param_symb_id);
-            subExpr = AddPlus(subExpr,
-                              AddTimes(AddVariable(new_param_symb_id),
-                                       AddVariable(lhsit, -i)));
-          }
-    }
+  for (int i = 1; i < max_lag + 1; i++)
+    for (auto lhsit : lhs)
+      {
+        int new_param_symb_id = create_aux_param("h_" + name + "_var_"
+                                                 + symbol_table.getName(lhsit)
+                                                 + "_lag_" + to_string(i));
+        pac_aux_param_symb_ids[name].push_back(new_param_symb_id);
+        subExpr = AddPlus(subExpr,
+                          AddTimes(AddVariable(new_param_symb_id),
+                                   AddVariable(lhsit, -i)));
+      }
 
   int expect_var_id;
   string expect_var_name = "pac_expectation_" + name;

@@ -842,22 +842,17 @@ PacModelTable::transformPass(ExprNode::subst_table_t &diff_subst_table,
 
       // Collect some information about PAC models
       int max_lag;
-      vector<bool> nonstationary;
       if (trend_component_model_table.isExistingTrendComponentModelName(aux_model_name[name]))
         {
           aux_model_type[name] = "trend_component";
           max_lag = trend_component_model_table.getMaxLag(aux_model_name[name]) + 1;
           lhs[name] = dynamic_model.getUndiffLHSForPac(aux_model_name[name], diff_subst_table);
-          // All lhs variables in a trend component model are nonstationary
-          nonstationary.insert(nonstationary.end(), trend_component_model_table.getDiff(aux_model_name[name]).size(), true);
         }
       else if (var_model_table.isExistingVarModelName(aux_model_name[name]))
         {
           aux_model_type[name] = "var";
           max_lag = var_model_table.getMaxLag(aux_model_name[name]);
           lhs[name] = var_model_table.getLhs(aux_model_name[name]);
-          // nonstationary variables in a VAR are those that are in diff
-          nonstationary = var_model_table.getDiff(aux_model_name[name]);
         }
       else if (aux_model_name[name].empty())
         max_lag = 0;
@@ -895,15 +890,14 @@ PacModelTable::transformPass(ExprNode::subst_table_t &diff_subst_table,
                                                                        growth_correction_term,
                                                                        diff_subst_table,
                                                                        aux_var_symb_ids,
-                                                                       mce_alpha_symb_ids,
+                                                                       aux_param_symb_ids,
                                                                        pac_expectation_substitution);
       else
         dynamic_model.computePacBackwardExpectationSubstitution(name, lhs[name], max_lag,
                                                                 aux_model_type[name],
-                                                                nonstationary,
                                                                 growth_correction_term,
                                                                 aux_var_symb_ids,
-                                                                h0_indices, h1_indices,
+                                                                aux_param_symb_ids,
                                                                 pac_expectation_substitution);
     }
 
@@ -975,10 +969,10 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
         }
     }
 
-  // Write PAC Model Consistent Expectation parameter info
-  for (auto &[name, ids] : mce_alpha_symb_ids)
+  // Write the auxiliary parameter IDs created for the pac_expectation operator
+  for (auto &[name, ids] : aux_param_symb_ids)
     {
-      output << "M_.pac." << name << ".mce.alpha = [";
+      output << "M_.pac." << name << "." << (aux_model_name.at(name).empty() ? "mce.alpha" : "h_param_indices") << " = [";
       for (auto id : ids)
         output << symbol_table.getTypeSpecificID(id) + 1 << " ";
       output << "];" << endl;
@@ -1171,25 +1165,6 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
             output << get<3>(it) << " ";
           output << "];" << endl;
         }
-      // Create empty h0 and h1 substructures that will be overwritten later if not empty
-      output << "M_.pac." << name << ".h0_param_indices = [];" << endl
-             << "M_.pac." << name << ".h1_param_indices = [];" << endl;
-    }
-
-  for (auto &[name, symb_ids] : h0_indices)
-    {
-      output << "M_.pac." << name << ".h0_param_indices = [";
-      for (auto it : symb_ids)
-        output << symbol_table.getTypeSpecificID(it) + 1 << " ";
-      output << "];" << endl;
-    }
-
-  for (auto &[name, symb_ids] : h1_indices)
-    {
-      output << "M_.pac." << name << ".h1_param_indices = [";
-      for (auto it : symb_ids)
-        output << symbol_table.getTypeSpecificID(it) + 1 << " ";
-      output << "];" << endl;
     }
 }
 

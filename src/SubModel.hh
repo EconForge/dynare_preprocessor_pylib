@@ -213,12 +213,13 @@ private:
      correction term)
      pac_model_name → symb_id */
   map<string, int> aux_var_symb_ids;
-  /* Stores symb_ids for alphas created by DynamicModel::addPacModelConsistentExpectationEquation()
-     pac_model_name → mce_alpha_symb_ids */
-  map<string, vector<int>> mce_alpha_symb_ids;
-  /* Stores symb_ids for h0, h1 parameters
-     pac_model_name → parameter symb_ids */
-  map<string, vector<int>> h0_indices, h1_indices;
+  /* Stores symb_ids for auxiliary parameters created for the expression
+     substituted to the pac_expectation operator (excluding the growth
+     neutrality correction):
+     - in the backward case, contains the “h” parameters
+     - in the MCE case, contains the “α” parameters
+     pac_model_name → symb_ids */
+  map<string, vector<int>> aux_param_symb_ids;
   /* Stores indices for growth neutrality parameters
      pac_model_name → growth_neutrality_param_index */
   map<string, int> growth_neutrality_params;
