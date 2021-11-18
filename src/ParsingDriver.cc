@@ -2635,6 +2635,8 @@ ParsingDriver::begin_pac_model()
 {
   parsing_pac_model = true;
   pac_growth = nullptr;
+  pac_auxname.clear();
+  pac_kind = PacTargetKind::unspecified;
   options_list.clear();
 }
 
@@ -2657,7 +2659,8 @@ ParsingDriver::pac_model()
   auto discount = it->second;
   check_symbol_is_parameter(discount);
 
-  mod_file->pac_model_table.addPacModel(name, aux_model_name, discount, pac_growth);
+  mod_file->pac_model_table.addPacModel(name, aux_model_name, discount, pac_growth,
+                                        pac_auxname, pac_kind);
   parsing_pac_model = false;
 }
 
@@ -2666,6 +2669,18 @@ ParsingDriver::set_pac_growth(expr_t pac_growth_arg)
 {
   pac_growth = pac_growth_arg;
   reset_data_tree();
+}
+
+void
+ParsingDriver::set_pac_auxname(string auxname)
+{
+  pac_auxname = move(auxname);
+}
+
+void
+ParsingDriver::set_pac_kind(PacTargetKind kind)
+{
+  pac_kind = kind;
 }
 
 expr_t

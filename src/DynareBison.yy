@@ -441,6 +441,8 @@ pac_model_options : o_pac_name
                   | o_pac_aux_model_name
                   | o_pac_discount
                   | o_pac_growth
+                  | o_pac_auxname
+                  | o_pac_kind
                   ;
 
 var_expectation_model : VAR_EXPECTATION_MODEL '(' var_expectation_model_options_list ')' ';'
@@ -3549,6 +3551,8 @@ o_pac_name : MODEL_NAME EQUAL symbol { driver.option_str("pac.model_name", $3); 
 o_pac_aux_model_name : AUXILIARY_MODEL_NAME EQUAL symbol { driver.option_str("pac.aux_model_name", $3); };
 o_pac_discount : DISCOUNT EQUAL symbol { driver.option_str("pac.discount", $3); };
 o_pac_growth : GROWTH { driver.begin_pac_growth(); } EQUAL hand_side { driver.set_pac_growth($4); };
+o_pac_auxname : AUXNAME EQUAL symbol { driver.set_pac_auxname($3); };
+o_pac_kind : KIND EQUAL pac_target_kind { driver.set_pac_kind($3); };
 o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var.model_name", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };

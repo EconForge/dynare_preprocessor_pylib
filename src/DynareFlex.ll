@@ -803,21 +803,21 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_BLOCK>restriction {return token::RESTRICTION;}
 <DYNARE_BLOCK>component {return token::COMPONENT;}
 <DYNARE_BLOCK>target {return token::TARGET;}
-<DYNARE_BLOCK>auxname {return token::AUXNAME;}
+<DYNARE_BLOCK,DYNARE_STATEMENT>auxname {return token::AUXNAME;}
 <DYNARE_BLOCK>auxname_target_nonstationary {return token::AUXNAME_TARGET_NONSTATIONARY;}
-<DYNARE_BLOCK>kind {
+<DYNARE_BLOCK,DYNARE_STATEMENT>kind {
   yylval->build<string>(yytext);
   return token::KIND;
 }
-<DYNARE_BLOCK>ll {
+<DYNARE_BLOCK,DYNARE_STATEMENT>ll {
   yylval->build<string>(yytext);
   return token::LL;
 }
-<DYNARE_BLOCK>dl {
+<DYNARE_BLOCK,DYNARE_STATEMENT>dl {
   yylval->build<string>(yytext);
   return token::DL;
 }
-<DYNARE_BLOCK>dd {
+<DYNARE_BLOCK,DYNARE_STATEMENT>dd {
   yylval->build<string>(yytext);
   return token::DD;
 }

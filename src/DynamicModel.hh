@@ -563,6 +563,7 @@ public:
   void computePacModelConsistentExpectationSubstitution(const string &name,
                                                         int discount_symb_id, int pac_eq_max_lag,
                                                         expr_t growth_correction_term,
+                                                        string auxname,
                                                         ExprNode::subst_table_t &diff_subst_table,
                                                         map<string, int> &pac_aux_var_symb_ids,
                                                         map<string, vector<int>> &pac_aux_param_symb_ids,
@@ -578,6 +579,7 @@ public:
                                                  int max_lag,
                                                  const string &aux_model_type,
                                                  expr_t growth_correction_term,
+                                                 string auxname,
                                                  map<string, int> &pac_aux_var_symb_ids,
                                                  map<string, vector<int>> &pac_aux_param_symb_ids,
                                                  map<string, expr_t> &pac_expectation_substitution);

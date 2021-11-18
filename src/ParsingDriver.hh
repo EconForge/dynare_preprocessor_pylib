@@ -258,8 +258,10 @@ private:
 
   WarningConsolidation &warnings;
 
-  //! Temporary storage for growth declared in pac_model
+  //! Temporary storage for several options of pac_model
   expr_t pac_growth;
+  string pac_auxname;
+  PacTargetKind pac_kind;
 
   bool nostrict;
 
@@ -752,6 +754,10 @@ public:
   void pac_model();
   //! Adds growth for pac
   void set_pac_growth(expr_t pac_growth_arg);
+  //! Sets the value of “auxname” option for the current “pac_model”
+  void set_pac_auxname(string auxname);
+  //! Sets the value of “kind” option for the current “pac_model”
+  void set_pac_kind(PacTargetKind kind);
   //! Writes token "diff(arg1)" to model tree
   expr_t add_diff(expr_t arg1);
   //! Writes token "adl(arg1, lag)" to model tree

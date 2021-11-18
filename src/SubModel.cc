@@ -760,7 +760,7 @@ PacModelTable::PacModelTable(SymbolTable &symbol_table_arg) :
 }
 
 void
-PacModelTable::addPacModel(string name_arg, string aux_model_name_arg, string discount_arg, expr_t growth_arg)
+PacModelTable::addPacModel(string name_arg, string aux_model_name_arg, string discount_arg, expr_t growth_arg, string auxname_arg, PacTargetKind kind_arg)
 {
   if (isExistingPacModelName(name_arg))
     {
@@ -772,6 +772,8 @@ PacModelTable::addPacModel(string name_arg, string aux_model_name_arg, string di
   discount[name_arg] = move(discount_arg);
   growth[name_arg] = growth_arg;
   original_growth[name_arg] = growth_arg;
+  auxname[name_arg] = move(auxname_arg);
+  kind[name_arg] = kind_arg;
   names.insert(move(name_arg));
 }
 
@@ -799,6 +801,28 @@ PacModelTable::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation
             exit(EXIT_FAILURE);
           }
         gv->collectVariables(SymbolType::exogenous, mod_file_struct.pac_params);
+      }
+
+  for (auto &[name, auxn] : auxname)
+    if (!auxn.empty() && target_info.find(name) != target_info.end())
+      {
+        cerr << "ERROR: for PAC model '" << name << "', it is not possible to declare an 'auxname' option in the 'pac_model' command when there is also a 'pac_target_info' block" << endl;
+        exit(EXIT_FAILURE);
+      }
+
+  for (auto &[name, k] : kind)
+    if (k != PacTargetKind::unspecified)
+      {
+        if (target_info.find(name) != target_info.end())
+          {
+            cerr << "ERROR: for PAC model '" << name << "', it is not possible to declare a 'kind' option in the 'pac_model' command when there is also a 'pac_target_info' block" << endl;
+            exit(EXIT_FAILURE);
+          }
+        if (aux_model_name[name].empty())
+          {
+            cerr << "ERROR: for PAC model '" << name << "', it is not possible to declare a 'kind' option in the 'pac_model' command since this is a MCE model" << endl;
+            exit(EXIT_FAILURE);
+          }
       }
 
   for (const auto &[name, ti] : target_info)
@@ -1073,6 +1097,7 @@ PacModelTable::transformPass(const lag_equivalence_table_t &unary_ops_nodes,
                                                                            symbol_table.getID(discount[name]),
                                                                            pacEquationMaxLag(name),
                                                                            growth_correction_term,
+                                                                           auxname[name],
                                                                            diff_subst_table,
                                                                            aux_var_symb_ids,
                                                                            aux_param_symb_ids,
@@ -1093,6 +1118,7 @@ PacModelTable::transformPass(const lag_equivalence_table_t &unary_ops_nodes,
             dynamic_model.computePacBackwardExpectationSubstitution(name, lhs[name], max_lag,
                                                                     aux_model_type[name],
                                                                     growth_correction_term,
+                                                                    auxname[name],
                                                                     aux_var_symb_ids,
                                                                     aux_param_symb_ids,
                                                                     pac_expectation_substitution);
@@ -1208,6 +1234,11 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
 
   for (auto &[model, type] : aux_model_type)
       output << "M_.pac." << model << ".auxiliary_model_type = '" << type << "';" << endl;
+
+  for (auto &[name, k] : kind)
+    if (!aux_model_name.empty())
+      output << "M_.pac." << name << ".kind = '"
+             << (k == PacTargetKind::unspecified ? "" : kindToString(k)) << "';" << endl;
 
   for (auto &[name, val] : equation_info)
     {

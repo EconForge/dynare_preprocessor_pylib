@@ -3898,6 +3898,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(const string &nam
                                                                int discount_symb_id,
                                                                int pac_eq_max_lag,
                                                                expr_t growth_correction_term,
+                                                               string auxname,
                                                                ExprNode::subst_table_t &diff_subst_table,
                                                                map<string, int> &pac_aux_var_symb_ids,
                                                                map<string, vector<int>> &pac_aux_param_symb_ids,
@@ -3916,7 +3917,9 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(const string &nam
   int neqs = 0;
 
   // Create the endogenous representing Z₁ (no orig_expr is given since its definition is recursive)
-  int mce_z1_symb_id = symbol_table.addPacExpectationAuxiliaryVar("mce_Z1_" + name, nullptr);
+  if (auxname.empty())
+    auxname = "mce_Z1_" + name;
+  int mce_z1_symb_id = symbol_table.addPacExpectationAuxiliaryVar(auxname, nullptr);
   pac_aux_var_symb_ids[name] = mce_z1_symb_id;
 
   expr_t A = One;
@@ -4032,6 +4035,7 @@ DynamicModel::computePacBackwardExpectationSubstitution(const string &name,
                                                         int max_lag,
                                                         const string &aux_model_type,
                                                         expr_t growth_correction_term,
+                                                        string auxname,
                                                         map<string, int> &pac_aux_var_symb_ids,
                                                         map<string, vector<int>> &pac_aux_param_symb_ids,
                                                         map<string, expr_t> &pac_expectation_substitution)
@@ -4072,7 +4076,9 @@ DynamicModel::computePacBackwardExpectationSubstitution(const string &name,
 
   subExpr = AddPlus(subExpr, growth_correction_term);
 
-  int expect_var_id = symbol_table.addPacExpectationAuxiliaryVar("pac_expectation_" + name, subExpr);
+  if (auxname.empty())
+    auxname = "pac_expectation_" + name;
+  int expect_var_id = symbol_table.addPacExpectationAuxiliaryVar(auxname, subExpr);
   expr_t neweq = AddEqual(AddVariable(expect_var_id), subExpr);
   addEquation(neweq, -1);
   addAuxEquation(neweq);

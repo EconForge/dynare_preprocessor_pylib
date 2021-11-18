@@ -206,6 +206,10 @@ private:
      Each tuple represents a term: (endo_id, lag, param_id, constant) */
   using growth_info_t = vector<tuple<int, int, int, double>>;
   map<string, growth_info_t> growth_info;
+  // The “auxname” option of pac_model (empty if not passed)
+  map<string, string> auxname;
+  // The “kind” option of pac_model (“undefined” if not passed)
+  map<string, PacTargetKind> kind;
 
   /* Stores the name of the PAC equation associated to the model.
      pac_model_name → eq_name */
@@ -268,7 +272,7 @@ private:
 
 public:
   explicit PacModelTable(SymbolTable &symbol_table_arg);
-  void addPacModel(string name_arg, string aux_model_name_arg, string discount_arg, expr_t growth_arg);
+  void addPacModel(string name_arg, string aux_model_name_arg, string discount_arg, expr_t growth_arg, string auxname_arg, PacTargetKind kind_arg);
   bool isExistingPacModelName(const string &name_arg) const;
   bool empty() const;
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
