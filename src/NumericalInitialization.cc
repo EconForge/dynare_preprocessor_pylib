@@ -132,6 +132,9 @@ InitOrEndValStatement::writeInitValues(ostream &output) const
 {
   for (auto [symb_id, value] : init_values)
     {
+      if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
+        continue;
+
       SymbolType type = symbol_table.getType(symb_id);
       int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
 
@@ -167,9 +170,11 @@ InitOrEndValStatement::writeJsonInitValues(ostream &output) const
   for (auto it = init_values.begin();
        it != init_values.end(); ++it)
     {
+      auto [symb_id, value] = *it;
+      if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
+        continue;
       if (it != init_values.begin())
         output << ", ";
-      auto [symb_id, value] = *it;
       output << R"({"name": ")" << symbol_table.getName(symb_id) << R"(", )" << R"("value": ")";
       value->writeJsonOutput(output, {}, {});
       output << R"("})";
@@ -363,6 +368,8 @@ HistValStatement::writeOutput(ostream &output, const string &basename, bool mini
   for (const auto &[key, value] : hist_values)
     {
       auto [symb_id, lag] = key;
+      if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
+        continue;
 
       output << "M_.histval_dseries{'" << symbol_table.getName(symb_id) << "'}(dates('" << lag << "Y'))=";
       value->writeOutput(output);
@@ -389,6 +396,8 @@ HistValStatement::writeJsonOutput(ostream &output) const
        it != hist_values.end(); ++it)
     {
       auto [symb_id, lag] = it->first;
+      if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
+        continue;
       if (it != hist_values.begin())
         output << ", ";
       output << R"({ "name": ")" << symbol_table.getName(symb_id) << R"(")"
