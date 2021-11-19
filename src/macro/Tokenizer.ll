@@ -50,7 +50,7 @@ using token = Tokenizer::parser::token;
 
 %{
   // Increments location counter for every token read
-  # define YY_USER_ACTION yylloc->columns(yyleng);
+  #define YY_USER_ACTION location_increment(yylloc, yytext);
 %}
 
 SPC  [ \t]+
@@ -175,22 +175,15 @@ CONT \\\\{SPC}*
 }
 
 <expr,eval>{SPC}+                         { }
-<eval>{EOL}+                              { yylloc->lines(yyleng); yylloc->lines(yyleng); }
+<eval>{EOL}+                              { }
 <eval>\}                                  { BEGIN(INITIAL); return token::END_EVAL; }
 
-<expr,end_line>{CONT}("//".*)?{SPC}*{EOL} { yylloc->lines(1); yylloc->step(); }
-<expr,end_line>{SPC}*("//".*)?{EOL}       {
-                                            yylloc->lines(1);
-                                            BEGIN(INITIAL);
-                                            return token::EOL;
-                                          }
+<expr,end_line>{CONT}("//".*)?{SPC}*{EOL} { yylloc->step(); }
+<expr,end_line>{SPC}*("//".*)?{EOL}       { BEGIN(INITIAL); return token::EOL; }
 
 <INITIAL>^{SPC}*@#{SPC}*                  { BEGIN(directive); }
 <INITIAL>@\{                              { BEGIN(eval); return token::BEGIN_EVAL; }
-<INITIAL>{EOL}                            {
-                                            yylloc->lines(1);
-                                            return token::EOL;
-                                          }
+<INITIAL>{EOL}                            { return token::EOL; }
 <INITIAL><<EOF>>                          { yyterminate(); }
 
 <directive,expr,eval,end_line><<EOF>>     { driver.error(*yylloc, "unexpected end of file"); }
@@ -199,6 +192,16 @@ CONT \\\\{SPC}*
 <*>.|{EOL}                                { driver.error(*yylloc, "character unrecognized by lexer"); }
 
 %%
+
+void
+TokenizerFlex::location_increment(Tokenizer::parser::location_type *yylloc, const char *yytext)
+{
+  while (*yytext != 0)
+    if (*yytext++ == '\n')
+      yylloc->lines(1);
+    else
+      yylloc->columns(1);
+}
 
 /* This implementation of TokenizerFlexLexer::yylex() is required to fill the
  * vtable of the class TokenizerFlexLexer. We define the scanner's main yylex

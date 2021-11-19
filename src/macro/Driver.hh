@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2020 Dynare Team
+ * Copyright © 2019-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -56,6 +56,7 @@ namespace macro
     Tokenizer::parser::token_type lex(Tokenizer::parser::semantic_type *yylval,
                                       Tokenizer::parser::location_type *yylloc,
                                       macro::Driver &driver);
+    static void location_increment(Tokenizer::parser::location_type *yylloc, const char *yytext);
   };
 
   //! Implements the macro expansion using a Flex scanner and a Bison parser
