@@ -321,8 +321,9 @@ ParsingDriver::add_model_variable(const string &name)
     }
   catch (SymbolTable::UnknownSymbolNameException &e)
     {
-      // Declare variable as exogenous to continue parsing
-      // processing will end at end of model block if nostrict option was not passed
+      /* Declare variable as exogenous to continue parsing. Processing will end
+         at end of model block (or planner_objective statement) if nostrict
+         option was not passed. */
       declare_exogenous(name);
       undeclared_model_vars.insert(name);
       symb_id = mod_file->symbol_table.getID(name);
@@ -785,6 +786,7 @@ ParsingDriver::end_model()
           exit_after_write = true;
           cerr << it.second << endl;
         }
+  undeclared_model_variable_errors.clear();
 
   if (exit_after_write)
     exit(EXIT_FAILURE);
@@ -2021,6 +2023,21 @@ ParsingDriver::end_planner_objective(expr_t expr)
   model_tree->addEquation(eq, location.begin.line);
 
   mod_file->addStatement(make_unique<PlannerObjectiveStatement>(*planner_objective));
+
+  // Handle undeclared variables (see #81)
+  bool exit_after_write = false;
+  if (undeclared_model_variable_errors.size() > 0)
+    for (auto &it : undeclared_model_variable_errors)
+      if (nostrict)
+        warning(it.second);
+      else
+        {
+          exit_after_write = true;
+          cerr << it.second << endl;
+        }
+  undeclared_model_variable_errors.clear();
+  if (exit_after_write)
+    exit(EXIT_FAILURE);
 
   reset_data_tree();
 }
