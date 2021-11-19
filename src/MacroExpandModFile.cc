@@ -50,10 +50,22 @@ macroExpandModFile(const string &filename, const string &basename, const istream
       string str(macro_output.str());
       if (!line_macro)
         {
-          str = regex_replace(str, regex(R"((^|\n)\s*@#line.*)"), "");
-          auto compareNewline = [](char i, char j) { return i == '\n' && j == '\n'; };
-          str.erase(0, str.find_first_not_of('\n'));
-          str.erase(unique(str.begin(), str.end(), compareNewline), str.end());
+          /* Remove the @#line directives.
+             Unfortunately GCC 11 does not yet support std::regex::multiline
+             (despite it being in the C++17 standard), so we are forced to use
+             a trick to emulate the “usual” behaviour of the caret ^;
+             here, the latter only matches the beginning of file.
+             This also means that we are forced to remove the EOL before the
+             @#line, and not the one after it (matching the EOL before and the
+             EOL after in the same regexp does not work). */
+          str = regex_replace(str, regex(R"((^|\r?\n)@#line.*)"), "");
+          /* Remove the EOLs at the beginning of the output, the first one
+             being a remnant of the first @#line directive. */
+          str = regex_replace(str, regex(R"(^(\r?\n)+)"), "");
+          /* Replace sequences of several newlines by a single newline (in
+             both LF and CR+LF conventions). */
+          str = regex_replace(str, regex(R"(\n{2,})"), "\n");
+          str = regex_replace(str, regex(R"((\r\n){2,})"), "\r\n");
         }
       macro_output_file << str;
       macro_output_file.close();
