@@ -5469,10 +5469,13 @@ BinaryOpNode::findConstantEquations(map<VariableNode *, NumConstNode *> &table) 
 {
   if (op_code == BinaryOpcode::equal)
     {
-      if (dynamic_cast<VariableNode *>(arg1) && dynamic_cast<NumConstNode *>(arg2))
-        table[dynamic_cast<VariableNode *>(arg1)] = dynamic_cast<NumConstNode *>(arg2);
-      else if (dynamic_cast<VariableNode *>(arg2) && dynamic_cast<NumConstNode *>(arg1))
-        table[dynamic_cast<VariableNode *>(arg2)] = dynamic_cast<NumConstNode *>(arg1);
+      // The variable must be contemporaneous (see #83)
+      if (auto varg1 = dynamic_cast<VariableNode *>(arg1);
+          varg1 && varg1->lag == 0 && dynamic_cast<NumConstNode *>(arg2))
+        table[varg1] = dynamic_cast<NumConstNode *>(arg2);
+      else if (auto varg2 = dynamic_cast<VariableNode *>(arg2);
+               varg2 && varg2->lag == 0 && dynamic_cast<NumConstNode *>(arg1))
+        table[varg2] = dynamic_cast<NumConstNode *>(arg1);
     }
 }
 
