@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
 /*
- * Copyright © 2019 Dynare Team
+ * Copyright © 2019-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -180,7 +180,6 @@ CONT \\\\{SPC}*
 
 <expr,end_line>{CONT}("//".*)?{SPC}*{EOL} { yylloc->lines(1); yylloc->step(); }
 <expr,end_line>{SPC}*("//".*)?{EOL}       {
-                                            yylval->build<string>("\n");
                                             yylloc->lines(1);
                                             BEGIN(INITIAL);
                                             return token::EOL;
@@ -188,8 +187,7 @@ CONT \\\\{SPC}*
 
 <INITIAL>^{SPC}*@#{SPC}*                  { BEGIN(directive); }
 <INITIAL>@\{                              { BEGIN(eval); return token::BEGIN_EVAL; }
-<INITIAL>{SPC}*{EOL}                      {
-                                            yylval->build<string>(yytext);
+<INITIAL>{EOL}                            {
                                             yylloc->lines(1);
                                             return token::EOL;
                                           }

@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /*
- * Copyright © 2019-2020 Dynare Team
+ * Copyright © 2019-2021 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -89,7 +89,8 @@ using namespace macro;
 %precedence CAST
 %nonassoc POWER
 
-%token <string> NAME TEXT QUOTED_STRING NUMBER EOL
+%token EOL
+%token <string> NAME TEXT QUOTED_STRING NUMBER
 
 %type <DirectivePtr> statement
 %type <DirectivePtr> directive directive_one_line directive_multiline for if ifdef ifndef text eval
@@ -284,7 +285,7 @@ else : else_begin EOL
 text : TEXT
        { $$ = make_shared<TextNode>($1, @$); }
      | EOL
-       { $$ = make_shared<TextNode>($1, @$); }
+       { $$ = make_shared<TextNode>("\n", @$); }
      ;
 
 eval : BEGIN_EVAL expr END_EVAL
