@@ -4546,19 +4546,17 @@ DynamicModel::ParamUsedWithLeadLag() const
 }
 
 void
-DynamicModel::createVariableMapping(int orig_eq_nbr)
+DynamicModel::createVariableMapping()
 {
-  for (int ii = 0; ii < orig_eq_nbr; ii++)
+  for (size_t ii = 0; ii < equations.size(); ii++)
     {
       set<int> eqvars;
       equations[ii]->collectVariables(SymbolType::endogenous, eqvars);
       equations[ii]->collectVariables(SymbolType::exogenous, eqvars);
       for (auto eqvar : eqvars)
-        {
-          eqvar = symbol_table.getUltimateOrigSymbID(eqvar);
-          if (eqvar >= 0 && !symbol_table.isAuxiliaryVariable(eqvar))
-            variableMapping[eqvar].emplace(ii);
-        }
+        if (int orig_symb_id = symbol_table.getUltimateOrigSymbID(eqvar);
+            orig_symb_id >= 0)
+        variableMapping[orig_symb_id].emplace(ii);
     }
 }
 

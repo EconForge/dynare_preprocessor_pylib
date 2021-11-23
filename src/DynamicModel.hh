@@ -396,7 +396,7 @@ public:
   void writeDynamicJacobianNonZeroElts(const string &basename) const;
 
   //! Creates mapping for variables and equations they are present in
-  void createVariableMapping(int orig_eq_nbr);
+  void createVariableMapping();
 
   //! Expands equation tags with default equation names (available "name" tag or LHS variable or equation ID)
   void expandEqTags();
