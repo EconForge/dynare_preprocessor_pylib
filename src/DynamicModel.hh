@@ -545,7 +545,8 @@ public:
 
   /* For a PAC backward model, fill pac_expectation_substitution with the
      expression that will be substituted for the pac_expectation operator.
-     The symbol IDs of the new parameters are also added to pac_{h0,h1}_indices. */
+     The symbol IDs of the new parameters are also added to pac_aux_param_symb_ids.
+     The symbol ID of the new auxiliary variable is added to pac_aux_var_symb_ids. */
   void computePacBackwardExpectationSubstitution(const string &name,
                                                  const vector<int> &lhs,
                                                  int max_lag,
