@@ -830,14 +830,8 @@ PacModelTable::transformPass(ExprNode::subst_table_t &diff_subst_table,
           }
         catch (ExprNode::MatchFailureException &e)
           {
-            auto gv = dynamic_cast<const VariableNode *>(growth[name]);
-            if (gv)
-              growth_info[name].emplace_back(gv->symb_id, gv->lag, -1, 1);
-            else
-              {
-                cerr << "Pac growth must be a linear combination of variables" << endl;
-                exit(EXIT_FAILURE);
-              }
+            cerr << "ERROR: PAC growth must be a linear combination of variables" << endl;
+            exit(EXIT_FAILURE);
           }
 
       // Collect some information about PAC models

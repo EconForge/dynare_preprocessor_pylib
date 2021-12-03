@@ -632,7 +632,9 @@ public:
     parameter in a term, param_id == -1.
     Can throw a MatchFailureException.
     if `variable_obligatory_in_each_term` is true, then every part of the linear combination must contain a variable;
-    otherwise, if `variable_obligatory_in_each_term`, then any linear combination of constant/variable/param is matched
+    otherwise, if `variable_obligatory_in_each_term` is false, then any linear
+    combination of constant/variable/param is matched (and variable_id == -1
+    for terms without a variable).
   */
   vector<tuple<int, int, int, double>> matchLinearCombinationOfVariables(bool variable_obligatory_in_each_term = true) const;
 

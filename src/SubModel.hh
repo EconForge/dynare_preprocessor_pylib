@@ -199,6 +199,9 @@ private:
   map<string, string> discount;
   // The growth expressions belong to the main dynamic_model from the ModFile instance
   map<string, expr_t> growth, original_growth;
+  /* Information about the structure of growth expressions (which must be a
+     linear combination of variables).
+     Each tuple represents a term: (endo_id, lag, param_id, constant) */
   map<string, vector<tuple<int, int, int, double>>> growth_info;
 
   /* Stores the name of the PAC equation associated to the model.
