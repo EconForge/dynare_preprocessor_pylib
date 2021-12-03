@@ -711,15 +711,26 @@ RamseyPolicyStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-void
-EvaluatePlannerObjective::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+EvaluatePlannerObjectiveStatement::EvaluatePlannerObjectiveStatement(OptionsList options_list_arg) :
+  options_list{move(options_list_arg)}
 {
+}
+
+void
+EvaluatePlannerObjectiveStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  options_list.writeOutput(output);
   output << "oo_.planner_objective_value = evaluate_planner_objective(M_, options_, oo_);" << endl;
 }
 
 void
-EvaluatePlannerObjective::writeJsonOutput(ostream &output) const
+EvaluatePlannerObjectiveStatement::writeJsonOutput(ostream &output) const
 {
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
   output << R"({"statementName": "evaluate_planner_objective"})";
 }
 

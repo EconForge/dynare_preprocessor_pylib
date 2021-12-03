@@ -2098,7 +2098,8 @@ ParsingDriver::ramsey_policy()
 void
 ParsingDriver::evaluate_planner_objective()
 {
-  mod_file->addStatement(make_unique<EvaluatePlannerObjective>());
+  mod_file->addStatement(make_unique<EvaluatePlannerObjectiveStatement>(options_list));
+  options_list.clear();
 }
 
 void

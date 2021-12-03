@@ -199,9 +199,12 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
-class EvaluatePlannerObjective : public Statement
+class EvaluatePlannerObjectiveStatement : public Statement
 {
+private:
+  const OptionsList options_list;
 public:
+  EvaluatePlannerObjectiveStatement(OptionsList options_list_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };

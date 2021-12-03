@@ -2456,7 +2456,17 @@ ramsey_constraint : NAME  LESS expression ';'
 
 evaluate_planner_objective : EVALUATE_PLANNER_OBJECTIVE ';'
                              { driver.evaluate_planner_objective(); }
+                           | EVALUATE_PLANNER_OBJECTIVE '(' evaluate_planner_objective_options_list ')' ';'
+                             { driver.evaluate_planner_objective(); }
                            ;
+
+evaluate_planner_objective_options_list : evaluate_planner_objective_option COMMA evaluate_planner_objective_options_list
+                                        | evaluate_planner_objective_option
+                                        ;
+
+evaluate_planner_objective_option : o_evaluate_planner_objective_periods
+                                  | o_evaluate_planner_objective_drop
+                                  ;
 
 occbin_setup : OCCBIN_SETUP ';'
                { driver.occbin_setup(); }
@@ -4037,6 +4047,9 @@ o_checks_via_subsets : CHECKS_VIA_SUBSETS EQUAL INT_NUMBER { driver.option_num("
 o_max_dim_subsets_groups : MAX_DIM_SUBSETS_GROUPS EQUAL INT_NUMBER { driver.option_num("max_dim_subsets_groups", $3); };
 o_zero_moments_tolerance : ZERO_MOMENTS_TOLERANCE EQUAL non_negative_number { driver.option_num("zero_moments_tolerance", $3); };
 
+// Some options to "evaluate_planner_objective"
+o_evaluate_planner_objective_periods : PERIODS EQUAL INT_NUMBER { driver.option_num("ramsey.periods", $3); };
+o_evaluate_planner_objective_drop : DROP EQUAL INT_NUMBER { driver.option_num("ramsey.drop", $3); };
 
 // Some options to "occbin_solver"
 o_occbin_simul_maxit : SIMUL_MAXIT EQUAL INT_NUMBER { driver.option_num("simul.maxit", $3); };
