@@ -5339,6 +5339,9 @@ DynamicModel::substituteModelLocalVariables()
   for (auto &equation : equations)
     equation = dynamic_cast<BinaryOpNode *>(equation->substituteModelLocalVariables());
 
+  for (auto &equation : static_only_equations)
+    equation = dynamic_cast<BinaryOpNode *>(equation->substituteModelLocalVariables());
+
   /* We can’t clear local_variables_table at this point, because in case of
      ramsey_policy, the original model is saved via DynamicModel::operator=()
      before computing the FOC. But since DataTree::operator=() clones all
