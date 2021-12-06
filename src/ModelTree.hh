@@ -440,9 +440,6 @@ public:
   //! Is a given variable non-stationary?
   bool isNonstationary(int symb_id) const;
   void set_cutoff_to_zero();
-  //! Simplify model equations: if a variable is equal to a constant, replace that variable elsewhere in the model
-  /*! Equations with MCP tags are excluded, see dynare#1697 */
-  void simplifyEquations();
   /*! Reorder auxiliary variables so that they appear in recursive order in
       set_auxiliary_variables.m and dynamic_set_auxiliary_series.m */
   void reorderAuxiliaryEquations();

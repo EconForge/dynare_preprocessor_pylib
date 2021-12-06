@@ -589,5 +589,9 @@ public:
   bool ParamUsedWithLeadLag() const;
 
   bool isChecksumMatching(const string &basename, bool block) const;
+
+  //! Simplify model equations: if a variable is equal to a constant, replace that variable elsewhere in the model
+  /*! Equations with MCP tags are excluded, see dynare#1697 */
+  void simplifyEquations();
 };
 #endif

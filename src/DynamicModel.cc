@@ -6344,3 +6344,24 @@ DynamicModel::checkNoRemainingPacExpectation() const
         exit(EXIT_FAILURE);
       }
 }
+
+void
+DynamicModel::simplifyEquations()
+{
+  size_t last_subst_table_size = 0;
+  map<VariableNode *, NumConstNode *> subst_table;
+  // Equations with “mcp” tag are excluded, see dynare#1697
+  findConstantEquationsWithoutMcpTag(subst_table);
+  while (subst_table.size() != last_subst_table_size)
+    {
+      last_subst_table_size = subst_table.size();
+      for (auto &[id, definition] : local_variables_table)
+        definition = definition->replaceVarsInEquation(subst_table);
+      for (auto &equation : equations)
+        equation = dynamic_cast<BinaryOpNode *>(equation->replaceVarsInEquation(subst_table));
+      for (auto &equation : static_only_equations)
+        equation = dynamic_cast<BinaryOpNode *>(equation->replaceVarsInEquation(subst_table));
+      subst_table.clear();
+      findConstantEquationsWithoutMcpTag(subst_table);
+    }
+}

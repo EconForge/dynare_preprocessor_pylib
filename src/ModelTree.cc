@@ -1630,25 +1630,6 @@ ModelTree::includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_
 }
 
 void
-ModelTree::simplifyEquations()
-{
-  size_t last_subst_table_size = 0;
-  map<VariableNode *, NumConstNode *> subst_table;
-  // Equations with “mcp” tag are excluded, see dynare#1697
-  findConstantEquationsWithoutMcpTag(subst_table);
-  while (subst_table.size() != last_subst_table_size)
-    {
-      last_subst_table_size = subst_table.size();
-      for (auto &[id, definition] : local_variables_table)
-        definition = definition->replaceVarsInEquation(subst_table);
-      for (auto &equation : equations)
-        equation = dynamic_cast<BinaryOpNode *>(equation->replaceVarsInEquation(subst_table));
-      subst_table.clear();
-      findConstantEquationsWithoutMcpTag(subst_table);
-    }
-}
-
-void
 ModelTree::findConstantEquationsWithoutMcpTag(map<VariableNode *, NumConstNode *> &subst_table) const
 {
   for (size_t i = 0; i < equations.size(); i++)

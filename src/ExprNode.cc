@@ -1938,7 +1938,7 @@ expr_t
 VariableNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
   /* Do not recurse into model-local variables definitions, since MLVs are
-     already handled by ModelTree::simplifyEquations().
+     already handled by DynamicModel::simplifyEquations().
      This is also necessary because of #65. */
   for (auto &it : table)
     if (it.first->symb_id == symb_id)
