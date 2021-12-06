@@ -2532,6 +2532,8 @@ occbin_write_regimes_options_list : occbin_write_regimes_option COMMA occbin_wri
 
 occbin_write_regimes_option : o_occbin_write_regimes_periods
                             | o_occbin_write_regimes_filename
+                            | o_occbin_write_regimes_smoother
+                            | o_occbin_write_regimes_simul
                             ;
 
 occbin_graph : OCCBIN_GRAPH ';'
@@ -4084,6 +4086,8 @@ o_occbin_write_regimes_periods : PERIODS EQUAL vec_int
                                | PERIODS EQUAL vec_int_number 
                                  { driver.option_vec_int("write_regimes.periods", $3); }
 o_occbin_write_regimes_filename : FILENAME EQUAL filename { driver.option_str("write_regimes.filename", $3); };
+o_occbin_write_regimes_smoother : SMOOTHER { driver.option_str("write_regimes.type", "smoother"); };
+o_occbin_write_regimes_simul : SIMUL { driver.option_str("write_regimes.type", "simul"); };
 
 // Some options to "occbin_graph"
 o_occbin_graph_noconstant : NOCONSTANT { driver.option_num("graph.steady_state", "false"); };
