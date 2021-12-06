@@ -4475,15 +4475,25 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     case BinaryOpcode::times:
       if (isLatexOutput(output_type))
         output << R"(\, )";
+      else if (output_type == ExprNodeOutputType::occbinDifferenceFile)
+        output << ".*"; // This file operates on vectors, see dynare#1826
       else
         output << "*";
       break;
     case BinaryOpcode::divide:
       if (!isLatexOutput(output_type))
-        output << "/";
+        {
+          if (output_type == ExprNodeOutputType::occbinDifferenceFile)
+            output << "./"; // This file operates on vectors, see dynare#1826
+          else
+            output << "/";
+        }
       break;
     case BinaryOpcode::power:
-      output << "^";
+      if (output_type == ExprNodeOutputType::occbinDifferenceFile)
+        output << ".^"; // This file operates on vectors, see dynare#1826
+      else
+        output << "^";
       break;
     case BinaryOpcode::less:
       output << "<";
