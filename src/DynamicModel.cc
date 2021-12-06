@@ -5541,10 +5541,11 @@ DynamicModel::transformPredeterminedVariables()
 
   for (auto &equation : equations)
     {
-      auto substeq = dynamic_cast<BinaryOpNode *>(equation->decreaseLeadsLagsPredeterminedVariables());
-      assert(substeq);
-      equation = substeq;
+      equation = dynamic_cast<BinaryOpNode *>(equation->decreaseLeadsLagsPredeterminedVariables());
+      assert(equation);
     }
+
+  // No need to handle static_only_equations, since there are no leads/lags there
 }
 
 void
