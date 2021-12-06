@@ -5512,10 +5512,12 @@ DynamicModel::substituteExpectation(bool partial_information_model)
   // Substitute in equations
   for (auto &equation : equations)
     {
-      auto substeq = dynamic_cast<BinaryOpNode *>(equation->substituteExpectation(subst_table, neweqs, partial_information_model));
-      assert(substeq);
-      equation = substeq;
+      equation = dynamic_cast<BinaryOpNode *>(equation->substituteExpectation(subst_table, neweqs, partial_information_model));
+      assert(equation);
     }
+
+  /* No need to substitute in static_only_equations, since expectation()
+     operators in [static] equations are forbidden at the parsing level. */
 
   // Add new equations
   for (auto &neweq : neweqs)
