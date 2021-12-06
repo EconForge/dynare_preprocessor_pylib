@@ -5546,18 +5546,28 @@ DynamicModel::detrendEquations()
   // We go backwards in the list of trend_vars, to deal correctly with I(2) processes
   for (auto it = nonstationary_symbols_map.crbegin();
        it != nonstationary_symbols_map.crend(); ++it)
-    for (auto &equation : equations)
-      {
-        auto substeq = dynamic_cast<BinaryOpNode *>(equation->detrend(it->first, it->second.first, it->second.second));
-        assert(substeq);
-        equation = dynamic_cast<BinaryOpNode *>(substeq);
-      }
+    {
+      for (auto &equation : equations)
+        {
+          equation = dynamic_cast<BinaryOpNode *>(equation->detrend(it->first, it->second.first, it->second.second));
+          assert(equation);
+        }
+      for (auto &equation : static_only_equations)
+        {
+          equation = dynamic_cast<BinaryOpNode *>(equation->detrend(it->first, it->second.first, it->second.second));
+          assert(equation);
+        }
+    }
 
   for (auto &equation : equations)
     {
-      auto substeq = dynamic_cast<BinaryOpNode *>(equation->removeTrendLeadLag(trend_symbols_map));
-      assert(substeq);
-      equation = dynamic_cast<BinaryOpNode *>(substeq);
+      equation = dynamic_cast<BinaryOpNode *>(equation->removeTrendLeadLag(trend_symbols_map));
+      assert(equation);
+    }
+  for (auto &equation : static_only_equations)
+    {
+      equation = dynamic_cast<BinaryOpNode *>(equation->removeTrendLeadLag(trend_symbols_map));
+      assert(equation);
     }
 }
 
@@ -5566,9 +5576,13 @@ DynamicModel::removeTrendVariableFromEquations()
 {
   for (auto &equation : equations)
     {
-      auto substeq = dynamic_cast<BinaryOpNode *>(equation->replaceTrendVar());
-      assert(substeq);
-      equation = dynamic_cast<BinaryOpNode *>(substeq);
+      equation = dynamic_cast<BinaryOpNode *>(equation->replaceTrendVar());
+      assert(equation);
+    }
+  for (auto &equation : static_only_equations)
+    {
+      equation = dynamic_cast<BinaryOpNode *>(equation->replaceTrendVar());
+      assert(equation);
     }
 }
 
