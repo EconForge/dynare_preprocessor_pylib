@@ -5335,6 +5335,9 @@ DynamicModel::substituteAdl()
 
   for (auto &equation : equations)
     equation = dynamic_cast<BinaryOpNode *>(equation->substituteAdl());
+
+  for (auto &equation : static_only_equations)
+    equation = dynamic_cast<BinaryOpNode *>(equation->substituteAdl());
 }
 
 void
