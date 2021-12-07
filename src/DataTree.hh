@@ -238,6 +238,8 @@ public:
   expr_t AddSign(expr_t iArg1);
   //! Adds "erf(arg)" to model tree
   expr_t AddErf(expr_t iArg1);
+  //! Adds "erfc(arg)" to model tree
+  expr_t AddErfc(expr_t iArg1);
   //! Adds "max(arg1,arg2)" to model tree
   expr_t AddMax(expr_t iArg1, expr_t iArg2);
   //! Adds "min(arg1,arg2)" to model tree

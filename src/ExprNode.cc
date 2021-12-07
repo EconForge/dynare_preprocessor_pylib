@@ -1992,7 +1992,7 @@ UnaryOpNode::prepareForDerivation()
 expr_t
 UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
 {
-  expr_t t11, t12, t13, t14;
+  expr_t t11, t12, t13, t14, t15;
 
   switch (op_code)
     {
@@ -2107,6 +2107,7 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
       cerr << "UnaryOpNode::composeDerivatives: not implemented on UnaryOpcode::expectation" << endl;
       exit(EXIT_FAILURE);
     case UnaryOpcode::erf:
+    case UnaryOpcode::erfc:
       // x^2
       t11 = datatree.AddPower(arg, datatree.Two);
       // exp(x^2)
@@ -2118,7 +2119,11 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
       // 2/(sqrt(pi)*exp(x^2));
       t14 = datatree.AddDivide(datatree.Two, t13);
       // (2/(sqrt(pi)*exp(x^2)))*dx;
-      return datatree.AddTimes(t14, darg);
+      t15 = datatree.AddTimes(t14, darg);
+      if (op_code == UnaryOpcode::erf)
+        return t15;
+      else // erfc
+        return datatree.AddUMinus(t15);
     case UnaryOpcode::diff:
       cerr << "UnaryOpNode::composeDerivatives: not implemented on UnaryOpcode::diff" << endl;
       exit(EXIT_FAILURE);
@@ -2179,6 +2184,7 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
         return cost + 300;
       case UnaryOpcode::log10:
       case UnaryOpcode::erf:
+      case UnaryOpcode::erfc:
         return cost + 16000;
       case UnaryOpcode::cos:
       case UnaryOpcode::sin:
@@ -2246,6 +2252,7 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
       case UnaryOpcode::sinh:
       case UnaryOpcode::tanh:
       case UnaryOpcode::erf:
+      case UnaryOpcode::erfc:
         return cost + 240;
       case UnaryOpcode::asinh:
         return cost + 220;
@@ -2404,6 +2411,9 @@ UnaryOpNode::writeJsonAST(ostream &output) const
     case UnaryOpcode::erf:
       output << "erf";
       break;
+    case UnaryOpcode::erfc:
+      output << "erfc";
+      break;
     }
   output << R"(", "arg" : )";
   arg->writeJsonAST(output);
@@ -2554,6 +2564,9 @@ UnaryOpNode::writeJsonOutput(ostream &output,
       break;
     case UnaryOpcode::erf:
       output << "erf";
+      break;
+    case UnaryOpcode::erfc:
+      output << "erfc";
       break;
     }
 
@@ -2770,6 +2783,9 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     case UnaryOpcode::erf:
       output << "erf";
       break;
+    case UnaryOpcode::erfc:
+      output << "erfc";
+      break;
     case UnaryOpcode::diff:
       output << "diff";
       break;
@@ -2891,6 +2907,8 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) noexcept(false)
       exit(EXIT_FAILURE);
     case UnaryOpcode::erf:
       return erf(v);
+    case UnaryOpcode::erfc:
+      return erfc(v);
     case UnaryOpcode::diff:
       cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::diff" << endl;
       exit(EXIT_FAILURE);
@@ -3095,6 +3113,8 @@ UnaryOpNode::buildSimilarUnaryOpNode(expr_t alt_arg, DataTree &alt_datatree) con
       return alt_datatree.AddExpectation(expectation_information_set, alt_arg);
     case UnaryOpcode::erf:
       return alt_datatree.AddErf(alt_arg);
+    case UnaryOpcode::erfc:
+      return alt_datatree.AddErfc(alt_arg);
     case UnaryOpcode::diff:
       return alt_datatree.AddDiff(alt_arg);
     case UnaryOpcode::adl:
@@ -3265,6 +3285,7 @@ UnaryOpNode::createAuxVarForUnaryOpNode() const
     case UnaryOpcode::abs:
     case UnaryOpcode::sign:
     case UnaryOpcode::erf:
+    case UnaryOpcode::erfc:
       return true;
     default:
       return false;
@@ -3461,6 +3482,9 @@ UnaryOpNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_
       break;
     case UnaryOpcode::erf:
       unary_op = "erf";
+      break;
+    case UnaryOpcode::erfc:
+      unary_op = "erfc";
       break;
     default:
       cerr << "UnaryOpNode::substituteUnaryOpNodes: Shouldn't arrive here" << endl;

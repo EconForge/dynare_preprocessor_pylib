@@ -929,6 +929,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT,DYNARE_BLOCK>normcdf {return token::NORMCDF;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>normpdf {return token::NORMPDF;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>erf {return token::ERF;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>erfc {return token::ERFC;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>steady_state {return token::STEADY_STATE;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>expectation {return token::EXPECTATION;}
 <DYNARE_BLOCK>var_expectation {return token::VAR_EXPECTATION;}

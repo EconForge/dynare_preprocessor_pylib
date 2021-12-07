@@ -136,7 +136,7 @@ class ParsingDriver;
 %left TIMES DIVIDE
 %precedence UNARY
 %nonassoc POWER
-%token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN ERF DIFF ADL AUXILIARY_MODEL_NAME
+%token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN ERF ERFC DIFF ADL AUXILIARY_MODEL_NAME
 %token SQRT CBRT NORMCDF NORMPDF STEADY_STATE EXPECTATION
 /* GSA analysis */
 %token DYNARE_SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU MORRIS_NLIV
@@ -760,6 +760,8 @@ expression : '(' expression ')'
              { $$ = driver.add_normpdf($3); }
            | ERF '(' expression ')'
              { $$ = driver.add_erf($3); }
+           | ERFC '(' expression ')'
+             { $$ = driver.add_erfc($3); }
            | NAN_CONSTANT
              { $$ = driver.add_nan_constant(); }
            | INF_CONSTANT
@@ -1068,6 +1070,8 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_normpdf($3); }
           | ERF '(' hand_side ')'
             { $$ = driver.add_erf($3); }
+          | ERFC '(' hand_side ')'
+            { $$ = driver.add_erfc($3); }
           | STEADY_STATE '(' hand_side ')'
             { $$ = driver.add_steady_state($3); }
           ;

@@ -620,6 +620,15 @@ DataTree::AddErf(expr_t iArg1)
 }
 
 expr_t
+DataTree::AddErfc(expr_t iArg1)
+{
+  if (iArg1 == Zero)
+    return One;
+
+  return AddUnaryOp(UnaryOpcode::erfc, iArg1);
+}
+
+expr_t
 DataTree::AddMax(expr_t iArg1, expr_t iArg2)
 {
   return AddBinaryOp(iArg1, BinaryOpcode::max, iArg2);

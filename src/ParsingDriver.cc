@@ -2835,6 +2835,12 @@ ParsingDriver::add_erf(expr_t arg1)
 }
 
 expr_t
+ParsingDriver::add_erfc(expr_t arg1)
+{
+  return data_tree->AddErfc(arg1);
+}
+
+expr_t
 ParsingDriver::add_steady_state(expr_t arg1)
 {
   // Forbid exogenous variables, see dynare#825

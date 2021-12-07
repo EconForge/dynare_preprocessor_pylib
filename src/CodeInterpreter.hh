@@ -186,6 +186,7 @@ enum class UnaryOpcode
    steadyStateParam2ndDeriv, // for the 2nd derivative of the STEADY_STATE operator w.r.t. to a parameter
    expectation,
    erf,
+   erfc,
    diff,
    adl
   };

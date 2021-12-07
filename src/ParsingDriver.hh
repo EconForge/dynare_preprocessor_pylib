@@ -802,6 +802,8 @@ public:
   expr_t add_normpdf(expr_t arg);
   //! Writes token "erf(arg)" to model tree
   expr_t add_erf(expr_t arg);
+  //! Writes token "erfc(arg)" to model tree
+  expr_t add_erfc(expr_t arg);
   //! Writes token "steadyState(arg1)" to model tree
   expr_t add_steady_state(expr_t arg1);
   //! Pushes empty vector onto stack when a symbol is encountered (mod_var or ext_fun)
