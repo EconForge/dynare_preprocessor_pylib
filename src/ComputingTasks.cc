@@ -883,7 +883,7 @@ void
 OccbinWriteRegimesStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_.occbin");
-  output << "occbin.write_regimes_to_xls(oo_.occbin.regime_history, M_, options_);" << endl;  
+  output << "occbin.write_regimes_to_xls(oo_.occbin, M_, options_);" << endl;  
 }
 
 void
