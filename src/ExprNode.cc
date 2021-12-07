@@ -2048,7 +2048,7 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
     case UnaryOpcode::atanh:
       t11 = datatree.AddTimes(arg, arg);
       t12 = datatree.AddMinus(datatree.One, t11);
-      return datatree.AddTimes(darg, t12);
+      return datatree.AddDivide(darg, t12);
     case UnaryOpcode::sqrt:
       t11 = datatree.AddPlus(this, this);
       return datatree.AddDivide(darg, t11);

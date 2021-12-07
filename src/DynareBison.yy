@@ -136,7 +136,7 @@ class ParsingDriver;
 %left TIMES DIVIDE
 %precedence UNARY
 %nonassoc POWER
-%token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN ERF ERFC DIFF ADL AUXILIARY_MODEL_NAME
+%token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN SINH COSH TANH ASINH ACOSH ATANH ERF ERFC DIFF ADL AUXILIARY_MODEL_NAME
 %token SQRT CBRT NORMCDF NORMPDF STEADY_STATE EXPECTATION
 /* GSA analysis */
 %token DYNARE_SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU MORRIS_NLIV
@@ -736,6 +736,18 @@ expression : '(' expression ')'
              { $$ = driver.add_acos($3); }
            | ATAN '(' expression ')'
              { $$ = driver.add_atan($3); }
+           | SINH '(' expression ')'
+             { $$ = driver.add_sinh($3); }
+           | COSH '(' expression ')'
+             { $$ = driver.add_cosh($3); }
+           | TANH '(' expression ')'
+             { $$ = driver.add_tanh($3); }
+           | ASINH '(' expression ')'
+             { $$ = driver.add_asinh($3); }
+           | ACOSH '(' expression ')'
+             { $$ = driver.add_acosh($3); }
+           | ATANH '(' expression ')'
+             { $$ = driver.add_atanh($3); }
            | SQRT '(' expression ')'
              { $$ = driver.add_sqrt($3); }
            | CBRT '(' expression ')'
@@ -1046,6 +1058,18 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_acos($3); }
           | ATAN '(' hand_side ')'
             { $$ = driver.add_atan($3); }
+          | SINH '(' hand_side ')'
+            { $$ = driver.add_sinh($3); }
+          | COSH '(' hand_side ')'
+            { $$ = driver.add_cosh($3); }
+          | TANH '(' hand_side ')'
+            { $$ = driver.add_tanh($3); }
+          | ASINH '(' hand_side ')'
+            { $$ = driver.add_asinh($3); }
+          | ACOSH '(' hand_side ')'
+            { $$ = driver.add_acosh($3); }
+          | ATANH '(' hand_side ')'
+            { $$ = driver.add_atanh($3); }
           | SQRT '(' hand_side ')'
             { $$ = driver.add_sqrt($3); }
           | CBRT '(' hand_side ')'

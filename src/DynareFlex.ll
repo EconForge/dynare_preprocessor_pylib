@@ -920,6 +920,12 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT,DYNARE_BLOCK>asin {return token::ASIN;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>acos {return token::ACOS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>atan {return token::ATAN;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>sinh {return token::SINH;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>cosh {return token::COSH;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>tanh {return token::TANH;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>asinh {return token::ASINH;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>acosh {return token::ACOSH;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>atanh {return token::ATANH;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>sqrt {return token::SQRT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>cbrt {return token::CBRT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>max {return token::MAX;}
