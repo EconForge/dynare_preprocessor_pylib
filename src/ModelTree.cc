@@ -1566,9 +1566,6 @@ ModelTree::includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_
     else
       ++it;
 
-  if (tag_eqns.empty())
-    return excluded_vars;
-
   set<int> eqns;
   if (exclude_eqs)
     eqns = tag_eqns;
