@@ -87,7 +87,7 @@ StaticModel::StaticModel(const DynamicModel &m) :
       }
     catch (DataTree::DivisionByZeroException)
       {
-        cerr << "...division by zero error encountred when converting equation " << i << " to static" << endl;
+        cerr << "...division by zero error encountered when converting equation " << i << " to static" << endl;
         exit(EXIT_FAILURE);
       }
 
