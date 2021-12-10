@@ -5939,6 +5939,17 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           arg3->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << ")/M_SQRT2)))";
         }
+      else if (isJuliaOutput(output_type))
+	{
+	  // Julia API is normcdf(mu, sigma, x) !
+          output << "normcdf(";
+          arg2->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+          output << ",";
+          arg3->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+          output << ",";
+          arg1->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+          output << ")";
+        }
       else
         {
           output << "normcdf(";
@@ -5963,6 +5974,17 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           output << ")/";
           arg3->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << ",2)/2)))";
+        }
+      else if (isJuliaOutput(output_type))
+	{
+	  // Julia API is normpdf(mu, sigma, x) !
+          output << "normpdf(";
+          arg2->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+          output << ",";
+          arg3->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+          output << ",";
+          arg1->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+          output << ")";
         }
       else
         {
