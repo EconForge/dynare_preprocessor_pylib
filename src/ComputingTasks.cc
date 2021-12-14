@@ -1361,11 +1361,15 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
 void
 EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  output << "estim_params_.var_exo = zeros(0, 10);" << endl
-         << "estim_params_.var_endo = zeros(0, 10);" << endl
-         << "estim_params_.corrx = zeros(0, 11);" << endl
-         << "estim_params_.corrn = zeros(0, 11);" << endl
-         << "estim_params_.param_vals = zeros(0, 10);" << endl;
+  /* Multiple estimated_params statements are allowed, so make sure we don’t
+     overwrite previous ones. */
+  output << "if isempty(estim_params_)" << endl
+         << "    estim_params_.var_exo = zeros(0, 10);" << endl
+         << "    estim_params_.var_endo = zeros(0, 10);" << endl
+         << "    estim_params_.corrx = zeros(0, 11);" << endl
+         << "    estim_params_.corrn = zeros(0, 11);" << endl
+         << "    estim_params_.param_vals = zeros(0, 10);" << endl
+         << "end" << endl;
 
   for (const auto &it : estim_params_list)
     {
