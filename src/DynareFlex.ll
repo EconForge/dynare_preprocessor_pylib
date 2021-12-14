@@ -193,6 +193,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>perfect_foresight_with_expectation_errors_solver {BEGIN DYNARE_STATEMENT; return token::PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SOLVER;}
 <INITIAL>compilation_setup {BEGIN DYNARE_STATEMENT; return token::COMPILATION_SETUP;}
 <INITIAL>model_remove {BEGIN DYNARE_STATEMENT; return token::MODEL_REMOVE;}
+<INITIAL>model_options {BEGIN DYNARE_STATEMENT; return token::MODEL_OPTIONS;}
 
 <DYNARE_STATEMENT>; {
   if (!sigma_e)
@@ -763,9 +764,9 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_BLOCK>corr {return token::CORR;}
 <DYNARE_BLOCK>periods {return token::PERIODS;}
 <DYNARE_BLOCK>scales {return token::SCALES;}
-<DYNARE_BLOCK>cutoff {return token::CUTOFF;}
-<DYNARE_BLOCK>mfs	{return token::MFS;}
-<DYNARE_BLOCK>balanced_growth_test_tol {return token::BALANCED_GROWTH_TEST_TOL;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>cutoff {return token::CUTOFF;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>mfs {return token::MFS;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>balanced_growth_test_tol {return token::BALANCED_GROWTH_TEST_TOL;}
 <DYNARE_BLOCK>gamma_pdf {return token::GAMMA_PDF;}
 <DYNARE_BLOCK>beta_pdf {return token::BETA_PDF;}
 <DYNARE_BLOCK>normal_pdf {return token::NORMAL_PDF;}
@@ -881,13 +882,13 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>\\ {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_STATEMENT>\' {return Dynare::parser::token_type (yytext[0]);}
 
-<DYNARE_BLOCK>use_dll {return token::USE_DLL;}
-<DYNARE_BLOCK>block {return token::BLOCK;}
-<DYNARE_BLOCK>bytecode {return token::BYTECODE;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>use_dll {return token::USE_DLL;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>block {return token::BLOCK;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>bytecode {return token::BYTECODE;}
 <DYNARE_BLOCK>all_values_required {return token::ALL_VALUES_REQUIRED;}
-<DYNARE_BLOCK>no_static {return token::NO_STATIC;}
-<DYNARE_BLOCK>differentiate_forward_vars {return token::DIFFERENTIATE_FORWARD_VARS;}
-<DYNARE_BLOCK>parallel_local_files {return token::PARALLEL_LOCAL_FILES;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>no_static {return token::NO_STATIC;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>differentiate_forward_vars {return token::DIFFERENTIATE_FORWARD_VARS;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>parallel_local_files {return token::PARALLEL_LOCAL_FILES;}
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>linear {return token::LINEAR;}
 

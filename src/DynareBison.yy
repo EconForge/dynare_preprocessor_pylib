@@ -183,7 +183,7 @@ class ParsingDriver;
 %token NO_IDENTIFICATION_STRENGTH NO_IDENTIFICATION_REDUCEDFORM NO_IDENTIFICATION_MOMENTS
 %token NO_IDENTIFICATION_MINIMAL NO_IDENTIFICATION_SPECTRUM NORMALIZE_JACOBIANS GRID_NBR
 %token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS ZERO_MOMENTS_TOLERANCE
-%token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION WITH_EPILOGUE MODEL_REMOVE MODEL_REPLACE
+%token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION WITH_EPILOGUE MODEL_REMOVE MODEL_REPLACE MODEL_OPTIONS
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -344,6 +344,7 @@ statement : parameters
           | occbin_constraints
           | model_remove
           | model_replace
+          | model_options
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -939,21 +940,23 @@ occbin_constraints_regime_option : BIND hand_side ';'
                                    { $$ = { "error_relax", $2 }; }
                                  ;
 
-model_options : BLOCK { driver.block(); }
-              | o_cutoff
-              | o_mfs
-              | BYTECODE { driver.bytecode(); }
-              | USE_DLL { driver.use_dll(); }
-              | NO_STATIC { driver.no_static();}
-              | DIFFERENTIATE_FORWARD_VARS { driver.differentiate_forward_vars_all(); }
-              | DIFFERENTIATE_FORWARD_VARS EQUAL '(' symbol_list ')' { driver.differentiate_forward_vars_some(); }
-              | o_linear
-              | PARALLEL_LOCAL_FILES EQUAL '(' parallel_local_filename_list ')'
-              | BALANCED_GROWTH_TEST_TOL EQUAL non_negative_number { driver.balanced_growth_test_tol($3); }
-              ;
+/* The tokens below must be accepted in both DYNARE_STATEMENT and DYNARE_BLOCK
+   states in the lexer, because of model block and model_options statement */
+model_option : BLOCK { driver.block(); }
+             | o_cutoff
+             | o_mfs
+             | BYTECODE { driver.bytecode(); }
+             | USE_DLL { driver.use_dll(); }
+             | NO_STATIC { driver.no_static();}
+             | DIFFERENTIATE_FORWARD_VARS { driver.differentiate_forward_vars_all(); }
+             | DIFFERENTIATE_FORWARD_VARS EQUAL '(' symbol_list ')' { driver.differentiate_forward_vars_some(); }
+             | o_linear
+             | PARALLEL_LOCAL_FILES EQUAL '(' parallel_local_filename_list ')'
+             | BALANCED_GROWTH_TEST_TOL EQUAL non_negative_number { driver.balanced_growth_test_tol($3); }
+             ;
 
-model_options_list : model_options_list COMMA model_options
-                   | model_options
+model_options_list : model_options_list COMMA model_option
+                   | model_option
                    ;
 
 model : MODEL ';' { driver.begin_model(); }
@@ -1118,6 +1121,8 @@ model_replace : MODEL_REPLACE '(' tag_pair_list_for_selection ')' ';'
                { driver.begin_model_replace($3); }
                equation_list END ';'
                { driver.end_model(); };
+
+model_options : MODEL_OPTIONS '(' model_options_list ')' ';'
 
 tag_pair_list_for_selection : QUOTED_STRING
                               { $$ = { { "name", $1 } }; }
