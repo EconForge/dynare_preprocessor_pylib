@@ -782,7 +782,7 @@ VariableNode::prepareForDerivation()
       exit(EXIT_FAILURE);
     case SymbolType::excludedVariable:
       cerr << "VariableNode::prepareForDerivation: impossible case: "
-           << "You are trying to derive a variable that has been excluded via model_remove/include_eqs/exclude_eqs: "
+           << "You are trying to derive a variable that has been excluded via model_remove/var_remove/include_eqs/exclude_eqs: "
            << datatree.symbol_table.getName(symb_id) << endl;
       exit(EXIT_FAILURE);
     }

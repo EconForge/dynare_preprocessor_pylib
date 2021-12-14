@@ -184,6 +184,7 @@ class ParsingDriver;
 %token NO_IDENTIFICATION_MINIMAL NO_IDENTIFICATION_SPECTRUM NORMALIZE_JACOBIANS GRID_NBR
 %token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS ZERO_MOMENTS_TOLERANCE
 %token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION WITH_EPILOGUE MODEL_REMOVE MODEL_REPLACE MODEL_OPTIONS
+%token VAR_REMOVE
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -345,6 +346,7 @@ statement : parameters
           | model_remove
           | model_replace
           | model_options
+          | var_remove
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -397,6 +399,8 @@ var : VAR var_list ';'
     | VAR '(' LOG_DEFLATOR EQUAL { driver.begin_trend(); } hand_side ')' nonstationary_var_list ';'
       { driver.end_nonstationary_var(true, $6); }
     ;
+
+var_remove : VAR_REMOVE symbol_list ';' { driver.var_remove(); };
 
 var_model : VAR_MODEL '(' var_model_options_list ')' ';' { driver.var_model(); }
           ;

@@ -137,7 +137,7 @@ enum class SymbolType
    // Value 17 is unused for the time being (but could be reused)
 
    epilogue = 18, //!< Variables created in epilogue block
-   excludedVariable = 19 //!< Variable excluded via model_remove/include_eqs/exclude_eqs
+   excludedVariable = 19 //!< Variable excluded via model_remove/var_remove/include_eqs/exclude_eqs
   };
 
 enum class ExpressionType

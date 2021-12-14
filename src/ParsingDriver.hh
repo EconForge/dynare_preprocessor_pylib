@@ -893,6 +893,8 @@ public:
   void model_remove(const vector<pair<string, string>> &listed_eqs_by_tags);
   // Begin a model_replace statement
   void begin_model_replace(const vector<pair<string, string>> &listed_eqs_by_tags);
+  // Add a var_remove statement
+  void var_remove();
   // Equivalent of MATLAB’s strsplit. Returns an empty vector given an empty string.
   static vector<string> strsplit(const string &str, char delim);
   // Returns true iff the string is a legal symbol identifier (see NAME token in lexer)
