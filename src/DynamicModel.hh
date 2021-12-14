@@ -244,32 +244,52 @@ private:
       pointers into their equivalent in the new tree */
   void copyHelper(const DynamicModel &m);
 
-  // Internal helper functions for includeExcludeEquations()
-  /*! Handles parsing of argument passed to exclude_eqs/include_eqs*/
-  /*
-    Expects command line arguments of the form:
+  /* Handles parsing of argument passed to exclude_eqs/include_eqs.
+
+    The argument inc_exc_option_value should be of one of the following forms:
       * filename.txt
       * eq1
       * ['eq 1', 'eq 2']
       * [tagname='eq 1']
       * [tagname=('eq 1', 'eq 2')]
-    If argument is a file, the file should be formatted as:
+    If argument is a filename, the file should be formatted as:
         eq 1
         eq 2
     OR
         tagname=
         X
         Y
-   */
-  void parseIncludeExcludeEquations(const string &inc_exc_eq_tags, set<pair<string, string>> &eq_tag_set, bool exclude_eqs);
 
-  // General function that removes leading/trailing whitespace from a string
-  inline void
-  removeLeadingTrailingWhitespace(string &str)
-  {
-    str.erase(0, str.find_first_not_of("\t\n\v\f\r "));
-    str.erase(str.find_last_not_of("\t\n\v\f\r ") + 1);
-  }
+    The boolean exclude_eqs should be true if we are in the exclude_eqs case,
+    false in the include_eqs case (this only affects error messages).
+
+    Returns a set of pairs (tag name, tag value) corresponding to the set of
+    equations to be included or excluded.
+   */
+  static vector<pair<string, string>> parseIncludeExcludeEquations(const string &inc_exc_option_value, bool exclude_eqs);
+
+  /* Helper for the removeEquations() method.
+     listed_eqs_by_tag is the list of (tag name, tag value) pairs corresponding
+     to the option value, exclude_eqs is a boolean indicating whether we’re
+     excluding or including, and excluded_vars_change_type is a boolean
+     indicating whether to compute variables to be excluded.
+
+     The all_equations* arguments will be modified by the routine by excluding
+     equations. They are either the main structures for storing equations in
+     ModelTree, or their counterpart for static-only equations. The
+     static_equations boolean indicates when we are in the latter case.
+     The listed_eqs_by_tag structure will be updated by removing those tag
+     pairs that have been matched with equations in the all_equations*
+     argument*.
+
+     Returns a list of excluded variables (empty if
+     excluded_vars_change_type=false) */
+  vector<int> removeEquationsHelper(set<pair<string, string>> &listed_eqs_by_tag,
+                                    bool exclude_eqs, bool excluded_vars_change_type,
+                                    vector<BinaryOpNode *> &all_equations,
+                                    vector<int> &all_equations_lineno,
+                                    EquationTags &all_equation_tags,
+                                    bool static_equations) const;
 
   //! Compute autoregressive matrices of trend component models
   /* The algorithm uses matching rules over expression trees. It cannot handle
@@ -409,8 +429,14 @@ public:
   //! Set the max leads/lags of the original model
   void setLeadsLagsOrig();
 
-  //! Removes equations from the model according to name tags
-  void includeExcludeEquations(const string &eqs, bool exclude_eqs);
+  //! Implements the include_eqs/exclude_eqs options
+  void includeExcludeEquations(const string &inc_exc_option_value, bool exclude_eqs);
+
+  /* Removes equations from the model (identified by their name tags).
+     Used for include_eqs/exclude_eqs options and for model_remove and
+     model_replace blocks */
+  void removeEquations(const vector<pair<string, string>> &listed_eqs_by_tag, bool exclude_eqs,
+                       bool excluded_vars_change_type);
 
   //! Replaces model equations with derivatives of Lagrangian w.r.t. endogenous
   void computeRamseyPolicyFOCs(const StaticModel &static_model);

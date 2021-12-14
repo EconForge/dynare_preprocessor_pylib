@@ -430,7 +430,7 @@ public:
   void add_epilogue_equal(const string &varname, expr_t expr);
   //! Begin a model block
   void begin_model();
-  //! End a model block, printing errors that were encountered in parsing
+  //! End a model or model_replace block, printing errors that were encountered in parsing
   void end_model();
   //! Writes a shocks statement
   void end_shocks(bool overwrite);
@@ -889,6 +889,10 @@ public:
   void begin_occbin_constraints();
   //! Add an occbin_constraints block
   void end_occbin_constraints(const vector<tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>> &constraints);
+  // Process a model_remove statement
+  void model_remove(const vector<pair<string, string>> &listed_eqs_by_tags);
+  // Begin a model_replace statement
+  void begin_model_replace(const vector<pair<string, string>> &listed_eqs_by_tags);
   // Equivalent of MATLAB’s strsplit. Returns an empty vector given an empty string.
   static vector<string> strsplit(const string &str, char delim);
   // Returns true iff the string is a legal symbol identifier (see NAME token in lexer)

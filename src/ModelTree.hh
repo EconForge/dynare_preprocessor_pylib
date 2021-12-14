@@ -331,10 +331,6 @@ protected:
   void printBlockDecomposition() const;
   //! Determine for each block if it is linear or not
   void determineLinearBlocks();
-  //! Remove equations specified by exclude_eqs
-  vector<int> includeExcludeEquations(set<pair<string, string>> &eqs, bool exclude_eqs,
-                                      vector<BinaryOpNode *> &equations, vector<int> &equations_lineno,
-                                      EquationTags &equation_tags, bool static_equations) const;
 
   //! Return the type of equation belonging to the block
   EquationType

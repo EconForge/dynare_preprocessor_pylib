@@ -192,6 +192,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>perfect_foresight_with_expectation_errors_setup {BEGIN DYNARE_STATEMENT; return token::PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SETUP;}
 <INITIAL>perfect_foresight_with_expectation_errors_solver {BEGIN DYNARE_STATEMENT; return token::PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SOLVER;}
 <INITIAL>compilation_setup {BEGIN DYNARE_STATEMENT; return token::COMPILATION_SETUP;}
+<INITIAL>model_remove {BEGIN DYNARE_STATEMENT; return token::MODEL_REMOVE;}
 
 <DYNARE_STATEMENT>; {
   if (!sigma_e)
@@ -231,6 +232,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>generate_irfs {BEGIN DYNARE_BLOCK; return token::GENERATE_IRFS;}
 <INITIAL>matched_moments {BEGIN DYNARE_BLOCK; return token::MATCHED_MOMENTS;}
 <INITIAL>occbin_constraints {BEGIN DYNARE_BLOCK; return token::OCCBIN_CONSTRAINTS;}
+<INITIAL>model_replace {BEGIN DYNARE_BLOCK; return token::MODEL_REPLACE;}
 
  /* For the semicolon after an "end" keyword */
 <INITIAL>; {return Dynare::parser::token_type (yytext[0]);}

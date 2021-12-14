@@ -2356,18 +2356,23 @@ DynamicModel::writeDynamicJacobianNonZeroElts(const string &basename) const
   output.close();
 }
 
-void
-DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_eq_tags,
-                                           set<pair<string, string>> &eq_tag_set, bool exclude_eqs)
+vector<pair<string, string>>
+DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_option_value, bool exclude_eqs)
 {
+  auto removeLeadingTrailingWhitespace = [](string &str)
+  {
+    str.erase(0, str.find_first_not_of("\t\n\v\f\r "));
+    str.erase(str.find_last_not_of("\t\n\v\f\r ") + 1);
+  };
+
   string tags;
-  if (filesystem::exists(inc_exc_eq_tags))
+  if (filesystem::exists(inc_exc_option_value))
     {
       ifstream exclude_file;
-      exclude_file.open(inc_exc_eq_tags, ifstream::in);
+      exclude_file.open(inc_exc_option_value, ifstream::in);
       if (!exclude_file.is_open())
         {
-          cerr << "ERROR: Could not open " << inc_exc_eq_tags << endl;
+          cerr << "ERROR: Could not open " << inc_exc_option_value << endl;
           exit(EXIT_FAILURE);
         }
 
@@ -2397,12 +2402,12 @@ DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_eq_tags,
         }
     }
   else
-    tags = inc_exc_eq_tags;
+    tags = inc_exc_option_value;
   removeLeadingTrailingWhitespace(tags);
 
   if (tags.front() == '[' && tags.back() != ']')
     {
-      cerr << "Error: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
+      cerr << "ERROR: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
            << ": if the first character is '[' the last must be ']'" << endl;
       exit(EXIT_FAILURE);
     }
@@ -2433,11 +2438,12 @@ DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_eq_tags,
   regex r(R"((\s*)" + quote_regex + "|" + non_quote_regex + R"(\s*)(,\s*()" + quote_regex + "|" + non_quote_regex + R"()\s*)*)");
   if (!regex_match(tags, r))
     {
-      cerr << "Error: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
+      cerr << "ERROR: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
            << ": argument is of incorrect format." << endl;
       exit(EXIT_FAILURE);
     }
 
+  vector<pair<string, string>> eq_tag_set;
   regex s(quote_regex + "|" + non_quote_regex);
   for (auto it = sregex_iterator(tags.begin(), tags.end(), s);
        it != sregex_iterator(); ++it)
@@ -2445,66 +2451,171 @@ DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_eq_tags,
       auto str = it->str();
       if (str[0] == '\'' && str[str.size()-1] == '\'')
         str = str.substr(1, str.size()-2);
-      eq_tag_set.insert({tagname, str});
+      eq_tag_set.emplace_back(tagname, str);
+    }
+  return eq_tag_set;
+}
+
+vector<int>
+DynamicModel::removeEquationsHelper(set<pair<string, string>> &listed_eqs_by_tag, bool exclude_eqs,
+                                    bool excluded_vars_change_type,
+                                    vector<BinaryOpNode *> &all_equations,
+                                    vector<int> &all_equations_lineno,
+                                    EquationTags &all_equation_tags, bool static_equations) const
+{
+  if (all_equations.empty())
+    return {};
+
+  /* Try to convert the list of equations by tags into a list of equation
+     numbers.
+     The tag pairs that match an equation are removed from the list, so that
+     the caller knows which tag pairs have not been handled. */
+  set<int> listed_eqs_by_number;
+  for (auto it = listed_eqs_by_tag.begin(); it != listed_eqs_by_tag.end();)
+    if (auto tmp = all_equation_tags.getEqnsByTag(it->first, it->second);
+        !tmp.empty())
+      {
+        listed_eqs_by_number.insert(tmp.begin(), tmp.end());
+        it = listed_eqs_by_tag.erase(it);
+      }
+    else
+      ++it;
+
+  // Compute the indices of equations to be actually deleted
+  set<int> eqs_to_delete_by_number;
+  if (exclude_eqs)
+    eqs_to_delete_by_number = listed_eqs_by_number;
+  else
+    for (size_t i = 0; i < all_equations.size(); i++)
+      if (listed_eqs_by_number.find(i) == listed_eqs_by_number.end())
+        eqs_to_delete_by_number.insert(i);
+
+  // remove from equations, equations_lineno, equation_tags
+  vector<BinaryOpNode *> new_equations;
+  vector<int> new_equations_lineno;
+  map<int, int> old_eqn_num_2_new;
+  vector<int> excluded_vars;
+  for (size_t i = 0; i < all_equations.size(); i++)
+    if (eqs_to_delete_by_number.find(i) != eqs_to_delete_by_number.end())
+      {
+        if (excluded_vars_change_type)
+          {
+            if (auto tmp = all_equation_tags.getTagValueByEqnAndKey(i, "endogenous"); !tmp.empty())
+              excluded_vars.push_back(symbol_table.getID(tmp));
+            else
+              {
+                set<int> result;
+                all_equations[i]->arg1->collectVariables(SymbolType::endogenous, result);
+                if (result.size() == 1)
+                  excluded_vars.push_back(*result.begin());
+                else
+                  {
+                    cerr << "ERROR: Equation " << i+1
+                         << " has been excluded but it does not have a single variable on its left-hand side or an `endogenous` tag" << endl;
+                    exit(EXIT_FAILURE);
+                  }
+              }
+          }
+      }
+    else
+      {
+        new_equations.emplace_back(all_equations[i]);
+        old_eqn_num_2_new[i] = new_equations.size() - 1;
+        new_equations_lineno.emplace_back(all_equations_lineno[i]);
+      }
+  int n_excl = all_equations.size() - new_equations.size();
+
+  all_equations = new_equations;
+  all_equations_lineno = new_equations_lineno;
+
+  all_equation_tags.erase(eqs_to_delete_by_number, old_eqn_num_2_new);
+
+  if (!static_equations)
+    for (size_t i = 0; i < excluded_vars.size(); i++)
+      for (size_t j = i+1; j < excluded_vars.size(); j++)
+        if (excluded_vars[i] == excluded_vars[j])
+          {
+            cerr << "ERROR: Variable " << symbol_table.getName(i) << " was excluded twice"
+                 << " via a model_remove or model_replace statement, or via the include_eqs or exclude_eqs option" << endl;
+            exit(EXIT_FAILURE);
+          }
+
+  cout << "Excluded " << n_excl << (static_equations ? " static " : " dynamic ")
+       << "equation" << (n_excl > 1 ? "s" : "") << " via model_remove or model_replace statement, or via include_eqs or exclude_eqs option" << endl;
+
+  return excluded_vars;
+}
+
+void
+DynamicModel::removeEquations(const vector<pair<string, string>> &listed_eqs_by_tag, bool exclude_eqs,
+                              bool excluded_vars_change_type)
+{
+  /* Convert the const vector to a (mutable) set */
+  set<pair<string, string>> listed_eqs_by_tag2;
+  copy(listed_eqs_by_tag.begin(), listed_eqs_by_tag.end(), inserter(listed_eqs_by_tag2, listed_eqs_by_tag2.end()));
+
+  vector<int> excluded_vars = removeEquationsHelper(listed_eqs_by_tag2, exclude_eqs,
+                                                    excluded_vars_change_type,
+                                                    equations, equations_lineno,
+                                                    equation_tags, false);
+
+  // Ignore output because variables are not excluded when equations marked 'static' are excluded
+  removeEquationsHelper(listed_eqs_by_tag2, exclude_eqs, excluded_vars_change_type,
+                        static_only_equations, static_only_equations_lineno,
+                        static_only_equations_equation_tags, true);
+
+  if (!listed_eqs_by_tag2.empty())
+    {
+      cerr << "ERROR: model_remove/model_replace/exclude_eqs/include_eqs: The equations specified by" << endl;
+      for (const auto &[tagname, tagvalue] : listed_eqs_by_tag)
+        cerr << " " << tagname << "=" << tagvalue << endl;
+      cerr << "were not found." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (excluded_vars_change_type)
+    {
+      // Collect list of used variables in updated list of equations
+      set<int> eqn_vars;
+      for (auto eqn : equations)
+        eqn->collectVariables(SymbolType::endogenous, eqn_vars);
+      for (auto eqn : static_only_equations)
+        eqn->collectVariables(SymbolType::endogenous, eqn_vars);
+
+      /* Change type of endogenous variables determined by excluded equations.
+         They become exogenous if they are still used somewhere, otherwise they are
+         completely excluded from the model. */
+      for (auto ev : excluded_vars)
+        if (eqn_vars.find(ev) != eqn_vars.end())
+          {
+            symbol_table.changeType(ev, SymbolType::exogenous);
+            cerr << "Variable '" << symbol_table.getName(ev) << "' turned into an exogenous, as its defining equation has been removed (but it still appears in an equation)" << endl;
+          }
+        else
+          {
+            symbol_table.changeType(ev, SymbolType::excludedVariable);
+            cerr << "Variable '" << symbol_table.getName(ev) << "' has been excluded from the model, as its defining equation has been removed and it appears nowhere else" << endl;
+          }
     }
 }
 
 void
-DynamicModel::includeExcludeEquations(const string &eqs, bool exclude_eqs)
+DynamicModel::includeExcludeEquations(const string &inc_exc_option_value, bool exclude_eqs)
 {
-  if (eqs.empty())
+  if (inc_exc_option_value.empty())
     return;
 
-  set<pair<string, string>> eq_tag_set;
-  parseIncludeExcludeEquations(eqs, eq_tag_set, exclude_eqs);
+  auto listed_eqs_by_tag = parseIncludeExcludeEquations(inc_exc_option_value, exclude_eqs);
 
-  vector<int> excluded_vars
-    = ModelTree::includeExcludeEquations(eq_tag_set, exclude_eqs,
-                                         equations, equations_lineno,
-                                         equation_tags, false);
+  removeEquations(listed_eqs_by_tag, exclude_eqs, true);
 
-  // Ignore output because variables are not excluded when equations marked 'static' are excluded
-  ModelTree::includeExcludeEquations(eq_tag_set, exclude_eqs,
-                                     static_only_equations, static_only_equations_lineno,
-                                     static_only_equations_equation_tags, true);
-
-  if (!eq_tag_set.empty())
-    {
-      cerr << "ERROR: " << (exclude_eqs ? "exclude_eqs" : "include_eqs") << ": The equations specified by `";
-      cerr << eq_tag_set.begin()->first << "= ";
-      for (auto &it : eq_tag_set)
-        cerr << it.second << ", ";
-      cerr << "` were not found." << endl;
-      exit(EXIT_FAILURE);
-    }
-
+  /* There is already a check about #static and #dynamic in
+     ModFile::checkPass(), but the present method is called from
+     ModFile::transformPass(), so we must do the check again */
   if (staticOnlyEquationsNbr() != dynamicOnlyEquationsNbr())
     {
-      cerr << "ERROR: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
-           << ": You must remove the same number of equations marked `static` as equations marked `dynamic`." << endl;
+      cerr << "ERROR: exclude_eqs/include_eqs: You must remove the same number of equations marked `static` as equations marked `dynamic`." << endl;
       exit(EXIT_FAILURE);
-    }
-
-  // Collect list of used variables in updated list of equations
-  set<pair<int, int>> eqn_vars;
-  for (const auto &eqn : equations)
-    eqn->collectDynamicVariables(SymbolType::endogenous, eqn_vars);
-  for (const auto &eqn : static_only_equations)
-    eqn->collectDynamicVariables(SymbolType::endogenous, eqn_vars);
-
-  // Change LHS variable type of excluded equation if it is used in an eqution that has been kept
-  for (auto ev : excluded_vars)
-    {
-      bool found = false;
-      for (const auto &it : eqn_vars)
-        if (it.first == ev)
-          {
-            symbol_table.changeType(ev, SymbolType::exogenous);
-            found = true;
-            break;
-          }
-      if (!found)
-        symbol_table.changeType(ev, SymbolType::excludedVariable);
     }
 }
 

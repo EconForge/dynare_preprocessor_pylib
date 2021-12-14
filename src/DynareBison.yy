@@ -183,7 +183,7 @@ class ParsingDriver;
 %token NO_IDENTIFICATION_STRENGTH NO_IDENTIFICATION_REDUCEDFORM NO_IDENTIFICATION_MOMENTS
 %token NO_IDENTIFICATION_MINIMAL NO_IDENTIFICATION_SPECTRUM NORMALIZE_JACOBIANS GRID_NBR
 %token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS ZERO_MOMENTS_TOLERANCE
-%token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION WITH_EPILOGUE
+%token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION WITH_EPILOGUE MODEL_REMOVE MODEL_REPLACE
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -205,7 +205,7 @@ class ParsingDriver;
 %type <PriorDistributions> prior_pdf prior_distribution
 %type <pair<expr_t,expr_t>> calibration_range
 %type <pair<string,string>> named_var_elem subsamples_eq_opt integer_range_w_inf
-%type <vector<pair<string,string>>> named_var named_var_1
+%type <vector<pair<string,string>>> named_var named_var_1 tag_pair_list_for_selection
 %type <tuple<string,string,string,string>> prior_eq_opt options_eq_opt
 %type <vector<pair<int, int>>> period_list
 %type <vector<expr_t>> matched_moments_list value_list
@@ -342,6 +342,8 @@ statement : parameters
           | compilation_setup
           | matched_moments
           | occbin_constraints
+          | model_remove
+          | model_replace
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -1108,6 +1110,30 @@ comma_hand_side : hand_side
 
 pound_expression: '#' symbol EQUAL hand_side ';'
                   { driver.declare_and_init_model_local_variable($2, $4); };
+
+model_remove : MODEL_REMOVE '(' tag_pair_list_for_selection ')' ';'
+               { driver.model_remove($3); };
+
+model_replace : MODEL_REPLACE '(' tag_pair_list_for_selection ')' ';'
+               { driver.begin_model_replace($3); }
+               equation_list END ';'
+               { driver.end_model(); };
+
+tag_pair_list_for_selection : QUOTED_STRING
+                              { $$ = { { "name", $1 } }; }
+                            | symbol EQUAL QUOTED_STRING
+                              { $$ = { { $1, $3 } }; }
+                            | tag_pair_list_for_selection COMMA QUOTED_STRING
+                              {
+                                $$ = $1;
+                                $$.emplace_back("name", $3);
+                              }
+                            | tag_pair_list_for_selection COMMA symbol EQUAL QUOTED_STRING
+                              {
+                                $$ = $1;
+                                $$.emplace_back($3, $5);
+                              }
+                            ;
 
 shocks : SHOCKS ';' shock_list END ';' { driver.end_shocks(false); }
        | SHOCKS '(' OVERWRITE ')' ';' shock_list END ';' { driver.end_shocks(true); }

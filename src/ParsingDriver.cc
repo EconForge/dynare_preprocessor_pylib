@@ -318,6 +318,8 @@ ParsingDriver::add_model_variable(const string &name)
   try
     {
       symb_id = mod_file->symbol_table.getID(name);
+      if (mod_file->symbol_table.getType(symb_id) == SymbolType::excludedVariable)
+        error("Variable '" + name + "' can no longer be used since it has been excluded by a previous 'model_remove' statement");
     }
   catch (SymbolTable::UnknownSymbolNameException &e)
     {
@@ -3528,4 +3530,17 @@ ParsingDriver::isSymbolIdentifier(const string &str)
     if (!(myisalpha(str[i]) || isdigit(static_cast<unsigned char>(str[i])) || str[i] == '_'))
       return false;
   return true;
+}
+
+void
+ParsingDriver::model_remove(const vector<pair<string, string>> &listed_eqs_by_tags)
+{
+  mod_file->dynamic_model.removeEquations(listed_eqs_by_tags, true, true);
+}
+
+void
+ParsingDriver::begin_model_replace(const vector<pair<string, string>> &listed_eqs_by_tags)
+{
+  mod_file->dynamic_model.removeEquations(listed_eqs_by_tags, true, false);
+  set_current_data_tree(&mod_file->dynamic_model);
 }
