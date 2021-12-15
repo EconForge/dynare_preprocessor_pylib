@@ -498,7 +498,7 @@ protected:
   AbstractEstimatedParamsStatement(vector<EstimationParams> estim_params_list_arg,
                                    const SymbolTable &symbol_table_arg);
   virtual string blockName() const = 0;
-  // Part of the check pass that is common to the three estimated_params* blocks
+  // Part of the check pass that is common to the three estimated_params{,_init,bounds} blocks
   void commonCheckPass() const;
 };
 
@@ -534,6 +534,18 @@ public:
                                  const SymbolTable &symbol_table_arg);
   string blockName() const override { return "estimated_params_bounds"; };
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
+};
+
+class EstimatedParamsRemoveStatement : public Statement
+{
+public:
+  // Only the type, name and name2 fields of EstimationParams are used
+  const vector<EstimationParams> estim_params_list;
+  const SymbolTable &symbol_table;
+  EstimatedParamsRemoveStatement(vector<EstimationParams> estim_params_list_arg,
+                                 const SymbolTable &symbol_table_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };

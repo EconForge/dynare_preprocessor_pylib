@@ -221,6 +221,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>priors {BEGIN DYNARE_BLOCK;return token::ESTIMATED_PARAMS;}
 <INITIAL>estimated_params_init 		{BEGIN DYNARE_BLOCK; return token::ESTIMATED_PARAMS_INIT;}
 <INITIAL>estimated_params_bounds 	{BEGIN DYNARE_BLOCK; return token::ESTIMATED_PARAMS_BOUNDS;}
+<INITIAL>estimated_params_remove {BEGIN DYNARE_BLOCK; return token::ESTIMATED_PARAMS_REMOVE;}
 <INITIAL>osr_params_bounds              {BEGIN DYNARE_BLOCK; return token::OSR_PARAMS_BOUNDS;}
 <INITIAL>observation_trends {BEGIN DYNARE_BLOCK; return token::OBSERVATION_TRENDS;}
 <INITIAL>deterministic_trends {BEGIN DYNARE_BLOCK; return token::DETERMINISTIC_TRENDS;}

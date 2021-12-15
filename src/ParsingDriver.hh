@@ -512,6 +512,8 @@ public:
   void estimated_params_init(bool use_calibration = false);
   //! Writes estimated params bound command
   void estimated_params_bounds();
+  //! Add an estimated_params_remove block
+  void estimated_params_remove();
   //! Adds a declaration for a user-defined external function
   void external_function();
   //! Sets an external_function option to a string value

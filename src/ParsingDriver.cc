@@ -1490,6 +1490,13 @@ ParsingDriver::estimated_params_bounds()
 }
 
 void
+ParsingDriver::estimated_params_remove()
+{
+  mod_file->addStatement(make_unique<EstimatedParamsRemoveStatement>(estim_params_list, mod_file->symbol_table));
+  estim_params_list.clear();
+}
+
+void
 ParsingDriver::add_osr_params_element()
 {
   check_symbol_existence(osr_params.name);

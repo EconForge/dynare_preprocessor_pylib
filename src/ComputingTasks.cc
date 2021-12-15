@@ -1722,6 +1722,99 @@ EstimatedParamsBoundsStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
+EstimatedParamsRemoveStatement::EstimatedParamsRemoveStatement(vector<EstimationParams> estim_params_list_arg,
+                                                               const SymbolTable &symbol_table_arg) :
+  estim_params_list{move(estim_params_list_arg)},
+  symbol_table{symbol_table_arg}
+{
+}
+
+void
+EstimatedParamsRemoveStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  for (const auto &it : estim_params_list)
+    {
+      int tsid = symbol_table.getTypeSpecificID(it.name) + 1;
+      SymbolType symb_type = symbol_table.getType(it.name);
+
+      if (it.type < 3)
+        {
+          if (symb_type == SymbolType::exogenous)
+            output << "tmp1 = find(estim_params_.var_exo(:,1)==" << tsid << ");" << endl
+                   << "if isempty(tmp1)" << endl
+                   << "    error(sprintf('estimated_params_remove: the standard deviation of %s is not estimated.', M_.exo_names{" << tsid << "}))" << endl
+                   << "else" << endl
+                   << "    estim_params_.var_exo(tmp1,:) = [];"
+                   << "end" << endl;
+          else if (symb_type == SymbolType::endogenous)
+            output << "tmp1 = find(estim_params_.var_endo(:,1)==" << tsid << ");" << endl
+                   << "if isempty(tmp1)" << endl
+                   << "    error(sprintf('estimated_params_remove: the standard deviation of the measurement error on %s is not estimated.', M_.endo_names{" << tsid << "}))" << endl
+                   << "else" << endl
+                   << "    estim_params_.var_endo(tmp1,:) = [];"
+                   << "end" << endl;
+          else if (symb_type == SymbolType::parameter)
+              output << "tmp1 = find(estim_params_.param_vals(:,1)==" << tsid << ");" << endl
+                     << "if isempty(tmp1)" << endl
+                     << "    error(sprintf('estimated_params_remove: parameter %s is not estimated.', M_.param_names{" << tsid << "}))" << endl
+                     << "else" << endl
+                     << "    estim_params_.param_vals(tmp1,:) = [];"
+                     << "end" << endl;
+        }
+      else
+        {
+          int tsid2 = symbol_table.getTypeSpecificID(it.name2) + 1;
+          if (symb_type == SymbolType::exogenous)
+              output << "tmp1 = find((estim_params_.corrx(:,1)==" << tsid << " & estim_params_.corrx(:,2)==" << tsid2 << ") | "
+                     <<             "(estim_params_.corrx(:,2)==" << tsid << " & estim_params_.corrx(:,1)==" << tsid2 << "));" << endl
+                     << "if isempty(tmp1)" << endl
+                     << "    error(sprintf('estimated_params_remove: the correlation between %s and %s is not estimated.', M_.exo_names{"
+                     << tsid << "}, M_.exo_names{" << tsid2 << "}))" << endl
+                     << "else" << endl
+                     << "    estim_params_.corrx(tmp1,:) = [];"
+                     << "end" << endl;
+          else if (symb_type == SymbolType::endogenous)
+            output << "tmp1 = find((estim_params_.corrn(:,1)==" << tsid << " & estim_params_.corrn(:,2)==" << tsid2 << ") | "
+                   <<             "(estim_params_.corrn(:,2)==" << tsid << " & estim_params_.corrn(:,1)==" << tsid2 << "));" << endl
+                   << "if isempty(tmp1)" << endl
+                   << "    error(sprintf('estimated_params_remove: the correlation between measurement errors on %s and %s is not estimated.', M_.endo_names{"
+                   << tsid << "}, M_.endo_names{" << tsid2 << "}))" << endl
+                   << "else" << endl
+                   << "    estim_params_.corrn(tmp1,:) = [];"
+                   << "end" << endl;
+        }
+    }
+}
+
+void
+EstimatedParamsRemoveStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "estimated_params_remove", )"
+         << R"("params": [)";
+
+  for (auto it = estim_params_list.begin(); it != estim_params_list.end(); ++it)
+    {
+      if (it != estim_params_list.begin())
+        output << ", ";
+      output << "{";
+      switch (it->type)
+        {
+        case 1:
+          output << R"("var": ")" << it->name << R"(")";
+        case 2:
+          output << R"("param": ")" << it->name << R"(")";
+          break;
+        case 3:
+          output << R"("var1": ")" << it->name << R"(",)"
+                 << R"("var2": ")" << it->name2 << R"(")";
+          break;
+        }
+      output << "}";
+    }
+  output << "]"
+         << "}";
+}
+
 DeterministicTrendsStatement::DeterministicTrendsStatement(trend_elements_t trend_elements_arg,
                                                        const SymbolTable &symbol_table_arg) :
   trend_elements{move(trend_elements_arg)},

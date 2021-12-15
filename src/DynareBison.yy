@@ -184,7 +184,7 @@ class ParsingDriver;
 %token NO_IDENTIFICATION_MINIMAL NO_IDENTIFICATION_SPECTRUM NORMALIZE_JACOBIANS GRID_NBR
 %token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS ZERO_MOMENTS_TOLERANCE
 %token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION WITH_EPILOGUE MODEL_REMOVE MODEL_REPLACE MODEL_OPTIONS
-%token VAR_REMOVE
+%token VAR_REMOVE ESTIMATED_PARAMS_REMOVE
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -248,6 +248,7 @@ statement : parameters
           | estimated_params
           | estimated_params_bounds
           | estimated_params_init
+          | estimated_params_remove
           | set_time
           | data
           | epilogue
@@ -1894,6 +1895,16 @@ estimated_bounds_elem : STDERR symbol COMMA expression COMMA expression ';'
                           driver.estim_params.up_bound = $5;
                         }
                       ;
+
+estimated_params_remove : ESTIMATED_PARAMS_REMOVE ';' estimated_remove_list END ';'
+                          { driver.estimated_params_remove(); };
+
+estimated_remove_list : estimated_remove_elem
+                      | estimated_remove_list estimated_remove_elem
+                      ;
+
+estimated_remove_elem : estimated_elem1 ';'
+                        { driver.add_estimated_params_element(); }
 
 osr_params_bounds : OSR_PARAMS_BOUNDS ';' osr_bounds_list END ';'
                     { driver.osr_params_bounds(); };
