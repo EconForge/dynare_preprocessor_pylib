@@ -1738,7 +1738,11 @@ boolean : TRUE
         | FALSE
         ;
 
-estimated_params : ESTIMATED_PARAMS ';' estimated_list END ';' { driver.estimated_params(); };
+estimated_params : ESTIMATED_PARAMS ';' estimated_list END ';'
+                   { driver.estimated_params(false); }
+                 | ESTIMATED_PARAMS '(' OVERWRITE ')' ';' estimated_list END ';'
+                   { driver.estimated_params(true); }
+                 ;
 
 estimated_list : estimated_list estimated_elem
                  { driver.add_estimated_params_element(); }

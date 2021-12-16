@@ -1469,9 +1469,9 @@ ParsingDriver::add_estimated_params_element()
 }
 
 void
-ParsingDriver::estimated_params()
+ParsingDriver::estimated_params(bool overwrite)
 {
-  mod_file->addStatement(make_unique<EstimatedParamsStatement>(estim_params_list, mod_file->symbol_table));
+  mod_file->addStatement(make_unique<EstimatedParamsStatement>(estim_params_list, mod_file->symbol_table, overwrite));
   estim_params_list.clear();
 }
 

@@ -507,7 +507,7 @@ public:
   //! Writes model_info command
   void model_info();
   //! Writes estimated params command
-  void estimated_params();
+  void estimated_params(bool overwrite);
   //! Writes estimated params init command
   void estimated_params_init(bool use_calibration = false);
   //! Writes estimated params bound command

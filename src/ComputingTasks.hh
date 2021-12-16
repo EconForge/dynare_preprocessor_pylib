@@ -504,9 +504,12 @@ protected:
 
 class EstimatedParamsStatement : public AbstractEstimatedParamsStatement
 {
+private:
+  const bool overwrite;
 public:
   EstimatedParamsStatement(vector<EstimationParams> estim_params_list_arg,
-                           const SymbolTable &symbol_table_arg);
+                           const SymbolTable &symbol_table_arg,
+                           bool overwrite_arg);
   string blockName() const override { return "estimated_params"; };
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
