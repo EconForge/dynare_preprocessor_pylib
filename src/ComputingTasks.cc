@@ -1252,7 +1252,9 @@ AbstractEstimatedParamsStatement::AbstractEstimatedParamsStatement(vector<Estima
 void
 AbstractEstimatedParamsStatement::commonCheckPass() const
 {
-  // Check that no parameter/endogenous is declared twice in the block
+  // Check that no parameter/endogenous is declared twice in the block.
+  /* In the case of the estimated_params block, there is a similar check across
+     concatenated blocks that is implemented in the writeOutput() method. */
   set<string> already_declared;
   set<pair<string, string>> already_declared_corr;
   for (const auto &it : estim_params_list)
@@ -1377,29 +1379,52 @@ EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, b
   if (!overwrite)
     output << "end" << endl;
 
+  /* Note that we verify that parameters are not declared twice across
+     concatenated blocks, because this case is not covered by the check
+     implemented in AbstractEstimatedParamsStatement::commonCheckPass() */
   for (const auto &it : estim_params_list)
     {
       int tsid = symbol_table.getTypeSpecificID(it.name) + 1;
+      int tsid2;
       SymbolType symb_type = symbol_table.getType(it.name);
+      string errmsg = " has been specified twice in two concatenated ''estimated_params'' blocks. Depending on your intention, you may want to use the ''overwrite'' option or an ''estimated_params_remove'' block.";
 
       switch (it.type)
         {
         case 1:
           if (symb_type == SymbolType::exogenous)
-            output << "estim_params_.var_exo = [estim_params_.var_exo; ";
+            output << "if ~isempty(find(estim_params_.var_exo(:,1)==" << tsid << "))" << endl
+                   << "    error('The standard deviation for " << it.name << errmsg << "')" << endl
+                   << "end" << endl
+                   << "estim_params_.var_exo = [estim_params_.var_exo; ";
           else if (symb_type == SymbolType::endogenous)
-            output << "estim_params_.var_endo = [estim_params_.var_endo; ";
+            output << "if ~isempty(find(estim_params_.var_endo(:,1)==" << tsid << "))" << endl
+                   << "    error('The standard deviation of the measurement error for " << it.name << errmsg << "')" << endl
+                   << "end" << endl
+                   << "estim_params_.var_endo = [estim_params_.var_endo; ";
           output << tsid;
           break;
         case 2:
-          output << "estim_params_.param_vals = [estim_params_.param_vals; "
+          output << "if ~isempty(find(estim_params_.param_vals(:,1)==" << tsid << "))" << endl
+                 << "    error('Parameter " << it.name << errmsg << "')" << endl
+                 << "end" << endl
+                 << "estim_params_.param_vals = [estim_params_.param_vals; "
                  << tsid;
           break;
         case 3:
+          tsid2 = symbol_table.getTypeSpecificID(it.name2) + 1;
           if (symb_type == SymbolType::exogenous)
-            output << "estim_params_.corrx = [estim_params_.corrx; ";
+            output << "if ~isempty(find((estim_params_.corrx(:,1)==" << tsid << " & estim_params_.corrx(:,2)==" << tsid2 << ") | "
+                   <<                  "(estim_params_.corrx(:,2)==" << tsid << " & estim_params_.corrx(:,1)==" << tsid2 << ")))" << endl
+                   << "    error('The correlation between " << it.name << " and " << it.name2 << errmsg << "')" << endl
+                   << "end" << endl
+                   << "estim_params_.corrx = [estim_params_.corrx; ";
           else if (symb_type == SymbolType::endogenous)
-            output << "estim_params_.corrn = [estim_params_.corrn; ";
+            output << "if ~isempty(find((estim_params_.corrn(:,1)==" << tsid << " & estim_params_.corrn(:,2)==" << tsid2 << ") | "
+                   <<                  "(estim_params_.corrn(:,2)==" << tsid << " & estim_params_.corrn(:,1)==" << tsid2 << ")))" << endl
+                   << "    error('The correlation between measurement errors on " << it.name << " and " << it.name2 << errmsg << "')" << endl
+                   << "end" << endl
+                   << "estim_params_.corrn = [estim_params_.corrn; ";
           output << tsid << ", " << symbol_table.getTypeSpecificID(it.name2)+1;
           break;
         }
