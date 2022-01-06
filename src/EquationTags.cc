@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020-2021 Dynare Team
+ * Copyright © 2020-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,6 +20,7 @@
 #include "EquationTags.hh"
 
 #include <regex>
+#include <ostream>
 
 set<int>
 EquationTags::getEqnsByKey(const string &key) const
