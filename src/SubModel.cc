@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018-2021 Dynare Team
+ * Copyright © 2018-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1006,8 +1006,13 @@ PacModelTable::transformPass(const lag_equivalence_table_t &unary_ops_nodes,
 
           // Associate the coefficients of the linear combination with the right components
           for (auto [var, coeff] : terms)
+            /* The “var=var” capture with initializer in the lambda expression
+               is used to workaround the C++17 restriction that forbids the
+               capture of structured bindings. This restriction is enforced by
+               clang, but not by GCC (see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85889).
+               This restriction is lifted in C++20 (but clang 13 does not yet comply). */
             if (auto it = find_if(components.begin(), components.end(),
-                                  [&](const auto &v) { return get<0>(v) == dynamic_model.AddVariable(var); });
+                                  [&, var=var](const auto &v) { return get<0>(v) == dynamic_model.AddVariable(var); });
                 it != components.end())
               get<4>(*it) = coeff;
             else
