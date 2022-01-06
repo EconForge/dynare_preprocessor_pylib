@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -37,7 +37,7 @@ DynamicModel::copyHelper(const DynamicModel &m)
   for (const auto &it : m.static_only_equations)
     static_only_equations.push_back(dynamic_cast<BinaryOpNode *>(f(it)));
 
-    auto convert_block_derivative = [f](const map<tuple<int, int, int>, expr_t> &dt)
+  auto convert_block_derivative = [f](const map<tuple<int, int, int>, expr_t> &dt)
                                     {
                                       map<tuple<int, int, int>, expr_t> dt2;
                                       for (const auto &it : dt)
