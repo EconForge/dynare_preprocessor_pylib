@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -187,12 +187,10 @@ public:
 class RamseyPolicyStatement : public Statement
 {
 private:
-  const SymbolTable &symbol_table;
   const SymbolList symbol_list;
   const OptionsList options_list;
 public:
-  RamseyPolicyStatement(const SymbolTable &symbol_table_arg,
-                        SymbolList symbol_list_arg,
+  RamseyPolicyStatement(SymbolList symbol_list_arg,
                         OptionsList options_list_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;

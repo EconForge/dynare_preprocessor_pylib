@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -2097,8 +2097,7 @@ ParsingDriver::ramsey_policy()
     for (const auto &s : it->second.getSymbols())
       check_symbol_is_endogenous(s);
 
-  mod_file->addStatement(make_unique<RamseyPolicyStatement>(mod_file->symbol_table,
-                                                            symbol_list, options_list));
+  mod_file->addStatement(make_unique<RamseyPolicyStatement>(symbol_list, options_list));
   options_list.clear();
   symbol_list.clear();
   planner_discount = nullptr;

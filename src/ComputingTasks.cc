@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -619,10 +619,8 @@ RamseyConstraintsStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-RamseyPolicyStatement::RamseyPolicyStatement(const SymbolTable &symbol_table_arg,
-                                             SymbolList symbol_list_arg,
+RamseyPolicyStatement::RamseyPolicyStatement(SymbolList symbol_list_arg,
                                              OptionsList options_list_arg) :
-  symbol_table{symbol_table_arg},
   symbol_list{move(symbol_list_arg)},
   options_list{move(options_list_arg)}
 {
