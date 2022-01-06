@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020-2021 Dynare Team
+ * Copyright © 2020-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,11 +20,11 @@
 #ifndef _EQUATION_TAGS_HH
 #define _EQUATION_TAGS_HH
 
-using namespace std;
-
 #include <map>
 #include <set>
 #include <string>
+
+using namespace std;
 
 class EquationTags
 {

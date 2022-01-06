@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2021 Dynare Team
+ * Copyright © 2006-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,8 +20,6 @@
 #ifndef _MOD_FILE_HH
 #define _MOD_FILE_HH
 
-using namespace std;
-
 #include <ostream>
 #include <ctime>
 #include <iostream>
@@ -39,6 +37,8 @@ using namespace std;
 #include "WarningConsolidation.hh"
 #include "ExtendedPreprocessorTypes.hh"
 #include "SubModel.hh"
+
+using namespace std;
 
 //! The abstract representation of a "mod" file
 class ModFile

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,8 +20,6 @@
 #ifndef _MODELTREE_HH
 #define _MODELTREE_HH
 
-using namespace std;
-
 #include <string>
 #include <vector>
 #include <deque>
@@ -33,6 +31,8 @@ using namespace std;
 #include "DataTree.hh"
 #include "EquationTags.hh"
 #include "ExtendedPreprocessorTypes.hh"
+
+using namespace std;
 
 // Helper to convert a vector into a tuple
 template<typename T, size_t... Indices>

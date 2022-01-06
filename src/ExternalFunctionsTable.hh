@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2019 Dynare Team
+ * Copyright © 2010-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,12 +20,12 @@
 #ifndef _EXTERNALFUNCTIONSTABLE_HH
 #define _EXTERNALFUNCTIONSTABLE_HH
 
-using namespace std;
-
 #include <iostream>
 #include <string>
 #include <vector>
 #include <map>
+
+using namespace std;
 
 //! Handles external functions
 class ExternalFunctionsTable

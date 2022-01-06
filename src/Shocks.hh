@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,8 +20,6 @@
 #ifndef _SHOCKS_HH
 #define _SHOCKS_HH
 
-using namespace std;
-
 #include <string>
 #include <vector>
 #include <map>
@@ -29,6 +27,8 @@ using namespace std;
 #include "Statement.hh"
 #include "SymbolTable.hh"
 #include "ExprNode.hh"
+
+using namespace std;
 
 class AbstractShocksStatement : public Statement
 {

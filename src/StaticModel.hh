@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,12 +20,12 @@
 #ifndef _STATIC_MODEL_HH
 #define _STATIC_MODEL_HH
 
-using namespace std;
-
 #include <fstream>
 #include <filesystem>
 
 #include "ModelTree.hh"
+
+using namespace std;
 
 class DynamicModel;
 

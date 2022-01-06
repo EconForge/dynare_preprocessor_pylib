@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,10 +20,10 @@
 
 
 %{
-using namespace std;
-
 #include <cstring>
 #include "ParsingDriver.hh"
+
+using namespace std;
 
 // Announce to Flex the prototype we want for lexing function
 #define YY_DECL                                                \

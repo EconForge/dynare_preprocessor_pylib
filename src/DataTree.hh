@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,8 +20,6 @@
 #ifndef _DATATREE_HH
 #define _DATATREE_HH
 
-using namespace std;
-
 #include <string>
 #include <map>
 #include <vector>
@@ -35,6 +33,8 @@ using namespace std;
 #include "ExternalFunctionsTable.hh"
 #include "ExprNode.hh"
 #include "SubModel.hh"
+
+using namespace std;
 
 class DataTree
 {

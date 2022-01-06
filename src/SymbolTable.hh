@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,8 +20,6 @@
 #ifndef _SYMBOLTABLE_HH
 #define _SYMBOLTABLE_HH
 
-using namespace std;
-
 #include <map>
 #include <string>
 #include <utility>
@@ -31,6 +29,8 @@ using namespace std;
 
 #include "CodeInterpreter.hh"
 #include "ExprNode.hh"
+
+using namespace std;
 
 using expr_t = class ExprNode *;
 

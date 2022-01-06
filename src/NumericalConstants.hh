@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2016 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,11 +20,11 @@
 #ifndef _NUMERICALCONSTANTS_HH
 #define _NUMERICALCONSTANTS_HH
 
-using namespace std;
-
 #include <string>
 #include <vector>
 #include <map>
+
+using namespace std;
 
 //! Handles non-negative numerical constants
 class NumericalConstants
