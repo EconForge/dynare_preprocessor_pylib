@@ -991,6 +991,20 @@ PacModelTable::transformPass(const lag_equivalence_table_t &unary_ops_nodes,
               exit(EXIT_FAILURE);
             }
 
+          // Substitute unary ops and diffs in that equation, before parsing (see dynare#1837)
+          target_expr = target_expr->substituteUnaryOpNodes(unary_ops_nodes, unary_ops_subst_table, neweqs);
+          if (neweqs.size() > 0)
+            {
+              cerr << "ERROR: the equation defining the target of 'pac_target_info(" << name << ")' contains a variable with a unary operator that is not present in the model" << endl;
+              exit(EXIT_FAILURE);
+            }
+          target_expr = target_expr->substituteDiff(diff_nodes, diff_subst_table, neweqs);
+          if (neweqs.size() > 0)
+            {
+              cerr << "ERROR: the equation defining the target of 'pac_target_info(" << name << ")' contains a diff'd variable that is not present in the model" << endl;
+              exit(EXIT_FAILURE);
+            }
+
           // Parse that model equation
           vector<pair<int, expr_t>> terms;
           expr_t constant;
