@@ -5586,24 +5586,24 @@ DynamicModel::findPacExpectationEquationNumbers(set<int> &eqnumbers) const
 }
 
 pair<lag_equivalence_table_t, ExprNode::subst_table_t>
-DynamicModel::substituteUnaryOps()
+DynamicModel::substituteUnaryOps(PacModelTable &pac_model_table)
 {
   vector<int> eqnumbers(equations.size());
   iota(eqnumbers.begin(), eqnumbers.end(), 0);
-  return substituteUnaryOps(eqnumbers);
+  return substituteUnaryOps(eqnumbers, pac_model_table);
 }
 
 pair<lag_equivalence_table_t, ExprNode::subst_table_t>
-DynamicModel::substituteUnaryOps(const set<string> &var_model_eqtags)
+DynamicModel::substituteUnaryOps(const set<string> &var_model_eqtags, PacModelTable &pac_model_table)
 {
   set<int> eqnumbers = getEquationNumbersFromTags(var_model_eqtags);
   findPacExpectationEquationNumbers(eqnumbers);
   vector<int> eqnumbers_vec(eqnumbers.begin(), eqnumbers.end());
-  return substituteUnaryOps(eqnumbers_vec);
+  return substituteUnaryOps(eqnumbers_vec, pac_model_table);
 }
 
 pair<lag_equivalence_table_t, ExprNode::subst_table_t>
-DynamicModel::substituteUnaryOps(const vector<int> &eqnumbers)
+DynamicModel::substituteUnaryOps(const vector<int> &eqnumbers, PacModelTable &pac_model_table)
 {
   lag_equivalence_table_t nodes;
   ExprNode::subst_table_t subst_table;
@@ -5632,6 +5632,9 @@ DynamicModel::substituteUnaryOps(const vector<int> &eqnumbers)
       assert(substeq);
       equations[eq] = substeq;
     }
+
+  // Substitute in growth terms in pac_model and pac_target_info
+  pac_model_table.substituteUnaryOpsInGrowth(nodes, subst_table, neweqs);
 
   // Add new equations
   for (auto &neweq : neweqs)

@@ -525,13 +525,13 @@ public:
   void substituteModelLocalVariables();
 
   //! Creates aux vars for all unary operators
-  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps();
+  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(PacModelTable &pac_model_table);
 
   //! Creates aux vars for unary operators in certain equations: originally implemented for support of VARs
-  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(const set<string> &eq_tags);
+  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(const set<string> &eq_tags, PacModelTable &pac_model_table);
 
   //! Creates aux vars for unary operators in certain equations: originally implemented for support of VARs
-  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(const vector<int> &eqnumbers);
+  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(const vector<int> &eqnumbers, PacModelTable &pac_model_table);
 
   //! Substitutes diff operator
   pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteDiff(PacModelTable &pac_model_table);

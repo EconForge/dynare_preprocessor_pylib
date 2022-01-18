@@ -873,6 +873,19 @@ PacModelTable::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation
 }
 
 void
+PacModelTable::substituteUnaryOpsInGrowth(const lag_equivalence_table_t &nodes, ExprNode::subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs)
+{
+  for (auto &[name, gv] : growth)
+    if (gv)
+      gv = gv->substituteUnaryOpNodes(nodes, subst_table, neweqs);
+
+  for (auto &[name, ti] : target_info)
+    for (auto &[expr, gv, auxname, kind, coeff, growth_neutrality_param, h_indices, original_gv, gv_info] : get<2>(ti))
+      if (gv)
+        gv = gv->substituteUnaryOpNodes(nodes, subst_table, neweqs);
+}
+
+void
 PacModelTable::findDiffNodesInGrowth(lag_equivalence_table_t &diff_nodes) const
 {
   for (auto &[name, gv] : growth)

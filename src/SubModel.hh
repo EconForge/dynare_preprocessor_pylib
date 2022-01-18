@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018-2021 Dynare Team
+ * Copyright © 2018-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -276,10 +276,12 @@ public:
   bool isExistingPacModelName(const string &name_arg) const;
   bool empty() const;
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  // Called by DynamicModel::substituteUnaryOps()
+  void substituteUnaryOpsInGrowth(const lag_equivalence_table_t &nodes, ExprNode::subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs);
   void findDiffNodesInGrowth(lag_equivalence_table_t &diff_nodes) const;
   // Called by DynamicModel::substituteDiff()
   void substituteDiffNodesInGrowth(const lag_equivalence_table_t &diff_nodes, ExprNode::subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs);
-  // Must be called after substituteDiffNodesInGrowth()
+  // Must be called after substituteDiffNodesInGrowth() and substituteUnaryOpsInGrowth()
   void transformPass(const lag_equivalence_table_t &unary_ops_nodes,
                      ExprNode::subst_table_t &unary_ops_subst_table,
                      const lag_equivalence_table_t &diff_nodes,

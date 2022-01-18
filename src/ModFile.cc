@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2021 Dynare Team
+ * Copyright © 2006-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -426,10 +426,10 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   lag_equivalence_table_t unary_ops_nodes;
   ExprNode::subst_table_t unary_ops_subst_table;
   if (transform_unary_ops)
-    tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps();
+    tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps(pac_model_table);
   else
     // substitute only those unary ops that appear in auxiliary model equations
-    tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps(eqtags);
+    tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps(eqtags, pac_model_table);
 
   // Create auxiliary variable and equations for Diff operators
   auto [diff_nodes, diff_subst_table] = dynamic_model.substituteDiff(pac_model_table);
