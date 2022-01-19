@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2021 Dynare Team
+ * Copyright © 2007-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -3525,7 +3525,10 @@ UnaryOpNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_
      must be substituted. We create the auxiliary variable and fill the
      substitution table for all those similar nodes, in an iteration going from
      leads to lags. */
-  int base_index = 0;
+  int base_index = it->second.rbegin()->first; // Within the equivalence class,
+                                               // index of the node that will
+                                               // be used as the definition for
+                                               // the aux var.
   VariableNode *aux_var = nullptr;
   for (auto rit = it->second.rbegin(); rit != it->second.rend(); ++rit)
     if (rit == it->second.rbegin())
@@ -3540,9 +3543,9 @@ UnaryOpNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_
             exit(EXIT_FAILURE);
           }
 
+        auto argsubst_shifted = argsubst->decreaseLeadsLags(index - base_index);
         int symb_id;
-        auto vn = dynamic_cast<VariableNode *>(argsubst);
-        if (!vn)
+        if (auto vn = dynamic_cast<VariableNode *>(argsubst_shifted); !vn)
           symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, dynamic_cast<UnaryOpNode *>(rit->second), unary_op);
         else
           symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, dynamic_cast<UnaryOpNode *>(rit->second), unary_op,
@@ -3551,7 +3554,6 @@ UnaryOpNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_
         neweqs.push_back(datatree.AddEqual(aux_var,
                                            dynamic_cast<UnaryOpNode *>(rit->second)));
         subst_table[rit->second] = dynamic_cast<VariableNode *>(aux_var);
-        base_index = rit->first;
       }
     else
       subst_table[rit->second] = dynamic_cast<VariableNode *>(aux_var->decreaseLeadsLags(base_index - rit->first));
