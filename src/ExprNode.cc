@@ -3544,15 +3544,15 @@ UnaryOpNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_
           }
 
         auto argsubst_shifted = argsubst->decreaseLeadsLags(index - base_index);
+        auto aux_def = buildSimilarUnaryOpNode(argsubst_shifted, datatree);
         int symb_id;
         if (auto vn = dynamic_cast<VariableNode *>(argsubst_shifted); !vn)
-          symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, dynamic_cast<UnaryOpNode *>(rit->second), unary_op);
+          symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, aux_def, unary_op);
         else
-          symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, dynamic_cast<UnaryOpNode *>(rit->second), unary_op,
+          symb_id = datatree.symbol_table.addUnaryOpAuxiliaryVar(this->idx, aux_def, unary_op,
                                                                  vn->symb_id, vn->lag);
         aux_var = datatree.AddVariable(symb_id, 0);
-        neweqs.push_back(datatree.AddEqual(aux_var,
-                                           dynamic_cast<UnaryOpNode *>(rit->second)));
+        neweqs.push_back(datatree.AddEqual(aux_var, aux_def));
         subst_table[rit->second] = dynamic_cast<VariableNode *>(aux_var);
       }
     else
