@@ -3534,7 +3534,7 @@ UnaryOpNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_
     if (rit == it->second.rbegin())
       {
         /* Verify that we’re not operating on a node with leads, since the
-           transformation does take into account the expectation operator. We only
+           transformation does not take into account the expectation operator. We only
            need to do this for the first iteration of the loop, because we’re
            going from leads to lags. */
         if (rit->second->maxLead() > 0)
