@@ -235,10 +235,6 @@ private:
   //! Create a legacy *_dynamic.m file for Matlab/Octave not yet using the temporary terms array interface
   void writeDynamicMatlabCompatLayer(const string &basename) const;
 
-  set<int> getEquationNumbersFromTags(const set<string> &eqtags) const;
-
-  void findPacExpectationEquationNumbers(set<int> &eqnumber) const;
-
   //! Internal helper for the copy constructor and assignment operator
   /*! Copies all the structures that contain ExprNode*, by the converting the
       pointers into their equivalent in the new tree */
@@ -524,14 +520,13 @@ public:
   //! Substitutes out all model-local variables
   void substituteModelLocalVariables();
 
-  //! Creates aux vars for all unary operators
+  /* Creates aux vars for all unary operators in all equations. Also makes the
+     substitution in growth terms of pac_model/pac_target_info. */
   pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(PacModelTable &pac_model_table);
 
-  //! Creates aux vars for unary operators in certain equations: originally implemented for support of VARs
-  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(const set<string> &eq_tags, PacModelTable &pac_model_table);
-
-  //! Creates aux vars for unary operators in certain equations: originally implemented for support of VARs
-  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(const vector<int> &eqnumbers, PacModelTable &pac_model_table);
+  /* Creates aux vars for all unary operators in specified equations. Also makes the
+     substitution in growth terms of pac_model/pac_target_info. */
+  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(const set<int> &eqnumbers, PacModelTable &pac_model_table);
 
   //! Substitutes diff operator
   pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteDiff(PacModelTable &pac_model_table);
@@ -643,5 +638,11 @@ public:
   //! Simplify model equations: if a variable is equal to a constant, replace that variable elsewhere in the model
   /*! Equations with MCP tags are excluded, see dynare#1697 */
   void simplifyEquations();
+
+  // Converts a set of equation tags into the corresponding set of equation numbers
+  set<int> getEquationNumbersFromTags(const set<string> &eqtags) const;
+
+  // Returns the set of equations (as numbers) which have a pac_expectation operator
+  set<int> findPacExpectationEquationNumbers() const;
 };
 #endif

@@ -412,15 +412,19 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   if (unusedEndogsIsErr)
     exit(EXIT_FAILURE);
 
-  // Get all equation tags associated with VARs and Trend Component Models
-  set<string> eqtags;
-  for (const auto &it : trend_component_model_table.getEqTags())
-    for (auto &it1 : it.second)
-      eqtags.insert(it1);
+  /* Get the list of equations in which to scan for and substitute unary ops:
+     – equations which are part of VARs and Trend Component Models
+     – PAC equations (those with a pac_expectation operator) */
+  set<string> var_tcm_eqtags;
+  for (const auto &[name, tags] : trend_component_model_table.getEqTags())
+    for (auto &tag : tags)
+      var_tcm_eqtags.insert(tag);
+  for (const auto &[name, tags] : var_model_table.getEqTags())
+    for (auto &tag : tags)
+      var_tcm_eqtags.insert(tag);
 
-  for (const auto &it : var_model_table.getEqTags())
-    for (auto &it1 : it.second)
-      eqtags.insert(it1);
+  set<int> unary_ops_eqs = dynamic_model.getEquationNumbersFromTags(var_tcm_eqtags);
+  unary_ops_eqs.merge(dynamic_model.findPacExpectationEquationNumbers());
 
   // Create auxiliary variables and equations for unary ops
   lag_equivalence_table_t unary_ops_nodes;
@@ -428,8 +432,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   if (transform_unary_ops)
     tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps(pac_model_table);
   else
-    // substitute only those unary ops that appear in auxiliary model equations
-    tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps(eqtags, pac_model_table);
+    // substitute only those unary ops that appear in VAR, TCM and PAC model equations
+    tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps(unary_ops_eqs, pac_model_table);
 
   // Create auxiliary variable and equations for Diff operators
   auto [diff_nodes, diff_subst_table] = dynamic_model.substituteDiff(pac_model_table);
