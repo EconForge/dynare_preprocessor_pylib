@@ -3418,10 +3418,10 @@ UnaryOpNode::substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t 
             {
               if (i == last_index)
                 symb_id = datatree.symbol_table.addDiffLagAuxiliaryVar(argsubst->idx, rit->second,
-                                                                       last_aux_var->symb_id, last_aux_var->lag);
+                                                                       last_aux_var->symb_id, last_aux_var->lag - 1);
               else
                 symb_id = datatree.symbol_table.addDiffLagAuxiliaryVar(new_aux_var->idx, rit->second,
-                                                                       last_aux_var->symb_id, last_aux_var->lag);
+                                                                       last_aux_var->symb_id, last_aux_var->lag - 1);
 
               new_aux_var = datatree.AddVariable(symb_id, 0);
               neweqs.push_back(datatree.AddEqual(new_aux_var,
