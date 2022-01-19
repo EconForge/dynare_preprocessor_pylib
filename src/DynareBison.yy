@@ -82,7 +82,7 @@ class ParsingDriver;
 %token COMMA CONSIDER_ALL_ENDOGENOUS CONSIDER_ALL_ENDOGENOUS_AND_AUXILIARY CONSIDER_ONLY_OBSERVED INITIAL_CONDITION_DECOMPOSITION
 %token DATAFILE FILE SERIES DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR EXPRESSION
-%token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS FIRST_SIMULATION_PERIOD LAST_OBS 
+%token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS FIRST_SIMULATION_PERIOD LAST_SIMULATION_PERIOD LAST_OBS
 %token SET_TIME OSR_PARAMS_BOUNDS KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED
 %token <string> FALSE FLOAT_NUMBER DATES
 %token DEFAULT FIXED_POINT FLIP OPT_ALGO COMPILATION_SETUP COMPILER ADD_FLAGS SUBSTITUTE_FLAGS ADD_LIBS SUBSTITUTE_LIBS
@@ -119,8 +119,8 @@ class ParsingDriver;
 %token SMOOTHER SMOOTHER2HISTVAL SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS ROBUST_LIN_SOLVE
 %token STDERR STEADY STOCH_SIMUL SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME REALTIME_SHOCK_DECOMPOSITION CONDITIONAL UNCONDITIONAL
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT PLANNER_DISCOUNT_LATEX_NAME
-%token DISCRETIONARY_POLICY DISCRETIONARY_TOL EVALUATE_PLANNER_OBJECTIVE 
-%token OCCBIN_SETUP OCCBIN_SOLVER OCCBIN_WRITE_REGIMES OCCBIN_GRAPH SIMUL_MAXIT LIKELIHOOD_MAXIT SMOOTHER_MAXIT SIMUL_PERIODS LIKELIHOOD_PERIODS SMOOTHER_PERIODS 
+%token DISCRETIONARY_POLICY DISCRETIONARY_TOL EVALUATE_PLANNER_OBJECTIVE
+%token OCCBIN_SETUP OCCBIN_SOLVER OCCBIN_WRITE_REGIMES OCCBIN_GRAPH SIMUL_MAXIT LIKELIHOOD_MAXIT SMOOTHER_MAXIT SIMUL_PERIODS LIKELIHOOD_PERIODS SMOOTHER_PERIODS
 %token SIMUL_CURB_RETRENCH LIKELIHOOD_CURB_RETRENCH SMOOTHER_CURB_RETRENCH SIMUL_CHECK_AHEAD_PERIODS LIKELIHOOD_CHECK_AHEAD_PERIODS SMOOTHER_CHECK_AHEAD_PERIODS
 %token SIMUL_DEBUG SMOOTHER_DEBUG SIMUL_PERIODIC_SOLUTION LIKELIHOOD_PERIODIC_SOLUTION SMOOTHER_PERIODIC_SOLUTION
 %token LIKELIHOOD_INVERSION_FILTER SMOOTHER_INVERSION_FILTER FILTER_USE_RELEXATION
@@ -178,8 +178,8 @@ class ParsingDriver;
 %token <string> KIND LL DL DD
 /* Method of Moments */
 %token METHOD_OF_MOMENTS MOM_METHOD
-%token BARTLETT_KERNEL_LAG WEIGHTING_MATRIX WEIGHTING_MATRIX_SCALING_FACTOR ANALYTIC_STANDARD_ERRORS ANALYTIC_JACOBIAN PENALIZED_ESTIMATOR VERBOSE 
-%token SIMULATION_MULTIPLE MOM_SEED SEED BOUNDED_SHOCK_SUPPORT ADDITIONAL_OPTIMIZER_STEPS MOM_SE_TOLX SE_TOLX MOM_BURNIN BURNIN 
+%token BARTLETT_KERNEL_LAG WEIGHTING_MATRIX WEIGHTING_MATRIX_SCALING_FACTOR ANALYTIC_STANDARD_ERRORS ANALYTIC_JACOBIAN PENALIZED_ESTIMATOR VERBOSE
+%token SIMULATION_MULTIPLE MOM_SEED SEED BOUNDED_SHOCK_SUPPORT ADDITIONAL_OPTIMIZER_STEPS MOM_SE_TOLX SE_TOLX MOM_BURNIN BURNIN
 %token EQTAGS
 %token ANALYTICAL_GIRF IRF_IN_PERCENT EMAS_GIRF EMAS_DROP EMAS_TOLF EMAS_MAX_ITER
 %token NO_IDENTIFICATION_STRENGTH NO_IDENTIFICATION_REDUCEDFORM NO_IDENTIFICATION_MOMENTS
@@ -827,6 +827,8 @@ h_options: o_filename
           | o_data_first_obs
           | o_first_simulation_period
           | o_date_first_simulation_period
+          | o_last_simulation_period
+          | o_date_last_simulation_period
           | o_last_obs
           | o_data_last_obs
           | o_nobs
@@ -2630,7 +2632,7 @@ occbin_setup_option : o_occbin_simul_periods
                     | o_occbin_smoother_debug
                     | o_occbin_filter_use_relaxation
                     ;
-                    
+
 occbin_solver : OCCBIN_SOLVER ';'
                 { driver.occbin_solver(); }
               | OCCBIN_SOLVER '(' occbin_solver_options_list ')' ';'
@@ -3585,6 +3587,8 @@ o_first_obs : FIRST_OBS EQUAL INT_NUMBER { driver.option_num("first_obs", $3); }
 o_data_first_obs : FIRST_OBS EQUAL date_expr { driver.option_date("firstobs", $3); } ;
 o_first_simulation_period : FIRST_SIMULATION_PERIOD EQUAL INT_NUMBER { driver.option_num("first_simulation_period", $3); };
 o_date_first_simulation_period : FIRST_SIMULATION_PERIOD EQUAL date_expr { driver.option_date("firstsimulationperiod", $3); } ;
+o_last_simulation_period : LAST_SIMULATION_PERIOD EQUAL INT_NUMBER { driver.option_num("last_simulation_period", $3); };
+o_date_last_simulation_period : LAST_SIMULATION_PERIOD EQUAL date_expr { driver.option_date("lastsimulationperiod", $3); } ;
 o_last_obs : LAST_OBS EQUAL INT_NUMBER { driver.option_num("last_obs", $3); };
 o_data_last_obs : LAST_OBS EQUAL date_expr { driver.option_date("lastobs", $3); } ;
 o_keep_kalman_algo_if_singularity_is_detected : KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED { driver.option_num("kalman.keep_kalman_algo_if_singularity_is_detected", "true"); } ;
@@ -4145,7 +4149,7 @@ o_analytic_jacobian : ANALYTIC_JACOBIAN { driver.option_num("mom.analytic_jacobi
 o_mom_method : MOM_METHOD EQUAL GMM
                { driver.option_str("mom.mom_method", "GMM"); }
              | MOM_METHOD EQUAL SMM
-               { driver.option_str("mom.mom_method", "SMM"); }                    
+               { driver.option_str("mom.mom_method", "SMM"); }
              ;
 o_penalized_estimator : PENALIZED_ESTIMATOR { driver.option_num("mom.penalized_estimator", "true"); };
 o_verbose : VERBOSE { driver.option_num("mom.verbose", "true"); };
@@ -4212,9 +4216,9 @@ o_occbin_smoother_periodic_solution : SMOOTHER_PERIODIC_SOLUTION { driver.option
 o_occbin_filter_use_relaxation : FILTER_USE_RELEXATION { driver.option_num("filter.use_relaxation", "true"); };
 
 // Some options to "occbin_write_regimes"
-o_occbin_write_regimes_periods : PERIODS EQUAL vec_int 
+o_occbin_write_regimes_periods : PERIODS EQUAL vec_int
                                  { driver.option_vec_int("write_regimes.periods", $3); };
-                               | PERIODS EQUAL vec_int_number 
+                               | PERIODS EQUAL vec_int_number
                                  { driver.option_vec_int("write_regimes.periods", $3); }
 o_occbin_write_regimes_filename : FILENAME EQUAL filename { driver.option_str("write_regimes.filename", $3); };
 o_occbin_write_regimes_smoother : SMOOTHER { driver.option_str("write_regimes.type", "smoother"); };

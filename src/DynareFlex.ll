@@ -183,7 +183,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>svar_global_identification_check {BEGIN DYNARE_STATEMENT; return token::SVAR_GLOBAL_IDENTIFICATION_CHECK;}
 <INITIAL>external_function {BEGIN DYNARE_STATEMENT; return token::EXTERNAL_FUNCTION;}
  /* End of a Dynare statement */
-<INITIAL>calib_smoother { BEGIN DYNARE_STATEMENT; return token::CALIB_SMOOTHER; } 
+<INITIAL>calib_smoother { BEGIN DYNARE_STATEMENT; return token::CALIB_SMOOTHER; }
 <INITIAL>model_diagnostics {BEGIN DYNARE_STATEMENT; return token::MODEL_DIAGNOSTICS;}
 <INITIAL>extended_path {BEGIN DYNARE_STATEMENT; return token::EXTENDED_PATH;}
 <INITIAL>smoother2histval {BEGIN DYNARE_STATEMENT; return token::SMOOTHER2HISTVAL;}
@@ -448,6 +448,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>use_penalized_objective_for_hessian {return token::USE_PENALIZED_OBJECTIVE_FOR_HESSIAN;}
 <DYNARE_STATEMENT>expression    {return token::EXPRESSION;}
 <DYNARE_STATEMENT>first_simulation_period {return token::FIRST_SIMULATION_PERIOD;}
+<DYNARE_STATEMENT>last_simulation_period {return token::LAST_SIMULATION_PERIOD;}
 <DYNARE_STATEMENT>no_init_estimation_check_first_obs {return token::NO_INIT_ESTIMATION_CHECK_FIRST_OBS;}
 
 <DYNARE_STATEMENT>alpha {
