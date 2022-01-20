@@ -958,7 +958,9 @@ VarExpectationModelTable::writeJsonOutput(ostream &output) const
              << R"("horizon": ")" << horizon.at(name) << R"(", )"
              << R"("discount": ")";
       discount.at(name)->writeOutput(output);
-      output << R"("})";
+      output << R"(", )"
+             << R"("time_shift": )" << time_shift.at(name)
+             << R"(})";
     }
 }
 
