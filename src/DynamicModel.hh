@@ -521,15 +521,17 @@ public:
   void substituteModelLocalVariables();
 
   /* Creates aux vars for all unary operators in all equations. Also makes the
-     substitution in growth terms of pac_model/pac_target_info. */
-  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(PacModelTable &pac_model_table);
+     substitution in growth terms of pac_model/pac_target_info and in
+     expressions of var_expectation_model. */
+  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(VarExpectationModelTable &var_expectation_model_table, PacModelTable &pac_model_table);
 
   /* Creates aux vars for all unary operators in specified equations. Also makes the
-     substitution in growth terms of pac_model/pac_target_info. */
-  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(const set<int> &eqnumbers, PacModelTable &pac_model_table);
+     substitution in growth terms of pac_model/pac_target_info and in
+     expressions of var_expectation_model. */
+  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(const set<int> &eqnumbers, VarExpectationModelTable &var_expectation_model_table, PacModelTable &pac_model_table);
 
   //! Substitutes diff operator
-  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteDiff(PacModelTable &pac_model_table);
+  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteDiff(VarExpectationModelTable &var_expectation_model_table, PacModelTable &pac_model_table);
 
   //! Substitute VarExpectation operators
   void substituteVarExpectation(const map<string, expr_t> &subst_table);

@@ -3457,10 +3457,9 @@ ParsingDriver::var_expectation_model()
   if (time_shift > 0)
     error("The 'time_shift' option must be a non-positive integer");
 
-  mod_file->addStatement(make_unique<VarExpectationModelStatement>(model_name, var_expectation_model_expression,
-                                                                   var_model_name, horizon,
-                                                                   var_expectation_model_discount, time_shift,
-                                                                   mod_file->symbol_table));
+  mod_file->var_expectation_model_table.addVarExpectationModel(model_name, var_expectation_model_expression,
+                                                               var_model_name, horizon,
+                                                               var_expectation_model_discount, time_shift);
 
   options_list.clear();
   var_expectation_model_discount = nullptr;

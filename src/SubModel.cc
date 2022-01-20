@@ -754,6 +754,215 @@ VarModelTable::getLhsExprT(const string &name_arg) const
   return lhs_expr_t.find(name_arg)->second;
 }
 
+
+VarExpectationModelTable::VarExpectationModelTable(SymbolTable &symbol_table_arg) :
+  symbol_table{symbol_table_arg}
+{
+}
+
+void
+VarExpectationModelTable::addVarExpectationModel(string name_arg, expr_t expression_arg, string aux_model_name_arg, string horizon_arg, expr_t discount_arg, int time_shift_arg)
+{
+  if (isExistingVarExpectationModelName(name_arg))
+    {
+      cerr << "Error: a var_expectation_model already exists with the name " << name_arg << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  expression[name_arg] = expression_arg;
+  aux_model_name[name_arg] = move(aux_model_name_arg);
+  horizon[name_arg] = move(horizon_arg);
+  discount[name_arg] = discount_arg;
+  time_shift[name_arg] = time_shift_arg;
+  names.insert(move(name_arg));
+}
+
+bool
+VarExpectationModelTable::isExistingVarExpectationModelName(const string &name_arg) const
+{
+  return names.find(name_arg) != names.end();
+}
+
+bool
+VarExpectationModelTable::empty() const
+{
+  return names.empty();
+}
+
+void
+VarExpectationModelTable::writeOutput(const string &basename, ostream &output) const
+{
+  for (const auto &name : names)
+    {
+      string mstruct = "M_.var_expectation." + name;
+      output << mstruct << ".auxiliary_model_name = '" << aux_model_name.at(name) << "';" << endl
+             << mstruct << ".horizon = " << horizon.at(name) << ';' << endl
+             << mstruct << ".time_shift = " << time_shift.at(name) << ';' << endl;
+
+      auto &vpc = vars_params_constants.at(name);
+      if (!vpc.size())
+        {
+          cerr << "ERROR: VarExpectationModelStatement::writeOutput: matchExpression() has not been called" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      ostringstream vars_list, params_list, constants_list;
+      for (auto it = vpc.begin(); it != vpc.end(); ++it)
+        {
+          if (it != vpc.begin())
+            {
+              vars_list << ", ";
+              params_list << ", ";
+              constants_list << ", ";
+            }
+          vars_list << symbol_table.getTypeSpecificID(get<0>(*it))+1;
+          if (get<1>(*it) == -1)
+            params_list << "NaN";
+          else
+            params_list << symbol_table.getTypeSpecificID(get<1>(*it))+1;
+          constants_list << get<2>(*it);
+        }
+      output << mstruct << ".expr.vars = [ " << vars_list.str() << " ];" << endl
+             << mstruct << ".expr.params = [ " << params_list.str() << " ];" << endl
+             << mstruct << ".expr.constants = [ " << constants_list.str() << " ];" << endl;
+
+      if (auto disc_var = dynamic_cast<const VariableNode *>(discount.at(name));
+          disc_var)
+        output << mstruct << ".discount_index = " << symbol_table.getTypeSpecificID(disc_var->symb_id) + 1 << ';' << endl;
+      else
+        {
+          output << mstruct << ".discount_value = ";
+          discount.at(name)->writeOutput(output);
+          output << ';' << endl;
+        }
+      output << mstruct << ".param_indices = [ ";
+      for (int param_id : aux_param_symb_ids.at(name))
+        output << symbol_table.getTypeSpecificID(param_id)+1 << ' ';
+      output << "];" << endl;
+    }
+}
+
+void
+VarExpectationModelTable::substituteUnaryOpsInExpression(const lag_equivalence_table_t &nodes, ExprNode::subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs)
+{
+  for (const auto &name : names)
+    expression[name] = expression[name]->substituteUnaryOpNodes(nodes, subst_table, neweqs);
+}
+
+void
+VarExpectationModelTable::substituteDiffNodesInExpression(const lag_equivalence_table_t &nodes, ExprNode::subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs)
+{
+  for (const auto &name : names)
+    expression[name] = expression[name]->substituteDiff(nodes, subst_table, neweqs);
+}
+
+void
+VarExpectationModelTable::transformPass(ExprNode::subst_table_t &diff_subst_table,
+                                        DynamicModel &dynamic_model, const VarModelTable &var_model_table,
+                                        const TrendComponentModelTable &trend_component_model_table)
+{
+  map<string, expr_t> var_expectation_subst_table;
+
+  for (const auto &name : names)
+    {
+      // Collect information about the auxiliary model
+
+      int max_lag;
+      vector<int> lhs;
+      if (var_model_table.isExistingVarModelName(aux_model_name[name]))
+        {
+          max_lag = var_model_table.getMaxLag(aux_model_name[name]);
+          lhs = var_model_table.getLhs(aux_model_name[name]);
+        }
+      else if (trend_component_model_table.isExistingTrendComponentModelName(aux_model_name[name]))
+        {
+          max_lag = trend_component_model_table.getMaxLag(aux_model_name[name]) + 1;
+          lhs = dynamic_model.getUndiffLHSForPac(aux_model_name[name], diff_subst_table);
+        }
+      else
+        {
+          cerr << "ERROR: var_expectation_model " << name
+               << " refers to nonexistent auxiliary model " << aux_model_name[name] << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      // Match the linear combination in the expression option
+      try
+        {
+          auto vpc = expression[name]->matchLinearCombinationOfVariables();
+          for (const auto &[variable_id, lag, param_id, constant] : vpc)
+            {
+              if (lag != 0)
+                throw ExprNode::MatchFailureException{"lead/lags are not allowed"};
+              if (symbol_table.getType(variable_id) != SymbolType::endogenous)
+                throw ExprNode::MatchFailureException{"Variable is not an endogenous"};
+              vars_params_constants[name].emplace_back(variable_id, param_id, constant);
+            }
+        }
+      catch (ExprNode::MatchFailureException &e)
+        {
+          cerr << "ERROR: expression in var_expectation_model " << name << " is not of the expected form: " << e.message << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      /* Create auxiliary parameters and the expression to be substituted into
+         the var_expectations statement */
+      expr_t subst_expr = dynamic_model.Zero;
+      if (var_model_table.isExistingVarModelName(aux_model_name[name]))
+        {
+          /* If the auxiliary model is a VAR, add a parameter corresponding to
+             the constant. */
+          string constant_param_name = "var_expectation_model_" + name + "_constant";
+          int constant_param_id = symbol_table.addSymbol(constant_param_name, SymbolType::parameter);
+          aux_param_symb_ids[name].push_back(constant_param_id);
+          subst_expr = dynamic_model.AddPlus(subst_expr, dynamic_model.AddVariable(constant_param_id));
+        }
+      for (int lag = 0; lag < max_lag; lag++)
+        for (auto variable : lhs)
+          {
+            string param_name = "var_expectation_model_" + name + '_' + symbol_table.getName(variable) + '_' + to_string(lag);
+            int new_param_id = symbol_table.addSymbol(param_name, SymbolType::parameter);
+            aux_param_symb_ids[name].push_back(new_param_id);
+
+            subst_expr = dynamic_model.AddPlus(subst_expr,
+                                               dynamic_model.AddTimes(dynamic_model.AddVariable(new_param_id),
+                                                                      dynamic_model.AddVariable(variable, -lag + time_shift[name])));
+          }
+
+      if (var_expectation_subst_table.find(name) != var_expectation_subst_table.end())
+        {
+          cerr << "ERROR: model name '" << name << "' is used by several var_expectation_model statements" << endl;
+          exit(EXIT_FAILURE);
+        }
+      var_expectation_subst_table[name] = subst_expr;
+    }
+
+  // Actually substitute var_expectation statements
+  dynamic_model.substituteVarExpectation(var_expectation_subst_table);
+  /* At this point, we know that all var_expectation operators have been
+     substituted, because of the error check performed in
+     VarExpectationNode::substituteVarExpectation(). */
+}
+
+void
+VarExpectationModelTable::writeJsonOutput(ostream &output) const
+{
+  for (const auto &name : names)
+    {
+      output << R"({"statementName": "var_expectation_model",)"
+             << R"("model_name": ")" << name << R"(", )"
+             << R"("expression": ")";
+      expression.at(name)->writeOutput(output);
+      output << R"(", )"
+             << R"("auxiliary_model_name": ")" << aux_model_name.at(name) << R"(", )"
+             << R"("horizon": ")" << horizon.at(name) << R"(", )"
+             << R"("discount": ")";
+      discount.at(name)->writeOutput(output);
+      output << R"("})";
+    }
+}
+
+
 PacModelTable::PacModelTable(SymbolTable &symbol_table_arg) :
   symbol_table{symbol_table_arg}
 {

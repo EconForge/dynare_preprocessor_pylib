@@ -190,6 +190,36 @@ VarModelTable::empty() const
   return names.empty();
 }
 
+class VarExpectationModelTable
+{
+private:
+  SymbolTable &symbol_table;
+  set<string> names;
+  map<string, expr_t> expression;
+  map<string, string> aux_model_name;
+  map<string, string> horizon;
+  map<string, expr_t> discount;
+  map<string, int> time_shift;
+  // For each model, list of generated auxiliary param ids, in variable-major order
+  map<string, vector<int>> aux_param_symb_ids;
+  // Decomposition of the expression
+  map<string, vector<tuple<int, int, double>>> vars_params_constants;
+public:
+  explicit VarExpectationModelTable(SymbolTable &symbol_table_arg);
+  void addVarExpectationModel(string name_arg, expr_t expression_arg, string aux_model_name_arg,
+                              string horizon_arg, expr_t discount_arg, int time_shift_arg);
+  bool isExistingVarExpectationModelName(const string &name_arg) const;
+  bool empty() const;
+  void substituteUnaryOpsInExpression(const lag_equivalence_table_t &nodes, ExprNode::subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs);
+  // Called by DynamicModel::substituteDiff()
+  void substituteDiffNodesInExpression(const lag_equivalence_table_t &diff_nodes, ExprNode::subst_table_t &diff_subst_table, vector<BinaryOpNode *> &neweqs);
+  void transformPass(ExprNode::subst_table_t &diff_subst_table,
+                     DynamicModel &dynamic_model, const VarModelTable &var_model_table,
+                     const TrendComponentModelTable &trend_component_model_table);
+  void writeOutput(const string &basename, ostream &output) const;
+  void writeJsonOutput(ostream &output) const;
+};
+
 class PacModelTable
 {
 private:

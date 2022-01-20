@@ -5587,15 +5587,15 @@ DynamicModel::findPacExpectationEquationNumbers() const
 }
 
 pair<lag_equivalence_table_t, ExprNode::subst_table_t>
-DynamicModel::substituteUnaryOps(PacModelTable &pac_model_table)
+DynamicModel::substituteUnaryOps(VarExpectationModelTable &var_expectation_model_table, PacModelTable &pac_model_table)
 {
   vector<int> eqnumbers(equations.size());
   iota(eqnumbers.begin(), eqnumbers.end(), 0);
-  return substituteUnaryOps(set<int>(eqnumbers.begin(), eqnumbers.end()), pac_model_table);
+  return substituteUnaryOps(set<int>(eqnumbers.begin(), eqnumbers.end()), var_expectation_model_table, pac_model_table);
 }
 
 pair<lag_equivalence_table_t, ExprNode::subst_table_t>
-DynamicModel::substituteUnaryOps(const set<int> &eqnumbers, PacModelTable &pac_model_table)
+DynamicModel::substituteUnaryOps(const set<int> &eqnumbers, VarExpectationModelTable &var_expectation_model_table, PacModelTable &pac_model_table)
 {
   lag_equivalence_table_t nodes;
   ExprNode::subst_table_t subst_table;
@@ -5625,6 +5625,8 @@ DynamicModel::substituteUnaryOps(const set<int> &eqnumbers, PacModelTable &pac_m
       equations[eq] = substeq;
     }
 
+  // Substitute in expressions of var_expectation_model
+  var_expectation_model_table.substituteUnaryOpsInExpression(nodes, subst_table, neweqs);
   // Substitute in growth terms in pac_model and pac_target_info
   pac_model_table.substituteUnaryOpsInGrowth(nodes, subst_table, neweqs);
 
@@ -5642,7 +5644,7 @@ DynamicModel::substituteUnaryOps(const set<int> &eqnumbers, PacModelTable &pac_m
 }
 
 pair<lag_equivalence_table_t, ExprNode::subst_table_t>
-DynamicModel::substituteDiff(PacModelTable &pac_model_table)
+DynamicModel::substituteDiff(VarExpectationModelTable &var_expectation_model_table, PacModelTable &pac_model_table)
 {
   /* Note: at this point, we know that there is no diff operator with a lead,
      because they have been expanded by DataTree::AddDiff().
@@ -5680,6 +5682,7 @@ DynamicModel::substituteDiff(PacModelTable &pac_model_table)
       equation = substeq;
     }
 
+  var_expectation_model_table.substituteDiffNodesInExpression(diff_nodes, diff_subst_table, neweqs);
   pac_model_table.substituteDiffNodesInGrowth(diff_nodes, diff_subst_table, neweqs);
 
   // Add new equations

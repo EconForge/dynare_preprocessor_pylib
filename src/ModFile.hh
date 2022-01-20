@@ -55,6 +55,8 @@ public:
   VarModelTable var_model_table;
   //! Trend Component Model Table used for storing info about trend component models
   TrendComponentModelTable trend_component_model_table;
+  //! Table for storing the models declared with var_expectation_model
+  VarExpectationModelTable var_expectation_model_table;
   //! PAC Model Table used for storing info about pac models
   PacModelTable pac_model_table;
   //! Expressions outside model block

@@ -34,6 +34,7 @@
 ModFile::ModFile(WarningConsolidation &warnings_arg)
   : var_model_table{symbol_table},
     trend_component_model_table{symbol_table},
+    var_expectation_model_table{symbol_table},
     pac_model_table{symbol_table},
     expressions_tree{symbol_table, num_constants, external_functions_table},
     original_model{symbol_table, num_constants, external_functions_table,
@@ -430,13 +431,13 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   lag_equivalence_table_t unary_ops_nodes;
   ExprNode::subst_table_t unary_ops_subst_table;
   if (transform_unary_ops)
-    tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps(pac_model_table);
+    tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps(var_expectation_model_table, pac_model_table);
   else
     // substitute only those unary ops that appear in VAR, TCM and PAC model equations
-    tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps(unary_ops_eqs, pac_model_table);
+    tie(unary_ops_nodes, unary_ops_subst_table) = dynamic_model.substituteUnaryOps(unary_ops_eqs, var_expectation_model_table, pac_model_table);
 
   // Create auxiliary variable and equations for Diff operators
-  auto [diff_nodes, diff_subst_table] = dynamic_model.substituteDiff(pac_model_table);
+  auto [diff_nodes, diff_subst_table] = dynamic_model.substituteDiff(var_expectation_model_table, pac_model_table);
 
   // Fill trend component and VAR model tables
   dynamic_model.fillTrendComponentModelTable();
@@ -444,6 +445,10 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   dynamic_model.fillTrendComponentModelTableAREC(diff_subst_table);
   dynamic_model.fillVarModelTable();
   original_model.fillVarModelTableFromOrigModel();
+
+  // VAR expectation models
+  var_expectation_model_table.transformPass(diff_subst_table, dynamic_model, var_model_table,
+                                            trend_component_model_table);
 
   // PAC model
   pac_model_table.transformPass(unary_ops_nodes, unary_ops_subst_table,
@@ -494,77 +499,6 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       mod_file_struct.ramsey_eq_nbr = dynamic_model.equation_number() - mod_file_struct.orig_eq_nbr;
     }
 
-  /* Handle var_expectation_model statements: collect information about them,
-     create the new corresponding parameters, and the expressions to replace
-     the var_expectation statements.
-     TODO: move information collection to checkPass(), within a new
-     VarModelTable class */
-  map<string, expr_t> var_expectation_subst_table;
-  for (auto &statement : statements)
-    {
-      auto vems = dynamic_cast<VarExpectationModelStatement *>(statement.get());
-      if (!vems)
-        continue;
-
-      int max_lag;
-      vector<int> lhs;
-      auto &model_name = vems->model_name;
-      if (var_model_table.isExistingVarModelName(vems->aux_model_name))
-        {
-          max_lag = var_model_table.getMaxLag(vems->aux_model_name);
-          lhs = var_model_table.getLhs(vems->aux_model_name);
-        }
-      else if (trend_component_model_table.isExistingTrendComponentModelName(vems->aux_model_name))
-        {
-          max_lag = trend_component_model_table.getMaxLag(vems->aux_model_name) + 1;
-          lhs = dynamic_model.getUndiffLHSForPac(vems->aux_model_name, diff_subst_table);
-        }
-      else
-        {
-          cerr << "ERROR: var_expectation_model " << model_name
-               << " refers to nonexistent auxiliary model " << vems->aux_model_name << endl;
-          exit(EXIT_FAILURE);
-        }
-
-      /* Substitute unary and diff operators in the 'expression' option, then
-         match the linear combination in the expression option */
-      vems->substituteUnaryOpNodes(unary_ops_nodes, unary_ops_subst_table);
-      vems->substituteDiff(diff_nodes, diff_subst_table);
-      vems->matchExpression();
-
-      /* Create auxiliary parameters and the expression to be substituted into
-         the var_expectations statement */
-      expr_t subst_expr = dynamic_model.Zero;
-      if (var_model_table.isExistingVarModelName(vems->aux_model_name))
-        {
-          /* If the auxiliary model is a VAR, add a parameter corresponding to
-             the constant. */
-          string constant_param_name = "var_expectation_model_" + model_name + "_constant";
-          int constant_param_id = symbol_table.addSymbol(constant_param_name, SymbolType::parameter);
-          vems->aux_params_ids.push_back(constant_param_id);
-          subst_expr = dynamic_model.AddPlus(subst_expr, dynamic_model.AddVariable(constant_param_id));
-        }
-      for (int lag = 0; lag < max_lag; lag++)
-        for (auto variable : lhs)
-          {
-            string param_name = "var_expectation_model_" + model_name + '_' + symbol_table.getName(variable) + '_' + to_string(lag);
-            int new_param_id = symbol_table.addSymbol(param_name, SymbolType::parameter);
-            vems->aux_params_ids.push_back(new_param_id);
-
-            subst_expr = dynamic_model.AddPlus(subst_expr,
-                                               dynamic_model.AddTimes(dynamic_model.AddVariable(new_param_id),
-                                                                      dynamic_model.AddVariable(variable, -lag + vems->time_shift)));
-          }
-
-      if (var_expectation_subst_table.find(model_name) != var_expectation_subst_table.end())
-        {
-          cerr << "ERROR: model name '" << model_name << "' is used by several var_expectation_model statements" << endl;
-          exit(EXIT_FAILURE);
-        }
-      var_expectation_subst_table[model_name] = subst_expr;
-    }
-  // And finally perform the substitutions
-  dynamic_model.substituteVarExpectation(var_expectation_subst_table);
   dynamic_model.createVariableMapping();
 
   /* Create auxiliary vars for leads and lags greater than 2, on both endos and
@@ -929,6 +863,7 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
 
   var_model_table.writeOutput(basename, mOutputFile);
   trend_component_model_table.writeOutput(basename, mOutputFile);
+  var_expectation_model_table.writeOutput(basename, mOutputFile);
   pac_model_table.writeOutput(basename, mOutputFile);
 
   // Initialize M_.Sigma_e, M_.Correlation_matrix, M_.H, and M_.Correlation_matrix_ME
@@ -1220,6 +1155,12 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
       if (!trend_component_model_table.empty())
         {
           trend_component_model_table.writeJsonOutput(output);
+          output << ", ";
+        }
+
+      if (!var_expectation_model_table.empty())
+        {
+          var_expectation_model_table.writeJsonOutput(output);
           output << ", ";
         }
 
