@@ -422,7 +422,7 @@ InitvalFileStatement::writeOutput(ostream &output, const string &basename, bool 
          << "%" << endl
          << "options_.initval_file = true;" << endl;
   options_list.writeOutput(output, "options_initvalf");
-  output << "oo_.initval_series = initvalf(M_, options_initvalf);" << endl;
+  output << "[oo_.initval_series, options_.periods] = initvalf(M_, options_initvalf);" << endl;
 }
 
 void
