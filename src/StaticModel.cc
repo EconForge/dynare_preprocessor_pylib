@@ -1003,6 +1003,19 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
   equations.clear();
   copy(neweqs.begin(), neweqs.end(), back_inserter(equations));
 
+  /* In both MATLAB and Julia, tensors for higher-order derivatives are stored
+     in matrices whose columns correspond to variable multi-indices. Since we
+     currently are limited to 32-bit signed integers (hence 31 bits) for matrix
+     indices, check that we will not overflow (see #89). Note that such a check
+     is not needed for parameter derivatives, since tensors for those are not
+     stored as matrices. This check is implemented at this place for symmetry
+     with DynamicModel::computingPass(). */
+  if (log2(symbol_table.endo_nbr())*derivsOrder >= numeric_limits<int>::digits)
+    {
+      cerr << "ERROR: The static derivatives matrix is too large. Please decrease the approximation order." << endl;
+      exit(EXIT_FAILURE);
+    }
+
   // Compute derivatives w.r. to all endogenous
   set<int> vars;
   for (int i = 0; i < symbol_table.endo_nbr(); i++)

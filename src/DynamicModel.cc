@@ -4194,6 +4194,19 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
   // Computes dynamic jacobian columns, must be done after computeDerivIDs()
   computeDynJacobianCols(jacobianExo);
 
+  /* In both MATLAB and Julia, tensors for higher-order derivatives are stored
+     in matrices whose columns correspond to variable multi-indices. Since we
+     currently are limited to 32-bit signed integers (hence 31 bits) for matrix
+     indices, check that we will not overflow (see #89). Note that such a check
+     is not needed for parameter derivatives, since tensors for those are not
+     stored as matrices. This check cannot be done before since
+     dynJacobianColsNbr is not yet set.*/
+  if (log2(dynJacobianColsNbr)*derivsOrder >= numeric_limits<int>::digits)
+    {
+      cerr << "ERROR: The dynamic derivatives matrix is too large. Please decrease the approximation order." << endl;
+      exit(EXIT_FAILURE);
+    }
+
   // Compute derivatives w.r. to all endogenous, and possibly exogenous and exogenous deterministic
   set<int> vars;
   for (auto &it : deriv_id_table)
