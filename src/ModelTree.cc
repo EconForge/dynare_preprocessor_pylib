@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -902,17 +902,17 @@ ModelTree::computeDerivatives(int order, const set<int> &vars)
 
   // Higher-order derivatives
   for (int o = 2; o <= order; o++)
-    for (const auto &it : derivatives[o-1])
+    for (const auto &[lower_indices, lower_d] : derivatives[o-1])
       for (int var : vars)
         {
-          if (it.first.back() > var)
+          if (lower_indices.back() > var)
             continue;
 
-          expr_t d = it.second->getDerivative(var);
+          expr_t d = lower_d->getDerivative(var);
           if (d == Zero)
             continue;
 
-          vector<int> indices{it.first};
+          vector<int> indices{lower_indices};
           indices.push_back(var);
           // At this point, indices of endogenous variables are sorted in non-decreasing order
           derivatives[o][indices] = d;
@@ -1639,33 +1639,33 @@ ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
         }
 
       for (int endoOrd = 1; endoOrd < static_cast<int>(derivatives.size()); endoOrd++)
-        for (const auto &[indices, dprev] : derivatives[endoOrd])
+        for (const auto &[lower_indices, lower_d] : derivatives[endoOrd])
           {
-            expr_t d = dprev->getDerivative(param);
+            expr_t d = lower_d->getDerivative(param);
             if (d == Zero)
               continue;
-            vector<int> new_indices = indices;
-            new_indices.push_back(param);
-            params_derivatives[{ endoOrd, 1 }][new_indices] = d;
+            vector<int> indices{lower_indices};
+            indices.push_back(param);
+            params_derivatives[{ endoOrd, 1 }][indices] = d;
           }
     }
 
   // Higher-order derivatives w.r.t. parameters
   for (int endoOrd = 0; endoOrd < static_cast<int>(derivatives.size()); endoOrd++)
     for (int paramOrd = 2; paramOrd <= paramsDerivsOrder; paramOrd++)
-      for (const auto &[indices, dprev] : params_derivatives[{ endoOrd, paramOrd-1 }])
+      for (const auto &[lower_indices, lower_d] : params_derivatives[{ endoOrd, paramOrd-1 }])
         for (int param : deriv_id_set)
           {
-            if (indices.back() > param)
+            if (lower_indices.back() > param)
               continue;
 
-            expr_t d = dprev->getDerivative(param);
+            expr_t d = lower_d->getDerivative(param);
             if (d == Zero)
               continue;
-            vector<int> new_indices = indices;
-            new_indices.push_back(param);
+            vector<int> indices{lower_indices};
+            indices.push_back(param);
             // At this point, indices of both endogenous and parameters are sorted in non-decreasing order
-            params_derivatives[{ endoOrd, paramOrd }][new_indices] = d;
+            params_derivatives[{ endoOrd, paramOrd }][indices] = d;
           }
 }
 
