@@ -72,9 +72,10 @@ Include::interpret(ostream &output, Environment &env, vector<filesystem::path> &
             }
         }
       Driver m;
-      // Calling `string()` method on filename and filename.stem() because of bug in
-      // MinGW 8.3.0 that ignores implicit conversion to string from filename::path.
-      // Test if bug exists when version of MinGW is upgraded on Debian runners
+      /* Calling `string()` method on filename and filename.stem() because of
+         bug in GCC/MinGW 10.2 (shipped in Debian “Bullseye” 11), that fails
+         to accept implicit conversion to string from filename::path. See
+         https://en.cppreference.com/w/cpp/filesystem/path/native. */
       m.parse(filename.string(), filename.stem().string(), incfile, false, {}, env, paths, output);
     }
   catch (StackTrace &ex)
