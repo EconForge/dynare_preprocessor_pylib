@@ -1467,14 +1467,6 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
     output << "M_.pac." << model << ".growth_neutrality_param_index = "
            << symbol_table.getTypeSpecificID(growth_neutrality_param_index) + 1 << ";" << endl;
 
-  for (auto &[model, lhs] : lhs)
-    {
-      output << "M_.pac." << model << ".lhs = [";
-      for (auto id : lhs)
-        output << id + 1 << " ";
-      output << "];" << endl;
-    }
-
   for (auto &[model, type] : aux_model_type)
       output << "M_.pac." << model << ".auxiliary_model_type = '" << type << "';" << endl;
 
