@@ -8927,3 +8927,11 @@ ExprNode::matchLinearCombinationOfEndogenousWithConstant() const
       }
   return { endo_terms, intercept };
 }
+
+string
+ExprNode::toString() const
+{
+  ostringstream ss;
+  writeJsonOutput(ss, {}, {});
+  return ss.str();
+}

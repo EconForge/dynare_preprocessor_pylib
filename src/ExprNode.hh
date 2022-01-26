@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2021 Dynare Team
+ * Copyright © 2007-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -340,6 +340,9 @@ public:
 
   //! Writes output of node in JSON syntax
   virtual void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic = true) const = 0;
+
+  // Returns a string representation of the expression, used by the GDB pretty printer
+  string toString() const;
 
   //! Writes the Abstract Syntax Tree in JSON
   virtual void writeJsonAST(ostream &output) const = 0;

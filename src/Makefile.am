@@ -62,6 +62,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 EXTRA_DIST = \
 	Doxyfile \
+	dynare-preprocessor-gdb.py \
 	$(BUILT_SOURCES)
 
 # The -I. is for <FlexLexer.h>
