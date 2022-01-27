@@ -3983,7 +3983,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(const string &nam
     {
       expr_t this_diff_node = AddDiff(create_target_lag(i));
       int symb_id = symbol_table.addDiffLeadAuxiliaryVar(this_diff_node->idx, this_diff_node,
-                                                         last_aux_var->symb_id, last_aux_var->lag);
+                                                         last_aux_var->symb_id, 1);
       VariableNode *current_aux_var = AddVariable(symb_id);
       auto neweq = AddEqual(current_aux_var, AddVariable(last_aux_var->symb_id, 1));
       addEquation(neweq, -1);

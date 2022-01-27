@@ -325,10 +325,18 @@ public:
      N.B.: some code might rely on the fact that, in particular, it does not work on unaryOp
      type (to be verified) */
   int getOrigSymbIdForAuxVar(int aux_var_symb_id) const noexcept(false);
-  //! Searches for diff aux var and finds the original lag associated with this variable
-  int getOrigLeadLagForDiffAuxVar(int diff_aux_var_symb_id) const noexcept(false);
-  //! Searches for diff aux var and finds the symb id associated with this variable
-  int getOrigSymbIdForDiffAuxVar(int diff_aux_var_symb_id) const noexcept(false);
+  /* Unrolls a chain of diffLag or diffLead aux vars until it founds a (regular) diff aux
+     var. In other words:
+     - if the arg is a (regu) diff aux var, returns the arg
+     - if the arg is a diffLag/diffLead, get its orig symb ID, and call the
+       method recursively
+     - if the arg is something else, throw an UnknownSymbolIDException
+       exception
+     The 2nd input/output arguments are used to track leads/lags. The 2nd
+     output argument is equal to the 2nd input argument, shifted by as many
+     lead/lags were encountered in the chain (a diffLag decreases it, a
+     diffLead increases it). */
+  pair<int, int> unrollDiffLeadLagChain(int symb_id, int lag) const noexcept(false);
   //! Adds an auxiliary variable when the diff operator is encountered
   int addDiffAuxiliaryVar(int index, expr_t expr_arg) noexcept(false);
   int addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) noexcept(false);

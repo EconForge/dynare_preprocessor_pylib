@@ -312,18 +312,12 @@ ExprNode::fillErrorCorrectionRow(int eqn,
           continue;
         }
 
-      // Helper function
-      auto one_step_orig = [this](int symb_id) {
-                             return datatree.symbol_table.isAuxiliaryVariable(symb_id) ?
-                               datatree.symbol_table.getOrigSymbIdForDiffAuxVar(symb_id) : symb_id;
-                           };
-
       /* Verify that all variables belong to the error-correction term.
          FIXME: same remark as above about skipping terms. */
       bool not_ec = false;
       for (const auto &t : m.second)
         {
-          int vid = one_step_orig(get<0>(t));
+          auto [vid, vlag] = datatree.symbol_table.unrollDiffLeadLagChain(get<0>(t), get<1>(t));
           not_ec = not_ec || (find(target_lhs.begin(), target_lhs.end(), vid) == target_lhs.end()
                               && find(nontarget_lhs.begin(), nontarget_lhs.end(), vid) == nontarget_lhs.end());
         }
@@ -333,8 +327,7 @@ ExprNode::fillErrorCorrectionRow(int eqn,
       // Now fill the matrices
       for (auto [var_id, lag, param_id, constant] : m.second)
         {
-          int orig_vid = one_step_orig(var_id);
-          int orig_lag = datatree.symbol_table.isAuxiliaryVariable(var_id) ? -datatree.symbol_table.getOrigLeadLagForDiffAuxVar(var_id) : lag;
+          auto [orig_vid, orig_lag] = datatree.symbol_table.unrollDiffLeadLagChain(var_id, lag);
           if (find(target_lhs.begin(), target_lhs.end(), orig_vid) == target_lhs.end())
             {
               // This an LHS variable, so fill A0
@@ -3418,10 +3411,10 @@ UnaryOpNode::substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t 
             {
               if (i == last_index)
                 symb_id = datatree.symbol_table.addDiffLagAuxiliaryVar(argsubst->idx, rit->second,
-                                                                       last_aux_var->symb_id, last_aux_var->lag - 1);
+                                                                       last_aux_var->symb_id, -1);
               else
                 symb_id = datatree.symbol_table.addDiffLagAuxiliaryVar(new_aux_var->idx, rit->second,
-                                                                       last_aux_var->symb_id, last_aux_var->lag - 1);
+                                                                       last_aux_var->symb_id, -1);
 
               new_aux_var = datatree.AddVariable(symb_id, 0);
               neweqs.push_back(datatree.AddEqual(new_aux_var,
@@ -5332,8 +5325,8 @@ BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
               exit(EXIT_FAILURE);
             }
 
-          if (int vidorig = datatree.symbol_table.getUltimateOrigSymbID(vid);
-              vidorig == lhs_symb_id || vidorig == lhs_orig_symb_id)
+          if (auto [vidorig, vlagorig] = datatree.symbol_table.unrollDiffLeadLagChain(vid, vlag);
+              vidorig == lhs_symb_id)
             {
               // This is an autoregressive term
               if (constant != 1 || pid == -1 || !datatree.symbol_table.isDiffAuxiliaryVariable(vid))
@@ -5341,10 +5334,9 @@ BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
                   cerr << "BinaryOpNode::getPacAREC: autoregressive terms must be of the form 'parameter*diff_lagged_variable" << endl;
                   exit(EXIT_FAILURE);
                 }
-              int ar_lag = datatree.symbol_table.getOrigLeadLagForDiffAuxVar(vid);
-              if (static_cast<int>(ar_params_and_vars.size()) < ar_lag)
-                ar_params_and_vars.resize(ar_lag, { -1, -1, 0 });
-              ar_params_and_vars[ar_lag-1] = { pid, vid, vlag };
+              if (static_cast<int>(ar_params_and_vars.size()) < -vlagorig)
+                ar_params_and_vars.resize(-vlagorig, { -1, -1, 0 });
+              ar_params_and_vars[-vlagorig-1] = { pid, vid, vlag };
             }
           else
             // This is a residual additive term
@@ -5533,11 +5525,7 @@ BinaryOpNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<i
           continue;
         }
 
-      if (datatree.symbol_table.isDiffAuxiliaryVariable(vid))
-        {
-          lag = -datatree.symbol_table.getOrigLeadLagForDiffAuxVar(vid);
-          vid = datatree.symbol_table.getOrigSymbIdForDiffAuxVar(vid);
-        }
+      tie(vid, lag) = datatree.symbol_table.unrollDiffLeadLagChain(vid, lag);
 
       if (find(lhs.begin(), lhs.end(), vid) == lhs.end())
         continue;

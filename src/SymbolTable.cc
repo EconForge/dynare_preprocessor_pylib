@@ -733,27 +733,17 @@ SymbolTable::getOrigSymbIdForAuxVar(int aux_var_symb_id) const noexcept(false)
   throw UnknownSymbolIDException(aux_var_symb_id);
 }
 
-int
-SymbolTable::getOrigLeadLagForDiffAuxVar(int diff_aux_var_symb_id) const noexcept(false)
+pair<int, int>
+SymbolTable::unrollDiffLeadLagChain(int symb_id, int lag) const noexcept(false)
 {
   for (const auto &aux_var : aux_vars)
-    if ((aux_var.get_type() == AuxVarType::diffLag || aux_var.get_type() == AuxVarType::diffLead)
-        && aux_var.get_symb_id() == diff_aux_var_symb_id)
-      return (aux_var.get_type() == AuxVarType::diffLag ? 1 : -1) + getOrigLeadLagForDiffAuxVar(aux_var.get_orig_symb_id());
-  return 0;
-}
-
-int
-SymbolTable::getOrigSymbIdForDiffAuxVar(int diff_aux_var_symb_id) const noexcept(false)
-{
-  int orig_symb_id = -1;
-  for (const auto &aux_var : aux_vars)
-    if (aux_var.get_symb_id() == diff_aux_var_symb_id)
-      if (aux_var.get_type() == AuxVarType::diff)
-        orig_symb_id = diff_aux_var_symb_id;
-      else if (aux_var.get_type() == AuxVarType::diffLag || aux_var.get_type() == AuxVarType::diffLead)
-        orig_symb_id = getOrigSymbIdForDiffAuxVar(aux_var.get_orig_symb_id());
-  return orig_symb_id;
+    if (aux_var.get_symb_id() == symb_id)
+      if (aux_var.get_type() == AuxVarType::diffLag || aux_var.get_type() == AuxVarType::diffLead)
+        {
+          auto [orig_symb_id, orig_lag] = unrollDiffLeadLagChain(aux_var.get_orig_symb_id(), lag);
+          return { orig_symb_id, orig_lag + aux_var.get_orig_lead_lag() };
+        }
+  return { symb_id, lag };
 }
 
 expr_t
