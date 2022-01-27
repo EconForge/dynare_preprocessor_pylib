@@ -319,7 +319,9 @@ public:
   /* Searches aux_vars for the aux var represented by aux_var_symb_id and
      returns its associated orig_symb_id.
      Works only for endoLag, exoLag, diff, diffLag, diffLead.
-     Throws an UnknownSymbolIDException otherwise.
+     Throws an UnknownSymbolIDException if there is no orig_symb_id associated to
+     this aux var (either because it’s of the wrong type, or because there is
+     no such orig var for this specific aux var, e.g. a diff for a complex expression).
      N.B.: some code might rely on the fact that, in particular, it does not work on unaryOp
      type (to be verified) */
   int getOrigSymbIdForAuxVar(int aux_var_symb_id) const noexcept(false);
@@ -433,9 +435,11 @@ public:
   //! Get list of endogenous variables without aux vars
   set <int> getOrigEndogenous() const;
   //! Returns the original symbol corresponding to this variable
-  /* If symb_id is not an auxiliary var, returns symb_id. Otherwise,
-     repeatedly call getOrigSymbIDForAuxVar() until an original
-     (non-auxiliary) variable is found. */
+  /* If symb_id has no original variable, returns symb_id. Otherwise,
+     repeatedly call getOrigSymbIDForAuxVar() until an original variable is
+     found. Note that the result may be an auxiliary variable if the latter has
+     no original variable (e.g. aux var for lead, Lagrange Multiplier or diff
+     associated to a complex expression). */
   int getUltimateOrigSymbID(int symb_id) const;
   //! If this is a Lagrange multiplier, return its associated equation number; otherwise return -1
   int getEquationNumberForMultiplier(int symb_id) const;

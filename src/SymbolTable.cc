@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -726,7 +726,10 @@ SymbolTable::getOrigSymbIdForAuxVar(int aux_var_symb_id) const noexcept(false)
          || aux_var.get_type() == AuxVarType::diffLag
          || aux_var.get_type() == AuxVarType::diffLead)
         && aux_var.get_symb_id() == aux_var_symb_id)
-      return aux_var.get_orig_symb_id();
+      if (int r = aux_var.get_orig_symb_id(); r >= 0)
+        return r;
+      else
+        throw UnknownSymbolIDException(aux_var_symb_id); // Some diff var have orig_symb_id == -1
   throw UnknownSymbolIDException(aux_var_symb_id);
 }
 

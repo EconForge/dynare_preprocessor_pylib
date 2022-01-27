@@ -4764,9 +4764,7 @@ DynamicModel::createVariableMapping()
       equations[ii]->collectVariables(SymbolType::endogenous, eqvars);
       equations[ii]->collectVariables(SymbolType::exogenous, eqvars);
       for (auto eqvar : eqvars)
-        if (int orig_symb_id = symbol_table.getUltimateOrigSymbID(eqvar);
-            orig_symb_id >= 0)
-        variableMapping[orig_symb_id].emplace(ii);
+        variableMapping[symbol_table.getUltimateOrigSymbID(eqvar)].emplace(ii);
     }
 }
 
