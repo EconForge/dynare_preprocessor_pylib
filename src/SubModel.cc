@@ -113,8 +113,8 @@ TrendComponentModelTable::setAR(map<string, map<tuple<int, int, int>, expr_t>> A
 }
 
 void
-TrendComponentModelTable::setA0(map<string, map<tuple<int, int, int>, expr_t>> A0_arg,
-                                map<string, map<tuple<int, int, int>, expr_t>> A0star_arg)
+TrendComponentModelTable::setA0(map<string, map<tuple<int, int>, expr_t>> A0_arg,
+                                map<string, map<tuple<int, int>, expr_t>> A0star_arg)
 {
   A0 = move(A0_arg);
   A0star = move(A0star_arg);
@@ -361,30 +361,24 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
           ar_ec_output << ";" << endl;
         }
 
-      int a0_lag = 0;
-      for (const auto &[key, expr] : A0.at(name))
-        a0_lag = max(a0_lag, get<1>(key));
       ar_ec_output << endl
                    << "    % A0" << endl
-                   << "    A0 = zeros(" << nontarget_lhs_vec.size() << ", " << nontarget_lhs_vec.size() << ", " << a0_lag << ");" << endl;
+                   << "    A0 = zeros(" << nontarget_lhs_vec.size() << ", " << nontarget_lhs_vec.size() << ");" << endl;
       for (const auto &[key, expr] : A0.at(name))
         {
-          auto [eqn, lag, colidx] = key;
-          ar_ec_output << "    A0(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
+          auto [eqn, colidx] = key;
+          ar_ec_output << "    A0(" << eqn + 1 << ", " << colidx + 1 << ") = ";
           expr->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
           ar_ec_output << ";" << endl;
         }
 
-      int a0star_lag = 0;
-      for (const auto &[key, expr] : A0star.at(name))
-        a0star_lag = max(a0star_lag, get<1>(key));
       ar_ec_output << endl
                    << "    % A0star" << endl
-                   << "    A0star = zeros(" << nontarget_lhs_vec.size() << ", " << target_lhs_vec.size() << ", " << a0star_lag << ");" << endl;
+                   << "    A0star = zeros(" << nontarget_lhs_vec.size() << ", " << target_lhs_vec.size() << ");" << endl;
       for (const auto &[key, expr] : A0star.at(name))
         {
-          auto [eqn, lag, colidx] = key;
-          ar_ec_output << "    A0star(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
+          auto [eqn, colidx] = key;
+          ar_ec_output << "    A0star(" << eqn + 1 << ", " << colidx + 1 << ") = ";
           expr->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
           ar_ec_output << ";" << endl;
         }

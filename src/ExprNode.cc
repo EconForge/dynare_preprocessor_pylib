@@ -290,8 +290,8 @@ void
 ExprNode::fillErrorCorrectionRow(int eqn,
                                  const vector<int> &nontarget_lhs,
                                  const vector<int> &target_lhs,
-                                 map<tuple<int, int, int>, expr_t> &A0,
-                                 map<tuple<int, int, int>, expr_t> &A0star) const
+                                 map<tuple<int, int>, expr_t> &A0,
+                                 map<tuple<int, int>, expr_t> &A0star) const
 {
   vector<pair<expr_t, int>> terms;
   decomposeAdditiveTerms(terms, 1);
@@ -330,6 +330,11 @@ ExprNode::fillErrorCorrectionRow(int eqn,
           auto [orig_vid, orig_lag] = datatree.symbol_table.unrollDiffLeadLagChain(var_id, lag);
           if (find(target_lhs.begin(), target_lhs.end(), orig_vid) == target_lhs.end())
             {
+              if (orig_lag != -1)
+                {
+                  cerr << "ERROR in trend component model: variables in the error correction term should appear with a lag of -1" << endl;
+                  exit(EXIT_FAILURE);
+                }
               // This an LHS variable, so fill A0
               if (constant != 1)
                 {
@@ -342,13 +347,13 @@ ExprNode::fillErrorCorrectionRow(int eqn,
                   exit(EXIT_FAILURE);
                 }
               int colidx = static_cast<int>(distance(nontarget_lhs.begin(), find(nontarget_lhs.begin(), nontarget_lhs.end(), orig_vid)));
-              if (A0.find({eqn, -orig_lag, colidx}) != A0.end())
+              if (A0.find({eqn, colidx}) != A0.end())
                 {
                   cerr << "ExprNode::fillErrorCorrection: Error filling A0 matrix: "
-                       << "lag/symb_id encountered more than once in equation" << endl;
+                       << "symb_id encountered more than once in equation" << endl;
                   exit(EXIT_FAILURE);
                 }
-              A0[{eqn, -orig_lag, colidx}] = datatree.AddVariable(m.first);
+              A0[{eqn, colidx}] = datatree.AddVariable(m.first);
             }
           else
             {
@@ -357,7 +362,7 @@ ExprNode::fillErrorCorrectionRow(int eqn,
               expr_t e = datatree.AddTimes(datatree.AddVariable(m.first), datatree.AddPossiblyNegativeConstant(-constant));
               if (param_id != -1)
                 e = datatree.AddTimes(e, datatree.AddVariable(param_id));
-              if (auto coor = tuple(eqn, -orig_lag, colidx); A0star.find(coor) == A0star.end())
+              if (auto coor = make_pair(eqn, colidx); A0star.find(coor) == A0star.end())
                 A0star[coor] = e;
               else
                 A0star[coor] = datatree.AddPlus(e, A0star[coor]);

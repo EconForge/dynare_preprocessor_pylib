@@ -294,7 +294,7 @@ private:
 
   //! Compute error component matrices of trend component_models
   /*! Returns a pair (A0r, A0starr) */
-  pair<map<string, map<tuple<int, int, int>, expr_t>>, map<string, map<tuple<int, int, int>, expr_t>>> computeErrorComponentMatrices(const ExprNode::subst_table_t &diff_subst_table) const;
+  pair<map<string, map<tuple<int, int>, expr_t>>, map<string, map<tuple<int, int>, expr_t>>> computeErrorComponentMatrices(const ExprNode::subst_table_t &diff_subst_table) const;
 
   /* For a VAR model, given the symbol ID of a LHS variable, and a (negative)
      lag, returns all the corresponding deriv_ids (by properly dealing with two

@@ -3568,15 +3568,15 @@ DynamicModel::fillTrendComponentModelTable() const
   trend_component_model_table.setVals(eqnums, trend_eqnums, lhsr, lhs_expr_tr);
 }
 
-pair<map<string, map<tuple<int, int, int>, expr_t>>, map<string, map<tuple<int, int, int>, expr_t>>>
+pair<map<string, map<tuple<int, int>, expr_t>>, map<string, map<tuple<int, int>, expr_t>>>
 DynamicModel::computeErrorComponentMatrices(const ExprNode::subst_table_t &diff_subst_table) const
 {
-  map<string, map<tuple<int, int, int>, expr_t>> A0r, A0starr;
+  map<string, map<tuple<int, int>, expr_t>> A0r, A0starr;
 
   for (const auto &[model_name, eqns] : trend_component_model_table.getEqNums())
     {
       int i = 0;
-      map<tuple<int, int, int>, expr_t> A0, A0star;
+      map<tuple<int, int>, expr_t> A0, A0star;
       vector<int> target_lhs = trend_component_model_table.getTargetLhs(model_name);
       vector<int> nontarget_eqnums = trend_component_model_table.getNonTargetEqNums(model_name);
       vector<int> undiff_nontarget_lhs = getUndiffLHSForPac(model_name, diff_subst_table);

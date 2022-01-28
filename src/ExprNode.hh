@@ -669,8 +669,8 @@ public:
 
   //! Fills the EC matrix structure
   void fillErrorCorrectionRow(int eqn, const vector<int> &nontarget_lhs, const vector<int> &target_lhs,
-                              map<tuple<int, int, int>, expr_t> &A0,
-                              map<tuple<int, int, int>, expr_t> &A0star) const;
+                              map<tuple<int, int>, expr_t> &A0,
+                              map<tuple<int, int>, expr_t> &A0star) const;
 
   //! Replaces variables found in BinaryOpNode::findConstantEquations() with their constant values
   virtual expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const = 0;
