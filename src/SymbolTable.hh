@@ -323,12 +323,10 @@ public:
   int searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const noexcept(false);
   /* Searches aux_vars for the aux var represented by aux_var_symb_id and
      returns its associated orig_symb_id.
-     Works only for endoLag, exoLag, diff, diffLag, diffLead.
      Throws an UnknownSymbolIDException if there is no orig_symb_id associated to
-     this aux var (either because it’s of the wrong type, or because there is
-     no such orig var for this specific aux var, e.g. a diff for a complex expression).
-     N.B.: some code might rely on the fact that, in particular, it does not work on unaryOp
-     type (to be verified) */
+     this auxvar (either because it’s of the wrong type, or because there is
+     no such orig var for this specific auxvar, in case of complex expressions
+     in diff or unaryOp). */
   int getOrigSymbIdForAuxVar(int aux_var_symb_id) const noexcept(false);
   /* Unrolls a chain of diffLag or diffLead aux vars until it founds a (regular) diff aux
      var. In other words:

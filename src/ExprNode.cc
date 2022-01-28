@@ -5210,7 +5210,7 @@ BinaryOpNode::findTargetVariableHelper1(int lhs_symb_id, int rhs_symb_id) const
 
   try
     {
-      if (datatree.symbol_table.isAuxiliaryVariable(rhs_symb_id)
+      if (datatree.symbol_table.isDiffAuxiliaryVariable(rhs_symb_id)
           && lhs_symb_id == datatree.symbol_table.getOrigSymbIdForAuxVar(rhs_symb_id))
         return true;
     }

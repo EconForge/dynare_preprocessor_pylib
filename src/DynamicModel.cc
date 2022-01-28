@@ -3139,7 +3139,7 @@ DynamicModel::updateVarAndTrendModel() const
               if (!var)
                 {
                   int lhs_symb_id = lhs[lhs_idx++];
-                  if (symbol_table.isAuxiliaryVariable(lhs_symb_id))
+                  if (symbol_table.isDiffAuxiliaryVariable(lhs_symb_id))
                     try
                       {
                         lhs_symb_id = symbol_table.getOrigSymbIdForAuxVar(lhs_symb_id);
@@ -3150,7 +3150,7 @@ DynamicModel::updateVarAndTrendModel() const
                   int trend_var_symb_id = equations[eqn]->arg2->findTargetVariable(lhs_symb_id);
                   if (trend_var_symb_id >= 0)
                     {
-                      if (symbol_table.isAuxiliaryVariable(trend_var_symb_id))
+                      if (symbol_table.isDiffAuxiliaryVariable(trend_var_symb_id))
                         try
                           {
                             trend_var_symb_id = symbol_table.getOrigSymbIdForAuxVar(trend_var_symb_id);
@@ -3781,7 +3781,7 @@ DynamicModel::analyzePacEquationStructure(const string &name, map<string, string
         auto lhs = *lhss.begin();
         int lhs_symb_id = lhs.first;
         int lhs_orig_symb_id = lhs_symb_id;
-        if (symbol_table.isAuxiliaryVariable(lhs_orig_symb_id))
+        if (symbol_table.isDiffAuxiliaryVariable(lhs_orig_symb_id))
           try
             {
               lhs_orig_symb_id = symbol_table.getOrigSymbIdForAuxVar(lhs_orig_symb_id);
@@ -3949,14 +3949,8 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(const string &nam
   auto create_target_lag = [&](int lag)
   {
     if (symbol_table.isAuxiliaryVariable(pac_target_symb_id))
-      {
-        // We know it is a log, see ExprNode::matchParamTimesTargetMinusVariable()
-        /* We don’t use SymbolTable::getOrigSymbIdForAuxVar(), because it
-           does not work for unary ops, and changing this behaviour might
-           break stuff that relies on an exception in this case. */
-        auto avi = symbol_table.getAuxVarInfo(pac_target_symb_id);
-        return AddLog(AddVariable(avi.get_orig_symb_id(), lag));
-      }
+      // We know it is a log, see ExprNode::matchParamTimesTargetMinusVariable()
+      return AddLog(AddVariable(symbol_table.getOrigSymbIdForAuxVar(pac_target_symb_id), lag));
     else
       return dynamic_cast<ExprNode *>(AddVariable(pac_target_symb_id, lag));
   };

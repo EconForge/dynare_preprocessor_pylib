@@ -712,12 +712,14 @@ SymbolTable::getOrigSymbIdForAuxVar(int aux_var_symb_id) const noexcept(false)
          || aux_var.get_type() == AuxVarType::exoLag
          || aux_var.get_type() == AuxVarType::diff
          || aux_var.get_type() == AuxVarType::diffLag
-         || aux_var.get_type() == AuxVarType::diffLead)
+         || aux_var.get_type() == AuxVarType::diffLead
+         || aux_var.get_type() == AuxVarType::diffForward
+         || aux_var.get_type() == AuxVarType::unaryOp)
         && aux_var.get_symb_id() == aux_var_symb_id)
       if (int r = aux_var.get_orig_symb_id(); r >= 0)
         return r;
       else
-        throw UnknownSymbolIDException(aux_var_symb_id); // Some diff var have orig_symb_id == -1
+        throw UnknownSymbolIDException(aux_var_symb_id); // Some diff and unaryOp auxvars have orig_symb_id == -1
   throw UnknownSymbolIDException(aux_var_symb_id);
 }
 

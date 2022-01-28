@@ -627,7 +627,7 @@ VarModelTable::setLhs(map<string, vector<int>> lhs_arg)
         {
           int lhs_last_orig_symb_id = ids;
           int lhs_orig_symb_id = ids;
-          if (symbol_table.isAuxiliaryVariable(lhs_orig_symb_id))
+          if (symbol_table.isDiffAuxiliaryVariable(lhs_orig_symb_id))
             try
               {
                 lhs_last_orig_symb_id = lhs_orig_symb_id;
