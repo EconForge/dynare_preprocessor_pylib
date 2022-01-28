@@ -595,12 +595,6 @@ SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, i
 }
 
 int
-SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg) noexcept(false)
-{
-  return addDiffAuxiliaryVar(index, expr_arg, -1, 0);
-}
-
-int
 SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op, int orig_symb_id, int orig_lag) noexcept(false)
 {
   ostringstream varname;
