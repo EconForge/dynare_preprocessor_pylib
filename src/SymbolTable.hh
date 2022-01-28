@@ -63,13 +63,18 @@ class AuxVarInfo
 private:
   int symb_id; //!< Symbol ID of the auxiliary variable
   AuxVarType type; //!< Its type
-  int orig_symb_id; /* Symbol ID of the endo of the original model represented
-                       by this aux var. Used by endoLag, endoLead, exoLag,
-                       exoLead, diffForward, varModel, diff, diffLag, diffLead
-                       and unaryOp */
-  int orig_lead_lag; /* Lead/lag of the endo of the original model represented
-                        by this aux var. Used by endoLag, endoLead, exoLag,
-                        exoLead, varModel, unaryOp, diff, diffLag, diffLead */
+  int orig_symb_id; /* Symbol ID of the (only) endo that appears on the RHS of
+                       the definition of this auxvar.
+                       Used by endoLag, exoLag, diffForward, diff, diffLag,
+                       diffLead and unaryOp.
+                       For diff and unaryOp, if the argument expression is more complex
+                       than than a simple variable, this value is equal to -1. */
+  int orig_lead_lag; /* Lead/lag of the (only) endo as it appears on the RHS of the definition
+                        of this auxvar. Only used if orig_symb_id is used.
+                        (in particular, for diff and unaryOp, unused if orig_symb_id == -1).
+                        For diff and diffForward, since the definition of the
+                        auxvar is a time difference, the value corresponds to the
+                        time index of the first term of that difference. */
   int equation_number_for_multiplier; //!< Stores the original constraint equation number associated with this aux var. Only used for avMultiplier.
   int information_set; //! Argument of expectation operator. Only used for avExpectation.
   expr_t expr_node; //! Auxiliary variable definition
@@ -308,7 +313,7 @@ public:
     \param[in] orig_symb_id The symb_id of the forward variable
     \return the symbol ID of the new symbol
   */
-  int addDiffForwardAuxiliaryVar(int orig_symb_id, expr_t arg) noexcept(false);
+  int addDiffForwardAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t arg) noexcept(false);
   //! Searches auxiliary variables which are substitutes for a given symbol_id and lead/lag
   /*!
     The search is only performed among auxiliary variables of endo/exo lag.

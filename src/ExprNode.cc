@@ -1791,10 +1791,10 @@ VariableNode::differentiateForwardVars(const vector<string> &subset, subst_table
             diffvar = const_cast<VariableNode *>(it->second);
           else
             {
-              int aux_symb_id = datatree.symbol_table.addDiffForwardAuxiliaryVar(symb_id, datatree.AddMinus(datatree.AddVariable(symb_id, 0),
-                                                                                                            datatree.AddVariable(symb_id, -1)));
-              neweqs.push_back(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), datatree.AddMinus(datatree.AddVariable(symb_id, 0),
-                                                                                                                                      datatree.AddVariable(symb_id, -1))));
+              expr_t substexpr = datatree.AddMinus(datatree.AddVariable(symb_id, 0),
+                                                   datatree.AddVariable(symb_id, -1));
+              int aux_symb_id = datatree.symbol_table.addDiffForwardAuxiliaryVar(symb_id, 0, substexpr);
+              neweqs.push_back(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), substexpr));
               diffvar = datatree.AddVariable(aux_symb_id, 1);
               subst_table[this] = diffvar;
             }
