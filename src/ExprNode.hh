@@ -644,6 +644,13 @@ public:
   */
   vector<tuple<int, int, int, double>> matchLinearCombinationOfVariables(bool variable_obligatory_in_each_term = true) const;
 
+  /* Matches a parameter, times a linear combination of variables (endo or
+     exo), where scalars can be constant*parameters.
+     The first output argument is the symbol ID of the parameter.
+     The second output argument is the linear combination, in the same format
+     as the output of matchLinearCombinationOfVariables(). */
+  pair<int, vector<tuple<int, int, int, double>>> matchParamTimesLinearCombinationOfVariables() const;
+
   /* Matches a linear combination of endogenous, where scalars can be any
      constant expression (i.e. containing no endogenous, no exogenous and no
      exogenous deterministic). The linear combination can contain constant
@@ -652,8 +659,6 @@ public:
      – the terms of the form endogenous*scalar, as a list of (endo_id, constant expr);
      – the sum of all constant (intercept) terms */
   pair<vector<pair<int, expr_t>>, expr_t> matchLinearCombinationOfEndogenousWithConstant() const;
-
-  pair<int, vector<tuple<int, int, int, double>>> matchParamTimesLinearCombinationOfVariables() const;
 
   /* Matches an expression of the form parameter*(var1-endo2).
      endo2 must correspond to symb_id. var1 must be an endogenous or an
