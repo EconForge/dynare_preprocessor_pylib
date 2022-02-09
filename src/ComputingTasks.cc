@@ -113,8 +113,8 @@ ModelInfoStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
 void
 ModelInfoStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  options_list.writeOutput(output);
-  output << "model_info();" << endl;
+  options_list.writeOutput(output, "options_model_info_");
+  output << "model_info(options_model_info_);" << endl;
 }
 
 void

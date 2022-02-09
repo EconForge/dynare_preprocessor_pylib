@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -186,7 +186,7 @@ class ParsingDriver;
 %token NO_IDENTIFICATION_MINIMAL NO_IDENTIFICATION_SPECTRUM NORMALIZE_JACOBIANS GRID_NBR
 %token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS ZERO_MOMENTS_TOLERANCE
 %token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION WITH_EPILOGUE MODEL_REMOVE MODEL_REPLACE MODEL_OPTIONS
-%token VAR_REMOVE ESTIMATED_PARAMS_REMOVE
+%token VAR_REMOVE ESTIMATED_PARAMS_REMOVE STATIC INCIDENCE
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -1483,7 +1483,10 @@ model_info : MODEL_INFO ';'
 model_info_options_list : model_info_options_list COMMA model_info_options
                    | model_info_options
                    ;
-model_info_options : %empty
+
+model_info_options : o_static
+                   | o_incidence
+                   ;
 
 perfect_foresight_setup : PERFECT_FORESIGHT_SETUP ';'
                           { driver.perfect_foresight_setup(); }
@@ -4183,6 +4186,8 @@ o_tol_sv : TOL_SV EQUAL non_negative_number { driver.option_num("tol_sv", $3); }
 o_checks_via_subsets : CHECKS_VIA_SUBSETS EQUAL INT_NUMBER { driver.option_num("checks_via_subsets", $3); };
 o_max_dim_subsets_groups : MAX_DIM_SUBSETS_GROUPS EQUAL INT_NUMBER { driver.option_num("max_dim_subsets_groups", $3); };
 o_zero_moments_tolerance : ZERO_MOMENTS_TOLERANCE EQUAL non_negative_number { driver.option_num("zero_moments_tolerance", $3); };
+o_static : STATIC { driver.option_num("static","true"); };
+o_incidence : INCIDENCE { driver.option_num("incidence","true"); };
 
 // Some options to "evaluate_planner_objective"
 o_evaluate_planner_objective_periods : PERIODS EQUAL INT_NUMBER { driver.option_num("ramsey.periods", $3); };
