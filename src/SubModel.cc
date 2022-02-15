@@ -943,6 +943,8 @@ VarExpectationModelTable::writeJsonOutput(ostream &output) const
 {
   for (const auto &name : names)
     {
+      if (name != *names.begin())
+        output << ", ";
       output << R"({"statementName": "var_expectation_model",)"
              << R"("model_name": ")" << name << R"(", )"
              << R"("expression": ")";
