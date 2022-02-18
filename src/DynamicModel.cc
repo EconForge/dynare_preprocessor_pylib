@@ -1194,18 +1194,25 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
       FENDEQU_ fendequ;
       fendequ.write(code_file, instruction_number);
 
+      /* If the block is not of type “evaluate backward/forward”, then we write
+         the temporary terms for derivatives at this point, i.e. before the
+         JMPIFEVAL, because they will be needed in both “simulate” and
+         “evaluate” modes. */
+      if (simulation_type != BlockSimulationType::evaluateBackward
+          && simulation_type != BlockSimulationType::evaluateForward)
+        write_eq_tt(blocks[block].size);
+
       // Get the current code_file position and jump if eval = true
       streampos pos1 = code_file.tellp();
       FJMPIFEVAL_ fjmp_if_eval(0);
       fjmp_if_eval.write(code_file, instruction_number);
       int prev_instruction_number = instruction_number;
-      // The Jacobian if we have to solve the block determinsitic block
+
+      /* Write the derivatives for the “simulate” mode (not needed if the block
+         is of type “evaluate backward/forward”) */
       if (simulation_type != BlockSimulationType::evaluateBackward
           && simulation_type != BlockSimulationType::evaluateForward)
         {
-          // Write temporary terms for derivatives
-          write_eq_tt(blocks[block].size);
-
           switch (simulation_type)
             {
             case BlockSimulationType::solveBackwardSimple:
@@ -1302,6 +1309,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
               break;
             }
         }
+
       // Get the current code_file position and jump = true
       streampos pos2 = code_file.tellp();
       FJMP_ fjmp(0);
@@ -1313,8 +1321,15 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
       fjmp_if_eval1.write(code_file, instruction_number);
       code_file.seekp(pos3);
       prev_instruction_number = instruction_number;
-      // The Jacobian if we have to solve the block determinsitic block
 
+      /* If the block is of type “evaluate backward/forward”, then write the
+         temporary terms for derivatives at this point, because they have not
+         been written before the JMPIFEVAL. */
+      if (simulation_type == BlockSimulationType::evaluateBackward
+          || simulation_type == BlockSimulationType::evaluateForward)
+        write_eq_tt(blocks[block].size);
+
+      // Write the derivatives for the “evaluate” mode
       for (const auto &[indices, d] : blocks_derivatives[block])
         {
           auto [eq, var, lag] = indices;
