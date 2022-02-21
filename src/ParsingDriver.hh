@@ -274,6 +274,11 @@ private:
   //! True when parsing pac_model statement
   bool parsing_pac_model{false};
 
+  //! True if a ramsey_model statement has already been seen
+  bool ramsey_model_seen{false};
+  //! True if a ramsey_policy statement has already been seen
+  bool ramsey_policy_seen{false};
+
 public:
   ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) :
     warnings{warnings_arg}, nostrict{nostrict_arg}

@@ -2054,6 +2054,13 @@ ParsingDriver::end_planner_objective(expr_t expr)
 void
 ParsingDriver::ramsey_model()
 {
+  // Some checks to ensure correct error messages (see #90)
+  if (ramsey_policy_seen)
+    error("A 'ramsey_model' statement cannot follow a 'ramsey_policy' statement.");
+  if (ramsey_model_seen)
+    error("Several 'ramsey_model' statements cannot appear in a given .mod file.");
+  ramsey_model_seen = true;
+
   if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
     {
       if (!planner_discount)
@@ -2080,6 +2087,13 @@ void
 ParsingDriver::ramsey_policy()
 {
   warning("The 'ramsey_policy' statement is deprecated. Please use 'ramsey_model', 'stoch_simul', and 'evaluate_planner_objective' instead.");
+
+  // Some checks to ensure correct error messages (see #90)
+  if (ramsey_model_seen)
+    error("A 'ramsey_policy' statement cannot follow a 'ramsey_model' statement.");
+  if (ramsey_policy_seen)
+    error("Several 'ramsey_policy' statements cannot appear in a given .mod file.");
+  ramsey_policy_seen = true;
 
   if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
     {
