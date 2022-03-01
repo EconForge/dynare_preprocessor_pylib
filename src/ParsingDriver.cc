@@ -3650,3 +3650,10 @@ ParsingDriver::var_remove()
     }
   symbol_list.clear();
 }
+
+void
+ParsingDriver::resid()
+{
+  mod_file->addStatement(make_unique<ResidStatement>(options_list));
+  options_list.clear();
+}

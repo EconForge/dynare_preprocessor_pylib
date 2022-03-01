@@ -195,6 +195,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>model_remove {BEGIN DYNARE_STATEMENT; return token::MODEL_REMOVE;}
 <INITIAL>model_options {BEGIN DYNARE_STATEMENT; return token::MODEL_OPTIONS;}
 <INITIAL>var_remove {BEGIN DYNARE_STATEMENT; return token::VAR_REMOVE;}
+<INITIAL>resid {BEGIN DYNARE_STATEMENT; return token::RESID;}
 
 <DYNARE_STATEMENT>; {
   if (!sigma_e)
@@ -754,6 +755,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>max_nrows {return token::MAX_NROWS;}
 <DYNARE_STATEMENT>with_epilogue {return token::WITH_EPILOGUE;}
 <DYNARE_STATEMENT>heteroskedastic_filter {return token::HETEROSKEDASTIC_FILTER;}
+<DYNARE_STATEMENT>non_zero {return token::NON_ZERO;}
 
 <DYNARE_STATEMENT>\$[^$]*\$ {
   strtok(yytext+1, "$");

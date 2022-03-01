@@ -1239,4 +1239,14 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
+class ResidStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+public:
+  explicit ResidStatement(OptionsList options_list_arg);
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
+};
+
 #endif

@@ -186,7 +186,7 @@ class ParsingDriver;
 %token NO_IDENTIFICATION_MINIMAL NO_IDENTIFICATION_SPECTRUM NORMALIZE_JACOBIANS GRID_NBR
 %token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS ZERO_MOMENTS_TOLERANCE
 %token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION WITH_EPILOGUE MODEL_REMOVE MODEL_REPLACE MODEL_OPTIONS
-%token VAR_REMOVE ESTIMATED_PARAMS_REMOVE STATIC INCIDENCE
+%token VAR_REMOVE ESTIMATED_PARAMS_REMOVE STATIC INCIDENCE RESID NON_ZERO
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -352,6 +352,7 @@ statement : parameters
           | model_options
           | var_remove
           | pac_target_info
+          | resid
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -995,6 +996,13 @@ pac_target_kind : LL
                 | DD
                   { $$ = PacTargetKind::dd; }
                 ;
+
+resid : RESID ';'
+        { driver.resid(); }
+      | RESID '(' o_non_zero ')' ';'
+        { driver.resid(); }
+      ;
+
 
 /* The tokens below must be accepted in both DYNARE_STATEMENT and DYNARE_BLOCK
    states in the lexer, because of model block and model_options statement */
@@ -4171,6 +4179,7 @@ o_emas_girf : EMAS_GIRF { driver.option_num("irf_opt.ergodic_mean_irf", "true");
 o_emas_drop : EMAS_DROP EQUAL INT_NUMBER { driver.option_num("irf_opt.EM.drop", $3); };
 o_emas_tolf : EMAS_TOLF EQUAL non_negative_number { driver.option_num("irf_opt.EM.tolf", $3); };
 o_emas_max_iter : EMAS_MAX_ITER EQUAL INT_NUMBER { driver.option_num("irf_opt.EM.iter", $3); };
+o_non_zero : NON_ZERO { driver.option_num("non_zero", "true"); };
 
 // Some options to "identification"
 o_no_identification_strength : NO_IDENTIFICATION_STRENGTH { driver.option_num("no_identification_strength", "true"); };

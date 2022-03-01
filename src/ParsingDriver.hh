@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -921,6 +921,8 @@ public:
   void set_pac_target_info_component_growth(expr_t growth);
   void set_pac_target_info_component_auxname(string auxname);
   void set_pac_target_info_component_kind(PacTargetKind kind);
+  // Add a resid statement
+  void resid();
   // Equivalent of MATLAB’s strsplit. Returns an empty vector given an empty string.
   static vector<string> strsplit(const string &str, char delim);
   // Returns true iff the string is a legal symbol identifier (see NAME token in lexer)

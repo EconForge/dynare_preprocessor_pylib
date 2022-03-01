@@ -5290,3 +5290,27 @@ OccbinConstraintsStatement::writeJsonOutput(ostream &output) const
     }
   output << "]}" << endl;
 }
+
+ResidStatement::ResidStatement(OptionsList options_list_arg) :
+  options_list{move(options_list_arg)}
+{
+}
+
+void
+ResidStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  options_list.writeOutput(output, "options_resid_");
+  output << "resid(options_resid_);" << endl;
+}
+
+void
+ResidStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "resid")";
+  if (options_list.getNumberOfOptions())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
