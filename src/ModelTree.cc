@@ -818,7 +818,9 @@ ModelTree::determineLinearBlocks()
   for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     switch (blocks[blk].simulation_type)
       {
+      case BlockSimulationType::solveBackwardSimple:
       case BlockSimulationType::solveBackwardComplete:
+      case BlockSimulationType::solveForwardSimple:
       case BlockSimulationType::solveForwardComplete:
         for (const auto &[indices, d1] : blocks_derivatives[blk])
           {
