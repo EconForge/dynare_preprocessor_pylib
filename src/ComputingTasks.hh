@@ -130,11 +130,12 @@ public:
 class StochSimulStatement : public Statement
 {
 private:
-  SymbolList symbol_list;
+  const SymbolList symbol_list;
   const OptionsList options_list;
+  const SymbolTable &symbol_table;
 public:
-  StochSimulStatement(SymbolList symbol_list_arg,
-                      OptionsList options_list_arg);
+  StochSimulStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
+                      const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -145,9 +146,10 @@ class ForecastStatement : public Statement
 private:
   const SymbolList symbol_list;
   const OptionsList options_list;
+  const SymbolTable &symbol_table;
 public:
-  ForecastStatement(SymbolList symbol_list_arg,
-                    OptionsList options_list_arg);
+  ForecastStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
+                    const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -189,9 +191,10 @@ class RamseyPolicyStatement : public Statement
 private:
   const SymbolList symbol_list;
   const OptionsList options_list;
+  const SymbolTable &symbol_table;
 public:
-  RamseyPolicyStatement(SymbolList symbol_list_arg,
-                        OptionsList options_list_arg);
+  RamseyPolicyStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
+                        const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -254,9 +257,10 @@ class DiscretionaryPolicyStatement : public Statement
 private:
   const SymbolList symbol_list;
   const OptionsList options_list;
+  const SymbolTable &symbol_table;
 public:
-  DiscretionaryPolicyStatement(SymbolList symbol_list_arg,
-                               OptionsList options_list_arg);
+  DiscretionaryPolicyStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
+                               const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -266,8 +270,9 @@ class RplotStatement : public Statement
 {
 private:
   const SymbolList symbol_list;
+  const SymbolTable &symbol_table;
 public:
-  explicit RplotStatement(SymbolList symbol_list_arg);
+  RplotStatement(SymbolList symbol_list_arg, const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -386,9 +391,10 @@ class OsrStatement : public Statement
 private:
   const SymbolList symbol_list;
   const OptionsList options_list;
+  const SymbolTable &symbol_table;
 public:
-  OsrStatement(SymbolList symbol_list_arg,
-               OptionsList options_list_arg);
+  OsrStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
+               const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -426,9 +432,10 @@ class DynaTypeStatement : public Statement
 private:
   const SymbolList symbol_list;
   const string filename;
+  const SymbolTable &symbol_table;
 public:
-  DynaTypeStatement(SymbolList symbol_list_arg,
-                    string filename_arg);
+  DynaTypeStatement(SymbolList symbol_list_arg, string filename_arg,
+                    const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -439,9 +446,10 @@ class DynaSaveStatement : public Statement
 private:
   const SymbolList symbol_list;
   const string filename;
+  const SymbolTable &symbol_table;
 public:
-  DynaSaveStatement(SymbolList symbol_list_arg,
-                    string filename_arg);
+  DynaSaveStatement(SymbolList symbol_list_arg, string filename_arg,
+                    const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -671,9 +679,10 @@ class MSSBVARIrfStatement : public Statement
 private:
   const SymbolList symbol_list;
   const OptionsList options_list;
+  const SymbolTable &symbol_table;
 public:
-  MSSBVARIrfStatement(SymbolList symbol_list_arg,
-                      OptionsList options_list_arg);
+  MSSBVARIrfStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
+                      const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -761,9 +770,10 @@ class ShockDecompositionStatement : public Statement
 private:
   const SymbolList symbol_list;
   const OptionsList options_list;
+  const SymbolTable &symbol_table;
 public:
-  ShockDecompositionStatement(SymbolList symbol_list_arg,
-                              OptionsList options_list_arg);
+  ShockDecompositionStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
+                              const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -774,9 +784,10 @@ class RealtimeShockDecompositionStatement : public Statement
 private:
   const SymbolList symbol_list;
   const OptionsList options_list;
+  const SymbolTable &symbol_table;
 public:
-  RealtimeShockDecompositionStatement(SymbolList symbol_list_arg,
-                                      OptionsList options_list_arg);
+  RealtimeShockDecompositionStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
+                                      const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -787,9 +798,10 @@ class PlotShockDecompositionStatement : public Statement
 private:
   const SymbolList symbol_list;
   const OptionsList options_list;
+  const SymbolTable &symbol_table;
 public:
-  PlotShockDecompositionStatement(SymbolList symbol_list_arg,
-                                  OptionsList options_list_arg);
+  PlotShockDecompositionStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
+                                  const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -800,9 +812,10 @@ class InitialConditionDecompositionStatement : public Statement
 private:
   const SymbolList symbol_list;
   const OptionsList options_list;
+  const SymbolTable &symbol_table;
 public:
-  InitialConditionDecompositionStatement(SymbolList symbol_list_arg,
-                                         OptionsList options_list_arg);
+  InitialConditionDecompositionStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
+                                         const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -812,8 +825,10 @@ class SqueezeShockDecompositionStatement : public Statement
 {
 private:
   const SymbolList symbol_list;
+  const SymbolTable &symbol_table;
 public:
-  explicit SqueezeShockDecompositionStatement(SymbolList symbol_list_arg);
+  SqueezeShockDecompositionStatement(SymbolList symbol_list_arg,
+                                     const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -836,8 +851,10 @@ private:
   //! A value of -1 indicates that the user didn't specify a value
   const int periods;
   const SymbolList symbol_list;
+  const SymbolTable &symbol_table;
 public:
-  PlotConditionalForecastStatement(int periods_arg, SymbolList symbol_list_arg);
+  PlotConditionalForecastStatement(int periods_arg, SymbolList symbol_list_arg,
+                                   const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
@@ -848,9 +865,10 @@ class CalibSmootherStatement : public Statement
 private:
   const SymbolList symbol_list;
   const OptionsList options_list;
+  const SymbolTable &symbol_table;
 public:
-  CalibSmootherStatement(SymbolList symbol_list_arg,
-                         OptionsList options_list_arg);
+  CalibSmootherStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
+                         const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;

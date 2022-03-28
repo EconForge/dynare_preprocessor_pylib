@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -21,21 +21,14 @@
 
 #include "SymbolList.hh"
 
-void
-SymbolList::setSymbolTable(const SymbolTable &symbol_table_arg)
+SymbolList::SymbolList(vector<string> symbols_arg) :
+  symbols{move(symbols_arg)}
 {
-  symbol_table = &symbol_table_arg;
 }
 
 void
-SymbolList::addSymbol(const string &symbol)
-{
-  symbols.push_back(symbol);
-}
-
-void
-SymbolList::checkPass(WarningConsolidation &warnings,
-                      const vector<SymbolType> &types) const noexcept(false)
+SymbolList::checkPass(WarningConsolidation &warnings, const vector<SymbolType> &types,
+                      const SymbolTable &symbol_table) const noexcept(false)
 {
   if (types.empty())
     return;
@@ -51,7 +44,7 @@ SymbolList::checkPass(WarningConsolidation &warnings,
   regex re("^(" + regex_str +")");
   for (const auto &symbol : symbols)
     {
-      if (!symbol_table->exists(symbol))
+      if (!symbol_table.exists(symbol))
         {
           if (regex_search(symbol, m, re))
             {
@@ -66,7 +59,7 @@ SymbolList::checkPass(WarningConsolidation &warnings,
 
       bool type_found = false;
       for (auto type : types)
-        if (symbol_table->getType(symbol) == type)
+        if (symbol_table.getType(symbol) == type)
           {
             type_found = true;
             break;
@@ -146,18 +139,6 @@ SymbolList::writeJsonOutput(ostream &output) const
       output << R"(")" << *it << R"(")";
     }
   output << "]";
-}
-
-void
-SymbolList::clear()
-{
-  symbols.clear();
-}
-
-int
-SymbolList::getSize() const
-{
-  return symbols.size();
 }
 
 vector<string>

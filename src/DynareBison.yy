@@ -203,12 +203,12 @@ class ParsingDriver;
 %type <string> name_value_pair_with_suboptions name_value_pair_with_suboptions_list
 %type <SymbolType> change_type_arg
 %type <vector<string>> vec_str vec_str_1
-%type <vector<string>> change_type_var_list
+%type <vector<string>> symbol_list symbol_list_or_wildcard
 %type <vector<int>> vec_int_elem vec_int_1 vec_int vec_int_number
 %type <PriorDistributions> prior_pdf prior_distribution
 %type <pair<expr_t,expr_t>> calibration_range
-%type <pair<string,string>> named_var_elem subsamples_eq_opt integer_range_w_inf
-%type <vector<pair<string,string>>> named_var named_var_1 tag_pair_list_for_selection
+%type <pair<string,string>> partition_elem subsamples_eq_opt integer_range_w_inf
+%type <vector<pair<string,string>>> partition partition_1 tag_pair_list_for_selection symbol_list_with_tex
 %type <tuple<string,string,string,string>> prior_eq_opt options_eq_opt
 %type <vector<pair<int, int>>> period_list
 %type <vector<expr_t>> matched_moments_list value_list
@@ -217,6 +217,7 @@ class ParsingDriver;
 %type <map<string, expr_t>> occbin_constraints_regime_options_list
 %type <pair<string, expr_t>> occbin_constraints_regime_option
 %type <PacTargetKind> pac_target_kind
+%type <vector<tuple<string, string, vector<pair<string, string>>>>> symbol_list_with_tex_and_partition
 %%
 
 %start statement_list;
@@ -361,52 +362,143 @@ dsample : DSAMPLE INT_NUMBER ';'
           { driver.dsample($2, $3); }
         ;
 
-rplot : RPLOT symbol_list ';' { driver.rplot(); };
+symbol_list : symbol_list symbol
+              {
+                $$ = $1;
+                $$.push_back($2);
+              }
+            | symbol_list COMMA symbol
+              {
+                $$ = $1;
+                $$.push_back($3);
+              }
+            | symbol
+              { $$ = { $1 }; }
+            ;
 
-trend_var : TREND_VAR '(' GROWTH_FACTOR EQUAL { driver.begin_trend(); } hand_side ')' trend_var_list ';'
-            { driver.end_trend_var($6); }
+symbol_list_or_wildcard : symbol_list
+                        | ':'
+                          { $$ = { ":" }; }
+                        ;
+
+symbol_list_with_tex : symbol_list_with_tex symbol
+                       {
+                         $$ = $1;
+                         $$.emplace_back($2, "");
+                       }
+                     | symbol_list_with_tex COMMA symbol
+                       {
+                         $$ = $1;
+                         $$.emplace_back($3, "");
+                       }
+                     | symbol
+                       { $$ = { { $1, "" }}; }
+                     | symbol_list_with_tex symbol TEX_NAME
+                       {
+                         $$ = $1;
+                         $$.emplace_back($2, $3);
+                       }
+                     | symbol_list_with_tex COMMA symbol TEX_NAME
+                       {
+                         $$ = $1;
+                         $$.emplace_back($3, $4);
+                       }
+                     | symbol TEX_NAME
+                       { $$ = { { $1, $2 } }; }
+                     ;
+
+partition_elem : symbol EQUAL QUOTED_STRING
+                 { $$ = { $1, $3 }; }
+
+partition_1 : '(' partition_elem
+              { $$ = { $2 }; }
+            | '(' COMMA partition_elem
+              { $$ = { $3 }; }
+            | partition_1 partition_elem
+              {
+                $$ = $1;
+                $$.push_back($2);
+              }
+            | partition_1 COMMA partition_elem
+              {
+                $$ = $1;
+                $$.push_back($3);
+              }
+            ;
+
+partition : partition_1 ')'
+          | partition_1 COMMA ')'
           ;
 
-trend_var_list : trend_var_list symbol
-                 { driver.declare_trend_var(false, $2); }
-               | trend_var_list COMMA symbol
-                 { driver.declare_trend_var(false, $3); }
-               | symbol
-                 { driver.declare_trend_var(false, $1); }
-               | trend_var_list symbol TEX_NAME
-                 { driver.declare_trend_var(false, $2, $3); }
-               | trend_var_list COMMA symbol TEX_NAME
-                 { driver.declare_trend_var(false, $3, $4); }
-               | symbol TEX_NAME
-                 { driver.declare_trend_var(false, $1, $2); }
-               ;
+symbol_list_with_tex_and_partition : symbol_list_with_tex_and_partition symbol
+                                     {
+                                       $$ = $1;
+                                       $$.emplace_back($2, "", vector<pair<string,string>>{});
+                                     }
+                                   | symbol_list_with_tex_and_partition COMMA symbol
+                                     {
+                                       $$ = $1;
+                                       $$.emplace_back($3, "", vector<pair<string,string>>{});
+                                     }
+                                   | symbol
+                                     { $$ = { { $1, "", {} }}; }
+                                   | symbol_list_with_tex_and_partition symbol partition
+                                     {
+                                       $$ = $1;
+                                       $$.emplace_back($2, "", $3);
+                                     }
+                                   | symbol_list_with_tex_and_partition COMMA symbol partition
+                                     {
+                                       $$ = $1;
+                                       $$.emplace_back($3, "", $4);
+                                     }
+                                   | symbol partition
+                                     { $$ = { { $1, "", $2 }}; }
+                                   | symbol_list_with_tex_and_partition symbol TEX_NAME
+                                     {
+                                       $$ = $1;
+                                       $$.emplace_back($2, $3, vector<pair<string,string>>{});
+                                     }
+                                   | symbol_list_with_tex_and_partition COMMA symbol TEX_NAME
+                                     {
+                                       $$ = $1;
+                                       $$.emplace_back($3, $4, vector<pair<string,string>>{});
+                                     }
+                                   | symbol TEX_NAME
+                                     { $$ = { { $1, $2, {} }}; }
+                                   | symbol_list_with_tex_and_partition symbol TEX_NAME partition
+                                     {
+                                       $$ = $1;
+                                       $$.emplace_back($2, $3, $4);
+                                     }
+                                   | symbol_list_with_tex_and_partition COMMA symbol TEX_NAME partition
+                                     {
+                                       $$ = $1;
+                                       $$.emplace_back($3, $4, $5);
+                                     }
+                                   | symbol TEX_NAME partition
+                                     { $$ = { { $1, $2, $3 }}; }
+                                   ;
 
-log_trend_var : LOG_TREND_VAR '(' LOG_GROWTH_FACTOR EQUAL { driver.begin_trend(); } hand_side ')' log_trend_var_list ';'
-                { driver.end_trend_var($6); }
+rplot : RPLOT symbol_list ';' { driver.rplot($2); };
+
+trend_var : TREND_VAR '(' GROWTH_FACTOR EQUAL { driver.begin_trend(); } hand_side ')' symbol_list_with_tex ';'
+            { driver.end_trend_var(false, $6, $8); }
+          ;
+
+log_trend_var : LOG_TREND_VAR '(' LOG_GROWTH_FACTOR EQUAL { driver.begin_trend(); } hand_side ')' symbol_list_with_tex ';'
+                { driver.end_trend_var(true, $6, $8); }
               ;
 
-log_trend_var_list : log_trend_var_list symbol
-                     { driver.declare_trend_var(true, $2); }
-                   | log_trend_var_list COMMA symbol
-                     { driver.declare_trend_var(true, $3); }
-                   | symbol
-                     { driver.declare_trend_var(true, $1); }
-                   | log_trend_var_list symbol TEX_NAME
-                     { driver.declare_trend_var(true, $2, $3); }
-                   | log_trend_var_list COMMA symbol TEX_NAME
-                     { driver.declare_trend_var(true, $3, $4); }
-                   | symbol TEX_NAME
-                     { driver.declare_trend_var(true, $1, $2); }
-                   ;
-
-var : VAR var_list ';'
-    | VAR '(' DEFLATOR EQUAL { driver.begin_trend(); } hand_side ')' nonstationary_var_list ';'
-      { driver.end_nonstationary_var(false, $6); }
-    | VAR '(' LOG_DEFLATOR EQUAL { driver.begin_trend(); } hand_side ')' nonstationary_var_list ';'
-      { driver.end_nonstationary_var(true, $6); }
+var : VAR symbol_list_with_tex_and_partition ';'
+      { driver.var($2); }
+    | VAR '(' DEFLATOR EQUAL { driver.begin_trend(); } hand_side ')' symbol_list_with_tex_and_partition ';'
+      { driver.end_nonstationary_var(false, $6, $8); }
+    | VAR '(' LOG_DEFLATOR EQUAL { driver.begin_trend(); } hand_side ')' symbol_list_with_tex_and_partition ';'
+      { driver.end_nonstationary_var(true, $6, $8); }
     ;
 
-var_remove : VAR_REMOVE symbol_list ';' { driver.var_remove(); };
+var_remove : VAR_REMOVE symbol_list ';' { driver.var_remove($2); };
 
 var_model : VAR_MODEL '(' var_model_options_list ')' ';' { driver.var_model(); }
           ;
@@ -476,194 +568,27 @@ var_expectation_model_option : VARIABLE EQUAL symbol
                                { driver.option_num("time_shift", $3); }
                              ;
 
-nonstationary_var_list : nonstationary_var_list symbol
-                         { driver.declare_nonstationary_var($2); }
-                       | nonstationary_var_list COMMA symbol
-                         { driver.declare_nonstationary_var($3); }
-                       | symbol
-                         { driver.declare_nonstationary_var($1); }
-                       |  nonstationary_var_list symbol named_var
-                         { driver.declare_nonstationary_var($2, "", $3); }
-                       | nonstationary_var_list COMMA symbol named_var
-                         { driver.declare_nonstationary_var($3, "", $4); }
-                       | symbol named_var
-                         { driver.declare_nonstationary_var($1, "", $2); }
-                       | nonstationary_var_list symbol TEX_NAME
-                         { driver.declare_nonstationary_var($2, $3); }
-                       | nonstationary_var_list COMMA symbol TEX_NAME
-                         { driver.declare_nonstationary_var($3, $4); }
-                       | symbol TEX_NAME
-                         { driver.declare_nonstationary_var($1, $2); }
-                       | nonstationary_var_list symbol TEX_NAME named_var
-                         { driver.declare_nonstationary_var($2, $3, $4); }
-                       | nonstationary_var_list COMMA symbol TEX_NAME named_var
-                         { driver.declare_nonstationary_var($3, $4, $5); }
-                       | symbol TEX_NAME named_var
-                         { driver.declare_nonstationary_var($1, $2, $3); }
-                       ;
-
-varexo : VAREXO varexo_list ';'
+varexo : VAREXO symbol_list_with_tex_and_partition ';'
+         { driver.varexo($2); }
        ;
 
-varexo_det : VAREXO_DET varexo_det_list ';';
-
-predetermined_variables : PREDETERMINED_VARIABLES predetermined_variables_list ';';
-
-parameters : PARAMETERS parameter_list ';';
+varexo_det : VAREXO_DET symbol_list_with_tex_and_partition ';'
+             { driver.varexo_det($2); }
            ;
 
-model_local_variable : MODEL_LOCAL_VARIABLE model_local_variable_list ';';
+predetermined_variables : PREDETERMINED_VARIABLES symbol_list ';'
+                          { driver.predetermined_variables($2); }
+                        ;
 
-named_var_elem : symbol EQUAL QUOTED_STRING
-                 { $$ = { $1, $3 }; }
+parameters : PARAMETERS symbol_list_with_tex_and_partition ';'
+             { driver.parameters($2); }
+           ;
 
-named_var_1 : '(' named_var_elem
-              { $$ = { $2 }; }
-            | '(' COMMA named_var_elem
-              { $$ = { $3 }; }
-            | named_var_1 named_var_elem
-              {
-                $$ = $1;
-                $$.push_back($2);
-              }
-            | named_var_1 COMMA named_var_elem
-              {
-                $$ = $1;
-                $$.push_back($3);
-              }
-            ;
+model_local_variable : MODEL_LOCAL_VARIABLE symbol_list_with_tex ';'
+                       { driver.model_local_variable($2); }
+                     ;
 
-named_var : named_var_1 ')'
-          | named_var_1 COMMA ')'
-          ;
-
-var_list : var_list symbol
-           { driver.declare_endogenous($2); }
-         | var_list COMMA symbol
-           { driver.declare_endogenous($3); }
-         | symbol
-           { driver.declare_endogenous($1); }
-         | var_list symbol named_var
-           { driver.declare_endogenous($2, "", $3); }
-         | var_list COMMA symbol named_var
-           { driver.declare_endogenous($3, "", $4); }
-         | symbol named_var
-           { driver.declare_endogenous($1, "", $2); }
-         | var_list symbol TEX_NAME
-           { driver.declare_endogenous($2, $3); }
-         | var_list COMMA symbol TEX_NAME
-           { driver.declare_endogenous($3, $4); }
-         | symbol TEX_NAME
-           { driver.declare_endogenous($1, $2); }
-         | var_list symbol TEX_NAME named_var
-           { driver.declare_endogenous($2, $3, $4); }
-         | var_list COMMA symbol TEX_NAME named_var
-           { driver.declare_endogenous($3, $4, $5); }
-         | symbol TEX_NAME named_var
-           { driver.declare_endogenous($1, $2, $3); }
-         ;
-
-varexo_list : varexo_list symbol
-              { driver.declare_exogenous($2); }
-            | varexo_list COMMA symbol
-              { driver.declare_exogenous($3); }
-            | symbol
-              { driver.declare_exogenous($1); }
-            | varexo_list symbol named_var
-              { driver.declare_exogenous($2, "", $3); }
-            | varexo_list COMMA symbol named_var
-              { driver.declare_exogenous($3, "", $4); }
-            | symbol named_var
-              { driver.declare_exogenous($1, "", $2); }
-            | varexo_list symbol TEX_NAME
-              { driver.declare_exogenous($2, $3); }
-            | varexo_list COMMA symbol TEX_NAME
-              { driver.declare_exogenous($3, $4); }
-            | symbol TEX_NAME
-              { driver.declare_exogenous($1, $2); }
-            | varexo_list symbol TEX_NAME named_var
-              { driver.declare_exogenous($2, $3, $4); }
-            | varexo_list COMMA symbol TEX_NAME named_var
-              { driver.declare_exogenous($3, $4, $5); }
-            | symbol TEX_NAME named_var
-              { driver.declare_exogenous($1, $2, $3); }
-            ;
-
-varexo_det_list : varexo_det_list symbol
-                  { driver.declare_exogenous_det($2); }
-                | varexo_det_list COMMA symbol
-                  { driver.declare_exogenous_det($3); }
-                | symbol
-                  { driver.declare_exogenous_det($1); }
-                | varexo_det_list symbol named_var
-                  { driver.declare_exogenous_det($2, "", $3); }
-                | varexo_det_list COMMA symbol named_var
-                  { driver.declare_exogenous_det($3, "", $4); }
-                | symbol named_var
-                  { driver.declare_exogenous_det($1, "", $2); }
-                | varexo_det_list symbol TEX_NAME
-                  { driver.declare_exogenous_det($2, $3); }
-                | varexo_det_list COMMA symbol TEX_NAME
-                  { driver.declare_exogenous_det($3, $4); }
-                | symbol TEX_NAME
-                   { driver.declare_exogenous_det($1, $2); }
-                | varexo_det_list symbol TEX_NAME named_var
-                  { driver.declare_exogenous_det($2, $3, $4); }
-                | varexo_det_list COMMA symbol TEX_NAME named_var
-                  { driver.declare_exogenous_det($3, $4, $5); }
-                | symbol TEX_NAME named_var
-                   { driver.declare_exogenous_det($1, $2, $3); }
-                ;
-
-parameter_list : parameter_list symbol
-                 { driver.declare_parameter($2); }
-               | parameter_list COMMA symbol
-                 { driver.declare_parameter($3); }
-               | symbol
-                 { driver.declare_parameter($1); }
-               | parameter_list symbol named_var
-                 { driver.declare_parameter($2, "", $3); }
-               | parameter_list COMMA symbol named_var
-                 { driver.declare_parameter($3, "", $4); }
-               | symbol named_var
-                 { driver.declare_parameter($1, "", $2); }
-               | parameter_list symbol TEX_NAME
-                 { driver.declare_parameter($2, $3); }
-               | parameter_list COMMA symbol TEX_NAME
-                 { driver.declare_parameter($3, $4); }
-               | symbol TEX_NAME
-                 { driver.declare_parameter($1, $2); }
-               | parameter_list symbol TEX_NAME named_var
-                 { driver.declare_parameter($2, $3, $4); }
-               | parameter_list COMMA symbol TEX_NAME named_var
-                 { driver.declare_parameter($3, $4, $5); }
-               | symbol TEX_NAME named_var
-                 { driver.declare_parameter($1, $2, $3); }
-               ;
-
-predetermined_variables_list : predetermined_variables_list symbol
-                               { driver.add_predetermined_variable($2); }
-                             | predetermined_variables_list COMMA symbol
-                               { driver.add_predetermined_variable($3); }
-                             | symbol
-                               { driver.add_predetermined_variable($1); }
-                             ;
-
-model_local_variable_list : model_local_variable_list symbol
-                            { driver.declare_model_local_variable($2); }
-                          | model_local_variable_list COMMA symbol
-                            { driver.declare_model_local_variable($3); }
-                          | symbol
-                            { driver.declare_model_local_variable($1); }
-                          | model_local_variable_list symbol TEX_NAME
-                            { driver.declare_model_local_variable($2, $3); }
-                          | model_local_variable_list COMMA symbol TEX_NAME
-                            { driver.declare_model_local_variable($3, $4); }
-                          | symbol TEX_NAME
-                            { driver.declare_model_local_variable($1, $2); }
-                          ;
-
-change_type : CHANGE_TYPE '(' change_type_arg ')' change_type_var_list ';'
+change_type : CHANGE_TYPE '(' change_type_arg ')' symbol_list ';'
               { driver.change_type($3, $5); }
             ;
 
@@ -676,20 +601,6 @@ change_type_arg : PARAMETERS
                 | VAREXO_DET
                   { $$ = SymbolType::exogenousDet; }
                 ;
-
-change_type_var_list : symbol
-                       { $$ = { $1 }; }
-                     | change_type_var_list symbol
-                       {
-                         $$ = $1;
-                         $$.push_back($2);
-                       }
-                     | change_type_var_list COMMA symbol
-                       {
-                         $$ = $1;
-                         $$.push_back($3);
-                       }
-                     ;
 
 periods : PERIODS INT_NUMBER ';'
           { driver.periods($2); }
@@ -1013,7 +924,7 @@ model_option : BLOCK { driver.block(); }
              | USE_DLL { driver.use_dll(); }
              | NO_STATIC { driver.no_static();}
              | DIFFERENTIATE_FORWARD_VARS { driver.differentiate_forward_vars_all(); }
-             | DIFFERENTIATE_FORWARD_VARS EQUAL '(' symbol_list ')' { driver.differentiate_forward_vars_some(); }
+             | DIFFERENTIATE_FORWARD_VARS EQUAL '(' symbol_list ')' { driver.differentiate_forward_vars_some($4); }
              | o_linear
              | PARALLEL_LOCAL_FILES EQUAL '(' parallel_local_filename_list ')'
              | BALANCED_GROWTH_TEST_TOL EQUAL non_negative_number { driver.balanced_growth_test_tol($3); }
@@ -1278,17 +1189,11 @@ svar_identification_elem : EXCLUSION LAG INT_NUMBER ';' svar_equation_list
                            { driver.add_lower_cholesky(); }
                          ;
 
-svar_equation_list : svar_equation_list EQUATION INT_NUMBER COMMA svar_var_list ';'
-                     { driver.add_restriction_in_equation($3); }
-                   | EQUATION INT_NUMBER COMMA svar_var_list ';'
-                     { driver.add_restriction_in_equation($2); }
+svar_equation_list : svar_equation_list EQUATION INT_NUMBER COMMA symbol_list ';'
+                     { driver.add_restriction_in_equation($3, $5); }
+                   | EQUATION INT_NUMBER COMMA symbol_list ';'
+                     { driver.add_restriction_in_equation($2, $4); }
                    ;
-
-svar_var_list : svar_var_list COMMA symbol
-                { driver.add_in_svar_restriction_symbols($3); }
-              | symbol
-                { driver.add_in_svar_restriction_symbols($1); }
-              ;
 
 restriction_expression : expression {driver.check_restriction_expression_constant($1);}
                        | restriction_expression_1
@@ -1676,13 +1581,13 @@ external_function_options : o_ext_func_name
                           ;
 
 stoch_simul : STOCH_SIMUL ';'
-              { driver.stoch_simul(); }
+              { driver.stoch_simul({}); }
             | STOCH_SIMUL '(' stoch_simul_options_list ')' ';'
-              { driver.stoch_simul(); }
+              { driver.stoch_simul({}); }
             | STOCH_SIMUL symbol_list ';'
-              { driver.stoch_simul(); }
+              { driver.stoch_simul($2); }
             | STOCH_SIMUL '(' stoch_simul_options_list ')' symbol_list ';'
-              { driver.stoch_simul(); }
+              { driver.stoch_simul($5); }
             ;
 
 stoch_simul_options_list : stoch_simul_options_list COMMA stoch_simul_options
@@ -1748,19 +1653,6 @@ stoch_simul_options : stoch_simul_primary_options
                     | o_bandpass_filter
                     | o_one_sided_hp_filter
                     ;
-
-symbol_list : symbol_list symbol
-               { driver.add_in_symbol_list($2); }
-             | symbol_list COMMA symbol
-               { driver.add_in_symbol_list($3); }
-             | symbol
-               { driver.add_in_symbol_list($1); }
-             ;
-
-symbol_list_ext : symbol_list
-                | ':'
-                  { driver.add_in_symbol_list(":"); }
-                ;
 
 signed_integer : PLUS INT_NUMBER
                  { $$ = $2; }
@@ -2187,13 +2079,13 @@ options_eq_opt : symbol '.' OPTIONS
                ;
 
 estimation : ESTIMATION ';'
-             { driver.run_estimation(); }
+             { driver.run_estimation({}); }
            | ESTIMATION '(' estimation_options_list ')' ';'
-             { driver.run_estimation(); }
+             { driver.run_estimation({}); }
            | ESTIMATION symbol_list ';'
-             { driver.run_estimation(); }
+             { driver.run_estimation($2); }
            | ESTIMATION '(' estimation_options_list ')' symbol_list ';'
-             { driver.run_estimation(); }
+             { driver.run_estimation($5); }
            ;
 
 estimation_options_list : estimation_options_list COMMA estimation_options
@@ -2426,7 +2318,7 @@ optim_weights_list : optim_weights_list symbol expression ';'
                      { driver.set_optim_weights($1, $3, $4); }
                    ;
 
-osr_params : OSR_PARAMS symbol_list ';' { driver.set_osr_params(); };
+osr_params : OSR_PARAMS symbol_list ';' { driver.set_osr_params($2); };
 
 
 osr_options_list : osr_options_list COMMA osr_options
@@ -2443,25 +2335,25 @@ osr_options : stoch_simul_primary_options
             ;
 
 osr : OSR ';'
-      { driver.run_osr(); }
+      { driver.run_osr({}); }
     | OSR '(' osr_options_list ')' ';'
-      { driver.run_osr(); }
+      { driver.run_osr({}); }
     | OSR symbol_list ';'
-      { driver.run_osr(); }
+      { driver.run_osr($2); }
     | OSR '(' osr_options_list ')' symbol_list ';'
-      {driver.run_osr(); }
+      {driver.run_osr($5); }
     ;
 
 dynatype : DYNATYPE '(' filename ')' ';'
-           { driver.run_dynatype($3); }
+           { driver.run_dynatype($3, {}); }
          | DYNATYPE '(' filename ')' symbol_list ';'
-           { driver.run_dynatype($3); }
+           { driver.run_dynatype($3, $5); }
          ;
 
 dynasave : DYNASAVE '(' filename ')' ';'
-           { driver.run_dynasave($3); }
+           { driver.run_dynasave($3, {}); }
          | DYNASAVE '(' filename ')' symbol_list ';'
-           { driver.run_dynasave($3); }
+           { driver.run_dynasave($3, $5); }
          ;
 
 load_params_and_steady_state : LOAD_PARAMS_AND_STEADY_STATE '(' filename ')' ';'
@@ -2569,13 +2461,13 @@ ramsey_model : RAMSEY_MODEL ';'
               ;
 
 ramsey_policy : RAMSEY_POLICY ';'
-                { driver.ramsey_policy(); }
+                { driver.ramsey_policy({}); }
               | RAMSEY_POLICY '(' ramsey_policy_options_list ')' ';'
-                { driver.ramsey_policy(); }
+                { driver.ramsey_policy({}); }
               | RAMSEY_POLICY symbol_list ';'
-                { driver.ramsey_policy(); }
+                { driver.ramsey_policy($2); }
               | RAMSEY_POLICY '(' ramsey_policy_options_list ')' symbol_list ';'
-                { driver.ramsey_policy(); }
+                { driver.ramsey_policy($5); }
               ;
 
 ramsey_constraints : RAMSEY_CONSTRAINTS ';' ramsey_constraints_list END ';'
@@ -2648,8 +2540,7 @@ occbin_solver : OCCBIN_SOLVER ';'
                 { driver.occbin_solver(); }
               | OCCBIN_SOLVER '(' occbin_solver_options_list ')' ';'
                 { driver.occbin_solver(); }
-              | OCCBIN_SOLVER '(' occbin_solver_options_list ')' symbol_list ';'
-                { driver.occbin_solver(); }
+              ;
 
 occbin_solver_options_list : occbin_solver_option COMMA occbin_solver_options_list
                            | occbin_solver_option
@@ -2679,13 +2570,13 @@ occbin_write_regimes_option : o_occbin_write_regimes_periods
                             ;
 
 occbin_graph : OCCBIN_GRAPH ';'
-               { driver.occbin_graph(); }
+               { driver.occbin_graph({}); }
              | OCCBIN_GRAPH '(' occbin_graph_options_list ')' ';'
-               { driver.occbin_graph(); }
+               { driver.occbin_graph({}); }
              | OCCBIN_GRAPH symbol_list ';'
-               { driver.occbin_graph(); }
+               { driver.occbin_graph($2); }
              | OCCBIN_GRAPH '(' occbin_graph_options_list ')' symbol_list ';'
-               { driver.occbin_graph(); }
+               { driver.occbin_graph($5); }
              ;
 
 occbin_graph_options_list : occbin_graph_option COMMA occbin_graph_options_list
@@ -2695,13 +2586,13 @@ occbin_graph_options_list : occbin_graph_option COMMA occbin_graph_options_list
 occbin_graph_option : o_occbin_graph_noconstant ;
 
 discretionary_policy : DISCRETIONARY_POLICY ';'
-                       { driver.discretionary_policy(); }
+                       { driver.discretionary_policy({}); }
                      | DISCRETIONARY_POLICY '(' discretionary_policy_options_list ')' ';'
-                       { driver.discretionary_policy(); }
+                       { driver.discretionary_policy({}); }
                      | DISCRETIONARY_POLICY symbol_list ';'
-                       { driver.discretionary_policy(); }
+                       { driver.discretionary_policy($2); }
                      | DISCRETIONARY_POLICY '(' discretionary_policy_options_list ')' symbol_list ';'
-                       { driver.discretionary_policy(); }
+                       { driver.discretionary_policy($5); }
                      ;
 
 discretionary_policy_options_list : discretionary_policy_options_list COMMA discretionary_policy_options
@@ -2754,49 +2645,49 @@ write_latex_steady_state_model : WRITE_LATEX_STEADY_STATE_MODEL ';'
                                ;
 
 shock_decomposition : SHOCK_DECOMPOSITION ';'
-                      {driver.shock_decomposition(); }
+                      { driver.shock_decomposition({}); }
                     | SHOCK_DECOMPOSITION '(' shock_decomposition_options_list ')' ';'
-                      { driver.shock_decomposition(); }
+                      { driver.shock_decomposition({}); }
                     | SHOCK_DECOMPOSITION symbol_list ';'
-                      { driver.shock_decomposition(); }
+                      { driver.shock_decomposition($2); }
                     | SHOCK_DECOMPOSITION '(' shock_decomposition_options_list ')' symbol_list ';'
-                      { driver.shock_decomposition(); }
+                      { driver.shock_decomposition($5); }
                     ;
 
 realtime_shock_decomposition : REALTIME_SHOCK_DECOMPOSITION ';'
-                               {driver.realtime_shock_decomposition(); }
+                               { driver.realtime_shock_decomposition({}); }
                              | REALTIME_SHOCK_DECOMPOSITION '(' realtime_shock_decomposition_options_list ')' ';'
-                               { driver.realtime_shock_decomposition(); }
+                               { driver.realtime_shock_decomposition({}); }
                              | REALTIME_SHOCK_DECOMPOSITION symbol_list ';'
-                               { driver.realtime_shock_decomposition(); }
+                               { driver.realtime_shock_decomposition($2); }
                              | REALTIME_SHOCK_DECOMPOSITION '(' realtime_shock_decomposition_options_list ')' symbol_list ';'
-                               { driver.realtime_shock_decomposition(); }
+                               { driver.realtime_shock_decomposition($5); }
                              ;
 
 plot_shock_decomposition : PLOT_SHOCK_DECOMPOSITION ';'
-                           {driver.plot_shock_decomposition(); }
+                           { driver.plot_shock_decomposition({}); }
                          | PLOT_SHOCK_DECOMPOSITION '(' plot_shock_decomposition_options_list ')' ';'
-                           { driver.plot_shock_decomposition(); }
+                           { driver.plot_shock_decomposition({}); }
                          | PLOT_SHOCK_DECOMPOSITION symbol_list ';'
-                           { driver.plot_shock_decomposition(); }
+                           { driver.plot_shock_decomposition($2); }
                          | PLOT_SHOCK_DECOMPOSITION '(' plot_shock_decomposition_options_list ')' symbol_list ';'
-                           { driver.plot_shock_decomposition(); }
+                           { driver.plot_shock_decomposition($5); }
                          ;
 
 initial_condition_decomposition : INITIAL_CONDITION_DECOMPOSITION ';'
-                                  {driver.initial_condition_decomposition(); }
+                                  { driver.initial_condition_decomposition({}); }
                                 | INITIAL_CONDITION_DECOMPOSITION '(' initial_condition_decomposition_options_list ')' ';'
-                                  { driver.initial_condition_decomposition(); }
+                                  { driver.initial_condition_decomposition({}); }
                                 | INITIAL_CONDITION_DECOMPOSITION symbol_list ';'
-                                  { driver.initial_condition_decomposition(); }
+                                  { driver.initial_condition_decomposition($2); }
                                 | INITIAL_CONDITION_DECOMPOSITION '(' initial_condition_decomposition_options_list ')' symbol_list ';'
-                                  { driver.initial_condition_decomposition(); }
+                                  { driver.initial_condition_decomposition($5); }
                                 ;
 
 squeeze_shock_decomposition : SQUEEZE_SHOCK_DECOMPOSITION ';'
-                              { driver.squeeze_shock_decomposition(); }
+                              { driver.squeeze_shock_decomposition({}); }
                             | SQUEEZE_SHOCK_DECOMPOSITION symbol_list ';'
-                              { driver.squeeze_shock_decomposition(); }
+                              { driver.squeeze_shock_decomposition($2); }
                             ;
 
 bvar_prior_option : o_bvar_prior_tau
@@ -2979,13 +2870,13 @@ ms_irf_options_list : ms_irf_option COMMA ms_irf_options_list
                     ;
 
 ms_irf : MS_IRF ';'
-         { driver.ms_irf(); }
+         { driver.ms_irf({}); }
        | MS_IRF '(' ms_irf_options_list ')' ';'
-         { driver.ms_irf(); }
+         { driver.ms_irf({}); }
        | MS_IRF symbol_list ';'
-         { driver.ms_irf(); }
+         { driver.ms_irf($2); }
        | MS_IRF '(' ms_irf_options_list ')' symbol_list ';'
-         { driver.ms_irf(); }
+         { driver.ms_irf($5); }
        ;
 
 ms_compute_probabilities_option : o_output_file_tag
@@ -3253,11 +3144,15 @@ homotopy_item : symbol COMMA expression COMMA expression ';'
                 { driver.homotopy_val($1, nullptr, $3);}
               ;
 
-forecast: FORECAST ';' {driver.forecast();}
-          | FORECAST '(' forecast_options ')' ';' {driver.forecast();}
-          | FORECAST symbol_list ';' {driver.forecast();}
-          | FORECAST '(' forecast_options ')' symbol_list ';' {driver.forecast();}
-          ;
+forecast: FORECAST ';'
+          { driver.forecast({}); }
+        | FORECAST '(' forecast_options ')' ';'
+          { driver.forecast({}); }
+        | FORECAST symbol_list ';'
+          { driver.forecast($2); }
+        | FORECAST '(' forecast_options ')' symbol_list ';'
+          { driver.forecast($5); }
+        ;
 
 forecast_options: forecast_option
           | forecast_options COMMA forecast_option
@@ -3286,9 +3181,9 @@ conditional_forecast_option : o_periods
                             ;
 
 plot_conditional_forecast : PLOT_CONDITIONAL_FORECAST symbol_list ';'
-                            { driver.plot_conditional_forecast(); }
+                            { driver.plot_conditional_forecast("", $2); }
                           | PLOT_CONDITIONAL_FORECAST '(' PERIODS EQUAL INT_NUMBER ')' symbol_list ';'
-                            { driver.plot_conditional_forecast($5); }
+                            { driver.plot_conditional_forecast($5, $7); }
                           ;
 
 conditional_forecast_paths : CONDITIONAL_FORECAST_PATHS ';' conditional_forecast_paths_shock_list END ';'
@@ -3314,17 +3209,17 @@ steady_state_equation_list : steady_state_equation_list steady_state_equation
 steady_state_equation : symbol EQUAL expression ';'
                         { driver.add_steady_state_model_equal($1, $3); }
                       | '[' symbol_list ']' EQUAL expression ';'
-                        { driver.add_steady_state_model_equal_multiple($5); }
+                        { driver.add_steady_state_model_equal_multiple($2, $5); }
                       ;
 
 calib_smoother : CALIB_SMOOTHER ';'
-                 { driver.calib_smoother(); }
+                 { driver.calib_smoother({}); }
                | CALIB_SMOOTHER '(' calib_smoother_options_list ')' ';'
-                 { driver.calib_smoother(); }
+                 { driver.calib_smoother({}); }
                | CALIB_SMOOTHER symbol_list ';'
-                 { driver.calib_smoother(); }
+                 { driver.calib_smoother($2); }
                | CALIB_SMOOTHER '(' calib_smoother_options_list ')' symbol_list ';'
-                 { driver.calib_smoother(); }
+                 { driver.calib_smoother($5); }
                ;
 
 calib_smoother_options_list : calib_smoother_option COMMA calib_smoother_options_list
@@ -3520,7 +3415,7 @@ o_nocorr : NOCORR { driver.option_num("nocorr", "true"); };
 o_nofunctions : NOFUNCTIONS { driver.option_num("nofunctions", "true"); };
 o_nomoments : NOMOMENTS { driver.option_num("nomoments", "true"); };
 o_irf : IRF EQUAL INT_NUMBER { driver.option_num("irf", $3); };
-o_irf_shocks : IRF_SHOCKS EQUAL '(' symbol_list ')' { driver.option_symbol_list("irf_shocks"); };
+o_irf_shocks : IRF_SHOCKS EQUAL '(' symbol_list ')' { driver.option_symbol_list("irf_shocks", $4); };
 o_hp_filter : HP_FILTER EQUAL non_negative_number { driver.option_num("hp_filter", $3); };
 o_hp_ngrid : HP_NGRID EQUAL INT_NUMBER {
                                          driver.warning("The 'hp_ngrid' option is deprecated. It has been superseded by the 'filtered_theoretical_moments_grid' option.");
@@ -3872,12 +3767,12 @@ o_gsa_logtrans_redform : LOGTRANS_REDFORM EQUAL INT_NUMBER { driver.option_num("
 o_gsa_threshold_redform : THRESHOLD_REDFORM EQUAL vec_value_w_inf { driver.option_num("threshold_redform",$3); };
 o_gsa_ksstat_redform : KSSTAT_REDFORM EQUAL non_negative_number { driver.option_num("ksstat_redform", $3); };
 o_gsa_alpha2_redform : ALPHA2_REDFORM EQUAL non_negative_number { driver.option_num("alpha2_redform", $3); };
-o_gsa_namendo : NAMENDO EQUAL '(' symbol_list_ext ')' { driver.option_symbol_list("namendo"); };
-o_gsa_namlagendo : NAMLAGENDO EQUAL '(' symbol_list_ext ')' { driver.option_symbol_list("namlagendo"); };
-o_gsa_namexo : NAMEXO EQUAL '(' symbol_list_ext ')' { driver.option_symbol_list("namexo"); };
+o_gsa_namendo : NAMENDO EQUAL '(' symbol_list_or_wildcard ')' { driver.option_symbol_list("namendo", $4); };
+o_gsa_namlagendo : NAMLAGENDO EQUAL '(' symbol_list_or_wildcard ')' { driver.option_symbol_list("namlagendo", $4); };
+o_gsa_namexo : NAMEXO EQUAL '(' symbol_list_or_wildcard ')' { driver.option_symbol_list("namexo", $4); };
 o_gsa_rmse : RMSE EQUAL INT_NUMBER { driver.option_num("rmse", $3); };
 o_gsa_lik_only : LIK_ONLY EQUAL INT_NUMBER { driver.option_num("lik_only", $3); };
-o_gsa_var_rmse : VAR_RMSE EQUAL '(' symbol_list_ext ')' { driver.option_symbol_list("var_rmse"); };
+o_gsa_var_rmse : VAR_RMSE EQUAL '(' symbol_list_or_wildcard ')' { driver.option_symbol_list("var_rmse", $4); };
 o_gsa_pfilt_rmse : PFILT_RMSE EQUAL non_negative_number { driver.option_num("pfilt_rmse", $3); };
 o_gsa_istart_rmse : ISTART_RMSE EQUAL INT_NUMBER { driver.option_num("istart_rmse", $3); };
 o_gsa_alpha_rmse : ALPHA_RMSE EQUAL non_negative_number { driver.option_num("alpha_rmse", $3); };
@@ -3901,7 +3796,7 @@ o_homotopy_steps : HOMOTOPY_STEPS EQUAL INT_NUMBER {driver.option_num("homotopy_
 o_homotopy_force_continue: HOMOTOPY_FORCE_CONTINUE EQUAL INT_NUMBER { driver.option_num("homotopy_force_continue",$3); };
 o_nocheck : NOCHECK {driver.option_num("steadystate.nocheck","true"); };
 
-o_controlled_varexo : CONTROLLED_VAREXO EQUAL '(' symbol_list ')' { driver.option_symbol_list("controlled_varexo"); };
+o_controlled_varexo : CONTROLLED_VAREXO EQUAL '(' symbol_list ')' { driver.option_symbol_list("controlled_varexo", $4); };
 o_parameter_set : PARAMETER_SET EQUAL PRIOR_MODE
                   { driver.option_str("parameter_set", "prior_mode"); }
                 | PARAMETER_SET EQUAL PRIOR_MEAN
@@ -3934,7 +3829,7 @@ o_final_year : FINAL_YEAR EQUAL INT_NUMBER {driver.option_num("ms.final_year",$3
 o_final_subperiod : FINAL_SUBPERIOD EQUAL INT_NUMBER {driver.option_num("ms.final_subperiod",$3); };
 o_data : DATA EQUAL filename { driver.option_str("ms.data", $3); };
 o_vlist : VLIST EQUAL INT_NUMBER {driver.option_num("ms.vlist",$3); };
-o_vlistlog : VLISTLOG EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.vlistlog"); };
+o_vlistlog : VLISTLOG EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.vlistlog", $4); };
 o_vlistper : VLISTPER EQUAL INT_NUMBER {driver.option_num("ms.vlistper",$3); };
 o_restriction_fname : RESTRICTION_FNAME EQUAL NAME
                       {
@@ -4005,7 +3900,7 @@ o_duration : DURATION EQUAL non_negative_number
            ;
 o_number_of_regimes : NUMBER_OF_REGIMES EQUAL INT_NUMBER { driver.option_num("ms.number_of_regimes",$3); };
 o_number_of_lags : NUMBER_OF_LAGS EQUAL INT_NUMBER { driver.option_num("ms.number_of_lags",$3); };
-o_parameters : PARAMETERS EQUAL '[' symbol_list ']' { driver.option_symbol_list("ms.parameters"); };
+o_parameters : PARAMETERS EQUAL '[' symbol_list ']' { driver.option_symbol_list("ms.parameters", $4); };
 o_coefficients : COEFFICIENTS { driver.option_str("ms.coefficients","svar_coefficients"); };
 o_variances : VARIANCES { driver.option_str("ms.variances","svar_variances"); };
 o_equations : EQUATIONS EQUAL vec_int
@@ -4014,7 +3909,7 @@ o_equations : EQUATIONS EQUAL vec_int
               { driver.option_vec_int("ms.equations",$3); }
             ;
 o_silent_optimizer : SILENT_OPTIMIZER { driver.option_num("silent_optimizer", "true"); };
-o_instruments : INSTRUMENTS EQUAL '(' symbol_list ')' {driver.option_symbol_list("instruments"); };
+o_instruments : INSTRUMENTS EQUAL '(' symbol_list ')' {driver.option_symbol_list("instruments", $4); };
 
 o_ext_func_name : EXT_FUNC_NAME EQUAL namespace_qualified_filename { driver.external_function_option("name", $3); };
 o_ext_func_nargs : EXT_FUNC_NARGS EQUAL INT_NUMBER { driver.external_function_option("nargs",$3); };
@@ -4130,10 +4025,10 @@ o_consider_only_observed : CONSIDER_ONLY_OBSERVED { driver.option_str("endo_vars
 o_no_homotopy : NO_HOMOTOPY { driver.option_num("no_homotopy", "true"); };
 
 o_infile : INFILE EQUAL filename { driver.option_str("infile", $3); };
-o_invars : INVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("invars"); };
+o_invars : INVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("invars", $4); };
 o_period : PERIOD EQUAL INT_NUMBER { driver.option_num("period", $3); };
 o_outfile : OUTFILE EQUAL filename { driver.option_str("outfile", $3); };
-o_outvars : OUTVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("outvars"); };
+o_outvars : OUTVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("outvars", $4); };
 o_lmmcp : LMMCP {driver.option_num("lmmcp.status", "true"); };
 o_function : FUNCTION EQUAL filename { driver.option_str("function", $3); };
 o_sampling_draws : SAMPLING_DRAWS EQUAL INT_NUMBER { driver.option_num("sampling_draws",$3); };

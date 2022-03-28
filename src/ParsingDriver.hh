@@ -111,9 +111,6 @@ private:
   //! Helper to add a symbol declaration
   void declare_symbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string, string>> &partition_value);
 
-  //! Stores temporary symbol table
-  SymbolList symbol_list;
-
   //! Temporary store for the planner objective
   unique_ptr<StaticModel> planner_objective;
 
@@ -185,8 +182,6 @@ private:
   SvarIdentificationStatement::svar_identification_restrictions_t svar_ident_restrictions;
   //! Temporary storage for mapping the equation number to the restrictions within an svar_identification block
   map<int, vector<int>> svar_equation_restrictions;
-  //! Temporary storage for restrictions in an equation within an svar_identification block
-  vector<int> svar_restriction_symbols;
   //! Temporary storage for constants exculsion within an svar_identification
   bool svar_constants_exclusion;
   //! Temporary storage for upper cholesky within an svar_identification block
@@ -222,10 +217,6 @@ private:
   int current_external_function_id;
   //! Temporary storage for option list provided to external_function()
   ExternalFunctionsTable::external_function_options current_external_function_options;
-  //! Temporary storage for declaring trend variables
-  vector<int> declared_trend_vars;
-  //! Temporary storage for declaring nonstationary variables
-  vector<int> declared_nonstationary_vars;
   //! Temporary storage for a variance declared in the prior statement
   expr_t prior_variance;
   SubsamplesStatement::subsample_declaration_map_t subsample_declaration_map;
@@ -246,7 +237,7 @@ private:
   //! Adds a model lagged variable to ModelTree and VariableTable
   expr_t add_model_variable(int symb_id, int lag);
   //! For parsing the graph_format option
-  SymbolList graph_formats;
+  vector<string> graph_formats;
   //! Temporary storage for equation tags
   map<string, string> eq_tags;
   // Temporary storages for pac_target_info
@@ -342,7 +333,7 @@ public:
   //! the differentiate_forward_vars option is enabled (for all vars)
   void differentiate_forward_vars_all();
   //! the differentiate_forward_vars option is enabled (for a subset of vars)
-  void differentiate_forward_vars_some();
+  void differentiate_forward_vars_some(vector<string> symbol_list);
   //! cutoff option of model block
   void cutoff(const string &value);
   //! mfs option of model block
@@ -363,14 +354,20 @@ public:
   void initval_file();
   //! Declares an endogenous variable
   void declare_endogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
+  // Handles a “var” statement (without “deflator” or “log_deflator” options)
+  void var(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list);
   //! Declares an exogenous variable
   void declare_exogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
-  //! Declares an exogenous deterministic variable
-  void declare_exogenous_det(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
+  // Handles a “varexo” statement
+  void varexo(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list);
+  // Handles a “varexo_det” statement
+  void varexo_det(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list);
   //! Declares a parameter
   void declare_parameter(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
-  //! Declares a model local variable
-  void declare_model_local_variable(const string &name, const string &tex_name = "");
+  // Handles a “parameters” statement
+  void parameters(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list);
+  // Handles a “model_local_variable” statement
+  void model_local_variable(const vector<pair<string, string>> &symbol_list);
   //! Declares a statement local variable
   void declare_statement_local_variable(const string &name);
   //! Completes a subsample statement
@@ -386,12 +383,12 @@ public:
   void set_planner_discount(expr_t value);
   //! Sets the value of the planner_discount_latex_name option of ramsey_model
   void set_planner_discount_latex_name(string tex_name);
-  //! Adds a predetermined_variable
-  void add_predetermined_variable(const string &name);
+  //! Handles a “predetermined_variables” statement
+  void predetermined_variables(const vector<string> &symbol_list);
   //! Declares and initializes a local parameter
   void declare_and_init_model_local_variable(const string &name, expr_t rhs);
   //! Changes type of a symbol
-  void change_type(SymbolType new_type, const vector<string> &var_list);
+  void change_type(SymbolType new_type, const vector<string> &symbol_list);
   //! Adds a list of tags for the current equation
   void add_equation_tags(string key, string value);
   //! Adds a non-negative constant to DataTree
@@ -490,8 +487,8 @@ public:
   void option_str(string name_option, string opt);
   //! Sets an option to a date value
   void option_date(string name_option, string opt);
-  //! Sets an option to a list of symbols (used in conjunction with add_in_symbol_list())
-  void option_symbol_list(string name_option);
+  //! Sets an option to a list of symbols
+  void option_symbol_list(string name_option, vector<string> symbol_list);
   //! Sets an option to a vector of integers
   void option_vec_int(string name_option, vector<int> opt);
   //! Sets an option to a vector of strings
@@ -500,12 +497,10 @@ public:
   void option_vec_cellstr(string name_option, vector<string> opt);
   //! Indicates that the model is linear
   void linear();
-  //! Adds a variable to temporary symbol list
-  void add_in_symbol_list(const string &tmp_var);
   //! Writes a rplot() command
-  void rplot();
+  void rplot(vector<string> symbol_list);
   //! Writes a stock_simul command
-  void stoch_simul();
+  void stoch_simul(SymbolList symbol_list);
   //! Writes a trend component command
   void trend_component_model();
   //! Writes a var (vector autoregression) command
@@ -563,7 +558,7 @@ public:
   //! Sets the options for estimated correlation
   void set_corr_options(const string &name1, const string &name2, const string &subsample_name);
   //! Runs estimation process
-  void run_estimation();
+  void run_estimation(vector<string> symbol_list);
   //! Runs dynare_sensitivy()
   void dynare_sensitivity();
   //! Check that no observed variable has yet be defined
@@ -580,9 +575,7 @@ public:
   //! Svar_Identification Statement: match list of restrictions and equation number with lag
   void combine_lag_and_restriction(const string &lag);
   //! Svar_Identification Statement: match list of restrictions with equation number
-  void add_restriction_in_equation(const string &equation);
-  //! Svar_Identification Statement: add list of restriction symbol ids
-  void add_in_svar_restriction_symbols(const string &tmp_var);
+  void add_restriction_in_equation(const string &equation, const vector<string> &symbol_list);
   //! Svar_Identification Statement: add exclusions of constants
   void add_constants_exclusion();
   //! Svar_Identification Statement: add equation number for following restriction equations
@@ -612,7 +605,7 @@ public:
   void add_generate_irfs_element(string name);
   void add_generate_irfs_exog_element(string exo, const string &value);
   //! Forecast Statement
-  void forecast();
+  void forecast(vector<string> symbol_list);
   void set_trends();
   void set_deterministic_trends();
   void set_trend_element(string arg1, expr_t arg2);
@@ -624,10 +617,10 @@ public:
   void optim_weights();
   void set_optim_weights(string name, expr_t value);
   void set_optim_weights(const string &name1, const string &name2, expr_t value);
-  void set_osr_params();
-  void run_osr();
-  void run_dynasave(const string &filename);
-  void run_dynatype(const string &filename);
+  void set_osr_params(vector<string> symbol_list);
+  void run_osr(vector<string> symbol_list);
+  void run_dynasave(const string &filename, vector<string> symbol_list);
+  void run_dynatype(const string &filename, vector<string> symbol_list);
   void run_load_params_and_steady_state(const string &filename);
   void run_save_params_and_steady_state(const string &filename);
   void run_identification();
@@ -652,7 +645,7 @@ public:
   //! Ramsey constraint helper function
   void add_ramsey_constraint(const string &name, BinaryOpcode op_code, const expr_t rhs);
   //! Ramsey policy statement
-  void ramsey_policy();
+  void ramsey_policy(vector<string> symbol_list);
   //! Evaluate Planner Objective
   void evaluate_planner_objective();
   //! Set up Occbin
@@ -662,9 +655,9 @@ public:
   //! Run Occbin write XLS
   void occbin_write_regimes();
   //! Run plotting of Occbin results
-  void occbin_graph();
+  void occbin_graph(vector<string> symbol_list);
   //! Discretionary policy statement
-  void discretionary_policy();
+  void discretionary_policy(vector<string> symbol_list);
   //! Adds a write_latex_dynamic_model statement
   void write_latex_dynamic_model(bool write_equation_tags);
   //! Adds a write_latex_static_model statement
@@ -688,7 +681,7 @@ public:
   //! Markov Switching Statement: Probabilities
   void ms_compute_probabilities();
   //! Markov Switching Statement: IRF
-  void ms_irf();
+  void ms_irf(vector<string> symbol_list);
   //! Markov Switching Statement: Forecast
   void ms_forecast();
   //! Markov Switching Statement: Variance Decomposition
@@ -698,23 +691,23 @@ public:
   //! MarkovSwitching statement
   void markov_switching();
   //! Shock decomposition
-  void shock_decomposition();
+  void shock_decomposition(vector<string> symbol_list);
   //! Realtime Shock decomposition
-  void realtime_shock_decomposition();
+  void realtime_shock_decomposition(vector<string> symbol_list);
   //! Plot Shock decomposition
-  void plot_shock_decomposition();
+  void plot_shock_decomposition(vector<string> symbol_list);
   //! Initial Condition decomposition
-  void initial_condition_decomposition();
+  void initial_condition_decomposition(vector<string> symbol_list);
   //! squeeze_shock_decomposition statement
-  void squeeze_shock_decomposition();
+  void squeeze_shock_decomposition(vector<string> symbol_list);
   //! Conditional forecast statement
   void conditional_forecast();
   //! Conditional forecast paths block
   void conditional_forecast_paths();
   //! Plot conditional forecast statement
-  void plot_conditional_forecast(const string &periods = "");
+  void plot_conditional_forecast(const string &periods, vector<string> symbol_list);
   //! Smoother on calibrated models
-  void calib_smoother();
+  void calib_smoother(vector<string> symbol_list);
   //! Extended path
   void extended_path();
   //! Writes token "arg1=arg2" to model tree
@@ -847,19 +840,15 @@ public:
   //! Add an assignment equation in steady_state_model block
   void add_steady_state_model_equal(const string &varname, expr_t expr);
   //! Add a multiple assignment equation in steady_state_model block
-  void add_steady_state_model_equal_multiple(expr_t expr);
+  void add_steady_state_model_equal_multiple(const vector<string> &symbol_list, expr_t expr);
   //! Switches datatree
   void begin_trend();
-  //! Declares a trend variable with its growth factor
-  void declare_trend_var(bool log_trend, const string &name, const string &tex_name = "");
   //! Ends declaration of trend variable
-  void end_trend_var(expr_t growth_factor);
-  //! Declares a nonstationary variable with its deflator
-  void declare_nonstationary_var(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
+  void end_trend_var(bool log_trend, expr_t growth_factor, const vector<pair<string, string>> &symbol_list);
   //! Ends declaration of nonstationary variable
-  void end_nonstationary_var(bool log_deflator, expr_t deflator);
+  void end_nonstationary_var(bool log_deflator, expr_t deflator, const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list);
   //! Add a graph format to the list of formats requested
-  void add_graph_format(const string &name);
+  void add_graph_format(string name);
   //! Add the graph_format option to the OptionsList structure
   void process_graph_format_option();
   //! Add the graph_format option to the initial_condition_decomp substructure of the OptionsList structure
@@ -912,7 +901,7 @@ public:
   // Begin a model_replace statement
   void begin_model_replace(const vector<pair<string, string>> &listed_eqs_by_tags);
   // Add a var_remove statement
-  void var_remove();
+  void var_remove(const vector<string> &symbol_list);
   void begin_pac_target_info(string name);
   void end_pac_target_info();
   void set_pac_target_info_target(expr_t target);

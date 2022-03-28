@@ -91,8 +91,6 @@ ParsingDriver::parse(istream &in, bool debug)
 {
   mod_file = make_unique<ModFile>(warnings);
 
-  symbol_list.setSymbolTable(mod_file->symbol_table);
-
   reset_data_tree();
   estim_params.init(*data_tree);
   osr_params.init(*data_tree);
@@ -202,21 +200,43 @@ ParsingDriver::declare_endogenous(const string &name, const string &tex_name, co
 }
 
 void
+ParsingDriver::var(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list)
+{
+  for (auto &[name, tex_name, partition] : symbol_list)
+    declare_endogenous(name, tex_name, partition);
+}
+
+void
 ParsingDriver::declare_exogenous(const string &name, const string &tex_name, const vector<pair<string, string>> &partition_value)
 {
   declare_symbol(name, SymbolType::exogenous, tex_name, partition_value);
 }
 
 void
-ParsingDriver::declare_exogenous_det(const string &name, const string &tex_name, const vector<pair<string, string>> &partition_value)
+ParsingDriver::varexo(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list)
 {
-  declare_symbol(name, SymbolType::exogenousDet, tex_name, partition_value);
+  for (auto &[name, tex_name, partition] : symbol_list)
+    declare_exogenous(name, tex_name, partition);
+}
+
+void
+ParsingDriver::varexo_det(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list)
+{
+  for (auto &[name, tex_name, partition] : symbol_list)
+    declare_symbol(name, SymbolType::exogenousDet, tex_name, partition);
 }
 
 void
 ParsingDriver::declare_parameter(const string &name, const string &tex_name, const vector<pair<string, string>> &partition_value)
 {
   declare_symbol(name, SymbolType::parameter, tex_name, partition_value);
+}
+
+void
+ParsingDriver::parameters(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list)
+{
+  for (auto &[name, tex_name, partition] : symbol_list)
+    declare_parameter(name, tex_name, partition);
 }
 
 void
@@ -247,15 +267,15 @@ ParsingDriver::begin_trend()
 }
 
 void
-ParsingDriver::declare_trend_var(bool log_trend, const string &name, const string &tex_name)
+ParsingDriver::end_trend_var(bool log_trend, expr_t growth_factor, const vector<pair<string, string>> &symbol_list)
 {
-  declare_symbol(name, log_trend ? SymbolType::logTrend : SymbolType::trend, tex_name, {});
-  declared_trend_vars.push_back(mod_file->symbol_table.getID(name));
-}
+  vector<int> declared_trend_vars;
+  for (auto &[name, tex_name] : symbol_list)
+    {
+      declare_symbol(name, log_trend ? SymbolType::logTrend : SymbolType::trend, tex_name, {});
+      declared_trend_vars.push_back(mod_file->symbol_table.getID(name));
+    }
 
-void
-ParsingDriver::end_trend_var(expr_t growth_factor)
-{
   try
     {
       dynamic_model->addTrendVariables(declared_trend_vars, growth_factor);
@@ -269,11 +289,14 @@ ParsingDriver::end_trend_var(expr_t growth_factor)
 }
 
 void
-ParsingDriver::add_predetermined_variable(const string &name)
+ParsingDriver::predetermined_variables(const vector<string> &symbol_list)
 {
-  check_symbol_is_endogenous(name);
-  int symb_id = mod_file->symbol_table.getID(name);
-  mod_file->symbol_table.markPredetermined(symb_id);
+  for (auto &name : symbol_list)
+    {
+      check_symbol_is_endogenous(name);
+      int symb_id = mod_file->symbol_table.getID(name);
+      mod_file->symbol_table.markPredetermined(symb_id);
+    }
 }
 
 void
@@ -449,17 +472,17 @@ ParsingDriver::add_expression_variable(const string &name)
 }
 
 void
-ParsingDriver::declare_nonstationary_var(const string &name, const string &tex_name, const vector<pair<string, string>> &partition_value)
+ParsingDriver::end_nonstationary_var(bool log_deflator, expr_t deflator, const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list)
 {
-  declare_endogenous(name, tex_name, partition_value);
-
-  declared_nonstationary_vars.push_back(mod_file->symbol_table.getID(name));
   mod_file->nonstationary_variables = true;
-}
 
-void
-ParsingDriver::end_nonstationary_var(bool log_deflator, expr_t deflator)
-{
+  vector<int> declared_nonstationary_vars;
+  for (auto &[name, tex_name, partition] : symbol_list)
+    {
+      declare_endogenous(name, tex_name, partition);
+      declared_nonstationary_vars.push_back(mod_file->symbol_table.getID(name));
+    }
+
   try
     {
       dynamic_model->addNonstationaryVariables(declared_nonstationary_vars, log_deflator, deflator);
@@ -608,10 +631,10 @@ ParsingDriver::add_generate_irfs_exog_element(string exo, const string &value)
 }
 
 void
-ParsingDriver::forecast()
+ParsingDriver::forecast(vector<string> symbol_list)
 {
-  mod_file->addStatement(make_unique<ForecastStatement>(symbol_list, options_list));
-  symbol_list.clear();
+  mod_file->addStatement(make_unique<ForecastStatement>(move(symbol_list), options_list,
+                                                        mod_file->symbol_table));
   options_list.clear();
 }
 
@@ -646,13 +669,12 @@ ParsingDriver::differentiate_forward_vars_all()
 }
 
 void
-ParsingDriver::differentiate_forward_vars_some()
+ParsingDriver::differentiate_forward_vars_some(vector<string> symbol_list)
 {
   mod_file->differentiate_forward_vars = true;
-  mod_file->differentiate_forward_vars_subset = symbol_list.get_symbols();
+  mod_file->differentiate_forward_vars_subset = move(symbol_list);
   for (auto &it : mod_file->differentiate_forward_vars_subset)
     check_symbol_is_endogenous(it);
-  symbol_list.clear();
 }
 
 void
@@ -989,7 +1011,6 @@ ParsingDriver::end_svar_identification()
                                                                   svar_lower_cholesky,
                                                                   svar_constants_exclusion,
                                                                   mod_file->symbol_table));
-  svar_restriction_symbols.clear();
   svar_equation_restrictions.clear();
   svar_ident_restrictions.clear();
   svar_Qi_restriction_nbr.clear();
@@ -1026,7 +1047,7 @@ ParsingDriver::combine_lag_and_restriction(const string &lag)
 }
 
 void
-ParsingDriver::add_restriction_in_equation(const string &equation)
+ParsingDriver::add_restriction_in_equation(const string &equation, const vector<string> &symbol_list)
 {
   int eqn = stoi(equation);
   if (eqn < 1)
@@ -1035,22 +1056,19 @@ ParsingDriver::add_restriction_in_equation(const string &equation)
   if (svar_equation_restrictions.count(eqn) > 0)
     error("equation number " + equation + " referenced more than once under a single lag.");
 
+  vector<int> svar_restriction_symbols;
+  for (auto &name : symbol_list)
+    {
+      check_symbol_existence(name);
+      int symb_id = mod_file->symbol_table.getID(name);
+
+      for (const auto &viit : svar_restriction_symbols)
+        if (symb_id == viit)
+          error(name + " restriction added twice.");
+
+      svar_restriction_symbols.push_back(symb_id);
+    }
   svar_equation_restrictions[eqn] = svar_restriction_symbols;
-
-  svar_restriction_symbols.clear();
-}
-
-void
-ParsingDriver::add_in_svar_restriction_symbols(const string &tmp_var)
-{
-  check_symbol_existence(tmp_var);
-  int symb_id = mod_file->symbol_table.getID(tmp_var);
-
-  for (const auto &viit : svar_restriction_symbols)
-    if (symb_id == viit)
-      error(tmp_var + " restriction added twice.");
-
-  svar_restriction_symbols.push_back(symb_id);
 }
 
 void
@@ -1274,7 +1292,7 @@ ParsingDriver::option_date(string name_option, string opt)
 }
 
 void
-ParsingDriver::option_symbol_list(string name_option)
+ParsingDriver::option_symbol_list(string name_option, vector<string> symbol_list)
 {
   if (options_list.symbol_list_options.find(name_option)
       != options_list.symbol_list_options.end())
@@ -1282,8 +1300,7 @@ ParsingDriver::option_symbol_list(string name_option)
 
   if (name_option.compare("irf_shocks") == 0)
     {
-      vector<string> shocks = symbol_list.get_symbols();
-      for (auto &shock : shocks)
+      for (auto &shock : symbol_list)
         {
           if (!mod_file->symbol_table.exists(shock))
             error("Unknown symbol: " + shock);
@@ -1294,14 +1311,12 @@ ParsingDriver::option_symbol_list(string name_option)
 
   if (name_option.compare("ms.parameters") == 0)
     {
-      vector<string> parameters = symbol_list.get_symbols();
-      for (auto &it : parameters)
+      for (auto &it : symbol_list)
         if (mod_file->symbol_table.getType(it) != SymbolType::parameter)
           error("Variables passed to the parameters option of the markov_switching statement must be parameters. Caused by: " + it);
     }
 
-  options_list.symbol_list_options[move(name_option)] = symbol_list;
-  symbol_list.clear();
+  options_list.symbol_list_options[move(name_option)] = move(symbol_list);
 }
 
 void
@@ -1350,27 +1365,22 @@ ParsingDriver::linear()
 }
 
 void
-ParsingDriver::add_in_symbol_list(const string &tmp_var)
+ParsingDriver::rplot(vector<string> symbol_list)
 {
-  symbol_list.addSymbol(tmp_var);
+  mod_file->addStatement(make_unique<RplotStatement>(move(symbol_list), mod_file->symbol_table));
 }
 
 void
-ParsingDriver::rplot()
-{
-  mod_file->addStatement(make_unique<RplotStatement>(symbol_list));
-  symbol_list.clear();
-}
-
-void
-ParsingDriver::stoch_simul()
+ParsingDriver::stoch_simul(SymbolList symbol_list)
 {
   //make sure default order is known to preprocessor, see #49
   if (options_list.num_options.find("order") == options_list.num_options.end())
     options_list.num_options["order"] = "2";
 
-  mod_file->addStatement(make_unique<StochSimulStatement>(symbol_list, options_list));
-  symbol_list.clear();
+  symbol_list.removeDuplicates("stoch_simul", warnings);
+
+  mod_file->addStatement(make_unique<StochSimulStatement>(move(symbol_list), options_list,
+                                                          mod_file->symbol_table));
   options_list.clear();
 }
 
@@ -1519,7 +1529,6 @@ ParsingDriver::set_unit_root_vars()
 {
   mod_file->addStatement(make_unique<UnitRootVarsStatement>());
   warning("''unit_root_vars'' is now obsolete; use the ''diffuse_filter'' option of ''estimation'' instead");
-  symbol_list.clear();
 }
 
 void
@@ -1817,10 +1826,9 @@ ParsingDriver::set_corr_options(const string &name1, const string &name2, const 
 }
 
 void
-ParsingDriver::run_estimation()
+ParsingDriver::run_estimation(vector<string> symbol_list)
 {
-  mod_file->addStatement(make_unique<EstimationStatement>(mod_file->symbol_table, symbol_list, options_list));
-  symbol_list.clear();
+  mod_file->addStatement(make_unique<EstimationStatement>(mod_file->symbol_table, move(symbol_list), options_list));
   options_list.clear();
 }
 
@@ -1951,32 +1959,31 @@ ParsingDriver::optim_weights()
 }
 
 void
-ParsingDriver::set_osr_params()
+ParsingDriver::set_osr_params(vector<string> symbol_list)
 {
-  mod_file->addStatement(make_unique<OsrParamsStatement>(symbol_list, mod_file->symbol_table));
-  symbol_list.clear();
+  mod_file->addStatement(make_unique<OsrParamsStatement>(move(symbol_list), mod_file->symbol_table));
 }
 
 void
-ParsingDriver::run_osr()
+ParsingDriver::run_osr(vector<string> symbol_list)
 {
-  mod_file->addStatement(make_unique<OsrStatement>(symbol_list, options_list));
-  symbol_list.clear();
+  mod_file->addStatement(make_unique<OsrStatement>(move(symbol_list), options_list,
+                                                   mod_file->symbol_table));
   options_list.clear();
 }
 
 void
-ParsingDriver::run_dynatype(const string &filename)
+ParsingDriver::run_dynatype(const string &filename, vector<string> symbol_list)
 {
-  mod_file->addStatement(make_unique<DynaTypeStatement>(symbol_list, filename));
-  symbol_list.clear();
+  mod_file->addStatement(make_unique<DynaTypeStatement>(move(symbol_list), filename,
+                                                        mod_file->symbol_table));
 }
 
 void
-ParsingDriver::run_dynasave(const string &filename)
+ParsingDriver::run_dynasave(const string &filename, vector<string> symbol_list)
 {
-  mod_file->addStatement(make_unique<DynaSaveStatement>(symbol_list, filename));
-  symbol_list.clear();
+  mod_file->addStatement(make_unique<DynaSaveStatement>(move(symbol_list), filename,
+                                                        mod_file->symbol_table));
 }
 
 void
@@ -2084,7 +2091,7 @@ ParsingDriver::ramsey_model()
 }
 
 void
-ParsingDriver::ramsey_policy()
+ParsingDriver::ramsey_policy(vector<string> symbol_list)
 {
   warning("The 'ramsey_policy' statement is deprecated. Please use 'ramsey_model', 'stoch_simul', and 'evaluate_planner_objective' instead.");
 
@@ -2111,9 +2118,9 @@ ParsingDriver::ramsey_policy()
     for (const auto &s : it->second.getSymbols())
       check_symbol_is_endogenous(s);
 
-  mod_file->addStatement(make_unique<RamseyPolicyStatement>(symbol_list, options_list));
+  mod_file->addStatement(make_unique<RamseyPolicyStatement>(move(symbol_list), options_list,
+                                                            mod_file->symbol_table));
   options_list.clear();
-  symbol_list.clear();
   planner_discount = nullptr;
 }
 
@@ -2146,15 +2153,14 @@ ParsingDriver::occbin_write_regimes()
 }
 
 void
-ParsingDriver::occbin_graph()
+ParsingDriver::occbin_graph(vector<string> symbol_list)
 {
-  mod_file->addStatement(make_unique<OccbinGraphStatement>(symbol_list, options_list));
+  mod_file->addStatement(make_unique<OccbinGraphStatement>(move(symbol_list), options_list));
   options_list.clear();
-  symbol_list.clear();
 }
 
 void
-ParsingDriver::discretionary_policy()
+ParsingDriver::discretionary_policy(vector<string> symbol_list)
 {
   /* The logic here is different from “ramsey_policy” and “ramsey_model”,
      because we want to allow several instances of “discretionary_policy” in
@@ -2172,8 +2178,8 @@ ParsingDriver::discretionary_policy()
     for (const auto &s : it->second.getSymbols())
       check_symbol_is_endogenous(s);
 
-  mod_file->addStatement(make_unique<DiscretionaryPolicyStatement>(symbol_list, options_list));
-  symbol_list.clear();
+  mod_file->addStatement(make_unique<DiscretionaryPolicyStatement>(move(symbol_list), options_list,
+                                                                   mod_file->symbol_table));
   options_list.clear();
   planner_discount = nullptr;
 }
@@ -2252,10 +2258,10 @@ ParsingDriver::ms_compute_probabilities()
 }
 
 void
-ParsingDriver::ms_irf()
+ParsingDriver::ms_irf(vector<string> symbol_list)
 {
-  mod_file->addStatement(make_unique<MSSBVARIrfStatement>(symbol_list, options_list));
-  symbol_list.clear();
+  mod_file->addStatement(make_unique<MSSBVARIrfStatement>(move(symbol_list), options_list,
+                                                          mod_file->symbol_table));
   options_list.clear();
 }
 
@@ -2332,42 +2338,44 @@ ParsingDriver::markov_switching()
 }
 
 void
-ParsingDriver::shock_decomposition()
+ParsingDriver::shock_decomposition(vector<string> symbol_list)
 {
-  mod_file->addStatement(make_unique<ShockDecompositionStatement>(symbol_list, options_list));
-  symbol_list.clear();
+  mod_file->addStatement(make_unique<ShockDecompositionStatement>(move(symbol_list), options_list,
+                                                                  mod_file->symbol_table));
   options_list.clear();
 }
 
 void
-ParsingDriver::realtime_shock_decomposition()
+ParsingDriver::realtime_shock_decomposition(vector<string> symbol_list)
 {
-  mod_file->addStatement(make_unique<RealtimeShockDecompositionStatement>(symbol_list, options_list));
-  symbol_list.clear();
+  mod_file->addStatement(make_unique<RealtimeShockDecompositionStatement>(move(symbol_list),
+                                                                          options_list,
+                                                                          mod_file->symbol_table));
   options_list.clear();
 }
 
 void
-ParsingDriver::plot_shock_decomposition()
+ParsingDriver::plot_shock_decomposition(vector<string> symbol_list)
 {
-  mod_file->addStatement(make_unique<PlotShockDecompositionStatement>(symbol_list, options_list));
-  symbol_list.clear();
+  mod_file->addStatement(make_unique<PlotShockDecompositionStatement>(move(symbol_list), options_list,
+                                                                      mod_file->symbol_table));
   options_list.clear();
 }
 
 void
-ParsingDriver::initial_condition_decomposition()
+ParsingDriver::initial_condition_decomposition(vector<string> symbol_list)
 {
-  mod_file->addStatement(make_unique<InitialConditionDecompositionStatement>(symbol_list, options_list));
-  symbol_list.clear();
+  mod_file->addStatement(make_unique<InitialConditionDecompositionStatement>(move(symbol_list),
+                                                                             options_list,
+                                                                             mod_file->symbol_table));
   options_list.clear();
 }
 
 void
-ParsingDriver::squeeze_shock_decomposition()
+ParsingDriver::squeeze_shock_decomposition(vector<string> symbol_list)
 {
-  mod_file->addStatement(make_unique<SqueezeShockDecompositionStatement>(symbol_list));
-  symbol_list.clear();
+  mod_file->addStatement(make_unique<SqueezeShockDecompositionStatement>(move(symbol_list),
+                                                                         mod_file->symbol_table));
 }
 
 void
@@ -2378,11 +2386,11 @@ ParsingDriver::conditional_forecast()
 }
 
 void
-ParsingDriver::plot_conditional_forecast(const string &periods)
+ParsingDriver::plot_conditional_forecast(const string &periods, vector<string> symbol_list)
 {
   int nperiods = periods.empty() ? -1 : stoi(periods);
-  mod_file->addStatement(make_unique<PlotConditionalForecastStatement>(nperiods, symbol_list));
-  symbol_list.clear();
+  mod_file->addStatement(make_unique<PlotConditionalForecastStatement>(nperiods, move(symbol_list),
+                                                                       mod_file->symbol_table));
 }
 
 void
@@ -2393,10 +2401,10 @@ ParsingDriver::conditional_forecast_paths()
 }
 
 void
-ParsingDriver::calib_smoother()
+ParsingDriver::calib_smoother(vector<string> symbol_list)
 {
-  mod_file->addStatement(make_unique<CalibSmootherStatement>(symbol_list, options_list));
-  symbol_list.clear();
+  mod_file->addStatement(make_unique<CalibSmootherStatement>(move(symbol_list), options_list,
+                                                             mod_file->symbol_table));
   options_list.clear();
 }
 
@@ -2465,9 +2473,10 @@ ParsingDriver::add_model_equal_with_zero_rhs(expr_t arg)
 }
 
 void
-ParsingDriver::declare_model_local_variable(const string &name, const string &tex_name)
+ParsingDriver::model_local_variable(const vector<pair<string, string>> &symbol_list)
 {
-  declare_symbol(name, SymbolType::modelLocalVariable, tex_name, {});
+  for (auto &[name, tex_name] : symbol_list)
+    declare_symbol(name, SymbolType::modelLocalVariable, tex_name, {});
 }
 
 void
@@ -2499,9 +2508,9 @@ ParsingDriver::declare_and_init_model_local_variable(const string &name, expr_t 
 }
 
 void
-ParsingDriver::change_type(SymbolType new_type, const vector<string> &var_list)
+ParsingDriver::change_type(SymbolType new_type, const vector<string> &symbol_list)
 {
-  for (auto &it : var_list)
+  for (auto &it : symbol_list)
     {
       int id;
       try
@@ -3147,12 +3156,11 @@ ParsingDriver::add_steady_state_model_equal(const string &varname, expr_t expr)
 }
 
 void
-ParsingDriver::add_steady_state_model_equal_multiple(expr_t expr)
+ParsingDriver::add_steady_state_model_equal_multiple(const vector<string> &symbol_list, expr_t expr)
 {
-  const vector<string> &symbs = symbol_list.get_symbols();
   vector<int> ids;
 
-  for (const auto &symb : symbs)
+  for (const auto &symb : symbol_list)
     {
       int id;
       try
@@ -3171,14 +3179,12 @@ ParsingDriver::add_steady_state_model_equal_multiple(expr_t expr)
     }
 
   mod_file->steady_state_model.addMultipleDefinitions(ids, expr);
-
-  symbol_list.clear();
 }
 
 void
-ParsingDriver::add_graph_format(const string &name)
+ParsingDriver::add_graph_format(string name)
 {
-  graph_formats.addSymbol(name);
+  graph_formats.emplace_back(move(name));
 }
 
 void
@@ -3640,15 +3646,14 @@ ParsingDriver::begin_model_replace(const vector<pair<string, string>> &listed_eq
 }
 
 void
-ParsingDriver::var_remove()
+ParsingDriver::var_remove(const vector<string> &symbol_list)
 {
-  for (const auto &name : symbol_list.getSymbols())
+  for (const auto &name : symbol_list)
     {
       check_symbol_existence(name);
       int symb_id = mod_file->symbol_table.getID(name);
       mod_file->symbol_table.changeType(symb_id, SymbolType::excludedVariable);
     }
-  symbol_list.clear();
 }
 
 void

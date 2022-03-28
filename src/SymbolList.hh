@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -35,10 +35,12 @@ using namespace std;
 class SymbolList
 {
 private:
-  //! Internal container for symbol list
   vector<string> symbols;
-  const SymbolTable *symbol_table;
 public:
+  SymbolList() = default;
+  // This constructor is deliberately not marked explicit, to allow implicit conversion
+  SymbolList(vector<string> symbols_arg);
+
   class SymbolListException
   {
   public:
@@ -47,14 +49,10 @@ public:
     {
     };
   };
-  //! Set symbol table pointer
-  void setSymbolTable(const SymbolTable &symbol_table_arg);
-  //! Adds a symbol to the list
-  void addSymbol(const string &symbol);
-  //! Removed duplicate symbols
+  //! Remove duplicate symbols
   void removeDuplicates(const string &dynare_command, WarningConsolidation &warnings);
   //! Check symbols to ensure variables have been declared and are endogenous
-  void checkPass(WarningConsolidation &warnings, const vector<SymbolType> &types) const noexcept(false);
+  void checkPass(WarningConsolidation &warnings, const vector<SymbolType> &types, const SymbolTable &symbol_table) const noexcept(false);
   //! Output content in Matlab format
   /*! Creates a string array for Matlab, stored in variable "varname" */
   void writeOutput(const string &varname, ostream &output) const;
@@ -62,22 +60,12 @@ public:
   void write(ostream &output) const;
   //! Write JSON output
   void writeJsonOutput(ostream &output) const;
-  //! Clears all content
-  void clear();
-  //! Get a copy of the string vector
-  vector<string>
-  get_symbols() const
-  {
-    return symbols;
-  };
   //! Is Empty
   int
   empty() const
   {
     return symbols.empty();
   };
-  //! Return the number of Symbols contained in the list
-  int getSize() const;
   //! Return the list of symbols
   vector<string> getSymbols() const;
 };

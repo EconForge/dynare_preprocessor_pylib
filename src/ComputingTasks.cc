@@ -333,10 +333,11 @@ PriorPosteriorFunctionStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-StochSimulStatement::StochSimulStatement(SymbolList symbol_list_arg,
-                                         OptionsList options_list_arg) :
+StochSimulStatement::StochSimulStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
+                                         const SymbolTable &symbol_table_arg) :
   symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)}
+  options_list{move(options_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -373,11 +374,9 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       exit(EXIT_FAILURE);
     }
 
-  symbol_list.removeDuplicates("stoch_simul", warnings);
-
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous });
+      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -418,10 +417,11 @@ StochSimulStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-ForecastStatement::ForecastStatement(SymbolList symbol_list_arg,
-                                     OptionsList options_list_arg) :
+ForecastStatement::ForecastStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
+                                     const SymbolTable &symbol_table_arg) :
   symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)}
+  options_list{move(options_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -430,7 +430,7 @@ ForecastStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolida
 {
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous });
+      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -620,9 +620,11 @@ RamseyConstraintsStatement::writeJsonOutput(ostream &output) const
 }
 
 RamseyPolicyStatement::RamseyPolicyStatement(SymbolList symbol_list_arg,
-                                             OptionsList options_list_arg) :
+                                             OptionsList options_list_arg,
+                                             const SymbolTable &symbol_table_arg) :
   symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)}
+  options_list{move(options_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -668,7 +670,7 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous });
+      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -733,9 +735,11 @@ EvaluatePlannerObjectiveStatement::writeJsonOutput(ostream &output) const
 }
 
 DiscretionaryPolicyStatement::DiscretionaryPolicyStatement(SymbolList symbol_list_arg,
-                                                           OptionsList options_list_arg) :
+                                                           OptionsList options_list_arg,
+                                                           const SymbolTable &symbol_table_arg) :
   symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)}
+  options_list{move(options_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -783,7 +787,7 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous });
+      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -1042,7 +1046,7 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous });
+      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -1145,8 +1149,10 @@ DynareSensitivityStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-RplotStatement::RplotStatement(SymbolList symbol_list_arg) :
-  symbol_list{move(symbol_list_arg)}
+RplotStatement::RplotStatement(SymbolList symbol_list_arg,
+                               const SymbolTable &symbol_table_arg) :
+  symbol_list{move(symbol_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -1155,7 +1161,7 @@ RplotStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidatio
 {
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous, SymbolType::exogenous});
+      symbol_list.checkPass(warnings, { SymbolType::endogenous, SymbolType::exogenous}, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -2024,7 +2030,7 @@ OsrParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::parameter });
+      symbol_list.checkPass(warnings, { SymbolType::parameter }, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -2040,7 +2046,7 @@ OsrParamsStatement::writeOutput(ostream &output, const string &basename, bool mi
   output << "M_.osr.param_names = cellstr(M_.osr.param_names);" << endl
          << "M_.osr.param_indices = zeros(length(M_.osr.param_names), 1);" << endl;
   int i = 0;
-  vector<string> symbols = symbol_list.get_symbols();
+  vector<string> symbols = symbol_list.getSymbols();
   for (auto &symbol : symbols)
     output << "M_.osr.param_indices(" << ++i <<") = " << symbol_table.getTypeSpecificID(symbol) + 1 << ";" << endl;
 }
@@ -2109,10 +2115,11 @@ OsrParamsBoundsStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-OsrStatement::OsrStatement(SymbolList symbol_list_arg,
-                           OptionsList options_list_arg) :
+OsrStatement::OsrStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
+                           const SymbolTable &symbol_table_arg) :
   symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)}
+  options_list{move(options_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -2139,7 +2146,7 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation 
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous });
+      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -2253,10 +2260,11 @@ OptimWeightsStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-DynaSaveStatement::DynaSaveStatement(SymbolList symbol_list_arg,
-                                     string filename_arg) :
+DynaSaveStatement::DynaSaveStatement(SymbolList symbol_list_arg, string filename_arg,
+                        const SymbolTable &symbol_table_arg) :
   symbol_list{move(symbol_list_arg)},
-  filename{move(filename_arg)}
+  filename{move(filename_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -2265,7 +2273,7 @@ DynaSaveStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolida
 {
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous, SymbolType::exogenous });
+      symbol_list.checkPass(warnings, { SymbolType::endogenous, SymbolType::exogenous }, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -2295,10 +2303,11 @@ DynaSaveStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-DynaTypeStatement::DynaTypeStatement(SymbolList symbol_list_arg,
-                                     string filename_arg) :
+DynaTypeStatement::DynaTypeStatement(SymbolList symbol_list_arg, string filename_arg,
+                                     const SymbolTable &symbol_table_arg) :
   symbol_list(move(symbol_list_arg)),
-  filename(move(filename_arg))
+  filename(move(filename_arg)),
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -2307,7 +2316,7 @@ DynaTypeStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolida
 {
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous, SymbolType::exogenous });
+      symbol_list.checkPass(warnings, { SymbolType::endogenous, SymbolType::exogenous }, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -2687,10 +2696,11 @@ MSSBVARComputeProbabilitiesStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-MSSBVARIrfStatement::MSSBVARIrfStatement(SymbolList symbol_list_arg,
-                                         OptionsList options_list_arg) :
+MSSBVARIrfStatement::MSSBVARIrfStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
+                                         const SymbolTable &symbol_table_arg) :
   symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)}
+  options_list{move(options_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -2714,7 +2724,7 @@ MSSBVARIrfStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous });
+      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -2976,9 +2986,11 @@ WriteLatexSteadyStateModelStatement::writeJsonOutput(ostream &output) const
 }
 
 ShockDecompositionStatement::ShockDecompositionStatement(SymbolList symbol_list_arg,
-                                                         OptionsList options_list_arg) :
+                                                         OptionsList options_list_arg,
+                                                         const SymbolTable &symbol_table_arg) :
   symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)}
+  options_list{move(options_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -2991,7 +3003,7 @@ ShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, Warnin
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous });
+      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -3026,9 +3038,11 @@ ShockDecompositionStatement::writeJsonOutput(ostream &output) const
 }
 
 RealtimeShockDecompositionStatement::RealtimeShockDecompositionStatement(SymbolList symbol_list_arg,
-                                                                         OptionsList options_list_arg) :
+                                                                         OptionsList options_list_arg,
+                                                                         const SymbolTable &symbol_table_arg) :
   symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)}
+  options_list{move(options_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -3041,7 +3055,7 @@ RealtimeShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous });
+      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -3076,9 +3090,11 @@ RealtimeShockDecompositionStatement::writeJsonOutput(ostream &output) const
 }
 
 PlotShockDecompositionStatement::PlotShockDecompositionStatement(SymbolList symbol_list_arg,
-                                                                 OptionsList options_list_arg) :
+                                                                 OptionsList options_list_arg,
+                                                                 const SymbolTable &symbol_table_arg) :
   symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)}
+  options_list{move(options_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -3087,7 +3103,7 @@ PlotShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, Wa
 {
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous, SymbolType::epilogue });
+      symbol_list.checkPass(warnings, { SymbolType::endogenous, SymbolType::epilogue }, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -3123,9 +3139,11 @@ PlotShockDecompositionStatement::writeJsonOutput(ostream &output) const
 }
 
 InitialConditionDecompositionStatement::InitialConditionDecompositionStatement(SymbolList symbol_list_arg,
-                                                                               OptionsList options_list_arg) :
+                                                                               OptionsList options_list_arg,
+                                                                               const SymbolTable &symbol_table_arg) :
   symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)}
+  options_list{move(options_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -3138,7 +3156,7 @@ InitialConditionDecompositionStatement::checkPass(ModFileStructure &mod_file_str
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous });
+      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -3173,8 +3191,10 @@ InitialConditionDecompositionStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-SqueezeShockDecompositionStatement::SqueezeShockDecompositionStatement(SymbolList symbol_list_arg)
-  : symbol_list{move(symbol_list_arg)}
+SqueezeShockDecompositionStatement::SqueezeShockDecompositionStatement(SymbolList symbol_list_arg,
+                                                                       const SymbolTable &symbol_table_arg) :
+  symbol_list{move(symbol_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -3184,7 +3204,7 @@ SqueezeShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct,
 {
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous });
+      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -3251,9 +3271,12 @@ ConditionalForecastStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-PlotConditionalForecastStatement::PlotConditionalForecastStatement(int periods_arg, SymbolList symbol_list_arg) :
+PlotConditionalForecastStatement::PlotConditionalForecastStatement(int periods_arg,
+                                                                   SymbolList symbol_list_arg,
+                                                                   const SymbolTable &symbol_table_arg) :
   periods{periods_arg},
-  symbol_list{move(symbol_list_arg)}
+  symbol_list{move(symbol_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -3263,7 +3286,7 @@ PlotConditionalForecastStatement::checkPass(ModFileStructure &mod_file_struct,
 {
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous });
+      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {
@@ -4826,8 +4849,11 @@ OptionsEqualStatement::writeOutput(ostream &output, const string &basename, bool
 }
 
 CalibSmootherStatement::CalibSmootherStatement(SymbolList symbol_list_arg,
-                                               OptionsList options_list_arg)
-  : symbol_list{move(symbol_list_arg)}, options_list{move(options_list_arg)}
+                                               OptionsList options_list_arg,
+                                               const SymbolTable &symbol_table_arg) :
+  symbol_list{move(symbol_list_arg)},
+  options_list{move(options_list_arg)},
+  symbol_table{symbol_table_arg}
 {
 }
 
@@ -4837,7 +4863,7 @@ CalibSmootherStatement::checkPass(ModFileStructure &mod_file_struct, WarningCons
   mod_file_struct.calib_smoother_present = true;
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous });
+      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
     }
   catch (SymbolList::SymbolListException &e)
     {

@@ -492,8 +492,8 @@ Epilogue::writeOutput(ostream &output) const
   for (const auto & [symb_id, expr] : dynamic_def_table)
     expr->collectVariables(SymbolType::endogenous, endogs);
 
-  SymbolList symbol_list;
+  vector<string> symbol_list;
   for (auto symb_id : endogs)
-    symbol_list.addSymbol(symbol_table.getName(symb_id));
-  symbol_list.writeOutput("M_.epilogue_var_list_", output);
+    symbol_list.push_back(symbol_table.getName(symb_id));
+  SymbolList{move(symbol_list)}.writeOutput("M_.epilogue_var_list_", output);
 }
