@@ -108,8 +108,8 @@ private:
   //! the end of the model block
   void check_symbol_existence_in_model_block(const string &name);
 
-  //! Helper to add a symbol declaration
-  void declare_symbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string, string>> &partition_value);
+  //! Helper to add a symbol declaration (returns its symbol ID)
+  int declare_symbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string, string>> &partition_value);
 
   //! Temporary store for the planner objective
   unique_ptr<StaticModel> planner_objective;
@@ -352,18 +352,18 @@ public:
   void balanced_growth_test_tol(const string &value);
   //! Sets the FILENAME for the initial value in initval
   void initval_file();
-  //! Declares an endogenous variable
-  void declare_endogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
+  //! Declares an endogenous variable (and returns its symbol ID)
+  int declare_endogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
   // Handles a “var” statement (without “deflator” or “log_deflator” options)
   void var(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list);
-  //! Declares an exogenous variable
-  void declare_exogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
+  //! Declares an exogenous variable (and returns its symbol ID)
+  int declare_exogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
   // Handles a “varexo” statement
   void varexo(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list);
   // Handles a “varexo_det” statement
   void varexo_det(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list);
-  //! Declares a parameter
-  void declare_parameter(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
+  //! Declares a parameter (and returns its symbol ID)
+  int declare_parameter(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
   // Handles a “parameters” statement
   void parameters(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list);
   // Handles a “model_local_variable” statement

@@ -177,26 +177,31 @@ ParsingDriver::warning(const string &m)
   warnings << "WARNING: " << location << ": " << m << endl;
 }
 
-void
+int
 ParsingDriver::declare_symbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string, string>> &partition_value)
 {
+  int symb_id;
   try
     {
-      mod_file->symbol_table.addSymbol(name, type, tex_name, partition_value);
+      symb_id = mod_file->symbol_table.addSymbol(name, type, tex_name, partition_value);
     }
   catch (SymbolTable::AlreadyDeclaredException &e)
     {
       if (e.same_type)
-        warning("Symbol " + name + " declared twice.");
+        {
+          warning("Symbol " + name + " declared twice.");
+          symb_id = mod_file->symbol_table.getID(name);
+        }
       else
         error("Symbol " + name + " declared twice with different types!");
     }
+  return symb_id;
 }
 
-void
+int
 ParsingDriver::declare_endogenous(const string &name, const string &tex_name, const vector<pair<string, string>> &partition_value)
 {
-  declare_symbol(name, SymbolType::endogenous, tex_name, partition_value);
+  return declare_symbol(name, SymbolType::endogenous, tex_name, partition_value);
 }
 
 void
@@ -206,10 +211,10 @@ ParsingDriver::var(const vector<tuple<string, string, vector<pair<string, string
     declare_endogenous(name, tex_name, partition);
 }
 
-void
+int
 ParsingDriver::declare_exogenous(const string &name, const string &tex_name, const vector<pair<string, string>> &partition_value)
 {
-  declare_symbol(name, SymbolType::exogenous, tex_name, partition_value);
+  return declare_symbol(name, SymbolType::exogenous, tex_name, partition_value);
 }
 
 void
@@ -226,10 +231,10 @@ ParsingDriver::varexo_det(const vector<tuple<string, string, vector<pair<string,
     declare_symbol(name, SymbolType::exogenousDet, tex_name, partition);
 }
 
-void
+int
 ParsingDriver::declare_parameter(const string &name, const string &tex_name, const vector<pair<string, string>> &partition_value)
 {
-  declare_symbol(name, SymbolType::parameter, tex_name, partition_value);
+  return declare_symbol(name, SymbolType::parameter, tex_name, partition_value);
 }
 
 void
@@ -272,8 +277,8 @@ ParsingDriver::end_trend_var(bool log_trend, expr_t growth_factor, const vector<
   vector<int> declared_trend_vars;
   for (auto &[name, tex_name] : symbol_list)
     {
-      declare_symbol(name, log_trend ? SymbolType::logTrend : SymbolType::trend, tex_name, {});
-      declared_trend_vars.push_back(mod_file->symbol_table.getID(name));
+      int symb_id = declare_symbol(name, log_trend ? SymbolType::logTrend : SymbolType::trend, tex_name, {});
+      declared_trend_vars.push_back(symb_id);
     }
 
   try
@@ -349,9 +354,8 @@ ParsingDriver::add_model_variable(const string &name)
       /* Declare variable as exogenous to continue parsing. Processing will end
          at end of model block (or planner_objective statement) if nostrict
          option was not passed. */
-      declare_exogenous(name);
+      symb_id = declare_exogenous(name);
       undeclared_model_vars.insert(name);
-      symb_id = mod_file->symbol_table.getID(name);
     }
   return add_model_variable(symb_id, 0);
 }
@@ -379,18 +383,17 @@ ParsingDriver::declare_or_change_type(SymbolType new_type, const string &name)
       switch (new_type)
         {
         case SymbolType::endogenous:
-          declare_endogenous(name);
+          symb_id = declare_endogenous(name);
           break;
         case SymbolType::exogenous:
-          declare_exogenous(name);
+          symb_id = declare_exogenous(name);
           break;
         case SymbolType::parameter:
-          declare_parameter(name);
+          symb_id = declare_parameter(name);
           break;
         default:
           error("Type not yet supported");
         }
-      symb_id = mod_file->symbol_table.getID(name);
     }
   return add_model_variable(symb_id, 0);
 
@@ -479,8 +482,8 @@ ParsingDriver::end_nonstationary_var(bool log_deflator, expr_t deflator, const v
   vector<int> declared_nonstationary_vars;
   for (auto &[name, tex_name, partition] : symbol_list)
     {
-      declare_endogenous(name, tex_name, partition);
-      declared_nonstationary_vars.push_back(mod_file->symbol_table.getID(name));
+      int symb_id = declare_endogenous(name, tex_name, partition);
+      declared_nonstationary_vars.push_back(symb_id);
     }
 
   try
@@ -2921,8 +2924,8 @@ ParsingDriver::external_function_option(const string &name_option, const string 
         current_external_function_options.firstDerivSymbID = ExternalFunctionsTable::IDSetButNoNameProvided;
       else
         {
-          declare_symbol(opt, SymbolType::externalFunction, "", {});
-          current_external_function_options.firstDerivSymbID = mod_file->symbol_table.getID(opt);
+          int symb_id = declare_symbol(opt, SymbolType::externalFunction, "", {});
+          current_external_function_options.firstDerivSymbID = symb_id;
         }
     }
   else if (name_option == "second_deriv_provided")
@@ -2931,8 +2934,8 @@ ParsingDriver::external_function_option(const string &name_option, const string 
         current_external_function_options.secondDerivSymbID = ExternalFunctionsTable::IDSetButNoNameProvided;
       else
         {
-          declare_symbol(opt, SymbolType::externalFunction, "", {});
-          current_external_function_options.secondDerivSymbID = mod_file->symbol_table.getID(opt);
+          int symb_id = declare_symbol(opt, SymbolType::externalFunction, "", {});
+          current_external_function_options.secondDerivSymbID = symb_id;
         }
     }
   else if (name_option == "nargs")
@@ -3075,16 +3078,16 @@ ParsingDriver::add_model_var_or_external_function(const string &function_name, b
           if (rv.first)
             {
               // assume it's a lead/lagged variable
-              declare_exogenous(function_name);
-              return add_model_variable(mod_file->symbol_table.getID(function_name), static_cast<int>(rv.second));
+              int symb_id = declare_exogenous(function_name);
+              return add_model_variable(symb_id, static_cast<int>(rv.second));
             }
           else
             error("To use an external function (" + function_name
                   +") within the model block, you must first declare it via the external_function() statement.");
         }
-      declare_symbol(function_name, SymbolType::externalFunction, "", {});
+      int symb_id = declare_symbol(function_name, SymbolType::externalFunction, "", {});
       current_external_function_options.nargs = stack_external_function_args.top().size();
-      mod_file->external_functions_table.addExternalFunction(mod_file->symbol_table.getID(function_name),
+      mod_file->external_functions_table.addExternalFunction(symb_id,
                                                              current_external_function_options, in_model_block);
       reset_current_external_function_options();
     }
