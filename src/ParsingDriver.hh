@@ -435,7 +435,9 @@ public:
   void add_epilogue_variable(const string &varname);
   //! Add equation in epilogue block
   void add_epilogue_equal(const string &varname, expr_t expr);
-  //! Begin a model block
+  /* Begin a model or model_replace block, or an expression as an option value
+     of some statement.
+     Must be followed by a call to reset_data_tree(). */
   void begin_model();
   //! End a model or model_replace block, printing errors that were encountered in parsing
   void end_model();
@@ -747,7 +749,6 @@ public:
   //! Adds a pac_target_nonstationary(model_name, discount, growth) node to model tree
   expr_t add_pac_target_nonstationary(const string &model_name);
   //! Creates pac_model statement
-  void begin_pac_growth();
   void begin_pac_model();
   void pac_model();
   //! Adds growth for pac
@@ -841,8 +842,6 @@ public:
   void add_steady_state_model_equal(const string &varname, expr_t expr);
   //! Add a multiple assignment equation in steady_state_model block
   void add_steady_state_model_equal_multiple(const vector<string> &symbol_list, expr_t expr);
-  //! Switches datatree
-  void begin_trend();
   //! Ends declaration of trend variable
   void end_trend_var(bool log_trend, expr_t growth_factor, const vector<pair<string, string>> &symbol_list);
   //! Ends declaration of nonstationary variable

@@ -266,12 +266,6 @@ ParsingDriver::set_planner_discount_latex_name(string tex_name)
 }
 
 void
-ParsingDriver::begin_trend()
-{
-  set_current_data_tree(&mod_file->dynamic_model);
-}
-
-void
 ParsingDriver::end_trend_var(bool log_trend, expr_t growth_factor, const vector<pair<string, string>> &symbol_list)
 {
   vector<int> declared_trend_vars;
@@ -2647,12 +2641,6 @@ ParsingDriver::add_pac_target_nonstationary(const string &model_name)
     error("The 'pac_target_nonstationary' operator is forbidden in 'occbin_constraints'.");
 
   return data_tree->AddPacTargetNonstationary(model_name);
-}
-
-void
-ParsingDriver::begin_pac_growth()
-{
-  set_current_data_tree(&mod_file->dynamic_model);
 }
 
 void

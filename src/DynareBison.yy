@@ -482,19 +482,19 @@ symbol_list_with_tex_and_partition : symbol_list_with_tex_and_partition symbol
 
 rplot : RPLOT symbol_list ';' { driver.rplot($2); };
 
-trend_var : TREND_VAR '(' GROWTH_FACTOR EQUAL { driver.begin_trend(); } hand_side ')' symbol_list_with_tex ';'
+trend_var : TREND_VAR '(' GROWTH_FACTOR EQUAL { driver.begin_model(); } hand_side ')' symbol_list_with_tex ';'
             { driver.end_trend_var(false, $6, $8); }
           ;
 
-log_trend_var : LOG_TREND_VAR '(' LOG_GROWTH_FACTOR EQUAL { driver.begin_trend(); } hand_side ')' symbol_list_with_tex ';'
+log_trend_var : LOG_TREND_VAR '(' LOG_GROWTH_FACTOR EQUAL { driver.begin_model(); } hand_side ')' symbol_list_with_tex ';'
                 { driver.end_trend_var(true, $6, $8); }
               ;
 
 var : VAR symbol_list_with_tex_and_partition ';'
       { driver.var($2); }
-    | VAR '(' DEFLATOR EQUAL { driver.begin_trend(); } hand_side ')' symbol_list_with_tex_and_partition ';'
+    | VAR '(' DEFLATOR EQUAL { driver.begin_model(); } hand_side ')' symbol_list_with_tex_and_partition ';'
       { driver.end_nonstationary_var(false, $6, $8); }
-    | VAR '(' LOG_DEFLATOR EQUAL { driver.begin_trend(); } hand_side ')' symbol_list_with_tex_and_partition ';'
+    | VAR '(' LOG_DEFLATOR EQUAL { driver.begin_model(); } hand_side ')' symbol_list_with_tex_and_partition ';'
       { driver.end_nonstationary_var(true, $6, $8); }
     ;
 
@@ -3458,7 +3458,7 @@ o_file : FILE EQUAL filename { driver.option_str("file", $3); };
 o_pac_name : MODEL_NAME EQUAL symbol { driver.option_str("pac.model_name", $3); };
 o_pac_aux_model_name : AUXILIARY_MODEL_NAME EQUAL symbol { driver.option_str("pac.aux_model_name", $3); };
 o_pac_discount : DISCOUNT EQUAL symbol { driver.option_str("pac.discount", $3); };
-o_pac_growth : GROWTH { driver.begin_pac_growth(); } EQUAL hand_side { driver.set_pac_growth($4); };
+o_pac_growth : GROWTH { driver.begin_model(); } EQUAL hand_side { driver.set_pac_growth($4); };
 o_pac_auxname : AUXNAME EQUAL symbol { driver.set_pac_auxname($3); };
 o_pac_kind : KIND EQUAL pac_target_kind { driver.set_pac_kind($3); };
 o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var.model_name", $3); };
