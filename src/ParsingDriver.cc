@@ -205,10 +205,15 @@ ParsingDriver::declare_endogenous(const string &name, const string &tex_name, co
 }
 
 void
-ParsingDriver::var(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list)
+ParsingDriver::var(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list,
+                   bool log_option)
 {
   for (auto &[name, tex_name, partition] : symbol_list)
-    declare_endogenous(name, tex_name, partition);
+    {
+      int symb_id = declare_endogenous(name, tex_name, partition);
+      if (log_option)
+        mod_file->symbol_table.markWithLogTransform(symb_id);
+    }
 }
 
 int
@@ -469,7 +474,7 @@ ParsingDriver::add_expression_variable(const string &name)
 }
 
 void
-ParsingDriver::end_nonstationary_var(bool log_deflator, expr_t deflator, const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list)
+ParsingDriver::end_nonstationary_var(bool log_deflator, expr_t deflator, const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list, bool log_option)
 {
   mod_file->nonstationary_variables = true;
 
@@ -478,6 +483,8 @@ ParsingDriver::end_nonstationary_var(bool log_deflator, expr_t deflator, const v
     {
       int symb_id = declare_endogenous(name, tex_name, partition);
       declared_nonstationary_vars.push_back(symb_id);
+      if (log_option)
+        mod_file->symbol_table.markWithLogTransform(symb_id);
     }
 
   try

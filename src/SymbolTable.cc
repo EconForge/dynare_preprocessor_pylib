@@ -363,6 +363,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
             break;
           case AuxVarType::endoLag:
           case AuxVarType::exoLag:
+          case AuxVarType::logTransform:
           case AuxVarType::diffLag:
           case AuxVarType::diffLead:
           case AuxVarType::diffForward:
@@ -521,6 +522,26 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t e
     }
 
   aux_vars.emplace_back(symb_id, AuxVarType::expectation, 0, 0, 0, information_set, expr_arg, "");
+
+  return symb_id;
+}
+
+int
+SymbolTable::addLogTransformAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) noexcept(false)
+{
+  string varname = "LOG_" + getName(orig_symb_id);
+  int symb_id;
+  try
+    {
+      symb_id = addSymbol(varname, SymbolType::endogenous);
+    }
+  catch (AlreadyDeclaredException &e)
+    {
+      cerr << "ERROR: you should rename your variable called " << varname << ", it conflicts with the auxiliary variable created for representing the log of " << getName(orig_symb_id) << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  aux_vars.emplace_back(symb_id, AuxVarType::logTransform, orig_symb_id, orig_lead_lag, 0, 0, expr_arg, "");
 
   return symb_id;
 }
@@ -763,6 +784,19 @@ SymbolTable::markPredetermined(int symb_id) noexcept(false)
   predetermined_variables.insert(symb_id);
 }
 
+void
+SymbolTable::markWithLogTransform(int symb_id) noexcept(false)
+{
+  validateSymbID(symb_id);
+
+  if (frozen)
+    throw FrozenException();
+
+  assert(getType(symb_id) == SymbolType::endogenous);
+
+  with_log_transform.insert(symb_id);
+}
+
 bool
 SymbolTable::isPredetermined(int symb_id) const noexcept(false)
 {
@@ -992,6 +1026,7 @@ SymbolTable::writeJsonOutput(ostream &output) const
 	      break;
 	    case AuxVarType::endoLag:
 	    case AuxVarType::exoLag:
+            case AuxVarType::logTransform:
 	    case AuxVarType::diffLag:
 	    case AuxVarType::diffLead:
 	    case AuxVarType::diffForward:
@@ -1063,4 +1098,10 @@ SymbolTable::getEquationNumberForMultiplier(int symb_id) const
     if (aux_var.get_symb_id() == symb_id && aux_var.get_type() == AuxVarType::multiplier)
       return aux_var.get_equation_number_for_multiplier();
   return -1;
+}
+
+const set<int> &
+SymbolTable::getVariablesWithLogTransform() const
+{
+  return with_log_transform;
 }

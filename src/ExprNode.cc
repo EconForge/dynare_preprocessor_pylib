@@ -748,6 +748,12 @@ NumConstNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) 
   return const_cast<NumConstNode *>(this);
 }
 
+expr_t
+NumConstNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
+{
+  return const_cast<NumConstNode *>(this);
+}
+
 VariableNode::VariableNode(DataTree &datatree_arg, int idx_arg, int symb_id_arg, int lag_arg) :
   ExprNode{datatree_arg, idx_arg},
   symb_id{symb_id_arg},
@@ -1988,6 +1994,18 @@ VariableNode::matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vecto
   symb_ids.push_back(symb_id);
   lags.push_back(lag);
   powers.push_back(1);
+}
+
+expr_t
+VariableNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
+{
+  if (get_type() == SymbolType::modelLocalVariable)
+    return datatree.getLocalVariable(symb_id)->substituteLogTransform(orig_symb_id, aux_symb_id);
+
+  if (symb_id == orig_symb_id)
+    return datatree.AddExp(datatree.AddVariable(aux_symb_id, lag));
+  else
+    return const_cast<VariableNode *>(this);
 }
 
 UnaryOpNode::UnaryOpNode(DataTree &datatree_arg, int idx_arg, UnaryOpcode op_code_arg, const expr_t arg_arg, int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg, string adl_param_name_arg, vector<int> adl_lags_arg) :
@@ -3765,6 +3783,13 @@ expr_t
 UnaryOpNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
   expr_t argsubst = arg->replaceVarsInEquation(table);
+  return buildSimilarUnaryOpNode(argsubst, datatree);
+}
+
+expr_t
+UnaryOpNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
+{
+  expr_t argsubst = arg->substituteLogTransform(orig_symb_id, aux_symb_id);
   return buildSimilarUnaryOpNode(argsubst, datatree);
 }
 
@@ -5620,6 +5645,13 @@ BinaryOpNode::matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vecto
     throw MatchFailureException("Unsupported binary operator");
 }
 
+expr_t
+BinaryOpNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
+{
+  expr_t arg1subst = arg1->substituteLogTransform(orig_symb_id, aux_symb_id);
+  expr_t arg2subst = arg2->substituteLogTransform(orig_symb_id, aux_symb_id);
+  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+}
 
 TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, int idx_arg, const expr_t arg1_arg,
                              TrinaryOpcode op_code_arg, const expr_t arg2_arg, const expr_t arg3_arg) :
@@ -6499,6 +6531,15 @@ TrinaryOpNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table)
   return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
 }
 
+expr_t
+TrinaryOpNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
+{
+  expr_t arg1subst = arg1->substituteLogTransform(orig_symb_id, aux_symb_id);
+  expr_t arg2subst = arg2->substituteLogTransform(orig_symb_id, aux_symb_id);
+  expr_t arg3subst = arg3->substituteLogTransform(orig_symb_id, aux_symb_id);
+  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+}
+
 AbstractExternalFunctionNode::AbstractExternalFunctionNode(DataTree &datatree_arg,
                                                            int idx_arg,
                                                            int symb_id_arg,
@@ -7077,6 +7118,15 @@ ExternalFunctionNode::ExternalFunctionNode(DataTree &datatree_arg,
                                            const vector<expr_t> &arguments_arg) :
   AbstractExternalFunctionNode{datatree_arg, idx_arg, symb_id_arg, arguments_arg}
 {
+}
+
+expr_t
+AbstractExternalFunctionNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
+{
+  vector<expr_t> arguments_subst;
+  for (auto argument : arguments)
+    arguments_subst.push_back(argument->substituteLogTransform(orig_symb_id, aux_symb_id));
+  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
 }
 
 expr_t
@@ -8369,6 +8419,12 @@ SubModelNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) cons
 {
   cerr << "SubModelNode::removeTrendLeadLag not implemented." << endl;
   exit(EXIT_FAILURE);
+}
+
+expr_t
+SubModelNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
+{
+  return const_cast<SubModelNode *>(this);
 }
 
 VarExpectationNode::VarExpectationNode(DataTree &datatree_arg,

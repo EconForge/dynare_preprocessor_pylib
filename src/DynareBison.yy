@@ -491,11 +491,17 @@ log_trend_var : LOG_TREND_VAR '(' LOG_GROWTH_FACTOR EQUAL { driver.begin_model()
               ;
 
 var : VAR symbol_list_with_tex_and_partition ';'
-      { driver.var($2); }
+      { driver.var($2, false); }
+    | VAR '(' LOG ')' symbol_list_with_tex_and_partition ';'
+      { driver.var($5, true); }
     | VAR '(' DEFLATOR EQUAL { driver.begin_model(); } hand_side ')' symbol_list_with_tex_and_partition ';'
-      { driver.end_nonstationary_var(false, $6, $8); }
+      { driver.end_nonstationary_var(false, $6, $8, false); }
+    | VAR '(' LOG COMMA DEFLATOR EQUAL { driver.begin_model(); } hand_side ')' symbol_list_with_tex_and_partition ';'
+      { driver.end_nonstationary_var(false, $8, $10, true); }
     | VAR '(' LOG_DEFLATOR EQUAL { driver.begin_model(); } hand_side ')' symbol_list_with_tex_and_partition ';'
-      { driver.end_nonstationary_var(true, $6, $8); }
+      { driver.end_nonstationary_var(true, $6, $8, false); }
+    /* The case LOG + LOG_DEFLATOR is omitted, because it does not make much sense
+       from an economic point of view (amounts to taking the log two times) */
     ;
 
 var_remove : VAR_REMOVE symbol_list ';' { driver.var_remove($2); };

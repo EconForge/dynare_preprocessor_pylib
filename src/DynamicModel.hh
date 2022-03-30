@@ -499,6 +499,12 @@ public:
   //! Transforms the model by decreasing the lead/lag of predetermined variables in model equations by one
   void transformPredeterminedVariables();
 
+  // Performs the transformations associated to variables declared with “var(log)”
+  void substituteLogTransform();
+
+  // Check that no variable was declared with “var(log)” in the given equations
+  void checkNoWithLogTransform(const set<int> &eqnumbers);
+
   //! Transforms the model by removing trends specified by the user
   void detrendEquations();
 

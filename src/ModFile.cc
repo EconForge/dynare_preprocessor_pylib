@@ -428,6 +428,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   set<int> unary_ops_eqs = dynamic_model.getEquationNumbersFromTags(var_tcm_eqtags);
   unary_ops_eqs.merge(dynamic_model.findPacExpectationEquationNumbers());
 
+  // Check that no variable in VAR/TCM/PAC equations was declared with “var(log)”
+  dynamic_model.checkNoWithLogTransform(unary_ops_eqs);
+
   // Create auxiliary variables and equations for unary ops
   lag_equivalence_table_t unary_ops_nodes;
   ExprNode::subst_table_t unary_ops_subst_table;
@@ -501,6 +504,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
     }
 
   dynamic_model.createVariableMapping();
+
+  // Must come after detrending of variables and Ramsey policy transformation
+  dynamic_model.substituteLogTransform();
 
   /* Create auxiliary vars for leads and lags greater than 2, on both endos and
      exos. The transformation is not exactly the same on stochastic and

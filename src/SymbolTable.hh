@@ -46,9 +46,7 @@ enum class AuxVarType
                        for the differentiate_forward_vars option.
                        N.B.: nothing to do with the diff() operator! */
    multiplier = 6, //!< Multipliers for FOC of Ramsey Problem
-
-   // Value 7 is unused for the time being (but could be reused)
-
+   logTransform = 7, //!< Log-transformation of a variable declared with “var(log)”
    diff = 8, //!< Variable for Diff operator
    diffLag = 9, //!< Variable for timing between Diff operators (lag)
    unaryOp = 10, //!< Variable for allowing the undiff operator to work when diff was taken of unary op, eg diff(log(x))
@@ -65,7 +63,7 @@ private:
   AuxVarType type; //!< Its type
   int orig_symb_id; /* Symbol ID of the (only) endo that appears on the RHS of
                        the definition of this auxvar.
-                       Used by endoLag, exoLag, diffForward, diff, diffLag,
+                       Used by endoLag, exoLag, diffForward, logTransform, diff, diffLag,
                        diffLead and unaryOp.
                        For diff and unaryOp, if the argument expression is more complex
                        than than a simple variable, this value is equal to -1. */
@@ -181,6 +179,9 @@ private:
 
   //! Stores the list of observed exogenous variables
   vector<int> varexobs;
+
+  //! Stores the endogenous variables declared with “var(log)”
+  set<int> with_log_transform;
 
 public:
   //! Thrown when trying to access an unknown symbol (by name)
@@ -308,6 +309,13 @@ public:
     \return the symbol ID of the new symbol
   */
   int addMultiplierAuxiliaryVar(int index) noexcept(false);
+  /* Adds an auxiliary variable associated to an endogenous declared with
+     “var(log)”.
+     – orig_symb_id is the symbol ID of the original variable
+     – orig_lead_lag is typically 0
+     – expr_arg is typically log(orig_symb_id)
+  */
+  int addLogTransformAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) noexcept(false);
   //! Adds an auxiliary variable for the (time) differentiate of a forward var
   /*!
     \param[in] orig_symb_id The symb_id of the forward variable
@@ -409,6 +417,8 @@ public:
   void writeJsonOutput(ostream &output) const;
   //! Mark a symbol as predetermined variable
   void markPredetermined(int symb_id) noexcept(false);
+  //! Mark an endogenous as having been declared with “var(log)”
+  void markWithLogTransform(int symb_id) noexcept(false);
   //! Test if a given symbol is a predetermined variable
   bool isPredetermined(int symb_id) const noexcept(false);
   //! Return the number of predetermined variables
@@ -456,6 +466,8 @@ public:
   /* Return all the information about a given auxiliary variable. Throws
      UnknownSymbolIDException if it is not an aux var */
   const AuxVarInfo &getAuxVarInfo(int symb_id) const;
+  // Returns the set of all endogenous declared with “var(log)”
+  const set<int> &getVariablesWithLogTransform() const;
 };
 
 inline void

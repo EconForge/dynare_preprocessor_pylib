@@ -5769,6 +5769,65 @@ DynamicModel::transformPredeterminedVariables()
 }
 
 void
+DynamicModel::substituteLogTransform()
+{
+  for (int symb_id : symbol_table.getVariablesWithLogTransform())
+    {
+      expr_t aux_def = AddLog(AddVariable(symb_id));
+      int aux_symb_id = symbol_table.addLogTransformAuxiliaryVar(symb_id, 0, aux_def);
+
+      for (auto &[id, definition] : local_variables_table)
+        definition = definition->substituteLogTransform(symb_id, aux_symb_id);
+
+      for (auto &equation : equations)
+        equation = dynamic_cast<BinaryOpNode *>(equation->substituteLogTransform(symb_id, aux_symb_id));
+
+      for (auto &equation : static_only_equations)
+        equation = dynamic_cast<BinaryOpNode *>(equation->substituteLogTransform(symb_id, aux_symb_id));
+
+      /*
+        We add the following new equations:
+        + X=exp(log_X) to the model
+        + log_X=log(X) to the list of auxiliary equations
+
+        In this way:
+        + statements like X=1 in initval/endval blocks will be correctly
+          handled (i.e. log_X will be initialized to 0 in this case), through
+          the set_auxiliary_variables.m and dynamic_set_auxiliary_series.m files
+        + computation of X in perfect foresight simulations will be done by
+          simple evaluation when using block decomposition (X will belong to an
+          block of type “evaluate”, or maybe even the epilogue)
+      */
+      addAuxEquation(AddEqual(AddVariable(aux_symb_id), aux_def));
+      addEquation(AddEqual(AddVariable(symb_id), AddExp(AddVariable(aux_symb_id))),
+                  -1, {});
+    }
+}
+
+void
+DynamicModel::checkNoWithLogTransform(const set<int> &eqnumbers)
+{
+  set<int> endos;
+  for (int eq : eqnumbers)
+    equations[eq]->collectVariables(SymbolType::endogenous, endos);
+
+  const set<int> &with_log_transform = symbol_table.getVariablesWithLogTransform();
+
+  vector<int> intersect;
+  set_intersection(endos.begin(), endos.end(),
+                   with_log_transform.begin(), with_log_transform.end(),
+                   back_inserter(intersect));
+  if (!intersect.empty())
+    {
+      cerr << "ERROR: the following variables are declared with var(log) and therefore cannot appear in a VAR/TCM/PAC equation: ";
+      for (int symb_id : intersect)
+        cerr << symbol_table.getName(symb_id) << " ";
+      cerr << endl;
+      exit(EXIT_FAILURE);
+    }
+}
+
+void
 DynamicModel::detrendEquations()
 {
   // We go backwards in the list of trend_vars, to deal correctly with I(2) processes

@@ -354,8 +354,8 @@ public:
   void initval_file();
   //! Declares an endogenous variable (and returns its symbol ID)
   int declare_endogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
-  // Handles a “var” statement (without “deflator” or “log_deflator” options)
-  void var(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list);
+  // Handles a “var” or “var(log)” statement (without “deflator” or “log_deflator” options)
+  void var(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list, bool log_option);
   //! Declares an exogenous variable (and returns its symbol ID)
   int declare_exogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
   // Handles a “varexo” statement
@@ -844,8 +844,8 @@ public:
   void add_steady_state_model_equal_multiple(const vector<string> &symbol_list, expr_t expr);
   //! Ends declaration of trend variable
   void end_trend_var(bool log_trend, expr_t growth_factor, const vector<pair<string, string>> &symbol_list);
-  //! Ends declaration of nonstationary variable
-  void end_nonstationary_var(bool log_deflator, expr_t deflator, const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list);
+  //! Handles a “var(deflator=…)”, “var(log, deflator=…)” or “var(log_deflator=…)” statement
+  void end_nonstationary_var(bool log_deflator, expr_t deflator, const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list, bool log_option);
   //! Add a graph format to the list of formats requested
   void add_graph_format(string name);
   //! Add the graph_format option to the OptionsList structure

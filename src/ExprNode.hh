@@ -744,6 +744,9 @@ public:
 
   // Returns true if the expression contains an exogenous or an exogenous deterministic
   bool hasExogenous() const;
+
+  // Substitutes orig_symb_id(±l) with exp(aux_symb_id(±l)) (used for “var(log)”)
+  virtual expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const = 0;
 };
 
 //! Object used to compare two nodes (using their indexes)
@@ -826,6 +829,7 @@ public:
   bool containsPacTargetNonstationary(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
   expr_t substituteStaticAuxiliaryVariable() const override;
+  expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
 };
 
 //! Symbol or variable node
@@ -901,6 +905,7 @@ public:
   expr_t substituteStaticAuxiliaryVariable() const override;
   void matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<int> &powers) const override;
   pair<int, expr_t> matchEndogenousTimesConstant() const override;
+  expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
 };
 
 //! Unary operator node
@@ -1004,6 +1009,7 @@ public:
   //! Substitute auxiliary variables by their expression in static model
   expr_t substituteStaticAuxiliaryVariable() const override;
   void decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign) const override;
+  expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
 };
 
 //! Binary operator node
@@ -1148,6 +1154,7 @@ public:
   void decomposeMultiplicativeFactors(vector<pair<expr_t, int>> &factors, int current_exponent = 1) const override;
   void matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<int> &powers) const override;
   pair<int, expr_t> matchEndogenousTimesConstant() const override;
+  expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
 };
 
 //! Trinary operator node
@@ -1244,6 +1251,7 @@ public:
   bool isParamTimesEndogExpr() const override;
   //! Substitute auxiliary variables by their expression in static model
   expr_t substituteStaticAuxiliaryVariable() const override;
+  expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
 };
 
 //! External function node
@@ -1355,6 +1363,7 @@ public:
   bool isParamTimesEndogExpr() const override;
   //! Substitute auxiliary variables by their expression in static model
   expr_t substituteStaticAuxiliaryVariable() const override;
+  expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
 };
 
 class ExternalFunctionNode : public AbstractExternalFunctionNode
@@ -1531,6 +1540,7 @@ public:
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
   expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
+  expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
 };
 
 class VarExpectationNode : public SubModelNode
