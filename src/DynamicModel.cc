@@ -4595,7 +4595,8 @@ void
 DynamicModel::writeSetAuxiliaryVariables(const string &basename, bool julia) const
 {
   ostringstream output_func_body;
-  writeAuxVarRecursiveDefinitions(output_func_body, ExprNodeOutputType::matlabDseries);
+  writeAuxVarRecursiveDefinitions(output_func_body, julia ? ExprNodeOutputType::juliaTimeDataFrame
+                                  : ExprNodeOutputType::matlabDseries);
 
   if (output_func_body.str().empty())
     return;

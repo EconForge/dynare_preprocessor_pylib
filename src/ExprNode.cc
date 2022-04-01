@@ -948,6 +948,19 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       return;
     }
 
+  auto juliaTimeDataFrameHelper = [&]()
+  {
+    if (lag != 0)
+      output << "lag(";
+    output << "ds." << datatree.symbol_table.getName(symb_id);
+    if (lag != 0)
+      {
+        if (lag != -1)
+          output << "," << -lag;
+        output << ")";
+      }
+  };
+
   int i;
   switch (type)
     {
@@ -1012,6 +1025,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           if (lag != 0)
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
+        case ExprNodeOutputType::juliaTimeDataFrame:
+          juliaTimeDataFrameHelper();
+          break;
         case ExprNodeOutputType::epilogueFile:
           output << "ds." << datatree.symbol_table.getName(symb_id);
           output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
@@ -1073,6 +1089,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           if (lag != 0)
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
+        case ExprNodeOutputType::juliaTimeDataFrame:
+          juliaTimeDataFrameHelper();
+          break;
         case ExprNodeOutputType::epilogueFile:
           output << "ds." << datatree.symbol_table.getName(symb_id);
           output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
@@ -1131,6 +1150,9 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           if (lag != 0)
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
+        case ExprNodeOutputType::juliaTimeDataFrame:
+          juliaTimeDataFrameHelper();
+          break;
         case ExprNodeOutputType::epilogueFile:
           output << "ds." << datatree.symbol_table.getName(symb_id);
           output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
@@ -1152,7 +1174,8 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
             output << lag;
           output << RIGHT_ARRAY_SUBSCRIPT(output_type);
         }
-      else if (output_type == ExprNodeOutputType::matlabDseries)
+      else if (output_type == ExprNodeOutputType::matlabDseries
+               || output_type == ExprNodeOutputType::juliaTimeDataFrame)
         // Only writing dseries for epilogue_static, hence no need to check lag
         output << "ds." << datatree.symbol_table.getName(symb_id);
       else
@@ -2841,6 +2864,10 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << "adl";
       break;
     }
+
+  if (output_type == ExprNodeOutputType::juliaTimeDataFrame
+      && op_code != UnaryOpcode::uminus)
+    output << "."; // Use vectorized form of the function
 
   bool close_parenthesis = false;
 
@@ -4569,60 +4596,81 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     case BinaryOpcode::times:
       if (isLatexOutput(output_type))
         output << R"(\, )";
-      else if (output_type == ExprNodeOutputType::occbinDifferenceFile)
-        output << ".*"; // This file operates on vectors, see dynare#1826
+      else if (output_type == ExprNodeOutputType::occbinDifferenceFile // This file operates on vectors, see dynare#1826
+               || output_type == ExprNodeOutputType::juliaTimeDataFrame)
+        output << ".*";
       else
         output << "*";
       break;
     case BinaryOpcode::divide:
       if (!isLatexOutput(output_type))
         {
-          if (output_type == ExprNodeOutputType::occbinDifferenceFile)
+          if (output_type == ExprNodeOutputType::occbinDifferenceFile // This file operates on vectors, see dynare#1826
+               || output_type == ExprNodeOutputType::juliaTimeDataFrame)
             output << "./"; // This file operates on vectors, see dynare#1826
           else
             output << "/";
         }
       break;
     case BinaryOpcode::power:
-      if (output_type == ExprNodeOutputType::occbinDifferenceFile)
+      if (output_type == ExprNodeOutputType::occbinDifferenceFile // This file operates on vectors, see dynare#1826
+          || output_type == ExprNodeOutputType::juliaTimeDataFrame)
         output << ".^"; // This file operates on vectors, see dynare#1826
       else
         output << "^";
       break;
     case BinaryOpcode::less:
-      output << "<";
+      if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
+        output << ".<";
+      else
+        output << "<";
       break;
     case BinaryOpcode::greater:
-      output << ">";
+      if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
+        output << ".>";
+      else
+        output << ">";
       break;
     case BinaryOpcode::lessEqual:
       if (isLatexOutput(output_type))
         output << R"(\leq )";
+      else if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
+        output << ".<=";
       else
         output << "<=";
       break;
     case BinaryOpcode::greaterEqual:
       if (isLatexOutput(output_type))
         output << R"(\geq )";
+      else if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
+        output << ".>=";
       else
         output << ">=";
       break;
     case BinaryOpcode::equalEqual:
-      output << "==";
+      if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
+        output << ".==";
+      else
+        output << "==";
       break;
     case BinaryOpcode::different:
       if (isMatlabOutput(output_type))
         output << "~=";
       else
         {
-          if (isCOutput(output_type) || isJuliaOutput(output_type))
+          if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
+            output << ".!=";
+          else if (isCOutput(output_type) || isJuliaOutput(output_type))
             output << "!=";
           else
             output << R"(\neq )";
         }
       break;
     case BinaryOpcode::equal:
-      output << "=";
+      if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
+        output << ".=";
+      else
+        output << "=";
       break;
     default:
       ;
@@ -6029,7 +6077,10 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       else if (isJuliaOutput(output_type))
 	{
 	  // Julia API is normcdf(mu, sigma, x) !
-          output << "normcdf(";
+          output << "normcdf";
+          if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
+            output << ".";
+          output << "(";
           arg2->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << ",";
           arg3->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
@@ -6075,7 +6126,10 @@ TrinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         }
       else
         {
-          output << "normpdf(";
+          output << "normpdf";
+          if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
+            output << ".";
+          output << "(";
           arg1->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
           output << ",";
           arg2->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);

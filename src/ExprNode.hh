@@ -97,6 +97,7 @@ enum class ExprNodeOutputType
    steadyStateFile, //!< Matlab code, in the generated steady state file
    juliaSteadyStateFile, //!< Julia code, in the generated steady state file
    matlabDseries, //!< Matlab code for dseries
+   juliaTimeDataFrame, //!< Julia code for TimeDataFrame objects
    epilogueFile, //!< Matlab code, in the generated epilogue file
    occbinDifferenceFile //!< MATLAB, in the generated occbin_difference file
   };
@@ -120,7 +121,8 @@ isJuliaOutput(ExprNodeOutputType output_type)
   return output_type == ExprNodeOutputType::juliaStaticModel
     || output_type == ExprNodeOutputType::juliaDynamicModel
     || output_type == ExprNodeOutputType::juliaDynamicSteadyStateOperator
-    || output_type == ExprNodeOutputType::juliaSteadyStateFile;
+    || output_type == ExprNodeOutputType::juliaSteadyStateFile
+    || output_type == ExprNodeOutputType::juliaTimeDataFrame;
 }
 
 inline bool
