@@ -4585,20 +4585,28 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     output << "}";
 
   // Write current operator symbol
+  /* NB: Vectorized operators in Julia have a space before them to avoid
+     syntactical ambiguity when left operand is a numeric literal. */
   switch (op_code)
     {
     case BinaryOpcode::plus:
-      output << "+";
+      if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
+        output << " .+";
+      else
+        output << "+";
       break;
     case BinaryOpcode::minus:
-      output << "-";
+      if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
+        output << " .-";
+      else
+        output << "-";
       break;
     case BinaryOpcode::times:
       if (isLatexOutput(output_type))
         output << R"(\, )";
       else if (output_type == ExprNodeOutputType::occbinDifferenceFile // This file operates on vectors, see dynare#1826
                || output_type == ExprNodeOutputType::juliaTimeDataFrame)
-        output << ".*";
+        output << " .*";
       else
         output << "*";
       break;
@@ -4607,7 +4615,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         {
           if (output_type == ExprNodeOutputType::occbinDifferenceFile // This file operates on vectors, see dynare#1826
                || output_type == ExprNodeOutputType::juliaTimeDataFrame)
-            output << "./"; // This file operates on vectors, see dynare#1826
+            output << " ./";
           else
             output << "/";
         }
@@ -4615,19 +4623,19 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
     case BinaryOpcode::power:
       if (output_type == ExprNodeOutputType::occbinDifferenceFile // This file operates on vectors, see dynare#1826
           || output_type == ExprNodeOutputType::juliaTimeDataFrame)
-        output << ".^"; // This file operates on vectors, see dynare#1826
+        output << " .^";
       else
         output << "^";
       break;
     case BinaryOpcode::less:
       if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
-        output << ".<";
+        output << " .<";
       else
         output << "<";
       break;
     case BinaryOpcode::greater:
       if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
-        output << ".>";
+        output << " .>";
       else
         output << ">";
       break;
@@ -4635,7 +4643,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       if (isLatexOutput(output_type))
         output << R"(\leq )";
       else if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
-        output << ".<=";
+        output << " .<=";
       else
         output << "<=";
       break;
@@ -4643,13 +4651,13 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       if (isLatexOutput(output_type))
         output << R"(\geq )";
       else if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
-        output << ".>=";
+        output << " .>=";
       else
         output << ">=";
       break;
     case BinaryOpcode::equalEqual:
       if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
-        output << ".==";
+        output << " .==";
       else
         output << "==";
       break;
@@ -4659,7 +4667,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       else
         {
           if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
-            output << ".!=";
+            output << " .!=";
           else if (isCOutput(output_type) || isJuliaOutput(output_type))
             output << "!=";
           else
@@ -4668,7 +4676,7 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       break;
     case BinaryOpcode::equal:
       if (output_type == ExprNodeOutputType::juliaTimeDataFrame)
-        output << ".=";
+        output << " .=";
       else
         output << "=";
       break;
