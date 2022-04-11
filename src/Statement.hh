@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2021 Dynare Team
+ * Copyright © 2006-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -149,6 +149,8 @@ public:
   bool shocks_surprise_present{false};
   // Whether an occbin_constraints block appears
   bool occbin_constraints_present{false};
+  // Whether a ramsey_constraints block appears
+  bool ramsey_constraints_present{false};
 };
 
 class Statement

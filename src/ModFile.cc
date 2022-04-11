@@ -170,6 +170,12 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
+  if (mod_file_struct.ramsey_constraints_present && !mod_file_struct.ramsey_model_present && !mod_file_struct.ramsey_policy_present)
+    {
+      cerr << "ERROR: A ramsey_constraints block requires the presence of a ramsey_model or ramsey_policy statement" << endl;
+      exit(EXIT_FAILURE);
+    }
+
   if ((mod_file_struct.osr_present && (!mod_file_struct.osr_params_present || !mod_file_struct.optim_weights_present))
       || ((!mod_file_struct.osr_present || !mod_file_struct.osr_params_present) && mod_file_struct.optim_weights_present)
       || ((!mod_file_struct.osr_present || !mod_file_struct.optim_weights_present) && mod_file_struct.osr_params_present))
