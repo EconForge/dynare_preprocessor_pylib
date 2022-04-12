@@ -877,6 +877,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>no_homotopy {return token::NO_HOMOTOPY;}
 <DYNARE_STATEMENT>particle_filter_options {return token::PARTICLE_FILTER_OPTIONS;}
 <DYNARE_STATEMENT>terminal_steady_state_as_guess_value {return token::TERMINAL_STEADY_STATE_AS_GUESS_VALUE;}
+<DYNARE_STATEMENT>constant_simulation_length {return token::CONSTANT_SIMULATION_LENGTH;}
 <DYNARE_STATEMENT>static { return token::STATIC; }
 <DYNARE_STATEMENT>incidence { return token::INCIDENCE; }
 
