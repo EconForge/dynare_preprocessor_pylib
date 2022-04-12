@@ -1467,7 +1467,7 @@ perfect_foresight_with_expectation_errors_solver : PERFECT_FORESIGHT_WITH_EXPECT
                                                   { driver.perfect_foresight_with_expectation_errors_solver(); }
                                                  ;
 
-perfect_foresight_with_expectation_errors_solver_options_list : perfect_foresight_with_expectation_errors_solver_options_list COMMA perfect_foresight_solver_options
+perfect_foresight_with_expectation_errors_solver_options_list : perfect_foresight_with_expectation_errors_solver_options_list COMMA perfect_foresight_with_expectation_errors_solver_options
                                                               | perfect_foresight_with_expectation_errors_solver_options
                                                               ;
 
