@@ -1,7 +1,8 @@
-\documentclass{beamer}
+\documentclass[aspectratio=169]{beamer}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
+\usepackage{upquote}
 \usepackage{amsmath}
 \usepackage[copyright]{ccicons}
 
@@ -15,7 +16,7 @@
 
 \institute[CEPREMAP]{\includegraphics[scale=0.15]{../logos/cepremap.jpg}}
 
-\date{21 June 2021}
+\date{11 April 2022}
 
 
 \setbeamertemplate{title page}
@@ -66,7 +67,7 @@
     \ccbysa
     \column{0.71\textwidth}
     \tiny
-    Copyright © 2008--2021 Dynare Team \\
+    Copyright © 2008--2022 Dynare Team \\
     Licence: \href{http://creativecommons.org/licenses/by-sa/4.0/}{Creative
       Commons Attribution-ShareAlike 4.0}
   \end{columns}
@@ -90,7 +91,7 @@
   \item The \textbf{Dynare macro language} adds a programmatic element to Dynare
     \begin{itemize}
     \item Introduces conditionals, loops, and other simple programmatic directives
-    \item Used to speed model development
+    \item Used to speed up model development
     \item Useful in various situations
       \begin{itemize}
       \item Multi-country models
@@ -132,6 +133,7 @@
     \item loop statements: \verb+@#for/@#endfor+
     \end{itemize}
   \item Most directives fit on one line. If needed however, two backslashes (i.e. \verb+\\+) at the end of a line indicate that the directive is continued on the next line.
+  \item Directives are not terminated with a semicolon
   \end{itemize}
 \end{frame}
 
@@ -139,13 +141,13 @@
 \frametitle{Values}
 \begin{itemize}
 \item The macro processor can handle values of 5 different types:
-  \begin{itemize}
+  \begin{enumerate}
   \item boolean
   \item real
   \item string
   \item tuple
   \item array
-  \end{itemize}
+  \end{enumerate}
 \item Values of the types listed above can be cast to other types
   \begin{itemize}
   \item \texttt{(real) "3.1"} $\rightarrow$ \texttt{3.1}
@@ -161,12 +163,12 @@
 \begin{frame}[fragile=singleslide]
   \frametitle{Macro-expressions (1/8)}
   \begin{itemize}
-    \item Macro-expressions are constructed using literals of the 5 basic types
+    \item Macro-expressions are constructed using literals (i.e.\ fixed values) of the 5 basic types
       described above, macro-variables, standard operators, function calls and comprehensions.
     \item Macro-expressions can be used in two places:
       \begin{itemize}
       \item inside macro directives; no special markup is required
-      \item in the body of the \texttt{.mod} file, between an at sign and curly braces (like \verb+@{expr}+); the macro processor will substitute the expression with its value
+      \item in the body of the \texttt{.mod} file, between an ``at''-sign and curly braces (like \verb+@{expr}+); the macro processor will substitute the expression with its value
       \end{itemize}
   \end{itemize}
 \end{frame}
@@ -223,7 +225,7 @@
 
 \begin{frame}[fragile=singleslide]
   \frametitle{Macro-expressions (5/8): Tuple}
-  Tuples are enclosed by parenthesis and elements separated by commas (like
+  Tuples are enclosed by parentheses and elements are separated by commas (like
   \texttt{(a,b,c)} or \texttt{(1,2.2,c)}).
   \begin{block}{Operators on tuples}
     \begin{itemize}
@@ -256,7 +258,7 @@
   \frametitle{Macro-expressions (6/8): Array (2/2)}
   Arrays can be seen as representing a set of elements (assuming no element
   appears twice in the array). Several set operations can thus be performed on
-  arrays: union, intersection, difference, cartesian product and power.
+  arrays: union, intersection, difference, Cartesian product and power.
   \begin{block}{Set operations on arrays}
     \begin{itemize}
     \item set union: \texttt{|}
@@ -266,7 +268,7 @@
     \item Cartesian power of an array: \texttt{\^}
     \end{itemize}
   \end{block}
-  For example, if \texttt{A} and \texttt{B} are arrays, then the following
+  For example: if \texttt{A} and \texttt{B} are arrays, then the following
   set operations are valid: \texttt{A|B}, \texttt{A\&B}, \texttt{A-B},
   \texttt{A*B}, \texttt{A\^{}3}.
 \end{frame}
@@ -329,7 +331,7 @@
   \frametitle{Macro-expressions (8/8): Functions}
   \begin{itemize}
   \item Can take any number of arguments
-  \item Dynamic binding: is evaluated when invoked, not when defined
+  \item Dynamic binding: is evaluated when invoked during the macroprocessing stage, not when defined
   \item Can be included in expressions; valid operators depend on return type
   \end{itemize}
 
@@ -352,7 +354,7 @@ Then \texttt{distance(3, 4)} will be equivalent to \texttt{5}.
   The value of a macro-variable can be defined with the \verb+@#define+
   directive.
 
-  The macro processor has its own list of variables which are different from model variables and MATLAB/Octave variables
+  The macro processor has its own list of variables, which are different from model variables and MATLAB/Octave variables
 
   \begin{block}{Syntax}
     \verb+@#define +\textit{variable\_name}\verb+ = +\textit{expression}
@@ -368,7 +370,7 @@ Then \texttt{distance(3, 4)} will be equivalent to \texttt{5}.
 @#define t = ("US" in w)    // Equals true
 \end{verbatim}
   \end{block}
-  NB: You can define macro variables on the dynare command line by using the \texttt{-D} option
+  NB: You can define macro variables on the Dynare command line by using the \texttt{-D} option
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
@@ -427,7 +429,7 @@ end;
   \item Files to include are searched for in the current directory. Other directories can
     be added with the
     \verb+@#includepath+ directive, the \texttt{-I} command line option, or the
-    \texttt{[paths]} section in config file.
+    \texttt{[paths]} section in config files.
   \end{itemize}
 \end{frame}
 
@@ -539,7 +541,8 @@ This loop will iterate over only 4 triplets: \texttt{(3,4,5)},
 \begin{frame}[fragile=singleslide]
   \frametitle{Conditional directives (2/3)}
   \begin{block}{Syntax 3}
-    \verb+@#if +\textit{bool\_or\_real\_expr1} \\
+     \scriptsize
+   \verb+@#if +\textit{bool\_or\_real\_expr1} \\
     \verb+   +\textit{body included if expr1 is true (or != 0)} \\
     \verb+@#elseif +\textit{bool\_or\_real\_expr2} \\
     \verb+   +\textit{body included if expr2 is true (or != 0)} \\
@@ -588,35 +591,53 @@ end;
   \end{columns}
 
 \bigskip
-
-There is also \verb+@#ifndef+, which is the opposite of \verb+@#ifdef+
-(\textit{i.e.} it tests whether a variable is \emph{not} defined). NB: There is
+\begin{itemize}
+\item There is also \verb+@#ifndef+, which is the opposite of \verb+@#ifdef+
+(\textit{i.e.} it tests whether a variable is \emph{not} defined).
+\item NB: There is
 \emph{no} \verb+@#elseifdef+ or \verb+@#elseifndef+ directive; use
 \verb+elseif defined(variable_name)+ to achieve the desired objective.
+\end{itemize}
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{Echo and error directives}
+  \frametitle{Echo directives}
 
   \begin{itemize}
   \item The echo directive will simply display a message on standard output
-  \item The error directive will display the message and make Dynare stop (only makes sense inside a conditional directive)
   \item The echomacrovars directive will display all of the macro variables (or
-    those specified) and their values, optionally saving them
+    those specified) and their values
+  \item The \texttt{save} option allows saving this information to \texttt{options\_.macrovars\_line\_x}, where \texttt{x} denotes the line number where the statement was encountered
   \end{itemize}
 
   \begin{block}{Syntax}
-\verb+@#echo +\textit{string\_expr} \\
-\verb+@#error +\textit{string\_expr} \\
-\verb+@#echomacrovars +\\
-\verb+@#echomacrovars +\textit{list\_of\_variables}\\
-\verb+@#echomacrovars(save)+\\
-\verb+@#echomacrovars(save) +\textit{list\_of\_variables}\\
+    \verb+@#echo +\textit{string\_expr} \\
+    \verb+@#echomacrovars +\\
+    \verb+@#echomacrovars +\textit{list\_of\_variables}\\
+    \verb+@#echomacrovars(save)+\\
+    \verb+@#echomacrovars(save) +\textit{list\_of\_variables}\\
   \end{block}
 
   \begin{block}{Examples}
 \begin{verbatim}
 @#echo "Information message."
+\end{verbatim}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{Error directive}
+
+  \begin{itemize}
+      \item The error directive will display the message and make Dynare stop (only makes sense inside a conditional directive)
+  \end{itemize}
+
+  \begin{block}{Syntax}
+    \verb+@#error +\textit{string\_expr} \\
+  \end{block}
+
+  \begin{block}{Example}
+\begin{verbatim}
 @#error "Error message!"
 \end{verbatim}
   \end{block}
@@ -626,8 +647,8 @@ There is also \verb+@#ifndef+, which is the opposite of \verb+@#ifdef+
   \frametitle{Macro-related command line options}
   \begin{itemize}
   \item \texttt{savemacro}: Useful for debugging or learning purposes, saves the output of the macro processor. If your \texttt{.mod} file is called \texttt{file.mod}, the output is saved to \texttt{file-macroexp.mod}.
-  \item \texttt{nolinemacro}: In the output of \texttt{savemacro}, don't print line numbers where the macro directives were placed.
-  \item \texttt{noemptylinemacro}: Remove empty lines in the output of \texttt{savemacro}.
+  \item NB: \texttt{savemacro=filename} allows a user-defined file name
+  \item \texttt{linemacro}: In the output of \texttt{savemacro}, print line numbers where the macro directives were placed.
   \item \texttt{onlymacro}: Stops processing after the macro processing step.
   \end{itemize}
 \end{frame}
@@ -640,13 +661,13 @@ There is also \verb+@#ifndef+, which is the opposite of \verb+@#ifdef+
   \item The \verb+@#include+ directive can be used to split \texttt{.mod} files into several modular components
   \item Example setup:
     \begin{description}
-    \item[\texttt{modeldesc.mod}:] contains variable declarations, model equations and shocks declarations
-    \item[\texttt{simulate.mod}:] includes \texttt{modeldesc.mod}, calibrates parameters and runs stochastic simulations
-    \item[\texttt{estim.mod}:] includes \texttt{modeldesc.mod}, declares priors on parameters and runs bayesian estimation
+    \item[\texttt{modeldesc.mod}:] contains variable declarations, model equations, and shock declarations
+    \item[\texttt{simulate.mod}:] includes \texttt{modeldesc.mod}, calibrates parameters, and runs stochastic simulations
+    \item[\texttt{estim.mod}:] includes \texttt{modeldesc.mod}, declares priors on parameters, and runs Bayesian estimation
     \end{description}
   \item Dynare can be called on \texttt{simulate.mod} and \texttt{estim.mod}
   \item But it makes no sense to run it on \texttt{modeldesc.mod}
-  \item Advantage: no need to manually copy/paste the whole model (at the beginning) or changes to the model (during development)
+  \item Advantage: no need to manually copy/paste the whole model (during initial development) or port model changes (during development)
   \end{itemize}
 \end{frame}
 
@@ -725,18 +746,18 @@ end;
 \begin{frame}
   \frametitle{Endogeneizing parameters (1/4)}
   \begin{itemize}
-  \item When calibrating the model it may be useful to consider a parameter as an endogenous (and vice-versa)
+  \item When calibrating the model, it may be useful to pin down parameters by targeting endogenous objects
   \item Example:
     \begin{gather*}
-      y = \left(\alpha^{\frac{1}{\xi}} \ell^{1-\frac{1}{\xi}} + (1-\alpha)^{\frac{1}{\xi}}k^{1-\frac{1}{\xi}}\right)^{\frac{\xi}{\xi - 1}} \\
-      lab\_rat = \frac{w \ell}{p y}
+      y_t = \left(\alpha^{\frac{1}{\xi}} \ell_t^{1-\frac{1}{\xi}} + (1-\alpha)^{\frac{1}{\xi}}k_t^{1-\frac{1}{\xi}}\right)^{\frac{\xi}{\xi - 1}} \\
+      lab\_rat_t = \frac{w_t \ell_t}{p_t y_t}
     \end{gather*}
-  \item In the model, $\alpha$ is a (share) parameter, and $lab\_rat$ is an endogenous variable
+  \item In the model, $\alpha$ is a (share) parameter, and $lab\_rat_t$ is an endogenous variable
   \item We observe that:
     \begin{itemize}
-    \item calibrating $\alpha$ is not straigthforward!
-    \item on the contrary, we have real world data for $lab\_rat$
-    \item it is clear that these two variables are economically linked
+    \item setting a value for $\alpha$ is not straightforward!
+    \item but we have real world data for $lab\_rat_t$
+    \item it is clear that these two objects are economically linked
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -744,13 +765,13 @@ end;
 \begin{frame}[fragile=singleslide]
   \frametitle{Endogeneizing parameters (2/4)}
   \begin{itemize}
-  \item Therefore, when computing the steady state:
+  \item Therefore, when computing the steady state by solving the static model:
     \begin{itemize}
-    \item we make $\alpha$ an endogenous variable and $lab\_rat$ a parameter
-    \item we impose an economically relevant value for $lab\_rat$
+    \item we make $\alpha$ a variable and the steady state value $lab\_rat$ of the dynamic variable $lab\_rat_t$ a parameter 
+    \item we impose an economically sensible value for $lab\_rat$
     \item the solution algorithm deduces the implied value for $\alpha$
     \end{itemize}
-  \item We call this method ``variable flipping''
+  \item We call this method ``variable flipping'', because it treats $\alpha$ as a variable and $lab\_rat$ as a parameter for the purpose of the static model
   \end{itemize}
 \end{frame}
 
@@ -785,16 +806,16 @@ end;
   \item File \texttt{steadystate.mod}:
     \begin{itemize}
     \item begins with \verb+@#define steady = true+
-    \item then with \verb+@#include "modeqs.mod"+
+    \item followed by \verb+@#include "modeqs.mod"+
     \item initializes parameters (including \texttt{lab\_rat}, excluding \texttt{alpha})
     \item computes steady state (using guess values for endogenous, including \texttt{alpha})
-    \item saves values of parameters and endogenous at steady-state in a file, using the \texttt{save\_params\_and\_steady\_state} command
+    \item saves values of parameters and variables at steady-state in a file, using the \texttt{save\_params\_and\_steady\_state} command
     \end{itemize}
   \item File \texttt{simulate.mod}:
     \begin{itemize}
     \item begins with \verb+@#define steady = false+
-    \item then with \verb+@#include "modeqs.mod"+
-    \item loads values of parameters and endogenous at steady-state from file, using the \texttt{load\_params\_and\_steady\_state} command
+    \item followed by \verb+@#include "modeqs.mod"+
+    \item loads values of parameters and variables at steady-state from file, using the \texttt{load\_params\_and\_steady\_state} command
     \item computes simulations
     \end{itemize}
   \end{itemize}
@@ -809,14 +830,18 @@ end;
 \begin{verbatim}
 rhos = [ 0.8, 0.9, 1];
 for i = 1:length(rhos)
-  rho = rhos(i);
+  set_param_value('rho',rhos(i));
   stoch_simul(order=1);
+  if info(1)~=0
+    error('Simulation failed for parameter draw')
+  end
 end
 \end{verbatim}
   \end{block}
   \begin{itemize}
   \item The loop is not unrolled
   \item MATLAB/Octave manages the iterations
+  \item NB: always check whether the error flag `info(1)==0` to prevent erroneously relying on stale results from previous iterations
   \end{itemize}
 \end{frame}
 
@@ -826,8 +851,11 @@ end
 \begin{verbatim}
 rhos = [ 0.8, 0.9, 1];
 @#for i in 1:3
-  rho = rhos(@{i});
+  set_param_value('rho',rhos(@{i}));
   stoch_simul(order=1);
+  if info(1)~=0
+    error('Simulation failed for parameter draw')
+  end
 @#endfor
 \end{verbatim}
   \end{block}
@@ -843,8 +871,11 @@ rhos = [ 0.8, 0.9, 1];
   \begin{block}{With a macro processor loop (case 2)}
 \begin{verbatim}
 @#for rho_val in [ 0.8, 0.9, 1]
-  rho = @{rho_val};
+  set_param_value('rho',@{rho_val});
   stoch_simul(order=1);
+  if info(1)~=0
+    error('Simulation failed for parameter draw')
+  end
 @#endfor
 \end{verbatim}
   \end{block}
