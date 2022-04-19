@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2020 Dynare Team
+ * Copyright © 2019-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -39,10 +39,6 @@ Driver::parse(const string &file_arg, const string &basename_arg, const istream 
       istream is(command_line_defines_with_endl.rdbuf());
       m.parse("command_line_defines", "command_line_defines", is, debug, {}, env, paths, output);
     }
-
-  // Handle empty files
-  if (modfile.rdbuf()->in_avail() == 0)
-    return;
 
   stringstream file_with_endl;
   file_with_endl << modfile.rdbuf() << endl;

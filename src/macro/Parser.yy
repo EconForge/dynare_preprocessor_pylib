@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /*
- * Copyright © 2019-2021 Dynare Team
+ * Copyright © 2019-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -105,7 +105,11 @@ using namespace macro;
 
 %%
 
-%start statements;
+%start statements_or_empty_file;
+
+statements_or_empty_file : %empty
+                         | statements
+                         ;
 
 statements : statement
              {
