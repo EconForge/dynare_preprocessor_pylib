@@ -201,7 +201,7 @@ ModelTree::operator=(const ModelTree &m)
 }
 
 bool
-ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, bool verbose)
+ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, bool dynamic, bool verbose)
 {
   const int n = equations.size();
 
@@ -241,7 +241,7 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
       it != mate_map.begin() + n)
     {
       if (verbose)
-        cerr << "ERROR: Could not normalize the model. Variable "
+        cerr << "ERROR: Could not normalize the " << (dynamic ? "dynamic" : "static") << " model. Variable "
              << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, it - mate_map.begin()))
              << " is not in the maximum cardinality matching." << endl;
       check = false;
@@ -250,9 +250,9 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
 }
 
 void
-ModelTree::computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian)
+ModelTree::computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian, bool dynamic)
 {
-  cout << "Normalizing the model..." << endl;
+  cout << "Normalizing the " << (dynamic ? "dynamic" : "static") << " model..." << endl;
 
   int n = equations.size();
 
@@ -284,14 +284,14 @@ ModelTree::computeNonSingularNormalization(const jacob_map_t &contemporaneous_ja
           suppressed++;
 
       if (suppressed != last_suppressed)
-        found_normalization = computeNormalization(normalized_contemporaneous_jacobian_above_cutoff, false);
+        found_normalization = computeNormalization(normalized_contemporaneous_jacobian_above_cutoff, dynamic, false);
       last_suppressed = suppressed;
       if (!found_normalization)
         {
           current_cutoff /= 2;
           // In this last case try to normalize with the complete jacobian
           if (current_cutoff <= cutoff_lower_limit)
-            found_normalization = computeNormalization(normalized_contemporaneous_jacobian, false);
+            found_normalization = computeNormalization(normalized_contemporaneous_jacobian, dynamic, false);
         }
     }
 
@@ -302,12 +302,19 @@ ModelTree::computeNonSingularNormalization(const jacob_map_t &contemporaneous_ja
          normalization even with a potential singularity.
          TODO: Explain why symbolic_jacobian is not contemporaneous. */
       auto symbolic_jacobian = computeSymbolicJacobian();
-      found_normalization = computeNormalization(symbolic_jacobian, true);
+      found_normalization = computeNormalization(symbolic_jacobian, dynamic, true);
     }
 
   if (!found_normalization)
     {
-      cerr << "No normalization could be computed. Aborting." << endl;
+      /* Some models don’t have a steady state, and this can cause the
+         normalization to fail (e.g. if some variable only appears in a diff(),
+         it will disappear from the static model). Suggest the “no_static”
+         option as a possible solution. */
+      if (!dynamic)
+        cerr << "If your model does not have a steady state, you may want to try the 'no_static' option of the 'model' block." << endl;
+      /* The last call to computeNormalization(), which was verbose, already
+         printed an error message, so we can immediately exit. */
       exit(EXIT_FAILURE);
     }
 }

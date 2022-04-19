@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1040,7 +1040,7 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
     {
       auto contemporaneous_jacobian = evaluateAndReduceJacobian(eval_context);
 
-      computeNonSingularNormalization(contemporaneous_jacobian);
+      computeNonSingularNormalization(contemporaneous_jacobian, false);
 
       auto [prologue, epilogue] = computePrologueAndEpilogue();
 

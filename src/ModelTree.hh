@@ -283,7 +283,7 @@ protected:
     \param contemporaneous_jacobian Jacobian used as an incidence matrix: all elements declared in the map (even if they are zero), are used as vertices of the incidence matrix
     \return True if a complete normalization has been achieved
   */
-  bool computeNormalization(const jacob_map_t &contemporaneous_jacobian, bool verbose);
+  bool computeNormalization(const jacob_map_t &contemporaneous_jacobian, bool dynamic, bool verbose);
 
   //! Try to compute the matching between endogenous and variable using a decreasing cutoff
   /*!
@@ -292,7 +292,7 @@ protected:
     If no matching is found with a zero cutoff, an error message is printed.
     The resulting normalization is stored in endo2eq.
   */
-  void computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian);
+  void computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian, bool dynamic);
   //! Evaluate the jacobian (w.r.t. endogenous) and suppress all the elements below the cutoff
   /*! Returns the contemporaneous_jacobian.
       Elements below the cutoff are discarded. External functions are evaluated to 1. */

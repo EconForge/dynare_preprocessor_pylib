@@ -4245,7 +4245,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
     {
       auto contemporaneous_jacobian = evaluateAndReduceJacobian(eval_context);
 
-      computeNonSingularNormalization(contemporaneous_jacobian);
+      computeNonSingularNormalization(contemporaneous_jacobian, true);
 
       auto [prologue, epilogue] = computePrologueAndEpilogue();
 
