@@ -186,7 +186,7 @@ class ParsingDriver;
 %token NO_IDENTIFICATION_MINIMAL NO_IDENTIFICATION_SPECTRUM NORMALIZE_JACOBIANS GRID_NBR
 %token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS ZERO_MOMENTS_TOLERANCE
 %token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION WITH_EPILOGUE MODEL_REMOVE MODEL_REPLACE MODEL_OPTIONS
-%token VAR_REMOVE ESTIMATED_PARAMS_REMOVE STATIC INCIDENCE RESID NON_ZERO
+%token VAR_REMOVE ESTIMATED_PARAMS_REMOVE STATIC INCIDENCE RESID NON_ZERO LEARNT_IN
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -757,6 +757,8 @@ endval : ENDVAL ';' initval_list END ';'
          { driver.end_endval(false); }
        | ENDVAL '(' ALL_VALUES_REQUIRED ')' ';' initval_list END ';'
          { driver.end_endval(true); }
+       | ENDVAL '(' LEARNT_IN EQUAL INT_NUMBER ')' ';' initval_list END ';'
+         { driver.end_endval_learnt_in($5); }
        ;
 
 initval_list : initval_list initval_elem
@@ -1126,9 +1128,12 @@ tag_pair_list_for_selection : QUOTED_STRING
 shocks : SHOCKS ';' shock_list END ';' { driver.end_shocks(false); }
        | SHOCKS '(' OVERWRITE ')' ';' shock_list END ';' { driver.end_shocks(true); }
        | SHOCKS '(' OVERWRITE ')' ';'  END ';' { driver.end_shocks(true); }
-       | SHOCKS '(' SURPRISE ')' ';' surprise_shock_list END ';' { driver.end_shocks_surprise(false); }
-       | SHOCKS '(' SURPRISE COMMA OVERWRITE ')' ';' surprise_shock_list END ';' { driver.end_shocks_surprise(true); }
-       | SHOCKS '(' OVERWRITE COMMA SURPRISE ')' ';' surprise_shock_list END ';' { driver.end_shocks_surprise(true); }
+       | SHOCKS '(' SURPRISE ')' ';' det_shock_list END ';' { driver.end_shocks_surprise(false); }
+       | SHOCKS '(' SURPRISE COMMA OVERWRITE ')' ';' det_shock_list END ';' { driver.end_shocks_surprise(true); }
+       | SHOCKS '(' OVERWRITE COMMA SURPRISE ')' ';' det_shock_list END ';' { driver.end_shocks_surprise(true); }
+       | SHOCKS '(' LEARNT_IN EQUAL INT_NUMBER ')' ';' det_shock_list END ';' { driver.end_shocks_learnt_in($5, false); }
+       | SHOCKS '(' LEARNT_IN EQUAL INT_NUMBER COMMA OVERWRITE ')' ';' det_shock_list END ';' { driver.end_shocks_learnt_in($5, true); }
+       | SHOCKS '(' OVERWRITE COMMA LEARNT_IN EQUAL INT_NUMBER ')' ';' det_shock_list END ';' { driver.end_shocks_learnt_in($7, true); }
        ;
 
 shock_list : shock_list shock_elem
@@ -1150,9 +1155,9 @@ det_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
                  { driver.add_det_shock($2, $5, $8, false); }
                ;
 
-surprise_shock_list : surprise_shock_list det_shock_elem
-                    | det_shock_elem
-                    ;
+det_shock_list : det_shock_list det_shock_elem
+               | det_shock_elem
+               ;
 
 heteroskedastic_shocks : HETEROSKEDASTIC_SHOCKS ';' heteroskedastic_shock_list END ';'
                          { driver.end_heteroskedastic_shocks(false); }

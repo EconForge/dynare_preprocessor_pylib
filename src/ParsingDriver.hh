@@ -101,7 +101,7 @@ private:
   //! Checks that a given symbol exists and is a endogenous, and stops with an error message if it isn't
   void check_symbol_is_endogenous(const string &name);
 
-  //! Checks that a given symbol exists and is a exogenous, and stops with an error message if it isn't
+  //! Checks that a given symbol exists and is a exogenous (possibly deterministic), and stops with an error message if it isn't
   void check_symbol_is_exogenous(const string &name);
 
   //! Checks for symbol existence in model block. If it doesn't exist, an error message is stored to be printed at
@@ -423,6 +423,8 @@ public:
   void end_initval(bool all_values_required);
   //! Writes end of an endval block
   void end_endval(bool all_values_required);
+  //! Writes end of an endval(learnt_in=…) block
+  void end_endval_learnt_in(const string &learnt_in_period);
   //! Writes end of an histval block
   void end_histval(bool all_values_required);
   //! Writes end of an homotopy_setup block
@@ -447,6 +449,8 @@ public:
   void end_mshocks(bool overwrite);
   //! Writes a shocks(surprise) statement
   void end_shocks_surprise(bool overwrite);
+  //! Writes a shocks(learnt_in=…) block
+  void end_shocks_learnt_in(const string &learnt_in_period, bool overwrite);
   //! Writes a heteroskedastic_shocks statement
   void end_heteroskedastic_shocks(bool overwrite);
   /* Adds a deterministic shock, a path element inside a

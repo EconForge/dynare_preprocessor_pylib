@@ -748,6 +748,16 @@ ParsingDriver::end_endval(bool all_values_required)
 }
 
 void
+ParsingDriver::end_endval_learnt_in(const string &learnt_in_period)
+{
+  for (auto [symb_id, value] : init_values)
+    if (mod_file->symbol_table.getType(symb_id) != SymbolType::exogenous)
+      error("endval(learnt_in=...): " + mod_file->symbol_table.getName(symb_id) + " is not an exogenous variable");
+  mod_file->addStatement(make_unique<EndValLearntInStatement>(stoi(learnt_in_period), init_values, mod_file->symbol_table));
+  init_values.clear();
+}
+
+void
 ParsingDriver::end_histval(bool all_values_required)
 {
   mod_file->addStatement(make_unique<HistValStatement>(hist_values, mod_file->symbol_table, all_values_required));
@@ -845,6 +855,18 @@ void
 ParsingDriver::end_shocks_surprise(bool overwrite)
 {
   mod_file->addStatement(make_unique<ShocksSurpriseStatement>(overwrite, det_shocks, mod_file->symbol_table));
+  det_shocks.clear();
+}
+
+void
+ParsingDriver::end_shocks_learnt_in(const string &learnt_in_period, bool overwrite)
+{
+  int learnt_in_period_int = stoi(learnt_in_period);
+  for (auto &[symb_id, vals] : det_shocks)
+    for (auto [period1, period2, expr] : vals)
+      if (period1 < learnt_in_period_int)
+        error("shocks: for variable " + mod_file->symbol_table.getName(symb_id) + ", shock period (" + to_string(period1) + ") is earlier than the period in which the shock is learnt (" + learnt_in_period + ")");
+  mod_file->addStatement(make_unique<ShocksLearntInStatement>(learnt_in_period_int, overwrite, det_shocks, mod_file->symbol_table));
   det_shocks.clear();
 }
 

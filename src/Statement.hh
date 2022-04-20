@@ -36,8 +36,10 @@ public:
   bool check_present{false};
   //! Whether steady is present
   bool steady_present{false};
-  //! Whether a perfect_foresight_solver/simul/perfect_foresight_with_expectation_errors_solver statement is present
+  //! Whether a perfect_foresight_solver/simul statement is present
   bool perfect_foresight_solver_present{false};
+  //! Whether a perfect_foresight_with_expectation_errors_solver statement is present
+  bool perfect_foresight_with_expectation_errors_solver_present{false};
   //! Whether a stoch_simul statement is present
   bool stoch_simul_present{false};
   //! Whether an estimation statement is present
@@ -147,6 +149,10 @@ public:
   set<int> parameters_in_planner_discount;
   // Whether a shocks(surprise) block appears
   bool shocks_surprise_present{false};
+  // Whether a shocks(learnt_in=…) block appears
+  bool shocks_learnt_in_present{false};
+  // Whether an endval(learnt_in=…) block appears
+  bool endval_learnt_in_present{false};
   // Whether an occbin_constraints block appears
   bool occbin_constraints_present{false};
   // Whether a ramsey_constraints block appears

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -296,6 +296,54 @@ EndValStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "endval", "vals": [)";
   writeJsonInitValues(output);
+  output << "]}";
+}
+
+EndValLearntInStatement::EndValLearntInStatement(int learnt_in_period_arg,
+                                                 const InitOrEndValStatement::init_values_t &init_values_arg,
+                                                 const SymbolTable &symbol_table_arg) :
+  learnt_in_period{learnt_in_period_arg},
+  init_values{move(init_values_arg)},
+  symbol_table{symbol_table_arg}
+{
+}
+
+void
+EndValLearntInStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+{
+  mod_file_struct.endval_learnt_in_present = true;
+}
+
+void
+EndValLearntInStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+{
+  output << "M_.learnt_endval = [ M_.learnt_endval;" << endl;
+  for (auto [symb_id, value] : init_values)
+    {
+      output << "struct('learnt_in'," << learnt_in_period
+             << ",'exo_id'," << symbol_table.getTypeSpecificID(symb_id)+1
+             << ",'value',";
+      value->writeOutput(output);
+      output << ");" << endl;
+    }
+  output << "];" << endl;
+}
+
+void
+EndValLearntInStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "endval", "learnt_in": )"
+         << learnt_in_period <<  R"(, "vals": [)";
+  for (auto it = init_values.begin();
+       it != init_values.end(); ++it)
+    {
+      auto [symb_id, value] = *it;
+      if (it != init_values.begin())
+        output << ", ";
+      output << R"({"name": ")" << symbol_table.getName(symb_id) << R"(", )" << R"("value": ")";
+      value->writeJsonOutput(output, {}, {});
+      output << R"("})";
+    }
   output << "]}";
 }
 

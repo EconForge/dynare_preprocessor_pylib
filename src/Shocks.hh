@@ -106,6 +106,27 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
+/* Represents a shocks(learnt_in=…) block.
+   Given the differences with the plain “shocks” block, it was easier to make
+   it a separate class. */
+class ShocksLearntInStatement : public Statement
+{
+public:
+  const int learnt_in_period;
+  //! Does this "shocks(learnt_in=…)" statement replace the previous ones?
+  const bool overwrite;
+  const AbstractShocksStatement::det_shocks_t learnt_shocks;
+private:
+  const SymbolTable &symbol_table;
+public:
+  ShocksLearntInStatement(int learnt_in_period_arg, bool overwrite_arg,
+                          AbstractShocksStatement::det_shocks_t learnt_shocks_arg,
+                          const SymbolTable &symbol_table_arg);
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
+};
+
 class ConditionalForecastPathsStatement : public Statement
 {
 private:

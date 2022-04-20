@@ -267,7 +267,7 @@ PerfectForesightWithExpectationErrorsSolverStatement::PerfectForesightWithExpect
 void
 PerfectForesightWithExpectationErrorsSolverStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  mod_file_struct.perfect_foresight_solver_present = true;
+  mod_file_struct.perfect_foresight_with_expectation_errors_solver_present = true;
 }
 
 void

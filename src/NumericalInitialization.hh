@@ -96,6 +96,20 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
+class EndValLearntInStatement : public Statement
+{
+public:
+  const int learnt_in_period;
+  const InitOrEndValStatement::init_values_t init_values;
+  const SymbolTable &symbol_table;
+  EndValLearntInStatement(int learnt_in_period_arg,
+                          const InitOrEndValStatement::init_values_t &init_values_arg,
+                          const SymbolTable &symbol_table_arg);
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
+};
+
 class HistValStatement : public Statement
 {
 public:

@@ -148,6 +148,7 @@ ModFile::checkPass(bool nostrict, bool stochastic)
   if (dynamic_model.equation_number() == 0
       && (mod_file_struct.check_present
           || mod_file_struct.perfect_foresight_solver_present
+          || mod_file_struct.perfect_foresight_with_expectation_errors_solver_present
           || stochastic_statement_present))
     {
       cerr << "ERROR: At least one model equation must be declared!" << endl;
@@ -184,9 +185,10 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
-  if (mod_file_struct.perfect_foresight_solver_present && stochastic_statement_present)
+  if ((mod_file_struct.perfect_foresight_solver_present || mod_file_struct.perfect_foresight_with_expectation_errors_solver_present)
+      && stochastic_statement_present)
     {
-      cerr << "ERROR: A .mod file cannot contain both one of {perfect_foresight_solver,simul} and one of {stoch_simul, estimation, osr, ramsey_policy, discretionary_policy}. This is not possible: one cannot mix perfect foresight context with stochastic context in the same file." << endl;
+      cerr << "ERROR: A .mod file cannot contain both one of {perfect_foresight_solver, simul, perfect_foresight_with_expectation_errors_solver} and one of {stoch_simul, estimation, osr, ramsey_policy, discretionary_policy}. This is not possible: one cannot mix perfect foresight context with stochastic context in the same file." << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -308,6 +310,7 @@ ModFile::checkPass(bool nostrict, bool stochastic)
 
   if (linear
       && !mod_file_struct.perfect_foresight_solver_present
+      && !mod_file_struct.perfect_foresight_with_expectation_errors_solver_present
       && (dynamic_model.isUnaryOpUsedOnType(SymbolType::exogenous, UnaryOpcode::sign)
           || dynamic_model.isUnaryOpUsedOnType(SymbolType::exogenous, UnaryOpcode::abs)
           || dynamic_model.isBinaryOpUsedOnType(SymbolType::exogenous, BinaryOpcode::max)
@@ -576,9 +579,10 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       exit(EXIT_FAILURE);
     }
 
-  if (symbol_table.exo_det_nbr() > 0 && mod_file_struct.perfect_foresight_solver_present)
+  if (symbol_table.exo_det_nbr() > 0
+      && (mod_file_struct.perfect_foresight_solver_present || mod_file_struct.perfect_foresight_with_expectation_errors_solver_present))
     {
-      cerr << "ERROR: A .mod file cannot contain both one of {perfect_foresight_solver, simul} and varexo_det declaration (all exogenous variables are deterministic in this case)" << endl;
+      cerr << "ERROR: A .mod file cannot contain both one of {perfect_foresight_solver, simul, perfect_foresight_with_expectation_errors_solver} and varexo_det declaration (all exogenous variables are deterministic in this case)" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -607,6 +611,18 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   if (mod_file_struct.shocks_surprise_present && !mod_file_struct.occbin_constraints_present)
     {
       cerr << "ERROR: the 'shocks(surprise)' block can only be used in conjunction with the 'occbin_constraints' block." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (mod_file_struct.shocks_learnt_in_present && !mod_file_struct.perfect_foresight_with_expectation_errors_solver_present)
+    {
+      cerr << "ERROR: the 'shocks(learnt_in=…)' block can only be used in conjunction with the 'perfect_foresight_with_expectation_errors_solver' command." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (mod_file_struct.endval_learnt_in_present && !mod_file_struct.perfect_foresight_with_expectation_errors_solver_present)
+    {
+      cerr << "ERROR: the 'endval(learnt_in=…)' block can only be used in conjunction with the 'perfect_foresight_with_expectation_errors_solver' command." << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -669,13 +685,16 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
           static_model.computingPass(derivsOrder, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, bytecode);
         }
       // Set things to compute for dynamic model
-      if (mod_file_struct.perfect_foresight_solver_present || mod_file_struct.check_present
+      if (mod_file_struct.perfect_foresight_solver_present
+          || mod_file_struct.perfect_foresight_with_expectation_errors_solver_present
+          || mod_file_struct.check_present
           || mod_file_struct.stoch_simul_present
           || mod_file_struct.estimation_present || mod_file_struct.osr_present
           || mod_file_struct.ramsey_model_present || mod_file_struct.identification_present
           || mod_file_struct.calib_smoother_present || mod_file_struct.mom_estimation_present)
         {
-          if (mod_file_struct.perfect_foresight_solver_present)
+          if (mod_file_struct.perfect_foresight_solver_present
+              || mod_file_struct.perfect_foresight_with_expectation_errors_solver_present)
             {
               int derivsOrder = 1;
               if (output == OutputType::second)
@@ -897,9 +916,11 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
   // May be later modified by a shocks block
   mOutputFile << "M_.sigma_e_is_diagonal = true;" << endl;
 
-  // Initialize M_.det_shocks, M_.surprise_shocks and M_.heteroskedastic_shocks
+  // Initialize M_.det_shocks, M_.surprise_shocks, M_.learnt_shocks, M_.learnt_endval and M_.heteroskedastic_shocks
   mOutputFile << "M_.det_shocks = [];" << endl
               << "M_.surprise_shocks = [];" << endl
+              << "M_.learnt_shocks = [];" << endl
+              << "M_.learnt_endval = [];" << endl
               << "M_.heteroskedastic_shocks.Qvalue_orig = [];" << endl
               << "M_.heteroskedastic_shocks.Qscale_orig = [];" << endl;
 
