@@ -2072,8 +2072,8 @@ options_options : o_jscale
                 ;
 
 options_eq : options_eq_opt EQUAL options_eq_opt ';'
-             { driver.copy_prior(get<0>($1), get<1>($1), get<2>($1), get<3>($1),
-                                 get<0>($3), get<1>($3), get<2>($3), get<3>($3)); }
+             { driver.copy_options(get<0>($1), get<1>($1), get<2>($1), get<3>($1),
+                                   get<0>($3), get<1>($3), get<2>($3), get<3>($3)); }
            ;
 
 options_eq_opt : symbol '.' OPTIONS
