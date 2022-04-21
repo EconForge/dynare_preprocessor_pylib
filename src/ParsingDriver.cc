@@ -548,7 +548,7 @@ ParsingDriver::init_val(const string &name, expr_t rhs)
         return;
       }
 
-  check_symbol_is_endogenous_or_exogenous(name);
+  check_symbol_is_endogenous_or_exogenous(name, true);
   int symb_id = mod_file->symbol_table.getID(name);
   init_values.emplace_back(symb_id, rhs);
 }
@@ -570,7 +570,7 @@ ParsingDriver::hist_val(const string &name, const string &lag, expr_t rhs)
         return;
       }
 
-  check_symbol_is_endogenous_or_exogenous(name);
+  check_symbol_is_endogenous_or_exogenous(name, true);
   int symb_id = mod_file->symbol_table.getID(name);
 
   int ilag = stoi(lag);
@@ -627,7 +627,7 @@ ParsingDriver::add_generate_irfs_element(string name)
 void
 ParsingDriver::add_generate_irfs_exog_element(string exo, const string &value)
 {
-  check_symbol_is_exogenous(exo);
+  check_symbol_is_exogenous(exo, false);
   if (generate_irf_exos.find(exo) != generate_irf_exos.end())
     error("You have set the exogenous variable " + exo + " twice.");
 
@@ -885,7 +885,7 @@ ParsingDriver::add_det_shock(const string &var, const vector<pair<int, int>> &pe
   if (conditional_forecast)
     check_symbol_is_endogenous(var);
   else
-    check_symbol_is_exogenous(var);
+    check_symbol_is_exogenous(var, true);
 
   int symb_id = mod_file->symbol_table.getID(var);
 
@@ -906,7 +906,7 @@ ParsingDriver::add_det_shock(const string &var, const vector<pair<int, int>> &pe
 void
 ParsingDriver::add_heteroskedastic_shock(const string &var, const vector<pair<int, int>> &periods, const vector<expr_t> &values, bool scales)
 {
-  check_symbol_is_exogenous(var);
+  check_symbol_is_exogenous(var, false);
 
   int symb_id = mod_file->symbol_table.getID(var);
 
@@ -1709,18 +1709,18 @@ ParsingDriver::copy_prior(const string &to_declaration_type, const string &to_na
     check_symbol_is_parameter(to_name1);
   else
     {
-      check_symbol_is_endogenous_or_exogenous(to_name1);
+      check_symbol_is_endogenous_or_exogenous(to_name1, false);
       if (!to_name2.empty())
-        check_symbol_is_endogenous_or_exogenous(to_name2);
+        check_symbol_is_endogenous_or_exogenous(to_name2, false);
     }
 
   if (from_declaration_type == "par")
     check_symbol_is_parameter(from_name1);
   else
     {
-      check_symbol_is_endogenous_or_exogenous(from_name1);
+      check_symbol_is_endogenous_or_exogenous(from_name1, false);
       if (!from_name2.empty())
-        check_symbol_is_endogenous_or_exogenous(from_name2);
+        check_symbol_is_endogenous_or_exogenous(from_name2, false);
     }
 
   mod_file->addStatement(make_unique<PriorEqualStatement>(to_declaration_type, to_name1,
@@ -1749,18 +1749,18 @@ ParsingDriver::copy_options(const string &to_declaration_type, const string &to_
     check_symbol_is_parameter(to_name1);
   else
     {
-      check_symbol_is_endogenous_or_exogenous(to_name1);
+      check_symbol_is_endogenous_or_exogenous(to_name1, false);
       if (!to_name2.empty())
-        check_symbol_is_endogenous_or_exogenous(to_name2);
+        check_symbol_is_endogenous_or_exogenous(to_name2, false);
     }
 
   if (from_declaration_type == "par")
     check_symbol_is_parameter(from_name1);
   else
     {
-      check_symbol_is_endogenous_or_exogenous(from_name1);
+      check_symbol_is_endogenous_or_exogenous(from_name1, false);
       if (!from_name2.empty())
-        check_symbol_is_endogenous_or_exogenous(from_name2);
+        check_symbol_is_endogenous_or_exogenous(from_name2, false);
     }
 
   mod_file->addStatement(make_unique<OptionsEqualStatement>(to_declaration_type, to_name1,
@@ -1771,14 +1771,17 @@ ParsingDriver::copy_options(const string &to_declaration_type, const string &to_
 }
 
 void
-ParsingDriver::check_symbol_is_endogenous_or_exogenous(const string &name)
+ParsingDriver::check_symbol_is_endogenous_or_exogenous(const string &name, bool allow_det)
 {
   check_symbol_existence(name);
   switch (mod_file->symbol_table.getType(name))
     {
     case SymbolType::endogenous:
     case SymbolType::exogenous:
+      break;
     case SymbolType::exogenousDet:
+      if (!allow_det)
+        error(name + " is an exogenous deterministic.");
       break;
     default:
       error(name + " is neither endogenous or exogenous.");
@@ -1794,13 +1797,16 @@ ParsingDriver::check_symbol_is_endogenous(const string &name)
 }
 
 void
-ParsingDriver::check_symbol_is_exogenous(const string &name)
+ParsingDriver::check_symbol_is_exogenous(const string &name, bool allow_exo_det)
 {
   check_symbol_existence(name);
   switch (mod_file->symbol_table.getType(name))
     {
     case SymbolType::exogenous:
+      break;
     case SymbolType::exogenousDet:
+      if (!allow_exo_det)
+        error(name + " is an exogenous deterministic.");
       break;
     default:
       error(name + " is not exogenous.");
@@ -1810,7 +1816,7 @@ ParsingDriver::check_symbol_is_exogenous(const string &name)
 void
 ParsingDriver::set_std_prior(const string &name, const string &subsample_name)
 {
-  check_symbol_is_endogenous_or_exogenous(name);
+  check_symbol_is_endogenous_or_exogenous(name, false);
   check_subsample_declaration_exists(name, subsample_name);
   mod_file->addStatement(make_unique<StdPriorStatement>(name, subsample_name, prior_shape, prior_variance,
                                                         options_list, mod_file->symbol_table));
@@ -1822,7 +1828,7 @@ ParsingDriver::set_std_prior(const string &name, const string &subsample_name)
 void
 ParsingDriver::set_std_options(const string &name, const string &subsample_name)
 {
-  check_symbol_is_endogenous_or_exogenous(name);
+  check_symbol_is_endogenous_or_exogenous(name, false);
   check_subsample_declaration_exists(name, subsample_name);
   mod_file->addStatement(make_unique<StdOptionsStatement>(name, subsample_name, options_list, mod_file->symbol_table));
   options_list.clear();
@@ -1831,8 +1837,8 @@ ParsingDriver::set_std_options(const string &name, const string &subsample_name)
 void
 ParsingDriver::set_corr_prior(const string &name1, const string &name2, const string &subsample_name)
 {
-  check_symbol_is_endogenous_or_exogenous(name1);
-  check_symbol_is_endogenous_or_exogenous(name2);
+  check_symbol_is_endogenous_or_exogenous(name1, false);
+  check_symbol_is_endogenous_or_exogenous(name2, false);
   check_subsample_declaration_exists(name1, name2, subsample_name);
   mod_file->addStatement(make_unique<CorrPriorStatement>(name1, name2, subsample_name, prior_shape, prior_variance,
                                                          options_list, mod_file->symbol_table));
@@ -1844,8 +1850,8 @@ ParsingDriver::set_corr_prior(const string &name1, const string &name2, const st
 void
 ParsingDriver::set_corr_options(const string &name1, const string &name2, const string &subsample_name)
 {
-  check_symbol_is_endogenous_or_exogenous(name1);
-  check_symbol_is_endogenous_or_exogenous(name2);
+  check_symbol_is_endogenous_or_exogenous(name1, false);
+  check_symbol_is_endogenous_or_exogenous(name2, false);
   check_subsample_declaration_exists(name1, name2, subsample_name);
   mod_file->addStatement(make_unique<CorrOptionsStatement>(name1, name2, subsample_name, options_list, mod_file->symbol_table));
   options_list.clear();

@@ -96,13 +96,13 @@ private:
   void check_symbol_is_statement_variable(const string &name);
 
   //! Checks that a given symbol exists and is a endogenous or exogenous, and stops with an error message if it isn't
-  void check_symbol_is_endogenous_or_exogenous(const string &name);
+  void check_symbol_is_endogenous_or_exogenous(const string &name, bool allow_exo_det);
 
   //! Checks that a given symbol exists and is a endogenous, and stops with an error message if it isn't
   void check_symbol_is_endogenous(const string &name);
 
-  //! Checks that a given symbol exists and is a exogenous (possibly deterministic), and stops with an error message if it isn't
-  void check_symbol_is_exogenous(const string &name);
+  //! Checks that a given symbol exists and is a exogenous, and stops with an error message if it isn't
+  void check_symbol_is_exogenous(const string &name, bool allow_exo_det);
 
   //! Checks for symbol existence in model block. If it doesn't exist, an error message is stored to be printed at
   //! the end of the model block

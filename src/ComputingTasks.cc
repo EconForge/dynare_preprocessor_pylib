@@ -3869,12 +3869,21 @@ SubsamplesStatement::writeOutput(ostream &output, const string &basename, bool m
   // Initialize associated subsample substructures in estimation_info
   const SymbolType symb_type = symbol_table.getType(name1);
   string lhs_field;
-  if (symb_type == SymbolType::parameter)
-    lhs_field = "parameter";
-  else if (symb_type == SymbolType::exogenous || symb_type == SymbolType::exogenousDet)
-    lhs_field = "structural_innovation";
-  else
-    lhs_field = "measurement_error";
+  switch (symb_type)
+    {
+    case SymbolType::parameter:
+      lhs_field = "parameter";
+      break;
+    case SymbolType::exogenous:
+      lhs_field = "structural_innovation";
+      break;
+    case SymbolType::endogenous:
+      lhs_field = "measurement_error";
+      break;
+    default:
+      cerr << "subsamples: invalid symbol type for " << name1 << endl;
+      exit(EXIT_FAILURE);
+    }
 
   output << "eifind = get_new_or_existing_ei_index('" << lhs_field;
 
@@ -3955,12 +3964,21 @@ SubsamplesEqualStatement::writeOutput(ostream &output, const string &basename, b
   // Initialize associated subsample substructures in estimation_info
   const SymbolType symb_type = symbol_table.getType(to_name1);
   string lhs_field;
-  if (symb_type == SymbolType::parameter)
-    lhs_field = "parameter";
-  else if (symb_type == SymbolType::exogenous || symb_type == SymbolType::exogenousDet)
-    lhs_field = "structural_innovation";
-  else
-    lhs_field = "measurement_error";
+  switch (symb_type)
+    {
+    case SymbolType::parameter:
+      lhs_field = "parameter";
+      break;
+    case SymbolType::exogenous:
+      lhs_field = "structural_innovation";
+      break;
+    case SymbolType::endogenous:
+      lhs_field = "measurement_error";
+      break;
+    default:
+      cerr << "subsamples: invalid symbol type for " << to_name1 << endl;
+      exit(EXIT_FAILURE);
+    }
 
   output << "eifind = get_new_or_existing_ei_index('" << lhs_field;
 
@@ -4213,7 +4231,7 @@ BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 bool
 BasicPriorStatement::is_structural_innovation(const SymbolType symb_type) const
 {
-  if (symb_type == SymbolType::exogenous || symb_type == SymbolType::exogenousDet)
+  if (symb_type == SymbolType::exogenous)
     return true;
   return false;
 }
@@ -4221,7 +4239,7 @@ BasicPriorStatement::is_structural_innovation(const SymbolType symb_type) const
 void
 BasicPriorStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
 {
-  if (symb_type == SymbolType::exogenous || symb_type == SymbolType::exogenousDet)
+  if (symb_type == SymbolType::exogenous)
     lhs_field = "structural_innovation";
   else
     lhs_field = "measurement_error";
@@ -4473,7 +4491,7 @@ PriorEqualStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 void
 PriorEqualStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
 {
-  if (symb_type == SymbolType::exogenous || symb_type == SymbolType::exogenousDet)
+  if (symb_type == SymbolType::exogenous)
     lhs_field = "structural_innovation";
   else
     lhs_field = "measurement_error";
@@ -4572,13 +4590,13 @@ BasicOptionsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 bool
 BasicOptionsStatement::is_structural_innovation(const SymbolType symb_type) const
 {
-  return symb_type == SymbolType::exogenous || symb_type == SymbolType::exogenousDet;
+  return symb_type == SymbolType::exogenous;
 }
 
 void
 BasicOptionsStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
 {
-  if (symb_type == SymbolType::exogenous || symb_type == SymbolType::exogenousDet)
+  if (symb_type == SymbolType::exogenous)
     lhs_field = "structural_innovation";
   else
     lhs_field = "measurement_error";
@@ -4780,7 +4798,7 @@ OptionsEqualStatement::writeJsonOutput(ostream &output) const
 void
 OptionsEqualStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
 {
-  if (symb_type == SymbolType::exogenous || symb_type == SymbolType::exogenousDet)
+  if (symb_type == SymbolType::exogenous)
     lhs_field = "structural_innovation";
   else
     lhs_field = "measurement_error";
