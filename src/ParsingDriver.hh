@@ -150,8 +150,11 @@ private:
   //! Temporary storage of covariances from optim_weights
   OptimWeightsStatement::covar_weights_t covar_weights;
   /* Temporary storage for deterministic shocks. Also used for
-     conditional_forecast paths and for surprise shocks. */
+     conditional_forecast paths, for shocks(surprise), and shocks(learnt_in=…)
+     (for the latter, only used for shocks declared in level through “values”). */
   ShocksStatement::det_shocks_t det_shocks;
+  // Temporary storage for shocks declared with “add” and “multiply” in shocks(learnt_in=…)
+  ShocksStatement::det_shocks_t learnt_shocks_add, learnt_shocks_multiply;
   //! Temporary storage for variances of shocks
   ShocksStatement::var_and_std_shocks_t var_shocks;
   //! Temporary storage for standard errors of shocks
@@ -455,7 +458,14 @@ public:
   void end_heteroskedastic_shocks(bool overwrite);
   /* Adds a deterministic shock, a path element inside a
      conditional_forecast_paths block, or a surprise shock */
-  void add_det_shock(const string &var, const vector<pair<int, int>> &periods, const vector<expr_t> &values, bool conditional_forecast);
+  enum class DetShockType
+    {
+      standard,
+      add, // for “add” in “shocks(learnt_in)”
+      multiply, // for “multiply” in “shocks(learnt_in)”
+      conditional_forecast
+    };
+  void add_det_shock(const string &var, const vector<pair<int, int>> &periods, const vector<expr_t> &values, DetShockType type);
   //! Adds a heteroskedastic shock (either values or scales)
   void add_heteroskedastic_shock(const string &var, const vector<pair<int, int>> &periods, const vector<expr_t> &values, bool scales);
   //! Adds a std error shock

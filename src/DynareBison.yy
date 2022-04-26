@@ -175,7 +175,7 @@ class ParsingDriver;
 %token HETEROSKEDASTIC_FILTER TIME_SHIFT STRUCTURAL TERMINAL_STEADY_STATE_AS_GUESS_VALUE CONSTANT_SIMULATION_LENGTH
 %token SURPRISE OCCBIN_CONSTRAINTS
 %token PAC_TARGET_INFO COMPONENT TARGET AUXNAME AUXNAME_TARGET_NONSTATIONARY PAC_TARGET_NONSTATIONARY
-%token <string> KIND LL DL DD
+%token <string> KIND LL DL DD ADD MULTIPLY
 /* Method of Moments */
 %token METHOD_OF_MOMENTS MOM_METHOD
 %token BARTLETT_KERNEL_LAG WEIGHTING_MATRIX WEIGHTING_MATRIX_SCALING_FACTOR ANALYTIC_STANDARD_ERRORS ANALYTIC_JACOBIAN PENALIZED_ESTIMATOR VERBOSE
@@ -1152,7 +1152,11 @@ shock_elem : det_shock_elem
            ;
 
 det_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
-                 { driver.add_det_shock($2, $5, $8, false); }
+                 { driver.add_det_shock($2, $5, $8, ParsingDriver::DetShockType::standard); }
+               | VAR symbol ';' PERIODS period_list ';' ADD value_list ';'
+                 { driver.add_det_shock($2, $5, $8, ParsingDriver::DetShockType::add); }
+               | VAR symbol ';' PERIODS period_list ';' MULTIPLY value_list ';'
+                 { driver.add_det_shock($2, $5, $8, ParsingDriver::DetShockType::multiply); }
                ;
 
 det_shock_list : det_shock_list det_shock_elem
@@ -3207,7 +3211,7 @@ conditional_forecast_paths_shock_list : conditional_forecast_paths_shock_elem
                                       ;
 
 conditional_forecast_paths_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
-                                        { driver.add_det_shock($2, $5, $8, true); }
+                                        { driver.add_det_shock($2, $5, $8, ParsingDriver::DetShockType::conditional_forecast); }
                                       ;
 
 steady_state_model : STEADY_STATE_MODEL ';' { driver.begin_steady_state_model(); }
@@ -4284,6 +4288,8 @@ symbol : NAME
        | LL
        | DL
        | DD
+       | ADD
+       | MULTIPLY
        ;
 
 %%

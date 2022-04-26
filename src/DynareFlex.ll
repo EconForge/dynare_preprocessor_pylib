@@ -770,6 +770,14 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_BLOCK>corr {return token::CORR;}
 <DYNARE_BLOCK>periods {return token::PERIODS;}
 <DYNARE_BLOCK>scales {return token::SCALES;}
+<DYNARE_BLOCK>add {
+  yylval->build<string>(yytext);
+  return token::ADD;
+}
+<DYNARE_BLOCK>multiply {
+  yylval->build<string>(yytext);
+  return token::MULTIPLY;
+}
 <DYNARE_STATEMENT,DYNARE_BLOCK>cutoff {return token::CUTOFF;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>mfs {return token::MFS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>balanced_growth_test_tol {return token::BALANCED_GROWTH_TEST_TOL;}

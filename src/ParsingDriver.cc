@@ -841,6 +841,10 @@ ParsingDriver::end_shocks(bool overwrite)
   mod_file->addStatement(make_unique<ShocksStatement>(overwrite, det_shocks, var_shocks, std_shocks,
                                                       covar_shocks, corr_shocks, mod_file->symbol_table));
   det_shocks.clear();
+  if (!learnt_shocks_add.empty())
+    error("shocks: 'add' keyword not allowed unless 'learnt_in' option is passed");
+  if (!learnt_shocks_multiply.empty())
+    error("shocks: 'multiply' keyword not allowed unless 'learnt_in' option is passed");
   var_shocks.clear();
   std_shocks.clear();
   covar_shocks.clear();
@@ -852,6 +856,10 @@ ParsingDriver::end_mshocks(bool overwrite)
 {
   mod_file->addStatement(make_unique<MShocksStatement>(overwrite, det_shocks, mod_file->symbol_table));
   det_shocks.clear();
+  if (!learnt_shocks_add.empty())
+    error("mshocks: 'add' keyword not allowed");
+  if (!learnt_shocks_multiply.empty())
+    error("mshocks: 'multiply' keyword not allowed");
 }
 
 void
@@ -859,6 +867,10 @@ ParsingDriver::end_shocks_surprise(bool overwrite)
 {
   mod_file->addStatement(make_unique<ShocksSurpriseStatement>(overwrite, det_shocks, mod_file->symbol_table));
   det_shocks.clear();
+  if (!learnt_shocks_add.empty())
+    error("shocks(surprise): 'add' keyword not allowed");
+  if (!learnt_shocks_multiply.empty())
+    error("shocks(surprise): 'multiply' keyword not allowed");
 }
 
 void
@@ -871,8 +883,35 @@ ParsingDriver::end_shocks_learnt_in(const string &learnt_in_period, bool overwri
     for (auto [period1, period2, expr] : vals)
       if (period1 < learnt_in_period_int)
         error("shocks: for variable " + mod_file->symbol_table.getName(symb_id) + ", shock period (" + to_string(period1) + ") is earlier than the period in which the shock is learnt (" + learnt_in_period + ")");
-  mod_file->addStatement(make_unique<ShocksLearntInStatement>(learnt_in_period_int, overwrite, det_shocks, mod_file->symbol_table));
+
+  // Aggregate the three types of shocks
+  ShocksLearntInStatement::learnt_shocks_t learnt_shocks;
+  for (const auto &[id, v] : det_shocks)
+    {
+      vector<tuple<ShocksLearntInStatement::LearntShockType, int, int, expr_t>> v2;
+      for (auto [period1, period2, value] : v)
+        v2.emplace_back(ShocksLearntInStatement::LearntShockType::level, period1, period2, value);
+      learnt_shocks[id] = v2;
+    }
+  for (const auto &[id, v] : learnt_shocks_add)
+    {
+      vector<tuple<ShocksLearntInStatement::LearntShockType, int, int, expr_t>> v2;
+      for (auto [period1, period2, value] : v)
+        v2.emplace_back(ShocksLearntInStatement::LearntShockType::add, period1, period2, value);
+      learnt_shocks[id] = v2;
+    }
+  for (const auto &[id, v] : learnt_shocks_multiply)
+    {
+      vector<tuple<ShocksLearntInStatement::LearntShockType, int, int, expr_t>> v2;
+      for (auto [period1, period2, value] : v)
+        v2.emplace_back(ShocksLearntInStatement::LearntShockType::multiply, period1, period2, value);
+      learnt_shocks[id] = v2;
+    }
+
+  mod_file->addStatement(make_unique<ShocksLearntInStatement>(learnt_in_period_int, overwrite, learnt_shocks, mod_file->symbol_table));
   det_shocks.clear();
+  learnt_shocks_add.clear();
+  learnt_shocks_multiply.clear();
 }
 
 void
@@ -885,16 +924,28 @@ ParsingDriver::end_heteroskedastic_shocks(bool overwrite)
 }
 
 void
-ParsingDriver::add_det_shock(const string &var, const vector<pair<int, int>> &periods, const vector<expr_t> &values, bool conditional_forecast)
+ParsingDriver::add_det_shock(const string &var, const vector<pair<int, int>> &periods, const vector<expr_t> &values, DetShockType type)
 {
-  if (conditional_forecast)
-    check_symbol_is_endogenous(var);
-  else
-    check_symbol_is_exogenous(var, true);
+  switch (type)
+    {
+    case DetShockType::conditional_forecast:
+      check_symbol_is_endogenous(var);
+      break;
+    case DetShockType::standard:
+       // Allow exo_det, for stochastic context
+      check_symbol_is_exogenous(var, true);
+      break;
+    case DetShockType::add:
+    case DetShockType::multiply:
+      check_symbol_is_exogenous(var, false);
+      break;
+    }
 
   int symb_id = mod_file->symbol_table.getID(var);
 
-  if (det_shocks.find(symb_id) != det_shocks.end())
+  if (det_shocks.find(symb_id) != det_shocks.end()
+      || learnt_shocks_add.find(symb_id) != learnt_shocks_add.end()
+      || learnt_shocks_multiply.find(symb_id) != learnt_shocks_multiply.end())
     error("shocks/conditional_forecast_paths: variable " + var + " declared twice");
 
   if (periods.size() != values.size())
@@ -905,7 +956,19 @@ ParsingDriver::add_det_shock(const string &var, const vector<pair<int, int>> &pe
   for (size_t i = 0; i < periods.size(); i++)
     v.emplace_back(periods[i].first, periods[i].second, values[i]);
 
-  det_shocks[symb_id] = v;
+  switch (type)
+    {
+    case DetShockType::standard:
+    case DetShockType::conditional_forecast:
+      det_shocks[symb_id] = v;
+      break;
+    case DetShockType::add:
+      learnt_shocks_add[symb_id] = v;
+      break;
+    case DetShockType::multiply:
+      learnt_shocks_multiply[symb_id] = v;
+      break;
+    }
 }
 
 void
@@ -2435,6 +2498,10 @@ ParsingDriver::conditional_forecast_paths()
 {
   mod_file->addStatement(make_unique<ConditionalForecastPathsStatement>(det_shocks, mod_file->symbol_table));
   det_shocks.clear();
+  if (!learnt_shocks_add.empty())
+    error("conditional_forecast_paths: 'add' keyword not allowed");
+  if (!learnt_shocks_multiply.empty())
+    error("conditional_forecast_paths: 'multiply' keyword not allowed");
 }
 
 void

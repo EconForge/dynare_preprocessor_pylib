@@ -115,12 +115,21 @@ public:
   const int learnt_in_period;
   //! Does this "shocks(learnt_in=…)" statement replace the previous ones?
   const bool overwrite;
-  const AbstractShocksStatement::det_shocks_t learnt_shocks;
+  enum class LearntShockType
+    {
+      level,
+      add,
+      multiply
+    };
+  // The tuple is (type, period1, period2, value)
+  using learnt_shocks_t = map<int, vector<tuple<LearntShockType, int, int, expr_t>>>;
+  const learnt_shocks_t learnt_shocks;
 private:
   const SymbolTable &symbol_table;
+  static string typeToString(LearntShockType type);
 public:
   ShocksLearntInStatement(int learnt_in_period_arg, bool overwrite_arg,
-                          AbstractShocksStatement::det_shocks_t learnt_shocks_arg,
+                          learnt_shocks_t learnt_shocks_arg,
                           const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;

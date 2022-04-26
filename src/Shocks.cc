@@ -492,7 +492,7 @@ ShocksSurpriseStatement::writeJsonOutput(ostream &output) const
 }
 
 ShocksLearntInStatement::ShocksLearntInStatement(int learnt_in_period_arg, bool overwrite_arg,
-                                                 AbstractShocksStatement::det_shocks_t learnt_shocks_arg,
+                                                 learnt_shocks_t learnt_shocks_arg,
                                                  const SymbolTable &symbol_table_arg) :
   learnt_in_period{learnt_in_period_arg}, overwrite{overwrite_arg},
   learnt_shocks{move(learnt_shocks_arg)}, symbol_table{symbol_table_arg}
@@ -503,6 +503,21 @@ void
 ShocksLearntInStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
   mod_file_struct.shocks_learnt_in_present = true;
+}
+
+string
+ShocksLearntInStatement::typeToString(LearntShockType type)
+{
+  switch (type)
+    {
+    case LearntShockType::level:
+      return "level";
+    case LearntShockType::add:
+      return "add";
+    case LearntShockType::multiply:
+      return "multiply";
+    }
+  exit(EXIT_FAILURE); // Silence GCC warning
 }
 
 void
@@ -516,11 +531,12 @@ ShocksLearntInStatement::writeOutput(ostream &output, const string &basename, bo
   output << "M_.learnt_shocks = [ M_.learnt_shocks;" << endl;
   for (const auto &[id, shock_vec] : learnt_shocks)
     {
-      for (const auto &[period1, period2, value] : shock_vec)
+      for (const auto &[type, period1, period2, value] : shock_vec)
         {
           output << "struct('learnt_in'," << learnt_in_period
                  << ",'exo_id'," << symbol_table.getTypeSpecificID(id)+1
                  << ",'periods'," << period1 << ":" << period2
+                 << ",'type','" << typeToString(type) << "'"
                  << ",'value',";
           value->writeOutput(output);
           output << ");" << endl;
@@ -544,11 +560,12 @@ ShocksLearntInStatement::writeJsonOutput(ostream &output) const
              << R"("values": [)";
       for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
         {
-          auto [period1, period2, value] = *it1;
+          auto [type, period1, period2, value] = *it1;
           if (it1 != it->second.begin())
             output << ", ";
           output << R"({"period1": )" << period1 << ", "
                  << R"("period2": )" << period2 << ", "
+                 << R"("type": ")" << typeToString(type) << R"(", )"
                  << R"("value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
