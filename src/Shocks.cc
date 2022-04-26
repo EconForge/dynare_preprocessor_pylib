@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -47,9 +47,9 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
       for (const auto &[period1, period2, value] : shock_vec)
         {
           output << "M_.det_shocks = [ M_.det_shocks;" << endl
-                 << "struct('exo_det'," << static_cast<int>(exo_det)
+                 << "struct('exo_det'," << (exo_det ? "true" : "false")
                  << ",'exo_id'," << symbol_table.getTypeSpecificID(id)+1
-                 << ",'multiplicative'," << static_cast<int>(mshocks)
+                 << ",'multiplicative'," << (mshocks ? "true" : "false")
                  << ",'periods'," << period1 << ":" << period2
                  << ",'value',";
           value->writeOutput(output);
