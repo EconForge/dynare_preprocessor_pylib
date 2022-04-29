@@ -751,8 +751,13 @@ void
 ParsingDriver::end_endval_learnt_in(const string &learnt_in_period)
 {
   int learnt_in_period_int = stoi(learnt_in_period);
-  if (learnt_in_period_int < 2)
+  if (learnt_in_period_int < 1)
     error("endval: value '" + learnt_in_period + "' is not allowed for 'learnt_in' option");
+  if (learnt_in_period_int == 1)
+    {
+      end_endval(false);
+      return;
+    }
   for (auto [symb_id, value] : init_values)
     if (mod_file->symbol_table.getType(symb_id) != SymbolType::exogenous)
       error("endval(learnt_in=...): " + mod_file->symbol_table.getName(symb_id) + " is not an exogenous variable");
@@ -842,9 +847,9 @@ ParsingDriver::end_shocks(bool overwrite)
                                                       covar_shocks, corr_shocks, mod_file->symbol_table));
   det_shocks.clear();
   if (!learnt_shocks_add.empty())
-    error("shocks: 'add' keyword not allowed unless 'learnt_in' option is passed");
+    error("shocks: 'add' keyword not allowed unless 'learnt_in' option with value >1 is passed");
   if (!learnt_shocks_multiply.empty())
-    error("shocks: 'multiply' keyword not allowed unless 'learnt_in' option is passed");
+    error("shocks: 'multiply' keyword not allowed unless 'learnt_in' option with value >1 is passed");
   var_shocks.clear();
   std_shocks.clear();
   covar_shocks.clear();
@@ -877,8 +882,13 @@ void
 ParsingDriver::end_shocks_learnt_in(const string &learnt_in_period, bool overwrite)
 {
   int learnt_in_period_int = stoi(learnt_in_period);
-  if (learnt_in_period_int < 2)
+  if (learnt_in_period_int < 1)
     error("shocks: value '" + learnt_in_period + "' is not allowed for 'learnt_in' option");
+  if (learnt_in_period_int == 1)
+    {
+      end_shocks(overwrite);
+      return;
+    }
   for (auto &[symb_id, vals] : det_shocks)
     for (auto [period1, period2, expr] : vals)
       if (period1 < learnt_in_period_int)
