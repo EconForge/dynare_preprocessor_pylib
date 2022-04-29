@@ -1468,6 +1468,10 @@ perfect_foresight_with_expectation_errors_setup_options_list : perfect_foresight
 
 perfect_foresight_with_expectation_errors_setup_options : o_periods
                                                         | o_datafile
+                                                        | o_solve_algo
+                                                        | o_markowitz
+                                                        | o_steady_maxit
+                                                        | o_steady_tolf
                                                         ;
 
 perfect_foresight_with_expectation_errors_solver : PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SOLVER ';'
