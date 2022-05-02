@@ -27,6 +27,7 @@
 #include <iomanip>
 #include <cmath>
 #include <utility>
+#include <memory>
 
 #include "SymbolTable.hh"
 #include "NumericalConstants.hh"
