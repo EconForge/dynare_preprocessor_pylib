@@ -169,8 +169,11 @@ private:
   SigmaeStatement::row_t sigmae_row;
   //! Temporary storage for Sigma_e matrix
   SigmaeStatement::matrix_t sigmae_matrix;
-  //! Temporary storage for initval/endval blocks
+  //! Temporary storage for initval blocks
   InitOrEndValStatement::init_values_t init_values;
+  /* Temporary storage for endval blocks. Uses a type that encompasses both
+     regular “endval” blocks and “endval(learnt_in=…)” blocks. */
+  EndValLearntInStatement::learnt_end_values_t end_values;
   //! Temporary storage for histval blocks
   HistValStatement::hist_values_t hist_values;
   //! Temporary storage for homotopy_setup blocks
@@ -415,9 +418,11 @@ public:
   void dsample(const string &arg1, const string &arg2);
   //! Writes parameter intitialisation expression
   void init_param(const string &name, expr_t rhs);
-  //! Writes an initval block
+  //! Add a line inside an initval block
   void init_val(const string &name, expr_t rhs);
-  //! Writes an histval block
+  //! Add a line inside an endval block
+  void end_val(EndValLearntInStatement::LearntEndValType type, const string &name, expr_t rhs);
+  //! Add a line inside a histval block
   void hist_val(const string &name, const string &lag, expr_t rhs);
   //! Adds an entry in a homotopy_setup block
   /*! Second argument "val1" can be NULL if no initial value provided */

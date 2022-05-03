@@ -300,10 +300,10 @@ EndValStatement::writeJsonOutput(ostream &output) const
 }
 
 EndValLearntInStatement::EndValLearntInStatement(int learnt_in_period_arg,
-                                                 const InitOrEndValStatement::init_values_t &init_values_arg,
+                                                 const learnt_end_values_t &learnt_end_values_arg,
                                                  const SymbolTable &symbol_table_arg) :
   learnt_in_period{learnt_in_period_arg},
-  init_values{move(init_values_arg)},
+  learnt_end_values{move(learnt_end_values_arg)},
   symbol_table{symbol_table_arg}
 {
 }
@@ -314,14 +314,30 @@ EndValLearntInStatement::checkPass(ModFileStructure &mod_file_struct, WarningCon
   mod_file_struct.endval_learnt_in_present = true;
 }
 
+string
+EndValLearntInStatement::typeToString(LearntEndValType type)
+{
+  switch (type)
+    {
+    case LearntEndValType::level:
+      return "level";
+    case LearntEndValType::add:
+      return "add";
+    case LearntEndValType::multiply:
+      return "multiply";
+    }
+  exit(EXIT_FAILURE); // Silence GCC warning
+}
+
 void
 EndValLearntInStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "M_.learnt_endval = [ M_.learnt_endval;" << endl;
-  for (auto [symb_id, value] : init_values)
+  for (auto [type, symb_id, value] : learnt_end_values)
     {
       output << "struct('learnt_in'," << learnt_in_period
              << ",'exo_id'," << symbol_table.getTypeSpecificID(symb_id)+1
+             << ",'type','" << typeToString(type) << "'"
              << ",'value',";
       value->writeOutput(output);
       output << ");" << endl;
@@ -334,13 +350,15 @@ EndValLearntInStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "endval", "learnt_in": )"
          << learnt_in_period <<  R"(, "vals": [)";
-  for (auto it = init_values.begin();
-       it != init_values.end(); ++it)
+  for (auto it = learnt_end_values.begin();
+       it != learnt_end_values.end(); ++it)
     {
-      auto [symb_id, value] = *it;
-      if (it != init_values.begin())
+      auto [type, symb_id, value] = *it;
+      if (it != learnt_end_values.begin())
         output << ", ";
-      output << R"({"name": ")" << symbol_table.getName(symb_id) << R"(", )" << R"("value": ")";
+      output << R"({"name": ")" << symbol_table.getName(symb_id) << R"(", )"
+             << R"("type": ")" << typeToString(type) << R"(", )"
+             << R"("value": ")";
       value->writeJsonOutput(output, {}, {});
       output << R"("})";
     }

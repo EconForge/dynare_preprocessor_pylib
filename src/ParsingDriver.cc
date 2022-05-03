@@ -544,7 +544,7 @@ ParsingDriver::init_val(const string &name, expr_t rhs)
   if (nostrict)
     if (!mod_file->symbol_table.exists(name))
       {
-        warning("discarding '" + name + "' as it was not recognized in the initval or endval statement");
+        warning("discarding '" + name + "' as it was not recognized in the initval statement");
         return;
       }
 
@@ -558,6 +558,21 @@ ParsingDriver::initval_file()
 {
   mod_file->addStatement(make_unique<InitvalFileStatement>(options_list));
   options_list.clear(); 
+}
+
+void
+ParsingDriver::end_val(EndValLearntInStatement::LearntEndValType type, const string &name, expr_t rhs)
+{
+  if (nostrict)
+    if (!mod_file->symbol_table.exists(name))
+      {
+        warning("discarding '" + name + "' as it was not recognized in the endval statement");
+        return;
+      }
+
+  check_symbol_is_endogenous_or_exogenous(name, false);
+  int symb_id = mod_file->symbol_table.getID(name);
+  end_values.emplace_back(type, symb_id, rhs);
 }
 
 void
@@ -743,8 +758,21 @@ ParsingDriver::end_initval(bool all_values_required)
 void
 ParsingDriver::end_endval(bool all_values_required)
 {
-  mod_file->addStatement(make_unique<EndValStatement>(init_values, mod_file->symbol_table, all_values_required));
-  init_values.clear();
+  InitOrEndValStatement::init_values_t end_values_new;
+  for (auto [type, symb_id, value] : end_values)
+    switch (type)
+      {
+      case EndValLearntInStatement::LearntEndValType::level:
+        end_values_new.emplace_back(symb_id, value);
+        break;
+      case EndValLearntInStatement::LearntEndValType::add:
+        error("endval: '" + mod_file->symbol_table.getName(symb_id) + " += ...' line not allowed unless 'learnt_in' option with value >1 is passed");
+      case EndValLearntInStatement::LearntEndValType::multiply:
+        error("endval: '" + mod_file->symbol_table.getName(symb_id) + " *= ...' line not allowed unless 'learnt_in' option with value >1 is passed");
+      }
+
+  mod_file->addStatement(make_unique<EndValStatement>(end_values_new, mod_file->symbol_table, all_values_required));
+  end_values.clear();
 }
 
 void
@@ -758,11 +786,11 @@ ParsingDriver::end_endval_learnt_in(const string &learnt_in_period)
       end_endval(false);
       return;
     }
-  for (auto [symb_id, value] : init_values)
+  for (auto [type, symb_id, value] : end_values)
     if (mod_file->symbol_table.getType(symb_id) != SymbolType::exogenous)
       error("endval(learnt_in=...): " + mod_file->symbol_table.getName(symb_id) + " is not an exogenous variable");
-  mod_file->addStatement(make_unique<EndValLearntInStatement>(learnt_in_period_int, init_values, mod_file->symbol_table));
-  init_values.clear();
+  mod_file->addStatement(make_unique<EndValLearntInStatement>(learnt_in_period_int, end_values, mod_file->symbol_table));
+  end_values.clear();
 }
 
 void

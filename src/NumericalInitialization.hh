@@ -100,10 +100,21 @@ class EndValLearntInStatement : public Statement
 {
 public:
   const int learnt_in_period;
-  const InitOrEndValStatement::init_values_t init_values;
+  enum class LearntEndValType
+    {
+      level,
+      add,
+      multiply
+    };
+  // The tuple is (type, symb_id, value)
+  using learnt_end_values_t = vector<tuple<LearntEndValType, int, expr_t>>;
+  const learnt_end_values_t learnt_end_values;
+private:
   const SymbolTable &symbol_table;
+  static string typeToString(LearntEndValType type);
+public:
   EndValLearntInStatement(int learnt_in_period_arg,
-                          const InitOrEndValStatement::init_values_t &init_values_arg,
+                          const learnt_end_values_t &learnt_end_values_arg,
                           const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;

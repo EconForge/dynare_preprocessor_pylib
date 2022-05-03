@@ -186,7 +186,7 @@ class ParsingDriver;
 %token NO_IDENTIFICATION_MINIMAL NO_IDENTIFICATION_SPECTRUM NORMALIZE_JACOBIANS GRID_NBR
 %token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS ZERO_MOMENTS_TOLERANCE
 %token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION WITH_EPILOGUE MODEL_REMOVE MODEL_REPLACE MODEL_OPTIONS
-%token VAR_REMOVE ESTIMATED_PARAMS_REMOVE STATIC INCIDENCE RESID NON_ZERO LEARNT_IN
+%token VAR_REMOVE ESTIMATED_PARAMS_REMOVE STATIC INCIDENCE RESID NON_ZERO LEARNT_IN PLUS_EQUAL TIMES_EQUAL
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -729,6 +729,12 @@ initval : INITVAL ';' initval_list END ';'
           { driver.end_initval(true); }
         ;
 
+initval_list : initval_list initval_elem
+             | initval_elem
+             ;
+
+initval_elem : symbol EQUAL expression ';' { driver.init_val($1, $3); };
+
 histval_file : HISTVAL_FILE '(' h_options_list ')' ';'
               { driver.histval_file();};
 
@@ -753,19 +759,25 @@ h_options: o_filename
           | o_series
           ;
 
-endval : ENDVAL ';' initval_list END ';'
+endval : ENDVAL ';' endval_list END ';'
          { driver.end_endval(false); }
-       | ENDVAL '(' ALL_VALUES_REQUIRED ')' ';' initval_list END ';'
+       | ENDVAL '(' ALL_VALUES_REQUIRED ')' ';' endval_list END ';'
          { driver.end_endval(true); }
-       | ENDVAL '(' LEARNT_IN EQUAL INT_NUMBER ')' ';' initval_list END ';'
+       | ENDVAL '(' LEARNT_IN EQUAL INT_NUMBER ')' ';' endval_list END ';'
          { driver.end_endval_learnt_in($5); }
        ;
 
-initval_list : initval_list initval_elem
-             | initval_elem
-             ;
+endval_list : endval_list endval_elem
+            | endval_elem
+            ;
 
-initval_elem : symbol EQUAL expression ';' { driver.init_val($1, $3); };
+endval_elem : symbol EQUAL expression ';'
+              { driver.end_val(EndValLearntInStatement::LearntEndValType::level, $1, $3); };
+            | symbol PLUS_EQUAL expression ';'
+              { driver.end_val(EndValLearntInStatement::LearntEndValType::add, $1, $3); };
+            | symbol TIMES_EQUAL expression ';'
+              { driver.end_val(EndValLearntInStatement::LearntEndValType::multiply, $1, $3); };
+            ;
 
 histval : HISTVAL ';' histval_list END ';'
           { driver.end_histval(false); };
