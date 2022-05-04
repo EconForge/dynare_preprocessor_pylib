@@ -68,7 +68,7 @@ EXTRA_DIST = \
 # The -I. is for <FlexLexer.h>
 dynare_preprocessor_CPPFLAGS = $(BOOST_CPPFLAGS) -I.
 dynare_preprocessor_LDFLAGS = $(AM_LDFLAGS) $(BOOST_LDFLAGS)
-dynare_preprocessor_LDADD = macro/libmacro.a -lstdc++fs
+dynare_preprocessor_LDADD = macro/libmacro.a
 
 # -Ca flag comes from hitting a hard-coded size limit.
 # Partial explanation: https://www.owlfolio.org/possibly-useful/flex-input-scanner-rules-are-too-complicated
