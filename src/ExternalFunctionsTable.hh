@@ -79,7 +79,7 @@ public:
 inline bool
 ExternalFunctionsTable::exists(int symb_id) const
 {
-  return externalFunctionTable.find(symb_id) != externalFunctionTable.end();
+  return externalFunctionTable.contains(symb_id);
 }
 
 inline int

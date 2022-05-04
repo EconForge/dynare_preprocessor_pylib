@@ -39,7 +39,7 @@ ExprNode::getDerivative(int deriv_id)
     prepareForDerivation();
 
   // Return zero if derivative is necessarily null (using symbolic a priori)
-  if (non_null_derivatives.find(deriv_id) == non_null_derivatives.end())
+  if (!non_null_derivatives.contains(deriv_id))
     return datatree.Zero;
 
   // If derivative is stored in cache, use the cached value, otherwise compute it (and cache it)
@@ -93,7 +93,7 @@ ExprNode::checkIfTemporaryTermThenWrite(ostream &output, ExprNodeOutputType outp
                                         const temporary_terms_t &temporary_terms,
                                         const temporary_terms_idxs_t &temporary_terms_idxs) const
 {
-  if (temporary_terms.find(const_cast<ExprNode *>(this)) == temporary_terms.end())
+  if (!temporary_terms.contains(const_cast<ExprNode *>(this)))
     return false;
 
   auto it2 = temporary_terms_idxs.find(const_cast<ExprNode *>(this));
@@ -348,7 +348,7 @@ ExprNode::fillErrorCorrectionRow(int eqn,
                   exit(EXIT_FAILURE);
                 }
               int colidx = static_cast<int>(distance(nontarget_lhs.begin(), find(nontarget_lhs.begin(), nontarget_lhs.end(), orig_vid)));
-              if (A0.find({eqn, colidx}) != A0.end())
+              if (A0.contains({eqn, colidx}))
                 {
                   cerr << "ExprNode::fillErrorCorrection: Error filling A0 matrix: "
                        << "symb_id encountered more than once in equation" << endl;
@@ -364,10 +364,10 @@ ExprNode::fillErrorCorrectionRow(int eqn,
                                            datatree.AddPossiblyNegativeConstant(-constant));
               if (param_id != -1)
                 e = datatree.AddTimes(e, datatree.AddVariable(param_id));
-              if (auto coor = make_pair(eqn, colidx); A0star.find(coor) == A0star.end())
-                A0star[coor] = e;
-              else
+              if (auto coor = make_pair(eqn, colidx); A0star.contains(coor))
                 A0star[coor] = datatree.AddPlus(e, A0star[coor]);
+              else
+                A0star[coor] = e;
             }
         }
     }
@@ -907,7 +907,7 @@ VariableNode::writeJsonOutput(ostream &output,
                               const deriv_node_temp_terms_t &tef_terms,
                               bool isdynamic) const
 {
-  if (temporary_terms.find(const_cast<VariableNode *>(this)) != temporary_terms.end())
+  if (temporary_terms.contains(const_cast<VariableNode *>(this)))
     {
       output << "T" << idx;
       return;
@@ -1332,7 +1332,7 @@ VariableNode::computeSubExprContainingVariable(int symb_id_arg, int lag_arg, set
 BinaryOpNode *
 VariableNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const
 {
-  assert(contain_var.count(const_cast<VariableNode *>(this)) > 0);
+  assert(contain_var.contains(const_cast<VariableNode *>(this)));
 
   if (get_type() == SymbolType::modelLocalVariable)
     return datatree.getLocalVariable(symb_id)->normalizeEquationHelper(contain_var, rhs);
@@ -1547,9 +1547,10 @@ int
 VariableNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 {
   auto [lag_equiv_repr, index] = getLagEquivalenceClass();
-  if (lhs_lag_equiv.find(lag_equiv_repr) == lhs_lag_equiv.end())
+  if (lhs_lag_equiv.contains(lag_equiv_repr))
+    return maxLag();
+  else
     return 0;
-  return maxLag();
 }
 
 expr_t
@@ -2218,7 +2219,7 @@ UnaryOpNode::cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, 
 {
   // For a temporary term, the cost is null
   for (const auto &it : temp_terms_map)
-    if (it.second.find(const_cast<UnaryOpNode *>(this)) != it.second.end())
+    if (it.second.contains(const_cast<UnaryOpNode *>(this)))
       return 0;
 
   return cost(arg->cost(temp_terms_map, is_matlab), is_matlab);
@@ -2230,7 +2231,7 @@ UnaryOpNode::cost(const vector<vector<temporary_terms_t>> &blocks_temporary_term
   // For a temporary term, the cost is null
   for (const auto &blk_tt : blocks_temporary_terms)
     for (const auto &eq_tt : blk_tt)
-      if (eq_tt.find(const_cast<UnaryOpNode *>(this)) != eq_tt.end())
+      if (eq_tt.contains(const_cast<UnaryOpNode *>(this)))
         return 0;
 
   return cost(arg->cost(blocks_temporary_terms, is_matlab), is_matlab);
@@ -2513,7 +2514,7 @@ UnaryOpNode::writeJsonOutput(ostream &output,
                              const deriv_node_temp_terms_t &tef_terms,
                              bool isdynamic) const
 {
-  if (temporary_terms.find(const_cast<UnaryOpNode *>(this)) != temporary_terms.end())
+  if (temporary_terms.contains(const_cast<UnaryOpNode *>(this)))
     {
       output << "T" << idx;
       return;
@@ -3009,7 +3010,7 @@ UnaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                      const deriv_node_temp_terms_t &tef_terms) const
 {
   if (auto this2 = const_cast<UnaryOpNode *>(this);
-      temporary_terms.find(this2) != temporary_terms.end())
+      temporary_terms.contains(this2))
     {
       if (dynamic)
         {
@@ -3052,14 +3053,14 @@ void
 UnaryOpNode::computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const
 {
   arg->computeSubExprContainingVariable(symb_id, lag, contain_var);
-  if (contain_var.count(arg) > 0)
+  if (contain_var.contains(arg))
     contain_var.insert(const_cast<UnaryOpNode *>(this));
 }
 
 BinaryOpNode *
 UnaryOpNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const
 {
-  assert(contain_var.count(const_cast<UnaryOpNode *>(this)) > 0);
+  assert(contain_var.contains(const_cast<UnaryOpNode *>(this)));
 
   switch (op_code)
     {
@@ -3275,9 +3276,10 @@ int
 UnaryOpNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 {
   auto [lag_equiv_repr, index] = getLagEquivalenceClass();
-  if (lhs_lag_equiv.find(lag_equiv_repr) == lhs_lag_equiv.end())
+  if (lhs_lag_equiv.contains(lag_equiv_repr))
+    return arg->maxLag();
+  else
     return 0;
-  return arg->maxLag();
 }
 
 expr_t
@@ -3603,7 +3605,7 @@ UnaryOpNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_
     else
       subst_table[rit->second] = dynamic_cast<VariableNode *>(aux_var->decreaseLeadsLags(base_index - rit->first));
 
-  assert(subst_table.find(this) != subst_table.end());
+  assert(subst_table.contains(this));
 
   return const_cast<VariableNode *>(subst_table.at(this));
 }
@@ -3995,7 +3997,7 @@ int
 BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const
 {
   // A temporary term behaves as a variable
-  if (temporary_terms.find(const_cast<BinaryOpNode *>(this)) != temporary_terms.end())
+  if (temporary_terms.contains(const_cast<BinaryOpNode *>(this)))
     return 100;
 
   switch (op_code)
@@ -4035,7 +4037,7 @@ int
 BinaryOpNode::precedenceJson(const temporary_terms_t &temporary_terms) const
 {
   // A temporary term behaves as a variable
-  if (temporary_terms.find(const_cast<BinaryOpNode *>(this)) != temporary_terms.end())
+  if (temporary_terms.contains(const_cast<BinaryOpNode *>(this)))
     return 100;
 
   switch (op_code)
@@ -4072,7 +4074,7 @@ BinaryOpNode::cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map,
 {
   // For a temporary term, the cost is null
   for (const auto &it : temp_terms_map)
-    if (it.second.find(const_cast<BinaryOpNode *>(this)) != it.second.end())
+    if (it.second.contains(const_cast<BinaryOpNode *>(this)))
       return 0;
 
   int arg_cost = arg1->cost(temp_terms_map, is_matlab) + arg2->cost(temp_terms_map, is_matlab);
@@ -4086,7 +4088,7 @@ BinaryOpNode::cost(const vector<vector<temporary_terms_t>> &blocks_temporary_ter
   // For a temporary term, the cost is null
   for (const auto &blk_tt : blocks_temporary_terms)
     for (const auto &eq_tt : blk_tt)
-      if (eq_tt.find(const_cast<BinaryOpNode *>(this)) != eq_tt.end())
+      if (eq_tt.contains(const_cast<BinaryOpNode *>(this)))
         return 0;
 
   int arg_cost = arg1->cost(blocks_temporary_terms, is_matlab) + arg2->cost(blocks_temporary_terms, is_matlab);
@@ -4277,7 +4279,7 @@ BinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 {
   // If current node is a temporary term
   if (auto this2 = const_cast<BinaryOpNode *>(this);
-      temporary_terms.find(this2) != temporary_terms.end())
+      temporary_terms.contains(this2))
     {
       if (dynamic)
         {
@@ -4376,7 +4378,7 @@ BinaryOpNode::writeJsonOutput(ostream &output,
                               bool isdynamic) const
 {
   // If current node is a temporary term
-  if (temporary_terms.find(const_cast<BinaryOpNode *>(this)) != temporary_terms.end())
+  if (temporary_terms.contains(const_cast<BinaryOpNode *>(this)))
     {
       output << "T" << idx;
       return;
@@ -4817,17 +4819,17 @@ BinaryOpNode::computeSubExprContainingVariable(int symb_id, int lag, set<expr_t>
 {
   arg1->computeSubExprContainingVariable(symb_id, lag, contain_var);
   arg2->computeSubExprContainingVariable(symb_id, lag, contain_var);
-  if (contain_var.count(arg1) > 0 || contain_var.count(arg2) > 0)
+  if (contain_var.contains(arg1) || contain_var.contains(arg2))
     contain_var.insert(const_cast<BinaryOpNode *>(this));
 }
 
 BinaryOpNode *
 BinaryOpNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const
 {
-  assert(contain_var.count(const_cast<BinaryOpNode *>(this)) > 0);
+  assert(contain_var.contains(const_cast<BinaryOpNode *>(this)));
 
-  bool arg1_contains_var = contain_var.count(arg1) > 0;
-  bool arg2_contains_var = contain_var.count(arg2) > 0;
+  bool arg1_contains_var = contain_var.contains(arg1);
+  bool arg2_contains_var = contain_var.contains(arg2);
   assert(arg1_contains_var || arg2_contains_var);
 
   if (arg1_contains_var && arg2_contains_var)
@@ -4887,8 +4889,8 @@ BinaryOpNode::normalizeEquation(int symb_id, int lag) const
   set<expr_t> contain_var;
   computeSubExprContainingVariable(symb_id, lag, contain_var);
 
-  bool arg1_contains_var = contain_var.count(arg1) > 0;
-  bool arg2_contains_var = contain_var.count(arg2) > 0;
+  bool arg1_contains_var = contain_var.contains(arg1);
+  bool arg2_contains_var = contain_var.contains(arg2);
   assert(arg1_contains_var || arg2_contains_var);
 
   if (arg1_contains_var && arg2_contains_var)
@@ -5521,7 +5523,7 @@ BinaryOpNode::getPacOptimizingShareAndExprNodesHelper(int lhs_symb_id, int lhs_o
   set<int> endogs;
   collectVariables(SymbolType::endogenous, endogs);
   // Test whether it contains the LHS in level
-  if (endogs.count(lhs_orig_symb_id) > 0)
+  if (endogs.contains(lhs_orig_symb_id))
     {
       set<int> params;
       if (arg1->isParamTimesEndogExpr() && !arg2->isParamTimesEndogExpr())
@@ -5619,7 +5621,7 @@ BinaryOpNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<i
       if (find(lhs.begin(), lhs.end(), vid) == lhs.end())
         continue;
 
-      if (AR.find({eqn, -lag, vid}) != AR.end())
+      if (AR.contains({eqn, -lag, vid}))
         {
           cerr << "BinaryOpNode::fillAutoregressiveRow: Error filling AR matrix: "
                << "lag/symb_id encountered more than once in equation" << endl;
@@ -5827,7 +5829,7 @@ int
 TrinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const
 {
   // A temporary term behaves as a variable
-  if (temporary_terms.find(const_cast<TrinaryOpNode *>(this)) != temporary_terms.end())
+  if (temporary_terms.contains(const_cast<TrinaryOpNode *>(this)))
     return 100;
 
   switch (op_code)
@@ -5845,7 +5847,7 @@ TrinaryOpNode::cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map
 {
   // For a temporary term, the cost is null
   for (const auto &it : temp_terms_map)
-    if (it.second.find(const_cast<TrinaryOpNode *>(this)) != it.second.end())
+    if (it.second.contains(const_cast<TrinaryOpNode *>(this)))
       return 0;
 
   int arg_cost = arg1->cost(temp_terms_map, is_matlab)
@@ -5861,7 +5863,7 @@ TrinaryOpNode::cost(const vector<vector<temporary_terms_t>> &blocks_temporary_te
   // For a temporary term, the cost is null
   for (const auto &blk_tt : blocks_temporary_terms)
     for (const auto &eq_tt : blk_tt)
-      if (eq_tt.find(const_cast<TrinaryOpNode *>(this)) != eq_tt.end())
+      if (eq_tt.contains(const_cast<TrinaryOpNode *>(this)))
         return 0;
 
   int arg_cost = arg1->cost(blocks_temporary_terms, is_matlab)
@@ -5976,7 +5978,7 @@ TrinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
 {
   // If current node is a temporary term
   if (auto this2 = const_cast<TrinaryOpNode *>(this);
-      temporary_terms.find(this2) != temporary_terms.end())
+      temporary_terms.contains(this2))
     {
       if (dynamic)
         {
@@ -6035,7 +6037,7 @@ TrinaryOpNode::writeJsonOutput(ostream &output,
                                bool isdynamic) const
 {
   // If current node is a temporary term
-  if (temporary_terms.find(const_cast<TrinaryOpNode *>(this)) != temporary_terms.end())
+  if (temporary_terms.contains(const_cast<TrinaryOpNode *>(this)))
     {
       output << "T" << idx;
       return;
@@ -6206,7 +6208,7 @@ TrinaryOpNode::computeSubExprContainingVariable(int symb_id, int lag, set<expr_t
   arg1->computeSubExprContainingVariable(symb_id, lag, contain_var);
   arg2->computeSubExprContainingVariable(symb_id, lag, contain_var);
   arg3->computeSubExprContainingVariable(symb_id, lag, contain_var);
-  if (contain_var.count(arg1) > 0 || contain_var.count(arg2) > 0 || contain_var.count(arg3) > 0)
+  if (contain_var.contains(arg1) || contain_var.contains(arg2) || contain_var.contains(arg3))
     contain_var.insert(const_cast<TrinaryOpNode *>(this));
 }
 
@@ -6937,7 +6939,7 @@ AbstractExternalFunctionNode::differentiateForwardVars(const vector<string> &sub
 bool
 AbstractExternalFunctionNode::alreadyWrittenAsTefTerm(int the_symb_id, const deriv_node_temp_terms_t &tef_terms) const
 {
-  return tef_terms.find({ the_symb_id, arguments }) != tef_terms.end();
+  return tef_terms.contains({ the_symb_id, arguments });
 }
 
 int
@@ -7073,7 +7075,7 @@ AbstractExternalFunctionNode::computeSubExprContainingVariable(int symb_id, int 
   for (auto arg : arguments)
     {
       arg->computeSubExprContainingVariable(symb_id, lag, contain_var);
-      var_present = var_present || contain_var.count(arg) > 0;
+      var_present = var_present || contain_var.contains(arg);
     }
   if (var_present)
     contain_var.insert(const_cast<AbstractExternalFunctionNode *>(this));
@@ -7208,7 +7210,7 @@ ExternalFunctionNode::compile(ostream &CompileCode, unsigned int &instruction_nu
                               const deriv_node_temp_terms_t &tef_terms) const
 {
   if (auto this2 = const_cast<ExternalFunctionNode *>(this);
-      temporary_terms.find(this2) != temporary_terms.end())
+      temporary_terms.contains(this2))
     {
       if (dynamic)
         {
@@ -7300,7 +7302,7 @@ ExternalFunctionNode::writeJsonOutput(ostream &output,
                                       const deriv_node_temp_terms_t &tef_terms,
                                       bool isdynamic) const
 {
-  if (temporary_terms.find(const_cast<ExternalFunctionNode *>(this)) != temporary_terms.end())
+  if (temporary_terms.contains(const_cast<ExternalFunctionNode *>(this)))
     {
       output << "T" << idx;
       return;
@@ -7533,7 +7535,7 @@ FirstDerivExternalFunctionNode::writeJsonOutput(ostream &output,
                                                 bool isdynamic) const
 {
   // If current node is a temporary term
-  if (temporary_terms.find(const_cast<FirstDerivExternalFunctionNode *>(this)) != temporary_terms.end())
+  if (temporary_terms.contains(const_cast<FirstDerivExternalFunctionNode *>(this)))
     {
       output << "T" << idx;
       return;
@@ -7601,7 +7603,7 @@ FirstDerivExternalFunctionNode::compile(ostream &CompileCode, unsigned int &inst
                                         const deriv_node_temp_terms_t &tef_terms) const
 {
   if (auto this2 = const_cast<FirstDerivExternalFunctionNode *>(this);
-      temporary_terms.find(this2) != temporary_terms.end())
+      temporary_terms.contains(this2))
     {
       if (dynamic)
         {
@@ -7885,7 +7887,7 @@ SecondDerivExternalFunctionNode::writeJsonOutput(ostream &output,
                                                  bool isdynamic) const
 {
   // If current node is a temporary term
-  if (temporary_terms.find(const_cast<SecondDerivExternalFunctionNode *>(this)) != temporary_terms.end())
+  if (temporary_terms.contains(const_cast<SecondDerivExternalFunctionNode *>(this)))
     {
       output << "T" << idx;
       return;

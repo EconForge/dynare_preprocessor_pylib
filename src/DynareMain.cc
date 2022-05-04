@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -442,7 +442,7 @@ main(int argc, char **argv)
 
   // Forbid some basenames, since they will cause trouble (see preprocessor#62)
   set<string> forbidden_basenames = { "T", "y", "x", "params", "steady_state", "it_", "true" };
-  if (forbidden_basenames.find(basename) != forbidden_basenames.end())
+  if (forbidden_basenames.contains(basename))
     {
       cerr << "ERROR: Please use another name for your .mod file. The one you have chosen ("
            << argv[1] << ") conflicts with internal Dynare names." << endl;

@@ -480,7 +480,7 @@ SymbolTable::validateSymbID(int symb_id) const noexcept(false)
 inline bool
 SymbolTable::exists(const string &name) const
 {
-  return symbol_table.find(name) != symbol_table.end();
+  return symbol_table.contains(name);
 }
 
 inline string

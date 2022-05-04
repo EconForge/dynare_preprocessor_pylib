@@ -44,10 +44,10 @@ public:
   // Add multiple equation tags for the given equation
   inline void add(int eqn, map<string, string> tags)
   {
-    if (eqn_tags.find(eqn) == eqn_tags.end())
-      eqn_tags[eqn] = move(tags);
-    else
+    if (eqn_tags.contains(eqn))
       eqn_tags[eqn].insert(tags.begin(), tags.end());
+    else
+      eqn_tags[eqn] = move(tags);
   }
 
   //! Add a single equation tag for the given equation
@@ -112,13 +112,13 @@ public:
 
   inline bool exists(const int eqn) const
   {
-    return eqn_tags.find(eqn) != eqn_tags.end();
+    return eqn_tags.contains(eqn);
   }
 
   //! Returns true if equation tag with key exists for a given equation
   inline bool exists(const int eqn, const string &key) const
   {
-    return exists(eqn) && eqn_tags.at(eqn).find(key) != eqn_tags.at(eqn).end();
+    return exists(eqn) && eqn_tags.at(eqn).contains(key);
   }
 
   //! Returns true if equation tag with key and value exists for a given equation

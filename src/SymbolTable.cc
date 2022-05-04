@@ -797,7 +797,7 @@ bool
 SymbolTable::isPredetermined(int symb_id) const noexcept(false)
 {
   validateSymbID(symb_id);
-  return predetermined_variables.find(symb_id) != predetermined_variables.end();
+  return predetermined_variables.contains(symb_id);
 }
 
 int

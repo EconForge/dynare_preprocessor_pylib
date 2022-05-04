@@ -83,7 +83,7 @@ ModFile::evalAllExpressions(bool warn_uninit)
     if (auto type = symbol_table.getType(id);
         (type == SymbolType::endogenous || type == SymbolType::exogenous || type == SymbolType::exogenousDet
          || type == SymbolType::parameter || type == SymbolType::modelLocalVariable)
-        && global_eval_context.find(id) == global_eval_context.end())
+        && !global_eval_context.contains(id))
       {
         if (warn_uninit)
           warnings << "WARNING: Can't find a numeric initial value for "

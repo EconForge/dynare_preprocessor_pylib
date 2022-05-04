@@ -27,7 +27,7 @@ EquationTags::getEqnsByKey(const string &key) const
 {
   set<int> retval;
   for (const auto & [eqn, tags] : eqn_tags)
-    if (tags.find(key) != tags.end())
+    if (tags.contains(key))
       retval.insert(eqn);
   return retval;
 }

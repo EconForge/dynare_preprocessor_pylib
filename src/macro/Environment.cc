@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2020 Dynare Team
+ * Copyright © 2019-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -26,7 +26,7 @@ void
 Environment::define(VariablePtr var, ExpressionPtr value)
 {
   string name = var->getName();
-  if (functions.count(name))
+  if (functions.contains(name))
     throw StackTrace("Variable " + name + " was previously defined as a function");
   variables[move(name)] = value->eval(*this);
 }
@@ -35,7 +35,7 @@ void
 Environment::define(FunctionPtr func, ExpressionPtr value)
 {
   string name = func->getName();
-  if (variables.count(name))
+  if (variables.contains(name))
     throw StackTrace("Variable " + name + " was previously defined as a variable");
   functions[name] = {move(func), move(value)};
 }

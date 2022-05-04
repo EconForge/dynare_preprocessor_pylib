@@ -108,7 +108,7 @@ private:
 inline bool
 TrendComponentModelTable::isExistingTrendComponentModelName(const string &name_arg) const
 {
-  return names.find(name_arg) != names.end();
+  return names.contains(name_arg);
 }
 
 inline bool
@@ -181,7 +181,7 @@ private:
 inline bool
 VarModelTable::isExistingVarModelName(const string &name_arg) const
 {
-  return names.find(name_arg) != names.end();
+  return names.contains(name_arg);
 }
 
 inline bool

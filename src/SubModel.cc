@@ -774,7 +774,7 @@ VarExpectationModelTable::addVarExpectationModel(string name_arg, expr_t express
 bool
 VarExpectationModelTable::isExistingVarExpectationModelName(const string &name_arg) const
 {
-  return names.find(name_arg) != names.end();
+  return names.contains(name_arg);
 }
 
 bool
@@ -923,7 +923,7 @@ VarExpectationModelTable::transformPass(ExprNode::subst_table_t &diff_subst_tabl
                                                                       dynamic_model.AddVariable(variable, -lag + time_shift[name])));
           }
 
-      if (var_expectation_subst_table.find(name) != var_expectation_subst_table.end())
+      if (var_expectation_subst_table.contains(name))
         {
           cerr << "ERROR: model name '" << name << "' is used by several var_expectation_model statements" << endl;
           exit(EXIT_FAILURE);
@@ -987,7 +987,7 @@ PacModelTable::addPacModel(string name_arg, string aux_model_name_arg, string di
 bool
 PacModelTable::isExistingPacModelName(const string &name_arg) const
 {
-  return names.find(name_arg) != names.end();
+  return names.contains(name_arg);
 }
 
 bool
@@ -1002,7 +1002,7 @@ PacModelTable::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation
   for (auto &[name, gv] : growth)
     if (gv)
       {
-        if (target_info.find(name) != target_info.end())
+        if (target_info.contains(name))
           {
             cerr << "ERROR: for PAC model '" << name << "', it is not possible to declare a 'growth' option in the 'pac_model' command when there is also a 'pac_target_info' block" << endl;
             exit(EXIT_FAILURE);
@@ -1011,7 +1011,7 @@ PacModelTable::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation
       }
 
   for (auto &[name, auxn] : auxname)
-    if (!auxn.empty() && target_info.find(name) != target_info.end())
+    if (!auxn.empty() && target_info.contains(name))
       {
         cerr << "ERROR: for PAC model '" << name << "', it is not possible to declare an 'auxname' option in the 'pac_model' command when there is also a 'pac_target_info' block" << endl;
         exit(EXIT_FAILURE);
@@ -1020,7 +1020,7 @@ PacModelTable::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation
   for (auto &[name, k] : kind)
     if (k != PacTargetKind::unspecified)
       {
-        if (target_info.find(name) != target_info.end())
+        if (target_info.contains(name))
           {
             cerr << "ERROR: for PAC model '" << name << "', it is not possible to declare a 'kind' option in the 'pac_model' command when there is also a 'pac_target_info' block" << endl;
             exit(EXIT_FAILURE);
@@ -1146,7 +1146,7 @@ PacModelTable::transformPass(const lag_equivalence_table_t &unary_ops_nodes,
           }
 
       // Perform transformations for the pac_target_info block (if any)
-      if (target_info.find(name) != target_info.end())
+      if (target_info.contains(name))
         {
           // Substitute unary ops and diffs in the target…
           expr_t &target = get<0>(target_info[name]);
@@ -1326,7 +1326,7 @@ PacModelTable::transformPass(const lag_equivalence_table_t &unary_ops_nodes,
         growth_correction_term = dynamic_model.AddTimes(growth[name], dynamic_model.AddVariable(growth_neutrality_params[name]));
       if (aux_model_name[name].empty())
         {
-          if (target_info.find(name) != target_info.end())
+          if (target_info.contains(name))
             {
               cerr << "ERROR: the block 'pac_target_info(" << name << ")' is not supported in the context of a PAC model with model-consistent expectations (MCE)." << endl;
               exit(EXIT_FAILURE);
@@ -1344,7 +1344,7 @@ PacModelTable::transformPass(const lag_equivalence_table_t &unary_ops_nodes,
         }
       else
         {
-          if (target_info.find(name) != target_info.end())
+          if (target_info.contains(name))
             {
               assert(growth_correction_term == dynamic_model.Zero);
               dynamic_model.computePacBackwardExpectationSubstitutionWithComponents(name, lhs[name],

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2021 Dynare Team
+ * Copyright © 2010-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -401,7 +401,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                     if (!begin_weight)
                       {
                         if (!node_name.empty())
-                          if (member_nodes.find(node_name) != member_nodes.end())
+                          if (member_nodes.contains(node_name))
                             {
                               cerr << "ERROR (in config file): Node entered twice in specification of cluster." << endl;
                               exit(EXIT_FAILURE);
@@ -428,7 +428,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                         }
                   }
                 if (!node_name.empty())
-                  if (member_nodes.find(node_name) == member_nodes.end())
+                  if (!member_nodes.contains(node_name))
                     member_nodes[node_name] = 1.0;
                   else
                     {
@@ -498,7 +498,7 @@ ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, const member
         exit(EXIT_FAILURE);
       }
     else
-      if (name.empty() || slave_nodes.find(name) != slave_nodes.end())
+      if (name.empty() || slave_nodes.contains(name))
         {
           cerr << "ERROR: Every node must be assigned a unique name." << endl;
           exit(EXIT_FAILURE);
@@ -519,7 +519,7 @@ ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, const member
         exit(EXIT_FAILURE);
       }
     else
-      if (name.empty() || clusters.find(name) != clusters.end())
+      if (name.empty() || clusters.contains(name))
         {
           cerr << "ERROR: The cluster must be assigned a unique name." << endl;
           exit(EXIT_FAILURE);
@@ -641,7 +641,7 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
       exit(EXIT_FAILURE);
     }
 
-  if (!cluster_name.empty() && clusters.find(cluster_name) == clusters.end())
+  if (!cluster_name.empty() && !clusters.contains(cluster_name))
     {
       cerr << "ERROR: Cluster Name " << cluster_name << " was not found in the config file." << endl;
       exit(EXIT_FAILURE);
@@ -649,7 +649,7 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
 
   for (const auto &cluster : clusters)
     for (const auto &itmn : cluster.second.member_nodes)
-      if (slave_nodes.find(itmn.first) == slave_nodes.end())
+      if (!slave_nodes.contains(itmn.first))
         {
           cerr << "Error: node " << itmn.first << " specified in cluster " << cluster.first << " was not found" << endl;
           exit(EXIT_FAILURE);

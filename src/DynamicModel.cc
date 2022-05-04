@@ -2502,7 +2502,7 @@ DynamicModel::removeEquationsHelper(set<pair<string, string>> &listed_eqs_by_tag
     eqs_to_delete_by_number = listed_eqs_by_number;
   else
     for (size_t i = 0; i < all_equations.size(); i++)
-      if (listed_eqs_by_number.find(i) == listed_eqs_by_number.end())
+      if (!listed_eqs_by_number.contains(i))
         eqs_to_delete_by_number.insert(i);
 
   // remove from equations, equations_lineno, equation_tags
@@ -2511,7 +2511,7 @@ DynamicModel::removeEquationsHelper(set<pair<string, string>> &listed_eqs_by_tag
   map<int, int> old_eqn_num_2_new;
   vector<int> excluded_vars;
   for (size_t i = 0; i < all_equations.size(); i++)
-    if (eqs_to_delete_by_number.find(i) != eqs_to_delete_by_number.end())
+    if (eqs_to_delete_by_number.contains(i))
       {
         if (excluded_vars_change_type)
           {
@@ -2600,7 +2600,7 @@ DynamicModel::removeEquations(const vector<pair<string, string>> &listed_eqs_by_
          They become exogenous if they are still used somewhere, otherwise they are
          completely excluded from the model. */
       for (auto ev : excluded_vars)
-        if (eqn_vars.find(ev) != eqn_vars.end())
+        if (eqn_vars.contains(ev))
           {
             symbol_table.changeType(ev, SymbolType::exogenous);
             cerr << "Variable '" << symbol_table.getName(ev) << "' turned into an exogenous, as its defining equation has been removed (but it still appears in an equation)" << endl;
@@ -2700,8 +2700,7 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename,
           for (int var = 0; var < block_size; var++)
             {
               for (int eq = 0; eq < block_size; eq++)
-                if (blocks_derivatives[blk].find({ eq, var, lag })
-                    != blocks_derivatives[blk].end())
+                if (blocks_derivatives[blk].contains({ eq, var, lag }))
                   {
                     if (lag == -1)
                       local_state_var.push_back(getBlockVariableID(blk, var));
@@ -2728,8 +2727,7 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename,
           for (int other_endo : blocks_other_endo[blk])
             {
               for (int eq = 0; eq < block_size; eq++)
-                if (blocks_derivatives_other_endo[blk].find({ eq, other_endo, lag })
-                    != blocks_derivatives_other_endo[blk].end())
+                if (blocks_derivatives_other_endo[blk].contains({ eq, other_endo, lag }))
                   {
                     output << " " << ++count_lead_lag_incidence;
                     goto other_endo_found;
@@ -4308,7 +4306,7 @@ DynamicModel::computeRevXref(map<pair<int, int>, set<int>> &xrefset, const set<p
   for (const auto &it : eiref)
     {
       set<int> eq;
-      if (xrefset.find(it) != xrefset.end())
+      if (xrefset.contains(it))
         eq = xrefset[it];
       eq.insert(eqn);
       xrefset[it] = eq;
@@ -4393,19 +4391,19 @@ DynamicModel::determineBlockDerivativesType(int blk)
         equations[eq_orig]->collectEndogenous(endos_and_lags);
         for (int var = 0; var < size; var++)
           if (int var_orig = getBlockVariableID(blk, var);
-              endos_and_lags.find({ var_orig, lag }) != endos_and_lags.end())
+              endos_and_lags.contains({ var_orig, lag }))
             {
               if (getBlockEquationType(blk, eq) == EquationType::evaluateRenormalized
                   && eq < nb_recursive)
                 /* It’s a normalized recursive equation, we have to recompute
                    the derivative using the chain rule */
                 derivType[{ lag, eq, var }] = BlockDerivativeType::normalizedChainRule;
-              else if (derivType.find({ lag, eq, var }) == derivType.end())
+              else if (!derivType.contains({ lag, eq, var }))
                 derivType[{ lag, eq, var }] = BlockDerivativeType::standard;
 
               if (var < nb_recursive)
                 for (int feedback_var = nb_recursive; feedback_var < size; feedback_var++)
-                  if (derivType.find({ lag, var, feedback_var }) != derivType.end())
+                  if (derivType.contains({ lag, var, feedback_var }))
                     /* A new derivative needs to be computed using the chain rule
                        (a feedback variable appears in the recursive equation
                        defining the current variable) */
@@ -4783,7 +4781,7 @@ DynamicModel::expandEqTags()
 {
   set<int> existing_tags = equation_tags.getEqnsByKey("name");
   for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
-    if (existing_tags.find(eq) == existing_tags.end())
+    if (!existing_tags.contains(eq))
       if (auto lhs_expr = dynamic_cast<VariableNode *>(equations[eq]->arg1);
           lhs_expr
           && !equation_tags.exists("name", symbol_table.getName(lhs_expr->symb_id)))
@@ -5679,7 +5677,7 @@ DynamicModel::substituteDiff(VarExpectationModelTable &var_expectation_model_tab
   for (const auto &equation : equations)
     equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
   for (auto &it : local_variables_table)
-    if (used_local_vars.find(it.first) != used_local_vars.end())
+    if (used_local_vars.contains(it.first))
       it.second->findDiffNodes(diff_nodes);
 
   // Mark diff operators to be substituted in equations

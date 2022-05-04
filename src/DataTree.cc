@@ -733,7 +733,7 @@ DataTree::AddLocalVariable(int symb_id, expr_t value) noexcept(false)
   assert(symbol_table.getType(symb_id) == SymbolType::modelLocalVariable);
 
   // Throw an exception if symbol already declared
-  if (local_variables_table.find(symb_id) != local_variables_table.end())
+  if (local_variables_table.contains(symb_id))
     throw LocalVariableException(symbol_table.getName(symb_id));
 
   local_variables_table[symb_id] = value;
@@ -796,7 +796,7 @@ DataTree::isSymbolUsed(int symb_id) const
     if (it.first.first == symb_id)
       return true;
 
-  if (local_variables_table.find(symb_id) != local_variables_table.end())
+  if (local_variables_table.contains(symb_id))
     return true;
 
   return false;

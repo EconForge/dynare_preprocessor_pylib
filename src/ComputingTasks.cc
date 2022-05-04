@@ -362,9 +362,9 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
 
-  if (bool hp = options_list.num_options.find("hp_filter") != options_list.num_options.end(),
-      bandpass = options_list.num_options.find("bandpass.indicator") != options_list.num_options.end(),
-      one_sided_hp = options_list.num_options.find("one_sided_hp_filter") != options_list.num_options.end();
+  if (bool hp = options_list.num_options.contains("hp_filter"),
+      bandpass = options_list.num_options.contains("bandpass.indicator"),
+      one_sided_hp = options_list.num_options.contains("one_sided_hp_filter");
       (hp && bandpass) || (hp && one_sided_hp) || (bandpass && one_sided_hp))
     {
       cerr << "ERROR: stoch_simul: can only use one of hp, one-sided hp, and bandpass filters"
@@ -745,7 +745,7 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
 {
   mod_file_struct.discretionary_policy_present = true;
 
-  if (options_list.symbol_list_options.find("instruments") == options_list.symbol_list_options.end())
+  if (!options_list.symbol_list_options.contains("instruments"))
     {
       cerr << "ERROR: discretionary_policy: the instruments option is required." << endl;
       exit(EXIT_FAILURE);
@@ -971,7 +971,7 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
     mod_file_struct.dsge_var_calibrated = it->second;
 
   // Fill in mod_file_struct.dsge_var_estimated
-  if (options_list.string_options.find("dsge_var") != options_list.string_options.end())
+  if (options_list.string_options.contains("dsge_var"))
     mod_file_struct.dsge_var_estimated = true;
 
   // Fill in mod_file_struct.bayesian_irf_present
@@ -979,7 +979,7 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       it != options_list.num_options.end() && it->second == "true")
     mod_file_struct.bayesian_irf_present = true;
 
-  if (options_list.num_options.find("dsge_varlag") != options_list.num_options.end())
+  if (options_list.num_options.contains("dsge_varlag"))
     if (mod_file_struct.dsge_var_calibrated.empty()
         && !mod_file_struct.dsge_var_estimated)
       {
@@ -995,14 +995,14 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       exit(EXIT_FAILURE);
     }
 
-  if (options_list.string_options.find("datafile") == options_list.string_options.end()
+  if (!options_list.string_options.contains("datafile")
       && !mod_file_struct.estimation_data_statement_present)
     {
       cerr << "ERROR: The estimation statement requires a data file to be supplied via the datafile option." << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (options_list.string_options.find("mode_file") != options_list.string_options.end()
+  if (options_list.string_options.contains("mode_file")
       && mod_file_struct.estim_params_use_calib)
     {
       cerr << "ERROR: The mode_file option of the estimation statement is incompatible with the use_calibration option of the estimated_params_init block." << endl;
@@ -1018,7 +1018,7 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
         exit(EXIT_FAILURE);
       }
     }
-  else if (options_list.num_options.find("mh_tune_jscale.guess") != options_list.num_options.end())
+  else if (options_list.num_options.contains("mh_tune_jscale.guess"))
     {
       cerr << "ERROR: The option mh_tune_guess in estimation statement cannot be used without option mh_tune_jscale." << endl;
       exit(EXIT_FAILURE);
@@ -1265,23 +1265,23 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
           // Use lexical ordering for the pair of symbols
           auto x = it.name < it.name2 ? make_pair(it.name, it.name2) : make_pair(it.name2, it.name);
 
-          if (already_declared_corr.find(x) == already_declared_corr.end())
-            already_declared_corr.insert(x);
-          else
+          if (already_declared_corr.contains(x))
             {
               cerr << "ERROR: in `" << blockName() << "' block, the correlation between " << it.name << " and " << it.name2 << " is declared twice." << endl;
               exit(EXIT_FAILURE);
             }
+          else
+            already_declared_corr.insert(x);
         }
       else
         {
-          if (already_declared.find(it.name) == already_declared.end())
-            already_declared.insert(it.name);
-          else
+          if (already_declared.contains(it.name))
             {
               cerr << "ERROR: in `" << blockName() << "' block, the symbol " << it.name << " is declared twice." << endl;
               exit(EXIT_FAILURE);
             }
+          else
+            already_declared.insert(it.name);
         }
     }
 
@@ -2554,9 +2554,9 @@ MSSBVAREstimationStatement::checkPass(ModFileStructure &mod_file_struct, Warning
 {
   mod_file_struct.bvar_present = true;
 
-  if (options_list.num_options.find("ms.create_init") == options_list.num_options.end()
-      && (options_list.string_options.find("datafile") == options_list.string_options.end()
-          || options_list.num_options.find("ms.initial_year") == options_list.num_options.end()))
+  if (!options_list.num_options.contains("ms.create_init")
+      && (!options_list.string_options.contains("datafile")
+          || !options_list.num_options.contains("ms.initial_year")))
     {
       cerr << "ERROR: If you do not pass no_create_init to ms_estimation, "
            << "you must pass the datafile and initial_year options." << endl;
@@ -2603,9 +2603,9 @@ MSSBVARSimulationStatement::writeOutput(ostream &output, const string &basename,
   options_list.writeOutput(output);
 
   // Redeclare drop option if necessary
-  if ((options_list.num_options.find("ms.mh_replic") != options_list.num_options.end()
-       || options_list.num_options.find("ms.thinning_factor") != options_list.num_options.end())
-      && (options_list.num_options.find("ms.drop") == options_list.num_options.end()))
+  if ((options_list.num_options.contains("ms.mh_replic")
+       || options_list.num_options.contains("ms.thinning_factor"))
+      && !options_list.num_options.contains("ms.drop"))
     output << "options_.ms.drop = 0.1*options_.ms.mh_replic*options_.ms.thinning_factor;" << endl;
 
   output << "[options_, oo_] = ms_simulation(M_, options_, oo_);" << endl;
@@ -2664,8 +2664,8 @@ MSSBVARComputeProbabilitiesStatement::checkPass(ModFileStructure &mod_file_struc
 {
   mod_file_struct.bvar_present = true;
 
-  if (options_list.num_options.find("ms.real_time_smoothed_probabilities") != options_list.num_options.end()
-      && options_list.num_options.find("ms.filtered_probabilities") != options_list.num_options.end())
+  if (options_list.num_options.contains("ms.real_time_smoothed_probabilities")
+      && options_list.num_options.contains("ms.filtered_probabilities"))
     {
       cerr << "ERROR: You may only pass one of real_time_smoothed "
            << "and filtered_probabilities to ms_compute_probabilities." << endl;
@@ -2706,9 +2706,9 @@ MSSBVARIrfStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 {
   mod_file_struct.bvar_present = true;
 
-  if (bool regime_present = options_list.num_options.find("ms.regime") != options_list.num_options.end(),
-      regimes_present = options_list.num_options.find("ms.regimes") != options_list.num_options.end(),
-      filtered_probabilities_present = options_list.num_options.find("ms.filtered_probabilities") != options_list.num_options.end();
+  if (bool regime_present = options_list.num_options.contains("ms.regime"),
+      regimes_present = options_list.num_options.contains("ms.regimes"),
+      filtered_probabilities_present = options_list.num_options.contains("ms.filtered_probabilities");
       (filtered_probabilities_present && regime_present)
       || (filtered_probabilities_present && regimes_present)
       || (regimes_present && regime_present))
@@ -2765,8 +2765,8 @@ MSSBVARForecastStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
 {
   mod_file_struct.bvar_present = true;
 
-  if (options_list.num_options.find("ms.regimes") != options_list.num_options.end()
-      && options_list.num_options.find("ms.regime") != options_list.num_options.end())
+  if (options_list.num_options.contains("ms.regimes")
+      && options_list.num_options.contains("ms.regime"))
     {
       cerr << "ERROR: You may only pass one of regime and regimes to ms_forecast" << endl;
       exit(EXIT_FAILURE);
@@ -2803,9 +2803,9 @@ MSSBVARVarianceDecompositionStatement::checkPass(ModFileStructure &mod_file_stru
 {
   mod_file_struct.bvar_present = true;
 
-  if (bool regime_present = options_list.num_options.find("ms.regime") != options_list.num_options.end(),
-      regimes_present = options_list.num_options.find("ms.regimes") != options_list.num_options.end(),
-      filtered_probabilities_present = options_list.num_options.find("ms.filtered_probabilities") != options_list.num_options.end();
+  if (bool regime_present = options_list.num_options.contains("ms.regime"),
+      regimes_present = options_list.num_options.contains("ms.regimes"),
+      filtered_probabilities_present = options_list.num_options.contains("ms.filtered_probabilities");
       (filtered_probabilities_present && regime_present)
       || (filtered_probabilities_present && regimes_present)
       || (regimes_present && regime_present))
@@ -3240,7 +3240,7 @@ ConditionalForecastStatement::ConditionalForecastStatement(OptionsList options_l
 void
 ConditionalForecastStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  if (options_list.string_options.find("parameter_set") == options_list.string_options.end())
+  if (!options_list.string_options.contains("parameter_set"))
     {
       cerr << "ERROR: You must pass the `parameter_set` option to conditional_forecast" << endl;
       exit(EXIT_FAILURE);
@@ -3501,8 +3501,7 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg)
                     exit(EXIT_FAILURE);
                   }
 
-                if (restriction_map.find({ from_regime, to_regime }) !=
-                    restriction_map.end())
+                if (restriction_map.contains({ from_regime, to_regime }))
                   {
                     cerr << "ERROR: two restrictions were given for: " << from_regime << ", "
                          << to_regime << endl;
@@ -3555,7 +3554,7 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
       vector<bool> all_restrictions_in_col(num_regimes, true);
       for (int row = 0; row < num_regimes; row++)
         for (int col = 0; col < num_regimes; col++)
-          if (restriction_map.find({ row+1, col+1 }) != restriction_map.end())
+          if (restriction_map.contains({ row+1, col+1 }))
             {
               row_trans_prob_sum[row] += restriction_map[{ row+1, col+1 }];
               col_trans_prob_sum[col] += restriction_map[{ row+1, col+1 }];
@@ -3604,7 +3603,7 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
         }
     }
 
-  if (options_list.symbol_list_options.find("ms.parameters") != options_list.symbol_list_options.end())
+  if (options_list.symbol_list_options.contains("ms.parameters"))
     mod_file_struct.ms_dsge_present = true;
 }
 
@@ -3677,9 +3676,9 @@ SvarStatement::SvarStatement(OptionsList options_list_arg) :
 void
 SvarStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  bool has_coefficients = options_list.string_options.find("ms.coefficients") != options_list.string_options.end(),
-    has_variances = options_list.string_options.find("ms.variances") != options_list.string_options.end(),
-    has_constants = options_list.string_options.find("ms.constants") != options_list.string_options.end();
+  bool has_coefficients = options_list.string_options.contains("ms.coefficients"),
+    has_variances = options_list.string_options.contains("ms.variances"),
+    has_constants = options_list.string_options.contains("ms.constants");
   assert((has_coefficients && !has_variances && !has_constants)
          || (!has_coefficients && has_variances && !has_constants)
          || (!has_coefficients && !has_variances && has_constants));
@@ -3785,8 +3784,8 @@ EstimationDataStatement::checkPass(ModFileStructure &mod_file_struct, WarningCon
         exit(EXIT_FAILURE);
       }
 
-  bool has_file = options_list.string_options.find("file") != options_list.string_options.end(),
-    has_series = options_list.string_options.find("series") != options_list.string_options.end();
+  bool has_file = options_list.string_options.contains("file"),
+    has_series = options_list.string_options.contains("series");
   if (!has_file && !has_series)
     {
       cerr << "ERROR: The file or series option must be passed to the data statement." << endl;
@@ -4031,8 +4030,8 @@ JointPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       exit(EXIT_FAILURE);
     }
 
-  if (options_list.num_options.find("mean") == options_list.num_options.end()
-      && options_list.num_options.find("mode") == options_list.num_options.end())
+  if (!options_list.num_options.contains("mean")
+      && !options_list.num_options.contains("mode"))
     {
       cerr << "ERROR: You must pass at least one of mean and mode to the prior statement." << endl;
       exit(EXIT_FAILURE);
@@ -4188,14 +4187,14 @@ BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       exit(EXIT_FAILURE);
     }
 
-  if (options_list.num_options.find("mean") == options_list.num_options.end()
-      && options_list.num_options.find("mode") == options_list.num_options.end())
+  if (!options_list.num_options.contains("mean")
+      && !options_list.num_options.contains("mode"))
     {
       cerr << "ERROR: You must pass at least one of mean and mode to the prior statement." << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (bool has_stdev = options_list.num_options.find("stdev") != options_list.num_options.end();
+  if (bool has_stdev = options_list.num_options.contains("stdev");
       (!has_stdev && !variance) || (has_stdev && variance))
     {
       cerr << "ERROR: You must pass exactly one of stdev and variance to the prior statement." << endl;
@@ -4881,7 +4880,7 @@ void
 CalibSmootherStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  if (options_list.string_options.find("parameter_set") == options_list.string_options.end())
+  if (!options_list.string_options.contains("parameter_set"))
     output << "options_.parameter_set = 'calibration';" << endl;
   symbol_list.writeOutput("var_list_", output);
   output << "options_.smoother = true;" << endl
@@ -4916,7 +4915,7 @@ ExtendedPathStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 {
   mod_file_struct.extended_path_present = true;
 
-  if (options_list.num_options.find("periods") == options_list.num_options.end())
+  if (!options_list.num_options.contains("periods"))
     {
       cerr << "ERROR: the 'periods' option of 'extended_path' is mandatory" << endl;
       exit(EXIT_FAILURE);
@@ -5006,13 +5005,13 @@ MethodOfMomentsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
       mod_file_struct.order_option = max(mod_file_struct.order_option, order);
     }
 
-    if (options_list.string_options.find("datafile") == options_list.string_options.end())
+    if (!options_list.string_options.contains("datafile"))
       {
         cerr << "ERROR: The method_of_moments statement requires a data file to be supplied via the datafile option." << endl;
         exit(EXIT_FAILURE);
       }
 
-    if (options_list.string_options.find("mom.mom_method") == options_list.string_options.end())
+    if (!options_list.string_options.contains("mom.mom_method"))
       {
         cerr << "ERROR: The method_of_moments statement requires a method to be supplied via the mom_method option. Possible values are GMM or SMM." << endl;
         exit(EXIT_FAILURE);

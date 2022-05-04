@@ -42,8 +42,7 @@ ParsingDriver::symbol_exists_and_is_not_modfile_local_or_external_function(const
 void
 ParsingDriver::check_symbol_existence_in_model_block(const string &name)
 {
-  if (!mod_file->symbol_table.exists(name)
-      || undeclared_model_vars.find(name) != undeclared_model_vars.end())
+  if (!mod_file->symbol_table.exists(name) || undeclared_model_vars.contains(name))
     undeclared_model_variable_error("Unknown symbol: " + name, name);
 }
 
@@ -306,7 +305,7 @@ ParsingDriver::predetermined_variables(const vector<string> &symbol_list)
 void
 ParsingDriver::add_equation_tags(string key, string value)
 {
-  if (eq_tags.find(key) != eq_tags.end())
+  if (eq_tags.contains(key))
     error("Tag '" + key + "' cannot be declared twice for the same equation");
 
   eq_tags[key] = value;
@@ -594,7 +593,7 @@ ParsingDriver::hist_val(const string &name, const string &lag, expr_t rhs)
 
   pair<int, int> key(symb_id, ilag);
 
-  if (hist_values.find(key) != hist_values.end())
+  if (hist_values.contains(key))
     error("hist_val: (" + name + ", " + lag + ") declared twice");
 
   hist_values[move(key)] = rhs;
@@ -643,7 +642,7 @@ void
 ParsingDriver::add_generate_irfs_exog_element(string exo, const string &value)
 {
   check_symbol_is_exogenous(exo, false);
-  if (generate_irf_exos.find(exo) != generate_irf_exos.end())
+  if (generate_irf_exos.contains(exo))
     error("You have set the exogenous variable " + exo + " twice.");
 
   generate_irf_exos[move(exo)] = stod(value);
@@ -981,9 +980,8 @@ ParsingDriver::add_det_shock(const string &var, const vector<pair<int, int>> &pe
 
   int symb_id = mod_file->symbol_table.getID(var);
 
-  if (det_shocks.find(symb_id) != det_shocks.end()
-      || learnt_shocks_add.find(symb_id) != learnt_shocks_add.end()
-      || learnt_shocks_multiply.find(symb_id) != learnt_shocks_multiply.end())
+  if (det_shocks.contains(symb_id) || learnt_shocks_add.contains(symb_id)
+      || learnt_shocks_multiply.contains(symb_id))
     error("shocks/conditional_forecast_paths: variable " + var + " declared twice");
 
   if (periods.size() != values.size())
@@ -1016,8 +1014,8 @@ ParsingDriver::add_heteroskedastic_shock(const string &var, const vector<pair<in
 
   int symb_id = mod_file->symbol_table.getID(var);
 
-  if ((!scales && heteroskedastic_shocks_values.find(symb_id) != heteroskedastic_shocks_values.end())
-      || (scales && heteroskedastic_shocks_scales.find(symb_id) != heteroskedastic_shocks_scales.end()))
+  if ((!scales && heteroskedastic_shocks_values.contains(symb_id))
+      || (scales && heteroskedastic_shocks_scales.contains(symb_id)))
     error("heteroskedastic_shocks: variable " + var + " declared twice");
 
   if (periods.size() != values.size())
@@ -1046,8 +1044,7 @@ ParsingDriver::add_stderr_shock(const string &var, expr_t value)
   check_symbol_existence(var);
   int symb_id = mod_file->symbol_table.getID(var);
 
-  if (var_shocks.find(symb_id) != var_shocks.end()
-      || std_shocks.find(symb_id) != std_shocks.end())
+  if (var_shocks.contains(symb_id) || std_shocks.contains(symb_id))
     error("shocks: variance or stderr of shock on " + var + " declared twice");
 
   std_shocks[symb_id] = value;
@@ -1066,8 +1063,7 @@ ParsingDriver::add_var_shock(const string &var, expr_t value)
   check_symbol_existence(var);
   int symb_id = mod_file->symbol_table.getID(var);
 
-  if (var_shocks.find(symb_id) != var_shocks.end()
-      || std_shocks.find(symb_id) != std_shocks.end())
+  if (var_shocks.contains(symb_id) || std_shocks.contains(symb_id))
     error("shocks: variance or stderr of shock on " + var + " declared twice");
 
   var_shocks[symb_id] = value;
@@ -1090,10 +1086,8 @@ ParsingDriver::add_covar_shock(const string &var1, const string &var2, expr_t va
 
   pair<int, int> key(symb_id1, symb_id2), key_inv(symb_id2, symb_id1);
 
-  if (covar_shocks.find(key) != covar_shocks.end()
-      || covar_shocks.find(key_inv) != covar_shocks.end()
-      || corr_shocks.find(key) != corr_shocks.end()
-      || corr_shocks.find(key_inv) != corr_shocks.end())
+  if (covar_shocks.contains(key) || covar_shocks.contains(key_inv)
+      || corr_shocks.contains(key) || corr_shocks.contains(key_inv))
     error("shocks: covariance or correlation shock on variable pair (" + var1 + ", "
           + var2 + ") declared twice");
 
@@ -1117,10 +1111,8 @@ ParsingDriver::add_correl_shock(const string &var1, const string &var2, expr_t v
 
   pair<int, int> key(symb_id1, symb_id2), key_inv(symb_id2, symb_id1);
 
-  if (covar_shocks.find(key) != covar_shocks.end()
-      || covar_shocks.find(key_inv) != covar_shocks.end()
-      || corr_shocks.find(key) != corr_shocks.end()
-      || corr_shocks.find(key_inv) != corr_shocks.end())
+  if (covar_shocks.contains(key) || covar_shocks.contains(key_inv)
+      || corr_shocks.contains(key) || corr_shocks.contains(key_inv))
     error("shocks: covariance or correlation shock on variable pair (" + var1 + ", "
           + var2 + ") declared twice");
 
@@ -1185,7 +1177,7 @@ ParsingDriver::add_restriction_in_equation(const string &equation, const vector<
   if (eqn < 1)
     error("equation numbers must be greater than or equal to 1.");
 
-  if (svar_equation_restrictions.count(eqn) > 0)
+  if (svar_equation_restrictions.contains(eqn))
     error("equation number " + equation + " referenced more than once under a single lag.");
 
   vector<int> svar_restriction_symbols;
@@ -1387,8 +1379,7 @@ ParsingDriver::steady()
 void
 ParsingDriver::option_num(string name_option, string opt1, string opt2)
 {
-  if (options_list.paired_num_options.find(name_option)
-      != options_list.paired_num_options.end())
+  if (options_list.paired_num_options.contains(name_option))
     error("option " + name_option + " declared twice");
 
   options_list.paired_num_options[move(name_option)] = { move(opt1), move(opt2) };
@@ -1397,7 +1388,7 @@ ParsingDriver::option_num(string name_option, string opt1, string opt2)
 void
 ParsingDriver::option_num(string name_option, string opt)
 {
-  if (options_list.num_options.find(name_option) != options_list.num_options.end())
+  if (options_list.num_options.contains(name_option))
     error("option " + name_option + " declared twice");
 
   options_list.num_options[move(name_option)] = move(opt);
@@ -1406,8 +1397,7 @@ ParsingDriver::option_num(string name_option, string opt)
 void
 ParsingDriver::option_str(string name_option, string opt)
 {
-  if (options_list.string_options.find(name_option)
-      != options_list.string_options.end())
+  if (options_list.string_options.contains(name_option))
     error("option " + name_option + " declared twice");
 
   options_list.string_options[move(name_option)] = move(opt);
@@ -1416,8 +1406,7 @@ ParsingDriver::option_str(string name_option, string opt)
 void
 ParsingDriver::option_date(string name_option, string opt)
 {
-  if (options_list.date_options.find(name_option)
-      != options_list.date_options.end())
+  if (options_list.date_options.contains(name_option))
     error("option " + name_option + " declared twice");
 
   options_list.date_options[move(name_option)] = move(opt);
@@ -1426,8 +1415,7 @@ ParsingDriver::option_date(string name_option, string opt)
 void
 ParsingDriver::option_symbol_list(string name_option, vector<string> symbol_list)
 {
-  if (options_list.symbol_list_options.find(name_option)
-      != options_list.symbol_list_options.end())
+  if (options_list.symbol_list_options.contains(name_option))
     error("option " + name_option + " declared twice");
 
   if (name_option.compare("irf_shocks") == 0)
@@ -1454,8 +1442,7 @@ ParsingDriver::option_symbol_list(string name_option, vector<string> symbol_list
 void
 ParsingDriver::option_vec_int(string name_option, vector<int> opt)
 {
-  if (options_list.vector_int_options.find(name_option)
-      != options_list.vector_int_options.end())
+  if (options_list.vector_int_options.contains(name_option))
     error("option " + name_option + " declared twice");
 
   if (opt.empty())
@@ -1467,8 +1454,7 @@ ParsingDriver::option_vec_int(string name_option, vector<int> opt)
 void
 ParsingDriver::option_vec_str(string name_option, vector<string> opt)
 {
-  if (options_list.vector_str_options.find(name_option)
-      != options_list.vector_str_options.end())
+  if (options_list.vector_str_options.contains(name_option))
     error("option " + name_option + " declared twice");
 
   if (opt.empty())
@@ -1480,8 +1466,7 @@ ParsingDriver::option_vec_str(string name_option, vector<string> opt)
 void
 ParsingDriver::option_vec_cellstr(string name_option, vector<string> opt)
 {
-  if (options_list.vector_cellstr_options.find(name_option)
-      != options_list.vector_cellstr_options.end())
+  if (options_list.vector_cellstr_options.contains(name_option))
     error("option " + name_option + " declared twice");
 
   if (opt.empty())
@@ -1506,7 +1491,7 @@ void
 ParsingDriver::stoch_simul(SymbolList symbol_list)
 {
   //make sure default order is known to preprocessor, see #49
-  if (options_list.num_options.find("order") == options_list.num_options.end())
+  if (!options_list.num_options.contains("order"))
     options_list.num_options["order"] = "2";
 
   symbol_list.removeDuplicates("stoch_simul", warnings);
@@ -1701,7 +1686,7 @@ ParsingDriver::copy_subsamples(string to_name1, string to_name2, string from_nam
   if (!from_name2.empty())
     check_symbol_existence(from_name2);
 
-  if (subsample_declarations.find({ from_name1, from_name2 }) == subsample_declarations.end())
+  if (!subsample_declarations.contains({ from_name1, from_name2 }))
     {
       string err{from_name1};
       if (!from_name2.empty())
@@ -1728,7 +1713,7 @@ ParsingDriver::check_symbol_is_statement_variable(const string &name)
 void
 ParsingDriver::set_subsample_name_equal_to_date_range(string name, string date1, string date2)
 {
-  if (subsample_declaration_map.find(name) != subsample_declaration_map.end())
+  if (subsample_declaration_map.contains(name))
     error("Symbol " + name + " may only be assigned once in a SUBSAMPLE statement");
   subsample_declaration_map[move(name)] = { move(date1), move(date2) };
 }
@@ -1766,7 +1751,7 @@ ParsingDriver::check_subsample_declaration_exists(const string &name1, const str
     }
 
   auto tmp_map = it->second;
-  if (tmp_map.find(subsample_name) == tmp_map.end())
+  if (!tmp_map.contains(subsample_name))
     error("The subsample name " + subsample_name + " was not previously declared in a subsample statement.");
 }
 
@@ -2027,7 +2012,7 @@ void
 ParsingDriver::set_trend_element(string arg1, expr_t arg2)
 {
   check_symbol_existence(arg1);
-  if (trend_elements.find(arg1) != trend_elements.end())
+  if (trend_elements.contains(arg1))
     error("observation_trends: " + arg1 + " declared twice");
   trend_elements[move(arg1)] = arg2;
 }
@@ -2055,7 +2040,7 @@ ParsingDriver::set_filter_initial_state_element(const string &name, const string
   if ((type == SymbolType::exogenous || type == SymbolType::exogenousDet) && ilag == 0)
     error("filter_initial_state: exogenous variable " + name + " must be provided with a lag");
 
-  if (filter_initial_state_elements.find({ symb_id, ilag }) != filter_initial_state_elements.end())
+  if (filter_initial_state_elements.contains({ symb_id, ilag }))
     error("filter_initial_state: (" + name + ", " + lag + ") declared twice");
 
   if (mod_file->dynamic_model.minLagForSymbol(symb_id) > ilag - 1)
@@ -2068,7 +2053,7 @@ void
 ParsingDriver::set_optim_weights(string name, expr_t value)
 {
   check_symbol_is_endogenous(name);
-  if (var_weights.find(name) != var_weights.end())
+  if (var_weights.contains(name))
     error("optim_weights: " + name + " declared twice");
   var_weights[move(name)] = move(value);
 }
@@ -2081,7 +2066,7 @@ ParsingDriver::set_optim_weights(const string &name1, const string &name2, expr_
 
   pair<string, string> covar_key{name1, name2};
 
-  if (covar_weights.find(covar_key) != covar_weights.end())
+  if (covar_weights.contains(covar_key))
     error("optim_weights: pair of variables (" + name1 + ", " + name2
           + ") declared twice");
 
@@ -2420,9 +2405,9 @@ ParsingDriver::ms_variance_decomposition()
 void
 ParsingDriver::svar()
 {
-  bool has_coefficients = options_list.string_options.find("ms.coefficients") != options_list.string_options.end(),
-    has_variances = options_list.string_options.find("ms.variances") != options_list.string_options.end(),
-    has_constants = options_list.string_options.find("ms.constants") != options_list.string_options.end();
+  bool has_coefficients = options_list.string_options.contains("ms.coefficients"),
+    has_variances = options_list.string_options.contains("ms.variances"),
+    has_constants = options_list.string_options.contains("ms.constants");
   if (!has_coefficients && !has_variances && !has_constants)
     error("You must pass one of 'coefficients', 'variances', or 'constants'.");
 
@@ -2461,7 +2446,7 @@ ParsingDriver::markov_switching()
   else if (stoi(it0->second) <= 0)
     error("The value passed to the number_of_regimes option must be greater than zero.");
 
-  if (options_list.num_options.find("ms.duration") == options_list.num_options.end())
+  if (!options_list.num_options.contains("ms.duration"))
     error("A duration option must be passed to the markov_switching statement.");
 
   mod_file->addStatement(make_unique<MarkovSwitchingStatement>(options_list));
@@ -2555,7 +2540,7 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
 {
   expr_t id = model_tree->AddEqual(arg1, arg2);
 
-  if (eq_tags.find("static") != eq_tags.end())
+  if (eq_tags.contains("static"))
     {
       // If the equation is tagged [static]
       if (!id->isInStaticForm())
@@ -2563,11 +2548,10 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
 
       dynamic_model->addStaticOnlyEquation(id, location.begin.line, eq_tags);
     }
-  else if (eq_tags.find("bind") != eq_tags.end()
-           || eq_tags.find("relax") != eq_tags.end())
+  else if (eq_tags.contains("bind") || eq_tags.contains("relax"))
     {
       // If the equation has a “bind” or “relax” tag (occbin case)
-      if (eq_tags.find("name") == eq_tags.end())
+      if (!eq_tags.contains("name"))
         error("An equation with a 'bind' or 'relax' tag must have a 'name' tag");
       auto regimes_bind = strsplit(eq_tags["bind"], ',');
       auto regimes_relax = strsplit(eq_tags["relax"], ',');
@@ -3161,7 +3145,7 @@ ParsingDriver::add_model_var_or_external_function(const string &function_name, b
         }
       else
         { // e.g. model_var(lag) => ADD MODEL VARIABLE WITH LEAD (NumConstNode)/LAG (UnaryOpNode)
-          if (undeclared_model_vars.find(function_name) != undeclared_model_vars.end())
+          if (undeclared_model_vars.contains(function_name))
             undeclared_model_variable_error("Unknown symbol: " + function_name, function_name);
 
           pair<bool, double> rv = is_there_one_integer_argument();

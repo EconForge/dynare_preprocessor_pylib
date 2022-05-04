@@ -484,7 +484,7 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
             {
               set<pair<int, int>> result;
               derivative->collectEndogenous(result);
-              bool variable_not_in_derivative = result.find({ var, 0 }) == result.end();
+              bool variable_not_in_derivative = !result.contains({ var, 0 });
 
               try
                 {
@@ -790,8 +790,8 @@ ModelTree::reduceBlockDecomposition()
         bool is_lead = false, is_lag = false;
         for (int var = 0; var < blocks[blk-1].size; var++)
           {
-            is_lag = is_lag || endos_and_lags.find({ getBlockVariableID(blk-1, var), -1 }) != endos_and_lags.end();
-            is_lead = is_lead || endos_and_lags.find({ getBlockVariableID(blk-1, var), 1 }) != endos_and_lags.end();
+            is_lag = is_lag || endos_and_lags.contains({ getBlockVariableID(blk-1, var), -1 });
+            is_lead = is_lead || endos_and_lags.contains({ getBlockVariableID(blk-1, var), 1 });
           }
 
         if ((blocks[blk-1].simulation_type == BlockSimulationType::evaluateForward
@@ -837,8 +837,7 @@ ModelTree::determineLinearBlocks()
                 set<pair<int, int>> endogenous;
                 d1->collectEndogenous(endogenous);
                 for (int l = 0; l < blocks[blk].size; l++)
-                  if (endogenous.find({ endo_idx_block2orig[blocks[blk].first_equation+l], 0 })
-                      != endogenous.end())
+                  if (endogenous.contains({ endo_idx_block2orig[blocks[blk].first_equation+l], 0 }))
                     {
                       blocks[blk].linear = false;
                       goto the_end;
@@ -855,8 +854,7 @@ ModelTree::determineLinearBlocks()
             set<pair<int, int>> endogenous;
             d1->collectEndogenous(endogenous);
             for (int l = 0; l < blocks[blk].size; l++)
-              if (endogenous.find({ endo_idx_block2orig[blocks[blk].first_equation+l], lag })
-                  != endogenous.end())
+              if (endogenous.contains({ endo_idx_block2orig[blocks[blk].first_equation+l], lag }))
                 {
                   blocks[blk].linear = false;
                   goto the_end2;
@@ -1302,7 +1300,7 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, bool write_tef_terms, d
   output << R"("model_local_variables": [)";
   bool printed = false;
   for (int id : local_variables_vector)
-    if (used_local_vars.find(id) != used_local_vars.end())
+    if (used_local_vars.contains(id))
       {
         if (printed)
           output << ", ";
@@ -1583,7 +1581,7 @@ void
 ModelTree::addTrendVariables(const vector<int> &trend_vars, expr_t growth_factor) noexcept(false)
 {
   for (int id : trend_vars)
-    if (trend_symbols_map.find(id) != trend_symbols_map.end())
+    if (trend_symbols_map.contains(id))
       throw TrendException(symbol_table.getName(id));
     else
       trend_symbols_map[id] = growth_factor;
@@ -1593,7 +1591,7 @@ void
 ModelTree::addNonstationaryVariables(const vector<int> &nonstationary_vars, bool log_deflator, expr_t deflator) noexcept(false)
 {
   for (int id : nonstationary_vars)
-    if (nonstationary_symbols_map.find(id) != nonstationary_symbols_map.end())
+    if (nonstationary_symbols_map.contains(id))
       throw TrendException(symbol_table.getName(id));
     else
       nonstationary_symbols_map[id] = { log_deflator, deflator };
@@ -1702,7 +1700,7 @@ ModelTree::computeParamsDerivativesTemporaryTerms()
 bool
 ModelTree::isNonstationary(int symb_id) const
 {
-  return nonstationary_symbols_map.find(symb_id) != nonstationary_symbols_map.end();
+  return nonstationary_symbols_map.contains(symb_id);
 }
 
 void

@@ -69,7 +69,7 @@ StaticModel::StaticModel(const DynamicModel &m) :
     try
       {
         // If equation is dynamic, replace it by an equation marked [static]
-        if (dynamic_equations.find(i) != dynamic_equations.end())
+        if (dynamic_equations.contains(i))
           {
             auto [static_only_equations,
                   static_only_equations_lineno,
