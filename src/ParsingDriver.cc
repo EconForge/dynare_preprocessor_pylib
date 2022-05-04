@@ -369,12 +369,8 @@ ParsingDriver::declare_or_change_type(SymbolType new_type, const string &name)
 
       // remove error messages
       undeclared_model_vars.erase(name);
-      for (auto it = undeclared_model_variable_errors.begin();
-           it != undeclared_model_variable_errors.end();)
-        if (it->first == name)
-          it = undeclared_model_variable_errors.erase(it);
-        else
-          ++it;
+      erase_if(undeclared_model_variable_errors,
+               [&name](auto &v) { return v.first == name; });
     }
   catch (SymbolTable::UnknownSymbolNameException &e)
     {

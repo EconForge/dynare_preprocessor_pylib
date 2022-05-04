@@ -971,12 +971,8 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
      not optional) */
   if (no_tmp_terms)
     for (auto &it : temp_terms_map)
-      // The following loop can be simplified with std::erase_if() in C++20
-      for (auto it2 = it.second.begin(); it2 != it.second.end();)
-        if (!dynamic_cast<AbstractExternalFunctionNode *>(*it2))
-          it2 = it.second.erase(it2);
-        else
-          ++it2;
+      erase_if(it.second,
+               [](expr_t e) { return !dynamic_cast<AbstractExternalFunctionNode *>(e); });
 
   // Fill the structures
   temporary_terms_derivatives.clear();
