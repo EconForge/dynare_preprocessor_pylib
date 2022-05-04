@@ -1240,11 +1240,13 @@ PacModelTable::transformPass(const lag_equivalence_table_t &unary_ops_nodes,
 
           // Associate the coefficients of the linear combination with the right components
           for (auto [var, coeff] : terms)
-            /* The “var=var” capture with initializer in the lambda expression
-               is used to workaround the C++17 restriction that forbids the
-               capture of structured bindings. This restriction is enforced by
-               clang, but not by GCC (see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85889).
-               This restriction is lifted in C++20 (but clang 13 does not yet comply). */
+            /* C++20 allows the capture of structured bindings (contrary to
+               C++17), and GCC 10 implements it (actually it even supports it
+               in C++17 compatibility mode, see
+               https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85889). However,
+               clang 14 does not, though some work seems on the way
+               (https://reviews.llvm.org/D122768/new/). Hence we use the
+               “var=var” capture with initializer as a workaround. */
             if (auto it = find_if(components.begin(), components.end(),
                                   [&, var=var](const auto &v) { return get<0>(v) == dynamic_model.AddVariable(var); });
                 it != components.end())
