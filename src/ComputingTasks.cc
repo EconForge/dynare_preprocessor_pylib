@@ -362,12 +362,10 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
 
-  if (auto it = options_list.num_options.find("hp_filter"),
-      it1 = options_list.num_options.find("bandpass.indicator"),
-      it2 = options_list.num_options.find("one_sided_hp_filter");
-      (it != options_list.num_options.end() && it1 != options_list.num_options.end())
-      || (it != options_list.num_options.end() && it2 != options_list.num_options.end())
-      || (it1 != options_list.num_options.end() && it2 != options_list.num_options.end()))
+  if (bool hp = options_list.num_options.find("hp_filter") != options_list.num_options.end(),
+      bandpass = options_list.num_options.find("bandpass.indicator") != options_list.num_options.end(),
+      one_sided_hp = options_list.num_options.find("one_sided_hp_filter") != options_list.num_options.end();
+      (hp && bandpass) || (hp && one_sided_hp) || (bandpass && one_sided_hp))
     {
       cerr << "ERROR: stoch_simul: can only use one of hp, one-sided hp, and bandpass filters"
            << endl;
@@ -2556,14 +2554,14 @@ MSSBVAREstimationStatement::checkPass(ModFileStructure &mod_file_struct, Warning
 {
   mod_file_struct.bvar_present = true;
 
-  if (options_list.num_options.find("ms.create_init") == options_list.num_options.end())
-    if (options_list.string_options.find("datafile") == options_list.string_options.end()
-        || options_list.num_options.find("ms.initial_year") == options_list.num_options.end())
-      {
-        cerr << "ERROR: If you do not pass no_create_init to ms_estimation, "
-             << "you must pass the datafile and initial_year options." << endl;
-        exit(EXIT_FAILURE);
-      }
+  if (options_list.num_options.find("ms.create_init") == options_list.num_options.end()
+      && (options_list.string_options.find("datafile") == options_list.string_options.end()
+          || options_list.num_options.find("ms.initial_year") == options_list.num_options.end()))
+    {
+      cerr << "ERROR: If you do not pass no_create_init to ms_estimation, "
+           << "you must pass the datafile and initial_year options." << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -2708,11 +2706,10 @@ MSSBVARIrfStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 {
   mod_file_struct.bvar_present = true;
 
-  bool regime_present = options_list.num_options.find("ms.regime") != options_list.num_options.end();
-  bool regimes_present = options_list.num_options.find("ms.regimes") != options_list.num_options.end();
-  bool filtered_probabilities_present = options_list.num_options.find("ms.filtered_probabilities") != options_list.num_options.end();
-
-  if ((filtered_probabilities_present && regime_present)
+  if (bool regime_present = options_list.num_options.find("ms.regime") != options_list.num_options.end(),
+      regimes_present = options_list.num_options.find("ms.regimes") != options_list.num_options.end(),
+      filtered_probabilities_present = options_list.num_options.find("ms.filtered_probabilities") != options_list.num_options.end();
+      (filtered_probabilities_present && regime_present)
       || (filtered_probabilities_present && regimes_present)
       || (regimes_present && regime_present))
     {
@@ -2806,11 +2803,10 @@ MSSBVARVarianceDecompositionStatement::checkPass(ModFileStructure &mod_file_stru
 {
   mod_file_struct.bvar_present = true;
 
-  bool regime_present = options_list.num_options.find("ms.regime") != options_list.num_options.end();
-  bool regimes_present = options_list.num_options.find("ms.regimes") != options_list.num_options.end();
-  bool filtered_probabilities_present = options_list.num_options.find("ms.filtered_probabilities") != options_list.num_options.end();
-
-  if ((filtered_probabilities_present && regime_present)
+  if (bool regime_present = options_list.num_options.find("ms.regime") != options_list.num_options.end(),
+      regimes_present = options_list.num_options.find("ms.regimes") != options_list.num_options.end(),
+      filtered_probabilities_present = options_list.num_options.find("ms.filtered_probabilities") != options_list.num_options.end();
+      (filtered_probabilities_present && regime_present)
       || (filtered_probabilities_present && regimes_present)
       || (regimes_present && regime_present))
     {
@@ -3681,18 +3677,12 @@ SvarStatement::SvarStatement(OptionsList options_list_arg) :
 void
 SvarStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  auto it0 = options_list.string_options.find("ms.coefficients"),
-    it1 = options_list.string_options.find("ms.variances"),
-    it2 = options_list.string_options.find("ms.constants");
-  assert((it0 != options_list.string_options.end()
-          && it1 == options_list.string_options.end()
-          && it2 == options_list.string_options.end())
-         || (it0 == options_list.string_options.end()
-             && it1 != options_list.string_options.end()
-             && it2 == options_list.string_options.end())
-         || (it0 == options_list.string_options.end()
-             && it1 == options_list.string_options.end()
-             && it2 != options_list.string_options.end()));
+  bool has_coefficients = options_list.string_options.find("ms.coefficients") != options_list.string_options.end(),
+    has_variances = options_list.string_options.find("ms.variances") != options_list.string_options.end(),
+    has_constants = options_list.string_options.find("ms.constants") != options_list.string_options.end();
+  assert((has_coefficients && !has_variances && !has_constants)
+         || (!has_coefficients && has_variances && !has_constants)
+         || (!has_coefficients && !has_variances && has_constants));
 }
 
 void
@@ -3795,15 +3785,14 @@ EstimationDataStatement::checkPass(ModFileStructure &mod_file_struct, WarningCon
         exit(EXIT_FAILURE);
       }
 
-  if (options_list.string_options.find("file") == options_list.string_options.end()
-      && options_list.string_options.find("series") == options_list.string_options.end())
+  bool has_file = options_list.string_options.find("file") != options_list.string_options.end(),
+    has_series = options_list.string_options.find("series") != options_list.string_options.end();
+  if (!has_file && !has_series)
     {
       cerr << "ERROR: The file or series option must be passed to the data statement." << endl;
       exit(EXIT_FAILURE);
     }
-
-  if (options_list.string_options.find("file") != options_list.string_options.end()
-      && options_list.string_options.find("series") != options_list.string_options.end())
+  if (has_file && has_series)
     {
       cerr << "ERROR: The file and series options cannot be used simultaneously in the data statement." << endl;
       exit(EXIT_FAILURE);
@@ -4206,9 +4195,8 @@ BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       exit(EXIT_FAILURE);
     }
 
-  if (auto it_stdev = options_list.num_options.find("stdev");
-      (it_stdev == options_list.num_options.end() && !variance)
-      || (it_stdev != options_list.num_options.end() && variance))
+  if (bool has_stdev = options_list.num_options.find("stdev") != options_list.num_options.end();
+      (!has_stdev && !variance) || (has_stdev && variance))
     {
       cerr << "ERROR: You must pass exactly one of stdev and variance to the prior statement." << endl;
       exit(EXIT_FAILURE);

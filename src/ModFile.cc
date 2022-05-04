@@ -941,7 +941,7 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
             mOutputFile << "'', '" << parallel_local_file << "';" << endl;
           else
             mOutputFile << "'" << parallel_local_file.substr(0, j+1) << "', '"
-                        << parallel_local_file.substr(j+1, string::npos) << "';" << endl;
+                        << parallel_local_file.substr(j+1) << "';" << endl;
         }
       mOutputFile << "};" << endl;
     }

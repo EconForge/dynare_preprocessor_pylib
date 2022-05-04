@@ -120,9 +120,7 @@ InitOrEndValStatement::getUninitializedVariables(SymbolType type)
     }
 
   for (auto [symb_id, value] : init_values)
-    if (auto sit = unused.find(symb_id);
-        sit != unused.end())
-      unused.erase(sit);
+    unused.erase(symb_id);
 
   return unused;
 }
@@ -385,13 +383,8 @@ HistValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
       for (const auto &[key, value] : hist_values)
         {
           int symb_id = key.first;
-          if (auto sit = unused_endo.find(symb_id);
-              sit != unused_endo.end())
-            unused_endo.erase(sit);
-
-          if (auto sit = unused_exo.find(symb_id);
-              sit != unused_exo.end())
-            unused_exo.erase(sit);
+          unused_endo.erase(symb_id);
+          unused_exo.erase(symb_id);
         }
 
       if (unused_endo.size() > 0)

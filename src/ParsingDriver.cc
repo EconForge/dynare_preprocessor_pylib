@@ -1364,7 +1364,7 @@ ParsingDriver::add_to_row_const(const string &v)
   expr_t id;
 
   if (v.at(0) == '-')
-    id = data_tree->AddUMinus(data_tree->AddNonNegativeConstant(v.substr(1, string::npos)));
+    id = data_tree->AddUMinus(data_tree->AddNonNegativeConstant(v.substr(1)));
   else
     id = data_tree->AddNonNegativeConstant(v);
 
@@ -2420,20 +2420,14 @@ ParsingDriver::ms_variance_decomposition()
 void
 ParsingDriver::svar()
 {
-  auto it0 = options_list.string_options.find("ms.coefficients"),
-    it1 = options_list.string_options.find("ms.variances"),
-    it2 = options_list.string_options.find("ms.constants");
-  if (it0 == options_list.string_options.end()
-      && it1 == options_list.string_options.end()
-      && it2 == options_list.string_options.end())
+  bool has_coefficients = options_list.string_options.find("ms.coefficients") != options_list.string_options.end(),
+    has_variances = options_list.string_options.find("ms.variances") != options_list.string_options.end(),
+    has_constants = options_list.string_options.find("ms.constants") != options_list.string_options.end();
+  if (!has_coefficients && !has_variances && !has_constants)
     error("You must pass one of 'coefficients', 'variances', or 'constants'.");
 
-  if ((it0 != options_list.string_options.end()
-       && it1 != options_list.string_options.end())
-      || (it1 != options_list.string_options.end()
-          && it2 != options_list.string_options.end())
-      || (it0 != options_list.string_options.end()
-          && it2 != options_list.string_options.end()))
+  if ((has_coefficients && has_variances) || (has_variances && has_constants)
+      || (has_coefficients && has_constants))
     error("You may only pass one of 'coefficients', 'variances', or 'constants'.");
 
   if (auto itn = options_list.num_options.find("ms.chain");
@@ -2467,8 +2461,7 @@ ParsingDriver::markov_switching()
   else if (stoi(it0->second) <= 0)
     error("The value passed to the number_of_regimes option must be greater than zero.");
 
-  it0 = options_list.num_options.find("ms.duration");
-  if (it0 == options_list.num_options.end())
+  if (options_list.num_options.find("ms.duration") == options_list.num_options.end())
     error("A duration option must be passed to the markov_switching statement.");
 
   mod_file->addStatement(make_unique<MarkovSwitchingStatement>(options_list));

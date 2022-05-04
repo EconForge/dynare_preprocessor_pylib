@@ -54,7 +54,7 @@ EquationTags::getEqnByTag(const string &key, const string &value) const
 void
 EquationTags::erase(const set<int> &eqns, const map<int, int> &old_eqn_num_2_new)
 {
-  for (const auto &eqn : eqns)
+  for (int eqn : eqns)
     eqn_tags.erase(eqn);
 
   for (const auto & [oldeqn, neweqn] : old_eqn_num_2_new)

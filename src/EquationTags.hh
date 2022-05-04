@@ -70,8 +70,8 @@ public:
   //! Get equation tags for a given equation
   inline map<string, string> getTagsByEqn(const int eqn) const
   {
-    if (eqn_tags.find(eqn) != eqn_tags.end())
-      return eqn_tags.find(eqn)->second;
+    if (auto it = eqn_tags.find(eqn); it != eqn_tags.end())
+      return it->second;
     return map<string, string>{};
   }
 
@@ -118,13 +118,13 @@ public:
   //! Returns true if equation tag with key exists for a given equation
   inline bool exists(const int eqn, const string &key) const
   {
-    return exists(eqn) ? eqn_tags.at(eqn).find(key) != eqn_tags.at(eqn).end() : false;
+    return exists(eqn) && eqn_tags.at(eqn).find(key) != eqn_tags.at(eqn).end();
   }
 
   //! Returns true if equation tag with key and value exists for a given equation
   inline bool exists(const int eqn, const string &key, const string &value) const
   {
-    return exists(eqn, key) ? eqn_tags.at(eqn).at(key) == value : false;
+    return exists(eqn, key) && eqn_tags.at(eqn).at(key) == value;
   }
 
   //! Various functions to write equation tags

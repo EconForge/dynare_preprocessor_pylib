@@ -198,11 +198,7 @@ SymbolTable::getPartitionsForType(SymbolType st) const noexcept(false)
   for (const auto &it : partition_value_map)
     if (getType(it.first) == st)
       for (const auto &it1 : it.second)
-        {
-          if (partitions.find(it1.first) == partitions.end())
-            partitions[it1.first] = {};
-          partitions[it1.first][it.first] = it1.second;
-        }
+        partitions[it1.first][it.first] = it1.second;
   return partitions;
 }
 
@@ -801,13 +797,13 @@ bool
 SymbolTable::isPredetermined(int symb_id) const noexcept(false)
 {
   validateSymbID(symb_id);
-  return (predetermined_variables.find(symb_id) != predetermined_variables.end());
+  return predetermined_variables.find(symb_id) != predetermined_variables.end();
 }
 
 int
 SymbolTable::predeterminedNbr() const
 {
-  return (predetermined_variables.size());
+  return predetermined_variables.size();
 }
 
 void

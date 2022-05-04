@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2021 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -733,8 +733,7 @@ DataTree::AddLocalVariable(int symb_id, expr_t value) noexcept(false)
   assert(symbol_table.getType(symb_id) == SymbolType::modelLocalVariable);
 
   // Throw an exception if symbol already declared
-  if (auto it = local_variables_table.find(symb_id);
-      it != local_variables_table.end())
+  if (local_variables_table.find(symb_id) != local_variables_table.end())
     throw LocalVariableException(symbol_table.getName(symb_id));
 
   local_variables_table[symb_id] = value;

@@ -39,7 +39,7 @@ ExprNode::getDerivative(int deriv_id)
     prepareForDerivation();
 
   // Return zero if derivative is necessarily null (using symbolic a priori)
-  if (auto it = non_null_derivatives.find(deriv_id); it == non_null_derivatives.end())
+  if (non_null_derivatives.find(deriv_id) == non_null_derivatives.end())
     return datatree.Zero;
 
   // If derivative is stored in cache, use the cached value, otherwise compute it (and cache it)
@@ -93,7 +93,7 @@ ExprNode::checkIfTemporaryTermThenWrite(ostream &output, ExprNodeOutputType outp
                                         const temporary_terms_t &temporary_terms,
                                         const temporary_terms_idxs_t &temporary_terms_idxs) const
 {
-  if (auto it = temporary_terms.find(const_cast<ExprNode *>(this)); it == temporary_terms.end())
+  if (temporary_terms.find(const_cast<ExprNode *>(this)) == temporary_terms.end())
     return false;
 
   auto it2 = temporary_terms_idxs.find(const_cast<ExprNode *>(this));
@@ -6937,9 +6937,7 @@ AbstractExternalFunctionNode::differentiateForwardVars(const vector<string> &sub
 bool
 AbstractExternalFunctionNode::alreadyWrittenAsTefTerm(int the_symb_id, const deriv_node_temp_terms_t &tef_terms) const
 {
-  if (tef_terms.find({ the_symb_id, arguments }) != tef_terms.end())
-    return true;
-  return false;
+  return tef_terms.find({ the_symb_id, arguments }) != tef_terms.end();
 }
 
 int
@@ -6970,8 +6968,7 @@ AbstractExternalFunctionNode::computeTemporaryTerms(const pair<int, int> &derivO
 
   expr_t this2 = const_cast<AbstractExternalFunctionNode *>(this);
   for (auto &tt : temp_terms_map)
-    if (auto it = find_if(tt.second.cbegin(), tt.second.cend(), sameTefTermPredicate());
-        it != tt.second.cend())
+    if (find_if(tt.second.cbegin(), tt.second.cend(), sameTefTermPredicate()) != tt.second.cend())
       {
         tt.second.insert(this2);
         return;
@@ -6988,8 +6985,7 @@ AbstractExternalFunctionNode::computeBlockTemporaryTerms(int blk, int eq, vector
   expr_t this2 = const_cast<AbstractExternalFunctionNode *>(this);
   for (auto &btt : blocks_temporary_terms)
     for (auto &tt : btt)
-      if (auto it = find_if(tt.cbegin(), tt.cend(), sameTefTermPredicate());
-          it != tt.cend())
+      if (find_if(tt.cbegin(), tt.cend(), sameTefTermPredicate()) != tt.cend())
         {
           tt.insert(this2);
           return;
