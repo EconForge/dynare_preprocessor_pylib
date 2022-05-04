@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 
-dnl Copyright © 2009-2021 Dynare Team
+dnl Copyright © 2009-2022 Dynare Team
 dnl
 dnl This file is part of Dynare.
 dnl
@@ -25,7 +25,6 @@ AM_INIT_AUTOMAKE([1.11 -Wall -Wno-portability foreign no-dist-gzip dist-xz tar-p
 
 AC_PROG_CC
 AC_PROG_CXX
-AX_CXX_COMPILE_STDCXX_17
 
 AC_CANONICAL_HOST
 case ${host_os} in
@@ -44,7 +43,7 @@ esac
 # Use C++ for testing headers
 AC_LANG([C++])
 
-AM_CXXFLAGS="-Wall -Wno-parentheses -Wold-style-cast"
+AM_CXXFLAGS="-std=gnu++20 -Wall -Wno-parentheses -Wold-style-cast"
 AC_SUBST([AM_CXXFLAGS])
 
 # If default 'ar' is not available, try to find one with a host prefix (see ticket #145)
