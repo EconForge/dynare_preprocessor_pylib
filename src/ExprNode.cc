@@ -643,10 +643,10 @@ NumConstNode::findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) 
 {
 }
 
-int
+optional<int>
 NumConstNode::findTargetVariable(int lhs_symb_id) const
 {
-  return -1;
+  return nullopt;
 }
 
 expr_t
@@ -1593,13 +1593,13 @@ VariableNode::findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) 
     datatree.getLocalVariable(symb_id)->findUnaryOpNodesForAuxVarCreation(nodes);
 }
 
-int
+optional<int>
 VariableNode::findTargetVariable(int lhs_symb_id) const
 {
   if (get_type() == SymbolType::modelLocalVariable)
     return datatree.getLocalVariable(symb_id)->findTargetVariable(lhs_symb_id);
 
-  return -1;
+  return nullopt;
 }
 
 expr_t
@@ -3393,7 +3393,7 @@ UnaryOpNode::findDiffNodes(lag_equivalence_table_t &nodes) const
   nodes[lag_equiv_repr][index] = const_cast<UnaryOpNode *>(this);
 }
 
-int
+optional<int>
 UnaryOpNode::findTargetVariable(int lhs_symb_id) const
 {
   return arg->findTargetVariable(lhs_symb_id);
@@ -5310,14 +5310,14 @@ BinaryOpNode::findTargetVariableHelper1(int lhs_symb_id, int rhs_symb_id) const
   return false;
 }
 
-int
+optional<int>
 BinaryOpNode::findTargetVariableHelper(const expr_t arg1, const expr_t arg2,
                                        int lhs_symb_id) const
 {
   set<int> params;
   arg1->collectVariables(SymbolType::parameter, params);
   if (params.size() != 1)
-    return -1;
+    return nullopt;
 
   set<pair<int, int>> endogs;
   arg2->collectDynamicVariables(SymbolType::endogenous, endogs);
@@ -5331,18 +5331,18 @@ BinaryOpNode::findTargetVariableHelper(const expr_t arg1, const expr_t arg2,
       else if (findTargetVariableHelper1(lhs_symb_id, endogs.rbegin()->first))
         return endogs.begin()->first;
     }
-  return -1;
+  return nullopt;
 }
 
-int
+optional<int>
 BinaryOpNode::findTargetVariable(int lhs_symb_id) const
 {
-  int retval = findTargetVariableHelper(arg1, arg2, lhs_symb_id);
-  if (retval < 0)
+  optional<int> retval = findTargetVariableHelper(arg1, arg2, lhs_symb_id);
+  if (!retval)
     retval = findTargetVariableHelper(arg2, arg1, lhs_symb_id);
-  if (retval < 0)
+  if (!retval)
     retval = arg1->findTargetVariable(lhs_symb_id);
-  if (retval < 0)
+  if (!retval)
     retval = arg2->findTargetVariable(lhs_symb_id);
   return retval;
 }
@@ -6447,13 +6447,13 @@ TrinaryOpNode::findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes)
   arg3->findUnaryOpNodesForAuxVarCreation(nodes);
 }
 
-int
+optional<int>
 TrinaryOpNode::findTargetVariable(int lhs_symb_id) const
 {
-  int retval = arg1->findTargetVariable(lhs_symb_id);
-  if (retval < 0)
+  optional<int> retval = arg1->findTargetVariable(lhs_symb_id);
+  if (!retval)
     retval = arg2->findTargetVariable(lhs_symb_id);
-  if (retval < 0)
+  if (!retval)
     retval = arg3->findTargetVariable(lhs_symb_id);
   return retval;
 }
@@ -6871,14 +6871,14 @@ AbstractExternalFunctionNode::findUnaryOpNodesForAuxVarCreation(lag_equivalence_
     argument->findUnaryOpNodesForAuxVarCreation(nodes);
 }
 
-int
+optional<int>
 AbstractExternalFunctionNode::findTargetVariable(int lhs_symb_id) const
 {
   for (auto argument : arguments)
-    if (int retval = argument->findTargetVariable(lhs_symb_id);
-        retval >= 0)
+    if (optional<int> retval = argument->findTargetVariable(lhs_symb_id);
+        retval)
       return retval;
-  return -1;
+  return nullopt;
 }
 
 expr_t
@@ -8391,10 +8391,10 @@ SubModelNode::findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) 
 {
 }
 
-int
+optional<int>
 SubModelNode::findTargetVariable(int lhs_symb_id) const
 {
-  return -1;
+  return nullopt;
 }
 
 expr_t

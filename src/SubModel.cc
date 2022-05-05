@@ -83,7 +83,7 @@ TrendComponentModelTable::setRhs(map<string, vector<set<pair<int, int>>>> rhs_ar
 }
 
 void
-TrendComponentModelTable::setTargetVar(map<string, vector<int>> target_vars_arg)
+TrendComponentModelTable::setTargetVar(map<string, vector<optional<int>>> target_vars_arg)
 {
   target_vars = move(target_vars_arg);
 }
@@ -319,8 +319,8 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
           i++;
         }
       output << "M_.trend_component." << name << ".target_vars = [";
-      for (auto it : target_vars.at(name))
-        output << (it >= 0 ? symbol_table.getTypeSpecificID(it) + 1 : -1) << " ";
+      for (const optional<int> &it : target_vars.at(name))
+        output << (it ? symbol_table.getTypeSpecificID(*it) + 1 : -1) << " ";
       output << "];" << endl;
 
       vector<string> target_eqtags_vec = target_eqtags.at(name);

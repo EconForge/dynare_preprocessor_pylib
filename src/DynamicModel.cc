@@ -3119,12 +3119,13 @@ DynamicModel::updateVarAndTrendModel() const
 {
   for (bool var : { true, false })
     {
-      map<string, vector<int>> trend_varr;
+      map<string, vector<optional<int>>> trend_varr;
       map<string, vector<set<pair<int, int>>>> rhsr;
       for (const auto &[model_name, eqns] : (var ? var_model_table.getEqNums()
                                              : trend_component_model_table.getEqNums()))
         {
-          vector<int> lhs, trend_var, trend_lhs;
+          vector<int> lhs, trend_lhs;
+          vector<optional<int>> trend_var;
           vector<set<pair<int, int>>> rhs;
 
           if (!var)
@@ -3160,25 +3161,25 @@ DynamicModel::updateVarAndTrendModel() const
                     catch (...)
                       {
                       }
-                  int trend_var_symb_id = equations[eqn]->arg2->findTargetVariable(lhs_symb_id);
-                  if (trend_var_symb_id >= 0)
+                  optional<int> trend_var_symb_id = equations[eqn]->arg2->findTargetVariable(lhs_symb_id);
+                  if (trend_var_symb_id)
                     {
-                      if (symbol_table.isDiffAuxiliaryVariable(trend_var_symb_id))
+                      if (symbol_table.isDiffAuxiliaryVariable(*trend_var_symb_id))
                         try
                           {
-                            trend_var_symb_id = symbol_table.getOrigSymbIdForAuxVar(trend_var_symb_id);
+                            trend_var_symb_id = symbol_table.getOrigSymbIdForAuxVar(*trend_var_symb_id);
                           }
                         catch (...)
                           {
                           }
-                      if (find(trend_lhs.begin(), trend_lhs.end(), trend_var_symb_id) == trend_lhs.end())
+                      if (find(trend_lhs.begin(), trend_lhs.end(), *trend_var_symb_id) == trend_lhs.end())
                         {
                           cerr << "ERROR: trend found in trend_component equation #" << eqn << " ("
-                               << symbol_table.getName(trend_var_symb_id) << ") does not correspond to a trend equation" << endl;
+                               << symbol_table.getName(*trend_var_symb_id) << ") does not correspond to a trend equation" << endl;
                           exit(EXIT_FAILURE);
                         }
                     }
-                  trend_var.push_back(trend_var_symb_id);
+                  trend_var.push_back(move(trend_var_symb_id));
                 }
             }
 

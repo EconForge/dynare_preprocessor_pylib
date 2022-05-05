@@ -24,6 +24,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <optional>
 
 #include "ExprNode.hh"
 #include "SymbolTable.hh"
@@ -49,7 +50,7 @@ private:
   map<string, vector<set<pair<int, int>>>> rhs;
   map<string, vector<bool>> diff;
   map<string, vector<expr_t>> lhs_expr_t;
-  map<string, vector<int>> target_vars;
+  map<string, vector<optional<int>>> target_vars;
   map<string, map<tuple<int, int, int>, expr_t>> AR; // name -> (eqn, lag, lhs_symb_id) -> expr_t
   /* Note that A0 in the trend-component model context is not the same thing as
      in the structural VAR context. */
@@ -89,7 +90,7 @@ public:
   void setMaxLags(map<string, vector<int>> max_lags_arg);
   void setDiff(map<string, vector<bool>> diff_arg);
   void setOrigDiffVar(map<string, vector<int>> orig_diff_var_arg);
-  void setTargetVar(map<string, vector<int>> target_vars_arg);
+  void setTargetVar(map<string, vector<optional<int>>> target_vars_arg);
   void setAR(map<string, map<tuple<int, int, int>, expr_t>> AR_arg);
   void setA0(map<string, map<tuple<int, int>, expr_t>> A0_arg,
              map<string, map<tuple<int, int>, expr_t>> A0star_arg);

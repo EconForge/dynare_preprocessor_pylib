@@ -25,6 +25,7 @@
 #include <vector>
 #include <ostream>
 #include <functional>
+#include <optional>
 
 using namespace std;
 
@@ -620,7 +621,7 @@ public:
   //! Substitute pac_target_nonstationary operator
   virtual expr_t substitutePacTargetNonstationary(const string &name, expr_t subexpr) = 0;
 
-  virtual int findTargetVariable(int lhs_symb_id) const = 0;
+  virtual optional<int> findTargetVariable(int lhs_symb_id) const = 0;
 
   //! Add ExprNodes to the provided datatree
   virtual expr_t clone(DataTree &datatree) const = 0;
@@ -811,7 +812,7 @@ public:
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(lag_equivalence_table_t &nodes) const override;
   void findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const override;
-  int findTargetVariable(int lhs_symb_id) const override;
+  optional<int> findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
@@ -884,7 +885,7 @@ public:
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(lag_equivalence_table_t &nodes) const override;
   void findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const override;
-  int findTargetVariable(int lhs_symb_id) const override;
+  optional<int> findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
@@ -989,7 +990,7 @@ public:
   void findDiffNodes(lag_equivalence_table_t &nodes) const override;
   bool createAuxVarForUnaryOpNode() const;
   void findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const override;
-  int findTargetVariable(int lhs_symb_id) const override;
+  optional<int> findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
@@ -1096,8 +1097,8 @@ public:
   void findDiffNodes(lag_equivalence_table_t &nodes) const override;
   void findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const override;
   bool findTargetVariableHelper1(int lhs_symb_id, int rhs_symb_id) const;
-  int findTargetVariableHelper(const expr_t arg1, const expr_t arg2, int lhs_symb_id) const;
-  int findTargetVariable(int lhs_symb_id) const override;
+  optional<int> findTargetVariableHelper(const expr_t arg1, const expr_t arg2, int lhs_symb_id) const;
+  optional<int> findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
@@ -1232,7 +1233,7 @@ public:
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(lag_equivalence_table_t &nodes) const override;
   void findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const override;
-  int findTargetVariable(int lhs_symb_id) const override;
+  optional<int> findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
@@ -1342,7 +1343,7 @@ public:
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   void findDiffNodes(lag_equivalence_table_t &nodes) const override;
   void findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const override;
-  int findTargetVariable(int lhs_symb_id) const override;
+  optional<int> findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
@@ -1520,7 +1521,7 @@ public:
   expr_t substituteModelLocalVariables() const override;
   void findDiffNodes(lag_equivalence_table_t &nodes) const override;
   void findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const override;
-  int findTargetVariable(int lhs_symb_id) const override;
+  optional<int> findTargetVariable(int lhs_symb_id) const override;
   expr_t substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
