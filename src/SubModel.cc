@@ -1273,7 +1273,7 @@ PacModelTable::transformPass(const lag_equivalence_table_t &unary_ops_nodes,
               yns = dynamic_model.AddPlus(yns, dynamic_model.AddTimes(coeff, component));
           int target_nonstationary_id = symbol_table.addPacTargetNonstationaryAuxiliaryVar(get<1>(target_info[name]), yns);
           expr_t neweq = dynamic_model.AddEqual(dynamic_model.AddVariable(target_nonstationary_id), yns);
-          dynamic_model.addEquation(neweq, -1);
+          dynamic_model.addEquation(neweq, nullopt);
           dynamic_model.addAuxEquation(neweq);
 
           /* Perform the substitution of the pac_target_nonstationary operator.

@@ -343,7 +343,10 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context) const
             }
           catch (ExprNode::EvalException &e)
             {
-              cerr << "ERROR: evaluation of Jacobian failed for equation " << eq+1 << " (line " << equations_lineno[eq] << ") and variable " << symbol_table.getName(symb) << "(" << lag << ") [" << symb << "] !" << endl;
+              cerr << "ERROR: evaluation of Jacobian failed for equation " << eq+1;
+              if (equations_lineno[eq])
+                cerr << " (line " << *equations_lineno[eq] << ")";
+              cerr << " and variable " << symbol_table.getName(symb) << "(" << lag << ") [" << symb << "] !" << endl;
               d1->writeOutput(cerr, ExprNodeOutputType::matlabDynamicModel, {}, {});
               cerr << endl;
               exit(EXIT_FAILURE);
@@ -1539,13 +1542,13 @@ ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_b
 }
 
 void
-ModelTree::addEquation(expr_t eq, int lineno)
+ModelTree::addEquation(expr_t eq, optional<int> lineno)
 {
   auto beq = dynamic_cast<BinaryOpNode *>(eq);
   assert(beq && beq->op_code == BinaryOpcode::equal);
 
   equations.push_back(beq);
-  equations_lineno.push_back(lineno);
+  equations_lineno.push_back(move(lineno));
 }
 
 void
@@ -1558,10 +1561,10 @@ ModelTree::findConstantEquationsWithoutMcpTag(map<VariableNode *, NumConstNode *
 }
 
 void
-ModelTree::addEquation(expr_t eq, int lineno, const map<string, string> &eq_tags)
+ModelTree::addEquation(expr_t eq, optional<int> lineno, const map<string, string> &eq_tags)
 {
   equation_tags.add(equations.size(), eq_tags);
-  addEquation(eq, lineno);
+  addEquation(eq, move(lineno));
 }
 
 void
@@ -1746,8 +1749,9 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
           lhs->writeJsonOutput(output, {}, {});
           output << R"(", "rhs": ")";
           rhs->writeJsonOutput(output, {}, {});
-          output << R"(")"
-                 << R"(, "line": )" << equations_lineno[eq];
+          output << R"(")";
+          if (equations_lineno[eq])
+            output << R"(, "line": )" << *equations_lineno[eq];
 
           if (auto eqtags = getEquationTags(eq);
               !eqtags.empty())

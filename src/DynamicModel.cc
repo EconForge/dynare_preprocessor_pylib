@@ -2475,7 +2475,7 @@ vector<int>
 DynamicModel::removeEquationsHelper(set<pair<string, string>> &listed_eqs_by_tag, bool exclude_eqs,
                                     bool excluded_vars_change_type,
                                     vector<BinaryOpNode *> &all_equations,
-                                    vector<int> &all_equations_lineno,
+                                    vector<optional<int>> &all_equations_lineno,
                                     EquationTags &all_equation_tags, bool static_equations) const
 {
   if (all_equations.empty())
@@ -2507,7 +2507,7 @@ DynamicModel::removeEquationsHelper(set<pair<string, string>> &listed_eqs_by_tag
 
   // remove from equations, equations_lineno, equation_tags
   vector<BinaryOpNode *> new_equations;
-  vector<int> new_equations_lineno;
+  vector<optional<int>> new_equations_lineno;
   map<int, int> old_eqn_num_2_new;
   vector<int> excluded_vars;
   for (size_t i = 0; i < all_equations.size(); i++)
@@ -3980,7 +3980,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(const string &nam
       auto neweq = AddEqual(const_cast<VariableNode *>(target_base_diff_node),
                             AddMinus(create_target_lag(0),
                                      create_target_lag(-1)));
-      addEquation(neweq, -1);
+      addEquation(neweq, nullopt);
       addAuxEquation(neweq);
       neqs++;
     }
@@ -3994,7 +3994,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(const string &nam
                                                          last_aux_var->symb_id, 1);
       VariableNode *current_aux_var = AddVariable(symb_id);
       auto neweq = AddEqual(current_aux_var, AddVariable(last_aux_var->symb_id, 1));
-      addEquation(neweq, -1);
+      addEquation(neweq, nullopt);
       addAuxEquation(neweq);
       last_aux_var = current_aux_var;
       target_aux_var_to_add[i] = current_aux_var;
@@ -4023,7 +4023,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(const string &nam
     }
   auto neweq = AddEqual(AddVariable(mce_z1_symb_id),
                         AddMinus(AddTimes(A, AddMinus(const_cast<VariableNode *>(target_base_diff_node), fs)), fp));
-  addEquation(neweq, -1);
+  addEquation(neweq, nullopt);
   /* This equation is not added to the list of auxiliary equations, because it
      is recursive, and this would in particular break dynamic_set_auxiliary_series.m */
   neqs++;
@@ -4087,7 +4087,7 @@ DynamicModel::computePacBackwardExpectationSubstitution(const string &name,
     auxname = "pac_expectation_" + name;
   int expect_var_id = symbol_table.addPacExpectationAuxiliaryVar(auxname, subExpr);
   expr_t neweq = AddEqual(AddVariable(expect_var_id), subExpr);
-  addEquation(neweq, -1);
+  addEquation(neweq, nullopt);
   addAuxEquation(neweq);
   pac_aux_var_symb_ids[name] = expect_var_id;
   pac_expectation_substitution[name] = AddVariable(expect_var_id);
@@ -4155,7 +4155,7 @@ DynamicModel::computePacBackwardExpectationSubstitutionWithComponents(const stri
 
       // Add the equation defining the auxiliary variable for this component
       expr_t neweq = AddEqual(auxvar, auxdef);
-      addEquation(neweq, -1);
+      addEquation(neweq, nullopt);
       addAuxEquation(neweq);
 
       // Update the expression to be substituted for the pac_expectation operator
@@ -4673,7 +4673,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
 
   // Add Planner Objective to equations so that it appears in Lagrangian
   assert(static_model.equations.size() == 1);
-  addEquation(static_model.equations[0]->clone(*this), -1);
+  addEquation(static_model.equations[0]->clone(*this), nullopt);
 
   // Get max endo lead and max endo lag
   set<pair<int, int>> dynvars;
@@ -4721,14 +4721,14 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
 
   // Prepare derivation of the Lagrangian
   clearEquations();
-  addEquation(AddEqual(lagrangian, Zero), -1);
+  addEquation(AddEqual(lagrangian, Zero), nullopt);
   computeDerivIDs();
 
   /* Compute Lagrangian derivatives.
      Also restore line numbers and tags for FOCs w.r.t. a Lagrange multiplier
      (i.e. a FOC identical to an equation of the original model) */
   vector<expr_t> neweqs;
-  vector<int> neweqs_lineno;
+  vector<optional<int>> neweqs_lineno;
   map<int, map<string, string>> neweqs_tags;
   for (auto &[symb_id_and_lag, deriv_id] : deriv_id_table)
     {
@@ -4748,7 +4748,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
               neweqs_tags[neweqs.size()-1] = tags;
             }
           else
-            neweqs_lineno.push_back(-1);
+            neweqs_lineno.push_back(nullopt);
         }
     }
 
@@ -5060,8 +5060,10 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context
                     double nearZero = testeq->getDerivative(endogit.second)->eval(eval_context); // eval d F / d Trend d Endog
                     if (fabs(nearZero) > balanced_growth_test_tol)
                       {
-                        cerr << "ERROR: trends not compatible with balanced growth path; the second-order cross partial of equation " << eq + 1 << " (line "
-                             << equations_lineno[eq] << ") w.r.t. trend variable "
+                        cerr << "ERROR: trends not compatible with balanced growth path; the second-order cross partial of equation " << eq + 1;
+                        if (equations_lineno[eq])
+                          cerr << " (line " << *equations_lineno[eq] << ")";
+                        cerr << "w.r.t. trend variable "
                              << symbol_table.getName(it.first.first) << " and endogenous variable "
                              << symbol_table.getName(endogit.first.first) << " is not null (abs. value = "
                              << fabs(nearZero) << "). If you are confident that your trends are correctly specified, you can raise the value of option 'balanced_growth_test_tol' in the 'model' block." << endl;
@@ -5505,7 +5507,7 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
   // Add new equations
   for (auto &neweq : neweqs)
     {
-      addEquation(neweq, -1);
+      addEquation(neweq, nullopt);
       aux_equations.push_back(neweq);
     }
 
@@ -5652,7 +5654,7 @@ DynamicModel::substituteUnaryOps(const set<int> &eqnumbers, VarExpectationModelT
   // Add new equations
   for (auto &neweq : neweqs)
     {
-      addEquation(neweq, -1);
+      addEquation(neweq, nullopt);
       aux_equations.push_back(neweq);
     }
 
@@ -5707,7 +5709,7 @@ DynamicModel::substituteDiff(VarExpectationModelTable &var_expectation_model_tab
   // Add new equations
   for (auto &neweq : neweqs)
     {
-      addEquation(neweq, -1);
+      addEquation(neweq, nullopt);
       aux_equations.push_back(neweq);
     }
 
@@ -5740,7 +5742,7 @@ DynamicModel::substituteExpectation(bool partial_information_model)
   // Add new equations
   for (auto &neweq : neweqs)
     {
-      addEquation(neweq, -1);
+      addEquation(neweq, nullopt);
       aux_equations.push_back(neweq);
     }
 
@@ -5800,7 +5802,7 @@ DynamicModel::substituteLogTransform()
       */
       addAuxEquation(AddEqual(AddVariable(aux_symb_id), aux_def));
       addEquation(AddEqual(AddVariable(symb_id), AddExp(AddVariable(aux_symb_id))),
-                  -1, {});
+                  nullopt, {});
     }
 }
 
@@ -5920,14 +5922,14 @@ DynamicModel::fillEvalContext(eval_context_t &eval_context) const
 }
 
 void
-DynamicModel::addStaticOnlyEquation(expr_t eq, int lineno, const map<string, string> &eq_tags)
+DynamicModel::addStaticOnlyEquation(expr_t eq, optional<int> lineno, const map<string, string> &eq_tags)
 {
   auto beq = dynamic_cast<BinaryOpNode *>(eq);
   assert(beq && beq->op_code == BinaryOpcode::equal);
 
   static_only_equations_equation_tags.add(static_only_equations.size(), eq_tags);
   static_only_equations.push_back(beq);
-  static_only_equations_lineno.push_back(lineno);
+  static_only_equations_lineno.push_back(move(lineno));
 }
 
 size_t
@@ -5943,7 +5945,7 @@ DynamicModel::dynamicOnlyEquationsNbr() const
 }
 
 void
-DynamicModel::addOccbinEquation(expr_t eq, int lineno, const map<string, string> &eq_tags, const vector<string> &regimes_bind, const vector<string> &regimes_relax)
+DynamicModel::addOccbinEquation(expr_t eq, optional<int> lineno, const map<string, string> &eq_tags, const vector<string> &regimes_bind, const vector<string> &regimes_relax)
 {
   auto beq = dynamic_cast<BinaryOpNode *>(eq);
   assert(beq && beq->op_code == BinaryOpcode::equal);
@@ -6080,8 +6082,9 @@ DynamicModel::writeJsonAST(ostream &output) const
       if (eq != 0)
         output << ", ";
 
-      output << R"({ "number":)" << eq
-             << R"(, "line":)" << equations_lineno[eq];
+      output << R"({ "number":)" << eq;
+      if (equations_lineno[eq])
+        output << R"(, "line":)" << *equations_lineno[eq];
 
       equation_tags.writeJsonAST(output, eq);
 

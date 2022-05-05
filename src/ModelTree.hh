@@ -27,6 +27,7 @@
 #include <ostream>
 #include <array>
 #include <filesystem>
+#include <optional>
 
 #include "DataTree.hh"
 #include "EquationTags.hh"
@@ -76,8 +77,9 @@ protected:
    */
   //! Stores declared and generated auxiliary equations
   vector<BinaryOpNode *> equations;
-  //! Stores line numbers of declared equations; -1 means undefined
-  vector<int> equations_lineno;
+  /* Stores line numbers of declared equations; undefined in some cases (e.g.
+     auxiliary equations) */
+  vector<optional<int>> equations_lineno;
   //! Stores equation tags
   EquationTags equation_tags;
   /*
@@ -422,9 +424,9 @@ public:
     default value = 0 */
   int mfs{0};
   //! Declare a node as an equation of the model; also give its line number
-  void addEquation(expr_t eq, int lineno);
+  void addEquation(expr_t eq, optional<int> lineno);
   //! Declare a node as an equation of the model, also giving its tags
-  void addEquation(expr_t eq, int lineno, const map<string, string> &eq_tags);
+  void addEquation(expr_t eq, optional<int> lineno, const map<string, string> &eq_tags);
   //! Declare a node as an auxiliary equation of the model, adding it at the end of the list of auxiliary equations
   void addAuxEquation(expr_t eq);
   //! Returns the number of equations in the model
