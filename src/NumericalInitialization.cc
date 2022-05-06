@@ -333,6 +333,8 @@ EndValLearntInStatement::writeOutput(ostream &output, const string &basename, bo
   output << "M_.learnt_endval = [ M_.learnt_endval;" << endl;
   for (auto [type, symb_id, value] : learnt_end_values)
     {
+      if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
+        continue;
       output << "struct('learnt_in'," << learnt_in_period
              << ",'exo_id'," << symbol_table.getTypeSpecificID(symb_id)+1
              << ",'type','" << typeToString(type) << "'"
@@ -352,6 +354,8 @@ EndValLearntInStatement::writeJsonOutput(ostream &output) const
        it != learnt_end_values.end(); ++it)
     {
       auto [type, symb_id, value] = *it;
+      if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
+        continue;
       if (it != learnt_end_values.begin())
         output << ", ";
       output << R"({"name": ")" << symbol_table.getName(symb_id) << R"(", )"
