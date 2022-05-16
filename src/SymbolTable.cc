@@ -29,9 +29,9 @@
 
 #include "SymbolTable.hh"
 
-AuxVarInfo::AuxVarInfo(int symb_id_arg, AuxVarType type_arg, int orig_symb_id_arg, int orig_lead_lag_arg,
-                       int equation_number_for_multiplier_arg, int information_set_arg,
-                       expr_t expr_node_arg, string unary_op_arg) :
+AuxVarInfo::AuxVarInfo(int symb_id_arg, AuxVarType type_arg, optional<int> orig_symb_id_arg,
+                       optional<int> orig_lead_lag_arg, int equation_number_for_multiplier_arg,
+                       int information_set_arg, expr_t expr_node_arg, string unary_op_arg) :
   symb_id{symb_id_arg},
   type{type_arg},
   orig_symb_id{orig_symb_id_arg},
@@ -363,16 +363,16 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
           case AuxVarType::diffLag:
           case AuxVarType::diffLead:
           case AuxVarType::diffForward:
-            output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl
-                   << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
+            output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id().value())+1 << ";" << endl
+                   << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].get_orig_lead_lag().value() << ";" << endl;
             break;
           case AuxVarType::unaryOp:
             output << "M_.aux_vars(" << i+1 << ").unary_op = '" << aux_vars[i].get_unary_op() << "';" << endl;
             // NB: Fallback!
           case AuxVarType::diff:
-            if (aux_vars[i].get_orig_symb_id() >= 0)
-              output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1 << ";" << endl
-                     << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].get_orig_lead_lag() << ";" << endl;
+            if (aux_vars[i].get_orig_symb_id())
+              output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(*aux_vars[i].get_orig_symb_id())+1 << ";" << endl
+                     << "M_.aux_vars(" << i+1 << ").orig_lead_lag = " << aux_vars[i].get_orig_lead_lag().value() << ";" << endl;
             break;
           case AuxVarType::multiplier:
             output << "M_.aux_vars(" << i+1 << ").eq_nbr = " << aux_vars[i].get_equation_number_for_multiplier() + 1 << ";" << endl;
@@ -589,7 +589,7 @@ SymbolTable::addDiffLeadAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_i
 }
 
 int
-SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) noexcept(false)
+SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, optional<int> orig_symb_id, optional<int> orig_lag) noexcept(false)
 {
   ostringstream varname;
   int symb_id;
@@ -606,13 +606,13 @@ SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, i
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::diff, orig_symb_id, orig_lag, 0, 0, expr_arg, "");
+  aux_vars.emplace_back(symb_id, AuxVarType::diff, move(orig_symb_id), move(orig_lag), 0, 0, expr_arg, "");
 
   return symb_id;
 }
 
 int
-SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op, int orig_symb_id, int orig_lag) noexcept(false)
+SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op, optional<int> orig_symb_id, optional<int> orig_lag) noexcept(false)
 {
   ostringstream varname;
   int symb_id;
@@ -628,7 +628,7 @@ SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op,
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::unaryOp, orig_symb_id, orig_lag, 0, 0, expr_arg, unary_op);
+  aux_vars.emplace_back(symb_id, AuxVarType::unaryOp, move(orig_symb_id), move(orig_lag), 0, 0, expr_arg, unary_op);
 
   return symb_id;
 }
@@ -733,10 +733,10 @@ SymbolTable::getOrigSymbIdForAuxVar(int aux_var_symb_id) const noexcept(false)
          || aux_var.get_type() == AuxVarType::diffForward
          || aux_var.get_type() == AuxVarType::unaryOp)
         && aux_var.get_symb_id() == aux_var_symb_id)
-      if (int r = aux_var.get_orig_symb_id(); r >= 0)
-        return r;
+      if (optional<int> r = aux_var.get_orig_symb_id(); r)
+        return *r;
       else
-        throw UnknownSymbolIDException(aux_var_symb_id); // Some diff and unaryOp auxvars have orig_symb_id == -1
+        throw UnknownSymbolIDException(aux_var_symb_id); // Some diff and unaryOp auxvars have orig_symb_id unset
   throw UnknownSymbolIDException(aux_var_symb_id);
 }
 
@@ -747,8 +747,8 @@ SymbolTable::unrollDiffLeadLagChain(int symb_id, int lag) const noexcept(false)
     if (aux_var.get_symb_id() == symb_id)
       if (aux_var.get_type() == AuxVarType::diffLag || aux_var.get_type() == AuxVarType::diffLead)
         {
-          auto [orig_symb_id, orig_lag] = unrollDiffLeadLagChain(aux_var.get_orig_symb_id(), lag);
-          return { orig_symb_id, orig_lag + aux_var.get_orig_lead_lag() };
+          auto [orig_symb_id, orig_lag] = unrollDiffLeadLagChain(aux_var.get_orig_symb_id().value(), lag);
+          return { orig_symb_id, orig_lag + aux_var.get_orig_lead_lag().value() };
         }
   return { symb_id, lag };
 }
@@ -1026,16 +1026,16 @@ SymbolTable::writeJsonOutput(ostream &output) const
 	    case AuxVarType::diffLag:
 	    case AuxVarType::diffLead:
 	    case AuxVarType::diffForward:
-	      output << R"(, "orig_index": )" << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1
-		     << R"(, "orig_lead_lag": )" << aux_vars[i].get_orig_lead_lag();
+	      output << R"(, "orig_index": )" << getTypeSpecificID(aux_vars[i].get_orig_symb_id().value())+1
+		     << R"(, "orig_lead_lag": )" << aux_vars[i].get_orig_lead_lag().value();
 	      break;
 	    case AuxVarType::unaryOp:
               output << R"(, "unary_op": ")" << aux_vars[i].get_unary_op() << R"(")";
               // NB: Fallback!
             case AuxVarType::diff:
-	      if (aux_vars[i].get_orig_symb_id() >= 0)
-		output << R"(, "orig_index": )" << getTypeSpecificID(aux_vars[i].get_orig_symb_id())+1
-		       << R"(, "orig_lead_lag": )" << aux_vars[i].get_orig_lead_lag();
+	      if (aux_vars[i].get_orig_symb_id())
+		output << R"(, "orig_index": )" << getTypeSpecificID(*aux_vars[i].get_orig_symb_id())+1
+		       << R"(, "orig_lead_lag": )" << aux_vars[i].get_orig_lead_lag().value();
 	      break;
 	    case AuxVarType::multiplier:
 	      output << R"(, "eq_nbr": )" << aux_vars[i].get_equation_number_for_multiplier() + 1;

@@ -3376,8 +3376,8 @@ DynamicModel::getVARDerivIDs(int lhs_symb_id, int lead_lag) const
           continue;
         }
 
-      if (avi->get_type() == AuxVarType::endoLag && avi->get_orig_symb_id() == lhs_symb_id
-          && avi->get_orig_lead_lag() + lead_lag2 == lead_lag)
+      if (avi->get_type() == AuxVarType::endoLag && avi->get_orig_symb_id().value() == lhs_symb_id
+          && avi->get_orig_lead_lag().value() + lead_lag2 == lead_lag)
         deriv_ids.push_back(deriv_id2);
 
       // Handle diff lag auxvar, possibly nested several times
@@ -3392,7 +3392,7 @@ DynamicModel::getVARDerivIDs(int lhs_symb_id, int lead_lag) const
             }
           try
             {
-              avi = &symbol_table.getAuxVarInfo(avi->get_orig_symb_id());
+              avi = &symbol_table.getAuxVarInfo(avi->get_orig_symb_id().value());
             }
           catch (SymbolTable::UnknownSymbolIDException)
             {

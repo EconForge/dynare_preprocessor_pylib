@@ -26,6 +26,7 @@
 #include <vector>
 #include <set>
 #include <ostream>
+#include <optional>
 
 #include "CodeInterpreter.hh"
 #include "ExprNode.hh"
@@ -61,24 +62,26 @@ class AuxVarInfo
 private:
   int symb_id; //!< Symbol ID of the auxiliary variable
   AuxVarType type; //!< Its type
-  int orig_symb_id; /* Symbol ID of the (only) endo that appears on the RHS of
-                       the definition of this auxvar.
-                       Used by endoLag, exoLag, diffForward, logTransform, diff, diffLag,
-                       diffLead and unaryOp.
-                       For diff and unaryOp, if the argument expression is more complex
-                       than than a simple variable, this value is equal to -1. */
-  int orig_lead_lag; /* Lead/lag of the (only) endo as it appears on the RHS of the definition
-                        of this auxvar. Only used if orig_symb_id is used.
-                        (in particular, for diff and unaryOp, unused if orig_symb_id == -1).
-                        For diff and diffForward, since the definition of the
-                        auxvar is a time difference, the value corresponds to the
-                        time index of the first term of that difference. */
+  optional<int> orig_symb_id; /* Symbol ID of the (only) endo that appears on the RHS of
+                                 the definition of this auxvar.
+                                 Used by endoLag, exoLag, diffForward, logTransform, diff, diffLag,
+                                 diffLead and unaryOp.
+                                 For diff and unaryOp, if the argument expression is more complex
+                                 than than a simple variable, this value is unset
+                                 (hence the need for std::optional). */
+  optional<int> orig_lead_lag; /* Lead/lag of the (only) endo as it appears on the RHS of the definition
+                                  of this auxvar. Only set if orig_symb_id is set
+                                  (in particular, for diff and unaryOp, unset
+                                  if orig_symb_id is unset).
+                                  For diff and diffForward, since the definition of the
+                                  auxvar is a time difference, the value corresponds to the
+                                  time index of the first term of that difference. */
   int equation_number_for_multiplier; //!< Stores the original constraint equation number associated with this aux var. Only used for avMultiplier.
   int information_set; //! Argument of expectation operator. Only used for avExpectation.
   expr_t expr_node; //! Auxiliary variable definition
   string unary_op; //! Used with AuxUnaryOp
 public:
-  AuxVarInfo(int symb_id_arg, AuxVarType type_arg, int orig_symb_id, int orig_lead_lag, int equation_number_for_multiplier_arg, int information_set_arg, expr_t expr_node_arg, string unary_op_arg);
+  AuxVarInfo(int symb_id_arg, AuxVarType type_arg, optional<int> orig_symb_id_arg, optional<int> orig_lead_lag_arg, int equation_number_for_multiplier_arg, int information_set_arg, expr_t expr_node_arg, string unary_op_arg);
   int
   get_symb_id() const
   {
@@ -94,12 +97,12 @@ public:
   {
     return static_cast<int>(type);
   }
-  int
+  optional<int>
   get_orig_symb_id() const
   {
     return orig_symb_id;
   };
-  int
+  optional<int>
   get_orig_lead_lag() const
   {
     return orig_lead_lag;
@@ -349,13 +352,13 @@ public:
      diffLead increases it). */
   pair<int, int> unrollDiffLeadLagChain(int symb_id, int lag) const noexcept(false);
   //! Adds an auxiliary variable when the diff operator is encountered
-  int addDiffAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id = -1, int orig_lag = 0) noexcept(false);
+  int addDiffAuxiliaryVar(int index, expr_t expr_arg, optional<int> orig_symb_id = nullopt, optional<int> orig_lag = nullopt) noexcept(false);
   //! Takes care of timing between diff statements
   int addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) noexcept(false);
   //! Takes care of timing between diff statements
   int addDiffLeadAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lead) noexcept(false);
   //! An Auxiliary variable for a unary op
-  int addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op, int orig_symb_id = -1, int orig_lag = 0) noexcept(false);
+  int addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op, optional<int> orig_symb_id = nullopt, optional<int> orig_lag = nullopt) noexcept(false);
   //! An auxiliary variable for a pac_expectation operator
   int addPacExpectationAuxiliaryVar(const string &name, expr_t expr_arg);
   //! An auxiliary variable for a pac_target_nonstationary operator

@@ -8970,9 +8970,9 @@ ExprNode::matchParamTimesTargetMinusVariable(int symb_id) const
             return true;
           return (avi.get_type() == AuxVarType::unaryOp
                   && avi.get_unary_op() == "log"
-                  && avi.get_orig_symb_id() != -1
-                  && !datatree.symbol_table.isAuxiliaryVariable(avi.get_orig_symb_id())
-                  && target->lag + avi.get_orig_lead_lag() == -1);
+                  && avi.get_orig_symb_id()
+                  && !datatree.symbol_table.isAuxiliaryVariable(*avi.get_orig_symb_id())
+                  && target->lag + avi.get_orig_lead_lag().value() == -1);
         }
       else
         return target->lag == -1;
