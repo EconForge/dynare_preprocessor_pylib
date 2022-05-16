@@ -3814,8 +3814,8 @@ DynamicModel::analyzePacEquationStructure(const string &name, map<string, string
           = arg2->getPacOptimizingShareAndExprNodes(lhs_symb_id, lhs_orig_symb_id);
 
         pair<int, vector<tuple<int, bool, int>>> ec_params_and_vars;
-        vector<tuple<int, int, int>> ar_params_and_vars;
-        vector<tuple<int, int, int, double>> non_optim_vars_params_and_constants, optim_additive_vars_params_and_constants, additive_vars_params_and_constants;
+        vector<tuple<optional<int>, optional<int>, int>> ar_params_and_vars;
+        vector<tuple<int, int, optional<int>, double>> non_optim_vars_params_and_constants, optim_additive_vars_params_and_constants, additive_vars_params_and_constants;
         if (!optim_part)
           {
             auto bopn = dynamic_cast<BinaryOpNode *>(equation->arg2);

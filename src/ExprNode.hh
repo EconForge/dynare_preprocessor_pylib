@@ -244,7 +244,7 @@ protected:
                                      const temporary_terms_idxs_t &temporary_terms_idxs) const;
 
   // Internal helper for matchVariableTimesConstantTimesParam()
-  virtual void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const;
+  virtual void matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const;
 
   /* Computes the representative element and the index under the
      lag-equivalence relationship. See the comment above
@@ -638,21 +638,28 @@ public:
   //! Matches a linear combination of variables (endo or exo), where scalars can be constant*parameter
   /*! Returns a list of (variable_id, lag, param_id, constant)
     corresponding to the terms in the expression. When there is no
-    parameter in a term, param_id == -1.
+    parameter in a term, param_id is nullopt.
     Can throw a MatchFailureException.
-    if `variable_obligatory_in_each_term` is true, then every part of the linear combination must contain a variable;
-    otherwise, if `variable_obligatory_in_each_term` is false, then any linear
-    combination of constant/variable/param is matched (and variable_id == -1
-    for terms without a variable).
   */
-  vector<tuple<int, int, int, double>> matchLinearCombinationOfVariables(bool variable_obligatory_in_each_term = true) const;
+  vector<tuple<int, int, optional<int>, double>> matchLinearCombinationOfVariables() const;
+
+  /* Matches a linear combination of variables (endo or exo), where scalars can
+     be constant*parameter. In addition, there may be one or more scalar terms
+     (i.e. without a variable).
+     Returns a list of (variable_id, lag, param_id, constant)
+     corresponding to the terms in the expression. When there is no
+     parameter in a term, param_id is nullopt. When the term is scalar (i.e.
+     no variable), then variable_id is nullopt.
+     Can throw a MatchFailureException.
+  */
+  vector<tuple<optional<int>, int, optional<int>, double>> matchLinearCombinationOfVariablesPlusConstant() const;
 
   /* Matches a parameter, times a linear combination of variables (endo or
      exo), where scalars can be constant*parameters.
      The first output argument is the symbol ID of the parameter.
      The second output argument is the linear combination, in the same format
      as the output of matchLinearCombinationOfVariables(). */
-  pair<int, vector<tuple<int, int, int, double>>> matchParamTimesLinearCombinationOfVariables() const;
+  pair<int, vector<tuple<int, int, optional<int>, double>>> matchParamTimesLinearCombinationOfVariables() const;
 
   /* Matches a linear combination of endogenous, where scalars can be any
      constant expression (i.e. containing no endogenous, no exogenous and no
@@ -705,17 +712,17 @@ public:
 
   // Matches an expression of the form variable*constant*parameter
   /* Returns a tuple (variable_id, lag, param_id, constant).
-     The variable must be an exogenous or an endogenous.
+     If `variable_obligatory` is true, then the expression must contain a variable.
+     If present, the variable must be an exogenous or an endogenous. If absent,
+     and `variable_obligatory` is false, then variable_id is nullopt.
      The constant is optional (in which case 1 is returned); there can be
      several multiplicative constants; constants can also appear at the
      denominator (i.e. after a divide sign).
-     The parameter is optional (in which case param_id == -1).
+     The parameter is optional (in which case param_id is nullopt).
      If the expression is not of the expected form, throws a
      MatchFailureException
-     if `variable_obligatory` is true, then the linear combination must contain a variable;
-     otherwise, if `variable_obligatory`, then an expression is matched that has any mix of constant/variable/param
   */
-  tuple<int, int, int, double> matchVariableTimesConstantTimesParam(bool variable_obligatory = true) const;
+  tuple<optional<int>, int, optional<int>, double> matchVariableTimesConstantTimesParam(bool variable_obligatory) const;
 
   /* Matches an expression of the form endogenous*constant where constant is an
      expression containing no endogenous, no exogenous and no exogenous deterministic.
@@ -775,7 +782,7 @@ public:
 private:
   expr_t computeDerivative(int deriv_id) override;
 protected:
-  void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
+  void matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const override;
 public:
   NumConstNode(DataTree &datatree_arg, int idx_arg, int id_arg);
   void prepareForDerivation() override;
@@ -847,7 +854,7 @@ public:
 private:
   expr_t computeDerivative(int deriv_id) override;
 protected:
-  void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
+  void matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const override;
 public:
   VariableNode(DataTree &datatree_arg, int idx_arg, int symb_id_arg, int lag_arg);
   void prepareForDerivation() override;
@@ -915,7 +922,7 @@ public:
 class UnaryOpNode : public ExprNode
 {
 protected:
-  void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
+  void matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const override;
 public:
   const expr_t arg;
   //! Stores the information set. Only used for expectation operator
@@ -1019,7 +1026,7 @@ public:
 class BinaryOpNode : public ExprNode
 {
 protected:
-  void matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const override;
+  void matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const override;
 public:
   const expr_t arg1, arg2;
   const BinaryOpcode op_code;
@@ -1139,8 +1146,8 @@ public:
    */
   void getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
                   pair<int, vector<tuple<int, bool, int>>> &ec_params_and_vars,
-                  vector<tuple<int, int, int>> &ar_params_and_vars,
-                  vector<tuple<int, int, int, double>> &additive_vars_params_and_constants) const;
+                  vector<tuple<optional<int>, optional<int>, int>> &ar_params_and_vars,
+                  vector<tuple<int, int, optional<int>, double>> &additive_vars_params_and_constants) const;
 
   //! Finds the share of optimizing agents in the PAC equation,
   //! the expr node associated with it,

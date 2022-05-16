@@ -803,10 +803,10 @@ VarExpectationModelTable::writeOutput(const string &basename, ostream &output) c
               constants_list << ", ";
             }
           vars_list << symbol_table.getTypeSpecificID(get<0>(*it))+1;
-          if (get<1>(*it) == -1)
-            params_list << "NaN";
+          if (get<1>(*it))
+            params_list << symbol_table.getTypeSpecificID(*get<1>(*it))+1;
           else
-            params_list << symbol_table.getTypeSpecificID(get<1>(*it))+1;
+            params_list << "NaN";
           constants_list << get<2>(*it);
         }
       output << mstruct << ".expr.vars = [ " << vars_list.str() << " ];" << endl
@@ -1130,7 +1130,7 @@ PacModelTable::transformPass(const lag_equivalence_table_t &unary_ops_nodes,
       if (growth[name])
         try
           {
-            growth_info[name] = growth[name]->matchLinearCombinationOfVariables(false);
+            growth_info[name] = growth[name]->matchLinearCombinationOfVariablesPlusConstant();
           }
         catch (ExprNode::MatchFailureException &e)
           {
@@ -1183,7 +1183,7 @@ PacModelTable::transformPass(const lag_equivalence_table_t &unary_ops_nodes,
               if (growth_component)
                 try
                   {
-                    growth_component_info = growth_component->matchLinearCombinationOfVariables(false);
+                    growth_component_info = growth_component->matchLinearCombinationOfVariablesPlusConstant();
                   }
                 catch (ExprNode::MatchFailureException &e)
                   {
@@ -1377,10 +1377,10 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
     for (auto [growth_symb_id, growth_lag, param_id, constant] : gi)
       {
         string structname = fieldname + "(" + to_string(i++) + ").";
-        if (growth_symb_id >= 0)
+        if (growth_symb_id)
           {
             string var_field = "endo_id";
-            if (symbol_table.getType(growth_symb_id) == SymbolType::exogenous)
+            if (symbol_table.getType(*growth_symb_id) == SymbolType::exogenous)
               {
                 var_field = "exo_id";
                 output << structname << "endo_id = 0;" << endl;
@@ -1390,7 +1390,7 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
             try
               {
                 // case when this is not the highest lag of the growth variable
-                int aux_symb_id = symbol_table.searchAuxiliaryVars(growth_symb_id, growth_lag);
+                int aux_symb_id = symbol_table.searchAuxiliaryVars(*growth_symb_id, growth_lag);
                 output << structname << var_field << " = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
                        << structname << "lag = 0;" << endl;
               }
@@ -1400,14 +1400,14 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
                   {
                     // case when this is the highest lag of the growth variable
                     int tmp_growth_lag = growth_lag + 1;
-                    int aux_symb_id = symbol_table.searchAuxiliaryVars(growth_symb_id, tmp_growth_lag);
+                    int aux_symb_id = symbol_table.searchAuxiliaryVars(*growth_symb_id, tmp_growth_lag);
                     output << structname << var_field << " = " << symbol_table.getTypeSpecificID(aux_symb_id) + 1 << ";" << endl
                            << structname << "lag = -1;" << endl;
                   }
                 catch (...)
                   {
                     // case when there is no aux var for the variable
-                    output << structname << var_field << " = "<< symbol_table.getTypeSpecificID(growth_symb_id) + 1 << ";" << endl
+                    output << structname << var_field << " = "<< symbol_table.getTypeSpecificID(*growth_symb_id) + 1 << ";" << endl
                            << structname << "lag = " << growth_lag << ";" << endl;
                   }
               }
@@ -1417,7 +1417,7 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
                  << structname << "exo_id = 0;" << endl
                  << structname << "lag = 0;" << endl;
         output << structname << "param_id = "
-               << (param_id == -1 ? 0 : symbol_table.getTypeSpecificID(param_id) + 1) << ";" << endl
+               << (param_id ? symbol_table.getTypeSpecificID(*param_id) + 1 : 0) << ";" << endl
                << structname << "constant = " << constant << ";" << endl;
       }
   };
@@ -1468,7 +1468,7 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
 
   for (auto &[name, val] : equation_info)
     {
-      auto [lhs_pac_var, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants] = val;
+      auto &[lhs_pac_var, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants] = val;
       output << "M_.pac." << name << ".lhs_var = "
              << symbol_table.getTypeSpecificID(lhs_pac_var.first) + 1 << ";" << endl;
 
@@ -1479,19 +1479,19 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
       output << "M_.pac." << name << ".ec.params = "
              << symbol_table.getTypeSpecificID(ec_params_and_vars.first) + 1 << ";" << endl
              << "M_.pac." << name << ".ec.vars = [";
-      for (auto it : ec_params_and_vars.second)
+      for (auto &it : ec_params_and_vars.second)
         output << symbol_table.getTypeSpecificID(get<0>(it)) + 1 << " ";
       output << "];" << endl
              << "M_.pac." << name << ".ec.istarget = [";
-      for (auto it : ec_params_and_vars.second)
+      for (auto &it : ec_params_and_vars.second)
         output << boolalpha << get<1>(it) << " ";
       output << "];" << endl
              << "M_.pac." << name << ".ec.scale = [";
-      for (auto it : ec_params_and_vars.second)
+      for (auto &it : ec_params_and_vars.second)
         output << get<2>(it) << " ";
       output << "];" << endl
              << "M_.pac." << name << ".ec.isendo = [";
-      for (auto it : ec_params_and_vars.second)
+      for (auto &it : ec_params_and_vars.second)
         switch (symbol_table.getType(get<0>(it)))
           {
           case SymbolType::endogenous:
@@ -1507,11 +1507,11 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
       output << "];" << endl
              << "M_.pac." << name << ".ar.params = [";
       for (auto &[pid, vid, vlag] : ar_params_and_vars)
-        output << (pid != -1 ? symbol_table.getTypeSpecificID(pid) + 1 : -1) << " ";
+        output << (pid ? symbol_table.getTypeSpecificID(*pid) + 1 : -1) << " ";
       output << "];" << endl
              << "M_.pac." << name << ".ar.vars = [";
       for (auto &[pid, vid, vlag] : ar_params_and_vars)
-        output << (vid != -1 ? symbol_table.getTypeSpecificID(vid) + 1 : -1) << " ";
+        output << (vid ? symbol_table.getTypeSpecificID(*vid) + 1 : -1) << " ";
       output << "];" << endl
              << "M_.pac." << name << ".ar.lags = [";
       for (auto &[pid, vid, vlag] : ar_params_and_vars)
@@ -1522,8 +1522,8 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
         {
           output << "M_.pac." << name << ".non_optimizing_behaviour.params = [";
           for (auto &it : non_optim_vars_params_and_constants)
-            if (get<2>(it) >= 0)
-              output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
+            if (get<2>(it))
+              output << symbol_table.getTypeSpecificID(*get<2>(it)) + 1 << " ";
             else
               output << "NaN ";
           output << "];" << endl
@@ -1559,8 +1559,8 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
         {
           output << "M_.pac." << name << ".additive.params = [";
           for (auto &it : additive_vars_params_and_constants)
-            if (get<2>(it) >= 0)
-              output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
+            if (get<2>(it))
+              output << symbol_table.getTypeSpecificID(*get<2>(it)) + 1 << " ";
             else
               output << "NaN ";
           output << "];" << endl
@@ -1596,8 +1596,8 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
         {
           output << "M_.pac." << name << ".optim_additive.params = [";
           for (auto &it : optim_additive_vars_params_and_constants)
-            if (get<2>(it) >= 0)
-              output << symbol_table.getTypeSpecificID(get<2>(it)) + 1 << " ";
+            if (get<2>(it))
+              output << symbol_table.getTypeSpecificID(*get<2>(it)) + 1 << " ";
             else
               output << "NaN ";
           output << "];" << endl

@@ -299,7 +299,7 @@ ExprNode::fillErrorCorrectionRow(int eqn,
   for (const auto &[term, sign] : terms)
     {
       int speed_of_adjustment_param;
-      vector<tuple<int, int, int, double>> error_linear_combination;
+      vector<tuple<int, int, optional<int>, double>> error_linear_combination;
       try
         {
           tie(speed_of_adjustment_param, error_linear_combination) = term->matchParamTimesLinearCombinationOfVariables();
@@ -326,7 +326,7 @@ ExprNode::fillErrorCorrectionRow(int eqn,
         continue;
 
       // Now fill the matrices
-      for (auto [var_id, lag, param_id, constant] : error_linear_combination)
+      for (const auto &[var_id, lag, param_id, constant] : error_linear_combination)
         {
           auto [orig_vid, orig_lag] = datatree.symbol_table.unrollDiffLeadLagChain(var_id, lag);
           if (find(target_lhs.begin(), target_lhs.end(), orig_vid) == target_lhs.end())
@@ -342,7 +342,7 @@ ExprNode::fillErrorCorrectionRow(int eqn,
                   cerr << "ERROR in trend component model: LHS variable should not appear with a multiplicative constant in error correction term" << endl;
                   exit(EXIT_FAILURE);
                 }
-              if (param_id != -1)
+              if (*param_id)
                 {
                   cerr << "ERROR in trend component model: spurious parameter in error correction term" << endl;
                   exit(EXIT_FAILURE);
@@ -362,8 +362,8 @@ ExprNode::fillErrorCorrectionRow(int eqn,
               int colidx = static_cast<int>(distance(target_lhs.begin(), find(target_lhs.begin(), target_lhs.end(), orig_vid)));
               expr_t e = datatree.AddTimes(datatree.AddVariable(speed_of_adjustment_param),
                                            datatree.AddPossiblyNegativeConstant(-constant));
-              if (param_id != -1)
-                e = datatree.AddTimes(e, datatree.AddVariable(param_id));
+              if (param_id)
+                e = datatree.AddTimes(e, datatree.AddVariable(*param_id));
               if (auto coor = make_pair(eqn, colidx); A0star.contains(coor))
                 A0star[coor] = datatree.AddPlus(e, A0star[coor]);
               else
@@ -5350,8 +5350,8 @@ BinaryOpNode::findTargetVariable(int lhs_symb_id) const
 void
 BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
                          pair<int, vector<tuple<int, bool, int>>> &ec_params_and_vars,
-                         vector<tuple<int, int, int>> &ar_params_and_vars,
-                         vector<tuple<int, int, int, double>> &additive_vars_params_and_constants) const
+                         vector<tuple<optional<int>, optional<int>, int>> &ar_params_and_vars,
+                         vector<tuple<int, int, optional<int>, double>> &additive_vars_params_and_constants) const
 {
   ec_params_and_vars.first = -1;
 
@@ -5383,12 +5383,12 @@ BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
       if (dynamic_cast<PacExpectationNode *>(term))
         continue;
 
-      int pid;
-      vector<tuple<int, int, int, double>> linear_combination;
+      optional<int> pid;
+      vector<tuple<int, int, optional<int>, double>> linear_combination;
       try
         {
-          pid = -1;
-          linear_combination = { term->matchVariableTimesConstantTimesParam() };
+          auto [vid, lag, pid, constant] = term->matchVariableTimesConstantTimesParam(true);
+          linear_combination.emplace_back(vid.value(), lag, move(pid), constant);
         }
       catch (MatchFailureException &e)
         {
@@ -5406,11 +5406,11 @@ BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
       for (auto &[vid, vlag, pidtmp, constant] : linear_combination)
         constant *= sign; // Update sign of constants
 
-      for (auto [vid, vlag, pidtmp, constant] : linear_combination)
+      for (const auto &[vid, vlag, pidtmp, constant] : linear_combination)
         {
-          if (pid == -1)
+          if (!pid)
             pid = pidtmp;
-          else if (pidtmp >= 0)
+          else if (*pidtmp)
             {
               cerr << "unexpected parameter found in PAC equation" << endl;
               exit(EXIT_FAILURE);
@@ -5420,13 +5420,13 @@ BinaryOpNode::getPacAREC(int lhs_symb_id, int lhs_orig_symb_id,
               vidorig == lhs_symb_id)
             {
               // This is an autoregressive term
-              if (constant != 1 || pid == -1 || !datatree.symbol_table.isDiffAuxiliaryVariable(vid))
+              if (constant != 1 || !pid || !datatree.symbol_table.isDiffAuxiliaryVariable(vid))
                 {
                   cerr << "BinaryOpNode::getPacAREC: autoregressive terms must be of the form 'parameter*diff_lagged_variable" << endl;
                   exit(EXIT_FAILURE);
                 }
               if (static_cast<int>(ar_params_and_vars.size()) < -vlagorig)
-                ar_params_and_vars.resize(-vlagorig, { -1, -1, 0 });
+                ar_params_and_vars.resize(-vlagorig, { nullopt, nullopt, 0 });
               ar_params_and_vars[-vlagorig-1] = { pid, vid, vlag };
             }
           else
@@ -5604,11 +5604,12 @@ BinaryOpNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<i
   decomposeAdditiveTerms(terms, 1);
   for (const auto &it : terms)
     {
-      int vid, lag, param_id;
+      optional<int> vid, param_id;
+      int lag;
       double constant;
       try
         {
-          tie(vid, lag, param_id, constant) = it.first->matchVariableTimesConstantTimesParam();
+          tie(vid, lag, param_id, constant) = it.first->matchVariableTimesConstantTimesParam(true);
           constant *= it.second;
         }
       catch (MatchFailureException &e)
@@ -5616,23 +5617,23 @@ BinaryOpNode::fillAutoregressiveRow(int eqn, const vector<int> &lhs, map<tuple<i
           continue;
         }
 
-      tie(vid, lag) = datatree.symbol_table.unrollDiffLeadLagChain(vid, lag);
+      tie(vid, lag) = datatree.symbol_table.unrollDiffLeadLagChain(*vid, lag);
 
-      if (find(lhs.begin(), lhs.end(), vid) == lhs.end())
+      if (find(lhs.begin(), lhs.end(), *vid) == lhs.end())
         continue;
 
-      if (AR.contains({eqn, -lag, vid}))
+      if (AR.contains({eqn, -lag, *vid}))
         {
           cerr << "BinaryOpNode::fillAutoregressiveRow: Error filling AR matrix: "
                << "lag/symb_id encountered more than once in equation" << endl;
           exit(EXIT_FAILURE);
         }
-      if (constant != 1 || param_id == -1)
+      if (constant != 1 || !param_id)
         {
           cerr << "BinaryOpNode::fillAutoregressiveRow: autoregressive terms must be of the form 'parameter*lagged_variable" << endl;
           exit(EXIT_FAILURE);
         }
-      AR[{eqn, -lag, vid}] = datatree.AddVariable(param_id);
+      AR[{eqn, -lag, *vid}] = datatree.AddVariable(*param_id);
     }
 }
 
@@ -8811,25 +8812,26 @@ BinaryOpNode::decomposeMultiplicativeFactors(vector<pair<expr_t, int>> &factors,
     ExprNode::decomposeMultiplicativeFactors(factors, current_exponent);
 }
 
-tuple<int, int, int, double>
+tuple<optional<int>, int, optional<int>, double>
 ExprNode::matchVariableTimesConstantTimesParam(bool variable_obligatory) const
 {
-  int variable_id = -1, lag = 0, param_id = -1;
+  optional<int> variable_id, param_id;
+  int lag = 0;
   double constant = 1.0;
   matchVTCTPHelper(variable_id, lag, param_id, constant, false);
-  if (variable_obligatory && variable_id == -1)
+  if (variable_obligatory && !variable_id)
     throw MatchFailureException{"No variable in this expression"};
-  return {variable_id, lag, param_id, constant};
+  return { move(variable_id), lag, move(param_id), constant};
 }
 
 void
-ExprNode::matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const
+ExprNode::matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const
 {
   throw MatchFailureException{"Expression not allowed in linear combination of variables"};
 }
 
 void
-NumConstNode::matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const
+NumConstNode::matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const
 {
   double myvalue = eval({});
   if (at_denominator)
@@ -8839,7 +8841,7 @@ NumConstNode::matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &con
 }
 
 void
-VariableNode::matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const
+VariableNode::matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const
 {
   if (at_denominator)
     throw MatchFailureException{"A variable or parameter cannot appear at denominator"};
@@ -8847,14 +8849,14 @@ VariableNode::matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &con
   SymbolType type = get_type();
   if (type == SymbolType::endogenous || type == SymbolType::exogenous)
     {
-      if (var_id != -1)
+      if (var_id)
         throw MatchFailureException{"More than one variable in this expression"};
       var_id = symb_id;
       lag = this->lag;
     }
   else if (type == SymbolType::parameter)
     {
-      if (param_id != -1)
+      if (param_id)
         throw MatchFailureException{"More than one parameter in this expression"};
       param_id = symb_id;
     }
@@ -8863,7 +8865,7 @@ VariableNode::matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &con
 }
 
 void
-UnaryOpNode::matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const
+UnaryOpNode::matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const
 {
   if (op_code == UnaryOpcode::uminus)
     {
@@ -8875,7 +8877,7 @@ UnaryOpNode::matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &cons
 }
 
 void
-BinaryOpNode::matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &constant, bool at_denominator) const
+BinaryOpNode::matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const
 {
   if (op_code == BinaryOpcode::times || op_code == BinaryOpcode::divide)
     {
@@ -8889,24 +8891,41 @@ BinaryOpNode::matchVTCTPHelper(int &var_id, int &lag, int &param_id, double &con
     throw MatchFailureException{"Operator not allowed in this expression"};
 }
 
-vector<tuple<int, int, int, double>>
-ExprNode::matchLinearCombinationOfVariables(bool variable_obligatory_in_each_term) const
+vector<tuple<int, int, optional<int>, double>>
+ExprNode::matchLinearCombinationOfVariables() const
 {
   vector<pair<expr_t, int>> terms;
   decomposeAdditiveTerms(terms);
 
-  vector<tuple<int, int, int, double>> result;
+  vector<tuple<int, int, optional<int>, double>> result;
 
   for (auto [term, sign] : terms)
     {
-      auto m = term->matchVariableTimesConstantTimesParam(variable_obligatory_in_each_term);
-      get<3>(m) *= sign;
-      result.push_back(m);
+      auto [variable_id, lag, param_id, constant] = term->matchVariableTimesConstantTimesParam(true);
+      constant *= sign;
+      result.emplace_back(variable_id.value(), lag, move(param_id), constant);
     }
   return result;
 }
 
-pair<int, vector<tuple<int, int, int, double>>>
+vector<tuple<optional<int>, int, optional<int>, double>>
+ExprNode::matchLinearCombinationOfVariablesPlusConstant() const
+{
+  vector<pair<expr_t, int>> terms;
+  decomposeAdditiveTerms(terms);
+
+  vector<tuple<optional<int>, int, optional<int>, double>> result;
+
+  for (auto [term, sign] : terms)
+    {
+      auto m = term->matchVariableTimesConstantTimesParam(false);
+      get<3>(m) *= sign;
+      result.push_back(move(m));
+    }
+  return result;
+}
+
+pair<int, vector<tuple<int, int, optional<int>, double>>>
 ExprNode::matchParamTimesLinearCombinationOfVariables() const
 {
   auto bopn = dynamic_cast<const BinaryOpNode *>(this);

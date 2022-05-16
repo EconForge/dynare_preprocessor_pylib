@@ -205,7 +205,7 @@ private:
   // For each model, list of generated auxiliary param ids, in variable-major order
   map<string, vector<int>> aux_param_symb_ids;
   // Decomposition of the expression
-  map<string, vector<tuple<int, int, double>>> vars_params_constants;
+  map<string, vector<tuple<int, optional<int>, double>>> vars_params_constants;
 public:
   explicit VarExpectationModelTable(SymbolTable &symbol_table_arg);
   void addVarExpectationModel(string name_arg, expr_t expression_arg, string aux_model_name_arg,
@@ -234,9 +234,9 @@ private:
      pac_target_info block. */
   map<string, expr_t> growth, original_growth;
   /* Information about the structure of growth expressions (which must be a
-     linear combination of variables).
+     linear combination of variables, possibly with additional constants).
      Each tuple represents a term: (endo_id, lag, param_id, constant) */
-  using growth_info_t = vector<tuple<int, int, int, double>>;
+  using growth_info_t = vector<tuple<optional<int>, int, optional<int>, double>>;
   map<string, growth_info_t> growth_info;
   // The “auxname” option of pac_model (empty if not passed)
   map<string, string> auxname;
@@ -283,7 +283,7 @@ public:
          (lhs, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants)
   */
   using equation_info_t = map<string,
-                              tuple<pair<int, int>, int, vector<tuple<int, int, int>>, pair<int, vector<tuple<int, bool, int>>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>, vector<tuple<int, int, int, double>>>>;
+                              tuple<pair<int, int>, int, vector<tuple<optional<int>, optional<int>, int>>, pair<int, vector<tuple<int, bool, int>>>, vector<tuple<int, int, optional<int>, double>>, vector<tuple<int, int, optional<int>, double>>, vector<tuple<int, int, optional<int>, double>>>>;
 private:
   equation_info_t equation_info;
 
