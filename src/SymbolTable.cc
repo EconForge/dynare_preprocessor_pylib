@@ -1087,13 +1087,13 @@ SymbolTable::getUltimateOrigSymbID(int symb_id) const
   return symb_id;
 }
 
-int
+optional<int>
 SymbolTable::getEquationNumberForMultiplier(int symb_id) const
 {
   for (const auto &aux_var : aux_vars)
     if (aux_var.get_symb_id() == symb_id && aux_var.get_type() == AuxVarType::multiplier)
       return aux_var.get_equation_number_for_multiplier();
-  return -1;
+  return nullopt;
 }
 
 const set<int> &

@@ -4735,13 +4735,13 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
       if (symbol_table.getType(symb_id) == SymbolType::endogenous && lag == 0)
         {
           neweqs.push_back(AddEqual(equations[0]->getNonZeroPartofEquation()->getDerivative(deriv_id), Zero));
-          if (int i = symbol_table.getEquationNumberForMultiplier(symb_id);
-              i != -1)
+          if (optional<int> i = symbol_table.getEquationNumberForMultiplier(symb_id);
+              i)
             {
               // This is a derivative w.r.t. a Lagrange multiplier
-              neweqs_lineno.push_back(old_equations_lineno[i]);
+              neweqs_lineno.push_back(old_equations_lineno[*i]);
               map<string, string> tags;
-              auto tmp = old_equation_tags.getTagsByEqn(i);
+              auto tmp = old_equation_tags.getTagsByEqn(*i);
               for (const auto &[key, value] : tmp)
                 tags[key] = value;
               neweqs_tags[neweqs.size()-1] = tags;

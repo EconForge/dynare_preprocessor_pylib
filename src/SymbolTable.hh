@@ -464,8 +464,8 @@ public:
      no original variable (e.g. aux var for lead, Lagrange Multiplier or diff
      associated to a complex expression). */
   int getUltimateOrigSymbID(int symb_id) const;
-  //! If this is a Lagrange multiplier, return its associated equation number; otherwise return -1
-  int getEquationNumberForMultiplier(int symb_id) const;
+  //! If this is a Lagrange multiplier, return its associated equation number; otherwise return nullopt
+  optional<int> getEquationNumberForMultiplier(int symb_id) const;
   /* Return all the information about a given auxiliary variable. Throws
      UnknownSymbolIDException if it is not an aux var */
   const AuxVarInfo &getAuxVarInfo(int symb_id) const;
