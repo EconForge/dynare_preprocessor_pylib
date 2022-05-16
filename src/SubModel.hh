@@ -283,7 +283,7 @@ public:
          (lhs, optim_share_index, ar_params_and_vars, ec_params_and_vars, non_optim_vars_params_and_constants, additive_vars_params_and_constants, optim_additive_vars_params_and_constants)
   */
   using equation_info_t = map<string,
-                              tuple<pair<int, int>, int, vector<tuple<optional<int>, optional<int>, int>>, pair<int, vector<tuple<int, bool, int>>>, vector<tuple<int, int, optional<int>, double>>, vector<tuple<int, int, optional<int>, double>>, vector<tuple<int, int, optional<int>, double>>>>;
+                              tuple<pair<int, int>, optional<int>, vector<tuple<optional<int>, optional<int>, int>>, pair<int, vector<tuple<int, bool, int>>>, vector<tuple<int, int, optional<int>, double>>, vector<tuple<int, int, optional<int>, double>>, vector<tuple<int, int, optional<int>, double>>>>;
 private:
   equation_info_t equation_info;
 

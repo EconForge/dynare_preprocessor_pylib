@@ -3859,11 +3859,11 @@ DynamicModel::analyzePacEquationStructure(const string &name, map<string, string
             cerr << "analyzePacEquationStructure: error obtaining RHS parameters." << endl;
             exit(EXIT_FAILURE);
           }
-        pac_equation_info[name] = {lhs, optim_share_index,
-          ar_params_and_vars, ec_params_and_vars,
-          non_optim_vars_params_and_constants,
-          additive_vars_params_and_constants,
-          optim_additive_vars_params_and_constants};
+        pac_equation_info[name] = { lhs, move(optim_share_index),
+          move(ar_params_and_vars), move(ec_params_and_vars),
+          move(non_optim_vars_params_and_constants),
+          move(additive_vars_params_and_constants),
+          move(optim_additive_vars_params_and_constants) };
       }
 }
 

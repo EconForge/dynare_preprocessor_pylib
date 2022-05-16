@@ -1472,9 +1472,9 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
       output << "M_.pac." << name << ".lhs_var = "
              << symbol_table.getTypeSpecificID(lhs_pac_var.first) + 1 << ";" << endl;
 
-      if (optim_share_index >= 0)
+      if (optim_share_index)
         output << "M_.pac." << name << ".share_of_optimizing_agents_index = "
-               << symbol_table.getTypeSpecificID(optim_share_index) + 1 << ";" << endl;
+               << symbol_table.getTypeSpecificID(*optim_share_index) + 1 << ";" << endl;
 
       output << "M_.pac." << name << ".ec.params = "
              << symbol_table.getTypeSpecificID(ec_params_and_vars.first) + 1 << ";" << endl

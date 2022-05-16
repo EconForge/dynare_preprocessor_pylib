@@ -5515,10 +5515,10 @@ BinaryOpNode::getPacNonOptimizingPart(int optim_share_symb_id) const
   return non_optim_part;
 }
 
-pair<int, expr_t>
+pair<optional<int>, expr_t>
 BinaryOpNode::getPacOptimizingShareAndExprNodesHelper(int lhs_symb_id, int lhs_orig_symb_id) const
 {
-  int optim_param_symb_id = -1;
+  optional<int> optim_param_symb_id;
   expr_t optim_part = nullptr;
   set<int> endogs;
   collectVariables(SymbolType::endogenous, endogs);
@@ -5542,7 +5542,7 @@ BinaryOpNode::getPacOptimizingShareAndExprNodesHelper(int lhs_symb_id, int lhs_o
   return {optim_param_symb_id, optim_part};
 }
 
-tuple<int, expr_t, expr_t, expr_t>
+tuple<optional<int>, expr_t, expr_t, expr_t>
 BinaryOpNode::getPacOptimizingShareAndExprNodes(int lhs_symb_id, int lhs_orig_symb_id) const
 {
   vector<pair<expr_t, int>> terms;
@@ -5551,9 +5551,9 @@ BinaryOpNode::getPacOptimizingShareAndExprNodes(int lhs_symb_id, int lhs_orig_sy
     if (dynamic_cast<PacExpectationNode *>(it.first))
       // if the pac_expectation operator is additive in the expression
       // there are no optimizing shares
-      return {-1, nullptr, nullptr, nullptr};
+      return { nullopt, nullptr, nullptr, nullptr };
 
-  int optim_share;
+  optional<int> optim_share;
   expr_t optim_part, non_optim_part, additive_part;
   optim_part = non_optim_part = additive_part = nullptr;
 
@@ -5562,7 +5562,7 @@ BinaryOpNode::getPacOptimizingShareAndExprNodes(int lhs_symb_id, int lhs_orig_sy
       {
         tie(optim_share, optim_part)
           = bopn->getPacOptimizingShareAndExprNodesHelper(lhs_symb_id, lhs_orig_symb_id);
-        if (optim_share >= 0 && optim_part)
+        if (optim_share && optim_part)
           {
             terms.erase(it);
             break;
@@ -5570,12 +5570,12 @@ BinaryOpNode::getPacOptimizingShareAndExprNodes(int lhs_symb_id, int lhs_orig_sy
       }
 
   if (!optim_part)
-    return {-1, nullptr, nullptr, nullptr};
+    return { nullopt, nullptr, nullptr, nullptr };
 
   for (auto it = terms.begin(); it != terms.end(); ++it)
     if (auto bopn = dynamic_cast<BinaryOpNode *>(it->first); bopn)
       {
-        non_optim_part = bopn->getPacNonOptimizingPart(optim_share);
+        non_optim_part = bopn->getPacNonOptimizingPart(optim_share.value());
         if (non_optim_part)
           {
             terms.erase(it);
@@ -5584,7 +5584,7 @@ BinaryOpNode::getPacOptimizingShareAndExprNodes(int lhs_symb_id, int lhs_orig_sy
       }
 
   if (!non_optim_part)
-    return {-1, nullptr, nullptr, nullptr};
+    return { nullopt, nullptr, nullptr, nullptr };
   else
     {
       additive_part = datatree.Zero;
@@ -5594,7 +5594,7 @@ BinaryOpNode::getPacOptimizingShareAndExprNodes(int lhs_symb_id, int lhs_orig_sy
         additive_part = nullptr;
     }
 
-  return {optim_share, optim_part, non_optim_part, additive_part};
+  return { optim_share, optim_part, non_optim_part, additive_part };
 }
 
 void
