@@ -293,8 +293,8 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
         output << it << " ";
       output << "];" << endl
              << "M_.trend_component." << name << ".diff = [";
-      for (const auto &it : diff.at(name))
-        output << (it ? "true" : "false") << " ";
+      for (bool it : diff.at(name))
+        output << boolalpha << it << " ";
       output << "];" << endl
              << "M_.trend_component." << name << ".orig_diff_var = [";
       for (auto it : orig_diff_var.at(name))
@@ -460,7 +460,7 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
   for (const auto &name : names)
     {
       output << "M_.var." << name << ".model_name = '" << name << "';" << endl
-             << "M_.var." << name << ".structural = " << (structural.at(name) ? "true" : "false") << ";" << endl
+             << "M_.var." << name << ".structural = " << boolalpha << structural.at(name) << ";" << endl
              << "M_.var." << name << ".eqtags = {";
       for (const auto &it : eqtags.at(name))
         output << "'" << it << "'; ";
@@ -478,8 +478,8 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
         output << it << " ";
       output << "];" << endl
              << "M_.var." << name << ".diff = [";
-      for (const auto &it : diff.at(name))
-        output << (it ? "true" : "false") << " ";
+      for (bool it : diff.at(name))
+        output << boolalpha << it << " ";
       output << "];" << endl
              << "M_.var." << name << ".nonstationary = M_.var." << name << ".diff;" << endl
              << "M_.var." << name << ".orig_diff_var = [";
@@ -1491,7 +1491,7 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
       output << "];" << endl
              << "M_.pac." << name << ".ec.istarget = [";
       for (auto it : ec_params_and_vars.second)
-        output << (get<1>(it) ? "true " : "false ");
+        output << boolalpha << get<1>(it) << " ";
       output << "];" << endl
              << "M_.pac." << name << ".ec.scale = [";
       for (auto it : ec_params_and_vars.second)

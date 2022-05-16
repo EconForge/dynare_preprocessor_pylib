@@ -2744,7 +2744,7 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename,
              << "M_.block_structure.block(" << blk+1 << ").n_forward = " << blocks[blk].n_forward << ";" << endl
              << "M_.block_structure.block(" << blk+1 << ").n_backward = " << blocks[blk].n_backward << ";" << endl
              << "M_.block_structure.block(" << blk+1 << ").n_mixed = " << blocks[blk].n_mixed << ";" << endl
-             << "M_.block_structure.block(" << blk+1 << ").is_linear = " << (blocks[blk].linear ? "true" : "false" ) << ';' << endl
+             << "M_.block_structure.block(" << blk+1 << ").is_linear = " << boolalpha << blocks[blk].linear << ';' << endl
              << "M_.block_structure.block(" << blk+1 << ").NNZDerivatives = " << blocks_derivatives[blk].size() << ';' << endl;
     }
 
@@ -3011,7 +3011,7 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
   /* Say if static and dynamic models differ (because of [static] and [dynamic]
      equation tags) */
   output << "M_.static_and_dynamic_models_differ = "
-         << (static_only_equations.size() > 0 ? "true" : "false")
+         << boolalpha << (static_only_equations.size() > 0)
          << ";" << endl;
 
   // Say if model contains an external function call
@@ -3022,8 +3022,7 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
         has_external_function = true;
         break;
       }
-  output << "M_.has_external_function = "
-         << (has_external_function ? "true" : "false")
+  output << "M_.has_external_function = " << boolalpha << has_external_function
          << ';' << endl;
 
   // Compute list of state variables, ordered in block-order

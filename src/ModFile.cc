@@ -924,12 +924,11 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
               << "M_.heteroskedastic_shocks.Qvalue_orig = [];" << endl
               << "M_.heteroskedastic_shocks.Qscale_orig = [];" << endl;
 
-  auto to_matlab_logical = [](bool m) { return m ? "true" : "false"; };
-
-  mOutputFile << "options_.linear = " << to_matlab_logical(linear) << ";" << endl
-              << "options_.block = " << to_matlab_logical(block) << ";" << endl
-              << "options_.bytecode = " << to_matlab_logical(bytecode) << ";" << endl
-              << "options_.use_dll = " << to_matlab_logical(use_dll) << ";" << endl;
+  mOutputFile << boolalpha
+              << "options_.linear = " << linear << ";" << endl
+              << "options_.block = " << block << ";" << endl
+              << "options_.bytecode = " << bytecode << ";" << endl
+              << "options_.use_dll = " << use_dll << ";" << endl;
 
   if (parallel_local_files.size() > 0)
     {

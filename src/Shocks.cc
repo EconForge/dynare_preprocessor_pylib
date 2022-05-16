@@ -47,9 +47,10 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
       for (const auto &[period1, period2, value] : shock_vec)
         {
           output << "M_.det_shocks = [ M_.det_shocks;" << endl
-                 << "struct('exo_det'," << (exo_det ? "true" : "false")
+                 << boolalpha
+                 << "struct('exo_det'," << exo_det
                  << ",'exo_id'," << symbol_table.getTypeSpecificID(id)+1
-                 << ",'multiplicative'," << (mshocks ? "true" : "false")
+                 << ",'multiplicative'," << mshocks
                  << ",'periods'," << period1 << ":" << period2
                  << ",'value',";
           value->writeOutput(output);
@@ -148,7 +149,7 @@ void
 ShocksStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "shocks")"
-         << R"(, "overwrite": )" << (overwrite ? "true" : "false");
+         << R"(, "overwrite": )" << boolalpha << overwrite;
   if (!det_shocks.empty())
     {
       output << ", ";
@@ -419,7 +420,7 @@ void
 MShocksStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "mshocks")"
-         << R"(, "overwrite": )" << (overwrite ? "true" : "false");
+         << R"(, "overwrite": )" << boolalpha << overwrite;
   if (!det_shocks.empty())
     {
       output << ", ";
@@ -550,7 +551,7 @@ ShocksLearntInStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "shocks")"
          << R"(, "learnt_in": )" << learnt_in_period
-         << R"(, "overwrite": )" << (overwrite ? "true" : "false")
+         << R"(, "overwrite": )" << boolalpha << overwrite
          << R"(, "learnt_shocks": [)";
   for (auto it = learnt_shocks.begin(); it != learnt_shocks.end(); ++it)
     {
@@ -912,7 +913,7 @@ void
 HeteroskedasticShocksStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "heteroskedastic_shocks")"
-         << R"(, "overwrite": )" << (overwrite ? "true" : "false")
+         << R"(, "overwrite": )" << boolalpha << overwrite
          << R"(, "shocks_values": [)";
   for (auto it = values.begin(); it != values.end(); ++it)
     {
