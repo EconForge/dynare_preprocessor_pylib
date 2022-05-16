@@ -288,7 +288,7 @@ private:
 
 public:
   /* (component variable/expr, growth, auxname, kind, coeff. in the linear
-     combination, growth_param ID possibly equal to -1, vector of h parameters,
+     combination, growth_param ID (unused if growth is nullptr), vector of h parameters,
      original_growth, growth_info) */
   using target_component_t = tuple<expr_t, expr_t, string, PacTargetKind, expr_t, int, vector<int>, expr_t, growth_info_t>;
 
