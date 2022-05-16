@@ -46,7 +46,8 @@ private:
   SymbolTable &symbol_table;
   set<string> names;
   map<string, vector<string>> eqtags, target_eqtags;
-  map<string, vector<int>> eqnums, target_eqnums, nontarget_eqnums, max_lags, lhs, target_lhs, nontarget_lhs, orig_diff_var;
+  map<string, vector<int>> eqnums, target_eqnums, nontarget_eqnums, max_lags, lhs, target_lhs, nontarget_lhs;
+  map<string, vector<optional<int>>> orig_diff_var;
   map<string, vector<set<pair<int, int>>>> rhs;
   map<string, vector<bool>> diff;
   map<string, vector<expr_t>> lhs_expr_t;
@@ -77,7 +78,6 @@ public:
   const vector<int> &getLhs(const string &name_arg) const;
   const vector<expr_t> &getLhsExprT(const string &name_arg) const;
   const vector<bool> &getDiff(const string &name_arg) const;
-  const vector<int> &getOrigDiffVar(const string &name_arg) const;
   const map<string, vector<int>> &getNonTargetEqNums() const;
   const vector<int> &getNonTargetEqNums(const string &name_arg) const;
   const vector<int> &getNonTargetLhs(const string &name_arg) const;
@@ -89,7 +89,7 @@ public:
   void setRhs(map<string, vector<set<pair<int, int>>>> rhs_arg);
   void setMaxLags(map<string, vector<int>> max_lags_arg);
   void setDiff(map<string, vector<bool>> diff_arg);
-  void setOrigDiffVar(map<string, vector<int>> orig_diff_var_arg);
+  void setOrigDiffVar(map<string, vector<optional<int>>> orig_diff_var_arg);
   void setTargetVar(map<string, vector<optional<int>>> target_vars_arg);
   void setAR(map<string, map<tuple<int, int, int>, expr_t>> AR_arg);
   void setA0(map<string, map<tuple<int, int>, expr_t>> A0_arg,
@@ -125,7 +125,8 @@ private:
   set<string> names;
   map<string, bool> structural; // Whether VARs are structural or reduced-form
   map<string, vector<string>> eqtags;
-  map<string, vector<int>> eqnums, max_lags, lhs, lhs_orig_symb_ids, orig_diff_var;
+  map<string, vector<int>> eqnums, max_lags, lhs, lhs_orig_symb_ids;
+  map<string, vector<optional<int>>> orig_diff_var;
   map<string, vector<set<pair<int, int>>>> rhs; // name -> for each equation: set of pairs (var, lag)
   map<string, vector<bool>> diff;
   map<string, vector<expr_t>> lhs_expr_t;
@@ -164,7 +165,7 @@ public:
   void setLhsExprT(map<string, vector<expr_t>> lhs_expr_t_arg);
   void setDiff(map<string, vector<bool>> diff_arg);
   void setMaxLags(map<string, vector<int>> max_lags_arg);
-  void setOrigDiffVar(map<string, vector<int>> orig_diff_var_arg);
+  void setOrigDiffVar(map<string, vector<optional<int>>> orig_diff_var_arg);
   void setAR(map<string, map<tuple<int, int, int>, expr_t>> AR_arg);
   void setA0(map<string, map<tuple<int, int>, expr_t>> A0_arg);
   void setConstants(map<string, map<int, expr_t>> constants_arg);

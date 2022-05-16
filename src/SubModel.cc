@@ -101,7 +101,7 @@ TrendComponentModelTable::setDiff(map<string, vector<bool>> diff_arg)
 }
 
 void
-TrendComponentModelTable::setOrigDiffVar(map<string, vector<int>> orig_diff_var_arg)
+TrendComponentModelTable::setOrigDiffVar(map<string, vector<optional<int>>> orig_diff_var_arg)
 {
   orig_diff_var = move(orig_diff_var_arg);
 }
@@ -240,13 +240,6 @@ TrendComponentModelTable::getDiff(const string &name_arg) const
   return diff.find(name_arg)->second;
 }
 
-const vector<int> &
-TrendComponentModelTable::getOrigDiffVar(const string &name_arg) const
-{
-  checkModelName(name_arg);
-  return orig_diff_var.find(name_arg)->second;
-}
-
 void
 TrendComponentModelTable::writeOutput(const string &basename, ostream &output) const
 {
@@ -297,8 +290,8 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
         output << boolalpha << it << " ";
       output << "];" << endl
              << "M_.trend_component." << name << ".orig_diff_var = [";
-      for (auto it : orig_diff_var.at(name))
-        output << (it >= 0 ? symbol_table.getTypeSpecificID(it) + 1 : -1) << " ";
+      for (const auto &it : orig_diff_var.at(name))
+        output << (it ? symbol_table.getTypeSpecificID(*it) + 1 : -1) << " ";
       output << "];" << endl
              << "M_.trend_component." << name << ".nonstationary = [";
       for (size_t i = 0; i < diff.at(name).size(); i++)
@@ -483,8 +476,8 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
       output << "];" << endl
              << "M_.var." << name << ".nonstationary = M_.var." << name << ".diff;" << endl
              << "M_.var." << name << ".orig_diff_var = [";
-      for (auto it : orig_diff_var.at(name))
-        output << (it >= 0 ? symbol_table.getTypeSpecificID(it) + 1 : -1) << " ";
+      for (const auto &it : orig_diff_var.at(name))
+        output << (it ? symbol_table.getTypeSpecificID(*it) + 1 : -1) << " ";
       output << "];" << endl;
       int i = 1;
       for (const auto &it : rhs.at(name))
@@ -681,7 +674,7 @@ VarModelTable::setDiff(map<string, vector<bool>> diff_arg)
 }
 
 void
-VarModelTable::setOrigDiffVar(map<string, vector<int>> orig_diff_var_arg)
+VarModelTable::setOrigDiffVar(map<string, vector<optional<int>>> orig_diff_var_arg)
 {
   orig_diff_var = move(orig_diff_var_arg);
 }

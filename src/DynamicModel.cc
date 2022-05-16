@@ -3268,12 +3268,13 @@ DynamicModel::fillVarModelTable() const
 void
 DynamicModel::fillVarModelTableFromOrigModel() const
 {
-  map<string, vector<int>> lags, orig_diff_var;
+  map<string, vector<int>> lags;
+  map<string, vector<optional<int>>> orig_diff_var;
   map<string, vector<bool>> diff;
   for (const auto &[model_name, eqns] : var_model_table.getEqNums())
     {
       set<expr_t> lhs;
-      vector<int> orig_diff_var_vec;
+      vector<optional<int>> orig_diff_var_vec;
       vector<bool> diff_vec;
       for (auto eqn : eqns)
         {
@@ -3323,7 +3324,7 @@ DynamicModel::fillVarModelTableFromOrigModel() const
               orig_diff_var_vec.push_back(diff_set.begin()->first);
             }
           else
-            orig_diff_var_vec.push_back(-1);
+            orig_diff_var_vec.push_back(nullopt);
 
         }
 
@@ -3616,12 +3617,13 @@ DynamicModel::computeErrorComponentMatrices(const ExprNode::subst_table_t &diff_
 void
 DynamicModel::fillTrendComponentModelTableFromOrigModel() const
 {
-  map<string, vector<int>> lags, orig_diff_var;
+  map<string, vector<int>> lags;
+  map<string, vector<optional<int>>> orig_diff_var;
   map<string, vector<bool>> diff;
   for (const auto &[model_name, eqns] : trend_component_model_table.getEqNums())
     {
       set<expr_t> lhs;
-      vector<int> orig_diff_var_vec;
+      vector<optional<int>> orig_diff_var_vec;
       vector<bool> diff_vec;
       for (auto eqn : eqns)
         {
@@ -3666,7 +3668,7 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
               orig_diff_var_vec.push_back(diff_set.begin()->first);
             }
           else
-            orig_diff_var_vec.push_back(-1);
+            orig_diff_var_vec.push_back(nullopt);
         }
 
       if (eqns.size() != lhs.size())
@@ -3710,7 +3712,6 @@ DynamicModel::getUndiffLHSForPac(const string &aux_model_name,
   vector<expr_t> lhs_expr_t = trend_component_model_table.getLhsExprT(aux_model_name);
   vector<int> lhs = trend_component_model_table.getLhs(aux_model_name);
   vector<bool> diff = trend_component_model_table.getDiff(aux_model_name);
-  vector<int> orig_diff_var = trend_component_model_table.getOrigDiffVar(aux_model_name);
   vector<int> eqnumber = trend_component_model_table.getEqNums(aux_model_name);
   vector<int> nontrend_eqnums = trend_component_model_table.getNonTargetEqNums(aux_model_name);
 
