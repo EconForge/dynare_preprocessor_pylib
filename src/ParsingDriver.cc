@@ -2498,10 +2498,12 @@ ParsingDriver::conditional_forecast()
 }
 
 void
-ParsingDriver::plot_conditional_forecast(const string &periods, vector<string> symbol_list)
+ParsingDriver::plot_conditional_forecast(const optional<string> &periods, vector<string> symbol_list)
 {
-  int nperiods = periods.empty() ? -1 : stoi(periods);
-  mod_file->addStatement(make_unique<PlotConditionalForecastStatement>(nperiods, move(symbol_list),
+  optional<int> iperiods;
+  if (periods)
+    iperiods = stoi(*periods);
+  mod_file->addStatement(make_unique<PlotConditionalForecastStatement>(move(iperiods), move(symbol_list),
                                                                        mod_file->symbol_table));
 }
 

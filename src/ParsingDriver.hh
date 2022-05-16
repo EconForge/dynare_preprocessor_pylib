@@ -726,7 +726,7 @@ public:
   //! Conditional forecast paths block
   void conditional_forecast_paths();
   //! Plot conditional forecast statement
-  void plot_conditional_forecast(const string &periods, vector<string> symbol_list);
+  void plot_conditional_forecast(const optional<string> &periods, vector<string> symbol_list);
   //! Smoother on calibrated models
   void calib_smoother(vector<string> symbol_list);
   //! Extended path

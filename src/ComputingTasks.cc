@@ -3266,10 +3266,10 @@ ConditionalForecastStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-PlotConditionalForecastStatement::PlotConditionalForecastStatement(int periods_arg,
+PlotConditionalForecastStatement::PlotConditionalForecastStatement(optional<int> periods_arg,
                                                                    SymbolList symbol_list_arg,
                                                                    const SymbolTable &symbol_table_arg) :
-  periods{periods_arg},
+  periods{move(periods_arg)},
   symbol_list{move(symbol_list_arg)},
   symbol_table{symbol_table_arg}
 {
@@ -3294,17 +3294,18 @@ void
 PlotConditionalForecastStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
-  if (periods == -1)
-    output << "plot_icforecast(var_list_,[],options_,oo_);" << endl;
+  if (periods)
+    output << "plot_icforecast(var_list_, " << *periods << ",options_,oo_);" << endl;
   else
-    output << "plot_icforecast(var_list_, " << periods << ",options_,oo_);" << endl;
+    output << "plot_icforecast(var_list_,[],options_,oo_);" << endl;
 }
 
 void
 PlotConditionalForecastStatement::writeJsonOutput(ostream &output) const
 {
-  output << R"({"statementName": "plot_conditional_forecast", )"
-         << R"("periods": )" << periods;
+  output << R"({"statementName": "plot_conditional_forecast")";
+  if (periods)
+    output << R"(, "periods": )" << *periods;
   if (!symbol_list.empty())
     {
       output << ", ";

@@ -21,6 +21,7 @@
 #define _COMPUTINGTASKS_HH
 
 #include <ostream>
+#include <optional>
 
 #include "SymbolList.hh"
 #include "SymbolTable.hh"
@@ -848,12 +849,11 @@ public:
 class PlotConditionalForecastStatement : public Statement
 {
 private:
-  //! A value of -1 indicates that the user didn't specify a value
-  const int periods;
+  const optional<int> periods; // The user is allowed not to declare periods
   const SymbolList symbol_list;
   const SymbolTable &symbol_table;
 public:
-  PlotConditionalForecastStatement(int periods_arg, SymbolList symbol_list_arg,
+  PlotConditionalForecastStatement(optional<int> periods_arg, SymbolList symbol_list_arg,
                                    const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;

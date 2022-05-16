@@ -3213,7 +3213,7 @@ conditional_forecast_option : o_periods
                             ;
 
 plot_conditional_forecast : PLOT_CONDITIONAL_FORECAST symbol_list ';'
-                            { driver.plot_conditional_forecast("", $2); }
+                            { driver.plot_conditional_forecast(nullopt, $2); }
                           | PLOT_CONDITIONAL_FORECAST '(' PERIODS EQUAL INT_NUMBER ')' symbol_list ';'
                             { driver.plot_conditional_forecast($5, $7); }
                           ;
