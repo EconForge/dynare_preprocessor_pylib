@@ -368,7 +368,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
             break;
           case AuxVarType::unaryOp:
             output << "M_.aux_vars(" << i+1 << ").unary_op = '" << aux_vars[i].get_unary_op() << "';" << endl;
-            // NB: Fallback!
+            [[fallthrough]];
           case AuxVarType::diff:
             if (aux_vars[i].get_orig_symb_id())
               output << "M_.aux_vars(" << i+1 << ").orig_index = " << getTypeSpecificID(*aux_vars[i].get_orig_symb_id())+1 << ";" << endl
@@ -1031,7 +1031,7 @@ SymbolTable::writeJsonOutput(ostream &output) const
 	      break;
 	    case AuxVarType::unaryOp:
               output << R"(, "unary_op": ")" << aux_vars[i].get_unary_op() << R"(")";
-              // NB: Fallback!
+              [[fallthrough]];
             case AuxVarType::diff:
 	      if (aux_vars[i].get_orig_symb_id())
 		output << R"(, "orig_index": )" << getTypeSpecificID(*aux_vars[i].get_orig_symb_id())+1
