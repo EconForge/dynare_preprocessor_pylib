@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2021 Dynare Team
+ * Copyright © 2006-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -158,63 +158,7 @@ VerbatimStatement::writeJsonOutput(ostream &output) const
 void
 OptionsList::writeOutput(ostream &output) const
 {
-  for (const auto & [name, val] : num_options)
-    output << "options_." << name << " = " << val << ";" << endl;
-
-  for (const auto & [name, vals] : paired_num_options)
-    output << "options_." << name << " = [" << vals.first << "; "
-           << vals.second << "];" << endl;
-
-  for (const auto & [name, val] : string_options)
-    output << "options_." << name << " = '" << val << "';" << endl;
-
-  for (const auto & [name, val] : date_options)
-    output << "options_." << name << " = " << val << ";" << endl;
-
-  for (const auto & [name, list] : symbol_list_options)
-    list.writeOutput("options_." + name, output);
-
-  for (const auto & [name, vals] : vector_int_options)
-    {
-      output << "options_." << name << " = ";
-      if (vals.size() > 1)
-        {
-          output << "[";
-          for (int viit : vals)
-            output << viit << ";";
-          output << "];" << endl;
-        }
-      else
-        output << vals.front() << ";" << endl;
-    }
-
-  for (const auto & [name, vals] : vector_str_options)
-    {
-      output << "options_." << name << " = ";
-      if (vals.size() > 1)
-        {
-          output << "{";
-          for (const auto &viit : vals)
-            output << "'" << viit << "';";
-          output << "};" << endl;
-        }
-      else
-        output << vals.front() << ";" << endl;
-    }
-  
-  /* vector_cellstr_options should ideally be merged into vector_str_options
-     only difference is treatment of vals.size==1, where vector_str_options
-     does not add quotes and curly brackets, i.e. allows for type conversion of
-     '2' into the number 2 
-  */
- 
-  for (const auto & [name, vals] : vector_cellstr_options)
-    {
-      output << "options_." << name << " = {";
-      for (const auto &viit : vals)
-        output << "'" << viit << "';";
-      output << "};" << endl;
-    }
+  writeOutputCommon(output, "options_");
 }
 
 void
@@ -231,6 +175,12 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
   else
     output << option_group << " = struct();" << endl;
 
+  writeOutputCommon(output, option_group);
+}
+
+void
+OptionsList::writeOutputCommon(ostream &output, const string &option_group) const
+{
   for (const auto & [name, val] : num_options)
     output << option_group << "." << name << " = " << val << ";" << endl;
 
@@ -274,6 +224,12 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
       else
         output << vals.front() << ";" << endl;
     }
+
+  /* vector_cellstr_options should ideally be merged into vector_str_options
+     only difference is treatment of vals.size==1, where vector_str_options
+     does not add quotes and curly brackets, i.e. allows for type conversion of
+     '2' into the number 2
+  */
 
   for (const auto & [name, vals] : vector_cellstr_options)
     {

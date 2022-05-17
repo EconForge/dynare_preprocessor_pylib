@@ -230,6 +230,8 @@ public:
   void writeOutput(ostream &output, const string &option_group) const;
   void writeJsonOutput(ostream &output) const;
   void clear();
+private:
+  void writeOutputCommon(ostream &output, const string &option_group) const;
 };
 
 #endif // ! _STATEMENT_HH
