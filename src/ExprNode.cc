@@ -2471,6 +2471,7 @@ UnaryOpNode::writeJsonAST(ostream &output) const
       break;
     case UnaryOpcode::steadyState:
       output << "steady_state";
+      break;
     case UnaryOpcode::steadyStateParamDeriv:
       output << "steady_state_param_deriv";
       break;

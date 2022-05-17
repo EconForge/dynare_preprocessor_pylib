@@ -1736,6 +1736,7 @@ EstimatedParamsBoundsStatement::writeJsonOutput(ostream &output) const
         {
         case 1:
           output << R"("var": ")" << it->name << R"(")";
+          break;
         case 2:
           output << R"("param": ")" << it->name << R"(")";
           break;
@@ -1833,6 +1834,7 @@ EstimatedParamsRemoveStatement::writeJsonOutput(ostream &output) const
         {
         case 1:
           output << R"("var": ")" << it->name << R"(")";
+          break;
         case 2:
           output << R"("param": ")" << it->name << R"(")";
           break;
