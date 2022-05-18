@@ -1472,6 +1472,30 @@ ParsingDriver::option_vec_cellstr(string name_option, vector<string> opt)
 }
 
 void
+ParsingDriver::option_vec_value(string name_option, vector<string> opt)
+{
+  if (options_list.vector_value_options.contains(name_option))
+    error("option " + name_option + " declared twice");
+
+  if (opt.empty())
+    error("option " + name_option + " was passed an empty vector.");
+
+  options_list.vector_value_options[move(name_option)] = move(opt);
+}
+
+void
+ParsingDriver::option_vec_of_vec_value(string name_option, vector<vector<string>> opt)
+{
+  if (options_list.vector_of_vector_value_options.contains(name_option))
+    error("option " + name_option + " declared twice");
+
+  if (opt.empty())
+    error("option " + name_option + " was passed an empty vector.");
+
+  options_list.vector_of_vector_value_options[move(name_option)] = move(opt);
+}
+
+void
 ParsingDriver::linear()
 {
   mod_file->linear = true;

@@ -238,6 +238,30 @@ OptionsList::writeOutputCommon(ostream &output, const string &option_group) cons
         output << "'" << viit << "';";
       output << "};" << endl;
     }
+
+  /* For historical reason, those vectors are output as row vectors (contrary
+     to vectors of integers which are output as column vectors) */
+  for (const auto &[name, vals] : vector_value_options)
+    {
+      output << option_group << "." << name << " = [";
+      for (const auto &viit : vals)
+        output << viit << ",";
+      output << "];" << endl;
+    }
+
+  // Same remark as for vectors of (floating point) values
+  for (const auto &[name, vec_vals] : vector_of_vector_value_options)
+    {
+      output << option_group << "." << name << " = {";
+      for (const auto &vals : vec_vals)
+        {
+          output << "[";
+          for (const auto &viit : vals)
+            output << viit << ",";
+          output << "], ";
+        }
+      output << "};" << endl;
+    }
 }
 
 void
@@ -336,6 +360,43 @@ OptionsList::writeJsonOutput(ostream &output) const
       opt_written = true;
     }
 
+  for (const auto &[name, vals] : vector_value_options)
+    {
+      if (opt_written)
+        output << ", ";
+      output << R"(")" << name << R"(": [)";
+      for (auto it = vals.begin(); it != vals.end(); ++it)
+        {
+          if (it != vals.begin())
+            output << ", ";
+          output << *it;
+        }
+      output << "]";
+      opt_written = true;
+    }
+
+  for (const auto &[name, vec_vals] : vector_of_vector_value_options)
+    {
+      if (opt_written)
+        output << ", ";
+      output << R"(")" << name << R"(": [)";
+      for (auto it = vec_vals.begin(); it != vec_vals.end(); ++it)
+        {
+          if (it != vec_vals.begin())
+            output << ", ";
+          output << "[";
+          for (auto it2 = it->begin(); it2 != it->end(); ++it2)
+            {
+              if (it2 != it->begin())
+                output << ", ";
+              output << *it2;
+            }
+          output << "]";
+        }
+      output << "]";
+      opt_written = true;
+    }
+
   output << "}";
 }
 
@@ -350,6 +411,8 @@ OptionsList::clear()
   vector_int_options.clear();
   vector_str_options.clear();
   vector_cellstr_options.clear();
+  vector_value_options.clear();
+  vector_of_vector_value_options.clear();
 }
 
 int
@@ -362,5 +425,7 @@ OptionsList::getNumberOfOptions() const
     + symbol_list_options.size()
     + vector_int_options.size()
     + vector_str_options.size()
-    + vector_cellstr_options.size();
+    + vector_cellstr_options.size()
+    + vector_value_options.size()
+    + vector_of_vector_value_options.size();
 }

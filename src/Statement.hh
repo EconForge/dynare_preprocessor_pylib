@@ -215,6 +215,8 @@ public:
   using vec_int_options_t = map<string, vector<int>>;
   using vec_str_options_t = map<string, vector<string >>;
   using vec_cellstr_options_t = map<string, vector<string >>;
+  using vec_value_options_t = map<string, vector<string>>;
+  using vec_of_vec_value_options_t = map<string, vector<vector<string>>>;
   num_options_t num_options;
   paired_num_options_t paired_num_options;
   string_options_t string_options;
@@ -223,6 +225,8 @@ public:
   vec_int_options_t vector_int_options;
   vec_str_options_t vector_str_options;
   vec_cellstr_options_t vector_cellstr_options;
+  vec_value_options_t vector_value_options;
+  vec_of_vec_value_options_t vector_of_vector_value_options;
   int getNumberOfOptions() const;
   void writeOutput(ostream &output) const;
   void writeOutput(ostream &output, const string &option_group) const;

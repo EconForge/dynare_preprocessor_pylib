@@ -3465,69 +3465,57 @@ SvarIdentificationStatement::writeJsonOutput(ostream &output) const
 MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg) :
   options_list{move(options_list_arg)}
 {
-  if (auto it_num = options_list.num_options.find("ms.restrictions");
-      it_num != options_list.num_options.end())
+  if (auto it_num = options_list.vector_of_vector_value_options.find("ms.restrictions");
+      it_num != options_list.vector_of_vector_value_options.end())
     {
-      using namespace boost;
       auto it_num_regimes = options_list.num_options.find("ms.number_of_regimes");
       assert(it_num_regimes != options_list.num_options.end());
       auto num_regimes = stoi(it_num_regimes->second);
 
-      vector<string> tokenizedRestrictions;
-      split(tokenizedRestrictions, it_num->second, is_any_of("["), token_compress_on);
-      for (auto &tokenizedRestriction : tokenizedRestrictions)
-        if (tokenizedRestriction.size() > 0)
-          {
-            vector<string> restriction;
-            split(restriction, tokenizedRestriction, is_any_of("], "));
-            for (auto it1 = restriction.begin(); it1 != restriction.end();)
-              if (it1->empty())
-                restriction.erase(it1);
-              else
-                ++it1;
+      for (const vector<string> &restriction : it_num->second)
+        {
+          if (restriction.size() != 3)
+            {
+              cerr << "ERROR: restrictions in the subsample statement must be specified in the form "
+                   << "[current_period_regime, next_period_regime, transition_probability]" << endl;
+              exit(EXIT_FAILURE);
+            }
 
-            if (restriction.size() != 3)
-              {
-                cerr << "ERROR: restrictions in the subsample statement must be specified in the form "
-                     << "[current_period_regime, next_period_regime, transition_probability]" << endl;
-                exit(EXIT_FAILURE);
-              }
+          try
+            {
+              auto from_regime = stoi(restriction[0]);
+              auto to_regime = stoi(restriction[1]);
+              if (from_regime > num_regimes || to_regime > num_regimes)
+                {
+                  cerr << "ERROR: the regimes specified in the restrictions option must be "
+                       << "<= the number of regimes specified in the number_of_regimes option" << endl;
+                  exit(EXIT_FAILURE);
+                }
 
-            try
-              {
-                auto from_regime = stoi(restriction[0]);
-                auto to_regime = stoi(restriction[1]);
-                if (from_regime > num_regimes || to_regime > num_regimes)
-                  {
-                    cerr << "ERROR: the regimes specified in the restrictions option must be "
-                         << "<= the number of regimes specified in the number_of_regimes option" << endl;
-                    exit(EXIT_FAILURE);
-                  }
+              if (restriction_map.contains({ from_regime, to_regime }))
+                {
+                  cerr << "ERROR: two restrictions were given for: " << from_regime << ", "
+                       << to_regime << endl;
+                  exit(EXIT_FAILURE);
+                }
 
-                if (restriction_map.contains({ from_regime, to_regime }))
-                  {
-                    cerr << "ERROR: two restrictions were given for: " << from_regime << ", "
-                         << to_regime << endl;
-                    exit(EXIT_FAILURE);
-                  }
-
-                auto transition_probability = stod(restriction[2]);
-                if (transition_probability > 1.0)
-                  {
-                    cerr << "ERROR: the transition probability, " << transition_probability
-                         << " must be less than 1" << endl;
-                    exit(EXIT_FAILURE);
-                  }
-                restriction_map[{ from_regime, to_regime }] = transition_probability;
-              }
-            catch (const invalid_argument &)
-              {
-                cerr << "ERROR: The first two arguments for a restriction must be integers "
-                     << "specifying the regime and the last must be a double specifying the "
-                     << "transition probability. You wrote [" << tokenizedRestriction << endl;
-                exit(EXIT_FAILURE);
-              }
-          }
+              auto transition_probability = stod(restriction[2]);
+              if (transition_probability > 1.0)
+                {
+                  cerr << "ERROR: the transition probability, " << transition_probability
+                       << " must be less than 1" << endl;
+                  exit(EXIT_FAILURE);
+                }
+              restriction_map[{ from_regime, to_regime }] = transition_probability;
+            }
+          catch (const invalid_argument &)
+            {
+              cerr << "ERROR: The first two arguments for a restriction must be integers "
+                   << "specifying the regime and the last must be a floating point specifying the "
+                   << "transition probability.";
+              exit(EXIT_FAILURE);
+            }
+        }
     }
 }
 
@@ -3544,10 +3532,8 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
       exit(EXIT_FAILURE);
     }
 
-  if (auto it_num = options_list.num_options.find("ms.restrictions");
-      it_num != options_list.num_options.end())
+  if (options_list.vector_of_vector_value_options.contains("ms.restrictions"))
     {
-      using namespace boost;
       auto it_num_regimes = options_list.num_options.find("ms.number_of_regimes");
       assert(it_num_regimes != options_list.num_options.end());
       auto num_regimes = stoi(it_num_regimes->second);
@@ -3613,21 +3599,32 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
 void
 MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
-  bool isDurationAVec = true;
-  string infStr("Inf");
-  OptionsList::num_options_t::const_iterator itChain, itNOR, itDuration;
-  map<pair<int, int>, double >::const_iterator itR;
-
-  itChain = options_list.num_options.find("ms.chain");
+  auto itChain = options_list.num_options.find("ms.chain");
   assert(itChain != options_list.num_options.end());
 
-  itDuration = options_list.num_options.find("ms.duration");
-  assert(itDuration != options_list.num_options.end());
-  if (stod(itDuration->second) || infStr.compare(itDuration->second) == 0)
-    isDurationAVec = false;
-  output << "options_.ms.duration = " << itDuration->second << ";" << endl;
+  assert(options_list.num_options.contains("ms.duration")
+         || options_list.vector_value_options.contains("ms.duration"));
 
-  itNOR = options_list.num_options.find("ms.number_of_regimes");
+  bool isDurationAVec = options_list.vector_value_options.contains("ms.duration");
+
+  output << "options_.ms.duration = ";
+  if (isDurationAVec)
+    {
+      output << "[";
+      auto &v = options_list.vector_value_options.at("ms.duration");
+      for (auto it = v.begin(); it != v.end(); ++it)
+        {
+          if (it != v.begin())
+            output << ", ";
+          output << *it;
+        }
+      output << "]";
+    }
+  else
+    output << options_list.num_options.at("ms.duration");
+  output << ";" << endl;
+
+  auto itNOR = options_list.num_options.find("ms.number_of_regimes");
   assert(itNOR != options_list.num_options.end());
   for (int i = 0; i < stoi(itNOR->second); i++)
     {
@@ -3639,7 +3636,7 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename, b
     }
 
   int restrictions_index = 0;
-  for (itR = restriction_map.begin(); itR != restriction_map.end(); itR++)
+  for (auto itR = restriction_map.begin(); itR != restriction_map.end(); itR++)
     output << "options_.ms.ms_chain(" << itChain->second << ").restrictions("
            << ++restrictions_index << ") = {[" << itR->first.first << ", "
            << itR->first.second << ", " << itR->second << "]};" << endl;
@@ -4034,21 +4031,19 @@ JointPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
     }
 
   if (!options_list.num_options.contains("mean")
+      && !options_list.vector_value_options.contains("mean")
       && !options_list.num_options.contains("mode"))
     {
       cerr << "ERROR: You must pass at least one of mean and mode to the prior statement." << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (auto it_num = options_list.num_options.find("domain");
-      it_num != options_list.num_options.end())
+  if (auto it = options_list.vector_value_options.find("domain");
+      it != options_list.vector_value_options.end())
     {
-      using namespace boost;
-      vector<string> tokenizedDomain;
-      split(tokenizedDomain, it_num->second, is_any_of("[ ]"), token_compress_on);
-      if (tokenizedDomain.size() != 4)
+      if (it->second.size() != 4)
         {
-          cerr << "ERROR: You must pass exactly two values to the domain option." << endl;
+          cerr << "ERROR: You must pass exactly four values to the domain option." << endl;
           exit(EXIT_FAILURE);
         }
     }
@@ -4103,15 +4098,38 @@ void
 JointPriorStatement::writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const
 {
   output << lhs_field << "." << field << " = {";
-  if (field == "variance")
-    output << "{";
-  if (auto itn = options_list.num_options.find(field);
-      itn != options_list.num_options.end())
-    output << itn->second;
-  else
-    output << "{}";
-  if (field == "variance")
-    output << "}";
+  if (auto it = options_list.num_options.find(field);
+      it != options_list.num_options.end())
+    output << it->second;
+  else if (auto it = options_list.vector_value_options.find(field);
+           it != options_list.vector_value_options.end())
+    {
+      output << "[";
+      for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+        {
+          if (it2 != it->second.begin())
+            output << ", ";
+          output << *it2;
+        }
+      output << "]";
+    }
+  else if (auto it = options_list.vector_of_vector_value_options.find(field);
+           it != options_list.vector_of_vector_value_options.end())
+    {
+      for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+        {
+          if (it2 != it->second.begin())
+            output << ", ";
+          output << "[";
+          for (auto it3 = it2->begin(); it3 != it2->end(); ++it3)
+            {
+              if (it3 != it2->begin())
+                output << ", ";
+              output << *it3;
+            }
+          output << "]";
+        }
+    }
   output << "};" << endl;
 }
 
@@ -4191,6 +4209,7 @@ BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
     }
 
   if (!options_list.num_options.contains("mean")
+      && !options_list.vector_value_options.contains("mean")
       && !options_list.num_options.contains("mode"))
     {
       cerr << "ERROR: You must pass at least one of mean and mode to the prior statement." << endl;

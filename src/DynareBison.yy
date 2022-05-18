@@ -194,15 +194,15 @@ class ParsingDriver;
 %type <expr_t> equation hand_side
 %type <string> non_negative_number signed_number signed_integer date_str
 %type <string> filename symbol namespace_qualified_filename namespace_qualified_symbol
-%type <string> vec_of_vec_value vec_value_list date_expr
-%type <string> vec_value_1 vec_value signed_inf signed_number_w_inf
-%type <string> range vec_value_w_inf vec_value_1_w_inf
+%type <string> date_expr signed_inf signed_number_w_inf range
 %type <string> integer_range signed_integer_range boolean
 %type <string> name_value_pair name_value_pair_list
 %type <string> name_value_pair_with_boolean name_value_pair_with_boolean_list
 %type <string> name_value_pair_with_suboptions name_value_pair_with_suboptions_list
 %type <SymbolType> change_type_arg
 %type <vector<string>> vec_str vec_str_1
+%type <vector<string>> vec_value vec_value_1 vec_value_w_inf vec_value_w_inf_1
+%type <vector<vector<string>>> vec_of_vec_value vec_of_vec_value_1
 %type <vector<string>> symbol_list symbol_list_or_wildcard
 %type <vector<int>> vec_int_elem vec_int_1 vec_int vec_int_number
 %type <PriorDistributions> prior_pdf prior_distribution
@@ -3535,16 +3535,16 @@ o_shift : SHIFT EQUAL signed_number { driver.option_num("shift", $3); };
 o_shape : SHAPE EQUAL prior_distribution { driver.prior_shape = $3; };
 o_mode : MODE EQUAL signed_number { driver.option_num("mode", $3); };
 o_mean : MEAN EQUAL signed_number { driver.option_num("mean", $3); };
-o_mean_vec : MEAN EQUAL vec_value { driver.option_num("mean", $3); };
-o_truncate : TRUNCATE EQUAL vec_value { driver.option_num("truncate", $3); };
+o_mean_vec : MEAN EQUAL vec_value { driver.option_vec_value("mean", $3); };
+o_truncate : TRUNCATE EQUAL vec_value { driver.option_vec_value("truncate", $3); };
 o_stdev : STDEV EQUAL non_negative_number { driver.option_num("stdev", $3); };
 o_jscale : JSCALE EQUAL non_negative_number { driver.option_num("jscale", $3); };
 o_init : INIT EQUAL signed_number { driver.option_num("init", $3); };
-o_bounds : BOUNDS EQUAL vec_value_w_inf { driver.option_num("bounds", $3); };
-o_domain : DOMAINN EQUAL vec_value { driver.option_num("domain", $3); };
-o_interval : INTERVAL EQUAL vec_value { driver.option_num("interval", $3); };
+o_bounds : BOUNDS EQUAL vec_value_w_inf { driver.option_vec_value("bounds", $3); };
+o_domain : DOMAINN EQUAL vec_value { driver.option_vec_value("domain", $3); };
+o_interval : INTERVAL EQUAL vec_value { driver.option_vec_value("interval", $3); };
 o_variance : VARIANCE EQUAL expression { driver.set_prior_variance($3); }
-o_variance_mat : VARIANCE EQUAL vec_of_vec_value { driver.option_num("variance",$3); }
+o_variance_mat : VARIANCE EQUAL vec_of_vec_value { driver.option_vec_of_vec_value("variance",$3); }
 o_prefilter : PREFILTER EQUAL INT_NUMBER { driver.option_num("prefilter", $3); };
 o_presample : PRESAMPLE EQUAL INT_NUMBER { driver.option_num("presample", $3); };
 o_lik_algo : LIK_ALGO EQUAL INT_NUMBER { driver.option_num("lik_algo", $3); };
@@ -3684,9 +3684,9 @@ o_xls_sheet : XLS_SHEET EQUAL symbol { driver.option_str("xls_sheet", $3); } // 
 o_xls_range : XLS_RANGE EQUAL range { driver.option_str("xls_range", $3); };
 o_filter_step_ahead : FILTER_STEP_AHEAD EQUAL vec_int { driver.option_vec_int("filter_step_ahead", $3); };
 o_taper_steps : TAPER_STEPS EQUAL vec_int { driver.option_vec_int("convergence.geweke.taper_steps", $3); };
-o_geweke_interval : GEWEKE_INTERVAL EQUAL vec_value { driver.option_num("convergence.geweke.geweke_interval",$3); };
+o_geweke_interval : GEWEKE_INTERVAL EQUAL vec_value { driver.option_vec_value("convergence.geweke.geweke_interval",$3); };
 o_raftery_lewis_diagnostics : RAFTERY_LEWIS_DIAGNOSTICS { driver.option_num("convergence.rafterylewis.indicator", "true"); };
-o_raftery_lewis_qrs : RAFTERY_LEWIS_QRS EQUAL vec_value { driver.option_num("convergence.rafterylewis.qrs",$3); };
+o_raftery_lewis_qrs : RAFTERY_LEWIS_QRS EQUAL vec_value { driver.option_vec_value("convergence.rafterylewis.qrs",$3); };
 o_constant : CONSTANT { driver.option_num("noconstant", "false"); };
 o_noconstant : NOCONSTANT { driver.option_num("noconstant", "true"); };
 o_mh_recover : MH_RECOVER { driver.option_num("mh_recover", "true"); };
@@ -3796,7 +3796,7 @@ o_gsa_load_rmse : LOAD_RMSE EQUAL INT_NUMBER { driver.option_num("load_rmse", $3
 o_gsa_load_stab : LOAD_STAB EQUAL INT_NUMBER { driver.option_num("load_stab", $3); };
 o_gsa_alpha2_stab : ALPHA2_STAB EQUAL non_negative_number { driver.option_num("alpha2_stab", $3); };
 o_gsa_logtrans_redform : LOGTRANS_REDFORM EQUAL INT_NUMBER { driver.option_num("logtrans_redform", $3); };
-o_gsa_threshold_redform : THRESHOLD_REDFORM EQUAL vec_value_w_inf { driver.option_num("threshold_redform",$3); };
+o_gsa_threshold_redform : THRESHOLD_REDFORM EQUAL vec_value_w_inf { driver.option_vec_value("threshold_redform",$3); };
 o_gsa_ksstat_redform : KSSTAT_REDFORM EQUAL non_negative_number { driver.option_num("ksstat_redform", $3); };
 o_gsa_alpha2_redform : ALPHA2_REDFORM EQUAL non_negative_number { driver.option_num("alpha2_redform", $3); };
 o_gsa_namendo : NAMENDO EQUAL '(' symbol_list_or_wildcard ')' { driver.option_symbol_list("namendo", $4); };
@@ -3923,12 +3923,12 @@ o_k_order_solver : K_ORDER_SOLVER {driver.option_num("k_order_solver","true"); }
 o_pruning : PRUNING { driver.option_num("pruning", "true"); };
 o_chain : CHAIN EQUAL INT_NUMBER { driver.option_num("ms.chain",$3); };
 o_restrictions : RESTRICTIONS EQUAL vec_of_vec_value
-                 { driver.option_num("ms.restrictions",$3); }
+                 { driver.option_vec_of_vec_value("ms.restrictions",$3); }
                ;
 o_duration : DURATION EQUAL non_negative_number
              { driver.option_num("ms.duration",$3); }
            | DURATION EQUAL vec_value_w_inf
-             { driver.option_num("ms.duration",$3); }
+             { driver.option_vec_value("ms.duration",$3); }
            ;
 o_number_of_regimes : NUMBER_OF_REGIMES EQUAL INT_NUMBER { driver.option_num("ms.number_of_regimes",$3); };
 o_number_of_lags : NUMBER_OF_LAGS EQUAL INT_NUMBER { driver.option_num("ms.number_of_lags",$3); };
@@ -3981,7 +3981,7 @@ o_file_tag : FILE_TAG EQUAL filename { driver.option_str("ms.file_tag", $3); };
 o_no_create_init : NO_CREATE_INIT { driver.option_num("ms.create_init", "false"); };
 o_simulation_file_tag : SIMULATION_FILE_TAG EQUAL filename { driver.option_str("ms.simulation_file_tag", $3); };
 o_coefficients_prior_hyperparameters : COEFFICIENTS_PRIOR_HYPERPARAMETERS EQUAL vec_value
-                                       { driver.option_num("ms.coefficients_prior_hyperparameters",$3); };
+                                       { driver.option_vec_value("ms.coefficients_prior_hyperparameters",$3); };
 o_convergence_starting_value : CONVERGENCE_STARTING_VALUE EQUAL non_negative_number
                                { driver.option_num("ms.convergence_starting_value",$3); };
 o_convergence_ending_value : CONVERGENCE_ENDING_VALUE EQUAL non_negative_number
@@ -4025,10 +4025,10 @@ o_horizon : HORIZON EQUAL INT_NUMBER { driver.option_num("ms.horizon",$3); };
 o_filtered_probabilities : FILTERED_PROBABILITIES { driver.option_num("ms.filtered_probabilities","true"); };
 o_real_time_smoothed : REAL_TIME_SMOOTHED { driver.option_num("ms.real_time_smoothed_probabilities","true"); };
 o_no_error_bands : NO_ERROR_BANDS { driver.option_num("ms.error_bands","false"); };
-o_error_band_percentiles : ERROR_BAND_PERCENTILES EQUAL vec_value { driver.option_num("ms.percentiles",$3); };
+o_error_band_percentiles : ERROR_BAND_PERCENTILES EQUAL vec_value { driver.option_vec_value("ms.percentiles",$3); };
 o_shock_draws : SHOCK_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.shock_draws",$3); };
 o_shocks_per_parameter : SHOCKS_PER_PARAMETER EQUAL INT_NUMBER { driver.option_num("ms.shocks_per_parameter",$3); };
-o_free_parameters : FREE_PARAMETERS EQUAL vec_value { driver.option_num("ms.free_parameters",$3); };
+o_free_parameters : FREE_PARAMETERS EQUAL vec_value { driver.option_vec_value("ms.free_parameters",$3); };
 o_median : MEDIAN { driver.option_num("ms.median","1"); }
          | MEDIAN EQUAL signed_number { driver.option_num("median", $3); };
 o_regimes : REGIMES { driver.option_num("ms.regimes","true"); };
@@ -4240,39 +4240,55 @@ vec_str : vec_str_1 ']'
         ;
 
 vec_value_1 : '[' signed_number
-              { $$ = '[' + $2; }
+              { $$ = { $2 }; }
             | '[' COMMA signed_number
-              { $$ = '[' + $3; }
+              { $$ = { $3 }; }
             | vec_value_1 signed_number
-              { $$ = $1 + ' ' + $2; }
+              {
+                $$ = $1;
+                $$.push_back($2);
+              }
             | vec_value_1 COMMA signed_number
-              { $$ = $1 + ' ' + $3; }
+              {
+                $$ = $1;
+                $$.push_back($3);
+              }
             ;
 
 vec_value : vec_value_1 ']'
-             { $$ = $1 + ']'; }
           | vec_value_1 COMMA ']'
-             { $$ = $1 + ']'; }
           ;
 
-vec_value_list : vec_value_list COMMA vec_value
-                 { $$ = $1 + ',' + $3; }
-               | vec_value
-               ;
-
-vec_of_vec_value : '[' vec_value_list ']'
-                   { $$ = $2; }
-                 | vec_value
-                 ;
-
-vec_value_1_w_inf : '[' signed_number_w_inf
-                    { $$ = '[' + $2; }
-                  | vec_value_1_w_inf signed_number_w_inf
-                    { $$ = $1 + ' ' + $2; }
+vec_value_w_inf_1 : signed_number_w_inf
+                    { $$ = { $1 }; }
+                  | vec_value_w_inf_1 signed_number_w_inf
+                    {
+                      $$ = $1;
+                      $$.push_back($2);
+                    }
+                  | vec_value_w_inf_1 COMMA signed_number_w_inf
+                    {
+                      $$ = $1;
+                      $$.push_back($3);
+                    }
                   ;
 
-vec_value_w_inf : vec_value_1_w_inf ']'
-                  { $$ = $1 + ']'; };
+vec_value_w_inf : '[' vec_value_w_inf_1 ']'
+                  { $$ = $2; }
+                ;
+
+vec_of_vec_value_1 : vec_of_vec_value_1 COMMA vec_value
+                     {
+                       $$ = $1;
+                       $$.push_back($3);
+                     }
+                   | vec_value
+                     { $$ = { $1 }; }
+                   ;
+
+vec_of_vec_value : '[' vec_of_vec_value_1 ']'
+                   { $$ = $2; }
+                 ;
 
 symbol : NAME
        | ALPHA

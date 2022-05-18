@@ -512,6 +512,10 @@ public:
   void option_vec_str(string name_option, vector<string> opt);
   //! Sets an option to a celll array of strings
   void option_vec_cellstr(string name_option, vector<string> opt);
+  //! Sets an option to a vector of (numerical) values
+  void option_vec_value(string name_option, vector<string> opt);
+  //! Sets an option to a vector of vectors of (numerical) values
+  void option_vec_of_vec_value(string name_option, vector<vector<string>> opt);
   //! Indicates that the model is linear
   void linear();
   //! Writes a rplot() command
