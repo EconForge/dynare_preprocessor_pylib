@@ -266,7 +266,7 @@ OptionsList::writeJsonOutput(ostream &output) const
   for (auto it = paired_num_options.begin();
        it != paired_num_options.end();)
     {
-      output << R"(")"<< it->first << R"(": [)" << it->second.first << " " << it->second.second << "]";
+      output << R"(")"<< it->first << R"(": [)" << it->second.first << ", " << it->second.second << "]";
       ++it;
       if (it != paired_num_options.end()
           || !(string_options.empty()
