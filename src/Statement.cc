@@ -330,9 +330,7 @@ OptionsList::writeJsonOutput(ostream &output) const
             {
               output << *viit;
               ++viit;
-              if (viit != it->second.end()
-                  || !(vector_str_options.empty()
-                       && vector_cellstr_options.empty()))
+              if (viit != it->second.end())
                 output << ", ";
             }
         }
@@ -357,8 +355,7 @@ OptionsList::writeJsonOutput(ostream &output) const
             {
               output << R"(")" << *viit << R"(")";
               ++viit;
-              if (viit != it->second.end()
-                  || !(vector_cellstr_options.empty()))
+              if (viit != it->second.end())
                 output << ", ";
             }
         }
