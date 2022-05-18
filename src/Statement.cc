@@ -246,144 +246,94 @@ OptionsList::writeJsonOutput(ostream &output) const
   if (getNumberOfOptions() == 0)
     return;
 
+  bool opt_written{false};
+
   output << R"("options": {)";
-  for (auto it = num_options.begin();
-       it != num_options.end();)
+  for (const auto &[name, val] : num_options)
     {
-      output << R"(")"<< it->first << R"(": )" << it->second;
-      ++it;
-      if (it != num_options.end()
-          || !(paired_num_options.empty()
-               && string_options.empty()
-               && date_options.empty()
-               && symbol_list_options.empty()
-               && vector_int_options.empty()
-               && vector_str_options.empty()
-               && vector_cellstr_options.empty()))
+      if (opt_written)
         output << ", ";
+      output << R"(")" << name << R"(": )" << val;
+      opt_written = true;
     }
 
-  for (auto it = paired_num_options.begin();
-       it != paired_num_options.end();)
+  for (const auto &[name, vals] : paired_num_options)
     {
-      output << R"(")"<< it->first << R"(": [)" << it->second.first << ", " << it->second.second << "]";
-      ++it;
-      if (it != paired_num_options.end()
-          || !(string_options.empty()
-               && date_options.empty()
-               && symbol_list_options.empty()
-               && vector_int_options.empty()
-               && vector_str_options.empty()
-               && vector_cellstr_options.empty()))
+      if (opt_written)
         output << ", ";
+      output << R"(")" << name << R"(": [)" << vals.first << ", " << vals.second << "]";
+      opt_written = true;
     }
 
-  for (auto it = string_options.begin();
-       it != string_options.end();)
+  for (const auto &[name, val] : string_options)
     {
-      output << R"(")"<< it->first << R"(": ")" << it->second << R"(")";
-      ++it;
-      if (it != string_options.end()
-          || !(date_options.empty()
-               && symbol_list_options.empty()
-               && vector_int_options.empty()
-               && vector_str_options.empty()
-               && vector_cellstr_options.empty()))
+      if (opt_written)
         output << ", ";
+      output << R"(")" << name << R"(": ")" << val << R"(")";
+      opt_written = true;
     }
 
-  for (auto it = date_options.begin();
-       it != date_options.end();)
+  for (const auto &[name, val] : date_options)
     {
-      output << R"(")"<< it->first << R"(": ")" << it->second << R"(")";
-      ++it;
-      if (it != date_options.end()
-          || !(symbol_list_options.empty()
-               && vector_int_options.empty()
-               && vector_str_options.empty()
-               && vector_cellstr_options.empty()))
+      if (opt_written)
         output << ", ";
+      output << R"(")" << name << R"(": ")" << val << R"(")";
+      opt_written = true;
     }
 
-  for (auto it = symbol_list_options.begin();
-       it != symbol_list_options.end();)
+  for (const auto &[name, vals] : symbol_list_options)
     {
-      output << R"(")"<< it->first << R"(": {)";
-      it->second.writeJsonOutput(output);
+      if (opt_written)
+        output << ", ";
+      output << R"(")" << name << R"(": {)";
+      vals.writeJsonOutput(output);
       output << "}";
-      ++it;
-      if (it != symbol_list_options.end()
-          || !(vector_int_options.empty()
-               && vector_str_options.empty()
-               && vector_cellstr_options.empty()))
-        output << ", ";
+      opt_written = true;
     }
 
-  for (auto it = vector_int_options.begin();
-       it != vector_int_options.end();)
+  for (const auto &[name, vals] : vector_int_options)
     {
-      output << R"(")"<< it->first << R"(": [)";
-      if (it->second.size() > 1)
+      if (opt_written)
+        output << ", ";
+      output << R"(")" << name << R"(": [)";
+      for (auto it = vals.begin(); it != vals.end(); ++it)
         {
-          for (auto viit = it->second.begin();
-               viit != it->second.end();)
-            {
-              output << *viit;
-              ++viit;
-              if (viit != it->second.end())
-                output << ", ";
-            }
+          if (it != vals.begin())
+            output << ", ";
+          output << *it;
         }
-      else
-        output << it->second.front() << endl;
       output << "]";
-      ++it;
-      if (it != vector_int_options.end()
-          || !(vector_str_options.empty()
-               && vector_cellstr_options.empty()))
-        output << ", ";
+      opt_written = true;
     }
 
-  for (auto it = vector_str_options.begin();
-       it != vector_str_options.end();)
+  for (const auto &[name, vals] : vector_str_options)
     {
-      output << R"(")"<< it->first << R"(": [)";
-      if (it->second.size() > 1)
+      if (opt_written)
+        output << ", ";
+      output << R"(")" << name << R"(": [)";
+      for (auto it = vals.begin(); it != vals.end(); ++it)
         {
-          for (auto viit = it->second.begin();
-               viit != it->second.end();)
-            {
-              output << R"(")" << *viit << R"(")";
-              ++viit;
-              if (viit != it->second.end())
-                output << ", ";
-            }
+          if (it != vals.begin())
+            output << ", ";
+          output << R"(")" << *it << R"(")";
         }
-      else
-        output << it->second.front() << endl;
       output << "]";
-      ++it;
-      if (it != vector_str_options.end()
-          || !(vector_cellstr_options.empty()))
-        output << ", ";
+      opt_written = true;
     }
 
-  for (auto it = vector_cellstr_options.begin();
-       it != vector_cellstr_options.end();)
+  for (const auto &[name, vals] : vector_cellstr_options)
     {
-      output << R"(")"<< it->first << R"(": [)";
-        for (auto viit = it->second.begin();
-             viit != it->second.end();)
-          {
-            output << R"(")" << *viit << R"(")";
-            ++viit;
-            if (viit != it->second.end())
-              output << ", ";
-          }
-      output << "]";
-      ++it;
-      if (it != vector_cellstr_options.end())
+      if (opt_written)
         output << ", ";
+      output << R"(")" << name << R"(": [)";
+      for (auto it = vals.begin(); it != vals.end(); ++it)
+        {
+          if (it != vals.begin())
+            output << ", ";
+          output << R"(")" << *it << R"(")";
+        }
+      output << "]";
+      opt_written = true;
     }
 
   output << "}";
