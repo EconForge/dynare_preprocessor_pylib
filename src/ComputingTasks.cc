@@ -4116,6 +4116,7 @@ JointPriorStatement::writeOutputHelper(ostream &output, const string &field, con
   else if (auto it = options_list.vector_of_vector_value_options.find(field);
            it != options_list.vector_of_vector_value_options.end())
     {
+      output << "{";
       for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
           if (it2 != it->second.begin())
@@ -4129,7 +4130,10 @@ JointPriorStatement::writeOutputHelper(ostream &output, const string &field, con
             }
           output << "]";
         }
+      output << "}";
     }
+  else
+    output << "{}";
   output << "};" << endl;
 }
 
