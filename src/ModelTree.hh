@@ -409,9 +409,11 @@ public:
             ExternalFunctionsTable &external_functions_table_arg,
             bool is_dynamic_arg = false);
 
+protected:
   ModelTree(const ModelTree &m);
   ModelTree &operator=(const ModelTree &m);
 
+public:
   //! Absolute value under which a number is considered to be zero
   double cutoff{1e-15};
   //! Compute the minimum feedback set
