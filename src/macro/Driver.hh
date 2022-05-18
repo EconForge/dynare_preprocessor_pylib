@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2021 Dynare Team
+ * Copyright © 2019-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -48,9 +48,7 @@ namespace macro
   public:
     TokenizerFlex(istream *in) : TokenizerFlexLexer{in} { }
     TokenizerFlex(const TokenizerFlex &) = delete;
-    TokenizerFlex(TokenizerFlex &&) = delete;
     TokenizerFlex &operator=(const TokenizerFlex &) = delete;
-    TokenizerFlex &operator=(TokenizerFlex &&) = delete;
 
     //! The main lexing function
     Tokenizer::parser::token_type lex(Tokenizer::parser::semantic_type *yylval,
@@ -68,9 +66,7 @@ namespace macro
   public:
     Driver() = default;
     Driver(const Driver &) = delete;
-    Driver(Driver &&) = delete;
     Driver &operator=(const Driver &) = delete;
-    Driver &operator=(Driver &&) = delete;
 
     //! Exception thrown when value of an unknown variable is requested
     class UnknownVariable

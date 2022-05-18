@@ -256,9 +256,7 @@ public:
   virtual ~ExprNode() = default;
 
   ExprNode(const ExprNode &) = delete;
-  ExprNode(ExprNode &&) = delete;
   ExprNode &operator=(const ExprNode &) = delete;
-  ExprNode &operator=(ExprNode &&) = delete;
 
   //! Initializes data member non_null_derivatives
   virtual void prepareForDerivation() = 0;

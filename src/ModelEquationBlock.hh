@@ -42,9 +42,7 @@ public:
                    const StaticModel &static_model_arg);
 
   SteadyStateModel(const SteadyStateModel &m);
-  SteadyStateModel(SteadyStateModel &&) = delete;
   SteadyStateModel &operator=(const SteadyStateModel &m);
-  SteadyStateModel &operator=(SteadyStateModel &&) = delete;
 
   //! Add an expression of the form "var = expr;"
   void addDefinition(int symb_id, expr_t expr);
@@ -79,9 +77,7 @@ public:
            VarModelTable &var_model_table_arg);
 
   Epilogue(const Epilogue &m);
-  Epilogue(Epilogue &&) = delete;
   Epilogue &operator=(const Epilogue &m);
-  Epilogue &operator=(Epilogue &&) = delete;
 
   //! Add an expression of the form "var = expr;"
   void addDefinition(int symb_id, expr_t expr);

@@ -410,9 +410,7 @@ public:
             bool is_dynamic_arg = false);
 
   ModelTree(const ModelTree &m);
-  ModelTree(ModelTree &&) = delete;
   ModelTree &operator=(const ModelTree &m);
-  ModelTree &operator=(ModelTree &&) = delete;
 
   //! Absolute value under which a number is considered to be zero
   double cutoff{1e-15};

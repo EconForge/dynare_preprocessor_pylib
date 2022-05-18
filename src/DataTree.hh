@@ -133,9 +133,7 @@ public:
   virtual ~DataTree() = default;
 
   DataTree(const DataTree &d);
-  DataTree(DataTree &&) = delete;
   DataTree &operator=(const DataTree &d);
-  DataTree &operator=(DataTree &&) = delete;
 
   //! Some predefined constants
   NumConstNode *Zero, *One, *Two, *Three, *NaN, *Infinity, *Pi;

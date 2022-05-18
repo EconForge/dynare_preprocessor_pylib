@@ -119,14 +119,7 @@ public:
               ExternalFunctionsTable &external_functions_table_arg);
 
   StaticModel(const StaticModel &m);
-  StaticModel(StaticModel &&) = delete;
   StaticModel &operator=(const StaticModel &m);
-  /* The move assignment operator is not explicitly deleted, otherwise the
-     static_cast from DynamicModel does not work. However it looks like this
-     operator will not be used in the end. See
-     https://en.cppreference.com/w/cpp/language/copy_initialization
-     With C++17, it should be possible to explicitly delete it */
-  //StaticModel & operator=(StaticModel &&) = delete;
 
   //! Creates the static version of a dynamic model
   explicit StaticModel(const DynamicModel &m);

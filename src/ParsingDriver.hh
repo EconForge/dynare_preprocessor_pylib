@@ -61,9 +61,7 @@ public:
   DynareFlex(istream *in = nullptr, ostream *out = nullptr);
 
   DynareFlex(const DynareFlex &) = delete;
-  DynareFlex(DynareFlex &&) = delete;
   DynareFlex &operator=(const DynareFlex &) = delete;
-  DynareFlex &operator=(DynareFlex &&) = delete;
 
   //! The main lexing function
   Dynare::parser::token_type lex(Dynare::parser::semantic_type *yylval,
@@ -283,9 +281,7 @@ public:
   };
 
   ParsingDriver(const ParsingDriver &) = delete;
-  ParsingDriver(ParsingDriver &&) = delete;
   ParsingDriver &operator=(const ParsingDriver &) = delete;
-  ParsingDriver &operator=(ParsingDriver &&) = delete;
 
   //! Starts parsing, and constructs the MOD file representation
   unique_ptr<ModFile> parse(istream &in, bool debug);

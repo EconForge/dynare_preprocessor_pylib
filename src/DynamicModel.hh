@@ -312,9 +312,7 @@ public:
                VarModelTable &var_model_table_arg);
 
   DynamicModel(const DynamicModel &m);
-  DynamicModel(DynamicModel &&) = delete;
   DynamicModel &operator=(const DynamicModel &m);
-  DynamicModel &operator=(DynamicModel &&) = delete;
 
   //! Compute cross references
   void computeXrefs();
