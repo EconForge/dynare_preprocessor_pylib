@@ -2423,7 +2423,7 @@ PlannerObjectiveStatement::getPlannerObjective() const
 void
 PlannerObjectiveStatement::computingPass(const ModFileStructure &mod_file_struct)
 {
-  model_tree.computingPass(max(3, mod_file_struct.order_option), 0, {}, false, false, false);
+  model_tree.computingPass(max(3, mod_file_struct.order_option), 0, {}, false, false);
   computing_pass_called = true;
 }
 

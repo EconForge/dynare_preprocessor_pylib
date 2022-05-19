@@ -983,7 +983,7 @@ StaticModel::writeBlockBytecodeBinFile(const string &basename, int num,
 }
 
 void
-StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool bytecode)
+StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context, bool no_tmp_terms, bool block)
 {
   initializeVariablesAndEquations();
 

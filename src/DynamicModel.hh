@@ -329,7 +329,7 @@ public:
     \param no_tmp_terms if true, no temporary terms will be computed in the dynamic files
   */
   void computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsOrder,
-                     const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll, bool bytecode);
+                     const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll);
   //! Writes information about the dynamic model to the driver file
   void writeDriverOutput(ostream &output, const string &basename, bool block, bool use_dll, bool occbin, bool estimation_present, bool compute_xrefs) const;
 

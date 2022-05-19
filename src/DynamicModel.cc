@@ -4189,8 +4189,7 @@ DynamicModel::substitutePacTargetNonstationary(const string &pac_model_name, exp
 
 void
 DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsOrder,
-                            const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll,
-                            bool bytecode)
+                            const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll)
 {
   assert(jacobianExo || (derivsOrder < 2 && paramsDerivsOrder == 0));
 
