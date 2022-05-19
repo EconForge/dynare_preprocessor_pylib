@@ -73,8 +73,8 @@ DataTree::DataTree(const DataTree &d) :
 
   assert(node_list.size() == d.node_list.size());
 
-  for (const auto &it : d.local_variables_table)
-    local_variables_table[it.first] = it.second->clone(*this);
+  for (const auto &[symb_id, value] : d.local_variables_table)
+    local_variables_table[symb_id] = value->clone(*this);
 }
 
 DataTree &
@@ -107,8 +107,8 @@ DataTree::operator=(const DataTree &d)
      order of appearance in the model block (hence with
      local_variables_vector), because if there is a model_local_variable statement
      the symbol IDs ordering may not be the right one (see dynare#1782) */
-  for (const auto &id : d.local_variables_vector)
-    local_variables_table[id] = d.local_variables_table.at(id)->clone(*this);
+  for (int symb_id : d.local_variables_vector)
+    local_variables_table[symb_id] = d.local_variables_table.at(symb_id)->clone(*this);
 
   for (const auto &it : d.node_list)
     it->clone(*this);
@@ -171,8 +171,8 @@ DataTree::getVariable(int symb_id, int lag) const
 bool
 DataTree::ParamUsedWithLeadLagInternal() const
 {
-  for (const auto &it : variable_node_map)
-    if (symbol_table.getType(it.first.first) == SymbolType::parameter && it.first.second != 0)
+  for (const auto &[symb_lag, expr] : variable_node_map)
+    if (symbol_table.getType(symb_lag.first) == SymbolType::parameter && symb_lag.second != 0)
       return true;
   return false;
 }
@@ -792,8 +792,8 @@ DataTree::AddSecondDerivExternalFunction(int top_level_symb_id, const vector<exp
 bool
 DataTree::isSymbolUsed(int symb_id) const
 {
-  for (const auto &it : variable_node_map)
-    if (it.first.first == symb_id)
+  for (const auto &[symb_lag, expr] : variable_node_map)
+    if (symb_lag.first == symb_id)
       return true;
 
   if (local_variables_table.contains(symb_id))
@@ -889,9 +889,9 @@ int
 DataTree::minLagForSymbol(int symb_id) const
 {
   int r = 0;
-  for (const auto &it : variable_node_map)
-    if (it.first.first == symb_id && it.first.second < r)
-      r = it.first.second;
+  for (const auto &[symb_lag, expr] : variable_node_map)
+    if (symb_lag.first == symb_id)
+      r = min(r, symb_lag.second);
   return r;
 }
 
