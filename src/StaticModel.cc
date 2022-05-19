@@ -1785,20 +1785,19 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
 }
 
 void
-StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const
+StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const
 {
   filesystem::path model_dir{basename};
   model_dir /= "model";
   if (use_dll)
     filesystem::create_directories(model_dir / "src");
-  if (bytecode)
-    filesystem::create_directories(model_dir / "bytecode");
+  filesystem::create_directories(model_dir / "bytecode");
 
   if (block)
     {
-      if (bytecode)
-        writeStaticBlockBytecode(basename);
-      else if (use_dll)
+      writeStaticBlockBytecode(basename);
+
+      if (use_dll)
         {
           writeStaticPerBlockCFiles(basename);
           writeStaticBlockCFile(basename);
@@ -1821,9 +1820,9 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool bytecode, 
     }
   else
     {
-      if (bytecode)
-        writeStaticBytecode(basename);
-      else if (use_dll)
+      writeStaticBytecode(basename);
+
+      if (use_dll)
         {
           writeStaticCFile(basename);
           compileMEX(basename, "static", mexext, { model_dir / "src" / "static.c" },

@@ -4536,20 +4536,19 @@ DynamicModel::computeBlockDynJacobianCols()
 }
 
 void
-DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const
+DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const
 {
   filesystem::path model_dir{basename};
   model_dir /= "model";
   if (use_dll)
     filesystem::create_directories(model_dir / "src");
-  if (bytecode)
-    filesystem::create_directories(model_dir / "bytecode");
+  filesystem::create_directories(model_dir / "bytecode");
 
   if (block)
     {
-      if (bytecode)
-        writeDynamicBlockBytecode(basename);
-      else if (use_dll)
+      writeDynamicBlockBytecode(basename);
+
+      if (use_dll)
         {
           writeDynamicPerBlockCFiles(basename);
           writeDynamicBlockCFile(basename);
@@ -4572,9 +4571,9 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool bytecode
     }
   else
     {
-      if (bytecode)
-        writeDynamicBytecode(basename);
-      else if (use_dll)
+      writeDynamicBytecode(basename);
+
+      if (use_dll)
         {
           writeDynamicCFile(basename);
           compileMEX(basename, "dynamic", mexext, { model_dir / "src" / "dynamic.c" },

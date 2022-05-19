@@ -136,8 +136,8 @@ public:
   */
   void computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context, bool no_tmp_terms, bool block);
 
-  //! Writes static model file
-  void writeStaticFile(const string &basename, bool block, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const;
+  //! Writes static model file (+ bytecode)
+  void writeStaticFile(const string &basename, bool block, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const;
 
   //! Write JSON Output (used by PlannerObjectiveStatement)
   void writeJsonOutput(ostream &output) const;

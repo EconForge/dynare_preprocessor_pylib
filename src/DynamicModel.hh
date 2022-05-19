@@ -400,8 +400,8 @@ public:
   //! in the trend_component model
   void updateVarAndTrendModel() const;
 
-  //! Writes dynamic model file
-  void writeDynamicFile(const string &basename, bool block, bool bytecode, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const;
+  //! Writes dynamic model file (+ bytecode)
+  void writeDynamicFile(const string &basename, bool block, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const;
   //! Writes file containing parameters derivatives
   void writeParamsDerivativesFile(const string &basename, bool julia) const;
 

@@ -1077,11 +1077,11 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
         {
           if (!no_static)
             {
-              static_model.writeStaticFile(basename, block, bytecode, use_dll, mexext, matlabroot, dynareroot, false);
+              static_model.writeStaticFile(basename, block, use_dll, mexext, matlabroot, dynareroot, false);
               static_model.writeParamsDerivativesFile(basename, false);
             }
 
-          dynamic_model.writeDynamicFile(basename, block, bytecode, use_dll, mexext, matlabroot, dynareroot, false);
+          dynamic_model.writeDynamicFile(basename, block, use_dll, mexext, matlabroot, dynareroot, false);
 
           dynamic_model.writeParamsDerivativesFile(basename, false);
 
@@ -1107,10 +1107,10 @@ ModFile::writeJuliaOutput(const string &basename) const
     {
       if (!no_static)
         {
-          static_model.writeStaticFile(basename, false, false, false, "", {}, {}, true);
+          static_model.writeStaticFile(basename, false, false, "", {}, {}, true);
           static_model.writeParamsDerivativesFile(basename, true);
         }
-      dynamic_model.writeDynamicFile(basename, block, bytecode, use_dll, "", {}, {}, true);
+      dynamic_model.writeDynamicFile(basename, block, use_dll, "", {}, {}, true);
       dynamic_model.writeParamsDerivativesFile(basename, true);
     }
   steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present, true);
