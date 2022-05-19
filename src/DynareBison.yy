@@ -871,7 +871,9 @@ occbin_constraints_regime_options_list : occbin_constraints_regime_option
                                        | occbin_constraints_regime_options_list occbin_constraints_regime_option
                                          {
                                            $$ = $1;
-                                           $$.insert($2);
+                                           auto [it, success] = $$.insert($2);
+                                           if (!success)
+                                             driver.error("The '" + $2.first + "' clause is declared multiple times");
                                          }
                                        ;
 
