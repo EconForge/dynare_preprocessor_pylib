@@ -1398,6 +1398,7 @@ steady_options : o_solve_algo
                | o_steady_maxit
                | o_nocheck
                | o_steady_tolf
+               | o_steady_tolx
                ;
 
 check : CHECK ';'
@@ -1484,6 +1485,7 @@ perfect_foresight_with_expectation_errors_setup_options : o_periods
                                                         | o_markowitz
                                                         | o_steady_maxit
                                                         | o_steady_tolf
+                                                        | o_steady_tolx
                                                         ;
 
 perfect_foresight_with_expectation_errors_solver : PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SOLVER ';'
@@ -3474,6 +3476,7 @@ o_osr_tolf : TOLF EQUAL non_negative_number { driver.option_num("osr.tolf", $3);
 o_pf_tolf : TOLF EQUAL non_negative_number { driver.option_num("dynatol.f", $3); };
 o_pf_tolx : TOLX EQUAL non_negative_number { driver.option_num("dynatol.x", $3); };
 o_steady_tolf : TOLF EQUAL non_negative_number { driver.option_num("solve_tolf", $3); };
+o_steady_tolx : TOLX EQUAL non_negative_number { driver.option_num("solve_tolx", $3); };
 o_opt_algo : OPT_ALGO EQUAL INT_NUMBER { driver.option_num("osr.opt_algo", $3); }
            | OPT_ALGO EQUAL filename { driver.option_str("osr.opt_algo", $3); }
            ;
