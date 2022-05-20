@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2021 Dynare Team
+ * Copyright © 2007-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -90,10 +90,10 @@ enum class Tags
    FPOP, //!< Pop a double from the stack - 25 (37)
    FLDTEF, //!< Stores the result of an external function in the stack - 26 (38)
    FSTPTEF, //!< Loads the result of an external function from the stack- 27 (39)
-   FLDTEFD, //!< Stores the result of an external function in the stack - 28 (40)
-   FSTPTEFD, //!< Loads the result of an external function from the stack- 29 (41)
-   FLDTEFDD, //!< Stores the result of an external function in the stack - 28 (42)
-   FSTPTEFDD //!< Loads the result of an external function from the stack- 29 (43)
+   FLDTEFD, //!< Stores the result of the 1st derivative of an external function in the stack - 28 (40)
+   FSTPTEFD, //!< Loads the result of the 1st derivative of an external function from the stack- 29 (41)
+   FLDTEFDD, //!< Stores the result of the 2nd derivative of an external function in the stack - 28 (42)
+   FSTPTEFDD //!< Loads the result of the 2nd derivative of an external function from the stack- 29 (43)
 
   };
 
