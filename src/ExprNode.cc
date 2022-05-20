@@ -7760,7 +7760,18 @@ FirstDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCo
   int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
   assert(first_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
-  if (first_deriv_symb_id == symb_id || alreadyWrittenAsTefTerm(first_deriv_symb_id, tef_terms))
+  /* For a node with derivs provided by the user function, call the method
+     on the non-derived node */
+  if (first_deriv_symb_id == symb_id)
+    {
+      expr_t parent = datatree.AddExternalFunction(symb_id, arguments);
+      parent->compileExternalFunctionOutput(CompileCode, instruction_number, lhs_rhs,
+                                            temporary_terms, temporary_terms_idxs,
+                                            dynamic, steady_dynamic, tef_terms);
+      return;
+    }
+
+  if (alreadyWrittenAsTefTerm(first_deriv_symb_id, tef_terms))
     return;
 
   unsigned int nb_add_input_arguments = compileExternalFunctionArguments(CompileCode, instruction_number, lhs_rhs, temporary_terms,
