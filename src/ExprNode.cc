@@ -170,14 +170,6 @@ ExprNode::writeOutput(ostream &output, ExprNodeOutputType output_type, const tem
 }
 
 void
-ExprNode::compile(ostream &CompileCode, unsigned int &instruction_number,
-                  bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                  const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic) const
-{
-  compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic, {});
-}
-
-void
 ExprNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                       const temporary_terms_t &temporary_terms,
                                       const temporary_terms_idxs_t &temporary_terms_idxs,

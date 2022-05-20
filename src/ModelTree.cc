@@ -1260,10 +1260,9 @@ ModelTree::testNestedParenthesis(const string &str) const
 }
 
 void
-ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_number, bool dynamic, bool steady_dynamic, temporary_terms_t &temporary_terms_union, const temporary_terms_idxs_t &temporary_terms_idxs) const
+ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_number, bool dynamic, bool steady_dynamic, temporary_terms_t &temporary_terms_union, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const
 {
   // To store the functions that have already been written in the form TEF* = ext_fun();
-  deriv_node_temp_terms_t tef_terms;
   for (auto [tt, idx] : temporary_terms_idxs)
     {
       if (dynamic_cast<AbstractExternalFunctionNode *>(tt))
@@ -1398,7 +1397,7 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type,
 }
 
 void
-ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_number, bool dynamic, bool steady_dynamic, const temporary_terms_t &temporary_terms_union, const temporary_terms_idxs_t &temporary_terms_idxs) const
+ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_number, bool dynamic, bool steady_dynamic, const temporary_terms_t &temporary_terms_union, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const
 {
   for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     {
@@ -1419,8 +1418,8 @@ ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_n
 
       if (vrhs != 0) // The right hand side of the equation is not empty ==> residual=lhs-rhs;
         {
-          lhs->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic);
-          rhs->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic);
+          lhs->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+          rhs->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
 
           FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
           fbinary.write(code_file, instruction_number);
@@ -1430,7 +1429,7 @@ ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_n
         }
       else // The right hand side of the equation is empty ==> residual=lhs;
         {
-          lhs->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic);
+          lhs->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
           FSTPR_ fstpr(eq);
           fstpr.write(code_file, instruction_number);
         }

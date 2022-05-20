@@ -168,11 +168,11 @@ DynamicModel::operator=(const DynamicModel &m)
 }
 
 void
-DynamicModel::compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, int lag, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs) const
+DynamicModel::compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, int lag, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const
 {
   if (auto it = derivatives[1].find({ eq, getDerivID(symbol_table.getID(SymbolType::endogenous, symb_id), lag) });
       it != derivatives[1].end())
-    it->second->compile(code_file, instruction_number, false, temporary_terms, temporary_terms_idxs, true, false);
+    it->second->compile(code_file, instruction_number, false, temporary_terms, temporary_terms_idxs, true, false, tef_terms);
   else
     {
       FLDZ_ fldz;
@@ -181,11 +181,11 @@ DynamicModel::compileDerivative(ofstream &code_file, unsigned int &instruction_n
 }
 
 void
-DynamicModel::compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int blk, int eq, int var, int lag, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs) const
+DynamicModel::compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int blk, int eq, int var, int lag, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const
 {
   if (auto it = blocks_derivatives[blk].find({ eq, var, lag });
       it != blocks_derivatives[blk].end())
-    it->second->compile(code_file, instruction_number, false, temporary_terms, temporary_terms_idxs, true, false);
+    it->second->compile(code_file, instruction_number, false, temporary_terms, temporary_terms_idxs, true, false, tef_terms);
   else
     {
       FLDZ_ fldz;
@@ -886,9 +886,11 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
   fbeginblock.write(code_file, instruction_number);
 
   temporary_terms_t temporary_terms_union;
-  compileTemporaryTerms(code_file, instruction_number, true, false, temporary_terms_union, temporary_terms_idxs);
+  deriv_node_temp_terms_t tef_terms;
 
-  compileModelEquations(code_file, instruction_number, true, false, temporary_terms_union, temporary_terms_idxs);
+  compileTemporaryTerms(code_file, instruction_number, true, false, temporary_terms_union, temporary_terms_idxs, tef_terms);
+
+  compileModelEquations(code_file, instruction_number, true, false, temporary_terms_union, temporary_terms_idxs, tef_terms);
 
   FENDEQU_ fendequ;
   fendequ.write(code_file, instruction_number);
@@ -915,7 +917,7 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
           if (!my_derivatives[eq].size())
             my_derivatives[eq].clear();
           my_derivatives[eq].emplace_back(var, lag, count_u);
-          d1->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, true, false);
+          d1->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, true, false, tef_terms);
 
           FSTPU_ fstpu(count_u);
           fstpu.write(code_file, instruction_number);
@@ -977,7 +979,7 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
           prev_lag = lag;
           count_col_endo++;
         }
-      d1->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, true, false);
+      d1->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, true, false, tef_terms);
       FSTPG3_ fstpg3(eq, var, lag, count_col_endo-1);
       fstpg3.write(code_file, instruction_number);
     }
@@ -996,7 +998,7 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
           prev_lag = lag;
           count_col_exo++;
         }
-      d1->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, true, false);
+      d1->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, true, false, tef_terms);
       FSTPG3_ fstpg3(eq, var, lag, count_col_exo-1);
       fstpg3.write(code_file, instruction_number);
     }
@@ -1152,16 +1154,16 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
                   eq_node = getBlockEquationExpr(block, i);
                   lhs = eq_node->arg1;
                   rhs = eq_node->arg2;
-                  rhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false);
-                  lhs->compile(code_file, instruction_number, true, temporary_terms_union, blocks_temporary_terms_idxs, true, false);
+                  rhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
+                  lhs->compile(code_file, instruction_number, true, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
                 }
               else if (equ_type == EquationType::evaluateRenormalized)
                 {
                   eq_node = getBlockEquationRenormalizedExpr(block, i);
                   lhs = eq_node->arg1;
                   rhs = eq_node->arg2;
-                  rhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false);
-                  lhs->compile(code_file, instruction_number, true, temporary_terms_union, blocks_temporary_terms_idxs, true, false);
+                  rhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
+                  lhs->compile(code_file, instruction_number, true, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
                 }
               break;
             case BlockSimulationType::solveBackwardComplete:
@@ -1182,8 +1184,8 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
               eq_node = getBlockEquationExpr(block, i);
               lhs = eq_node->arg1;
               rhs = eq_node->arg2;
-              lhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false);
-              rhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false);
+              lhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
+              rhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
 
               FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
               fbinary.write(code_file, instruction_number);
@@ -1221,7 +1223,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
                 FNUMEXPR_ fnumexpr(ExpressionType::FirstEndoDerivative, getBlockEquationID(block, 0), getBlockVariableID(block, 0), 0);
                 fnumexpr.write(code_file, instruction_number);
               }
-              compileDerivative(code_file, instruction_number, getBlockEquationID(block, 0), getBlockVariableID(block, 0), 0, temporary_terms_union, blocks_temporary_terms_idxs);
+              compileDerivative(code_file, instruction_number, getBlockEquationID(block, 0), getBlockVariableID(block, 0), 0, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
               {
                 FSTPG_ fstpg(0);
                 fstpg.write(code_file, instruction_number);
@@ -1260,7 +1262,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
                       Uf[eqr].Ufl->lag = lag;
                       FNUMEXPR_ fnumexpr(ExpressionType::FirstEndoDerivative, eqr, varr, lag);
                       fnumexpr.write(code_file, instruction_number);
-                      compileChainRuleDerivative(code_file, instruction_number, block, eq, var, lag, temporary_terms_union, blocks_temporary_terms_idxs);
+                      compileChainRuleDerivative(code_file, instruction_number, block, eq, var, lag, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
                       FSTPU_ fstpu(count_u);
                       fstpu.write(code_file, instruction_number);
                       count_u++;
@@ -1337,7 +1339,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
           int varr = getBlockVariableID(block, var);
           FNUMEXPR_ fnumexpr(ExpressionType::FirstEndoDerivative, eqr, varr, lag);
           fnumexpr.write(code_file, instruction_number);
-          compileDerivative(code_file, instruction_number, eqr, varr, lag, temporary_terms_union, blocks_temporary_terms_idxs);
+          compileDerivative(code_file, instruction_number, eqr, varr, lag, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
           FSTPG3_ fstpg3(eq, var, lag, blocks_jacob_cols_endo[block].at({ var, lag }));
           fstpg3.write(code_file, instruction_number);
         }
@@ -1348,7 +1350,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
           int varr = 0; // Dummy value, actually unused by the bytecode MEX
           FNUMEXPR_ fnumexpr(ExpressionType::FirstExoDerivative, eqr, varr, lag);
           fnumexpr.write(code_file, instruction_number);
-          d->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false);
+          d->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
           FSTPG3_ fstpg3(eq, var, lag, blocks_jacob_cols_exo[block].at({ var, lag }));
           fstpg3.write(code_file, instruction_number);
         }
@@ -1359,7 +1361,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
           int varr = 0; // Dummy value, actually unused by the bytecode MEX
           FNUMEXPR_ fnumexpr(ExpressionType::FirstExodetDerivative, eqr, varr, lag);
           fnumexpr.write(code_file, instruction_number);
-          d->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false);
+          d->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
           FSTPG3_ fstpg3(eq, var, lag, blocks_jacob_cols_exo_det[block].at({ var, lag }));
           fstpg3.write(code_file, instruction_number);
         }
@@ -1370,7 +1372,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
           int varr = 0; // Dummy value, actually unused by the bytecode MEX
           FNUMEXPR_ fnumexpr(ExpressionType::FirstOtherEndoDerivative, eqr, varr, lag);
           fnumexpr.write(code_file, instruction_number);
-          d->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false);
+          d->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
           FSTPG3_ fstpg3(eq, var, lag, blocks_jacob_cols_other_endo[block].at({ var, lag }));
           fstpg3.write(code_file, instruction_number);
         }
