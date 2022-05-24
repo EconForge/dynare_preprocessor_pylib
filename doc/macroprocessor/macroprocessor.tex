@@ -16,7 +16,7 @@
 
 \institute[CEPREMAP]{\includegraphics[scale=0.15]{../logos/cepremap.jpg}}
 
-\date{11 April 2022}
+\date{3 June 2022}
 
 
 \setbeamertemplate{title page}
@@ -132,7 +132,7 @@
     \item conditional statements: \verb+@#if/@#ifdef/@#ifndef/@#else/@#elseif/@#endif+
     \item loop statements: \verb+@#for/@#endfor+
     \end{itemize}
-  \item Most directives fit on one line. If needed however, two backslashes (i.e. \verb+\\+) at the end of a line indicate that the directive is continued on the next line.
+  \item Most directives fit on one line. If needed however, two backslashes (\textit{i.e.} \verb+\\+) at the end of a line indicate that the directive is continued on the next line.
   \item Directives are not terminated with a semicolon
   \end{itemize}
 \end{frame}
@@ -142,9 +142,9 @@
 \begin{itemize}
 \item The macro processor can handle values of 5 different types:
   \begin{enumerate}
-  \item boolean
-  \item real
-  \item string
+  \item boolean (logical value, true or false)
+  \item real (double precision floating point number)
+  \item string (of characters)
   \item tuple
   \item array
   \end{enumerate}
@@ -163,7 +163,7 @@
 \begin{frame}[fragile=singleslide]
   \frametitle{Macro-expressions (1/8)}
   \begin{itemize}
-    \item Macro-expressions are constructed using literals (i.e.\ fixed values) of the 5 basic types
+    \item Macro-expressions are constructed using literals (\textit{i.e.} fixed values) of the 5 basic types
       described above, macro-variables, standard operators, function calls and comprehensions.
     \item Macro-expressions can be used in two places:
       \begin{itemize}
@@ -180,7 +180,12 @@
   \begin{block}{Operators on booleans}
     \begin{itemize}
     \item comparison operators: \texttt{== !=}
-    \item logical operators: \texttt{\&\& || !}
+    \item logical operators:
+      \begin{itemize}
+      \item conjunction (“and”): \texttt{\&\&}
+      \item disjunction (“or”): \texttt{||}
+      \item negation (“not”): \texttt{!}
+      \end{itemize}
     \end{itemize}
   \end{block}
 \end{frame}
@@ -194,7 +199,7 @@
     \item logical operators: \verb+&& || !+
     \item range with unit increment: \texttt{1:4} is equivalent to
       real array \texttt{[1, 2, 3, 4]}. (NB: \texttt{[1:4]} is equivalent to an
-      array containing an array of reals, i.e. \texttt{[[1, 2, 3, 4]]})
+      array containing an array of reals, \textit{i.e.} \texttt{[[1, 2, 3, 4]]})
     \item range with user-defined increment: \texttt{4:-1.1:-1} is equivalent to real array \texttt{[4, 2.9, 1.8, 0.7, -0.4]}.
     \end{itemize}
   \end{block}
@@ -202,9 +207,9 @@
   \begin{block}{Functions for reals}
     \begin{itemize}
     \item \texttt{min}, \texttt{max}, \texttt{exp}, \texttt{ln} (or \texttt{log}), \texttt{log10}
+    \item \texttt{sign}, \texttt{floor}, \texttt{ceil}, \texttt{trunc}, \texttt{round}, \texttt{mod}
     \item \texttt{sin}, \texttt{cos}, \texttt{tan}, \texttt{asin}, \texttt{acos}, \texttt{atan}
-    \item \texttt{sqrt}, \texttt{cbrt}, \texttt{sign}, \texttt{floor}, \texttt{ceil}, \texttt{trunc}, \texttt{mod}
-    \item \texttt{erf}, \texttt{erfc}, \texttt{normpdf}, \texttt{normcdf}, \texttt{gamma}, \texttt{lgamma}, \texttt{round}
+    \item \texttt{sqrt}, \texttt{cbrt}, \texttt{erf}, \texttt{erfc}, \texttt{normpdf}, \texttt{normcdf}, \texttt{gamma}, \texttt{lgamma}
     \end{itemize}
   \end{block}
 \end{frame}
@@ -230,7 +235,7 @@
   \begin{block}{Operators on tuples}
     \begin{itemize}
     \item comparison operators: \texttt{== !=}
-    \item functions: \texttt{length}, \texttt{isempty}
+    \item functions: \texttt{length()}, \texttt{isempty()}
     \item testing membership in tuple: \texttt{in} operator \\ (example:
       \texttt{"b" in ("a", "b", "c")} returns \texttt{true})
     \end{itemize}
@@ -246,7 +251,7 @@
     \item comparison operators: \texttt{== !=}
     \item dereferencing: if \texttt{v} is an array, then \texttt{v[2]} is its $2^{\textrm{nd}}$ element
     \item concatenation: \texttt{+}
-    \item functions: \texttt{sum}, \texttt{length}, \texttt{isempty}
+    \item functions: \texttt{sum()}, \texttt{length()}, \texttt{isempty()}
     \item extraction of sub-arrays: \textit{e.g.} \texttt{v[4:6]}
     \item testing membership of an array: \texttt{in} operator \\ (example:
       \texttt{"b" in ["a", "b", "c"]} returns \texttt{true})
@@ -271,6 +276,8 @@
   For example: if \texttt{A} and \texttt{B} are arrays, then the following
   set operations are valid: \texttt{A|B}, \texttt{A\&B}, \texttt{A-B},
   \texttt{A*B}, \texttt{A\^{}3}.
+
+  NB: the array resulting from Cartesian product or power has tuples as its elements.
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
@@ -841,7 +848,7 @@ end
   \begin{itemize}
   \item The loop is not unrolled
   \item MATLAB/Octave manages the iterations
-  \item NB: always check whether the error flag `info(1)==0` to prevent erroneously relying on stale results from previous iterations
+  \item NB: always check whether the error flag \texttt{info(1)==0} to prevent erroneously relying on stale results from previous iterations
   \end{itemize}
 \end{frame}
 
@@ -884,18 +891,6 @@ rhos = [ 0.8, 0.9, 1];
   \item NB: Array not stored as MATLAB/Octave variable, hence cannot be used in MATLAB/Octave
   \end{itemize}
 \end{frame}
-
-% \begin{frame}[fragile=singleslide]
-%   \frametitle{Possible future developments}
-%   \begin{itemize}
-%   \item Find a nicer syntax for indexed sums/products
-%   \item Implement other control structures: \texttt{elsif}, \texttt{switch/case}, \texttt{while/until} loops
-%   \item Implement macro-functions (or templates), with a syntax like:
-%     \small
-%     \verb+@#define QUADRATIC_COST(x, x_ss, phi) = phi/2*(x/x_ss-1)^2+
-%     \normalsize
-%   \end{itemize}
-% \end{frame}
 
 \begin{frame}
   \begin{center}
