@@ -67,7 +67,7 @@ public:
 class Epilogue : public DynamicModel
 {
 private:
-  //! Associates a set of symbol IDs (the variable(s) assigned in a given statement) to an expression (their assigned value)
+  //! Associates a symbol ID (the variable assigned in a given statement) to an expression (its assigned value)
   vector<pair<int, expr_t>> dynamic_def_table, static_def_table;
 public:
   Epilogue(SymbolTable &symbol_table_arg,
