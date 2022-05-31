@@ -331,7 +331,7 @@ Epilogue::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &war
   for (const auto &it : dynamic_def_table)
     if (find(so_far_defined.begin(), so_far_defined.end(), it.first) != so_far_defined.end())
       {
-        cerr << "WARNING: in the 'epilogue' block, variable '" << it.first
+        cerr << "WARNING: in the 'epilogue' block, variable '" << symbol_table.getName(it.first)
              << "' is declared twice" << endl;
         exit(EXIT_FAILURE);
       }
