@@ -6122,11 +6122,11 @@ DynamicModel::writeJsonVariableMapping(ostream &output) const
 }
 
 void
-DynamicModel::writeJsonXrefsHelper(ostream &output, const map<pair<int, int>, set<int>> &xrefs) const
+DynamicModel::writeJsonXrefsHelper(ostream &output, const map<pair<int, int>, set<int>> &xrefmap) const
 {
-  for (auto it = xrefs.begin(); it != xrefs.end(); ++it)
+  for (auto it = xrefmap.begin(); it != xrefmap.end(); ++it)
     {
-      if (it != xrefs.begin())
+      if (it != xrefmap.begin())
         output << ", ";
       output << R"({"name": ")" << symbol_table.getName(it->first.first) << R"(")"
              << R"(, "shift": )" << it->first.second

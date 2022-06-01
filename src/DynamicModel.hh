@@ -354,7 +354,7 @@ public:
 
   //! Write cross reference output if the xref maps have been filed
   void writeJsonXrefs(ostream &output) const;
-  void writeJsonXrefsHelper(ostream &output, const map<pair<int, int>, set<int>> &xrefs) const;
+  void writeJsonXrefsHelper(ostream &output, const map<pair<int, int>, set<int>> &xrefmap) const;
 
   //! Print equations that have non-zero second derivatives
   void printNonZeroHessianEquations(ostream &output) const;
