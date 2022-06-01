@@ -87,12 +87,10 @@ private:
   //! Maximum lag and lead over deterministic exogenous variables (positive values) of original model
   int max_exo_det_lag_orig{0}, max_exo_det_lead_orig{0};
 
-  //! Cross reference information
+  // Cross reference information: eq → set of (symb_id, lag) for each symbol type
   map<int, ExprNode::EquationInfo> xrefs;
-  map<pair<int, int>, set<int>> xref_param;
-  map<pair<int, int>, set<int>> xref_endo;
-  map<pair<int, int>, set<int>> xref_exo;
-  map<pair<int, int>, set<int>> xref_exo_det;
+  // Reverse cross reference information: (symb_id, lag) → eqs
+  map<pair<int, int>, set<int>> xref_param, xref_endo, xref_exo, xref_exo_det;
 
   //! Nonzero equations in the Hessian
   set<int> nonzero_hessian_eqs;
