@@ -217,8 +217,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
         output << "M_.exo_names(" << id+1 << ") = {'" << getName(exo_ids[id]) << "'};" << endl
                << "M_.exo_names_tex(" << id+1 << ") = {'" << getTeXName(exo_ids[id]) << "'};" << endl
                << "M_.exo_names_long(" << id+1 << ") = {'" << getLongName(exo_ids[id]) << "'};" << endl;
-      map<string, map<int, string>> partitions = getPartitionsForType(SymbolType::exogenous);
-      for (auto &partition : partitions)
+      for (auto &partition : getPartitionsForType(SymbolType::exogenous))
         if (partition.first != "long_name")
           {
             output << "M_.exo_partitions." << partition.first << " = { ";
@@ -254,8 +253,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
                << "M_.exo_det_names_tex(" << id+1 << ") = {'" << getTeXName(exo_det_ids[id]) << "'};" << endl
                << "M_.exo_det_names_long(" << id+1 << ") = {'" << getLongName(exo_det_ids[id]) << "'};" << endl;
       output << "M_.exo_det_partitions = struct();" << endl;
-      map<string, map<int, string>> partitions = getPartitionsForType(SymbolType::exogenousDet);
-      for (auto &partition : partitions)
+      for (auto &partition : getPartitionsForType(SymbolType::exogenousDet))
         if (partition.first != "long_name")
           {
             output << "M_.exo_det_partitions." << partition.first << " = { ";
@@ -281,8 +279,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
                << "M_.endo_names_tex(" << id+1 << ") = {'" << getTeXName(endo_ids[id]) << "'};" << endl
                << "M_.endo_names_long(" << id+1 << ") = {'" << getLongName(endo_ids[id]) << "'};" << endl;
       output << "M_.endo_partitions = struct();" << endl;
-      map<string, map<int, string>> partitions = getPartitionsForType(SymbolType::endogenous);
-      for (auto &partition : partitions)
+      for (auto &partition : getPartitionsForType(SymbolType::endogenous))
         if (partition.first != "long_name")
           {
             output << "M_.endo_partitions." << partition.first << " = { ";
@@ -312,8 +309,7 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
             output << "options_.dsge_var = 1;" << endl;
         }
       output << "M_.param_partitions = struct();" << endl;
-      map<string, map<int, string>> partitions = getPartitionsForType(SymbolType::parameter);
-      for (auto &partition : partitions)
+      for (auto &partition : getPartitionsForType(SymbolType::parameter))
         if (partition.first != "long_name")
           {
             output << "M_.param_partitions." << partition.first << " = { ";
@@ -426,20 +422,15 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
 int
 SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index, expr_t expr_arg) noexcept(false)
 {
-  ostringstream varname;
-  if (endo)
-    varname << "AUX_ENDO_LEAD_";
-  else
-    varname << "AUX_EXO_LEAD_";
-  varname << index;
+  string varname{(endo ? "AUX_ENDO_LEAD_" : "AUX_EXO_LEAD_") + to_string(index)};
   int symb_id;
   try
     {
-      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
+      symb_id = addSymbol(varname, SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
-      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -451,21 +442,15 @@ SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index, expr_t expr_arg) 
 int
 SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lead_lag, expr_t expr_arg) noexcept(false)
 {
-  ostringstream varname;
-  if (endo)
-    varname << "AUX_ENDO_LAG_";
-  else
-    varname << "AUX_EXO_LAG_";
-  varname << orig_symb_id << "_" << -orig_lead_lag;
-
+  string varname{(endo ? "AUX_ENDO_LAG_" : "AUX_EXO_LAG_") + to_string(orig_symb_id) + "_" + to_string(-orig_lead_lag)};
   int symb_id;
   try
     {
-      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
+      symb_id = addSymbol(varname, SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
-      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -501,19 +486,16 @@ SymbolTable::addExoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t e
 int
 SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t expr_arg) noexcept(false)
 {
-  ostringstream varname;
+  string varname{string{"AUX_EXPECT_"} + (information_set < 0 ? "LAG" : "LEAD") + "_"
+    + to_string(abs(information_set)) + "_" + to_string(index)};
   int symb_id;
-
-  varname << "AUX_EXPECT_" << (information_set < 0 ? "LAG" : "LEAD") << "_"
-          << abs(information_set) << "_" << index;
-
   try
     {
-      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
+      symb_id = addSymbol(varname, SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
-      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -545,18 +527,15 @@ SymbolTable::addLogTransformAuxiliaryVar(int orig_symb_id, int orig_lead_lag, ex
 int
 SymbolTable::addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) noexcept(false)
 {
-  ostringstream varname;
+  string varname{"AUX_DIFF_LAG_" + to_string(index)};
   int symb_id;
-
-  varname << "AUX_DIFF_LAG_" << index;
-
   try
     {
-      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
+      symb_id = addSymbol(varname, SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
-      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -568,18 +547,15 @@ SymbolTable::addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id
 int
 SymbolTable::addDiffLeadAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lead) noexcept(false)
 {
-  ostringstream varname;
+  string varname{"AUX_DIFF_LEAD_" + to_string(index)};
   int symb_id;
-
-  varname << "AUX_DIFF_LEAD_" << index;
-
   try
     {
-      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
+      symb_id = addSymbol(varname, SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
-      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -591,18 +567,15 @@ SymbolTable::addDiffLeadAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_i
 int
 SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, optional<int> orig_symb_id, optional<int> orig_lag) noexcept(false)
 {
-  ostringstream varname;
+  string varname{"AUX_DIFF_" + to_string(index)};
   int symb_id;
-
-  varname << "AUX_DIFF_" << index;
-
   try
     {
-      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
+      symb_id = addSymbol(varname, SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
-      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -614,17 +587,15 @@ SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, optional<int> orig_
 int
 SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op, optional<int> orig_symb_id, optional<int> orig_lag) noexcept(false)
 {
-  ostringstream varname;
+  string varname{"AUX_UOP_" + to_string(index)};
   int symb_id;
-
-  varname << "AUX_UOP_" << index;
   try
     {
-      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
+      symb_id = addSymbol(varname, SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
-      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -636,17 +607,15 @@ SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op,
 int
 SymbolTable::addMultiplierAuxiliaryVar(int index) noexcept(false)
 {
-  ostringstream varname;
+  string varname{"MULT_" + to_string(index+1)};
   int symb_id;
-  varname << "MULT_" << index+1;
-
   try
     {
-      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
+      symb_id = addSymbol(varname, SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
-      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -657,17 +626,15 @@ SymbolTable::addMultiplierAuxiliaryVar(int index) noexcept(false)
 int
 SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) noexcept(false)
 {
-  ostringstream varname;
+  string varname{"AUX_DIFF_FWRD_" + to_string(orig_symb_id+1)};
   int symb_id;
-  varname << "AUX_DIFF_FWRD_" << orig_symb_id+1;
-
   try
     {
-      symb_id = addSymbol(varname.str(), SymbolType::endogenous);
+      symb_id = addSymbol(varname, SymbolType::endogenous);
     }
   catch (AlreadyDeclaredException &e)
     {
-      cerr << "ERROR: you should rename your variable called " << varname.str() << ", this name is internally used by Dynare" << endl;
+      cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
       exit(EXIT_FAILURE);
     }
 

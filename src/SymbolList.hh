@@ -61,7 +61,7 @@ public:
   //! Write JSON output
   void writeJsonOutput(ostream &output) const;
   //! Is Empty
-  int
+  bool
   empty() const
   {
     return symbols.empty();

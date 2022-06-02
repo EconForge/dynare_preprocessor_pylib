@@ -64,8 +64,7 @@ SteadyStateModel::addDefinition(int symb_id, expr_t expr)
          || symbol_table.getType(symb_id) == SymbolType::parameter);
 
   // Add the variable
-  vector<int> v;
-  v.push_back(symb_id);
+  vector<int> v{symb_id};
   def_table.emplace_back(v, expr);
 }
 
@@ -89,28 +88,23 @@ SteadyStateModel::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
     return;
 
   mod_file_struct.steady_state_model_present = true;
-  vector<int> so_far_defined;
+  set<int> so_far_defined;
 
-  for (const auto &i : def_table)
+  for (const auto &[symb_ids, expr] : def_table)
     {
-      const vector<int> &symb_ids = i.first;
-
       // Check that symbols are not already defined
       for (int symb_id : symb_ids)
-        if (find(so_far_defined.begin(), so_far_defined.end(), symb_id)
-            != so_far_defined.end())
+        if (so_far_defined.contains(symb_id))
           warnings << "WARNING: in the 'steady_state_model' block, variable '" << symbol_table.getName(symb_id) << "' is declared twice" << endl;
 
       // Check that expression has no undefined symbol
       if (!mod_file_struct.ramsey_model_present)
         {
           set<int> used_symbols;
-          const expr_t &expr = i.second;
           expr->collectVariables(SymbolType::endogenous, used_symbols);
           expr->collectVariables(SymbolType::modFileLocalVariable, used_symbols);
           for (int used_symbol : used_symbols)
-            if (find(so_far_defined.begin(), so_far_defined.end(), used_symbol)
-                == so_far_defined.end())
+            if (!so_far_defined.contains(used_symbol))
               {
                 cerr << "ERROR: in the 'steady_state_model' block, variable '" << symbol_table.getName(used_symbol)
                      << "' is undefined in the declaration of variable '" << symbol_table.getName(symb_ids[0]) << "'" << endl;
@@ -118,7 +112,7 @@ SteadyStateModel::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
               }
         }
 
-      copy(symb_ids.begin(), symb_ids.end(), back_inserter(so_far_defined));
+      so_far_defined.insert(symb_ids.begin(), symb_ids.end());
     }
 
   /* Check that all original endogous are defined (except the instruments of a
@@ -129,11 +123,8 @@ SteadyStateModel::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
     for (const auto &s : mod_file_struct.instruments.getSymbols())
       should_be_defined.erase(symbol_table.getID(s));
   for (int v : should_be_defined)
-    {
-      if (find(so_far_defined.begin(), so_far_defined.end(), v)
-          == so_far_defined.end())
-        warnings << "WARNING: in the 'steady_state_model' block, variable '" << symbol_table.getName(v) << "' is not assigned a value" << endl;
-    }
+    if (!so_far_defined.contains(v))
+      warnings << "WARNING: in the 'steady_state_model' block, variable '" << symbol_table.getName(v) << "' is not assigned a value" << endl;
 }
 
 void
@@ -327,23 +318,23 @@ Epilogue::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &war
       return;
     }
 
-  vector<int> so_far_defined;
-  for (const auto &it : dynamic_def_table)
-    if (find(so_far_defined.begin(), so_far_defined.end(), it.first) != so_far_defined.end())
+  set<int> so_far_defined;
+  for (const auto &[symb_id, expr] : dynamic_def_table)
+    if (so_far_defined.contains(symb_id))
       {
-        cerr << "WARNING: in the 'epilogue' block, variable '" << symbol_table.getName(it.first)
+        cerr << "WARNING: in the 'epilogue' block, variable '" << symbol_table.getName(symb_id)
              << "' is declared twice" << endl;
         exit(EXIT_FAILURE);
       }
     else
-      so_far_defined.push_back(it.first);
+      so_far_defined.insert(symb_id);
 }
 
 void
 Epilogue::toStatic()
 {
   for (const auto & [symb_id, expr] : dynamic_def_table)
-    static_def_table.emplace_back(make_pair(symb_id, expr->toStatic(*this)));
+    static_def_table.emplace_back(symb_id, expr->toStatic(*this));
 }
 
 void

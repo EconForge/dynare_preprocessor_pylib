@@ -57,14 +57,8 @@ SymbolList::checkPass(WarningConsolidation &warnings, const vector<SymbolType> &
             throw SymbolListException{"Variable " + symbol +  " was not declared."};
         }
 
-      bool type_found = false;
-      for (auto type : types)
-        if (symbol_table.getType(symbol) == type)
-          {
-            type_found = true;
-            break;
-          }
-      if (!type_found)
+      if (none_of(types.begin(), types.end(),
+                  [&](SymbolType type) { return symbol_table.getType(symbol) == type; }))
         {
           string valid_types;
           for (auto type : types)

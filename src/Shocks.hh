@@ -58,9 +58,9 @@ public:
 private:
   const var_and_std_shocks_t var_shocks, std_shocks;
   const covar_and_corr_shocks_t covar_shocks, corr_shocks;
-  void writeVarOrStdShock(ostream &output, var_and_std_shocks_t::const_iterator &it, bool stddev) const;
+  void writeVarOrStdShock(ostream &output, const pair<int, expr_t> &it, bool stddev) const;
   void writeVarAndStdShocks(ostream &output) const;
-  void writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_t::const_iterator &it, bool corr) const;
+  void writeCovarOrCorrShock(ostream &output, const pair<pair<int, int>, expr_t> &it, bool corr) const;
   void writeCovarAndCorrShocks(ostream &output) const;
   bool has_calibrated_measurement_errors() const;
 public:
@@ -141,13 +141,13 @@ class ConditionalForecastPathsStatement : public Statement
 private:
   const AbstractShocksStatement::det_shocks_t paths;
   const SymbolTable &symbol_table;
-  int path_length{-1};
+  const int path_length;
 public:
   ConditionalForecastPathsStatement(AbstractShocksStatement::det_shocks_t paths_arg,
                                     const SymbolTable &symbol_table_arg);
-  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
+  static int computePathLength(const AbstractShocksStatement::det_shocks_t &paths);
 };
 
 class MomentCalibration : public Statement

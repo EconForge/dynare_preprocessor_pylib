@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <algorithm>
 
 using namespace std;
 
@@ -112,12 +113,8 @@ ExternalFunctionsTable::getSecondDerivSymbID(int symb_id) const noexcept(false)
 inline int
 ExternalFunctionsTable::get_total_number_of_unique_model_block_external_functions() const
 {
-  int number_of_unique_model_block_external_functions = 0;
-  for (const auto &it : externalFunctionTable)
-    if (it.second.nargs > 0)
-      number_of_unique_model_block_external_functions++;
-
-  return number_of_unique_model_block_external_functions;
+  return count_if(externalFunctionTable.begin(), externalFunctionTable.end(),
+                  [](const auto &kv) { return kv.second.nargs > 0; });
 }
 
 #endif

@@ -207,28 +207,28 @@ ShocksStatement::writeJsonOutput(ostream &output) const
 }
 
 void
-ShocksStatement::writeVarOrStdShock(ostream &output, var_and_std_shocks_t::const_iterator &it,
+ShocksStatement::writeVarOrStdShock(ostream &output, const pair<int, expr_t> &it,
                                     bool stddev) const
 {
-  SymbolType type = symbol_table.getType(it->first);
-  assert(type == SymbolType::exogenous || symbol_table.isObservedVariable(it->first));
+  SymbolType type = symbol_table.getType(it.first);
+  assert(type == SymbolType::exogenous || symbol_table.isObservedVariable(it.first));
 
   int id;
   if (type == SymbolType::exogenous)
     {
       output << "M_.Sigma_e(";
-      id = symbol_table.getTypeSpecificID(it->first) + 1;
+      id = symbol_table.getTypeSpecificID(it.first) + 1;
     }
   else
     {
       output << "M_.H(";
-      id = symbol_table.getObservedVariableIndex(it->first) + 1;
+      id = symbol_table.getObservedVariableIndex(it.first) + 1;
     }
 
   output << id << ", " << id << ") = ";
   if (stddev)
     output << "(";
-  it->second->writeOutput(output);
+  it.second->writeOutput(output);
   if (stddev)
     output << ")^2";
   output << ";" << endl;
@@ -237,40 +237,40 @@ ShocksStatement::writeVarOrStdShock(ostream &output, var_and_std_shocks_t::const
 void
 ShocksStatement::writeVarAndStdShocks(ostream &output) const
 {
-  for (auto it = var_shocks.begin(); it != var_shocks.end(); ++it)
+  for (const auto &it : var_shocks)
     writeVarOrStdShock(output, it, false);
 
-  for (auto it = std_shocks.begin(); it != std_shocks.end(); ++it)
+  for (const auto &it : std_shocks)
     writeVarOrStdShock(output, it, true);
 }
 
 void
-ShocksStatement::writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_t::const_iterator &it,
+ShocksStatement::writeCovarOrCorrShock(ostream &output, const pair<pair<int, int>, expr_t> &it,
                                        bool corr) const
 {
-  SymbolType type1 = symbol_table.getType(it->first.first);
-  SymbolType type2 = symbol_table.getType(it->first.second);
+  SymbolType type1 = symbol_table.getType(it.first.first);
+  SymbolType type2 = symbol_table.getType(it.first.second);
   assert((type1 == SymbolType::exogenous && type2 == SymbolType::exogenous)
-         || (symbol_table.isObservedVariable(it->first.first) && symbol_table.isObservedVariable(it->first.second)));
+         || (symbol_table.isObservedVariable(it.first.first) && symbol_table.isObservedVariable(it.first.second)));
   string matrix, corr_matrix;
   int id1, id2;
   if (type1 == SymbolType::exogenous)
     {
       matrix = "M_.Sigma_e";
       corr_matrix = "M_.Correlation_matrix";
-      id1 = symbol_table.getTypeSpecificID(it->first.first) + 1;
-      id2 = symbol_table.getTypeSpecificID(it->first.second) + 1;
+      id1 = symbol_table.getTypeSpecificID(it.first.first) + 1;
+      id2 = symbol_table.getTypeSpecificID(it.first.second) + 1;
     }
   else
     {
       matrix = "M_.H";
       corr_matrix = "M_.Correlation_matrix_ME";
-      id1 = symbol_table.getObservedVariableIndex(it->first.first) + 1;
-      id2 = symbol_table.getObservedVariableIndex(it->first.second) + 1;
+      id1 = symbol_table.getObservedVariableIndex(it.first.first) + 1;
+      id2 = symbol_table.getObservedVariableIndex(it.first.second) + 1;
     }
 
   output << matrix << "(" << id1 << ", " << id2 << ") = ";
-  it->second->writeOutput(output);
+  it.second->writeOutput(output);
   if (corr)
     output << "*sqrt(" << matrix << "(" << id1 << ", " << id1 << ")*"
            << matrix << "(" << id2 << ", " << id2 << "))";
@@ -281,7 +281,7 @@ ShocksStatement::writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_t:
   if (corr)
     {
       output << corr_matrix << "(" << id1 << ", " << id2 << ") = ";
-      it->second->writeOutput(output);
+      it.second->writeOutput(output);
       output << ";" << endl
              << corr_matrix << "(" << id2 << ", " << id1 << ") = "
              << corr_matrix << "(" << id1 << ", " << id2 << ");" << endl;
@@ -291,10 +291,10 @@ ShocksStatement::writeCovarOrCorrShock(ostream &output, covar_and_corr_shocks_t:
 void
 ShocksStatement::writeCovarAndCorrShocks(ostream &output) const
 {
-  for (auto it = covar_shocks.begin(); it != covar_shocks.end(); ++it)
+  for (const auto &it : covar_shocks)
     writeCovarOrCorrShock(output, it, false);
 
-  for (auto it = corr_shocks.begin(); it != corr_shocks.end(); ++it)
+  for (const auto &it : corr_shocks)
     writeCovarOrCorrShock(output, it, true);
 }
 
@@ -328,7 +328,7 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
 
   for (const auto & [ids, val] : covar_shocks)
     {
-      int symb_id1 = ids.first, symb_id2 = ids.second;
+      auto &[symb_id1, symb_id2] = ids;
 
       if (!((symbol_table.getType(symb_id1) == SymbolType::exogenous
              && symbol_table.getType(symb_id2) == SymbolType::exogenous)
@@ -344,7 +344,7 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
 
   for (const auto & [ids, val] : corr_shocks)
     {
-      int symb_id1 = ids.first, symb_id2 = ids.second;
+      auto &[symb_id1, symb_id2] = ids;
 
       if (!((symbol_table.getType(symb_id1) == SymbolType::exogenous
              && symbol_table.getType(symb_id2) == SymbolType::exogenous)
@@ -451,16 +451,14 @@ ShocksSurpriseStatement::writeOutput(ostream &output, const string &basename, bo
   else
     output << "M_.surprise_shocks = [ M_.surprise_shocks;" << endl;
   for (const auto &[id, shock_vec] : surprise_shocks)
-    {
-      for (const auto &[period1, period2, value] : shock_vec)
-        {
-          output << "struct('exo_id'," << symbol_table.getTypeSpecificID(id)+1
-                 << ",'periods'," << period1 << ":" << period2
-                 << ",'value',";
-          value->writeOutput(output);
-          output << ");" << endl;
-        }
-    }
+    for (const auto &[period1, period2, value] : shock_vec)
+      {
+        output << "struct('exo_id'," << symbol_table.getTypeSpecificID(id)+1
+               << ",'periods'," << period1 << ":" << period2
+               << ",'value',";
+        value->writeOutput(output);
+        output << ");" << endl;
+      }
   output << "];" << endl;
 }
 
@@ -531,18 +529,16 @@ ShocksLearntInStatement::writeOutput(ostream &output, const string &basename, bo
 
   output << "M_.learnt_shocks = [ M_.learnt_shocks;" << endl;
   for (const auto &[id, shock_vec] : learnt_shocks)
-    {
-      for (const auto &[type, period1, period2, value] : shock_vec)
-        {
-          output << "struct('learnt_in'," << learnt_in_period
-                 << ",'exo_id'," << symbol_table.getTypeSpecificID(id)+1
-                 << ",'periods'," << period1 << ":" << period2
-                 << ",'type','" << typeToString(type) << "'"
-                 << ",'value',";
-          value->writeOutput(output);
-          output << ");" << endl;
-        }
-    }
+    for (const auto &[type, period1, period2, value] : shock_vec)
+      {
+        output << "struct('learnt_in'," << learnt_in_period
+               << ",'exo_id'," << symbol_table.getTypeSpecificID(id)+1
+               << ",'periods'," << period1 << ":" << period2
+               << ",'type','" << typeToString(type) << "'"
+               << ",'value',";
+        value->writeOutput(output);
+        output << ");" << endl;
+      }
   output << "];" << endl;
 }
 
@@ -579,21 +575,20 @@ ShocksLearntInStatement::writeJsonOutput(ostream &output) const
 ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(AbstractShocksStatement::det_shocks_t paths_arg,
                                                                      const SymbolTable &symbol_table_arg) :
   paths{move(paths_arg)},
-  symbol_table{symbol_table_arg}
+  symbol_table{symbol_table_arg},
+  path_length{computePathLength(paths)}
 {
 }
 
-void
-ConditionalForecastPathsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+int
+ConditionalForecastPathsStatement::computePathLength(const AbstractShocksStatement::det_shocks_t &paths)
 {
+  int length{0};
   for (const auto &[ignore, elems] : paths)
-    {
-      int this_path_length = 0;
-      for (auto [period1, period2, value] : elems)
-        // Period1 < Period2, as enforced in ParsingDriver::add_period()
-        this_path_length = max(this_path_length, period2);
-      path_length = max(this_path_length, path_length);
-    }
+    for (auto &[period1, period2, value] : elems)
+      // Period1 < Period2, as enforced in ParsingDriver::add_period()
+      length = max(length, period2);
+  return length;
 }
 
 void
@@ -763,9 +758,9 @@ void
 ShockGroupsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   int i = 1;
-  bool unique_label = true;
-  for (auto it = shock_groups.begin(); it != shock_groups.end(); ++it, unique_label = true)
+  for (auto it = shock_groups.begin(); it != shock_groups.end(); ++it)
     {
+      bool unique_label{true};
       for (auto it1 = it+1; it1 != shock_groups.end(); ++it1)
         if (it->name == it1->name)
           {
@@ -793,10 +788,10 @@ void
 ShockGroupsStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "shock_groups", "name": ")" << name << R"(", "groups": [)";
-  bool unique_label = true;
-  bool printed_group = false;
-  for (auto it = shock_groups.begin(); it != shock_groups.end(); ++it, unique_label = true)
+  bool printed_something{false};
+  for (auto it = shock_groups.begin(); it != shock_groups.end(); ++it)
     {
+      bool unique_label{true};
       for (auto it1 = it+1; it1 != shock_groups.end(); ++it1)
         if (it->name == it1->name)
           {
@@ -806,10 +801,8 @@ ShockGroupsStatement::writeJsonOutput(ostream &output) const
 
       if (unique_label)
         {
-          if (printed_group)
+          if (exchange(printed_something, true))
             output << ", ";
-          else
-            printed_group = true;
           output << R"({"group_name": ")" << it->name << R"(",)"
                  << R"("shocks": [)";
           for (auto it1 = it->list.begin(); it1 != it->list.end(); ++it1)
@@ -848,8 +841,8 @@ void
 Init2shocksStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "M_.init2shocks." << name << " = {" << endl;
-  for (auto &it : init2shocks)
-    output << "{'" << symbol_table.getName(it.first) << "', '" << symbol_table.getName(it.second) << "'};" << endl;
+  for (const auto &[id1, id2] : init2shocks)
+    output << "{'" << symbol_table.getName(id1) << "', '" << symbol_table.getName(id2) << "'};" << endl;
   output << "};" << endl;
 }
 

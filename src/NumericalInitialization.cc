@@ -90,16 +90,14 @@ void
 InitOrEndValStatement::fillEvalContext(eval_context_t &eval_context) const
 {
   for (auto [symb_id, value] : init_values)
-    {
-      try
-        {
-          eval_context[symb_id] = value->eval(eval_context);
-        }
-      catch (ExprNode::EvalException &e)
-        {
-          // Do nothing
-        }
-    }
+    try
+      {
+        eval_context[symb_id] = value->eval(eval_context);
+      }
+    catch (ExprNode::EvalException &e)
+      {
+        // Do nothing
+      }
 }
 
 set<int>

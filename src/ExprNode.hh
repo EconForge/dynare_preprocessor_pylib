@@ -218,7 +218,7 @@ protected:
   inline static int
   min_cost(bool is_matlab)
   {
-    return (is_matlab ? min_cost_matlab : min_cost_c);
+    return is_matlab ? min_cost_matlab : min_cost_c;
   };
 
   //! Cost of computing current node
@@ -230,10 +230,7 @@ protected:
   //! For creating equation cross references
   struct EquationInfo
   {
-    set<pair<int, int>> param;
-    set<pair<int, int>> endo;
-    set<pair<int, int>> exo;
-    set<pair<int, int>> exo_det;
+    set<pair<int, int>> param, endo, exo, exo_det;
   };
 
   //! If this node is a temporary term, writes its temporary term representation

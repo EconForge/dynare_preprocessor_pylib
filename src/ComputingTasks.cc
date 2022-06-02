@@ -105,12 +105,6 @@ ModelInfoStatement::ModelInfoStatement(OptionsList options_list_arg) :
 }
 
 void
-ModelInfoStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
-{
-  //mod_file_struct.model_info_present = true;
-}
-
-void
 ModelInfoStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_model_info_");
@@ -2045,8 +2039,7 @@ OsrParamsStatement::writeOutput(ostream &output, const string &basename, bool mi
   output << "M_.osr.param_names = cellstr(M_.osr.param_names);" << endl
          << "M_.osr.param_indices = zeros(length(M_.osr.param_names), 1);" << endl;
   int i = 0;
-  vector<string> symbols = symbol_list.getSymbols();
-  for (auto &symbol : symbols)
+  for (auto &symbol : symbol_list.getSymbols())
     output << "M_.osr.param_indices(" << ++i <<") = " << symbol_table.getTypeSpecificID(symbol) + 1 << ";" << endl;
 }
 
@@ -2235,28 +2228,28 @@ OptimWeightsStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "optim_weights", )"
          << R"("weights": [)";
-  for (auto it = var_weights.begin(); it != var_weights.end(); ++it)
+  bool printed_something{false};
+  for (const auto &[name, value] : var_weights)
     {
-      if (it != var_weights.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"name": ")" << it->first << R"(")"
+      output << R"({"name": ")" << name << R"(")"
              << R"(, "value": ")";
-      it->second->writeJsonOutput(output, {}, {});
+      value->writeJsonOutput(output, {}, {});
       output << R"("})";
     }
 
-  for (auto it = covar_weights.begin(); it != covar_weights.end(); ++it)
+  for (const auto &[names, value] : covar_weights)
     {
-      if (it != covar_weights.begin() || !var_weights.empty())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"name1": ")" << it->first.first << R"(")"
-             << R"(, "name2": ")" << it->first.second << R"(")"
+      output << R"({"name1": ")" << names.first << R"(")"
+             << R"(, "name2": ")" << names.second << R"(")"
              << R"(, "value": ")";
-      it->second->writeJsonOutput(output, {}, {});
+      value->writeJsonOutput(output, {}, {});
       output << R"("})";
     }
-  output << "]"
-         << "}";
+  output << "]}";
 }
 
 DynaSaveStatement::DynaSaveStatement(SymbolList symbol_list_arg, string filename_arg,
@@ -2357,14 +2350,13 @@ ModelComparisonStatement::writeOutput(ostream &output, const string &basename, b
 {
   options_list.writeOutput(output);
 
-  output << "ModelNames_ = {};" << endl;
-  output << "ModelPriors_ = [];" << endl;
+  output << "ModelNames_ = {};" << endl
+         << "ModelPriors_ = [];" << endl;
 
-  for (const auto &it : filename_list)
-    {
-      output << "ModelNames_ = { ModelNames_{:} '" << it.first << "'};" << endl;
-      output << "ModelPriors_ = [ ModelPriors_ ; " << it.second << "];" << endl;
-    }
+  for (const auto &[name, prior] : filename_list)
+    output << "ModelNames_ = { ModelNames_{:} '" << name << "'};" << endl
+           << "ModelPriors_ = [ ModelPriors_ ; " << prior << "];" << endl;
+
   output << "oo_ = model_comparison(ModelNames_,ModelPriors_,oo_,options_,M_.fname);" << endl;
 }
 
@@ -2433,8 +2425,8 @@ PlannerObjectiveStatement::writeOutput(ostream &output, const string &basename, 
   output << "M_.NNZDerivatives_objective = [";
   for (int i=1; i < static_cast<int>(model_tree.getNNZDerivatives().size()); i++)
     output << (i > model_tree.getComputedDerivsOrder() ? -1 : model_tree.getNNZDerivatives()[i]) << ";";
-  output << "];" << endl;
-  output << "M_.objective_tmp_nbr = [";
+  output << "];" << endl
+         << "M_.objective_tmp_nbr = [";
   for (const auto &temporary_terms_derivative : model_tree.getTemporaryTermsDerivatives())
     output << temporary_terms_derivative.size() << "; ";
   output << "];" << endl;
@@ -3334,8 +3326,7 @@ SvarIdentificationStatement::getMaxLag() const
 {
   int max_lag = 0;
   for (const auto &restriction : restrictions)
-    if (restriction.lag > max_lag)
-      max_lag = restriction.lag;
+    max_lag = max(restriction.lag, max_lag);
 
   return max_lag;
 }
@@ -3565,13 +3556,12 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
                   exit(EXIT_FAILURE);
                 }
             }
-          else
-            if (row_trans_prob_sum[i] >= 1.0)
-              {
-                cerr << "ERROR: When transition probabilites are not specified for every regime, "
-                     << "their sum must be < 1" << endl;
-                exit(EXIT_FAILURE);
-              }
+          else if (row_trans_prob_sum[i] >= 1.0)
+            {
+              cerr << "ERROR: When transition probabilites are not specified for every regime, "
+                   << "their sum must be < 1" << endl;
+              exit(EXIT_FAILURE);
+            }
 
           if (all_restrictions_in_col[i])
             {
@@ -3582,13 +3572,12 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
                   exit(EXIT_FAILURE);
                 }
             }
-          else
-            if (col_trans_prob_sum[i] >= 1.0)
-              {
-                cerr << "ERROR: When transition probabilites are not specified for every regime, "
-                     << "their sum must be < 1" << endl;
-                exit(EXIT_FAILURE);
-              }
+          else if (col_trans_prob_sum[i] >= 1.0)
+            {
+              cerr << "ERROR: When transition probabilites are not specified for every regime, "
+                   << "their sum must be < 1" << endl;
+              exit(EXIT_FAILURE);
+            }
         }
     }
 
@@ -3636,10 +3625,10 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename, b
     }
 
   int restrictions_index = 0;
-  for (auto itR = restriction_map.begin(); itR != restriction_map.end(); itR++)
+  for (const auto &[regimes, prob] : restriction_map)
     output << "options_.ms.ms_chain(" << itChain->second << ").restrictions("
-           << ++restrictions_index << ") = {[" << itR->first.first << ", "
-           << itR->first.second << ", " << itR->second << "]};" << endl;
+           << ++restrictions_index << ") = {[" << regimes.first << ", "
+           << regimes.second << ", " << prob << "]};" << endl;
 }
 
 void
@@ -5115,13 +5104,10 @@ GenerateIRFsStatement::writeOutput(ostream &output, const string &basename, bool
          << generate_irf_names.size() << ");" << endl;
 
   for (size_t i = 0; i < generate_irf_names.size(); i++)
-    {
-      map<string, double> m = generate_irf_elements[i];
-      for (auto &it : m)
-        output << "options_.irf_opt.irf_shocks(M_.exo_names == '"
-               << it.first << "', " << i + 1 << ") = "
-               << it.second << ";" << endl;
-    }
+    for (auto &[exo_name, exo_value] : generate_irf_elements[i])
+      output << "options_.irf_opt.irf_shocks(M_.exo_names == '"
+             << exo_name << "', " << i + 1 << ") = "
+             << exo_value << ";" << endl;
 }
 
 void

@@ -2098,31 +2098,29 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
       writeDynamicMatlabCompatLayer(basename);
     }
   else if (output_type == ExprNodeOutputType::CDynamicModel)
-    {
-      for (size_t i = 0; i < d_output.size(); i++)
-        {
-          string funcname = i == 0 ? "resid" : "g" + to_string(i);
-          DynamicOutput << "void dynamic_" << funcname << "_tt(const double *restrict y, const double *restrict x, int nb_row_x, const double *restrict params, const double *restrict steady_state, int it_, double *restrict T)" << endl
-                        << "{" << endl
-                        << tt_output[i].str()
-                        << "}" << endl
-                        << endl
-                        << "void dynamic_" << funcname << "(const double *restrict y, const double *restrict x, int nb_row_x, const double *restrict params, const double *restrict steady_state, int it_, const double *restrict T, ";
-          if (i == 0)
-            DynamicOutput << "double *restrict residual";
-          else if (i == 1)
-            DynamicOutput << "double *restrict g1";
-          else
-            DynamicOutput << "double *restrict " << funcname << "_i, double *restrict " << funcname << "_j, double *restrict " << funcname << "_v";
-          DynamicOutput << ")" << endl
-                        << "{" << endl;
-          if (i == 0)
-            DynamicOutput << "  double lhs, rhs;" << endl;
-          DynamicOutput << d_output[i].str()
-                        << "}" << endl
-                        << endl;
-        }
-    }
+    for (size_t i = 0; i < d_output.size(); i++)
+      {
+        string funcname = i == 0 ? "resid" : "g" + to_string(i);
+        DynamicOutput << "void dynamic_" << funcname << "_tt(const double *restrict y, const double *restrict x, int nb_row_x, const double *restrict params, const double *restrict steady_state, int it_, double *restrict T)" << endl
+                      << "{" << endl
+                      << tt_output[i].str()
+                      << "}" << endl
+                      << endl
+                      << "void dynamic_" << funcname << "(const double *restrict y, const double *restrict x, int nb_row_x, const double *restrict params, const double *restrict steady_state, int it_, const double *restrict T, ";
+        if (i == 0)
+          DynamicOutput << "double *restrict residual";
+        else if (i == 1)
+          DynamicOutput << "double *restrict g1";
+        else
+          DynamicOutput << "double *restrict " << funcname << "_i, double *restrict " << funcname << "_j, double *restrict " << funcname << "_v";
+        DynamicOutput << ")" << endl
+                      << "{" << endl;
+        if (i == 0)
+          DynamicOutput << "  double lhs, rhs;" << endl;
+        DynamicOutput << d_output[i].str()
+                      << "}" << endl
+                      << endl;
+      }
   else
     {
       stringstream output;
@@ -2516,23 +2514,21 @@ DynamicModel::removeEquationsHelper(set<pair<string, string>> &listed_eqs_by_tag
     if (eqs_to_delete_by_number.contains(i))
       {
         if (excluded_vars_change_type)
-          {
-            if (auto tmp = all_equation_tags.getTagValueByEqnAndKey(i, "endogenous"); !tmp.empty())
-              excluded_vars.push_back(symbol_table.getID(tmp));
-            else
-              {
-                set<int> result;
-                all_equations[i]->arg1->collectVariables(SymbolType::endogenous, result);
-                if (result.size() == 1)
-                  excluded_vars.push_back(*result.begin());
-                else
-                  {
-                    cerr << "ERROR: Equation " << i+1
-                         << " has been excluded but it does not have a single variable on its left-hand side or an `endogenous` tag" << endl;
-                    exit(EXIT_FAILURE);
-                  }
-              }
-          }
+          if (auto tmp = all_equation_tags.getTagValueByEqnAndKey(i, "endogenous"); !tmp.empty())
+            excluded_vars.push_back(symbol_table.getID(tmp));
+          else
+            {
+              set<int> result;
+              all_equations[i]->arg1->collectVariables(SymbolType::endogenous, result);
+              if (result.size() == 1)
+                excluded_vars.push_back(*result.begin());
+              else
+                {
+                  cerr << "ERROR: Equation " << i+1
+                       << " has been excluded but it does not have a single variable on its left-hand side or an `endogenous` tag" << endl;
+                  exit(EXIT_FAILURE);
+                }
+            }
       }
     else
       {
@@ -2976,16 +2972,15 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
       nboth += sboth;
       output << ";";
     }
-  output << "]';" << endl;
-  output << "M_.nstatic = " << nstatic << ";" << endl
+  output << "]';" << endl
+         << "M_.nstatic = " << nstatic << ";" << endl
          << "M_.nfwrd   = " << nfwrd   << ";" << endl
          << "M_.npred   = " << npred   << ";" << endl
          << "M_.nboth   = " << nboth   << ";" << endl
          << "M_.nsfwrd   = " << nfwrd+nboth   << ";" << endl
          << "M_.nspred   = " << npred+nboth   << ";" << endl
-         << "M_.ndynamic   = " << npred+nboth+nfwrd << ";" << endl;
-
-  output << "M_.dynamic_tmp_nbr = [";
+         << "M_.ndynamic   = " << npred+nboth+nfwrd << ";" << endl
+         << "M_.dynamic_tmp_nbr = [";
   for (size_t i = 0; i < temporary_terms_derivatives.size(); i++)
     output << temporary_terms_derivatives[i].size() + (i == 0 ? temporary_terms_mlv.size() : 0) << "; ";
   output << "];" << endl;
@@ -3719,10 +3714,7 @@ DynamicModel::getUndiffLHSForPac(const string &aux_model_name,
 
   for (auto eqn : nontrend_eqnums)
     {
-      int i = 0;
-      for (auto it1 = eqnumber.begin(); it1 != eqnumber.end(); ++it1, i++)
-        if (*it1 == eqn)
-          break;
+      auto i = distance(eqnumber.begin(), find(eqnumber.begin(), eqnumber.end(), eqn));
 
       if (eqnumber[i] != eqn)
         {
@@ -4554,7 +4546,7 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
         {
           writeDynamicPerBlockCFiles(basename);
           writeDynamicBlockCFile(basename);
-          vector<filesystem::path> src_files{blocks.size() + 1};
+          vector<filesystem::path> src_files(blocks.size() + 1);
           for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
             src_files[blk] = model_dir / "src" / ("dynamic_" + to_string(blk+1) + ".c");
           src_files[blocks.size()] = model_dir / "src" / "dynamic.c";
@@ -4684,10 +4676,8 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
 
   for (const auto &[symb_id, lag] : dynvars)
     {
-      if (max_eq_lead < lag)
-        max_eq_lead = lag;
-      else if (-max_eq_lag > lag)
-        max_eq_lag = -lag;
+      max_eq_lead = max(lag, max_eq_lead);
+      max_eq_lag = max(-lag, max_eq_lag);
     }
 
   // Get Discount Factor
@@ -4741,11 +4731,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
             {
               // This is a derivative w.r.t. a Lagrange multiplier
               neweqs_lineno.push_back(old_equations_lineno[*i]);
-              map<string, string> tags;
-              auto tmp = old_equation_tags.getTagsByEqn(*i);
-              for (const auto &[key, value] : tmp)
-                tags[key] = value;
-              neweqs_tags[neweqs.size()-1] = tags;
+              neweqs_tags[neweqs.size()-1] = old_equation_tags.getTagsByEqn(*i);
             }
           else
             neweqs_lineno.push_back(nullopt);
@@ -4845,10 +4831,9 @@ DynamicModel::setLeadsLagsOrig()
                                              max_lag_with_diffs_expanded_orig);
     }
 
-  for (const auto &dynvar : dynvars)
+  for (const auto &[symb_id, lag] : dynvars)
     {
-      int lag = dynvar.second;
-      SymbolType type = symbol_table.getType(dynvar.first);
+      SymbolType type = symbol_table.getType(symb_id);
 
       max_lead_orig = max(lag, max_lead_orig);
       max_lag_orig = max(-lag, max_lag_orig);
@@ -4892,10 +4877,9 @@ DynamicModel::computeDerivIDs()
       equation->collectDynamicVariables(SymbolType::logTrend, dynvars);
     }
 
-  for (const auto &dynvar : dynvars)
+  for (const auto &[symb_id, lag] : dynvars)
     {
-      int lag = dynvar.second;
-      SymbolType type = symbol_table.getType(dynvar.first);
+      SymbolType type = symbol_table.getType(symb_id);
 
       /* Setting maximum and minimum lags.
 
@@ -4929,8 +4913,8 @@ DynamicModel::computeDerivIDs()
       // Create a new deriv_id
       int deriv_id = deriv_id_table.size();
 
-      deriv_id_table[dynvar] = deriv_id;
-      inv_deriv_id_table.push_back(dynvar);
+      deriv_id_table[{symb_id, lag}] = deriv_id;
+      inv_deriv_id_table.emplace_back(symb_id, lag);
     }
 }
 
@@ -4961,8 +4945,8 @@ DynamicModel::getSymbIDByDerivID(int deriv_id) const noexcept(false)
 int
 DynamicModel::getDerivID(int symb_id, int lag) const noexcept(false)
 {
-  auto it = deriv_id_table.find({ symb_id, lag });
-  if (it == deriv_id_table.end())
+  if (auto it = deriv_id_table.find({ symb_id, lag });
+      it == deriv_id_table.end())
     throw UnknownDerivIDException();
   else
     return it->second;
@@ -4983,11 +4967,9 @@ DynamicModel::computeDynJacobianCols(bool jacobianExo)
      and fill the dynamic columns for exogenous and exogenous deterministic */
   map<pair<int, int>, int> ordered_dyn_endo;
 
-  for (auto &it : deriv_id_table)
+  for (auto &[symb_lag, deriv_id] : deriv_id_table)
     {
-      int symb_id = it.first.first;
-      int lag = it.first.second;
-      int deriv_id = it.second;
+      auto &[symb_id, lag] = symb_lag;
       SymbolType type = symbol_table.getType(symb_id);
       int tsid = symbol_table.getTypeSpecificID(symb_id);
 
@@ -5041,9 +5023,10 @@ DynamicModel::getDynJacobianCol(int deriv_id) const noexcept(false)
 void
 DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context)
 {
-  for (auto &it : deriv_id_table)
-    if (symbol_table.getType(it.first.first) == SymbolType::trend
-        || symbol_table.getType(it.first.first) == SymbolType::logTrend)
+  for (auto &[symb_lag1, deriv_id1] : deriv_id_table)
+    if (auto &[symb_id1, lag1] = symb_lag1;
+        symbol_table.getType(symb_id1) == SymbolType::trend
+        || symbol_table.getType(symb_id1) == SymbolType::logTrend)
       for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
         {
           expr_t homogeneq = AddMinus(equations[eq]->arg1,
@@ -5053,19 +5036,20 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context
           if (fabs(homogeneq->eval(eval_context)) > zero_band)
             {
               expr_t testeq = AddLog(homogeneq); // F = log(lhs-rhs)
-              testeq = testeq->getDerivative(it.second); // d F / d Trend
-              for (auto &endogit : deriv_id_table)
-                if (symbol_table.getType(endogit.first.first) == SymbolType::endogenous)
+              testeq = testeq->getDerivative(deriv_id1); // d F / d Trend
+              for (auto &[symb_lag2, deriv_id2] : deriv_id_table)
+                if (auto &[symb_id2, lag2] = symb_lag2;
+                    symbol_table.getType(symb_id2) == SymbolType::endogenous)
                   {
-                    double nearZero = testeq->getDerivative(endogit.second)->eval(eval_context); // eval d F / d Trend d Endog
+                    double nearZero = testeq->getDerivative(deriv_id2)->eval(eval_context); // eval d F / d Trend d Endog
                     if (fabs(nearZero) > balanced_growth_test_tol)
                       {
                         cerr << "ERROR: trends not compatible with balanced growth path; the second-order cross partial of equation " << eq + 1;
                         if (equations_lineno[eq])
                           cerr << " (line " << *equations_lineno[eq] << ")";
                         cerr << "w.r.t. trend variable "
-                             << symbol_table.getName(it.first.first) << " and endogenous variable "
-                             << symbol_table.getName(endogit.first.first) << " is not null (abs. value = "
+                             << symbol_table.getName(symb_id1) << " and endogenous variable "
+                             << symbol_table.getName(symb_id2) << " is not null (abs. value = "
                              << fabs(nearZero) << "). If you are confident that your trends are correctly specified, you can raise the value of option 'balanced_growth_test_tol' in the 'model' block." << endl;
                         exit(EXIT_FAILURE);
                       }
@@ -5677,22 +5661,22 @@ DynamicModel::substituteDiff(VarExpectationModelTable &var_expectation_model_tab
 
   // Mark diff operators to be substituted in model local variables
   set<int> used_local_vars;
-  for (const auto &equation : equations)
+  for (auto equation : equations)
     equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
-  for (auto &it : local_variables_table)
-    if (used_local_vars.contains(it.first))
-      it.second->findDiffNodes(diff_nodes);
+  for (auto &[symb_id, expr] : local_variables_table)
+    if (used_local_vars.contains(symb_id))
+      expr->findDiffNodes(diff_nodes);
 
   // Mark diff operators to be substituted in equations
-  for (const auto &equation : equations)
+  for (auto equation : equations)
     equation->findDiffNodes(diff_nodes);
 
   pac_model_table.findDiffNodesInGrowth(diff_nodes);
 
   // Substitute in model local variables
   vector<BinaryOpNode *> neweqs;
-  for (auto &it : local_variables_table)
-    it.second = it.second->substituteDiff(diff_nodes, diff_subst_table, neweqs);
+  for (auto &[symb_id, expr] : local_variables_table)
+    expr = expr->substituteDiff(diff_nodes, diff_subst_table, neweqs);
 
   // Substitute in equations
   for (auto &equation : equations)
@@ -5707,7 +5691,7 @@ DynamicModel::substituteDiff(VarExpectationModelTable &var_expectation_model_tab
   pac_model_table.substituteDiffNodesInGrowth(diff_nodes, diff_subst_table, neweqs);
 
   // Add new equations
-  for (auto &neweq : neweqs)
+  for (auto neweq : neweqs)
     {
       addEquation(neweq, nullopt);
       aux_equations.push_back(neweq);
@@ -5726,8 +5710,8 @@ DynamicModel::substituteExpectation(bool partial_information_model)
   vector<BinaryOpNode *> neweqs;
 
   // Substitute in model local variables
-  for (auto &it : local_variables_table)
-    it.second = it.second->substituteExpectation(subst_table, neweqs, partial_information_model);
+  for (auto &[symb_id, expr] : local_variables_table)
+    expr = expr->substituteExpectation(subst_table, neweqs, partial_information_model);
 
   // Substitute in equations
   for (auto &equation : equations)
@@ -5740,7 +5724,7 @@ DynamicModel::substituteExpectation(bool partial_information_model)
      operators in [static] equations are forbidden at the parsing level. */
 
   // Add new equations
-  for (auto &neweq : neweqs)
+  for (auto neweq : neweqs)
     {
       addEquation(neweq, nullopt);
       aux_equations.push_back(neweq);
@@ -5902,13 +5886,12 @@ DynamicModel::fillEvalContext(eval_context_t &eval_context) const
     }
 
   // Second, model local variables
-  for (auto it : local_variables_table)
+  for (auto &[symb_id, expression] : local_variables_table)
     {
       try
         {
-          const expr_t expression = it.second;
           double val = expression->eval(eval_context);
-          eval_context[it.first] = val;
+          eval_context[symb_id] = val;
         }
       catch (ExprNode::EvalException &e)
         {

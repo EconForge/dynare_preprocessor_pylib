@@ -743,11 +743,9 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
          foresight model, because the Hessian is not computed in that case. */
       if (linear)
         {
-          set<int> eqs;
-          if (mod_file_struct.ramsey_model_present)
-            eqs = orig_ramsey_dynamic_model.getNonZeroHessianEquations();
-          else
-            eqs = dynamic_model.getNonZeroHessianEquations();
+          set<int> eqs = mod_file_struct.ramsey_model_present ?
+            orig_ramsey_dynamic_model.getNonZeroHessianEquations() :
+            dynamic_model.getNonZeroHessianEquations();
 
           if (!eqs.empty())
             {

@@ -325,18 +325,7 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
       vector<string> eqtags_vec = eqtags.at(name);
       output << "M_.trend_component." << name << ".target_eqn = [";
       for (auto it : target_eqtags_vec)
-        {
-          int i = 0;
-          for (auto it1 : eqtags_vec)
-            {
-              i++;
-              if (it == it1)
-                {
-                  output << i << " ";
-                  break;
-                }
-            }
-        }
+        output << distance(eqtags_vec.begin(), find(eqtags_vec.begin(), eqtags_vec.end(), it)) + 1 << " ";
       output << "];" << endl;
 
       vector<int> target_lhs_vec = getTargetLhs(name);

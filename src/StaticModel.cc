@@ -757,44 +757,42 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
                     }
                 }
               for (i = 0; i < block_size; i++)
-                {
-                  if (i >= block_recursive)
-                    {
-                      FLDR_ fldr(i-block_recursive);
-                      fldr.write(code_file, instruction_number);
+                if (i >= block_recursive)
+                  {
+                    FLDR_ fldr(i-block_recursive);
+                    fldr.write(code_file, instruction_number);
 
-                      FLDZ_ fldz;
-                      fldz.write(code_file, instruction_number);
+                    FLDZ_ fldz;
+                    fldz.write(code_file, instruction_number);
 
-                      v = getBlockEquationID(block, i);
-                      for (Uf[v].Ufl = Uf[v].Ufl_First; Uf[v].Ufl; Uf[v].Ufl = Uf[v].Ufl->pNext)
-                        {
-                          FLDSU_ fldsu(Uf[v].Ufl->u);
-                          fldsu.write(code_file, instruction_number);
-                          FLDSV_ fldsv{static_cast<int>(SymbolType::endogenous), static_cast<unsigned int>(Uf[v].Ufl->var)};
-                          fldsv.write(code_file, instruction_number);
+                    v = getBlockEquationID(block, i);
+                    for (Uf[v].Ufl = Uf[v].Ufl_First; Uf[v].Ufl; Uf[v].Ufl = Uf[v].Ufl->pNext)
+                      {
+                        FLDSU_ fldsu(Uf[v].Ufl->u);
+                        fldsu.write(code_file, instruction_number);
+                        FLDSV_ fldsv{static_cast<int>(SymbolType::endogenous), static_cast<unsigned int>(Uf[v].Ufl->var)};
+                        fldsv.write(code_file, instruction_number);
 
-                          FBINARY_ fbinary{static_cast<int>(BinaryOpcode::times)};
-                          fbinary.write(code_file, instruction_number);
+                        FBINARY_ fbinary{static_cast<int>(BinaryOpcode::times)};
+                        fbinary.write(code_file, instruction_number);
 
-                          FCUML_ fcuml;
-                          fcuml.write(code_file, instruction_number);
-                        }
-                      Uf[v].Ufl = Uf[v].Ufl_First;
-                      while (Uf[v].Ufl)
-                        {
-                          Uf[v].Ufl_First = Uf[v].Ufl->pNext;
-                          free(Uf[v].Ufl);
-                          Uf[v].Ufl = Uf[v].Ufl_First;
-                        }
-                      FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
-                      fbinary.write(code_file, instruction_number);
+                        FCUML_ fcuml;
+                        fcuml.write(code_file, instruction_number);
+                      }
+                    Uf[v].Ufl = Uf[v].Ufl_First;
+                    while (Uf[v].Ufl)
+                      {
+                        Uf[v].Ufl_First = Uf[v].Ufl->pNext;
+                        free(Uf[v].Ufl);
+                        Uf[v].Ufl = Uf[v].Ufl_First;
+                      }
+                    FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
+                    fbinary.write(code_file, instruction_number);
 
-                      FSTPSU_ fstpsu(i - block_recursive);
-                      fstpsu.write(code_file, instruction_number);
+                    FSTPSU_ fstpsu(i - block_recursive);
+                    fstpsu.write(code_file, instruction_number);
 
-                    }
-                }
+                  }
               break;
             default:
               break;
@@ -1023,7 +1021,6 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
   for (int i = 0; i < symbol_table.endo_nbr(); i++)
     {
       int id = symbol_table.getID(SymbolType::endogenous, i);
-      //      if (!symbol_table.isAuxiliaryVariableButNotMultiplier(id))
       vars.insert(getDerivID(id, 0));
     }
 
@@ -1803,7 +1800,7 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
         {
           writeStaticPerBlockCFiles(basename);
           writeStaticBlockCFile(basename);
-          vector<filesystem::path> src_files{blocks.size() + 1};
+          vector<filesystem::path> src_files(blocks.size() + 1);
           for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
             src_files[blk] = model_dir / "src" / ("static_" + to_string(blk+1) + ".c");
           src_files[blocks.size()] = model_dir / "src" / "static.c";

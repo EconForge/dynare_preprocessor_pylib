@@ -536,12 +536,11 @@ ParsingDriver::init_param(const string &name, expr_t rhs)
 void
 ParsingDriver::init_val(const string &name, expr_t rhs)
 {
-  if (nostrict)
-    if (!mod_file->symbol_table.exists(name))
-      {
-        warning("discarding '" + name + "' as it was not recognized in the initval statement");
-        return;
-      }
+  if (nostrict && !mod_file->symbol_table.exists(name))
+    {
+      warning("discarding '" + name + "' as it was not recognized in the initval statement");
+      return;
+    }
 
   check_symbol_is_endogenous_or_exogenous(name, true);
   int symb_id = mod_file->symbol_table.getID(name);
@@ -558,12 +557,11 @@ ParsingDriver::initval_file()
 void
 ParsingDriver::end_val(EndValLearntInStatement::LearntEndValType type, const string &name, expr_t rhs)
 {
-  if (nostrict)
-    if (!mod_file->symbol_table.exists(name))
-      {
-        warning("discarding '" + name + "' as it was not recognized in the endval statement");
-        return;
-      }
+  if (nostrict && !mod_file->symbol_table.exists(name))
+    {
+      warning("discarding '" + name + "' as it was not recognized in the endval statement");
+      return;
+    }
 
   check_symbol_is_endogenous_or_exogenous(name, false);
   int symb_id = mod_file->symbol_table.getID(name);
@@ -573,12 +571,11 @@ ParsingDriver::end_val(EndValLearntInStatement::LearntEndValType type, const str
 void
 ParsingDriver::hist_val(const string &name, const string &lag, expr_t rhs)
 {
-  if (nostrict)
-    if (!mod_file->symbol_table.exists(name))
-      {
-        warning("discarding '" + name + "' as it was not recognized in the histval block");
-        return;
-      }
+  if (nostrict && !mod_file->symbol_table.exists(name))
+    {
+      warning("discarding '" + name + "' as it was not recognized in the histval block");
+      return;
+    }
 
   check_symbol_is_endogenous_or_exogenous(name, true);
   int symb_id = mod_file->symbol_table.getID(name);
@@ -1030,12 +1027,11 @@ ParsingDriver::add_heteroskedastic_shock(const string &var, const vector<pair<in
 void
 ParsingDriver::add_stderr_shock(const string &var, expr_t value)
 {
-  if (nostrict)
-    if (!mod_file->symbol_table.exists(var))
-      {
-        warning("discarding shocks block declaration of the standard error of '" + var + "' as it was not declared");
-        return;
-      }
+  if (nostrict && !mod_file->symbol_table.exists(var))
+    {
+      warning("discarding shocks block declaration of the standard error of '" + var + "' as it was not declared");
+      return;
+    }
 
   check_symbol_existence(var);
   int symb_id = mod_file->symbol_table.getID(var);
@@ -1049,12 +1045,11 @@ ParsingDriver::add_stderr_shock(const string &var, expr_t value)
 void
 ParsingDriver::add_var_shock(const string &var, expr_t value)
 {
-  if (nostrict)
-    if (!mod_file->symbol_table.exists(var))
-      {
-        warning("discarding shocks block declaration of the variance of '" + var + "' as it was not declared");
-        return;
-      }
+  if (nostrict && !mod_file->symbol_table.exists(var))
+    {
+      warning("discarding shocks block declaration of the variance of '" + var + "' as it was not declared");
+      return;
+    }
 
   check_symbol_existence(var);
   int symb_id = mod_file->symbol_table.getID(var);
@@ -1068,12 +1063,12 @@ ParsingDriver::add_var_shock(const string &var, expr_t value)
 void
 ParsingDriver::add_covar_shock(const string &var1, const string &var2, expr_t value)
 {
-  if (nostrict)
-    if (!mod_file->symbol_table.exists(var1) || !mod_file->symbol_table.exists(var2))
-      {
-        warning("discarding shocks block declaration of the covariance of '" + var1 + "' and '" + var2 + "' as at least one was not declared");
-        return;
-      }
+  if (nostrict &&
+      (!mod_file->symbol_table.exists(var1) || !mod_file->symbol_table.exists(var2)))
+    {
+      warning("discarding shocks block declaration of the covariance of '" + var1 + "' and '" + var2 + "' as at least one was not declared");
+      return;
+    }
 
   check_symbol_existence(var1);
   check_symbol_existence(var2);
@@ -1093,12 +1088,12 @@ ParsingDriver::add_covar_shock(const string &var1, const string &var2, expr_t va
 void
 ParsingDriver::add_correl_shock(const string &var1, const string &var2, expr_t value)
 {
-  if (nostrict)
-    if (!mod_file->symbol_table.exists(var1) || !mod_file->symbol_table.exists(var2))
-      {
-        warning("discarding shocks block declaration of the correlation of '" + var1 + "' and '" + var2 + "' as at least one was not declared");
-        return;
-      }
+  if (nostrict &&
+      (!mod_file->symbol_table.exists(var1) || !mod_file->symbol_table.exists(var2)))
+    {
+      warning("discarding shocks block declaration of the correlation of '" + var1 + "' and '" + var2 + "' as at least one was not declared");
+      return;
+    }
 
   check_symbol_existence(var1);
   check_symbol_existence(var2);
@@ -1349,14 +1344,9 @@ ParsingDriver::end_of_row()
 void
 ParsingDriver::add_to_row_const(const string &v)
 {
-  expr_t id;
-
-  if (v.at(0) == '-')
-    id = data_tree->AddUMinus(data_tree->AddNonNegativeConstant(v.substr(1)));
-  else
-    id = data_tree->AddNonNegativeConstant(v);
-
-  sigmae_row.push_back(id);
+  sigmae_row.push_back(v.at(0) == '-' ?
+                       data_tree->AddUMinus(data_tree->AddNonNegativeConstant(v.substr(1))) :
+                       data_tree->AddNonNegativeConstant(v));
 }
 
 void
@@ -1415,22 +1405,18 @@ ParsingDriver::option_symbol_list(string name_option, vector<string> symbol_list
     error("option " + name_option + " declared twice");
 
   if (name_option.compare("irf_shocks") == 0)
-    {
-      for (auto &shock : symbol_list)
-        {
-          if (!mod_file->symbol_table.exists(shock))
-            error("Unknown symbol: " + shock);
-          if (mod_file->symbol_table.getType(shock) != SymbolType::exogenous)
-            error("Variables passed to irf_shocks must be exogenous. Caused by: " + shock);
-        }
-    }
+    for (auto &shock : symbol_list)
+      {
+        if (!mod_file->symbol_table.exists(shock))
+          error("Unknown symbol: " + shock);
+        if (mod_file->symbol_table.getType(shock) != SymbolType::exogenous)
+          error("Variables passed to irf_shocks must be exogenous. Caused by: " + shock);
+      }
 
   if (name_option.compare("ms.parameters") == 0)
-    {
-      for (auto &it : symbol_list)
-        if (mod_file->symbol_table.getType(it) != SymbolType::parameter)
-          error("Variables passed to the parameters option of the markov_switching statement must be parameters. Caused by: " + it);
-    }
+    for (auto &it : symbol_list)
+      if (mod_file->symbol_table.getType(it) != SymbolType::parameter)
+        error("Variables passed to the parameters option of the markov_switching statement must be parameters. Caused by: " + it);
 
   options_list.symbol_list_options[move(name_option)] = move(symbol_list);
 }
@@ -3097,8 +3083,7 @@ ParsingDriver::external_function()
 void
 ParsingDriver::push_external_function_arg_vector_onto_stack()
 {
-  vector<expr_t> emptyvec;
-  stack_external_function_args.push(emptyvec);
+  stack_external_function_args.push({});
 }
 
 void
@@ -3283,8 +3268,8 @@ ParsingDriver::add_steady_state_model_equal(const string &varname, expr_t expr)
       id = mod_file->symbol_table.addSymbol(varname, SymbolType::modFileLocalVariable);
     }
 
-  SymbolType type = mod_file->symbol_table.getType(id);
-  if (type != SymbolType::endogenous && type != SymbolType::modFileLocalVariable && type != SymbolType::parameter)
+  if (SymbolType type = mod_file->symbol_table.getType(id);
+      type != SymbolType::endogenous && type != SymbolType::modFileLocalVariable && type != SymbolType::parameter)
     error(varname + " has incorrect type");
 
   mod_file->steady_state_model.addDefinition(id, expr);
@@ -3307,8 +3292,8 @@ ParsingDriver::add_steady_state_model_equal_multiple(const vector<string> &symbo
           // Unknown symbol, declare it as a ModFileLocalVariable
           id = mod_file->symbol_table.addSymbol(symb, SymbolType::modFileLocalVariable);
         }
-      SymbolType type = mod_file->symbol_table.getType(id);
-      if (type != SymbolType::endogenous && type != SymbolType::modFileLocalVariable && type != SymbolType::parameter)
+      if (SymbolType type = mod_file->symbol_table.getType(id);
+          type != SymbolType::endogenous && type != SymbolType::modFileLocalVariable && type != SymbolType::parameter)
         error(symb + " has incorrect type");
       ids.push_back(id);
     }
@@ -3517,9 +3502,8 @@ ParsingDriver::add_shock_group_element(string name)
 {
   check_symbol_existence(name);
   int symb_id = mod_file->symbol_table.getID(name);
-  SymbolType type = mod_file->symbol_table.getType(symb_id);
 
-  if (type != SymbolType::exogenous)
+  if (mod_file->symbol_table.getType(symb_id) != SymbolType::exogenous)
     error("shock_groups: " + name + " should be an exogenous variable");
 
   shock_group.push_back(move(name));
@@ -3636,7 +3620,7 @@ ParsingDriver::end_matched_moments(const vector<expr_t> &moments)
       {
         vector<int> symb_ids, lags, powers;
         m->matchMatchedMoment(symb_ids, lags, powers);
-        parsed_moments.emplace_back(symb_ids, lags, powers);
+        parsed_moments.emplace_back(move(symb_ids), move(lags), move(powers));
       }
     catch (ExprNode::MatchFailureException &e)
       {

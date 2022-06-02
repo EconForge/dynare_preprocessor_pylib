@@ -651,9 +651,8 @@ Variable::eval(Environment &env)
   if (indices && !indices->empty())
     {
       ArrayPtr map = dynamic_pointer_cast<Array>(indices->eval(env));
-      vector<ExpressionPtr> index = map->getValue();
       vector<int> ind;
-      for (const auto &it : index)
+      for (const auto &it : map->getValue())
         // Necessary to handle indexes like: y[1:2,2]
         // In general this evaluates to [[1:2],2] but when subscripting we want to expand it to [1,2,2]
         if (auto db = dynamic_pointer_cast<Real>(it); db)

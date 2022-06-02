@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2019 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -57,5 +57,5 @@ double
 NumericalConstants::getDouble(int ID) const
 {
   assert(ID >= 0 && ID < static_cast<int>(double_vals.size()));
-  return (double_vals[ID]);
+  return double_vals[ID];
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2012-2017 Dynare Team
+ * Copyright © 2012-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,8 +20,7 @@
 #include "WarningConsolidation.hh"
 #include <ostream>
 
-WarningConsolidation
-&
+WarningConsolidation &
 operator<<(WarningConsolidation &wcc, const string &warning)
 {
   if (wcc.no_warn)

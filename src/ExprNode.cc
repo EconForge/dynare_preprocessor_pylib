@@ -3286,25 +3286,16 @@ UnaryOpNode::substituteAdl() const
 
   expr_t arg1subst = arg->substituteAdl();
   expr_t retval = nullptr;
-  ostringstream inttostr;
 
   for (auto it = adl_lags.begin(); it != adl_lags.end(); ++it)
-    if (it == adl_lags.begin())
-      {
-        inttostr << *it;
-        retval = datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.getID(adl_param_name + "_lag_" + inttostr.str()), 0),
+    {
+      expr_t e = datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.getID(adl_param_name + "_lag_" + to_string(*it)), 0),
                                    arg1subst->decreaseLeadsLags(*it));
-      }
-    else
-      {
-        inttostr.clear();
-        inttostr.str("");
-        inttostr << *it;
-        retval = datatree.AddPlus(retval,
-                                  datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.getID(adl_param_name + "_lag_"
-                                                                                                     + inttostr.str()), 0),
-                                                    arg1subst->decreaseLeadsLags(*it)));
-      }
+      if (it == adl_lags.begin())
+        retval = e;
+      else
+        retval = datatree.AddPlus(retval, e);
+    }
   return retval;
 }
 
