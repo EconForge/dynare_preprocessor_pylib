@@ -394,10 +394,10 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
 
   if (observedVariablesNbr() > 0)
     {
-      int ic = 1;
       output << "options_.varobs = cell(" << observedVariablesNbr() << ", 1);" << endl;
-      for (auto it = varobs.begin(); it != varobs.end(); ++it, ic++)
-        output << "options_.varobs(" << ic << ")  = {'" << getName(*it) << "'};" << endl;
+      for (int ic{1};
+           int it : varobs)
+        output << "options_.varobs(" << ic++ << ")  = {'" << getName(it) << "'};" << endl;
 
       output << "options_.varobs_id = [ ";
       for (int varob : varobs)
@@ -407,10 +407,10 @@ SymbolTable::writeOutput(ostream &output) const noexcept(false)
 
   if (observedExogenousVariablesNbr() > 0)
     {
-      int ic = 1;
       output << "options_.varexobs = cell(1);" << endl;
-      for (auto it = varexobs.begin(); it != varexobs.end(); ++it, ic++)
-        output << "options_.varexobs(" << ic << ")  = {'" << getName(*it) << "'};" << endl;
+      for (int ic{1};
+           int it : varexobs)
+        output << "options_.varexobs(" << ic++ << ")  = {'" << getName(it) << "'};" << endl;
 
       output << "options_.varexobs_id = [ ";
       for (int varexob : varexobs)

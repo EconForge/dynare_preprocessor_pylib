@@ -544,12 +544,13 @@ void
 RamseyConstraintsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "M_.ramsey_model_constraints = {" << endl;
-  for (auto it = constraints.begin(); it != constraints.end(); ++it)
+  for (bool printed_something{false};
+       const auto &it : constraints)
     {
-      if (it != constraints.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << "{" << it->endo + 1 << ", '";
-      switch (it->code)
+      output << "{" << it.endo + 1 << ", '";
+      switch (it.code)
         {
         case BinaryOpcode::less:
           output << '<';
@@ -568,7 +569,7 @@ RamseyConstraintsStatement::writeOutput(ostream &output, const string &basename,
           exit(EXIT_FAILURE);
         }
       output << "', '";
-      it->expression->writeOutput(output);
+      it.expression->writeOutput(output);
       output << "'}" << endl;
     }
   output << "};" << endl;
@@ -579,12 +580,13 @@ RamseyConstraintsStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "ramsey_constraints")"
          << R"(, "ramsey_model_constraints": [)" << endl;
-  for (auto it = constraints.begin(); it != constraints.end(); ++it)
+  for (bool printed_something{false};
+       const auto &it : constraints)
     {
-      if (it != constraints.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"constraint": ")" << symbol_table.getName(it->endo) << " ";
-      switch (it->code)
+      output << R"({"constraint": ")" << symbol_table.getName(it.endo) << " ";
+      switch (it.code)
         {
         case BinaryOpcode::less:
           output << '<';
@@ -603,7 +605,7 @@ RamseyConstraintsStatement::writeJsonOutput(ostream &output) const
           exit(EXIT_FAILURE);
         }
       output << " ";
-      it->expression->writeJsonOutput(output, {}, {});
+      it.expression->writeJsonOutput(output, {}, {});
       output << R"("})" << endl;
     }
   output << "]" << endl;
@@ -1449,43 +1451,44 @@ EstimatedParamsStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "estimated_params", )"
          << R"("params": [)";
-  for (auto it = estim_params_list.begin(); it != estim_params_list.end(); ++it)
+  for (bool printed_something{false};
+       const auto &it : estim_params_list)
     {
-      if (it != estim_params_list.begin())
+      if (exchange(printed_something, true))
         output << ", ";
       output << "{";
-      switch (it->type)
+      switch (it.type)
         {
         case 1:
-          output << R"("var": ")" << it->name << R"(")";
+          output << R"("var": ")" << it.name << R"(")";
           break;
         case 2:
-          output << R"("param": ")" << it->name << R"(")";
+          output << R"("param": ")" << it.name << R"(")";
           break;
         case 3:
-          output << R"("var1": ")" << it->name << R"(",)"
-                 << R"("var2": ")" << it->name2 << R"(")";
+          output << R"("var1": ")" << it.name << R"(",)"
+                 << R"("var2": ")" << it.name2 << R"(")";
           break;
         }
 
       output << R"(, "init_val": ")";
-      it->init_val->writeJsonOutput(output, {}, {});
+      it.init_val->writeJsonOutput(output, {}, {});
       output << R"(", "lower_bound": ")";
-      it->low_bound->writeJsonOutput(output, {}, {});
+      it.low_bound->writeJsonOutput(output, {}, {});
       output << R"(", "upper_bound": ")";
-      it->up_bound->writeJsonOutput(output, {}, {});
+      it.up_bound->writeJsonOutput(output, {}, {});
       output << R"(", "prior_distribution": )"
-             << static_cast<int>(it->prior)
+             << static_cast<int>(it.prior)
              << R"(, "mean": ")";
-      it->mean->writeJsonOutput(output, {}, {});
+      it.mean->writeJsonOutput(output, {}, {});
       output << R"(", "std": ")";
-      it->std->writeJsonOutput(output, {}, {});
+      it.std->writeJsonOutput(output, {}, {});
       output << R"(", "p3": ")";
-      it->p3->writeJsonOutput(output, {}, {});
+      it.p3->writeJsonOutput(output, {}, {});
       output << R"(", "p4": ")";
-      it->p4->writeJsonOutput(output, {}, {});
+      it.p4->writeJsonOutput(output, {}, {});
       output << R"(", "jscale": ")";
-      it->jscale->writeJsonOutput(output, {}, {});
+      it.jscale->writeJsonOutput(output, {}, {});
       output << R"("})" << endl;
     }
   output << "]"
@@ -1607,26 +1610,27 @@ EstimatedParamsInitStatement::writeJsonOutput(ostream &output) const
     output << R"(, "use_calibration_initialization": 1)";
 
   output << R"(, "params": [)";
-  for (auto it = estim_params_list.begin(); it != estim_params_list.end(); ++it)
+  for (bool printed_something{false};
+       const auto &it : estim_params_list)
     {
-      if (it != estim_params_list.begin())
+      if (exchange(printed_something, true))
         output << ", ";
       output << "{";
-      switch (it->type)
+      switch (it.type)
         {
         case 1:
-          output << R"("var": ")" << it->name << R"(")";
+          output << R"("var": ")" << it.name << R"(")";
           break;
         case 2:
-          output << R"("param": ")" << it->name << R"(")";
+          output << R"("param": ")" << it.name << R"(")";
           break;
         case 3:
-          output << R"("var1": ")" << it->name << R"(",)"
-                 << R"("var2": ")" << it->name2 << R"(")";
+          output << R"("var1": ")" << it.name << R"(",)"
+                 << R"("var2": ")" << it.name2 << R"(")";
           break;
         }
       output << R"(, "init_val": ")";
-      it->init_val->writeJsonOutput(output, {}, {});
+      it.init_val->writeJsonOutput(output, {}, {});
       output << R"("})";
     }
   output << "]"
@@ -1721,28 +1725,29 @@ EstimatedParamsBoundsStatement::writeJsonOutput(ostream &output) const
   output << R"({"statementName": "estimated_params_bounds", )"
          << R"("params": [)";
 
-  for (auto it = estim_params_list.begin(); it != estim_params_list.end(); ++it)
+  for (bool printed_something{false};
+       const auto &it : estim_params_list)
     {
-      if (it != estim_params_list.begin())
+      if (exchange(printed_something, true))
         output << ", ";
       output << "{";
-      switch (it->type)
+      switch (it.type)
         {
         case 1:
-          output << R"("var": ")" << it->name << R"(")";
+          output << R"("var": ")" << it.name << R"(")";
           break;
         case 2:
-          output << R"("param": ")" << it->name << R"(")";
+          output << R"("param": ")" << it.name << R"(")";
           break;
         case 3:
-          output << R"("var1": ")" << it->name << R"(",)"
-                 << R"("var2": ")" << it->name2 << R"(")";
+          output << R"("var1": ")" << it.name << R"(",)"
+                 << R"("var2": ")" << it.name2 << R"(")";
           break;
         }
       output << R"(, "lower_bound": )";
-      it->low_bound->writeJsonOutput(output, {}, {});
+      it.low_bound->writeJsonOutput(output, {}, {});
       output << R"(, "upper_bound": )";
-      it->up_bound->writeJsonOutput(output, {}, {});
+      it.up_bound->writeJsonOutput(output, {}, {});
       output << "}";
     }
   output << "]"
@@ -1819,22 +1824,23 @@ EstimatedParamsRemoveStatement::writeJsonOutput(ostream &output) const
   output << R"({"statementName": "estimated_params_remove", )"
          << R"("params": [)";
 
-  for (auto it = estim_params_list.begin(); it != estim_params_list.end(); ++it)
+  for (bool printed_something{false};
+       const auto &it : estim_params_list)
     {
-      if (it != estim_params_list.begin())
+      if (exchange(printed_something, true))
         output << ", ";
       output << "{";
-      switch (it->type)
+      switch (it.type)
         {
         case 1:
-          output << R"("var": ")" << it->name << R"(")";
+          output << R"("var": ")" << it.name << R"(")";
           break;
         case 2:
-          output << R"("param": ")" << it->name << R"(")";
+          output << R"("param": ")" << it.name << R"(")";
           break;
         case 3:
-          output << R"("var1": ")" << it->name << R"(",)"
-                 << R"("var2": ")" << it->name2 << R"(")";
+          output << R"("var1": ")" << it.name << R"(",)"
+                 << R"("var2": ")" << it.name2 << R"(")";
           break;
         }
       output << "}";
@@ -1874,17 +1880,16 @@ DeterministicTrendsStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "deterministic_trends", )"
          << R"("trends" : {)";
-  bool printed = false;
-  for (const auto &trend_element : trend_elements)
+  for (bool printed_something{false};
+       const auto &trend_element : trend_elements)
     {
       if (symbol_table.getType(trend_element.first) == SymbolType::endogenous)
         {
-          if (printed)
+          if (exchange(printed_something, true))
             output << ", ";
           output << R"(")" << trend_element.first << R"(": ")";
           trend_element.second->writeJsonOutput(output, {}, {});
           output << R"(")" << endl;
-          printed = true;
         }
       else
         cerr << "Warning : Non-variable symbol used in deterministic_trends: " << trend_element.first << endl;
@@ -1924,17 +1929,16 @@ ObservationTrendsStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "observation_trends", )"
          << R"("trends" : {)";
-  bool printed = false;
-  for (const auto &trend_element : trend_elements)
+  for (bool printed_something{false};
+       const auto &trend_element : trend_elements)
     {
       if (symbol_table.getType(trend_element.first) == SymbolType::endogenous)
         {
-          if (printed)
+          if (exchange(printed_something, true))
             output << ", ";
           output << R"(")" << trend_element.first << R"(": ")";
           trend_element.second->writeJsonOutput(output, {}, {});
           output << R"(")" << endl;
-          printed = true;
         }
       else
         cerr << "Warning : Non-variable symbol used in observation_trends: " << trend_element.first << endl;
@@ -1992,12 +1996,11 @@ FilterInitialStateStatement::writeJsonOutput(ostream &output) const
   output << R"({"statementName": "filter_initial_state", )"
          << R"("states": [)";
 
-  for (auto it = filter_initial_state_elements.begin();
-       it != filter_initial_state_elements.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[key, val] : filter_initial_state_elements)
     {
-      if (it != filter_initial_state_elements.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      auto &[key, val] = *it;
       auto &[symb_id, lag] = key;
       output << R"({ "var": ")" << symbol_table.getName(symb_id)
              << R"(", "lag": )" << lag
@@ -2038,8 +2041,8 @@ OsrParamsStatement::writeOutput(ostream &output, const string &basename, bool mi
   symbol_list.writeOutput("M_.osr.param_names", output);
   output << "M_.osr.param_names = cellstr(M_.osr.param_names);" << endl
          << "M_.osr.param_indices = zeros(length(M_.osr.param_names), 1);" << endl;
-  int i = 0;
-  for (auto &symbol : symbol_list.getSymbols())
+  for (int i{0};
+       auto &symbol : symbol_list.getSymbols())
     output << "M_.osr.param_indices(" << ++i <<") = " << symbol_table.getTypeSpecificID(symbol) + 1 << ";" << endl;
 }
 
@@ -2091,15 +2094,16 @@ OsrParamsBoundsStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "osr_params_bounds")"
          << R"(, "bounds": [)";
-  for (auto it = osr_params_list.begin(); it != osr_params_list.end(); ++it)
+  for (bool printed_something{false};
+       const auto &it : osr_params_list)
     {
-      if (it != osr_params_list.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"parameter": ")" << it->name << R"(",)"
+      output << R"({"parameter": ")" << it.name << R"(",)"
              << R"("bounds": [")";
-      it->low_bound->writeJsonOutput(output, {}, {});
+      it.low_bound->writeJsonOutput(output, {}, {});
       output << R"(", ")";
-      it->up_bound->writeJsonOutput(output, {}, {});
+      it.up_bound->writeJsonOutput(output, {}, {});
       output << R"("])"
              << "}";
     }
@@ -2367,12 +2371,13 @@ ModelComparisonStatement::writeJsonOutput(ostream &output) const
   if (!filename_list.empty())
     output << R"(, "filename_list": {)";
 
-  for (auto it = filename_list.begin(); it != filename_list.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[name, prior] : filename_list)
     {
-      if (it != filename_list.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"("name": ")" << it->first << R"(")"
-             << R"("prior": ")" << it->second << R"(")";
+      output << R"("name": ")" << name << R"(")"
+             << R"("prior": ")" << prior << R"(")";
     }
 
   if (!filename_list.empty())
@@ -3436,16 +3441,17 @@ SvarIdentificationStatement::writeJsonOutput(ostream &output) const
       output << R"(, "nlags": )" << getMaxLag()
              << R"(, "restrictions": [)";
 
-      for (auto it = restrictions.begin(); it != restrictions.end(); ++it)
+      for (bool printed_something{false};
+           const auto &it : restrictions)
         {
-          if (it != restrictions.begin())
+          if (exchange(printed_something, true))
             output << ", ";
           output << "{"
-                 << R"("equation_number": )" << it->equation << ", "
-                 << R"("restriction_number": )" << it->restriction_nbr << ", "
-                 << R"("variable": ")" << symbol_table.getName(it->variable) << R"(", )"
+                 << R"("equation_number": )" << it.equation << ", "
+                 << R"("restriction_number": )" << it.restriction_nbr << ", "
+                 << R"("variable": ")" << symbol_table.getName(it.variable) << R"(", )"
                  << R"("expression": ")";
-          it->value->writeOutput(output);
+          it.value->writeOutput(output);
           output << R"("})";
         }
       output << "]";
@@ -3601,11 +3607,12 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename, b
     {
       output << "[";
       auto &v = options_list.vector_value_options.at("ms.duration");
-      for (auto it = v.begin(); it != v.end(); ++it)
+      for (bool printed_something{false};
+           const auto &it : v)
         {
-          if (it != v.begin())
+          if (exchange(printed_something, true))
             output << ", ";
-          output << *it;
+          output << it;
         }
       output << "]";
     }
@@ -3624,8 +3631,8 @@ MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename, b
       output << ";" << endl;
     }
 
-  int restrictions_index = 0;
-  for (const auto &[regimes, prob] : restriction_map)
+  for (int restrictions_index{0};
+       const auto &[regimes, prob] : restriction_map)
     output << "options_.ms.ms_chain(" << itChain->second << ").restrictions("
            << ++restrictions_index << ") = {[" << regimes.first << ", "
            << regimes.second << ", " << prob << "]};" << endl;
@@ -3643,13 +3650,14 @@ MarkovSwitchingStatement::writeJsonOutput(ostream &output) const
 
   if (!restriction_map.empty())
     output << ", {";
-  for (auto it = restriction_map.begin(); it != restriction_map.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[regimes, prob] : restriction_map)
     {
-      if (it != restriction_map.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"current_period_regime": )" << it->first.first
-             << R"(, "next_period_regime": )" << it->first.second
-             << R"(, "transition_probability": )"<< it->second
+      output << R"({"current_period_regime": )" << regimes.first
+             << R"(, "next_period_regime": )" << regimes.second
+             << R"(, "transition_probability": )"<< prob
              << "}";
     }
   if (!restriction_map.empty())
@@ -3833,15 +3841,17 @@ SubsamplesStatement::writeOutput(ostream &output, const string &basename, bool m
          << "estimation_info.subsamples(subsamples_indx).range = {};" << endl
          << "estimation_info.subsamples(subsamples_indx).range_index = {};" << endl;
 
-  int map_indx = 1;
-  for (auto it = subsample_declaration_map.begin();
-       it != subsample_declaration_map.end(); ++it, map_indx++)
-    output << "estimation_info.subsamples(subsamples_indx).range_index(" << map_indx << ") = {'"
-           << it->first << "'};" << endl
-           << "estimation_info.subsamples(subsamples_indx).range(" << map_indx << ").date1 = "
-           << it->second.first << ";" << endl
-           << "estimation_info.subsamples(subsamples_indx).range(" << map_indx << ").date2 = "
-           << it->second.second << ";" << endl;
+  for (int map_indx{1};
+       const auto &[range, dates] : subsample_declaration_map)
+    {
+      output << "estimation_info.subsamples(subsamples_indx).range_index(" << map_indx << ") = {'"
+             << range << "'};" << endl
+             << "estimation_info.subsamples(subsamples_indx).range(" << map_indx << ").date1 = "
+             << dates.first << ";" << endl
+             << "estimation_info.subsamples(subsamples_indx).range(" << map_indx << ").date2 = "
+             << dates.second << ";" << endl;
+      map_indx++;
+    }
 
   // Initialize associated subsample substructures in estimation_info
   const SymbolType symb_type = symbol_table.getType(name1);
@@ -3896,15 +3906,15 @@ SubsamplesStatement::writeJsonOutput(ostream &output) const
     output << R"(, "name2": ")" << name2 << R"(")";
 
   output << R"(, "declarations": {)";
-  for (auto it = subsample_declaration_map.begin();
-       it != subsample_declaration_map.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[range, dates] : subsample_declaration_map)
     {
-      if (it != subsample_declaration_map.begin())
+      if (exchange(printed_something, true))
         output << ",";
       output << "{"
-             << R"("range_index": ")" << it->first << R"(")"
-             << R"(, "date1": ")" << it->second.first << R"(")"
-             << R"(, "date2": ")" << it->second.second << R"(")"
+             << R"("range_index": ")" << range << R"(")"
+             << R"(, "date1": ")" << dates.first << R"(")"
+             << R"(, "date2": ")" << dates.second << R"(")"
              << "}";
     }
   output << "}"
@@ -4094,11 +4104,12 @@ JointPriorStatement::writeOutputHelper(ostream &output, const string &field, con
            it != options_list.vector_value_options.end())
     {
       output << "[";
-      for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+      for (bool printed_something{false};
+           const auto &it2 : it->second)
         {
-          if (it2 != it->second.begin())
+          if (exchange(printed_something, true))
             output << ", ";
-          output << *it2;
+          output << it2;
         }
       output << "]";
     }
@@ -4106,16 +4117,18 @@ JointPriorStatement::writeOutputHelper(ostream &output, const string &field, con
            it != options_list.vector_of_vector_value_options.end())
     {
       output << "{";
-      for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+      for (bool printed_something{false};
+           const auto &it2 : it->second)
         {
-          if (it2 != it->second.begin())
+          if (exchange(printed_something, true))
             output << ", ";
           output << "[";
-          for (auto it3 = it2->begin(); it3 != it2->end(); ++it3)
+          for (bool printed_something2{false};
+               const auto &it3 : it2)
             {
-              if (it3 != it2->begin())
+              if (exchange(printed_something2, true))
                 output << ", ";
-              output << *it3;
+              output << it3;
             }
           output << "]";
         }
@@ -4131,11 +4144,12 @@ JointPriorStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "joint_prior")"
          << R"(, "key": [)";
-  for (auto it = joint_parameters.begin(); it != joint_parameters.end(); ++it)
+  for (bool printed_something{false};
+       const auto &it : joint_parameters)
     {
-      if (it != joint_parameters.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"(")" << *it << R"(")";
+      output << R"(")" << it << R"(")";
     }
   output << "]";
 
@@ -5126,14 +5140,13 @@ GenerateIRFsStatement::writeJsonOutput(ostream &output) const
       for (size_t i = 0; i < generate_irf_names.size(); i++)
         {
           output << R"({"name": ")" << generate_irf_names[i] << R"(", "shocks": [)";
-          map<string, double> m = generate_irf_elements[i];
-          size_t idx = 0;
-          for (auto it = m.begin(); it != m.end(); ++it, idx++)
+          for (bool printed_something{false};
+               auto &[exo_name, exo_value] : generate_irf_elements[i])
             {
-              output << R"({"exogenous_variable": ")" << it->first << R"(", )"
-                     << R"("exogenous_variable_value": ")" << it->second << R"("})";
-              if (idx + 1 < m.size())
+              if (exchange(printed_something, true))
                 output << ", ";
+              output << R"({"exogenous_variable": ")" << exo_name << R"(", )"
+                     << R"("exogenous_variable_value": ")" << exo_value << R"("})";
             }
           output << "]}";
           if (i + 1 < generate_irf_names.size())
@@ -5174,34 +5187,36 @@ void
 MatchedMomentsStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "matched_moments", "moments": [)" << endl;
-  for (auto it = moments.begin(); it != moments.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[symb_ids, lags, powers] : moments)
     {
-      const auto &[symb_ids, lags, powers] = *it;
+      if (exchange(printed_something, true))
+        output << ',';
       output << R"(  { "endos": [)";
-      for (auto it2 = symb_ids.begin(); it2 != symb_ids.end(); ++it2)
+      for (bool printed_something2{false};
+           int s : symb_ids)
         {
-          if (it2 != symb_ids.begin())
+          if (exchange(printed_something2, true))
             output << ',';
-          output << symbol_table.getTypeSpecificID(*it2)+1;
+          output << symbol_table.getTypeSpecificID(s)+1;
         }
       output << R"(], "lags": [)";
-      for (auto it2 = lags.begin(); it2 != lags.end(); ++it2)
+      for (bool printed_something2{false};
+           int l : lags)
         {
-          if (it2 != lags.begin())
+          if (exchange(printed_something2, true))
             output << ',';
-          output << *it2;
+          output << l;
         }
       output << R"(], "powers": [)";
-      for (auto it2 = powers.begin(); it2 != powers.end(); ++it2)
+      for (bool printed_something2{false};
+           int p : powers)
         {
-          if (it2 != powers.begin())
+          if (exchange(printed_something2, true))
             output << ',';
-          output << *it2;
+          output << p;
         }
-      output << "]}";
-      if (next(it) != moments.end())
-        output << ',';
-      output << endl;
+      output << "]}" << endl;
     }
   output << "]}" << endl;
 }
@@ -5249,8 +5264,8 @@ OccbinConstraintsStatement::writeOutput(ostream &output, const string &basename,
       exit(EXIT_FAILURE);
     }
   diff_output << "function [binding, relax, err] = occbin_difference(zdatalinear, params, steady_state)" << endl;
-  int idx = 1;
-  for (const auto &[name, bind, relax, error_bind, error_relax] : constraints)
+  for (int idx{1};
+       const auto &[name, bind, relax, error_bind, error_relax] : constraints)
     {
       diff_output << "binding.constraint_" << idx << " = ";
       dynamic_cast<ExprNode *>(bind)->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
@@ -5310,10 +5325,11 @@ void
 OccbinConstraintsStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "occbin_constraints", "constraints": [)" << endl;
-  for (auto it = constraints.begin(); it != constraints.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[name, bind, relax, error_bind, error_relax] : constraints)
     {
-      auto [name, bind, relax, error_bind, error_relax] = *it;
-
+      if (exchange(printed_something, true))
+        output << ',';
       output << R"({ "name": ")" << name << R"(", "bind": ")";
       dynamic_cast<ExprNode *>(bind)->writeJsonOutput(output, {}, {});
       output << R"(", "relax": ")";
@@ -5325,10 +5341,7 @@ OccbinConstraintsStatement::writeJsonOutput(ostream &output) const
       output << R"(", "error_relax": ")";
       if (error_relax)
         error_relax->writeJsonOutput(output, {}, {});
-      output << R"(" })";
-      if (next(it) != constraints.end())
-        output << ',';
-      output << endl;
+      output << R"(" })" << endl;
     }
   output << "]}" << endl;
 }

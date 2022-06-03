@@ -53,14 +53,11 @@ Driver::parse(const string &file_arg, const string &basename_arg, const istream 
   parser.parse();
 
   // Interpret parsed statements
-  bool printLine = true;
-  for (const auto &statement : statements)
+  for (bool printLine{true};
+       const auto &statement : statements)
     {
-      if (printLine)
-        {
-          statement->printLineInfo(output);
-          printLine = false;
-        }
+      if (exchange(printLine, false))
+        statement->printLineInfo(output);
       statement->interpret(output, env, paths);
     }
 }

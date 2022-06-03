@@ -41,25 +41,22 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
   int exo_det_length = 0;
 
   for (const auto & [id, shock_vec] : det_shocks)
-    {
-      bool exo_det = (symbol_table.getType(id) == SymbolType::exogenousDet);
+    for (bool exo_det = (symbol_table.getType(id) == SymbolType::exogenousDet);
+         const auto &[period1, period2, value] : shock_vec)
+      {
+        output << "M_.det_shocks = [ M_.det_shocks;" << endl
+               << boolalpha
+               << "struct('exo_det'," << exo_det
+               << ",'exo_id'," << symbol_table.getTypeSpecificID(id)+1
+               << ",'multiplicative'," << mshocks
+               << ",'periods'," << period1 << ":" << period2
+               << ",'value',";
+        value->writeOutput(output);
+        output << ") ];" << endl;
 
-      for (const auto &[period1, period2, value] : shock_vec)
-        {
-          output << "M_.det_shocks = [ M_.det_shocks;" << endl
-                 << boolalpha
-                 << "struct('exo_det'," << exo_det
-                 << ",'exo_id'," << symbol_table.getTypeSpecificID(id)+1
-                 << ",'multiplicative'," << mshocks
-                 << ",'periods'," << period1 << ":" << period2
-                 << ",'value',";
-          value->writeOutput(output);
-          output << ") ];" << endl;
-
-          if (exo_det && period2 > exo_det_length)
-            exo_det_length = period2;
-        }
-    }
+        if (exo_det && period2 > exo_det_length)
+          exo_det_length = period2;
+      }
   output << "M_.exo_det_length = " << exo_det_length << ";\n";
 }
 
@@ -67,16 +64,17 @@ void
 AbstractShocksStatement::writeJsonDetShocks(ostream &output) const
 {
   output << R"("deterministic_shocks": [)";
-  for (auto it = det_shocks.begin(); it != det_shocks.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[id, shock_vec] : det_shocks)
     {
-      if (it != det_shocks.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"var": ")" << symbol_table.getName(it->first) << R"(", )"
+      output << R"({"var": ")" << symbol_table.getName(id) << R"(", )"
              << R"("values": [)";
-      for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+      for (bool printed_something2{false};
+           const auto &[period1, period2, value] : shock_vec)
         {
-          auto [period1, period2, value] = *it1;
-          if (it1 != it->second.begin())
+          if (exchange(printed_something2, true))
             output << ", ";
           output << R"({"period1": )" << period1 << ", "
                  << R"("period2": )" << period2 << ", "
@@ -156,50 +154,54 @@ ShocksStatement::writeJsonOutput(ostream &output) const
       writeJsonDetShocks(output);
     }
   output<< R"(, "variance": [)";
-  for (auto it = var_shocks.begin(); it != var_shocks.end(); ++it)
+  for (bool printed_something{false};
+       auto &[id, value] : var_shocks)
     {
-      if (it != var_shocks.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"name": ")" << symbol_table.getName(it->first) << R"(", )"
+      output << R"({"name": ")" << symbol_table.getName(id) << R"(", )"
              << R"("variance": ")";
-      it->second->writeJsonOutput(output, {}, {});
+      value->writeJsonOutput(output, {}, {});
       output << R"("})";
     }
   output << "]"
          << R"(, "stderr": [)";
-  for (auto it = std_shocks.begin(); it != std_shocks.end(); it++)
+  for (bool printed_something{false};
+       auto &[id, value] : std_shocks)
     {
-      if (it != std_shocks.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"name": ")" << symbol_table.getName(it->first) << R"(", )"
+      output << R"({"name": ")" << symbol_table.getName(id) << R"(", )"
              << R"("stderr": ")";
-      it->second->writeJsonOutput(output, {}, {});
+      value->writeJsonOutput(output, {}, {});
       output << R"("})";
     }
   output << "]"
          << R"(, "covariance": [)";
-  for (auto it = covar_shocks.begin(); it != covar_shocks.end(); ++it)
+  for (bool printed_something{false};
+       auto &[ids, value] : covar_shocks)
     {
-      if (it != covar_shocks.begin())
+      if (exchange(printed_something, true))
         output << ", ";
       output << "{"
-             << R"("name": ")" << symbol_table.getName(it->first.first) << R"(", )"
-             << R"("name2": ")" << symbol_table.getName(it->first.second) << R"(", )"
+             << R"("name": ")" << symbol_table.getName(ids.first) << R"(", )"
+             << R"("name2": ")" << symbol_table.getName(ids.second) << R"(", )"
              << R"("covariance": ")";
-      it->second->writeJsonOutput(output, {}, {});
+      value->writeJsonOutput(output, {}, {});
       output << R"("})";
     }
   output << "]"
          << R"(, "correlation": [)";
-  for (auto it = corr_shocks.begin(); it != corr_shocks.end(); ++it)
+  for (bool printed_something{false};
+       auto &[ids, value] : corr_shocks)
     {
-      if (it != corr_shocks.begin())
+      if (exchange(printed_something, true))
         output << ", ";
       output << "{"
-             << R"("name": ")" << symbol_table.getName(it->first.first) << R"(", )"
-             << R"("name2": ")" << symbol_table.getName(it->first.second) << R"(", )"
+             << R"("name": ")" << symbol_table.getName(ids.first) << R"(", )"
+             << R"("name2": ")" << symbol_table.getName(ids.second) << R"(", )"
              << R"("correlation": ")";
-      it->second->writeJsonOutput(output, {}, {});
+      value->writeJsonOutput(output, {}, {});
       output << R"("})";
     }
   output << "]"
@@ -468,16 +470,17 @@ ShocksSurpriseStatement::writeJsonOutput(ostream &output) const
   output << R"({"statementName": "shocks")"
          << R"(, "surprise": true)"
          << R"(, "surprise_shocks": [)";
-  for (auto it = surprise_shocks.begin(); it != surprise_shocks.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[id, shock_vec] : surprise_shocks)
     {
-      if (it != surprise_shocks.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"var": ")" << symbol_table.getName(it->first) << R"(", )"
+      output << R"({"var": ")" << symbol_table.getName(id) << R"(", )"
              << R"("values": [)";
-      for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+      for (bool printed_something2{false};
+           const auto &[period1, period2, value] : shock_vec)
         {
-          auto [period1, period2, value] = *it1;
-          if (it1 != it->second.begin())
+          if (exchange(printed_something2, true))
             output << ", ";
           output << R"({"period1": )" << period1 << ", "
                  << R"("period2": )" << period2 << ", "
@@ -549,16 +552,17 @@ ShocksLearntInStatement::writeJsonOutput(ostream &output) const
          << R"(, "learnt_in": )" << learnt_in_period
          << R"(, "overwrite": )" << boolalpha << overwrite
          << R"(, "learnt_shocks": [)";
-  for (auto it = learnt_shocks.begin(); it != learnt_shocks.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[id, shock_vec] : learnt_shocks)
     {
-      if (it != learnt_shocks.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"var": ")" << symbol_table.getName(it->first) << R"(", )"
+      output << R"({"var": ")" << symbol_table.getName(id) << R"(", )"
              << R"("values": [)";
-      for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+      for (bool printed_something2{false};
+           const auto &[type, period1, period2, value] : shock_vec)
         {
-          auto [type, period1, period2, value] = *it1;
-          if (it1 != it->second.begin())
+          if (exchange(printed_something2, true))
             output << ", ";
           output << R"({"period1": )" << period1 << ", "
                  << R"("period2": )" << period2 << ", "
@@ -598,20 +602,21 @@ ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &ba
   output << "constrained_vars_ = [];" << endl
          << "constrained_paths_ = NaN(" << paths.size() << ", " << path_length << ");" << endl;
 
-  int k = 1;
-  for (auto it = paths.begin(); it != paths.end(); ++it, k++)
+  for (int k{1};
+       const auto &[id, elems] : paths)
     {
-      if (it == paths.begin())
-        output << "constrained_vars_ = " << symbol_table.getTypeSpecificID(it->first) + 1 << ";" << endl;
+      if (k == 1)
+        output << "constrained_vars_ = " << symbol_table.getTypeSpecificID(id) + 1 << ";" << endl;
       else
-        output << "constrained_vars_ = [constrained_vars_; " << symbol_table.getTypeSpecificID(it->first) + 1 << "];" << endl;
-      for (const auto &[period1, period2, value] : it->second)
+        output << "constrained_vars_ = [constrained_vars_; " << symbol_table.getTypeSpecificID(id) + 1 << "];" << endl;
+      for (const auto &[period1, period2, value] : elems)
         for (int j = period1; j <= period2; j++)
           {
             output << "constrained_paths_(" << k << "," << j << ")=";
             value->writeOutput(output);
             output << ";" << endl;
           }
+      k++;
     }
 }
 
@@ -620,16 +625,17 @@ ConditionalForecastPathsStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "conditional_forecast_paths")"
          << R"(, "paths": [)";
-  for (auto it = paths.begin(); it != paths.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[id, elems] : paths)
     {
-      if (it != paths.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"var": ")" << symbol_table.getName(it->first) << R"(", )"
+      output << R"({"var": ")" << symbol_table.getName(id) << R"(", )"
              << R"("values": [)";
-      for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+      for (bool printed_something2{false};
+           const auto &[period1, period2, value] : elems)
         {
-          auto [period1, period2, value] = *it1;
-          if (it1 != it->second.begin())
+          if (exchange(printed_something2, true))
             output << ", ";
           output << R"({"period1": )" << period1 << ", "
                  << R"("period2": )" << period2 << ", "
@@ -672,18 +678,19 @@ MomentCalibration::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "moment_calibration")"
          << R"(, "moment_calibration_criteria": [)";
-  for (auto it = constraints.begin(); it != constraints.end(); ++it)
+  for (bool printed_something{false};
+       const auto &c : constraints)
     {
-      if (it != constraints.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"endogenous1": ")" << symbol_table.getName(it->endo1) << R"(")"
-             << R"(, "endogenous2": ")" << symbol_table.getName(it->endo2) << R"(")"
-             << R"(, "lags": ")" << it->lags << R"(")"
+      output << R"({"endogenous1": ")" << symbol_table.getName(c.endo1) << R"(")"
+             << R"(, "endogenous2": ")" << symbol_table.getName(c.endo2) << R"(")"
+             << R"(, "lags": ")" << c.lags << R"(")"
              << R"(, "lower_bound": ")";
-      it->lower_bound->writeJsonOutput(output, {}, {});
+      c.lower_bound->writeJsonOutput(output, {}, {});
       output << R"(")"
              << R"(, "upper_bound": ")";
-      it->upper_bound->writeJsonOutput(output, {}, {});
+      c.upper_bound->writeJsonOutput(output, {}, {});
       output << R"(")"
              << "}";
     }
@@ -730,18 +737,19 @@ IrfCalibration::writeJsonOutput(ostream &output) const
     }
 
   output << R"(, "irf_restrictions": [)";
-  for (auto it = constraints.begin(); it != constraints.end(); ++it)
+  for (bool printed_something{false};
+       const auto &c : constraints)
     {
-      if (it != constraints.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"endogenous": ")" << symbol_table.getName(it->endo) << R"(")"
-             << R"(, "exogenous": ")" << symbol_table.getName(it->exo) << R"(")"
-             << R"(, "periods": ")" << it->periods << R"(")"
+      output << R"({"endogenous": ")" << symbol_table.getName(c.endo) << R"(")"
+             << R"(, "exogenous": ")" << symbol_table.getName(c.exo) << R"(")"
+             << R"(, "periods": ")" << c.periods << R"(")"
              << R"(, "lower_bound": ")";
-      it->lower_bound->writeJsonOutput(output, {}, {});
+      c.lower_bound->writeJsonOutput(output, {}, {});
       output << R"(")";
       output << R"(, "upper_bound": ")";
-      it->upper_bound->writeJsonOutput(output, {}, {});
+      c.upper_bound->writeJsonOutput(output, {}, {});
       output << R"(")"
              << "}";
     }
@@ -805,11 +813,12 @@ ShockGroupsStatement::writeJsonOutput(ostream &output) const
             output << ", ";
           output << R"({"group_name": ")" << it->name << R"(",)"
                  << R"("shocks": [)";
-          for (auto it1 = it->list.begin(); it1 != it->list.end(); ++it1)
+          for (bool printed_something2{false};
+               const auto &it1 : it->list)
             {
-              if (it1 != it->list.begin())
+              if (exchange(printed_something2, true))
                 output << ", ";
-              output << R"(")" << *it1 << R"(")";
+              output << R"(")" << it1 << R"(")";
             }
           output << "]}";
         }
@@ -850,12 +859,13 @@ void
 Init2shocksStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "init2shocks", "name": ")" << name << R"(", "groups": [)";
-  for (auto &it : init2shocks)
+  for (bool printed_something{false};
+       const auto &[id1, id2] : init2shocks)
     {
-      if (it != *(init2shocks.begin()))
+      if (exchange(printed_something, true))
         output << ",";
-      output << R"({"endogenous": ")" << symbol_table.getName(it.first) << R"(", )"
-             << R"( "exogenous": ")" << symbol_table.getName(it.second) << R"("})";
+      output << R"({"endogenous": ")" << symbol_table.getName(id1) << R"(", )"
+             << R"( "exogenous": ")" << symbol_table.getName(id2) << R"("})";
     }
   output << "]}";
 }
@@ -877,29 +887,25 @@ HeteroskedasticShocksStatement::writeOutput(ostream &output, const string &basen
            << "M_.heteroskedastic_shocks.Qscale_orig = [];" << endl;
 
   for (const auto &[symb_id, vec] : values)
-    {
-      int tsid = symbol_table.getTypeSpecificID(symb_id);
-      for (const auto &[period1, period2, value] : vec)
-        {
-          output << "M_.heteroskedastic_shocks.Qvalue_orig = [M_.heteroskedastic_shocks.Qvalue_orig; struct('exo_id', "
-                 << tsid+1 << ",'periods',"
-                 << period1 << ":" << period2 << ",'value',";
-          value->writeOutput(output);
-          output << ")];" << endl;
-        }
-    }
+    for (int tsid = symbol_table.getTypeSpecificID(symb_id);
+         const auto &[period1, period2, value] : vec)
+      {
+        output << "M_.heteroskedastic_shocks.Qvalue_orig = [M_.heteroskedastic_shocks.Qvalue_orig; struct('exo_id', "
+               << tsid+1 << ",'periods',"
+               << period1 << ":" << period2 << ",'value',";
+        value->writeOutput(output);
+        output << ")];" << endl;
+      }
   for (const auto &[symb_id, vec] : scales)
-    {
-      int tsid = symbol_table.getTypeSpecificID(symb_id);
-      for (const auto &[period1, period2, scale] : vec)
-        {
-          output << "M_.heteroskedastic_shocks.Qscale_orig = [M_.heteroskedastic_shocks.Qscale_orig; struct('exo_id', "
-                 << tsid+1 << ",'periods',"
-                 << period1 << ":" << period2 << ",'scale',";
-          scale->writeOutput(output);
-          output << ")];" << endl;
-        }
-    }
+    for (int tsid = symbol_table.getTypeSpecificID(symb_id);
+         const auto &[period1, period2, scale] : vec)
+      {
+        output << "M_.heteroskedastic_shocks.Qscale_orig = [M_.heteroskedastic_shocks.Qscale_orig; struct('exo_id', "
+               << tsid+1 << ",'periods',"
+               << period1 << ":" << period2 << ",'scale',";
+        scale->writeOutput(output);
+        output << ")];" << endl;
+      }
 }
 
 void
@@ -908,17 +914,18 @@ HeteroskedasticShocksStatement::writeJsonOutput(ostream &output) const
   output << R"({"statementName": "heteroskedastic_shocks")"
          << R"(, "overwrite": )" << boolalpha << overwrite
          << R"(, "shocks_values": [)";
-  for (auto it = values.begin(); it != values.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[symb_id, vec] : values)
     {
-      if (it != values.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"var": ")" << symbol_table.getName(it->first) << R"(", )"
+      output << R"({"var": ")" << symbol_table.getName(symb_id) << R"(", )"
              << R"("values": [)";
-      for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+      for (bool printed_something2{false};
+           const auto &[period1, period2, value] : vec)
         {
-          if (it1 != it->second.begin())
+          if (exchange(printed_something2, true))
             output << ", ";
-          auto [period1, period2, value] = *it1;
           output << R"({"period1": )" << period1 << ", "
                  << R"("period2": )" << period2 << ", "
                  << R"("value": ")";
@@ -928,17 +935,18 @@ HeteroskedasticShocksStatement::writeJsonOutput(ostream &output) const
       output << "]}";
     }
   output << R"(], "shocks_scales": [)";
-  for (auto it = scales.begin(); it != scales.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[symb_id, vec] : scales)
     {
-      if (it != scales.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"var": ")" << symbol_table.getName(it->first) << R"(", )"
+      output << R"({"var": ")" << symbol_table.getName(symb_id) << R"(", )"
              << R"("scales": [)";
-      for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+      for (bool printed_something2{false};
+           const auto &[period1, period2, value] : vec)
         {
-          if (it1 != it->second.begin())
+          if (exchange(printed_something2, true))
             output << ", ";
-          auto [period1, period2, value] = *it1;
           output << R"({"period1": )" << period1 << ", "
                  << R"("period2": )" << period2 << ", "
                  << R"("value": ")";

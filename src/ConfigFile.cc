@@ -382,9 +382,9 @@ ConfigFile::getConfigFileInfo(const string &config_file)
               {
                 char_separator sep(" ,;", "()", drop_empty_tokens);
                 tokenizer tokens(tokenizedLine.back(), sep);
-                bool begin_weight = false;
                 string node_name;
-                for (const auto &token : tokens)
+                for (bool begin_weight{false};
+                     const auto &token : tokens)
                   {
                     if (token.compare("(") == 0)
                       {
@@ -535,19 +535,15 @@ ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, const member
 void
 ConfigFile::checkPass(WarningConsolidation &warnings) const
 {
-  bool global_init_file_declared = false;
-  for (const auto &hook : hooks)
-    {
-      for (const auto &mapit : hook.get_hooks())
-        if (mapit.first.compare("global_init_file") == 0)
-          if (global_init_file_declared == true)
-            {
-              cerr << "ERROR: Only one global initialization file may be provided." << endl;
-              exit(EXIT_FAILURE);
-            }
-          else
-            global_init_file_declared = true;
-    }
+  for (bool global_init_file_declared{false};
+       const auto &hook : hooks)
+    for (const auto &mapit : hook.get_hooks())
+      if (mapit.first.compare("global_init_file") == 0)
+        if (exchange(global_init_file_declared, true))
+          {
+            cerr << "ERROR: Only one global initialization file may be provided." << endl;
+            exit(EXIT_FAILURE);
+          }
 
   if (!parallel && !parallel_test)
     return;
@@ -709,8 +705,8 @@ ConfigFile::writeCluster(ostream &output) const
 
   auto cluster_it = cluster_name.empty() ? clusters.find(firstClusterName) : clusters.find(cluster_name);
 
-  int i{1};
-  for (const auto &slave_node : slave_nodes)
+  for (int i{1};
+       const auto &slave_node : slave_nodes)
     {
       bool slave_node_in_member_nodes = false;
       for (const auto &itmn : cluster_it->second.member_nodes)

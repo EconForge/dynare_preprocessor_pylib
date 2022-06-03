@@ -113,11 +113,12 @@ void
 SymbolList::writeOutput(const string &varname, ostream &output) const
 {
   output << varname << " = {";
-  for (auto it = symbols.begin(); it != symbols.end(); ++it)
+  for (bool printed_something{false};
+       const auto &name : symbols)
     {
-      if (it != symbols.begin())
+      if (exchange(printed_something, true))
         output << ";";
-      output << "'" << *it << "'";
+      output << "'" << name << "'";
     }
   output << "};" << endl;
 }
@@ -126,11 +127,12 @@ void
 SymbolList::writeJsonOutput(ostream &output) const
 {
   output << R"("symbol_list": [)";
-  for (auto it = symbols.begin(); it != symbols.end(); ++it)
+  for (bool printed_something{false};
+       const auto &name : symbols)
     {
-      if (it != symbols.begin())
+      if (exchange(printed_something, true))
         output << ",";
-      output << R"(")" << *it << R"(")";
+      output << R"(")" << name << R"(")";
     }
   output << "]";
 }

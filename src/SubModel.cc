@@ -297,8 +297,8 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
       for (size_t i = 0; i < diff.at(name).size(); i++)
         output << "true ";
       output << "];" << endl;
-      int i = 1;
-      for (const auto &it : rhs.at(name))
+      for (int i{1};
+           const auto &it : rhs.at(name))
         {
           output << "M_.trend_component." << name << ".rhs.vars_at_eq{" << i << "}.var = [";
           for (auto [var, lag] : it)
@@ -376,25 +376,28 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
 void
 TrendComponentModelTable::writeJsonOutput(ostream &output) const
 {
-  for (const auto &name : names)
+  for (bool printed_something{false};
+       const auto &name : names)
     {
-      if (name != *names.begin())
+      if (exchange(printed_something, true))
         output << ", ";
       output << R"({"statementName": "trend_component_model",)"
              << R"("model_name": ")" << name << R"(",)"
              << R"("eqtags": [)";
-      for (const auto &it : eqtags.at(name))
+      for (bool printed_something2{false};
+           const auto &it : eqtags.at(name))
         {
-          output << R"(")" << it << R"(")";
-          if (&it != &eqtags.at(name).back())
+          if (exchange(printed_something2, true))
             output << ", ";
+          output << R"(")" << it << R"(")";
         }
       output << R"(], "target_eqtags": [)";
-      for (const auto &it : target_eqtags.at(name))
+      for (bool printed_something2{false};
+           const auto &it : target_eqtags.at(name))
         {
-          output << R"(")" << it << R"(")";
-          if (&it != &target_eqtags.at(name).back())
+          if (exchange(printed_something2, true))
             output << ", ";
+          output << R"(")" << it << R"(")";
         }
       output << "]}";
     }
@@ -468,8 +471,8 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
       for (const auto &it : orig_diff_var.at(name))
         output << (it ? symbol_table.getTypeSpecificID(*it) + 1 : -1) << " ";
       output << "];" << endl;
-      int i = 1;
-      for (const auto &it : rhs.at(name))
+      for (int i{1};
+           const auto &it : rhs.at(name))
         {
           output << "M_.var." << name << ".rhs.vars_at_eq{" << i << "}.var = [";
           for (auto [var, lag] : it)
@@ -539,18 +542,20 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
 void
 VarModelTable::writeJsonOutput(ostream &output) const
 {
-  for (const auto &name : names)
+  for (bool printed_something{false};
+       const auto &name : names)
     {
-      if (name != *names.begin())
+      if (exchange(printed_something, true))
         output << ", ";
       output << R"({"statementName": "var_model",)"
              << R"("model_name": ")" << name << R"(",)"
              << R"("eqtags": [)";
-      for (const auto &it : eqtags.at(name))
+      for (bool printed_something2{false};
+           const auto &it : eqtags.at(name))
         {
-          output << R"(")" << it << R"(")";
-          if (&it != &eqtags.at(name).back())
+          if (exchange(printed_something2, true))
             output << ", ";
+          output << R"(")" << it << R"(")";
         }
       output << "]}";
     }
@@ -783,20 +788,21 @@ VarExpectationModelTable::writeOutput(const string &basename, ostream &output) c
         }
 
       ostringstream vars_list, params_list, constants_list;
-      for (auto it = vpc.begin(); it != vpc.end(); ++it)
+      for (bool printed_something{false};
+           const auto &[variable_id, param_id, constant] : vpc)
         {
-          if (it != vpc.begin())
+          if (exchange(printed_something, true))
             {
               vars_list << ", ";
               params_list << ", ";
               constants_list << ", ";
             }
-          vars_list << symbol_table.getTypeSpecificID(get<0>(*it))+1;
-          if (get<1>(*it))
-            params_list << symbol_table.getTypeSpecificID(*get<1>(*it))+1;
+          vars_list << symbol_table.getTypeSpecificID(variable_id)+1;
+          if (param_id)
+            params_list << symbol_table.getTypeSpecificID(*param_id)+1;
           else
             params_list << "NaN";
-          constants_list << get<2>(*it);
+          constants_list << constant;
         }
       output << mstruct << ".expr.vars = [ " << vars_list.str() << " ];" << endl
              << mstruct << ".expr.params = [ " << params_list.str() << " ];" << endl
@@ -923,9 +929,10 @@ VarExpectationModelTable::transformPass(ExprNode::subst_table_t &diff_subst_tabl
 void
 VarExpectationModelTable::writeJsonOutput(ostream &output) const
 {
-  for (const auto &name : names)
+  for (bool printed_something{false};
+       const auto &name : names)
     {
-      if (name != *names.begin())
+      if (exchange(printed_something, true))
         output << ", ";
       output << R"({"statementName": "var_expectation_model",)"
              << R"("model_name": ")" << name << R"(", )"
@@ -1362,8 +1369,8 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
   // Helper to print the “growth_info” structure (linear decomposition of growth)
   auto growth_info_helper = [&](const string &fieldname, const growth_info_t &gi)
   {
-    int i = 1;
-    for (auto [growth_symb_id, growth_lag, param_id, constant] : gi)
+    for (int i{1};
+         auto [growth_symb_id, growth_lag, param_id, constant] : gi)
       {
         string structname = fieldname + "(" + to_string(i++) + ").";
         if (growth_symb_id)
@@ -1621,42 +1628,41 @@ PacModelTable::writeOutput(const string &basename, ostream &output) const
     }
 
   for (auto &[name, val] : target_info)
-    {
-      int component_idx = 1;
-      for (auto &[component, growth_component, auxname, kind, coeff, growth_neutrality_param, h_indices, original_growth_component, growth_component_info] : get<2>(val))
-        {
-          string fieldname = "M_.pac." + name + ".components(" + to_string(component_idx) + ")";
-          output << fieldname << ".aux_id = " << symbol_table.getTypeSpecificID(auxname) + 1 << ";" << endl
-                 << fieldname << ".endo_var = " << symbol_table.getTypeSpecificID(dynamic_cast<VariableNode *>(component)->symb_id) + 1 << ";" << endl
-                 << fieldname << ".kind = '" << kindToString(kind) << "';" << endl
-                 << fieldname << ".h_param_indices = [";
-          for (int id : h_indices)
-            output << symbol_table.getTypeSpecificID(id) + 1 << " ";
-          output << "];" << endl
-                 << fieldname << ".coeff_str = '";
-          coeff->writeJsonOutput(output, {}, {}, true);
-          output << "';" << endl;
-          if (growth_component)
-            {
-              output << fieldname << ".growth_neutrality_param_index = " << symbol_table.getTypeSpecificID(growth_neutrality_param) + 1 << ";" << endl
-                     << fieldname << ".growth_str = '";
-              original_growth_component->writeJsonOutput(output, {}, {}, true);
-              output << "';" << endl;
-              growth_info_helper(fieldname + ".growth_linear_comb", growth_component_info);
-            }
-          component_idx++;
-        }
-    }
+    for (int component_idx{1};
+         auto &[component, growth_component, auxname, kind, coeff, growth_neutrality_param, h_indices, original_growth_component, growth_component_info] : get<2>(val))
+      {
+        string fieldname = "M_.pac." + name + ".components(" + to_string(component_idx) + ")";
+        output << fieldname << ".aux_id = " << symbol_table.getTypeSpecificID(auxname) + 1 << ";" << endl
+               << fieldname << ".endo_var = " << symbol_table.getTypeSpecificID(dynamic_cast<VariableNode *>(component)->symb_id) + 1 << ";" << endl
+               << fieldname << ".kind = '" << kindToString(kind) << "';" << endl
+               << fieldname << ".h_param_indices = [";
+        for (int id : h_indices)
+          output << symbol_table.getTypeSpecificID(id) + 1 << " ";
+        output << "];" << endl
+               << fieldname << ".coeff_str = '";
+        coeff->writeJsonOutput(output, {}, {}, true);
+        output << "';" << endl;
+        if (growth_component)
+          {
+            output << fieldname << ".growth_neutrality_param_index = " << symbol_table.getTypeSpecificID(growth_neutrality_param) + 1 << ";" << endl
+                   << fieldname << ".growth_str = '";
+            original_growth_component->writeJsonOutput(output, {}, {}, true);
+            output << "';" << endl;
+            growth_info_helper(fieldname + ".growth_linear_comb", growth_component_info);
+          }
+        component_idx++;
+      }
 }
 
 void
 PacModelTable::writeJsonOutput(ostream &output) const
 {
-  for (const auto &name : names)
+  for (bool printed_something{false};
+       const auto &name : names)
     {
       /* The calling method has already added a comma, so don’t output one for
          the first statement */
-      if (name != *names.begin())
+      if (exchange(printed_something, true))
         output << ", ";
       output << R"({"statementName": "pac_model",)"
              << R"("model_name": ")" << name << R"(",)"
@@ -1760,8 +1766,8 @@ PacModelTable::writeTargetCoefficientsFile(const string &basename) const
     {
       output << "  if strcmp(model_name, '" << model_name << "')" << endl
              << "    coeffs = NaN(" << get<2>(val).size() << ",1);" << endl;
-      int i = 1;
-      for (auto &[component, growth_component, auxname, kind, coeff, growth_neutrality_param, h_indices, original_growth_component, growth_component_info] : get<2>(val))
+      for (int i{1};
+           auto &[component, growth_component, auxname, kind, coeff, growth_neutrality_param, h_indices, original_growth_component, growth_component_info] : get<2>(val))
         {
           output << "    coeffs(" << i++ << ") = ";
           coeff->writeOutput(output, ExprNodeOutputType::matlabDynamicModel);

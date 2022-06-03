@@ -1015,9 +1015,9 @@ ModelTree::computeBlockTemporaryTerms()
     }
 
   // Compute indices in the temporary terms vector
-  int idx = 0;
   blocks_temporary_terms_idxs.clear();
-  for (auto &blk_tt : blocks_temporary_terms)
+  for (int idx{0};
+       auto &blk_tt : blocks_temporary_terms)
     for (auto &eq_tt : blk_tt)
       for (auto tt : eq_tt)
         blocks_temporary_terms_idxs[tt] = idx++;
@@ -1095,35 +1095,35 @@ ModelTree::writeJsonTemporaryTerms(const temporary_terms_t &tt,
                                    deriv_node_temp_terms_t &tef_terms, const string &concat) const
 {
   // Local var used to keep track of temp nodes already written
-  bool wrote_term = false;
   temporary_terms_t tt2 = temp_term_union;
 
   output << R"("external_functions_temporary_terms_)" << concat << R"(": [)";
-  for (auto it : tt)
+  for (bool printed_term{false};
+       auto it : tt)
     {
       if (dynamic_cast<AbstractExternalFunctionNode *>(it))
         {
-          if (wrote_term)
+          if (exchange(printed_term, true))
             output << ", ";
           vector<string> efout;
           it->writeJsonExternalFunctionOutput(efout, tt2, tef_terms);
-          for (auto it1 = efout.begin(); it1 != efout.end(); ++it1)
+          for (bool printed_efout{false};
+               auto &it : efout)
             {
-              if (it1 != efout.begin())
+              if (exchange(printed_efout, true))
                 output << ", ";
-              output << *it1;
+              output << it;
             }
-          wrote_term = true;
         }
       tt2.insert(it);
     }
 
-  wrote_term = false;
   output << "]"
          << R"(, "temporary_terms_)" << concat << R"(": [)";
-  for (const auto &it : tt)
+  for (bool printed_term{false};
+       const auto &it : tt)
     {
-      if (wrote_term)
+      if (exchange(printed_term, true))
         output << ", ";
       output << R"({"temporary_term": ")";
       it->writeJsonOutput(output, tt, tef_terms);
@@ -1131,7 +1131,6 @@ ModelTree::writeJsonTemporaryTerms(const temporary_terms_t &tt,
              << R"(, "value": ")";
       it->writeJsonOutput(output, temp_term_union, tef_terms);
       output << R"("})" << endl;
-      wrote_term = true;
 
       temp_term_union.insert(it);
     }
@@ -1241,8 +1240,8 @@ ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_
 bool
 ModelTree::testNestedParenthesis(const string &str) const
 {
-  int open = 0;
-  for (char i : str)
+  for (int open{0};
+       char i : str)
     {
       if (i == '(')
         open++;
@@ -1291,25 +1290,24 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, bool write_tef_terms, d
     equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
 
   output << R"("model_local_variables": [)";
-  bool printed = false;
-  for (int id : local_variables_vector)
+  for (bool printed_something{false};
+       int id : local_variables_vector)
     if (used_local_vars.contains(id))
       {
-        if (printed)
+        if (exchange(printed_something, true))
           output << ", ";
-        else
-          printed = true;
 
         expr_t value = local_variables_table.find(id)->second;
         if (write_tef_terms)
           {
             vector<string> efout;
             value->writeJsonExternalFunctionOutput(efout, {}, tef_terms);
-            for (auto it1 = efout.begin(); it1 != efout.end(); ++it1)
+            for (bool printed_efout{false};
+                 auto &it : efout)
               {
-                if (it1 != efout.begin())
+                if (exchange(printed_efout, true))
                   output << ", ";
-                output << *it1;
+                output << it;
               }
 
             if (!efout.empty())
@@ -1751,13 +1749,12 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
               !eqtags.empty())
             {
               output << R"(, "tags": {)";
-              int i = 0;
-              for (const auto &[name, value] : eqtags)
+              for (bool printed_something{false};
+                   const auto &[name, value] : eqtags)
                 {
-                  if (i != 0)
+                  if (exchange(printed_something, true))
                     output << ", ";
                   output << R"(")" << name << R"(": ")" << value << R"(")";
-                  i++;
                 }
               output << "}";
               eqtags.clear();

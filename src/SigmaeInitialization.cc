@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2020 Dynare Team
+ * Copyright © 2003-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -101,17 +101,19 @@ void
 SigmaeStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "Sigma_e", "value": [)";
-  for (auto it = matrix.begin(); it != matrix.end(); ++it)
+  for (bool printed_something{false};
+       const auto &row : matrix)
     {
-      if (it != matrix.begin())
+      if (exchange(printed_something, true))
         output << ", ";
       output << "[";
-      for (auto it2 = it->begin(); it2 != it->end(); ++it2)
+      for (bool printed_something2{false};
+           auto elem : row)
         {
-          if (it2 != it->begin())
+          if (exchange(printed_something2, true))
             output << ", ";
           output << '"';
-          (*it2)->writeJsonOutput(output, {}, {});
+          elem->writeJsonOutput(output, {}, {});
           output << '"';
         }
       output << "]";

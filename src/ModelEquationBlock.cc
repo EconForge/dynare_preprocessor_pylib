@@ -241,26 +241,27 @@ SteadyStateModel::writeJsonSteadyStateFile(ostream &output, bool transformComput
 
   output << "{\"steady_state_model\": [";
 
-  for (size_t i = 0; i < def_table.size(); i++)
+  for (bool printed_something{false};
+       const auto &[symb_ids, value] : def_table)
     {
-      const vector<int> &symb_ids = def_table[i].first;
-      if (i != 0)
+      if (exchange(printed_something, true))
         output << ",";
       output << "{\"lhs\": ";
       if (symb_ids.size() > 1)
         output << "[";
-      for (size_t j = 0; j < symb_ids.size(); j++)
+      for (bool printed_something2{false};
+           int symb_id : symb_ids)
         {
-          if (j != 0)
+          if (exchange(printed_something2, true))
             output << ",";
           output << "\"";
-          getVariable(symb_ids[j])->writeJsonOutput(output, {}, {}, false);
+          getVariable(symb_id)->writeJsonOutput(output, {}, {}, false);
           output << "\"";
         }
       if (symb_ids.size() > 1)
         output << "]";
       output << R"(, "rhs":")";
-      def_table[i].second->writeJsonOutput(output, {}, {}, false);
+      value->writeJsonOutput(output, {}, {}, false);
       output << "\"}" << endl;
     }
 
@@ -445,11 +446,12 @@ Epilogue::writeDynamicEpilogueFile(const string &basename) const
              << "end" << endl
              << "try" << endl
              << "    simul_begin_date = firstobservedperiod(ds{";
-      for (auto it1 = used_symbols.begin(); it1 != used_symbols.end(); ++it1)
+      for (bool printed_something{false};
+           int symb_id : used_symbols)
         {
-          if (it1 != used_symbols.begin())
+          if (exchange(printed_something, true))
             output << ", ";
-          output << "'" << symbol_table.getName(*it1) << "'";
+          output << "'" << symbol_table.getName(symb_id) << "'";
         }
       output << "}) + " << max_lag << ";" << endl
              << "    from simul_begin_date to simul_end_date do "
@@ -473,9 +475,9 @@ Epilogue::writeOutput(ostream &output) const
       return;
     }
 
-  int idx = 1;
   output << "M_.epilogue_names = cell(" << dynamic_def_table.size() << ",1);" << endl;
-  for (const auto & [symb_id, expr] : dynamic_def_table)
+  for (int idx{1};
+       const auto &[symb_id, expr] : dynamic_def_table)
     output << "M_.epilogue_names{" << idx++ << "} = '"
            << symbol_table.getName(symb_id) << "';" << endl;
 

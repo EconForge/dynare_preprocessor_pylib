@@ -259,13 +259,12 @@ For::interpret(ostream &output, Environment &env, vector<filesystem::path> &path
 void
 If::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
 {
-  bool first_clause = true;
-  for (const auto & [expr, body] : expr_and_body)
+  for (bool first_clause{true};
+       const auto &[expr, body] : expr_and_body)
     try
       {
-        if ((ifdef || ifndef) && first_clause)
+        if ((ifdef || ifndef) && exchange(first_clause, false))
           {
-            first_clause = false;
             VariablePtr vp = dynamic_pointer_cast<Variable>(expr);
             if (!vp)
               error(StackTrace(ifdef ? "@#ifdef" : "@#ifndef",
@@ -307,14 +306,11 @@ If::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths
 void
 If::interpretBody(const vector<DirectivePtr> &body, ostream &output, Environment &env, vector<filesystem::path> &paths)
 {
-  bool printLine = true;
-  for (const auto &statement : body)
+  for (bool printLine{true};
+       const auto &statement : body)
     {
-      if (printLine)
-        {
-          statement->printLineInfo(output);
-          printLine = false;
-        }
+      if (exchange(printLine, false))
+        statement->printLineInfo(output);
       statement->interpret(output, env, paths);
     }
 }

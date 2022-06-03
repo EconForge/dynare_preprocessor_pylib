@@ -163,13 +163,12 @@ InitOrEndValStatement::writeInitValues(ostream &output) const
 void
 InitOrEndValStatement::writeJsonInitValues(ostream &output) const
 {
-  for (auto it = init_values.begin();
-       it != init_values.end(); ++it)
+  for (bool printed_something{false};
+       auto &[symb_id, value] : init_values)
     {
-      auto [symb_id, value] = *it;
       if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
         continue;
-      if (it != init_values.begin())
+      if (exchange(printed_something, true))
         output << ", ";
       output << R"({"name": ")" << symbol_table.getName(symb_id) << R"(", )" << R"("value": ")";
       value->writeJsonOutput(output, {}, {});
@@ -348,13 +347,12 @@ EndValLearntInStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "endval", "learnt_in": )"
          << learnt_in_period <<  R"(, "vals": [)";
-  for (auto it = learnt_end_values.begin();
-       it != learnt_end_values.end(); ++it)
+  for (bool printed_something{false};
+       auto &[type, symb_id, value] : learnt_end_values)
     {
-      auto [type, symb_id, value] = *it;
       if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
         continue;
-      if (it != learnt_end_values.begin())
+      if (exchange(printed_something, true))
         output << ", ";
       output << R"({"name": ")" << symbol_table.getName(symb_id) << R"(", )"
              << R"("type": ")" << typeToString(type) << R"(", )"
@@ -453,18 +451,18 @@ void
 HistValStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "histval", "vals": [)";
-  for (auto it = hist_values.begin();
-       it != hist_values.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[key, value] : hist_values)
     {
-      auto [symb_id, lag] = it->first;
+      auto &[symb_id, lag] = key;
       if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
         continue;
-      if (it != hist_values.begin())
+      if (exchange(printed_something, true))
         output << ", ";
       output << R"({ "name": ")" << symbol_table.getName(symb_id) << R"(")"
              << R"(, "lag": )" << lag
              << R"(, "value": ")";
-      it->second->writeJsonOutput(output, {}, {});
+      value->writeJsonOutput(output, {}, {});
       output << R"("})";
     }
   output << "]}";
@@ -562,13 +560,11 @@ HomotopyStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "homotopy", )"
          << R"("values": [)";
-  for (auto it = homotopy_values.begin();
-       it != homotopy_values.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[symb_id, expression1, expression2] : homotopy_values)
     {
-      if (it != homotopy_values.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-
-      auto [symb_id, expression1, expression2] = *it;
 
       output << R"({"name": ")" << symbol_table.getName(symb_id) << R"(")"
              << R"(, "initial_value": ")";
@@ -672,12 +668,13 @@ LoadParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "load_params_and_steady_state",)"
          << R"("values": [)";
-  for (auto it = content.begin(); it != content.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[id, value] : content)
     {
-      if (it != content.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"name": ")" << symbol_table.getName(it->first) << R"(")"
-             << R"(, "value": ")" << it->second << R"("})";
+      output << R"({"name": ")" << symbol_table.getName(id) << R"(")"
+             << R"(, "value": ")" << value << R"("})";
     }
   output << "]"
          << "}";

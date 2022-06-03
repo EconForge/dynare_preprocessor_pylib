@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2020 Dynare Team
+ * Copyright © 2019-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1292,11 +1292,12 @@ void
 Array::print(ostream &output, bool matlab_output) const noexcept
 {
   output << (matlab_output ? "{" : "[");
-  for (auto it = arr.begin(); it != arr.end(); it++)
+  for (bool printed_something{false};
+       auto e : arr)
     {
-      if (it != arr.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      (*it)->print(output, matlab_output);
+      e->print(output, matlab_output);
     }
   output << (matlab_output ? "}" : "]");
 }
@@ -1305,11 +1306,12 @@ void
 Tuple::print(ostream &output, bool matlab_output) const noexcept
 {
   output << (matlab_output ? "{" : "(");
-  for (auto it = tup.begin(); it != tup.end(); it++)
+  for (bool printed_something{false};
+       auto e : tup)
     {
-      if (it != tup.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      (*it)->print(output, matlab_output);
+      e->print(output, matlab_output);
     }
   output << (matlab_output ? "}" : ")");
 }
@@ -1318,11 +1320,12 @@ void
 Function::printArgs(ostream &output) const noexcept
 {
   output << "(";
-  for (auto it = args.begin(); it != args.end(); it++)
+  for (bool printed_something{false};
+       auto e : args)
     {
-      if (it != args.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      (*it)->print(output);
+      e->print(output);
     }
   output << ")";
 }

@@ -339,12 +339,12 @@ ModFile::checkPass(bool nostrict, bool stochastic)
   if (parameters_intersect.size() > 0)
     {
       cerr << "ERROR: some estimated parameters (";
-      for (auto it = parameters_intersect.begin();
-           it != parameters_intersect.end();)
+      for (bool printed_something{false};
+           int symb_id : parameters_intersect)
         {
-          cerr << symbol_table.getName(*it);
-          if (++it != parameters_intersect.end())
+          if (exchange(printed_something, true))
             cerr << ", ";
+          cerr << symbol_table.getName(symb_id);
         }
       cerr << ") also appear in the expressions defining the variance/covariance matrix of shocks; this is not allowed." << endl;
       exit(EXIT_FAILURE);
@@ -1201,11 +1201,12 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
           output << ", ";
         }
 
-      for (auto it = statements.begin(); it != statements.end(); ++it)
+      for (bool printed_something{false};
+           auto &it : statements)
         {
-          if (it != statements.begin())
+          if (exchange(printed_something, true))
             output << ", " << endl;
-          (*it)->writeJsonOutput(output);
+          it->writeJsonOutput(output);
         }
       output << "]" << endl;
     }
@@ -1241,10 +1242,10 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
               pac_model_table.writeJsonOutput(original_model_output);
               original_model_output << ", ";
             }
-          int i = 0;
-          for (const auto &it : statements)
+          for (bool printed_something{false};
+               const auto &it : statements)
             {
-              original_model_output << (i++ > 0 ? "," : "") << endl;
+              original_model_output << (exchange(printed_something, true) ? "," : "") << endl;
               it->writeJsonOutput(original_model_output);
             }
           original_model_output << "]" << endl;

@@ -209,8 +209,8 @@ StaticModel::writeStaticPerBlockHelper(int blk, ostream &output, ExprNodeOutputT
       write_eq_tt(blocks[blk].size);
 
       ostringstream i_output, j_output, v_output;
-      int line_counter = ARRAY_SUBSCRIPT_OFFSET(output_type);
-      for (const auto &[indices, d] : blocks_derivatives[blk])
+      for (int line_counter{ARRAY_SUBSCRIPT_OFFSET(output_type)};
+           const auto &[indices, d] : blocks_derivatives[blk])
         {
           auto [eq, var, ignore] = indices;
           i_output << "  g1_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
@@ -464,15 +464,16 @@ StaticModel::writeStaticBytecode(const string &basename) const
       fldr.write(code_file, instruction_number);
       if (my_derivatives[i].size())
         {
-          for (auto it = my_derivatives[i].begin(); it != my_derivatives[i].end(); ++it)
+          for (bool printed_something{false};
+               const auto &it : my_derivatives[i])
             {
-              FLDSU_ fldsu(it->second);
+              FLDSU_ fldsu(it.second);
               fldsu.write(code_file, instruction_number);
-              FLDSV_ fldsv{static_cast<int>(SymbolType::endogenous), static_cast<unsigned int>(it->first)};
+              FLDSV_ fldsv{static_cast<int>(SymbolType::endogenous), static_cast<unsigned int>(it.first)};
               fldsv.write(code_file, instruction_number);
               FBINARY_ fbinary{static_cast<int>(BinaryOpcode::times)};
               fbinary.write(code_file, instruction_number);
-              if (it != my_derivatives[i].begin())
+              if (exchange(printed_something, true))
                 {
                   FBINARY_ fbinary{static_cast<int>(BinaryOpcode::plus)};
                   fbinary.write(code_file, instruction_number);
@@ -1316,8 +1317,8 @@ StaticModel::writeStaticModel(const string &basename,
            accesses and expression reusage. */
         ostringstream i_output, j_output, v_output;
 
-        int k = 0; // Current line index in the 3-column matrix
-        for (const auto &[vidx, d] : derivatives[i])
+        for (int k{0}; // Current line index in the 3-column matrix
+             const auto &[vidx, d] : derivatives[i])
           {
             int eq = vidx[0];
 
@@ -2195,11 +2196,12 @@ StaticModel::writeJsonAuxVarRecursiveDefinitions(ostream &output) const
                                                                                 temporary_terms,
                                                                                 tef_terms,
                                                                                 false);
-        for (auto it = efout.begin(); it != efout.end(); ++it)
+        for (bool printed_something{false};
+             const auto &it : efout)
           {
-            if (it != efout.begin())
+            if (exchange(printed_something, true))
               output << ", ";
-            output << *it;
+            output << it;
           }
       }
 
@@ -2262,8 +2264,8 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
       hessian_output << ";" << endl;
     }
 
-  int i = 1;
-  for (const auto &[indices, d2] : params_derivatives.find({ 0, 2 })->second)
+  for (int i{1};
+       const auto &[indices, d2] : params_derivatives.find({ 0, 2 })->second)
     {
       auto [eq, param1, param2] = vectorToTuple<3>(indices);
 
@@ -2300,8 +2302,8 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
         }
     }
 
-  i = 1;
-  for (const auto &[indices, d2] : params_derivatives.find({ 1, 2 })->second)
+  for (int i{1};
+       const auto &[indices, d2] : params_derivatives.find({ 1, 2 })->second)
     {
       auto [eq, var, param1, param2] = vectorToTuple<4>(indices);
 
@@ -2343,8 +2345,8 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
         }
     }
 
-  i = 1;
-  for (const auto &[indices, d2] : params_derivatives.find({ 2, 1 })->second)
+  for (int i{1};
+       const auto &[indices, d2] : params_derivatives.find({ 2, 1 })->second)
     {
       auto [eq, var1, var2, param] = vectorToTuple<4>(indices);
 
@@ -2523,13 +2525,12 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
                   << R"(, "ncols": )" << ncols
                   << R"(, "entries": [)";
 
-      for (auto it = derivatives[i].begin(); it != derivatives[i].end(); ++it)
+      for (bool printed_something{false};
+           const auto &[vidx, d] : derivatives[i])
         {
-          if (it != derivatives[i].begin())
+          if (exchange(printed_something, true))
             d_output[i] << ", ";
 
-          const vector<int> &vidx = it->first;
-          expr_t d = it->second;
           int eq = vidx[0];
 
           int col_idx = 0;
@@ -2602,14 +2603,13 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                   << R"(  "neqs": )" << equations.size()
                   << R"(, "nparamcols": )" << symbol_table.param_nbr()
                   << R"(, "entries": [)";
-  auto &rp = params_derivatives.find({ 0, 1 })->second;
-  for (auto it = rp.begin(); it != rp.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[vidx, d] : params_derivatives.find({ 0, 1 })->second)
     {
-      if (it != rp.begin())
+      if (exchange(printed_something, true))
         jacobian_output << ", ";
 
-      auto [eq, param] = vectorToTuple<2>(it->first);
-      expr_t d1 = it->second;
+      auto [eq, param] = vectorToTuple<2>(vidx);
 
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
@@ -2624,7 +2624,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
       jacobian_output << R"(, "param": ")" << symbol_table.getName(getSymbIDByDerivID(param)) << R"(")";
 
       jacobian_output << R"(, "val": ")";
-      d1->writeJsonOutput(jacobian_output, temp_term_union, tef_terms);
+      d->writeJsonOutput(jacobian_output, temp_term_union, tef_terms);
       jacobian_output << R"("})" << endl;
     }
   jacobian_output << "]}";
@@ -2634,14 +2634,13 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                  << R"(, "nvarcols": )" << symbol_table.endo_nbr()
                  << R"(, "nparamcols": )" << symbol_table.param_nbr()
                  << R"(, "entries": [)";
-  auto &gp = params_derivatives.find({ 1, 1 })->second;
-  for (auto it = gp.begin(); it != gp.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[vidx, d] : params_derivatives.find({ 1, 1 })->second)
     {
-      if (it != gp.begin())
+      if (exchange(printed_something, true))
         hessian_output << ", ";
 
-      auto [eq, var, param] = vectorToTuple<3>(it->first);
-      expr_t d2 = it->second;
+      auto [eq, var, param] = vectorToTuple<3>(vidx);
 
       int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
@@ -2658,7 +2657,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
       hessian_output << R"(, "var_col": )" << var_col
                      << R"(, "param_col": )" << param_col
                      << R"(, "val": ")";
-      d2->writeJsonOutput(hessian_output, temp_term_union, tef_terms);
+      d->writeJsonOutput(hessian_output, temp_term_union, tef_terms);
       hessian_output << R"("})" << endl;
     }
   hessian_output << "]}";
@@ -2668,14 +2667,13 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                   << R"(, "nparam1cols": )" << symbol_table.param_nbr()
                   << R"(, "nparam2cols": )" << symbol_table.param_nbr()
                   << R"(, "entries": [)";
-  auto &rpp = params_derivatives.find({ 0, 2 })->second;
-  for (auto it = rpp.begin(); it != rpp.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[vidx, d] : params_derivatives.find({ 0, 2 })->second)
     {
-      if (it != rpp.begin())
+      if (exchange(printed_something, true))
         hessian1_output << ", ";
 
-      auto [eq, param1, param2] = vectorToTuple<3>(it->first);
-      expr_t d2 = it->second;
+      auto [eq, param1, param2] = vectorToTuple<3>(vidx);
 
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
       int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
@@ -2693,7 +2691,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                         << R"(, "param2": ")" << symbol_table.getName(getSymbIDByDerivID(param2)) << R"(")";
 
       hessian1_output << R"(, "val": ")";
-      d2->writeJsonOutput(hessian1_output, temp_term_union, tef_terms);
+      d->writeJsonOutput(hessian1_output, temp_term_union, tef_terms);
       hessian1_output << R"("})" << endl;
     }
   hessian1_output << "]}";
@@ -2704,14 +2702,13 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                       << R"(, "nparam1cols": )" << symbol_table.param_nbr()
                       << R"(, "nparam2cols": )" << symbol_table.param_nbr()
                       << R"(, "entries": [)";
-  auto &gpp = params_derivatives.find({ 1, 2 })->second;
-  for (auto it = gpp.begin(); it != gpp.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[vidx, d] : params_derivatives.find({ 1, 2 })->second)
     {
-      if (it != gpp.begin())
+      if (exchange(printed_something, true))
         third_derivs_output << ", ";
 
-      auto [eq, var, param1, param2] = vectorToTuple<4>(it->first);
-      expr_t d2 = it->second;
+      auto [eq, var, param1, param2] = vectorToTuple<4>(vidx);
 
       int var_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)) + 1;
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
@@ -2731,7 +2728,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                             << R"(, "param2": ")" << symbol_table.getName(getSymbIDByDerivID(param2)) << R"(")";
 
       third_derivs_output << R"(, "val": ")";
-      d2->writeJsonOutput(third_derivs_output, temp_term_union, tef_terms);
+      d->writeJsonOutput(third_derivs_output, temp_term_union, tef_terms);
       third_derivs_output << R"("})" << endl;
     }
   third_derivs_output << "]}" << endl;
@@ -2742,14 +2739,13 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                        << R"(, "nvar2cols": )" << symbol_table.endo_nbr()
                        << R"(, "nparamcols": )" << symbol_table.param_nbr()
                        << R"(, "entries": [)";
-  auto &hp = params_derivatives.find({ 2, 1 })->second;
-  for (auto it = hp.begin(); it != hp.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[vidx, d] : params_derivatives.find({ 2, 1 })->second)
     {
-      if (it != hp.begin())
+      if (exchange(printed_something, true))
         third_derivs1_output << ", ";
 
-      auto [eq, var1, var2, param] = vectorToTuple<4>(it->first);
-      expr_t d2 = it->second;
+      auto [eq, var1, var2, param] = vectorToTuple<4>(vidx);
 
       int var1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var1)) + 1;
       int var2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(var2)) + 1;
@@ -2770,7 +2766,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                              << R"(, "param1": ")" << symbol_table.getName(getSymbIDByDerivID(param)) << R"(")";
 
       third_derivs1_output << R"(, "val": ")";
-      d2->writeJsonOutput(third_derivs1_output, temp_term_union, tef_terms);
+      d->writeJsonOutput(third_derivs1_output, temp_term_union, tef_terms);
       third_derivs1_output << R"("})" << endl;
     }
   third_derivs1_output << "]}" << endl;

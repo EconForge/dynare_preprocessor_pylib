@@ -1535,12 +1535,12 @@ DynamicModel::printNonZeroHessianEquations(ostream &output) const
 {
   if (nonzero_hessian_eqs.size() != 1)
     output << "[";
-  for (auto it = nonzero_hessian_eqs.begin();
-       it != nonzero_hessian_eqs.end(); ++it)
+  for (bool printed_something{false};
+       int it : nonzero_hessian_eqs)
     {
-      if (it != nonzero_hessian_eqs.begin())
+      if (exchange(printed_something, true))
         output << " ";
-      output << *it + 1;
+      output << it + 1;
     }
   if (nonzero_hessian_eqs.size() != 1)
     output << "]";
@@ -1964,8 +1964,8 @@ DynamicModel::writeDynamicModel(const string &basename, ostream &DynamicOutput, 
            accesses and expression reusage. */
         ostringstream i_output, j_output, v_output;
 
-        int k = 0; // Current line index in the 3-column matrix
-        for (const auto &[vidx, d] : derivatives[i])
+        for (int k{0}; // Current line index in the 3-column matrix
+             const auto &[vidx, d] : derivatives[i])
           {
             int eq = vidx[0];
 
@@ -2356,8 +2356,8 @@ DynamicModel::writeDynamicJacobianNonZeroElts(const string &basename) const
          << "% Returns the coordinates of non-zero elements in the Jacobian, in column-major order, for each lead/lag (only for endogenous)" << endl;
   auto print_nzij = [&output](const vector<pair<int, int>> &nzij, const string &name) {
                       output << "  " << name << " = zeros(" << nzij.size() << ", 2, 'int32');" << endl;
-                      int idx = 1;
-                      for (const auto &it : nzij)
+                      for (int idx{1};
+                           const auto &it : nzij)
                         {
                           output << "  " << name << "(" << idx << ",1)=" << it.second+1 << ';'
                                  << " " << name << "(" << idx << ",2)=" << it.first+1 << ';' << endl;
@@ -2677,8 +2677,8 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename,
       output << "];" << endl;
 
       output << "M_.block_structure.block(" << blk+1 << ").tm1 = zeros(" << blocks_other_endo[blk].size() << ", " << state_var.size() << ");" << endl;
-      int line = 1;
-      for (auto other_endo : blocks_other_endo[blk])
+      for (int line{1};
+           auto other_endo : blocks_other_endo[blk])
         {
           if (auto it = find(state_var.begin(), state_var.end(), other_endo);
               it != state_var.end())
@@ -3481,10 +3481,10 @@ DynamicModel::computeAutoregressiveMatrices() const
   map<string, map<tuple<int, int, int>, expr_t>> ARr;
   for (const auto &[model_name, eqns] : trend_component_model_table.getNonTargetEqNums())
     {
-      int i = 0;
       map<tuple<int, int, int>, expr_t> AR;
       const vector<int> &lhs = trend_component_model_table.getNonTargetLhs(model_name);
-      for (auto eqn : eqns)
+      for (int i{0};
+           auto eqn : eqns)
         {
           auto bopn = dynamic_cast<BinaryOpNode *>(equations[eqn]->arg2);
           bopn->fillAutoregressiveRow(i++, lhs, AR);
@@ -3586,22 +3586,22 @@ DynamicModel::computeErrorComponentMatrices(const ExprNode::subst_table_t &diff_
 
   for (const auto &[model_name, eqns] : trend_component_model_table.getEqNums())
     {
-      int i = 0;
       map<tuple<int, int>, expr_t> A0, A0star;
       vector<int> target_lhs = trend_component_model_table.getTargetLhs(model_name);
       vector<int> nontarget_eqnums = trend_component_model_table.getNonTargetEqNums(model_name);
       vector<int> undiff_nontarget_lhs = getUndiffLHSForPac(model_name, diff_subst_table);
       vector<int> parsed_undiff_nontarget_lhs;
 
-      for (auto eqn : eqns)
+      for (int i{0};
+           auto eqn : eqns)
         {
           if (find(nontarget_eqnums.begin(), nontarget_eqnums.end(), eqn) != nontarget_eqnums.end())
             parsed_undiff_nontarget_lhs.push_back(undiff_nontarget_lhs.at(i));
           i++;
         }
 
-      i = 0;
-      for (auto eqn : eqns)
+      for (int i{0};
+           auto eqn : eqns)
         if (find(nontarget_eqnums.begin(), nontarget_eqnums.end(), eqn) != nontarget_eqnums.end())
           equations[eqn]->arg2->fillErrorCorrectionRow(i++, parsed_undiff_nontarget_lhs, target_lhs, A0, A0star);
       A0r[model_name] = A0;
@@ -4109,9 +4109,9 @@ DynamicModel::computePacBackwardExpectationSubstitutionWithComponents(const stri
   };
 
   expr_t substexpr = Zero;
-  int component_idx = 1;
 
-  for (auto &[component, growth, auxname, kind, coeff, growth_neutrality_param, h_indices, original_growth, growth_info] : pac_target_components)
+  for (int component_idx{1};
+       auto &[component, growth, auxname, kind, coeff, growth_neutrality_param, h_indices, original_growth, growth_info] : pac_target_components)
     {
       string name_component = name + "_component" + to_string(component_idx);
 
@@ -4276,21 +4276,22 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 void
 DynamicModel::computeXrefs()
 {
-  int i = 0;
-  for (auto &equation : equations)
+  for (int i{0};
+       auto &equation : equations)
     {
       ExprNode::EquationInfo ei;
       equation->computeXrefs(ei);
       xrefs[i++] = ei;
     }
 
-  i = 0;
-  for (auto it = xrefs.begin(); it != xrefs.end(); ++it, i++)
+  for (int i{0};
+       const auto &[eq, eqinfo] : xrefs)
     {
-      computeRevXref(xref_param, it->second.param, i);
-      computeRevXref(xref_endo, it->second.endo, i);
-      computeRevXref(xref_exo, it->second.exo, i);
-      computeRevXref(xref_exo_det, it->second.exo_det, i);
+      computeRevXref(xref_param, eqinfo.param, i);
+      computeRevXref(xref_endo, eqinfo.endo, i);
+      computeRevXref(xref_exo, eqinfo.exo, i);
+      computeRevXref(xref_exo_det, eqinfo.exo_det, i);
+      i++;
     }
 }
 
@@ -4314,28 +4315,30 @@ DynamicModel::writeXrefs(ostream &output) const
          << "M_.xref1.endo = cell(1, M_.eq_nbr);" << endl
          << "M_.xref1.exo = cell(1, M_.eq_nbr);" << endl
          << "M_.xref1.exo_det = cell(1, M_.eq_nbr);" << endl;
-  int i = 1;
-  for (auto it = xrefs.begin(); it != xrefs.end(); ++it, i++)
+  for (int i{1};
+       const auto &[eq, eqinfo] : xrefs)
     {
       output << "M_.xref1.param{" << i << "} = [ ";
-      for (const auto &it1 : it->second.param)
-        output << symbol_table.getTypeSpecificID(it1.first) + 1 << " ";
+      for (const auto &[id, lag] : eqinfo.param)
+        output << symbol_table.getTypeSpecificID(id) + 1 << " ";
       output << "];" << endl;
 
       output << "M_.xref1.endo{" << i << "} = [ ";
-      for (const auto &it1 : it->second.endo)
-        output << "struct('id', " << symbol_table.getTypeSpecificID(it1.first) + 1 << ", 'shift', " << it1.second << ");";
+      for (const auto &[id, lag] : eqinfo.endo)
+        output << "struct('id', " << symbol_table.getTypeSpecificID(id) + 1 << ", 'shift', " << lag << ");";
       output << "];" << endl;
 
       output << "M_.xref1.exo{" << i << "} = [ ";
-      for (const auto &it1 : it->second.exo)
-        output << "struct('id', " << symbol_table.getTypeSpecificID(it1.first) + 1 << ", 'shift', " << it1.second << ");";
+      for (const auto &[id, lag] : eqinfo.exo)
+        output << "struct('id', " << symbol_table.getTypeSpecificID(id) + 1 << ", 'shift', " << lag << ");";
       output << "];" << endl;
 
       output << "M_.xref1.exo_det{" << i << "} = [ ";
-      for (const auto &it1 : it->second.exo_det)
-        output << "struct('id', " << symbol_table.getTypeSpecificID(it1.first) + 1 << ", 'shift', " << it1.second << ");";
+      for (const auto &[id, lag] : eqinfo.exo_det)
+        output << "struct('id', " << symbol_table.getTypeSpecificID(id) + 1 << ", 'shift', " << lag << ");";
       output << "];" << endl;
+
+      i++;
     }
 
   output << "M_.xref2.param = cell(1, M_.param_nbr);" << endl
@@ -4351,21 +4354,22 @@ DynamicModel::writeXrefs(ostream &output) const
 void
 DynamicModel::writeRevXrefs(ostream &output, const map<pair<int, int>, set<int>> &xrefmap, const string &type) const
 {
-  int last_tsid = -1;
-  for (const auto &it : xrefmap)
+  for (int last_tsid{-1};
+       const auto &[key, eqs] : xrefmap)
     {
-      int tsid = symbol_table.getTypeSpecificID(it.first.first) + 1;
+      auto &[id, lag] = key;
+      int tsid = symbol_table.getTypeSpecificID(id) + 1;
       output << "M_.xref2." << type << "{" << tsid << "} = [ ";
       if (last_tsid == tsid)
         output << "M_.xref2." << type << "{" << tsid << "}; ";
       else
         last_tsid = tsid;
 
-      for (const auto &it1 : it.second)
+      for (int eq : eqs)
         if (type == "param")
-          output << it1 + 1 << " ";
+          output << eq + 1 << " ";
         else
-          output << "struct('shift', " << it.first.second << ", 'eq', " << it1+1 << ");";
+          output << "struct('shift', " << lag << ", 'eq', " << eq+1 << ");";
       output << "];" << endl;
     }
 }
@@ -4511,20 +4515,20 @@ DynamicModel::computeBlockDynJacobianCols()
   blocks_jacob_cols_exo_det.resize(nb_blocks);
   for (int blk = 0; blk < nb_blocks; blk++)
     {
-      int index = 0;
-      for (auto [lag, var] : dynamic_endo[blk])
+      for (int index{0};
+           auto [lag, var] : dynamic_endo[blk])
         blocks_jacob_cols_endo[blk][{ var, lag }] = index++;
 
-      index = 0;
-      for (auto [lag, var] : dynamic_other_endo[blk])
+      for (int index{0};
+           auto [lag, var] : dynamic_other_endo[blk])
         blocks_jacob_cols_other_endo[blk][{ var, lag }] = index++;
 
-      index = 0;
-      for (auto [lag, var] : dynamic_exo[blk])
+      for (int index{0};
+           auto [lag, var] : dynamic_exo[blk])
         blocks_jacob_cols_exo[blk][{ var, lag }] = index++;
 
-      index = 0;
-      for (auto [lag, var] : dynamic_exo_det[blk])
+      for (int index{0};
+           auto [lag, var] : dynamic_exo_det[blk])
         blocks_jacob_cols_exo_det[blk][{ var, lag }] = index++;
     }
 }
@@ -5001,8 +5005,8 @@ DynamicModel::computeDynJacobianCols(bool jacobianExo)
     }
 
   // Fill in dynamic jacobian columns for endogenous
-  int sorted_id = 0;
-  for (auto &it : ordered_dyn_endo)
+  for (int sorted_id{0};
+       auto &it : ordered_dyn_endo)
     dyn_jacobian_cols_table[it.second] = sorted_id++;
 
   // Set final value for dynJacobianColsNbr
@@ -5105,8 +5109,8 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
       gp_output << ";" << endl;
     }
 
-  int i = 1;
-  for (const auto &[indices, d2] : params_derivatives.find({ 0, 2 })->second)
+  for (int i{1};
+       const auto &[indices, d2] : params_derivatives.find({ 0, 2 })->second)
     {
       auto [eq, param1, param2] = vectorToTuple<3>(indices);
 
@@ -5143,8 +5147,8 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
         }
     }
 
-  i = 1;
-  for (const auto &[indices, d2] : params_derivatives.find({ 1, 2 })->second)
+  for (int i{1};
+       const auto &[indices, d2] : params_derivatives.find({ 1, 2 })->second)
     {
       auto [eq, var, param1, param2] = vectorToTuple<4>(indices);
 
@@ -5186,8 +5190,8 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
         }
     }
 
-  i = 1;
-  for (const auto &[indices, d2] : params_derivatives.find({ 2, 1 })->second)
+  for (int i{1};
+       const auto &[indices, d2] : params_derivatives.find({ 2, 1 })->second)
     {
       auto [eq, var1, var2, param] = vectorToTuple<4>(indices);
 
@@ -5229,8 +5233,8 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
         }
     }
 
-  i = 1;
-  for (const auto &[indices, d2] : params_derivatives.find({ 3, 1 })->second)
+  for (int i{1};
+       const auto &[indices, d2] : params_derivatives.find({ 3, 1 })->second)
     {
       auto [eq, var1, var2, var3, param] = vectorToTuple<5>(indices);
 
@@ -5581,8 +5585,8 @@ set<int>
 DynamicModel::findPacExpectationEquationNumbers() const
 {
   set<int> eqnumbers;
-  int i = 0;
-  for (auto &equation : equations)
+  for (int i{0};
+       auto &equation : equations)
     {
       if (equation->containsPacExpectation())
         eqnumbers.insert(i);
@@ -6082,20 +6086,18 @@ void
 DynamicModel::writeJsonVariableMapping(ostream &output) const
 {
   output << R"("variable_mapping":[)" << endl;
-  for (auto it = variableMapping.begin(); it != variableMapping.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[var, eqs] : variableMapping)
     {
-      if (it != variableMapping.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      auto [var, eqs] = *it;
       output << R"({"name": ")" << symbol_table.getName(var) << R"(", "equations":[)";
-      bool first_eq = true;
-      for (int it2 : eqs)
+      for (bool printed_something2{false};
+           int it2 : eqs)
         if (auto tmp = equation_tags.getTagValueByEqnAndKey(it2, "name");
             !tmp.empty())
           {
-            if (first_eq)
-              first_eq = false;
-            else
+            if (exchange(printed_something2, true))
               output << ", ";
             output << '"' << tmp << '"';
           }
@@ -6107,18 +6109,20 @@ DynamicModel::writeJsonVariableMapping(ostream &output) const
 void
 DynamicModel::writeJsonXrefsHelper(ostream &output, const map<pair<int, int>, set<int>> &xrefmap) const
 {
-  for (auto it = xrefmap.begin(); it != xrefmap.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[symb_lag, eqs] : xrefmap)
     {
-      if (it != xrefmap.begin())
+      if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"name": ")" << symbol_table.getName(it->first.first) << R"(")"
-             << R"(, "shift": )" << it->first.second
+      output << R"({"name": ")" << symbol_table.getName(symb_lag.first) << R"(")"
+             << R"(, "shift": )" << symb_lag.second
              << R"(, "equations": [)";
-      for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+      for (bool printed_something2{false};
+           int eq : eqs)
         {
-          if (it1 != it->second.begin())
+          if (exchange(printed_something2, true))
             output << ", ";
-          output << *it1 + 1;
+          output << eq + 1;
         }
       output << "]}";
     }
@@ -6272,13 +6276,12 @@ DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) c
                   << R"(, "ncols": )" << ncols
                   << R"(, "entries": [)";
 
-      for (auto it = derivatives[i].begin(); it != derivatives[i].end(); ++it)
+      for (bool printed_something{false};
+           const auto &[vidx, d] : derivatives[i])
         {
-          if (it != derivatives[i].begin())
+          if (exchange(printed_something, true))
             d_output[i] << ", ";
 
-          const vector<int> &vidx = it->first;
-          expr_t d = it->second;
           int eq = vidx[0];
 
           int col_idx = 0;
@@ -6353,14 +6356,13 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
             << R"(  "neqs": )" << equations.size()
             << R"(, "nparamcols": )" << symbol_table.param_nbr()
             << R"(, "entries": [)";
-  auto &rp = params_derivatives.find({ 0, 1 })->second;
-  for (auto it = rp.begin(); it != rp.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[vidx, d] : params_derivatives.find({ 0, 1 })->second)
     {
-      if (it != rp.begin())
+      if (exchange(printed_something, true))
         rp_output << ", ";
 
-      auto [eq, param] = vectorToTuple<2>(it->first);
-      expr_t d1 = it->second;
+      auto [eq, param] = vectorToTuple<2>(vidx);
 
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
 
@@ -6375,7 +6377,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
         rp_output << R"(, "param": ")" << symbol_table.getName(getSymbIDByDerivID(param)) << R"(")";
 
       rp_output << R"(, "val": ")";
-      d1->writeJsonOutput(rp_output, temp_term_union, tef_terms);
+      d->writeJsonOutput(rp_output, temp_term_union, tef_terms);
       rp_output << R"("})" << endl;
     }
   rp_output << "]}";
@@ -6385,14 +6387,13 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
             << R"(, "nvarcols": )" << dynJacobianColsNbr
             << R"(, "nparamcols": )" << symbol_table.param_nbr()
             << R"(, "entries": [)";
-  auto &gp = params_derivatives.find({ 1, 1 })->second;
-  for (auto it = gp.begin(); it != gp.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[vidx, d] : params_derivatives.find({ 1, 1 })->second)
     {
-      if (it != gp.begin())
+      if (exchange(printed_something, true))
         gp_output << ", ";
 
-      auto [eq, var, param] = vectorToTuple<3>(it->first);
-      expr_t d2 = it->second;
+      auto [eq, var, param] = vectorToTuple<3>(vidx);
 
       int var_col = getDynJacobianCol(var) + 1;
       int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
@@ -6411,7 +6412,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
                   << R"(, "param": ")" << symbol_table.getName(getSymbIDByDerivID(param)) << R"(")";
 
       gp_output << R"(, "val": ")";
-      d2->writeJsonOutput(gp_output, temp_term_union, tef_terms);
+      d->writeJsonOutput(gp_output, temp_term_union, tef_terms);
       gp_output << R"("})" << endl;
     }
   gp_output << "]}";
@@ -6421,14 +6422,13 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
              << R"(, "nparam1cols": )" << symbol_table.param_nbr()
              << R"(, "nparam2cols": )" << symbol_table.param_nbr()
              << R"(, "entries": [)";
-  auto &rpp = params_derivatives.find({ 0, 2 })->second;
-  for (auto it = rpp.begin(); it != rpp.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[vidx, d] : params_derivatives.find({ 0, 2 })->second)
     {
-      if (it != rpp.begin())
+      if (exchange(printed_something, true))
         rpp_output << ", ";
 
-      auto [eq, param1, param2] = vectorToTuple<3>(it->first);
-      expr_t d2 = it->second;
+      auto [eq, param1, param2] = vectorToTuple<3>(vidx);
 
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
       int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
@@ -6445,7 +6445,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
                    << R"(, "param2": ")" << symbol_table.getName(getSymbIDByDerivID(param2)) << R"(")";
 
       rpp_output << R"(, "val": ")";
-      d2->writeJsonOutput(rpp_output, temp_term_union, tef_terms);
+      d->writeJsonOutput(rpp_output, temp_term_union, tef_terms);
       rpp_output << R"("})" << endl;
     }
   rpp_output << "]}";
@@ -6456,14 +6456,13 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
              << R"(, "nparam1cols": )" << symbol_table.param_nbr()
              << R"(, "nparam2cols": )" << symbol_table.param_nbr()
              << R"(, "entries": [)";
-  auto &gpp = params_derivatives.find({ 1, 2 })->second;
-  for (auto it = gpp.begin(); it != gpp.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[vidx, d] : params_derivatives.find({ 1, 2 })->second)
     {
-      if (it != gpp.begin())
+      if (exchange(printed_something, true))
         gpp_output << ", ";
 
-      auto [eq, var, param1, param2] = vectorToTuple<4>(it->first);
-      expr_t d2 = it->second;
+      auto [eq, var, param1, param2] = vectorToTuple<4>(vidx);
 
       int var_col = getDynJacobianCol(var) + 1;
       int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
@@ -6485,7 +6484,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
                    << R"(, "param2": ")" << symbol_table.getName(getSymbIDByDerivID(param2)) << R"(")";
 
       gpp_output << R"(, "val": ")";
-      d2->writeJsonOutput(gpp_output, temp_term_union, tef_terms);
+      d->writeJsonOutput(gpp_output, temp_term_union, tef_terms);
       gpp_output << R"("})" << endl;
     }
   gpp_output << "]}" << endl;
@@ -6496,14 +6495,13 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
             << R"(, "nvar2cols": )" << dynJacobianColsNbr
             << R"(, "nparamcols": )" << symbol_table.param_nbr()
             << R"(, "entries": [)";
-  auto &hp = params_derivatives.find({ 2, 1 })->second;
-  for (auto it = hp.begin(); it != hp.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[vidx, d] : params_derivatives.find({ 2, 1 })->second)
     {
-      if (it != hp.begin())
+      if (exchange(printed_something, true))
         hp_output << ", ";
 
-      auto [eq, var1, var2, param] = vectorToTuple<4>(it->first);
-      expr_t d2 = it->second;
+      auto [eq, var1, var2, param] = vectorToTuple<4>(vidx);
 
       int var1_col = getDynJacobianCol(var1) + 1;
       int var2_col = getDynJacobianCol(var2) + 1;
@@ -6526,7 +6524,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
                   << R"(, "param": ")" << symbol_table.getName(getSymbIDByDerivID(param)) << R"(")";
 
       hp_output << R"(, "val": ")";
-      d2->writeJsonOutput(hp_output, temp_term_union, tef_terms);
+      d->writeJsonOutput(hp_output, temp_term_union, tef_terms);
       hp_output << R"("})" << endl;
     }
   hp_output << "]}" << endl;
@@ -6538,14 +6536,13 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
              << R"(, "nvar3cols": )" << dynJacobianColsNbr
              << R"(, "nparamcols": )" << symbol_table.param_nbr()
              << R"(, "entries": [)";
-  auto &g3p = params_derivatives.find({ 3, 1 })->second;
-  for (auto it = g3p.begin(); it != g3p.end(); ++it)
+  for (bool printed_something{false};
+       const auto &[vidx, d] : params_derivatives.find({ 3, 1 })->second)
     {
-      if (it != g3p.begin())
+      if (exchange(printed_something, true))
         g3p_output << ", ";
 
-      auto [eq, var1, var2, var3, param] = vectorToTuple<5>(it->first);
-      expr_t d2 = it->second;
+      auto [eq, var1, var2, var3, param] = vectorToTuple<5>(vidx);
 
       int var1_col = getDynJacobianCol(var1) + 1;
       int var2_col = getDynJacobianCol(var2) + 1;
@@ -6572,7 +6569,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
                    << R"(, "param": ")" << symbol_table.getName(getSymbIDByDerivID(param)) << R"(")";
 
       g3p_output << R"(, "val": ")";
-      d2->writeJsonOutput(g3p_output, temp_term_union, tef_terms);
+      d->writeJsonOutput(g3p_output, temp_term_union, tef_terms);
       g3p_output << R"("})" << endl;
     }
   g3p_output << "]}" << endl;

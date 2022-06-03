@@ -320,11 +320,12 @@ OptionsList::writeJsonOutput(ostream &output) const
       if (opt_written)
         output << ", ";
       output << R"(")" << name << R"(": [)";
-      for (auto it = vals.begin(); it != vals.end(); ++it)
+      for (bool printed_something{false};
+           int val : vals)
         {
-          if (it != vals.begin())
+          if (exchange(printed_something, true))
             output << ", ";
-          output << *it;
+          output << val;
         }
       output << "]";
       opt_written = true;
@@ -335,11 +336,12 @@ OptionsList::writeJsonOutput(ostream &output) const
       if (opt_written)
         output << ", ";
       output << R"(")" << name << R"(": [)";
-      for (auto it = vals.begin(); it != vals.end(); ++it)
+      for (bool printed_something{false};
+           const auto &val : vals)
         {
-          if (it != vals.begin())
+          if (exchange(printed_something, true))
             output << ", ";
-          output << R"(")" << *it << R"(")";
+          output << R"(")" << val << R"(")";
         }
       output << "]";
       opt_written = true;
@@ -350,11 +352,12 @@ OptionsList::writeJsonOutput(ostream &output) const
       if (opt_written)
         output << ", ";
       output << R"(")" << name << R"(": [)";
-      for (auto it = vals.begin(); it != vals.end(); ++it)
+      for (bool printed_something{false};
+           const auto &val : vals)
         {
-          if (it != vals.begin())
+          if (exchange(printed_something, true))
             output << ", ";
-          output << R"(")" << *it << R"(")";
+          output << R"(")" << val << R"(")";
         }
       output << "]";
       opt_written = true;
@@ -365,11 +368,12 @@ OptionsList::writeJsonOutput(ostream &output) const
       if (opt_written)
         output << ", ";
       output << R"(")" << name << R"(": [)";
-      for (auto it = vals.begin(); it != vals.end(); ++it)
+      for (bool printed_something{false};
+           const auto &val : vals)
         {
-          if (it != vals.begin())
+          if (exchange(printed_something, true))
             output << ", ";
-          output << *it;
+          output << val;
         }
       output << "]";
       opt_written = true;
@@ -380,16 +384,18 @@ OptionsList::writeJsonOutput(ostream &output) const
       if (opt_written)
         output << ", ";
       output << R"(")" << name << R"(": [)";
-      for (auto it = vec_vals.begin(); it != vec_vals.end(); ++it)
+      for (bool printed_something{false};
+           const auto &vals : vec_vals)
         {
-          if (it != vec_vals.begin())
+          if (exchange(printed_something, true))
             output << ", ";
           output << "[";
-          for (auto it2 = it->begin(); it2 != it->end(); ++it2)
+          for (bool printed_something2{false};
+               const auto &val : vals)
             {
-              if (it2 != it->begin())
+              if (exchange(printed_something2, true))
                 output << ", ";
-              output << *it2;
+              output << val;
             }
           output << "]";
         }

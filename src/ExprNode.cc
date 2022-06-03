@@ -2487,11 +2487,12 @@ UnaryOpNode::writeJsonAST(ostream &output) const
     case UnaryOpcode::adl:
       output << R"(, "adl_param_name" : ")" << adl_param_name << R"(")"
              << R"(, "lags" : [)";
-      for (auto it = adl_lags.begin(); it != adl_lags.end(); ++it)
+      for (bool printed_something{false};
+           int lag : adl_lags)
         {
-          if (it != adl_lags.begin())
+          if (exchange(printed_something, true))
             output << ", ";
-          output << *it;
+          output << lag;
         }
       output << "]";
       break;
@@ -2586,11 +2587,12 @@ UnaryOpNode::writeJsonOutput(ostream &output,
       output << "adl(";
       arg->writeJsonOutput(output, temporary_terms, tef_terms);
       output << ", '" << adl_param_name << "', [";
-      for (auto it = adl_lags.begin(); it != adl_lags.end(); ++it)
+      for (bool printed_something{false};
+           int lag : adl_lags)
         {
-          if (it != adl_lags.begin())
+          if (exchange(printed_something, true))
             output << ", ";
-          output << *it;
+          output << lag;
         }
       output << "])";
       return;
@@ -3287,11 +3289,12 @@ UnaryOpNode::substituteAdl() const
   expr_t arg1subst = arg->substituteAdl();
   expr_t retval = nullptr;
 
-  for (auto it = adl_lags.begin(); it != adl_lags.end(); ++it)
+  for (bool first_term{true};
+       int lag : adl_lags)
     {
-      expr_t e = datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.getID(adl_param_name + "_lag_" + to_string(*it)), 0),
-                                   arg1subst->decreaseLeadsLags(*it));
-      if (it == adl_lags.begin())
+      expr_t e = datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.getID(adl_param_name + "_lag_" + to_string(lag)), 0),
+                                   arg1subst->decreaseLeadsLags(lag));
+      if (exchange(first_term, false))
         retval = e;
       else
         retval = datatree.AddPlus(retval, e);
@@ -7078,27 +7081,28 @@ AbstractExternalFunctionNode::writeExternalFunctionArguments(ostream &output, Ex
                                                              const temporary_terms_idxs_t &temporary_terms_idxs,
                                                              const deriv_node_temp_terms_t &tef_terms) const
 {
-  for (auto it = arguments.begin(); it != arguments.end(); ++it)
+  for (bool printed_something{false};
+       auto arg : arguments)
     {
-      if (it != arguments.begin())
+      if (exchange(printed_something, true))
         output << ",";
 
-      (*it)->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+      arg->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
     }
 }
 
 void
 AbstractExternalFunctionNode::writeJsonASTExternalFunctionArguments(ostream &output) const
 {
-  int i = 0;
   output << "{";
-  for (auto it = arguments.begin(); it != arguments.end(); ++it, i++)
+  for (int i{0};
+       auto arg : arguments)
     {
-      if (it != arguments.begin())
+      if (i != 0)
         output << ",";
 
-      output << R"("arg)" << i << R"(" : )";
-      (*it)->writeJsonAST(output);
+      output << R"("arg)" << i++ << R"(" : )";
+      arg->writeJsonAST(output);
     }
   output << "}";
 }
@@ -7109,12 +7113,13 @@ AbstractExternalFunctionNode::writeJsonExternalFunctionArguments(ostream &output
                                                                  const deriv_node_temp_terms_t &tef_terms,
                                                                  bool isdynamic) const
 {
-  for (auto it = arguments.begin(); it != arguments.end(); ++it)
+  for (bool printed_something{false};
+       auto arg : arguments)
     {
-      if (it != arguments.begin())
+      if (exchange(printed_something, true))
         output << ",";
 
-      (*it)->writeJsonOutput(output, temporary_terms, tef_terms, isdynamic);
+      arg->writeJsonOutput(output, temporary_terms, tef_terms, isdynamic);
     }
 }
 
@@ -7124,8 +7129,8 @@ AbstractExternalFunctionNode::writePrhs(ostream &output, ExprNodeOutputType outp
                                         const temporary_terms_idxs_t &temporary_terms_idxs,
                                         const deriv_node_temp_terms_t &tef_terms) const
 {
-  int i = 0;
-  for (auto argument : arguments)
+  for (int i{0};
+       auto argument : arguments)
     {
       output << "  prhs[" << i++ << "] = mxCreateDoubleScalar("; // All external_function arguments are scalars
       argument->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
