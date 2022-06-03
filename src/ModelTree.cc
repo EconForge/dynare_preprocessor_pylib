@@ -257,7 +257,7 @@ ModelTree::computeNonSingularNormalization(const jacob_map_t &contemporaneous_ja
   int n = equations.size();
 
   // Compute the maximum value of each row of the contemporaneous Jacobian matrix
-  vector<double> max_val(n, 0.0);
+  vector max_val(n, 0.0);
   for (const auto &[eq_and_endo, val] : contemporaneous_jacobian)
     max_val[eq_and_endo.first] = max(max_val[eq_and_endo.first], fabs(val));
 
@@ -378,7 +378,7 @@ ModelTree::computePrologueAndEpilogue()
      (resp. column) indices are to be interpreted according to
      “eq_idx_block2orig” (resp. “endo_idx_block2orig”). Stored in row-major
      order. */
-  vector<bool> IM(n*n, false);
+  vector IM(n*n, false);
   for (int i = 0; i < n; i++)
     {
       set<pair<int, int>> endos_and_lags;
@@ -507,7 +507,7 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
 void
 ModelTree::computeDynamicStructureOfBlock(int blk)
 {
-  vector<pair<int, int>> max_endo_lag_lead(blocks[blk].size, { 0, 0 });
+  vector max_endo_lag_lead(blocks[blk].size, pair{0, 0});
   blocks[blk].max_endo_lag = blocks[blk].max_endo_lead = 0;
   blocks[blk].max_other_endo_lag = blocks[blk].max_other_endo_lead = 0;
   blocks[blk].max_exo_lag = blocks[blk].max_exo_lead = 0;
@@ -716,8 +716,7 @@ ModelTree::computeBlockDecomposition(int prologue, int epilogue)
       auto recursive_vertices = subG.reorderRecursiveVariables(feed_back_vertices);
       auto v_index1 = get(boost::vertex_index1, subG);
 
-      const vector<pair<int, int>> dynamic_order{ make_pair(0, 0), make_pair(1, 0),
-                                                  make_pair(1, 1), make_pair(0, 1) };
+      const vector dynamic_order{pair{0, 0}, pair{1, 0}, pair{1, 1}, pair{0, 1}};
 
       // First the recursive equations conditional on feedback variables
       for (auto max_lag_lead : dynamic_order)

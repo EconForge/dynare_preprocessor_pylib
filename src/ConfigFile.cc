@@ -380,8 +380,8 @@ ConfigFile::getConfigFileInfo(const string &config_file)
               operatingSystem = tokenizedLine.back();
             else if (!tokenizedLine.front().compare("Members"))
               {
-                char_separator<char> sep(" ,;", "()", drop_empty_tokens);
-                tokenizer<char_separator<char>> tokens(tokenizedLine.back(), sep);
+                char_separator sep(" ,;", "()", drop_empty_tokens);
+                tokenizer tokens(tokenizedLine.back(), sep);
                 bool begin_weight = false;
                 string node_name;
                 for (const auto &token : tokens)

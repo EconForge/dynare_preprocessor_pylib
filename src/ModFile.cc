@@ -1414,7 +1414,7 @@ ModFile::unique_path()
   string possible_characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   random_device rd;
   mt19937 generator(rd());
-  uniform_int_distribution<int> distribution{0, static_cast<int>(possible_characters.size())-1};
+  uniform_int_distribution distribution{0, static_cast<int>(possible_characters.size())-1};
   do
     {
       constexpr int rand_length = 10;

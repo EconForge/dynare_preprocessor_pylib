@@ -584,7 +584,7 @@ ParsingDriver::hist_val(const string &name, const string &lag, expr_t rhs)
   if (ilag > 0)
     error("histval: the lag on " + name + " should be less than or equal to 0");
 
-  pair<int, int> key(symb_id, ilag);
+  pair key{symb_id, ilag};
 
   if (hist_values.contains(key))
     error("hist_val: (" + name + ", " + lag + ") declared twice");
@@ -1075,7 +1075,7 @@ ParsingDriver::add_covar_shock(const string &var1, const string &var2, expr_t va
   int symb_id1 = mod_file->symbol_table.getID(var1);
   int symb_id2 = mod_file->symbol_table.getID(var2);
 
-  pair<int, int> key(symb_id1, symb_id2), key_inv(symb_id2, symb_id1);
+  pair key{symb_id1, symb_id2}, key_inv{symb_id2, symb_id1};
 
   if (covar_shocks.contains(key) || covar_shocks.contains(key_inv)
       || corr_shocks.contains(key) || corr_shocks.contains(key_inv))
@@ -1100,7 +1100,7 @@ ParsingDriver::add_correl_shock(const string &var1, const string &var2, expr_t v
   int symb_id1 = mod_file->symbol_table.getID(var1);
   int symb_id2 = mod_file->symbol_table.getID(var2);
 
-  pair<int, int> key(symb_id1, symb_id2), key_inv(symb_id2, symb_id1);
+  pair key{symb_id1, symb_id2}, key_inv{symb_id2, symb_id1};
 
   if (covar_shocks.contains(key) || covar_shocks.contains(key_inv)
       || corr_shocks.contains(key) || corr_shocks.contains(key_inv))
@@ -2070,7 +2070,7 @@ ParsingDriver::set_optim_weights(const string &name1, const string &name2, expr_
   check_symbol_is_endogenous(name1);
   check_symbol_is_endogenous(name2);
 
-  pair<string, string> covar_key{name1, name2};
+  pair covar_key{name1, name2};
 
   if (covar_weights.contains(covar_key))
     error("optim_weights: pair of variables (" + name1 + ", " + name2

@@ -2564,7 +2564,7 @@ DynamicModel::removeEquations(const vector<pair<string, string>> &listed_eqs_by_
                               bool excluded_vars_change_type)
 {
   /* Convert the const vector to a (mutable) set */
-  set<pair<string, string>> listed_eqs_by_tag2(listed_eqs_by_tag.begin(), listed_eqs_by_tag.end());
+  set listed_eqs_by_tag2(listed_eqs_by_tag.begin(), listed_eqs_by_tag.end());
 
   vector<int> excluded_vars = removeEquationsHelper(listed_eqs_by_tag2, exclude_eqs,
                                                     excluded_vars_change_type,

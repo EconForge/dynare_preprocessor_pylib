@@ -64,7 +64,7 @@ SteadyStateModel::addDefinition(int symb_id, expr_t expr)
          || symbol_table.getType(symb_id) == SymbolType::parameter);
 
   // Add the variable
-  vector<int> v{symb_id};
+  vector v{symb_id};
   def_table.emplace_back(v, expr);
 }
 

@@ -1257,7 +1257,7 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
       if (it.type == 3) // Correlation
         {
           // Use lexical ordering for the pair of symbols
-          auto x = it.name < it.name2 ? make_pair(it.name, it.name2) : make_pair(it.name2, it.name);
+          auto x = it.name < it.name2 ? pair{it.name, it.name2} : pair{it.name2, it.name};
 
           if (already_declared_corr.contains(x))
             {
@@ -3528,10 +3528,10 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
       auto it_num_regimes = options_list.num_options.find("ms.number_of_regimes");
       assert(it_num_regimes != options_list.num_options.end());
       auto num_regimes = stoi(it_num_regimes->second);
-      vector<double> col_trans_prob_sum(num_regimes, 0);
-      vector<double> row_trans_prob_sum(num_regimes, 0);
-      vector<bool> all_restrictions_in_row(num_regimes, true);
-      vector<bool> all_restrictions_in_col(num_regimes, true);
+      vector col_trans_prob_sum(num_regimes, 0.0);
+      vector row_trans_prob_sum(num_regimes, 0.0);
+      vector all_restrictions_in_row(num_regimes, true);
+      vector all_restrictions_in_col(num_regimes, true);
       for (int row = 0; row < num_regimes; row++)
         for (int col = 0; col < num_regimes; col++)
           if (restriction_map.contains({ row+1, col+1 }))

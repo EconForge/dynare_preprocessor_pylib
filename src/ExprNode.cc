@@ -356,7 +356,7 @@ ExprNode::fillErrorCorrectionRow(int eqn,
                                            datatree.AddPossiblyNegativeConstant(-constant));
               if (param_id)
                 e = datatree.AddTimes(e, datatree.AddVariable(*param_id));
-              if (auto coor = make_pair(eqn, colidx); A0star.contains(coor))
+              if (pair coor{eqn, colidx}; A0star.contains(coor))
                 A0star[coor] = datatree.AddPlus(e, A0star[coor]);
               else
                 A0star[coor] = e;
