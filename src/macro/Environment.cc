@@ -17,6 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <cassert>
+
 #include "Environment.hh"
 #include "Expressions.hh"
 
@@ -99,7 +101,7 @@ Environment::isFunctionDefined(const string &name) const noexcept
 }
 
 void
-Environment::print(ostream &output, const vector<string> &vars, int line, bool save) const
+Environment::print(ostream &output, const vector<string> &vars, const optional<int> &line, bool save) const
 {
   if (!save && !variables.empty())
     output << "Macro Variables:" << endl;
@@ -128,9 +130,10 @@ Environment::print(ostream &output, const vector<string> &vars, int line, bool s
 }
 
 void
-Environment::printVariable(ostream &output, const string &name, int line, bool save) const
+Environment::printVariable(ostream &output, const string &name, const optional<int> &line, bool save) const
 {
-  output << (save ? "options_.macrovars_line_" + to_string(line) + "." : "  ")
+  assert(!save || line);
+  output << (save ? "options_.macrovars_line_" + to_string(*line) + "." : "  ")
          << name << " = ";
   getVariable(name)->eval(const_cast<Environment &>(*this))->print(output, save);
   if (save)
@@ -139,9 +142,10 @@ Environment::printVariable(ostream &output, const string &name, int line, bool s
 }
 
 void
-Environment::printFunction(ostream &output, const tuple<FunctionPtr, ExpressionPtr> &function, int line, bool save) const
+Environment::printFunction(ostream &output, const tuple<FunctionPtr, ExpressionPtr> &function, const optional<int> &line, bool save) const
 {
-  output << (save ? "options_.macrovars_line_" + to_string(line) + ".function." : "  ");
+  assert(!save || line);
+  output << (save ? "options_.macrovars_line_" + to_string(*line) + ".function." : "  ");
   if (save)
     {
       get<0>(function)->printName(output);

@@ -3092,17 +3092,17 @@ ParsingDriver::add_external_function_arg(expr_t arg)
   stack_external_function_args.top().push_back(arg);
 }
 
-pair<bool, double>
+optional<int>
 ParsingDriver::is_there_one_integer_argument() const
 {
   if (stack_external_function_args.top().size() != 1)
-    return { false, 0 };
+    return nullopt;
 
   auto numNode = dynamic_cast<NumConstNode *>(stack_external_function_args.top().front());
   auto unaryNode = dynamic_cast<UnaryOpNode *>(stack_external_function_args.top().front());
 
   if (!numNode && !unaryNode)
-    return { false, 0 };
+    return nullopt;
 
   eval_context_t ectmp;
   double model_var_arg;
@@ -3114,12 +3114,12 @@ ParsingDriver::is_there_one_integer_argument() const
         }
       catch (ExprNode::EvalException &e)
         {
-          return { false, 0 };
+          return nullopt;
         }
     }
   else
     if (unaryNode->op_code != UnaryOpcode::uminus)
-      return { false, 0 };
+      return nullopt;
     else
       {
         try
@@ -3128,13 +3128,13 @@ ParsingDriver::is_there_one_integer_argument() const
           }
         catch (ExprNode::EvalException &e)
           {
-            return { false, 0 };
+            return nullopt;
           }
       }
 
   if (model_var_arg != floor(model_var_arg))
-    return { false, 0 };
-  return { true, model_var_arg };
+    return nullopt;
+  return static_cast<int>(model_var_arg);
 }
 
 expr_t
@@ -3155,12 +3155,12 @@ ParsingDriver::add_model_var_or_external_function(const string &function_name, b
           if (undeclared_model_vars.contains(function_name))
             undeclared_model_variable_error("Unknown symbol: " + function_name, function_name);
 
-          pair<bool, double> rv = is_there_one_integer_argument();
-          if (!rv.first)
+          optional<int> rv{is_there_one_integer_argument()};
+          if (!rv)
             model_error("Symbol " + function_name
                         +" is being treated as if it were a function (i.e., takes an argument that is not an integer).", "");
 
-          nid = add_model_variable(mod_file->symbol_table.getID(function_name), static_cast<int>(rv.second));
+          nid = add_model_variable(mod_file->symbol_table.getID(function_name), *rv);
           stack_external_function_args.pop();
           return nid;
         }
@@ -3191,12 +3191,12 @@ ParsingDriver::add_model_var_or_external_function(const string &function_name, b
           undeclared_model_vars.insert(function_name);
           undeclared_model_variable_error("Unknown symbol: " + function_name, function_name);
 
-          pair<bool, double> rv = is_there_one_integer_argument();
-          if (rv.first)
+          optional<int>rv{is_there_one_integer_argument()};
+          if (rv)
             {
               // assume it's a lead/lagged variable
               int symb_id = declare_exogenous(function_name);
-              return add_model_variable(symb_id, static_cast<int>(rv.second));
+              return add_model_variable(symb_id, *rv);
             }
           else
             error("To use an external function (" + function_name
