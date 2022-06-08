@@ -399,8 +399,7 @@ StaticModel::writeStaticBytecode(const string &basename) const
 
   // Compute the union of temporary terms from residuals and 1st derivatives
   temporary_terms_t temporary_terms = temporary_terms_derivatives[0];
-  copy(temporary_terms_derivatives[1].begin(), temporary_terms_derivatives[1].end(),
-       inserter(temporary_terms, temporary_terms.end()));
+  temporary_terms.insert(temporary_terms_derivatives[1].begin(), temporary_terms_derivatives[1].end());
 
   //Temporary variables declaration
   FDIMST_ fdimst(temporary_terms.size());
