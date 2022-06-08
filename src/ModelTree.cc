@@ -1783,6 +1783,8 @@ ModelTree::matlab_arch(const string &mexext)
     }
   else if (mexext == "mexmaci64")
     return "maci64";
+  else if (mexext == "mexmaca64")
+    return "maca64";
   else
     {
       cerr << "ERROR: 'mexext' option to preprocessor incorrectly set, needed with 'use_dll'" << endl;
@@ -1792,7 +1794,7 @@ ModelTree::matlab_arch(const string &mexext)
 
 #ifdef __APPLE__
 string
-ModelTree::findGccOnMacos()
+ModelTree::findGccOnMacos(const string &mexext)
 {
   const string macos_gcc_version{"11"}; // doc/manual/source/installation-and-configuration.rst
                                         // should be updated when this is changed
@@ -1805,10 +1807,15 @@ ModelTree::findGccOnMacos()
       local_gcc_path = s.substr(0, s.find_last_of("/")) + "/../.brew/bin/gcc-" + macos_gcc_version;
     }
 
+  // if user did not choose to install gcc locally via the pkg-installer then we need to find GNU gcc
+  // homebrew binaries are located in /usr/local/bin/ on x86_64 systems and in /opt/homebrew/bin/ on arm64 systems
   if (filesystem::exists(local_gcc_path))
     return local_gcc_path;
   else if (string global_gcc_path = "/usr/local/bin/gcc-" + macos_gcc_version;
-           filesystem::exists(global_gcc_path))
+           filesystem::exists(global_gcc_path) && mexext == "mexmaci64")
+    return global_gcc_path;
+  else if (string global_gcc_path = "/opt/homebrew/bin/gcc-" + macos_gcc_version;
+           filesystem::exists(global_gcc_path) && mexext == "mexmaca64")
     return global_gcc_path;
   else
     {
@@ -1843,7 +1850,7 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
 #ifdef __APPLE__
       /* On macOS, enforce GCC, otherwise Clang will be used, and it does not
          accept our custom optimization flags (see dynare#1797) */
-      string gcc_path = findGccOnMacos();
+      string gcc_path = findGccOnMacos(mexext);
       if (setenv("CC", gcc_path.c_str(), 1) != 0)
         {
           cerr << "Can't set CC environment variable" << endl;
@@ -1892,9 +1899,9 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
             }
         }
 #ifdef __APPLE__
-      else if (mexext == "mexmaci64")
+      else if (mexext == "mexmaci64" || mexext == "mexmaca64")
         {
-          compiler = findGccOnMacos();
+          compiler = findGccOnMacos(mexext);
           flags << " -fno-common -Wl,-twolevel_namespace -undefined error -bundle";
           libs += " -lm";
         }
