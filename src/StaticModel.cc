@@ -2051,7 +2051,9 @@ StaticModel::getDerivID(int symb_id, int lag) const noexcept(false)
   else if (symbol_table.getType(symb_id) == SymbolType::parameter)
     return symbol_table.getTypeSpecificID(symb_id) + symbol_table.endo_nbr();
   else
-    return -1;
+    /* See the special treatment in VariableNode::prepareForDerivation(),
+       VariableNode::computeDerivative() and VariableNode::getChainRuleDerivative() */
+    throw UnknownDerivIDException{};
 }
 
 void

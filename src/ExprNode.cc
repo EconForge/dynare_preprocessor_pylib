@@ -767,13 +767,16 @@ VariableNode::prepareForDerivation()
   // Fill in non_null_derivatives
   switch (get_type())
     {
-    case SymbolType::endogenous:
     case SymbolType::exogenous:
     case SymbolType::exogenousDet:
-    case SymbolType::parameter:
     case SymbolType::trend:
     case SymbolType::logTrend:
-      // For a variable or a parameter, the only non-null derivative is with respect to itself
+      // In static models, exogenous and trends do not have deriv IDs
+      if (dynamic_cast<StaticModel *>(&datatree))
+        break;
+      [[fallthrough]];
+    case SymbolType::endogenous:
+    case SymbolType::parameter:
       non_null_derivatives.insert(datatree.getDerivID(symb_id, lag));
       break;
     case SymbolType::modelLocalVariable:
@@ -803,12 +806,16 @@ VariableNode::computeDerivative(int deriv_id)
 {
   switch (get_type())
     {
-    case SymbolType::endogenous:
     case SymbolType::exogenous:
     case SymbolType::exogenousDet:
-    case SymbolType::parameter:
     case SymbolType::trend:
     case SymbolType::logTrend:
+      // In static models, exogenous and trends do not have deriv IDs
+      if (dynamic_cast<StaticModel *>(&datatree))
+        return datatree.Zero;
+      [[fallthrough]];
+    case SymbolType::endogenous:
+    case SymbolType::parameter:
       if (deriv_id == datatree.getDerivID(symb_id, lag))
         return datatree.One;
       else
@@ -1338,12 +1345,16 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *
 {
   switch (get_type())
     {
-    case SymbolType::endogenous:
     case SymbolType::exogenous:
     case SymbolType::exogenousDet:
-    case SymbolType::parameter:
     case SymbolType::trend:
     case SymbolType::logTrend:
+      // In static models, exogenous and trends do not have deriv IDs
+      if (dynamic_cast<StaticModel *>(&datatree))
+        return datatree.Zero;
+      [[fallthrough]];
+    case SymbolType::endogenous:
+    case SymbolType::parameter:
       if (deriv_id == datatree.getDerivID(symb_id, lag))
         return datatree.One;
       // If there is in the equation a recursive variable we could use a chaine rule derivation
