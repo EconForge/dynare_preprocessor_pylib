@@ -45,7 +45,7 @@ public:
   inline void add(int eqn, map<string, string> tags)
   {
     if (eqn_tags.contains(eqn))
-      eqn_tags[eqn].insert(tags.begin(), tags.end());
+      eqn_tags[eqn].insert(move_iterator{tags.begin()}, move_iterator{tags.end()});
     else
       eqn_tags[eqn] = move(tags);
   }
