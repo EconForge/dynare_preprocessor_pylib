@@ -4441,7 +4441,11 @@ DynamicModel::computeChainRuleJacobian()
           switch (derivType)
             {
             case BlockDerivativeType::standard:
-              d = derivatives[1][{ eq_orig, deriv_id }];
+              if (auto it = derivatives[1].find({ eq_orig, deriv_id });
+                  it != derivatives[1].end())
+                d = it->second;
+              else
+                d = Zero;
               break;
             case BlockDerivativeType::chainRule:
               d = equations[eq_orig]->getChainRuleDerivative(deriv_id, recursive_vars);

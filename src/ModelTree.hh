@@ -106,7 +106,7 @@ protected:
      For each derivation order, stores a map whose key is a vector of integer: the
      first integer is the equation index, the remaining ones are the derivation
      IDs of variables (in non-decreasing order, to avoid storing symmetric
-     elements several times) */
+     elements several times). Only non-zero derivatives are stored. */
   vector<map<vector<int>, expr_t>> derivatives;
 
   //! Number of non-zero derivatives
