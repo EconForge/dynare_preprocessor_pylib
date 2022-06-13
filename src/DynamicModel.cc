@@ -3185,11 +3185,11 @@ DynamicModel::updateVarAndTrendModel() const
         }
 
       if (var)
-        var_model_table.setRhs(rhsr);
+        var_model_table.setRhs(move(rhsr));
       else
         {
-          trend_component_model_table.setRhs(rhsr);
-          trend_component_model_table.setTargetVar(trend_varr);
+          trend_component_model_table.setRhs(move(rhsr));
+          trend_component_model_table.setTargetVar(move(trend_varr));
         }
     }
 }
@@ -3256,10 +3256,10 @@ DynamicModel::fillVarModelTable() const
       lhs_expr_tr[model_name] = lhs_expr_t;
       rhsr[model_name] = rhs;
     }
-  var_model_table.setEqNums(eqnums);
-  var_model_table.setLhs(lhsr);
-  var_model_table.setRhs(rhsr);
-  var_model_table.setLhsExprT(lhs_expr_tr);
+  var_model_table.setEqNums(move(eqnums));
+  var_model_table.setLhs(move(lhsr));
+  var_model_table.setRhs(move(rhsr));
+  var_model_table.setLhsExprT(move(lhs_expr_tr));
 }
 
 void
@@ -3345,9 +3345,9 @@ DynamicModel::fillVarModelTableFromOrigModel() const
       diff[model_name] = diff_vec;
       orig_diff_var[model_name] = orig_diff_var_vec;
     }
-  var_model_table.setDiff(diff);
-  var_model_table.setMaxLags(lags);
-  var_model_table.setOrigDiffVar(orig_diff_var);
+  var_model_table.setDiff(move(diff));
+  var_model_table.setMaxLags(move(lags));
+  var_model_table.setOrigDiffVar(move(orig_diff_var));
 }
 
 vector<int>
@@ -3470,9 +3470,9 @@ DynamicModel::fillVarModelTableMatrices()
             }
         }
     }
-  var_model_table.setAR(AR);
-  var_model_table.setA0(A0);
-  var_model_table.setConstants(constants);
+  var_model_table.setAR(move(AR));
+  var_model_table.setA0(move(A0));
+  var_model_table.setConstants(move(constants));
 }
 
 map<string, map<tuple<int, int, int>, expr_t>>
@@ -3575,8 +3575,8 @@ DynamicModel::fillTrendComponentModelTable() const
       lhs_expr_tr[model_name] = lhs_expr_t;
       rhsr[model_name] = rhs;
     }
-  trend_component_model_table.setRhs(rhsr);
-  trend_component_model_table.setVals(eqnums, trend_eqnums, lhsr, lhs_expr_tr);
+  trend_component_model_table.setRhs(move(rhsr));
+  trend_component_model_table.setVals(move(eqnums), move(trend_eqnums), move(lhsr), move(lhs_expr_tr));
 }
 
 pair<map<string, map<tuple<int, int>, expr_t>>, map<string, map<tuple<int, int>, expr_t>>>
@@ -3688,18 +3688,18 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
       diff[model_name] = diff_vec;
       orig_diff_var[model_name] = orig_diff_var_vec;
     }
-  trend_component_model_table.setDiff(diff);
-  trend_component_model_table.setMaxLags(lags);
-  trend_component_model_table.setOrigDiffVar(orig_diff_var);
+  trend_component_model_table.setDiff(move(diff));
+  trend_component_model_table.setMaxLags(move(lags));
+  trend_component_model_table.setOrigDiffVar(move(orig_diff_var));
 }
 
 void
 DynamicModel::fillTrendComponentModelTableAREC(const ExprNode::subst_table_t &diff_subst_table) const
 {
   auto ARr = computeAutoregressiveMatrices();
-  trend_component_model_table.setAR(ARr);
+  trend_component_model_table.setAR(move(ARr));
   auto [A0r, A0starr] = computeErrorComponentMatrices(diff_subst_table);
-  trend_component_model_table.setA0(A0r, A0starr);
+  trend_component_model_table.setA0(move(A0r), move(A0starr));
 }
 
 vector<int>

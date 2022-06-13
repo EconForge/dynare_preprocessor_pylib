@@ -1513,19 +1513,19 @@ ParsingDriver::trend_component_model()
   auto its = options_list.string_options.find("trend_component.name");
   if (its == options_list.string_options.end())
     error("You must pass the model_name option to the trend_component_model statement.");
-  auto name = its->second;
+  auto &name = its->second;
 
   auto itvs = options_list.vector_str_options.find("trend_component.eqtags");
   if (itvs == options_list.vector_str_options.end())
     error("You must pass the eqtags option to the trend_component_model statement.");
-  auto eqtags = itvs->second;
+  auto &eqtags = itvs->second;
 
   auto itvs1 = options_list.vector_str_options.find("trend_component.targets");
   if (itvs1 == options_list.vector_str_options.end())
     error("You must pass the targets option to the trend_component_model statement.");
-  auto targets = itvs1->second;
+  auto &targets = itvs1->second;
 
-  mod_file->trend_component_model_table.addTrendComponentModel(name, eqtags, targets);
+  mod_file->trend_component_model_table.addTrendComponentModel(move(name), move(eqtags), move(targets));
   options_list.clear();
 }
 
@@ -1535,19 +1535,19 @@ ParsingDriver::var_model()
   auto its = options_list.string_options.find("var.model_name");
   if (its == options_list.string_options.end())
     error("You must pass the model_name option to the var_model statement.");
-  auto name = its->second;
+  auto &name = its->second;
 
   auto itvs = options_list.vector_str_options.find("var.eqtags");
   if (itvs == options_list.vector_str_options.end())
     error("You must pass the eqtags option to the var_model statement.");
-  auto eqtags = itvs->second;
+  auto &eqtags = itvs->second;
 
   bool structural = false;
   if (auto itn = options_list.num_options.find("var.structural");
       itn != options_list.num_options.end() && itn->second == "true")
     structural = true;
 
-  mod_file->var_model_table.addVarModel(name, structural, eqtags);
+  mod_file->var_model_table.addVarModel(move(name), structural, move(eqtags));
   options_list.clear();
 }
 
@@ -2788,7 +2788,7 @@ ParsingDriver::pac_model()
   auto it = options_list.string_options.find("pac.model_name");
   if (it == options_list.string_options.end())
     error("You must pass the model_name option to the pac_model statement.");
-  auto name = it->second;
+  auto &name = it->second;
 
   string aux_model_name;
   it = options_list.string_options.find("pac.aux_model_name");
@@ -2798,10 +2798,10 @@ ParsingDriver::pac_model()
   it = options_list.string_options.find("pac.discount");
   if (it == options_list.string_options.end())
     error("You must pass the discount option to the pac_model statement.");
-  auto discount = it->second;
+  auto &discount = it->second;
   check_symbol_is_parameter(discount);
 
-  mod_file->pac_model_table.addPacModel(name, aux_model_name, discount, pac_growth,
+  mod_file->pac_model_table.addPacModel(move(name), move(aux_model_name), move(discount), pac_growth,
                                         pac_auxname, pac_kind);
   options_list.clear();
   parsing_pac_model = false;
@@ -3356,7 +3356,7 @@ ParsingDriver::add_moment_calibration_item(const string &endo1, const string &en
   c.lower_bound = range.first;
   c.upper_bound = range.second;
 
-  moment_calibration_constraints.push_back(c);
+  moment_calibration_constraints.push_back(move(c));
 }
 
 void
@@ -3385,7 +3385,7 @@ ParsingDriver::add_irf_calibration_item(const string &endo, string periods, cons
   c.lower_bound = range.first;
   c.upper_bound = range.second;
 
-  irf_calibration_constraints.push_back(c);
+  irf_calibration_constraints.push_back(move(c));
 }
 
 void
@@ -3515,7 +3515,7 @@ ParsingDriver::add_shock_group(string name)
   ShockGroupsStatement::Group G;
   G.name = move(name);
   G.list = shock_group;
-  shock_groups.push_back(G);
+  shock_groups.push_back(move(G));
 
   shock_group.clear();
 }
@@ -3566,17 +3566,17 @@ ParsingDriver::var_expectation_model()
   it = options_list.string_options.find("auxiliary_model_name");
   if (it == options_list.string_options.end())
     error("You must pass the auxiliary_model_name option to the var_expectation_model statement.");
-  auto var_model_name = it->second;
+  auto &var_model_name = it->second;
 
   it = options_list.string_options.find("model_name");
   if (it == options_list.string_options.end())
     error("You must pass the model_name option to the var_expectation_model statement.");
-  auto model_name = it->second;
+  auto &model_name = it->second;
 
   it = options_list.num_options.find("horizon");
   if (it == options_list.num_options.end())
     error("You must pass the horizon option to the var_expectation_model statement.");
-  auto horizon = it->second;
+  auto &horizon = it->second;
 
   if (var_expectation_model_discount)
     {
@@ -3596,8 +3596,8 @@ ParsingDriver::var_expectation_model()
   if (time_shift > 0)
     error("The 'time_shift' option must be a non-positive integer");
 
-  mod_file->var_expectation_model_table.addVarExpectationModel(model_name, var_expectation_model_expression,
-                                                               var_model_name, horizon,
+  mod_file->var_expectation_model_table.addVarExpectationModel(move(model_name), var_expectation_model_expression,
+                                                               move(var_model_name), move(horizon),
                                                                var_expectation_model_discount, time_shift);
 
   options_list.clear();
@@ -3692,8 +3692,7 @@ void
 ParsingDriver::add_pac_target_info_component(expr_t component_expr)
 {
   get<0>(pac_target_info_component) = component_expr;
-  mod_file->pac_model_table.addTargetComponent(pac_target_info_name, pac_target_info_component);
-  pac_target_info_component = {};
+  mod_file->pac_model_table.addTargetComponent(pac_target_info_name, exchange(pac_target_info_component, {}));
 }
 
 void
