@@ -2780,7 +2780,6 @@ ParsingDriver::begin_pac_model()
   pac_growth = nullptr;
   pac_auxname.clear();
   pac_kind = PacTargetKind::unspecified;
-  options_list.clear();
 }
 
 void
@@ -2804,6 +2803,7 @@ ParsingDriver::pac_model()
 
   mod_file->pac_model_table.addPacModel(name, aux_model_name, discount, pac_growth,
                                         pac_auxname, pac_kind);
+  options_list.clear();
   parsing_pac_model = false;
 }
 
