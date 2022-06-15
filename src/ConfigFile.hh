@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2021 Dynare Team
+ * Copyright © 2010-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -57,14 +57,14 @@ public:
   };
 };
 
-class SlaveNode
+class FollowerNode
 {
   friend class ConfigFile;
 public:
-  SlaveNode(string computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string userName_arg,
-            string password_arg, string remoteDrive_arg, string remoteDirectory_arg,
-            string programPath_arg, string programConfig_arg, string matlabOctavePath_arg, bool singleCompThread_arg,
-            int numberOfThreadsPerJob_arg, string operatingSystem_arg);
+  FollowerNode(string computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string userName_arg,
+               string password_arg, string remoteDrive_arg, string remoteDirectory_arg,
+               string programPath_arg, string programConfig_arg, string matlabOctavePath_arg, bool singleCompThread_arg,
+               int numberOfThreadsPerJob_arg, string operatingSystem_arg);
 
 protected:
   const string computerName, port;
@@ -91,11 +91,11 @@ protected:
 class ConfigFile
 {
 public:
-  ConfigFile(bool parallel_arg, bool parallel_test_arg, bool parallel_slave_open_mode_arg,
+  ConfigFile(bool parallel_arg, bool parallel_test_arg, bool parallel_follower_open_mode_arg,
              bool parallel_use_psexec_arg, string cluster_name);
 
 private:
-  const bool parallel, parallel_test, parallel_slave_open_mode, parallel_use_psexec;
+  const bool parallel, parallel_test, parallel_follower_open_mode, parallel_use_psexec;
   const string cluster_name;
   string firstClusterName;
   //! Hooks
@@ -105,12 +105,12 @@ private:
   //! Cluster Table
   map<string, Cluster> clusters;
   //! Node Map
-  map<string, SlaveNode> slave_nodes;
+  map<string, FollowerNode> follower_nodes;
   //! Add Hooks
   void addHooksConfFileElement(string global_init_file);
   //! Add Paths
   void addPathsConfFileElement(vector<string> includepath);
-  //! Add a SlaveNode or a Cluster object
+  //! Add a FollowerNode or a Cluster object
   void addParallelConfFileElement(bool inNode, bool inCluster, const member_nodes_t &member_nodes, const string &name,
                                   const string &computerName, const string &port, int minCpuNbr, int maxCpuNbr,
                                   const string &userName, const string &password, const string &remoteDrive,
@@ -130,7 +130,7 @@ public:
   void writeHooks(ostream &output) const;
   //! Create options_.parallel structure, write options
   void writeCluster(ostream &output) const;
-  //! Close slave nodes if needed
+  //! Close follower nodes if needed
   void writeEndParallel(ostream &output) const;
 };
 

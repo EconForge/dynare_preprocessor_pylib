@@ -54,10 +54,10 @@ Path::Path(vector<string> includepath_arg)
   paths["include"] = move(includepath_arg);
 }
 
-SlaveNode::SlaveNode(string computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string userName_arg,
-                     string password_arg, string remoteDrive_arg, string remoteDirectory_arg,
-                     string programPath_arg, string programConfig_arg, string matlabOctavePath_arg, bool singleCompThread_arg,
-                     int numberOfThreadsPerJob_arg, string operatingSystem_arg) :
+FollowerNode::FollowerNode(string computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string userName_arg,
+                           string password_arg, string remoteDrive_arg, string remoteDirectory_arg,
+                           string programPath_arg, string programConfig_arg, string matlabOctavePath_arg, bool singleCompThread_arg,
+                           int numberOfThreadsPerJob_arg, string operatingSystem_arg) :
   computerName{move(computerName_arg)},
   port{move(port_arg)},
   minCpuNbr{minCpuNbr_arg},
@@ -98,10 +98,10 @@ Cluster::Cluster(member_nodes_t member_nodes_arg) :
 }
 
 ConfigFile::ConfigFile(bool parallel_arg, bool parallel_test_arg,
-                       bool parallel_slave_open_mode_arg, bool parallel_use_psexec_arg,
+                       bool parallel_follower_open_mode_arg, bool parallel_use_psexec_arg,
                        string cluster_name_arg) :
   parallel{parallel_arg}, parallel_test{parallel_test_arg},
-  parallel_slave_open_mode{parallel_slave_open_mode_arg},
+  parallel_follower_open_mode{parallel_follower_open_mode_arg},
   parallel_use_psexec{parallel_use_psexec_arg},
   cluster_name{move(cluster_name_arg)}
 {
@@ -498,16 +498,16 @@ ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, const member
         exit(EXIT_FAILURE);
       }
     else
-      if (name.empty() || slave_nodes.contains(name))
+      if (name.empty() || follower_nodes.contains(name))
         {
           cerr << "ERROR: Every node must be assigned a unique name." << endl;
           exit(EXIT_FAILURE);
         }
       else
-        slave_nodes.emplace(name, SlaveNode{computerName, port, minCpuNbr, maxCpuNbr, userName,
-                                              password, remoteDrive, remoteDirectory, programPath, programConfig,
-                                              matlabOctavePath, singleCompThread, numberOfThreadsPerJob,
-                                              operatingSystem});
+        follower_nodes.emplace(name, FollowerNode{computerName, port, minCpuNbr, maxCpuNbr, userName,
+                                                  password, remoteDrive, remoteDirectory, programPath, programConfig,
+                                                  matlabOctavePath, singleCompThread, numberOfThreadsPerJob,
+                                                  operatingSystem});
   //! ADD CLUSTER
   else if (inCluster)
     if (minCpuNbr > 0 || maxCpuNbr > 0 || !userName.empty()
@@ -548,83 +548,83 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
   if (!parallel && !parallel_test)
     return;
 
-  //! Check Slave Nodes
-  if (slave_nodes.empty())
+  //! Check Follower Nodes
+  if (follower_nodes.empty())
     {
       cerr << "ERROR: At least one node must be defined in the config file." << endl;
       exit(EXIT_FAILURE);
     }
 
-  for (const auto &slave_node : slave_nodes)
+  for (const auto &follower_node : follower_nodes)
     {
 #if !defined(_WIN32) && !defined(__CYGWIN32__)
       //For Linux/Mac, check that cpuNbr starts at 0
-      if (slave_node.second.minCpuNbr != 0)
+      if (follower_node.second.minCpuNbr != 0)
         warnings << "WARNING: On Unix-based operating systems, you cannot specify the CPU that is "
                  << "used in parallel processing. This will be adjusted for you such that the "
                  << "same number of CPUs are used." << endl;
 #endif
-      if (!slave_node.second.port.empty())
+      if (!follower_node.second.port.empty())
         try
           {
-            stoi(slave_node.second.port);
+            stoi(follower_node.second.port);
           }
         catch (const invalid_argument &)
           {
-            cerr << "ERROR (node " << slave_node.first << "): the port must be an integer." << endl;
+            cerr << "ERROR (node " << follower_node.first << "): the port must be an integer." << endl;
             exit(EXIT_FAILURE);
           }
-      if (!slave_node.second.computerName.compare("localhost")) // We are working locally
+      if (!follower_node.second.computerName.compare("localhost")) // We are working locally
         {
-          if (!slave_node.second.remoteDrive.empty())
+          if (!follower_node.second.remoteDrive.empty())
             {
-              cerr << "ERROR (node " << slave_node.first << "): the RemoteDrive option may not be passed for a local node." << endl;
+              cerr << "ERROR (node " << follower_node.first << "): the RemoteDrive option may not be passed for a local node." << endl;
               exit(EXIT_FAILURE);
             }
-          if (!slave_node.second.remoteDirectory.empty())
+          if (!follower_node.second.remoteDirectory.empty())
             {
-              cerr << "ERROR (node " << slave_node.first << "): the RemoteDirectory option may not be passed for a local node." << endl;
+              cerr << "ERROR (node " << follower_node.first << "): the RemoteDirectory option may not be passed for a local node." << endl;
               exit(EXIT_FAILURE);
             }
         }
       else
         {
-          if (slave_node.second.userName.empty())
+          if (follower_node.second.userName.empty())
             {
-              cerr << "ERROR (node " << slave_node.first << "): the UserName option must be passed for every remote node." << endl;
+              cerr << "ERROR (node " << follower_node.first << "): the UserName option must be passed for every remote node." << endl;
               exit(EXIT_FAILURE);
             }
-          if (slave_node.second.operatingSystem.compare("windows") == 0)
+          if (follower_node.second.operatingSystem.compare("windows") == 0)
             {
-              if (slave_node.second.password.empty())
+              if (follower_node.second.password.empty())
                 {
-                  cerr << "ERROR (node " << slave_node.first << "): the Password option must be passed under Windows for every remote node." << endl;
+                  cerr << "ERROR (node " << follower_node.first << "): the Password option must be passed under Windows for every remote node." << endl;
                   exit(EXIT_FAILURE);
                 }
-              if (slave_node.second.remoteDrive.empty())
+              if (follower_node.second.remoteDrive.empty())
                 {
-                  cerr << "ERROR (node " << slave_node.first << "): the RemoteDrive option must be passed under Windows for every remote node." << endl;
+                  cerr << "ERROR (node " << follower_node.first << "): the RemoteDrive option must be passed under Windows for every remote node." << endl;
                   exit(EXIT_FAILURE);
                 }
             }
 #if defined(_WIN32) || defined(__CYGWIN32__)
-          if (slave_node.second.operatingSystem.empty())
+          if (follower_node.second.operatingSystem.empty())
             {
-              if (slave_node.second.password.empty())
+              if (follower_node.second.password.empty())
                 {
-                  cerr << "ERROR (node " << slave_node.first << "): the Password option must be passed under Windows for every remote node." << endl;
+                  cerr << "ERROR (node " << follower_node.first << "): the Password option must be passed under Windows for every remote node." << endl;
                   exit(EXIT_FAILURE);
                 }
-              if (slave_node.second.remoteDrive.empty())
+              if (follower_node.second.remoteDrive.empty())
                 {
-                  cerr << "ERROR (node " << slave_node.first << "): the RemoteDrive option must be passed under Windows for every remote node." << endl;
+                  cerr << "ERROR (node " << follower_node.first << "): the RemoteDrive option must be passed under Windows for every remote node." << endl;
                   exit(EXIT_FAILURE);
                 }
             }
 #endif
-          if (slave_node.second.remoteDirectory.empty())
+          if (follower_node.second.remoteDirectory.empty())
             {
-              cerr << "ERROR (node " << slave_node.first << "): the RemoteDirectory must be specified for every remote node." << endl;
+              cerr << "ERROR (node " << follower_node.first << "): the RemoteDirectory must be specified for every remote node." << endl;
               exit(EXIT_FAILURE);
             }
         }
@@ -645,7 +645,7 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
 
   for (const auto &cluster : clusters)
     for (const auto &itmn : cluster.second.member_nodes)
-      if (!slave_nodes.contains(itmn.first))
+      if (!follower_nodes.contains(itmn.first))
         {
           cerr << "Error: node " << itmn.first << " specified in cluster " << cluster.first << " was not found" << endl;
           exit(EXIT_FAILURE);
@@ -660,7 +660,7 @@ ConfigFile::transformPass()
 
 #if !defined(_WIN32) && !defined(__CYGWIN32__)
   //For Linux/Mac, check that cpuNbr starts at 0
-  for (auto &it : slave_nodes)
+  for (auto &it : follower_nodes)
     if (it.second.minCpuNbr != 0)
       {
         it.second.maxCpuNbr = it.second.maxCpuNbr - it.second.minCpuNbr;
@@ -706,14 +706,14 @@ ConfigFile::writeCluster(ostream &output) const
   auto cluster_it = cluster_name.empty() ? clusters.find(firstClusterName) : clusters.find(cluster_name);
 
   for (int i{1};
-       const auto &slave_node : slave_nodes)
+       const auto &follower_node : follower_nodes)
     {
-      bool slave_node_in_member_nodes = false;
+      bool follower_node_in_member_nodes = false;
       for (const auto &itmn : cluster_it->second.member_nodes)
-        if (!slave_node.first.compare(itmn.first))
-          slave_node_in_member_nodes = true;
+        if (!follower_node.first.compare(itmn.first))
+          follower_node_in_member_nodes = true;
 
-      if (!slave_node_in_member_nodes)
+      if (!follower_node_in_member_nodes)
         continue;
 
       output << "options_.parallel";
@@ -721,34 +721,34 @@ ConfigFile::writeCluster(ostream &output) const
         output << "(" << i << ")";
       i++;
       output << " = struct('Local', ";
-      if (slave_node.second.computerName.compare("localhost"))
+      if (follower_node.second.computerName.compare("localhost"))
         output << "0, ";
       else
         output << "1, ";
 
-      output << "'ComputerName', '" << slave_node.second.computerName << "', "
-             << "'Port', '" << slave_node.second.port << "', "
-             << "'CPUnbr', [" << slave_node.second.minCpuNbr << ":" << slave_node.second.maxCpuNbr << "], "
-             << "'UserName', '" << slave_node.second.userName << "', "
-             << "'Password', '" << slave_node.second.password << "', "
-             << "'RemoteDrive', '" << slave_node.second.remoteDrive << "', "
-             << "'RemoteDirectory', '" << slave_node.second.remoteDirectory << "', "
+      output << "'ComputerName', '" << follower_node.second.computerName << "', "
+             << "'Port', '" << follower_node.second.port << "', "
+             << "'CPUnbr', [" << follower_node.second.minCpuNbr << ":" << follower_node.second.maxCpuNbr << "], "
+             << "'UserName', '" << follower_node.second.userName << "', "
+             << "'Password', '" << follower_node.second.password << "', "
+             << "'RemoteDrive', '" << follower_node.second.remoteDrive << "', "
+             << "'RemoteDirectory', '" << follower_node.second.remoteDirectory << "', "
         // The following should be switched back to “ProgramPath” once we move to Dragonfly
-             << "'DynarePath', '" << slave_node.second.programPath << "', "
-             << "'ProgramConfig', '" << slave_node.second.programConfig << "', "
-             << "'MatlabOctavePath', '" << slave_node.second.matlabOctavePath << "', "
-             << "'OperatingSystem', '" << slave_node.second.operatingSystem << "', "
-             << "'NodeWeight', '" << (cluster_it->second.member_nodes.find(slave_node.first))->second << "', "
-             << "'NumberOfThreadsPerJob', " << slave_node.second.numberOfThreadsPerJob << ", ";
+             << "'DynarePath', '" << follower_node.second.programPath << "', "
+             << "'ProgramConfig', '" << follower_node.second.programConfig << "', "
+             << "'MatlabOctavePath', '" << follower_node.second.matlabOctavePath << "', "
+             << "'OperatingSystem', '" << follower_node.second.operatingSystem << "', "
+             << "'NodeWeight', '" << (cluster_it->second.member_nodes.find(follower_node.first))->second << "', "
+             << "'NumberOfThreadsPerJob', " << follower_node.second.numberOfThreadsPerJob << ", ";
 
-      if (slave_node.second.singleCompThread)
+      if (follower_node.second.singleCompThread)
         output << "'SingleCompThread', 'true');" << endl;
       else
         output << "'SingleCompThread', 'false');" << endl;
     }
 
   // Default values for the following two are both in DynareMain.cc and matlab/default_option_values.m
-  if (parallel_slave_open_mode)
+  if (parallel_follower_open_mode)
     output << "options_.parallel_info.leaveSlaveOpen = 1;" << endl;
   if (!parallel_use_psexec)
     output << "options_.parallel_use_psexec = false;" << endl;
@@ -766,7 +766,7 @@ ConfigFile::writeCluster(ostream &output) const
 void
 ConfigFile::writeEndParallel(ostream &output) const
 {
-  if ((!parallel && !parallel_test) || !parallel_slave_open_mode)
+  if ((!parallel && !parallel_test) || !parallel_follower_open_mode)
     return;
 
   output << "if options_.parallel_info.leaveSlaveOpen == 1" << endl

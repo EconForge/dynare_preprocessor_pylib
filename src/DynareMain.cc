@@ -137,7 +137,7 @@ main(int argc, char **argv)
   string parallel_config_file;
   bool parallel = false;
   string cluster_name;
-  bool parallel_slave_open_mode = false; // Must be the same default as in matlab/default_option_values.m
+  bool parallel_follower_open_mode = false; // Must be the same default as in matlab/default_option_values.m
   bool parallel_test = false;
   bool parallel_use_psexec = true; // Must be the same default as in matlab/default_option_values.m
   bool nostrict = false;
@@ -229,7 +229,7 @@ main(int argc, char **argv)
         }
       else if (s == "parallel_follower_open_mode"
                || s == "parallel_slave_open_mode") // Kept for backward compatibility, see #86
-        parallel_slave_open_mode = true;
+        parallel_follower_open_mode = true;
       else if (s == "parallel_test")
         parallel_test = true;
       else if (s.substr(0, 19) == "parallel_use_psexec")
@@ -453,7 +453,7 @@ main(int argc, char **argv)
   WarningConsolidation warnings(no_warn);
 
   // Process config file
-  ConfigFile config_file(parallel, parallel_test, parallel_slave_open_mode, parallel_use_psexec, cluster_name);
+  ConfigFile config_file(parallel, parallel_test, parallel_follower_open_mode, parallel_use_psexec, cluster_name);
   config_file.getConfigFileInfo(parallel_config_file);
   config_file.checkPass(warnings);
   config_file.transformPass();
