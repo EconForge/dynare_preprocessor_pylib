@@ -49,7 +49,7 @@ void
 usage()
 {
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] [savemacro[=macro_file]] [onlymacro] [linemacro] [notmpterms] [nolog] [warn_uninit]"
-       << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_slave_open_mode] [parallel_test] [parallel_use_psexec=true|false]"
+       << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_follower_open_mode] [parallel_test] [parallel_use_psexec=true|false]"
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=second|third] [language=matlab|julia]"
        << " [params_derivs_order=0|1|2] [transform_unary_ops] [exclude_eqs=<equation_tag_list_or_file>] [include_eqs=<equation_tag_list_or_file>]"
        << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] [nopathchange] [nopreprocessoroutput]"
@@ -227,7 +227,8 @@ main(int argc, char **argv)
             }
           parallel_config_file = s.substr(9);
         }
-      else if (s == "parallel_slave_open_mode")
+      else if (s == "parallel_follower_open_mode"
+               || s == "parallel_slave_open_mode") // Kept for backward compatibility, see #86
         parallel_slave_open_mode = true;
       else if (s == "parallel_test")
         parallel_test = true;
