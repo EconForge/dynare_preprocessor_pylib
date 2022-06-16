@@ -28,7 +28,7 @@
 #include <ostream>
 #include <optional>
 
-#include "CodeInterpreter.hh"
+#include "CommonEnums.hh"
 #include "ExprNode.hh"
 
 using namespace std;

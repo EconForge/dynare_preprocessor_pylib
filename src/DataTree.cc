@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <iterator>
 #include <filesystem>
+#include <fstream>
 
 #include "DataTree.hh"
 
@@ -904,7 +905,7 @@ DataTree::writePowerDeriv(ostream &output) const
            << " */" << endl
            << "double getPowerDeriv(double x, double p, int k)" << endl
            << "{" << endl
-           << "  if (fabs(x) < " << near_zero << " && p > 0 && k > p && fabs(p-nearbyint(p)) < " << near_zero << ')' << endl
+           << "  if (fabs(x) < " << power_deriv_near_zero << " && p > 0 && k > p && fabs(p-nearbyint(p)) < " << power_deriv_near_zero << ')' << endl
            << "    return 0.0;" << endl
            << "  else" << endl
            << "    {" << endl

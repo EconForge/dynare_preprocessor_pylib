@@ -29,7 +29,7 @@
 
 using namespace std;
 
-#include "CodeInterpreter.hh"
+#include "CommonEnums.hh"
 #include "ExternalFunctionsTable.hh"
 
 class DataTree;

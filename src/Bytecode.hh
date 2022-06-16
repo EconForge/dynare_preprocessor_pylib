@@ -17,25 +17,22 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _CODEINTERPRETER_HH
-#define _CODEINTERPRETER_HH
+#ifndef _BYTECODE_HH
+#define _BYTECODE_HH
 
 #include <fstream>
-#include <cstring>
-#include <utility>
+#include <cstdint>
 #include <vector>
-#ifdef BYTE_CODE
+
+#ifdef BYTECODE_MEX
 # include <dynmex.h>
+# include <cstring>
+# include "CommonEnums.hh"
 #endif
 
 using namespace std;
 
-const double near_zero{1e-12};
-
-/**
- * \enum Tags
- * \brief The differents flags of the bytecode
- */
+// The different opcodes of bytecode
 enum class Tags
   {
    FLDZ, //!< Stores zero in the stack - 0 (0)
@@ -97,49 +94,6 @@ enum class Tags
 
   };
 
-enum class EquationType
-  {
-   unknown, //!< Unknown equation type
-   evaluate, //!< Simple evaluation, normalized variable on left-hand side (written as such by the user)
-   evaluateRenormalized, //!< Simple evaluation, normalized variable on left-hand side (normalization computed by the preprocessor)
-   solve //!< No simple evaluation of the equation, it has to be solved
-  };
-
-enum class BlockSimulationType
-  {
-   unknown, //!< Unknown simulation type
-   evaluateForward, //!< Simple evaluation, normalized variable on left-hand side, forward
-   evaluateBackward, //!< Simple evaluation, normalized variable on left-hand side, backward
-   solveForwardSimple, //!< Block of one equation, newton solver needed, forward
-   solveBackwardSimple, //!< Block of one equation, newton solver needed, backward
-   solveTwoBoundariesSimple, //!< Block of one equation, Newton solver needed, forward and backward
-   solveForwardComplete, //!< Block of several equations, Newton solver needed, forward
-   solveBackwardComplete, //!< Block of several equations, Newton solver needed, backward
-   solveTwoBoundariesComplete //!< Block of several equations, Newton solver needed, forward and backwar
-  };
-
-//! Enumeration of possible symbol types
-/*! Warning: do not to change existing values for 0 to 4: the values matter for homotopy_setup command */
-enum class SymbolType
-  {
-   endogenous = 0, //!< Endogenous
-   exogenous = 1, //!< Exogenous
-   exogenousDet = 2, //!< Exogenous deterministic
-   parameter = 4, //!< Parameter
-   modelLocalVariable = 10, //!< Local variable whose scope is model (pound expression)
-   modFileLocalVariable = 11, //!< Local variable whose scope is mod file (model excluded)
-   externalFunction = 12, //!< External (user-defined) function
-   trend = 13, //!< Trend variable
-   statementDeclaredVariable = 14, //!< Local variable assigned within a Statement (see subsample statement for example)
-   logTrend = 15, //!< Log-trend variable
-   unusedEndogenous = 16, //!< Type to mark unused endogenous variables when `nostrict` option is passed
-
-   // Value 17 is unused for the time being (but could be reused)
-
-   epilogue = 18, //!< Variables created in epilogue block
-   excludedVariable = 19 //!< Variable excluded via model_remove/var_remove/include_eqs/exclude_eqs
-  };
-
 enum class ExpressionType
   {
    TemporaryTerm,
@@ -159,102 +113,13 @@ enum class ExpressionType
    ThirdParamDerivative
   };
 
-enum class UnaryOpcode
-  {
-   uminus,
-   exp,
-   log,
-   log10,
-   cos,
-   sin,
-   tan,
-   acos,
-   asin,
-   atan,
-   cosh,
-   sinh,
-   tanh,
-   acosh,
-   asinh,
-   atanh,
-   sqrt,
-   cbrt,
-   abs,
-   sign,
-   steadyState,
-   steadyStateParamDeriv, // for the derivative of the STEADY_STATE operator w.r.t. to a parameter
-   steadyStateParam2ndDeriv, // for the 2nd derivative of the STEADY_STATE operator w.r.t. to a parameter
-   expectation,
-   erf,
-   erfc,
-   diff,
-   adl
-  };
-
-enum class BinaryOpcode
-  {
-   plus,
-   minus,
-   times,
-   divide,
-   power,
-   powerDeriv, // for the derivative of the power function (see trac ticket #78)
-   equal,
-   max,
-   min,
-   less,
-   greater,
-   lessEqual,
-   greaterEqual,
-   equalEqual,
-   different
-  };
-
-enum class TrinaryOpcode
-  {
-   normcdf,
-   normpdf
-  };
-
-enum class ExternalFunctionType
-  {
-   withoutDerivative,
-   withFirstDerivative,
-   withFirstAndSecondDerivative,
-   numericalFirstDerivative,
-   firstDerivative,
-   numericalSecondDerivative,
-   secondDerivative
-  };
-
-enum class PriorDistributions
-  {
-   noShape = 0,
-   beta = 1,
-   gamma = 2,
-   normal = 3,
-   invGamma = 4,
-   invGamma1 = 4,
-   uniform = 5,
-   invGamma2 = 6,
-   dirichlet = 7,
-   weibull = 8
-  };
-
-enum class PacTargetKind
-  {
-    unspecified, // Must be the first one, because it’s the default initializer
-    ll,
-    dl,
-    dd
-  };
-
 struct Block_contain_type
 {
   int Equation, Variable, Own_Derivative;
 };
 
 #pragma pack(push, 1)
+
 class TagWithoutArgument
 {
 protected:
@@ -1217,7 +1082,7 @@ public:
   inline ExternalFunctionType
   get_function_type()
   {
-    return (function_type);
+    return function_type;
   }
   inline void
   write(ostream &CompileCode, unsigned int &instruction_number)
@@ -1240,7 +1105,7 @@ public:
     CompileCode.write(reinterpret_cast<const char *>(name), arg_func_name.size());
     instruction_number++;
   };
-#ifdef BYTE_CODE
+#ifdef BYTECODE_MEX
 
   inline uint8_t *
   load(uint8_t *code)
@@ -1595,7 +1460,7 @@ public:
       CompileCode.write(reinterpret_cast<char *>(&other_endogenous[i]), sizeof(other_endogenous[0]));
     instruction_number++;
   };
-#ifdef BYTE_CODE
+#ifdef BYTECODE_MEX
 
   inline uint8_t *
   load(uint8_t *code)
@@ -1652,7 +1517,7 @@ public:
 #endif
 };
 
-#ifdef BYTE_CODE
+#ifdef BYTECODE_MEX
 using tags_liste_t = vector<pair<Tags, void * >>;
 class CodeLoad
 {
@@ -1684,11 +1549,11 @@ public:
     tags_liste_t tags_liste;
     ifstream CompiledCode;
     streamoff Code_Size;
-    CompiledCode.open(file_name + ".cod", std::ios::in | std::ios::binary| std::ios::ate);
+    CompiledCode.open(file_name + ".cod", ios::in | ios::binary| ios::ate);
     if (!CompiledCode.is_open())
       return tags_liste;
     Code_Size = CompiledCode.tellg();
-    CompiledCode.seekg(std::ios::beg);
+    CompiledCode.seekg(ios::beg);
     code = static_cast<uint8_t *>(mxMalloc(Code_Size));
     CompiledCode.seekg(0);
     CompiledCode.read(reinterpret_cast<char *>(code), Code_Size);
@@ -2027,6 +1892,8 @@ public:
     return tags_liste;
   };
 };
-#endif
+#endif // BYTECODE_MEX
+
 #pragma pack(pop)
-#endif
+
+#endif // _BYTECODE_HH

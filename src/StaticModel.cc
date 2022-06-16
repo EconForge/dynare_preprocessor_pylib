@@ -26,6 +26,7 @@
 
 #include "StaticModel.hh"
 #include "DynamicModel.hh"
+#include "Bytecode.hh"
 
 void
 StaticModel::copyHelper(const StaticModel &m)

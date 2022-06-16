@@ -32,8 +32,8 @@ class ParsingDriver;
 }
 
 %code requires {
+#include "CommonEnums.hh"
 #include "ExprNode.hh"
-#include "CodeInterpreter.hh"
 }
 
 %param { ParsingDriver &driver }

@@ -27,6 +27,7 @@
 #include "ExprNode.hh"
 #include "DataTree.hh"
 #include "ModFile.hh"
+#include "Bytecode.hh"
 
 ExprNode::ExprNode(DataTree &datatree_arg, int idx_arg) : datatree{datatree_arg}, idx{idx_arg}
 {
@@ -4221,9 +4222,9 @@ BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivO
     case BinaryOpcode::power:
       return pow(v1, v2);
     case BinaryOpcode::powerDeriv:
-      if (fabs(v1) < near_zero && v2 > 0
+      if (fabs(v1) < power_deriv_near_zero && v2 > 0
           && derivOrder > v2
-          && fabs(v2-nearbyint(v2)) < near_zero)
+          && fabs(v2-nearbyint(v2)) < power_deriv_near_zero)
         return 0.0;
       else
         {

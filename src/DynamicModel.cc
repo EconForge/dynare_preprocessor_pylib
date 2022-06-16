@@ -28,6 +28,7 @@
 
 #include "DynamicModel.hh"
 #include "ParsingDriver.hh"
+#include "Bytecode.hh"
 
 void
 DynamicModel::copyHelper(const DynamicModel &m)
