@@ -46,7 +46,7 @@ dynare_preprocessor_SOURCES = \
 	VariableDependencyGraph.hh \
 	DynareMain.cc \
 	MacroExpandModFile.cc \
-	CodeInterpreter.hh \
+	Bytecode.hh \
 	ExternalFunctionsTable.cc \
 	ExternalFunctionsTable.hh \
 	ModelEquationBlock.hh \
@@ -55,7 +55,8 @@ dynare_preprocessor_SOURCES = \
 	WarningConsolidation.cc \
 	ExtendedPreprocessorTypes.hh \
 	SubModel.cc \
-	SubModel.hh
+	SubModel.hh \
+	CommonEnums.hh
 
 
 ACLOCAL_AMFLAGS = -I m4
