@@ -290,7 +290,7 @@ main(int argc, char **argv)
               equal_index != string::npos)
             defines.emplace_back(s.substr(2, equal_index-2), s.substr(equal_index+1));
           else
-            defines.emplace_back(s.substr(2), "1");
+            defines.emplace_back(s.substr(2), "true");
         }
       else if (s.substr(0, 2) == "-I")
         {

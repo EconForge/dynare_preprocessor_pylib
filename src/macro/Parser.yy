@@ -135,10 +135,7 @@ directive_one_line : INCLUDE expr
                    | INCLUDEPATH expr
                      { $$ = make_shared<IncludePath>($2, @$); }
                    | DEFINE symbol
-                     {
-                       auto tmp = make_shared<Real>("1", @$);
-                       $$ = make_shared<Define>($2, tmp, @$);
-                     }
+                     { $$ = make_shared<Define>($2, make_shared<Bool>(true, @$), @$); }
                    | DEFINE symbol EQUAL expr
                      { $$ = make_shared<Define>($2, $4, @$); }
                    | DEFINE function EQUAL expr
