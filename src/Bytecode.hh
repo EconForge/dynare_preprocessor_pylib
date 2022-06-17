@@ -137,9 +137,6 @@ class TagWithOneArgument : public BytecodeInstruction
 protected:
   T1 arg1;
 public:
-  explicit TagWithOneArgument(Tags op_code_arg) : BytecodeInstruction{op_code_arg}
-  {
-  };
   TagWithOneArgument(Tags op_code_arg, T1 arg_arg1) : BytecodeInstruction{op_code_arg},
                                                       arg1{arg_arg1}
   {
@@ -159,9 +156,6 @@ protected:
   T1 arg1;
   T2 arg2;
 public:
-  explicit TagWithTwoArguments(Tags op_code_arg) : BytecodeInstruction{op_code_arg}
-  {
-  };
   TagWithTwoArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2) :
     BytecodeInstruction{op_code_arg}, arg1{arg_arg1}, arg2{arg_arg2}
   {
@@ -182,9 +176,6 @@ protected:
   T2 arg2;
   T3 arg3;
 public:
-  explicit TagWithThreeArguments(Tags op_code_arg) : BytecodeInstruction{op_code_arg}
-  {
-  };
   TagWithThreeArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3) :
     BytecodeInstruction{op_code_arg}, arg1{arg_arg1}, arg2{arg_arg2}, arg3{arg_arg3}
   {
@@ -206,9 +197,6 @@ protected:
   T3 arg3;
   T4 arg4;
 public:
-  explicit TagWithFourArguments(Tags op_code_arg) : BytecodeInstruction{op_code_arg}
-  {
-  };
   TagWithFourArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3, T4 arg_arg4) :
     BytecodeInstruction{op_code_arg}, arg1{arg_arg1}, arg2{arg_arg2},
     arg3{move(arg_arg3)}, arg4{arg_arg4}
@@ -265,9 +253,6 @@ public:
 class FDIMT_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  FDIMT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FDIMT}
-  {
-  };
   explicit FDIMT_(unsigned int size_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FDIMT, size_arg}
   {
   };
@@ -281,9 +266,6 @@ public:
 class FDIMST_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  FDIMST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FDIMST}
-  {
-  };
   explicit FDIMST_(const unsigned int size_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FDIMST, size_arg}
   {
   };
@@ -297,9 +279,6 @@ public:
 class FLDC_ : public TagWithOneArgument<double>
 {
 public:
-  FLDC_() : TagWithOneArgument<double>::TagWithOneArgument{Tags::FLDC}
-  {
-  };
   explicit FLDC_(double value_arg) : TagWithOneArgument<double>::TagWithOneArgument{Tags::FLDC, value_arg}
   {
   };
@@ -313,9 +292,6 @@ public:
 class FLDU_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  FLDU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDU}
-  {
-  };
   explicit FLDU_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDU, pos_arg}
   {
   };
@@ -329,9 +305,6 @@ public:
 class FLDSU_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  FLDSU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDSU}
-  {
-  };
   explicit FLDSU_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDSU, pos_arg}
   {
   };
@@ -345,9 +318,6 @@ public:
 class FLDR_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  FLDR_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDR}
-  {
-  };
   explicit FLDR_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDR, pos_arg}
   {
   };
@@ -361,9 +331,6 @@ public:
 class FLDT_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  FLDT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDT}
-  {
-  };
   explicit FLDT_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDT, pos_arg}
   {
   };
@@ -377,9 +344,6 @@ public:
 class FLDST_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  FLDST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDST}
-  {
-  };
   explicit FLDST_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDST, pos_arg}
   {
   };
@@ -393,9 +357,6 @@ public:
 class FSTPT_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  FSTPT_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPT}
-  {
-  };
   explicit FSTPT_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPT, pos_arg}
   {
   };
@@ -409,9 +370,6 @@ public:
 class FSTPST_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  FSTPST_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPST}
-  {
-  };
   explicit FSTPST_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPST, pos_arg}
   {
   };
@@ -425,9 +383,6 @@ public:
 class FSTPR_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  FSTPR_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPR}
-  {
-  };
   explicit FSTPR_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPR, pos_arg}
   {
   };
@@ -441,9 +396,6 @@ public:
 class FSTPU_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  FSTPU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPU}
-  {
-  };
   explicit FSTPU_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPU, pos_arg}
   {
   };
@@ -457,9 +409,6 @@ public:
 class FSTPSU_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  FSTPSU_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPSU}
-  {
-  };
   explicit FSTPSU_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPSU, pos_arg}
   {
   };
@@ -473,9 +422,6 @@ public:
 class FSTPG_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  FSTPG_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPG, 0}
-  {
-  };
   explicit FSTPG_(unsigned int pos_arg) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPG, pos_arg}
   {
   };
@@ -489,9 +435,6 @@ public:
 class FSTPG2_ : public TagWithTwoArguments<unsigned int, unsigned int>
 {
 public:
-  FSTPG2_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{Tags::FSTPG2, 0, 0}
-  {
-  };
   FSTPG2_(unsigned int pos_arg1, unsigned int pos_arg2) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{Tags::FSTPG2, pos_arg1, pos_arg2}
   {
   };
@@ -510,9 +453,6 @@ public:
 class FSTPG3_ : public TagWithFourArguments<unsigned int, unsigned int, int, unsigned int>
 {
 public:
-  FSTPG3_() : TagWithFourArguments<unsigned int, unsigned int, int, unsigned int>::TagWithFourArguments{Tags::FSTPG3, 0, 0, 0, 0}
-  {
-  };
   FSTPG3_(unsigned int pos_arg1, unsigned int pos_arg2, int pos_arg3, unsigned int pos_arg4) : TagWithFourArguments<unsigned int, unsigned int, int, unsigned int>::TagWithFourArguments{Tags::FSTPG3, pos_arg1, pos_arg2, pos_arg3, pos_arg4}
   {
   };
@@ -541,9 +481,6 @@ public:
 class FUNARY_ : public TagWithOneArgument<uint8_t>
 {
 public:
-  FUNARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument{Tags::FUNARY}
-  {
-  };
   explicit FUNARY_(uint8_t op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument{Tags::FUNARY, op_type_arg}
   {
   };
@@ -557,9 +494,6 @@ public:
 class FBINARY_ : public TagWithOneArgument<uint8_t>
 {
 public:
-  FBINARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument{Tags::FBINARY}
-  {
-  };
   explicit FBINARY_(int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument{Tags::FBINARY, static_cast<uint8_t>(op_type_arg)}
   {
   };
@@ -573,9 +507,6 @@ public:
 class FTRINARY_ : public TagWithOneArgument<uint8_t>
 {
 public:
-  FTRINARY_() : TagWithOneArgument<uint8_t>::TagWithOneArgument{Tags::FTRINARY}
-  {
-  };
   explicit FTRINARY_(int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument{Tags::FTRINARY, static_cast<uint8_t>(op_type_arg)}
   {
   };
@@ -589,9 +520,6 @@ public:
 class FJMPIFEVAL_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  FJMPIFEVAL_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FJMPIFEVAL}
-  {
-  };
   explicit FJMPIFEVAL_(unsigned int arg_pos) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FJMPIFEVAL, arg_pos}
   {
   };
@@ -605,9 +533,6 @@ public:
 class FJMP_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  FJMP_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FJMP}
-  {
-  };
   explicit FJMP_(unsigned int arg_pos) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FJMP, arg_pos}
   {
   };
@@ -621,9 +546,6 @@ public:
 class FLDTEF_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  FLDTEF_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDTEF}
-  {
-  };
   explicit FLDTEF_(unsigned int number) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FLDTEF, number}
   {
   };
@@ -637,9 +559,6 @@ public:
 class FSTPTEF_ : public TagWithOneArgument<unsigned int>
 {
 public:
-  FSTPTEF_() : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPTEF}
-  {
-  };
   explicit FSTPTEF_(unsigned int number) : TagWithOneArgument<unsigned int>::TagWithOneArgument{Tags::FSTPTEF, number}
   {
   };
@@ -653,9 +572,6 @@ public:
 class FLDTEFD_ : public TagWithTwoArguments<unsigned int, unsigned int>
 {
 public:
-  FLDTEFD_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{Tags::FLDTEFD}
-  {
-  };
   FLDTEFD_(unsigned int indx, unsigned int row) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{Tags::FLDTEFD, indx, row}
   {
   };
@@ -674,9 +590,6 @@ public:
 class FSTPTEFD_ : public TagWithTwoArguments<unsigned int, unsigned int>
 {
 public:
-  FSTPTEFD_() : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{Tags::FSTPTEFD}
-  {
-  };
   FSTPTEFD_(unsigned int indx, unsigned int row) : TagWithTwoArguments<unsigned int, unsigned int>::TagWithTwoArguments{Tags::FSTPTEFD, indx, row}
   {
   };
@@ -695,9 +608,6 @@ public:
 class FLDTEFDD_ : public TagWithThreeArguments<unsigned int, unsigned int, unsigned int>
 {
 public:
-  FLDTEFDD_() : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments{Tags::FLDTEFDD}
-  {
-  };
   FLDTEFDD_(unsigned int indx, unsigned int row, unsigned int col) : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments{Tags::FLDTEFDD, indx, row, col}
   {
   };
@@ -721,9 +631,6 @@ public:
 class FSTPTEFDD_ : public TagWithThreeArguments<unsigned int, unsigned int, unsigned int>
 {
 public:
-  FSTPTEFDD_() : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments{Tags::FSTPTEFDD}
-  {
-  };
   FSTPTEFDD_(unsigned int indx, unsigned int row, unsigned int col) : TagWithThreeArguments<unsigned int, unsigned int, unsigned int>::TagWithThreeArguments{Tags::FSTPTEF, indx, row, col}
   {
   };
@@ -747,9 +654,6 @@ public:
 class FLDVS_ : public TagWithTwoArguments<uint8_t, unsigned int>
 {
 public:
-  FLDVS_() : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{Tags::FLDVS}
-  {
-  };
   FLDVS_(uint8_t type_arg, unsigned int pos_arg) : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{Tags::FLDVS, type_arg, pos_arg}
   {
   };
@@ -768,9 +672,6 @@ public:
 class FLDSV_ : public TagWithTwoArguments<uint8_t, unsigned int>
 {
 public:
-  FLDSV_() : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{Tags::FLDSV}
-  {
-  };
   FLDSV_(uint8_t type_arg, unsigned int pos_arg) :
     TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{Tags::FLDSV, type_arg, pos_arg}
   {
@@ -790,9 +691,6 @@ public:
 class FSTPSV_ : public TagWithTwoArguments<uint8_t, unsigned int>
 {
 public:
-  FSTPSV_() : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{Tags::FSTPSV}
-  {
-  };
   FSTPSV_(uint8_t type_arg, unsigned int pos_arg) :
     TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{Tags::FSTPSV, type_arg, pos_arg}
   {
@@ -812,9 +710,6 @@ public:
 class FLDV_ : public TagWithThreeArguments<uint8_t, unsigned int, int>
 {
 public:
-  FLDV_() : TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{Tags::FLDV}
-  {
-  };
   FLDV_(int type_arg, unsigned int pos_arg) :
     TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{Tags::FLDV, static_cast<uint8_t>(type_arg), pos_arg, 0}
   {
@@ -843,9 +738,6 @@ public:
 class FSTPV_ : public TagWithThreeArguments<uint8_t, unsigned int, int>
 {
 public:
-  FSTPV_() : TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{Tags::FSTPV}
-  {
-  };
   FSTPV_(int type_arg, unsigned int pos_arg) :
     TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{Tags::FSTPV, static_cast<uint8_t>(type_arg), pos_arg, 0}
   {
@@ -1021,9 +913,6 @@ private:
   uint16_t dvariable1, dvariable2, dvariable3;
   int8_t lag1, lag2, lag3;
 public:
-  FNUMEXPR_() : BytecodeInstruction{Tags::FNUMEXPR}
-  {
-  };
   FNUMEXPR_(const ExpressionType expression_type_arg, unsigned int equation_arg) :
     BytecodeInstruction{Tags::FNUMEXPR},
     expression_type{expression_type_arg},
@@ -1657,6 +1546,7 @@ public:
             mexPrintf("FBEGINBLOCK\n");
 # endif
             {
+              // TODO: remove default FBEGINBLOCK_ constructor when the following is remove
               auto *fbegin_block = new FBEGINBLOCK_;
 
               code = fbegin_block->load(code);
@@ -1685,6 +1575,7 @@ public:
 # ifdef DEBUGL
               mexPrintf("FCALL\n");
 # endif
+              // TODO: remove default FCALL_ constructor when the following is remove
               auto *fcall = new FCALL_;
 
               code = fcall->load(code);
