@@ -23,6 +23,7 @@
 #include <fstream>
 #include <cstdint>
 #include <vector>
+#include <utility>
 
 #ifdef BYTECODE_MEX
 # include <dynmex.h>
@@ -114,12 +115,12 @@ struct Block_contain_type
 
 #pragma pack(push, 1)
 
-class TagWithoutArgument
+class BytecodeInstruction
 {
 protected:
   uint8_t op_code;
 public:
-  explicit TagWithoutArgument(Tags op_code_arg) : op_code{static_cast<uint8_t>(op_code_arg)}
+  explicit BytecodeInstruction(Tags op_code_arg) : op_code{static_cast<uint8_t>(op_code_arg)}
   {
   };
   void
@@ -131,40 +132,38 @@ public:
 };
 
 template<typename T1>
-class TagWithOneArgument
+class TagWithOneArgument : public BytecodeInstruction
 {
 protected:
-  uint8_t op_code;
   T1 arg1;
 public:
-  explicit TagWithOneArgument(Tags op_code_arg) : op_code{static_cast<uint8_t>(op_code_arg)}
+  explicit TagWithOneArgument(Tags op_code_arg) : BytecodeInstruction{op_code_arg}
   {
   };
-  TagWithOneArgument(Tags op_code_arg, T1 arg_arg1) : op_code{static_cast<uint8_t>(op_code_arg)},
+  TagWithOneArgument(Tags op_code_arg, T1 arg_arg1) : BytecodeInstruction{op_code_arg},
                                                       arg1{arg_arg1}
   {
   };
   void
   write(ostream &CompileCode, unsigned int &instruction_number)
   {
-    CompileCode.write(reinterpret_cast<char *>(this), sizeof(TagWithOneArgument));
+    CompileCode.write(reinterpret_cast<char *>(this), sizeof(*this));
     instruction_number++;
   };
 };
 
 template<typename T1, typename T2>
-class TagWithTwoArguments
+class TagWithTwoArguments : public BytecodeInstruction
 {
 protected:
-  uint8_t op_code;
   T1 arg1;
   T2 arg2;
 public:
-  explicit TagWithTwoArguments(Tags op_code_arg) : op_code{static_cast<uint8_t>(op_code_arg)}
+  explicit TagWithTwoArguments(Tags op_code_arg) : BytecodeInstruction{op_code_arg}
   {
   };
   TagWithTwoArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2) :
-    op_code{static_cast<uint8_t>(op_code_arg)}, arg1{arg_arg1}, arg2{arg_arg2}
+    BytecodeInstruction{op_code_arg}, arg1{arg_arg1}, arg2{arg_arg2}
   {
   };
   void
@@ -176,19 +175,18 @@ public:
 };
 
 template<typename T1, typename T2, typename T3>
-class TagWithThreeArguments
+class TagWithThreeArguments : public BytecodeInstruction
 {
 protected:
-  uint8_t op_code;
   T1 arg1;
   T2 arg2;
   T3 arg3;
 public:
-  explicit TagWithThreeArguments(Tags op_code_arg) : op_code{static_cast<uint8_t>(op_code_arg)}
+  explicit TagWithThreeArguments(Tags op_code_arg) : BytecodeInstruction{op_code_arg}
   {
   };
   TagWithThreeArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3) :
-    op_code{static_cast<uint8_t>(op_code_arg)}, arg1{arg_arg1}, arg2{arg_arg2}, arg3{arg_arg3}
+    BytecodeInstruction{op_code_arg}, arg1{arg_arg1}, arg2{arg_arg2}, arg3{arg_arg3}
   {
   };
   void
@@ -200,20 +198,19 @@ public:
 };
 
 template<typename T1, typename T2, typename T3, typename T4>
-class TagWithFourArguments
+class TagWithFourArguments : public BytecodeInstruction
 {
 protected:
-  uint8_t op_code;
   T1 arg1;
   T2 arg2;
   T3 arg3;
   T4 arg4;
 public:
-  explicit TagWithFourArguments(Tags op_code_arg) : op_code{static_cast<uint8_t>(op_code_arg)}
+  explicit TagWithFourArguments(Tags op_code_arg) : BytecodeInstruction{op_code_arg}
   {
   };
   TagWithFourArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3, T4 arg_arg4) :
-    op_code{static_cast<uint8_t>(op_code_arg)}, arg1{arg_arg1}, arg2{arg_arg2},
+    BytecodeInstruction{op_code_arg}, arg1{arg_arg1}, arg2{arg_arg2},
     arg3{move(arg_arg3)}, arg4{arg_arg4}
   {
   };
@@ -225,42 +222,42 @@ public:
   };
 };
 
-class FLDZ_ : public TagWithoutArgument
+class FLDZ_ : public BytecodeInstruction
 {
 public:
-  FLDZ_() : TagWithoutArgument{Tags::FLDZ}
+  FLDZ_() : BytecodeInstruction{Tags::FLDZ}
   {
   };
 };
 
-class FEND_ : public TagWithoutArgument
+class FEND_ : public BytecodeInstruction
 {
 public:
-  FEND_() : TagWithoutArgument{Tags::FEND}
+  FEND_() : BytecodeInstruction{Tags::FEND}
   {
   };
 };
 
-class FENDBLOCK_ : public TagWithoutArgument
+class FENDBLOCK_ : public BytecodeInstruction
 {
 public:
-  FENDBLOCK_() : TagWithoutArgument{Tags::FENDBLOCK}
+  FENDBLOCK_() : BytecodeInstruction{Tags::FENDBLOCK}
   {
   };
 };
 
-class FENDEQU_ : public TagWithoutArgument
+class FENDEQU_ : public BytecodeInstruction
 {
 public:
-  FENDEQU_() : TagWithoutArgument{Tags::FENDEQU}
+  FENDEQU_() : BytecodeInstruction{Tags::FENDEQU}
   {
   };
 };
 
-class FCUML_ : public TagWithoutArgument
+class FCUML_ : public BytecodeInstruction
 {
 public:
-  FCUML_() : TagWithoutArgument{Tags::FCUML}
+  FCUML_() : BytecodeInstruction{Tags::FCUML}
   {
   };
 };
@@ -874,19 +871,23 @@ public:
   };
 };
 
-class FCALL_ : public TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>
+class FCALL_ : public BytecodeInstruction
 {
+  unsigned int nb_output_arguments, nb_input_arguments, indx;
   string func_name;
   string arg_func_name;
   unsigned int add_input_arguments{0}, row{0}, col{0};
   ExternalFunctionType function_type{ExternalFunctionType::withoutDerivative};
 public:
-  FCALL_() : TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments{Tags::FCALL}
+  FCALL_() : BytecodeInstruction{Tags::FCALL}
   {
   };
-  FCALL_(unsigned int nb_output_arguments, unsigned int nb_input_arguments, string f_name, unsigned int indx) :
-    TagWithFourArguments<unsigned int, unsigned int, string, unsigned int>::TagWithFourArguments{Tags::FCALL, nb_output_arguments, nb_input_arguments, f_name, indx},
-    func_name{f_name}
+  FCALL_(unsigned int nb_output_arguments_arg, unsigned int nb_input_arguments_arg, string func_name_arg, unsigned int indx_arg) :
+    BytecodeInstruction{Tags::FCALL},
+    nb_output_arguments{nb_output_arguments_arg},
+    nb_input_arguments{nb_input_arguments_arg},
+    indx{indx_arg},
+    func_name{move(func_name_arg)}
   {
   };
   string
@@ -898,17 +899,17 @@ public:
   unsigned int
   get_nb_output_arguments()
   {
-    return arg1;
+    return nb_output_arguments;
   };
   unsigned int
   get_nb_input_arguments()
   {
-    return arg2;
+    return nb_input_arguments;
   };
   unsigned int
   get_indx()
   {
-    return arg4;
+    return indx;
   };
   void
   set_arg_func_name(string arg_arg_func_name)
@@ -964,9 +965,9 @@ public:
   write(ostream &CompileCode, unsigned int &instruction_number)
   {
     CompileCode.write(reinterpret_cast<char *>(&op_code), sizeof(op_code));
-    CompileCode.write(reinterpret_cast<char *>(&arg1), sizeof(arg1));
-    CompileCode.write(reinterpret_cast<char *>(&arg2), sizeof(arg2));
-    CompileCode.write(reinterpret_cast<char *>(&arg4), sizeof(arg4));
+    CompileCode.write(reinterpret_cast<char *>(&nb_output_arguments), sizeof(nb_output_arguments));
+    CompileCode.write(reinterpret_cast<char *>(&nb_input_arguments), sizeof(nb_input_arguments));
+    CompileCode.write(reinterpret_cast<char *>(&indx), sizeof(indx));
     CompileCode.write(reinterpret_cast<char *>(&add_input_arguments), sizeof(add_input_arguments));
     CompileCode.write(reinterpret_cast<char *>(&row), sizeof(row));
     CompileCode.write(reinterpret_cast<char *>(&col), sizeof(col));
@@ -987,9 +988,9 @@ public:
   load(uint8_t *code)
   {
     op_code = static_cast<uint8_t>(Tags::FCALL); code += sizeof(op_code);
-    memcpy(&arg1, code, sizeof(arg1)); code += sizeof(arg1);
-    memcpy(&arg2, code, sizeof(arg2)); code += sizeof(arg2);
-    memcpy(&arg4, code, sizeof(arg4)); code += sizeof(arg4);
+    memcpy(&nb_output_arguments, code, sizeof(nb_output_arguments)); code += sizeof(nb_output_arguments);
+    memcpy(&nb_input_arguments, code, sizeof(nb_input_arguments)); code += sizeof(nb_input_arguments);
+    memcpy(&indx, code, sizeof(indx)); code += sizeof(indx);
     memcpy(&add_input_arguments, code, sizeof(add_input_arguments)); code += sizeof(add_input_arguments);
     memcpy(&row, code, sizeof(row)); code += sizeof(row);
     memcpy(&col, code, sizeof(col)); code += sizeof(col);
@@ -1012,39 +1013,44 @@ public:
 #endif
 };
 
-class FNUMEXPR_ : public TagWithOneArgument<ExpressionType>
+class FNUMEXPR_ : public BytecodeInstruction
 {
 private:
+  ExpressionType expression_type;
   unsigned int equation;
   uint16_t dvariable1, dvariable2, dvariable3;
   int8_t lag1, lag2, lag3;
 public:
-  FNUMEXPR_() : TagWithOneArgument<ExpressionType>::TagWithOneArgument{Tags::FNUMEXPR}
+  FNUMEXPR_() : BytecodeInstruction{Tags::FNUMEXPR}
   {
   };
-  FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg) :
-    TagWithOneArgument<ExpressionType>::TagWithOneArgument{Tags::FNUMEXPR, expression_type},
+  FNUMEXPR_(const ExpressionType expression_type_arg, unsigned int equation_arg) :
+    BytecodeInstruction{Tags::FNUMEXPR},
+    expression_type{expression_type_arg},
     equation{equation_arg},
     dvariable1{0}, dvariable2{0}, dvariable3{0},
     lag1{0}, lag2{0}, lag3{0}
   {
   };
-  FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg) :
-    TagWithOneArgument<ExpressionType>::TagWithOneArgument{Tags::FNUMEXPR, expression_type},
+  FNUMEXPR_(const ExpressionType expression_type_arg, unsigned int equation_arg, unsigned int dvariable1_arg) :
+    BytecodeInstruction{Tags::FNUMEXPR},
+    expression_type{expression_type_arg},
     equation{equation_arg},
     dvariable1{static_cast<uint16_t>(dvariable1_arg)}, dvariable2{0}, dvariable3{0},
     lag1{0}, lag2{0}, lag3{0}
   {
   };
-  FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg) :
-    TagWithOneArgument<ExpressionType>::TagWithOneArgument{Tags::FNUMEXPR, expression_type},
+  FNUMEXPR_(const ExpressionType expression_type_arg, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg) :
+    BytecodeInstruction{Tags::FNUMEXPR},
+    expression_type{expression_type_arg},
     equation{equation_arg},
     dvariable1{static_cast<uint16_t>(dvariable1_arg)}, dvariable2{0}, dvariable3{0},
     lag1{static_cast<int8_t>(lag1_arg)}, lag2{0}, lag3{0}
   {
   };
-  FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, unsigned int dvariable2_arg) :
-    TagWithOneArgument<ExpressionType>::TagWithOneArgument{Tags::FNUMEXPR, expression_type},
+  FNUMEXPR_(const ExpressionType expression_type_arg, unsigned int equation_arg, unsigned int dvariable1_arg, unsigned int dvariable2_arg) :
+    BytecodeInstruction{Tags::FNUMEXPR},
+    expression_type{expression_type_arg},
     equation{equation_arg},
     dvariable1{static_cast<uint16_t>(dvariable1_arg)},
     dvariable2{static_cast<uint16_t>(dvariable2_arg)},
@@ -1052,8 +1058,9 @@ public:
     lag1{0}, lag2{0}, lag3{0}
   {
   };
-  FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg, unsigned int dvariable2_arg, int lag2_arg) :
-    TagWithOneArgument<ExpressionType>::TagWithOneArgument{Tags::FNUMEXPR, expression_type},
+  FNUMEXPR_(const ExpressionType expression_type_arg, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg, unsigned int dvariable2_arg, int lag2_arg) :
+    BytecodeInstruction{Tags::FNUMEXPR},
+    expression_type{expression_type_arg},
     equation{equation_arg},
     dvariable1{static_cast<uint16_t>(dvariable1_arg)},
     dvariable2{static_cast<uint16_t>(dvariable2_arg)},
@@ -1063,8 +1070,9 @@ public:
     lag3{0}
   {
   };
-  FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, unsigned int dvariable2_arg, unsigned int dvariable3_arg) :
-    TagWithOneArgument<ExpressionType>::TagWithOneArgument{Tags::FNUMEXPR, expression_type},
+  FNUMEXPR_(const ExpressionType expression_type_arg, unsigned int equation_arg, unsigned int dvariable1_arg, unsigned int dvariable2_arg, unsigned int dvariable3_arg) :
+    BytecodeInstruction{Tags::FNUMEXPR},
+    expression_type{expression_type_arg},
     equation{equation_arg},
     dvariable1{static_cast<uint16_t>(dvariable1_arg)},
     dvariable2{static_cast<uint16_t>(dvariable2_arg)},
@@ -1072,8 +1080,9 @@ public:
     lag1{0}, lag2{0}, lag3{0}
   {
   };
-  FNUMEXPR_(const ExpressionType expression_type, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg, unsigned int dvariable2_arg, int lag2_arg, unsigned int dvariable3_arg, int lag3_arg) :
-    TagWithOneArgument<ExpressionType>::TagWithOneArgument{Tags::FNUMEXPR, expression_type},
+  FNUMEXPR_(const ExpressionType expression_type_arg, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg, unsigned int dvariable2_arg, int lag2_arg, unsigned int dvariable3_arg, int lag3_arg) :
+    BytecodeInstruction{Tags::FNUMEXPR},
+    expression_type{expression_type_arg},
     equation{equation_arg},
     dvariable1{static_cast<uint16_t>(dvariable1_arg)},
     dvariable2{static_cast<uint16_t>(dvariable2_arg)},
@@ -1086,7 +1095,7 @@ public:
   ExpressionType
   get_expression_type()
   {
-    return arg1;
+    return expression_type;
   }
   unsigned int
   get_equation()
@@ -1126,15 +1135,14 @@ public:
   void
   write(ostream &CompileCode, unsigned int &instruction_number)
   {
-    CompileCode.write(reinterpret_cast<char *>(this), sizeof(FNUMEXPR_));
+    CompileCode.write(reinterpret_cast<char *>(this), sizeof(*this));
     instruction_number++;
   };
 };
 
-class FBEGINBLOCK_
+class FBEGINBLOCK_ : public BytecodeInstruction
 {
 private:
-  uint8_t op_code{static_cast<uint8_t>(Tags::FBEGINBLOCK)};
   int size{0};
   uint8_t type;
   vector<int> variable;
@@ -1152,7 +1160,8 @@ private:
   unsigned int det_exo_size, exo_size, other_endo_size;
   unsigned int nb_col_det_exo_jacob, nb_col_exo_jacob, nb_col_other_endo_jacob;
 public:
-  FBEGINBLOCK_() :  type{static_cast<uint8_t>(BlockSimulationType::unknown)}
+  FBEGINBLOCK_() : BytecodeInstruction{Tags::FBEGINBLOCK},
+                   type{static_cast<uint8_t>(BlockSimulationType::unknown)}
   {
   }
   FBEGINBLOCK_(unsigned int size_arg, BlockSimulationType type_arg, int unsigned first_element, int unsigned block_size,
@@ -1160,6 +1169,7 @@ public:
                bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int &u_count_int_arg, int nb_col_jacob_arg,
                unsigned int det_exo_size_arg, unsigned int nb_col_det_exo_jacob_arg, unsigned int exo_size_arg, unsigned int nb_col_exo_jacob_arg, unsigned int other_endo_size_arg, unsigned int nb_col_other_endo_jacob_arg,
                vector<int> det_exogenous_arg, vector<int> exogenous_arg, vector<int> other_endogenous_arg) :
+    BytecodeInstruction{Tags::FBEGINBLOCK},
     size{static_cast<int>(size_arg)},
     type{static_cast<uint8_t>(type_arg)},
     variable{variable_arg.begin()+first_element, variable_arg.begin()+(first_element+block_size)},
@@ -1184,6 +1194,7 @@ public:
   FBEGINBLOCK_(unsigned int size_arg, BlockSimulationType type_arg, int unsigned first_element, int unsigned block_size,
                const vector<int> &variable_arg, const vector<int> &equation_arg,
                bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int &u_count_int_arg, int nb_col_jacob_arg) :
+    BytecodeInstruction{Tags::FBEGINBLOCK},
     size{static_cast<int>(size_arg)},
     type{static_cast<uint8_t>(type_arg)},
     variable{variable_arg.begin()+first_element, variable_arg.begin()+(first_element+block_size)},
