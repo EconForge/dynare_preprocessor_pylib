@@ -62,7 +62,6 @@ enum class Tags
    FSTPG, // Stores a derivative from the stack
    FSTPG2, // Stores a derivative matrix for a static model from the stack
    FSTPG3, // Stores a derivative matrix for a dynamic model from the stack
-   FSTPG4, // Stores a second order derivative matrix for a dynamic model from the stack
 
    FUNARY, // A unary operator
    FBINARY, // A binary operator
@@ -78,13 +77,9 @@ enum class Tags
    FENDEQU, // Marks the last equation of the block; for a block that has to be solved, the derivatives appear just after this flag
    FEND, // Marks the end of the model code
 
-   FOK, // Used for debugging purpose
-
    FNUMEXPR, // Stores the expression type and references
 
    FCALL, // Call an external function
-   FPUSH, // Push a double onto the stack
-   FPOP, // Pop a double from the stack
    FLDTEF, // Loads the result of an external function onto the stack
    FSTPTEF, // Stores the result of an external function from the stack
    FLDTEFD, // Loads the result of the 1st derivative of an external function onto the stack
@@ -280,24 +275,6 @@ class FCUML_ : public TagWithoutArgument
 public:
   inline
   FCUML_() : TagWithoutArgument{Tags::FCUML}
-  {
-  };
-};
-
-class FPUSH_ : public TagWithoutArgument
-{
-public:
-  inline
-  FPUSH_() : TagWithoutArgument{Tags::FPUSH}
-  {
-  };
-};
-
-class FPOP_ : public TagWithoutArgument
-{
-public:
-  inline
-  FPOP_() : TagWithoutArgument{Tags::FPOP}
   {
   };
 };
@@ -659,24 +636,6 @@ public:
   };
   inline uint8_t
   get_op_type()
-  {
-    return arg1;
-  };
-};
-
-class FOK_ : public TagWithOneArgument<int>
-{
-public:
-  inline
-  FOK_() : TagWithOneArgument<int>::TagWithOneArgument{Tags::FOK}
-  {
-  };
-  inline explicit
-  FOK_(int arg_arg) : TagWithOneArgument<int>::TagWithOneArgument{Tags::FOK, arg_arg}
-  {
-  };
-  inline int
-  get_arg()
   {
     return arg1;
   };
@@ -1740,13 +1699,6 @@ public:
             tags_liste.emplace_back(Tags::FTRINARY, code);
             code += sizeof(FTRINARY_);
             break;
-          case Tags::FOK:
-# ifdef DEBUGL
-            mexPrintf("FOK\n");
-# endif
-            tags_liste.emplace_back(Tags::FOK, code);
-            code += sizeof(FOK_);
-            break;
           case Tags::FLDVS:
 # ifdef DEBUGL
             mexPrintf("FLDVS\n");
@@ -1825,20 +1777,6 @@ public:
               mexPrintf("-- *code=%d\n", *code); mexEvalString("drawnow;");
 # endif
             }
-            break;
-          case Tags::FPUSH:
-# ifdef DEBUGL
-            mexPrintf("FPUSH\n");
-# endif
-            tags_liste.emplace_back(Tags::FPUSH, code);
-            code += sizeof(FPUSH_);
-            break;
-          case Tags::FPOP:
-# ifdef DEBUGL
-            mexPrintf("FPOP\n");
-# endif
-            tags_liste.emplace_back(Tags::FPOP, code);
-            code += sizeof(FPOP_);
             break;
           case Tags::FLDTEF:
 # ifdef DEBUGL
