@@ -35,63 +35,62 @@ using namespace std;
 // The different opcodes of bytecode
 enum class Tags
   {
-   FLDZ, //!< Stores zero in the stack - 0 (0)
-   FLDC, //!< Stores a constant term in the stack - 1 (1)
+   FLDZ, // Loads a zero onto the stack
+   FLDC, // Loads a constant term onto the stack
 
-   FDIMT, //!< Defines the number of temporary terms - dynamic context (the period has to be indicated) - 2 (2)
-   FDIMST, //!< Defines the number of temporary terms - static context (the period hasn't to be indicated) - 3  (3)
-   FLDT, //!< Stores a temporary term in the stack - dynamic context (the period has to be indicated) - 4 (4)
-   FLDST, //!< Stores a temporary term in the stack - static context (the period hasn't to be indicated) - 5 (5)
-   FSTPT, //!< Loads a temporary term from the stack - dynamic context (the period has to be indicated) - 6 (6)
-   FSTPST, //!< Loads a temporary term from the stack - static context (the period hasn't to be indicated) - 7 (7)
+   FDIMT, // Defines the number of temporary terms - dynamic context (the period has to be indicated)
+   FDIMST, // Defines the number of temporary terms - static context (the period hasn’t to be indicated)
+   FLDT, // Loads a temporary term onto the stack - dynamic context (the period has to be indicated)
+   FLDST, // Loads a temporary term onto the stack - static context (the period hasn’t to be indicated)
+   FSTPT, // Stores a temporary term from the stack - dynamic context (the period has to be indicated)
+   FSTPST, // Stores a temporary term from the stack - static context (the period hasn’t to be indicated)
 
-   FLDU, //!< Stores an element of the vector U in the stack - dynamic context (the period has to be indicated) - 8 (8)
-   FLDSU, //!< Stores an element of the vector U in the stack - static context (the period hasn't to be indicated) - 9 (9)
-   FSTPU, //!< Loads an element of the vector U from the stack - dynamic context (the period has to be indicated) - A (10)
-   FSTPSU, //!< Loads an element of the vector U from the stack - static context (the period hasn't to be indicated) - B (11)
+   FLDU, // Loads an element of the vector U onto the stack - dynamic context (the period has to be indicated)
+   FLDSU, // Loads an element of the vector U onto the stack - static context (the period hasn’t to be indicated)
+   FSTPU, // Stores an element of the vector U from the stack - dynamic context (the period has to be indicated)
+   FSTPSU, // Stores an element of the vector U from the stack - static context (the period hasn’t to be indicated)
 
-   FLDV, //!< Stores a variable (described in SymbolType) in the stack - dynamic context (the period has to be indicated) - C (12)
-   FLDSV, //!< Stores a variable (described in SymbolType) in the stack - static context (the period hasn't to be indicated) - D (13)
-   FLDVS, //!< Stores a variable (described in SymbolType) in the stack - dynamic context but inside the STEADYSTATE function (the period hasn't to be indicated) - E (14)
-   FSTPV, //!< Loads a variable (described in SymbolType) from the stack - dynamic context (the period has to be indicated) - F (15)
-   FSTPSV, //!< Loads a variable (described in SymbolType) from the stack - static context (the period hasn't to be indicated) - 10 (16)
+   FLDV, // Loads a variable (described in SymbolType) onto the stack - dynamic context (the period has to be indicated)
+   FLDSV, // Loads a variable (described in SymbolType) onto the stack - static context (the period hasn’t to be indicated)
+   FLDVS, // Loads a variable (described in SymbolType) onto the stack - dynamic context but inside the STEADY_STATE operator (the period hasn’t to be indicated)
+   FSTPV, // Stores a variable (described in SymbolType) from the stack - dynamic context (the period has to be indicated)
+   FSTPSV, // Stores a variable (described in SymbolType) from the stack - static context (the period hasn’t to be indicated)
 
-   FLDR, //!< Stores a residual in the stack - 11 (17)
-   FSTPR, //!< Loads a residual from the stack - 12 (18)
+   FLDR, // Loads a residual onto the stack
+   FSTPR, // Stores a residual from the stack
 
-   FSTPG, //!< Loads a derivative from the stack - 13 (19)
-   FSTPG2, //!< Loads a derivative matrix for static model from the stack - 14 (20)
-   FSTPG3, //!< Loads a derivative matrix for a dynamic model from the stack - 15 (21)
-   FSTPG4, //!< Loads a second order derivative matrix for a dynamic model from the stack - 16 (22)
+   FSTPG, // Stores a derivative from the stack
+   FSTPG2, // Stores a derivative matrix for a static model from the stack
+   FSTPG3, // Stores a derivative matrix for a dynamic model from the stack
+   FSTPG4, // Stores a second order derivative matrix for a dynamic model from the stack
 
-   FUNARY, //!< A Unary operator - 17 (23)
-   FBINARY, //!< A binary operator - 18 (24)
-   FTRINARY, //!< A trinary operator - 19 (25)
+   FUNARY, // A unary operator
+   FBINARY, // A binary operator
+   FTRINARY, // A trinary operator
 
-   FCUML, //!< Cumulates the result - 1A (26)
+   FCUML, // Cumulates the result
 
-   FJMPIFEVAL, //!< Jump if evaluate = true - 1B (27)
-   FJMP, //!< Jump - 1C (28)
+   FJMPIFEVAL, // Jump if evaluate = true
+   FJMP, // Jump
 
-   FBEGINBLOCK, //!< Defines the begining of a model block - 1D (29)
-   FENDBLOCK, //!< Defines the end of a model block - 1E (30)
-   FENDEQU, //!< Defines the last equation of the block. For block that has to be solved, the derivatives appear just after this flag - 1F (31)
-   FEND, //!< Defines the end of the model code - 20 (32)
+   FBEGINBLOCK, // Marks the beginning of a model block
+   FENDBLOCK, // Marks the end of a model block
+   FENDEQU, // Marks the last equation of the block; for a block that has to be solved, the derivatives appear just after this flag
+   FEND, // Marks the end of the model code
 
-   FOK, //!< Used for debugging purpose - 21 (33)
+   FOK, // Used for debugging purpose
 
-   FNUMEXPR, //!< Store the expression type and references - 22 (34)
+   FNUMEXPR, // Stores the expression type and references
 
-   FCALL, //!< Call an external function - 23 (35)
-   FPUSH, //!< Push a double in the stack - 24 (36)
-   FPOP, //!< Pop a double from the stack - 25 (37)
-   FLDTEF, //!< Stores the result of an external function in the stack - 26 (38)
-   FSTPTEF, //!< Loads the result of an external function from the stack- 27 (39)
-   FLDTEFD, //!< Stores the result of the 1st derivative of an external function in the stack - 28 (40)
-   FSTPTEFD, //!< Loads the result of the 1st derivative of an external function from the stack- 29 (41)
-   FLDTEFDD, //!< Stores the result of the 2nd derivative of an external function in the stack - 28 (42)
-   FSTPTEFDD //!< Loads the result of the 2nd derivative of an external function from the stack- 29 (43)
-
+   FCALL, // Call an external function
+   FPUSH, // Push a double onto the stack
+   FPOP, // Pop a double from the stack
+   FLDTEF, // Loads the result of an external function onto the stack
+   FSTPTEF, // Stores the result of an external function from the stack
+   FLDTEFD, // Loads the result of the 1st derivative of an external function onto the stack
+   FSTPTEFD, // Stores the result of the 1st derivative of an external function from the stack
+   FLDTEFDD, // Loads the result of the 2nd derivative of an external function onto the stack
+   FSTPTEFDD // Stores the result of the 2nd derivative of an external function from the stack
   };
 
 enum class ExpressionType
