@@ -97,15 +97,6 @@ enum class ExpressionType
    FirstOtherEndoDerivative,
    FirstExoDerivative,
    FirstExodetDerivative,
-   FirstParamDerivative,
-   SecondEndoDerivative,
-   SecondExoDerivative,
-   SecondExodetDerivative,
-   SecondParamDerivative,
-   ThirdEndoDerivative,
-   ThirdExoDerivative,
-   ThirdExodetDerivative,
-   ThirdParamDerivative
   };
 
 struct Block_contain_type
@@ -910,75 +901,31 @@ class FNUMEXPR_ : public BytecodeInstruction
 private:
   ExpressionType expression_type;
   unsigned int equation;
-  uint16_t dvariable1, dvariable2, dvariable3;
-  int8_t lag1, lag2, lag3;
+  uint16_t dvariable1;
+  int8_t lag1;
 public:
   FNUMEXPR_(const ExpressionType expression_type_arg, unsigned int equation_arg) :
     BytecodeInstruction{Tags::FNUMEXPR},
     expression_type{expression_type_arg},
     equation{equation_arg},
-    dvariable1{0}, dvariable2{0}, dvariable3{0},
-    lag1{0}, lag2{0}, lag3{0}
+    dvariable1{0},
+    lag1{0}
   {
   };
   FNUMEXPR_(const ExpressionType expression_type_arg, unsigned int equation_arg, unsigned int dvariable1_arg) :
     BytecodeInstruction{Tags::FNUMEXPR},
     expression_type{expression_type_arg},
     equation{equation_arg},
-    dvariable1{static_cast<uint16_t>(dvariable1_arg)}, dvariable2{0}, dvariable3{0},
-    lag1{0}, lag2{0}, lag3{0}
+    dvariable1{static_cast<uint16_t>(dvariable1_arg)},
+    lag1{0}
   {
   };
   FNUMEXPR_(const ExpressionType expression_type_arg, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg) :
     BytecodeInstruction{Tags::FNUMEXPR},
     expression_type{expression_type_arg},
     equation{equation_arg},
-    dvariable1{static_cast<uint16_t>(dvariable1_arg)}, dvariable2{0}, dvariable3{0},
-    lag1{static_cast<int8_t>(lag1_arg)}, lag2{0}, lag3{0}
-  {
-  };
-  FNUMEXPR_(const ExpressionType expression_type_arg, unsigned int equation_arg, unsigned int dvariable1_arg, unsigned int dvariable2_arg) :
-    BytecodeInstruction{Tags::FNUMEXPR},
-    expression_type{expression_type_arg},
-    equation{equation_arg},
     dvariable1{static_cast<uint16_t>(dvariable1_arg)},
-    dvariable2{static_cast<uint16_t>(dvariable2_arg)},
-    dvariable3{0},
-    lag1{0}, lag2{0}, lag3{0}
-  {
-  };
-  FNUMEXPR_(const ExpressionType expression_type_arg, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg, unsigned int dvariable2_arg, int lag2_arg) :
-    BytecodeInstruction{Tags::FNUMEXPR},
-    expression_type{expression_type_arg},
-    equation{equation_arg},
-    dvariable1{static_cast<uint16_t>(dvariable1_arg)},
-    dvariable2{static_cast<uint16_t>(dvariable2_arg)},
-    dvariable3{0},
-    lag1{static_cast<int8_t>(lag1_arg)},
-    lag2{static_cast<int8_t>(lag2_arg)},
-    lag3{0}
-  {
-  };
-  FNUMEXPR_(const ExpressionType expression_type_arg, unsigned int equation_arg, unsigned int dvariable1_arg, unsigned int dvariable2_arg, unsigned int dvariable3_arg) :
-    BytecodeInstruction{Tags::FNUMEXPR},
-    expression_type{expression_type_arg},
-    equation{equation_arg},
-    dvariable1{static_cast<uint16_t>(dvariable1_arg)},
-    dvariable2{static_cast<uint16_t>(dvariable2_arg)},
-    dvariable3{static_cast<uint16_t>(dvariable3_arg)},
-    lag1{0}, lag2{0}, lag3{0}
-  {
-  };
-  FNUMEXPR_(const ExpressionType expression_type_arg, unsigned int equation_arg, unsigned int dvariable1_arg, int lag1_arg, unsigned int dvariable2_arg, int lag2_arg, unsigned int dvariable3_arg, int lag3_arg) :
-    BytecodeInstruction{Tags::FNUMEXPR},
-    expression_type{expression_type_arg},
-    equation{equation_arg},
-    dvariable1{static_cast<uint16_t>(dvariable1_arg)},
-    dvariable2{static_cast<uint16_t>(dvariable2_arg)},
-    dvariable3{static_cast<uint16_t>(dvariable3_arg)},
-    lag1{static_cast<int8_t>(lag1_arg)},
-    lag2{static_cast<int8_t>(lag2_arg)},
-    lag3{static_cast<int8_t>(lag3_arg)}
+    lag1{static_cast<int8_t>(lag1_arg)}
   {
   };
   ExpressionType
@@ -1000,26 +947,6 @@ public:
   get_lag1()
   {
     return lag1;
-  };
-  unsigned int
-  get_dvariable2()
-  {
-    return dvariable2;
-  };
-  int
-  get_lag2()
-  {
-    return lag2;
-  };
-  unsigned int
-  get_dvariable3()
-  {
-    return dvariable3;
-  };
-  int
-  get_lag3()
-  {
-    return lag3;
   };
   void
   write(ostream &CompileCode, unsigned int &instruction_number)
