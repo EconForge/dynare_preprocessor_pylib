@@ -1122,13 +1122,6 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
                                FSTPT_ fstpt(static_cast<int>(blocks_temporary_terms_idxs.at(it)));
                                fstpt.write(code_file, instruction_number);
                                temporary_terms_union.insert(it);
-#ifdef DEBUGC
-                               cout << "FSTPT " << v << endl;
-                               instruction_number++;
-                               code_file.write(&FOK, sizeof(FOK));
-                               code_file.write(reinterpret_cast<char *>(&k), sizeof(k));
-                               ki++;
-#endif
                              }
                          };
 
