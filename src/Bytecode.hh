@@ -107,9 +107,9 @@ struct Block_contain_type
 class BytecodeInstruction
 {
 protected:
-  uint8_t op_code;
+  Tags op_code;
 public:
-  explicit BytecodeInstruction(Tags op_code_arg) : op_code{static_cast<uint8_t>(op_code_arg)}
+  explicit BytecodeInstruction(Tags op_code_arg) : op_code{op_code_arg}
   {
   };
   void
@@ -868,7 +868,7 @@ public:
   uint8_t *
   load(uint8_t *code)
   {
-    op_code = static_cast<uint8_t>(Tags::FCALL); code += sizeof(op_code);
+    op_code = Tags::FCALL; code += sizeof(op_code);
     memcpy(&nb_output_arguments, code, sizeof(nb_output_arguments)); code += sizeof(nb_output_arguments);
     memcpy(&nb_input_arguments, code, sizeof(nb_input_arguments)); code += sizeof(nb_input_arguments);
     memcpy(&indx, code, sizeof(indx)); code += sizeof(indx);
@@ -1155,7 +1155,7 @@ public:
   uint8_t *
   load(uint8_t *code)
   {
-    op_code = static_cast<uint8_t>(Tags::FBEGINBLOCK); code += sizeof(op_code);
+    op_code = Tags::FBEGINBLOCK; code += sizeof(op_code);
     memcpy(&size, code, sizeof(size)); code += sizeof(size);
     memcpy(&type, code, sizeof(type)); code += sizeof(type);
     for (int i = 0; i < size; i++)
@@ -1253,7 +1253,7 @@ public:
     int instruction = 0;
     while (!done)
       {
-        switch (static_cast<Tags>(*code))
+        switch (*reinterpret_cast<Tags *>(code))
           {
           case Tags::FLDZ:
 # ifdef DEBUGL
