@@ -469,17 +469,17 @@ StaticModel::writeStaticBytecode(const string &basename) const
             {
               FLDSU_ fldsu(it.second);
               fldsu.write(code_file, instruction_number);
-              FLDSV_ fldsv{static_cast<int>(SymbolType::endogenous), static_cast<unsigned int>(it.first)};
+              FLDSV_ fldsv{SymbolType::endogenous, static_cast<unsigned int>(it.first)};
               fldsv.write(code_file, instruction_number);
-              FBINARY_ fbinary{static_cast<int>(BinaryOpcode::times)};
+              FBINARY_ fbinary{BinaryOpcode::times};
               fbinary.write(code_file, instruction_number);
               if (exchange(printed_something, true))
                 {
-                  FBINARY_ fbinary{static_cast<int>(BinaryOpcode::plus)};
+                  FBINARY_ fbinary{BinaryOpcode::plus};
                   fbinary.write(code_file, instruction_number);
                 }
             }
-          FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
+          FBINARY_ fbinary{BinaryOpcode::minus};
           fbinary.write(code_file, instruction_number);
         }
       FSTPSU_ fstpsu(i);
@@ -694,7 +694,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
               lhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false, tef_terms);
               rhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false, tef_terms);
 
-              FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
+              FBINARY_ fbinary{BinaryOpcode::minus};
               fbinary.write(code_file, instruction_number);
 
               FSTPR_ fstpr(i - block_recursive);
@@ -771,10 +771,10 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
                       {
                         FLDSU_ fldsu(Uf[v].Ufl->u);
                         fldsu.write(code_file, instruction_number);
-                        FLDSV_ fldsv{static_cast<int>(SymbolType::endogenous), static_cast<unsigned int>(Uf[v].Ufl->var)};
+                        FLDSV_ fldsv{SymbolType::endogenous, static_cast<unsigned int>(Uf[v].Ufl->var)};
                         fldsv.write(code_file, instruction_number);
 
-                        FBINARY_ fbinary{static_cast<int>(BinaryOpcode::times)};
+                        FBINARY_ fbinary{BinaryOpcode::times};
                         fbinary.write(code_file, instruction_number);
 
                         FCUML_ fcuml;
@@ -787,7 +787,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
                         free(Uf[v].Ufl);
                         Uf[v].Ufl = Uf[v].Ufl_First;
                       }
-                    FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
+                    FBINARY_ fbinary{BinaryOpcode::minus};
                     fbinary.write(code_file, instruction_number);
 
                     FSTPSU_ fstpsu(i - block_recursive);
@@ -868,7 +868,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
               lhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false, tef_terms);
               rhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false, tef_terms);
 
-              FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
+              FBINARY_ fbinary{BinaryOpcode::minus};
               fbinary.write(code_file, instruction_number);
 
               FSTPR_ fstpr(i - block_recursive);

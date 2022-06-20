@@ -935,17 +935,17 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
             {
               FLDU_ fldu(get<2>(*it));
               fldu.write(code_file, instruction_number);
-              FLDV_ fldv{static_cast<int>(SymbolType::endogenous), static_cast<unsigned int>(get<0>(*it)), get<1>(*it)};
+              FLDV_ fldv{SymbolType::endogenous, static_cast<unsigned int>(get<0>(*it)), get<1>(*it)};
               fldv.write(code_file, instruction_number);
-              FBINARY_ fbinary{static_cast<int>(BinaryOpcode::times)};
+              FBINARY_ fbinary{BinaryOpcode::times};
               fbinary.write(code_file, instruction_number);
               if (it != my_derivatives[i].begin())
                 {
-                  FBINARY_ fbinary{static_cast<int>(BinaryOpcode::plus)};
+                  FBINARY_ fbinary{BinaryOpcode::plus};
                   fbinary.write(code_file, instruction_number);
                 }
             }
-          FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
+          FBINARY_ fbinary{BinaryOpcode::minus};
           fbinary.write(code_file, instruction_number);
         }
       FSTPU_ fstpu(i);
@@ -1181,7 +1181,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
               lhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
               rhs->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
 
-              FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
+              FBINARY_ fbinary{BinaryOpcode::minus};
               fbinary.write(code_file, instruction_number);
               FSTPR_ fstpr(i - block_recursive);
               fstpr.write(code_file, instruction_number);
@@ -1277,10 +1277,10 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
                         {
                           FLDU_ fldu(Uf[v].Ufl->u);
                           fldu.write(code_file, instruction_number);
-                          FLDV_ fldv{static_cast<int>(SymbolType::endogenous), static_cast<unsigned int>(Uf[v].Ufl->var), Uf[v].Ufl->lag};
+                          FLDV_ fldv{SymbolType::endogenous, static_cast<unsigned int>(Uf[v].Ufl->var), Uf[v].Ufl->lag};
                           fldv.write(code_file, instruction_number);
 
-                          FBINARY_ fbinary{static_cast<int>(BinaryOpcode::times)};
+                          FBINARY_ fbinary{BinaryOpcode::times};
                           fbinary.write(code_file, instruction_number);
 
                           FCUML_ fcuml;
@@ -1293,7 +1293,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
                           free(Uf[v].Ufl);
                           Uf[v].Ufl = Uf[v].Ufl_First;
                         }
-                      FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
+                      FBINARY_ fbinary{BinaryOpcode::minus};
                       fbinary.write(code_file, instruction_number);
 
                       FSTPU_ fstpu(i - block_recursive);

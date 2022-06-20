@@ -1416,7 +1416,7 @@ ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_n
           lhs->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
           rhs->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
 
-          FBINARY_ fbinary{static_cast<int>(BinaryOpcode::minus)};
+          FBINARY_ fbinary{BinaryOpcode::minus};
           fbinary.write(code_file, instruction_number);
 
           FSTPR_ fstpr(eq);

@@ -467,39 +467,39 @@ public:
   };
 };
 
-class FUNARY_ : public TagWithOneArgument<uint8_t>
+class FUNARY_ : public TagWithOneArgument<UnaryOpcode>
 {
 public:
-  explicit FUNARY_(uint8_t op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument{Tags::FUNARY, op_type_arg}
+  explicit FUNARY_(UnaryOpcode op_type_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FUNARY, op_type_arg}
   {
   };
-  uint8_t
+  UnaryOpcode
   get_op_type()
   {
     return arg1;
   };
 };
 
-class FBINARY_ : public TagWithOneArgument<uint8_t>
+class FBINARY_ : public TagWithOneArgument<BinaryOpcode>
 {
 public:
-  explicit FBINARY_(int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument{Tags::FBINARY, static_cast<uint8_t>(op_type_arg)}
+  explicit FBINARY_(BinaryOpcode op_type_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FBINARY, op_type_arg}
   {
   };
-  uint8_t
+  BinaryOpcode
   get_op_type()
   {
     return arg1;
   };
 };
 
-class FTRINARY_ : public TagWithOneArgument<uint8_t>
+class FTRINARY_ : public TagWithOneArgument<TrinaryOpcode>
 {
 public:
-  explicit FTRINARY_(int op_type_arg) : TagWithOneArgument<uint8_t>::TagWithOneArgument{Tags::FTRINARY, static_cast<uint8_t>(op_type_arg)}
+  explicit FTRINARY_(TrinaryOpcode op_type_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FTRINARY, op_type_arg}
   {
   };
-  uint8_t
+  TrinaryOpcode
   get_op_type()
   {
     return arg1;
@@ -640,13 +640,13 @@ public:
   };
 };
 
-class FLDVS_ : public TagWithTwoArguments<uint8_t, unsigned int>
+class FLDVS_ : public TagWithTwoArguments<SymbolType, unsigned int>
 {
 public:
-  FLDVS_(uint8_t type_arg, unsigned int pos_arg) : TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{Tags::FLDVS, type_arg, pos_arg}
+  FLDVS_(SymbolType type_arg, unsigned int pos_arg) : TagWithTwoArguments::TagWithTwoArguments{Tags::FLDVS, type_arg, pos_arg}
   {
   };
-  uint8_t
+  SymbolType
   get_type()
   {
     return arg1;
@@ -658,14 +658,13 @@ public:
   };
 };
 
-class FLDSV_ : public TagWithTwoArguments<uint8_t, unsigned int>
+class FLDSV_ : public TagWithTwoArguments<SymbolType, unsigned int>
 {
 public:
-  FLDSV_(uint8_t type_arg, unsigned int pos_arg) :
-    TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{Tags::FLDSV, type_arg, pos_arg}
+  FLDSV_(SymbolType type_arg, unsigned int pos_arg) : TagWithTwoArguments::TagWithTwoArguments{Tags::FLDSV, type_arg, pos_arg}
   {
   };
-  uint8_t
+  SymbolType
   get_type()
   {
     return arg1;
@@ -677,14 +676,13 @@ public:
   };
 };
 
-class FSTPSV_ : public TagWithTwoArguments<uint8_t, unsigned int>
+class FSTPSV_ : public TagWithTwoArguments<SymbolType, unsigned int>
 {
 public:
-  FSTPSV_(uint8_t type_arg, unsigned int pos_arg) :
-    TagWithTwoArguments<uint8_t, unsigned int>::TagWithTwoArguments{Tags::FSTPSV, type_arg, pos_arg}
+  FSTPSV_(SymbolType type_arg, unsigned int pos_arg) : TagWithTwoArguments::TagWithTwoArguments{Tags::FSTPSV, type_arg, pos_arg}
   {
   };
-  uint8_t
+  SymbolType
   get_type()
   {
     return arg1;
@@ -696,18 +694,17 @@ public:
   };
 };
 
-class FLDV_ : public TagWithThreeArguments<uint8_t, unsigned int, int>
+class FLDV_ : public TagWithThreeArguments<SymbolType, unsigned int, int>
 {
 public:
-  FLDV_(int type_arg, unsigned int pos_arg) :
-    TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{Tags::FLDV, static_cast<uint8_t>(type_arg), pos_arg, 0}
+  FLDV_(SymbolType type_arg, unsigned int pos_arg) : TagWithThreeArguments::TagWithThreeArguments{Tags::FLDV, type_arg, pos_arg, 0}
   {
   };
-  FLDV_(int type_arg, unsigned int pos_arg, int lead_lag_arg) :
-    TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{Tags::FLDV, static_cast<uint8_t>(type_arg), pos_arg, lead_lag_arg}
+  FLDV_(SymbolType type_arg, unsigned int pos_arg, int lead_lag_arg) :
+    TagWithThreeArguments::TagWithThreeArguments{Tags::FLDV, type_arg, pos_arg, lead_lag_arg}
   {
   };
-  uint8_t
+  SymbolType
   get_type()
   {
     return arg1;
@@ -724,18 +721,18 @@ public:
   };
 };
 
-class FSTPV_ : public TagWithThreeArguments<uint8_t, unsigned int, int>
+class FSTPV_ : public TagWithThreeArguments<SymbolType, unsigned int, int>
 {
 public:
-  FSTPV_(int type_arg, unsigned int pos_arg) :
-    TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{Tags::FSTPV, static_cast<uint8_t>(type_arg), pos_arg, 0}
+  FSTPV_(SymbolType type_arg, unsigned int pos_arg) :
+    TagWithThreeArguments::TagWithThreeArguments{Tags::FSTPV, type_arg, pos_arg, 0}
   {
   };
-  FSTPV_(int type_arg, unsigned int pos_arg, int lead_lag_arg) :
-    TagWithThreeArguments<uint8_t, unsigned int, int>::TagWithThreeArguments{Tags::FSTPV, static_cast<uint8_t>(type_arg), pos_arg, lead_lag_arg}
+  FSTPV_(SymbolType type_arg, unsigned int pos_arg, int lead_lag_arg) :
+    TagWithThreeArguments::TagWithThreeArguments{Tags::FSTPV, type_arg, pos_arg, lead_lag_arg}
   {
   };
-  uint8_t
+  SymbolType
   get_type()
   {
     return arg1;
@@ -958,7 +955,7 @@ class FBEGINBLOCK_ : public BytecodeInstruction
 {
 private:
   int size{0};
-  uint8_t type;
+  BlockSimulationType type;
   vector<int> variable;
   vector<int> equation;
   vector<int> other_endogenous;
@@ -975,7 +972,7 @@ private:
   unsigned int nb_col_det_exo_jacob, nb_col_exo_jacob, nb_col_other_endo_jacob;
 public:
   FBEGINBLOCK_() : BytecodeInstruction{Tags::FBEGINBLOCK},
-                   type{static_cast<uint8_t>(BlockSimulationType::unknown)}
+                   type{BlockSimulationType::unknown}
   {
   }
   FBEGINBLOCK_(unsigned int size_arg, BlockSimulationType type_arg, int unsigned first_element, int unsigned block_size,
@@ -985,7 +982,7 @@ public:
                vector<int> det_exogenous_arg, vector<int> exogenous_arg, vector<int> other_endogenous_arg) :
     BytecodeInstruction{Tags::FBEGINBLOCK},
     size{static_cast<int>(size_arg)},
-    type{static_cast<uint8_t>(type_arg)},
+    type{type_arg},
     variable{variable_arg.begin()+first_element, variable_arg.begin()+(first_element+block_size)},
     equation{equation_arg.begin()+first_element, equation_arg.begin()+(first_element+block_size)},
     other_endogenous{move(other_endogenous_arg)},
@@ -1010,7 +1007,7 @@ public:
                bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int &u_count_int_arg, int nb_col_jacob_arg) :
     BytecodeInstruction{Tags::FBEGINBLOCK},
     size{static_cast<int>(size_arg)},
-    type{static_cast<uint8_t>(type_arg)},
+    type{type_arg},
     variable{variable_arg.begin()+first_element, variable_arg.begin()+(first_element+block_size)},
     equation{equation_arg.begin()+first_element, equation_arg.begin()+(first_element+block_size)},
     is_linear{is_linear_arg},
@@ -1032,7 +1029,7 @@ public:
   {
     return size;
   };
-  uint8_t
+  BlockSimulationType
   get_type()
   {
     return type;
@@ -1123,10 +1120,10 @@ public:
         CompileCode.write(reinterpret_cast<char *>(&variable[i]), sizeof(variable[0]));
         CompileCode.write(reinterpret_cast<char *>(&equation[i]), sizeof(equation[0]));
       }
-    if (type == static_cast<uint8_t>(BlockSimulationType::solveTwoBoundariesSimple)
-        || type == static_cast<uint8_t>(BlockSimulationType::solveTwoBoundariesComplete)
-        || type == static_cast<uint8_t>(BlockSimulationType::solveBackwardComplete)
-        || type == static_cast<uint8_t>(BlockSimulationType::solveForwardComplete))
+    if (type == BlockSimulationType::solveTwoBoundariesSimple
+        || type == BlockSimulationType::solveTwoBoundariesComplete
+        || type == BlockSimulationType::solveBackwardComplete
+        || type == BlockSimulationType::solveForwardComplete)
       {
         CompileCode.write(reinterpret_cast<char *>(&is_linear), sizeof(is_linear));
         CompileCode.write(reinterpret_cast<char *>(&endo_nbr), sizeof(endo_nbr));
@@ -1165,10 +1162,10 @@ public:
         memcpy(&bc.Equation, code, sizeof(bc.Equation)); code += sizeof(bc.Equation);
         Block_Contain_.push_back(bc);
       }
-    if (type == static_cast<uint8_t>(BlockSimulationType::solveTwoBoundariesSimple)
-        || type == static_cast<uint8_t>(BlockSimulationType::solveTwoBoundariesComplete)
-        || type == static_cast<uint8_t>(BlockSimulationType::solveBackwardComplete)
-        || type == static_cast<uint8_t>(BlockSimulationType::solveForwardComplete))
+    if (type == BlockSimulationType::solveTwoBoundariesSimple
+        || type == BlockSimulationType::solveTwoBoundariesComplete
+        || type == BlockSimulationType::solveBackwardComplete
+        || type == BlockSimulationType::solveForwardComplete)
       {
         memcpy(&is_linear, code, sizeof(is_linear)); code += sizeof(is_linear);
         memcpy(&endo_nbr, code, sizeof(endo_nbr)); code += sizeof(endo_nbr);

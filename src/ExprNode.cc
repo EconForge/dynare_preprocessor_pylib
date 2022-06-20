@@ -1244,26 +1244,26 @@ VariableNode::compile(ostream &CompileCode, unsigned int &instruction_number,
             {
               if (steady_dynamic) // steady state values in a dynamic model
                 {
-                  FLDVS_ fldvs{static_cast<uint8_t>(type), static_cast<unsigned int>(tsid)};
+                  FLDVS_ fldvs{type, static_cast<unsigned int>(tsid)};
                   fldvs.write(CompileCode, instruction_number);
                 }
               else
                 {
                   if (type == SymbolType::parameter)
                     {
-                      FLDV_ fldv{static_cast<int>(type), static_cast<unsigned int>(tsid)};
+                      FLDV_ fldv{type, static_cast<unsigned int>(tsid)};
                       fldv.write(CompileCode, instruction_number);
                     }
                   else
                     {
-                      FLDV_ fldv{static_cast<int>(type), static_cast<unsigned int>(tsid), lag};
+                      FLDV_ fldv{type, static_cast<unsigned int>(tsid), lag};
                       fldv.write(CompileCode, instruction_number);
                     }
                 }
             }
           else
             {
-              FLDSV_ fldsv{static_cast<uint8_t>(type), static_cast<unsigned int>(tsid)};
+              FLDSV_ fldsv{type, static_cast<unsigned int>(tsid)};
               fldsv.write(CompileCode, instruction_number);
             }
         }
@@ -1280,19 +1280,19 @@ VariableNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                 {
                   if (type == SymbolType::parameter)
                     {
-                      FSTPV_ fstpv{static_cast<int>(type), static_cast<unsigned int>(tsid)};
+                      FSTPV_ fstpv{type, static_cast<unsigned int>(tsid)};
                       fstpv.write(CompileCode, instruction_number);
                     }
                   else
                     {
-                      FSTPV_ fstpv{static_cast<int>(type), static_cast<unsigned int>(tsid), lag};
+                      FSTPV_ fstpv{type, static_cast<unsigned int>(tsid), lag};
                       fstpv.write(CompileCode, instruction_number);
                     }
                 }
             }
           else
             {
-              FSTPSV_ fstpsv{static_cast<uint8_t>(type), static_cast<unsigned int>(tsid)};
+              FSTPSV_ fstpsv{type, static_cast<unsigned int>(tsid)};
               fstpsv.write(CompileCode, instruction_number);
             }
         }
@@ -3036,7 +3036,7 @@ UnaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
   else
     {
       arg->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
-      FUNARY_ funary{static_cast<uint8_t>(op_code)};
+      FUNARY_ funary{op_code};
       funary.write(CompileCode, instruction_number);
     }
 }
@@ -4299,7 +4299,7 @@ BinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
     }
   arg1->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
   arg2->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
-  FBINARY_ fbinary{static_cast<int>(op_code)};
+  FBINARY_ fbinary{op_code};
   fbinary.write(CompileCode, instruction_number);
 }
 
@@ -5995,7 +5995,7 @@ TrinaryOpNode::compile(ostream &CompileCode, unsigned int &instruction_number,
   arg1->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
   arg2->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
   arg3->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
-  FTRINARY_ ftrinary{static_cast<int>(op_code)};
+  FTRINARY_ ftrinary{op_code};
   ftrinary.write(CompileCode, instruction_number);
 }
 
