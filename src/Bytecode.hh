@@ -104,8 +104,6 @@ struct Block_contain_type
   int Equation, Variable, Own_Derivative;
 };
 
-#pragma pack(push, 1)
-
 class BytecodeInstruction
 {
 protected:
@@ -1566,7 +1564,5 @@ public:
   };
 };
 #endif // BYTECODE_MEX
-
-#pragma pack(pop)
 
 #endif // _BYTECODE_HH
