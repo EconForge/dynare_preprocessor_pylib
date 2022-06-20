@@ -1244,26 +1244,26 @@ VariableNode::compile(ostream &CompileCode, unsigned int &instruction_number,
             {
               if (steady_dynamic) // steady state values in a dynamic model
                 {
-                  FLDVS_ fldvs{type, static_cast<unsigned int>(tsid)};
+                  FLDVS_ fldvs{type, tsid};
                   fldvs.write(CompileCode, instruction_number);
                 }
               else
                 {
                   if (type == SymbolType::parameter)
                     {
-                      FLDV_ fldv{type, static_cast<unsigned int>(tsid)};
+                      FLDV_ fldv{type, tsid};
                       fldv.write(CompileCode, instruction_number);
                     }
                   else
                     {
-                      FLDV_ fldv{type, static_cast<unsigned int>(tsid), lag};
+                      FLDV_ fldv{type, tsid, lag};
                       fldv.write(CompileCode, instruction_number);
                     }
                 }
             }
           else
             {
-              FLDSV_ fldsv{type, static_cast<unsigned int>(tsid)};
+              FLDSV_ fldsv{type, tsid};
               fldsv.write(CompileCode, instruction_number);
             }
         }
@@ -1280,19 +1280,19 @@ VariableNode::compile(ostream &CompileCode, unsigned int &instruction_number,
                 {
                   if (type == SymbolType::parameter)
                     {
-                      FSTPV_ fstpv{type, static_cast<unsigned int>(tsid)};
+                      FSTPV_ fstpv{type, tsid};
                       fstpv.write(CompileCode, instruction_number);
                     }
                   else
                     {
-                      FSTPV_ fstpv{type, static_cast<unsigned int>(tsid), lag};
+                      FSTPV_ fstpv{type, tsid, lag};
                       fstpv.write(CompileCode, instruction_number);
                     }
                 }
             }
           else
             {
-              FSTPSV_ fstpsv{type, static_cast<unsigned int>(tsid)};
+              FSTPSV_ fstpsv{type, tsid};
               fstpsv.write(CompileCode, instruction_number);
             }
         }
@@ -6654,7 +6654,7 @@ AbstractExternalFunctionNode::getChainRuleDerivative(int deriv_id, const map<int
   return composeDerivatives(dargs);
 }
 
-unsigned int
+int
 AbstractExternalFunctionNode::compileExternalFunctionArguments(ostream &CompileCode, unsigned int &instruction_number,
                                                                bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                                                const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
@@ -6663,7 +6663,7 @@ AbstractExternalFunctionNode::compileExternalFunctionArguments(ostream &CompileC
   for (auto argument : arguments)
     argument->compile(CompileCode, instruction_number, lhs_rhs, temporary_terms,
                       temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
-  return (arguments.size());
+  return static_cast<int>(arguments.size());
 }
 
 void
@@ -7259,7 +7259,7 @@ ExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCode, unsign
       int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
       assert(second_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
-      unsigned int nb_output_arguments = 0;
+      int nb_output_arguments{0};
       if (symb_id == first_deriv_symb_id
           && symb_id == second_deriv_symb_id)
         nb_output_arguments = 3;
@@ -7267,8 +7267,8 @@ ExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCode, unsign
         nb_output_arguments = 2;
       else
         nb_output_arguments = 1;
-      unsigned int nb_input_arguments = compileExternalFunctionArguments(CompileCode, instruction_number, lhs_rhs, temporary_terms,
-                                                                         temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+      int nb_input_arguments{compileExternalFunctionArguments(CompileCode, instruction_number, lhs_rhs, temporary_terms,
+                                                              temporary_terms_idxs, dynamic, steady_dynamic, tef_terms)};
 
       FCALL_ fcall(nb_output_arguments, nb_input_arguments, datatree.symbol_table.getName(symb_id), indx);
       switch (nb_output_arguments)
@@ -7782,12 +7782,12 @@ FirstDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCo
   if (alreadyWrittenAsTefTerm(first_deriv_symb_id, tef_terms))
     return;
 
-  unsigned int nb_add_input_arguments = compileExternalFunctionArguments(CompileCode, instruction_number, lhs_rhs, temporary_terms,
-                                                                         temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+  int nb_add_input_arguments{compileExternalFunctionArguments(CompileCode, instruction_number, lhs_rhs, temporary_terms,
+                                                              temporary_terms_idxs, dynamic, steady_dynamic, tef_terms)};
   if (first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
     {
-      unsigned int nb_input_arguments = 0;
-      unsigned int nb_output_arguments = 1;
+      int nb_input_arguments{0};
+      int nb_output_arguments{1};
       int indx = getIndxInTefTerms(symb_id, tef_terms);
       FCALL_ fcall(nb_output_arguments, nb_input_arguments, "jacob_element", indx);
       fcall.set_arg_func_name(datatree.symbol_table.getName(symb_id));
@@ -7805,7 +7805,7 @@ FirstDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileCo
       int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
       assert(second_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
-      unsigned int nb_output_arguments = 1;
+      int nb_output_arguments{1};
 
       FCALL_ fcall(nb_output_arguments, nb_add_input_arguments, datatree.symbol_table.getName(first_deriv_symb_id), indx);
       fcall.set_function_type(ExternalFunctionType::firstDerivative);
@@ -8197,12 +8197,12 @@ SecondDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileC
   if (alreadyWrittenAsTefTerm(second_deriv_symb_id, tef_terms))
     return;
 
-  unsigned int nb_add_input_arguments = compileExternalFunctionArguments(CompileCode, instruction_number, lhs_rhs, temporary_terms,
-                                                                         temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+  int nb_add_input_arguments{compileExternalFunctionArguments(CompileCode, instruction_number, lhs_rhs, temporary_terms,
+                                                              temporary_terms_idxs, dynamic, steady_dynamic, tef_terms)};
   if (second_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
     {
-      unsigned int nb_input_arguments = 0;
-      unsigned int nb_output_arguments = 1;
+      int nb_input_arguments{0};
+      int nb_output_arguments{1};
       int indx = getIndxInTefTerms(symb_id, tef_terms);
       FCALL_ fcall(nb_output_arguments, nb_input_arguments, "hess_element", indx);
       fcall.set_arg_func_name(datatree.symbol_table.getName(symb_id));
@@ -8219,7 +8219,7 @@ SecondDerivExternalFunctionNode::compileExternalFunctionOutput(ostream &CompileC
       tef_terms[{ second_deriv_symb_id, arguments }] = static_cast<int>(tef_terms.size());
       int indx = getIndxInTefTerms(symb_id, tef_terms);
 
-      unsigned int nb_output_arguments = 1;
+      int nb_output_arguments{1};
 
       FCALL_ fcall(nb_output_arguments, nb_add_input_arguments, datatree.symbol_table.getName(second_deriv_symb_id), indx);
       fcall.set_function_type(ExternalFunctionType::secondDerivative);

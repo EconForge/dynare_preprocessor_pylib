@@ -403,7 +403,7 @@ StaticModel::writeStaticBytecode(const string &basename) const
   temporary_terms.insert(temporary_terms_derivatives[1].begin(), temporary_terms_derivatives[1].end());
 
   //Temporary variables declaration
-  FDIMST_ fdimst(temporary_terms.size());
+  FDIMST_ fdimst{static_cast<int>(temporary_terms.size())};
   fdimst.write(code_file, instruction_number);
   FBEGINBLOCK_ fbeginblock(symbol_table.endo_nbr(),
                            BlockSimulationType::solveForwardComplete,
@@ -469,7 +469,7 @@ StaticModel::writeStaticBytecode(const string &basename) const
             {
               FLDSU_ fldsu(it.second);
               fldsu.write(code_file, instruction_number);
-              FLDSV_ fldsv{SymbolType::endogenous, static_cast<unsigned int>(it.first)};
+              FLDSV_ fldsv{SymbolType::endogenous, it.first};
               fldsv.write(code_file, instruction_number);
               FBINARY_ fbinary{BinaryOpcode::times};
               fbinary.write(code_file, instruction_number);
@@ -569,7 +569,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
     }
   //Temporary variables declaration
 
-  FDIMST_ fdimst(blocks_temporary_terms_idxs.size());
+  FDIMST_ fdimst{static_cast<int>(blocks_temporary_terms_idxs.size())};
   fdimst.write(code_file, instruction_number);
 
   temporary_terms_t temporary_terms_union;
@@ -632,10 +632,10 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
                                if (dynamic_cast<AbstractExternalFunctionNode *>(it))
                                  it->compileExternalFunctionOutput(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false, tef_terms);
 
-                               FNUMEXPR_ fnumexpr(ExpressionType::TemporaryTerm, static_cast<int>(blocks_temporary_terms_idxs.at(it)));
+                               FNUMEXPR_ fnumexpr{ExpressionType::TemporaryTerm, blocks_temporary_terms_idxs.at(it)};
                                fnumexpr.write(code_file, instruction_number);
                                it->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, false, false, tef_terms);
-                               FSTPST_ fstpst(static_cast<int>(blocks_temporary_terms_idxs.at(it)));
+                               FSTPST_ fstpst{blocks_temporary_terms_idxs.at(it)};
                                fstpst.write(code_file, instruction_number);
                                temporary_terms_union.insert(it);
                              }
@@ -771,7 +771,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
                       {
                         FLDSU_ fldsu(Uf[v].Ufl->u);
                         fldsu.write(code_file, instruction_number);
-                        FLDSV_ fldsv{SymbolType::endogenous, static_cast<unsigned int>(Uf[v].Ufl->var)};
+                        FLDSV_ fldsv{SymbolType::endogenous, Uf[v].Ufl->var};
                         fldsv.write(code_file, instruction_number);
 
                         FBINARY_ fbinary{BinaryOpcode::times};

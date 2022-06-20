@@ -802,7 +802,7 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
   file_open = true;
 
   //Temporary variables declaration
-  FDIMT_ fdimt(temporary_terms_idxs.size());
+  FDIMT_ fdimt{static_cast<int>(temporary_terms_idxs.size())};
   fdimt.write(code_file, instruction_number);
 
   vector<int> exo, exo_det, other_endo;
@@ -935,7 +935,7 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
             {
               FLDU_ fldu(get<2>(*it));
               fldu.write(code_file, instruction_number);
-              FLDV_ fldv{SymbolType::endogenous, static_cast<unsigned int>(get<0>(*it)), get<1>(*it)};
+              FLDV_ fldv{SymbolType::endogenous, get<0>(*it), get<1>(*it)};
               fldv.write(code_file, instruction_number);
               FBINARY_ fbinary{BinaryOpcode::times};
               fbinary.write(code_file, instruction_number);
@@ -1051,7 +1051,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
     }
   //Temporary variables declaration
 
-  FDIMT_ fdimt(blocks_temporary_terms_idxs.size());
+  FDIMT_ fdimt{static_cast<int>(blocks_temporary_terms_idxs.size())};
   fdimt.write(code_file, instruction_number);
 
   for (int block = 0; block < static_cast<int>(blocks.size()); block++)
@@ -1116,10 +1116,10 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
                                if (dynamic_cast<AbstractExternalFunctionNode *>(it))
                                  it->compileExternalFunctionOutput(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
 
-                               FNUMEXPR_ fnumexpr(ExpressionType::TemporaryTerm, static_cast<int>(blocks_temporary_terms_idxs.at(it)));
+                               FNUMEXPR_ fnumexpr{ExpressionType::TemporaryTerm, blocks_temporary_terms_idxs.at(it)};
                                fnumexpr.write(code_file, instruction_number);
                                it->compile(code_file, instruction_number, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
-                               FSTPT_ fstpt(static_cast<int>(blocks_temporary_terms_idxs.at(it)));
+                               FSTPT_ fstpt{blocks_temporary_terms_idxs.at(it)};
                                fstpt.write(code_file, instruction_number);
                                temporary_terms_union.insert(it);
                              }
@@ -1277,7 +1277,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
                         {
                           FLDU_ fldu(Uf[v].Ufl->u);
                           fldu.write(code_file, instruction_number);
-                          FLDV_ fldv{SymbolType::endogenous, static_cast<unsigned int>(Uf[v].Ufl->var), Uf[v].Ufl->lag};
+                          FLDV_ fldv{SymbolType::endogenous, Uf[v].Ufl->var, Uf[v].Ufl->lag};
                           fldv.write(code_file, instruction_number);
 
                           FBINARY_ fbinary{BinaryOpcode::times};

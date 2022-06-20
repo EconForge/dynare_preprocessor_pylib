@@ -1314,10 +1314,10 @@ public:
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   double eval(const eval_context_t &eval_context) const noexcept(false) override;
-  unsigned int compileExternalFunctionArguments(ostream &CompileCode, unsigned int &instruction_number,
-                                                bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                                const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
-                                                const deriv_node_temp_terms_t &tef_terms) const;
+  int compileExternalFunctionArguments(ostream &CompileCode, unsigned int &instruction_number,
+                                       bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                       const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
+                                       const deriv_node_temp_terms_t &tef_terms) const;
 
   void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override = 0;
   expr_t toStatic(DataTree &static_datatree) const override = 0;
