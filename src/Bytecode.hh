@@ -900,7 +900,7 @@ private:
   ExpressionType expression_type;
   unsigned int equation;
   uint16_t dvariable1;
-  int8_t lag1;
+  int lag1;
 public:
   FNUMEXPR_(const ExpressionType expression_type_arg, unsigned int equation_arg) :
     BytecodeInstruction{Tags::FNUMEXPR},
@@ -923,7 +923,7 @@ public:
     expression_type{expression_type_arg},
     equation{equation_arg},
     dvariable1{static_cast<uint16_t>(dvariable1_arg)},
-    lag1{static_cast<int8_t>(lag1_arg)}
+    lag1{lag1_arg}
   {
   };
   ExpressionType
