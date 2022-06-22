@@ -486,7 +486,7 @@ SymbolTable::addExoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t e
 int
 SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t expr_arg) noexcept(false)
 {
-  string varname{string{"AUX_EXPECT_"} + (information_set < 0 ? "LAG" : "LEAD") + "_"
+  string varname{"AUX_EXPECT_"s + (information_set < 0 ? "LAG" : "LEAD") + "_"
     + to_string(abs(information_set)) + "_" + to_string(index)};
   int symb_id;
   try

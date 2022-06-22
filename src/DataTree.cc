@@ -404,7 +404,7 @@ DataTree::AddDiff(expr_t iArg1)
 expr_t
 DataTree::AddAdl(expr_t iArg1, const string &name, const vector<int> &lags)
 {
-  return AddUnaryOp(UnaryOpcode::adl, iArg1, 0, 0, 0, string(name), lags);
+  return AddUnaryOp(UnaryOpcode::adl, iArg1, 0, 0, 0, name, lags);
 }
 
 expr_t

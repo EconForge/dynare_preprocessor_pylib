@@ -505,7 +505,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
         output << "function [residual, y, T, g1, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, stochastic_mode)" << endl;
 
       output << "  % ////////////////////////////////////////////////////////////////////////" << endl
-             << "  % //" << string("                     Block ").substr(static_cast<int>(log10(blk + 1))) << blk+1
+             << "  % //" << "                     Block "s.substr(static_cast<int>(log10(blk + 1))) << blk+1
              << "                                        //" << endl
              << "  % //                     Simulation type "
              << BlockSim(simulation_type) << "  //" << endl

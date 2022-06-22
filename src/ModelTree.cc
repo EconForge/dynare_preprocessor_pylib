@@ -1890,7 +1890,7 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
           flags << " -static-libgcc -shared";
           // Put the MinGW environment shipped with Dynare in the path
           auto mingwpath = dynareroot / "mingw64" / "bin";
-          string newpath = "PATH=" + mingwpath.string() + ';' + string{getenv("PATH")};
+          string newpath = "PATH=" + mingwpath.string() + ';' + getenv("PATH");
           /* We can’t use setenv() since it is not available on MinGW. Note
             that putenv() seems to make a copy of the string on MinGW, contrary
             to what is done on GNU/Linux and macOS. */

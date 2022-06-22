@@ -83,7 +83,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
  /* Rules for matching $line directives */
 <*>^@#line\ \"  { line_caller = YYSTATE; BEGIN(LINE1); }
 <LINE1>[^\"]*   {
-                  filename = string(yytext);
+                  filename = yytext;
                   BEGIN(LINE2);
                 }
 <LINE2>\"       BEGIN(LINE3);
@@ -1127,7 +1127,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
     and move to the NATIVE context
  */
 <INITIAL>\[([[:space:]]*[a-z_][a-z0-9_]*[[:space:]]*,{1}[[:space:]]*)*([[:space:]]*[a-z_][a-z0-9_]*[[:space:]]*){1}\] {
-  string yytextcpy = string(yytext);
+  string yytextcpy{yytext};
   yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), '['), yytextcpy.end());
   yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), ']'), yytextcpy.end());
   yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), ' '), yytextcpy.end());
@@ -1166,7 +1166,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
   \"[^\"\n]*\"                |
   \.{1,2}                     |
   \*                          |
-  \/                          { yymore(); eofbuff = string(yytext); }
+  \/                          { yymore(); eofbuff = yytext; }
   \.{3,}[[:space:]]*\n        { driver.add_native_remove_charset(yytext, "\n"); }
   \n                          {
                                 if (strlen(yytext) > 1)

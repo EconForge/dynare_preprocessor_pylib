@@ -260,7 +260,7 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
         output << "function [residual, y, T, g1] = static_" << blk+1 << "(y, x, params, T)" << endl;
 
       output << "  % ////////////////////////////////////////////////////////////////////////" << endl
-             << "  % //" << string("                     Block ").substr(static_cast<int>(log10(blk + 1))) << blk+1
+             << "  % //" << "                     Block "s.substr(static_cast<int>(log10(blk + 1))) << blk+1
              << "                                        //" << endl
              << "  % //                     Simulation type "
              << BlockSim(simulation_type) << "  //" << endl

@@ -3146,7 +3146,7 @@ ParsingDriver::add_model_var_or_external_function(const string &function_name, b
       if (!in_model_block && !parsing_epilogue && !parsing_pac_model)
         {
           if (stack_external_function_args.top().size() > 0)
-            error(string("Symbol ") + function_name + string(" cannot take arguments."));
+            error("Symbol " + function_name + " cannot take arguments.");
           else
             return add_expression_variable(function_name);
         }
