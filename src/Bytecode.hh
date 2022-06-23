@@ -23,11 +23,13 @@
 #include <fstream>
 #include <vector>
 #include <utility>
+#include <ios>
+
+#include "CommonEnums.hh"
 
 #ifdef BYTECODE_MEX
 # include <dynmex.h>
 # include <cstring>
-# include "CommonEnums.hh"
 #endif
 
 using namespace std;
@@ -103,19 +105,17 @@ struct Block_contain_type
   int Equation, Variable, Own_Derivative;
 };
 
+class BytecodeWriter;
+
 class BytecodeInstruction
 {
+  template<typename B>
+  friend BytecodeWriter &operator<<(BytecodeWriter &code_file, const B &instr);
 protected:
   Tags op_code;
 public:
   explicit BytecodeInstruction(Tags op_code_arg) : op_code{op_code_arg}
   {
-  };
-  void
-  write(ostream &CompileCode, unsigned int &instruction_number)
-  {
-    CompileCode.write(reinterpret_cast<char *>(this), sizeof(*this));
-    instruction_number++;
   };
 };
 
@@ -128,12 +128,6 @@ public:
   TagWithOneArgument(Tags op_code_arg, T1 arg_arg1) : BytecodeInstruction{op_code_arg},
                                                       arg1{arg_arg1}
   {
-  };
-  void
-  write(ostream &CompileCode, unsigned int &instruction_number)
-  {
-    CompileCode.write(reinterpret_cast<char *>(this), sizeof(*this));
-    instruction_number++;
   };
 };
 
@@ -148,12 +142,6 @@ public:
     BytecodeInstruction{op_code_arg}, arg1{arg_arg1}, arg2{arg_arg2}
   {
   };
-  void
-  write(ostream &CompileCode, unsigned int &instruction_number)
-  {
-    CompileCode.write(reinterpret_cast<char *>(this), sizeof(*this));
-    instruction_number++;
-  };
 };
 
 template<typename T1, typename T2, typename T3>
@@ -167,12 +155,6 @@ public:
   TagWithThreeArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3) :
     BytecodeInstruction{op_code_arg}, arg1{arg_arg1}, arg2{arg_arg2}, arg3{arg_arg3}
   {
-  };
-  void
-  write(ostream &CompileCode, unsigned int &instruction_number)
-  {
-    CompileCode.write(reinterpret_cast<char *>(this), sizeof(*this));
-    instruction_number++;
   };
 };
 
@@ -189,12 +171,6 @@ public:
     BytecodeInstruction{op_code_arg}, arg1{arg_arg1}, arg2{arg_arg2},
     arg3{move(arg_arg3)}, arg4{arg_arg4}
   {
-  };
-  void
-  write(ostream &CompileCode, unsigned int &instruction_number)
-  {
-    CompileCode.write(reinterpret_cast<char *>(this), sizeof(*this));
-    instruction_number++;
   };
 };
 
@@ -750,6 +726,9 @@ public:
 
 class FCALL_ : public BytecodeInstruction
 {
+  template<typename B>
+  friend BytecodeWriter &operator<<(BytecodeWriter &code_file, const B &instr);
+private:
   int nb_output_arguments, nb_input_arguments, indx;
   string func_name;
   string arg_func_name;
@@ -838,27 +817,6 @@ public:
   {
     return function_type;
   }
-  void
-  write(ostream &CompileCode, unsigned int &instruction_number)
-  {
-    CompileCode.write(reinterpret_cast<char *>(&op_code), sizeof(op_code));
-    CompileCode.write(reinterpret_cast<char *>(&nb_output_arguments), sizeof(nb_output_arguments));
-    CompileCode.write(reinterpret_cast<char *>(&nb_input_arguments), sizeof(nb_input_arguments));
-    CompileCode.write(reinterpret_cast<char *>(&indx), sizeof(indx));
-    CompileCode.write(reinterpret_cast<char *>(&add_input_arguments), sizeof(add_input_arguments));
-    CompileCode.write(reinterpret_cast<char *>(&row), sizeof(row));
-    CompileCode.write(reinterpret_cast<char *>(&col), sizeof(col));
-    CompileCode.write(reinterpret_cast<char *>(&function_type), sizeof(function_type));
-    size_t size = func_name.size();
-    CompileCode.write(reinterpret_cast<char *>(&size), sizeof(int));
-    const char *name = func_name.c_str();
-    CompileCode.write(reinterpret_cast<const char *>(name), func_name.size());
-    size = arg_func_name.size();
-    CompileCode.write(reinterpret_cast<char *>(&size), sizeof(int));
-    name = arg_func_name.c_str();
-    CompileCode.write(reinterpret_cast<const char *>(name), arg_func_name.size());
-    instruction_number++;
-  };
 #ifdef BYTECODE_MEX
 
   char *
@@ -940,16 +898,12 @@ public:
   {
     return lag1;
   };
-  void
-  write(ostream &CompileCode, unsigned int &instruction_number)
-  {
-    CompileCode.write(reinterpret_cast<char *>(this), sizeof(*this));
-    instruction_number++;
-  };
 };
 
 class FBEGINBLOCK_ : public BytecodeInstruction
 {
+  template<typename B>
+  friend BytecodeWriter &operator<<(BytecodeWriter &code_file, const B &instr);
 private:
   int size{0};
   BlockSimulationType type;
@@ -1106,44 +1060,6 @@ public:
   {
     return exogenous;
   }
-  void
-  write(ostream &CompileCode, unsigned int &instruction_number)
-  {
-    CompileCode.write(reinterpret_cast<char *>(&op_code), sizeof(op_code));
-    CompileCode.write(reinterpret_cast<char *>(&size), sizeof(size));
-    CompileCode.write(reinterpret_cast<char *>(&type), sizeof(type));
-    for (int i = 0; i < size; i++)
-      {
-        CompileCode.write(reinterpret_cast<char *>(&variable[i]), sizeof(variable[0]));
-        CompileCode.write(reinterpret_cast<char *>(&equation[i]), sizeof(equation[0]));
-      }
-    if (type == BlockSimulationType::solveTwoBoundariesSimple
-        || type == BlockSimulationType::solveTwoBoundariesComplete
-        || type == BlockSimulationType::solveBackwardComplete
-        || type == BlockSimulationType::solveForwardComplete)
-      {
-        CompileCode.write(reinterpret_cast<char *>(&is_linear), sizeof(is_linear));
-        CompileCode.write(reinterpret_cast<char *>(&endo_nbr), sizeof(endo_nbr));
-        CompileCode.write(reinterpret_cast<char *>(&Max_Lag), sizeof(Max_Lag));
-        CompileCode.write(reinterpret_cast<char *>(&Max_Lead), sizeof(Max_Lead));
-        CompileCode.write(reinterpret_cast<char *>(&u_count_int), sizeof(u_count_int));
-      }
-    CompileCode.write(reinterpret_cast<char *>(&nb_col_jacob), sizeof(nb_col_jacob));
-    CompileCode.write(reinterpret_cast<char *>(&det_exo_size), sizeof(det_exo_size));
-    CompileCode.write(reinterpret_cast<char *>(&nb_col_det_exo_jacob), sizeof(nb_col_det_exo_jacob));
-    CompileCode.write(reinterpret_cast<char *>(&exo_size), sizeof(exo_size));
-    CompileCode.write(reinterpret_cast<char *>(&nb_col_exo_jacob), sizeof(nb_col_exo_jacob));
-    CompileCode.write(reinterpret_cast<char *>(&other_endo_size), sizeof(other_endo_size));
-    CompileCode.write(reinterpret_cast<char *>(&nb_col_other_endo_jacob), sizeof(nb_col_other_endo_jacob));
-
-    for (int i{0}; i < det_exo_size; i++)
-      CompileCode.write(reinterpret_cast<char *>(&det_exogenous[i]), sizeof(det_exogenous[0]));
-    for (int i{0}; i < exo_size; i++)
-      CompileCode.write(reinterpret_cast<char *>(&exogenous[i]), sizeof(exogenous[0]));
-    for (int i{0}; i < other_endo_size; i++)
-      CompileCode.write(reinterpret_cast<char *>(&other_endogenous[i]), sizeof(other_endogenous[0]));
-    instruction_number++;
-  };
 #ifdef BYTECODE_MEX
 
   char *
@@ -1200,6 +1116,54 @@ public:
   };
 #endif
 };
+
+// Superclass of std::ofstream for writing a sequence of bytecode instructions
+class BytecodeWriter : private ofstream
+{
+  template<typename B>
+  friend BytecodeWriter &operator<<(BytecodeWriter &code_file, const B &instr);
+private:
+  // Stores the positions of all instructions in the byte stream
+  vector<pos_type> instructions_positions;
+public:
+  BytecodeWriter(const string &filename);
+  // Returns the number of the next instruction to be written
+  int
+  getInstructionCounter() const
+  {
+    return static_cast<int>(instructions_positions.size());
+  }
+  /* Overwrites an existing instruction, given its number.
+     It is the responsibility of the caller to ensure that the new instruction
+     occupies exactly as many bytes as the former one. */
+  template<typename B>
+  void
+  overwriteInstruction(int instruction_number, const B &new_instruction)
+  {
+    seekp(instructions_positions.at(instruction_number));
+    *this << new_instruction;
+    instructions_positions.pop_back();
+    seekp(0, ios_base::end);
+  }
+};
+
+// Overloads of operator<< for writing bytecode instructions
+
+template<typename B>
+BytecodeWriter &
+operator<<(BytecodeWriter &code_file, const B &instr)
+{
+  code_file.instructions_positions.push_back(code_file.tellp());
+  code_file.write(reinterpret_cast<const char *>(&instr), sizeof(B));
+  return code_file;
+}
+
+template<>
+BytecodeWriter &operator<<(BytecodeWriter &code_file, const FCALL_ &instr);
+
+template<>
+BytecodeWriter &operator<<(BytecodeWriter &code_file, const FBEGINBLOCK_ &instr);
+
 
 #ifdef BYTECODE_MEX
 using tags_liste_t = vector<pair<Tags, void * >>;

@@ -24,6 +24,7 @@
 #include <filesystem>
 
 #include "ModelTree.hh"
+#include "Bytecode.hh"
 
 using namespace std;
 
@@ -77,10 +78,10 @@ private:
   */
   void evaluateJacobian(const eval_context_t &eval_context, jacob_map_t *j_m, bool dynamic);
 
-  //! Write derivative code of an equation w.r. to a variable
-  void compileDerivative(ofstream &code_file, unsigned int &instruction_number, int eq, int symb_id, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
-  //! Write chain rule derivative code of an equation w.r. to a variable
-  void compileChainRuleDerivative(ofstream &code_file, unsigned int &instruction_number, int blk, int eq, int var, int lag, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
+  //! Write derivative bytecode of an equation w.r. to a variable
+  void writeBytecodeDerivative(BytecodeWriter &code_file, int eq, int symb_id, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
+  //! Write chain rule derivative bytecode of an equation w.r. to a variable
+  void writeBytecodeChainRuleDerivative(BytecodeWriter &code_file, int blk, int eq, int var, int lag, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
 
   //! Get the type corresponding to a derivation ID
   SymbolType getTypeByDerivID(int deriv_id) const noexcept(false) override;

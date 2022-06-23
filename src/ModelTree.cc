@@ -19,7 +19,6 @@
 
 #include "ModelTree.hh"
 #include "VariableDependencyGraph.hh"
-#include "Bytecode.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -1256,27 +1255,20 @@ ModelTree::testNestedParenthesis(const string &str) const
 }
 
 void
-ModelTree::compileTemporaryTerms(ostream &code_file, unsigned int &instruction_number, bool dynamic, bool steady_dynamic, temporary_terms_t &temporary_terms_union, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const
+ModelTree::writeBytecodeTemporaryTerms(BytecodeWriter &code_file, bool dynamic, bool steady_dynamic, temporary_terms_t &temporary_terms_union, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const
 {
   // To store the functions that have already been written in the form TEF* = ext_fun();
   for (auto [tt, idx] : temporary_terms_idxs)
     {
       if (dynamic_cast<AbstractExternalFunctionNode *>(tt))
-        tt->compileExternalFunctionOutput(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+        tt->writeBytecodeExternalFunctionOutput(code_file, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
 
-      FNUMEXPR_ fnumexpr(ExpressionType::TemporaryTerm, idx);
-      fnumexpr.write(code_file, instruction_number);
-      tt->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+      code_file << FNUMEXPR_{ExpressionType::TemporaryTerm, idx};
+      tt->writeBytecodeOutput(code_file, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
       if (dynamic)
-        {
-          FSTPT_ fstpt(idx);
-          fstpt.write(code_file, instruction_number);
-        }
+        code_file << FSTPT_{idx};
       else
-        {
-          FSTPST_ fstpst(idx);
-          fstpst.write(code_file, instruction_number);
-        }
+        code_file << FSTPST_{idx};
     }
 }
 
@@ -1392,15 +1384,14 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type,
 }
 
 void
-ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_number, bool dynamic, bool steady_dynamic, const temporary_terms_t &temporary_terms_union, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const
+ModelTree::writeBytecodeModelEquations(BytecodeWriter &code_file, bool dynamic, bool steady_dynamic, const temporary_terms_t &temporary_terms_union, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const
 {
   for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     {
       BinaryOpNode *eq_node = equations[eq];
       expr_t lhs = eq_node->arg1;
       expr_t rhs = eq_node->arg2;
-      FNUMEXPR_ fnumexpr(ExpressionType::ModelEquation, eq);
-      fnumexpr.write(code_file, instruction_number);
+      code_file << FNUMEXPR_{ExpressionType::ModelEquation, eq};
       // Test if the right hand side of the equation is empty.
       double vrhs = 1.0;
       try
@@ -1413,20 +1404,15 @@ ModelTree::compileModelEquations(ostream &code_file, unsigned int &instruction_n
 
       if (vrhs != 0) // The right hand side of the equation is not empty ==> residual=lhs-rhs;
         {
-          lhs->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
-          rhs->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+          lhs->writeBytecodeOutput(code_file, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+          rhs->writeBytecodeOutput(code_file, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
 
-          FBINARY_ fbinary{BinaryOpcode::minus};
-          fbinary.write(code_file, instruction_number);
-
-          FSTPR_ fstpr(eq);
-          fstpr.write(code_file, instruction_number);
+          code_file << FBINARY_{BinaryOpcode::minus} << FSTPR_{eq};
         }
       else // The right hand side of the equation is empty ==> residual=lhs;
         {
-          lhs->compile(code_file, instruction_number, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
-          FSTPR_ fstpr(eq);
-          fstpr.write(code_file, instruction_number);
+          lhs->writeBytecodeOutput(code_file, false, temporary_terms_union, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
+          code_file << FSTPR_{eq};
         }
     }
 }

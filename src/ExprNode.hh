@@ -31,6 +31,7 @@ using namespace std;
 
 #include "CommonEnums.hh"
 #include "ExternalFunctionsTable.hh"
+#include "Bytecode.hh"
 
 class DataTree;
 class NumConstNode;
@@ -240,6 +241,12 @@ protected:
                                      const temporary_terms_t &temporary_terms,
                                      const temporary_terms_idxs_t &temporary_terms_idxs) const;
 
+  // Same as above, for the bytecode case
+  bool checkIfTemporaryTermThenWriteBytecode(BytecodeWriter &code_file,
+                                             const temporary_terms_t &temporary_terms,
+                                             const temporary_terms_idxs_t &temporary_terms_idxs,
+                                             bool dynamic) const;
+
   // Internal helper for matchVariableTimesConstantTimesParam()
   virtual void matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const;
 
@@ -360,10 +367,10 @@ public:
                                                deriv_node_temp_terms_t &tef_terms,
                                                bool isdynamic = true) const;
 
-  virtual void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                             bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                             const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
-                                             deriv_node_temp_terms_t &tef_terms) const;
+  virtual void writeBytecodeExternalFunctionOutput(BytecodeWriter &code_file,
+                                                   bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                                   const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
+                                                   deriv_node_temp_terms_t &tef_terms) const;
 
   //! Computes the set of all variables of a given symbol type in the expression (with information on lags)
   /*!
@@ -406,7 +413,7 @@ public:
   };
 
   virtual double eval(const eval_context_t &eval_context) const noexcept(false) = 0;
-  virtual void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const = 0;
+  virtual void writeBytecodeOutput(BytecodeWriter &code_file, bool lhs_rhs, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const = 0;
 
   //! Creates a static version of this node
   /*!
@@ -788,7 +795,7 @@ public:
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   double eval(const eval_context_t &eval_context) const noexcept(false) override;
-  void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeBytecodeOutput(BytecodeWriter &code_file, bool lhs_rhs, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
@@ -860,7 +867,7 @@ public:
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   double eval(const eval_context_t &eval_context) const noexcept(false) override;
-  void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeBytecodeOutput(BytecodeWriter &code_file, bool lhs_rhs, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   SymbolType get_type() const;
@@ -955,7 +962,7 @@ public:
                                        const temporary_terms_t &temporary_terms,
                                        deriv_node_temp_terms_t &tef_terms,
                                        bool isdynamic) const override;
-  void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
+  void writeBytecodeExternalFunctionOutput(BytecodeWriter &code_file,
                                      bool lhs_rhs, const temporary_terms_t &temporary_terms,
                                      const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                                      deriv_node_temp_terms_t &tef_terms) const override;
@@ -963,7 +970,7 @@ public:
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   static double eval_opcode(UnaryOpcode op_code, double v) noexcept(false);
   double eval(const eval_context_t &eval_context) const noexcept(false) override;
-  void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeBytecodeOutput(BytecodeWriter &code_file, bool lhs_rhs, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
@@ -1058,15 +1065,15 @@ public:
                                        const temporary_terms_t &temporary_terms,
                                        deriv_node_temp_terms_t &tef_terms,
                                        bool isdynamic) const override;
-  void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                     bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                     const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
-                                     deriv_node_temp_terms_t &tef_terms) const override;
+  void writeBytecodeExternalFunctionOutput(BytecodeWriter &code_file,
+                                           bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                           const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
+                                           deriv_node_temp_terms_t &tef_terms) const override;
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivOrder) noexcept(false);
   double eval(const eval_context_t &eval_context) const noexcept(false) override;
-  void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeBytecodeOutput(BytecodeWriter &code_file, bool lhs_rhs, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
@@ -1199,15 +1206,15 @@ public:
                                        const temporary_terms_t &temporary_terms,
                                        deriv_node_temp_terms_t &tef_terms,
                                        bool isdynamic) const override;
-  void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                     bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                     const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
-                                     deriv_node_temp_terms_t &tef_terms) const override;
+  void writeBytecodeExternalFunctionOutput(BytecodeWriter &code_file,
+                                           bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                           const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
+                                           deriv_node_temp_terms_t &tef_terms) const override;
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) noexcept(false);
   double eval(const eval_context_t &eval_context) const noexcept(false) override;
-  void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeBytecodeOutput(BytecodeWriter &code_file, bool lhs_rhs, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
@@ -1281,6 +1288,10 @@ protected:
   void writeExternalFunctionArguments(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
   void writeJsonASTExternalFunctionArguments(ostream &output) const;
   void writeJsonExternalFunctionArguments(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const;
+  int writeBytecodeExternalFunctionArguments(BytecodeWriter &code_file,
+                                             bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                             const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
+                                             const deriv_node_temp_terms_t &tef_terms) const;
   /*! Returns a predicate that tests whether an other ExprNode is an external
     function which is computed by the same external function call (i.e. it has
     the same so-called "Tef" index) */
@@ -1307,19 +1318,14 @@ public:
                                        const temporary_terms_t &temporary_terms,
                                        deriv_node_temp_terms_t &tef_terms,
                                        bool isdynamic = true) const override = 0;
-  void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                     bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                     const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
-                                     deriv_node_temp_terms_t &tef_terms) const override = 0;
+  void writeBytecodeExternalFunctionOutput(BytecodeWriter &code_file,
+                                           bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                           const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
+                                           deriv_node_temp_terms_t &tef_terms) const override = 0;
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   double eval(const eval_context_t &eval_context) const noexcept(false) override;
-  int compileExternalFunctionArguments(ostream &CompileCode, unsigned int &instruction_number,
-                                       bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                       const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
-                                       const deriv_node_temp_terms_t &tef_terms) const;
-
-  void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override = 0;
+  void writeBytecodeOutput(BytecodeWriter &code_file, bool lhs_rhs, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override = 0;
   expr_t toStatic(DataTree &static_datatree) const override = 0;
   void computeXrefs(EquationInfo &ei) const override = 0;
   void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
@@ -1393,11 +1399,11 @@ public:
                                        const temporary_terms_t &temporary_terms,
                                        deriv_node_temp_terms_t &tef_terms,
                                        bool isdynamic) const override;
-  void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                     bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                     const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
-                                     deriv_node_temp_terms_t &tef_terms) const override;
-  void compile(ostream &CompileCode, unsigned int &instruction_number, bool lhs_rhs, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeBytecodeExternalFunctionOutput(BytecodeWriter &code_file,
+                                           bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                           const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
+                                           deriv_node_temp_terms_t &tef_terms) const override;
+  void writeBytecodeOutput(BytecodeWriter &code_file, bool lhs_rhs, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic, const deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const override;
@@ -1420,10 +1426,10 @@ public:
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
-  void compile(ostream &CompileCode, unsigned int &instruction_number,
-               bool lhs_rhs, const temporary_terms_t &temporary_terms,
-               const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
-               const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeBytecodeOutput(BytecodeWriter &code_file,
+                           bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                           const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
+                           const deriv_node_temp_terms_t &tef_terms) const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                    const temporary_terms_t &temporary_terms,
                                    const temporary_terms_idxs_t &temporary_terms_idxs,
@@ -1432,10 +1438,10 @@ public:
                                        const temporary_terms_t &temporary_terms,
                                        deriv_node_temp_terms_t &tef_terms,
                                        bool isdynamic) const override;
-  void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                     bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                     const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
-                                     deriv_node_temp_terms_t &tef_terms) const override;
+  void writeBytecodeExternalFunctionOutput(BytecodeWriter &code_file,
+                                           bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                           const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
+                                           deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const override;
@@ -1460,10 +1466,10 @@ public:
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
   void writeJsonAST(ostream &output) const override;
   void writeJsonOutput(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const override;
-  void compile(ostream &CompileCode, unsigned int &instruction_number,
-               bool lhs_rhs, const temporary_terms_t &temporary_terms,
-               const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
-               const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeBytecodeOutput(BytecodeWriter &code_file,
+                           bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                           const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
+                           const deriv_node_temp_terms_t &tef_terms) const override;
   void writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
                                    const temporary_terms_t &temporary_terms,
                                    const temporary_terms_idxs_t &temporary_terms_idxs,
@@ -1472,10 +1478,10 @@ public:
                                        const temporary_terms_t &temporary_terms,
                                        deriv_node_temp_terms_t &tef_terms,
                                        bool isdynamic) const override;
-  void compileExternalFunctionOutput(ostream &CompileCode, unsigned int &instruction_number,
-                                     bool lhs_rhs, const temporary_terms_t &temporary_terms,
-                                     const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
-                                     deriv_node_temp_terms_t &tef_terms) const override;
+  void writeBytecodeExternalFunctionOutput(BytecodeWriter &code_file,
+                                           bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                                           const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
+                                           deriv_node_temp_terms_t &tef_terms) const override;
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const override;
@@ -1528,10 +1534,10 @@ public:
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
   BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
-  void compile(ostream &CompileCode, unsigned int &instruction_number,
-               bool lhs_rhs, const temporary_terms_t &temporary_terms,
-               const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
-               const deriv_node_temp_terms_t &tef_terms) const override;
+  void writeBytecodeOutput(BytecodeWriter &code_file,
+                           bool lhs_rhs, const temporary_terms_t &temporary_terms,
+                           const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
+                           const deriv_node_temp_terms_t &tef_terms) const override;
   void collectVARLHSVariable(set<expr_t> &result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   bool isNumConstNodeEqualTo(double value) const override;

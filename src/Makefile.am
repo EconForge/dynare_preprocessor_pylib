@@ -46,6 +46,7 @@ dynare_preprocessor_SOURCES = \
 	VariableDependencyGraph.hh \
 	DynareMain.cc \
 	MacroExpandModFile.cc \
+	Bytecode.cc \
 	Bytecode.hh \
 	ExternalFunctionsTable.cc \
 	ExternalFunctionsTable.hh \
