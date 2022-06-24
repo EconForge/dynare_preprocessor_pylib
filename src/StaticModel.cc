@@ -27,11 +27,6 @@
 #include "StaticModel.hh"
 #include "DynamicModel.hh"
 
-void
-StaticModel::copyHelper(const StaticModel &m)
-{
-}
-
 StaticModel::StaticModel(SymbolTable &symbol_table_arg,
                          NumericalConstants &num_constants_arg,
                          ExternalFunctionsTable &external_functions_table_arg) :
@@ -42,15 +37,12 @@ StaticModel::StaticModel(SymbolTable &symbol_table_arg,
 StaticModel::StaticModel(const StaticModel &m) :
   ModelTree{m}
 {
-  copyHelper(m);
 }
 
 StaticModel &
 StaticModel::operator=(const StaticModel &m)
 {
   ModelTree::operator=(m);
-
-  copyHelper(m);
 
   return *this;
 }

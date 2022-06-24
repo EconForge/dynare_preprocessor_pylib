@@ -109,11 +109,6 @@ private:
   void writeStaticModel(ostream &DynamicOutput, bool use_dll, bool julia) const;
   void writeStaticModel(const string &dynamic_basename, bool use_dll, bool julia) const;
 
-  //! Internal helper for the copy constructor and assignment operator
-  /*! Copies all the structures that contain ExprNode*, by the converting the
-      pointers into their equivalent in the new tree */
-  void copyHelper(const StaticModel &m);
-
 public:
   StaticModel(SymbolTable &symbol_table_arg,
               NumericalConstants &num_constants,
