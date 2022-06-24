@@ -8592,6 +8592,9 @@ PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       output << "PAC_EXPECTATION" << LEFT_PAR(output_type) << model_name << RIGHT_PAR(output_type);
       return;
     }
+
+  cerr << "PacExpectationNode::writeOutput not implemented for non-LaTeX." << endl;
+  exit(EXIT_FAILURE);
 }
 
 int
@@ -8679,6 +8682,9 @@ PacTargetNonstationaryNode::writeOutput(ostream &output, ExprNodeOutputType outp
       output << "PAC_TARGET_NONSTATIONARY" << LEFT_PAR(output_type) << model_name << RIGHT_PAR(output_type);
       return;
     }
+
+  cerr << "PacTargetNonstationaryNode::writeOutput not implemented for non-LaTeX." << endl;
+  exit(EXIT_FAILURE);
 }
 
 int
