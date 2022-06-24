@@ -771,7 +771,7 @@ VarExpectationModelTable::empty() const
 }
 
 void
-VarExpectationModelTable::writeOutput(const string &basename, ostream &output) const
+VarExpectationModelTable::writeOutput(ostream &output) const
 {
   for (const auto &name : names)
     {
@@ -986,7 +986,7 @@ PacModelTable::empty() const
 }
 
 void
-PacModelTable::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+PacModelTable::checkPass(ModFileStructure &mod_file_struct)
 {
   for (auto &[name, gv] : growth)
     if (gv)
@@ -1364,7 +1364,7 @@ PacModelTable::transformPass(const lag_equivalence_table_t &unary_ops_nodes,
 }
 
 void
-PacModelTable::writeOutput(const string &basename, ostream &output) const
+PacModelTable::writeOutput(ostream &output) const
 {
   // Helper to print the “growth_info” structure (linear decomposition of growth)
   auto growth_info_helper = [&](const string &fieldname, const growth_info_t &gi)

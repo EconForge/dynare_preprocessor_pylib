@@ -1154,8 +1154,8 @@ public:
   //! Finds the share of optimizing agents in the PAC equation,
   //! the expr node associated with it,
   //! and the expr node associated with the non-optimizing part
-  tuple<optional<int>, expr_t, expr_t, expr_t> getPacOptimizingShareAndExprNodes(int lhs_symb_id, int lhs_orig_symb_id) const;
-  pair<optional<int>, expr_t> getPacOptimizingShareAndExprNodesHelper(int lhs_symb_id, int lhs_orig_symb_id) const;
+  tuple<optional<int>, expr_t, expr_t, expr_t> getPacOptimizingShareAndExprNodes(int lhs_orig_symb_id) const;
+  pair<optional<int>, expr_t> getPacOptimizingShareAndExprNodesHelper(int lhs_orig_symb_id) const;
   expr_t getPacNonOptimizingPart(int optim_share_symb_id) const;
   bool isParamTimesEndogExpr() const override;
   //! Substitute auxiliary variables by their expression in static model

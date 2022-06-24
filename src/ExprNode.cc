@@ -5487,7 +5487,7 @@ BinaryOpNode::getPacNonOptimizingPart(int optim_share_symb_id) const
 }
 
 pair<optional<int>, expr_t>
-BinaryOpNode::getPacOptimizingShareAndExprNodesHelper(int lhs_symb_id, int lhs_orig_symb_id) const
+BinaryOpNode::getPacOptimizingShareAndExprNodesHelper(int lhs_orig_symb_id) const
 {
   optional<int> optim_param_symb_id;
   expr_t optim_part = nullptr;
@@ -5514,7 +5514,7 @@ BinaryOpNode::getPacOptimizingShareAndExprNodesHelper(int lhs_symb_id, int lhs_o
 }
 
 tuple<optional<int>, expr_t, expr_t, expr_t>
-BinaryOpNode::getPacOptimizingShareAndExprNodes(int lhs_symb_id, int lhs_orig_symb_id) const
+BinaryOpNode::getPacOptimizingShareAndExprNodes(int lhs_orig_symb_id) const
 {
   vector<pair<expr_t, int>> terms;
   decomposeAdditiveTerms(terms, 1);
@@ -5532,7 +5532,7 @@ BinaryOpNode::getPacOptimizingShareAndExprNodes(int lhs_symb_id, int lhs_orig_sy
     if (auto bopn = dynamic_cast<BinaryOpNode *>(it->first); bopn)
       {
         tie(optim_share, optim_part)
-          = bopn->getPacOptimizingShareAndExprNodesHelper(lhs_symb_id, lhs_orig_symb_id);
+          = bopn->getPacOptimizingShareAndExprNodesHelper(lhs_orig_symb_id);
         if (optim_share && optim_part)
           {
             terms.erase(it);

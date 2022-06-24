@@ -54,10 +54,7 @@ public:
   */
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) const;
   //! Write the steady state file
-  /*!
-    \param[in] ramsey_model Is there a Ramsey model in the MOD file? If yes, then use the "ys" in argument of the steady state file as initial values
-  */
-  void writeSteadyStateFile(const string &basename, bool ramsey_model, bool julia) const;
+  void writeSteadyStateFile(const string &basename, bool julia) const;
   //! Writes LaTeX file with the equations of the dynamic model (for the steady state model)
   void writeLatexSteadyStateFile(const string &basename) const;
   //! Writes JSON output
@@ -83,7 +80,7 @@ public:
   void addDefinition(int symb_id, expr_t expr);
 
   //! Checks that no variable is declared twice, and that “with_epilogue” is not misused
-  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) const;
+  void checkPass(ModFileStructure &mod_file_struct) const;
 
   //! Creates static epilogue equations
   void toStatic();

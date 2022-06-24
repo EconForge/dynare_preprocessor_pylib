@@ -177,7 +177,7 @@ SteadyStateModel::writeLatexSteadyStateFile(const string &basename) const
 }
 
 void
-SteadyStateModel::writeSteadyStateFile(const string &basename, bool ramsey_model, bool julia) const
+SteadyStateModel::writeSteadyStateFile(const string &basename, bool julia) const
 {
   if (def_table.size() == 0)
     return;
@@ -307,7 +307,7 @@ Epilogue::addDefinition(int symb_id, expr_t expr)
 }
 
 void
-Epilogue::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) const
+Epilogue::checkPass(ModFileStructure &mod_file_struct) const
 {
   if (dynamic_def_table.size() == 0)
     {

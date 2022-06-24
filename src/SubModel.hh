@@ -218,7 +218,7 @@ public:
   void transformPass(ExprNode::subst_table_t &diff_subst_table,
                      DynamicModel &dynamic_model, const VarModelTable &var_model_table,
                      const TrendComponentModelTable &trend_component_model_table);
-  void writeOutput(const string &basename, ostream &output) const;
+  void writeOutput(ostream &output) const;
   void writeJsonOutput(ostream &output) const;
 };
 
@@ -307,7 +307,7 @@ public:
   void addPacModel(string name_arg, string aux_model_name_arg, string discount_arg, expr_t growth_arg, string auxname_arg, PacTargetKind kind_arg);
   bool isExistingPacModelName(const string &name_arg) const;
   bool empty() const;
-  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
+  void checkPass(ModFileStructure &mod_file_struct);
   // Called by DynamicModel::substituteUnaryOps()
   void substituteUnaryOpsInGrowth(const lag_equivalence_table_t &nodes, ExprNode::subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs);
   void findDiffNodesInGrowth(lag_equivalence_table_t &diff_nodes) const;
@@ -320,7 +320,7 @@ public:
                      ExprNode::subst_table_t &diff_subst_table,
                      DynamicModel &dynamic_model, const VarModelTable &var_model_table,
                      const TrendComponentModelTable &trend_component_model_table);
-  void writeOutput(const string &basename, ostream &output) const;
+  void writeOutput(ostream &output) const;
   void writeJsonOutput(ostream &output) const;
   void setTargetExpr(const string &name_arg, expr_t target);
   void setTargetAuxnameNonstationary(const string &name_arg, string auxname);

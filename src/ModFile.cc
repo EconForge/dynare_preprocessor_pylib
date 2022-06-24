@@ -114,9 +114,9 @@ ModFile::checkPass(bool nostrict, bool stochastic)
   steady_state_model.checkPass(mod_file_struct, warnings);
 
   // Check epilogue block
-  epilogue.checkPass(mod_file_struct, warnings);
+  epilogue.checkPass(mod_file_struct);
 
-  pac_model_table.checkPass(mod_file_struct, warnings);
+  pac_model_table.checkPass(mod_file_struct);
 
   if (mod_file_struct.write_latex_steady_state_model_present
       && !mod_file_struct.steady_state_model_present)
@@ -785,7 +785,7 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
                       const filesystem::path &matlabroot,
                       const filesystem::path &dynareroot, bool onlymodel, bool gui, bool notime) const
 {
-  bool hasModelChanged = !dynamic_model.isChecksumMatching(basename, block) || !check_model_changes;
+  bool hasModelChanged = !dynamic_model.isChecksumMatching(basename) || !check_model_changes;
   if (hasModelChanged)
     {
       // Erase possible remnants of previous runs
@@ -893,8 +893,8 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
 
   var_model_table.writeOutput(basename, mOutputFile);
   trend_component_model_table.writeOutput(basename, mOutputFile);
-  var_expectation_model_table.writeOutput(basename, mOutputFile);
-  pac_model_table.writeOutput(basename, mOutputFile);
+  var_expectation_model_table.writeOutput(mOutputFile);
+  pac_model_table.writeOutput(mOutputFile);
 
   // Initialize M_.Sigma_e, M_.Correlation_matrix, M_.H, and M_.Correlation_matrix_ME
   mOutputFile << "M_.Sigma_e = zeros(" << symbol_table.exo_nbr() << ", "
@@ -968,7 +968,7 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
 
   if (dynamic_model.equation_number() > 0)
     {
-      dynamic_model.writeDriverOutput(mOutputFile, basename, block, use_dll, mod_file_struct.occbin_constraints_present, mod_file_struct.estimation_present, compute_xrefs);
+      dynamic_model.writeDriverOutput(mOutputFile, basename, block, mod_file_struct.estimation_present, compute_xrefs);
       if (!no_static)
         static_model.writeDriverOutput(mOutputFile, block);
     }
@@ -1087,7 +1087,7 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
         }
 
       // Create steady state file
-      steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present, false);
+      steady_state_model.writeSteadyStateFile(basename, false);
 
       // Create epilogue file
       epilogue.writeEpilogueFile(basename);
@@ -1111,7 +1111,7 @@ ModFile::writeJuliaOutput(const string &basename) const
       dynamic_model.writeDynamicFile(basename, block, use_dll, "", {}, {}, true);
       dynamic_model.writeParamsDerivativesFile(basename, true);
     }
-  steady_state_model.writeSteadyStateFile(basename, mod_file_struct.ramsey_model_present, true);
+  steady_state_model.writeSteadyStateFile(basename, true);
 }
 
 void

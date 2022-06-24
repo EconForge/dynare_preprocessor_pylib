@@ -330,7 +330,7 @@ public:
   void computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsOrder,
                      const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll);
   //! Writes information about the dynamic model to the driver file
-  void writeDriverOutput(ostream &output, const string &basename, bool block, bool use_dll, bool occbin, bool estimation_present, bool compute_xrefs) const;
+  void writeDriverOutput(ostream &output, const string &basename, bool block, bool estimation_present, bool compute_xrefs) const;
 
   //! Write JSON AST
   void writeJsonAST(ostream &output) const;
@@ -638,7 +638,7 @@ public:
   //! Returns true if a parameter was used in the model block with a lead or lag
   bool ParamUsedWithLeadLag() const;
 
-  bool isChecksumMatching(const string &basename, bool block) const;
+  bool isChecksumMatching(const string &basename) const;
 
   //! Simplify model equations: if a variable is equal to a constant, replace that variable elsewhere in the model
   /*! Equations with MCP tags are excluded, see dynare#1697 */

@@ -2778,7 +2778,7 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename,
 }
 
 void
-DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool block_decomposition, bool use_dll, bool occbin, bool estimation_present, bool compute_xrefs) const
+DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool block_decomposition, bool estimation_present, bool compute_xrefs) const
 {
   /* Writing initialisation for M_.lead_lag_incidence matrix
      M_.lead_lag_incidence is a matrix with as many columns as there are
@@ -3682,7 +3682,7 @@ DynamicModel::analyzePacEquationStructure(const string &name, map<string, string
             exit(EXIT_FAILURE);
           }
         auto [optim_share_index, optim_part, non_optim_part, additive_part]
-          = arg2->getPacOptimizingShareAndExprNodes(lhs_symb_id, lhs_orig_symb_id);
+          = arg2->getPacOptimizingShareAndExprNodes(lhs_orig_symb_id);
 
         pair<int, vector<tuple<int, bool, int>>> ec_params_and_vars;
         vector<tuple<optional<int>, optional<int>, int>> ar_params_and_vars;
@@ -3756,7 +3756,7 @@ DynamicModel::getPacTargetSymbId(const string &pac_model_name) const
         if (!barg2)
           throw PacTargetNotIdentifiedException{pac_model_name, "RHS must be a binary operator"};
         auto [optim_share_index, optim_part, non_optim_part, additive_part]
-          = barg2->getPacOptimizingShareAndExprNodes(lhs_symb_id, undiff_lhs_symb_id);
+          = barg2->getPacOptimizingShareAndExprNodes(undiff_lhs_symb_id);
         /* If there is an optimization part, restrict the search to that part,
            since it contains the MCE . */
         expr_t mce = optim_part ? optim_part : equation->arg2;
@@ -5874,7 +5874,7 @@ DynamicModel::addOccbinEquation(expr_t eq, optional<int> lineno, const map<strin
 }
 
 bool
-DynamicModel::isChecksumMatching(const string &basename, bool block) const
+DynamicModel::isChecksumMatching(const string &basename) const
 {
   stringstream buffer;
 
