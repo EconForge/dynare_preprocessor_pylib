@@ -104,7 +104,7 @@ enum class ExprNodeOutputType
    occbinDifferenceFile //!< MATLAB, in the generated occbin_difference file
   };
 
-inline bool
+constexpr bool
 isMatlabOutput(ExprNodeOutputType output_type)
 {
   return output_type == ExprNodeOutputType::matlabStaticModel
@@ -117,7 +117,7 @@ isMatlabOutput(ExprNodeOutputType output_type)
     || output_type == ExprNodeOutputType::occbinDifferenceFile;
 }
 
-inline bool
+constexpr bool
 isJuliaOutput(ExprNodeOutputType output_type)
 {
   return output_type == ExprNodeOutputType::juliaStaticModel
@@ -127,7 +127,7 @@ isJuliaOutput(ExprNodeOutputType output_type)
     || output_type == ExprNodeOutputType::juliaTimeDataFrame;
 }
 
-inline bool
+constexpr bool
 isCOutput(ExprNodeOutputType output_type)
 {
   return output_type == ExprNodeOutputType::CDynamicModel
@@ -135,7 +135,7 @@ isCOutput(ExprNodeOutputType output_type)
     || output_type == ExprNodeOutputType::CDynamicSteadyStateOperator;
 }
 
-inline bool
+constexpr bool
 isLatexOutput(ExprNodeOutputType output_type)
 {
   return output_type == ExprNodeOutputType::latexStaticModel
@@ -145,20 +145,20 @@ isLatexOutput(ExprNodeOutputType output_type)
 
 /* Equal to 1 for Matlab langage or Julia, or to 0 for C language. Not defined for LaTeX.
    In Matlab and Julia, array indexes begin at 1, while they begin at 0 in C */
-inline int
+constexpr int
 ARRAY_SUBSCRIPT_OFFSET(ExprNodeOutputType output_type)
 {
   return static_cast<int>(isMatlabOutput(output_type) || isJuliaOutput(output_type));
 }
 
 // Left and right array subscript delimiters: '(' and ')' for Matlab, '[' and ']' for C
-inline char
+constexpr char
 LEFT_ARRAY_SUBSCRIPT(ExprNodeOutputType output_type)
 {
   return isMatlabOutput(output_type) ? '(' : '[';
 }
 
-inline char
+constexpr char
 RIGHT_ARRAY_SUBSCRIPT(ExprNodeOutputType output_type)
 {
   return isMatlabOutput(output_type) ? ')' : ']';
@@ -216,7 +216,7 @@ protected:
 
   constexpr static int min_cost_matlab{40*90};
   constexpr static int min_cost_c{40*4};
-  inline static int
+  constexpr static int
   min_cost(bool is_matlab)
   {
     return is_matlab ? min_cost_matlab : min_cost_c;
