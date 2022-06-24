@@ -1250,6 +1250,9 @@ VariableNode::writeBytecodeOutput(BytecodeWriter &code_file, bool lhs_rhs,
                                   const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                                   const deriv_node_temp_terms_t &tef_terms) const
 {
+  if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic))
+    return;
+
   auto type = get_type();
   if (type == SymbolType::modelLocalVariable || type == SymbolType::modFileLocalVariable)
     datatree.getLocalVariable(symb_id)->writeBytecodeOutput(code_file, lhs_rhs, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
