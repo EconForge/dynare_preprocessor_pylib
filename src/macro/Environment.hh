@@ -44,12 +44,23 @@ namespace macro
     codes::BaseType getType(const string &name) const;
     bool isVariableDefined(const string &name) const noexcept;
     bool isFunctionDefined(const string &name) const noexcept;
-    inline bool isSymbolDefined(const string &name) const noexcept { return isVariableDefined(name) || isFunctionDefined(name); }
+    bool isSymbolDefined(const string &name) const noexcept
+    {
+      return isVariableDefined(name) || isFunctionDefined(name);
+    }
     void print(ostream &output, const vector<string> &vars, const optional<int> &line = nullopt, bool save = false) const;
     void printVariable(ostream &output, const string &name, const optional<int> &line, bool save) const;
     void printFunction(ostream &output, const tuple<FunctionPtr, ExpressionPtr> &function, const optional<int> &line, bool save) const;
-    inline size_t size() const noexcept { return variables.size() + functions.size(); }
-    inline const Environment *getGlobalEnv() const noexcept { return parent == nullptr ? this : parent->getGlobalEnv(); }
+    size_t
+    size() const noexcept
+    {
+      return variables.size() + functions.size();
+    }
+    const Environment *
+    getGlobalEnv() const noexcept
+    {
+      return parent == nullptr ? this : parent->getGlobalEnv();
+    }
   };
 }
 #endif

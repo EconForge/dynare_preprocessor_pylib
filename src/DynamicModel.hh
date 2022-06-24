@@ -363,13 +363,13 @@ public:
   //! Tells whether Hessian has been computed
   /*! This is needed to know whether no non-zero equation in Hessian means a
     zero Hessian or Hessian not computed */
-  inline bool
+  bool
   isHessianComputed() const
   {
     return computed_derivs_order >= 2;
   }
   //! Returns equations that have non-zero second derivatives
-  inline set<int>
+  set<int>
   getNonZeroHessianEquations() const
   {
     return nonzero_hessian_eqs;
@@ -505,13 +505,13 @@ public:
   //! Transforms the model by removing trends specified by the user
   void detrendEquations();
 
-  inline const nonstationary_symbols_map_t &
+  const nonstationary_symbols_map_t &
   getNonstationarySymbolsMap() const
   {
     return nonstationary_symbols_map;
   }
 
-  inline const map<int, expr_t> &
+  const map<int, expr_t> &
   getTrendSymbolsMap() const
   {
     return trend_symbols_map;

@@ -36,7 +36,7 @@ public:
 private:
   map<string, string> hooks;
 public:
-  inline map<string, string>
+  map<string, string>
   get_hooks() const
   {
     return hooks;
@@ -50,7 +50,7 @@ public:
 private:
   map<string, vector<string>> paths;
 public:
-  inline map<string, vector<string>>
+  map<string, vector<string>>
   get_paths() const
   {
     return paths;

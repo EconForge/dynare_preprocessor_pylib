@@ -47,7 +47,11 @@ namespace macro
   public:
     TextNode(string text_arg, Tokenizer::location location_arg) :
       Directive(move(location_arg)), text{move(text_arg)} { }
-    inline void interpret(ostream &output, Environment &env, vector<filesystem::path> &paths) override { output << text; }
+    void
+    interpret(ostream &output, Environment &env, vector<filesystem::path> &paths) override
+    {
+      output << text;
+    }
   };
 
 

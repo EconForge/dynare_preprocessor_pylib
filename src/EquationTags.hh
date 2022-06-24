@@ -42,7 +42,8 @@ public:
   };
 
   // Add multiple equation tags for the given equation
-  inline void add(int eqn, map<string, string> tags)
+  void
+  add(int eqn, map<string, string> tags)
   {
     if (eqn_tags.contains(eqn))
       eqn_tags[eqn].insert(move_iterator{tags.begin()}, move_iterator{tags.end()});
@@ -51,13 +52,15 @@ public:
   }
 
   //! Add a single equation tag for the given equation
-  inline void add(int eqn, string key, string value)
+  void
+  add(int eqn, string key, string value)
   {
     eqn_tags[eqn][move(key)] = move(value);
   }
 
   //! Clear all equation tag information
-  inline void clear()
+  void
+  clear()
   {
     eqn_tags.clear();
   }
@@ -68,7 +71,8 @@ public:
 
   //! Various functions to get info from equation tags
   //! Get equation tags for a given equation
-  inline map<string, string> getTagsByEqn(const int eqn) const
+  map<string, string>
+  getTagsByEqn(const int eqn) const
   {
     if (auto it = eqn_tags.find(eqn); it != eqn_tags.end())
       return it->second;
@@ -85,19 +89,22 @@ public:
   int getEqnByTag(const string &key, const string &value) const;
 
   //! Get the tag value given the equation number and key
-  inline string getTagValueByEqnAndKey(int eqn, const string &key) const
+  string
+  getTagValueByEqnAndKey(int eqn, const string &key) const
   {
     return exists(eqn, key) ? eqn_tags.at(eqn).at(key) : "";
   }
 
   //! Get the equations marked dynamic
-  inline set<int> getDynamicEqns() const
+  set<int>
+  getDynamicEqns() const
   {
     return getEqnsByTag("dynamic", "");
   }
 
   //! Returns true if equation tag with key and value exists
-  inline bool exists(const string &key, const string &value) const
+  bool
+  exists(const string &key, const string &value) const
   {
     try
       {
@@ -110,19 +117,22 @@ public:
     return true;
   }
 
-  inline bool exists(const int eqn) const
+  bool
+  exists(const int eqn) const
   {
     return eqn_tags.contains(eqn);
   }
 
   //! Returns true if equation tag with key exists for a given equation
-  inline bool exists(const int eqn, const string &key) const
+  bool
+  exists(const int eqn, const string &key) const
   {
     return exists(eqn) && eqn_tags.at(eqn).contains(key);
   }
 
   //! Returns true if equation tag with key and value exists for a given equation
-  inline bool exists(const int eqn, const string &key, const string &value) const
+  bool
+  exists(const int eqn, const string &key, const string &value) const
   {
     return exists(eqn, key) && eqn_tags.at(eqn).at(key) == value;
   }

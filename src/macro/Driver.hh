@@ -96,31 +96,31 @@ namespace macro
     //! Error handler
     void error(const Tokenizer::parser::location_type &location, const string &message) const;
 
-    inline bool
+    bool
     inContext() const
     {
       return !directive_stack.empty();
     }
 
-    inline void
+    void
     pushContext()
     {
       directive_stack.emplace(vector<DirectivePtr>());
     }
 
-    inline void
+    void
     pushContextTop(DirectivePtr statement)
     {
       directive_stack.top().emplace_back(move(statement));
     }
 
-    inline void
+    void
     pushStatements(DirectivePtr statement)
     {
       statements.emplace_back(move(statement));
     }
 
-    inline vector<DirectivePtr>
+    vector<DirectivePtr>
     popContext()
     {
       auto top = move(directive_stack.top());

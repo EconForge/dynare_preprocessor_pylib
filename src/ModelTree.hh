@@ -184,7 +184,11 @@ protected:
     int max_exo_det_lag{0}, max_exo_det_lead{0};
     int max_lag{0}, max_lead{0}; // The max over all endo/exo variables
 
-    inline int getRecursiveSize() const { return size - mfs_size; };
+    int
+    getRecursiveSize() const
+    {
+      return size - mfs_size;
+    };
   };
 
   // Stores various informations on the blocks
@@ -453,34 +457,34 @@ public:
   expr_t getRHSFromLHS(expr_t lhs) const;
 
   //! Returns all the equation tags associated to an equation
-  inline map<string, string>
+  map<string, string>
   getEquationTags(int eq) const
   {
     return equation_tags.getTagsByEqn(eq);
   }
 
   //! Returns the vector of non-zero derivative counts
-  inline const vector<int> &
+  const vector<int> &
   getNNZDerivatives() const
   {
     return NNZDerivatives;
   }
 
   //! Returns the vector of temporary terms derivatives
-  inline const vector<temporary_terms_t> &
+  const vector<temporary_terms_t> &
   getTemporaryTermsDerivatives() const
   {
     return temporary_terms_derivatives;
   }
 
   //!Returns the maximum order of computed derivatives
-  inline int
+  int
   getComputedDerivsOrder() const
   {
     return computed_derivs_order;
   }
 
-  inline static string
+  static string
   BlockSim(BlockSimulationType type)
   {
     switch (type)
