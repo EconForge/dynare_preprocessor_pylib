@@ -461,7 +461,10 @@ NumConstNode::writeJsonOutput(ostream &output,
                               const deriv_node_temp_terms_t &tef_terms,
                               bool isdynamic) const
 {
-  output << datatree.num_constants.get(id);
+  if (temporary_terms.contains(const_cast<NumConstNode *>(this)))
+    output << "T" << idx;
+  else
+    output << datatree.num_constants.get(id);
 }
 
 bool
@@ -482,7 +485,8 @@ NumConstNode::writeBytecodeOutput(BytecodeWriter &code_file, bool lhs_rhs,
                                   const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                                   const deriv_node_temp_terms_t &tef_terms) const
 {
-  code_file << FLDC_{datatree.num_constants.getDouble(id)};
+  if (!checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic))
+    code_file << FLDC_{datatree.num_constants.getDouble(id)};
 }
 
 void
