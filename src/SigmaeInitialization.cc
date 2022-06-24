@@ -60,7 +60,8 @@ SigmaeStatement::determineMatrixForm(const matrix_t &matrix) noexcept(false)
 }
 
 void
-SigmaeStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+SigmaeStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                             [[maybe_unused]] bool minimal_workspace) const
 {
   output << "M_.Sigma_e = [..." << endl;
   for (size_t ir = 0; ir < matrix.size(); ir++)

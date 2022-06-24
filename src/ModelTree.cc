@@ -1025,9 +1025,9 @@ ModelTree::computeBlockTemporaryTerms()
 }
 
 void
-ModelTree::additionalBlockTemporaryTerms(int blk,
-                                         vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                         map<expr_t, tuple<int, int, int>> &reference_count) const
+ModelTree::additionalBlockTemporaryTerms([[maybe_unused]] int blk,
+                                         [[maybe_unused]] vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                         [[maybe_unused]] map<expr_t, tuple<int, int, int>> &reference_count) const
 {
 }
 

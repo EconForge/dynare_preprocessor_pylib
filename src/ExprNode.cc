@@ -54,35 +54,38 @@ ExprNode::getDerivative(int deriv_id)
 }
 
 int
-ExprNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const
+ExprNode::precedence([[maybe_unused]] ExprNodeOutputType output_type,
+                     [[maybe_unused]] const temporary_terms_t &temporary_terms) const
 {
   // For a constant, a variable, or a unary op, the precedence is maximal
   return 100;
 }
 
 int
-ExprNode::precedenceJson(const temporary_terms_t &temporary_terms) const
+ExprNode::precedenceJson([[maybe_unused]] const temporary_terms_t &temporary_terms) const
 {
   // For a constant, a variable, or a unary op, the precedence is maximal
   return 100;
 }
 
 int
-ExprNode::cost(int cost, bool is_matlab) const
+ExprNode::cost([[maybe_unused]] int cost, [[maybe_unused]] bool is_matlab) const
 {
   // For a terminal node, the cost is null
   return 0;
 }
 
 int
-ExprNode::cost(const vector<vector<temporary_terms_t>> &blocks_temporary_terms, bool is_matlab) const
+ExprNode::cost([[maybe_unused]] const vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+               [[maybe_unused]] bool is_matlab) const
 {
   // For a terminal node, the cost is null
   return 0;
 }
 
 int
-ExprNode::cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const
+ExprNode::cost([[maybe_unused]] const map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+               [[maybe_unused]] bool is_matlab) const
 {
   // For a terminal node, the cost is null
   return 0;
@@ -158,17 +161,18 @@ ExprNode::collectEndogenous(set<pair<int, int>> &result) const
 }
 
 void
-ExprNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
-                                map<pair<int, int>, temporary_terms_t> &temp_terms_map,
-                                map<expr_t, pair<int, pair<int, int>>> &reference_count,
-                                bool is_matlab) const
+ExprNode::computeTemporaryTerms([[maybe_unused]] const pair<int, int> &derivOrder,
+                                [[maybe_unused]] map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                                [[maybe_unused]] map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                [[maybe_unused]] bool is_matlab) const
 {
   // Nothing to do for a terminal node
 }
 
 void
-ExprNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                     map<expr_t, tuple<int, int, int>> &reference_count) const
+ExprNode::computeBlockTemporaryTerms([[maybe_unused]] int blk, [[maybe_unused]] int eq,
+                                     [[maybe_unused]] vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                     [[maybe_unused]] map<expr_t, tuple<int, int, int>> &reference_count) const
 {
   // Nothing to do for a terminal node
 }
@@ -192,28 +196,32 @@ ExprNode::writeOutput(ostream &output, ExprNodeOutputType output_type, const tem
 }
 
 void
-ExprNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutputType output_type,
-                                      const temporary_terms_t &temporary_terms,
-                                      const temporary_terms_idxs_t &temporary_terms_idxs,
-                                      deriv_node_temp_terms_t &tef_terms) const
+ExprNode::writeExternalFunctionOutput([[maybe_unused]] ostream &output,
+                                      [[maybe_unused]] ExprNodeOutputType output_type,
+                                      [[maybe_unused]] const temporary_terms_t &temporary_terms,
+                                      [[maybe_unused]] const temporary_terms_idxs_t &temporary_terms_idxs,
+                                      [[maybe_unused]] deriv_node_temp_terms_t &tef_terms) const
 {
   // Nothing to do
 }
 
 void
-ExprNode::writeJsonExternalFunctionOutput(vector<string> &efout,
-                                          const temporary_terms_t &temporary_terms,
-                                          deriv_node_temp_terms_t &tef_terms,
-                                          bool isdynamic) const
+ExprNode::writeJsonExternalFunctionOutput([[maybe_unused]] vector<string> &efout,
+                                          [[maybe_unused]] const temporary_terms_t &temporary_terms,
+                                          [[maybe_unused]] deriv_node_temp_terms_t &tef_terms,
+                                          [[maybe_unused]] bool isdynamic) const
 {
   // Nothing to do
 }
 
 void
-ExprNode::writeBytecodeExternalFunctionOutput(BytecodeWriter &code_file, bool lhs_rhs,
-                                              const temporary_terms_t &temporary_terms,
-                                              const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
-                                              deriv_node_temp_terms_t &tef_terms) const
+ExprNode::writeBytecodeExternalFunctionOutput([[maybe_unused]] BytecodeWriter &code_file,
+                                              [[maybe_unused]] bool lhs_rhs,
+                                              [[maybe_unused]] const temporary_terms_t &temporary_terms,
+                                              [[maybe_unused]] const temporary_terms_idxs_t &temporary_terms_idxs,
+                                              [[maybe_unused]] bool dynamic,
+                                              [[maybe_unused]] bool steady_dynamic,
+                                              [[maybe_unused]] deriv_node_temp_terms_t &tef_terms) const
 {
   // Nothing to do
 }
@@ -289,13 +297,14 @@ ExprNode::createExoLeadAuxiliaryVarForMyself(subst_table_t &subst_table, vector<
 }
 
 bool
-ExprNode::isNumConstNodeEqualTo(double value) const
+ExprNode::isNumConstNodeEqualTo([[maybe_unused]] double value) const
 {
   return false;
 }
 
 bool
-ExprNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
+ExprNode::isVariableNodeEqualTo([[maybe_unused]] SymbolType type_arg, [[maybe_unused]] int variable_id,
+                                [[maybe_unused]] int lag_arg) const
 {
   return false;
 }
@@ -388,7 +397,9 @@ ExprNode::fillErrorCorrectionRow(int eqn,
 }
 
 void
-ExprNode::matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<int> &powers) const
+ExprNode::matchMatchedMoment([[maybe_unused]] vector<int> &symb_ids,
+                             [[maybe_unused]] vector<int> &lags,
+                             [[maybe_unused]] vector<int> &powers) const
 {
   throw MatchFailureException{"Unsupported expression"};
 }
@@ -433,7 +444,7 @@ NumConstNode::prepareForDerivation()
 }
 
 expr_t
-NumConstNode::computeDerivative(int deriv_id)
+NumConstNode::computeDerivative([[maybe_unused]] int deriv_id)
 {
   return datatree.Zero;
 }
@@ -442,7 +453,7 @@ void
 NumConstNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
                           const temporary_terms_t &temporary_terms,
                           const temporary_terms_idxs_t &temporary_terms_idxs,
-                          const deriv_node_temp_terms_t &tef_terms) const
+                          [[maybe_unused]] const deriv_node_temp_terms_t &tef_terms) const
 {
   if (!checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
     output << datatree.num_constants.get(id);
@@ -458,8 +469,8 @@ NumConstNode::writeJsonAST(ostream &output) const
 void
 NumConstNode::writeJsonOutput(ostream &output,
                               const temporary_terms_t &temporary_terms,
-                              const deriv_node_temp_terms_t &tef_terms,
-                              bool isdynamic) const
+                              [[maybe_unused]] const deriv_node_temp_terms_t &tef_terms,
+                              [[maybe_unused]] bool isdynamic) const
 {
   if (temporary_terms.contains(const_cast<NumConstNode *>(this)))
     output << "T" << idx;
@@ -474,47 +485,52 @@ NumConstNode::containsExternalFunction() const
 }
 
 double
-NumConstNode::eval(const eval_context_t &eval_context) const noexcept(false)
+NumConstNode::eval([[maybe_unused]] const eval_context_t &eval_context) const noexcept(false)
 {
   return datatree.num_constants.getDouble(id);
 }
 
 void
-NumConstNode::writeBytecodeOutput(BytecodeWriter &code_file, bool lhs_rhs,
+NumConstNode::writeBytecodeOutput(BytecodeWriter &code_file, [[maybe_unused]] bool lhs_rhs,
                                   const temporary_terms_t &temporary_terms,
-                                  const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
-                                  const deriv_node_temp_terms_t &tef_terms) const
+                                  const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic,
+                                  [[maybe_unused]] bool steady_dynamic,
+                                  [[maybe_unused]] const deriv_node_temp_terms_t &tef_terms) const
 {
   if (!checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic))
     code_file << FLDC_{datatree.num_constants.getDouble(id)};
 }
 
 void
-NumConstNode::collectVARLHSVariable(set<expr_t> &result) const
+NumConstNode::collectVARLHSVariable([[maybe_unused]] set<expr_t> &result) const
 {
   cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << endl;
   exit(EXIT_FAILURE);
 }
 
 void
-NumConstNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const
+NumConstNode::collectDynamicVariables([[maybe_unused]] SymbolType type_arg,
+                                      [[maybe_unused]] set<pair<int, int>> &result) const
 {
 }
 
 void
-NumConstNode::computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const
+NumConstNode::computeSubExprContainingVariable([[maybe_unused]] int symb_id, [[maybe_unused]] int lag,
+                                               [[maybe_unused]] set<expr_t> &contain_var) const
 {
 }
 
 BinaryOpNode *
-NumConstNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const
+NumConstNode::normalizeEquationHelper([[maybe_unused]] const set<expr_t> &contain_var,
+                                      [[maybe_unused]] expr_t rhs) const
 {
   cerr << "NumConstNode::normalizeEquation: this should not happen" << endl;
   exit(EXIT_FAILURE);
 }
 
 expr_t
-NumConstNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables)
+NumConstNode::getChainRuleDerivative([[maybe_unused]] int deriv_id,
+                                     [[maybe_unused]] const map<int, BinaryOpNode *> &recursive_variables)
 {
   return datatree.Zero;
 }
@@ -526,7 +542,7 @@ NumConstNode::toStatic(DataTree &static_datatree) const
 }
 
 void
-NumConstNode::computeXrefs(EquationInfo &ei) const
+NumConstNode::computeXrefs([[maybe_unused]] EquationInfo &ei) const
 {
 }
 
@@ -585,13 +601,13 @@ NumConstNode::undiff() const
 }
 
 int
-NumConstNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
+NumConstNode::VarMaxLag([[maybe_unused]] const set<expr_t> &lhs_lag_equiv) const
 {
   return 0;
 }
 
 expr_t
-NumConstNode::decreaseLeadsLags(int n) const
+NumConstNode::decreaseLeadsLags([[maybe_unused]] int n) const
 {
   return const_cast<NumConstNode *>(this);
 }
@@ -603,31 +619,39 @@ NumConstNode::decreaseLeadsLagsPredeterminedVariables() const
 }
 
 expr_t
-NumConstNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
+NumConstNode::substituteEndoLeadGreaterThanTwo([[maybe_unused]] subst_table_t &subst_table,
+                                               [[maybe_unused]] vector<BinaryOpNode *> &neweqs,
+                                               [[maybe_unused]] bool deterministic_model) const
 {
   return const_cast<NumConstNode *>(this);
 }
 
 expr_t
-NumConstNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+NumConstNode::substituteEndoLagGreaterThanTwo([[maybe_unused]] subst_table_t &subst_table,
+                                              [[maybe_unused]] vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<NumConstNode *>(this);
 }
 
 expr_t
-NumConstNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
+NumConstNode::substituteExoLead([[maybe_unused]] subst_table_t &subst_table,
+                                [[maybe_unused]] vector<BinaryOpNode *> &neweqs,
+                                [[maybe_unused]] bool deterministic_model) const
 {
   return const_cast<NumConstNode *>(this);
 }
 
 expr_t
-NumConstNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+NumConstNode::substituteExoLag([[maybe_unused]] subst_table_t &subst_table,
+                               [[maybe_unused]] vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<NumConstNode *>(this);
 }
 
 expr_t
-NumConstNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
+NumConstNode::substituteExpectation([[maybe_unused]] subst_table_t &subst_table,
+                                    [[maybe_unused]] vector<BinaryOpNode *> &neweqs,
+                                    [[maybe_unused]] bool partial_information_model) const
 {
   return const_cast<NumConstNode *>(this);
 }
@@ -645,53 +669,61 @@ NumConstNode::substituteModelLocalVariables() const
 }
 
 expr_t
-NumConstNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
+NumConstNode::substituteVarExpectation([[maybe_unused]] const map<string, expr_t> &subst_table) const
 {
   return const_cast<NumConstNode *>(this);
 }
 
 void
-NumConstNode::findDiffNodes(lag_equivalence_table_t &nodes) const
+NumConstNode::findDiffNodes([[maybe_unused]] lag_equivalence_table_t &nodes) const
 {
 }
 
 void
-NumConstNode::findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const
+NumConstNode::findUnaryOpNodesForAuxVarCreation([[maybe_unused]] lag_equivalence_table_t &nodes) const
 {
 }
 
 optional<int>
-NumConstNode::findTargetVariable(int lhs_symb_id) const
+NumConstNode::findTargetVariable([[maybe_unused]] int lhs_symb_id) const
 {
   return nullopt;
 }
 
 expr_t
-NumConstNode::substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+NumConstNode::substituteDiff([[maybe_unused]] const lag_equivalence_table_t &nodes,
+                             [[maybe_unused]] subst_table_t &subst_table,
+                             [[maybe_unused]] vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<NumConstNode *>(this);
 }
 
 expr_t
-NumConstNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+NumConstNode::substituteUnaryOpNodes([[maybe_unused]] const lag_equivalence_table_t &nodes,
+                                     [[maybe_unused]] subst_table_t &subst_table,
+                                     [[maybe_unused]] vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<NumConstNode *>(this);
 }
 
 expr_t
-NumConstNode::substitutePacExpectation(const string &name, expr_t subexpr)
+NumConstNode::substitutePacExpectation([[maybe_unused]] const string &name,
+                                       [[maybe_unused]] expr_t subexpr)
 {
   return const_cast<NumConstNode *>(this);
 }
 
 expr_t
-NumConstNode::substitutePacTargetNonstationary(const string &name, expr_t subexpr)
+NumConstNode::substitutePacTargetNonstationary([[maybe_unused]] const string &name,
+                                               [[maybe_unused]] expr_t subexpr)
 {
   return const_cast<NumConstNode *>(this);
 }
 
 expr_t
-NumConstNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+NumConstNode::differentiateForwardVars([[maybe_unused]] const vector<string> &subset,
+                                       [[maybe_unused]] subst_table_t &subst_table,
+                                       [[maybe_unused]] vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<NumConstNode *>(this);
 }
@@ -706,19 +738,21 @@ NumConstNode::isNumConstNodeEqualTo(double value) const
 }
 
 bool
-NumConstNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
+NumConstNode::isVariableNodeEqualTo([[maybe_unused]] SymbolType type_arg,
+                                    [[maybe_unused]] int variable_id,
+                                    [[maybe_unused]] int lag_arg) const
 {
   return false;
 }
 
 bool
-NumConstNode::containsPacExpectation(const string &pac_model_name) const
+NumConstNode::containsPacExpectation([[maybe_unused]] const string &pac_model_name) const
 {
   return false;
 }
 
 bool
-NumConstNode::containsPacTargetNonstationary(const string &pac_model_name) const
+NumConstNode::containsPacTargetNonstationary([[maybe_unused]] const string &pac_model_name) const
 {
   return false;
 }
@@ -730,13 +764,14 @@ NumConstNode::replaceTrendVar() const
 }
 
 expr_t
-NumConstNode::detrend(int symb_id, bool log_trend, expr_t trend) const
+NumConstNode::detrend([[maybe_unused]] int symb_id, [[maybe_unused]] bool log_trend,
+                      [[maybe_unused]] expr_t trend) const
 {
   return const_cast<NumConstNode *>(this);
 }
 
 expr_t
-NumConstNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const
+NumConstNode::removeTrendLeadLag([[maybe_unused]] const map<int, expr_t> &trend_symbols_map) const
 {
   return const_cast<NumConstNode *>(this);
 }
@@ -760,13 +795,14 @@ NumConstNode::substituteStaticAuxiliaryVariable() const
 }
 
 expr_t
-NumConstNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
+NumConstNode::replaceVarsInEquation([[maybe_unused]] map<VariableNode *, NumConstNode *> &table) const
 {
   return const_cast<NumConstNode *>(this);
 }
 
 expr_t
-NumConstNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
+NumConstNode::substituteLogTransform([[maybe_unused]] int orig_symb_id,
+                                     [[maybe_unused]] int aux_symb_id) const
 {
   return const_cast<NumConstNode *>(this);
 }
@@ -928,7 +964,7 @@ VariableNode::writeJsonAST(ostream &output) const
 void
 VariableNode::writeJsonOutput(ostream &output,
                               const temporary_terms_t &temporary_terms,
-                              const deriv_node_temp_terms_t &tef_terms,
+                              [[maybe_unused]] const deriv_node_temp_terms_t &tef_terms,
                               bool isdynamic) const
 {
   if (temporary_terms.contains(const_cast<VariableNode *>(this)))
@@ -1858,7 +1894,7 @@ VariableNode::differentiateForwardVars(const vector<string> &subset, subst_table
 }
 
 bool
-VariableNode::isNumConstNodeEqualTo(double value) const
+VariableNode::isNumConstNodeEqualTo([[maybe_unused]] double value) const
 {
   return false;
 }
@@ -3726,13 +3762,15 @@ UnaryOpNode::differentiateForwardVars(const vector<string> &subset, subst_table_
 }
 
 bool
-UnaryOpNode::isNumConstNodeEqualTo(double value) const
+UnaryOpNode::isNumConstNodeEqualTo([[maybe_unused]] double value) const
 {
   return false;
 }
 
 bool
-UnaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
+UnaryOpNode::isVariableNodeEqualTo([[maybe_unused]] SymbolType type_arg,
+                                   [[maybe_unused]] int variable_id,
+                                   [[maybe_unused]] int lag_arg) const
 {
   return false;
 }
@@ -4733,7 +4771,7 @@ BinaryOpNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 }
 
 void
-BinaryOpNode::collectVARLHSVariable(set<expr_t> &result) const
+BinaryOpNode::collectVARLHSVariable([[maybe_unused]] set<expr_t> &result) const
 {
   cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << endl;
   exit(EXIT_FAILURE);
@@ -5214,13 +5252,15 @@ BinaryOpNode::addMultipliersToConstraints(int i)
 }
 
 bool
-BinaryOpNode::isNumConstNodeEqualTo(double value) const
+BinaryOpNode::isNumConstNodeEqualTo([[maybe_unused]] double value) const
 {
   return false;
 }
 
 bool
-BinaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
+BinaryOpNode::isVariableNodeEqualTo([[maybe_unused]] SymbolType type_arg,
+                                    [[maybe_unused]] int variable_id,
+                                    [[maybe_unused]] int lag_arg) const
 {
   return false;
 }
@@ -5802,7 +5842,8 @@ TrinaryOpNode::computeDerivative(int deriv_id)
 }
 
 int
-TrinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const
+TrinaryOpNode::precedence([[maybe_unused]] ExprNodeOutputType output_type,
+                          const temporary_terms_t &temporary_terms) const
 {
   // A temporary term behaves as a variable
   if (temporary_terms.contains(const_cast<TrinaryOpNode *>(this)))
@@ -6150,7 +6191,7 @@ TrinaryOpNode::writeBytecodeExternalFunctionOutput(BytecodeWriter &code_file, bo
 }
 
 void
-TrinaryOpNode::collectVARLHSVariable(set<expr_t> &result) const
+TrinaryOpNode::collectVARLHSVariable([[maybe_unused]] set<expr_t> &result) const
 {
   cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << endl;
   exit(EXIT_FAILURE);
@@ -6175,7 +6216,8 @@ TrinaryOpNode::computeSubExprContainingVariable(int symb_id, int lag, set<expr_t
 }
 
 BinaryOpNode *
-TrinaryOpNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const
+TrinaryOpNode::normalizeEquationHelper([[maybe_unused]] const set<expr_t> &contain_var,
+                                       [[maybe_unused]] expr_t rhs) const
 {
   throw NormalizationFailed();
 }
@@ -6473,13 +6515,15 @@ TrinaryOpNode::differentiateForwardVars(const vector<string> &subset, subst_tabl
 }
 
 bool
-TrinaryOpNode::isNumConstNodeEqualTo(double value) const
+TrinaryOpNode::isNumConstNodeEqualTo([[maybe_unused]] double value) const
 {
   return false;
 }
 
 bool
-TrinaryOpNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
+TrinaryOpNode::isVariableNodeEqualTo([[maybe_unused]] SymbolType type_arg,
+                                     [[maybe_unused]] int variable_id,
+                                     [[maybe_unused]] int lag_arg) const
 {
   return false;
 }
@@ -6629,7 +6673,7 @@ AbstractExternalFunctionNode::writeBytecodeExternalFunctionArguments(BytecodeWri
 }
 
 void
-AbstractExternalFunctionNode::collectVARLHSVariable(set<expr_t> &result) const
+AbstractExternalFunctionNode::collectVARLHSVariable([[maybe_unused]] set<expr_t> &result) const
 {
   cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << endl;
   exit(EXIT_FAILURE);
@@ -6643,7 +6687,7 @@ AbstractExternalFunctionNode::collectDynamicVariables(SymbolType type_arg, set<p
 }
 
 double
-AbstractExternalFunctionNode::eval(const eval_context_t &eval_context) const noexcept(false)
+AbstractExternalFunctionNode::eval([[maybe_unused]] const eval_context_t &eval_context) const noexcept(false)
 {
   throw EvalExternalFunctionException();
 }
@@ -6916,8 +6960,8 @@ AbstractExternalFunctionNode::getIndxInTefTerms(int the_symb_id, const deriv_nod
 void
 AbstractExternalFunctionNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
                                                     map<pair<int, int>, temporary_terms_t> &temp_terms_map,
-                                                    map<expr_t, pair<int, pair<int, int>>> &reference_count,
-                                                    bool is_matlab) const
+                                                    [[maybe_unused]] map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                                    [[maybe_unused]] bool is_matlab) const
 {
   /* All external function nodes are declared as temporary terms.
 
@@ -6943,7 +6987,7 @@ AbstractExternalFunctionNode::computeTemporaryTerms(const pair<int, int> &derivO
 
 void
 AbstractExternalFunctionNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                                         map<expr_t, tuple<int, int, int>> &reference_count) const
+                                                         [[maybe_unused]] map<expr_t, tuple<int, int, int>> &reference_count) const
 {
   // See comments in computeTemporaryTerms() for the logic
   expr_t this2 = const_cast<AbstractExternalFunctionNode *>(this);
@@ -6959,13 +7003,15 @@ AbstractExternalFunctionNode::computeBlockTemporaryTerms(int blk, int eq, vector
 }
 
 bool
-AbstractExternalFunctionNode::isNumConstNodeEqualTo(double value) const
+AbstractExternalFunctionNode::isNumConstNodeEqualTo([[maybe_unused]] double value) const
 {
   return false;
 }
 
 bool
-AbstractExternalFunctionNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
+AbstractExternalFunctionNode::isVariableNodeEqualTo([[maybe_unused]] SymbolType type_arg,
+                                                    [[maybe_unused]] int variable_id,
+                                                    [[maybe_unused]] int lag_arg) const
 {
   return false;
 }
@@ -7044,7 +7090,8 @@ AbstractExternalFunctionNode::computeSubExprContainingVariable(int symb_id, int 
 }
 
 BinaryOpNode *
-AbstractExternalFunctionNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const
+AbstractExternalFunctionNode::normalizeEquationHelper([[maybe_unused]] const set<expr_t> &contain_var,
+                                                      [[maybe_unused]] expr_t rhs) const
 {
   throw NormalizationFailed();
 }
@@ -7170,7 +7217,8 @@ ExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
 void
 ExternalFunctionNode::writeBytecodeOutput(BytecodeWriter &code_file, bool lhs_rhs,
                                           const temporary_terms_t &temporary_terms,
-                                          const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
+                                          const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic,
+                                          [[maybe_unused]] bool steady_dynamic,
                                           const deriv_node_temp_terms_t &tef_terms) const
 {
   if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic))
@@ -7475,7 +7523,7 @@ void
 FirstDerivExternalFunctionNode::writeJsonOutput(ostream &output,
                                                 const temporary_terms_t &temporary_terms,
                                                 const deriv_node_temp_terms_t &tef_terms,
-                                                bool isdynamic) const
+                                                [[maybe_unused]] bool isdynamic) const
 {
   // If current node is a temporary term
   if (temporary_terms.contains(const_cast<FirstDerivExternalFunctionNode *>(this)))
@@ -7542,7 +7590,8 @@ FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType 
 void
 FirstDerivExternalFunctionNode::writeBytecodeOutput(BytecodeWriter &code_file, bool lhs_rhs,
                                                     const temporary_terms_t &temporary_terms,
-                                                    const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
+                                                    const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic,
+                                                    [[maybe_unused]] bool steady_dynamic,
                                                     const deriv_node_temp_terms_t &tef_terms) const
 {
   if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic))
@@ -7797,7 +7846,7 @@ SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(DataTree &datat
 }
 
 expr_t
-SecondDerivExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
+SecondDerivExternalFunctionNode::composeDerivatives([[maybe_unused]] const vector<expr_t> &dargs)
 {
   cerr << "ERROR: third order derivatives of external functions are not implemented" << endl;
   exit(EXIT_FAILURE);
@@ -7816,7 +7865,7 @@ void
 SecondDerivExternalFunctionNode::writeJsonOutput(ostream &output,
                                                  const temporary_terms_t &temporary_terms,
                                                  const deriv_node_temp_terms_t &tef_terms,
-                                                 bool isdynamic) const
+                                                 [[maybe_unused]] bool isdynamic) const
 {
   // If current node is a temporary term
   if (temporary_terms.contains(const_cast<SecondDerivExternalFunctionNode *>(this)))
@@ -8059,7 +8108,8 @@ SecondDerivExternalFunctionNode::computeXrefs(EquationInfo &ei) const
 void
 SecondDerivExternalFunctionNode::writeBytecodeOutput(BytecodeWriter &code_file, bool lhs_rhs,
                                                      const temporary_terms_t &temporary_terms,
-                                                     const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
+                                                     const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic,
+                                                     [[maybe_unused]] bool steady_dynamic,
                                                      const deriv_node_temp_terms_t &tef_terms) const
 {
   if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic))
@@ -8150,25 +8200,26 @@ SubModelNode::SubModelNode(DataTree &datatree_arg,
 }
 
 void
-SubModelNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
-                                          map<pair<int, int>, temporary_terms_t> &temp_terms_map,
-                                          map<expr_t, pair<int, pair<int, int>>> &reference_count,
-                                          bool is_matlab) const
+SubModelNode::computeTemporaryTerms([[maybe_unused]] const pair<int, int> &derivOrder,
+                                    [[maybe_unused]] map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+                                    [[maybe_unused]] map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                    [[maybe_unused]] bool is_matlab) const
 {
   cerr << "SubModelNode::computeTemporaryTerms not implemented." << endl;
   exit(EXIT_FAILURE);
 }
 
 void
-SubModelNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                               map<expr_t, tuple<int, int, int>> &reference_count) const
+SubModelNode::computeBlockTemporaryTerms([[maybe_unused]] int blk, [[maybe_unused]] int eq,
+                                         [[maybe_unused]] vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+                                         [[maybe_unused]] map<expr_t, tuple<int, int, int>> &reference_count) const
 {
   cerr << "SubModelNode::computeBlocksTemporaryTerms not implemented." << endl;
   exit(EXIT_FAILURE);
 }
 
 expr_t
-SubModelNode::toStatic(DataTree &static_datatree) const
+SubModelNode::toStatic([[maybe_unused]] DataTree &static_datatree) const
 {
   cerr << "SubModelNode::toStatic not implemented." << endl;
   exit(EXIT_FAILURE);
@@ -8182,14 +8233,15 @@ SubModelNode::prepareForDerivation()
 }
 
 expr_t
-SubModelNode::computeDerivative(int deriv_id)
+SubModelNode::computeDerivative([[maybe_unused]] int deriv_id)
 {
   cerr << "SubModelNode::computeDerivative not implemented." << endl;
   exit(EXIT_FAILURE);
 }
 
 expr_t
-SubModelNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables)
+SubModelNode::getChainRuleDerivative([[maybe_unused]] int deriv_id,
+                                     [[maybe_unused]] const map<int, BinaryOpNode *> &recursive_variables)
 {
   cerr << "SubModelNode::getChainRuleDerivative not implemented." << endl;
   exit(EXIT_FAILURE);
@@ -8245,14 +8297,14 @@ SubModelNode::undiff() const
 }
 
 int
-SubModelNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
+SubModelNode::VarMaxLag([[maybe_unused]] const set<expr_t> &lhs_lag_equiv) const
 {
   cerr << "SubModelNode::VarMaxLag not implemented." << endl;
   exit(EXIT_FAILURE);
 }
 
 expr_t
-SubModelNode::decreaseLeadsLags(int n) const
+SubModelNode::decreaseLeadsLags([[maybe_unused]] int n) const
 {
   cerr << "SubModelNode::decreaseLeadsLags not implemented." << endl;
   exit(EXIT_FAILURE);
@@ -8267,28 +8319,34 @@ SubModelNode::countDiffs() const
 
 
 expr_t
-SubModelNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
+SubModelNode::substituteEndoLeadGreaterThanTwo([[maybe_unused]] subst_table_t &subst_table,
+                                               [[maybe_unused]] vector<BinaryOpNode *> &neweqs,
+                                               [[maybe_unused]] bool deterministic_model) const
 {
   cerr << "SubModelNode::substituteEndoLeadGreaterThanTwo not implemented." << endl;
   exit(EXIT_FAILURE);
 }
 
 expr_t
-SubModelNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+SubModelNode::substituteEndoLagGreaterThanTwo([[maybe_unused]] subst_table_t &subst_table,
+                                              [[maybe_unused]] vector<BinaryOpNode *> &neweqs) const
 {
   cerr << "SubModelNode::substituteEndoLagGreaterThanTwo not implemented." << endl;
   exit(EXIT_FAILURE);
 }
 
 expr_t
-SubModelNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
+SubModelNode::substituteExoLead([[maybe_unused]] subst_table_t &subst_table,
+                                [[maybe_unused]] vector<BinaryOpNode *> &neweqs,
+                                [[maybe_unused]] bool deterministic_model) const
 {
   cerr << "SubModelNode::substituteExoLead not implemented." << endl;
   exit(EXIT_FAILURE);
 }
 
 expr_t
-SubModelNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+SubModelNode::substituteExoLag([[maybe_unused]] subst_table_t &subst_table,
+                               [[maybe_unused]] vector<BinaryOpNode *> &neweqs) const
 {
   cerr << "SubModelNode::substituteExoLag not implemented." << endl;
   exit(EXIT_FAILURE);
@@ -8301,51 +8359,60 @@ SubModelNode::containsExternalFunction() const
 }
 
 double
-SubModelNode::eval(const eval_context_t &eval_context) const noexcept(false)
+SubModelNode::eval([[maybe_unused]] const eval_context_t &eval_context) const noexcept(false)
 {
   throw EvalException();
 }
 
 void
-SubModelNode::computeXrefs(EquationInfo &ei) const
+SubModelNode::computeXrefs([[maybe_unused]] EquationInfo &ei) const
 {
 }
 
 void
-SubModelNode::collectVARLHSVariable(set<expr_t> &result) const
+SubModelNode::collectVARLHSVariable([[maybe_unused]] set<expr_t> &result) const
 {
   cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << endl;
   exit(EXIT_FAILURE);
 }
 
 void
-SubModelNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const
+SubModelNode::collectDynamicVariables([[maybe_unused]] SymbolType type_arg,
+                                      [[maybe_unused]] set<pair<int, int>> &result) const
 {
 }
 
 void
-SubModelNode::writeBytecodeOutput(BytecodeWriter &code_file, bool lhs_rhs,
-                                  const temporary_terms_t &temporary_terms,
-                                  const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
-                                  const deriv_node_temp_terms_t &tef_terms) const
+SubModelNode::writeBytecodeOutput([[maybe_unused]] BytecodeWriter &code_file,
+                                  [[maybe_unused]] bool lhs_rhs,
+                                  [[maybe_unused]] const temporary_terms_t &temporary_terms,
+                                  [[maybe_unused]] const temporary_terms_idxs_t &temporary_terms_idxs,
+                                  [[maybe_unused]] bool dynamic,
+                                  [[maybe_unused]] bool steady_dynamic,
+                                  [[maybe_unused]] const deriv_node_temp_terms_t &tef_terms) const
 {
   cerr << "SubModelNode::compile not implemented." << endl;
   exit(EXIT_FAILURE);
 }
 
 void
-SubModelNode::computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const
+SubModelNode::computeSubExprContainingVariable([[maybe_unused]] int symb_id,
+                                               [[maybe_unused]] int lag,
+                                               [[maybe_unused]] set<expr_t> &contain_var) const
 {
 }
 
 BinaryOpNode *
-SubModelNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const
+SubModelNode::normalizeEquationHelper([[maybe_unused]] const set<expr_t> &contain_var,
+                                      [[maybe_unused]] expr_t rhs) const
 {
   throw NormalizationFailed();
 }
 
 expr_t
-SubModelNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
+SubModelNode::substituteExpectation([[maybe_unused]] subst_table_t &subst_table,
+                                    [[maybe_unused]] vector<BinaryOpNode *> &neweqs,
+                                    [[maybe_unused]] bool partial_information_model) const
 {
   return const_cast<SubModelNode *>(this);
 }
@@ -8363,42 +8430,47 @@ SubModelNode::substituteModelLocalVariables() const
 }
 
 void
-SubModelNode::findDiffNodes(lag_equivalence_table_t &nodes) const
+SubModelNode::findDiffNodes([[maybe_unused]] lag_equivalence_table_t &nodes) const
 {
 }
 
 void
-SubModelNode::findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t &nodes) const
+SubModelNode::findUnaryOpNodesForAuxVarCreation([[maybe_unused]] lag_equivalence_table_t &nodes) const
 {
 }
 
 optional<int>
-SubModelNode::findTargetVariable(int lhs_symb_id) const
+SubModelNode::findTargetVariable([[maybe_unused]] int lhs_symb_id) const
 {
   return nullopt;
 }
 
 expr_t
-SubModelNode::substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table,
-                                   vector<BinaryOpNode *> &neweqs) const
+SubModelNode::substituteDiff([[maybe_unused]] const lag_equivalence_table_t &nodes,
+                             [[maybe_unused]] subst_table_t &subst_table,
+                             [[maybe_unused]] vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<SubModelNode *>(this);
 }
 
 expr_t
-SubModelNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+SubModelNode::substituteUnaryOpNodes([[maybe_unused]] const lag_equivalence_table_t &nodes,
+                                     [[maybe_unused]] subst_table_t &subst_table,
+                                     [[maybe_unused]] vector<BinaryOpNode *> &neweqs) const
 {
   return const_cast<SubModelNode *>(this);
 }
 
 bool
-SubModelNode::isNumConstNodeEqualTo(double value) const
+SubModelNode::isNumConstNodeEqualTo([[maybe_unused]] double value) const
 {
   return false;
 }
 
 bool
-SubModelNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
+SubModelNode::isVariableNodeEqualTo([[maybe_unused]] SymbolType type_arg,
+                                    [[maybe_unused]] int variable_id,
+                                    [[maybe_unused]] int lag_arg) const
 {
   return false;
 }
@@ -8422,13 +8494,15 @@ SubModelNode::substituteStaticAuxiliaryVariable() const
 }
 
 expr_t
-SubModelNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
+SubModelNode::replaceVarsInEquation([[maybe_unused]] map<VariableNode *, NumConstNode *> &table) const
 {
   return const_cast<SubModelNode *>(this);
 }
 
 expr_t
-SubModelNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
+SubModelNode::differentiateForwardVars([[maybe_unused]] const vector<string> &subset,
+                                       [[maybe_unused]] subst_table_t &subst_table,
+                                       [[maybe_unused]] vector<BinaryOpNode *> &neweqs) const
 {
   cerr << "SubModelNode::differentiateForwardVars not implemented." << endl;
   exit(EXIT_FAILURE);
@@ -8449,21 +8523,23 @@ SubModelNode::replaceTrendVar() const
 }
 
 expr_t
-SubModelNode::detrend(int symb_id, bool log_trend, expr_t trend) const
+SubModelNode::detrend([[maybe_unused]] int symb_id, [[maybe_unused]] bool log_trend,
+                      [[maybe_unused]] expr_t trend) const
 {
   cerr << "SubModelNode::detrend not implemented." << endl;
   exit(EXIT_FAILURE);
 }
 
 expr_t
-SubModelNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const
+SubModelNode::removeTrendLeadLag([[maybe_unused]] const map<int, expr_t> &trend_symbols_map) const
 {
   cerr << "SubModelNode::removeTrendLeadLag not implemented." << endl;
   exit(EXIT_FAILURE);
 }
 
 expr_t
-SubModelNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
+SubModelNode::substituteLogTransform([[maybe_unused]] int orig_symb_id,
+                                     [[maybe_unused]] int aux_symb_id) const
 {
   return const_cast<SubModelNode *>(this);
 }
@@ -8497,9 +8573,9 @@ VarExpectationNode::maxLagWithDiffsExpanded() const
 
 void
 VarExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                                const temporary_terms_t &temporary_terms,
-                                const temporary_terms_idxs_t &temporary_terms_idxs,
-                                const deriv_node_temp_terms_t &tef_terms) const
+                                [[maybe_unused]] const temporary_terms_t &temporary_terms,
+                                [[maybe_unused]] const temporary_terms_idxs_t &temporary_terms_idxs,
+                                [[maybe_unused]] const deriv_node_temp_terms_t &tef_terms) const
 {
   assert(output_type != ExprNodeOutputType::matlabOutsideModel);
 
@@ -8526,25 +8602,27 @@ VarExpectationNode::substituteVarExpectation(const map<string, expr_t> &subst_ta
 }
 
 expr_t
-VarExpectationNode::substitutePacExpectation(const string &name, expr_t subexpr)
+VarExpectationNode::substitutePacExpectation([[maybe_unused]] const string &name,
+                                             [[maybe_unused]] expr_t subexpr)
 {
   return const_cast<VarExpectationNode *>(this);
 }
 
 expr_t
-VarExpectationNode::substitutePacTargetNonstationary(const string &name, expr_t subexpr)
+VarExpectationNode::substitutePacTargetNonstationary([[maybe_unused]] const string &name,
+                                                     [[maybe_unused]] expr_t subexpr)
 {
   return const_cast<VarExpectationNode *>(this);
 }
 
 bool
-VarExpectationNode::containsPacExpectation(const string &pac_model_name) const
+VarExpectationNode::containsPacExpectation([[maybe_unused]] const string &pac_model_name) const
 {
   return false;
 }
 
 bool
-VarExpectationNode::containsPacTargetNonstationary(const string &pac_model_name) const
+VarExpectationNode::containsPacTargetNonstationary([[maybe_unused]] const string &pac_model_name) const
 {
   return false;
 }
@@ -8558,9 +8636,9 @@ VarExpectationNode::writeJsonAST(ostream &output) const
 
 void
 VarExpectationNode::writeJsonOutput(ostream &output,
-                                    const temporary_terms_t &temporary_terms,
-                                    const deriv_node_temp_terms_t &tef_terms,
-                                    bool isdynamic) const
+                                    [[maybe_unused]] const temporary_terms_t &temporary_terms,
+                                    [[maybe_unused]] const deriv_node_temp_terms_t &tef_terms,
+                                    [[maybe_unused]] bool isdynamic) const
 {
   output << "var_expectation("
          << "model_name = " << model_name
@@ -8582,9 +8660,9 @@ PacExpectationNode::clone(DataTree &datatree) const
 
 void
 PacExpectationNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                                const temporary_terms_t &temporary_terms,
-                                const temporary_terms_idxs_t &temporary_terms_idxs,
-                                const deriv_node_temp_terms_t &tef_terms) const
+                                [[maybe_unused]] const temporary_terms_t &temporary_terms,
+                                [[maybe_unused]] const temporary_terms_idxs_t &temporary_terms_idxs,
+                                [[maybe_unused]] const deriv_node_temp_terms_t &tef_terms) const
 {
   assert(output_type != ExprNodeOutputType::matlabOutsideModel);
   if (isLatexOutput(output_type))
@@ -8605,7 +8683,7 @@ PacExpectationNode::maxLagWithDiffsExpanded() const
 }
 
 expr_t
-PacExpectationNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
+PacExpectationNode::substituteVarExpectation([[maybe_unused]] const map<string, expr_t> &subst_table) const
 {
   return const_cast<PacExpectationNode *>(this);
 }
@@ -8620,7 +8698,7 @@ PacExpectationNode::containsPacExpectation(const string &pac_model_name) const
 }
 
 bool
-PacExpectationNode::containsPacTargetNonstationary(const string &pac_model_name) const
+PacExpectationNode::containsPacTargetNonstationary([[maybe_unused]] const string &pac_model_name) const
 {
   return false;
 }
@@ -8634,9 +8712,9 @@ PacExpectationNode::writeJsonAST(ostream &output) const
 
 void
 PacExpectationNode::writeJsonOutput(ostream &output,
-                                    const temporary_terms_t &temporary_terms,
-                                    const deriv_node_temp_terms_t &tef_terms,
-                                    bool isdynamic) const
+                                    [[maybe_unused]] const temporary_terms_t &temporary_terms,
+                                    [[maybe_unused]] const deriv_node_temp_terms_t &tef_terms,
+                                    [[maybe_unused]] bool isdynamic) const
 {
   output << "pac_expectation("
          << "model_name = " << model_name
@@ -8652,7 +8730,8 @@ PacExpectationNode::substitutePacExpectation(const string &name, expr_t subexpr)
 }
 
 expr_t
-PacExpectationNode::substitutePacTargetNonstationary(const string &name, expr_t subexpr)
+PacExpectationNode::substitutePacTargetNonstationary([[maybe_unused]] const string &name,
+                                                     [[maybe_unused]] expr_t subexpr)
 {
   return const_cast<PacExpectationNode *>(this);
 }
@@ -8672,9 +8751,9 @@ PacTargetNonstationaryNode::clone(DataTree &datatree) const
 
 void
 PacTargetNonstationaryNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
-                                        const temporary_terms_t &temporary_terms,
-                                        const temporary_terms_idxs_t &temporary_terms_idxs,
-                                        const deriv_node_temp_terms_t &tef_terms) const
+                                        [[maybe_unused]] const temporary_terms_t &temporary_terms,
+                                        [[maybe_unused]] const temporary_terms_idxs_t &temporary_terms_idxs,
+                                        [[maybe_unused]] const deriv_node_temp_terms_t &tef_terms) const
 {
   assert(output_type != ExprNodeOutputType::matlabOutsideModel);
   if (isLatexOutput(output_type))
@@ -8695,13 +8774,13 @@ PacTargetNonstationaryNode::maxLagWithDiffsExpanded() const
 }
 
 expr_t
-PacTargetNonstationaryNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
+PacTargetNonstationaryNode::substituteVarExpectation([[maybe_unused]] const map<string, expr_t> &subst_table) const
 {
   return const_cast<PacTargetNonstationaryNode *>(this);
 }
 
 bool
-PacTargetNonstationaryNode::containsPacExpectation(const string &pac_model_name) const
+PacTargetNonstationaryNode::containsPacExpectation([[maybe_unused]] const string &pac_model_name) const
 {
   return false;
 }
@@ -8724,9 +8803,9 @@ PacTargetNonstationaryNode::writeJsonAST(ostream &output) const
 
 void
 PacTargetNonstationaryNode::writeJsonOutput(ostream &output,
-                                            const temporary_terms_t &temporary_terms,
-                                            const deriv_node_temp_terms_t &tef_terms,
-                                            bool isdynamic) const
+                                            [[maybe_unused]] const temporary_terms_t &temporary_terms,
+                                            [[maybe_unused]] const deriv_node_temp_terms_t &tef_terms,
+                                            [[maybe_unused]] bool isdynamic) const
 {
   output << "pac_target_nonstationary("
          << "model_name = " << model_name
@@ -8734,7 +8813,8 @@ PacTargetNonstationaryNode::writeJsonOutput(ostream &output,
 }
 
 expr_t
-PacTargetNonstationaryNode::substitutePacExpectation(const string &name, expr_t subexpr)
+PacTargetNonstationaryNode::substitutePacExpectation([[maybe_unused]] const string &name,
+                                                     [[maybe_unused]] expr_t subexpr)
 {
   return const_cast<PacTargetNonstationaryNode *>(this);
 }
@@ -8811,13 +8891,17 @@ ExprNode::matchVariableTimesConstantTimesParam(bool variable_obligatory) const
 }
 
 void
-ExprNode::matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const
+ExprNode::matchVTCTPHelper([[maybe_unused]] optional<int> &var_id, [[maybe_unused]] int &lag,
+                           [[maybe_unused]] optional<int> &param_id, [[maybe_unused]] double &constant,
+                           [[maybe_unused]] bool at_denominator) const
 {
   throw MatchFailureException{"Expression not allowed in linear combination of variables"};
 }
 
 void
-NumConstNode::matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const
+NumConstNode::matchVTCTPHelper([[maybe_unused]] optional<int> &var_id, [[maybe_unused]] int &lag,
+                               [[maybe_unused]] optional<int> &param_id, double &constant,
+                               bool at_denominator) const
 {
   double myvalue = eval({});
   if (at_denominator)
@@ -8827,7 +8911,8 @@ NumConstNode::matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &p
 }
 
 void
-VariableNode::matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const
+VariableNode::matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id,
+                               [[maybe_unused]] double &constant, bool at_denominator) const
 {
   if (at_denominator)
     throw MatchFailureException{"A variable or parameter cannot appear at denominator"};

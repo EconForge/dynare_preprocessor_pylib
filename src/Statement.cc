@@ -25,12 +25,13 @@
 #include <utility>
 
 void
-Statement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+Statement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                     [[maybe_unused]] WarningConsolidation &warnings)
 {
 }
 
 void
-Statement::computingPass(const ModFileStructure &mod_file_struct)
+Statement::computingPass([[maybe_unused]] const ModFileStructure &mod_file_struct)
 {
 }
 
@@ -40,7 +41,8 @@ NativeStatement::NativeStatement(string native_statement_arg) :
 }
 
 void
-NativeStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+NativeStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                             [[maybe_unused]] bool minimal_workspace) const
 {
   using namespace boost::xpressive;
   string date_regex = R"((-?\d+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[SsHh][1-2])))";
@@ -104,7 +106,8 @@ VerbatimStatement::VerbatimStatement(string verbatim_statement_arg) :
 }
 
 void
-VerbatimStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+VerbatimStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                               [[maybe_unused]] bool minimal_workspace) const
 {
   output << verbatim_statement << endl;
 }

@@ -45,13 +45,15 @@ SteadyStatement::SteadyStatement(OptionsList options_list_arg) :
 }
 
 void
-SteadyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+SteadyStatement::checkPass(ModFileStructure &mod_file_struct,
+                           [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.steady_present = true;
 }
 
 void
-SteadyStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+SteadyStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                             [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "steady;" << endl;
@@ -75,14 +77,16 @@ CheckStatement::CheckStatement(OptionsList options_list_arg) :
 }
 
 void
-CheckStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+CheckStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                            [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "oo_.dr.eigval = check(M_,options_,oo_);" << endl;
 }
 
 void
-CheckStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+CheckStatement::checkPass(ModFileStructure &mod_file_struct,
+                          [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.check_present = true;
 }
@@ -105,7 +109,8 @@ ModelInfoStatement::ModelInfoStatement(OptionsList options_list_arg) :
 }
 
 void
-ModelInfoStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+ModelInfoStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_model_info_");
   output << "model_info(options_model_info_);" << endl;
@@ -129,13 +134,15 @@ SimulStatement::SimulStatement(OptionsList options_list_arg) :
 }
 
 void
-SimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+SimulStatement::checkPass(ModFileStructure &mod_file_struct,
+                          [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.perfect_foresight_solver_present = true;
 }
 
 void
-SimulStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+SimulStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                            [[maybe_unused]] bool minimal_workspace) const
 {
   // Translate the “datafile” option into “initval_file” (see dynare#1663)
   auto options_list_new = options_list; // Need a copy, because of const
@@ -171,7 +178,8 @@ PerfectForesightSetupStatement::PerfectForesightSetupStatement(OptionsList optio
 }
 
 void
-PerfectForesightSetupStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+PerfectForesightSetupStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                            [[maybe_unused]] bool minimal_workspace) const
 {
   auto options_list_new = options_list; // Need a copy, because of const
   if (auto it = options_list_new.string_options.find("datafile");
@@ -205,13 +213,15 @@ PerfectForesightSolverStatement::PerfectForesightSolverStatement(OptionsList opt
 }
 
 void
-PerfectForesightSolverStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+PerfectForesightSolverStatement::checkPass(ModFileStructure &mod_file_struct,
+                                           [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.perfect_foresight_solver_present = true;
 }
 
 void
-PerfectForesightSolverStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+PerfectForesightSolverStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                             [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "perfect_foresight_solver;" << endl;
@@ -235,7 +245,9 @@ PerfectForesightWithExpectationErrorsSetupStatement::PerfectForesightWithExpecta
 }
 
 void
-PerfectForesightWithExpectationErrorsSetupStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+PerfectForesightWithExpectationErrorsSetupStatement::writeOutput(ostream &output,
+                                                                 [[maybe_unused]] const string &basename,
+                                                                 [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "perfect_foresight_with_expectation_errors_setup;" << endl;
@@ -259,13 +271,16 @@ PerfectForesightWithExpectationErrorsSolverStatement::PerfectForesightWithExpect
 }
 
 void
-PerfectForesightWithExpectationErrorsSolverStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+PerfectForesightWithExpectationErrorsSolverStatement::checkPass(ModFileStructure &mod_file_struct,
+                                                                [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.perfect_foresight_with_expectation_errors_solver_present = true;
 }
 
 void
-PerfectForesightWithExpectationErrorsSolverStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+PerfectForesightWithExpectationErrorsSolverStatement::writeOutput(ostream &output,
+                                                                  [[maybe_unused]] const string &basename,
+                                                                  [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "perfect_foresight_with_expectation_errors_solver;" << endl;
@@ -291,7 +306,8 @@ PriorPosteriorFunctionStatement::PriorPosteriorFunctionStatement(const bool prio
 }
 
 void
-PriorPosteriorFunctionStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+PriorPosteriorFunctionStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                                           [[maybe_unused]] WarningConsolidation &warnings)
 {
   if (auto it2 = options_list.string_options.find("function");
       it2 == options_list.string_options.end() || it2->second.empty())
@@ -303,7 +319,8 @@ PriorPosteriorFunctionStatement::checkPass(ModFileStructure &mod_file_struct, Wa
 }
 
 void
-PriorPosteriorFunctionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+PriorPosteriorFunctionStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                             [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   string type = prior_func ? "prior" : "posterior";
@@ -378,7 +395,8 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 }
 
 void
-StochSimulStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+StochSimulStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                 [[maybe_unused]] bool minimal_workspace) const
 {
   // Ensure that order 3 implies k_order (#844)
   if (auto it = options_list.num_options.find("order"),
@@ -418,7 +436,8 @@ ForecastStatement::ForecastStatement(SymbolList symbol_list_arg, OptionsList opt
 }
 
 void
-ForecastStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+ForecastStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                             WarningConsolidation &warnings)
 {
   try
     {
@@ -432,7 +451,8 @@ ForecastStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolida
 }
 
 void
-ForecastStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+ForecastStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                               [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
@@ -462,7 +482,8 @@ RamseyModelStatement::RamseyModelStatement(OptionsList options_list_arg) :
 }
 
 void
-RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct,
+                                [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.ramsey_model_present = true;
 
@@ -499,7 +520,8 @@ RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
 }
 
 void
-RamseyModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+RamseyModelStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                  [[maybe_unused]] bool minimal_workspace) const
 {
   // options_.ramsey_policy indicates that a Ramsey model is present in the *.mod file
   // this affects the computation of the steady state that uses a special algorithm
@@ -535,13 +557,15 @@ RamseyConstraintsStatement::RamseyConstraintsStatement(const SymbolTable &symbol
 }
 
 void
-RamseyConstraintsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+RamseyConstraintsStatement::checkPass(ModFileStructure &mod_file_struct,
+                                      [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.ramsey_constraints_present = true;
 }
 
 void
-RamseyConstraintsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+RamseyConstraintsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                        [[maybe_unused]] bool minimal_workspace) const
 {
   output << "M_.ramsey_model_constraints = {" << endl;
   for (bool printed_something{false};
@@ -673,7 +697,8 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 }
 
 void
-RamseyPolicyStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+RamseyPolicyStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                   [[maybe_unused]] bool minimal_workspace) const
 {
   // Ensure that order 3 implies k_order (#844)
   if (auto it = options_list.num_options.find("order"),
@@ -710,7 +735,9 @@ EvaluatePlannerObjectiveStatement::EvaluatePlannerObjectiveStatement(OptionsList
 }
 
 void
-EvaluatePlannerObjectiveStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+EvaluatePlannerObjectiveStatement::writeOutput(ostream &output,
+                                               [[maybe_unused]] const string &basename,
+                                               [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "oo_.planner_objective_value = evaluate_planner_objective(M_, options_, oo_);" << endl;
@@ -790,7 +817,8 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
 }
 
 void
-DiscretionaryPolicyStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+DiscretionaryPolicyStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                          [[maybe_unused]] bool minimal_workspace) const
 {
   // Ensure that order 3 implies k_order (#844)
   if (auto it = options_list.num_options.find("order"),
@@ -827,7 +855,8 @@ OccbinSetupStatement::OccbinSetupStatement(OptionsList options_list_arg) :
 }
 
 void
-OccbinSetupStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+OccbinSetupStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                  [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_occbin_");
   output << "[M_, options_] = occbin.setup(M_, options_, options_occbin_);" << endl;  
@@ -851,7 +880,8 @@ OccbinSolverStatement::OccbinSolverStatement(OptionsList options_list_arg) :
 }
 
 void
-OccbinSolverStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+OccbinSolverStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                   [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_.occbin");
   output << "oo_ = occbin.solver(M_, oo_, options_);" << endl;
@@ -875,7 +905,8 @@ OccbinWriteRegimesStatement::OccbinWriteRegimesStatement(OptionsList options_lis
 }
 
 void
-OccbinWriteRegimesStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+OccbinWriteRegimesStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                         [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_.occbin");
   output << "occbin.write_regimes_to_xls(oo_.occbin, M_, options_);" << endl;  
@@ -901,7 +932,8 @@ OccbinGraphStatement::OccbinGraphStatement(SymbolList symbol_list_arg,
 }
 
 void
-OccbinGraphStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+OccbinGraphStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                  [[maybe_unused]] bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
   options_list.writeOutput(output, "options_occbin_");
@@ -1049,7 +1081,8 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 }
 
 void
-EstimationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+EstimationStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                 [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
 
@@ -1096,7 +1129,8 @@ DynareSensitivityStatement::DynareSensitivityStatement(OptionsList options_list_
 }
 
 void
-DynareSensitivityStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+DynareSensitivityStatement::checkPass(ModFileStructure &mod_file_struct,
+                                      [[maybe_unused]] WarningConsolidation &warnings)
 {
   if (auto it = options_list.num_options.find("identification");
       it != options_list.num_options.end() && it->second == "1")
@@ -1109,7 +1143,8 @@ DynareSensitivityStatement::checkPass(ModFileStructure &mod_file_struct, Warning
 }
 
 void
-DynareSensitivityStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+DynareSensitivityStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                        [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_gsa");
 
@@ -1150,7 +1185,8 @@ RplotStatement::RplotStatement(SymbolList symbol_list_arg,
 }
 
 void
-RplotStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+RplotStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                          WarningConsolidation &warnings)
 {
   try
     {
@@ -1164,7 +1200,8 @@ RplotStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidatio
 }
 
 void
-RplotStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+RplotStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                            [[maybe_unused]] bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
   output << "rplot(var_list_);" << endl;
@@ -1183,7 +1220,8 @@ RplotStatement::writeJsonOutput(ostream &output) const
 }
 
 void
-UnitRootVarsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+UnitRootVarsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                   [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_.diffuse_filter = 1;" << endl
          << "options_.steadystate.nocheck = 1;" << endl;
@@ -1202,7 +1240,8 @@ PeriodsStatement::PeriodsStatement(int periods_arg) : periods{periods_arg}
 }
 
 void
-PeriodsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+PeriodsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                              [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_.periods = " << periods << ";" << endl;
 }
@@ -1223,7 +1262,8 @@ DsampleStatement::DsampleStatement(int val1_arg, int val2_arg) : val1{val1_arg},
 }
 
 void
-DsampleStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+DsampleStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                              [[maybe_unused]] bool minimal_workspace) const
 {
   if (val2 < 0)
     output << "dsample(" << val1 << ");" << endl;
@@ -1327,7 +1367,8 @@ EstimatedParamsStatement::EstimatedParamsStatement(vector<EstimationParams> esti
 }
 
 void
-EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct,
+                                    [[maybe_unused]] WarningConsolidation &warnings)
 {
   commonCheckPass();
 
@@ -1360,7 +1401,8 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
 }
 
 void
-EstimatedParamsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+EstimatedParamsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                      [[maybe_unused]] bool minimal_workspace) const
 {
   string indent;
   if (!overwrite)
@@ -1504,7 +1546,8 @@ EstimatedParamsInitStatement::EstimatedParamsInitStatement(vector<EstimationPara
 }
 
 void
-EstimatedParamsInitStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+EstimatedParamsInitStatement::checkPass(ModFileStructure &mod_file_struct,
+                                        [[maybe_unused]] WarningConsolidation &warnings)
 {
   commonCheckPass();
 
@@ -1513,7 +1556,8 @@ EstimatedParamsInitStatement::checkPass(ModFileStructure &mod_file_struct, Warni
 }
 
 void
-EstimatedParamsInitStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+EstimatedParamsInitStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                          [[maybe_unused]] bool minimal_workspace) const
 {
   if (use_calibration)
     output << "options_.use_calibration_initialization = 1;" << endl;
@@ -1644,13 +1688,15 @@ EstimatedParamsBoundsStatement::EstimatedParamsBoundsStatement(vector<Estimation
 }
 
 void
-EstimatedParamsBoundsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+EstimatedParamsBoundsStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                                          [[maybe_unused]] WarningConsolidation &warnings)
 {
   commonCheckPass();
 }
 
 void
-EstimatedParamsBoundsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+EstimatedParamsBoundsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                            [[maybe_unused]] bool minimal_workspace) const
 {
   for (const auto &it : estim_params_list)
     {
@@ -1762,7 +1808,8 @@ EstimatedParamsRemoveStatement::EstimatedParamsRemoveStatement(vector<Estimation
 }
 
 void
-EstimatedParamsRemoveStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+EstimatedParamsRemoveStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                            [[maybe_unused]] bool minimal_workspace) const
 {
   for (const auto &it : estim_params_list)
     {
@@ -1857,7 +1904,8 @@ DeterministicTrendsStatement::DeterministicTrendsStatement(trend_elements_t tren
 }
 
 void
-DeterministicTrendsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+DeterministicTrendsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                          [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_.trend_coeff = {};" << endl;
   for (const auto &trend_element : trend_elements)
@@ -1906,7 +1954,8 @@ ObservationTrendsStatement::ObservationTrendsStatement(trend_elements_t trend_el
 }
 
 void
-ObservationTrendsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+ObservationTrendsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                        [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_.trend_coeff = {};" << endl;
   for (const auto &trend_element : trend_elements)
@@ -1955,7 +2004,8 @@ FilterInitialStateStatement::FilterInitialStateStatement(filter_initial_state_el
 }
 
 void
-FilterInitialStateStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+FilterInitialStateStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                         [[maybe_unused]] bool minimal_workspace) const
 {
   output << "M_.filter_initial_state = cell(M_.endo_nbr, 2);" << endl;
   for (const auto &[key, val] : filter_initial_state_elements)
@@ -2036,7 +2086,8 @@ OsrParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
 }
 
 void
-OsrParamsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+OsrParamsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                [[maybe_unused]] bool minimal_workspace) const
 {
   symbol_list.writeOutput("M_.osr.param_names", output);
   output << "M_.osr.param_names = cellstr(M_.osr.param_names);" << endl
@@ -2064,7 +2115,8 @@ OsrParamsBoundsStatement::OsrParamsBoundsStatement(vector<OsrParams> osr_params_
 }
 
 void
-OsrParamsBoundsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+OsrParamsBoundsStatement::checkPass(ModFileStructure &mod_file_struct,
+                                    [[maybe_unused]] WarningConsolidation &warnings)
 {
   if (!mod_file_struct.osr_params_present)
     {
@@ -2074,7 +2126,8 @@ OsrParamsBoundsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
 }
 
 void
-OsrParamsBoundsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+OsrParamsBoundsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                      [[maybe_unused]] bool minimal_workspace) const
 {
 
   output << "M_.osr.param_bounds = [-inf(length(M_.osr.param_names), 1), inf(length(M_.osr.param_names), 1)];" << endl;
@@ -2152,7 +2205,8 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation 
 }
 
 void
-OsrStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+OsrStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                          [[maybe_unused]] bool minimal_workspace) const
 {
   // Ensure that order 3 implies k_order (#844)
   if (auto it = options_list.num_options.find("order"),
@@ -2193,13 +2247,15 @@ OptimWeightsStatement::OptimWeightsStatement(var_weights_t var_weights_arg,
 }
 
 void
-OptimWeightsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+OptimWeightsStatement::checkPass(ModFileStructure &mod_file_struct,
+                                 [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.optim_weights_present = true;
 }
 
 void
-OptimWeightsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+OptimWeightsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                   [[maybe_unused]] bool minimal_workspace) const
 {
   output << "%" << endl
          << "% OPTIM_WEIGHTS" << endl
@@ -2265,7 +2321,8 @@ DynaSaveStatement::DynaSaveStatement(SymbolList symbol_list_arg, string filename
 }
 
 void
-DynaSaveStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+DynaSaveStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                             WarningConsolidation &warnings)
 {
   try
     {
@@ -2279,7 +2336,8 @@ DynaSaveStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolida
 }
 
 void
-DynaSaveStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+DynaSaveStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                               [[maybe_unused]] bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
   output << "dynasave('" << filename
@@ -2308,7 +2366,8 @@ DynaTypeStatement::DynaTypeStatement(SymbolList symbol_list_arg, string filename
 }
 
 void
-DynaTypeStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+DynaTypeStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                             WarningConsolidation &warnings)
 {
   try
     {
@@ -2322,7 +2381,8 @@ DynaTypeStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolida
 }
 
 void
-DynaTypeStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+DynaTypeStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                               [[maybe_unused]] bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
   output << "dynatype('" << filename
@@ -2350,7 +2410,8 @@ ModelComparisonStatement::ModelComparisonStatement(filename_list_t filename_list
 }
 
 void
-ModelComparisonStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+ModelComparisonStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                      [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
 
@@ -2398,7 +2459,8 @@ PlannerObjectiveStatement::PlannerObjectiveStatement(const StaticModel &model_tr
 }
 
 void
-PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct,
+                                     [[maybe_unused]] WarningConsolidation &warnings)
 {
   assert(model_tree.equation_number() == 1);
   if (model_tree.exoPresentInEqs())
@@ -2425,7 +2487,8 @@ PlannerObjectiveStatement::computingPass(const ModFileStructure &mod_file_struct
 }
 
 void
-PlannerObjectiveStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+PlannerObjectiveStatement::writeOutput(ostream &output, const string &basename,
+                                       [[maybe_unused]] bool minimal_workspace) const
 {
   output << "M_.NNZDerivatives_objective = [";
   for (int i=1; i < static_cast<int>(model_tree.getNNZDerivatives().size()); i++)
@@ -2458,13 +2521,15 @@ BVARDensityStatement::BVARDensityStatement(int maxnlags_arg, OptionsList options
 }
 
 void
-BVARDensityStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+BVARDensityStatement::checkPass(ModFileStructure &mod_file_struct,
+                                [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.bvar_present = true;
 }
 
 void
-BVARDensityStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+BVARDensityStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                  [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "bvar_density(" << maxnlags << ");" << endl;
@@ -2489,13 +2554,15 @@ BVARForecastStatement::BVARForecastStatement(int nlags_arg, OptionsList options_
 }
 
 void
-BVARForecastStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+BVARForecastStatement::checkPass(ModFileStructure &mod_file_struct,
+                                 [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.bvar_present = true;
 }
 
 void
-BVARForecastStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+BVARForecastStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                   [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "bvar_forecast(" << nlags << ");" << endl;
@@ -2519,13 +2586,15 @@ SBVARStatement::SBVARStatement(OptionsList options_list_arg) :
 }
 
 void
-SBVARStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+SBVARStatement::checkPass(ModFileStructure &mod_file_struct,
+                          [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.bvar_present = true;
 }
 
 void
-SBVARStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+SBVARStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                            [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "sbvar(M_,options_);" << endl;
@@ -2549,7 +2618,8 @@ MSSBVAREstimationStatement::MSSBVAREstimationStatement(OptionsList options_list_
 }
 
 void
-MSSBVAREstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+MSSBVAREstimationStatement::checkPass(ModFileStructure &mod_file_struct,
+                                      [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.bvar_present = true;
 
@@ -2564,7 +2634,8 @@ MSSBVAREstimationStatement::checkPass(ModFileStructure &mod_file_struct, Warning
 }
 
 void
-MSSBVAREstimationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+MSSBVAREstimationStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                        [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl
          << "options_.datafile = '';" << endl;
@@ -2590,13 +2661,15 @@ MSSBVARSimulationStatement::MSSBVARSimulationStatement(OptionsList options_list_
 }
 
 void
-MSSBVARSimulationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+MSSBVARSimulationStatement::checkPass(ModFileStructure &mod_file_struct,
+                                      [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.bvar_present = true;
 }
 
 void
-MSSBVARSimulationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+MSSBVARSimulationStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                        [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
@@ -2628,13 +2701,15 @@ MSSBVARComputeMDDStatement::MSSBVARComputeMDDStatement(OptionsList options_list_
 }
 
 void
-MSSBVARComputeMDDStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+MSSBVARComputeMDDStatement::checkPass(ModFileStructure &mod_file_struct,
+                                      [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.bvar_present = true;
 }
 
 void
-MSSBVARComputeMDDStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+MSSBVARComputeMDDStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                        [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
@@ -2659,7 +2734,8 @@ MSSBVARComputeProbabilitiesStatement::MSSBVARComputeProbabilitiesStatement(Optio
 }
 
 void
-MSSBVARComputeProbabilitiesStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+MSSBVARComputeProbabilitiesStatement::checkPass(ModFileStructure &mod_file_struct,
+                                                [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.bvar_present = true;
 
@@ -2673,7 +2749,9 @@ MSSBVARComputeProbabilitiesStatement::checkPass(ModFileStructure &mod_file_struc
 }
 
 void
-MSSBVARComputeProbabilitiesStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+MSSBVARComputeProbabilitiesStatement::writeOutput(ostream &output,
+                                                  [[maybe_unused]] const string &basename,
+                                                  [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
@@ -2729,7 +2807,8 @@ MSSBVARIrfStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 }
 
 void
-MSSBVARIrfStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+MSSBVARIrfStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                 [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   symbol_list.writeOutput("var_list_", output);
@@ -2760,7 +2839,8 @@ MSSBVARForecastStatement::MSSBVARForecastStatement(OptionsList options_list_arg)
 }
 
 void
-MSSBVARForecastStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+MSSBVARForecastStatement::checkPass(ModFileStructure &mod_file_struct,
+                                    [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.bvar_present = true;
 
@@ -2773,7 +2853,8 @@ MSSBVARForecastStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
 }
 
 void
-MSSBVARForecastStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+MSSBVARForecastStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                      [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
@@ -2798,7 +2879,8 @@ MSSBVARVarianceDecompositionStatement::MSSBVARVarianceDecompositionStatement(Opt
 }
 
 void
-MSSBVARVarianceDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+MSSBVARVarianceDecompositionStatement::checkPass(ModFileStructure &mod_file_struct,
+                                                 [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.bvar_present = true;
 
@@ -2816,7 +2898,9 @@ MSSBVARVarianceDecompositionStatement::checkPass(ModFileStructure &mod_file_stru
 }
 
 void
-MSSBVARVarianceDecompositionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+MSSBVARVarianceDecompositionStatement::writeOutput(ostream &output,
+                                                   [[maybe_unused]] const string &basename,
+                                                   [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
@@ -2847,7 +2931,8 @@ IdentificationStatement::IdentificationStatement(OptionsList options_list_arg)
 }
 
 void
-IdentificationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+IdentificationStatement::checkPass(ModFileStructure &mod_file_struct,
+                                   [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.identification_present = true;
 
@@ -2869,7 +2954,8 @@ IdentificationStatement::checkPass(ModFileStructure &mod_file_struct, WarningCon
 }
 
 void
-IdentificationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+IdentificationStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                     [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_ident");
 
@@ -2909,7 +2995,8 @@ WriteLatexDynamicModelStatement::WriteLatexDynamicModelStatement(const DynamicMo
 }
 
 void
-WriteLatexDynamicModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+WriteLatexDynamicModelStatement::writeOutput([[maybe_unused]] ostream &output, const string &basename,
+                                             [[maybe_unused]] bool minimal_workspace) const
 {
   dynamic_model.writeLatexFile(basename, write_equation_tags);
 }
@@ -2927,7 +3014,8 @@ WriteLatexStaticModelStatement::WriteLatexStaticModelStatement(const StaticModel
 }
 
 void
-WriteLatexStaticModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+WriteLatexStaticModelStatement::writeOutput([[maybe_unused]] ostream &output, const string &basename,
+                                            [[maybe_unused]] bool minimal_workspace) const
 {
   static_model.writeLatexFile(basename, write_equation_tags);
 }
@@ -2945,7 +3033,8 @@ WriteLatexOriginalModelStatement::WriteLatexOriginalModelStatement(const Dynamic
 }
 
 void
-WriteLatexOriginalModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+WriteLatexOriginalModelStatement::writeOutput([[maybe_unused]] ostream &output, const string &basename,
+                                              [[maybe_unused]] bool minimal_workspace) const
 {
   original_model.writeLatexOriginalFile(basename, write_equation_tags);
 }
@@ -2962,13 +3051,16 @@ WriteLatexSteadyStateModelStatement::WriteLatexSteadyStateModelStatement(const S
 }
 
 void
-WriteLatexSteadyStateModelStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+WriteLatexSteadyStateModelStatement::checkPass(ModFileStructure &mod_file_struct,
+                                               [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.write_latex_steady_state_model_present = true;
 }
 
 void
-WriteLatexSteadyStateModelStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+WriteLatexSteadyStateModelStatement::writeOutput([[maybe_unused]] ostream &output,
+                                                 const string &basename,
+                                                 [[maybe_unused]] bool minimal_workspace) const
 {
   steady_state_model.writeLatexSteadyStateFile(basename);
 }
@@ -3007,7 +3099,8 @@ ShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, Warnin
 }
 
 void
-ShockDecompositionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+ShockDecompositionStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                         [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
@@ -3059,7 +3152,9 @@ RealtimeShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct
 }
 
 void
-RealtimeShockDecompositionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+RealtimeShockDecompositionStatement::writeOutput(ostream &output,
+                                                 [[maybe_unused]] const string &basename,
+                                                 [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
@@ -3093,7 +3188,8 @@ PlotShockDecompositionStatement::PlotShockDecompositionStatement(SymbolList symb
 }
 
 void
-PlotShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+PlotShockDecompositionStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                                           WarningConsolidation &warnings)
 {
   try
     {
@@ -3107,7 +3203,8 @@ PlotShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, Wa
 }
 
 void
-PlotShockDecompositionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+PlotShockDecompositionStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                             [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = set_default_plot_shock_decomposition_options(options_);" << endl;
   options_list.writeOutput(output);
@@ -3160,7 +3257,9 @@ InitialConditionDecompositionStatement::checkPass(ModFileStructure &mod_file_str
 }
 
 void
-InitialConditionDecompositionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+InitialConditionDecompositionStatement::writeOutput(ostream &output,
+                                                    [[maybe_unused]] const string &basename,
+                                                    [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = set_default_initial_condition_decomposition_options(options_);" << endl;
   options_list.writeOutput(output);
@@ -3193,7 +3292,7 @@ SqueezeShockDecompositionStatement::SqueezeShockDecompositionStatement(SymbolLis
 }
 
 void
-SqueezeShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct,
+SqueezeShockDecompositionStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
                                               WarningConsolidation &warnings)
 {
   try
@@ -3208,7 +3307,9 @@ SqueezeShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct,
 }
 
 void
-SqueezeShockDecompositionStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+SqueezeShockDecompositionStatement::writeOutput(ostream &output,
+                                                [[maybe_unused]] const string &basename,
+                                                [[maybe_unused]] bool minimal_workspace) const
 {
   if (symbol_list.empty())
     output << "oo_ = squeeze_shock_decomposition(M_, oo_, options_);" << endl;
@@ -3237,7 +3338,8 @@ ConditionalForecastStatement::ConditionalForecastStatement(OptionsList options_l
 }
 
 void
-ConditionalForecastStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+ConditionalForecastStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                                        [[maybe_unused]] WarningConsolidation &warnings)
 {
   if (!options_list.string_options.contains("parameter_set"))
     {
@@ -3247,7 +3349,8 @@ ConditionalForecastStatement::checkPass(ModFileStructure &mod_file_struct, Warni
 }
 
 void
-ConditionalForecastStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+ConditionalForecastStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                          [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_cond_fcst_");
   output << "imcforecast(constrained_paths_, constrained_vars_, options_cond_fcst_);" << endl;
@@ -3275,7 +3378,7 @@ PlotConditionalForecastStatement::PlotConditionalForecastStatement(optional<int>
 }
 
 void
-PlotConditionalForecastStatement::checkPass(ModFileStructure &mod_file_struct,
+PlotConditionalForecastStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
                                             WarningConsolidation &warnings)
 {
   try
@@ -3290,7 +3393,8 @@ PlotConditionalForecastStatement::checkPass(ModFileStructure &mod_file_struct,
 }
 
 void
-PlotConditionalForecastStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+PlotConditionalForecastStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                              [[maybe_unused]] bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
   if (periods)
@@ -3337,7 +3441,8 @@ SvarIdentificationStatement::getMaxLag() const
 }
 
 void
-SvarIdentificationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+SvarIdentificationStatement::checkPass(ModFileStructure &mod_file_struct,
+                                       [[maybe_unused]] WarningConsolidation &warnings)
 {
   // no equations OK with Svar Identification
   mod_file_struct.bvar_present = true;
@@ -3358,7 +3463,8 @@ SvarIdentificationStatement::checkPass(ModFileStructure &mod_file_struct, Warnin
 }
 
 void
-SvarIdentificationStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+SvarIdentificationStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                         [[maybe_unused]] bool minimal_workspace) const
 {
   assert(!(upper_cholesky_present && lower_cholesky_present));
   output << "%" << endl
@@ -3517,7 +3623,8 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg)
 }
 
 void
-MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct,
+                                    [[maybe_unused]] WarningConsolidation &warnings)
 {
   auto itChain = options_list.num_options.find("ms.chain");
   assert(itChain != options_list.num_options.end());
@@ -3592,7 +3699,8 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
 }
 
 void
-MarkovSwitchingStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+MarkovSwitchingStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                      [[maybe_unused]] bool minimal_workspace) const
 {
   auto itChain = options_list.num_options.find("ms.chain");
   assert(itChain != options_list.num_options.end());
@@ -3671,7 +3779,8 @@ SvarStatement::SvarStatement(OptionsList options_list_arg) :
 }
 
 void
-SvarStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+SvarStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                         [[maybe_unused]] WarningConsolidation &warnings)
 {
   bool has_coefficients = options_list.string_options.contains("ms.coefficients"),
     has_variances = options_list.string_options.contains("ms.variances"),
@@ -3682,7 +3791,8 @@ SvarStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation
 }
 
 void
-SvarStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+SvarStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                           [[maybe_unused]] bool minimal_workspace) const
 {
   auto it = options_list.num_options.find("ms.chain");
   assert(it != options_list.num_options.end());
@@ -3729,7 +3839,9 @@ SvarStatement::writeJsonOutput(ostream &output) const
 }
 
 void
-SvarGlobalIdentificationCheckStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+SvarGlobalIdentificationCheckStatement::writeOutput(ostream &output,
+                                                    [[maybe_unused]] const string &basename,
+                                                    [[maybe_unused]] bool minimal_workspace) const
 {
   output << "svar_global_identification_check(options_);" << std::endl;
 }
@@ -3746,7 +3858,8 @@ SetTimeStatement::SetTimeStatement(OptionsList options_list_arg) :
 }
 
 void
-SetTimeStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+SetTimeStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                              [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
 }
@@ -3769,7 +3882,8 @@ EstimationDataStatement::EstimationDataStatement(OptionsList options_list_arg) :
 }
 
 void
-EstimationDataStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+EstimationDataStatement::checkPass(ModFileStructure &mod_file_struct,
+                                   [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.estimation_data_statement_present = true;
 
@@ -3796,7 +3910,8 @@ EstimationDataStatement::checkPass(ModFileStructure &mod_file_struct, WarningCon
 }
 
 void
-EstimationDataStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+EstimationDataStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                     [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_.dataset");
 }
@@ -3825,7 +3940,9 @@ SubsamplesStatement::SubsamplesStatement(string name1_arg,
 }
 
 void
-SubsamplesStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+SubsamplesStatement::writeOutput(ostream &output,
+                                 [[maybe_unused]] const string &basename,
+                                 [[maybe_unused]] bool minimal_workspace) const
 {
   output << "subsamples_indx = get_new_or_existing_ei_index('subsamples_index', '"
          << name1 << "','" << name2 << "');" << endl
@@ -3930,7 +4047,8 @@ SubsamplesEqualStatement::SubsamplesEqualStatement(string to_name1_arg,
 }
 
 void
-SubsamplesEqualStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+SubsamplesEqualStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                      [[maybe_unused]] bool minimal_workspace) const
 {
   output << "subsamples_to_indx = get_new_or_existing_ei_index('subsamples_index', '"
          << to_name1 << "','" << to_name2 << "');" << endl
@@ -4010,7 +4128,8 @@ JointPriorStatement::JointPriorStatement(vector<string> joint_parameters_arg,
 }
 
 void
-JointPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+JointPriorStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                               [[maybe_unused]] WarningConsolidation &warnings)
 {
   if (joint_parameters.size() < 2)
     {
@@ -4044,7 +4163,8 @@ JointPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 }
 
 void
-JointPriorStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+JointPriorStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                 [[maybe_unused]] bool minimal_workspace) const
 {
   for (const auto &joint_parameter : joint_parameters)
     output << "eifind = get_new_or_existing_ei_index('joint_parameter_prior_index', '"
@@ -4202,7 +4322,8 @@ BasicPriorStatement::BasicPriorStatement(string name_arg,
 }
 
 void
-BasicPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+BasicPriorStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                               [[maybe_unused]] WarningConsolidation &warnings)
 {
   if (prior_shape == PriorDistributions::noShape)
     {
@@ -4369,7 +4490,8 @@ PriorStatement::PriorStatement(string name_arg,
 }
 
 void
-PriorStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+PriorStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                            [[maybe_unused]] bool minimal_workspace) const
 {
   string lhs_field = "estimation_info.parameter(eifind)";
   output << "eifind = get_new_or_existing_ei_index('parameter_prior_index', '"
@@ -4398,7 +4520,8 @@ StdPriorStatement::StdPriorStatement(string name_arg,
 }
 
 void
-StdPriorStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+StdPriorStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                               [[maybe_unused]] bool minimal_workspace) const
 {
   string lhs_field;
   get_base_name(symbol_table.getType(name), lhs_field);
@@ -4444,7 +4567,8 @@ CorrPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
 }
 
 void
-CorrPriorStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+CorrPriorStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                [[maybe_unused]] bool minimal_workspace) const
 {
   string lhs_field;
   get_base_name(symbol_table.getType(name), lhs_field);
@@ -4489,7 +4613,8 @@ PriorEqualStatement::PriorEqualStatement(string to_declaration_type_arg,
 }
 
 void
-PriorEqualStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+PriorEqualStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                               [[maybe_unused]] WarningConsolidation &warnings)
 {
   if ((to_declaration_type != "par" && to_declaration_type != "std" && to_declaration_type != "corr")
       || (from_declaration_type != "par" && from_declaration_type != "std" && from_declaration_type != "corr"))
@@ -4509,7 +4634,8 @@ PriorEqualStatement::get_base_name(const SymbolType symb_type, string &lhs_field
 }
 
 void
-PriorEqualStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+PriorEqualStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                 [[maybe_unused]] bool minimal_workspace) const
 {
   string lhs_field, rhs_field;
 
@@ -4661,7 +4787,8 @@ OptionsStatement::OptionsStatement(string name_arg,
 }
 
 void
-OptionsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+OptionsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                              [[maybe_unused]] bool minimal_workspace) const
 {
   string lhs_field = "estimation_info.parameter(eifind)";
   output << "eifind = get_new_or_existing_ei_index('parameter_options_index', '"
@@ -4688,7 +4815,8 @@ StdOptionsStatement::StdOptionsStatement(string name_arg,
 }
 
 void
-StdOptionsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+StdOptionsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                 [[maybe_unused]] bool minimal_workspace) const
 {
   string lhs_field;
   get_base_name(symbol_table.getType(name), lhs_field);
@@ -4719,7 +4847,8 @@ CorrOptionsStatement::CorrOptionsStatement(string name_arg1, string name_arg2,
 }
 
 void
-CorrOptionsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+CorrOptionsStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                                [[maybe_unused]] WarningConsolidation &warnings)
 {
   if (symbol_table.getType(name) != symbol_table.getType(name1))
     {
@@ -4731,7 +4860,8 @@ CorrOptionsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
 }
 
 void
-CorrOptionsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+CorrOptionsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                  [[maybe_unused]] bool minimal_workspace) const
 {
   string lhs_field;
   get_base_name(symbol_table.getType(name), lhs_field);
@@ -4776,7 +4906,8 @@ OptionsEqualStatement::OptionsEqualStatement(string to_declaration_type_arg,
 }
 
 void
-OptionsEqualStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+OptionsEqualStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                                 [[maybe_unused]] WarningConsolidation &warnings)
 {
   if ((to_declaration_type != "par" && to_declaration_type != "std" && to_declaration_type != "corr")
       || (from_declaration_type != "par" && from_declaration_type != "std" && from_declaration_type != "corr"))
@@ -4811,7 +4942,8 @@ OptionsEqualStatement::get_base_name(const SymbolType symb_type, string &lhs_fie
 }
 
 void
-OptionsEqualStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+OptionsEqualStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                   [[maybe_unused]] bool minimal_workspace) const
 {
   string lhs_field, rhs_field;
 
@@ -4896,7 +5028,8 @@ CalibSmootherStatement::checkPass(ModFileStructure &mod_file_struct, WarningCons
 }
 
 void
-CalibSmootherStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+CalibSmootherStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                    [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   if (!options_list.string_options.contains("parameter_set"))
@@ -4930,7 +5063,8 @@ ExtendedPathStatement::ExtendedPathStatement(OptionsList options_list_arg)
 }
 
 void
-ExtendedPathStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+ExtendedPathStatement::checkPass(ModFileStructure &mod_file_struct,
+                                 [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.extended_path_present = true;
 
@@ -4942,7 +5076,8 @@ ExtendedPathStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 }
 
 void
-ExtendedPathStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+ExtendedPathStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                   [[maybe_unused]] bool minimal_workspace) const
 {
   // Beware: options do not have the same name in the interface and in the M code...
 
@@ -4967,7 +5102,8 @@ ExtendedPathStatement::writeJsonOutput(ostream &output) const
 }
 
 void
-ModelDiagnosticsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+ModelDiagnosticsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                       [[maybe_unused]] bool minimal_workspace) const
 {
   output << "model_diagnostics(M_,options_,oo_);" << endl;
 }
@@ -4984,7 +5120,8 @@ Smoother2histvalStatement::Smoother2histvalStatement(OptionsList options_list_ar
 }
 
 void
-Smoother2histvalStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+Smoother2histvalStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                       [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_smoother2histval");
   output << "smoother2histval(options_smoother2histval);" << endl;
@@ -5008,7 +5145,8 @@ MethodOfMomentsStatement::MethodOfMomentsStatement(OptionsList options_list_arg)
 }
 
 void
-MethodOfMomentsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+MethodOfMomentsStatement::checkPass(ModFileStructure &mod_file_struct,
+                                    [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.mom_estimation_present = true;
   // Fill in option_order of mod_file_struct
@@ -5062,7 +5200,8 @@ MethodOfMomentsStatement::checkPass(ModFileStructure &mod_file_struct, WarningCo
 }
 
 void
-MethodOfMomentsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+MethodOfMomentsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                      [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_mom_");
 
@@ -5092,7 +5231,8 @@ GenerateIRFsStatement::GenerateIRFsStatement(OptionsList options_list_arg,
 }
 
 void
-GenerateIRFsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+GenerateIRFsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                   [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
 
@@ -5154,7 +5294,8 @@ MatchedMomentsStatement::MatchedMomentsStatement(const SymbolTable &symbol_table
 }
 
 void
-MatchedMomentsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+MatchedMomentsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                     [[maybe_unused]] bool minimal_workspace) const
 {
   output << "M_.matched_moments = {" << endl;
   for (const auto &[symb_ids, lags, powers] : moments)
@@ -5218,7 +5359,8 @@ OccbinConstraintsStatement::OccbinConstraintsStatement(const DataTree &data_tree
 }
 
 void
-OccbinConstraintsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+OccbinConstraintsStatement::checkPass(ModFileStructure &mod_file_struct,
+                                      [[maybe_unused]] WarningConsolidation &warnings)
 {
   if (mod_file_struct.occbin_constraints_present)
     {
@@ -5234,7 +5376,8 @@ OccbinConstraintsStatement::checkPass(ModFileStructure &mod_file_struct, Warning
 }
 
 void
-OccbinConstraintsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+OccbinConstraintsStatement::writeOutput(ostream &output, const string &basename,
+                                        [[maybe_unused]] bool minimal_workspace) const
 {
   output << "M_.occbin.constraint_nbr = " << constraints.size() << ';' << endl
          << "M_.occbin.pswitch = [" << endl;
@@ -5342,7 +5485,8 @@ ResidStatement::ResidStatement(OptionsList options_list_arg) :
 }
 
 void
-ResidStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+ResidStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                            [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_resid_");
   output << "resid(options_resid_);" << endl;

@@ -25,7 +25,7 @@
 using namespace macro;
 
 void
-Eval::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
+Eval::interpret(ostream &output, Environment &env, [[maybe_unused]] vector<filesystem::path> &paths)
 {
   try
     {
@@ -91,7 +91,7 @@ Include::interpret(ostream &output, Environment &env, vector<filesystem::path> &
 }
 
 void
-IncludePath::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
+IncludePath::interpret([[maybe_unused]] ostream &output, Environment &env, vector<filesystem::path> &paths)
 {
   using namespace filesystem;
   try
@@ -131,7 +131,7 @@ IncludePath::interpret(ostream &output, Environment &env, vector<filesystem::pat
 }
 
 void
-Define::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
+Define::interpret([[maybe_unused]] ostream &output, Environment &env, [[maybe_unused]] vector<filesystem::path> &paths)
 {
   try
     {
@@ -154,7 +154,7 @@ Define::interpret(ostream &output, Environment &env, vector<filesystem::path> &p
 }
 
 void
-Echo::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
+Echo::interpret(ostream &output, Environment &env, [[maybe_unused]] vector<filesystem::path> &paths)
 {
   try
     {
@@ -173,7 +173,7 @@ Echo::interpret(ostream &output, Environment &env, vector<filesystem::path> &pat
 }
 
 void
-Error::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
+Error::interpret([[maybe_unused]] ostream &output, Environment &env, [[maybe_unused]] vector<filesystem::path> &paths)
 {
   try
     {
@@ -191,7 +191,7 @@ Error::interpret(ostream &output, Environment &env, vector<filesystem::path> &pa
 }
 
 void
-EchoMacroVars::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
+EchoMacroVars::interpret(ostream &output, Environment &env, [[maybe_unused]] vector<filesystem::path> &paths)
 {
   if (save)
     env.print(output, vars, location.begin.line, true);

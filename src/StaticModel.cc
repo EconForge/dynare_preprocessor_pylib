@@ -1893,7 +1893,7 @@ StaticModel::getTypeByDerivID(int deriv_id) const noexcept(false)
 }
 
 int
-StaticModel::getLagByDerivID(int deriv_id) const noexcept(false)
+StaticModel::getLagByDerivID([[maybe_unused]] int deriv_id) const noexcept(false)
 {
   return 0;
 }
@@ -1910,7 +1910,7 @@ StaticModel::getSymbIDByDerivID(int deriv_id) const noexcept(false)
 }
 
 int
-StaticModel::getDerivID(int symb_id, int lag) const noexcept(false)
+StaticModel::getDerivID(int symb_id, [[maybe_unused]] int lag) const noexcept(false)
 {
   if (symbol_table.getType(symb_id) == SymbolType::endogenous)
     return symbol_table.getTypeSpecificID(symb_id);

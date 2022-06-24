@@ -804,36 +804,36 @@ DataTree::isSymbolUsed(int symb_id) const
 }
 
 int
-DataTree::getDerivID(int symb_id, int lag) const noexcept(false)
+DataTree::getDerivID([[maybe_unused]] int symb_id, [[maybe_unused]] int lag) const noexcept(false)
 {
   throw UnknownDerivIDException();
 }
 
 SymbolType
-DataTree::getTypeByDerivID(int deriv_id) const noexcept(false)
+DataTree::getTypeByDerivID([[maybe_unused]] int deriv_id) const noexcept(false)
 {
   throw UnknownDerivIDException();
 }
 
 int
-DataTree::getLagByDerivID(int deriv_id) const noexcept(false)
+DataTree::getLagByDerivID([[maybe_unused]] int deriv_id) const noexcept(false)
 {
   throw UnknownDerivIDException();
 }
 
 int
-DataTree::getSymbIDByDerivID(int deriv_id) const noexcept(false)
+DataTree::getSymbIDByDerivID([[maybe_unused]] int deriv_id) const noexcept(false)
 {
   throw UnknownDerivIDException();
 }
 
 void
-DataTree::addAllParamDerivId(set<int> &deriv_id_set)
+DataTree::addAllParamDerivId([[maybe_unused]] set<int> &deriv_id_set)
 {
 }
 
 int
-DataTree::getDynJacobianCol(int deriv_id) const noexcept(false)
+DataTree::getDynJacobianCol([[maybe_unused]] int deriv_id) const noexcept(false)
 {
   throw UnknownDerivIDException();
 }

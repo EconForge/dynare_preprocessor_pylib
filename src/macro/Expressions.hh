@@ -131,27 +131,27 @@ namespace macro
     explicit BaseType(Tokenizer::location location_arg = Tokenizer::location()) :
       Expression(move(location_arg)) { }
     virtual codes::BaseType getType() const noexcept = 0;
-    BaseTypePtr eval(Environment &env) override { return shared_from_this(); }
+    BaseTypePtr eval([[maybe_unused]] Environment &env) override { return shared_from_this(); }
   public:
-    virtual BaseTypePtr plus(const BaseTypePtr &bt) const { throw StackTrace("Operator + does not exist for this type"); }
+    virtual BaseTypePtr plus([[maybe_unused]] const BaseTypePtr &bt) const { throw StackTrace("Operator + does not exist for this type"); }
     virtual BaseTypePtr unary_plus() const { throw StackTrace("Unary operator + does not exist for this type"); }
-    virtual BaseTypePtr minus(const BaseTypePtr &bt) const { throw StackTrace("Operator - does not exist for this type"); }
+    virtual BaseTypePtr minus([[maybe_unused]] const BaseTypePtr &bt) const { throw StackTrace("Operator - does not exist for this type"); }
     virtual BaseTypePtr unary_minus() const { throw StackTrace("Unary operator - does not exist for this type"); }
-    virtual BaseTypePtr times(const BaseTypePtr &bt) const { throw StackTrace("Operator * does not exist for this type"); }
-    virtual BaseTypePtr divide(const BaseTypePtr &bt) const { throw StackTrace("Operator / does not exist for this type"); }
-    virtual BaseTypePtr power(const BaseTypePtr &btp) const { throw StackTrace("Operator ^ does not exist for this type"); }
-    virtual BoolPtr is_less(const BaseTypePtr &btp) const { throw StackTrace("Operator < does not exist for this type"); }
-    virtual BoolPtr is_greater(const BaseTypePtr &btp) const { throw StackTrace("Operator > does not exist for this type"); }
-    virtual BoolPtr is_less_equal(const BaseTypePtr &btp) const { throw StackTrace("Operator <= does not exist for this type"); }
-    virtual BoolPtr is_greater_equal(const BaseTypePtr &btp) const { throw StackTrace("Operator >= does not exist for this type"); }
+    virtual BaseTypePtr times([[maybe_unused]] const BaseTypePtr &bt) const { throw StackTrace("Operator * does not exist for this type"); }
+    virtual BaseTypePtr divide([[maybe_unused]] const BaseTypePtr &bt) const { throw StackTrace("Operator / does not exist for this type"); }
+    virtual BaseTypePtr power([[maybe_unused]] const BaseTypePtr &btp) const { throw StackTrace("Operator ^ does not exist for this type"); }
+    virtual BoolPtr is_less([[maybe_unused]] const BaseTypePtr &btp) const { throw StackTrace("Operator < does not exist for this type"); }
+    virtual BoolPtr is_greater([[maybe_unused]] const BaseTypePtr &btp) const { throw StackTrace("Operator > does not exist for this type"); }
+    virtual BoolPtr is_less_equal([[maybe_unused]] const BaseTypePtr &btp) const { throw StackTrace("Operator <= does not exist for this type"); }
+    virtual BoolPtr is_greater_equal([[maybe_unused]] const BaseTypePtr &btp) const { throw StackTrace("Operator >= does not exist for this type"); }
     virtual BoolPtr is_equal(const BaseTypePtr &btp) const = 0;
     virtual BoolPtr is_different(const BaseTypePtr &btp) const final;
-    virtual BoolPtr logical_and(const ExpressionPtr &ep, Environment &env) const { throw StackTrace("Operator && does not exist for this type"); }
-    virtual BoolPtr logical_or(const ExpressionPtr &ep, Environment &env) const { throw StackTrace("Operator || does not exist for this type"); }
+    virtual BoolPtr logical_and([[maybe_unused]] const ExpressionPtr &ep, [[maybe_unused]] Environment &env) const { throw StackTrace("Operator && does not exist for this type"); }
+    virtual BoolPtr logical_or([[maybe_unused]] const ExpressionPtr &ep, [[maybe_unused]] Environment &env) const { throw StackTrace("Operator || does not exist for this type"); }
     virtual BoolPtr logical_not() const { throw StackTrace("Operator ! does not exist for this type"); }
-    virtual ArrayPtr set_union(const BaseTypePtr &btp) const { throw StackTrace("Operator | does not exist for this type"); }
-    virtual ArrayPtr set_intersection(const BaseTypePtr &btp) const { throw StackTrace("Operator & does not exist for this type"); }
-    virtual BoolPtr contains(const BaseTypePtr &btp) const { throw StackTrace("Second argument of `in` operator must be an array"); }
+    virtual ArrayPtr set_union([[maybe_unused]] const BaseTypePtr &btp) const { throw StackTrace("Operator | does not exist for this type"); }
+    virtual ArrayPtr set_intersection([[maybe_unused]] const BaseTypePtr &btp) const { throw StackTrace("Operator & does not exist for this type"); }
+    virtual BoolPtr contains([[maybe_unused]] const BaseTypePtr &btp) const { throw StackTrace("Second argument of `in` operator must be an array"); }
     virtual RealPtr length() const { throw StackTrace("Operator `length` does not exist for this type"); }
     virtual BoolPtr isempty() const { throw StackTrace("Operator `isempty` does not exist for this type"); }
     virtual BoolPtr isboolean() const noexcept { return make_shared<Bool>(false, location); }
@@ -160,9 +160,9 @@ namespace macro
     virtual BoolPtr isstring() const noexcept { return make_shared<Bool>(false, location); }
     virtual BoolPtr istuple() const noexcept { return make_shared<Bool>(false, location); }
     virtual BoolPtr isarray() const noexcept { return make_shared<Bool>(false, location); }
-    virtual RealPtr max(const BaseTypePtr &btp) const { throw StackTrace("Operator `max` does not exist for this type"); }
-    virtual RealPtr min(const BaseTypePtr &btp) const { throw StackTrace("Operator `min` does not exist for this type"); }
-    virtual RealPtr mod(const BaseTypePtr &btp) const { throw StackTrace("Operator `mod` does not exist for this type"); }
+    virtual RealPtr max([[maybe_unused]] const BaseTypePtr &btp) const { throw StackTrace("Operator `max` does not exist for this type"); }
+    virtual RealPtr min([[maybe_unused]] const BaseTypePtr &btp) const { throw StackTrace("Operator `min` does not exist for this type"); }
+    virtual RealPtr mod([[maybe_unused]] const BaseTypePtr &btp) const { throw StackTrace("Operator `mod` does not exist for this type"); }
     virtual RealPtr exp() const { throw StackTrace("Operator `exp` does not exist for this type"); }
     virtual RealPtr ln() const { throw StackTrace("Operator `ln` does not exist for this type"); }
     virtual RealPtr log10() const { throw StackTrace("Operator `log10` does not exist for this type"); }
@@ -189,15 +189,15 @@ namespace macro
     virtual RealPtr lgamma() const { throw StackTrace("Operator `lgamma` does not exist for this type"); }
     virtual RealPtr round() const { throw StackTrace("Operator `round` does not exist for this type"); }
     virtual RealPtr normpdf() const { throw StackTrace("Operator `normpdf` does not exist for this type"); }
-    virtual RealPtr normpdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const { throw StackTrace("Operator `normpdf` does not exist for this type"); }
+    virtual RealPtr normpdf([[maybe_unused]] const BaseTypePtr &btp1, [[maybe_unused]] const BaseTypePtr &btp2) const { throw StackTrace("Operator `normpdf` does not exist for this type"); }
     virtual RealPtr normcdf() const { throw StackTrace("Operator `normcdf` does not exist for this type"); }
-    virtual RealPtr normcdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const { throw StackTrace("Operator `normcdf` does not exist for this type"); }
-    virtual BoolPtr cast_bool(Environment &env) const { throw StackTrace("This type cannot be cast to a boolean"); }
-    virtual RealPtr cast_real(Environment &env) const { throw StackTrace("This type cannot be cast to a real"); }
+    virtual RealPtr normcdf([[maybe_unused]] const BaseTypePtr &btp1, [[maybe_unused]] const BaseTypePtr &btp2) const { throw StackTrace("Operator `normcdf` does not exist for this type"); }
+    virtual BoolPtr cast_bool([[maybe_unused]] Environment &env) const { throw StackTrace("This type cannot be cast to a boolean"); }
+    virtual RealPtr cast_real([[maybe_unused]] Environment &env) const { throw StackTrace("This type cannot be cast to a real"); }
     virtual StringPtr cast_string() const { throw StackTrace("This type cannot be cast to a string"); }
     virtual TuplePtr cast_tuple() const { throw StackTrace("This type cannot be cast to a tuple"); }
     virtual ArrayPtr cast_array() const { throw StackTrace("This type cannot be cast to an array"); }
-    virtual BoolPtr defined(const Environment &env) const { throw StackTrace("Operator `defined` does not exist for this type"); }
+    virtual BoolPtr defined([[maybe_unused]] const Environment &env) const { throw StackTrace("Operator `defined` does not exist for this type"); }
   };
 
 
@@ -212,7 +212,7 @@ namespace macro
       value{value_arg} { }
     codes::BaseType getType() const noexcept override { return codes::BaseType::Bool; }
     string to_string() const noexcept override { return value ? "true" : "false"; }
-    void print(ostream &output, bool matlab_output = false) const noexcept override { output << to_string(); }
+    void print(ostream &output, [[maybe_unused]] bool matlab_output = false) const noexcept override { output << to_string(); }
     ExpressionPtr clone() const noexcept override { return make_shared<Bool>(value, location); }
   public:
     operator bool() const { return value; }
@@ -221,8 +221,8 @@ namespace macro
     BoolPtr logical_or(const ExpressionPtr &ep, Environment &env) const override;
     BoolPtr logical_not() const override;
     BoolPtr isboolean() const noexcept override { return make_shared<Bool>(true, location); }
-    BoolPtr cast_bool(Environment &env) const override { return make_shared<Bool>(value); }
-    RealPtr cast_real(Environment &env) const override { return value ? make_shared<Real>(1) : make_shared<Real>(0); }
+    BoolPtr cast_bool([[maybe_unused]] Environment &env) const override { return make_shared<Bool>(value); }
+    RealPtr cast_real([[maybe_unused]] Environment &env) const override { return value ? make_shared<Real>(1) : make_shared<Real>(0); }
     StringPtr cast_string() const override { return make_shared<String>(this->to_string()); }
     TuplePtr
     cast_tuple() const override
@@ -260,7 +260,7 @@ namespace macro
       strs << setprecision(15) << value;
       return strs.str();
     }
-    void print(ostream &output, bool matlab_output = false) const noexcept override { output << to_string(); }
+    void print(ostream &output, [[maybe_unused]] bool matlab_output = false) const noexcept override { output << to_string(); }
     ExpressionPtr clone() const noexcept override { return make_shared<Real>(value, location); }
   public:
     operator double() const { return value; }
@@ -328,8 +328,8 @@ namespace macro
       return normcdf(make_shared<Real>(0), make_shared<Real>(1));
     }
     RealPtr normcdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const override;
-    BoolPtr cast_bool(Environment &env) const override { return make_shared<Bool>(static_cast<bool>(value)); }
-    RealPtr cast_real(Environment &env) const override { return make_shared<Real>(value); }
+    BoolPtr cast_bool([[maybe_unused]] Environment &env) const override { return make_shared<Bool>(static_cast<bool>(value)); }
+    RealPtr cast_real([[maybe_unused]] Environment &env) const override { return make_shared<Real>(value); }
     StringPtr cast_string() const override { return make_shared<String>(this->to_string()); }
     TuplePtr
     cast_tuple() const override
@@ -479,7 +479,7 @@ namespace macro
         retval += inc->to_string() + ":";
       return retval + end->to_string() + "]";
     }
-    void print(ostream &output, bool matlab_output = false) const noexcept override { output << to_string(); }
+    void print(ostream &output, [[maybe_unused]] bool matlab_output = false) const noexcept override { output << to_string(); }
     BaseTypePtr eval(Environment &env) override;
     ExpressionPtr
     clone() const noexcept override
@@ -490,7 +490,7 @@ namespace macro
     }
   public:
     BoolPtr
-    is_equal(const BaseTypePtr &btp) const override
+    is_equal([[maybe_unused]] const BaseTypePtr &btp) const override
     {
       throw StackTrace("Internal error: Range: Should not arrive here: is_equal");
     }
@@ -510,7 +510,7 @@ namespace macro
              Tokenizer::location location_arg) :
       Expression(move(location_arg)), name{move(name_arg)}, indices{move(indices_arg)} { }
     string to_string() const noexcept override { return name; }
-    void print(ostream &output, bool matlab_output = false) const noexcept override { output << name; }
+    void print(ostream &output, [[maybe_unused]] bool matlab_output = false) const noexcept override { output << name; }
     BaseTypePtr eval(Environment &env) override;
     ExpressionPtr
     clone() const noexcept override
@@ -536,7 +536,7 @@ namespace macro
       Expression(move(location_arg)), name{move(name_arg)}, args{move(args_arg)} { }
     string to_string() const noexcept override;
     void
-    print(ostream &output, bool matlab_output = false) const noexcept override
+    print(ostream &output, [[maybe_unused]] bool matlab_output = false) const noexcept override
     {
       printName(output); printArgs(output);
     }
@@ -640,7 +640,7 @@ namespace macro
                   Tokenizer::location location_arg) :
       Expression(move(location_arg)),
       c_expr{move(c_expr_arg)}, c_vars{move(c_vars_arg)}, c_set{move(c_set_arg)} { }
-    Comprehension(bool filter_only_arg,
+    Comprehension([[maybe_unused]] bool filter_only_arg,
                   ExpressionPtr c_vars_arg,
                   ExpressionPtr c_set_arg,
                   ExpressionPtr c_when_arg,

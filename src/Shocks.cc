@@ -103,7 +103,8 @@ ShocksStatement::ShocksStatement(bool overwrite_arg,
 }
 
 void
-ShocksStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+ShocksStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                             [[maybe_unused]] bool minimal_workspace) const
 {
   output << "%" << endl
          << "% SHOCKS instructions" << endl
@@ -301,7 +302,8 @@ ShocksStatement::writeCovarAndCorrShocks(ostream &output) const
 }
 
 void
-ShocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+ShocksStatement::checkPass(ModFileStructure &mod_file_struct,
+                           [[maybe_unused]] WarningConsolidation &warnings)
 {
   /* Error out if variables are not of the right type. This must be done here
      and not at parsing time (see #448).
@@ -406,7 +408,8 @@ MShocksStatement::MShocksStatement(bool overwrite_arg,
 }
 
 void
-MShocksStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+MShocksStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                              [[maybe_unused]] bool minimal_workspace) const
 {
   output << "%" << endl
          << "% MSHOCKS instructions" << endl
@@ -440,13 +443,15 @@ ShocksSurpriseStatement::ShocksSurpriseStatement(bool overwrite_arg,
 }
 
 void
-ShocksSurpriseStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+ShocksSurpriseStatement::checkPass(ModFileStructure &mod_file_struct,
+                                   [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.shocks_surprise_present = true;
 }
 
 void
-ShocksSurpriseStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+ShocksSurpriseStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                     [[maybe_unused]] bool minimal_workspace) const
 {
   if (overwrite)
     output << "M_.surprise_shocks = [" << endl;
@@ -502,7 +507,8 @@ ShocksLearntInStatement::ShocksLearntInStatement(int learnt_in_period_arg, bool 
 }
 
 void
-ShocksLearntInStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+ShocksLearntInStatement::checkPass(ModFileStructure &mod_file_struct,
+                                   [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.shocks_learnt_in_present = true;
 }
@@ -523,7 +529,8 @@ ShocksLearntInStatement::typeToString(LearntShockType type)
 }
 
 void
-ShocksLearntInStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+ShocksLearntInStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                     [[maybe_unused]] bool minimal_workspace) const
 {
   if (overwrite)
     output << "if ~isempty(M_.learnt_shocks)" << endl
@@ -596,7 +603,9 @@ ConditionalForecastPathsStatement::computePathLength(const AbstractShocksStateme
 }
 
 void
-ConditionalForecastPathsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+ConditionalForecastPathsStatement::writeOutput(ostream &output,
+                                               [[maybe_unused]] const string &basename,
+                                               [[maybe_unused]] bool minimal_workspace) const
 {
   assert(path_length > 0);
   output << "constrained_vars_ = [];" << endl
@@ -655,7 +664,8 @@ MomentCalibration::MomentCalibration(constraints_t constraints_arg,
 }
 
 void
-MomentCalibration::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+MomentCalibration::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                               [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_.endogenous_prior_restrictions.moment = {" << endl;
   for (const auto &c : constraints)
@@ -706,7 +716,8 @@ IrfCalibration::IrfCalibration(constraints_t constraints_arg,
 }
 
 void
-IrfCalibration::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+IrfCalibration::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                            [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
 
@@ -763,7 +774,8 @@ ShockGroupsStatement::ShockGroupsStatement(group_t shock_groups_arg, string name
 }
 
 void
-ShockGroupsStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+ShockGroupsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                  [[maybe_unused]] bool minimal_workspace) const
 {
   int i = 1;
   for (auto it = shock_groups.begin(); it != shock_groups.end(); ++it)
@@ -833,7 +845,8 @@ Init2shocksStatement::Init2shocksStatement(vector<pair<int, int>> init2shocks_ar
 }
 
 void
-Init2shocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+Init2shocksStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                                [[maybe_unused]] WarningConsolidation &warnings)
 {
   for (size_t i = 0; i < init2shocks.size(); i++)
     for (size_t j = i + 1; j < init2shocks.size(); j++)
@@ -847,7 +860,8 @@ Init2shocksStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsol
 }
 
 void
-Init2shocksStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+Init2shocksStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                  [[maybe_unused]] bool minimal_workspace) const
 {
   output << "M_.init2shocks." << name << " = {" << endl;
   for (const auto &[id1, id2] : init2shocks)
@@ -879,7 +893,8 @@ HeteroskedasticShocksStatement::HeteroskedasticShocksStatement(bool overwrite_ar
 }
 
 void
-HeteroskedasticShocksStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+HeteroskedasticShocksStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                            [[maybe_unused]] bool minimal_workspace) const
 {
   // NB: The first initialization of the fields is done in ModFile::writeMOutput()
   if (overwrite)

@@ -306,7 +306,7 @@ String::is_equal(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-String::cast_bool(Environment &env) const
+String::cast_bool([[maybe_unused]] Environment &env) const
 {
   auto f = [](const char &a, const char &b) { return (tolower(a) == tolower(b)); };
 
@@ -331,7 +331,7 @@ String::cast_bool(Environment &env) const
 }
 
 RealPtr
-String::cast_real(Environment &env) const
+String::cast_real([[maybe_unused]] Environment &env) const
 {
   try
     {

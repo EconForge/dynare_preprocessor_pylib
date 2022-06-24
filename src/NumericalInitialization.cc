@@ -35,7 +35,7 @@ InitParamStatement::InitParamStatement(int symb_id_arg,
 }
 
 void
-InitParamStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+InitParamStatement::checkPass(ModFileStructure &mod_file_struct, [[maybe_unused]] WarningConsolidation &warnings)
 {
   if (symbol_table.getName(symb_id) == "dsge_prior_weight")
     mod_file_struct.dsge_prior_weight_initialized = true;
@@ -46,7 +46,7 @@ InitParamStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
 }
 
 void
-InitParamStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+InitParamStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename, bool minimal_workspace) const
 {
   int id = symbol_table.getTypeSpecificID(symb_id) + 1;
   output << "M_.params(" << id << ") = ";
@@ -184,7 +184,8 @@ InitValStatement::InitValStatement(const init_values_t &init_values_arg,
 }
 
 void
-InitValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+InitValStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                            [[maybe_unused]] WarningConsolidation &warnings)
 {
   set<int> exogs = getUninitializedVariables(SymbolType::exogenous);
   set<int> endogs = getUninitializedVariables(SymbolType::endogenous);
@@ -210,7 +211,8 @@ InitValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
 }
 
 void
-InitValStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+InitValStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                              [[maybe_unused]] bool minimal_workspace) const
 {
   output << "%" << endl
          << "% INITVAL instructions" << endl
@@ -248,7 +250,8 @@ EndValStatement::EndValStatement(const init_values_t &init_values_arg,
 }
 
 void
-EndValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+EndValStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                           [[maybe_unused]] WarningConsolidation &warnings)
 {
   set<int> exogs = getUninitializedVariables(SymbolType::exogenous);
   set<int> endogs = getUninitializedVariables(SymbolType::endogenous);
@@ -274,7 +277,8 @@ EndValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidati
 }
 
 void
-EndValStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+EndValStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                             [[maybe_unused]] bool minimal_workspace) const
 {
   output << "%" << endl
          << "% ENDVAL instructions" << endl
@@ -304,7 +308,8 @@ EndValLearntInStatement::EndValLearntInStatement(int learnt_in_period_arg,
 }
 
 void
-EndValLearntInStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+EndValLearntInStatement::checkPass(ModFileStructure &mod_file_struct,
+                                   [[maybe_unused]] WarningConsolidation &warnings)
 {
   mod_file_struct.endval_learnt_in_present = true;
 }
@@ -325,7 +330,8 @@ EndValLearntInStatement::typeToString(LearntEndValType type)
 }
 
 void
-EndValLearntInStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+EndValLearntInStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                     [[maybe_unused]] bool minimal_workspace) const
 {
   output << "M_.learnt_endval = [ M_.learnt_endval;" << endl;
   for (auto [type, symb_id, value] : learnt_end_values)
@@ -373,7 +379,8 @@ HistValStatement::HistValStatement(hist_values_t hist_values_arg,
 }
 
 void
-HistValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+HistValStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
+                            [[maybe_unused]] WarningConsolidation &warnings)
 {
   if (all_values_required)
     {
@@ -409,7 +416,8 @@ HistValStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
 }
 
 void
-HistValStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+HistValStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                              [[maybe_unused]] bool minimal_workspace) const
 {
   output << "%" << endl
          << "% HISTVAL instructions" << endl
@@ -474,7 +482,8 @@ InitvalFileStatement::InitvalFileStatement(OptionsList options_list_arg) :
 }
 
 void
-InitvalFileStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+InitvalFileStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                  [[maybe_unused]] bool minimal_workspace) const
 {
   output << "%" << endl
          << "% INITVAL_FILE statement" << endl
@@ -502,7 +511,8 @@ HistvalFileStatement::HistvalFileStatement(OptionsList options_list_arg) :
 }
 
 void
-HistvalFileStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+HistvalFileStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                  [[maybe_unused]] bool minimal_workspace) const
 {
   output << "%" << endl
          << "% HISTVAL_FILE statement" << endl
@@ -532,7 +542,8 @@ HomotopyStatement::HomotopyStatement(homotopy_values_t homotopy_values_arg,
 }
 
 void
-HomotopyStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+HomotopyStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                               [[maybe_unused]] bool minimal_workspace) const
 {
   output << "%" << endl
          << "% HOMOTOPY_SETUP instructions" << endl
@@ -586,7 +597,8 @@ SaveParamsAndSteadyStateStatement::SaveParamsAndSteadyStateStatement(string file
 }
 
 void
-SaveParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+SaveParamsAndSteadyStateStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                               [[maybe_unused]] bool minimal_workspace) const
 {
   output << "save_params_and_steady_state('" << filename << "');" << endl;
 }
@@ -635,7 +647,8 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const strin
 }
 
 void
-LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
+LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                               [[maybe_unused]] bool minimal_workspace) const
 {
   for (const auto &[id, value] : content)
     {
