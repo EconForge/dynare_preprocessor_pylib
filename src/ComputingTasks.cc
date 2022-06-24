@@ -3825,11 +3825,6 @@ SubsamplesStatement::SubsamplesStatement(string name1_arg,
 }
 
 void
-SubsamplesStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
-{
-}
-
-void
 SubsamplesStatement::writeOutput(ostream &output, const string &basename, bool minimal_workspace) const
 {
   output << "subsamples_indx = get_new_or_existing_ei_index('subsamples_index', '"
@@ -4595,11 +4590,6 @@ BasicOptionsStatement::BasicOptionsStatement(string name_arg,
   name{move(name_arg)},
   subsample_name{move(subsample_name_arg)},
   options_list{move(options_list_arg)}
-{
-}
-
-void
-BasicOptionsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
 }
 

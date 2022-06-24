@@ -979,7 +979,6 @@ public:
                       string name2_arg,
                       subsample_declaration_map_t subsample_declaration_map_arg,
                       const SymbolTable &symbol_table_arg);
-  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };
@@ -1117,7 +1116,6 @@ protected:
                         string subsample_name_arg,
                         OptionsList options_list_arg);
   void get_base_name(const SymbolType symb_type, string &lhs_field) const;
-  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOptionsOutput(ostream &output, string &lhs_field, const string &name2) const;
   void writeCommonOutput(ostream &output, const string &lhs_field) const;
   void writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const;
