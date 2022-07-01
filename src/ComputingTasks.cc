@@ -456,7 +456,7 @@ ForecastStatement::writeOutput(ostream &output, [[maybe_unused]] const string &b
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "[oo_.forecast,info] = dyn_forecast(var_list_,M_,options_,oo_,'simul');" << endl;
+  output << "oo_.forecast = dyn_forecast(var_list_,M_,options_,oo_,'simul');" << endl;
 }
 
 void
