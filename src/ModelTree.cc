@@ -1707,21 +1707,7 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
 
           output << R"(, "rhs": ")";
           rhs->writeJsonOutput(output, {}, {});
-          output << R"(")";
-          try
-            {
-              // Test if the right hand side of the equation is empty.
-              if (rhs->eval({}) != 0)
-                {
-                  output << R"(, "rhs": ")";
-                  rhs->writeJsonOutput(output, {}, {});
-                  output << R"(")";
-                }
-            }
-          catch (ExprNode::EvalException &e)
-            {
-            }
-          output << "}";
+          output << R"("})";
         }
       else
         {
