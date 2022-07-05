@@ -99,6 +99,13 @@ ExprNode::checkIfTemporaryTermThenWrite(ostream &output, ExprNodeOutputType outp
   if (!temporary_terms.contains(const_cast<ExprNode *>(this)))
     return false;
 
+  /* If we are inside a steady_state() operator, the temporary terms do not
+     apply, since those refer to the dynamic model (assuming that writeOutput()
+     was initially not called with a steady state output type, which is
+     typically the case). */
+  if (isSteadyStateOperatorOutput(output_type))
+    return false;
+
   auto it2 = temporary_terms_idxs.find(const_cast<ExprNode *>(this));
   // It is the responsibility of the caller to ensure that all temporary terms have their index
   assert(it2 != temporary_terms_idxs.end());
@@ -113,7 +120,7 @@ bool
 ExprNode::checkIfTemporaryTermThenWriteBytecode(BytecodeWriter &code_file,
                                                 const temporary_terms_t &temporary_terms,
                                                 const temporary_terms_idxs_t &temporary_terms_idxs,
-                                                bool dynamic) const
+                                                bool dynamic, bool steady_dynamic) const
 {
   if (!temporary_terms.contains(const_cast<ExprNode *>(this)))
     return false;
@@ -121,6 +128,12 @@ ExprNode::checkIfTemporaryTermThenWriteBytecode(BytecodeWriter &code_file,
   auto it2 = temporary_terms_idxs.find(const_cast<ExprNode *>(this));
   // It is the responsibility of the caller to ensure that all temporary terms have their index
   assert(it2 != temporary_terms_idxs.end());
+
+  /* If we are inside a steady_state() operator, the temporary terms do not
+     apply, since those refer to the dynamic model (assuming that writeBytecodeOutput()
+     was initially not called with steady_dynamic=true). */
+  if (steady_dynamic)
+    return false;
 
   if (dynamic)
     code_file << FLDT_{it2->second};
@@ -497,7 +510,7 @@ NumConstNode::writeBytecodeOutput(BytecodeWriter &code_file, [[maybe_unused]] bo
                                   [[maybe_unused]] bool steady_dynamic,
                                   [[maybe_unused]] const deriv_node_temp_terms_t &tef_terms) const
 {
-  if (!checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic))
+  if (!checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic))
     code_file << FLDC_{datatree.num_constants.getDouble(id)};
 }
 
@@ -1290,7 +1303,7 @@ VariableNode::writeBytecodeOutput(BytecodeWriter &code_file, bool assignment_lhs
                                   const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                                   const deriv_node_temp_terms_t &tef_terms) const
 {
-  if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic))
+  if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic))
     return;
 
   auto type = get_type();
@@ -2404,7 +2417,8 @@ UnaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
       it == reference_count.end())
     {
       reference_count[this2] = { 1, derivOrder };
-      arg->computeTemporaryTerms(derivOrder, temp_terms_map, reference_count, is_matlab);
+      if (op_code != UnaryOpcode::steadyState) // See comment in checkIfTemporaryTermThenWrite{,Bytecode}()
+        arg->computeTemporaryTerms(derivOrder, temp_terms_map, reference_count, is_matlab);
     }
   else
     {
@@ -2424,7 +2438,8 @@ UnaryOpNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary
       it == reference_count.end())
     {
       reference_count[this2] = { 1, blk, eq };
-      arg->computeBlockTemporaryTerms(blk, eq, blocks_temporary_terms, reference_count);
+      if (op_code != UnaryOpcode::steadyState) // See comment in checkIfTemporaryTermThenWrite{,Bytecode}()
+        arg->computeBlockTemporaryTerms(blk, eq, blocks_temporary_terms, reference_count);
     }
   else
     {
@@ -3056,7 +3071,7 @@ UnaryOpNode::writeBytecodeOutput(BytecodeWriter &code_file, bool assignment_lhs,
                                  const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                                  const deriv_node_temp_terms_t &tef_terms) const
 {
-  if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic))
+  if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic))
     return;
 
   if (op_code == UnaryOpcode::steadyState)
@@ -4305,7 +4320,7 @@ BinaryOpNode::writeBytecodeOutput(BytecodeWriter &code_file, bool assignment_lhs
                                   const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                                   const deriv_node_temp_terms_t &tef_terms) const
 {
-  if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic))
+  if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic))
     return;
 
   if (op_code == BinaryOpcode::powerDeriv)
@@ -5991,7 +6006,7 @@ TrinaryOpNode::writeBytecodeOutput(BytecodeWriter &code_file, bool assignment_lh
                                    const temporary_terms_idxs_t &temporary_terms_idxs, bool dynamic, bool steady_dynamic,
                                    const deriv_node_temp_terms_t &tef_terms) const
 {
-  if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic))
+  if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic))
     return;
 
   arg1->writeBytecodeOutput(code_file, assignment_lhs, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic, tef_terms);
@@ -7219,7 +7234,13 @@ ExternalFunctionNode::writeBytecodeOutput(BytecodeWriter &code_file, bool assign
                                           [[maybe_unused]] bool steady_dynamic,
                                           const deriv_node_temp_terms_t &tef_terms) const
 {
-  if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic))
+  if (steady_dynamic)
+    {
+      cerr << "ERROR: The expression inside a steady_state operator cannot contain external functions" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic))
     return;
 
   if (!assignment_lhs)
@@ -7329,6 +7350,12 @@ ExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType output_typ
       writeExternalFunctionArguments(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
       output << ")";
       return;
+    }
+
+  if (isSteadyStateOperatorOutput(output_type))
+    {
+      cerr << "ERROR: The expression inside a steady_state operator cannot contain external functions" << endl;
+      exit(EXIT_FAILURE);
     }
 
   if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
@@ -7563,6 +7590,12 @@ FirstDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType 
       return;
     }
 
+  if (isSteadyStateOperatorOutput(output_type))
+    {
+      cerr << "ERROR: The expression inside a steady_state operator cannot contain external functions" << endl;
+      exit(EXIT_FAILURE);
+    }
+
   if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
     return;
 
@@ -7592,7 +7625,13 @@ FirstDerivExternalFunctionNode::writeBytecodeOutput(BytecodeWriter &code_file, b
                                                     [[maybe_unused]] bool steady_dynamic,
                                                     const deriv_node_temp_terms_t &tef_terms) const
 {
-  if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic))
+  if (steady_dynamic)
+    {
+      cerr << "ERROR: The expression inside a steady_state operator cannot contain external functions" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic))
     return;
 
   int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
@@ -7906,6 +7945,12 @@ SecondDerivExternalFunctionNode::writeOutput(ostream &output, ExprNodeOutputType
       return;
     }
 
+  if (isSteadyStateOperatorOutput(output_type))
+    {
+      cerr << "ERROR: The expression inside a steady_state operator cannot contain external functions" << endl;
+      exit(EXIT_FAILURE);
+    }
+
   if (checkIfTemporaryTermThenWrite(output, output_type, temporary_terms, temporary_terms_idxs))
     return;
 
@@ -8110,7 +8155,13 @@ SecondDerivExternalFunctionNode::writeBytecodeOutput(BytecodeWriter &code_file, 
                                                      [[maybe_unused]] bool steady_dynamic,
                                                      const deriv_node_temp_terms_t &tef_terms) const
 {
-  if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic))
+  if (steady_dynamic)
+    {
+      cerr << "ERROR: The expression inside a steady_state operator cannot contain external functions" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (checkIfTemporaryTermThenWriteBytecode(code_file, temporary_terms, temporary_terms_idxs, dynamic, steady_dynamic))
     return;
 
   int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);

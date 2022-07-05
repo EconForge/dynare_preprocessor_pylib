@@ -143,6 +143,15 @@ isLatexOutput(ExprNodeOutputType output_type)
     || output_type == ExprNodeOutputType::latexDynamicSteadyStateOperator;
 }
 
+constexpr bool
+isSteadyStateOperatorOutput(ExprNodeOutputType output_type)
+{
+  return output_type == ExprNodeOutputType::latexDynamicSteadyStateOperator
+    || output_type == ExprNodeOutputType::matlabDynamicSteadyStateOperator
+    || output_type == ExprNodeOutputType::CDynamicSteadyStateOperator
+    || output_type == ExprNodeOutputType::juliaDynamicSteadyStateOperator;
+}
+
 /* Equal to 1 for Matlab langage or Julia, or to 0 for C language. Not defined for LaTeX.
    In Matlab and Julia, array indexes begin at 1, while they begin at 0 in C */
 constexpr int
@@ -245,7 +254,7 @@ protected:
   bool checkIfTemporaryTermThenWriteBytecode(BytecodeWriter &code_file,
                                              const temporary_terms_t &temporary_terms,
                                              const temporary_terms_idxs_t &temporary_terms_idxs,
-                                             bool dynamic) const;
+                                             bool dynamic, bool steady_dynamic) const;
 
   // Internal helper for matchVariableTimesConstantTimesParam()
   virtual void matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const;
