@@ -1299,8 +1299,6 @@ VariableNode::writeBytecodeOutput(BytecodeWriter &code_file, bool assignment_lhs
   else
     {
       int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
-      if (type == SymbolType::exogenousDet)
-        tsid += datatree.symbol_table.exo_nbr();
       if (!assignment_lhs)
         {
           if (dynamic)
