@@ -1331,14 +1331,13 @@ ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type,
   for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     {
       BinaryOpNode *eq_node = equations[eq];
-      expr_t lhs = eq_node->arg1;
-      expr_t rhs = eq_node->arg2;
+      expr_t lhs = eq_node->arg1, rhs = eq_node->arg2;
 
       // Test if the right hand side of the equation is empty.
       double vrhs = 1.0;
       try
         {
-          vrhs = rhs->eval(eval_context_t());
+          vrhs = rhs->eval({});
         }
       catch (ExprNode::EvalException &e)
         {
@@ -1389,14 +1388,13 @@ ModelTree::writeBytecodeModelEquations(BytecodeWriter &code_file, bool dynamic, 
   for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     {
       BinaryOpNode *eq_node = equations[eq];
-      expr_t lhs = eq_node->arg1;
-      expr_t rhs = eq_node->arg2;
+      expr_t lhs = eq_node->arg1, rhs = eq_node->arg2;
       code_file << FNUMEXPR_{ExpressionType::ModelEquation, eq};
       // Test if the right hand side of the equation is empty.
       double vrhs = 1.0;
       try
         {
-          vrhs = rhs->eval(eval_context_t());
+          vrhs = rhs->eval({});
         }
       catch (ExprNode::EvalException &e)
         {
