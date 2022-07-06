@@ -172,7 +172,7 @@ DynamicModel::writeBytecodeDerivative(BytecodeWriter &code_file, int eq, int sym
 {
   if (auto it = derivatives[1].find({ eq, getDerivID(symbol_table.getID(SymbolType::endogenous, symb_id), lag) });
       it != derivatives[1].end())
-    it->second->writeBytecodeOutput(code_file, false, temporary_terms, temporary_terms_idxs, true, false, tef_terms);
+    it->second->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms, temporary_terms_idxs, tef_terms);
   else
     code_file << FLDZ_{};
 }
@@ -182,7 +182,7 @@ DynamicModel::writeBytecodeChainRuleDerivative(BytecodeWriter &code_file, int bl
 {
   if (auto it = blocks_derivatives[blk].find({ eq, var, lag });
       it != blocks_derivatives[blk].end())
-    it->second->writeBytecodeOutput(code_file, false, temporary_terms, temporary_terms_idxs, true, false, tef_terms);
+    it->second->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms, temporary_terms_idxs, tef_terms);
   else
     code_file << FLDZ_{};
 }
@@ -871,9 +871,9 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
   temporary_terms_t temporary_terms_union;
   deriv_node_temp_terms_t tef_terms;
 
-  writeBytecodeTemporaryTerms(code_file, true, false, temporary_terms_union, temporary_terms_idxs, tef_terms);
+  writeBytecodeTemporaryTerms(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, temporary_terms_idxs, tef_terms);
 
-  writeBytecodeModelEquations(code_file, true, false, temporary_terms_union, temporary_terms_idxs, tef_terms);
+  writeBytecodeModelEquations(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, temporary_terms_idxs, tef_terms);
 
   code_file << FENDEQU_{};
 
@@ -896,7 +896,7 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
           if (!my_derivatives[eq].size())
             my_derivatives[eq].clear();
           my_derivatives[eq].emplace_back(var, lag, count_u);
-          d1->writeBytecodeOutput(code_file, false, temporary_terms_union, temporary_terms_idxs, true, false, tef_terms);
+          d1->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, temporary_terms_idxs, tef_terms);
 
           code_file << FSTPU_{count_u};
           count_u++;
@@ -941,7 +941,7 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
           prev_lag = lag;
           count_col_endo++;
         }
-      d1->writeBytecodeOutput(code_file, false, temporary_terms_union, temporary_terms_idxs, true, false, tef_terms);
+      d1->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, temporary_terms_idxs, tef_terms);
       code_file << FSTPG3_{eq, var, lag, count_col_endo-1};
     }
   prev_var = -1;
@@ -958,7 +958,7 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
           prev_lag = lag;
           count_col_exo++;
         }
-      d1->writeBytecodeOutput(code_file, false, temporary_terms_union, temporary_terms_idxs, true, false, tef_terms);
+      d1->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, temporary_terms_idxs, tef_terms);
       code_file << FSTPG3_{eq, var, lag, count_col_exo-1};
     }
   // Update jump offset for previous JMP
@@ -1053,10 +1053,10 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
                            for (auto it : blocks_temporary_terms[block][eq])
                              {
                                if (dynamic_cast<AbstractExternalFunctionNode *>(it))
-                                 it->writeBytecodeExternalFunctionOutput(code_file, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
+                                 it->writeBytecodeExternalFunctionOutput(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
 
                                code_file << FNUMEXPR_{ExpressionType::TemporaryTerm, blocks_temporary_terms_idxs.at(it)};
-                               it->writeBytecodeOutput(code_file, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
+                               it->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
                                code_file << FSTPT_{blocks_temporary_terms_idxs.at(it)};
                                temporary_terms_union.insert(it);
                              }
@@ -1082,16 +1082,16 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
                   eq_node = getBlockEquationExpr(block, i);
                   lhs = eq_node->arg1;
                   rhs = eq_node->arg2;
-                  rhs->writeBytecodeOutput(code_file, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
-                  lhs->writeBytecodeOutput(code_file, true, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
+                  rhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
+                  lhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicAssignmentLHS, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
                 }
               else if (equ_type == EquationType::evaluateRenormalized)
                 {
                   eq_node = getBlockEquationRenormalizedExpr(block, i);
                   lhs = eq_node->arg1;
                   rhs = eq_node->arg2;
-                  rhs->writeBytecodeOutput(code_file, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
-                  lhs->writeBytecodeOutput(code_file, true, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
+                  rhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
+                  lhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicAssignmentLHS, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
                 }
               break;
             case BlockSimulationType::solveBackwardComplete:
@@ -1111,8 +1111,8 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
               eq_node = getBlockEquationExpr(block, i);
               lhs = eq_node->arg1;
               rhs = eq_node->arg2;
-              lhs->writeBytecodeOutput(code_file, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
-              rhs->writeBytecodeOutput(code_file, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
+              lhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
+              rhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
 
               code_file << FBINARY_{BinaryOpcode::minus} << FSTPR_{i - block_recursive};
             }
@@ -1239,7 +1239,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
           int eq = getBlockEquationID(block, eqr);
           int varr = 0; // Dummy value, actually unused by the bytecode MEX
           code_file << FNUMEXPR_{ExpressionType::FirstExoDerivative, eqr, varr, lag};
-          d->writeBytecodeOutput(code_file, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
+          d->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
           code_file << FSTPG3_{eq, var, lag, blocks_jacob_cols_exo[block].at({ var, lag })};
         }
       for (const auto &[indices, d] : blocks_derivatives_exo_det[block])
@@ -1248,7 +1248,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
           int eq = getBlockEquationID(block, eqr);
           int varr = 0; // Dummy value, actually unused by the bytecode MEX
           code_file << FNUMEXPR_{ExpressionType::FirstExodetDerivative, eqr, varr, lag};
-          d->writeBytecodeOutput(code_file, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
+          d->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
           code_file << FSTPG3_{eq, var, lag, blocks_jacob_cols_exo_det[block].at({ var, lag })};
         }
       for (const auto &[indices, d] : blocks_derivatives_other_endo[block])
@@ -1257,7 +1257,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
           int eq = getBlockEquationID(block, eqr);
           int varr = 0; // Dummy value, actually unused by the bytecode MEX
           code_file << FNUMEXPR_{ExpressionType::FirstOtherEndoDerivative, eqr, varr, lag};
-          d->writeBytecodeOutput(code_file, false, temporary_terms_union, blocks_temporary_terms_idxs, true, false, tef_terms);
+          d->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
           code_file << FSTPG3_{eq, var, lag, blocks_jacob_cols_other_endo[block].at({ var, lag })};
         }
 
