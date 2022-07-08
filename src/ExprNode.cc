@@ -7389,9 +7389,6 @@ ExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutpu
                                                   const temporary_terms_idxs_t &temporary_terms_idxs,
                                                   deriv_node_temp_terms_t &tef_terms) const
 {
-  int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
-  assert(first_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
-
   for (auto argument : arguments)
     argument->writeExternalFunctionOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 
@@ -7399,6 +7396,8 @@ ExternalFunctionNode::writeExternalFunctionOutput(ostream &output, ExprNodeOutpu
     {
       tef_terms[{ symb_id, arguments }] = static_cast<int>(tef_terms.size());
       int indx = getIndxInTefTerms(symb_id, tef_terms);
+      int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
+      assert(first_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
       int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
       assert(second_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
