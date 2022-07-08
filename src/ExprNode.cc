@@ -7694,8 +7694,8 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Exp
                << "  prhs[1] = mxCreateDoubleScalar(" << inputIndex << ");"<< endl
                << "  prhs[2] = mxCreateCellArray(2, dims);"<< endl;
 
-        int i = 0;
-        for (auto argument : arguments)
+        for (int i{0};
+             auto argument : arguments)
           {
             output << "  mxSetCell(prhs[2], " << i++ << ", "
                    << "mxCreateDoubleScalar("; // All external_function arguments are scalars
@@ -8038,8 +8038,8 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(ostream &output, Ex
                << "  prhs[2] = mxCreateDoubleScalar(" << inputIndex2 << ");"<< endl
                << "  prhs[3] = mxCreateCellArray(2, dims);"<< endl;
 
-        int i = 0;
-        for (auto argument : arguments)
+        for (int i{0};
+             auto argument : arguments)
           {
             output << "  mxSetCell(prhs[3], " << i++ << ", "
                    << "  mxCreateDoubleScalar("; // All external_function arguments are scalars
