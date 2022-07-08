@@ -102,6 +102,7 @@ SymbolList::checkPass(WarningConsolidation &warnings, const vector<SymbolType> &
                 break;
               case SymbolType::excludedVariable:
                 valid_types += "excludedVariable, ";
+                break;
               }
           valid_types = valid_types.erase(valid_types.size()-2, 2);
           throw SymbolListException{"Variable " + symbol +  " is not one of {" + valid_types + "}"};
