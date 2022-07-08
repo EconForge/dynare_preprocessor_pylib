@@ -46,7 +46,7 @@ operator<<(BytecodeWriter &code_file, const FCALL_ &instr)
   code_file.write(reinterpret_cast<const char *>(&instr.add_input_arguments), sizeof instr.add_input_arguments);
   code_file.write(reinterpret_cast<const char *>(&instr.row), sizeof instr.row);
   code_file.write(reinterpret_cast<const char *>(&instr.col), sizeof instr.col);
-  code_file.write(reinterpret_cast<const char *>(&instr.function_type), sizeof instr.function_type);
+  code_file.write(reinterpret_cast<const char *>(&instr.call_type), sizeof instr.call_type);
 
   int size = static_cast<int>(instr.func_name.size());
   code_file.write(reinterpret_cast<char *>(&size), sizeof size);

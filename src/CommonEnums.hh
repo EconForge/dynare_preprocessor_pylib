@@ -103,17 +103,6 @@ enum class TrinaryOpcode
    normpdf
   };
 
-enum class ExternalFunctionType
-  {
-   withoutDerivative,
-   withFirstDerivative,
-   withFirstAndSecondDerivative,
-   numericalFirstDerivative,
-   firstDerivative,
-   numericalSecondDerivative,
-   secondDerivative
-  };
-
 enum class PriorDistributions
   {
    noShape = 0,

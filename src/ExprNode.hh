@@ -1320,11 +1320,11 @@ protected:
   void writeExternalFunctionArguments(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
   void writeJsonASTExternalFunctionArguments(ostream &output) const;
   void writeJsonExternalFunctionArguments(ostream &output, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms, bool isdynamic) const;
-  int writeBytecodeExternalFunctionArguments(BytecodeWriter &code_file,
-                                             ExprNodeBytecodeOutputType output_type,
-                                             const temporary_terms_t &temporary_terms,
-                                             const temporary_terms_idxs_t &temporary_terms_idxs,
-                                             const deriv_node_temp_terms_t &tef_terms) const;
+  void writeBytecodeExternalFunctionArguments(BytecodeWriter &code_file,
+                                              ExprNodeBytecodeOutputType output_type,
+                                              const temporary_terms_t &temporary_terms,
+                                              const temporary_terms_idxs_t &temporary_terms_idxs,
+                                              const deriv_node_temp_terms_t &tef_terms) const;
   /*! Returns a predicate that tests whether an other ExprNode is an external
     function which is computed by the same external function call (i.e. it has
     the same so-called "Tef" index) */

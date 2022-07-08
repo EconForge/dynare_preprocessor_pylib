@@ -100,6 +100,17 @@ enum class ExpressionType
    FirstExodetDerivative,
   };
 
+enum class ExternalFunctionCallType
+  {
+   levelWithoutDerivative,
+   levelWithFirstDerivative,
+   levelWithFirstAndSecondDerivative,
+   separatelyProvidedFirstDerivative,
+   numericalFirstDerivative,
+   separatelyProvidedSecondDerivative,
+   numericalSecondDerivative
+  };
+
 struct Block_contain_type
 {
   int Equation, Variable, Own_Derivative;
@@ -672,9 +683,6 @@ public:
 class FLDV_ : public TagWithThreeArguments<SymbolType, int, int>
 {
 public:
-  FLDV_(SymbolType type_arg, int pos_arg) : TagWithThreeArguments::TagWithThreeArguments{Tags::FLDV, type_arg, pos_arg, 0}
-  {
-  };
   FLDV_(SymbolType type_arg, int pos_arg, int lead_lag_arg) :
     TagWithThreeArguments::TagWithThreeArguments{Tags::FLDV, type_arg, pos_arg, lead_lag_arg}
   {
@@ -699,10 +707,6 @@ public:
 class FSTPV_ : public TagWithThreeArguments<SymbolType, int, int>
 {
 public:
-  FSTPV_(SymbolType type_arg, int pos_arg) :
-    TagWithThreeArguments::TagWithThreeArguments{Tags::FSTPV, type_arg, pos_arg, 0}
-  {
-  };
   FSTPV_(SymbolType type_arg, int pos_arg, int lead_lag_arg) :
     TagWithThreeArguments::TagWithThreeArguments{Tags::FSTPV, type_arg, pos_arg, lead_lag_arg}
   {
@@ -733,17 +737,18 @@ private:
   string func_name;
   string arg_func_name;
   int add_input_arguments{0}, row{0}, col{0};
-  ExternalFunctionType function_type{ExternalFunctionType::withoutDerivative};
+  ExternalFunctionCallType call_type;
 public:
   FCALL_() : BytecodeInstruction{Tags::FCALL}
   {
   };
-  FCALL_(int nb_output_arguments_arg, int nb_input_arguments_arg, string func_name_arg, int indx_arg) :
+  FCALL_(int nb_output_arguments_arg, int nb_input_arguments_arg, string func_name_arg, int indx_arg, ExternalFunctionCallType call_type_arg) :
     BytecodeInstruction{Tags::FCALL},
     nb_output_arguments{nb_output_arguments_arg},
     nb_input_arguments{nb_input_arguments_arg},
     indx{indx_arg},
-    func_name{move(func_name_arg)}
+    func_name{move(func_name_arg)},
+    call_type{call_type_arg}
   {
   };
   string
@@ -807,15 +812,10 @@ public:
   {
     return col;
   };
-  void
-  set_function_type(ExternalFunctionType arg_function_type)
+  ExternalFunctionCallType
+  get_call_type()
   {
-    function_type = arg_function_type;
-  };
-  ExternalFunctionType
-  get_function_type()
-  {
-    return function_type;
+    return call_type;
   }
 #ifdef BYTECODE_MEX
 
@@ -829,7 +829,7 @@ public:
     memcpy(&add_input_arguments, code, sizeof(add_input_arguments)); code += sizeof(add_input_arguments);
     memcpy(&row, code, sizeof(row)); code += sizeof(row);
     memcpy(&col, code, sizeof(col)); code += sizeof(col);
-    memcpy(&function_type, code, sizeof(function_type)); code += sizeof(function_type);
+    memcpy(&call_type, code, sizeof(call_type)); code += sizeof(call_type);
     int size;
     memcpy(&size, code, sizeof(size)); code += sizeof(size);
     char *name = static_cast<char *>(mxMalloc((size+1)*sizeof(char)));
