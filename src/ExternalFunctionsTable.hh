@@ -73,8 +73,6 @@ public:
   inline int getFirstDerivSymbID(int symb_id) const noexcept(false);
   //! Get the symbol_id of the second derivative function
   inline int getSecondDerivSymbID(int symb_id) const noexcept(false);
-  //! Returns the total number of unique external functions declared or used in the .mod file
-  inline int get_total_number_of_unique_model_block_external_functions() const;
 };
 
 inline bool
@@ -108,13 +106,6 @@ ExternalFunctionsTable::getSecondDerivSymbID(int symb_id) const noexcept(false)
     return externalFunctionTable.find(symb_id)->second.secondDerivSymbID;
   else
     throw UnknownExternalFunctionSymbolIDException(symb_id);
-}
-
-inline int
-ExternalFunctionsTable::get_total_number_of_unique_model_block_external_functions() const
-{
-  return count_if(externalFunctionTable.begin(), externalFunctionTable.end(),
-                  [](const auto &kv) { return kv.second.nargs > 0; });
 }
 
 #endif
