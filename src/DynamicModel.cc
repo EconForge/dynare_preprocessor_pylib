@@ -2052,7 +2052,7 @@ DynamicModel::writeDynamicJacobianNonZeroElts(const string &basename) const
   vector<pair<int, int>> nzij_pred, nzij_current, nzij_fwrd; // pairs (tsid, equation)
   for (const auto &[indices, d1] : derivatives[1])
     {
-      if (symbol_table.getType(getSymbIDByDerivID(indices[1])) != SymbolType::endogenous)
+      if (getTypeByDerivID(indices[1]) != SymbolType::endogenous)
         continue;
       int tsid = symbol_table.getTypeSpecificID(getSymbIDByDerivID(indices[1]));
       int lag = getLagByDerivID(indices[1]);
