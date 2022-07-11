@@ -132,18 +132,17 @@ SteadyStateModel::writeLatexSteadyStateFile(const string &basename) const
 {
   filesystem::create_directories(basename + "/latex");
 
-  ofstream output, content_output;
   string filename = basename + "/latex/steady_state.tex";
   string content_filename = basename + "/latex/steady_state_content.tex";
 
-  output.open(filename, ios::out | ios::binary);
+  ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
-  content_output.open(content_filename, ios::out | ios::binary);
+  ofstream content_output{content_filename, ios::out | ios::binary};
   if (!content_output.is_open())
     {
       cerr << "ERROR: Can't open file " << content_filename << " for writing" << endl;
@@ -377,8 +376,7 @@ void
 Epilogue::writeStaticEpilogueFile(const string &basename) const
 {
   string filename = packageDir(basename) + "/epilogue_static.m";
-  ofstream output;
-  output.open(filename, ios::out | ios::binary);
+  ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
@@ -416,8 +414,7 @@ void
 Epilogue::writeDynamicEpilogueFile(const string &basename) const
 {
   string filename = packageDir(basename) + "/epilogue_dynamic.m";
-  ofstream output;
-  output.open(filename, ios::out | ios::binary);
+  ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << filename << " for writing" << endl;

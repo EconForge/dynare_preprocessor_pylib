@@ -1473,17 +1473,16 @@ ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_b
 {
   filesystem::create_directories(mod_basename + "/latex");
 
-  ofstream output, content_output;
   string filename = mod_basename + "/latex/" + latex_basename + ".tex";
   string content_filename = mod_basename + "/latex/" + latex_basename + "_content" + ".tex";
-  output.open(filename, ios::out | ios::binary);
+  ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
-  content_output.open(content_filename, ios::out | ios::binary);
+  ofstream content_output{content_filename, ios::out | ios::binary};
   if (!content_output.is_open())
     {
       cerr << "ERROR: Can't open file " << content_filename << " for writing" << endl;

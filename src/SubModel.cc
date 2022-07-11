@@ -247,8 +247,7 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
     return;
 
   string filename = "+" + basename + "/trend_component_ar_a0.m";
-  ofstream ar_ec_output;
-  ar_ec_output.open(filename, ios::out | ios::binary);
+  ofstream ar_ec_output{filename, ios::out | ios::binary};
   if (!ar_ec_output.is_open())
     {
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
@@ -429,8 +428,7 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
     return;
 
   string filename = "+" + basename + "/varmatrices.m";
-  ofstream ar_output;
-  ar_output.open(filename, ios::out | ios::binary);
+  ofstream ar_output{filename, ios::out | ios::binary};
   if (!ar_output.is_open())
     {
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
@@ -1754,8 +1752,7 @@ PacModelTable::writeTargetCoefficientsFile(const string &basename) const
     return;
 
   string filename = DataTree::packageDir(basename) + "/pac_target_coefficients.m";
-  ofstream output;
-  output.open(filename, ios::out | ios::binary);
+  ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << filename << " for writing" << endl;

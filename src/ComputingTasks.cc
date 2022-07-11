@@ -5389,8 +5389,7 @@ OccbinConstraintsStatement::writeOutput(ostream &output, const string &basename,
          << "oo_.dr=set_state_space(oo_.dr,M_,options_);" <<  endl;
 
   string filename = "+" + basename + "/occbin_difference.m";
-  ofstream diff_output;
-  diff_output.open(filename, ios::out | ios::binary);
+  ofstream diff_output{filename, ios::out | ios::binary};
   if (!diff_output.is_open())
     {
       cerr << "Error: Can't open file " << filename << " for writing" << endl;

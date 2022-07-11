@@ -40,7 +40,7 @@ macroExpandModFile(const string &filename, const string &basename, const istream
     {
       if (save_macro_file.empty())
         save_macro_file = basename + "-macroexp.mod";
-      ofstream macro_output_file(save_macro_file);
+      ofstream macro_output_file{save_macro_file};
       if (macro_output_file.fail())
         {
           cerr << "Cannot open " << save_macro_file << " for macro output" << endl;

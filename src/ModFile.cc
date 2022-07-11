@@ -814,22 +814,18 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
       filesystem::remove_all(basename + "/model/bytecode");
     }
 
-  ofstream mOutputFile;
-
-  if (basename.size())
-    {
-      filesystem::create_directory("+" + basename);
-      string fname = "+" + basename + "/driver.m";
-      mOutputFile.open(fname, ios::out | ios::binary);
-      if (!mOutputFile.is_open())
-        {
-          cerr << "ERROR: Can't open file " << fname << " for writing" << endl;
-          exit(EXIT_FAILURE);
-        }
-    }
-  else
+  if (!basename.size())
     {
       cerr << "ERROR: Missing file name" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  filesystem::create_directory("+" + basename);
+  string fname = "+" + basename + "/driver.m";
+  ofstream mOutputFile{fname, ios::out | ios::binary};
+  if (!mOutputFile.is_open())
+    {
+      cerr << "ERROR: Can't open file " << fname << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -1273,22 +1269,18 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
     }
   else
     {
-      ofstream jsonOutputFile;
-
-      if (basename.size())
-        {
-          filesystem::create_directories(basename + "/model/json");
-          string fname{basename + "/model/json/modfile.json"};
-          jsonOutputFile.open(fname, ios::out | ios::binary);
-          if (!jsonOutputFile.is_open())
-            {
-              cerr << "ERROR: Can't open file " << fname << " for writing" << endl;
-              exit(EXIT_FAILURE);
-            }
-        }
-      else
+      if (!basename.size())
         {
           cerr << "ERROR: Missing file name" << endl;
+          exit(EXIT_FAILURE);
+        }
+
+      filesystem::create_directories(basename + "/model/json");
+      string fname{basename + "/model/json/modfile.json"};
+      ofstream jsonOutputFile{fname, ios::out | ios::binary};
+      if (!jsonOutputFile.is_open())
+        {
+          cerr << "ERROR: Can't open file " << fname << " for writing" << endl;
           exit(EXIT_FAILURE);
         }
 
@@ -1397,8 +1389,7 @@ ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType
 void
 ModFile::writeJsonFileHelper(const string &fname, ostringstream &output) const
 {
-  ofstream jsonOutput;
-  jsonOutput.open(fname, ios::out | ios::binary);
+  ofstream jsonOutput{fname, ios::out | ios::binary};
   if (!jsonOutput.is_open())
     {
       cerr << "ERROR: Can't open file " << fname << " for writing" << endl;
