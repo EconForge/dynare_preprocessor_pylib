@@ -832,12 +832,6 @@ DataTree::addAllParamDerivId([[maybe_unused]] set<int> &deriv_id_set)
 {
 }
 
-int
-DataTree::getDynJacobianCol([[maybe_unused]] int deriv_id) const noexcept(false)
-{
-  throw UnknownDerivIDException();
-}
-
 bool
 DataTree::isUnaryOpUsed(UnaryOpcode opcode) const
 {

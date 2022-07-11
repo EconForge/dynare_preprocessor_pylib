@@ -96,10 +96,6 @@ private:
   //! Nonzero equations in the Hessian
   set<int> nonzero_hessian_eqs;
 
-  //! Number of columns of dynamic jacobian
-  /*! Set by computeDerivID()s and computeDynJacobianCols() */
-  int dynJacobianColsNbr{0};
-
   //! Creates mapping for variables and equations they are present in
   map<int, set<int>> variableMapping;
 
@@ -124,15 +120,10 @@ private:
   //! Writes dynamic model file (Matlab version)
   void writeDynamicMFile(const string &basename) const;
   //! Writes dynamic model file (Julia version)
-  void writeDynamicJuliaFile(const string &dynamic_basename) const;
+  void writeDynamicJuliaFile(const string &basename) const;
   //! Writes dynamic model file (C version)
   /*! \todo add third derivatives handling */
   void writeDynamicCFile(const string &basename) const;
-  //! Writes the dynamic model equations and its derivatives
-  /*! \todo add third derivatives handling in C output */
-  void writeDynamicModel(ostream &DynamicOutput, bool use_dll, bool julia) const;
-  void writeDynamicModel(const string &basename, bool use_dll, bool julia) const;
-  void writeDynamicModel(const string &basename, ostream &DynamicOutput, bool use_dll, bool julia) const;
   //! Writes the main dynamic function of block decomposed model (MATLAB version)
   void writeDynamicBlockMFile(const string &basename) const;
   //! Writes the main dynamic function of block decomposed model (C version)
@@ -463,7 +454,22 @@ public:
   void writeLatexOriginalFile(const string &basename, bool write_equation_tags) const;
 
   int getDerivID(int symb_id, int lag) const noexcept(false) override;
-  int getDynJacobianCol(int deriv_id) const noexcept(false) override;
+
+  int
+  getJacobianCol(int deriv_id) const override
+  {
+    if (auto it = dyn_jacobian_cols_table.find(deriv_id);
+        it == dyn_jacobian_cols_table.end())
+      throw UnknownDerivIDException();
+    else
+      return it->second;
+  }
+  int
+  getJacobianColsNbr() const override
+  {
+    return dyn_jacobian_cols_table.size();
+  }
+
   void addAllParamDerivId(set<int> &deriv_id_set) override;
 
   //! Returns true indicating that this is a dynamic model

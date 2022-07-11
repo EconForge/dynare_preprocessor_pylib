@@ -305,8 +305,21 @@ public:
   virtual SymbolType getTypeByDerivID(int deriv_id) const noexcept(false);
   virtual int getLagByDerivID(int deriv_id) const noexcept(false);
   virtual int getSymbIDByDerivID(int deriv_id) const noexcept(false);
-  //! Returns the column of the dynamic Jacobian associated to a derivation ID
-  virtual int getDynJacobianCol(int deriv_id) const noexcept(false);
+
+  //! Returns the column of the Jacobian associated to a derivation ID
+  virtual int
+  getJacobianCol([[maybe_unused]] int deriv_id) const
+  {
+    throw UnknownDerivIDException();
+  }
+
+  //! Returns the number of columns of the Jacobian
+  virtual int
+  getJacobianColsNbr() const
+  {
+    throw UnknownDerivIDException();
+  }
+
   //! Adds to the set all the deriv IDs corresponding to parameters
   virtual void addAllParamDerivId(set<int> &deriv_id_set);
 

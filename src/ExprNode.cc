@@ -1074,7 +1074,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         case ExprNodeOutputType::juliaDynamicModel:
         case ExprNodeOutputType::matlabDynamicModel:
         case ExprNodeOutputType::CDynamicModel:
-          i = datatree.getDynJacobianCol(datatree.getDerivID(symb_id, lag)) + ARRAY_SUBSCRIPT_OFFSET(output_type);
+          i = datatree.getJacobianCol(datatree.getDerivID(symb_id, lag)) + ARRAY_SUBSCRIPT_OFFSET(output_type);
           output <<  "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case ExprNodeOutputType::CStaticModel:

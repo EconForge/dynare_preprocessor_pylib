@@ -28,6 +28,7 @@
 #include <array>
 #include <filesystem>
 #include <optional>
+#include <cassert>
 
 #include "DataTree.hh"
 #include "EquationTags.hh"
@@ -254,9 +255,13 @@ protected:
                                              ostream &output, ExprNodeOutputType output_type,
                                              deriv_node_temp_terms_t &tef_terms) const;
   //! Writes model equations
-  void writeModelEquations(ostream &output, ExprNodeOutputType output_type) const;
   void writeModelEquations(ostream &output, ExprNodeOutputType output_type,
                            const temporary_terms_t &temporary_terms) const;
+
+  // Returns outputs for derivatives and temporary terms at each derivation order
+  template<ExprNodeOutputType output_type>
+  pair<vector<ostringstream>, vector<ostringstream>> writeModelFileHelper() const;
+
   //! Writes JSON model equations
   //! if residuals = true, we are writing the dynamic/static model.
   //! Otherwise, just the model equations (with line numbers, no tmp terms)
@@ -448,9 +453,6 @@ public:
   void reorderAuxiliaryEquations();
   //! Find equations of the form “variable=constant”, excluding equations with “mcp” tag (see dynare#1697)
   void findConstantEquationsWithoutMcpTag(map<VariableNode *, NumConstNode *> &subst_table) const;
-  //! Helper for writing the Jacobian elements in MATLAB and C
-  /*! Writes either (i+1,j+1) or [i+j*no_eq] */
-  void jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const;
   /* Given an expression, searches for the first equation that has exactly this
      expression on the LHS, and returns the RHS of that equation.
      If no such equation can be found, throws an ExprNode::MatchFailureExpression */
@@ -510,5 +512,140 @@ public:
       }
   }
 };
+
+template<ExprNodeOutputType output_type>
+pair<vector<ostringstream>, vector<ostringstream>>
+ModelTree::writeModelFileHelper() const
+{
+  vector<ostringstream> d_output(derivatives.size()); // Derivatives output (at all orders, including 0=residual)
+  vector<ostringstream> tt_output(derivatives.size()); // Temp terms output (at all orders)
+
+  deriv_node_temp_terms_t tef_terms;
+  temporary_terms_t temp_term_union;
+
+  writeModelLocalVariableTemporaryTerms(temp_term_union, temporary_terms_idxs,
+                                        tt_output[0], output_type, tef_terms);
+
+  writeTemporaryTerms(temporary_terms_derivatives[0],
+                      temp_term_union,
+                      temporary_terms_idxs,
+                      tt_output[0], output_type, tef_terms);
+
+  writeModelEquations(d_output[0], output_type, temp_term_union);
+
+  // Writing Jacobian
+  if (!derivatives[1].empty())
+    {
+      writeTemporaryTerms(temporary_terms_derivatives[1],
+                          temp_term_union,
+                          temporary_terms_idxs,
+                          tt_output[1], output_type, tef_terms);
+
+      for (const auto &[indices, d1] : derivatives[1])
+        {
+          auto [eq, var] = vectorToTuple<2>(indices);
+
+          if constexpr(isJuliaOutput(output_type))
+            d_output[1] << "    @inbounds ";
+          d_output[1] << "g1" << LEFT_ARRAY_SUBSCRIPT(output_type);
+          if constexpr(isMatlabOutput(output_type) || isJuliaOutput(output_type))
+            d_output[1] << eq + 1 << "," << getJacobianCol(var) + 1;
+          else
+            d_output[1] << eq + getJacobianCol(var)*equations.size();
+          d_output[1] << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+          d1->writeOutput(d_output[1], output_type,
+                          temp_term_union, temporary_terms_idxs, tef_terms);
+          d_output[1] << ";" << endl;
+        }
+    }
+
+  // Write derivatives for order ≥ 2
+  for (size_t i = 2; i < derivatives.size(); i++)
+    if (!derivatives[i].empty())
+      {
+        writeTemporaryTerms(temporary_terms_derivatives[i],
+                            temp_term_union,
+                            temporary_terms_idxs,
+                            tt_output[i], output_type, tef_terms);
+
+        /* When creating the sparse matrix (in MATLAB or C mode), since storage
+           is in column-major order, output the first column, then the second,
+           then the third. This gives a significant performance boost in use_dll
+           mode (at both compilation and runtime), because it facilitates memory
+           accesses and expression reusage. */
+        ostringstream i_output, j_output, v_output;
+
+        for (int k{0}; // Current line index in the 3-column matrix
+             const auto &[vidx, d] : derivatives[i])
+          {
+            int eq{vidx[0]};
+
+            int col_idx{0};
+            for (size_t j = 1; j < vidx.size(); j++)
+              {
+                col_idx *= getJacobianColsNbr();
+                col_idx += getJacobianCol(vidx[j]);
+              }
+
+            if constexpr(isJuliaOutput(output_type))
+              {
+                d_output[i] << "    @inbounds " << "g" << i << "[" << eq + 1 << "," << col_idx + 1 << "] = ";
+                d->writeOutput(d_output[i], output_type, temp_term_union, temporary_terms_idxs, tef_terms);
+                d_output[i] << endl;
+              }
+            else
+              {
+                i_output << "g" << i << "_i" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                         << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                         << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                         << "=" << eq + 1 << ";" << endl;
+                j_output << "g" << i << "_j" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                         << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                         << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                         << "=" << col_idx + 1 << ";" << endl;
+                v_output << "g" << i << "_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                         << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                         << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+                d->writeOutput(v_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
+                v_output << ";" << endl;
+
+                k++;
+              }
+
+            // Output symetric elements at order 2
+            if (i == 2 && vidx[1] != vidx[2])
+              {
+                int col_idx_sym{getJacobianCol(vidx[2]) * getJacobianColsNbr() + getJacobianCol(vidx[1])};
+
+                if constexpr(isJuliaOutput(output_type))
+                  d_output[2] << "    @inbounds g2[" << eq + 1 << "," << col_idx_sym + 1 << "] = "
+                              << "g2[" << eq + 1 << "," << col_idx + 1 << "]" << endl;
+                else
+                  {
+                    i_output << "g" << i << "_i" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                             << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                             << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                             << "=" << eq + 1 << ";" << endl;
+                    j_output << "g" << i << "_j" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                             << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                             << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                             << "=" << col_idx_sym + 1 << ";" << endl;
+                    v_output << "g" << i << "_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                             << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                             << RIGHT_ARRAY_SUBSCRIPT(output_type) << "="
+                             << "g" << i << "_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                             << k-1 + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                             << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
+
+                    k++;
+                  }
+              }
+          }
+        if constexpr(!isJuliaOutput(output_type))
+          d_output[i] << i_output.str() << j_output.str() << v_output.str();
+      }
+
+  return { move(d_output), move(tt_output) };
+}
 
 #endif

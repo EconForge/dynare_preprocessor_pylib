@@ -1327,14 +1327,6 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, bool write_tef_terms, d
 }
 
 void
-ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type) const
-{
-  temporary_terms_t tt;
-  temporary_terms_idxs_t ttidxs;
-  writeModelEquations(output, output_type, tt);
-}
-
-void
 ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type,
                                const temporary_terms_t &temporary_terms) const
 {
@@ -1597,19 +1589,6 @@ void
 ModelTree::set_cutoff_to_zero()
 {
   cutoff = 0;
-}
-
-void
-ModelTree::jacobianHelper(ostream &output, int eq_nb, int col_nb, ExprNodeOutputType output_type) const
-{
-  if (isJuliaOutput(output_type))
-    output << "    @inbounds ";
-  output << "g1" << LEFT_ARRAY_SUBSCRIPT(output_type);
-  if (isMatlabOutput(output_type) || isJuliaOutput(output_type))
-    output << eq_nb + 1 << "," << col_nb + 1;
-  else
-    output << eq_nb + col_nb *equations.size();
-  output << RIGHT_ARRAY_SUBSCRIPT(output_type);
 }
 
 void

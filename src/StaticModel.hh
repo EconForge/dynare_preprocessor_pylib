@@ -43,9 +43,6 @@ private:
   //! Writes static model file (Julia version)
   void writeStaticJuliaFile(const string &basename) const;
 
-  //! Writes the static model equations and its derivatives
-  void writeStaticModel(const string &basename, ostream &StaticOutput, bool use_dll, bool julia) const;
-
   //! Writes the main static function of block decomposed model (MATLAB version)
   void writeStaticBlockMFile(const string &basename) const;
 
@@ -89,8 +86,18 @@ private:
   int getLagByDerivID(int deriv_id) const noexcept(false) override;
   //! Get the symbol ID corresponding to a derivation ID
   int getSymbIDByDerivID(int deriv_id) const noexcept(false) override;
-  //! Compute the column indices of the static Jacobian
-  void computeStatJacobianCols();
+
+  int
+  getJacobianCol(int deriv_id) const override
+  {
+    return symbol_table.getTypeSpecificID(getSymbIDByDerivID(deriv_id));
+  }
+  int
+  getJacobianColsNbr() const override
+  {
+    return symbol_table.endo_nbr();
+  }
+
   //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
   void computeChainRuleJacobian();
 
@@ -105,9 +112,6 @@ private:
 
   //! Create a legacy *_static.m file for Matlab/Octave not yet using the temporary terms array interface
   void writeStaticMatlabCompatLayer(const string &name) const;
-
-  void writeStaticModel(ostream &DynamicOutput, bool use_dll, bool julia) const;
-  void writeStaticModel(const string &dynamic_basename, bool use_dll, bool julia) const;
 
 public:
   StaticModel(SymbolTable &symbol_table_arg,
