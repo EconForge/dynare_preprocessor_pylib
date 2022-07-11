@@ -369,49 +369,47 @@ ExprNode::fillErrorCorrectionRow(int eqn,
 
       // Now fill the matrices
       for (const auto &[var_id, lag, param_id, constant] : error_linear_combination)
-        {
-          auto [orig_vid, orig_lag] = datatree.symbol_table.unrollDiffLeadLagChain(var_id, lag);
-          if (find(target_lhs.begin(), target_lhs.end(), orig_vid) == target_lhs.end())
-            {
-              if (orig_lag != -1)
-                {
-                  cerr << "ERROR in trend component model: variables in the error correction term should appear with a lag of -1" << endl;
-                  exit(EXIT_FAILURE);
-                }
-              // This an LHS variable, so fill A0
-              if (constant != 1)
-                {
-                  cerr << "ERROR in trend component model: LHS variable should not appear with a multiplicative constant in error correction term" << endl;
-                  exit(EXIT_FAILURE);
-                }
-              if (*param_id)
-                {
-                  cerr << "ERROR in trend component model: spurious parameter in error correction term" << endl;
-                  exit(EXIT_FAILURE);
-                }
-              int colidx = static_cast<int>(distance(nontarget_lhs.begin(), find(nontarget_lhs.begin(), nontarget_lhs.end(), orig_vid)));
-              if (A0.contains({eqn, colidx}))
-                {
-                  cerr << "ExprNode::fillErrorCorrection: Error filling A0 matrix: "
-                       << "symb_id encountered more than once in equation" << endl;
-                  exit(EXIT_FAILURE);
-                }
-              A0[{eqn, colidx}] = datatree.AddVariable(speed_of_adjustment_param);
-            }
-          else
-            {
-              // This is a target, so fill A0star
-              int colidx = static_cast<int>(distance(target_lhs.begin(), find(target_lhs.begin(), target_lhs.end(), orig_vid)));
-              expr_t e = datatree.AddTimes(datatree.AddVariable(speed_of_adjustment_param),
-                                           datatree.AddPossiblyNegativeConstant(-constant));
-              if (param_id)
-                e = datatree.AddTimes(e, datatree.AddVariable(*param_id));
-              if (pair coor{eqn, colidx}; A0star.contains(coor))
-                A0star[coor] = datatree.AddPlus(e, A0star[coor]);
-              else
-                A0star[coor] = e;
-            }
-        }
+        if (auto [orig_vid, orig_lag] = datatree.symbol_table.unrollDiffLeadLagChain(var_id, lag);
+            find(target_lhs.begin(), target_lhs.end(), orig_vid) == target_lhs.end())
+          {
+            if (orig_lag != -1)
+              {
+                cerr << "ERROR in trend component model: variables in the error correction term should appear with a lag of -1" << endl;
+                exit(EXIT_FAILURE);
+              }
+            // This an LHS variable, so fill A0
+            if (constant != 1)
+              {
+                cerr << "ERROR in trend component model: LHS variable should not appear with a multiplicative constant in error correction term" << endl;
+                exit(EXIT_FAILURE);
+              }
+            if (*param_id)
+              {
+                cerr << "ERROR in trend component model: spurious parameter in error correction term" << endl;
+                exit(EXIT_FAILURE);
+              }
+            int colidx = static_cast<int>(distance(nontarget_lhs.begin(), find(nontarget_lhs.begin(), nontarget_lhs.end(), orig_vid)));
+            if (A0.contains({eqn, colidx}))
+              {
+                cerr << "ExprNode::fillErrorCorrection: Error filling A0 matrix: "
+                     << "symb_id encountered more than once in equation" << endl;
+                exit(EXIT_FAILURE);
+              }
+            A0[{eqn, colidx}] = datatree.AddVariable(speed_of_adjustment_param);
+          }
+        else
+          {
+            // This is a target, so fill A0star
+            int colidx = static_cast<int>(distance(target_lhs.begin(), find(target_lhs.begin(), target_lhs.end(), orig_vid)));
+            expr_t e = datatree.AddTimes(datatree.AddVariable(speed_of_adjustment_param),
+                                         datatree.AddPossiblyNegativeConstant(-constant));
+            if (param_id)
+              e = datatree.AddTimes(e, datatree.AddVariable(*param_id));
+            if (pair coor{eqn, colidx}; A0star.contains(coor))
+              A0star[coor] = datatree.AddPlus(e, A0star[coor]);
+            else
+              A0star[coor] = e;
+          }
     }
 }
 
