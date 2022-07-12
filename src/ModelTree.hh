@@ -224,8 +224,6 @@ protected:
   void computeDerivatives(int order, const set<int> &vars);
   //! Computes derivatives of the Jacobian and Hessian w.r. to parameters
   void computeParamsDerivatives(int paramsDerivsOrder);
-  //! Write derivative of an equation w.r. to a variable
-  void writeDerivative(ostream &output, int eq, int symb_id, int lag, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms) const;
   //! Computes temporary terms (for all equations and derivatives)
   void computeTemporaryTerms(bool is_matlab, bool no_tmp_terms);
   //! Computes temporary terms per block

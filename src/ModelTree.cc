@@ -877,18 +877,6 @@ ModelTree::equation_number() const
 }
 
 void
-ModelTree::writeDerivative(ostream &output, int eq, int symb_id, int lag,
-                           ExprNodeOutputType output_type,
-                           const temporary_terms_t &temporary_terms) const
-{
-  if (auto it = derivatives[1].find({ eq, getDerivID(symb_id, lag) });
-      it != derivatives[1].end())
-    it->second->writeOutput(output, output_type, temporary_terms, {});
-  else
-    output << 0;
-}
-
-void
 ModelTree::computeDerivatives(int order, const set<int> &vars)
 {
   assert(order >= 1);
