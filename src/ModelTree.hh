@@ -262,6 +262,13 @@ protected:
   template<ExprNodeOutputType output_type>
   pair<vector<ostringstream>, vector<ostringstream>> writeModelFileHelper() const;
 
+  /* Helper for writing derivatives w.r.t. parameters.
+     Returns { tt, rp, gp, rpp, gpp, hp, g3p }.
+     g3p is empty if requesting a static output type. */
+  template<ExprNodeOutputType output_type>
+  tuple<ostringstream, ostringstream, ostringstream, ostringstream,
+        ostringstream, ostringstream, ostringstream> writeParamsDerivativesFileHelper() const;
+
   //! Writes JSON model equations
   //! if residuals = true, we are writing the dynamic/static model.
   //! Otherwise, just the model equations (with line numbers, no tmp terms)
@@ -655,6 +662,225 @@ ModelTree::writeModelFileHelper() const
     }
 
   return { move(d_output), move(tt_output) };
+}
+
+template<ExprNodeOutputType output_type>
+tuple<ostringstream, ostringstream, ostringstream, ostringstream,
+      ostringstream, ostringstream, ostringstream>
+ModelTree::writeParamsDerivativesFileHelper() const
+{
+  static_assert(!isCOutput(output_type), "C output is not implemented");
+
+  ostringstream tt_output; // Used for storing model temp vars and equations
+  ostringstream rp_output; // 1st deriv. of residuals w.r.t. parameters
+  ostringstream gp_output; // 1st deriv. of Jacobian w.r.t. parameters
+  ostringstream rpp_output; // 2nd deriv of residuals w.r.t. parameters
+  ostringstream gpp_output; // 2nd deriv of Jacobian w.r.t. parameters
+  ostringstream hp_output; // 1st deriv. of Hessian w.r.t. parameters
+  ostringstream g3p_output; // 1st deriv. of 3rd deriv. matrix w.r.t. parameters (only in dynamic case)
+
+  temporary_terms_t temp_term_union;
+  deriv_node_temp_terms_t tef_terms;
+
+  writeModelLocalVariableTemporaryTerms(temp_term_union, params_derivs_temporary_terms_idxs, tt_output, output_type, tef_terms);
+  for (const auto &[order, tts] : params_derivs_temporary_terms)
+    writeTemporaryTerms(tts, temp_term_union, params_derivs_temporary_terms_idxs, tt_output, output_type, tef_terms);
+
+  for (const auto &[indices, d1] : params_derivatives.find({ 0, 1 })->second)
+    {
+      auto [eq, param] { vectorToTuple<2>(indices) };
+
+      int param_col { symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1 };
+
+      rp_output << "rp" << LEFT_ARRAY_SUBSCRIPT(output_type) << eq+1 << ", " << param_col
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
+      d1->writeOutput(rp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
+      rp_output << ";" << endl;
+    }
+
+  for (const auto &[indices, d2] : params_derivatives.find({ 1, 1 })->second)
+    {
+      auto [eq, var, param] { vectorToTuple<3>(indices) };
+
+      int var_col { getJacobianCol(var) + 1 };
+      int param_col { symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1 };
+
+      gp_output << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type) << eq+1 << ", " << var_col
+                << ", " << param_col << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
+      d2->writeOutput(gp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
+      gp_output << ";" << endl;
+    }
+
+  for (int i {1};
+       const auto &[indices, d2] : params_derivatives.find({ 0, 2 })->second)
+    {
+      auto [eq, param1, param2] { vectorToTuple<3>(indices) };
+
+      int param1_col { symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1 };
+      int param2_col { symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1 };
+
+      rpp_output << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                 << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
+                 << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
+                 << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+      d2->writeOutput(rpp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
+      rpp_output << ";" << endl;
+
+      i++;
+
+      if (param1 != param2)
+        {
+          // Treat symmetric elements
+          rpp_output << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                     << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
+                     << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
+                     << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                     << "=rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i-1 << ",4"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
+          i++;
+        }
+    }
+
+  for (int i {1};
+       const auto &[indices, d2] : params_derivatives.find({ 1, 2 })->second)
+    {
+      auto [eq, var, param1, param2] { vectorToTuple<4>(indices) };
+
+      int var_col { getJacobianCol(var) + 1 };
+      int param1_col { symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1 };
+      int param2_col { symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1 };
+
+      gpp_output << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                 << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << endl
+                 << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
+                 << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
+                 << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+      d2->writeOutput(gpp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
+      gpp_output << ";" << endl;
+
+      i++;
+
+      if (param1 != param2)
+        {
+          // Treat symmetric elements
+          gpp_output << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                     << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << endl
+                     << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
+                     << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
+                     << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                     << "=gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i-1 << ",5"
+                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
+          i++;
+        }
+    }
+
+  for (int i {1};
+       const auto &[indices, d2] : params_derivatives.find({ 2, 1 })->second)
+    {
+      auto [eq, var1, var2, param] { vectorToTuple<4>(indices) };
+
+      int var1_col { getJacobianCol(var1) + 1 };
+      int var2_col { getJacobianCol(var2) + 1 };
+      int param_col { symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1 };
+
+      hp_output << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var1_col << ";" << endl
+                << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var2_col << ";" << endl
+                << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
+                << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+      d2->writeOutput(hp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
+      hp_output << ";" << endl;
+
+      i++;
+
+      if (var1 != var2)
+        {
+          // Treat symmetric elements
+          hp_output << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                    << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var2_col << ";" << endl
+                    << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var1_col << ";" << endl
+                    << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
+                    << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
+                    << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                    << "=hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i-1 << ",5"
+                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
+          i++;
+        }
+    }
+
+  if constexpr(output_type == ExprNodeOutputType::matlabDynamicModel
+               || output_type == ExprNodeOutputType::juliaDynamicModel)
+    for (int i {1};
+         const auto &[indices, d2] : params_derivatives.find({ 3, 1 })->second)
+      {
+        auto [eq, var1, var2, var3, param] { vectorToTuple<5>(indices) };
+
+        int var1_col { getJacobianCol(var1) + 1 };
+        int var2_col { getJacobianCol(var2) + 1 };
+        int var3_col { getJacobianCol(var3) + 1 };
+        int param_col { symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1 };
+
+        g3p_output << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
+                   << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var1_col << ";" << endl
+                   << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var2_col << ";" << endl
+                   << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var3_col << ";" << endl
+                   << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
+                   << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",6"
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+        d2->writeOutput(g3p_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs, tef_terms);
+        g3p_output << ";" << endl;
+
+        i++;
+      }
+
+  if constexpr(isMatlabOutput(output_type))
+    {
+      // Check that we don't have more than 32 nested parenthesis because MATLAB does not support this. See Issue #1201
+      map<string, string> tmp_paren_vars;
+      bool message_printed {false};
+      fixNestedParenthesis(tt_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(rp_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(gp_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(rpp_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(gpp_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(hp_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(g3p_output, tmp_paren_vars, message_printed);
+    }
+
+  return { move(tt_output), move(rp_output), move(gp_output),
+    move(rpp_output), move(gpp_output), move(hp_output), move(g3p_output) };
 }
 
 #endif

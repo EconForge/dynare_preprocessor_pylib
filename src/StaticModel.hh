@@ -149,7 +149,8 @@ public:
   void writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) const;
 
   //! Writes file containing static parameters derivatives
-  void writeParamsDerivativesFile(const string &basename, bool julia) const;
+  template<bool julia>
+  void writeParamsDerivativesFile(const string &basename) const;
 
   //! Writes LaTeX file with the equations of the static model
   void writeLatexFile(const string &basename, bool write_equation_tags) const;
@@ -170,5 +171,120 @@ public:
   int getDerivID(int symb_id, int lag) const noexcept(false) override;
   void addAllParamDerivId(set<int> &deriv_id_set) override;
 };
+
+template<bool julia>
+void
+StaticModel::writeParamsDerivativesFile(const string &basename) const
+{
+  if (!params_derivatives.size())
+    return;
+
+  constexpr ExprNodeOutputType output_type { julia ? ExprNodeOutputType::juliaStaticModel : ExprNodeOutputType::matlabStaticModel };
+
+  auto [tt_output, rp_output, gp_output, rpp_output, gpp_output, hp_output, g3p_output]
+    { writeParamsDerivativesFileHelper<output_type>() };
+  // g3p_output is ignored
+
+  string filename { julia ? basename + "StaticParamsDerivs.jl" : packageDir(basename) + "/static_params_derivs.m" };
+  ofstream paramsDerivsFile { filename, ios::out | ios::binary };
+  if (!paramsDerivsFile.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if constexpr(!julia)
+    {
+      paramsDerivsFile << "function [rp, gp, rpp, gpp, hp] = static_params_derivs(y, x, params)" << endl
+                       << "%" << endl
+                       << "% Status : Computes derivatives of the static model with respect to the parameters" << endl
+                       << "%" << endl
+                       << "% Inputs : " << endl
+                       << "%   y         [M_.endo_nbr by 1] double    vector of endogenous variables in declaration order" << endl
+                       << "%   x         [M_.exo_nbr by 1] double     vector of exogenous variables in declaration order" << endl
+                       << "%   params    [M_.param_nbr by 1] double   vector of parameter values in declaration order" << endl
+                       << "%" << endl
+                       << "% Outputs:" << endl
+                       << "%   rp        [M_.eq_nbr by #params] double    Jacobian matrix of static model equations with respect to parameters " << endl
+                       << "%                                              Dynare may prepend or append auxiliary equations, see M_.aux_vars" << endl
+                       << "%   gp        [M_.endo_nbr by M_.endo_nbr by #params] double    Derivative of the Jacobian matrix of the static model equations with respect to the parameters" << endl
+                       << "%                                                           rows: variables in declaration order" << endl
+                       << "%                                                           rows: equations in order of declaration" << endl
+                       << "%   rpp       [#second_order_residual_terms by 4] double   Hessian matrix of second derivatives of residuals with respect to parameters;" << endl
+                       << "%                                                              rows: respective derivative term" << endl
+                       << "%                                                              1st column: equation number of the term appearing" << endl
+                       << "%                                                              2nd column: number of the first parameter in derivative" << endl
+                       << "%                                                              3rd column: number of the second parameter in derivative" << endl
+                       << "%                                                              4th column: value of the Hessian term" << endl
+                       << "%   gpp      [#second_order_Jacobian_terms by 5] double   Hessian matrix of second derivatives of the Jacobian with respect to the parameters;" << endl
+                       << "%                                                              rows: respective derivative term" << endl
+                       << "%                                                              1st column: equation number of the term appearing" << endl
+                       << "%                                                              2nd column: column number of variable in Jacobian of the static model" << endl
+                       << "%                                                              3rd column: number of the first parameter in derivative" << endl
+                       << "%                                                              4th column: number of the second parameter in derivative" << endl
+                       << "%                                                              5th column: value of the Hessian term" << endl
+                       << "%" << endl
+                       << "%" << endl
+                       << "% Warning : this file is generated automatically by Dynare" << endl
+                       << "%           from model file (.mod)" << endl << endl
+                       << "T = NaN(" << params_derivs_temporary_terms_idxs.size() << ",1);" << endl
+                       << tt_output.str()
+                       << "rp = zeros(" << equations.size() << ", "
+                       << symbol_table.param_nbr() << ");" << endl
+                       << rp_output.str()
+                       << "gp = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ", "
+                       << symbol_table.param_nbr() << ");" << endl
+                       << gp_output.str()
+                       << "if nargout >= 3" << endl
+                       << "rpp = zeros(" << params_derivatives.find({ 0, 2 })->second.size() << ",4);" << endl
+                       << rpp_output.str()
+                       << "gpp = zeros(" << params_derivatives.find({ 1, 2 })->second.size() << ",5);" << endl
+                       << gpp_output.str()
+                       << "end" << endl
+                       << "if nargout >= 5" << endl
+                       << "hp = zeros(" << params_derivatives.find({ 2, 1 })->second.size() << ",5);" << endl
+                       << hp_output.str()
+                       << "end" << endl
+                       << "end" << endl;
+    }
+  else
+    paramsDerivsFile << "module " << basename << "StaticParamsDerivs" << endl
+                     << "#" << endl
+                     << "# NB: this file was automatically generated by Dynare" << endl
+                     << "#     from " << basename << ".mod" << endl
+                     << "#" << endl
+                     << "export params_derivs" << endl << endl
+                     << "function params_derivs(y, x, params)" << endl
+		     << "@inbounds begin" << endl
+                     << tt_output.str()
+		     << "end" << endl
+                     << "rp = zeros(" << equations.size() << ", "
+                     << symbol_table.param_nbr() << ");" << endl
+		     << "@inbounds begin" << endl
+                     << rp_output.str()
+		     << "end" << endl
+                     << "gp = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ", "
+                     << symbol_table.param_nbr() << ");" << endl
+		     << "@inbounds begin" << endl
+                     << gp_output.str()
+		     << "end" << endl
+                     << "rpp = zeros(" << params_derivatives.find({ 0, 2 })->second.size() << ",4);" << endl
+		     << "@inbounds begin" << endl
+                     << rpp_output.str()
+		     << "end" << endl
+                     << "gpp = zeros(" << params_derivatives.find({ 1, 2 })->second.size() << ",5);" << endl
+		     << "@inbounds begin" << endl
+                     << gpp_output.str()
+		     << "end" << endl
+                     << "hp = zeros(" << params_derivatives.find({ 2, 1 })->second.size() << ",5);" << endl
+		     << "@inbounds begin" << endl
+                     << hp_output.str()
+		     << "end" << endl
+                     << "(rp, gp, rpp, gpp, hp)" << endl
+                     << "end" << endl
+                     << "end" << endl;
+
+  paramsDerivsFile.close();
+}
 
 #endif
