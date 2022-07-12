@@ -1036,21 +1036,16 @@ DynamicModel::writeDynamicMFile(const string &basename) const
 
   ostringstream init_output, end_output;
   init_output << "residual = zeros(" << equations.size() << ", 1);";
-  writeDynamicModelHelper(basename, "dynamic_resid", "residual",
-                          "dynamic_resid_tt",
+  writeDynamicMFileHelper(basename, "dynamic_resid", "residual", "dynamic_resid_tt",
                           temporary_terms_mlv.size() + temporary_terms_derivatives[0].size(),
-                          "", init_output, end_output,
-                          d_output[0], tt_output[0]);
+                          "", init_output, end_output, d_output[0], tt_output[0]);
 
   init_output.str("");
   init_output << "g1 = zeros(" << equations.size() << ", " << getJacobianColsNbr() << ");";
-  writeDynamicModelHelper(basename, "dynamic_g1", "g1",
-                          "dynamic_g1_tt",
+  writeDynamicMFileHelper(basename, "dynamic_g1", "g1", "dynamic_g1_tt",
                           temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size(),
-                          "dynamic_resid_tt",
-                          init_output, end_output,
-                          d_output[1], tt_output[1]);
-  writeWrapperFunctions(basename, "g1");
+                          "dynamic_resid_tt", init_output, end_output, d_output[1], tt_output[1]);
+  writeDynamicMWrapperFunction(basename, "g1");
 
   // For order ≥ 2
   int ncols{getJacobianColsNbr()};
@@ -1075,17 +1070,14 @@ DynamicModel::writeDynamicMFile(const string &basename) const
         }
       else
         init_output << gname << " = sparse([],[],[]," << equations.size() << "," << ncols << ");";
-      writeDynamicModelHelper(basename, "dynamic_" + gname, gname,
-                              "dynamic_" + gname + "_tt",
-                              ntt,
-                              "dynamic_" + gprevname + "_tt",
-                              init_output, end_output,
+      writeDynamicMFileHelper(basename, "dynamic_" + gname, gname, "dynamic_" + gname + "_tt", ntt,
+                              "dynamic_" + gprevname + "_tt", init_output, end_output,
                               d_output[i], tt_output[i]);
       if (i <= 3)
-        writeWrapperFunctions(basename, gname);
+        writeDynamicMWrapperFunction(basename, gname);
     }
 
-  writeDynamicMatlabCompatLayer(basename);
+  writeDynamicMCompatFile(basename);
 }
 
 void
@@ -1655,7 +1647,7 @@ DynamicModel::writeDynamicBlockCFile(const string &basename) const
 }
 
 void
-DynamicModel::writeWrapperFunctions(const string &basename, const string &ending) const
+DynamicModel::writeDynamicMWrapperFunction(const string &basename, const string &ending) const
 {
   string name;
   if (ending == "g1")
@@ -1706,12 +1698,11 @@ DynamicModel::writeWrapperFunctions(const string &basename, const string &ending
 }
 
 void
-DynamicModel::writeDynamicModelHelper(const string &basename,
+DynamicModel::writeDynamicMFileHelper(const string &basename,
                                       const string &name, const string &retvalname,
                                       const string &name_tt, size_t ttlen,
                                       const string &previous_tt_name,
-                                      const ostringstream &init_s,
-                                      const ostringstream &end_s,
+                                      const ostringstream &init_s, const ostringstream &end_s,
                                       const ostringstream &s, const ostringstream &s_tt) const
 {
   string filename = packageDir(basename) + "/" + name_tt + ".m";
@@ -1793,7 +1784,7 @@ DynamicModel::writeDynamicModelHelper(const string &basename,
 }
 
 void
-DynamicModel::writeDynamicMatlabCompatLayer(const string &basename) const
+DynamicModel::writeDynamicMCompatFile(const string &basename) const
 {
   string filename = packageDir(basename) + "/dynamic.m";
   ofstream output{filename, ios::out | ios::binary};
@@ -1821,7 +1812,7 @@ DynamicModel::writeDynamicMatlabCompatLayer(const string &basename) const
 }
 
 void
-DynamicModel::writeDynamicJacobianNonZeroElts(const string &basename) const
+DynamicModel::writeDynamicJacobianNonZeroEltsFile(const string &basename) const
 {
   vector<pair<int, int>> nzij_pred, nzij_current, nzij_fwrd; // pairs (tsid, equation)
   for (const auto &[indices, d1] : derivatives[1])

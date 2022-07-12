@@ -843,7 +843,7 @@ StaticModel::writeStaticMFile(const string &basename) const
   end_output << "if ~isreal(residual)" << endl
              << "  residual = real(residual)+imag(residual).^2;" << endl
              << "end";
-  writeStaticModelHelper(basename, "static_resid", "residual", "static_resid_tt",
+  writeStaticMFileHelper(basename, "static_resid", "residual", "static_resid_tt",
                          temporary_terms_mlv.size() + temporary_terms_derivatives[0].size(),
                          "", init_output, end_output,
                          d_output[0], tt_output[0]);
@@ -854,12 +854,12 @@ StaticModel::writeStaticMFile(const string &basename) const
   end_output << "if ~isreal(g1)" << endl
              << "    g1 = real(g1)+2*imag(g1);" << endl
              << "end";
-  writeStaticModelHelper(basename, "static_g1", "g1", "static_g1_tt",
+  writeStaticMFileHelper(basename, "static_g1", "g1", "static_g1_tt",
                          temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size(),
                          "static_resid_tt",
                          init_output, end_output,
                          d_output[1], tt_output[1]);
-  writeWrapperFunctions(basename, "g1");
+  writeStaticMWrapperFunction(basename, "g1");
 
   // For order ≥ 2
   int ncols{symbol_table.endo_nbr()};
@@ -884,21 +884,21 @@ StaticModel::writeStaticMFile(const string &basename) const
         }
       else
         init_output << gname << " = sparse([],[],[]," << equations.size() << "," << ncols << ");";
-      writeStaticModelHelper(basename, "static_" + gname, gname,
+      writeStaticMFileHelper(basename, "static_" + gname, gname,
                              "static_" + gname + "_tt",
                              ntt,
                              "static_" + gprevname + "_tt",
                              init_output, end_output,
                              d_output[i], tt_output[i]);
       if (i <= 3)
-        writeWrapperFunctions(basename, gname);
+        writeStaticMWrapperFunction(basename, gname);
     }
 
-  writeStaticMatlabCompatLayer(basename);
+  writeStaticMCompatFile(basename);
 }
 
 void
-StaticModel::writeWrapperFunctions(const string &basename, const string &ending) const
+StaticModel::writeStaticMWrapperFunction(const string &basename, const string &ending) const
 {
   string name;
   if (ending == "g1")
@@ -949,7 +949,7 @@ StaticModel::writeWrapperFunctions(const string &basename, const string &ending)
 }
 
 void
-StaticModel::writeStaticModelHelper(const string &basename,
+StaticModel::writeStaticMFileHelper(const string &basename,
                                     const string &name, const string &retvalname,
                                     const string &name_tt, size_t ttlen,
                                     const string &previous_tt_name,
@@ -1026,7 +1026,7 @@ StaticModel::writeStaticModelHelper(const string &basename,
 }
 
 void
-StaticModel::writeStaticMatlabCompatLayer(const string &basename) const
+StaticModel::writeStaticMCompatFile(const string &basename) const
 {
   string filename = packageDir(basename) + "/static.m";
   ofstream output{filename, ios::out | ios::binary};

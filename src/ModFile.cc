@@ -1079,7 +1079,7 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
 
           dynamic_model.writeParamsDerivativesFile<false>(basename);
 
-          dynamic_model.writeDynamicJacobianNonZeroElts(basename);
+          dynamic_model.writeDynamicJacobianNonZeroEltsFile(basename);
         }
 
       // Create steady state file

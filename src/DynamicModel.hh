@@ -213,17 +213,18 @@ private:
   //! Write reverse cross references
   void writeRevXrefs(ostream &output, const map<pair<int, int>, set<int>> &xrefmap, const string &type) const;
 
-  void writeWrapperFunctions(const string &name, const string &ending) const;
-  void writeDynamicModelHelper(const string &basename,
+  // Writes MATLAB/Octave wrapper function for computing residuals and derivatives at the same time
+  void writeDynamicMWrapperFunction(const string &name, const string &ending) const;
+  // Helper for writing MATLAB/Octave functions for residuals/derivatives and their temporary terms
+  void writeDynamicMFileHelper(const string &basename,
                                const string &name, const string &retvalname,
                                const string &name_tt, size_t ttlen,
                                const string &previous_tt_name,
-                               const ostringstream &init_s,
-                               const ostringstream &end_s,
+                               const ostringstream &init_s, const ostringstream &end_s,
                                const ostringstream &s, const ostringstream &s_tt) const;
 
-  //! Create a legacy *_dynamic.m file for Matlab/Octave not yet using the temporary terms array interface
-  void writeDynamicMatlabCompatLayer(const string &basename) const;
+  //! Create a legacy *_dynamic.m file for MATLAB/Octave not yet using the temporary terms array interface
+  void writeDynamicMCompatFile(const string &basename) const;
 
   //! Internal helper for the copy constructor and assignment operator
   /*! Copies all the structures that contain ExprNode*, by the converting the
@@ -399,7 +400,7 @@ public:
 
   //! Writes file containing coordinates of non-zero elements in the Jacobian
   /*! Used by the perfect_foresight_problem MEX */
-  void writeDynamicJacobianNonZeroElts(const string &basename) const;
+  void writeDynamicJacobianNonZeroEltsFile(const string &basename) const;
 
   //! Creates mapping for variables and equations they are present in
   void createVariableMapping();

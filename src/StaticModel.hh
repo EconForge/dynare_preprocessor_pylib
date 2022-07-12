@@ -100,17 +100,18 @@ private:
   //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
   void computeChainRuleJacobian();
 
-  //! Helper functions for writeStaticModel
-  void writeStaticModelHelper(const string &basename,
+  // Helper for writing MATLAB/Octave functions for residuals/derivatives and their temporary terms
+  void writeStaticMFileHelper(const string &basename,
                               const string &name, const string &retvalname,
                               const string &name_tt, size_t ttlen,
                               const string &previous_tt_name,
                               const ostringstream &init_s, const ostringstream &end_s,
                               const ostringstream &s, const ostringstream &s_tt) const;
-  void writeWrapperFunctions(const string &basename, const string &ending) const;
+  // Writes MATLAB/Octave wrapper function for computing residuals and derivatives at the same time
+  void writeStaticMWrapperFunction(const string &basename, const string &ending) const;
 
-  //! Create a legacy *_static.m file for Matlab/Octave not yet using the temporary terms array interface
-  void writeStaticMatlabCompatLayer(const string &name) const;
+  //! Create a legacy *_static.m file for MATLAB/Octave not yet using the temporary terms array interface
+  void writeStaticMCompatFile(const string &name) const;
 
 public:
   StaticModel(SymbolTable &symbol_table_arg,
