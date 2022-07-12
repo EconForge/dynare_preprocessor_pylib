@@ -1852,7 +1852,6 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
   d_output[0] << ", ";
   writeJsonModelEquations(d_output[0], true);
 
-  auto getJacobCol = [this](int var) { return symbol_table.getTypeSpecificID(getSymbIDByDerivID(var)); };
   int ncols = symbol_table.endo_nbr();
   for (size_t i = 1; i < derivatives.size(); i++)
     {
@@ -1876,7 +1875,7 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
           for (size_t j = 1; j < vidx.size(); j++)
             {
               col_idx *= symbol_table.endo_nbr();
-              col_idx += getJacobCol(vidx[j]);
+              col_idx += getJacobianCol(vidx[j]);
             }
 
           if (writeDetails)
@@ -1888,7 +1887,7 @@ StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) co
 
           if (i == 2 && vidx[1] != vidx[2]) // Symmetric elements in hessian
             {
-              int col_idx_sym = getJacobCol(vidx[2]) * symbol_table.endo_nbr() + getJacobCol(vidx[1]);
+              int col_idx_sym = getJacobianCol(vidx[2]) * symbol_table.endo_nbr() + getJacobianCol(vidx[1]);
               d_output[i] << ", " << col_idx_sym + 1;
             }
           if (i > 1)
