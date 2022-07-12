@@ -1343,7 +1343,9 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
   output << "function staticResidTT!(T::Vector{<: Real}," << endl
          << "                        y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real})" << endl
          << "    @assert length(T) >= " << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size()  << endl
+         << "    @inbounds begin" << endl
          << tt_output[0].str()
+	 << "    end" << endl
          << "    return nothing" << endl
          << "end" << endl << endl;
 
@@ -1357,7 +1359,9 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "    if T0_flag" << endl
          << "        staticResidTT!(T, y, x, params)" << endl
          << "    end" << endl
+         << "    @inbounds begin" << endl
          << d_output[0].str()
+	 << "    end" << endl
          << "    if ~isreal(residual)" << endl
          << "        residual = real(residual)+imag(residual).^2;" << endl
          << "    end" << endl
@@ -1370,7 +1374,9 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "    if T0_flag" << endl
          << "        staticResidTT!(T, y, x, params)" << endl
          << "    end" << endl
+         << "    @inbounds begin" << endl
          << tt_output[1].str()
+	 << "    end" << endl
          << "    return nothing" << endl
          << "end" << endl << endl;
 
@@ -1387,7 +1393,9 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "        staticG1TT!(T, y, x, params, T0_flag)" << endl
          << "    end" << endl
          << "    fill!(g1, 0.0)" << endl
+         << "     @inbounds begin" << endl
          << d_output[1].str()
+	 << "    end" << endl
          << "    if ~isreal(g1)" << endl
          << "        g1 = real(g1)+2*imag(g1);" << endl
          << "    end" << endl
@@ -1400,7 +1408,9 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "    if T1_flag" << endl
          << "        staticG1TT!(T, y, x, params, TO_flag)" << endl
          << "    end" << endl
+         << "    @inbounds begin" << endl
          << tt_output[2].str()
+	 << "    end" << endl
          << "    return nothing" << endl
          << "end" << endl << endl;
 
@@ -1418,7 +1428,9 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "        staticG2TT!(T, y, x, params, T1_flag, T0_flag)" << endl
          << "    end" << endl
          << "    fill!(g2, 0.0)" << endl
+         << "    @inbounds begin" << endl
          << d_output[2].str()
+	 << "    end" << endl
          << "    return nothing" << endl
          << "end" << endl << endl;
 
@@ -1428,7 +1440,9 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "    if T2_flag" << endl
          << "        staticG2TT!(T, y, x, params, T1_flag, T0_flag)" << endl
          << "    end" << endl
+         << "    @inbounds begin" << endl
          << tt_output[3].str()
+	 << "    end" << endl
          << "    return nothing" << endl
          << "end" << endl << endl;
 
@@ -1446,7 +1460,9 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "        staticG3TT!(T, y, x, params, T2_flag, T1_flag, T0_flag)" << endl
          << "    end" << endl
          << "    fill!(g3, 0.0)" << endl
+         << "    @inbounds begin" << endl
          << d_output[3].str()
+	 << "    end" << endl
          << "    return nothing" << endl
          << "end" << endl << endl;
 
@@ -1845,7 +1861,9 @@ StaticModel::writeSetAuxiliaryVariables(const string &basename, bool julia) cons
          << comment << endl
          << comment << " Warning : this file is generated automatically by Dynare" << endl
          << comment << "           from model file (.mod)" << endl << endl
+	 << "@inbounds begin" << endl
          << output_func_body.str()
+         << "end" << endl
          << "end" << endl;
   if (julia)
     output << "end" << endl;
@@ -2171,19 +2189,31 @@ StaticModel::writeParamsDerivativesFile(const string &basename, bool julia) cons
                      << "#" << endl
                      << "export params_derivs" << endl << endl
                      << "function params_derivs(y, x, params)" << endl
+		     << "@inbounds begin" << endl
                      << tt_output.str()
-                     << "rp = zeros(" << equations.size() << ", "
+		     << "end" << endl
+		     << "rp = zeros(" << equations.size() << ", "
                      << symbol_table.param_nbr() << ");" << endl
+		     << "@inbounds begin" << endl
                      << jacobian_output.str()
+		     << "end" << endl
                      << "gp = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ", "
                      << symbol_table.param_nbr() << ");" << endl
+		     << "@inbounds begin" << endl
                      << hessian_output.str()
+		     << "end" << endl
                      << "rpp = zeros(" << params_derivatives.find({ 0, 2 })->second.size() << ",4);" << endl
+		     << "@inbounds begin" << endl
                      << hessian1_output.str()
+		     << "end" << endl
                      << "gpp = zeros(" << params_derivatives.find({ 1, 2 })->second.size() << ",5);" << endl
+		     << "@inbounds begin" << endl
                      << third_derivs_output.str()
+		     << "end" << endl
                      << "hp = zeros(" << params_derivatives.find({ 2, 1 })->second.size() << ",5);" << endl
+		     << "@inbounds begin" << endl
                      << third_derivs1_output.str()
+		     << "end" << endl
                      << "(rp, gp, rpp, gpp, hp)" << endl
                      << "end" << endl
                      << "end" << endl;

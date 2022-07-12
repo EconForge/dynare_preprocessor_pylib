@@ -1400,7 +1400,9 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
   output << "function dynamicResidTT!(T::Vector{<: Real}," << endl
          << "                         y::Vector{<: Real}, x::Matrix{<: Real}, "
          << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int)" << endl
+         << "@inbounds begin" << endl
          << tt_output[0].str()
+	 << "end" << endl
          << "    return nothing" << endl
          << "end" << endl << endl;
 
@@ -1415,7 +1417,9 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "    if T_flag" << endl
          << "        dynamicResidTT!(T, y, x, params, steady_state, it_)" << endl
          << "    end" << endl
+         << "@inbounds begin" << endl
          << d_output[0].str()
+	 << "end" << endl
          << "    return nothing" << endl
          << "end" << endl << endl;
 
@@ -1424,7 +1428,9 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "                      y::Vector{<: Real}, x::Matrix{<: Real}, "
          << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int)" << endl
          << "    dynamicResidTT!(T, y, x, params, steady_state, it_)" << endl
+         << "@inbounds begin" << endl
          << tt_output[1].str()
+	 << "end" << endl
          << "    return nothing" << endl
          << "end" << endl << endl;
 
@@ -1441,7 +1447,9 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "        dynamicG1TT!(T, y, x, params, steady_state, it_)" << endl
          << "    end" << endl
          << "    fill!(g1, 0.0)" << endl
+         << "@inbounds begin" << endl
          << d_output[1].str()
+	 << "end" << endl
          << "    return nothing" << endl
          << "end" << endl << endl;
 
@@ -1450,7 +1458,9 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "                      y::Vector{<: Real}, x::Matrix{<: Real}, "
          << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int)" << endl
          << "    dynamicG1TT!(T, y, x, params, steady_state, it_)" << endl
+         << "@inbounds begin" << endl
          << tt_output[2].str()
+	 << "end" << endl
          << "    return nothing" << endl
          << "end" << endl << endl;
 
@@ -1467,7 +1477,9 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "        dynamicG2TT!(T, y, x, params, steady_state, it_)" << endl
          << "    end" << endl
          << "    fill!(g2, 0.0)" << endl
+         << "@inbounds begin" << endl
          << d_output[2].str()
+	 << "end" << endl
          << "    return nothing" << endl
          << "end" << endl << endl;
 
@@ -1476,7 +1488,9 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "                      y::Vector{<: Real}, x::Matrix{<: Real}, "
          << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int)" << endl
          << "    dynamicG2TT!(T, y, x, params, steady_state, it_)" << endl
+         << "@inbounds begin" << endl
          << tt_output[3].str()
+	 << "end" << endl
          << "    return nothing" << endl
          << "end" << endl << endl;
 
@@ -1494,7 +1508,9 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "      dynamicG3TT!(T, y, x, params, steady_state, it_)" << endl
          << "    end" << endl
          << "    fill!(g3, 0.0)" << endl
+         << "@inbounds begin" << endl
          << d_output[3].str()
+	 << "end" << endl
          << "    return nothing" << endl
          << "end" << endl << endl;
 
@@ -4331,8 +4347,10 @@ DynamicModel::writeSetAuxiliaryVariables(const string &basename, bool julia) con
          << comment << endl
          << comment << " Warning : this file is generated automatically by Dynare" << endl
          << comment << "           from model file (.mod)" << endl << endl
+         << "@inbounds begin" << endl    
          << output_func_body.str()
-         << "end" << endl;
+    	 << "end" << endl
+     << "end" << endl;
   if (julia)
     output << "end" << endl;
 
@@ -5049,20 +5067,34 @@ DynamicModel::writeParamsDerivativesFile(const string &basename, bool julia) con
                      << "export params_derivs" << endl << endl
                      << "function params_derivs(y, x, paramssteady_state, it_, "
                      << "ss_param_deriv, ss_param_2nd_deriv)" << endl
+		     << "@inbounds begin" << endl
                      << tt_output.str()
+		     << "end" << endl
                      << "rp = zeros(" << equations.size() << ", "
                      << symbol_table.param_nbr() << ");" << endl
+		     << "@inbounds begin" << endl
                      << rp_output.str()
+		     << "end" << endl
                      << "gp = zeros(" << equations.size() << ", " << getJacobianColsNbr() << ", " << symbol_table.param_nbr() << ");" << endl
+		     << "@inbounds begin" << endl
                      << gp_output.str()
+		     << "end" << endl
                      << "rpp = zeros(" << params_derivatives.find({ 0, 2 })->second.size() << ",4);" << endl
+		     << "@inbounds begin" << endl
                      << rpp_output.str()
+		     << "end" << endl
                      << "gpp = zeros(" << params_derivatives.find({ 1, 2 })->second.size() << ",5);" << endl
+		     << "@inbounds begin" << endl
                      << gpp_output.str()
+		     << "end" << endl
                      << "hp = zeros(" << params_derivatives.find({ 2, 1 })->second.size() << ",5);" << endl
+		     << "@inbounds begin" << endl
                      << hp_output.str()
+		     << "end" << endl
                      << "g3p = zeros(" << params_derivatives.find({ 3, 1 })->second.size() << ",6);" << endl
+		     << "@inbounds begin" << endl
                      << g3p_output.str()
+		     << "end" << endl
                      << "(rp, gp, rpp, gpp, hp, g3p)" << endl
                      << "end" << endl
                      << "end" << endl;

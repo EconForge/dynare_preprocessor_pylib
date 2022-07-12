@@ -916,9 +916,9 @@ void
 DataTree::writePowerDerivJulia(ostream &output) const
 {
   if (isBinaryOpUsed(BinaryOpcode::powerDeriv))
-    output << "nearbyint(x::<: Real) = (abs((x)-floor(x)) < abs((x)-ceil(x)) ? floor(x) : ceil(x))" << endl
+    output << "nearbyint(x::T) where T <: Real  = (abs((x)-floor(x)) < abs((x)-ceil(x)) ? floor(x) : ceil(x))" << endl
 	   << endl
-	   << "function get_power_deriv(x::<: Real, p::<: Real, k::Int64)" << endl
+	   << "function get_power_deriv(x::T, p::T, k::Int64) where T <: Real" << endl
 	   << "    if (abs(x) < 1e-12 && p > 0 && k > p && abs(p-nearbyint(p)) < 1e-12 )" << endl
 	   << "        return 0.0" << endl
 	   << "    else" << endl

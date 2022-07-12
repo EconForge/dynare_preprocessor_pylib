@@ -545,8 +545,6 @@ ModelTree::writeModelFileHelper() const
         {
           auto [eq, var] = vectorToTuple<2>(indices);
 
-          if constexpr(isJuliaOutput(output_type))
-            d_output[1] << "    @inbounds ";
           d_output[1] << "g1" << LEFT_ARRAY_SUBSCRIPT(output_type);
           if constexpr(isMatlabOutput(output_type) || isJuliaOutput(output_type))
             d_output[1] << eq + 1 << "," << getJacobianCol(var) + 1;
@@ -589,7 +587,7 @@ ModelTree::writeModelFileHelper() const
 
             if constexpr(isJuliaOutput(output_type))
               {
-                d_output[i] << "    @inbounds " << "g" << i << "[" << eq + 1 << "," << col_idx + 1 << "] = ";
+                d_output[i] << "    g" << i << "[" << eq + 1 << "," << col_idx + 1 << "] = ";
                 d->writeOutput(d_output[i], output_type, temp_term_union, temporary_terms_idxs, tef_terms);
                 d_output[i] << endl;
               }
@@ -618,7 +616,7 @@ ModelTree::writeModelFileHelper() const
                 int col_idx_sym{getJacobianCol(vidx[2]) * getJacobianColsNbr() + getJacobianCol(vidx[1])};
 
                 if constexpr(isJuliaOutput(output_type))
-                  d_output[2] << "    @inbounds g2[" << eq + 1 << "," << col_idx_sym + 1 << "] = "
+                  d_output[2] << "    g2[" << eq + 1 << "," << col_idx_sym + 1 << "] = "
                               << "g2[" << eq + 1 << "," << col_idx + 1 << "]" << endl;
                 else
                   {
