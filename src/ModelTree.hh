@@ -643,6 +643,17 @@ ModelTree::writeModelFileHelper() const
           d_output[i] << i_output.str() << j_output.str() << v_output.str();
       }
 
+  if constexpr(isMatlabOutput(output_type))
+    {
+      // Check that we don't have more than 32 nested parenthesis because MATLAB does not suppor this. See Issue #1201
+      map<string, string> tmp_paren_vars;
+      bool message_printed {false};
+      for (auto &it : tt_output)
+        fixNestedParenthesis(it, tmp_paren_vars, message_printed);
+      for (auto &it : d_output)
+        fixNestedParenthesis(it, tmp_paren_vars, message_printed);
+    }
+
   return { move(d_output), move(tt_output) };
 }
 

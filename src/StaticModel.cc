@@ -941,14 +941,6 @@ StaticModel::writeStaticMFile(const string &basename) const
 {
   auto [d_output, tt_output] = writeModelFileHelper<ExprNodeOutputType::matlabStaticModel>();
 
-  // Check that we don't have more than 32 nested parenthesis because Matlab does not suppor this. See Issue #1201
-  map<string, string> tmp_paren_vars;
-  bool message_printed{false};
-  for (auto &it : tt_output)
-    fixNestedParenthesis(it, tmp_paren_vars, message_printed);
-  for (auto &it : d_output)
-    fixNestedParenthesis(it, tmp_paren_vars, message_printed);
-
   ostringstream init_output, end_output;
   init_output << "residual = zeros(" << equations.size() << ", 1);";
   end_output << "if ~isreal(residual)" << endl
