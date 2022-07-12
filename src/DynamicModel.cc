@@ -4742,7 +4742,7 @@ DynamicModel::substituteUnaryOps(VarExpectationModelTable &var_expectation_model
 {
   vector<int> eqnumbers(equations.size());
   iota(eqnumbers.begin(), eqnumbers.end(), 0);
-  return substituteUnaryOps(set<int>(eqnumbers.begin(), eqnumbers.end()), var_expectation_model_table, pac_model_table);
+  return substituteUnaryOps({ eqnumbers.begin(), eqnumbers.end() }, var_expectation_model_table, pac_model_table);
 }
 
 pair<lag_equivalence_table_t, ExprNode::subst_table_t>
