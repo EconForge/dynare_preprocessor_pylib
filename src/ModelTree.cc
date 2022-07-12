@@ -1020,61 +1020,6 @@ ModelTree::additionalBlockTemporaryTerms([[maybe_unused]] int blk,
 }
 
 void
-ModelTree::writeModelLocalVariableTemporaryTerms(temporary_terms_t &temp_term_union,
-                                                 const temporary_terms_idxs_t &tt_idxs,
-                                                 ostream &output, ExprNodeOutputType output_type,
-                                                 deriv_node_temp_terms_t &tef_terms) const
-{
-  temporary_terms_t tto;
-  for (auto [mlv, value] : temporary_terms_mlv)
-    tto.insert(mlv);
-
-  for (auto [mlv, value] : temporary_terms_mlv)
-    {
-      value->writeExternalFunctionOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
-
-      if (isJuliaOutput(output_type))
-        output << "    const ";
-
-      mlv->writeOutput(output, output_type, tto, tt_idxs, tef_terms);
-      output << " = ";
-      value->writeOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
-
-      if (isCOutput(output_type) || isMatlabOutput(output_type))
-        output << ";";
-      output << endl;
-
-      /* We put in temp_term_union the VariableNode corresponding to the MLV,
-         not its definition, so that when equations use the MLV,
-         T(XXX) is printed instead of the MLV name */
-      temp_term_union.insert(mlv);
-    }
-}
-
-void
-ModelTree::writeTemporaryTerms(const temporary_terms_t &tt,
-                               temporary_terms_t &temp_term_union,
-                               const temporary_terms_idxs_t &tt_idxs,
-                               ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const
-{
-  for (auto it : tt)
-    {
-      if (dynamic_cast<AbstractExternalFunctionNode *>(it))
-        it->writeExternalFunctionOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
-
-      it->writeOutput(output, output_type, tt, tt_idxs, tef_terms);
-      output << " = ";
-      it->writeOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
-
-      if (isCOutput(output_type) || isMatlabOutput(output_type))
-        output << ";";
-      output << endl;
-
-      temp_term_union.insert(it);
-    }
-}
-
-void
 ModelTree::writeJsonTemporaryTerms(const temporary_terms_t &tt,
                                    temporary_terms_t &temp_term_union,
                                    ostream &output,
@@ -1309,62 +1254,6 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, bool write_tef_terms, d
         output << R"("})" << endl;
       }
   output << "]";
-}
-
-void
-ModelTree::writeModelEquations(ostream &output, ExprNodeOutputType output_type,
-                               const temporary_terms_t &temporary_terms) const
-{
-  for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
-    {
-      BinaryOpNode *eq_node = equations[eq];
-      expr_t lhs = eq_node->arg1, rhs = eq_node->arg2;
-
-      // Test if the right hand side of the equation is empty.
-      double vrhs = 1.0;
-      try
-        {
-          vrhs = rhs->eval({});
-        }
-      catch (ExprNode::EvalException &e)
-        {
-        }
-
-      if (vrhs != 0) // The right hand side of the equation is not empty ==> residual=lhs-rhs;
-        if (isJuliaOutput(output_type))
-          {
-            output << "    residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                   << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type)
-                   << " = (";
-            lhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
-            output << ") - (";
-            rhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
-            output << ")" << endl;
-          }
-        else
-          {
-            output << "lhs = ";
-            lhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
-            output << ";" << endl
-                   << "rhs = ";
-            rhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
-            output << ";" << endl
-                   << "residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                   << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type)
-                   << " = lhs - rhs;" << endl;
-          }
-      else // The right hand side of the equation is empty ==> residual=lhs;
-        {
-          output << "residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type)
-                 << " = ";
-          lhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
-          output << ";" << endl;
-        }
-    }
 }
 
 void

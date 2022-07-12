@@ -50,7 +50,8 @@ private:
   void writeStaticBlockCFile(const string &basename) const;
 
   //! Helper for writing a per-block static file of block decomposed model
-  void writeStaticPerBlockHelper(int blk, ostream &output, ExprNodeOutputType output_type, temporary_terms_t &temporary_terms) const;
+  template<ExprNodeOutputType output_type>
+  void writeStaticPerBlockHelper(int blk, ostream &output, temporary_terms_t &temporary_terms) const;
 
   //! Writes the per-block static files of block decomposed model (MATLAB version)
   void writeStaticPerBlockMFiles(const string &basename) const;
@@ -171,6 +172,108 @@ public:
   int getDerivID(int symb_id, int lag) const noexcept(false) override;
   void addAllParamDerivId(set<int> &deriv_id_set) override;
 };
+
+template<ExprNodeOutputType output_type>
+void
+StaticModel::writeStaticPerBlockHelper(int blk, ostream &output, temporary_terms_t &temporary_terms) const
+{
+  BlockSimulationType simulation_type { blocks[blk].simulation_type };
+  int block_recursive_size { blocks[blk].getRecursiveSize() };
+
+  // The equations
+  deriv_node_temp_terms_t tef_terms;
+
+  auto write_eq_tt = [&](int eq)
+                     {
+                       for (auto it : blocks_temporary_terms[blk][eq])
+                         {
+                           if (dynamic_cast<AbstractExternalFunctionNode *>(it))
+                             it->writeExternalFunctionOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs, tef_terms);
+
+                           output << "  ";
+                           it->writeOutput(output, output_type, blocks_temporary_terms[blk][eq], blocks_temporary_terms_idxs, tef_terms);
+                           output << '=';
+                           it->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs, tef_terms);
+                           temporary_terms.insert(it);
+                           output << ';' << endl;
+                         }
+                     };
+
+  for (int eq {0}; eq < blocks[blk].size; eq++)
+    {
+      write_eq_tt(eq);
+
+      EquationType equ_type { getBlockEquationType(blk, eq) };
+      BinaryOpNode *e { getBlockEquationExpr(blk, eq) };
+      expr_t lhs { e->arg1 }, rhs { e->arg2 };
+      switch (simulation_type)
+        {
+        case BlockSimulationType::evaluateBackward:
+        case BlockSimulationType::evaluateForward:
+          evaluation:
+          if (equ_type == EquationType::evaluateRenormalized)
+            {
+              e = getBlockEquationRenormalizedExpr(blk, eq);
+              lhs = e->arg1;
+              rhs = e->arg2;
+            }
+          else if (equ_type != EquationType::evaluate)
+            {
+              cerr << "Type mismatch for equation " << getBlockEquationID(blk, eq)+1  << endl;
+              exit(EXIT_FAILURE);
+            }
+          output << "  ";
+          lhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
+          output << '=';
+          rhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
+          output << ';' << endl;
+          break;
+        case BlockSimulationType::solveBackwardSimple:
+        case BlockSimulationType::solveForwardSimple:
+        case BlockSimulationType::solveBackwardComplete:
+        case BlockSimulationType::solveForwardComplete:
+          if (eq < block_recursive_size)
+            goto evaluation;
+          output << "  residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                 << eq-block_recursive_size+ARRAY_SUBSCRIPT_OFFSET(output_type)
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=(";
+          lhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
+          output << ")-(";
+          rhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
+          output << ");" << endl;
+          break;
+        default:
+          cerr << "Incorrect type for block " << blk+1 << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+  // The Jacobian if we have to solve the block
+  if (simulation_type != BlockSimulationType::evaluateBackward
+      && simulation_type != BlockSimulationType::evaluateForward)
+    {
+      // Write temporary terms for derivatives
+      write_eq_tt(blocks[blk].size);
+
+      ostringstream i_output, j_output, v_output;
+      for (int line_counter { ARRAY_SUBSCRIPT_OFFSET(output_type) };
+           const auto &[indices, d] : blocks_derivatives[blk])
+        {
+          const auto &[eq, var, ignore] {indices};
+          i_output << "  g1_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << eq+1-block_recursive_size
+                   << ';' << endl;
+          j_output << "  g1_j" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << var+1-block_recursive_size
+                   << ';' << endl;
+          v_output << "  g1_v" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=';
+          d->writeOutput(v_output, output_type, temporary_terms, blocks_temporary_terms_idxs);
+          v_output << ';' << endl;
+          line_counter++;
+        }
+      output << i_output.str() << j_output.str() << v_output.str();
+    }
+}
 
 template<bool julia>
 void

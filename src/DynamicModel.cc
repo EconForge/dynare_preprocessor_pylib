@@ -198,238 +198,6 @@ DynamicModel::additionalBlockTemporaryTerms(int blk,
     d->computeBlockTemporaryTerms(blk, blocks[blk].size, blocks_temporary_terms, reference_count);
 }
 
-void
-DynamicModel::writeDynamicPerBlockHelper(int blk, ostream &output, ExprNodeOutputType output_type, temporary_terms_t &temporary_terms, int nze_stochastic, int nze_deterministic, int nze_exo, int nze_exo_det, int nze_other_endo) const
-{
-  BlockSimulationType simulation_type = blocks[blk].simulation_type;
-  int block_size = blocks[blk].size;
-  int block_mfs_size = blocks[blk].mfs_size;
-  int block_recursive_size = blocks[blk].getRecursiveSize();
-
-  deriv_node_temp_terms_t tef_terms;
-
-  auto write_eq_tt = [&](int eq)
-                     {
-                       for (auto it : blocks_temporary_terms[blk][eq])
-                         {
-                           if (dynamic_cast<AbstractExternalFunctionNode *>(it))
-                             it->writeExternalFunctionOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs, tef_terms);
-
-                           output << "  ";
-                           it->writeOutput(output, output_type, blocks_temporary_terms[blk][eq], blocks_temporary_terms_idxs, tef_terms);
-                           output << '=';
-                           it->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs, tef_terms);
-                           temporary_terms.insert(it);
-                           output << ';' << endl;
-                         }
-                     };
-
-  // The equations
-  for (int eq = 0; eq < block_size; eq++)
-    {
-      write_eq_tt(eq);
-
-      EquationType equ_type = getBlockEquationType(blk, eq);
-      BinaryOpNode *e = getBlockEquationExpr(blk, eq);
-      expr_t lhs = e->arg1, rhs = e->arg2;
-      switch (simulation_type)
-        {
-        case BlockSimulationType::evaluateBackward:
-        case BlockSimulationType::evaluateForward:
-          evaluation:
-          if (equ_type == EquationType::evaluateRenormalized)
-            {
-              e = getBlockEquationRenormalizedExpr(blk, eq);
-              lhs = e->arg1;
-              rhs = e->arg2;
-            }
-          else if (equ_type != EquationType::evaluate)
-            {
-              cerr << "Type mismatch for equation " << getBlockEquationID(blk, eq)+1  << endl;
-              exit(EXIT_FAILURE);
-            }
-          output << "  ";
-          lhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-          output << '=';
-          rhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-          output << ';' << endl;
-          break;
-        case BlockSimulationType::solveBackwardSimple:
-        case BlockSimulationType::solveForwardSimple:
-        case BlockSimulationType::solveBackwardComplete:
-        case BlockSimulationType::solveForwardComplete:
-        case BlockSimulationType::solveTwoBoundariesComplete:
-        case BlockSimulationType::solveTwoBoundariesSimple:
-          if (eq < block_recursive_size)
-            goto evaluation;
-          output << "  residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << eq-block_recursive_size+ARRAY_SUBSCRIPT_OFFSET(output_type)
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=(";
-          goto end;
-        default:
-        end:
-          lhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-          output << ")-(";
-          rhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-          output << ");" << endl;
-        }
-    }
-
-  // The Jacobian if we have to solve the block
-
-  // Write temporary terms for derivatives
-  write_eq_tt(blocks[blk].size);
-
-  if (isCOutput(output_type))
-    output << "  if (stochastic_mode) {" << endl;
-  else
-    output << "  if stochastic_mode" << endl;
-
-  ostringstream i_output, j_output, v_output;
-  int line_counter = ARRAY_SUBSCRIPT_OFFSET(output_type);
-  for (const auto &[indices, d] : blocks_derivatives[blk])
-    {
-      auto [eq, var, lag] = indices;
-      int jacob_col = blocks_jacob_cols_endo[blk].at({ var, lag });
-      i_output << "    g1_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << eq+1 << ';' << endl;
-      j_output << "    g1_j" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << jacob_col+1 << ';' << endl;
-      v_output << "    g1_v" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=';
-      d->writeOutput(v_output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-      v_output << ';' << endl;
-      line_counter++;
-    }
-  assert(line_counter == nze_stochastic+ARRAY_SUBSCRIPT_OFFSET(output_type));
-  output << i_output.str() << j_output.str() << v_output.str();
-
-  i_output.str("");
-  j_output.str("");
-  v_output.str("");
-  line_counter = ARRAY_SUBSCRIPT_OFFSET(output_type);
-  for (const auto &[indices, d] : blocks_derivatives_exo[blk])
-    {
-      auto [eq, var, lag] = indices;
-      int jacob_col = blocks_jacob_cols_exo[blk].at({ var, lag });
-      i_output << "    g1_x_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << eq+1 << ';' << endl;
-      j_output << "    g1_x_j" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << jacob_col+1 << ';' << endl;
-      v_output << "    g1_x_v" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=';
-      d->writeOutput(v_output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-      v_output << ';' << endl;
-      line_counter++;
-    }
-  assert(line_counter == nze_exo+ARRAY_SUBSCRIPT_OFFSET(output_type));
-  output << i_output.str() << j_output.str() << v_output.str();
-
-  i_output.str("");
-  j_output.str("");
-  v_output.str("");
-  line_counter = ARRAY_SUBSCRIPT_OFFSET(output_type);
-  for (const auto &[indices, d] : blocks_derivatives_exo_det[blk])
-    {
-      auto [eq, var, lag] = indices;
-      int jacob_col = blocks_jacob_cols_exo_det[blk].at({ var, lag });
-      i_output << "    g1_xd_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << eq+1 << ';' << endl;
-      j_output << "    g1_xd_j" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << jacob_col+1 << ';' << endl;
-      v_output << "    g1_xd_v" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=';
-      d->writeOutput(v_output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-      v_output << ';' << endl;
-      line_counter++;
-    }
-  assert(line_counter == nze_exo_det+ARRAY_SUBSCRIPT_OFFSET(output_type));
-  output << i_output.str() << j_output.str() << v_output.str();
-
-  i_output.str("");
-  j_output.str("");
-  v_output.str("");
-  line_counter = ARRAY_SUBSCRIPT_OFFSET(output_type);
-  for (const auto &[indices, d] : blocks_derivatives_other_endo[blk])
-    {
-      auto [eq, var, lag] = indices;
-      int jacob_col = blocks_jacob_cols_other_endo[blk].at({ var, lag });
-      i_output << "    g1_o_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << eq+1 << ';' << endl;
-      j_output << "    g1_o_j" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << jacob_col+1 << ';' << endl;
-      v_output << "    g1_o_v" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=';
-      d->writeOutput(v_output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-      v_output << ';' << endl;
-      line_counter++;
-    }
-  assert(line_counter == nze_other_endo+ARRAY_SUBSCRIPT_OFFSET(output_type));
-  output << i_output.str() << j_output.str() << v_output.str();
-
-  // Deterministic mode
-  if (simulation_type != BlockSimulationType::evaluateForward
-      && simulation_type != BlockSimulationType::evaluateBackward)
-    {
-      if (isCOutput(output_type))
-        output << "  } else {" << endl;
-      else
-        output << "  else" << endl;
-      i_output.str("");
-      j_output.str("");
-      v_output.str("");
-      line_counter = ARRAY_SUBSCRIPT_OFFSET(output_type);
-      if (simulation_type == BlockSimulationType::solveBackwardSimple
-          || simulation_type == BlockSimulationType::solveForwardSimple
-          || simulation_type == BlockSimulationType::solveBackwardComplete
-          || simulation_type == BlockSimulationType::solveForwardComplete)
-        for (const auto &[indices, d] : blocks_derivatives[blk])
-          {
-            auto [eq, var, lag] = indices;
-            if (lag == 0 && eq >= block_recursive_size && var >= block_recursive_size)
-              {
-                i_output << "    g1_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-                         << RIGHT_ARRAY_SUBSCRIPT(output_type) << '='
-                         << eq+1-block_recursive_size << ';' << endl;
-                j_output << "    g1_j" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-                         << RIGHT_ARRAY_SUBSCRIPT(output_type) << '='
-                         << var+1-block_recursive_size << ';' << endl;
-                v_output << "    g1_v" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-                         << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=';
-                d->writeOutput(v_output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-                v_output << ';' << endl;
-                line_counter++;
-              }
-          }
-      else // solveTwoBoundariesSimple || solveTwoBoundariesComplete
-        for (const auto &[indices, d] : blocks_derivatives[blk])
-        {
-          auto [eq, var, lag] = indices;
-          assert(lag >= -1 && lag <= 1);
-          if (eq >= block_recursive_size && var >= block_recursive_size)
-            {
-              i_output << "    g1_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << '='
-                       << eq+1-block_recursive_size << ';' << endl;
-              j_output << "    g1_j" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << '='
-                       << var+1-block_recursive_size+block_mfs_size*(lag+1) << ';' << endl;
-              v_output << "    g1_v" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=';
-              d->writeOutput(v_output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-              v_output << ';' << endl;
-              line_counter++;
-            }
-        }
-      assert(line_counter == nze_deterministic+ARRAY_SUBSCRIPT_OFFSET(output_type));
-      output << i_output.str() << j_output.str() << v_output.str();
-    }
-  if (isCOutput(output_type))
-    output << "  }" << endl;
-  else
-    output << "  end" << endl;
-}
-
 int
 DynamicModel::nzeDeterministicJacobianForBlock(int blk) const
 {
@@ -527,7 +295,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
       output << "  end" << endl
              << endl;
 
-      writeDynamicPerBlockHelper(blk, output, ExprNodeOutputType::matlabDynamicModel, temporary_terms,
+      writeDynamicPerBlockHelper<ExprNodeOutputType::matlabDynamicModel>(blk, output, temporary_terms,
                                  nze_stochastic, nze_deterministic, nze_exo, nze_exo_det, nze_other_endo);
 
       output << endl
@@ -611,7 +379,7 @@ DynamicModel::writeDynamicPerBlockCFiles(const string &basename) const
         output << "void dynamic_" << blk+1 << "(double *restrict y, const double *restrict x, int nb_row_x, const double *restrict params, const double *restrict steady_state, double *restrict T, int it_, bool stochastic_mode, double *restrict residual, double *restrict g1_i, double *restrict g1_j, double *restrict g1_v, double *restrict g1_x_i, double *restrict g1_x_j, double *restrict g1_x_v, double *restrict g1_xd_i, double *restrict g1_xd_j, double *restrict g1_xd_v, double *restrict g1_o_i, double *restrict g1_o_j, double *restrict g1_o_v)" << endl;
       output << '{' << endl;
 
-      writeDynamicPerBlockHelper(blk, output, ExprNodeOutputType::CDynamicModel, temporary_terms,
+      writeDynamicPerBlockHelper<ExprNodeOutputType::CDynamicModel>(blk, output, temporary_terms,
                                  nze_stochastic, nze_deterministic, nze_exo, nze_exo_det, nze_other_endo);
 
       output << '}' << endl
@@ -5369,18 +5137,18 @@ DynamicModel::isChecksumMatching(const string &basename) const
   // Write equation tags
   equation_tags.writeCheckSumInfo(buffer);
 
-  ExprNodeOutputType buffer_type = ExprNodeOutputType::CDynamicModel;
+  constexpr ExprNodeOutputType buffer_type{ExprNodeOutputType::CDynamicModel};
 
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;
-  writeModelLocalVariableTemporaryTerms(temp_term_union, temporary_terms_idxs,
-                                        buffer, buffer_type, tef_terms);
+  writeModelLocalVariableTemporaryTerms<buffer_type>(temp_term_union, temporary_terms_idxs,
+                                                     buffer, tef_terms);
 
-  writeTemporaryTerms(temporary_terms_derivatives[0],
-                      temp_term_union, temporary_terms_idxs,
-                      buffer, buffer_type, tef_terms);
+  writeTemporaryTerms<buffer_type>(temporary_terms_derivatives[0],
+                                   temp_term_union, temporary_terms_idxs,
+                                   buffer, tef_terms);
 
-  writeModelEquations(buffer, buffer_type, temp_term_union);
+  writeModelEquations<buffer_type>(buffer, temp_term_union);
 
   size_t result = hash<string>{}(buffer.str());
 

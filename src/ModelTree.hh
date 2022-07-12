@@ -238,7 +238,8 @@ protected:
   //! Computes temporary terms for the file containing parameters derivatives
   void computeParamsDerivativesTemporaryTerms();
   //! Writes temporary terms
-  void writeTemporaryTerms(const temporary_terms_t &tt, temporary_terms_t &temp_term_union, const temporary_terms_idxs_t &tt_idxs, ostream &output, ExprNodeOutputType output_type, deriv_node_temp_terms_t &tef_terms) const;
+  template<ExprNodeOutputType output_type>
+  void writeTemporaryTerms(const temporary_terms_t &tt, temporary_terms_t &temp_term_union, const temporary_terms_idxs_t &tt_idxs, ostream &output, deriv_node_temp_terms_t &tef_terms) const;
   void writeJsonTemporaryTerms(const temporary_terms_t &tt, temporary_terms_t &temp_term_union, ostream &output, deriv_node_temp_terms_t &tef_terms, const string &concat) const;
   //! Writes temporary terms in bytecode
   void writeBytecodeTemporaryTerms(BytecodeWriter &code_file, ExprNodeBytecodeOutputType output_type, temporary_terms_t &temporary_terms_union, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const;
@@ -248,13 +249,14 @@ protected:
   void fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_paren_vars, bool &message_printed) const;
   //! Tests if string contains more than 32 nested parens, Issue #1201
   bool testNestedParenthesis(const string &str) const;
+
+  template<ExprNodeOutputType output_type>
   void writeModelLocalVariableTemporaryTerms(temporary_terms_t &temp_term_union,
                                              const temporary_terms_idxs_t &tt_idxs,
-                                             ostream &output, ExprNodeOutputType output_type,
-                                             deriv_node_temp_terms_t &tef_terms) const;
+                                             ostream &output, deriv_node_temp_terms_t &tef_terms) const;
   //! Writes model equations
-  void writeModelEquations(ostream &output, ExprNodeOutputType output_type,
-                           const temporary_terms_t &temporary_terms) const;
+  template<ExprNodeOutputType output_type>
+  void writeModelEquations(ostream &output, const temporary_terms_t &temporary_terms) const;
 
   // Returns outputs for derivatives and temporary terms at each derivation order
   template<ExprNodeOutputType output_type>
@@ -519,6 +521,118 @@ public:
 };
 
 template<ExprNodeOutputType output_type>
+void
+ModelTree::writeTemporaryTerms(const temporary_terms_t &tt,
+                               temporary_terms_t &temp_term_union,
+                               const temporary_terms_idxs_t &tt_idxs,
+                               ostream &output, deriv_node_temp_terms_t &tef_terms) const
+{
+  for (auto it : tt)
+    {
+      if (dynamic_cast<AbstractExternalFunctionNode *>(it))
+        it->writeExternalFunctionOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
+
+      it->writeOutput(output, output_type, tt, tt_idxs, tef_terms);
+      output << " = ";
+      it->writeOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
+
+      if constexpr(isCOutput(output_type) || isMatlabOutput(output_type))
+        output << ";";
+      output << endl;
+
+      temp_term_union.insert(it);
+    }
+}
+
+template<ExprNodeOutputType output_type>
+void
+ModelTree::writeModelLocalVariableTemporaryTerms(temporary_terms_t &temp_term_union,
+                                                 const temporary_terms_idxs_t &tt_idxs,
+                                                 ostream &output, deriv_node_temp_terms_t &tef_terms) const
+{
+  temporary_terms_t tto;
+  for (const auto &[mlv, value] : temporary_terms_mlv)
+    tto.insert(mlv);
+
+  for (const auto &[mlv, value] : temporary_terms_mlv)
+    {
+      value->writeExternalFunctionOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
+
+      if constexpr(isJuliaOutput(output_type))
+        output << "    const ";
+
+      mlv->writeOutput(output, output_type, tto, tt_idxs, tef_terms);
+      output << " = ";
+      value->writeOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
+
+      if constexpr(isCOutput(output_type) || isMatlabOutput(output_type))
+        output << ";";
+      output << endl;
+
+      /* We put in temp_term_union the VariableNode corresponding to the MLV,
+         not its definition, so that when equations use the MLV,
+         T(XXX) is printed instead of the MLV name */
+      temp_term_union.insert(mlv);
+    }
+}
+
+template<ExprNodeOutputType output_type>
+void
+ModelTree::writeModelEquations(ostream &output, const temporary_terms_t &temporary_terms) const
+{
+  for (int eq {0}; eq < static_cast<int>(equations.size()); eq++)
+    {
+      BinaryOpNode *eq_node { equations[eq] };
+      expr_t lhs { eq_node->arg1 }, rhs { eq_node->arg2 };
+
+      // Test if the right hand side of the equation is empty.
+      double vrhs {1.0};
+      try
+        {
+          vrhs = rhs->eval({});
+        }
+      catch (ExprNode::EvalException &e)
+        {
+        }
+
+      if (vrhs != 0) // The right hand side of the equation is not empty ==> residual=lhs-rhs;
+        if constexpr(isJuliaOutput(output_type))
+          {
+            output << "    residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                   << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                   << " = (";
+            lhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
+            output << ") - (";
+            rhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
+            output << ")" << endl;
+          }
+        else
+          {
+            output << "lhs = ";
+            lhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
+            output << ";" << endl
+                   << "rhs = ";
+            rhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
+            output << ";" << endl
+                   << "residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                   << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                   << " = lhs - rhs;" << endl;
+          }
+      else // The right hand side of the equation is empty ==> residual=lhs;
+        {
+          output << "residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                 << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                 << " = ";
+          lhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
+          output << ";" << endl;
+        }
+    }
+}
+
+template<ExprNodeOutputType output_type>
 pair<vector<ostringstream>, vector<ostringstream>>
 ModelTree::writeModelFileHelper() const
 {
@@ -528,23 +642,19 @@ ModelTree::writeModelFileHelper() const
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;
 
-  writeModelLocalVariableTemporaryTerms(temp_term_union, temporary_terms_idxs,
-                                        tt_output[0], output_type, tef_terms);
+  writeModelLocalVariableTemporaryTerms<output_type>(temp_term_union, temporary_terms_idxs,
+                                                     tt_output[0], tef_terms);
 
-  writeTemporaryTerms(temporary_terms_derivatives[0],
-                      temp_term_union,
-                      temporary_terms_idxs,
-                      tt_output[0], output_type, tef_terms);
+  writeTemporaryTerms<output_type>(temporary_terms_derivatives[0], temp_term_union,
+                                   temporary_terms_idxs, tt_output[0], tef_terms);
 
-  writeModelEquations(d_output[0], output_type, temp_term_union);
+  writeModelEquations<output_type>(d_output[0], temp_term_union);
 
   // Writing Jacobian
   if (!derivatives[1].empty())
     {
-      writeTemporaryTerms(temporary_terms_derivatives[1],
-                          temp_term_union,
-                          temporary_terms_idxs,
-                          tt_output[1], output_type, tef_terms);
+      writeTemporaryTerms<output_type>(temporary_terms_derivatives[1], temp_term_union,
+                                       temporary_terms_idxs, tt_output[1], tef_terms);
 
       for (const auto &[indices, d1] : derivatives[1])
         {
@@ -566,10 +676,8 @@ ModelTree::writeModelFileHelper() const
   for (size_t i = 2; i < derivatives.size(); i++)
     if (!derivatives[i].empty())
       {
-        writeTemporaryTerms(temporary_terms_derivatives[i],
-                            temp_term_union,
-                            temporary_terms_idxs,
-                            tt_output[i], output_type, tef_terms);
+        writeTemporaryTerms<output_type>(temporary_terms_derivatives[i], temp_term_union,
+                                         temporary_terms_idxs, tt_output[i], tef_terms);
 
         /* When creating the sparse matrix (in MATLAB or C mode), since storage
            is in column-major order, output the first column, then the second,
@@ -680,9 +788,12 @@ ModelTree::writeParamsDerivativesFileHelper() const
   temporary_terms_t temp_term_union;
   deriv_node_temp_terms_t tef_terms;
 
-  writeModelLocalVariableTemporaryTerms(temp_term_union, params_derivs_temporary_terms_idxs, tt_output, output_type, tef_terms);
+  writeModelLocalVariableTemporaryTerms<output_type>(temp_term_union,
+                                                     params_derivs_temporary_terms_idxs,
+                                                     tt_output, tef_terms);
   for (const auto &[order, tts] : params_derivs_temporary_terms)
-    writeTemporaryTerms(tts, temp_term_union, params_derivs_temporary_terms_idxs, tt_output, output_type, tef_terms);
+    writeTemporaryTerms<output_type>(tts, temp_term_union, params_derivs_temporary_terms_idxs,
+                                     tt_output, tef_terms);
 
   for (const auto &[indices, d1] : params_derivatives.find({ 0, 1 })->second)
     {
