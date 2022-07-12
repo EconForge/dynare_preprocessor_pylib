@@ -2061,7 +2061,7 @@ StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) 
                           << R"(, "param2_col": )" << param2_col;
 
       if (writeDetails)
-        third_derivs_output << R"(, "var": ")" << symbol_table.getName(var) << R"(")"
+        third_derivs_output << R"(, "var": ")" << symbol_table.getName(getSymbIDByDerivID(var)) << R"(")"
                             << R"(, "param1": ")" << symbol_table.getName(getSymbIDByDerivID(param1)) << R"(")"
                             << R"(, "param2": ")" << symbol_table.getName(getSymbIDByDerivID(param2)) << R"(")";
 
