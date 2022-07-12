@@ -1364,14 +1364,14 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "  dynamicG2TT!    : Computes the dynamic model temporary terms for the Hessian" << endl
          << "  dynamicG3TT!    : Computes the dynamic model temporary terms for the third derivatives" << endl << endl
          << "## Function Arguments ##" << endl
-         << "  T            : Vector{Float64}(num_temp_terms), temporary terms" << endl
-         << "  y            : Vector{Float64}(num_dynamic_vars), endogenous variables in the order stored model_.lead_lag_incidence; see the manual" << endl
-         << "  x            : Matrix{Float64}(nperiods,model_.exo_nbr), exogenous variables (in declaration order) for all simulation periods" << endl
-         << "  params       : Vector{Float64}(model_.param_nbr), parameter values in declaration order" << endl
-         << "  steady_state : Vector{Float64}(model_endo_nbr)" << endl
+         << "  T            : Vector{<: Real}(num_temp_terms), temporary terms" << endl
+         << "  y            : Vector{<: Real}(num_dynamic_vars), endogenous variables in the order stored model_.lead_lag_incidence; see the manual" << endl
+         << "  x            : Matrix{<: Real}(nperiods,model_.exo_nbr), exogenous variables (in declaration order) for all simulation periods" << endl
+         << "  params       : Vector{<: Real}(model_.param_nbr), parameter values in declaration order" << endl
+         << "  steady_state : Vector{<: Real}(model_endo_nbr)" << endl
          << "  it_          : Int, time period for exogenous variables for which to evaluate the model" << endl
-         << "  residual     : Vector{Float64}(model_.eq_nbr), residuals of the dynamic model equations in order of declaration of the equations." << endl
-         << "  g1           : Matrix{Float64}(model_.eq_nbr, num_dynamic_vars), Jacobian matrix of the dynamic model equations" << endl
+         << "  residual     : Vector{<: Real}(model_.eq_nbr), residuals of the dynamic model equations in order of declaration of the equations." << endl
+         << "  g1           : Matrix{<: Real}(model_.eq_nbr, num_dynamic_vars), Jacobian matrix of the dynamic model equations" << endl
          << "                 The rows and columns respectively correspond to equations in order of declaration and variables in order" << endl
          << "                 stored in model_.lead_lag_incidence" << endl
          << "  g2           : spzeros(model_.eq_nbr, (num_dynamic_vars)^2) Hessian matrix of the dynamic model equations" << endl
@@ -1397,17 +1397,17 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "tmp_nbr[4] = " << temporary_terms_derivatives[3].size() << "# Number of temporary terms for g3 (third order derivates)" << endl << endl;
 
   // dynamicResidTT!
-  output << "function dynamicResidTT!(T::Vector{Float64}," << endl
-         << "                         y::Vector{Float64}, x::Matrix{Float64}, "
-         << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int)" << endl
+  output << "function dynamicResidTT!(T::Vector{<: Real}," << endl
+         << "                         y::Vector{<: Real}, x::Matrix{<: Real}, "
+         << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int)" << endl
          << tt_output[0].str()
          << "    return nothing" << endl
          << "end" << endl << endl;
 
   // dynamic!
-  output << "function dynamicResid!(T::Vector{Float64}, residual::AbstractVector{Float64}," << endl
-         << "                       y::Vector{Float64}, x::Matrix{Float64}, "
-         << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int, T_flag::Bool)" << endl
+  output << "function dynamicResid!(T::Vector{<: Real}, residual::AbstractVector{<: Real}," << endl
+         << "                       y::Vector{<: Real}, x::Matrix{<: Real}, "
+         << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int, T_flag::Bool)" << endl
          << "    @assert length(T) >= " << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() << endl
          << "    @assert length(residual) == " << equations.size() << endl
          << "    @assert length(y)+size(x, 2) == " << getJacobianColsNbr() << endl
@@ -1420,18 +1420,18 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "end" << endl << endl;
 
   // dynamicG1TT!
-  output << "function dynamicG1TT!(T::Vector{Float64}," << endl
-         << "                      y::Vector{Float64}, x::Matrix{Float64}, "
-         << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int)" << endl
+  output << "function dynamicG1TT!(T::Vector{<: Real}," << endl
+         << "                      y::Vector{<: Real}, x::Matrix{<: Real}, "
+         << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int)" << endl
          << "    dynamicResidTT!(T, y, x, params, steady_state, it_)" << endl
          << tt_output[1].str()
          << "    return nothing" << endl
          << "end" << endl << endl;
 
   // dynamicG1!
-  output << "function dynamicG1!(T::Vector{Float64}, g1::Matrix{Float64}," << endl
-         << "                    y::Vector{Float64}, x::Matrix{Float64}, "
-         << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int, T_flag::Bool)" << endl
+  output << "function dynamicG1!(T::Vector{<: Real}, g1::Matrix{<: Real}," << endl
+         << "                    y::Vector{<: Real}, x::Matrix{<: Real}, "
+         << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int, T_flag::Bool)" << endl
          << "    @assert length(T) >= "
          << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() << endl
          << "    @assert size(g1) == (" << equations.size() << ", " << getJacobianColsNbr() << ")" << endl
@@ -1446,9 +1446,9 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "end" << endl << endl;
 
   // dynamicG2TT!
-  output << "function dynamicG2TT!(T::Vector{Float64}," << endl
-         << "                      y::Vector{Float64}, x::Matrix{Float64}, "
-         << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int)" << endl
+  output << "function dynamicG2TT!(T::Vector{<: Real}," << endl
+         << "                      y::Vector{<: Real}, x::Matrix{<: Real}, "
+         << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int)" << endl
          << "    dynamicG1TT!(T, y, x, params, steady_state, it_)" << endl
          << tt_output[2].str()
          << "    return nothing" << endl
@@ -1456,9 +1456,9 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
 
   // dynamicG2!
   int hessianColsNbr{getJacobianColsNbr() * getJacobianColsNbr()};
-  output << "function dynamicG2!(T::Vector{Float64}, g2::Matrix{Float64}," << endl
-         << "                    y::Vector{Float64}, x::Matrix{Float64}, "
-         << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int, T_flag::Bool)" << endl
+  output << "function dynamicG2!(T::Vector{<: Real}, g2::Matrix{<: Real}," << endl
+         << "                    y::Vector{<: Real}, x::Matrix{<: Real}, "
+         << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int, T_flag::Bool)" << endl
          << "    @assert length(T) >= " << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() << endl
          << "    @assert size(g2) == (" << equations.size() << ", " << hessianColsNbr << ")" << endl
          << "    @assert length(y)+size(x, 2) == " << getJacobianColsNbr() << endl
@@ -1472,9 +1472,9 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "end" << endl << endl;
 
   // dynamicG3TT!
-  output << "function dynamicG3TT!(T::Vector{Float64}," << endl
-         << "                      y::Vector{Float64}, x::Matrix{Float64}, "
-         << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int)" << endl
+  output << "function dynamicG3TT!(T::Vector{<: Real}," << endl
+         << "                      y::Vector{<: Real}, x::Matrix{<: Real}, "
+         << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int)" << endl
          << "    dynamicG2TT!(T, y, x, params, steady_state, it_)" << endl
          << tt_output[3].str()
          << "    return nothing" << endl
@@ -1482,9 +1482,9 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
 
   // dynamicG3!
   int ncols{hessianColsNbr * getJacobianColsNbr()};
-  output << "function dynamicG3!(T::Vector{Float64}, g3::Matrix{Float64}," << endl
-         << "                    y::Vector{Float64}, x::Matrix{Float64}, "
-         << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int, T_flag::Bool)" << endl
+  output << "function dynamicG3!(T::Vector{<: Real}, g3::Matrix{<: Real}," << endl
+         << "                    y::Vector{<: Real}, x::Matrix{<: Real}, "
+         << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int, T_flag::Bool)" << endl
          << "    @assert length(T) >= "
          << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size() << endl
          << "    @assert size(g3) == (" << equations.size() << ", " << ncols << ")" << endl
@@ -1499,33 +1499,33 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "end" << endl << endl;
 
   // dynamic!
-  output << "function dynamic!(T::Vector{Float64}, residual::AbstractVector{Float64}," << endl
-         << "                  y::Vector{Float64}, x::Matrix{Float64}, "
-         << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int)" << endl
+  output << "function dynamic!(T::Vector{<: Real}, residual::AbstractVector{<: Real}," << endl
+         << "                  y::Vector{<: Real}, x::Matrix{<: Real}, "
+         << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int)" << endl
          << "    dynamicResid!(T, residual, y, x, params, steady_state, it_, true)" << endl
          << "    return nothing" << endl
          << "end" << endl
          << endl
-         << "function dynamic!(T::Vector{Float64}, residual::AbstractVector{Float64}, g1::Matrix{Float64}," << endl
-         << "                  y::Vector{Float64}, x::Matrix{Float64}, "
-         << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int)" << endl
+         << "function dynamic!(T::Vector{<: Real}, residual::AbstractVector{<: Real}, g1::Matrix{<: Real}," << endl
+         << "                  y::Vector{<: Real}, x::Matrix{<: Real}, "
+         << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int)" << endl
          << "    dynamicG1!(T, g1, y, x, params, steady_state, it_, true)" << endl
          << "    dynamicResid!(T, residual, y, x, params, steady_state, it_, false)" << endl
          << "    return nothing" << endl
          << "end" << endl
          << endl
-         << "function dynamic!(T::Vector{Float64}, residual::AbstractVector{Float64}, g1::Matrix{Float64}, g2::Matrix{Float64}," << endl
-         << "                  y::Vector{Float64}, x::Matrix{Float64}, "
-         << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int)" << endl
+         << "function dynamic!(T::Vector{<: Real}, residual::AbstractVector{<: Real}, g1::Matrix{<: Real}, g2::Matrix{<: Real}," << endl
+         << "                  y::Vector{<: Real}, x::Matrix{<: Real}, "
+         << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int)" << endl
          << "    dynamicG2!(T, g2, y, x, params, steady_state, it_, true)" << endl
          << "    dynamicG1!(T, g1, y, x, params, steady_state, it_, false)" << endl
          << "    dynamicResid!(T, residual, y, x, params, steady_state, it_, false)" << endl
          << "    return nothing" << endl
          << "end" << endl
          << endl
-         << "function dynamic!(T::Vector{Float64}, residual::AbstractVector{Float64}, g1::Matrix{Float64}, g2::Matrix{Float64}, g3::Matrix{Float64}," << endl
-         << "                  y::Vector{Float64}, x::Matrix{Float64}, "
-         << "params::Vector{Float64}, steady_state::Vector{Float64}, it_::Int)" << endl
+         << "function dynamic!(T::Vector{<: Real}, residual::AbstractVector{<: Real}, g1::Matrix{<: Real}, g2::Matrix{<: Real}, g3::Matrix{<: Real}," << endl
+         << "                  y::Vector{<: Real}, x::Matrix{<: Real}, "
+         << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int)" << endl
          << "    dynamicG3!(T, g3, y, x, params, steady_state, it_, true)" << endl
          << "    dynamicG2!(T, g2, y, x, params, steady_state, it_, false)" << endl
          << "    dynamicG1!(T, g1, y, x, params, steady_state, it_, false)" << endl

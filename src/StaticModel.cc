@@ -1308,14 +1308,14 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "  staticG2TT!    : Computes the static model temporary terms for the Hessian" << endl
          << "  staticG3TT!    : Computes the static model temporary terms for the third derivatives" << endl << endl
          << "## Function Arguments ##" << endl
-         << "  T        : Vector{Float64}(num_temp_terms) temporary terms" << endl
-         << "  y        : Vector{Float64}(model_.endo_nbr) endogenous variables in declaration order" << endl
-         << "  x        : Vector{Float64}(model_.exo_nbr) exogenous variables in declaration order" << endl
-         << "  params   : Vector{Float64}(model_.param) parameter values in declaration order" << endl
-         << "  residual : Vector{Float64}(model_.eq_nbr) residuals of the static model equations" << endl
+         << "  T        : Vector{<: Real}(num_temp_terms) temporary terms" << endl
+         << "  y        : Vector{<: Real}(model_.endo_nbr) endogenous variables in declaration order" << endl
+         << "  x        : Vector{<: Real}(model_.exo_nbr) exogenous variables in declaration order" << endl
+         << "  params   : Vector{<: Real}(model_.param) parameter values in declaration order" << endl
+         << "  residual : Vector{<: Real}(model_.eq_nbr) residuals of the static model equations" << endl
          << "             in order of declaration of the equations. Dynare may prepend auxiliary equations," << endl
          << "             see model.aux_vars" << endl
-         << "  g1       : Matrix{Float64}(model.eq_nbr,model_.endo_nbr) Jacobian matrix of the static model equations" << endl
+         << "  g1       : Matrix{<: Real}(model.eq_nbr,model_.endo_nbr) Jacobian matrix of the static model equations" << endl
          << "             The columns and rows respectively correspond to the variables in declaration order and the" << endl
          << "             equations in order of declaration" << endl
          << "  g2       : spzeros(model.eq_nbr, model_.endo^2) Hessian matrix of the static model equations" << endl
@@ -1340,16 +1340,16 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "tmp_nbr[4] = " << temporary_terms_derivatives[3].size() << "# Number of temporary terms for g3 (third order derivates)" << endl << endl;
 
   // staticResidTT!
-  output << "function staticResidTT!(T::Vector{Float64}," << endl
-         << "                        y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
+  output << "function staticResidTT!(T::Vector{<: Real}," << endl
+         << "                        y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real})" << endl
          << "    @assert length(T) >= " << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size()  << endl
          << tt_output[0].str()
          << "    return nothing" << endl
          << "end" << endl << endl;
 
   // static!
-  output << "function staticResid!(T::Vector{Float64}, residual::Vector{Float64}," << endl
-         << "                      y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T0_flag::Bool)" << endl
+  output << "function staticResid!(T::Vector{<: Real}, residual::Vector{<: Real}," << endl
+         << "                      y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}, T0_flag::Bool)" << endl
          << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
          << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
          << "    @assert length(params) == " << symbol_table.param_nbr() << endl
@@ -1365,8 +1365,8 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "end" << endl << endl;
 
   // staticG1TT!
-  output << "function staticG1TT!(T::Vector{Float64}," << endl
-         << "                     y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T0_flag::Bool)" << endl
+  output << "function staticG1TT!(T::Vector{<: Real}," << endl
+         << "                     y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}, T0_flag::Bool)" << endl
          << "    if T0_flag" << endl
          << "        staticResidTT!(T, y, x, params)" << endl
          << "    end" << endl
@@ -1375,8 +1375,8 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "end" << endl << endl;
 
   // staticG1!
-  output << "function staticG1!(T::Vector{Float64}, g1::Matrix{Float64}," << endl
-         << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T1_flag::Bool, T0_flag::Bool)" << endl
+  output << "function staticG1!(T::Vector{<: Real}, g1::Matrix{<: Real}," << endl
+         << "                   y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}, T1_flag::Bool, T0_flag::Bool)" << endl
          << "    @assert length(T) >= "
          << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() << endl
          << "    @assert size(g1) == (" << equations.size() << ", " << symbol_table.endo_nbr() << ")" << endl
@@ -1395,8 +1395,8 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "end" << endl << endl;
 
   // staticG2TT!
-  output << "function staticG2TT!(T::Vector{Float64}," << endl
-         << "                     y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T1_flag::Bool, T0_flag::Bool)" << endl
+  output << "function staticG2TT!(T::Vector{<: Real}," << endl
+         << "                     y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}, T1_flag::Bool, T0_flag::Bool)" << endl
          << "    if T1_flag" << endl
          << "        staticG1TT!(T, y, x, params, TO_flag)" << endl
          << "    end" << endl
@@ -1406,8 +1406,8 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
 
   // staticG2!
   int hessianColsNbr{symbol_table.endo_nbr() * symbol_table.endo_nbr()};
-  output << "function staticG2!(T::Vector{Float64}, g2::Matrix{Float64}," << endl
-         << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
+  output << "function staticG2!(T::Vector{<: Real}, g2::Matrix{<: Real}," << endl
+         << "                   y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
          << "    @assert length(T) >= "
          << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() << endl
          << "    @assert size(g2) == (" << equations.size() << ", " << hessianColsNbr << ")" << endl
@@ -1423,8 +1423,8 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "end" << endl << endl;
 
   // staticG3TT!
-  output << "function staticG3TT!(T::Vector{Float64}," << endl
-         << "                     y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
+  output << "function staticG3TT!(T::Vector{<: Real}," << endl
+         << "                     y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
          << "    if T2_flag" << endl
          << "        staticG2TT!(T, y, x, params, T1_flag, T0_flag)" << endl
          << "    end" << endl
@@ -1434,8 +1434,8 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
 
   // staticG3!
   int ncols{hessianColsNbr * symbol_table.endo_nbr()};
-  output << "function staticG3!(T::Vector{Float64}, g3::Matrix{Float64}," << endl
-         << "                   y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64}, T3_flag::Bool, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
+  output << "function staticG3!(T::Vector{<: Real}, g3::Matrix{<: Real}," << endl
+         << "                   y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}, T3_flag::Bool, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
          << "    @assert length(T) >= "
          << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size() << endl
          << "    @assert size(g3) == (" << equations.size() << ", " << ncols << ")" << endl
@@ -1451,27 +1451,27 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "end" << endl << endl;
 
   // static!
-  output << "function static!(T::Vector{Float64}, residual::Vector{Float64}," << endl
-         << "                  y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
+  output << "function static!(T::Vector{<: Real}, residual::Vector{<: Real}," << endl
+         << "                  y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real})" << endl
          << "    staticResid!(T, residual, y, x, params, true)" << endl
          << "    return nothing" << endl
          << "end" << endl
          << endl
-         << "function static!(T::Vector{Float64}, residual::Vector{Float64}, g1::Matrix{Float64}," << endl
-         << "                 y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
+         << "function static!(T::Vector{<: Real}, residual::Vector{<: Real}, g1::Matrix{<: Real}," << endl
+         << "                 y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real})" << endl
          << "    staticG1!(T, g1, y, x, params, true, true)" << endl
          << "    staticResid!(T, residual, y, x, params, false)" << endl
          << "    return nothing" << endl
          << "end" << endl
          << endl
-         << "function static!(T::Vector{Float64}, g1::Matrix{Float64}," << endl
-         << "                 y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
+         << "function static!(T::Vector{<: Real}, g1::Matrix{<: Real}," << endl
+         << "                 y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real})" << endl
          << "    staticG1!(T, g1, y, x, params, true, false)" << endl
          << "    return nothing" << endl
          << "end" << endl
          << endl
-         << "function static!(T::Vector{Float64}, residual::Vector{Float64}, g1::Matrix{Float64}, g2::Matrix{Float64}," << endl
-         << "                 y::Vector{Float64}, x::Vector{Float64}, params::Vector{Float64})" << endl
+         << "function static!(T::Vector{<: Real}, residual::Vector{<: Real}, g1::Matrix{<: Real}, g2::Matrix{<: Real}," << endl
+         << "                 y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real})" << endl
          << "    staticG2!(T, g2, y, x, params, true, true, true)" << endl
          << "    staticG1!(T, g1, y, x, params, false, false)" << endl
          << "    staticResid!(T, residual, y, x, params, false)" << endl
