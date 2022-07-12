@@ -180,12 +180,11 @@ private:
   //! Write chain rule derivative bytecode of an equation w.r. to a variable
   void writeBytecodeChainRuleDerivative(BytecodeWriter &code_file, int blk, int eq, int var, int lag, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
 
-  //! Get the type corresponding to a derivation ID
   SymbolType getTypeByDerivID(int deriv_id) const noexcept(false) override;
-  //! Get the lag corresponding to a derivation ID
   int getLagByDerivID(int deriv_id) const noexcept(false) override;
-  //! Get the symbol ID corresponding to a derivation ID
   int getSymbIDByDerivID(int deriv_id) const noexcept(false) override;
+  int getTypeSpecificIDByDerivID(int deriv_id) const override;
+
   //! Compute the column indices of the dynamic Jacobian
   void computeDynJacobianCols(bool jacobianExo);
   //! Computes derivatives of the Jacobian w.r. to trend vars and tests that they are equal to zero

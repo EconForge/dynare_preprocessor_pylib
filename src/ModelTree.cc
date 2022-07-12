@@ -330,8 +330,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context) const
       if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
         {
           int eq = indices[0];
-          int symb = getSymbIDByDerivID(deriv_id);
-          int var = symbol_table.getTypeSpecificID(symb);
+          int var { getTypeSpecificIDByDerivID(deriv_id) };
           int lag = getLagByDerivID(deriv_id);
           double val = 0;
           try
@@ -347,7 +346,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context) const
               cerr << "ERROR: evaluation of Jacobian failed for equation " << eq+1;
               if (equations_lineno[eq])
                 cerr << " (line " << *equations_lineno[eq] << ")";
-              cerr << " and variable " << symbol_table.getName(symb) << "(" << lag << ") [" << symb << "] !" << endl;
+              cerr << " and variable " << getNameByDerivID(deriv_id) << "(" << lag << ") !" << endl;
               d1->writeOutput(cerr, ExprNodeOutputType::matlabDynamicModel, {}, {});
               cerr << endl;
               exit(EXIT_FAILURE);
@@ -1311,8 +1310,7 @@ ModelTree::writeBytecodeBinFile(const string &filename, int &u_count_int, bool &
       if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
         {
           int eq = indices[0];
-          int symb = getSymbIDByDerivID(deriv_id);
-          int var = symbol_table.getTypeSpecificID(symb);
+          int var { getTypeSpecificIDByDerivID(deriv_id) };
           int lag = getLagByDerivID(deriv_id);
           SaveCode.write(reinterpret_cast<char *>(&eq), sizeof(eq));
           int varr = var + lag * symbol_table.endo_nbr();
@@ -1851,7 +1849,7 @@ ModelTree::collectFirstOrderDerivativesEndogenous()
     if (getTypeByDerivID(indices[1]) == SymbolType::endogenous)
       {
         int eq = indices[0];
-        int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(indices[1]));
+        int var { getTypeSpecificIDByDerivID(indices[1]) };
         int lag = getLagByDerivID(indices[1]);
         endo_derivatives[{ eq, var, lag }] = d1;
       }

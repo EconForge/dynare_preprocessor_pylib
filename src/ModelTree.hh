@@ -799,7 +799,7 @@ ModelTree::writeParamsDerivativesFileHelper() const
     {
       auto [eq, param] { vectorToTuple<2>(indices) };
 
-      int param_col { symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1 };
+      int param_col { getTypeSpecificIDByDerivID(param) + 1 };
 
       rp_output << "rp" << LEFT_ARRAY_SUBSCRIPT(output_type) << eq+1 << ", " << param_col
                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
@@ -812,7 +812,7 @@ ModelTree::writeParamsDerivativesFileHelper() const
       auto [eq, var, param] { vectorToTuple<3>(indices) };
 
       int var_col { getJacobianCol(var) + 1 };
-      int param_col { symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1 };
+      int param_col { getTypeSpecificIDByDerivID(param) + 1 };
 
       gp_output << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type) << eq+1 << ", " << var_col
                 << ", " << param_col << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
@@ -825,8 +825,8 @@ ModelTree::writeParamsDerivativesFileHelper() const
     {
       auto [eq, param1, param2] { vectorToTuple<3>(indices) };
 
-      int param1_col { symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1 };
-      int param2_col { symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1 };
+      int param1_col { getTypeSpecificIDByDerivID(param1) + 1 };
+      int param2_col { getTypeSpecificIDByDerivID(param2) + 1 };
 
       rpp_output << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
@@ -864,8 +864,8 @@ ModelTree::writeParamsDerivativesFileHelper() const
       auto [eq, var, param1, param2] { vectorToTuple<4>(indices) };
 
       int var_col { getJacobianCol(var) + 1 };
-      int param1_col { symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1 };
-      int param2_col { symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1 };
+      int param1_col { getTypeSpecificIDByDerivID(param1) + 1 };
+      int param2_col { getTypeSpecificIDByDerivID(param2) + 1 };
 
       gpp_output << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
@@ -908,7 +908,7 @@ ModelTree::writeParamsDerivativesFileHelper() const
 
       int var1_col { getJacobianCol(var1) + 1 };
       int var2_col { getJacobianCol(var2) + 1 };
-      int param_col { symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1 };
+      int param_col { getTypeSpecificIDByDerivID(param) + 1 };
 
       hp_output << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl
@@ -954,7 +954,7 @@ ModelTree::writeParamsDerivativesFileHelper() const
         int var1_col { getJacobianCol(var1) + 1 };
         int var2_col { getJacobianCol(var2) + 1 };
         int var3_col { getJacobianCol(var3) + 1 };
-        int param_col { symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1 };
+        int param_col { getTypeSpecificIDByDerivID(param) + 1 };
 
         g3p_output << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq+1 << ";" << endl

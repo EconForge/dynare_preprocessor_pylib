@@ -300,11 +300,22 @@ public:
     }
   };
 
-  //! Returns the derivation ID, or throws an exception if the derivation ID does not exist
+  // Returns the derivation ID, or throws an exception if the derivation ID does not exist
   virtual int getDerivID(int symb_id, int lag) const noexcept(false);
+  // Get the type corresponding to a derivation ID
   virtual SymbolType getTypeByDerivID(int deriv_id) const noexcept(false);
+  // Get the lag corresponding to a derivation ID
   virtual int getLagByDerivID(int deriv_id) const noexcept(false);
+  // Get the symbol ID corresponding to a derivation ID
   virtual int getSymbIDByDerivID(int deriv_id) const noexcept(false);
+  // Get the type-specific ID corresponding to a derivation ID
+  virtual int getTypeSpecificIDByDerivID(int deriv_id) const;
+  // Get the symbol name corresponding to a derivation ID
+  string
+  getNameByDerivID(int deriv_id) const
+  {
+    return symbol_table.getName(getSymbIDByDerivID(deriv_id));
+  }
 
   //! Returns the column of the Jacobian associated to a derivation ID
   virtual int

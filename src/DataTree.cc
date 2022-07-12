@@ -827,6 +827,12 @@ DataTree::getSymbIDByDerivID([[maybe_unused]] int deriv_id) const noexcept(false
   throw UnknownDerivIDException();
 }
 
+int
+DataTree::getTypeSpecificIDByDerivID([[maybe_unused]] int deriv_id) const
+{
+  throw UnknownDerivIDException();
+}
+
 void
 DataTree::addAllParamDerivId([[maybe_unused]] set<int> &deriv_id_set)
 {

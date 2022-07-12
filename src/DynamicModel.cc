@@ -564,8 +564,7 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
     {
       int deriv_id = indices[1];
       int eq = indices[0];
-      int symb = getSymbIDByDerivID(deriv_id);
-      int var = symbol_table.getTypeSpecificID(symb);
+      int var { getTypeSpecificIDByDerivID(deriv_id) };
       int lag = getLagByDerivID(deriv_id);
       if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
         first_derivatives_reordered_endo[{ lag, var, eq }] = d1;
@@ -652,8 +651,7 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
       if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
         {
           int eq = indices[0];
-          int symb = getSymbIDByDerivID(deriv_id);
-          int var = symbol_table.getTypeSpecificID(symb);
+          int var { getTypeSpecificIDByDerivID(deriv_id) };
           int lag = getLagByDerivID(deriv_id);
           code_file << FNUMEXPR_{ExpressionType::FirstEndoDerivative, eq, var, lag};
           if (!my_derivatives[eq].size())
@@ -1830,7 +1828,7 @@ DynamicModel::writeDynamicJacobianNonZeroElts(const string &basename) const
     {
       if (getTypeByDerivID(indices[1]) != SymbolType::endogenous)
         continue;
-      int tsid = symbol_table.getTypeSpecificID(getSymbIDByDerivID(indices[1]));
+      int tsid { getTypeSpecificIDByDerivID(indices[1]) };
       int lag = getLagByDerivID(indices[1]);
       if (lag == -1)
         nzij_pred.emplace_back(tsid, indices[0]);
@@ -2253,7 +2251,7 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename,
         getTypeByDerivID(deriv_id) == SymbolType::endogenous)
       {
         int eq = indices[0];
-        int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(deriv_id));
+        int var { getTypeSpecificIDByDerivID(deriv_id) };
         int lag = getLagByDerivID(deriv_id);
         lag_row_incidence[lag].insert({ eq, var });
       }
@@ -3971,7 +3969,7 @@ DynamicModel::computeBlockDynJacobianCols()
       int eq_orig = indices[0];
       int block_eq = eq2block[eq_orig];
       int eq = getBlockInitialEquationID(block_eq, eq_orig);
-      int var = symbol_table.getTypeSpecificID(getSymbIDByDerivID(indices[1]));
+      int var { getTypeSpecificIDByDerivID(indices[1]) };
       int lag = getLagByDerivID(indices[1]);
       switch (getTypeByDerivID(indices[1]))
         {
@@ -4438,6 +4436,12 @@ DynamicModel::getSymbIDByDerivID(int deriv_id) const noexcept(false)
     throw UnknownDerivIDException();
 
   return inv_deriv_id_table[deriv_id].first;
+}
+
+int
+DynamicModel::getTypeSpecificIDByDerivID(int deriv_id) const
+{
+  return symbol_table.getTypeSpecificID(getSymbIDByDerivID(deriv_id));
 }
 
 int
@@ -5446,7 +5450,7 @@ DynamicModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) c
 
           if (writeDetails)
             for (size_t j = 1; j < vidx.size(); j++)
-              d_output[i] << R"(, "var)" << (i > 1 ? to_string(j) : "") << R"(": ")" << symbol_table.getName(getSymbIDByDerivID(vidx[j])) << R"(")"
+              d_output[i] << R"(, "var)" << (i > 1 ? to_string(j) : "") << R"(": ")" << getNameByDerivID(vidx[j]) << R"(")"
                           << R"(, "shift)" << (i > 1 ? to_string(j) : "") << R"(": )" << getLagByDerivID(vidx[j]);
 
           d_output[i] << R"(, "val": ")";
@@ -5502,7 +5506,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
 
       auto [eq, param] = vectorToTuple<2>(vidx);
 
-      int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
+      int param_col { getTypeSpecificIDByDerivID(param) + 1 };
 
       if (writeDetails)
         rp_output << R"({"eq": )" << eq + 1;
@@ -5512,7 +5516,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       rp_output << R"(, "param_col": )" << param_col + 1;
 
       if (writeDetails)
-        rp_output << R"(, "param": ")" << symbol_table.getName(getSymbIDByDerivID(param)) << R"(")";
+        rp_output << R"(, "param": ")" << getNameByDerivID(param) << R"(")";
 
       rp_output << R"(, "val": ")";
       d->writeJsonOutput(rp_output, temp_term_union, tef_terms);
@@ -5534,7 +5538,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       auto [eq, var, param] = vectorToTuple<3>(vidx);
 
       int var_col = getJacobianCol(var) + 1;
-      int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
+      int param_col { getTypeSpecificIDByDerivID(param) + 1 };
 
       if (writeDetails)
         gp_output << R"({"eq": )" << eq + 1;
@@ -5545,9 +5549,9 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
                 << R"(, "param_col": )" << param_col + 1;
 
       if (writeDetails)
-        gp_output << R"(, "var": ")" << symbol_table.getName(getSymbIDByDerivID(var)) << R"(")"
+        gp_output << R"(, "var": ")" << getNameByDerivID(var) << R"(")"
                   << R"(, "lag": )" << getLagByDerivID(var)
-                  << R"(, "param": ")" << symbol_table.getName(getSymbIDByDerivID(param)) << R"(")";
+                  << R"(, "param": ")" << getNameByDerivID(param) << R"(")";
 
       gp_output << R"(, "val": ")";
       d->writeJsonOutput(gp_output, temp_term_union, tef_terms);
@@ -5568,8 +5572,8 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
 
       auto [eq, param1, param2] = vectorToTuple<3>(vidx);
 
-      int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
-      int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
+      int param1_col { getTypeSpecificIDByDerivID(param1) + 1 };
+      int param2_col { getTypeSpecificIDByDerivID(param2) + 1 };
 
       if (writeDetails)
         rpp_output << R"({"eq": )" << eq + 1;
@@ -5579,8 +5583,8 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
                  << R"(, "param2_col": )" << param2_col + 1;
 
       if (writeDetails)
-        rpp_output << R"(, "param1": ")" << symbol_table.getName(getSymbIDByDerivID(param1)) << R"(")"
-                   << R"(, "param2": ")" << symbol_table.getName(getSymbIDByDerivID(param2)) << R"(")";
+        rpp_output << R"(, "param1": ")" << getNameByDerivID(param1) << R"(")"
+                   << R"(, "param2": ")" << getNameByDerivID(param2) << R"(")";
 
       rpp_output << R"(, "val": ")";
       d->writeJsonOutput(rpp_output, temp_term_union, tef_terms);
@@ -5603,8 +5607,8 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       auto [eq, var, param1, param2] = vectorToTuple<4>(vidx);
 
       int var_col = getJacobianCol(var) + 1;
-      int param1_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param1)) + 1;
-      int param2_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param2)) + 1;
+      int param1_col { getTypeSpecificIDByDerivID(param1) + 1 };
+      int param2_col { getTypeSpecificIDByDerivID(param2) + 1 };
 
       if (writeDetails)
         gpp_output << R"({"eq": )" << eq + 1;
@@ -5616,10 +5620,10 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
                  << R"(, "param2_col": )" << param2_col + 1;
 
       if (writeDetails)
-        gpp_output << R"(, "var": ")" << symbol_table.getName(getSymbIDByDerivID(var)) << R"(")"
+        gpp_output << R"(, "var": ")" << getNameByDerivID(var) << R"(")"
                    << R"(, "lag": )" << getLagByDerivID(var)
-                   << R"(, "param1": ")" << symbol_table.getName(getSymbIDByDerivID(param1)) << R"(")"
-                   << R"(, "param2": ")" << symbol_table.getName(getSymbIDByDerivID(param2)) << R"(")";
+                   << R"(, "param1": ")" << getNameByDerivID(param1) << R"(")"
+                   << R"(, "param2": ")" << getNameByDerivID(param2) << R"(")";
 
       gpp_output << R"(, "val": ")";
       d->writeJsonOutput(gpp_output, temp_term_union, tef_terms);
@@ -5643,7 +5647,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
 
       int var1_col = getJacobianCol(var1) + 1;
       int var2_col = getJacobianCol(var2) + 1;
-      int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
+      int param_col { getTypeSpecificIDByDerivID(param) + 1 };
 
       if (writeDetails)
         hp_output << R"({"eq": )" << eq + 1;
@@ -5655,11 +5659,11 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
                 << R"(, "param_col": )" << param_col + 1;
 
       if (writeDetails)
-        hp_output << R"(, "var1": ")" << symbol_table.getName(getSymbIDByDerivID(var1)) << R"(")"
+        hp_output << R"(, "var1": ")" << getNameByDerivID(var1) << R"(")"
                   << R"(, "lag1": )" << getLagByDerivID(var1)
-                  << R"(, "var2": ")" << symbol_table.getName(getSymbIDByDerivID(var2)) << R"(")"
+                  << R"(, "var2": ")" << getNameByDerivID(var2) << R"(")"
                   << R"(, "lag2": )" << getLagByDerivID(var2)
-                  << R"(, "param": ")" << symbol_table.getName(getSymbIDByDerivID(param)) << R"(")";
+                  << R"(, "param": ")" << getNameByDerivID(param) << R"(")";
 
       hp_output << R"(, "val": ")";
       d->writeJsonOutput(hp_output, temp_term_union, tef_terms);
@@ -5685,7 +5689,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       int var1_col = getJacobianCol(var1) + 1;
       int var2_col = getJacobianCol(var2) + 1;
       int var3_col = getJacobianCol(var3) + 1;
-      int param_col = symbol_table.getTypeSpecificID(getSymbIDByDerivID(param)) + 1;
+      int param_col { getTypeSpecificIDByDerivID(param) + 1 };
 
       if (writeDetails)
         g3p_output << R"({"eq": )" << eq + 1;
@@ -5698,13 +5702,13 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
                  << R"(, "param_col": )" << param_col + 1;
 
       if (writeDetails)
-        g3p_output << R"(, "var1": ")" << symbol_table.getName(getSymbIDByDerivID(var1)) << R"(")"
+        g3p_output << R"(, "var1": ")" << getNameByDerivID(var1) << R"(")"
                    << R"(, "lag1": )" << getLagByDerivID(var1)
-                   << R"(, "var2": ")" << symbol_table.getName(getSymbIDByDerivID(var2)) << R"(")"
+                   << R"(, "var2": ")" << getNameByDerivID(var2) << R"(")"
                    << R"(, "lag2": )" << getLagByDerivID(var2)
-                   << R"(, "var3": ")" << symbol_table.getName(getSymbIDByDerivID(var3)) << R"(")"
+                   << R"(, "var3": ")" << getNameByDerivID(var3) << R"(")"
                    << R"(, "lag3": )" << getLagByDerivID(var3)
-                   << R"(, "param": ")" << symbol_table.getName(getSymbIDByDerivID(param)) << R"(")";
+                   << R"(, "param": ")" << getNameByDerivID(param) << R"(")";
 
       g3p_output << R"(, "val": ")";
       d->writeJsonOutput(g3p_output, temp_term_union, tef_terms);
