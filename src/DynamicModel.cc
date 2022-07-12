@@ -4106,13 +4106,14 @@ DynamicModel::writeSetAuxiliaryVariables(const string &basename, bool julia) con
          << comment << " Status : Computes Auxiliary variables of the dynamic model and returns a dseries" << endl
          << comment << endl
          << comment << " Warning : this file is generated automatically by Dynare" << endl
-         << comment << "           from model file (.mod)" << endl << endl
-         << "@inbounds begin" << endl    
-         << output_func_body.str()
-    	 << "end" << endl
-     << "end" << endl;
+         << comment << "           from model file (.mod)" << endl << endl;
   if (julia)
-    output << "end" << endl;
+    output << "@inbounds begin" << endl;
+  output << output_func_body.str()
+         << "end" << endl;
+  if (julia)
+    output << "end" << endl
+           << "end" << endl;
 
   writeToFileIfModified(output, julia ? basename + "DynamicSetAuxiliarySeries.jl" : packageDir(basename) + "/" + func_name + ".m");
 }

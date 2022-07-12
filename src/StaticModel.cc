@@ -1751,13 +1751,14 @@ StaticModel::writeSetAuxiliaryVariables(const string &basename, bool julia) cons
          << comment << " Status : Computes static model for Dynare" << endl
          << comment << endl
          << comment << " Warning : this file is generated automatically by Dynare" << endl
-         << comment << "           from model file (.mod)" << endl << endl
-	 << "@inbounds begin" << endl
-         << output_func_body.str()
-         << "end" << endl
+         << comment << "           from model file (.mod)" << endl << endl;
+  if (julia)
+    output << "@inbounds begin" << endl;
+  output << output_func_body.str()
          << "end" << endl;
   if (julia)
-    output << "end" << endl;
+    output << "end" << endl
+           << "end" << endl;
 
   writeToFileIfModified(output, julia ? basename + "SetAuxiliaryVariables.jl" : packageDir(basename) + "/" + func_name + ".m");
 }
