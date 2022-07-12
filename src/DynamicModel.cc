@@ -5504,7 +5504,7 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       else
         rp_output << R"({"row": )" << eq + 1;
 
-      rp_output << R"(, "param_col": )" << param_col + 1;
+      rp_output << R"(, "param_col": )" << param_col;
 
       if (writeDetails)
         rp_output << R"(, "param": ")" << getNameByDerivID(param) << R"(")";
@@ -5536,8 +5536,8 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       else
         gp_output << R"({"row": )" << eq + 1;
 
-      gp_output << R"(, "var_col": )" << var_col + 1
-                << R"(, "param_col": )" << param_col + 1;
+      gp_output << R"(, "var_col": )" << var_col
+                << R"(, "param_col": )" << param_col;
 
       if (writeDetails)
         gp_output << R"(, "var": ")" << getNameByDerivID(var) << R"(")"
@@ -5570,8 +5570,8 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
         rpp_output << R"({"eq": )" << eq + 1;
       else
         rpp_output << R"({"row": )" << eq + 1;
-      rpp_output << R"(, "param1_col": )" << param1_col + 1
-                 << R"(, "param2_col": )" << param2_col + 1;
+      rpp_output << R"(, "param1_col": )" << param1_col
+                 << R"(, "param2_col": )" << param2_col;
 
       if (writeDetails)
         rpp_output << R"(, "param1": ")" << getNameByDerivID(param1) << R"(")"
@@ -5606,9 +5606,9 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       else
         gpp_output << R"({"row": )" << eq + 1;
 
-      gpp_output << R"(, "var_col": )" << var_col + 1
-                 << R"(, "param1_col": )" << param1_col + 1
-                 << R"(, "param2_col": )" << param2_col + 1;
+      gpp_output << R"(, "var_col": )" << var_col
+                 << R"(, "param1_col": )" << param1_col
+                 << R"(, "param2_col": )" << param2_col;
 
       if (writeDetails)
         gpp_output << R"(, "var": ")" << getNameByDerivID(var) << R"(")"
@@ -5645,9 +5645,9 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       else
         hp_output << R"({"row": )" << eq + 1;
 
-      hp_output << R"(, "var1_col": )" << var1_col + 1
-                << R"(, "var2_col": )" << var2_col + 1
-                << R"(, "param_col": )" << param_col + 1;
+      hp_output << R"(, "var1_col": )" << var1_col
+                << R"(, "var2_col": )" << var2_col
+                << R"(, "param_col": )" << param_col;
 
       if (writeDetails)
         hp_output << R"(, "var1": ")" << getNameByDerivID(var1) << R"(")"
@@ -5687,10 +5687,10 @@ DynamicModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails)
       else
         g3p_output << R"({"row": )" << eq + 1;
 
-      g3p_output << R"(, "var1_col": )" << var1_col + 1
-                 << R"(, "var2_col": )" << var2_col + 1
-                 << R"(, "var3_col": )" << var3_col + 1
-                 << R"(, "param_col": )" << param_col + 1;
+      g3p_output << R"(, "var1_col": )" << var1_col
+                 << R"(, "var2_col": )" << var2_col
+                 << R"(, "var3_col": )" << var3_col
+                 << R"(, "param_col": )" << param_col;
 
       if (writeDetails)
         g3p_output << R"(, "var1": ")" << getNameByDerivID(var1) << R"(")"
