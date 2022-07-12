@@ -145,8 +145,8 @@ public:
   //! Write JSON representation of static model
   void writeJsonComputingPassOutput(ostream &output, bool writeDetails) const;
 
-  //! Writes file containing static parameters derivatives
-  void writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) const;
+  //! Write JSON params derivatives
+  void writeJsonParamsDerivatives(ostream &output, bool writeDetails) const;
 
   //! Writes file containing static parameters derivatives
   template<bool julia>

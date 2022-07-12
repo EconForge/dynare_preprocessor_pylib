@@ -342,8 +342,8 @@ public:
   //! Write JSON Output representation of dynamic model after computing pass
   void writeJsonComputingPassOutput(ostream &output, bool writeDetails) const;
 
-  //! Write JSON prams derivatives file
-  void writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) const;
+  //! Write JSON params derivatives
+  void writeJsonParamsDerivatives(ostream &output, bool writeDetails) const;
 
   //! Write cross reference output if the xref maps have been filed
   void writeJsonXrefs(ostream &output) const;

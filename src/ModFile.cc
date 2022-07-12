@@ -1351,12 +1351,12 @@ ModFile::writeJsonComputingPassOutput(const string &basename, JsonFileOutputType
   dynamic_model.writeJsonComputingPassOutput(dynamic_output, !jsonderivsimple);
   dynamic_output << "}";
 
-  static_model.writeJsonParamsDerivativesFile(tmp_out, !jsonderivsimple);
+  static_model.writeJsonParamsDerivatives(tmp_out, !jsonderivsimple);
   if (!tmp_out.str().empty())
     static_paramsd_output << "{" << tmp_out.str() << "}" << endl;
 
   tmp_out.str("");
-  dynamic_model.writeJsonParamsDerivativesFile(tmp_out, !jsonderivsimple);
+  dynamic_model.writeJsonParamsDerivatives(tmp_out, !jsonderivsimple);
   if (!tmp_out.str().empty())
     dynamic_paramsd_output << "{" << tmp_out.str() << "}" << endl;
 

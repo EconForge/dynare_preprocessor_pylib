@@ -1849,285 +1849,38 @@ StaticModel::writeJsonOutput(ostream &output) const
 void
 StaticModel::writeJsonComputingPassOutput(ostream &output, bool writeDetails) const
 {
-  ostringstream model_local_vars_output; // Used for storing model local vars
-  vector<ostringstream> d_output(derivatives.size()); // Derivatives output (at all orders, including 0=residual)
-
-  deriv_node_temp_terms_t tef_terms;
-  temporary_terms_t temp_term_union;
-
-  writeJsonModelLocalVariables(model_local_vars_output, true, tef_terms);
-
-  writeJsonTemporaryTerms(temporary_terms_derivatives[0], temp_term_union, d_output[0], tef_terms, "");
-  d_output[0] << ", ";
-  writeJsonModelEquations(d_output[0], true);
-
-  int ncols = symbol_table.endo_nbr();
-  for (size_t i = 1; i < derivatives.size(); i++)
-    {
-      string matrix_name = i == 1 ? "jacobian" : i == 2 ? "hessian" : i == 3 ? "third_derivative" : to_string(i) + "th_derivative";
-      writeJsonTemporaryTerms(temporary_terms_derivatives[i], temp_term_union, d_output[i], tef_terms, matrix_name);
-      temp_term_union.insert(temporary_terms_derivatives[i].begin(), temporary_terms_derivatives[i].end());
-      d_output[i] << R"(, ")" << matrix_name  << R"(": {)"
-                  << R"(  "nrows": )" << equations.size()
-                  << R"(, "ncols": )" << ncols
-                  << R"(, "entries": [)";
-
-      for (bool printed_something{false};
-           const auto &[vidx, d] : derivatives[i])
-        {
-          if (exchange(printed_something, true))
-            d_output[i] << ", ";
-
-          int eq = vidx[0];
-
-          int col_idx = 0;
-          for (size_t j = 1; j < vidx.size(); j++)
-            {
-              col_idx *= symbol_table.endo_nbr();
-              col_idx += getJacobianCol(vidx[j]);
-            }
-
-          if (writeDetails)
-            d_output[i] << R"({"eq": )" << eq + 1;
-          else
-            d_output[i] << R"({"row": )" << eq + 1;
-
-          d_output[i] << R"(, "col": )" << (i > 1 ? "[" : "") << col_idx + 1;
-
-          if (i == 2 && vidx[1] != vidx[2]) // Symmetric elements in hessian
-            {
-              int col_idx_sym = getJacobianCol(vidx[2]) * symbol_table.endo_nbr() + getJacobianCol(vidx[1]);
-              d_output[i] << ", " << col_idx_sym + 1;
-            }
-          if (i > 1)
-            d_output[i] << "]";
-
-          if (writeDetails)
-            for (size_t j = 1; j < vidx.size(); j++)
-              d_output[i] << R"(, "var)" << (i > 1 ? to_string(j) : "") << R"(": ")" << getNameByDerivID(vidx[j]) << R"(")";
-
-          d_output[i] << R"(, "val": ")";
-          d->writeJsonOutput(d_output[i], temp_term_union, tef_terms);
-          d_output[i] << R"("})" << endl;
-        }
-      d_output[i] << "]}";
-
-      ncols *= symbol_table.endo_nbr();
-    }
+  auto [mlv_output, d_output] { writeJsonComputingPassOutputHelper<false>(writeDetails) };
 
   if (writeDetails)
     output << R"("static_model": {)";
   else
     output << R"("static_model_simple": {)";
-  output << model_local_vars_output.str();
+  output << mlv_output.str();
   for (const auto &it : d_output)
     output << ", " << it.str();
   output << "}";
 }
 
 void
-StaticModel::writeJsonParamsDerivativesFile(ostream &output, bool writeDetails) const
+StaticModel::writeJsonParamsDerivatives(ostream &output, bool writeDetails) const
 {
   if (!params_derivatives.size())
     return;
 
-  ostringstream model_local_vars_output; // Used for storing model local vars
-  ostringstream model_output; // Used for storing model temp vars and equations
-  ostringstream jacobian_output; // Used for storing jacobian equations
-  ostringstream hessian_output; // Used for storing Hessian equations
-  ostringstream hessian1_output; // Used for storing Hessian equations
-  ostringstream third_derivs_output; // Used for storing third order derivatives equations
-  ostringstream third_derivs1_output; // Used for storing third order derivatives equations
-
-  deriv_node_temp_terms_t tef_terms;
-  writeJsonModelLocalVariables(model_local_vars_output, true, tef_terms);
-
-  temporary_terms_t temp_term_union;
-  for (const auto &it : params_derivs_temporary_terms)
-    writeJsonTemporaryTerms(it.second, temp_term_union, model_output, tef_terms, "all");
-
-  jacobian_output << R"("deriv_wrt_params": {)"
-                  << R"(  "neqs": )" << equations.size()
-                  << R"(, "nparamcols": )" << symbol_table.param_nbr()
-                  << R"(, "entries": [)";
-  for (bool printed_something{false};
-       const auto &[vidx, d] : params_derivatives.find({ 0, 1 })->second)
-    {
-      if (exchange(printed_something, true))
-        jacobian_output << ", ";
-
-      auto [eq, param] = vectorToTuple<2>(vidx);
-
-      int param_col { getTypeSpecificIDByDerivID(param) + 1 };
-
-      if (writeDetails)
-        jacobian_output << R"({"eq": )" << eq + 1;
-      else
-        jacobian_output << R"({"row": )" << eq + 1;
-
-      if (writeDetails)
-        jacobian_output << R"(, "param_col": )" << param_col;
-
-      jacobian_output << R"(, "param": ")" << getNameByDerivID(param) << R"(")";
-
-      jacobian_output << R"(, "val": ")";
-      d->writeJsonOutput(jacobian_output, temp_term_union, tef_terms);
-      jacobian_output << R"("})" << endl;
-    }
-  jacobian_output << "]}";
-
-  hessian_output << R"("deriv_jacobian_wrt_params": {)"
-                 << R"(  "neqs": )" << equations.size()
-                 << R"(, "nvarcols": )" << symbol_table.endo_nbr()
-                 << R"(, "nparamcols": )" << symbol_table.param_nbr()
-                 << R"(, "entries": [)";
-  for (bool printed_something{false};
-       const auto &[vidx, d] : params_derivatives.find({ 1, 1 })->second)
-    {
-      if (exchange(printed_something, true))
-        hessian_output << ", ";
-
-      auto [eq, var, param] = vectorToTuple<3>(vidx);
-
-      int var_col { getTypeSpecificIDByDerivID(var) + 1 };
-      int param_col { getTypeSpecificIDByDerivID(param) + 1 };
-
-      if (writeDetails)
-        hessian_output << R"({"eq": )" << eq + 1;
-      else
-        hessian_output << R"({"row": )" << eq + 1;
-
-      if (writeDetails)
-        hessian_output << R"(, "var": ")" << getNameByDerivID(var) << R"(")"
-                       << R"(, "param": ")" << getNameByDerivID(param) << R"(")";
-
-      hessian_output << R"(, "var_col": )" << var_col
-                     << R"(, "param_col": )" << param_col
-                     << R"(, "val": ")";
-      d->writeJsonOutput(hessian_output, temp_term_union, tef_terms);
-      hessian_output << R"("})" << endl;
-    }
-  hessian_output << "]}";
-
-  hessian1_output << R"("second_deriv_residuals_wrt_params": {)"
-                  << R"(  "nrows": )" << equations.size()
-                  << R"(, "nparam1cols": )" << symbol_table.param_nbr()
-                  << R"(, "nparam2cols": )" << symbol_table.param_nbr()
-                  << R"(, "entries": [)";
-  for (bool printed_something{false};
-       const auto &[vidx, d] : params_derivatives.find({ 0, 2 })->second)
-    {
-      if (exchange(printed_something, true))
-        hessian1_output << ", ";
-
-      auto [eq, param1, param2] = vectorToTuple<3>(vidx);
-
-      int param1_col { getTypeSpecificIDByDerivID(param1) + 1 };
-      int param2_col { getTypeSpecificIDByDerivID(param2) + 1 };
-
-      if (writeDetails)
-        hessian1_output << R"({"eq": )" << eq + 1;
-      else
-        hessian1_output << R"({"row": )" << eq + 1;
-
-      hessian1_output << R"(, "param1_col": )" << param1_col
-                      << R"(, "param2_col": )" << param2_col;
-
-      if (writeDetails)
-        hessian1_output << R"(, "param1": ")" << getNameByDerivID(param1) << R"(")"
-                        << R"(, "param2": ")" << getNameByDerivID(param2) << R"(")";
-
-      hessian1_output << R"(, "val": ")";
-      d->writeJsonOutput(hessian1_output, temp_term_union, tef_terms);
-      hessian1_output << R"("})" << endl;
-    }
-  hessian1_output << "]}";
-
-  third_derivs_output << R"("second_deriv_jacobian_wrt_params": {)"
-                      << R"(  "neqs": )" << equations.size()
-                      << R"(, "nvarcols": )" << symbol_table.endo_nbr()
-                      << R"(, "nparam1cols": )" << symbol_table.param_nbr()
-                      << R"(, "nparam2cols": )" << symbol_table.param_nbr()
-                      << R"(, "entries": [)";
-  for (bool printed_something{false};
-       const auto &[vidx, d] : params_derivatives.find({ 1, 2 })->second)
-    {
-      if (exchange(printed_something, true))
-        third_derivs_output << ", ";
-
-      auto [eq, var, param1, param2] = vectorToTuple<4>(vidx);
-
-      int var_col { getTypeSpecificIDByDerivID(var) + 1 };
-      int param1_col { getTypeSpecificIDByDerivID(param1) + 1 };
-      int param2_col { getTypeSpecificIDByDerivID(param2) + 1 };
-
-      if (writeDetails)
-        third_derivs_output << R"({"eq": )" << eq + 1;
-      else
-        third_derivs_output << R"({"row": )" << eq + 1;
-      third_derivs_output << R"(, "var_col": )" << var_col
-                          << R"(, "param1_col": )" << param1_col
-                          << R"(, "param2_col": )" << param2_col;
-
-      if (writeDetails)
-        third_derivs_output << R"(, "var": ")" << getNameByDerivID(var) << R"(")"
-                            << R"(, "param1": ")" << getNameByDerivID(param1) << R"(")"
-                            << R"(, "param2": ")" << getNameByDerivID(param2) << R"(")";
-
-      third_derivs_output << R"(, "val": ")";
-      d->writeJsonOutput(third_derivs_output, temp_term_union, tef_terms);
-      third_derivs_output << R"("})" << endl;
-    }
-  third_derivs_output << "]}" << endl;
-
-  third_derivs1_output << R"("derivative_hessian_wrt_params": {)"
-                       << R"(  "neqs": )" << equations.size()
-                       << R"(, "nvar1cols": )" << symbol_table.endo_nbr()
-                       << R"(, "nvar2cols": )" << symbol_table.endo_nbr()
-                       << R"(, "nparamcols": )" << symbol_table.param_nbr()
-                       << R"(, "entries": [)";
-  for (bool printed_something{false};
-       const auto &[vidx, d] : params_derivatives.find({ 2, 1 })->second)
-    {
-      if (exchange(printed_something, true))
-        third_derivs1_output << ", ";
-
-      auto [eq, var1, var2, param] = vectorToTuple<4>(vidx);
-
-      int var1_col { getTypeSpecificIDByDerivID(var1) + 1 };
-      int var2_col { getTypeSpecificIDByDerivID(var2) + 1 };
-      int param_col { getTypeSpecificIDByDerivID(param) + 1 };
-
-      if (writeDetails)
-        third_derivs1_output << R"({"eq": )" << eq + 1;
-      else
-        third_derivs1_output << R"({"row": )" << eq + 1;
-
-      third_derivs1_output << R"(, "var1_col": )" << var1_col
-                           << R"(, "var2_col": )" << var2_col
-                           << R"(, "param_col": )" << param_col;
-
-      if (writeDetails)
-        third_derivs1_output << R"(, "var1": ")" << getNameByDerivID(var1) << R"(")"
-                             << R"(, "var2": ")" << getNameByDerivID(var2) << R"(")"
-                             << R"(, "param1": ")" << getNameByDerivID(param) << R"(")";
-
-      third_derivs1_output << R"(, "val": ")";
-      d->writeJsonOutput(third_derivs1_output, temp_term_union, tef_terms);
-      third_derivs1_output << R"("})" << endl;
-    }
-  third_derivs1_output << "]}" << endl;
+  auto [mlv_output, tt_output, rp_output, gp_output, rpp_output, gpp_output, hp_output, g3p_output]
+    { writeJsonParamsDerivativesHelper<false>(writeDetails) };
+  // g3p_output is ignored
 
   if (writeDetails)
     output << R"("static_model_params_derivative": {)";
   else
     output << R"("static_model_params_derivatives_simple": {)";
-  output << model_local_vars_output.str()
-         << ", " << model_output.str()
-         << ", " << jacobian_output.str()
-         << ", " << hessian_output.str()
-         << ", " << hessian1_output.str()
-         << ", " << third_derivs_output.str()
-         << ", " << third_derivs1_output.str()
+  output << mlv_output.str()
+         << ", " << tt_output.str()
+         << ", " << rp_output.str()
+         << ", " << gp_output.str()
+         << ", " << rpp_output.str()
+         << ", " << gpp_output.str()
+         << ", " << hp_output.str()
          << "}";
 }
