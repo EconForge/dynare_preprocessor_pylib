@@ -196,8 +196,9 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool julia) const
            << "#     from " << basename << ".mod" << endl
            << "#" << endl
            << "export steady_state!" << endl << endl
-           << "function steady_state!(ys_::Vector{Float64}, exo_::Vector{Float64}, "
-           << "params::Vector{Float64})" << endl;
+           << "function steady_state!(ys_::Vector{<: Real}, exo_::Vector{<: Real}, "
+           << "params::Vector{<: Real})" << endl
+	   << "@inbounds begin" << endl;
 
   for (const auto & [symb_ids, value] : def_table)
     {
@@ -225,7 +226,7 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool julia) const
 
   output << "end" << endl;
   if (julia)
-    output << "end" << endl;
+    output << "end" << endl << "end" << endl;
 
   writeToFileIfModified(output, julia ? basename + "SteadyState2.jl" : packageDir(basename) + "/steadystate.m");
 }
