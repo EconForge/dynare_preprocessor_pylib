@@ -1184,34 +1184,6 @@ ModelTree::testNestedParenthesis(const string &str) const
 }
 
 void
-ModelTree::writeBytecodeTemporaryTerms(BytecodeWriter &code_file, ExprNodeBytecodeOutputType output_type, temporary_terms_t &temporary_terms_union, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const
-{
-  // To store the functions that have already been written in the form TEF* = ext_fun();
-  for (auto [tt, idx] : temporary_terms_idxs)
-    {
-      if (dynamic_cast<AbstractExternalFunctionNode *>(tt))
-        tt->writeBytecodeExternalFunctionOutput(code_file, output_type, temporary_terms_union, temporary_terms_idxs, tef_terms);
-
-      code_file << FNUMEXPR_{ExpressionType::TemporaryTerm, idx};
-      tt->writeBytecodeOutput(code_file, output_type, temporary_terms_union, temporary_terms_idxs, tef_terms);
-      switch (output_type)
-        {
-        case ExprNodeBytecodeOutputType::dynamicModel:
-          code_file << FSTPT_{idx};
-          break;
-        case ExprNodeBytecodeOutputType::staticModel:
-          code_file << FSTPST_{idx};
-          break;
-        case ExprNodeBytecodeOutputType::dynamicSteadyStateOperator:
-        case ExprNodeBytecodeOutputType::dynamicAssignmentLHS:
-        case ExprNodeBytecodeOutputType::staticAssignmentLHS:
-          cerr << "ModelTree::writeBytecodeTemporaryTerms: impossible case" << endl;
-          exit(EXIT_FAILURE);
-        }
-    }
-}
-
-void
 ModelTree::writeJsonModelLocalVariables(ostream &output, bool write_tef_terms, deriv_node_temp_terms_t &tef_terms) const
 {
   /* Collect all model local variables appearing in equations, and print only
@@ -1255,79 +1227,39 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, bool write_tef_terms, d
   output << "]";
 }
 
-void
-ModelTree::writeBytecodeModelEquations(BytecodeWriter &code_file, ExprNodeBytecodeOutputType output_type, const temporary_terms_t &temporary_terms_union, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const
+int
+ModelTree::writeBytecodeBinFile(const string &filename, bool is_two_boundaries) const
 {
-  for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
-    {
-      BinaryOpNode *eq_node = equations[eq];
-      expr_t lhs = eq_node->arg1, rhs = eq_node->arg2;
-      code_file << FNUMEXPR_{ExpressionType::ModelEquation, eq};
-      // Test if the right hand side of the equation is empty.
-      double vrhs = 1.0;
-      try
-        {
-          vrhs = rhs->eval({});
-        }
-      catch (ExprNode::EvalException &e)
-        {
-        }
-
-      if (vrhs != 0) // The right hand side of the equation is not empty ==> residual=lhs-rhs;
-        {
-          lhs->writeBytecodeOutput(code_file, output_type, temporary_terms_union, temporary_terms_idxs, tef_terms);
-          rhs->writeBytecodeOutput(code_file, output_type, temporary_terms_union, temporary_terms_idxs, tef_terms);
-
-          code_file << FBINARY_{BinaryOpcode::minus} << FSTPR_{eq};
-        }
-      else // The right hand side of the equation is empty ==> residual=lhs;
-        {
-          lhs->writeBytecodeOutput(code_file, output_type, temporary_terms_union, temporary_terms_idxs, tef_terms);
-          code_file << FSTPR_{eq};
-        }
-    }
-}
-
-void
-ModelTree::writeBytecodeBinFile(const string &filename, int &u_count_int, bool &file_open,
-                                bool is_two_boundaries) const
-{
-  int j;
-  std::ofstream SaveCode;
-  if (file_open)
-    SaveCode.open(filename, ios::out | ios::in | ios::binary | ios::ate);
-  else
-    SaveCode.open(filename, ios::out | ios::binary);
+  ofstream SaveCode { filename, ios::out | ios::binary };
   if (!SaveCode.is_open())
     {
       cerr << R"(Error : Can't open file ")" << filename << R"(" for writing)" << endl;
       exit(EXIT_FAILURE);
     }
-  u_count_int = 0;
-  for (const auto & [indices, d1] : derivatives[1])
-    {
-      int deriv_id = indices[1];
-      if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
-        {
-          int eq = indices[0];
-          int var { getTypeSpecificIDByDerivID(deriv_id) };
-          int lag = getLagByDerivID(deriv_id);
-          SaveCode.write(reinterpret_cast<char *>(&eq), sizeof(eq));
-          int varr = var + lag * symbol_table.endo_nbr();
-          SaveCode.write(reinterpret_cast<char *>(&varr), sizeof(varr));
-          SaveCode.write(reinterpret_cast<char *>(&lag), sizeof(lag));
-          int u = u_count_int + symbol_table.endo_nbr();
-          SaveCode.write(reinterpret_cast<char *>(&u), sizeof(u));
-          u_count_int++;
-        }
-    }
+  int u_count {0};
+  for (const auto &[indices, d1] : derivatives[1])
+    if (int deriv_id {indices[1]};
+        getTypeByDerivID(deriv_id) == SymbolType::endogenous)
+      {
+        int eq {indices[0]};
+        SaveCode.write(reinterpret_cast<char *>(&eq), sizeof(eq));
+        int tsid {getTypeSpecificIDByDerivID(deriv_id)};
+        int lag {getLagByDerivID(deriv_id)};
+        int varr {tsid + lag * symbol_table.endo_nbr()};
+        SaveCode.write(reinterpret_cast<char *>(&varr), sizeof(varr));
+        SaveCode.write(reinterpret_cast<char *>(&lag), sizeof(lag));
+        int u {u_count + symbol_table.endo_nbr()};
+        SaveCode.write(reinterpret_cast<char *>(&u), sizeof(u));
+        u_count++;
+      }
   if (is_two_boundaries)
-    u_count_int += symbol_table.endo_nbr();
-  for (j = 0; j < symbol_table.endo_nbr(); j++)
+    u_count += symbol_table.endo_nbr();
+  for (int j {0}; j < symbol_table.endo_nbr(); j++)
     SaveCode.write(reinterpret_cast<char *>(&j), sizeof(j));
-  for (j = 0; j < symbol_table.endo_nbr(); j++)
+  for (int j {0}; j < symbol_table.endo_nbr(); j++)
     SaveCode.write(reinterpret_cast<char *>(&j), sizeof(j));
   SaveCode.close();
+  return u_count;
 }
 
 void

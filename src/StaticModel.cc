@@ -261,118 +261,28 @@ StaticModel::writeStaticPerBlockCFiles(const string &basename) const
 void
 StaticModel::writeStaticBytecode(const string &basename) const
 {
-  ostringstream tmp_output;
-  bool file_open = false;
+  // First write the .bin file
+  int u_count_int { writeBytecodeBinFile(basename + "/model/bytecode/static.bin", false) };
 
-  BytecodeWriter code_file{basename + "/model/bytecode/static.cod"};
-  int count_u;
-  int u_count_int = 0;
+  BytecodeWriter code_file {basename + "/model/bytecode/static.cod"};
 
-  writeBytecodeBinFile(basename + "/model/bytecode/static.bin", u_count_int, file_open, false);
-  file_open = true;
+  // Declare temporary terms and the (single) block
+  code_file << FDIMST_{static_cast<int>(temporary_terms_derivatives[0].size()
+                                        + temporary_terms_derivatives[1].size())}
+            << FBEGINBLOCK_{symbol_table.endo_nbr(),
+                            BlockSimulationType::solveForwardComplete,
+                            0,
+                            symbol_table.endo_nbr(),
+                            endo_idx_block2orig,
+                            eq_idx_block2orig,
+                            false,
+                            symbol_table.endo_nbr(),
+                            0,
+                            0,
+                            u_count_int,
+                            symbol_table.endo_nbr()};
 
-  // Compute the union of temporary terms from residuals and 1st derivatives
-  temporary_terms_t temporary_terms = temporary_terms_derivatives[0];
-  temporary_terms.insert(temporary_terms_derivatives[1].begin(), temporary_terms_derivatives[1].end());
-
-  //Temporary variables declaration
-  code_file << FDIMST_{static_cast<int>(temporary_terms.size())}
-    << FBEGINBLOCK_{symbol_table.endo_nbr(),
-      BlockSimulationType::solveForwardComplete,
-      0,
-      symbol_table.endo_nbr(),
-      endo_idx_block2orig,
-      eq_idx_block2orig,
-      false,
-      symbol_table.endo_nbr(),
-      0,
-      0,
-      u_count_int,
-      symbol_table.endo_nbr()};
-
-  temporary_terms_t temporary_terms_union;
-  deriv_node_temp_terms_t tef_terms;
-
-  writeBytecodeTemporaryTerms(code_file, ExprNodeBytecodeOutputType::staticModel, temporary_terms_union, temporary_terms_idxs, tef_terms);
-
-  writeBytecodeModelEquations(code_file, ExprNodeBytecodeOutputType::staticModel, temporary_terms_union, temporary_terms_idxs, tef_terms);
-
-  code_file << FENDEQU_{};
-
-  // Get the current code_file position and jump if evaluating
-  int pos_jmpifeval = code_file.getInstructionCounter();
-  code_file << FJMPIFEVAL_{0}; // Use 0 as jump offset for the time being
-
-  vector<vector<pair<int, int>>> my_derivatives(symbol_table.endo_nbr());
-  count_u = symbol_table.endo_nbr();
-  for (const auto & [indices, d1] : derivatives[1])
-    {
-      int deriv_id = indices[1];
-      if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
-        {
-          int eq = indices[0];
-          int var { getTypeSpecificIDByDerivID(deriv_id) };
-          code_file << FNUMEXPR_{ExpressionType::FirstEndoDerivative, eq, var};
-          if (!my_derivatives[eq].size())
-            my_derivatives[eq].clear();
-          my_derivatives[eq].emplace_back(var, count_u);
-
-          d1->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::staticModel, temporary_terms_union, temporary_terms_idxs, tef_terms);
-
-          code_file << FSTPSU_{count_u};
-          count_u++;
-        }
-    }
-  for (int i = 0; i < symbol_table.endo_nbr(); i++)
-    {
-      code_file << FLDR_{i};
-      if (my_derivatives[i].size())
-        {
-          for (bool printed_something{false};
-               const auto &it : my_derivatives[i])
-            {
-              code_file << FLDSU_{it.second}
-                << FLDSV_{SymbolType::endogenous, it.first}
-                << FBINARY_{BinaryOpcode::times};
-              if (exchange(printed_something, true))
-                code_file << FBINARY_{BinaryOpcode::plus};
-            }
-          code_file << FBINARY_{BinaryOpcode::minus};
-        }
-      code_file << FSTPSU_{i};
-    }
-
-  // Jump unconditionally after the block
-  int pos_jmp = code_file.getInstructionCounter();
-  code_file << FJMP_{0}; // Use 0 as jump offset for the time being
-  // Update jump offset for previous JMPIFEVAL
-  code_file.overwriteInstruction(pos_jmpifeval, FJMPIFEVAL_{pos_jmp-pos_jmpifeval});
-
-  temporary_terms_t tt2, tt3;
-
-  // The Jacobian if we have to solve the block determinsitic bloc
-  for (const auto & [indices, d1] : derivatives[1])
-    {
-      int deriv_id = indices[1];
-      if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
-        {
-          int eq = indices[0];
-          int var { getTypeSpecificIDByDerivID(deriv_id) };
-          code_file << FNUMEXPR_{ExpressionType::FirstEndoDerivative, eq, var};
-          if (!my_derivatives[eq].size())
-            my_derivatives[eq].clear();
-          my_derivatives[eq].emplace_back(var, count_u);
-
-          d1->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::staticModel, temporary_terms_union, temporary_terms_idxs, tef_terms);
-          code_file << FSTPG2_{eq, var};
-        }
-    }
-
-  // Update jump offset for previous JMP
-  int pos_end_block = code_file.getInstructionCounter();
-  code_file.overwriteInstruction(pos_jmp, FJMP_{pos_end_block-pos_jmp-1});
-
-  code_file << FENDBLOCK_{} << FEND_{};
+  writeBytecodeHelper<false>(code_file);
 }
 
 void

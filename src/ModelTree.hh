@@ -242,9 +242,15 @@ protected:
   void writeTemporaryTerms(const temporary_terms_t &tt, temporary_terms_t &temp_term_union, const temporary_terms_idxs_t &tt_idxs, ostream &output, deriv_node_temp_terms_t &tef_terms) const;
   void writeJsonTemporaryTerms(const temporary_terms_t &tt, temporary_terms_t &temp_term_union, ostream &output, deriv_node_temp_terms_t &tef_terms, const string &concat) const;
   //! Writes temporary terms in bytecode
-  void writeBytecodeTemporaryTerms(BytecodeWriter &code_file, ExprNodeBytecodeOutputType output_type, temporary_terms_t &temporary_terms_union, const temporary_terms_idxs_t &temporary_terms_idxs, deriv_node_temp_terms_t &tef_terms) const;
-  //! Adds information for (non-block) bytecode simulation in a separate .bin file
-  void writeBytecodeBinFile(const string &filename, int &u_count_int, bool &file_open, bool is_two_boundaries) const;
+  template<ExprNodeBytecodeOutputType output_type>
+  void writeBytecodeTemporaryTerms(const temporary_terms_t &tt,
+                                   temporary_terms_t &temporary_terms_union,
+                                   BytecodeWriter &code_file,
+                                   deriv_node_temp_terms_t &tef_terms) const;
+  /* Adds information for (non-block) bytecode simulation in a separate .bin
+     file.
+     Returns the number of first derivatives w.r.t. endogenous variables */
+  int writeBytecodeBinFile(const string &filename, bool is_two_boundaries) const;
   //! Fixes output when there are more than 32 nested parens, Issue #1201
   void fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_paren_vars, bool &message_printed) const;
   //! Tests if string contains more than 32 nested parens, Issue #1201
@@ -269,6 +275,10 @@ protected:
   tuple<ostringstream, ostringstream, ostringstream, ostringstream,
         ostringstream, ostringstream, ostringstream> writeParamsDerivativesFileHelper() const;
 
+  // Helper for writing bytecode (without block decomposition)
+  template<bool dynamic>
+  void writeBytecodeHelper(BytecodeWriter &code_file) const;
+
   /* Helper for writing JSON output for residuals and derivatives.
      Returns mlv and derivatives output at each derivation order. */
   template<bool dynamic>
@@ -288,8 +298,10 @@ protected:
   /* Writes JSON model local variables.
      Optionally put the external function variable calls into TEF terms */
   void writeJsonModelLocalVariables(ostream &output, bool write_tef_terms, deriv_node_temp_terms_t &tef_terms) const;
+
   //! Writes model equations in bytecode
-  void writeBytecodeModelEquations(BytecodeWriter &code_file, ExprNodeBytecodeOutputType output_type, const temporary_terms_t &temporary_terms_union, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
+  template<ExprNodeBytecodeOutputType output_type>
+  void writeBytecodeModelEquations(BytecodeWriter &code_file, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms) const;
 
   //! Writes LaTeX model file
   void writeLatexModelFile(const string &mod_basename, const string &latex_basename, ExprNodeOutputType output_type, bool write_equation_tags) const;
@@ -1002,6 +1014,203 @@ ModelTree::writeParamsDerivativesFileHelper() const
 
   return { move(tt_output), move(rp_output), move(gp_output),
     move(rpp_output), move(gpp_output), move(hp_output), move(g3p_output) };
+}
+
+template<ExprNodeBytecodeOutputType output_type>
+void
+ModelTree::writeBytecodeTemporaryTerms(const temporary_terms_t &tt,
+                                       temporary_terms_t &temporary_terms_union,
+                                       BytecodeWriter &code_file,
+                                       deriv_node_temp_terms_t &tef_terms) const
+{
+  // To store the functions that have already been written in the form TEF* = ext_fun();
+  for (auto it : tt)
+    {
+      if (dynamic_cast<AbstractExternalFunctionNode *>(it))
+        it->writeBytecodeExternalFunctionOutput(code_file, output_type, temporary_terms_union, temporary_terms_idxs, tef_terms);
+
+      int idx {temporary_terms_idxs.at(it)};
+      code_file << FNUMEXPR_{ExpressionType::TemporaryTerm, idx};
+      it->writeBytecodeOutput(code_file, output_type, temporary_terms_union, temporary_terms_idxs, tef_terms);
+      switch (output_type)
+        {
+        case ExprNodeBytecodeOutputType::dynamicModel:
+          code_file << FSTPT_{idx};
+          break;
+        case ExprNodeBytecodeOutputType::staticModel:
+          code_file << FSTPST_{idx};
+          break;
+        case ExprNodeBytecodeOutputType::dynamicSteadyStateOperator:
+        case ExprNodeBytecodeOutputType::dynamicAssignmentLHS:
+        case ExprNodeBytecodeOutputType::staticAssignmentLHS:
+          cerr << "ModelTree::writeBytecodeTemporaryTerms: impossible case" << endl;
+          exit(EXIT_FAILURE);
+
+          temporary_terms_union.insert(it);
+        }
+    }
+}
+
+template<ExprNodeBytecodeOutputType output_type>
+void
+ModelTree::writeBytecodeModelEquations(BytecodeWriter &code_file, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms) const
+{
+  for (int eq {0}; eq < static_cast<int>(equations.size()); eq++)
+    {
+      BinaryOpNode *eq_node {equations[eq]};
+      expr_t lhs {eq_node->arg1}, rhs {eq_node->arg2};
+      code_file << FNUMEXPR_{ExpressionType::ModelEquation, eq};
+      // Test if the right hand side of the equation is empty.
+      double vrhs {1.0};
+      try
+        {
+          vrhs = rhs->eval({});
+        }
+      catch (ExprNode::EvalException &e)
+        {
+        }
+
+      if (vrhs != 0) // The right hand side of the equation is not empty ⇒ residual=lhs-rhs
+        {
+          lhs->writeBytecodeOutput(code_file, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+          rhs->writeBytecodeOutput(code_file, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+
+          code_file << FBINARY_{BinaryOpcode::minus} << FSTPR_{eq};
+        }
+      else // The right hand side of the equation is empty ⇒ residual=lhs
+        {
+          lhs->writeBytecodeOutput(code_file, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
+          code_file << FSTPR_{eq};
+        }
+    }
+}
+
+template<bool dynamic>
+void
+ModelTree::writeBytecodeHelper(BytecodeWriter &code_file) const
+{
+  constexpr ExprNodeBytecodeOutputType output_type { dynamic ? ExprNodeBytecodeOutputType::dynamicModel : ExprNodeBytecodeOutputType::staticModel };
+
+  temporary_terms_t temporary_terms_union;
+  deriv_node_temp_terms_t tef_terms;
+
+  writeBytecodeTemporaryTerms<output_type>(temporary_terms_derivatives[0], temporary_terms_union, code_file, tef_terms);
+  writeBytecodeModelEquations<output_type>(code_file, temporary_terms_union, tef_terms);
+
+  code_file << FENDEQU_{};
+
+  // Temporary terms for the Jacobian
+  writeBytecodeTemporaryTerms<output_type>(temporary_terms_derivatives[1], temporary_terms_union, code_file, tef_terms);
+
+  // Get the current code_file position and jump if “evaluate” mode
+  int pos_jmpifeval {code_file.getInstructionCounter()};
+  code_file << FJMPIFEVAL_{0}; // Use 0 as jump offset for the time being
+
+  // The Jacobian in “simulate” mode
+  vector<vector<tuple<int, int, int>>> my_derivatives(symbol_table.endo_nbr());;
+  int count_u {symbol_table.endo_nbr()};
+  for (const auto &[indices, d1] : derivatives[1])
+    {
+      auto [eq, deriv_id] {vectorToTuple<2>(indices)};
+      if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
+        {
+          int tsid {getTypeSpecificIDByDerivID(deriv_id)};
+          int lag {getLagByDerivID(deriv_id)};
+          if constexpr(dynamic)
+            code_file << FNUMEXPR_{ExpressionType::FirstEndoDerivative, eq, tsid, lag};
+          else
+            code_file << FNUMEXPR_{ExpressionType::FirstEndoDerivative, eq, tsid};
+          if (!my_derivatives[eq].size())
+            my_derivatives[eq].clear();
+          my_derivatives[eq].emplace_back(tsid, lag, count_u);
+          d1->writeBytecodeOutput(code_file, output_type, temporary_terms_union, temporary_terms_idxs, tef_terms);
+          if constexpr(dynamic)
+            code_file << FSTPU_{count_u};
+          else
+            code_file << FSTPSU_{count_u};
+          count_u++;
+        }
+    }
+  for (int i {0}; i < symbol_table.endo_nbr(); i++)
+    {
+      code_file << FLDR_{i};
+      if (my_derivatives[i].size())
+        {
+          for (bool first_term {true};
+               const auto &[tsid, lag, uidx] : my_derivatives[i])
+            {
+              if constexpr(dynamic)
+                code_file << FLDU_{uidx} << FLDV_{SymbolType::endogenous, tsid, lag};
+              else
+                code_file << FLDSU_{uidx} << FLDSV_{SymbolType::endogenous, tsid};
+              code_file << FBINARY_{BinaryOpcode::times};
+              if (!exchange(first_term, false))
+                code_file << FBINARY_{BinaryOpcode::plus};
+            }
+          code_file << FBINARY_{BinaryOpcode::minus};
+        }
+      if constexpr(dynamic)
+        code_file << FSTPU_{i};
+      else
+        code_file << FSTPSU_{i};
+    }
+
+  // Jump unconditionally after the block
+  int pos_jmp {code_file.getInstructionCounter()};
+  code_file << FJMP_{0}; // Use 0 as jump offset for the time being
+  // Update jump offset for previous JMPIFEVAL
+  code_file.overwriteInstruction(pos_jmpifeval, FJMPIFEVAL_{pos_jmp-pos_jmpifeval});
+
+  // The Jacobian in “evaluate” mode
+  for (const auto &[indices, d1] : derivatives[1])
+    {
+      auto [eq, deriv_id] {vectorToTuple<2>(indices)};
+      int tsid {getTypeSpecificIDByDerivID(deriv_id)};
+      int lag {getLagByDerivID(deriv_id)};
+      SymbolType type {getTypeByDerivID(deriv_id)};
+
+      if constexpr(dynamic)
+        {
+          ExpressionType expr_type;
+          switch (type)
+            {
+            case SymbolType::endogenous:
+              expr_type = ExpressionType::FirstEndoDerivative;
+              break;
+            case SymbolType::exogenous:
+              expr_type = ExpressionType::FirstExoDerivative;
+              break;
+            case SymbolType::exogenousDet:
+              expr_type = ExpressionType::FirstExodetDerivative;
+              break;
+            default:
+              assert(false);
+              break;
+            }
+          code_file << FNUMEXPR_{expr_type, eq, tsid, lag};
+        }
+      else
+        {
+          assert(type == SymbolType::endogenous);
+          code_file << FNUMEXPR_{ExpressionType::FirstEndoDerivative, eq, tsid};
+        }
+
+      d1->writeBytecodeOutput(code_file, output_type, temporary_terms_union, temporary_terms_idxs, tef_terms);
+      if constexpr(dynamic)
+         {
+           // Bytecode MEX uses a separate matrix for exogenous and exodet Jacobians
+           int jacob_col { type == SymbolType::endogenous ? getJacobianCol(deriv_id) : tsid };
+           code_file << FSTPG3_{eq, tsid, lag, jacob_col};
+         }
+      else
+        code_file << FSTPG2_{eq, tsid};
+    }
+
+  // Update jump offset for previous JMP
+  int pos_end_block {code_file.getInstructionCounter()};
+  code_file.overwriteInstruction(pos_jmp, FJMP_{pos_end_block-pos_jmp-1});
+
+  code_file << FENDBLOCK_{} << FEND_{};
 }
 
 template<bool dynamic>

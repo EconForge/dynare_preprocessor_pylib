@@ -531,202 +531,61 @@ DynamicModel::writeDynamicPerBlockCFiles(const string &basename) const
 void
 DynamicModel::writeDynamicBytecode(const string &basename) const
 {
-  ostringstream tmp_output;
-  BytecodeWriter code_file{basename + "/model/bytecode/dynamic.cod"};
-  bool file_open = false;
-
-  int count_u;
-  int u_count_int = 0;
+  // Determine the type of model (used for typing the single block)
   BlockSimulationType simulation_type;
-  if ((max_endo_lag > 0) && (max_endo_lead > 0))
+  if (max_endo_lag > 0 && max_endo_lead > 0)
     simulation_type = BlockSimulationType::solveTwoBoundariesComplete;
-  else if ((max_endo_lag >= 0) && (max_endo_lead == 0))
+  else if (max_endo_lag >= 0 && max_endo_lead == 0)
     simulation_type = BlockSimulationType::solveForwardComplete;
   else
     simulation_type = BlockSimulationType::solveBackwardComplete;
 
-  writeBytecodeBinFile(basename + "/model/bytecode/dynamic.bin", u_count_int, file_open, simulation_type == BlockSimulationType::solveTwoBoundariesComplete);
-  file_open = true;
+  // First write the .bin file
+  int u_count_int { writeBytecodeBinFile(basename + "/model/bytecode/dynamic.bin",
+                                         simulation_type == BlockSimulationType::solveTwoBoundariesComplete) };
 
-  //Temporary variables declaration
-  code_file << FDIMT_{static_cast<int>(temporary_terms_idxs.size())};
+  BytecodeWriter code_file {basename + "/model/bytecode/dynamic.cod"};
 
-  vector<int> exo, exo_det, other_endo;
+  // Declare temporary terms
+  code_file << FDIMT_{static_cast<int>(temporary_terms_derivatives[0].size()
+                                       + temporary_terms_derivatives[1].size())};
 
-  for (int i = 0; i < symbol_table.exo_det_nbr(); i++)
-    exo_det.push_back(i);
-  for (int i = 0; i < symbol_table.exo_nbr(); i++)
-    exo.push_back(i);
+  // Declare the (single) block
+  vector<int> exo(symbol_table.exo_nbr()), exo_det(symbol_table.exo_det_nbr());
+  iota(exo.begin(), exo.end(), 0);
+  iota(exo_det.begin(), exo_det.end(), 0);
 
-  map<tuple<int, int, int>, expr_t> first_derivatives_reordered_endo;
-  map<tuple<int, SymbolType, int, int>, expr_t> first_derivatives_reordered_exo;
-  for (const auto & [indices, d1] : derivatives[1])
-    {
-      int deriv_id = indices[1];
-      int eq = indices[0];
-      int var { getTypeSpecificIDByDerivID(deriv_id) };
-      int lag = getLagByDerivID(deriv_id);
-      if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
-        first_derivatives_reordered_endo[{ lag, var, eq }] = d1;
-      else if (getTypeByDerivID(deriv_id) == SymbolType::exogenous || getTypeByDerivID(deriv_id) == SymbolType::exogenousDet)
-        first_derivatives_reordered_exo[{ lag, getTypeByDerivID(deriv_id), var, eq }] = d1;
-    }
-  int prev_var = -1;
-  int prev_lag = -999999999;
-  int count_col_endo = 0;
-  for (const auto &it : first_derivatives_reordered_endo)
-    {
-      int var, lag;
-      tie(lag, var, ignore) = it.first;
-      if (prev_var != var || prev_lag != lag)
-        {
-          prev_var = var;
-          prev_lag = lag;
-          count_col_endo++;
-        }
-    }
-  prev_var = -1;
-  prev_lag = -999999999;
-  SymbolType prev_type{SymbolType::unusedEndogenous}; // Any non-exogenous type would do here
-  int count_col_exo = 0;
-  int count_col_det_exo = 0;
-
-  for (const auto &it : first_derivatives_reordered_exo)
-    {
-      int var, lag;
-      SymbolType type;
-      tie(lag, type, var, ignore) = it.first;
-      if (prev_var != var || prev_lag != lag || prev_type != type)
-        {
-          prev_var = var;
-          prev_lag = lag;
-          prev_type = type;
-          if (type == SymbolType::exogenous)
-            count_col_exo++;
-          else if (type == SymbolType::exogenousDet)
-            count_col_det_exo++;
-        }
-    }
+  int jacobian_ncols_endo
+    { static_cast<int>(count_if(dyn_jacobian_cols_table.begin(), dyn_jacobian_cols_table.end(),
+                                [this](const auto &v)
+                                { return getTypeByDerivID(v.first) == SymbolType::endogenous; }))
+    };
+  int jacobian_ncols_exo {symbol_table.exo_nbr()};
+  int jacobian_ncols_exo_det {symbol_table.exo_det_nbr()};
 
   code_file << FBEGINBLOCK_{symbol_table.endo_nbr(),
-      simulation_type,
-      0,
-      symbol_table.endo_nbr(),
-      endo_idx_block2orig,
-      eq_idx_block2orig,
-      false,
-      symbol_table.endo_nbr(),
-      max_endo_lag,
-      max_endo_lead,
-      u_count_int,
-      count_col_endo,
-      symbol_table.exo_det_nbr(),
-      count_col_det_exo,
-      symbol_table.exo_nbr(),
-      count_col_exo,
-      0,
-      0,
-      exo_det,
-      exo,
-      other_endo};
+                            simulation_type,
+                            0,
+                            symbol_table.endo_nbr(),
+                            endo_idx_block2orig,
+                            eq_idx_block2orig,
+                            false,
+                            symbol_table.endo_nbr(),
+                            max_endo_lag,
+                            max_endo_lead,
+                            u_count_int,
+                            jacobian_ncols_endo,
+                            symbol_table.exo_det_nbr(),
+                            jacobian_ncols_exo_det,
+                            symbol_table.exo_nbr(),
+                            jacobian_ncols_exo,
+                            0,
+                            0,
+                            exo_det,
+                            exo,
+                            {}};
 
-  temporary_terms_t temporary_terms_union;
-  deriv_node_temp_terms_t tef_terms;
-
-  writeBytecodeTemporaryTerms(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, temporary_terms_idxs, tef_terms);
-
-  writeBytecodeModelEquations(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, temporary_terms_idxs, tef_terms);
-
-  code_file << FENDEQU_{};
-
-  // Get the current code_file position and jump if evaluating
-  int pos_jmpifeval = code_file.getInstructionCounter();
-  code_file << FJMPIFEVAL_{0}; // Use 0 as jump offset for the time being
-
-  vector<vector<tuple<int, int, int>>> my_derivatives(symbol_table.endo_nbr());;
-  count_u = symbol_table.endo_nbr();
-  for (const auto & [indices, d1] : derivatives[1])
-    {
-      int deriv_id = indices[1];
-      if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
-        {
-          int eq = indices[0];
-          int var { getTypeSpecificIDByDerivID(deriv_id) };
-          int lag = getLagByDerivID(deriv_id);
-          code_file << FNUMEXPR_{ExpressionType::FirstEndoDerivative, eq, var, lag};
-          if (!my_derivatives[eq].size())
-            my_derivatives[eq].clear();
-          my_derivatives[eq].emplace_back(var, lag, count_u);
-          d1->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, temporary_terms_idxs, tef_terms);
-
-          code_file << FSTPU_{count_u};
-          count_u++;
-        }
-    }
-  for (int i = 0; i < symbol_table.endo_nbr(); i++)
-    {
-      code_file << FLDR_{i};
-      if (my_derivatives[i].size())
-        {
-          for (auto it = my_derivatives[i].begin(); it != my_derivatives[i].end(); ++it)
-            {
-              code_file << FLDU_{get<2>(*it)}
-                << FLDV_{SymbolType::endogenous, get<0>(*it), get<1>(*it)}
-                << FBINARY_{BinaryOpcode::times};
-              if (it != my_derivatives[i].begin())
-                code_file << FBINARY_{BinaryOpcode::plus};
-            }
-          code_file << FBINARY_{BinaryOpcode::minus};
-        }
-      code_file << FSTPU_{i};
-    }
-
-  // Jump unconditionally after the block
-  int pos_jmp = code_file.getInstructionCounter();
-  code_file << FJMP_{0}; // Use 0 as jump offset for the time being
-  // Update jump offset for previous JMPIFEVAL
-  code_file.overwriteInstruction(pos_jmpifeval, FJMPIFEVAL_{pos_jmp-pos_jmpifeval});
-
-  // The Jacobian
-  prev_var = -1;
-  prev_lag = -999999999;
-  count_col_endo = 0;
-  for (const auto &it : first_derivatives_reordered_endo)
-    {
-      auto [lag, var, eq] = it.first;
-      expr_t d1 = it.second;
-      code_file << FNUMEXPR_{ExpressionType::FirstEndoDerivative, eq, var, lag};
-      if (prev_var != var || prev_lag != lag)
-        {
-          prev_var = var;
-          prev_lag = lag;
-          count_col_endo++;
-        }
-      d1->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, temporary_terms_idxs, tef_terms);
-      code_file << FSTPG3_{eq, var, lag, count_col_endo-1};
-    }
-  prev_var = -1;
-  prev_lag = -999999999;
-  count_col_exo = 0;
-  for (const auto &it : first_derivatives_reordered_exo)
-    {
-      auto [lag, ignore, var, eq] = it.first;
-      expr_t d1 = it.second;
-      code_file << FNUMEXPR_{ExpressionType::FirstExoDerivative, eq, var, lag};
-      if (prev_var != var || prev_lag != lag)
-        {
-          prev_var = var;
-          prev_lag = lag;
-          count_col_exo++;
-        }
-      d1->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::dynamicModel, temporary_terms_union, temporary_terms_idxs, tef_terms);
-      code_file << FSTPG3_{eq, var, lag, count_col_exo-1};
-    }
-  // Update jump offset for previous JMP
-  int pos_end_block = code_file.getInstructionCounter();
-  code_file.overwriteInstruction(pos_jmp, FJMP_{pos_end_block-pos_jmp-1});
-
-  code_file << FENDBLOCK_{} << FEND_{};
+  writeBytecodeHelper<true>(code_file);
 }
 
 void
