@@ -1023,7 +1023,6 @@ ModelTree::writeBytecodeTemporaryTerms(const temporary_terms_t &tt,
                                        BytecodeWriter &code_file,
                                        deriv_node_temp_terms_t &tef_terms) const
 {
-  // To store the functions that have already been written in the form TEF* = ext_fun();
   for (auto it : tt)
     {
       if (dynamic_cast<AbstractExternalFunctionNode *>(it))
@@ -1032,22 +1031,15 @@ ModelTree::writeBytecodeTemporaryTerms(const temporary_terms_t &tt,
       int idx {temporary_terms_idxs.at(it)};
       code_file << FNUMEXPR_{ExpressionType::TemporaryTerm, idx};
       it->writeBytecodeOutput(code_file, output_type, temporary_terms_union, temporary_terms_idxs, tef_terms);
-      switch (output_type)
-        {
-        case ExprNodeBytecodeOutputType::dynamicModel:
-          code_file << FSTPT_{idx};
-          break;
-        case ExprNodeBytecodeOutputType::staticModel:
-          code_file << FSTPST_{idx};
-          break;
-        case ExprNodeBytecodeOutputType::dynamicSteadyStateOperator:
-        case ExprNodeBytecodeOutputType::dynamicAssignmentLHS:
-        case ExprNodeBytecodeOutputType::staticAssignmentLHS:
-          cerr << "ModelTree::writeBytecodeTemporaryTerms: impossible case" << endl;
-          exit(EXIT_FAILURE);
 
-          temporary_terms_union.insert(it);
-        }
+      static_assert(output_type == ExprNodeBytecodeOutputType::dynamicModel
+                    || output_type == ExprNodeBytecodeOutputType::staticModel);
+      if constexpr(output_type == ExprNodeBytecodeOutputType::dynamicModel)
+        code_file << FSTPT_{idx};
+      else
+        code_file << FSTPST_{idx};
+
+      temporary_terms_union.insert(it);
     }
 }
 
