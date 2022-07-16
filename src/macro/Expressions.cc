@@ -17,6 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <utility>
+
 #include "Expressions.hh"
 
 using namespace macro;
