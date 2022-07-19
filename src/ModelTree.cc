@@ -1242,22 +1242,22 @@ ModelTree::writeBytecodeBinFile(const string &filename, bool is_two_boundaries) 
         getTypeByDerivID(deriv_id) == SymbolType::endogenous)
       {
         int eq {indices[0]};
-        SaveCode.write(reinterpret_cast<char *>(&eq), sizeof(eq));
+        SaveCode.write(reinterpret_cast<char *>(&eq), sizeof eq);
         int tsid {getTypeSpecificIDByDerivID(deriv_id)};
         int lag {getLagByDerivID(deriv_id)};
         int varr {tsid + lag * symbol_table.endo_nbr()};
-        SaveCode.write(reinterpret_cast<char *>(&varr), sizeof(varr));
-        SaveCode.write(reinterpret_cast<char *>(&lag), sizeof(lag));
+        SaveCode.write(reinterpret_cast<char *>(&varr), sizeof varr);
+        SaveCode.write(reinterpret_cast<char *>(&lag), sizeof lag);
         int u {u_count + symbol_table.endo_nbr()};
-        SaveCode.write(reinterpret_cast<char *>(&u), sizeof(u));
+        SaveCode.write(reinterpret_cast<char *>(&u), sizeof u);
         u_count++;
       }
   if (is_two_boundaries)
     u_count += symbol_table.endo_nbr();
   for (int j {0}; j < symbol_table.endo_nbr(); j++)
-    SaveCode.write(reinterpret_cast<char *>(&j), sizeof(j));
+    SaveCode.write(reinterpret_cast<char *>(&j), sizeof j);
   for (int j {0}; j < symbol_table.endo_nbr(); j++)
-    SaveCode.write(reinterpret_cast<char *>(&j), sizeof(j));
+    SaveCode.write(reinterpret_cast<char *>(&j), sizeof j);
   SaveCode.close();
   return u_count;
 }
