@@ -140,11 +140,12 @@ private:
   void writeDynamicPerBlockCFiles(const string &basename) const;
   //! Writes the code of the block-decomposed model in virtual machine bytecode
   void writeDynamicBlockBytecode(const string &basename) const;
+  // Writes derivatives w.r.t. exo, exo det and other endogenous
+  void writeBlockBytecodeAdditionalDerivatives(BytecodeWriter &code_file, int block,
+                                               const temporary_terms_t &temporary_terms_union,
+                                               const deriv_node_temp_terms_t &tef_terms) const override;
   //! Writes the code of the model in virtual machine bytecode
   void writeDynamicBytecode(const string &basename) const;
-  //! Adds per-block information for bytecode simulation in a separate .bin file
-  void writeBlockBytecodeBinFile(const string &basename, int num, int &u_count_int, bool &file_open,
-                                 bool is_two_boundaries) const;
 
   void writeSetAuxiliaryVariables(const string &basename, bool julia) const;
   void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
@@ -174,11 +175,6 @@ private:
   void additionalBlockTemporaryTerms(int blk,
                                      vector<vector<temporary_terms_t>> &blocks_temporary_terms,
                                      map<expr_t, tuple<int, int, int>> &reference_count) const override;
-
-  //! Write derivative bytecode of an equation w.r. to a variable
-  void writeBytecodeDerivative(BytecodeWriter &code_file, int eq, int symb_id, int lag, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
-  //! Write chain rule derivative bytecode of an equation w.r. to a variable
-  void writeBytecodeChainRuleDerivative(BytecodeWriter &code_file, int blk, int eq, int var, int lag, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
 
   SymbolType getTypeByDerivID(int deriv_id) const noexcept(false) override;
   int getLagByDerivID(int deriv_id) const noexcept(false) override;
@@ -294,6 +290,12 @@ private:
      (for example, in the deriv_id table, AUX_DIFF_nn(-1) may appear as itself
      (with a lag), and also as a contemporaneous diff lag auxvar). */
   vector<int> getVARDerivIDs(int lhs_symb_id, int lead_lag) const;
+
+  int
+  getBlockJacobianEndoCol(int blk, int var, int lag) const override
+  {
+    return blocks_jacob_cols_endo[blk].at({ var, lag });
+  }
 
 public:
   DynamicModel(SymbolTable &symbol_table_arg,

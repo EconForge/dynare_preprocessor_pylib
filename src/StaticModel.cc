@@ -95,26 +95,6 @@ StaticModel::StaticModel(const DynamicModel &m) :
 }
 
 void
-StaticModel::writeBytecodeDerivative(BytecodeWriter &code_file, int eq, int symb_id, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const
-{
-  if (auto it = derivatives[1].find({ eq, getDerivID(symbol_table.getID(SymbolType::endogenous, symb_id), 0) });
-      it != derivatives[1].end())
-    it->second->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::staticModel, temporary_terms, temporary_terms_idxs, tef_terms);
-  else
-    code_file << FLDZ_{};
-}
-
-void
-StaticModel::writeBytecodeChainRuleDerivative(BytecodeWriter &code_file, int blk, int eq, int var, int lag, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const
-{
-  if (auto it = blocks_derivatives[blk].find({ eq, var, lag });
-      it != blocks_derivatives[blk].end())
-    it->second->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::staticModel, temporary_terms, temporary_terms_idxs, tef_terms);
-  else
-    code_file << FLDZ_{};
-}
-
-void
 StaticModel::writeStaticPerBlockMFiles(const string &basename) const
 {
   temporary_terms_t temporary_terms; // Temp terms written so far
@@ -288,368 +268,45 @@ StaticModel::writeStaticBytecode(const string &basename) const
 void
 StaticModel::writeStaticBlockBytecode(const string &basename) const
 {
-  struct Uff_l
-  {
-    int u, var, lag;
-    Uff_l *pNext;
-  };
+  BytecodeWriter code_file {basename + "/model/bytecode/static.cod"};
 
-  struct Uff
-  {
-    Uff_l *Ufl, *Ufl_First;
-  };
-
-  int i, v;
-  string tmp_s;
-  ostringstream tmp_output;
-  expr_t lhs = nullptr, rhs = nullptr;
-  BinaryOpNode *eq_node;
-  Uff Uf[symbol_table.endo_nbr()];
-  map<expr_t, int> reference_count;
-  vector<int> feedback_variables;
-  bool file_open = false;
-
-  BytecodeWriter code_file{basename + "/model/bytecode/static.cod"};
-
-  //Temporary variables declaration
-  code_file << FDIMST_{static_cast<int>(blocks_temporary_terms_idxs.size())};
-
-  temporary_terms_t temporary_terms_union;
-
-  for (int block = 0; block < static_cast<int>(blocks.size()); block++)
+  const string bin_filename {basename + "/model/bytecode/static.bin"};
+  ofstream bin_file {bin_filename, ios::out | ios::binary};
+  if (!bin_file.is_open())
     {
-      feedback_variables.clear();
-      if (block > 0)
-        code_file << FENDBLOCK_{};
-      int count_u;
-      int u_count_int = 0;
-      BlockSimulationType simulation_type = blocks[block].simulation_type;
-      int block_size = blocks[block].size;
-      int block_mfs = blocks[block].mfs_size;
-      int block_recursive = blocks[block].getRecursiveSize();
-
-      if (simulation_type == BlockSimulationType::solveTwoBoundariesSimple
-          || simulation_type == BlockSimulationType::solveTwoBoundariesComplete
-          || simulation_type == BlockSimulationType::solveBackwardComplete
-          || simulation_type == BlockSimulationType::solveForwardComplete)
-        {
-          writeBlockBytecodeBinFile(basename, block, u_count_int, file_open);
-          file_open = true;
-        }
-
-      code_file << FBEGINBLOCK_{block_mfs,
-          simulation_type,
-          blocks[block].first_equation,
-          block_size,
-          endo_idx_block2orig,
-          eq_idx_block2orig,
-          blocks[block].linear,
-          symbol_table.endo_nbr(),
-          0,
-          0,
-          u_count_int,
-          block_size};
-
-      // Get the current code_file position and jump if evaluating
-      int pos_jmpifeval = code_file.getInstructionCounter();
-      code_file << FJMPIFEVAL_{0}; // Use 0 as jump offset for the time being
-
-      //The Temporary terms
-      deriv_node_temp_terms_t tef_terms;
-      /* Keep a backup of temporary_terms_union here, since temp. terms are
-         written a second time below. This is probably unwanted… */
-      temporary_terms_t ttu_old = temporary_terms_union;
-
-      auto write_eq_tt = [&](int eq)
-                         {
-                           for (auto it : blocks_temporary_terms[block][eq])
-                             {
-                               if (dynamic_cast<AbstractExternalFunctionNode *>(it))
-                                 it->writeBytecodeExternalFunctionOutput(code_file, ExprNodeBytecodeOutputType::staticModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-
-                               code_file << FNUMEXPR_{ExpressionType::TemporaryTerm, blocks_temporary_terms_idxs.at(it)};
-                               it->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::staticModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-                               code_file << FSTPST_{blocks_temporary_terms_idxs.at(it)};
-                               temporary_terms_union.insert(it);
-                             }
-                         };
-
-      for (i = 0; i < block_size; i++)
-        {
-          write_eq_tt(i);
-
-          // The equations
-          int variable_ID, equation_ID;
-          EquationType equ_type;
-          switch (simulation_type)
-            {
-            evaluation:
-            case BlockSimulationType::evaluateBackward:
-            case BlockSimulationType::evaluateForward:
-              equ_type = getBlockEquationType(block, i);
-              code_file << FNUMEXPR_{ExpressionType::ModelEquation, getBlockEquationID(block, i)};
-              if (equ_type == EquationType::evaluate)
-                {
-                  eq_node = getBlockEquationExpr(block, i);
-                  lhs = eq_node->arg1;
-                  rhs = eq_node->arg2;
-                  rhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::staticModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-                  lhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::staticAssignmentLHS, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-                }
-              else if (equ_type == EquationType::evaluateRenormalized)
-                {
-                  eq_node = getBlockEquationRenormalizedExpr(block, i);
-                  lhs = eq_node->arg1;
-                  rhs = eq_node->arg2;
-                  rhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::staticModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-                  lhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::staticAssignmentLHS, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-                }
-              break;
-            case BlockSimulationType::solveBackwardComplete:
-            case BlockSimulationType::solveForwardComplete:
-              if (i < block_recursive)
-                goto evaluation;
-              variable_ID = getBlockVariableID(block, i);
-              equation_ID = getBlockEquationID(block, i);
-              feedback_variables.push_back(variable_ID);
-              Uf[equation_ID].Ufl = nullptr;
-              goto end;
-            default:
-            end:
-              code_file << FNUMEXPR_{ExpressionType::ModelEquation, getBlockEquationID(block, i)};
-              eq_node = getBlockEquationExpr(block, i);
-              lhs = eq_node->arg1;
-              rhs = eq_node->arg2;
-              lhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::staticModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-              rhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::staticModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-
-              code_file << FBINARY_{BinaryOpcode::minus} << FSTPR_{i - block_recursive};
-            }
-        }
-      code_file << FENDEQU_{};
-
-      // The Jacobian if we have to solve the block
-      if (simulation_type != BlockSimulationType::evaluateBackward
-          && simulation_type != BlockSimulationType::evaluateForward)
-        {
-          // Write temporary terms for derivatives
-          write_eq_tt(blocks[block].size);
-
-          switch (simulation_type)
-            {
-            case BlockSimulationType::solveBackwardSimple:
-            case BlockSimulationType::solveForwardSimple:
-              code_file << FNUMEXPR_{ExpressionType::FirstEndoDerivative, 0, 0};
-              writeBytecodeDerivative(code_file, getBlockEquationID(block, 0), getBlockVariableID(block, 0), temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-              code_file << FSTPG_{0};
-              break;
-
-            case BlockSimulationType::solveBackwardComplete:
-            case BlockSimulationType::solveForwardComplete:
-              count_u = feedback_variables.size();
-              for (const auto &[indices, ignore2] : blocks_derivatives[block])
-                {
-                  auto [eq, var, ignore] = indices;
-                  int eqr = getBlockEquationID(block, eq);
-                  int varr = getBlockVariableID(block, var);
-                  if (eq >= block_recursive && var >= block_recursive)
-                    {
-                      if (!Uf[eqr].Ufl)
-                        {
-                          Uf[eqr].Ufl = static_cast<Uff_l *>(malloc(sizeof(Uff_l)));
-                          Uf[eqr].Ufl_First = Uf[eqr].Ufl;
-                        }
-                      else
-                        {
-                          Uf[eqr].Ufl->pNext = static_cast<Uff_l *>(malloc(sizeof(Uff_l)));
-                          Uf[eqr].Ufl = Uf[eqr].Ufl->pNext;
-                        }
-                      Uf[eqr].Ufl->pNext = nullptr;
-                      Uf[eqr].Ufl->u = count_u;
-                      Uf[eqr].Ufl->var = varr;
-                      code_file << FNUMEXPR_{ExpressionType::FirstEndoDerivative, eqr, varr};
-                      writeBytecodeChainRuleDerivative(code_file, block, eq, var, 0, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-                      code_file << FSTPSU_{count_u};
-                      count_u++;
-                    }
-                }
-              for (i = 0; i < block_size; i++)
-                if (i >= block_recursive)
-                  {
-                    code_file << FLDR_{i-block_recursive} << FLDZ_{};
-
-                    v = getBlockEquationID(block, i);
-                    for (Uf[v].Ufl = Uf[v].Ufl_First; Uf[v].Ufl; Uf[v].Ufl = Uf[v].Ufl->pNext)
-                      code_file << FLDSU_{Uf[v].Ufl->u}
-                        << FLDSV_{SymbolType::endogenous, Uf[v].Ufl->var}
-                        << FBINARY_{BinaryOpcode::times}
-                        << FCUML_{};
-                    Uf[v].Ufl = Uf[v].Ufl_First;
-                    while (Uf[v].Ufl)
-                      {
-                        Uf[v].Ufl_First = Uf[v].Ufl->pNext;
-                        free(Uf[v].Ufl);
-                        Uf[v].Ufl = Uf[v].Ufl_First;
-                      }
-                    code_file << FBINARY_{BinaryOpcode::minus}
-                      << FSTPSU_{i - block_recursive};
-                  }
-              break;
-            default:
-              break;
-            }
-        }
-
-      // Jump unconditionally after the block
-      int pos_jmp = code_file.getInstructionCounter();
-      code_file << FJMP_{0}; // Use 0 as jump offset for the time being
-      // Update jump offset for previous JMPIFEVAL
-      code_file.overwriteInstruction(pos_jmpifeval, FJMPIFEVAL_{pos_jmp-pos_jmpifeval});
-
-      tef_terms.clear();
-      temporary_terms_union = ttu_old;
-
-      for (i = 0; i < block_size; i++)
-        {
-          write_eq_tt(i);
-
-          // The equations
-          int variable_ID, equation_ID;
-          EquationType equ_type;
-          switch (simulation_type)
-            {
-            evaluation_l:
-            case BlockSimulationType::evaluateBackward:
-            case BlockSimulationType::evaluateForward:
-              equ_type = getBlockEquationType(block, i);
-              code_file << FNUMEXPR_{ExpressionType::ModelEquation, getBlockEquationID(block, i)};
-              if (equ_type == EquationType::evaluate)
-                {
-                  eq_node = getBlockEquationExpr(block, i);
-                  lhs = eq_node->arg1;
-                  rhs = eq_node->arg2;
-                  rhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::staticModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-                  lhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::staticAssignmentLHS, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-                }
-              else if (equ_type == EquationType::evaluateRenormalized)
-                {
-                  eq_node = getBlockEquationRenormalizedExpr(block, i);
-                  lhs = eq_node->arg1;
-                  rhs = eq_node->arg2;
-                  rhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::staticModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-                  lhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::staticAssignmentLHS, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-                }
-              break;
-            case BlockSimulationType::solveBackwardComplete:
-            case BlockSimulationType::solveForwardComplete:
-              if (i < block_recursive)
-                goto evaluation_l;
-              variable_ID = getBlockVariableID(block, i);
-              equation_ID = getBlockEquationID(block, i);
-              feedback_variables.push_back(variable_ID);
-              Uf[equation_ID].Ufl = nullptr;
-              goto end_l;
-            default:
-            end_l:
-              code_file << FNUMEXPR_{ExpressionType::ModelEquation, getBlockEquationID(block, i)};
-              eq_node = getBlockEquationExpr(block, i);
-              lhs = eq_node->arg1;
-              rhs = eq_node->arg2;
-              lhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::staticModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-              rhs->writeBytecodeOutput(code_file, ExprNodeBytecodeOutputType::staticModel, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-
-              code_file << FBINARY_{BinaryOpcode::minus} << FSTPR_{i - block_recursive};
-            }
-        }
-      code_file << FENDEQU_{};
-
-      // The Jacobian if we have to solve the block determinsitic bloc
-
-      // Write temporary terms for derivatives
-      write_eq_tt(blocks[block].size);
-
-      switch (simulation_type)
-        {
-        case BlockSimulationType::solveBackwardSimple:
-        case BlockSimulationType::solveForwardSimple:
-          code_file << FNUMEXPR_{ExpressionType::FirstEndoDerivative, 0, 0};
-          writeBytecodeDerivative(code_file, getBlockEquationID(block, 0), getBlockVariableID(block, 0), temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-          code_file << FSTPG2_{0, 0};
-          break;
-        case BlockSimulationType::evaluateBackward:
-        case BlockSimulationType::evaluateForward:
-        case BlockSimulationType::solveBackwardComplete:
-        case BlockSimulationType::solveForwardComplete:
-          count_u = feedback_variables.size();
-          for (const auto &[indices, ignore2] : blocks_derivatives[block])
-            {
-              auto &[eq, var, ignore] = indices;
-              int eqr = getBlockEquationID(block, eq);
-              int varr = getBlockVariableID(block, var);
-              code_file << FNUMEXPR_{ExpressionType::FirstEndoDerivative, eqr, varr, 0};
-              writeBytecodeChainRuleDerivative(code_file, block, eq, var, 0, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-              code_file << FSTPG2_{eq, var};
-            }
-          break;
-        default:
-          break;
-        }
-      // Set codefile position to previous JMP_ and set the number of instructions to jump
-      // Update jump offset for previous JMP
-      int pos_end_block = code_file.getInstructionCounter();
-      code_file.overwriteInstruction(pos_jmp, FJMP_{pos_end_block-pos_jmp-1});
-    }
-  code_file << FENDBLOCK_{} << FEND_{};
-}
-
-void
-StaticModel::writeBlockBytecodeBinFile(const string &basename, int num,
-                                       int &u_count_int, bool &file_open) const
-{
-  int j;
-  std::ofstream SaveCode;
-  string filename = basename + "/model/bytecode/static.bin";
-  if (file_open)
-    SaveCode.open(filename, ios::out | ios::in | ios::binary | ios::ate);
-  else
-    SaveCode.open(filename, ios::out | ios::binary);
-  if (!SaveCode.is_open())
-    {
-      cerr << "Error : Can't open file " << filename << " for writing" << endl;
+      cerr << R"(Error : Can't open file ")" << bin_filename << R"(" for writing)" << endl;
       exit(EXIT_FAILURE);
     }
-  u_count_int = 0;
-  int block_size = blocks[num].size;
-  int block_mfs = blocks[num].mfs_size;
-  int block_recursive = blocks[num].getRecursiveSize();
-  for (const auto &[indices, ignore2] : blocks_derivatives[num])
-    {
-      auto [eq, var, ignore] = indices;
-      int lag = 0;
-      if (eq >= block_recursive && var >= block_recursive)
-        {
-          int v = eq - block_recursive;
-          SaveCode.write(reinterpret_cast<char *>(&v), sizeof(v));
-          int varr = var - block_recursive;
-          SaveCode.write(reinterpret_cast<char *>(&varr), sizeof(varr));
-          SaveCode.write(reinterpret_cast<char *>(&lag), sizeof(lag));
-          int u = u_count_int + block_mfs;
-          SaveCode.write(reinterpret_cast<char *>(&u), sizeof(u));
-          u_count_int++;
-        }
-    }
 
-  for (j = block_recursive; j < block_size; j++)
+  // Temporary variables declaration
+  code_file << FDIMST_{static_cast<int>(blocks_temporary_terms_idxs.size())};
+
+  for (int block {0}; block < static_cast<int>(blocks.size()); block++)
     {
-      int varr = getBlockVariableID(num, j);
-      SaveCode.write(reinterpret_cast<char *>(&varr), sizeof(varr));
+      const BlockSimulationType simulation_type {blocks[block].simulation_type};
+      const int block_size {blocks[block].size};
+
+      const int u_count {simulation_type == BlockSimulationType::solveBackwardComplete
+                         || simulation_type == BlockSimulationType::solveForwardComplete
+                         ? writeBlockBytecodeBinFile(bin_file, block)
+                         : 0};
+
+      code_file << FBEGINBLOCK_{blocks[block].mfs_size,
+                                simulation_type,
+                                blocks[block].first_equation,
+                                block_size,
+                                endo_idx_block2orig,
+                                eq_idx_block2orig,
+                                blocks[block].linear,
+                                symbol_table.endo_nbr(),
+                                0,
+                                0,
+                                u_count,
+                                block_size};
+
+      writeBlockBytecodeHelper<false>(code_file, block);
     }
-  for (j = block_recursive; j < block_size; j++)
-    {
-      int eqr = getBlockEquationID(num, j);
-      SaveCode.write(reinterpret_cast<char *>(&eqr), sizeof(eqr));
-    }
-  SaveCode.close();
+  code_file << FEND_{};
 }
 
 void

@@ -65,21 +65,12 @@ private:
   //! Writes the code of the model in virtual machine bytecode
   void writeStaticBytecode(const string &basename) const;
 
-  //! Adds per-block information for bytecode simulation in a separate .bin file
-  void writeBlockBytecodeBinFile(const string &basename, int num,
-                                 int &u_count_int, bool &file_open) const;
-
   //! Computes jacobian and prepares for equation normalization
   /*! Using values from initval/endval blocks and parameter initializations:
     - computes the jacobian for the model w.r. to contemporaneous variables
     - removes edges of the incidence matrix when derivative w.r. to the corresponding variable is too close to zero (below the cutoff)
   */
   void evaluateJacobian(const eval_context_t &eval_context, jacob_map_t *j_m, bool dynamic);
-
-  //! Write derivative bytecode of an equation w.r. to a variable
-  void writeBytecodeDerivative(BytecodeWriter &code_file, int eq, int symb_id, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
-  //! Write chain rule derivative bytecode of an equation w.r. to a variable
-  void writeBytecodeChainRuleDerivative(BytecodeWriter &code_file, int blk, int eq, int var, int lag, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
 
   SymbolType getTypeByDerivID(int deriv_id) const noexcept(false) override;
   int getLagByDerivID(int deriv_id) const noexcept(false) override;
@@ -112,6 +103,12 @@ private:
 
   //! Create a legacy *_static.m file for MATLAB/Octave not yet using the temporary terms array interface
   void writeStaticMCompatFile(const string &name) const;
+
+  int
+  getBlockJacobianEndoCol([[maybe_unused]] int blk, int var, [[maybe_unused]] int lag) const override
+  {
+    return var;
+  }
 
 public:
   StaticModel(SymbolTable &symbol_table_arg,

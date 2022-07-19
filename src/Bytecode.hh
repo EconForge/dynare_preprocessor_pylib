@@ -928,7 +928,7 @@ public:
   }
   FBEGINBLOCK_(int size_arg, BlockSimulationType type_arg, int first_element, int block_size,
                const vector<int> &variable_arg, const vector<int> &equation_arg,
-               bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int &u_count_int_arg, int nb_col_jacob_arg,
+               bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int u_count_int_arg, int nb_col_jacob_arg,
                int det_exo_size_arg, int nb_col_det_exo_jacob_arg, int exo_size_arg, int nb_col_exo_jacob_arg, int other_endo_size_arg, int nb_col_other_endo_jacob_arg,
                vector<int> det_exogenous_arg, vector<int> exogenous_arg, vector<int> other_endogenous_arg) :
     BytecodeInstruction{Tags::FBEGINBLOCK},
@@ -955,7 +955,7 @@ public:
   }
   FBEGINBLOCK_(int size_arg, BlockSimulationType type_arg, int first_element, int block_size,
                const vector<int> &variable_arg, const vector<int> &equation_arg,
-               bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int &u_count_int_arg, int nb_col_jacob_arg) :
+               bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int u_count_int_arg, int nb_col_jacob_arg) :
     BytecodeInstruction{Tags::FBEGINBLOCK},
     size{size_arg},
     type{type_arg},

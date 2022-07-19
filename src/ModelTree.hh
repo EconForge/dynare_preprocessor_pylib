@@ -251,6 +251,9 @@ protected:
      file.
      Returns the number of first derivatives w.r.t. endogenous variables */
   int writeBytecodeBinFile(const string &filename, bool is_two_boundaries) const;
+  //! Adds per-block information for bytecode simulation in a separate .bin file
+  int writeBlockBytecodeBinFile(ofstream &bin_file, int block) const;
+
   //! Fixes output when there are more than 32 nested parens, Issue #1201
   void fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_paren_vars, bool &message_printed) const;
   //! Tests if string contains more than 32 nested parens, Issue #1201
@@ -278,6 +281,17 @@ protected:
   // Helper for writing bytecode (without block decomposition)
   template<bool dynamic>
   void writeBytecodeHelper(BytecodeWriter &code_file) const;
+
+  // Helper for writing blocks in bytecode
+  template<bool dynamic>
+  void writeBlockBytecodeHelper(BytecodeWriter &code_file, int block) const;
+
+  /* Write additional derivatives w.r.t. to exogenous, exogenous det and other endo
+     in block+bytecode mode. Does nothing by default, but overriden by
+     DynamicModel which needs those. */
+  virtual void writeBlockBytecodeAdditionalDerivatives(BytecodeWriter &code_file, int block,
+                                                       const temporary_terms_t &temporary_terms_union,
+                                                       const deriv_node_temp_terms_t &tef_terms) const;
 
   /* Helper for writing JSON output for residuals and derivatives.
      Returns mlv and derivatives output at each derivation order. */
@@ -429,6 +443,10 @@ protected:
   /*! Returns a map (equation, type-specific ID, lag) → derivative.
       Assumes that derivatives have already been computed. */
   map<tuple<int, int, int>, expr_t> collectFirstOrderDerivativesEndogenous();
+
+  /* Get column number within Jacobian of a given block.
+     “var” is the block-specific endogenous variable index. */
+  virtual int getBlockJacobianEndoCol(int blk, int var, int lag) const = 0;
 
 private:
   //! Internal helper for the copy constructor and assignment operator
@@ -1203,6 +1221,226 @@ ModelTree::writeBytecodeHelper(BytecodeWriter &code_file) const
   code_file.overwriteInstruction(pos_jmp, FJMP_{pos_end_block-pos_jmp-1});
 
   code_file << FENDBLOCK_{} << FEND_{};
+}
+
+template<bool dynamic>
+void
+ModelTree::writeBlockBytecodeHelper(BytecodeWriter &code_file, int block) const
+{
+  constexpr ExprNodeBytecodeOutputType output_type
+    { dynamic ? ExprNodeBytecodeOutputType::dynamicModel : ExprNodeBytecodeOutputType::staticModel };
+  constexpr ExprNodeBytecodeOutputType assignment_lhs_output_type
+    { dynamic ? ExprNodeBytecodeOutputType::dynamicAssignmentLHS : ExprNodeBytecodeOutputType::staticAssignmentLHS };
+
+  const BlockSimulationType simulation_type {blocks[block].simulation_type};
+  const int block_size {blocks[block].size};
+  const int block_mfs {blocks[block].mfs_size};
+  const int block_recursive {blocks[block].getRecursiveSize()};
+
+  temporary_terms_t temporary_terms_union;
+  deriv_node_temp_terms_t tef_terms;
+
+  auto write_eq_tt = [&](int eq)
+  {
+    for (auto it : blocks_temporary_terms[block][eq])
+      {
+        if (dynamic_cast<AbstractExternalFunctionNode *>(it))
+          it->writeBytecodeExternalFunctionOutput(code_file, output_type, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
+
+        code_file << FNUMEXPR_{ExpressionType::TemporaryTerm, blocks_temporary_terms_idxs.at(it)};
+        it->writeBytecodeOutput(code_file, output_type, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
+        if constexpr(dynamic)
+          code_file << FSTPT_{blocks_temporary_terms_idxs.at(it)};
+        else
+          code_file << FSTPST_{blocks_temporary_terms_idxs.at(it)};
+        temporary_terms_union.insert(it);
+      }
+  };
+
+  // The equations
+  for (int i {0}; i < block_size; i++)
+    {
+      write_eq_tt(i);
+
+      switch (simulation_type)
+        {
+        evaluation:
+        case BlockSimulationType::evaluateBackward:
+        case BlockSimulationType::evaluateForward:
+          code_file << FNUMEXPR_{ExpressionType::ModelEquation, getBlockEquationID(block, i)};
+          if (EquationType equ_type {getBlockEquationType(block, i)};
+              equ_type == EquationType::evaluate)
+            {
+              BinaryOpNode *eq_node {getBlockEquationExpr(block, i)};
+              expr_t lhs {eq_node->arg1};
+              expr_t rhs {eq_node->arg2};
+              rhs->writeBytecodeOutput(code_file, output_type, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
+              lhs->writeBytecodeOutput(code_file, assignment_lhs_output_type, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
+            }
+          else if (equ_type == EquationType::evaluateRenormalized)
+            {
+              BinaryOpNode *eq_node {getBlockEquationRenormalizedExpr(block, i)};
+              expr_t lhs {eq_node->arg1};
+              expr_t rhs {eq_node->arg2};
+              rhs->writeBytecodeOutput(code_file, output_type, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
+              lhs->writeBytecodeOutput(code_file, assignment_lhs_output_type, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
+            }
+          break;
+        case BlockSimulationType::solveBackwardComplete:
+        case BlockSimulationType::solveForwardComplete:
+        case BlockSimulationType::solveTwoBoundariesComplete:
+        case BlockSimulationType::solveTwoBoundariesSimple:
+          if (i < block_recursive)
+            goto evaluation;
+          [[fallthrough]];
+        default:
+          code_file << FNUMEXPR_{ExpressionType::ModelEquation, getBlockEquationID(block, i)};
+          BinaryOpNode *eq_node {getBlockEquationExpr(block, i)};
+          expr_t lhs {eq_node->arg1};
+          expr_t rhs {eq_node->arg2};
+          lhs->writeBytecodeOutput(code_file, output_type, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
+          rhs->writeBytecodeOutput(code_file, output_type, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
+          code_file << FBINARY_{BinaryOpcode::minus} << FSTPR_{i - block_recursive};
+        }
+    }
+  code_file << FENDEQU_{};
+
+  /* If the block is not of type “evaluate backward/forward”, then we write
+     the temporary terms for derivatives at this point, i.e. before the
+     JMPIFEVAL, because they will be needed in both “simulate” and
+     “evaluate” modes. */
+  if (simulation_type != BlockSimulationType::evaluateBackward
+      && simulation_type != BlockSimulationType::evaluateForward)
+    write_eq_tt(blocks[block].size);
+
+  // Get the current code_file position and jump if evaluating
+  int pos_jmpifeval {code_file.getInstructionCounter()};
+  code_file << FJMPIFEVAL_{0}; // Use 0 as jump offset for the time being
+
+  /* Write the derivatives for the “simulate” mode (not needed if the block
+     is of type “evaluate backward/forward”) */
+  if (simulation_type != BlockSimulationType::evaluateBackward
+      && simulation_type != BlockSimulationType::evaluateForward)
+    {
+      switch (simulation_type)
+        {
+        case BlockSimulationType::solveBackwardSimple:
+        case BlockSimulationType::solveForwardSimple:
+          {
+            int eqr {getBlockEquationID(block, 0)};
+            int varr {getBlockVariableID(block, 0)};
+            code_file << FNUMEXPR_{ExpressionType::FirstEndoDerivative, eqr, varr, 0};
+            // Get contemporaneous derivative of the single variable in the block
+            if (auto it { blocks_derivatives[block].find({ 0, 0, 0 }) };
+                it != blocks_derivatives[block].end())
+              it->second->writeBytecodeOutput(code_file, output_type, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
+            else
+              code_file << FLDZ_{};
+            code_file << FSTPG_{0};
+          }
+          break;
+
+        case BlockSimulationType::solveBackwardComplete:
+        case BlockSimulationType::solveForwardComplete:
+        case BlockSimulationType::solveTwoBoundariesComplete:
+        case BlockSimulationType::solveTwoBoundariesSimple:
+          {
+            // For each equation, stores a list of tuples (index_u, var, lag)
+            vector<vector<tuple<int, int, int>>> Uf(symbol_table.endo_nbr());
+
+            for (int count_u {block_mfs};
+                 const auto &[indices, ignore] : blocks_derivatives[block])
+              {
+                const auto &[eq, var, lag] {indices};
+                int eqr {getBlockEquationID(block, eq)};
+                int varr {getBlockVariableID(block, var)};
+                if (eq >= block_recursive && var >= block_recursive)
+                  {
+                    if constexpr(dynamic)
+                      if (lag != 0
+                          && (simulation_type == BlockSimulationType::solveForwardComplete
+                              || simulation_type == BlockSimulationType::solveBackwardComplete))
+                        continue;
+                    code_file << FNUMEXPR_{ExpressionType::FirstEndoDerivative, eqr, varr, lag};
+                    if (auto it { blocks_derivatives[block].find({ eq, var, lag }) };
+                        it != blocks_derivatives[block].end())
+                      it->second->writeBytecodeOutput(code_file, output_type, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
+                    else
+                      code_file << FLDZ_{};
+                    if constexpr(dynamic)
+                      code_file << FSTPU_{count_u};
+                    else
+                      code_file << FSTPSU_{count_u};
+                    Uf[eqr].emplace_back(count_u, varr, lag);
+                    count_u++;
+                  }
+              }
+            for (int i {0}; i < block_size; i++)
+              if (i >= block_recursive)
+                {
+                  code_file << FLDR_{i-block_recursive} << FLDZ_{};
+
+                  int eqr {getBlockEquationID(block, i)};
+                  for (const auto &[index_u, var, lag] : Uf[eqr])
+                    {
+                      if constexpr(dynamic)
+                        code_file << FLDU_{index_u}
+                                  << FLDV_{SymbolType::endogenous, var, lag};
+                      else
+                        code_file << FLDSU_{index_u}
+                                  << FLDSV_{SymbolType::endogenous, var};
+                      code_file << FBINARY_{BinaryOpcode::times}
+                                << FCUML_{};
+                    }
+                  code_file << FBINARY_{BinaryOpcode::minus};
+                  if constexpr(dynamic)
+                    code_file << FSTPU_{i - block_recursive};
+                  else
+                    code_file << FSTPSU_{i - block_recursive};
+                }
+          }
+          break;
+        default:
+          break;
+        }
+    }
+
+  // Jump unconditionally after the block
+  int pos_jmp {code_file.getInstructionCounter()};
+  code_file << FJMP_{0}; // Use 0 as jump offset for the time being
+  // Update jump offset for previous JMPIFEVAL
+  code_file.overwriteInstruction(pos_jmpifeval, FJMPIFEVAL_{pos_jmp-pos_jmpifeval});
+
+  /* If the block is of type “evaluate backward/forward”, then write the
+     temporary terms for derivatives at this point, because they have not
+     been written before the JMPIFEVAL. */
+  if (simulation_type == BlockSimulationType::evaluateBackward
+      || simulation_type == BlockSimulationType::evaluateForward)
+    write_eq_tt(blocks[block].size);
+
+  // Write the derivatives for the “evaluate” mode
+  for (const auto &[indices, d] : blocks_derivatives[block])
+    {
+      const auto &[eq, var, lag] {indices};
+      int eqr {getBlockEquationID(block, eq)};
+      int varr {getBlockVariableID(block, var)};
+      code_file << FNUMEXPR_{ExpressionType::FirstEndoDerivative, eqr, varr, lag};
+      d->writeBytecodeOutput(code_file, output_type, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
+      if constexpr(dynamic)
+        code_file << FSTPG3_{eq, var, lag, getBlockJacobianEndoCol(block, var, lag)};
+      else
+        code_file << FSTPG2_{eq, getBlockJacobianEndoCol(block, var, lag)};
+    }
+
+  /* Write derivatives w.r.t. exo, exo det and other endogenous, but only in
+     dynamic mode */
+  writeBlockBytecodeAdditionalDerivatives(code_file, block, temporary_terms_union, tef_terms);
+
+  // Update jump offset for previous JMP
+  int pos_end_block {code_file.getInstructionCounter()};
+  code_file.overwriteInstruction(pos_jmp, FJMP_{pos_end_block-pos_jmp-1});
+
+  code_file << FENDBLOCK_{};
 }
 
 template<bool dynamic>

@@ -1262,6 +1262,49 @@ ModelTree::writeBytecodeBinFile(const string &filename, bool is_two_boundaries) 
   return u_count;
 }
 
+int
+ModelTree::writeBlockBytecodeBinFile(ofstream &bin_file, int block) const
+{
+  int u_count {0};
+  int block_size {blocks[block].size};
+  int block_mfs {blocks[block].mfs_size};
+  int block_recursive {blocks[block].getRecursiveSize()};
+  BlockSimulationType simulation_type {blocks[block].simulation_type};
+  bool is_two_boundaries {simulation_type == BlockSimulationType::solveTwoBoundariesComplete
+                          || simulation_type == BlockSimulationType::solveTwoBoundariesSimple};
+  for (const auto &[indices, ignore] : blocks_derivatives[block])
+    {
+      const auto &[eq, var, lag] {indices};
+      if (lag != 0 && !is_two_boundaries)
+        continue;
+      if (eq >= block_recursive && var >= block_recursive)
+        {
+          int v {eq - block_recursive};
+          bin_file.write(reinterpret_cast<char *>(&v), sizeof v);
+          int varr {var - block_recursive + lag * block_mfs};
+          bin_file.write(reinterpret_cast<char *>(&varr), sizeof varr);
+          bin_file.write(reinterpret_cast<const char *>(&lag), sizeof lag);
+          int u {u_count + block_mfs};
+          bin_file.write(reinterpret_cast<char *>(&u), sizeof u);
+          u_count++;
+        }
+    }
+
+  if (is_two_boundaries)
+    u_count += block_mfs;
+  for (int j {block_recursive}; j < block_size; j++)
+    {
+      int varr {getBlockVariableID(block, j)};
+      bin_file.write(reinterpret_cast<char *>(&varr), sizeof varr);
+    }
+  for (int j {block_recursive}; j < block_size; j++)
+    {
+      int eqr {getBlockEquationID(block, j)};
+      bin_file.write(reinterpret_cast<char *>(&eqr), sizeof eqr);
+    }
+  return u_count;
+}
+
 void
 ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_basename, ExprNodeOutputType output_type, bool write_equation_tags) const
 {
@@ -1822,4 +1865,12 @@ ModelTree::getRHSFromLHS(expr_t lhs) const
     if (eq->arg1 == lhs)
       return eq->arg2;
   throw ExprNode::MatchFailureException{"Cannot find an equation with the requested LHS"};
+}
+
+void
+ModelTree::writeBlockBytecodeAdditionalDerivatives([[maybe_unused]] BytecodeWriter &code_file,
+                                                   [[maybe_unused]] int block,
+                                                   [[maybe_unused]] const temporary_terms_t &temporary_terms_union,
+                                                   [[maybe_unused]] const deriv_node_temp_terms_t &tef_terms) const
+{
 }
