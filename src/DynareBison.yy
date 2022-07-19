@@ -1288,13 +1288,13 @@ period_list : period_list COMMA INT_NUMBER
               {
                 $$ = $1;
                 int p = stoi($3);
-                $$.push_back({ p, p });
+                $$.emplace_back(p, p);
               }
             | period_list INT_NUMBER
               {
                 $$ = $1;
                 int p = stoi($2);
-                $$.push_back({ p, p });
+                $$.emplace_back(p, p);
               }
             | period_list COMMA INT_NUMBER ':' INT_NUMBER
               {
@@ -1302,7 +1302,7 @@ period_list : period_list COMMA INT_NUMBER
                 int p1 = stoi($3), p2 = stoi($5);
                 if (p1 > p2)
                   driver.error("Can't have first period index greater than second index in range specification");
-                $$.push_back({ p1, p2 });
+                $$.emplace_back(p1, p2);
               }
             | period_list INT_NUMBER ':' INT_NUMBER
               {
@@ -1310,7 +1310,7 @@ period_list : period_list COMMA INT_NUMBER
                 int p1 = stoi($2), p2 = stoi($4);
                 if (p1 > p2)
                   driver.error("Can't have first period index greater than second index in range specification");
-                $$.push_back({ p1, p2 });
+                $$.emplace_back(p1, p2);
               }
             | INT_NUMBER ':' INT_NUMBER
               {
