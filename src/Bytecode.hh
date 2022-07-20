@@ -69,8 +69,6 @@ enum class Tags
    FBINARY, // A binary operator
    FTRINARY, // A trinary operator
 
-   FCUML, // Cumulates the result
-
    FJMPIFEVAL, // Jump if evaluate = true
    FJMP, // Jump
 
@@ -213,14 +211,6 @@ class FENDEQU_ : public BytecodeInstruction
 {
 public:
   FENDEQU_() : BytecodeInstruction{Tags::FENDEQU}
-  {
-  };
-};
-
-class FCUML_ : public BytecodeInstruction
-{
-public:
-  FCUML_() : BytecodeInstruction{Tags::FCUML}
   {
   };
 };
@@ -1241,13 +1231,6 @@ public:
 # endif
             tags_liste.emplace_back(Tags::FENDEQU, code);
             code += sizeof(FENDEQU_);
-            break;
-          case Tags::FCUML:
-# ifdef DEBUGL
-            mexPrintf("FCUML\n");
-# endif
-            tags_liste.emplace_back(Tags::FCUML, code);
-            code += sizeof(FCUML_);
             break;
           case Tags::FDIMT:
 # ifdef DEBUGL

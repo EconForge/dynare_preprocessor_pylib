@@ -1390,7 +1390,7 @@ ModelTree::writeBlockBytecodeHelper(BytecodeWriter &code_file, int block) const
                         code_file << FLDSU_{index_u}
                                   << FLDSV_{SymbolType::endogenous, var};
                       code_file << FBINARY_{BinaryOpcode::times}
-                                << FCUML_{};
+                                << FBINARY_{BinaryOpcode::plus};
                     }
                   code_file << FBINARY_{BinaryOpcode::minus};
                   if constexpr(dynamic)
