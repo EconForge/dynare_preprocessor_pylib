@@ -41,13 +41,9 @@ public:
   // This constructor is deliberately not marked explicit, to allow implicit conversion
   SymbolList(vector<string> symbols_arg);
 
-  class SymbolListException
+  struct SymbolListException
   {
-  public:
     const string message;
-    SymbolListException(string message_arg) : message{move(message_arg)}
-    {
-    };
   };
   //! Remove duplicate symbols
   void removeDuplicates(const string &dynare_command, WarningConsolidation &warnings);

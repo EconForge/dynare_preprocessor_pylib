@@ -140,13 +140,9 @@ public:
   expr_t MinusOne, MinusInfinity;
 
   //! Raised when a local parameter is declared twice
-  class LocalVariableException
+  struct LocalVariableException
   {
-  public:
     string name;
-    explicit LocalVariableException(string name_arg) : name{move(name_arg)}
-    {
-    }
   };
 
   class DivisionByZeroException
@@ -291,13 +287,9 @@ public:
   };
 
   //! Raised when a trend is declared twice
-  class TrendException
+  struct TrendException
   {
-  public:
     string name;
-    explicit TrendException(string name_arg) : name{move(name_arg)}
-    {
-    }
   };
 
   // Returns the derivation ID, or throws an exception if the derivation ID does not exist
@@ -341,14 +333,10 @@ public:
     return false;
   };
 
-  class UnknownLocalVariableException
+  struct UnknownLocalVariableException
   {
-  public:
     //! Symbol ID
     int id;
-    explicit UnknownLocalVariableException(int id_arg) : id(id_arg)
-    {
-    }
   };
 
   expr_t

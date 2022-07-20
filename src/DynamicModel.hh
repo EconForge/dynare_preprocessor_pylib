@@ -551,13 +551,9 @@ public:
   void analyzePacEquationStructure(const string &name, map<string, string> &pac_eq_name, PacModelTable::equation_info_t &pac_equation_info);
 
   // Exception thrown by getPacTargetSymbId()
-  class PacTargetNotIdentifiedException
+  struct PacTargetNotIdentifiedException
   {
-  public:
     const string model_name, message;
-    PacTargetNotIdentifiedException(string model_name_arg, string message_arg) : model_name{move(model_name_arg)}, message{move(message_arg)}
-    {
-    }
   };
 
   //! Return target of the pac equation

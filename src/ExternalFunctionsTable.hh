@@ -33,14 +33,10 @@ class ExternalFunctionsTable
 {
 public:
   //! Thrown when trying to access an unknown symbol (by id)
-  class UnknownExternalFunctionSymbolIDException
+  struct UnknownExternalFunctionSymbolIDException
   {
-  public:
     //! Symbol ID
     int id;
-    explicit UnknownExternalFunctionSymbolIDException(int id_arg) : id{id_arg}
-    {
-    }
   };
 
   /* For all arguments, -2 means not set

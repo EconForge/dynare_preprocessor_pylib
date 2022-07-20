@@ -188,56 +188,36 @@ private:
 
 public:
   //! Thrown when trying to access an unknown symbol (by name)
-  class UnknownSymbolNameException
+  struct UnknownSymbolNameException
   {
-  public:
     //! Symbol name
     const string name;
-    explicit UnknownSymbolNameException(string name_arg) : name{move(name_arg)}
-    {
-    }
   };
   //! Thrown when trying to access an unknown symbol (by id)
-  class UnknownSymbolIDException
+  struct UnknownSymbolIDException
   {
-  public:
     //! Symbol ID
     const int id;
-    explicit UnknownSymbolIDException(int id_arg) : id{id_arg}
-    {
-    }
   };
   //! Thrown when trying to access an unknown type specific ID
-  class UnknownTypeSpecificIDException
+  struct UnknownTypeSpecificIDException
   {
-  public:
     const int tsid;
     const SymbolType type;
-    UnknownTypeSpecificIDException(int tsid_arg, SymbolType type_arg) : tsid{tsid_arg}, type{type_arg}
-    {
-    }
   };
   /* Thrown when requesting the type specific ID of a symbol which doesn’t
      have one */
-  class NoTypeSpecificIDException
+  struct NoTypeSpecificIDException
   {
-  public:
     const int symb_id;
-    explicit NoTypeSpecificIDException(int symb_id_arg) : symb_id{symb_id_arg}
-    {
-    }
   };
   //! Thrown when trying to declare a symbol twice
-  class AlreadyDeclaredException
+  struct AlreadyDeclaredException
   {
-  public:
     //! Symbol name
     const string name;
     //! Was the previous declaration done with the same symbol type ?
     const bool same_type;
-    AlreadyDeclaredException(string name_arg, bool same_type_arg) : name{move(name_arg)}, same_type{same_type_arg}
-    {
-    }
   };
   //! Thrown when table is frozen and trying to modify it
   class FrozenException

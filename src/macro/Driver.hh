@@ -69,13 +69,9 @@ namespace macro
     Driver &operator=(const Driver &) = delete;
 
     //! Exception thrown when value of an unknown variable is requested
-    class UnknownVariable
+    struct UnknownVariable
     {
-    public:
       const string name;
-      explicit UnknownVariable(string name_arg) : name{move(name_arg)}
-      {
-      }
     };
 
     //! Starts parsing a file, modifies `env`, `paths` and `output`

@@ -31,14 +31,9 @@ class EquationTags
 private:
   map<int, map<string, string>> eqn_tags;
 public:
-  class TagNotFoundException
+  struct TagNotFoundException
   {
-  public:
     const string key, value;
-    explicit TagNotFoundException(string key_arg, string value_arg)
-      : key{move(key_arg)}, value{move(value_arg)}
-    {
-    }
   };
 
   // Add multiple equation tags for the given equation

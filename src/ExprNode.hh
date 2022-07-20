@@ -763,13 +763,9 @@ public:
   virtual pair<int, expr_t> matchEndogenousTimesConstant() const;
 
   //! Exception thrown when matching fails
-  class MatchFailureException
+  struct MatchFailureException
   {
-  public:
     const string message;
-    MatchFailureException(string message_arg) : message{move(message_arg)}
-    {
-    };
   };
 
   /* Match an expression of the form ∏ x(l)ᵏ, where x are endogenous, as used
