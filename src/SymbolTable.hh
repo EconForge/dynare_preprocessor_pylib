@@ -57,76 +57,36 @@ enum class AuxVarType
   };
 
 //! Information on some auxiliary variables
-class AuxVarInfo
+struct AuxVarInfo
 {
-private:
-  int symb_id; //!< Symbol ID of the auxiliary variable
-  AuxVarType type; //!< Its type
-  optional<int> orig_symb_id; /* Symbol ID of the (only) endo that appears on the RHS of
-                                 the definition of this auxvar.
-                                 Used by endoLag, exoLag, diffForward, logTransform, diff, diffLag,
-                                 diffLead and unaryOp.
-                                 For diff and unaryOp, if the argument expression is more complex
-                                 than than a simple variable, this value is unset
-                                 (hence the need for std::optional). */
-  optional<int> orig_lead_lag; /* Lead/lag of the (only) endo as it appears on the RHS of the definition
-                                  of this auxvar. Only set if orig_symb_id is set
-                                  (in particular, for diff and unaryOp, unset
-                                  if orig_symb_id is unset).
-                                  For diff and diffForward, since the definition of the
-                                  auxvar is a time difference, the value corresponds to the
-                                  time index of the first term of that difference. */
-  int equation_number_for_multiplier; //!< Stores the original constraint equation number associated with this aux var. Only used for avMultiplier.
-  int information_set; //! Argument of expectation operator. Only used for avExpectation.
-  expr_t expr_node; //! Auxiliary variable definition
-  string unary_op; //! Used with AuxUnaryOp
-public:
-  AuxVarInfo(int symb_id_arg, AuxVarType type_arg, optional<int> orig_symb_id_arg, optional<int> orig_lead_lag_arg, int equation_number_for_multiplier_arg, int information_set_arg, expr_t expr_node_arg, string unary_op_arg);
-  int
-  get_symb_id() const
-  {
-    return symb_id;
-  };
-  AuxVarType
-  get_type() const
-  {
-    return type;
-  };
+  const int symb_id; // Symbol ID of the auxiliary variable
+  const AuxVarType type; // Its type
+  const optional<int> orig_symb_id; /* Symbol ID of the (only) endo that appears on the RHS of
+                                       the definition of this auxvar.
+                                       Used by endoLag, exoLag, diffForward, logTransform, diff,
+                                       diffLag, diffLead and unaryOp.
+                                       For diff and unaryOp, if the argument expression is more complex
+                                       than than a simple variable, this value is unset
+                                       (hence the need for std::optional). */
+  const optional<int> orig_lead_lag; /* Lead/lag of the (only) endo as it appears on the RHS of the
+                                        definition of this auxvar. Only set if orig_symb_id is set
+                                        (in particular, for diff and unaryOp, unset
+                                        if orig_symb_id is unset).
+                                        For diff and diffForward, since the definition of the
+                                        auxvar is a time difference, the value corresponds to the
+                                        time index of the first term of that difference. */
+  const int equation_number_for_multiplier; /* Stores the original constraint equation number
+                                               associated with this aux var. Only used for
+                                               avMultiplier. */
+  const int information_set; // Argument of expectation operator. Only used for avExpectation.
+  const expr_t expr_node; // Auxiliary variable definition
+  const string unary_op; // Used with AuxUnaryOp
+
   int
   get_type_id() const
   {
     return static_cast<int>(type);
   }
-  optional<int>
-  get_orig_symb_id() const
-  {
-    return orig_symb_id;
-  };
-  optional<int>
-  get_orig_lead_lag() const
-  {
-    return orig_lead_lag;
-  };
-  int
-  get_equation_number_for_multiplier() const
-  {
-    return equation_number_for_multiplier;
-  };
-  int
-  get_information_set() const
-  {
-    return information_set;
-  };
-  expr_t
-  get_expr_node() const
-  {
-    return expr_node;
-  };
-  const string &
-  get_unary_op() const
-  {
-    return unary_op;
-  };
 };
 
 //! Stores the symbol table
@@ -318,7 +278,7 @@ public:
      this auxvar (either because it’s of the wrong type, or because there is
      no such orig var for this specific auxvar, in case of complex expressions
      in diff or unaryOp). */
-  int getOrigSymbIdForAuxVar(int aux_var_symb_id) const noexcept(false);
+  int getOrigSymbIdForAuxVar(int aux_var_symb_id_arg) const noexcept(false);
   /* Unrolls a chain of diffLag or diffLead aux vars until it founds a (regular) diff aux
      var. In other words:
      - if the arg is a (regu) diff aux var, returns the arg
@@ -583,7 +543,7 @@ inline const AuxVarInfo &
 SymbolTable::getAuxVarInfo(int symb_id) const
 {
   for (const auto &aux_var : aux_vars)
-    if (aux_var.get_symb_id() == symb_id)
+    if (aux_var.symb_id == symb_id)
       return aux_var;
   throw UnknownSymbolIDException(symb_id);
 }

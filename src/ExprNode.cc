@@ -9101,14 +9101,14 @@ ExprNode::matchParamTimesTargetMinusVariable(int symb_id) const
         return false;
       if (datatree.symbol_table.isAuxiliaryVariable(target->symb_id))
         {
-          auto avi = datatree.symbol_table.getAuxVarInfo(target->symb_id);
-          if (avi.get_type() == AuxVarType::pacTargetNonstationary && target->lag == -1)
+          auto &avi = datatree.symbol_table.getAuxVarInfo(target->symb_id);
+          if (avi.type == AuxVarType::pacTargetNonstationary && target->lag == -1)
             return true;
-          return (avi.get_type() == AuxVarType::unaryOp
-                  && avi.get_unary_op() == "log"
-                  && avi.get_orig_symb_id()
-                  && !datatree.symbol_table.isAuxiliaryVariable(*avi.get_orig_symb_id())
-                  && target->lag + avi.get_orig_lead_lag().value() == -1);
+          return (avi.type == AuxVarType::unaryOp
+                  && avi.unary_op == "log"
+                  && avi.orig_symb_id
+                  && !datatree.symbol_table.isAuxiliaryVariable(*avi.orig_symb_id)
+                  && target->lag + avi.orig_lead_lag.value() == -1);
         }
       else
         return target->lag == -1;
