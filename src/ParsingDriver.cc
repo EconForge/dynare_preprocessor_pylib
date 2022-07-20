@@ -311,7 +311,7 @@ ParsingDriver::add_equation_tags(string key, string value)
   eq_tags[key] = value;
 
   transform(key.begin(), key.end(), key.begin(), ::tolower);
-  if (key.compare("endogenous") == 0)
+  if (key == "endogenous")
     declare_or_change_type(SymbolType::endogenous, value);
 }
 
@@ -1404,7 +1404,7 @@ ParsingDriver::option_symbol_list(string name_option, vector<string> symbol_list
   if (options_list.symbol_list_options.contains(name_option))
     error("option " + name_option + " declared twice");
 
-  if (name_option.compare("irf_shocks") == 0)
+  if (name_option == "irf_shocks")
     for (auto &shock : symbol_list)
       {
         if (!mod_file->symbol_table.exists(shock))
@@ -1413,7 +1413,7 @@ ParsingDriver::option_symbol_list(string name_option, vector<string> symbol_list
           error("Variables passed to irf_shocks must be exogenous. Caused by: " + shock);
       }
 
-  if (name_option.compare("ms.parameters") == 0)
+  if (name_option == "ms.parameters")
     for (auto &it : symbol_list)
       if (mod_file->symbol_table.getType(it) != SymbolType::parameter)
         error("Variables passed to the parameters option of the markov_switching statement must be parameters. Caused by: " + it);

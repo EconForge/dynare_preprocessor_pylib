@@ -80,7 +80,7 @@ FollowerNode::FollowerNode(string computerName_arg, string port_arg, int minCpuN
     }
 
   if (!operatingSystem.empty())
-    if (operatingSystem.compare("windows") != 0 && operatingSystem.compare("unix") != 0)
+    if (operatingSystem != "windows" && operatingSystem != "unix")
       {
         cerr << "ERROR: The OperatingSystem must be either 'unix' or 'windows' (Case Sensitive)." << endl;
         exit(EXIT_FAILURE);
@@ -190,10 +190,10 @@ ConfigFile::getConfigFileInfo(const string &config_file)
       if (line.empty() || !line.compare(0, 1, "#"))
         continue;
 
-      if (!line.compare("[node]")
-          || !line.compare("[cluster]")
-          || !line.compare("[hooks]")
-          || !line.compare("[paths]"))
+      if (line == "[node]"
+          || line == "[cluster]"
+          || line == "[hooks]"
+          || line == "[paths]")
         {
           if (!global_init_file.empty())
             // we were just in [hooks]
@@ -210,21 +210,21 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                                        numberOfThreadsPerJob, operatingSystem);
 
           //! Reset communication vars / option defaults
-          if (!line.compare("[hooks]"))
+          if (line == "[hooks]")
             {
               inHooks = true;
               inNode = false;
               inCluster = false;
               inPaths = false;
             }
-          else if (!line.compare("[node]"))
+          else if (line == "[node]")
             {
               inHooks = false;
               inNode = true;
               inCluster = false;
               inPaths = false;
             }
-          else if (!line.compare("[paths]"))
+          else if (line == "[paths]")
             {
               inHooks = false;
               inNode = false;
@@ -261,7 +261,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
           trim(tokenizedLine.back());
 
           if (inHooks)
-            if (!tokenizedLine.front().compare("GlobalInitFile"))
+            if (tokenizedLine.front() == "GlobalInitFile")
               if (global_init_file.empty())
                 global_init_file = tokenizedLine.back();
               else
@@ -275,7 +275,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                 exit(EXIT_FAILURE);
               }
           else if (inPaths)
-            if (!tokenizedLine.front().compare("Include"))
+            if (tokenizedLine.front() == "Include")
               if (includepath.empty())
                 {
                   vector<string> tokenizedPath;
@@ -298,9 +298,9 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                 exit(EXIT_FAILURE);
               }
           else
-            if (!tokenizedLine.front().compare("Name"))
+            if (tokenizedLine.front() == "Name")
               name = tokenizedLine.back();
-            else if (!tokenizedLine.front().compare("CPUnbr"))
+            else if (tokenizedLine.front() == "CPUnbr")
               {
                 vector<string> tokenizedCpuNbr;
                 split(tokenizedCpuNbr, tokenizedLine.back(), is_any_of(":"));
@@ -345,40 +345,40 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                     minCpuNbr = tmp;
                   }
               }
-            else if (!tokenizedLine.front().compare("Port"))
+            else if (tokenizedLine.front() == "Port")
               port = tokenizedLine.back();
-            else if (!tokenizedLine.front().compare("ComputerName"))
+            else if (tokenizedLine.front() == "ComputerName")
               computerName = tokenizedLine.back();
-            else if (!tokenizedLine.front().compare("UserName"))
+            else if (tokenizedLine.front() == "UserName")
               userName = tokenizedLine.back();
-            else if (!tokenizedLine.front().compare("Password"))
+            else if (tokenizedLine.front() == "Password")
               password = tokenizedLine.back();
-            else if (!tokenizedLine.front().compare("RemoteDrive"))
+            else if (tokenizedLine.front() == "RemoteDrive")
               remoteDrive = tokenizedLine.back();
-            else if (!tokenizedLine.front().compare("RemoteDirectory"))
+            else if (tokenizedLine.front() == "RemoteDirectory")
               remoteDirectory = tokenizedLine.back();
-            else if (!tokenizedLine.front().compare("DynarePath")
-                     || !tokenizedLine.front().compare("ProgramPath"))
+            else if (tokenizedLine.front() == "DynarePath"
+                     || tokenizedLine.front() == "ProgramPath")
               programPath = tokenizedLine.back();
-            else if (!tokenizedLine.front().compare("ProgramConfig"))
+            else if (tokenizedLine.front() == "ProgramConfig")
               programConfig = tokenizedLine.back();
-            else if (!tokenizedLine.front().compare("MatlabOctavePath"))
+            else if (tokenizedLine.front() == "MatlabOctavePath")
               matlabOctavePath = tokenizedLine.back();
-            else if (!tokenizedLine.front().compare("NumberOfThreadsPerJob"))
+            else if (tokenizedLine.front() == "NumberOfThreadsPerJob")
               numberOfThreadsPerJob = stoi(tokenizedLine.back());
-            else if (!tokenizedLine.front().compare("SingleCompThread"))
-              if (tokenizedLine.back().compare("true") == 0)
+            else if (tokenizedLine.front() == "SingleCompThread")
+              if (tokenizedLine.back() == "true")
                 singleCompThread = true;
-              else if (tokenizedLine.back().compare("false") == 0)
+              else if (tokenizedLine.back() == "false")
                 singleCompThread = false;
               else
                 {
                   cerr << "ERROR (in config file): The value passed to SingleCompThread may only be 'true' or 'false'." << endl;
                   exit(EXIT_FAILURE);
                 }
-            else if (!tokenizedLine.front().compare("OperatingSystem"))
+            else if (tokenizedLine.front() == "OperatingSystem")
               operatingSystem = tokenizedLine.back();
-            else if (!tokenizedLine.front().compare("Members"))
+            else if (tokenizedLine.front() == "Members")
               {
                 char_separator sep(" ,;", "()", drop_empty_tokens);
                 tokenizer tokens(tokenizedLine.back(), sep);
@@ -386,12 +386,12 @@ ConfigFile::getConfigFileInfo(const string &config_file)
                 for (bool begin_weight{false};
                      const auto &token : tokens)
                   {
-                    if (token.compare("(") == 0)
+                    if (token == "(")
                       {
                         begin_weight = true;
                         continue;
                       }
-                    else if (token.compare(")") == 0)
+                    else if (token == ")")
                       {
                         node_name.clear();
                         begin_weight = false;
@@ -538,7 +538,7 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
   for (bool global_init_file_declared{false};
        const auto &hook : hooks)
     for (const auto &mapit : hook.get_hooks())
-      if (mapit.first.compare("global_init_file") == 0)
+      if (mapit.first == "global_init_file")
         if (exchange(global_init_file_declared, true))
           {
             cerr << "ERROR: Only one global initialization file may be provided." << endl;
@@ -574,7 +574,7 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
             cerr << "ERROR (node " << follower_node.first << "): the port must be an integer." << endl;
             exit(EXIT_FAILURE);
           }
-      if (!follower_node.second.computerName.compare("localhost")) // We are working locally
+      if (follower_node.second.computerName == "localhost") // We are working locally
         {
           if (!follower_node.second.remoteDrive.empty())
             {
@@ -594,7 +594,7 @@ ConfigFile::checkPass(WarningConsolidation &warnings) const
               cerr << "ERROR (node " << follower_node.first << "): the UserName option must be passed for every remote node." << endl;
               exit(EXIT_FAILURE);
             }
-          if (follower_node.second.operatingSystem.compare("windows") == 0)
+          if (follower_node.second.operatingSystem == "windows")
             {
               if (follower_node.second.password.empty())
                 {
@@ -710,7 +710,7 @@ ConfigFile::writeCluster(ostream &output) const
     {
       bool follower_node_in_member_nodes = false;
       for (const auto &itmn : cluster_it->second.member_nodes)
-        if (!follower_node.first.compare(itmn.first))
+        if (follower_node.first == itmn.first)
           follower_node_in_member_nodes = true;
 
       if (!follower_node_in_member_nodes)
@@ -721,10 +721,10 @@ ConfigFile::writeCluster(ostream &output) const
         output << "(" << i << ")";
       i++;
       output << " = struct('Local', ";
-      if (follower_node.second.computerName.compare("localhost"))
-        output << "0, ";
-      else
+      if (follower_node.second.computerName == "localhost")
         output << "1, ";
+      else
+        output << "0, ";
 
       output << "'ComputerName', '" << follower_node.second.computerName << "', "
              << "'Port', '" << follower_node.second.port << "', "
