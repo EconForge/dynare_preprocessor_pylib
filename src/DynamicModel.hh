@@ -665,87 +665,11 @@ DynamicModel::writeDynamicPerBlockHelper(int blk, ostream &output, temporary_ter
                                          int nze_exo_det, int nze_other_endo) const
 {
   BlockSimulationType simulation_type { blocks[blk].simulation_type };
-  int block_size { blocks[blk].size };
   int block_mfs_size { blocks[blk].mfs_size };
   int block_recursive_size { blocks[blk].getRecursiveSize() };
 
-  deriv_node_temp_terms_t tef_terms;
-
-  auto write_eq_tt = [&](int eq)
-                     {
-                       for (auto it : blocks_temporary_terms[blk][eq])
-                         {
-                           if (dynamic_cast<AbstractExternalFunctionNode *>(it))
-                             it->writeExternalFunctionOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs, tef_terms);
-
-                           output << "  ";
-                           it->writeOutput(output, output_type, blocks_temporary_terms[blk][eq], blocks_temporary_terms_idxs, tef_terms);
-                           output << '=';
-                           it->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs, tef_terms);
-                           temporary_terms.insert(it);
-                           output << ';' << endl;
-                         }
-                     };
-
-  // The equations
-  for (int eq {0}; eq < block_size; eq++)
-    {
-      write_eq_tt(eq);
-
-      EquationType equ_type { getBlockEquationType(blk, eq) };
-      BinaryOpNode *e { getBlockEquationExpr(blk, eq) };
-      expr_t lhs { e->arg1 }, rhs { e->arg2 };
-      switch (simulation_type)
-        {
-        case BlockSimulationType::evaluateBackward:
-        case BlockSimulationType::evaluateForward:
-          evaluation:
-          if (equ_type == EquationType::evaluateRenormalized)
-            {
-              e = getBlockEquationRenormalizedExpr(blk, eq);
-              lhs = e->arg1;
-              rhs = e->arg2;
-            }
-          else if (equ_type != EquationType::evaluate)
-            {
-              cerr << "Type mismatch for equation " << getBlockEquationID(blk, eq)+1  << endl;
-              exit(EXIT_FAILURE);
-            }
-          output << "  ";
-          lhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-          output << '=';
-          rhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-          output << ';' << endl;
-          break;
-        case BlockSimulationType::solveBackwardSimple:
-        case BlockSimulationType::solveForwardSimple:
-        case BlockSimulationType::solveBackwardComplete:
-        case BlockSimulationType::solveForwardComplete:
-        case BlockSimulationType::solveTwoBoundariesComplete:
-        case BlockSimulationType::solveTwoBoundariesSimple:
-          if (eq < block_recursive_size)
-            goto evaluation;
-          output << "  residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                 << eq-block_recursive_size+ARRAY_SUBSCRIPT_OFFSET(output_type)
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=(";
-          goto end;
-        default:
-        end:
-          lhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-          output << ")-(";
-          rhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-          output << ");" << endl;
-        }
-    }
-
-  // The Jacobian if we have to solve the block
-
-  /* Write temporary terms for derivatives.
-     Also note that in the case of “evaluate” blocks, derivatives are not
-     computed in deterministic mode; still their temporary terms must be
-     computed even in that mode, because they may be needed in subsequent
-     blocks. */
-  write_eq_tt(blocks[blk].size);
+  // Write residuals and temporary terms (incl. for derivatives)
+  writePerBlockHelper<output_type>(blk, output, temporary_terms);
 
   if constexpr(isCOutput(output_type))
     output << "  if (stochastic_mode) {" << endl;

@@ -271,6 +271,10 @@ protected:
   template<ExprNodeOutputType output_type>
   pair<vector<ostringstream>, vector<ostringstream>> writeModelFileHelper() const;
 
+  // Writes per-block residuals and temporary terms (incl. for derivatives)
+  template<ExprNodeOutputType output_type>
+  void writePerBlockHelper(int blk, ostream &output, temporary_terms_t &temporary_terms) const;
+
   /* Helper for writing derivatives w.r.t. parameters.
      Returns { tt, rp, gp, rpp, gpp, hp, g3p }.
      g3p is empty if requesting a static output type. */
@@ -810,6 +814,89 @@ ModelTree::writeModelFileHelper() const
     }
 
   return { move(d_output), move(tt_output) };
+}
+
+template<ExprNodeOutputType output_type>
+void
+ModelTree::writePerBlockHelper(int blk, ostream &output, temporary_terms_t &temporary_terms) const
+{
+  int block_recursive_size { blocks[blk].getRecursiveSize() };
+
+  // The equations
+  deriv_node_temp_terms_t tef_terms;
+
+  auto write_eq_tt = [&](int eq)
+                     {
+                       for (auto it : blocks_temporary_terms[blk][eq])
+                         {
+                           if (dynamic_cast<AbstractExternalFunctionNode *>(it))
+                             it->writeExternalFunctionOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs, tef_terms);
+
+                           output << "  ";
+                           it->writeOutput(output, output_type, blocks_temporary_terms[blk][eq], blocks_temporary_terms_idxs, tef_terms);
+                           output << '=';
+                           it->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs, tef_terms);
+                           temporary_terms.insert(it);
+                           output << ';' << endl;
+                         }
+                     };
+
+  for (int eq {0}; eq < blocks[blk].size; eq++)
+    {
+      write_eq_tt(eq);
+
+      EquationType equ_type { getBlockEquationType(blk, eq) };
+      BinaryOpNode *e { getBlockEquationExpr(blk, eq) };
+      expr_t lhs { e->arg1 }, rhs { e->arg2 };
+      switch (blocks[blk].simulation_type)
+        {
+        case BlockSimulationType::evaluateBackward:
+        case BlockSimulationType::evaluateForward:
+          evaluation:
+          if (equ_type == EquationType::evaluateRenormalized)
+            {
+              e = getBlockEquationRenormalizedExpr(blk, eq);
+              lhs = e->arg1;
+              rhs = e->arg2;
+            }
+          else if (equ_type != EquationType::evaluate)
+            {
+              cerr << "Type mismatch for equation " << getBlockEquationID(blk, eq)+1  << endl;
+              exit(EXIT_FAILURE);
+            }
+          output << "  ";
+          lhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
+          output << '=';
+          rhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
+          output << ';' << endl;
+          break;
+        case BlockSimulationType::solveBackwardSimple:
+        case BlockSimulationType::solveForwardSimple:
+        case BlockSimulationType::solveBackwardComplete:
+        case BlockSimulationType::solveForwardComplete:
+        case BlockSimulationType::solveTwoBoundariesComplete:
+        case BlockSimulationType::solveTwoBoundariesSimple:
+          if (eq < block_recursive_size)
+            goto evaluation;
+          output << "  residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                 << eq-block_recursive_size+ARRAY_SUBSCRIPT_OFFSET(output_type)
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=(";
+          lhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
+          output << ")-(";
+          rhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
+          output << ");" << endl;
+          break;
+        default:
+          cerr << "Incorrect type for block " << blk+1 << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+
+  /* Write temporary terms for derivatives.
+     This is done even for “evaluate” blocks, whose derivatives are not
+     always computed at runtime; still those temporary terms may be needed by
+     subsequent blocks. */
+  write_eq_tt(blocks[blk].size);
 }
 
 template<ExprNodeOutputType output_type>
