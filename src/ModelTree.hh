@@ -1303,15 +1303,18 @@ ModelTree::writeBlockBytecodeHelper(BytecodeWriter &code_file, int block) const
           code_file << FBINARY_{BinaryOpcode::minus} << FSTPR_{i - block_recursive};
         }
     }
-  code_file << FENDEQU_{};
 
-  /* If the block is not of type “evaluate backward/forward”, then we write
-     the temporary terms for derivatives at this point, i.e. before the
-     JMPIFEVAL, because they will be needed in both “simulate” and
-     “evaluate” modes. */
-  if (simulation_type != BlockSimulationType::evaluateBackward
-      && simulation_type != BlockSimulationType::evaluateForward)
-    write_eq_tt(blocks[block].size);
+  /* Write temporary terms for derivatives. This is done before FENDEQU,
+     because residuals of a subsequent block may depend on temporary terms for
+     the derivatives of the present block.
+
+     Also note that in the case of “evaluate” blocks, derivatives are not
+     computed in the “evaluate” mode; still their temporary terms must be
+     computed even in that mode, because for the same reason as above they may
+     be needed in subsequent blocks. */
+  write_eq_tt(blocks[block].size);
+
+  code_file << FENDEQU_{};
 
   // Get the current code_file position and jump if evaluating
   int pos_jmpifeval {code_file.getInstructionCounter()};
@@ -1410,13 +1413,6 @@ ModelTree::writeBlockBytecodeHelper(BytecodeWriter &code_file, int block) const
   code_file << FJMP_{0}; // Use 0 as jump offset for the time being
   // Update jump offset for previous JMPIFEVAL
   code_file.overwriteInstruction(pos_jmpifeval, FJMPIFEVAL_{pos_jmp-pos_jmpifeval});
-
-  /* If the block is of type “evaluate backward/forward”, then write the
-     temporary terms for derivatives at this point, because they have not
-     been written before the JMPIFEVAL. */
-  if (simulation_type == BlockSimulationType::evaluateBackward
-      || simulation_type == BlockSimulationType::evaluateForward)
-    write_eq_tt(blocks[block].size);
 
   // Write the derivatives for the “evaluate” mode
   for (const auto &[indices, d] : blocks_derivatives[block])
