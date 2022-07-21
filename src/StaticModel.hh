@@ -243,13 +243,20 @@ StaticModel::writeStaticPerBlockHelper(int blk, ostream &output, temporary_terms
           exit(EXIT_FAILURE);
         }
     }
+
+  /* Write temporary terms for derivatives.
+     This is done even for “evaluate” blocks, whose derivatives are not
+     computed at runtime; still those temporary terms may be needed by
+     subsequent blocks (not calling write_eq_tt() would not be a bug though,
+     because those terms would not be added to temporary_terms_union and would
+     therefore not be used; still, it’s probably better performance-wise to
+     use those temporary terms). */
+  write_eq_tt(blocks[blk].size);
+
   // The Jacobian if we have to solve the block
   if (simulation_type != BlockSimulationType::evaluateBackward
       && simulation_type != BlockSimulationType::evaluateForward)
     {
-      // Write temporary terms for derivatives
-      write_eq_tt(blocks[blk].size);
-
       ostringstream i_output, j_output, v_output;
       for (int line_counter { ARRAY_SUBSCRIPT_OFFSET(output_type) };
            const auto &[indices, d] : blocks_derivatives[blk])

@@ -740,7 +740,11 @@ DynamicModel::writeDynamicPerBlockHelper(int blk, ostream &output, temporary_ter
 
   // The Jacobian if we have to solve the block
 
-  // Write temporary terms for derivatives
+  /* Write temporary terms for derivatives.
+     Also note that in the case of “evaluate” blocks, derivatives are not
+     computed in deterministic mode; still their temporary terms must be
+     computed even in that mode, because they may be needed in subsequent
+     blocks. */
   write_eq_tt(blocks[blk].size);
 
   if constexpr(isCOutput(output_type))
