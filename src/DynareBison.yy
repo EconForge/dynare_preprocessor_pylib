@@ -187,6 +187,7 @@ class ParsingDriver;
 %token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS ZERO_MOMENTS_TOLERANCE
 %token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION WITH_EPILOGUE MODEL_REMOVE MODEL_REPLACE MODEL_OPTIONS
 %token VAR_REMOVE ESTIMATED_PARAMS_REMOVE STATIC INCIDENCE RESID NON_ZERO LEARNT_IN PLUS_EQUAL TIMES_EQUAL
+%token FSOLVE_OPTIONS
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -1401,6 +1402,7 @@ steady_options : o_solve_algo
                | o_nocheck
                | o_steady_tolf
                | o_steady_tolx
+               | o_fsolve_options
                ;
 
 check : CHECK ';'
@@ -4078,6 +4080,7 @@ o_no_init_estimation_check_first_obs : NO_INIT_ESTIMATION_CHECK_FIRST_OBS { driv
 o_heteroskedastic_filter : HETEROSKEDASTIC_FILTER { driver.option_num("heteroskedastic_filter", "true"); };
 o_pfwee_terminal_steady_state_as_guess_value : TERMINAL_STEADY_STATE_AS_GUESS_VALUE { driver.option_num("pfwee.terminal_steady_state_as_guess_value", "true"); };
 o_pfwee_constant_simulation_length : CONSTANT_SIMULATION_LENGTH { driver.option_num("pfwee.constant_simulation_length", "true"); };
+o_fsolve_options : FSOLVE_OPTIONS EQUAL '(' name_value_pair_with_boolean_list ')' { driver.option_str("fsolve_options", $4); };
 
 // Some options to "method_of_moments"
 o_bartlett_kernel_lag : BARTLETT_KERNEL_LAG EQUAL INT_NUMBER { driver.option_num("mom.bartlett_kernel_lag", $3); };

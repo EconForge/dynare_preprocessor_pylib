@@ -451,6 +451,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>first_simulation_period {return token::FIRST_SIMULATION_PERIOD;}
 <DYNARE_STATEMENT>last_simulation_period {return token::LAST_SIMULATION_PERIOD;}
 <DYNARE_STATEMENT>no_init_estimation_check_first_obs {return token::NO_INIT_ESTIMATION_CHECK_FIRST_OBS;}
+<DYNARE_STATEMENT>fsolve_options {return token::FSOLVE_OPTIONS;}
 
 <DYNARE_STATEMENT>alpha {
   yylval->build<string>(yytext);
