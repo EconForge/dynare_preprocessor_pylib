@@ -116,16 +116,9 @@ struct Block_contain_type
 
 class BytecodeWriter;
 
-class BytecodeInstruction
+struct BytecodeInstruction
 {
-  template<typename B>
-  friend BytecodeWriter &operator<<(BytecodeWriter &code_file, const B &instr);
-protected:
-  Tags op_code;
-public:
-  explicit BytecodeInstruction(Tags op_code_arg) : op_code{op_code_arg}
-  {
-  };
+  const Tags op_code;
 };
 
 template<typename T1>
@@ -812,7 +805,7 @@ public:
   char *
   load(char *code)
   {
-    op_code = Tags::FCALL; code += sizeof(op_code);
+    code += sizeof(op_code);
     memcpy(&nb_output_arguments, code, sizeof(nb_output_arguments)); code += sizeof(nb_output_arguments);
     memcpy(&nb_input_arguments, code, sizeof(nb_input_arguments)); code += sizeof(nb_input_arguments);
     memcpy(&indx, code, sizeof(indx)); code += sizeof(indx);
@@ -1057,7 +1050,7 @@ public:
   char *
   load(char *code)
   {
-    op_code = Tags::FBEGINBLOCK; code += sizeof(op_code);
+    code += sizeof(op_code);
     memcpy(&size, code, sizeof(size)); code += sizeof(size);
     memcpy(&type, code, sizeof(type)); code += sizeof(type);
     for (int i = 0; i < size; i++)
@@ -1158,7 +1151,7 @@ BytecodeWriter &operator<<(BytecodeWriter &code_file, const FBEGINBLOCK_ &instr)
 
 
 #ifdef BYTECODE_MEX
-using tags_liste_t = vector<pair<Tags, void * >>;
+using instructions_list_t = vector<BytecodeInstruction *>;
 class CodeLoad
 {
 private:
@@ -1183,10 +1176,10 @@ public:
   {
     return code;
   };
-  tags_liste_t
+  instructions_list_t
   get_op_code(string file_name)
   {
-    tags_liste_t tags_liste;
+    instructions_list_t tags_liste;
     ifstream CompiledCode;
     streamoff Code_Size;
     CompiledCode.open(file_name + ".cod", ios::in | ios::binary| ios::ate);
@@ -1203,20 +1196,21 @@ public:
     int instruction = 0;
     while (!done)
       {
+        BytecodeInstruction *instr {reinterpret_cast<BytecodeInstruction *>(code)};
         switch (*reinterpret_cast<Tags *>(code))
           {
           case Tags::FLDZ:
 # ifdef DEBUGL
             mexPrintf("FLDZ = %d size = %d\n", Tags::FLDZ, sizeof(FLDZ_));
 # endif
-            tags_liste.emplace_back(Tags::FLDZ, code);
+            tags_liste.push_back(instr);
             code += sizeof(FLDZ_);
             break;
           case Tags::FEND:
 # ifdef DEBUGL
             mexPrintf("FEND\n");
 # endif
-            tags_liste.emplace_back(Tags::FEND, code);
+            tags_liste.push_back(instr);
             code += sizeof(FEND_);
             done = true;
             break;
@@ -1224,189 +1218,189 @@ public:
 # ifdef DEBUGL
             mexPrintf("FENDBLOCK\n");
 # endif
-            tags_liste.emplace_back(Tags::FENDBLOCK, code);
+            tags_liste.push_back(instr);
             code += sizeof(FENDBLOCK_);
             break;
           case Tags::FENDEQU:
 # ifdef DEBUGL
             mexPrintf("FENDEQU\n");
 # endif
-            tags_liste.emplace_back(Tags::FENDEQU, code);
+            tags_liste.push_back(instr);
             code += sizeof(FENDEQU_);
             break;
           case Tags::FDIMT:
 # ifdef DEBUGL
             mexPrintf("FDIMT = %d size = %d\n", Tags::FDIMT, sizeof(FDIMT_));
 # endif
-            tags_liste.emplace_back(Tags::FDIMT, code);
+            tags_liste.push_back(instr);
             code += sizeof(FDIMT_);
             break;
           case Tags::FDIMST:
 # ifdef DEBUGL
             mexPrintf("FDIMST\n");
 # endif
-            tags_liste.emplace_back(Tags::FDIMST, code);
+            tags_liste.push_back(instr);
             code += sizeof(FDIMST_);
             break;
           case Tags::FNUMEXPR:
 # ifdef DEBUGL
             mexPrintf("FNUMEXPR\n");
 # endif
-            tags_liste.emplace_back(Tags::FNUMEXPR, code);
+            tags_liste.push_back(instr);
             code += sizeof(FNUMEXPR_);
             break;
           case Tags::FLDC:
 # ifdef DEBUGL
             mexPrintf("FLDC\n");
 # endif
-            tags_liste.emplace_back(Tags::FLDC, code);
+            tags_liste.push_back(instr);
             code += sizeof(FLDC_);
             break;
           case Tags::FLDU:
 # ifdef DEBUGL
             mexPrintf("FLDU\n");
 # endif
-            tags_liste.emplace_back(Tags::FLDU, code);
+            tags_liste.push_back(instr);
             code += sizeof(FLDU_);
             break;
           case Tags::FLDSU:
 # ifdef DEBUGL
             mexPrintf("FLDSU\n");
 # endif
-            tags_liste.emplace_back(Tags::FLDSU, code);
+            tags_liste.push_back(instr);
             code += sizeof(FLDSU_);
             break;
           case Tags::FLDR:
 # ifdef DEBUGL
             mexPrintf("FLDR\n");
 # endif
-            tags_liste.emplace_back(Tags::FLDR, code);
+            tags_liste.push_back(instr);
             code += sizeof(FLDR_);
             break;
           case Tags::FLDT:
 # ifdef DEBUGL
             mexPrintf("FLDT\n");
 # endif
-            tags_liste.emplace_back(Tags::FLDT, code);
+            tags_liste.push_back(instr);
             code += sizeof(FLDT_);
             break;
           case Tags::FLDST:
 # ifdef DEBUGL
             mexPrintf("FLDST\n");
 # endif
-            tags_liste.emplace_back(Tags::FLDST, code);
+            tags_liste.push_back(instr);
             code += sizeof(FLDST_);
             break;
           case Tags::FSTPT:
 # ifdef DEBUGL
             mexPrintf("FSTPT = %d size = %d\n", Tags::FSTPT, sizeof(FSTPT_));
 # endif
-            tags_liste.emplace_back(Tags::FSTPT, code);
+            tags_liste.push_back(instr);
             code += sizeof(FSTPT_);
             break;
           case Tags::FSTPST:
 # ifdef DEBUGL
             mexPrintf("FSTPST\n");
 # endif
-            tags_liste.emplace_back(Tags::FSTPST, code);
+            tags_liste.push_back(instr);
             code += sizeof(FSTPST_);
             break;
           case Tags::FSTPR:
 # ifdef DEBUGL
             mexPrintf("FSTPR\n");
 # endif
-            tags_liste.emplace_back(Tags::FSTPR, code);
+            tags_liste.push_back(instr);
             code += sizeof(FSTPR_);
             break;
           case Tags::FSTPU:
 # ifdef DEBUGL
             mexPrintf("FSTPU\n");
 # endif
-            tags_liste.emplace_back(Tags::FSTPU, code);
+            tags_liste.push_back(instr);
             code += sizeof(FSTPU_);
             break;
           case Tags::FSTPSU:
 # ifdef DEBUGL
             mexPrintf("FSTPSU\n");
 # endif
-            tags_liste.emplace_back(Tags::FSTPSU, code);
+            tags_liste.push_back(instr);
             code += sizeof(FSTPSU_);
             break;
           case Tags::FSTPG:
 # ifdef DEBUGL
             mexPrintf("FSTPG\n");
 # endif
-            tags_liste.emplace_back(Tags::FSTPG, code);
+            tags_liste.push_back(instr);
             code += sizeof(FSTPG_);
             break;
           case Tags::FSTPG2:
 # ifdef DEBUGL
             mexPrintf("FSTPG2\n");
 # endif
-            tags_liste.emplace_back(Tags::FSTPG2, code);
+            tags_liste.push_back(instr);
             code += sizeof(FSTPG2_);
             break;
           case Tags::FSTPG3:
 # ifdef DEBUGL
             mexPrintf("FSTPG3\n");
 # endif
-            tags_liste.emplace_back(Tags::FSTPG3, code);
+            tags_liste.push_back(instr);
             code += sizeof(FSTPG3_);
             break;
           case Tags::FUNARY:
 # ifdef DEBUGL
             mexPrintf("FUNARY\n");
 # endif
-            tags_liste.emplace_back(Tags::FUNARY, code);
+            tags_liste.push_back(instr);
             code += sizeof(FUNARY_);
             break;
           case Tags::FBINARY:
 # ifdef DEBUGL
             mexPrintf("FBINARY\n");
 # endif
-            tags_liste.emplace_back(Tags::FBINARY, code);
+            tags_liste.push_back(instr);
             code += sizeof(FBINARY_);
             break;
           case Tags::FTRINARY:
 # ifdef DEBUGL
             mexPrintf("FTRINARY\n");
 # endif
-            tags_liste.emplace_back(Tags::FTRINARY, code);
+            tags_liste.push_back(instr);
             code += sizeof(FTRINARY_);
             break;
           case Tags::FLDVS:
 # ifdef DEBUGL
             mexPrintf("FLDVS\n");
 # endif
-            tags_liste.emplace_back(Tags::FLDVS, code);
+            tags_liste.push_back(instr);
             code += sizeof(FLDVS_);
             break;
           case Tags::FLDSV:
 # ifdef DEBUGL
             mexPrintf("FLDSV\n");
 # endif
-            tags_liste.emplace_back(Tags::FLDSV, code);
+            tags_liste.push_back(instr);
             code += sizeof(FLDSV_);
             break;
           case Tags::FSTPSV:
 # ifdef DEBUGL
             mexPrintf("FSTPSV\n");
 # endif
-            tags_liste.emplace_back(Tags::FSTPSV, code);
+            tags_liste.push_back(instr);
             code += sizeof(FSTPSV_);
             break;
           case Tags::FLDV:
 # ifdef DEBUGL
             mexPrintf("FLDV\n");
 # endif
-            tags_liste.emplace_back(Tags::FLDV, code);
+            tags_liste.push_back(instr);
             code += sizeof(FLDV_);
             break;
           case Tags::FSTPV:
 # ifdef DEBUGL
             mexPrintf("FSTPV\n");
 # endif
-            tags_liste.emplace_back(Tags::FSTPV, code);
+            tags_liste.push_back(instr);
             code += sizeof(FSTPV_);
             break;
           case Tags::FBEGINBLOCK:
@@ -1420,7 +1414,7 @@ public:
               code = fbegin_block->load(code);
 
               begin_block.push_back(tags_liste.size());
-              tags_liste.emplace_back(Tags::FBEGINBLOCK, fbegin_block);
+              tags_liste.push_back(fbegin_block);
               nb_blocks++;
             }
             break;
@@ -1428,14 +1422,14 @@ public:
 # ifdef DEBUGL
             mexPrintf("FJMPIFEVAL\n");
 # endif
-            tags_liste.emplace_back(Tags::FJMPIFEVAL, code);
+            tags_liste.push_back(instr);
             code += sizeof(FJMPIFEVAL_);
             break;
           case Tags::FJMP:
 # ifdef DEBUGL
             mexPrintf("FJMP\n");
 # endif
-            tags_liste.emplace_back(Tags::FJMP, code);
+            tags_liste.push_back(instr);
             code += sizeof(FJMP_);
             break;
           case Tags::FCALL:
@@ -1448,7 +1442,7 @@ public:
 
               code = fcall->load(code);
 
-              tags_liste.emplace_back(Tags::FCALL, fcall);
+              tags_liste.push_back(fcall);
 # ifdef DEBUGL
               mexPrintf("FCALL finish\n"); mexEvalString("drawnow;");
               mexPrintf("-- *code=%d\n", *code); mexEvalString("drawnow;");
@@ -1459,42 +1453,42 @@ public:
 # ifdef DEBUGL
             mexPrintf("FLDTEF\n");
 # endif
-            tags_liste.emplace_back(Tags::FLDTEF, code);
+            tags_liste.push_back(instr);
             code += sizeof(FLDTEF_);
             break;
           case Tags::FSTPTEF:
 # ifdef DEBUGL
             mexPrintf("FSTPTEF\n");
 # endif
-            tags_liste.emplace_back(Tags::FSTPTEF, code);
+            tags_liste.push_back(instr);
             code += sizeof(FSTPTEF_);
             break;
           case Tags::FLDTEFD:
 # ifdef DEBUGL
             mexPrintf("FLDTEFD\n");
 # endif
-            tags_liste.emplace_back(Tags::FLDTEFD, code);
+            tags_liste.push_back(instr);
             code += sizeof(FLDTEFD_);
             break;
           case Tags::FSTPTEFD:
 # ifdef DEBUGL
             mexPrintf("FSTPTEFD\n");
 # endif
-            tags_liste.emplace_back(Tags::FSTPTEFD, code);
+            tags_liste.push_back(instr);
             code += sizeof(FSTPTEFD_);
             break;
           case Tags::FLDTEFDD:
 # ifdef DEBUGL
             mexPrintf("FLDTEFDD\n");
 # endif
-            tags_liste.emplace_back(Tags::FLDTEFDD, code);
+            tags_liste.push_back(instr);
             code += sizeof(FLDTEFDD_);
             break;
           case Tags::FSTPTEFDD:
 # ifdef DEBUGL
             mexPrintf("FSTPTEFDD\n");
 # endif
-            tags_liste.emplace_back(Tags::FSTPTEFDD, code);
+            tags_liste.push_back(instr);
             code += sizeof(FSTPTEFDD_);
             break;
           default:
