@@ -842,7 +842,9 @@ class FNUMEXPR_ : public BytecodeInstruction
 {
 private:
   ExpressionType expression_type;
-  int equation, dvariable1, lag1;
+  int equation; // Equation number (non-block-specific) (or temporary term number for ExpressionType::TemporaryTerm)
+  int dvariable1; // For derivatives, type-specific ID of the derivation variable
+  int lag1; // For derivatives, lead/lag of the derivation variable
 public:
   FNUMEXPR_(const ExpressionType expression_type_arg, int equation_arg) :
     BytecodeInstruction{Tags::FNUMEXPR},
