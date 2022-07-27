@@ -4510,10 +4510,10 @@ BinaryOpNode::writeJsonOutput(ostream &output,
   close_parenthesis = false;
 
   /* Add parenthesis around right argument if:
-     - its precedence is lower than those of the current node
+     - its precedence is lower than that of the current node
      - it is a power operator and current operator is also a power operator
-     - it is a minus operator with same precedence than current operator
-     - it is a divide operator with same precedence than current operator */
+     - it has same precedence as current operator and current operator is
+       either a minus or a divide */
   auto barg2 = dynamic_cast<BinaryOpNode *>(arg2);
   if (int arg2_prec = arg2->precedenceJson(temporary_terms); arg2_prec < prec
       || (op_code == BinaryOpcode::power && barg2 && barg2->op_code == BinaryOpcode::power)
@@ -4723,10 +4723,10 @@ BinaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
   else
     {
       /* Add parenthesis around right argument if:
-         - its precedence is lower than those of the current node
+         - its precedence is lower than that of the current node
          - it is a power operator and current operator is also a power operator
-         - it is a minus operator with same precedence than current operator
-         - it is a divide operator with same precedence than current operator */
+         - it has same precedence as current operator and current operator is
+           either a minus or a divide */
       auto barg2 = dynamic_cast<BinaryOpNode *>(arg2);
       if (int arg2_prec = arg2->precedence(output_type, temporary_terms); arg2_prec < prec
           || (op_code == BinaryOpcode::power && barg2 && barg2->op_code == BinaryOpcode::power && !isLatexOutput(output_type))
