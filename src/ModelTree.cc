@@ -1601,8 +1601,8 @@ ModelTree::matlab_arch(const string &mexext)
 string
 ModelTree::findGccOnMacos(const string &mexext)
 {
-  const string macos_gcc_version{"11"}; // doc/manual/source/installation-and-configuration.rst
-                                        // should be updated when this is changed
+  const string macos_gcc_version {"12"}; // doc/manual/source/installation-and-configuration.rst
+                                         // should be updated when this is changed
   char dynare_preprocessor_path[PATH_MAX];
   uint32_t size = PATH_MAX;
   string local_gcc_path;

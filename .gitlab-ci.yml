@@ -83,7 +83,7 @@ build_macos_x86_64:
     - macOS
   script:
     - autoreconf -si
-    - './configure CC=gcc-11 CXX=g++-11 LDFLAGS="-static-libgcc -s" LEX=/usr/local/opt/flex/bin/flex YACC=/usr/local/opt/bison/bin/bison'
+    - './configure CC=gcc-12 CXX=g++-12 LDFLAGS="-static-libgcc -s" LEX=/usr/local/opt/flex/bin/flex YACC=/usr/local/opt/bison/bin/bison'
     - make -j$(nproc)
     - mkdir -p $CI_COMMIT_SHA/macos-x86_64
     - tar -caf $CI_COMMIT_SHA/macos-x86_64/dynare-preprocessor.tar.gz -C src dynare-preprocessor
