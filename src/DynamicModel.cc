@@ -4081,7 +4081,7 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t &eval_context
                       {
                         cerr << "ERROR: trends not compatible with balanced growth path; the second-order cross partial of equation " << eq + 1;
                         if (equations_lineno[eq])
-                          cerr << " (line " << *equations_lineno[eq] << ")";
+                          cerr << " (line " << *equations_lineno[eq] << ") ";
                         cerr << "w.r.t. trend variable "
                              << symbol_table.getName(symb_id1) << " and endogenous variable "
                              << symbol_table.getName(symb_id2) << " is not null (abs. value = "
