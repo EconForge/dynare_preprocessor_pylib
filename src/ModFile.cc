@@ -43,8 +43,6 @@ ModFile::ModFile(WarningConsolidation &warnings_arg)
                   trend_component_model_table, var_model_table},
     trend_dynamic_model{symbol_table, num_constants, external_functions_table,
                         trend_component_model_table, var_model_table},
-    ramsey_FOC_equations_dynamic_model{symbol_table, num_constants, external_functions_table,
-                                       trend_component_model_table, var_model_table},
     orig_ramsey_dynamic_model{symbol_table, num_constants, external_functions_table,
                               trend_component_model_table, var_model_table},
     epilogue{symbol_table, num_constants, external_functions_table,
@@ -506,6 +504,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       */
       if (linear)
         orig_ramsey_dynamic_model = dynamic_model;
+      DynamicModel ramsey_FOC_equations_dynamic_model {symbol_table, num_constants, external_functions_table, trend_component_model_table, var_model_table};
       ramsey_FOC_equations_dynamic_model = dynamic_model;
       ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(planner_objective);
       ramsey_FOC_equations_dynamic_model.replaceMyEquations(dynamic_model);
