@@ -3556,7 +3556,7 @@ DynamicModel::computeBlockDynJacobianCols()
           dynamic_exo[block_eq].emplace(lag, var);
           break;
         case SymbolType::exogenousDet:
-          blocks_derivatives_exo_det[block_eq][{ eq, var, lag }] = derivatives[1][{ eq_orig, getDerivID(symbol_table.getID(SymbolType::exogenous, var), lag) }];
+          blocks_derivatives_exo_det[block_eq][{ eq, var, lag }] = derivatives[1][{ eq_orig, getDerivID(symbol_table.getID(SymbolType::exogenousDet, var), lag) }];
           blocks_exo_det[block_eq].insert(var);
           dynamic_exo_det[block_eq].emplace(lag, var);
           break;
