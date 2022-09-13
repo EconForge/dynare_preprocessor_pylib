@@ -242,7 +242,7 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
       it != mate_map.begin() + n)
     {
       if (verbose)
-        cerr << "ERROR: Could not normalize the " << (dynamic ? "dynamic" : "static") << " model. Variable "
+        cerr << "Could not normalize the " << (dynamic ? "dynamic" : "static") << " model. Variable "
              << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, it - mate_map.begin()))
              << " is not in the maximum cardinality matching." << endl;
       check = false;
@@ -250,12 +250,20 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
   return check;
 }
 
-void
+bool
 ModelTree::computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian, bool dynamic)
 {
-  cout << "Normalizing the " << (dynamic ? "dynamic" : "static") << " model..." << endl;
-
   int n = equations.size();
+
+  /* Optimal policy models (discretionary, or Ramsey before computing FOCs) do
+     not have as many equations as variables. */
+  if (n != symbol_table.endo_nbr())
+    {
+      cout << "The " << (dynamic ? "dynamic" : "static") << " model cannot be normalized, since it does not have as many equations as variables." << endl;
+      return false;
+    }
+
+  cout << "Normalizing the " << (dynamic ? "dynamic" : "static") << " model..." << endl;
 
   // Compute the maximum value of each row of the contemporaneous Jacobian matrix
   vector max_val(n, 0.0);
@@ -306,18 +314,9 @@ ModelTree::computeNonSingularNormalization(const jacob_map_t &contemporaneous_ja
       found_normalization = computeNormalization(symbolic_jacobian, dynamic, true);
     }
 
-  if (!found_normalization)
-    {
-      /* Some models don’t have a steady state, and this can cause the
-         normalization to fail (e.g. if some variable only appears in a diff(),
-         it will disappear from the static model). Suggest the “no_static”
-         option as a possible solution. */
-      if (!dynamic)
-        cerr << "If your model does not have a steady state, you may want to try the 'no_static' option of the 'model' block." << endl;
-      /* The last call to computeNormalization(), which was verbose, already
-         printed an error message, so we can immediately exit. */
-      exit(EXIT_FAILURE);
-    }
+  /* NB: If normalization failed, an explanatory message has been printed by the last call
+     to computeNormalization(), which has verbose=true */
+  return found_normalization;
 }
 
 ModelTree::jacob_map_t
@@ -332,25 +331,20 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context) const
           int eq = indices[0];
           int var { getTypeSpecificIDByDerivID(deriv_id) };
           int lag = getLagByDerivID(deriv_id);
-          double val = 0;
-          try
-            {
-              val = d1->eval(eval_context);
-            }
-          catch (ExprNode::EvalExternalFunctionException &e)
-            {
-              val = 1;
-            }
-          catch (ExprNode::EvalException &e)
-            {
-              cerr << "ERROR: evaluation of Jacobian failed for equation " << eq+1;
-              if (equations_lineno[eq])
-                cerr << " (line " << *equations_lineno[eq] << ")";
-              cerr << " and variable " << getNameByDerivID(deriv_id) << "(" << lag << ") !" << endl;
-              d1->writeOutput(cerr, ExprNodeOutputType::matlabDynamicModel, {}, {});
-              cerr << endl;
-              exit(EXIT_FAILURE);
-            }
+          double val { [&]
+          {
+            try
+              {
+                return d1->eval(eval_context);
+              }
+            catch (ExprNode::EvalExternalFunctionException &e)
+              {
+                return 1.0;
+              }
+            /* Other types of EvalException should not happen (all symbols should
+               have a value; we don’t evaluate an equal sign) */
+          }() };
+
           if ((isnan(val) || fabs(val) >= cutoff) && lag == 0)
             contemporaneous_jacobian[{ eq, var }] = val;
         }

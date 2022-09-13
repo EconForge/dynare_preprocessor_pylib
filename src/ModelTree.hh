@@ -352,8 +352,9 @@ protected:
     If no matching is found using a strictly positive cutoff, then a zero cutoff is applied (i.e. use a symbolic normalization); in that case, the method adds zeros in the jacobian matrices to reflect all the edges in the symbolic incidence matrix.
     If no matching is found with a zero cutoff, an error message is printed.
     The resulting normalization is stored in endo2eq.
+    Returns a boolean indicating success.
   */
-  void computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian, bool dynamic);
+  bool computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian, bool dynamic);
   //! Evaluate the jacobian (w.r.t. endogenous) and suppress all the elements below the cutoff
   /*! Returns the contemporaneous_jacobian.
       Elements below the cutoff are discarded. External functions are evaluated to 1. */

@@ -23,6 +23,7 @@
 #include <cassert>
 #include <algorithm>
 #include <sstream>
+#include <numeric>
 
 #include "StaticModel.hh"
 #include "DynamicModel.hh"
@@ -245,6 +246,10 @@ StaticModel::writeStaticBytecode(const string &basename) const
   int u_count_int { writeBytecodeBinFile(basename + "/model/bytecode/static.bin", false) };
 
   BytecodeWriter code_file {basename + "/model/bytecode/static.cod"};
+  vector<int> eq_idx(equations.size());
+  iota(eq_idx.begin(), eq_idx.end(), 0);
+  vector<int> endo_idx(symbol_table.endo_nbr());
+  iota(endo_idx.begin(), endo_idx.end(), 0);
 
   // Declare temporary terms and the (single) block
   code_file << FDIMST_{static_cast<int>(temporary_terms_derivatives[0].size()
@@ -253,8 +258,8 @@ StaticModel::writeStaticBytecode(const string &basename) const
                             BlockSimulationType::solveForwardComplete,
                             0,
                             symbol_table.endo_nbr(),
-                            endo_idx_block2orig,
-                            eq_idx_block2orig,
+                            endo_idx,
+                            eq_idx,
                             false,
                             symbol_table.endo_nbr(),
                             0,
@@ -362,42 +367,38 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
       computeParamsDerivatives(paramsDerivsOrder);
     }
 
-  if (block)
+  computeTemporaryTerms(true, no_tmp_terms);
+
+  /* Must be called after computeTemporaryTerms(), because it depends on
+     temporary_terms_mlv to be filled */
+  if (paramsDerivsOrder > 0 && !no_tmp_terms)
+    computeParamsDerivativesTemporaryTerms();
+
+  if (!computingPassBlock(eval_context, no_tmp_terms) && block)
     {
-      auto contemporaneous_jacobian = evaluateAndReduceJacobian(eval_context);
-
-      computeNonSingularNormalization(contemporaneous_jacobian, false);
-
-      auto [prologue, epilogue] = computePrologueAndEpilogue();
-
-      auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
-
-      equationTypeDetermination(first_order_endo_derivatives, mfs);
-
-      cout << "Finding the optimal block decomposition of the model ..." << endl;
-
-      computeBlockDecomposition(prologue, epilogue);
-
-      reduceBlockDecomposition();
-
-      printBlockDecomposition();
-
-      computeChainRuleJacobian();
-
-      determineLinearBlocks();
-
-      if (!no_tmp_terms)
-        computeBlockTemporaryTerms();
+      cerr << "ERROR: Block decomposition requested but failed. If your model does not have a steady state, you may want to try the 'no_static' option of the 'model' block." << endl;
+      exit(EXIT_FAILURE);
     }
-  else
-    {
-      computeTemporaryTerms(true, no_tmp_terms);
+}
 
-      /* Must be called after computeTemporaryTerms(), because it depends on
-         temporary_terms_mlv to be filled */
-      if (paramsDerivsOrder > 0 && !no_tmp_terms)
-        computeParamsDerivativesTemporaryTerms();
-    }
+bool
+StaticModel::computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms)
+{
+  auto contemporaneous_jacobian = evaluateAndReduceJacobian(eval_context);
+  if (!computeNonSingularNormalization(contemporaneous_jacobian, false))
+    return false;
+  auto [prologue, epilogue] = computePrologueAndEpilogue();
+  auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
+  equationTypeDetermination(first_order_endo_derivatives, mfs);
+  cout << "Finding the optimal block decomposition of the static model..." << endl;
+  computeBlockDecomposition(prologue, epilogue);
+  reduceBlockDecomposition();
+  printBlockDecomposition();
+  computeChainRuleJacobian();
+  determineLinearBlocks();
+  if (!no_tmp_terms)
+    computeBlockTemporaryTerms();
+  return true;
 }
 
 void

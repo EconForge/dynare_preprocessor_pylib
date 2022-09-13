@@ -297,6 +297,12 @@ private:
     return blocks_jacob_cols_endo[blk].at({ var, lag });
   }
 
+  /* Compute block decomposition, its derivatives and temporary terms.
+     Meant to be overriden in derived classes which don’t support block
+     decomposition (currently Epilogue). Returns a boolean indicating success
+     (failure can happen in normalization). */
+  virtual bool computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms);
+
 public:
   DynamicModel(SymbolTable &symbol_table_arg,
                NumericalConstants &num_constants_arg,
@@ -313,7 +319,7 @@ public:
   //! Write cross references
   void writeXrefs(ostream &output) const;
 
-  //! Execute computations (variable sorting + derivation)
+  //! Execute computations (variable sorting + derivation + block decomposition)
   /*!
     \param jacobianExo whether derivatives w.r. to exo and exo_det should be in the Jacobian (derivatives w.r. to endo are always computed)
     \param derivsOrder order of derivatives w.r. to exo, exo_det and endo should be computed (implies jacobianExo = true when order >= 2)

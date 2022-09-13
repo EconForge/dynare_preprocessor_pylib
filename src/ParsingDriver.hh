@@ -111,7 +111,7 @@ private:
   int declare_symbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string, string>> &partition_value);
 
   //! Temporary store for the planner objective
-  unique_ptr<StaticModel> planner_objective;
+  unique_ptr<PlannerObjective> planner_objective;
 
   //! Temporary store for the occbin_constraints statement
   unique_ptr<DataTree> occbin_constraints_tree;

@@ -2154,9 +2154,9 @@ ParsingDriver::run_model_comparison()
 void
 ParsingDriver::begin_planner_objective()
 {
-  planner_objective = make_unique<StaticModel>(mod_file->symbol_table,
-                                               mod_file->num_constants,
-                                               mod_file->external_functions_table);
+  planner_objective = make_unique<PlannerObjective>(mod_file->symbol_table,
+                                                    mod_file->num_constants,
+                                                    mod_file->external_functions_table);
   set_current_data_tree(planner_objective.get());
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2019 Dynare Team
+ * Copyright © 2010-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -25,6 +25,16 @@
 #include "StaticModel.hh"
 #include "DynamicModel.hh"
 #include "WarningConsolidation.hh"
+
+class PlannerObjective : public StaticModel
+{
+public:
+  PlannerObjective(SymbolTable &symbol_table_arg,
+                   NumericalConstants &num_constants_arg,
+                   ExternalFunctionsTable &external_functions_table_arg);
+private:
+  bool computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms) override;
+};
 
 class SteadyStateModel : public DataTree
 {
@@ -98,6 +108,7 @@ private:
   //! Helper for public writeEpilogueFile
   void writeStaticEpilogueFile(const string &basename) const;
   void writeDynamicEpilogueFile(const string &basename) const;
+  bool computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms) override;
 };
 
 #endif

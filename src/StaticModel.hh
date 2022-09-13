@@ -110,6 +110,12 @@ private:
     return var;
   }
 
+  /* Compute block decomposition, its derivatives and temporary terms.
+     Meant to be overriden in derived classes which don’t support block
+     decomposition (currently PlannerObjective). Returns a boolean indicating success
+     (failure can happen in normalization). */
+  virtual bool computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms);
+
 public:
   StaticModel(SymbolTable &symbol_table_arg,
               NumericalConstants &num_constants,
@@ -124,7 +130,7 @@ public:
   //! Writes information about the static model to the driver file
   void writeDriverOutput(ostream &output, bool block) const;
 
-  //! Execute computations (variable sorting + derivation)
+  //! Execute computations (variable sorting + derivation + block decomposition)
   /*!
     \param eval_context evaluation context for normalization
     \param no_tmp_terms if true, no temporary terms will be computed in the static files

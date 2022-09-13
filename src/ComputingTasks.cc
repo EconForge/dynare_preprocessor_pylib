@@ -2453,7 +2453,7 @@ ModelComparisonStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-PlannerObjectiveStatement::PlannerObjectiveStatement(const StaticModel &model_tree_arg) :
+PlannerObjectiveStatement::PlannerObjectiveStatement(const PlannerObjective &model_tree_arg) :
   model_tree{model_tree_arg}
 {
 }
@@ -2473,7 +2473,7 @@ PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct,
   mod_file_struct.planner_objective_present = true;
 }
 
-const StaticModel &
+const PlannerObjective &
 PlannerObjectiveStatement::getPlannerObjective() const
 {
   return model_tree;

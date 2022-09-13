@@ -580,10 +580,10 @@ public:
 class PlannerObjectiveStatement : public Statement
 {
 private:
-  StaticModel model_tree;
+  PlannerObjective model_tree;
   bool computing_pass_called{false};
 public:
-  explicit PlannerObjectiveStatement(const StaticModel &model_tree_arg);
+  explicit PlannerObjectiveStatement(const PlannerObjective &model_tree_arg);
   /*! \todo check there are only endogenous variables at the current period in the objective
     (no exogenous, no lead/lag) */
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
@@ -592,7 +592,7 @@ public:
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
   //! Return a reference the Planner Objective model tree
-  const StaticModel &getPlannerObjective() const;
+  const PlannerObjective &getPlannerObjective() const;
 };
 
 class BVARDensityStatement : public Statement

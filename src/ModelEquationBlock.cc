@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2021 Dynare Team
+ * Copyright © 2010-2022 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -22,6 +22,21 @@
 #include <sstream>
 
 #include "ModelEquationBlock.hh"
+
+PlannerObjective::PlannerObjective(SymbolTable &symbol_table_arg,
+                                   NumericalConstants &num_constants_arg,
+                                   ExternalFunctionsTable &external_functions_table_arg) :
+  StaticModel {symbol_table_arg, num_constants_arg, external_functions_table_arg}
+{
+}
+
+bool
+PlannerObjective::computingPassBlock([[maybe_unused]] const eval_context_t &eval_context,
+                                     [[maybe_unused]] bool no_tmp_terms)
+{
+  // Disable block decomposition on planner objective
+  return false;
+}
 
 SteadyStateModel::SteadyStateModel(SymbolTable &symbol_table_arg,
                                    NumericalConstants &num_constants_arg,
@@ -487,4 +502,12 @@ Epilogue::writeOutput(ostream &output) const
   for (auto symb_id : endogs)
     symbol_list.push_back(symbol_table.getName(symb_id));
   SymbolList{move(symbol_list)}.writeOutput("M_.epilogue_var_list_", output);
+}
+
+bool
+Epilogue::computingPassBlock([[maybe_unused]] const eval_context_t &eval_context,
+                             [[maybe_unused]] bool no_tmp_terms)
+{
+  // Disable block decomposition on epilogue blocks
+  return false;
 }

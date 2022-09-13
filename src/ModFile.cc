@@ -496,7 +496,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
           else
             pos = pos2;
       assert(pos);
-      const StaticModel &planner_objective = pos->getPlannerObjective();
+      const PlannerObjective &planner_objective = pos->getPlannerObjective();
 
       /*
         clone the model then clone the new equations back to the original because

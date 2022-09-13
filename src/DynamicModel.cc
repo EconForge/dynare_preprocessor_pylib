@@ -575,13 +575,17 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
     };
   int jacobian_ncols_exo {symbol_table.exo_nbr()};
   int jacobian_ncols_exo_det {symbol_table.exo_det_nbr()};
+  vector<int> eq_idx(equations.size());
+  iota(eq_idx.begin(), eq_idx.end(), 0);
+  vector<int> endo_idx(symbol_table.endo_nbr());
+  iota(endo_idx.begin(), endo_idx.end(), 0);
 
   code_file << FBEGINBLOCK_{symbol_table.endo_nbr(),
                             simulation_type,
                             0,
                             symbol_table.endo_nbr(),
-                            endo_idx_block2orig,
-                            eq_idx_block2orig,
+                            endo_idx,
+                            eq_idx,
                             false,
                             symbol_table.endo_nbr(),
                             max_endo_lag,
@@ -3285,45 +3289,39 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
       computeParamsDerivatives(paramsDerivsOrder);
     }
 
+  computeTemporaryTerms(!use_dll, no_tmp_terms);
 
-  if (block)
+  /* Must be called after computeTemporaryTerms(), because it depends on
+     temporary_terms_mlv to be filled */
+  if (paramsDerivsOrder > 0 && !no_tmp_terms)
+    computeParamsDerivativesTemporaryTerms();
+
+  if (!computingPassBlock(eval_context, no_tmp_terms) && block)
     {
-      auto contemporaneous_jacobian = evaluateAndReduceJacobian(eval_context);
-
-      computeNonSingularNormalization(contemporaneous_jacobian, true);
-
-      auto [prologue, epilogue] = computePrologueAndEpilogue();
-
-      auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
-
-      equationTypeDetermination(first_order_endo_derivatives, mfs);
-
-      cout << "Finding the optimal block decomposition of the model ..." << endl;
-
-      computeBlockDecomposition(prologue, epilogue);
-
-      reduceBlockDecomposition();
-
-      printBlockDecomposition();
-
-      computeChainRuleJacobian();
-
-      determineLinearBlocks();
-
-      computeBlockDynJacobianCols();
-
-      if (!no_tmp_terms)
-        computeBlockTemporaryTerms();
+      cerr << "ERROR: Block decomposition requested but failed." << endl;
+      exit(EXIT_FAILURE);
     }
-  else
-    {
-      computeTemporaryTerms(!use_dll, no_tmp_terms);
+}
 
-      /* Must be called after computeTemporaryTerms(), because it depends on
-         temporary_terms_mlv to be filled */
-      if (paramsDerivsOrder > 0 && !no_tmp_terms)
-        computeParamsDerivativesTemporaryTerms();
-    }
+bool
+DynamicModel::computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms)
+{
+  auto contemporaneous_jacobian = evaluateAndReduceJacobian(eval_context);
+  if (!computeNonSingularNormalization(contemporaneous_jacobian, true))
+    return false;
+  auto [prologue, epilogue] = computePrologueAndEpilogue();
+  auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
+  equationTypeDetermination(first_order_endo_derivatives, mfs);
+  cout << "Finding the optimal block decomposition of the dynamic model..." << endl;
+  computeBlockDecomposition(prologue, epilogue);
+  reduceBlockDecomposition();
+  printBlockDecomposition();
+  computeChainRuleJacobian();
+  determineLinearBlocks();
+  computeBlockDynJacobianCols();
+  if (!no_tmp_terms)
+    computeBlockTemporaryTerms();
+  return true;
 }
 
 void
