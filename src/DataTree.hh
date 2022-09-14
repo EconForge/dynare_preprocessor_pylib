@@ -311,16 +311,20 @@ public:
     return symbol_table.getName(getSymbIDByDerivID(deriv_id));
   }
 
-  //! Returns the column of the Jacobian associated to a derivation ID
+  /* Returns the column of the Jacobian associated to a derivation ID.
+     The “sparse” argument selects between the legacy representation and the
+     sparse representation. */
   virtual int
-  getJacobianCol([[maybe_unused]] int deriv_id) const
+  getJacobianCol([[maybe_unused]] int deriv_id, [[maybe_unused]] bool sparse) const
   {
     throw UnknownDerivIDException();
   }
 
-  //! Returns the number of columns of the Jacobian
+  /* Returns the number of columns of the Jacobian
+     The “sparse” argument selects between the legacy representation and the
+     sparse representation. */
   virtual int
-  getJacobianColsNbr() const
+  getJacobianColsNbr([[maybe_unused]] bool sparse) const
   {
     throw UnknownDerivIDException();
   }

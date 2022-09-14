@@ -1022,6 +1022,8 @@ StaticModel::writeDriverOutput(ostream &output, bool block) const
 
   if (block)
     writeBlockDriverOutput(output);
+
+  writeDriverSparseIndicesHelper<false>(output);
 }
 
 void
@@ -1301,10 +1303,7 @@ StaticModel::writeJsonAuxVarRecursiveDefinitions(ostream &output) const
 void
 StaticModel::writeJsonOutput(ostream &output) const
 {
-  deriv_node_temp_terms_t tef_terms;
-  writeJsonModelLocalVariables(output, false, tef_terms);
-  output << ", ";
-  writeJsonModelEquations(output, false);
+  writeJsonSparseIndicesHelper<false>(output);
 }
 
 void

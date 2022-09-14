@@ -119,6 +119,24 @@ protected:
     derivatives, ... */
   vector<int> NNZDerivatives;
 
+  // Used to order pairs of indices (row, col) according to column-major order
+  struct columnMajorOrderLess
+  {
+    bool
+    operator()(const pair<int, int> &p1, const pair<int, int> &p2) const
+    {
+      return p1.second < p2.second || (p1.second == p2.second && p1.first < p2.first);
+    }
+  };
+  using SparseColumnMajorOrderMatrix = map<pair<int, int>, expr_t, columnMajorOrderLess>;
+  /* The nonzero values of the sparse Jacobian in column-major order (which is
+     the natural order for Compressed Sparse Column (CSC) storage).
+     The pair of indices is (row, column). */
+  SparseColumnMajorOrderMatrix jacobian_sparse_column_major_order;
+  /* Column indices for the sparse Jacobian in Compressed Sparse Column (CSC)
+     storage (corresponds to the “jc” vector in MATLAB terminology) */
+  vector<int> jacobian_sparse_colptr;
+
   //! Derivatives with respect to parameters
   /*! The key of the outer map is a pair (derivation order w.r.t. endogenous,
   derivation order w.r.t. parameters). For e.g., { 1, 2 } corresponds to the jacobian
@@ -302,6 +320,14 @@ protected:
   virtual void writeBlockBytecodeAdditionalDerivatives(BytecodeWriter &code_file, int block,
                                                        const temporary_terms_t &temporary_terms_union,
                                                        const deriv_node_temp_terms_t &tef_terms) const;
+
+  // Helper for writing sparse derivatives indices in MATLAB/Octave driver file
+  template<bool dynamic>
+  void writeDriverSparseIndicesHelper(ostream &output) const;
+
+  // Helper for writing sparse derivatives indices in JSON
+  template<bool dynamic>
+  void writeJsonSparseIndicesHelper(ostream &output) const;
 
   /* Helper for writing JSON output for residuals and derivatives.
      Returns mlv and derivatives output at each derivation order. */
@@ -489,6 +515,10 @@ protected:
 
   // Returns a human-readable string describing the model class (e.g. “dynamic model”…)
   virtual string modelClassName() const = 0;
+
+  /* Given a sparse matrix in column major order, returns the colptr pointer for
+     the CSC storage */
+  static vector<int> computeCSCColPtr(const SparseColumnMajorOrderMatrix &matrix, int ncols);
 
 private:
   //! Internal helper for the copy constructor and assignment operator
@@ -699,6 +729,8 @@ template<ExprNodeOutputType output_type>
 pair<vector<ostringstream>, vector<ostringstream>>
 ModelTree::writeModelFileHelper() const
 {
+  constexpr bool sparse {isSparseModelOutput(output_type)};
+
   vector<ostringstream> d_output(derivatives.size()); // Derivatives output (at all orders, including 0=residual)
   vector<ostringstream> tt_output(derivatives.size()); // Temp terms output (at all orders)
 
@@ -716,19 +748,37 @@ ModelTree::writeModelFileHelper() const
       writeTemporaryTerms<output_type>(temporary_terms_derivatives[1], temp_term_union,
                                        temporary_terms_idxs, tt_output[1], tef_terms);
 
-      for (const auto &[indices, d1] : derivatives[1])
+      if constexpr(sparse)
         {
-          auto [eq, var] = vectorToTuple<2>(indices);
+          // NB: we iterate over the Jacobian reordered in column-major order
+          // Indices of rows and columns are output in M_ and the JSON file (since they are constant)
+          for (int k {0};
+               const auto &[row_col, d1] : jacobian_sparse_column_major_order)
+            {
+              d_output[1] << "g1_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                          << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                          << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+              d1->writeOutput(d_output[1], output_type, temp_term_union, temporary_terms_idxs, tef_terms);
+              d_output[1] << ";" << endl;
+              k++;
+            }
+        }
+      else // Legacy representation (dense matrix)
+        {
+          for (const auto &[indices, d1] : derivatives[1])
+            {
+              auto [eq, var] = vectorToTuple<2>(indices);
 
-          d_output[1] << "g1" << LEFT_ARRAY_SUBSCRIPT(output_type);
-          if constexpr(isMatlabOutput(output_type) || isJuliaOutput(output_type))
-            d_output[1] << eq + 1 << "," << getJacobianCol(var) + 1;
-          else
-            d_output[1] << eq + getJacobianCol(var)*equations.size();
-          d_output[1] << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-          d1->writeOutput(d_output[1], output_type,
-                          temp_term_union, temporary_terms_idxs, tef_terms);
-          d_output[1] << ";" << endl;
+              d_output[1] << "g1" << LEFT_ARRAY_SUBSCRIPT(output_type);
+              if constexpr(isMatlabOutput(output_type) || isJuliaOutput(output_type))
+                d_output[1] << eq + 1 << "," << getJacobianCol(var, sparse) + 1;
+              else
+                d_output[1] << eq + getJacobianCol(var, sparse)*equations.size();
+              d_output[1] << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+              d1->writeOutput(d_output[1], output_type,
+                              temp_term_union, temporary_terms_idxs, tef_terms);
+              d_output[1] << ";" << endl;
+            }
         }
     }
 
@@ -739,58 +789,49 @@ ModelTree::writeModelFileHelper() const
         writeTemporaryTerms<output_type>(temporary_terms_derivatives[i], temp_term_union,
                                          temporary_terms_idxs, tt_output[i], tef_terms);
 
-        /* When creating the sparse matrix (in MATLAB or C mode), since storage
-           is in column-major order, output the first column, then the second,
-           then the third. This gives a significant performance boost in use_dll
-           mode (at both compilation and runtime), because it facilitates memory
-           accesses and expression reusage. */
-        ostringstream i_output, j_output, v_output;
-
-        for (int k{0}; // Current line index in the 3-column matrix
-             const auto &[vidx, d] : derivatives[i])
+        if constexpr(sparse)
           {
-            int eq{vidx[0]};
-
-            int col_idx{0};
-            for (size_t j = 1; j < vidx.size(); j++)
+            /* List non-zero elements of the tensor in row-major order (this is
+               suitable for the k-order solver according to Normann). */
+            // Tensor indices are output in M_ and the JSON file (since they are constant)
+            for (int k {0};
+                 const auto &[vidx, d] : derivatives[i])
               {
-                col_idx *= getJacobianColsNbr();
-                col_idx += getJacobianCol(vidx[j]);
-              }
-
-            if constexpr(isJuliaOutput(output_type))
-              {
-                d_output[i] << "    g" << i << "[" << eq + 1 << "," << col_idx + 1 << "] = ";
+                d_output[i] << "g" << i << "_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                            << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                            << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
                 d->writeOutput(d_output[i], output_type, temp_term_union, temporary_terms_idxs, tef_terms);
-                d_output[i] << endl;
-              }
-            else
-              {
-                i_output << "g" << i << "_i" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                         << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                         << RIGHT_ARRAY_SUBSCRIPT(output_type)
-                         << "=" << eq + 1 << ";" << endl;
-                j_output << "g" << i << "_j" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                         << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                         << RIGHT_ARRAY_SUBSCRIPT(output_type)
-                         << "=" << col_idx + 1 << ";" << endl;
-                v_output << "g" << i << "_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                         << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                         << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-                d->writeOutput(v_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
-                v_output << ";" << endl;
-
+                d_output[i] << ";" << endl;
                 k++;
               }
+          }
+        else // Legacy representation
+          {
+            /* When creating the sparse matrix (in MATLAB or C mode), since storage
+               is in column-major order, output the first column, then the second,
+               then the third. This gives a significant performance boost in use_dll
+               mode (at both compilation and runtime), because it facilitates memory
+               accesses and expression reusage. */
+            ostringstream i_output, j_output, v_output;
 
-            // Output symetric elements at order 2
-            if (i == 2 && vidx[1] != vidx[2])
+            for (int k{0}; // Current line index in the 3-column matrix
+                 const auto &[vidx, d] : derivatives[i])
               {
-                int col_idx_sym{getJacobianCol(vidx[2]) * getJacobianColsNbr() + getJacobianCol(vidx[1])};
+                int eq{vidx[0]};
+
+                int col_idx{0};
+                for (size_t j = 1; j < vidx.size(); j++)
+                  {
+                    col_idx *= getJacobianColsNbr(sparse);
+                    col_idx += getJacobianCol(vidx[j], sparse);
+                  }
 
                 if constexpr(isJuliaOutput(output_type))
-                  d_output[2] << "    g2[" << eq + 1 << "," << col_idx_sym + 1 << "] = "
-                              << "g2[" << eq + 1 << "," << col_idx + 1 << "]" << endl;
+                  {
+                    d_output[i] << "    g" << i << "[" << eq + 1 << "," << col_idx + 1 << "] = ";
+                    d->writeOutput(d_output[i], output_type, temp_term_union, temporary_terms_idxs, tef_terms);
+                    d_output[i] << endl;
+                  }
                 else
                   {
                     i_output << "g" << i << "_i" << LEFT_ARRAY_SUBSCRIPT(output_type)
@@ -800,20 +841,48 @@ ModelTree::writeModelFileHelper() const
                     j_output << "g" << i << "_j" << LEFT_ARRAY_SUBSCRIPT(output_type)
                              << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
                              << RIGHT_ARRAY_SUBSCRIPT(output_type)
-                             << "=" << col_idx_sym + 1 << ";" << endl;
+                             << "=" << col_idx + 1 << ";" << endl;
                     v_output << "g" << i << "_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
                              << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                             << RIGHT_ARRAY_SUBSCRIPT(output_type) << "="
-                             << "g" << i << "_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                             << k-1 + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                             << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
+                             << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+                    d->writeOutput(v_output, output_type, temp_term_union, temporary_terms_idxs, tef_terms);
+                    v_output << ";" << endl;
 
                     k++;
                   }
+
+                // Output symetric elements at order 2
+                if (i == 2 && vidx[1] != vidx[2])
+                  {
+                    int col_idx_sym{getJacobianCol(vidx[2], sparse) * getJacobianColsNbr(sparse) + getJacobianCol(vidx[1], sparse)};
+
+                    if constexpr(isJuliaOutput(output_type))
+                      d_output[2] << "    g2[" << eq + 1 << "," << col_idx_sym + 1 << "] = "
+                                  << "g2[" << eq + 1 << "," << col_idx + 1 << "]" << endl;
+                    else
+                      {
+                        i_output << "g" << i << "_i" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                                 << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                                 << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                                 << "=" << eq + 1 << ";" << endl;
+                        j_output << "g" << i << "_j" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                                 << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                                 << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                                 << "=" << col_idx_sym + 1 << ";" << endl;
+                        v_output << "g" << i << "_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                                 << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "="
+                                 << "g" << i << "_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                                 << k-1 + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
+
+                        k++;
+                      }
+                  }
               }
+            if constexpr(!isJuliaOutput(output_type))
+              d_output[i] << i_output.str() << j_output.str() << v_output.str();
           }
-        if constexpr(!isJuliaOutput(output_type))
-          d_output[i] << i_output.str() << j_output.str() << v_output.str();
       }
 
   if constexpr(isMatlabOutput(output_type))
@@ -985,7 +1054,7 @@ ModelTree::writeModelCFile(const string &basename, const string &mexext,
          << endl
          << "  if (nlhs >= 2)" << endl
          << "    {" << endl
-         << "       plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << getJacobianColsNbr() << ", mxREAL);" << endl
+         << "       plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << getJacobianColsNbr(false) << ", mxREAL);" << endl
          << "       double *g1 = mxGetPr(plhs[1]);" << endl
          << "       " << prefix << "g1_tt(y, x" << nb_row_x_argout << ", params" << ss_it_argout << ", T);" << endl
          << "       " << prefix << "g1(y, x" << nb_row_x_argout << ", params" << ss_it_argout << ", T, g1);" << endl
@@ -999,7 +1068,7 @@ ModelTree::writeModelCFile(const string &basename, const string &mexext,
          << "      " << prefix << "g2_tt(y, x" << nb_row_x_argout << ", params" << ss_it_argout << ", T);" << endl
          << "      " << prefix << "g2(y, x" << nb_row_x_argout << ", params" << ss_it_argout << ", T, mxGetPr(g2_i), mxGetPr(g2_j), mxGetPr(g2_v));" << endl
          << "      mxArray *m = mxCreateDoubleScalar(" << equations.size() << ");" << endl
-         << "      mxArray *n = mxCreateDoubleScalar(" << getJacobianColsNbr()*getJacobianColsNbr() << ");" << endl
+         << "      mxArray *n = mxCreateDoubleScalar(" << getJacobianColsNbr(false)*getJacobianColsNbr(false) << ");" << endl
          << "      mxArray *plhs_sparse[1], *prhs_sparse[5] = { g2_i, g2_j, g2_v, m, n };" << endl
          << R"(      mexCallMATLAB(1, plhs_sparse, 5, prhs_sparse, "sparse");)" << endl
          << "      plhs[2] = plhs_sparse[0];" << endl
@@ -1019,7 +1088,7 @@ ModelTree::writeModelCFile(const string &basename, const string &mexext,
            << "      " << prefix << "g3_tt(y, x" << nb_row_x_argout << ", params" << ss_it_argout << ", T);" << endl
            << "      " << prefix << "g3(y, x" << nb_row_x_argout << ", params" << ss_it_argout << ", T, mxGetPr(g3_i), mxGetPr(g3_j), mxGetPr(g3_v));" << endl
            << "      mxArray *m = mxCreateDoubleScalar(" << equations.size() << ");" << endl
-           << "      mxArray *n = mxCreateDoubleScalar(" << getJacobianColsNbr()*getJacobianColsNbr()*getJacobianColsNbr() << ");" << endl
+           << "      mxArray *n = mxCreateDoubleScalar(" << getJacobianColsNbr(false)*getJacobianColsNbr(false)*getJacobianColsNbr(false) << ");" << endl
            << "      mxArray *plhs_sparse[1], *prhs_sparse[5] = { g3_i, g3_j, g3_v, m, n };" << endl
            << R"(      mexCallMATLAB(1, plhs_sparse, 5, prhs_sparse, "sparse");)" << endl
            << "      plhs[3] = plhs_sparse[0];" << endl
@@ -1130,6 +1199,8 @@ ModelTree::writeParamsDerivativesFileHelper() const
 {
   static_assert(!isCOutput(output_type), "C output is not implemented");
 
+  constexpr bool sparse {isSparseModelOutput(output_type)};
+
   ostringstream tt_output; // Used for storing model temp vars and equations
   ostringstream rp_output; // 1st deriv. of residuals w.r.t. parameters
   ostringstream gp_output; // 1st deriv. of Jacobian w.r.t. parameters
@@ -1161,7 +1232,7 @@ ModelTree::writeParamsDerivativesFileHelper() const
     {
       auto [eq, var, param] { vectorToTuple<3>(indices) };
 
-      int var_col { getJacobianCol(var) + 1 };
+      int var_col { getJacobianCol(var, sparse) + 1 };
       int param_col { getTypeSpecificIDByDerivID(param) + 1 };
 
       gp_output << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type) << eq+1 << ", " << var_col
@@ -1213,7 +1284,7 @@ ModelTree::writeParamsDerivativesFileHelper() const
     {
       auto [eq, var, param1, param2] { vectorToTuple<4>(indices) };
 
-      int var_col { getJacobianCol(var) + 1 };
+      int var_col { getJacobianCol(var, sparse) + 1 };
       int param1_col { getTypeSpecificIDByDerivID(param1) + 1 };
       int param2_col { getTypeSpecificIDByDerivID(param2) + 1 };
 
@@ -1256,8 +1327,8 @@ ModelTree::writeParamsDerivativesFileHelper() const
     {
       auto [eq, var1, var2, param] { vectorToTuple<4>(indices) };
 
-      int var1_col { getJacobianCol(var1) + 1 };
-      int var2_col { getJacobianCol(var2) + 1 };
+      int var1_col { getJacobianCol(var1, sparse) + 1 };
+      int var2_col { getJacobianCol(var2, sparse) + 1 };
       int param_col { getTypeSpecificIDByDerivID(param) + 1 };
 
       hp_output << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
@@ -1301,9 +1372,9 @@ ModelTree::writeParamsDerivativesFileHelper() const
       {
         auto [eq, var1, var2, var3, param] { vectorToTuple<5>(indices) };
 
-        int var1_col { getJacobianCol(var1) + 1 };
-        int var2_col { getJacobianCol(var2) + 1 };
-        int var3_col { getJacobianCol(var3) + 1 };
+        int var1_col { getJacobianCol(var1, sparse) + 1 };
+        int var2_col { getJacobianCol(var2, sparse) + 1 };
+        int var3_col { getJacobianCol(var3, sparse) + 1 };
         int param_col { getTypeSpecificIDByDerivID(param) + 1 };
 
         g3p_output << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
@@ -1517,7 +1588,7 @@ ModelTree::writeBytecodeHelper(BytecodeWriter &code_file) const
       if constexpr(dynamic)
          {
            // Bytecode MEX uses a separate matrix for exogenous and exodet Jacobians
-           int jacob_col { type == SymbolType::endogenous ? getJacobianCol(deriv_id) : tsid };
+           int jacob_col { type == SymbolType::endogenous ? getJacobianCol(deriv_id, false) : tsid };
            code_file << FSTPG3_{eq, tsid, lag, jacob_col};
          }
       else
@@ -1763,7 +1834,7 @@ ModelTree::writeJsonComputingPassOutputHelper(bool writeDetails) const
   d_output[0] << ", ";
   writeJsonModelEquations(d_output[0], true);
 
-  int ncols { getJacobianColsNbr() };
+  int ncols { getJacobianColsNbr(false) };
   for (size_t i {1}; i < derivatives.size(); i++)
     {
       string matrix_name { i == 1 ? "jacobian" : i == 2 ? "hessian" : i == 3 ? "third_derivative" : to_string(i) + "th_derivative"};
@@ -1785,8 +1856,8 @@ ModelTree::writeJsonComputingPassOutputHelper(bool writeDetails) const
           int col_idx {0};
           for (size_t j {1}; j < vidx.size(); j++)
             {
-              col_idx *= getJacobianColsNbr();
-              col_idx += getJacobianCol(vidx[j]);
+              col_idx *= getJacobianColsNbr(false);
+              col_idx += getJacobianCol(vidx[j], false);
             }
 
           if (writeDetails)
@@ -1798,7 +1869,7 @@ ModelTree::writeJsonComputingPassOutputHelper(bool writeDetails) const
 
           if (i == 2 && vidx[1] != vidx[2]) // Symmetric elements in hessian
             {
-              int col_idx_sym { getJacobianCol(vidx[2]) * getJacobianColsNbr() + getJacobianCol(vidx[1])};
+              int col_idx_sym { getJacobianCol(vidx[2], false) * getJacobianColsNbr(false) + getJacobianCol(vidx[1], false)};
               d_output[i] << ", " << col_idx_sym + 1;
             }
           if (i > 1)
@@ -1818,7 +1889,7 @@ ModelTree::writeJsonComputingPassOutputHelper(bool writeDetails) const
         }
       d_output[i] << "]}";
 
-      ncols *= getJacobianColsNbr();
+      ncols *= getJacobianColsNbr(false);
     }
 
   return { move(mlv_output), move(d_output) };
@@ -1877,7 +1948,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
   gp_output << R"("deriv_jacobian_wrt_params": {)"
             << R"(  "neqs": )" << equations.size()
-            << R"(, "nvarcols": )" << getJacobianColsNbr()
+            << R"(, "nvarcols": )" << getJacobianColsNbr(false)
             << R"(, "nparamcols": )" << symbol_table.param_nbr()
             << R"(, "entries": [)";
   for (bool printed_something {false};
@@ -1888,7 +1959,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
       auto [eq, var, param] { vectorToTuple<3>(vidx) };
 
-      int var_col { getJacobianCol(var) + 1 };
+      int var_col { getJacobianCol(var, false) + 1 };
       int param_col { getTypeSpecificIDByDerivID(param) + 1 };
 
       if (writeDetails)
@@ -1948,7 +2019,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
   gpp_output << R"("second_deriv_jacobian_wrt_params": {)"
              << R"(  "neqs": )" << equations.size()
-             << R"(, "nvarcols": )" << getJacobianColsNbr()
+             << R"(, "nvarcols": )" << getJacobianColsNbr(false)
              << R"(, "nparam1cols": )" << symbol_table.param_nbr()
              << R"(, "nparam2cols": )" << symbol_table.param_nbr()
              << R"(, "entries": [)";
@@ -1960,7 +2031,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
       auto [eq, var, param1, param2] { vectorToTuple<4>(vidx) };
 
-      int var_col { getJacobianCol(var) + 1 };
+      int var_col { getJacobianCol(var, false) + 1 };
       int param1_col { getTypeSpecificIDByDerivID(param1) + 1 };
       int param2_col { getTypeSpecificIDByDerivID(param2) + 1 };
 
@@ -1990,8 +2061,8 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
   hp_output << R"("derivative_hessian_wrt_params": {)"
             << R"(  "neqs": )" << equations.size()
-            << R"(, "nvar1cols": )" << getJacobianColsNbr()
-            << R"(, "nvar2cols": )" << getJacobianColsNbr()
+            << R"(, "nvar1cols": )" << getJacobianColsNbr(false)
+            << R"(, "nvar2cols": )" << getJacobianColsNbr(false)
             << R"(, "nparamcols": )" << symbol_table.param_nbr()
             << R"(, "entries": [)";
   for (bool printed_something {false};
@@ -2002,8 +2073,8 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
       auto [eq, var1, var2, param] { vectorToTuple<4>(vidx) };
 
-      int var1_col { getJacobianCol(var1) + 1 };
-      int var2_col { getJacobianCol(var2) + 1 };
+      int var1_col { getJacobianCol(var1, false) + 1 };
+      int var2_col { getJacobianCol(var2, false) + 1 };
       int param_col { getTypeSpecificIDByDerivID(param) + 1 };
 
       if (writeDetails)
@@ -2036,9 +2107,9 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
     {
       g3p_output << R"("derivative_g3_wrt_params": {)"
                  << R"(  "neqs": )" << equations.size()
-                 << R"(, "nvar1cols": )" << getJacobianColsNbr()
-                 << R"(, "nvar2cols": )" << getJacobianColsNbr()
-                 << R"(, "nvar3cols": )" << getJacobianColsNbr()
+                 << R"(, "nvar1cols": )" << getJacobianColsNbr(false)
+                 << R"(, "nvar2cols": )" << getJacobianColsNbr(false)
+                 << R"(, "nvar3cols": )" << getJacobianColsNbr(false)
                  << R"(, "nparamcols": )" << symbol_table.param_nbr()
                  << R"(, "entries": [)";
       for (bool printed_something {false};
@@ -2049,9 +2120,9 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
           auto [eq, var1, var2, var3, param] { vectorToTuple<5>(vidx) };
 
-          int var1_col { getJacobianCol(var1) + 1 };
-          int var2_col { getJacobianCol(var2) + 1 };
-          int var3_col { getJacobianCol(var3) + 1 };
+          int var1_col { getJacobianCol(var1, false) + 1 };
+          int var2_col { getJacobianCol(var2, false) + 1 };
+          int var3_col { getJacobianCol(var3, false) + 1 };
           int param_col { getTypeSpecificIDByDerivID(param) + 1 };
 
           if (writeDetails)
@@ -2082,6 +2153,100 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
   return { move(mlv_output), move(tt_output), move(rp_output), move(gp_output),
     move(rpp_output), move(gpp_output), move(hp_output), move(g3p_output) };
+}
+
+template<bool dynamic>
+void
+ModelTree::writeDriverSparseIndicesHelper(ostream &output) const
+{
+  // TODO: when C++20 support is complete, mark this constexpr
+  const string model_name {dynamic ? "dynamic" : "static"};
+
+  // Write indices for the sparse Jacobian (both naive and CSC storage)
+  output << "M_." << model_name << "_g1_sparse_rowval = int32([";
+  for (const auto &[indices, d1] : jacobian_sparse_column_major_order)
+    output << indices.first+1 << ' ';
+  output << "]);" << endl
+         << "M_." << model_name << "_g1_sparse_colval = int32([";
+  for (const auto &[indices, d1] : jacobian_sparse_column_major_order)
+    output << indices.second+1 << ' ';
+  output << "]);" << endl
+         << "M_." << model_name << "_g1_sparse_colptr = int32([";
+  for (int it : jacobian_sparse_colptr)
+    output << it+1 << ' ';
+  output << "]);" << endl;
+
+  // Write indices for the sparse higher-order derivatives
+  for (int i {2}; i < computed_derivs_order; i++)
+    {
+      output << "M_." << model_name << "_g" << i << "_sparse_indices = int32([";
+      for (const auto &[vidx, d] : derivatives[i])
+        {
+          for (int it : vidx)
+            output << it+1 << ' ';
+          output << ';' << endl;
+        }
+      output << "]);" << endl;
+    }
+}
+
+template<bool dynamic>
+void
+ModelTree::writeJsonSparseIndicesHelper(ostream &output) const
+{
+  // TODO: when C++20 support is complete, mark this constexpr
+  const string model_name {dynamic ? "dynamic" : "static"};
+
+  // Write indices for the sparse Jacobian (both naive and CSC storage)
+  output << '"' << model_name << R"(_g1_sparse_rowval": [)";
+  for (bool printed_something {false};
+       const auto &[indices, d1] : jacobian_sparse_column_major_order)
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << indices.first+1;
+    }
+  output << "], " << endl
+         << '"' << model_name << R"(_g1_sparse_colval": [)";
+  for (bool printed_something {false};
+       const auto &[indices, d1] : jacobian_sparse_column_major_order)
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << indices.second+1;
+    }
+  output << "], " << endl
+         << '"' << model_name << R"(_g1_sparse_colptr": [)";
+  for (bool printed_something {false};
+       int it : jacobian_sparse_colptr)
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << it+1;
+    }
+  output << ']' << endl;
+
+  // Write indices for the sparse higher-order derivatives
+  for (int i {2}; i < computed_derivs_order; i++)
+    {
+      output << R"(, ")" << model_name << "_g" << i << R"(_sparse_indices": [)";
+      for (bool printed_something {false};
+           const auto &[vidx, d] : derivatives[i])
+        {
+          if (exchange(printed_something, true))
+            output << ", ";
+          output << '[';
+          for (bool printed_something2 {false};
+               int it : vidx)
+            {
+              if (exchange(printed_something2, true))
+                output << ", ";
+              output << it+1;
+            }
+          output << ']' << endl;
+        }
+      output << ']' << endl;
+    }
 }
 
 #endif

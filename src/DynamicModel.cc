@@ -683,18 +683,18 @@ DynamicModel::writeDynamicMFile(const string &basename) const
                           "", init_output, end_output, d_output[0], tt_output[0]);
 
   init_output.str("");
-  init_output << "g1 = zeros(" << equations.size() << ", " << getJacobianColsNbr() << ");";
+  init_output << "g1 = zeros(" << equations.size() << ", " << getJacobianColsNbr(false) << ");";
   writeDynamicMFileHelper(basename, "dynamic_g1", "g1", "dynamic_g1_tt",
                           temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size(),
                           "dynamic_resid_tt", init_output, end_output, d_output[1], tt_output[1]);
   writeDynamicMWrapperFunction(basename, "g1");
 
   // For order ≥ 2
-  int ncols{getJacobianColsNbr()};
-  int ntt { static_cast<int>(temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size()) };
+  int ncols{getJacobianColsNbr(false)};
+  int ntt { static_cast<int>(temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size())};
   for (size_t i{2}; i < derivatives.size(); i++)
     {
-      ncols *= getJacobianColsNbr();
+      ncols *= getJacobianColsNbr(false);
       ntt += temporary_terms_derivatives[i].size();
       string gname{"g" + to_string(i)};
       string gprevname{"g" + to_string(i-1)};
@@ -804,7 +804,7 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int, T_flag::Bool)" << endl
          << "    @assert length(T) >= " << temporary_terms_derivatives[0].size() << endl
          << "    @assert length(residual) == " << equations.size() << endl
-         << "    @assert length(y)+size(x, 2) == " << getJacobianColsNbr() << endl
+         << "    @assert length(y)+size(x, 2) == " << getJacobianColsNbr(false) << endl
          << "    @assert length(params) == " << symbol_table.param_nbr() << endl
          << "    if T_flag" << endl
          << "        dynamicResidTT!(T, y, x, params, steady_state, it_)" << endl
@@ -832,8 +832,8 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int, T_flag::Bool)" << endl
          << "    @assert length(T) >= "
          << temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() << endl
-         << "    @assert size(g1) == (" << equations.size() << ", " << getJacobianColsNbr() << ")" << endl
-         << "    @assert length(y)+size(x, 2) == " << getJacobianColsNbr() << endl
+         << "    @assert size(g1) == (" << equations.size() << ", " << getJacobianColsNbr(false) << ")" << endl
+         << "    @assert length(y)+size(x, 2) == " << getJacobianColsNbr(false) << endl
          << "    @assert length(params) == " << symbol_table.param_nbr() << endl
          << "    if T_flag" << endl
          << "        dynamicG1TT!(T, y, x, params, steady_state, it_)" << endl
@@ -857,13 +857,13 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "end" << endl << endl;
 
   // dynamicG2!
-  int hessianColsNbr{getJacobianColsNbr() * getJacobianColsNbr()};
+  int hessianColsNbr {getJacobianColsNbr(false) * getJacobianColsNbr(false)};
   output << "function dynamicG2!(T::Vector{<: Real}, g2::Matrix{<: Real}," << endl
          << "                    y::Vector{<: Real}, x::Matrix{<: Real}, "
          << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int, T_flag::Bool)" << endl
          << "    @assert length(T) >= " << temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() << endl
          << "    @assert size(g2) == (" << equations.size() << ", " << hessianColsNbr << ")" << endl
-         << "    @assert length(y)+size(x, 2) == " << getJacobianColsNbr() << endl
+         << "    @assert length(y)+size(x, 2) == " << getJacobianColsNbr(false) << endl
          << "    @assert length(params) == " << symbol_table.param_nbr() << endl
          << "    if T_flag" << endl
          << "        dynamicG2TT!(T, y, x, params, steady_state, it_)" << endl
@@ -887,14 +887,14 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "end" << endl << endl;
 
   // dynamicG3!
-  int ncols{hessianColsNbr * getJacobianColsNbr()};
+  int ncols {hessianColsNbr * getJacobianColsNbr(false)};
   output << "function dynamicG3!(T::Vector{<: Real}, g3::Matrix{<: Real}," << endl
          << "                    y::Vector{<: Real}, x::Matrix{<: Real}, "
          << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int, T_flag::Bool)" << endl
          << "    @assert length(T) >= "
          << temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size() << endl
          << "    @assert size(g3) == (" << equations.size() << ", " << ncols << ")" << endl
-         << "    @assert length(y)+size(x, 2) == " << getJacobianColsNbr() << endl
+         << "    @assert length(y)+size(x, 2) == " << getJacobianColsNbr(false) << endl
          << "    @assert length(params) == " << symbol_table.param_nbr() << endl
          << "    if T_flag" << endl
          << "      dynamicG3TT!(T, y, x, params, steady_state, it_)" << endl
@@ -1883,7 +1883,7 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
           try
             {
               int varID = getDerivID(symbol_table.getID(SymbolType::endogenous, endoID), lag);
-              output << " " << getJacobianCol(varID) + 1;
+              output << " " << getJacobianCol(varID, false) + 1;
               if (lag == -1)
                 {
                   sstatic = 0;
@@ -2035,6 +2035,8 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
   for (int i = 1; i < static_cast<int>(NNZDerivatives.size()); i++)
     output << (i > computed_derivs_order ? -1 : NNZDerivatives[i]) << "; ";
   output << "];" << endl;
+
+  writeDriverSparseIndicesHelper<true>(output);
 }
 
 void
@@ -3133,8 +3135,11 @@ DynamicModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_c
      indices, check that we will not overflow (see #89). Note that such a check
      is not needed for parameter derivatives, since tensors for those are not
      stored as matrices. This check cannot be done before since
-     getJacobianColsNbr() is not yet set.*/
-  if (log2(getJacobianColsNbr())*derivsOrder >= numeric_limits<int>::digits)
+     getJacobianColsNbr() is not yet set.
+     We only do the check for the legacy representation, since the sparse
+     representation is not affected by this problem (TODO: thus the check can be
+     removed once the legacy representation is dropped). */
+  if (log2(getJacobianColsNbr(false))*derivsOrder >= numeric_limits<int>::digits)
     {
       cerr << "ERROR: The derivatives matrix of the " << modelClassName() << " is too large. Please decrease the approximation order." << endl;
       exit(EXIT_FAILURE);
@@ -3927,12 +3932,13 @@ DynamicModel::computeDynJacobianCols()
         symbol_table.getType(symb_id) == SymbolType::endogenous)
       ordered_dyn_endo[{ lag, symbol_table.getTypeSpecificID(symb_id) }] = deriv_id;
 
-  // Fill the dynamic jacobian columns for endogenous
+  // Fill the dynamic jacobian columns for endogenous (legacy representation)
   for (int sorted_id{0};
        const auto &[ignore, deriv_id] : ordered_dyn_endo)
     dyn_jacobian_cols_table[deriv_id] = sorted_id++;
 
-  // Fill the dynamic columns for exogenous and exogenous deterministic
+  /* Fill the dynamic columns for exogenous and exogenous deterministic (legacy
+     representation) */
   for (const auto &[symb_lag, deriv_id] : deriv_id_table)
     {
       int symb_id{symb_lag.first};
@@ -4651,6 +4657,8 @@ DynamicModel::writeJsonOutput(ostream &output) const
   writeJsonAST(output);
   output << ", ";
   writeJsonVariableMapping(output);
+  output << ", ";
+  writeJsonSparseIndicesHelper<true>(output);
 }
 
 void
@@ -4776,7 +4784,7 @@ DynamicModel::writeJsonDynamicModelInfo(ostream &output) const
               if (lag != -max_endo_lag)
                 output << ",";
               int varID = getDerivID(symbol_table.getID(SymbolType::endogenous, endoID), lag);
-              output << " " << getJacobianCol(varID) + 1;
+              output << " " << getJacobianCol(varID, false) + 1;
               if (lag == -1)
                 {
                   sstatic = 0;

@@ -71,6 +71,8 @@ ModelTree::copyHelper(const ModelTree &m)
     derivatives.push_back(convert_deriv_map(it));
   for (const auto &it : m.params_derivatives)
     params_derivatives.emplace(it.first, convert_deriv_map(it.second));
+  for (const auto &it : m.jacobian_sparse_column_major_order)
+    jacobian_sparse_column_major_order.emplace(it.first, f(it.second));
 
   auto convert_temporary_terms_t = [f](const temporary_terms_t &tt)
                                    {
@@ -150,6 +152,7 @@ ModelTree::ModelTree(const ModelTree &m) :
   equation_tags{m.equation_tags},
   computed_derivs_order{m.computed_derivs_order},
   NNZDerivatives{m.NNZDerivatives},
+  jacobian_sparse_colptr{m.jacobian_sparse_colptr},
   eq_idx_block2orig{m.eq_idx_block2orig},
   endo_idx_block2orig{m.endo_idx_block2orig},
   eq_idx_orig2block{m.eq_idx_orig2block},
@@ -177,6 +180,10 @@ ModelTree::operator=(const ModelTree &m)
   NNZDerivatives = m.NNZDerivatives;
 
   derivatives.clear();
+
+  jacobian_sparse_column_major_order.clear();
+  jacobian_sparse_colptr = m.jacobian_sparse_colptr;
+
   params_derivatives.clear();
 
   temporary_terms_derivatives.clear();
@@ -901,6 +908,11 @@ ModelTree::computeDerivatives(int order, const set<int> &vars)
         derivatives[1][{ eq, var }] = d1;
         ++NNZDerivatives[1];
       }
+
+  // Compute the sparse representation of the Jacobian
+  for (const auto &[indices, d1] : derivatives[1])
+    jacobian_sparse_column_major_order.emplace(pair{indices[0], getJacobianCol(indices[1], true)}, d1);
+  jacobian_sparse_colptr = computeCSCColPtr(jacobian_sparse_column_major_order, getJacobianColsNbr(true));
 
   // Higher-order derivatives
   for (int o = 2; o <= order; o++)
@@ -1971,4 +1983,18 @@ ModelTree::computingPassBlock(const eval_context_t &eval_context, bool no_tmp_te
   if (!no_tmp_terms)
     computeBlockTemporaryTerms();
   block_decomposed = true;
+}
+
+vector<int>
+ModelTree::computeCSCColPtr(const SparseColumnMajorOrderMatrix &matrix, int ncols)
+{
+  vector<int> colptr(ncols+1, matrix.size());
+  for (int k {0}, current_col {0};
+       const auto &[indices, d1] : matrix)
+    {
+      while (indices.second >= current_col)
+        colptr[current_col++] = k;
+      k++;
+    }
+  return colptr;
 }

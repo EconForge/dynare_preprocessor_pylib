@@ -63,8 +63,9 @@ private:
   //! Maps a deriv ID to a pair (symbol_id, lag)
   vector<pair<int, int>> inv_deriv_id_table;
 
-  //! Maps a deriv_id to the column index of the dynamic Jacobian
-  /*! Contains only endogenous, exogenous and exogenous deterministic */
+  /* Maps a deriv_id to the column index of the dynamic Jacobian, in the legacy
+     representation.
+     Contains only endogenous, exogenous and exogenous deterministic */
   map<int, int> dyn_jacobian_cols_table;
 
   //! Maximum lag and lead over all types of variables (positive values)
@@ -465,18 +466,46 @@ public:
   int getDerivID(int symb_id, int lag) const noexcept(false) override;
 
   int
-  getJacobianCol(int deriv_id) const override
+  getJacobianCol(int deriv_id, bool sparse) const override
   {
-    if (auto it = dyn_jacobian_cols_table.find(deriv_id);
-        it == dyn_jacobian_cols_table.end())
-      throw UnknownDerivIDException();
+    if (sparse)
+      {
+        SymbolType type {getTypeByDerivID(deriv_id)};
+        int tsid {getTypeSpecificIDByDerivID(deriv_id)};
+        int lag {getLagByDerivID(deriv_id)};
+        if (type == SymbolType::endogenous)
+          {
+            assert(lag >= -1 && lag <= 1);
+            return tsid+(lag+1)*symbol_table.endo_nbr();
+          }
+        else if (type == SymbolType::exogenous)
+          {
+            assert(lag == 0);
+            return tsid+3*symbol_table.endo_nbr();
+          }
+        else if (type == SymbolType::exogenousDet)
+          {
+            assert(lag == 0);
+            return tsid+3*symbol_table.endo_nbr()+symbol_table.exo_nbr();
+          }
+        else
+          throw UnknownDerivIDException();
+      }
     else
-      return it->second;
+      {
+        if (auto it = dyn_jacobian_cols_table.find(deriv_id);
+            it == dyn_jacobian_cols_table.end())
+          throw UnknownDerivIDException();
+        else
+          return it->second;
+      }
   }
   int
-  getJacobianColsNbr() const override
+  getJacobianColsNbr(bool sparse) const override
   {
-    return dyn_jacobian_cols_table.size();
+    return sparse ?
+      3*symbol_table.endo_nbr() + symbol_table.exo_nbr() + symbol_table.exo_det_nbr() :
+      dyn_jacobian_cols_table.size();
   }
 
   void addAllParamDerivId(set<int> &deriv_id_set) override;
@@ -904,7 +933,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
                        << "rp = zeros(" << equations.size() << ", "
                        << symbol_table.param_nbr() << ");" << endl
                        << rp_output.str()
-                       << "gp = zeros(" << equations.size() << ", " << getJacobianColsNbr() << ", " << symbol_table.param_nbr() << ");" << endl
+                       << "gp = zeros(" << equations.size() << ", " << getJacobianColsNbr(false) << ", " << symbol_table.param_nbr() << ");" << endl
                        << gp_output.str()
                        << "if nargout >= 3" << endl
                        << "rpp = zeros(" << params_derivatives.at({ 0, 2 }).size() << ",4);" << endl
@@ -939,7 +968,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
 		     << "@inbounds begin" << endl
                      << rp_output.str()
 		     << "end" << endl
-                     << "gp = zeros(" << equations.size() << ", " << getJacobianColsNbr() << ", " << symbol_table.param_nbr() << ");" << endl
+                     << "gp = zeros(" << equations.size() << ", " << getJacobianColsNbr(false) << ", " << symbol_table.param_nbr() << ");" << endl
 		     << "@inbounds begin" << endl
                      << gp_output.str()
 		     << "end" << endl

@@ -1167,6 +1167,8 @@ ModFile::writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType 
   symbol_table.writeJsonOutput(output);
   output << ", ";
   dynamic_model.writeJsonOutput(output);
+  output << ", ";
+  static_model.writeJsonOutput(output);
 
   if (!statements.empty()
       || !var_model_table.empty()

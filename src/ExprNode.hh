@@ -83,12 +83,18 @@ using lag_equivalence_table_t = map<expr_t, map<int, expr_t>>;
 //! Possible types of output when writing ExprNode(s) (not used for bytecode)
 enum class ExprNodeOutputType
   {
-   matlabStaticModel, //!< Matlab code, static model
-   matlabDynamicModel, //!< Matlab code, dynamic model
-   CDynamicModel, //!< C code, dynamic model
-   CStaticModel, //!< C code, static model
-   juliaStaticModel, //!< Julia code, static model
-   juliaDynamicModel, //!< Julia code, dynamic model
+   matlabStaticModel, //!< Matlab code, static model, legacy representation
+   matlabDynamicModel, //!< Matlab code, dynamic model, legacy representation
+   matlabSparseStaticModel, //!< Matlab code, static model, sparse representation
+   matlabSparseDynamicModel, //!< Matlab code, dynamic model, sparse representation
+   CDynamicModel, //!< C code, dynamic model, legacy representation
+   CStaticModel, //!< C code, static model, legacy representation
+   CSparseDynamicModel, //!< C code, dynamic model, sparse representation
+   CSparseStaticModel, //!< C code, static model, sparse representation
+   juliaStaticModel, //!< Julia code, static model, legacy representation
+   juliaDynamicModel, //!< Julia code, dynamic model, legacy representation
+   juliaSparseStaticModel, //!< Julia code, static model, sparse representation
+   juliaSparseDynamicModel, //!< Julia code, dynamic model, sparse representation
    matlabOutsideModel, //!< Matlab code, outside model block (for example in initval)
    latexStaticModel, //!< LaTeX code, static model
    latexDynamicModel, //!< LaTeX code, dynamic model
@@ -119,6 +125,8 @@ isMatlabOutput(ExprNodeOutputType output_type)
 {
   return output_type == ExprNodeOutputType::matlabStaticModel
     || output_type == ExprNodeOutputType::matlabDynamicModel
+    || output_type == ExprNodeOutputType::matlabSparseStaticModel
+    || output_type == ExprNodeOutputType::matlabSparseDynamicModel
     || output_type == ExprNodeOutputType::matlabOutsideModel
     || output_type == ExprNodeOutputType::matlabDynamicSteadyStateOperator
     || output_type == ExprNodeOutputType::steadyStateFile
@@ -132,6 +140,8 @@ isJuliaOutput(ExprNodeOutputType output_type)
 {
   return output_type == ExprNodeOutputType::juliaStaticModel
     || output_type == ExprNodeOutputType::juliaDynamicModel
+    || output_type == ExprNodeOutputType::juliaSparseStaticModel
+    || output_type == ExprNodeOutputType::juliaSparseDynamicModel
     || output_type == ExprNodeOutputType::juliaDynamicSteadyStateOperator
     || output_type == ExprNodeOutputType::juliaSteadyStateFile
     || output_type == ExprNodeOutputType::juliaTimeDataFrame;
@@ -142,6 +152,8 @@ isCOutput(ExprNodeOutputType output_type)
 {
   return output_type == ExprNodeOutputType::CDynamicModel
     || output_type == ExprNodeOutputType::CStaticModel
+    || output_type == ExprNodeOutputType::CSparseDynamicModel
+    || output_type == ExprNodeOutputType::CSparseStaticModel
     || output_type == ExprNodeOutputType::CDynamicSteadyStateOperator;
 }
 
@@ -160,6 +172,17 @@ isSteadyStateOperatorOutput(ExprNodeOutputType output_type)
     || output_type == ExprNodeOutputType::matlabDynamicSteadyStateOperator
     || output_type == ExprNodeOutputType::CDynamicSteadyStateOperator
     || output_type == ExprNodeOutputType::juliaDynamicSteadyStateOperator;
+}
+
+constexpr bool
+isSparseModelOutput(ExprNodeOutputType output_type)
+{
+  return output_type == ExprNodeOutputType::matlabSparseStaticModel
+    || output_type == ExprNodeOutputType::matlabSparseDynamicModel
+    || output_type == ExprNodeOutputType::juliaSparseStaticModel
+    || output_type == ExprNodeOutputType::juliaSparseDynamicModel
+    || output_type == ExprNodeOutputType::CSparseDynamicModel
+    || output_type == ExprNodeOutputType::CSparseStaticModel;
 }
 
 constexpr bool

@@ -77,12 +77,12 @@ private:
   int getTypeSpecificIDByDerivID(int deriv_id) const override;
 
   int
-  getJacobianCol(int deriv_id) const override
+  getJacobianCol(int deriv_id, [[maybe_unused]] bool sparse) const override
   {
     return getTypeSpecificIDByDerivID(deriv_id);
   }
   int
-  getJacobianColsNbr() const override
+  getJacobianColsNbr([[maybe_unused]] bool sparse) const override
   {
     return symbol_table.endo_nbr();
   }
