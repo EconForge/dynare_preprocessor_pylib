@@ -32,8 +32,33 @@ public:
   PlannerObjective(SymbolTable &symbol_table_arg,
                    NumericalConstants &num_constants_arg,
                    ExternalFunctionsTable &external_functions_table_arg);
+protected:
+  string
+  modelClassName() const override
+  {
+    return "planner objective";
+  }
+
 private:
   bool computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms) override;
+};
+
+class OrigRamseyDynamicModel : public DynamicModel
+{
+public:
+  OrigRamseyDynamicModel(SymbolTable &symbol_table_arg,
+                         NumericalConstants &num_constants_arg,
+                         ExternalFunctionsTable &external_functions_table_arg,
+                         TrendComponentModelTable &trend_component_model_table_arg,
+                         VarModelTable &var_model_table_arg);
+  OrigRamseyDynamicModel &operator=(const DynamicModel &m);
+
+protected:
+  string
+  modelClassName() const override
+  {
+    return "original Ramsey model";
+  }
 };
 
 class SteadyStateModel : public DataTree
@@ -104,6 +129,14 @@ public:
 
   //! Write Output
   void writeOutput(ostream &output) const;
+
+protected:
+  string
+  modelClassName() const override
+  {
+    return "epilogue";
+  }
+
 private:
   //! Helper for public writeEpilogueFile
   void writeStaticEpilogueFile(const string &basename) const;

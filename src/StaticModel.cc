@@ -344,7 +344,7 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
      with DynamicModel::computingPass(). */
   if (log2(symbol_table.endo_nbr())*derivsOrder >= numeric_limits<int>::digits)
     {
-      cerr << "ERROR: The static derivatives matrix is too large. Please decrease the approximation order." << endl;
+      cerr << "ERROR: The derivatives matrix of the " << modelClassName() << " is too large. Please decrease the approximation order." << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -357,13 +357,13 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
     }
 
   // Launch computations
-  cout << "Computing static model derivatives (order " << derivsOrder << ")." << endl;
+  cout << "Computing " << modelClassName() << " derivatives (order " << derivsOrder << ")." << endl;
 
   computeDerivatives(derivsOrder, vars);
 
   if (paramsDerivsOrder > 0)
     {
-      cout << "Computing static model derivatives w.r.t. parameters (order " << paramsDerivsOrder << ")." << endl;
+      cout << "Computing " << modelClassName() << " derivatives w.r.t. parameters (order " << paramsDerivsOrder << ")." << endl;
       computeParamsDerivatives(paramsDerivsOrder);
     }
 
@@ -385,12 +385,12 @@ bool
 StaticModel::computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms)
 {
   auto contemporaneous_jacobian = evaluateAndReduceJacobian(eval_context);
-  if (!computeNonSingularNormalization(contemporaneous_jacobian, false))
+  if (!computeNonSingularNormalization(contemporaneous_jacobian))
     return false;
   auto [prologue, epilogue] = computePrologueAndEpilogue();
   auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
   equationTypeDetermination(first_order_endo_derivatives, mfs);
-  cout << "Finding the optimal block decomposition of the static model..." << endl;
+  cout << "Finding the optimal block decomposition of the " << modelClassName() << "..." << endl;
   computeBlockDecomposition(prologue, epilogue);
   reduceBlockDecomposition();
   printBlockDecomposition();
@@ -637,7 +637,7 @@ StaticModel::writeStaticCFile(const string &basename) const
     }
 
   output << "/*" << endl
-         << " * " << filename << " : Computes static model for Dynare" << endl
+         << " * " << filename << " : Computes " << modelClassName() << " for Dynare" << endl
          << " *" << endl
          << " * Warning : this file is generated automatically by Dynare" << endl
          << " *           from model file (.mod)" << endl << endl
@@ -1325,7 +1325,7 @@ StaticModel::writeSetAuxiliaryVariables(const string &basename, bool julia) cons
     output << "y = ";
   output << func_name << "(y, x, params)" << endl
          << comment << endl
-         << comment << " Status : Computes static model for Dynare" << endl
+         << comment << " Status : Computes Auxiliary variables of the " << modelClassName() << endl
          << comment << endl
          << comment << " Warning : this file is generated automatically by Dynare" << endl
          << comment << "           from model file (.mod)" << endl << endl;

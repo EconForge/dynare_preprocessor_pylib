@@ -953,7 +953,7 @@ DynamicModel::writeDynamicCFile(const string &basename) const
       exit(EXIT_FAILURE);
     }
   output << "/*" << endl
-         << " * " << filename << " : Computes dynamic model for Dynare" << endl
+         << " * " << filename << " : Computes " << modelClassName() << " for Dynare" << endl
          << " *" << endl
          << " * Warning : this file is generated automatically by Dynare" << endl
          << " *           from model file (.mod)" << endl
@@ -3261,7 +3261,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
      getJacobianColsNbr() is not yet set.*/
   if (log2(getJacobianColsNbr())*derivsOrder >= numeric_limits<int>::digits)
     {
-      cerr << "ERROR: The dynamic derivatives matrix is too large. Please decrease the approximation order." << endl;
+      cerr << "ERROR: The derivatives matrix of the " << modelClassName() << " is too large. Please decrease the approximation order." << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -3275,7 +3275,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
     }
 
   // Launch computations
-  cout << "Computing dynamic model derivatives (order " << derivsOrder << ")." << endl;
+  cout << "Computing " << modelClassName() << " derivatives (order " << derivsOrder << ")." << endl;
 
   computeDerivatives(derivsOrder, vars);
 
@@ -3285,7 +3285,7 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
   if (paramsDerivsOrder > 0)
     {
-      cout << "Computing dynamic model derivatives w.r.t. parameters (order " << paramsDerivsOrder << ")." << endl;
+      cout << "Computing " << modelClassName() << " derivatives w.r.t. parameters (order " << paramsDerivsOrder << ")." << endl;
       computeParamsDerivatives(paramsDerivsOrder);
     }
 
@@ -3307,12 +3307,12 @@ bool
 DynamicModel::computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms)
 {
   auto contemporaneous_jacobian = evaluateAndReduceJacobian(eval_context);
-  if (!computeNonSingularNormalization(contemporaneous_jacobian, true))
+  if (!computeNonSingularNormalization(contemporaneous_jacobian))
     return false;
   auto [prologue, epilogue] = computePrologueAndEpilogue();
   auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
   equationTypeDetermination(first_order_endo_derivatives, mfs);
-  cout << "Finding the optimal block decomposition of the dynamic model..." << endl;
+  cout << "Finding the optimal block decomposition of the " << modelClassName() << "..." << endl;
   computeBlockDecomposition(prologue, epilogue);
   reduceBlockDecomposition();
   printBlockDecomposition();
@@ -3663,7 +3663,7 @@ DynamicModel::writeSetAuxiliaryVariables(const string &basename, bool julia) con
     output << "ds = ";
   output << func_name + "(ds, params)" << endl
          << comment << endl
-         << comment << " Status : Computes Auxiliary variables of the dynamic model and returns a dseries" << endl
+         << comment << " Status : Computes Auxiliary variables of the " << modelClassName() << " and returns a dseries" << endl
          << comment << endl
          << comment << " Warning : this file is generated automatically by Dynare" << endl
          << comment << "           from model file (.mod)" << endl << endl;

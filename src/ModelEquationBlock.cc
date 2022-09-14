@@ -38,6 +38,23 @@ PlannerObjective::computingPassBlock([[maybe_unused]] const eval_context_t &eval
   return false;
 }
 
+OrigRamseyDynamicModel::OrigRamseyDynamicModel(SymbolTable &symbol_table_arg,
+                                               NumericalConstants &num_constants_arg,
+                                               ExternalFunctionsTable &external_functions_table_arg,
+                                               TrendComponentModelTable &trend_component_model_table_arg,
+                                               VarModelTable &var_model_table_arg) :
+  DynamicModel {symbol_table_arg, num_constants_arg, external_functions_table_arg,
+                trend_component_model_table_arg, var_model_table_arg}
+{
+}
+
+OrigRamseyDynamicModel &
+OrigRamseyDynamicModel::operator=(const DynamicModel &m)
+{
+  DynamicModel::operator=(m);
+  return *this;
+}
+
 SteadyStateModel::SteadyStateModel(SymbolTable &symbol_table_arg,
                                    NumericalConstants &num_constants_arg,
                                    ExternalFunctionsTable &external_functions_table_arg,

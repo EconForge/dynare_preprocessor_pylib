@@ -68,7 +68,7 @@ public:
   //! A copy of Dynamic model, for testing trends declared by user
   DynamicModel trend_dynamic_model;
   //! A copy of the original model, used to test model linearity under ramsey problem
-  DynamicModel orig_ramsey_dynamic_model;
+  OrigRamseyDynamicModel orig_ramsey_dynamic_model;
   //! Epilogue model, as declared in the "epilogue" block
   Epilogue epilogue;
   //! Static model, as derived from the "model" block when leads and lags have been removed

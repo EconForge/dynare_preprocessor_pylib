@@ -116,6 +116,13 @@ private:
      (failure can happen in normalization). */
   virtual bool computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms);
 
+protected:
+  string
+  modelClassName() const override
+  {
+    return "static model";
+  }
+
 public:
   StaticModel(SymbolTable &symbol_table_arg,
               NumericalConstants &num_constants,

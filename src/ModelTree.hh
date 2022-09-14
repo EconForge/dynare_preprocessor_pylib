@@ -344,7 +344,7 @@ protected:
     \param contemporaneous_jacobian Jacobian used as an incidence matrix: all elements declared in the map (even if they are zero), are used as vertices of the incidence matrix
     \return True if a complete normalization has been achieved
   */
-  bool computeNormalization(const jacob_map_t &contemporaneous_jacobian, bool dynamic, bool verbose);
+  bool computeNormalization(const jacob_map_t &contemporaneous_jacobian, bool verbose);
 
   //! Try to compute the matching between endogenous and variable using a decreasing cutoff
   /*!
@@ -354,7 +354,7 @@ protected:
     The resulting normalization is stored in endo2eq.
     Returns a boolean indicating success.
   */
-  bool computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian, bool dynamic);
+  bool computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian);
   //! Evaluate the jacobian (w.r.t. endogenous) and suppress all the elements below the cutoff
   /*! Returns the contemporaneous_jacobian.
       Elements below the cutoff are discarded. External functions are evaluated to 1. */
@@ -452,6 +452,9 @@ protected:
   /* Get column number within Jacobian of a given block.
      “var” is the block-specific endogenous variable index. */
   virtual int getBlockJacobianEndoCol(int blk, int var, int lag) const = 0;
+
+  // Returns a human-readable string describing the model class (e.g. “dynamic model”…)
+  virtual string modelClassName() const = 0;
 
 private:
   //! Internal helper for the copy constructor and assignment operator
