@@ -1158,9 +1158,9 @@ DynareSensitivityStatement::writeOutput(ostream &output, [[maybe_unused]] const 
   if (auto it = options_list.num_options.find("nograph");
       it != options_list.num_options.end())
     output << "options_.nograph = " << it->second << ";" << endl;
-  if (auto it = options_list.string_options.find("graph_format");
-      it != options_list.string_options.end())
-    output << "options_.graph_format = '" << it->second << "';" << endl;
+  if (auto it = options_list.symbol_list_options.find("graph_format");
+      it != options_list.symbol_list_options.end())
+    it->second.writeOutput("options_.graph_format", output);
 
   output << "dynare_sensitivity(options_gsa);" << endl;
 }
@@ -2969,9 +2969,9 @@ IdentificationStatement::writeOutput(ostream &output, [[maybe_unused]] const str
   if (auto it = options_list.num_options.find("nograph");
       it != options_list.num_options.end())
     output << "options_.nograph = " << it->second << ";" << endl;
-  if (auto it = options_list.string_options.find("graph_format");
-      it != options_list.string_options.end())
-    output << "options_.graph_format = '" << it->second << "';" << endl;
+  if (auto it = options_list.symbol_list_options.find("graph_format");
+      it != options_list.symbol_list_options.end())
+    it->second.writeOutput("options_.graph_format", output);
 
   output << "dynare_identification(options_ident);" << endl;
 }
