@@ -4346,13 +4346,10 @@ BasicPriorStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struc
       exit(EXIT_FAILURE);
     }
 
-  if (auto it_num = options_list.num_options.find("domain");
-      it_num != options_list.num_options.end())
+  if (auto it = options_list.vector_value_options.find("domain");
+      it != options_list.vector_value_options.end())
     {
-      using namespace boost;
-      vector<string> tokenizedDomain;
-      split(tokenizedDomain, it_num->second, is_any_of("[ ]"), token_compress_on);
-      if (tokenizedDomain.size() != 4)
+      if (it->second.size() != 2)
         {
           cerr << "ERROR: You must pass exactly two values to the domain option." << endl;
           exit(EXIT_FAILURE);
