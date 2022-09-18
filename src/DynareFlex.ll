@@ -292,7 +292,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>mean                  {return token::MEAN;}
 <DYNARE_STATEMENT>stdev                 {return token::STDEV;}
 <DYNARE_STATEMENT>truncate              {return token::TRUNCATE;}
-<DYNARE_STATEMENT>domain                {return token::DOMAINN;}
+<DYNARE_STATEMENT>domain                {return token::DOMAINN;} // Use altered token name to avoid identifier collision on Windows and macOS
 <DYNARE_STATEMENT>variance              {return token::VARIANCE;}
 <DYNARE_STATEMENT>mode                  {return token::MODE;}
 <DYNARE_STATEMENT>interval              {return token::INTERVAL;}
