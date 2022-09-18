@@ -741,7 +741,7 @@ void
 IrfCalibration::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "irf_calibration")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);

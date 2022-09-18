@@ -497,7 +497,7 @@ void
 InitvalFileStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "initval_file")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -526,7 +526,7 @@ void
 HistvalFileStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "histval_file")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);

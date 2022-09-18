@@ -24,6 +24,8 @@
 #include <string>
 #include <map>
 #include <set>
+#include <optional>
+#include <variant>
 
 #include "SymbolList.hh"
 #include "WarningConsolidation.hh"
@@ -204,36 +206,115 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
+/* Stores a list of named options with their values.
+   The values are stored using an std::variant; see the “options” data member
+   for the list of available types. */
 class OptionsList
 {
 public:
-  using num_options_t = map<string, string>;
-  using paired_num_options_t = map<string, pair<string, string>>;
-  using string_options_t = map<string, string>;
-  using date_options_t = map<string, string>;
-  using symbol_list_options_t = map<string, SymbolList>;
-  using vec_int_options_t = map<string, vector<int>>;
-  using vec_str_options_t = map<string, vector<string >>;
-  using vec_cellstr_options_t = map<string, vector<string >>;
-  using vec_value_options_t = map<string, vector<string>>;
-  using vec_of_vec_value_options_t = map<string, vector<vector<string>>>;
-  num_options_t num_options;
-  paired_num_options_t paired_num_options;
-  string_options_t string_options;
-  date_options_t date_options;
-  symbol_list_options_t symbol_list_options;
-  vec_int_options_t vector_int_options;
-  vec_str_options_t vector_str_options;
-  vec_cellstr_options_t vector_cellstr_options;
-  vec_value_options_t vector_value_options;
-  vec_of_vec_value_options_t vector_of_vector_value_options;
-  int getNumberOfOptions() const;
+  // Some types to lift ambiguities
+  struct NumVal : string
+  {
+  };
+  struct StringVal : string
+  {
+  };
+  struct DateVal : string
+  {
+  };
+  struct SymbolListVal : SymbolList
+  {
+    /* This one is needed because vector<string> implicitly converts to
+       SymbolList. Otherwise adding a vector<string> to the variant would add a
+       SymbolList, which is probably not the intended meaning. */
+  };
+  struct VecStrVal : vector<string>
+  {
+  };
+  struct VecCellStrVal : vector<string>
+  {
+  };
+  struct VecValueVal : vector<string>
+  {
+  };
+
+  bool empty() const;
+  void clear();
+  // Whether there is an option with that name that has been given a value
+  bool contains(const string &name) const;
+  // Erase the option with that name
+  void erase(const string &name);
+
+  /* Declares an option with a name and value. Overwrite any previous value for
+     that name. */
+  template<class T>
+  void
+  set(string name, T &&val)
+  {
+    options.insert_or_assign(move(name), forward<T>(val));
+  }
+
+  struct UnknownOptionException
+  {
+    const string name;
+    UnknownOptionException(string name_arg) : name{move(name_arg)}
+    {
+    }
+  };
+
+  /* Retrieves the value of the option with that name.
+     Throws UnknownOptionException if there is no option with that name.
+     Throws bad_variant_access if the option has a value of a different type. */
+  template<class T>
+  T
+  get(const string &name) const
+  {
+    auto it = options.find(name);
+    if (it != options.end())
+      return std::get<T>(it->second);
+    else
+      throw UnknownOptionException{name};
+  }
+
+  /* Retrieves the value of the option with that name.
+     Returns nullopt if there is no option with that name.
+     Throws bad_variant_access if the option has a value of a different type. */
+  template<class T>
+  optional<T>
+  get_if(const string &name) const
+  {
+    auto it = options.find(name);
+    if (it != options.end())
+      return std::get<T>(it->second);
+    else
+      return nullopt;
+  }
+
+  /* Applies a variant visitor to the value of the option with that name.
+     Throws UnknownOptionException if there is no option with that name. */
+  template<class Visitor>
+  decltype(auto)
+  visit(const string &name, Visitor &&vis) const
+  {
+    auto it = options.find(name);
+    if (it != options.end())
+      return std::visit(forward<Visitor>(vis), it->second);
+    else
+      throw UnknownOptionException{name};
+  }
+
   void writeOutput(ostream &output) const;
   void writeOutput(ostream &output, const string &option_group) const;
   void writeJsonOutput(ostream &output) const;
-  void clear();
+
 private:
+  // pair<string, string> corresponds to a pair of numerical values
+  // vector<vector<string>> corresponds to a vector of vectors of numerical values
+  map<string, variant<NumVal, pair<string, string>, StringVal, DateVal, SymbolListVal, vector<int>,
+                      VecStrVal, VecCellStrVal, VecValueVal, vector<vector<string>>>> options;
   void writeOutputCommon(ostream &output, const string &option_group) const;
+  // Helper constant for visitors
+  template<class> static constexpr bool always_false_v {false};
 };
 
 #endif // ! _STATEMENT_HH

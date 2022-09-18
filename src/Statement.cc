@@ -184,226 +184,144 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
 void
 OptionsList::writeOutputCommon(ostream &output, const string &option_group) const
 {
-  for (const auto & [name, val] : num_options)
-    output << option_group << "." << name << " = " << val << ";" << endl;
-
-  for (const auto & [name, vals] : paired_num_options)
-    output << option_group << "." << name << " = [" << vals.first << "; "
-           << vals.second << "];" << endl;
-
-  for (const auto & [name, val] : string_options)
-    output << option_group << "." << name << " = '" << val << "';" << endl;
-
-  for (const auto & [name, val] : date_options)
-    output << option_group << "." << name << " = " << val << ";" << endl;
-
-  for (const auto & [name, list] : symbol_list_options)
-    list.writeOutput(option_group + "." + name, output);
-
-  for (const auto & [name, vals] : vector_int_options)
+  for (const auto &[name, val] : options)
+    std::visit([&]<class T>(const T &v)
     {
-      output << option_group << "." << name << " = ";
-      if (vals.size() > 1)
-        {
-          output << "[";
-          for (int viit : vals)
-            output << viit << ";";
-          output << "];" << endl;
-        }
+      if constexpr(is_same_v<T, SymbolListVal>)
+        v.writeOutput(option_group + "." + name, output);
       else
-        output << vals.front() << ";" << endl;
-    }
-
-  for (const auto & [name, vals] : vector_str_options)
-    {
-      output << option_group << "." << name << " = ";
-      if (vals.size() > 1)
         {
-          output << "{";
-          for (const auto &viit : vals)
-            output << "'" << viit << "';";
-          output << "};" << endl;
+          output << option_group << "." << name << " = ";
+          if constexpr(is_same_v<T, NumVal> || is_same_v<T, DateVal>)
+            output << v;
+          else if constexpr(is_same_v<T, pair<string, string>>)
+            output << '[' << v.first << "; " << v.second << ']';
+          else if constexpr(is_same_v<T, StringVal>)
+            output << "'" << v << "'";
+          else if constexpr(is_same_v<T, vector<int>>)
+            {
+              if (v.size() > 1)
+                {
+                  output << '[';
+                  for (int it : v)
+                    output << it << ";";
+                  output << ']';
+                }
+              else
+                output << v.front();
+            }
+          else if constexpr(is_same_v<T, VecStrVal>)
+            {
+              if (v.size() > 1)
+                {
+                  output << '{';
+                  for (const auto &it : v)
+                    output << "'" << it << "';";
+                  output << '}';
+                }
+              else
+                output << v.front();
+            }
+          else if constexpr(is_same_v<T, VecCellStrVal>)
+            {
+              /* VecCellStrVal should ideally be merged into VecStrVal.
+                 only difference is treatment of v.size==1, where VecStrVal
+                 does not add quotes and curly brackets, i.e. allows for type conversion of
+                 '2' into the number 2 */
+              output << '{';
+              for (const auto &it : v)
+                output << "'" << it << "';";
+              output << '}';
+            }
+          else if constexpr(is_same_v<T, VecValueVal>)
+            {
+              /* For historical reason, those vectors are output as row vectors (contrary
+                 to vectors of integers which are output as column vectors) */
+              output << '[';
+              for (const auto &it : v)
+                output << it << ',';
+              output << ']';
+            }
+          else if constexpr(is_same_v<T, vector<vector<string>>>)
+            {
+              // Same remark as for VecValueVal
+              output << '{';
+              for (const auto &v2 : v)
+                {
+                  output << '[';
+                  for (const auto &it : v2)
+                    output << it << ',';
+                  output << "], ";
+                }
+              output << '}';
+            }
+          else
+            static_assert(always_false_v<T>, "Non-exhaustive visitor!");
+          output << ";" << endl;
         }
-      else
-        output << vals.front() << ";" << endl;
-    }
-
-  /* vector_cellstr_options should ideally be merged into vector_str_options
-     only difference is treatment of vals.size==1, where vector_str_options
-     does not add quotes and curly brackets, i.e. allows for type conversion of
-     '2' into the number 2
-  */
-
-  for (const auto & [name, vals] : vector_cellstr_options)
-    {
-      output << option_group << "." << name << " = {";
-      for (const auto &viit : vals)
-        output << "'" << viit << "';";
-      output << "};" << endl;
-    }
-
-  /* For historical reason, those vectors are output as row vectors (contrary
-     to vectors of integers which are output as column vectors) */
-  for (const auto &[name, vals] : vector_value_options)
-    {
-      output << option_group << "." << name << " = [";
-      for (const auto &viit : vals)
-        output << viit << ",";
-      output << "];" << endl;
-    }
-
-  // Same remark as for vectors of (floating point) values
-  for (const auto &[name, vec_vals] : vector_of_vector_value_options)
-    {
-      output << option_group << "." << name << " = {";
-      for (const auto &vals : vec_vals)
-        {
-          output << "[";
-          for (const auto &viit : vals)
-            output << viit << ",";
-          output << "], ";
-        }
-      output << "};" << endl;
-    }
+    }, val);
 }
 
 void
 OptionsList::writeJsonOutput(ostream &output) const
 {
-  if (getNumberOfOptions() == 0)
+  if (empty())
     return;
 
-  bool opt_written{false};
-
   output << R"("options": {)";
-  for (const auto &[name, val] : num_options)
-    {
-      if (opt_written)
-        output << ", ";
-      output << R"(")" << name << R"(": )" << val;
-      opt_written = true;
-    }
 
-  for (const auto &[name, vals] : paired_num_options)
+  for (bool opt_written {false};
+       const auto &[name, val] : options)
     {
-      if (opt_written)
+      if (exchange(opt_written, true))
         output << ", ";
-      output << R"(")" << name << R"(": [)" << vals.first << ", " << vals.second << "]";
-      opt_written = true;
-    }
-
-  for (const auto &[name, val] : string_options)
-    {
-      if (opt_written)
-        output << ", ";
-      output << R"(")" << name << R"(": ")" << val << R"(")";
-      opt_written = true;
-    }
-
-  for (const auto &[name, val] : date_options)
-    {
-      if (opt_written)
-        output << ", ";
-      output << R"(")" << name << R"(": ")" << val << R"(")";
-      opt_written = true;
-    }
-
-  for (const auto &[name, vals] : symbol_list_options)
-    {
-      if (opt_written)
-        output << ", ";
-      output << R"(")" << name << R"(": {)";
-      vals.writeJsonOutput(output);
-      output << "}";
-      opt_written = true;
-    }
-
-  for (const auto &[name, vals] : vector_int_options)
-    {
-      if (opt_written)
-        output << ", ";
-      output << R"(")" << name << R"(": [)";
-      for (bool printed_something{false};
-           int val : vals)
-        {
-          if (exchange(printed_something, true))
-            output << ", ";
-          output << val;
-        }
-      output << "]";
-      opt_written = true;
-    }
-
-  for (const auto &[name, vals] : vector_str_options)
-    {
-      if (opt_written)
-        output << ", ";
-      output << R"(")" << name << R"(": [)";
-      for (bool printed_something{false};
-           const auto &val : vals)
-        {
-          if (exchange(printed_something, true))
-            output << ", ";
-          output << R"(")" << val << R"(")";
-        }
-      output << "]";
-      opt_written = true;
-    }
-
-  for (const auto &[name, vals] : vector_cellstr_options)
-    {
-      if (opt_written)
-        output << ", ";
-      output << R"(")" << name << R"(": [)";
-      for (bool printed_something{false};
-           const auto &val : vals)
-        {
-          if (exchange(printed_something, true))
-            output << ", ";
-          output << R"(")" << val << R"(")";
-        }
-      output << "]";
-      opt_written = true;
-    }
-
-  for (const auto &[name, vals] : vector_value_options)
-    {
-      if (opt_written)
-        output << ", ";
-      output << R"(")" << name << R"(": [)";
-      for (bool printed_something{false};
-           const auto &val : vals)
-        {
-          if (exchange(printed_something, true))
-            output << ", ";
-          output << val;
-        }
-      output << "]";
-      opt_written = true;
-    }
-
-  for (const auto &[name, vec_vals] : vector_of_vector_value_options)
-    {
-      if (opt_written)
-        output << ", ";
-      output << R"(")" << name << R"(": [)";
-      for (bool printed_something{false};
-           const auto &vals : vec_vals)
-        {
-          if (exchange(printed_something, true))
-            output << ", ";
-          output << "[";
-          for (bool printed_something2{false};
-               const auto &val : vals)
-            {
-              if (exchange(printed_something2, true))
-                output << ", ";
-              output << val;
-            }
-          output << "]";
-        }
-      output << "]";
-      opt_written = true;
+      output << R"(")" << name << R"(": )";
+      std::visit([&]<class T>(const T &v)
+      {
+        if constexpr(is_same_v<T, NumVal> || is_same_v<T, DateVal>)
+          output << v;
+        else if constexpr(is_same_v<T, pair<string, string>>)
+          output << '[' << v.first << ", " << v.second << ']';
+        else if constexpr(is_same_v<T, StringVal>)
+          output << '"' << v << '"';
+        else if constexpr(is_same_v<T, SymbolListVal>)
+          {
+            output << '{';
+            v.writeJsonOutput(output);
+            output << '}';
+          }
+        else if constexpr(is_same_v<T, vector<int>> || is_same_v<T, VecStrVal>
+                          || is_same_v<T, VecCellStrVal> || is_same_v<T, VecValueVal>
+                          || is_same_v<T, vector<vector<string>>>)
+          {
+            output << '[';
+            for (bool printed_something{false};
+                 const auto &it : v)
+              {
+                if (exchange(printed_something, true))
+                  output << ", ";
+                if constexpr(is_same_v<T, vector<int>> || is_same_v<T, VecValueVal>)
+                  output << it;
+                else if constexpr(is_same_v<T, VecStrVal> || is_same_v<T, VecCellStrVal>)
+                  output << '"' << it << '"';
+                else // vector<vector<string>>
+                  {
+                    output << '[';
+                    for (bool printed_something2{false};
+                         const auto &it2 : it)
+                      {
+                        if (exchange(printed_something2, true))
+                          output << ", ";
+                        output << it2;
+                      }
+                    output << ']';
+                  }
+              }
+            output << ']';
+          }
+        else
+          static_assert(always_false_v<T>, "Non-exhaustive visitor!");
+      }, val);
     }
 
   output << "}";
@@ -412,29 +330,23 @@ OptionsList::writeJsonOutput(ostream &output) const
 void
 OptionsList::clear()
 {
-  num_options.clear();
-  paired_num_options.clear();
-  string_options.clear();
-  date_options.clear();
-  symbol_list_options.clear();
-  vector_int_options.clear();
-  vector_str_options.clear();
-  vector_cellstr_options.clear();
-  vector_value_options.clear();
-  vector_of_vector_value_options.clear();
+  options.clear();
 }
 
-int
-OptionsList::getNumberOfOptions() const
+bool
+OptionsList::contains(const string &name) const
 {
-  return num_options.size()
-    + paired_num_options.size()
-    + string_options.size()
-    + date_options.size()
-    + symbol_list_options.size()
-    + vector_int_options.size()
-    + vector_str_options.size()
-    + vector_cellstr_options.size()
-    + vector_value_options.size()
-    + vector_of_vector_value_options.size();
+  return options.contains(name);
+}
+
+void
+OptionsList::erase(const string &name)
+{
+  options.erase(name);
+}
+
+bool
+OptionsList::empty() const
+{
+  return options.empty();
 }

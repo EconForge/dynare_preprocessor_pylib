@@ -1365,43 +1365,43 @@ ParsingDriver::steady()
 void
 ParsingDriver::option_num(string name_option, string opt1, string opt2)
 {
-  if (options_list.paired_num_options.contains(name_option))
+  if (options_list.contains(name_option))
     error("option " + name_option + " declared twice");
 
-  options_list.paired_num_options[move(name_option)] = { move(opt1), move(opt2) };
+  options_list.set(move(name_option), pair{move(opt1), move(opt2)});
 }
 
 void
 ParsingDriver::option_num(string name_option, string opt)
 {
-  if (options_list.num_options.contains(name_option))
+  if (options_list.contains(name_option))
     error("option " + name_option + " declared twice");
 
-  options_list.num_options[move(name_option)] = move(opt);
+  options_list.set(move(name_option), OptionsList::NumVal{move(opt)});
 }
 
 void
 ParsingDriver::option_str(string name_option, string opt)
 {
-  if (options_list.string_options.contains(name_option))
+  if (options_list.contains(name_option))
     error("option " + name_option + " declared twice");
 
-  options_list.string_options[move(name_option)] = move(opt);
+  options_list.set(move(name_option), OptionsList::StringVal{move(opt)});
 }
 
 void
 ParsingDriver::option_date(string name_option, string opt)
 {
-  if (options_list.date_options.contains(name_option))
+  if (options_list.contains(name_option))
     error("option " + name_option + " declared twice");
 
-  options_list.date_options[move(name_option)] = move(opt);
+  options_list.set(move(name_option), OptionsList::DateVal{move(opt)});
 }
 
 void
 ParsingDriver::option_symbol_list(string name_option, vector<string> symbol_list)
 {
-  if (options_list.symbol_list_options.contains(name_option))
+  if (options_list.contains(name_option))
     error("option " + name_option + " declared twice");
 
   if (name_option == "irf_shocks")
@@ -1418,67 +1418,67 @@ ParsingDriver::option_symbol_list(string name_option, vector<string> symbol_list
       if (mod_file->symbol_table.getType(it) != SymbolType::parameter)
         error("Variables passed to the parameters option of the markov_switching statement must be parameters. Caused by: " + it);
 
-  options_list.symbol_list_options[move(name_option)] = move(symbol_list);
+  options_list.set(move(name_option), OptionsList::SymbolListVal{move(symbol_list)});
 }
 
 void
 ParsingDriver::option_vec_int(string name_option, vector<int> opt)
 {
-  if (options_list.vector_int_options.contains(name_option))
+  if (options_list.contains(name_option))
     error("option " + name_option + " declared twice");
 
   if (opt.empty())
     error("option " + name_option + " was passed an empty vector.");
 
-  options_list.vector_int_options[move(name_option)] = move(opt);
+  options_list.set(move(name_option), move(opt));
 }
 
 void
 ParsingDriver::option_vec_str(string name_option, vector<string> opt)
 {
-  if (options_list.vector_str_options.contains(name_option))
+  if (options_list.contains(name_option))
     error("option " + name_option + " declared twice");
 
   if (opt.empty())
     error("option " + name_option + " was passed an empty vector.");
 
-  options_list.vector_str_options[move(name_option)] = move(opt);
+  options_list.set(move(name_option), OptionsList::VecStrVal{move(opt)});
 }
 
 void
 ParsingDriver::option_vec_cellstr(string name_option, vector<string> opt)
 {
-  if (options_list.vector_cellstr_options.contains(name_option))
+  if (options_list.contains(name_option))
     error("option " + name_option + " declared twice");
 
   if (opt.empty())
     error("option " + name_option + " was passed an empty vector.");
 
-  options_list.vector_cellstr_options[move(name_option)] = move(opt);
+  options_list.set(move(name_option), OptionsList::VecCellStrVal{move(opt)});
 }
 
 void
 ParsingDriver::option_vec_value(string name_option, vector<string> opt)
 {
-  if (options_list.vector_value_options.contains(name_option))
+  if (options_list.contains(name_option))
     error("option " + name_option + " declared twice");
 
   if (opt.empty())
     error("option " + name_option + " was passed an empty vector.");
 
-  options_list.vector_value_options[move(name_option)] = move(opt);
+  options_list.set(move(name_option), OptionsList::VecValueVal{move(opt)});
 }
 
 void
 ParsingDriver::option_vec_of_vec_value(string name_option, vector<vector<string>> opt)
 {
-  if (options_list.vector_of_vector_value_options.contains(name_option))
+  if (options_list.contains(name_option))
     error("option " + name_option + " declared twice");
 
   if (opt.empty())
     error("option " + name_option + " was passed an empty vector.");
 
-  options_list.vector_of_vector_value_options[move(name_option)] = move(opt);
+  options_list.set(move(name_option), move(opt));
 }
 
 void
@@ -1497,8 +1497,8 @@ void
 ParsingDriver::stoch_simul(SymbolList symbol_list)
 {
   //make sure default order is known to preprocessor, see #49
-  if (!options_list.num_options.contains("order"))
-    options_list.num_options["order"] = "2";
+  if (!options_list.contains("order"))
+    options_list.set("order", OptionsList::NumVal{"2"});
 
   symbol_list.removeDuplicates("stoch_simul", warnings);
 
@@ -1510,44 +1510,36 @@ ParsingDriver::stoch_simul(SymbolList symbol_list)
 void
 ParsingDriver::trend_component_model()
 {
-  auto its = options_list.string_options.find("trend_component.name");
-  if (its == options_list.string_options.end())
-    error("You must pass the model_name option to the trend_component_model statement.");
-  auto &name = its->second;
+  try
+    {
+      mod_file->trend_component_model_table.addTrendComponentModel(options_list.get<OptionsList::StringVal>("trend_component.name"),
+                                                                   options_list.get<OptionsList::VecStrVal>("trend_component.eqtags"),
+                                                                   options_list.get<OptionsList::VecStrVal>("trend_component.targets"));
+    }
+  catch (OptionsList::UnknownOptionException &e)
+    {
+      string name {e.name.substr(16)};
+      if (name == "name")
+        name = "model_name";
+      error("You must pass the '" + name + "' option to the 'trend_component_model' statement.");
+    }
 
-  auto itvs = options_list.vector_str_options.find("trend_component.eqtags");
-  if (itvs == options_list.vector_str_options.end())
-    error("You must pass the eqtags option to the trend_component_model statement.");
-  auto &eqtags = itvs->second;
-
-  auto itvs1 = options_list.vector_str_options.find("trend_component.targets");
-  if (itvs1 == options_list.vector_str_options.end())
-    error("You must pass the targets option to the trend_component_model statement.");
-  auto &targets = itvs1->second;
-
-  mod_file->trend_component_model_table.addTrendComponentModel(move(name), move(eqtags), move(targets));
   options_list.clear();
 }
 
 void
 ParsingDriver::var_model()
 {
-  auto its = options_list.string_options.find("var.model_name");
-  if (its == options_list.string_options.end())
-    error("You must pass the model_name option to the var_model statement.");
-  auto &name = its->second;
-
-  auto itvs = options_list.vector_str_options.find("var.eqtags");
-  if (itvs == options_list.vector_str_options.end())
-    error("You must pass the eqtags option to the var_model statement.");
-  auto &eqtags = itvs->second;
-
-  bool structural = false;
-  if (auto itn = options_list.num_options.find("var.structural");
-      itn != options_list.num_options.end() && itn->second == "true")
-    structural = true;
-
-  mod_file->var_model_table.addVarModel(move(name), structural, move(eqtags));
+  try
+    {
+      mod_file->var_model_table.addVarModel(options_list.get<OptionsList::StringVal>("var.model_name"),
+                                            options_list.get_if<OptionsList::NumVal>("var.structural").value_or(OptionsList::NumVal{"false"}) == "true",
+                                            options_list.get<OptionsList::VecStrVal>("var.eqtags"));
+    }
+  catch (OptionsList::UnknownOptionException &e)
+    {
+      error("You must pass the '" + e.name.substr(4) + "' option to the 'var_model' statement.");
+    }
   options_list.clear();
 }
 
@@ -2208,9 +2200,8 @@ ParsingDriver::ramsey_model()
     error("ramsey_model: the 'planner_discount' option cannot be used when the 'optimal_policy_discount_factor' parameter is explicitly declared.");
 
   // Check that instruments are declared endogenous (#72)
-  if (auto it = options_list.symbol_list_options.find("instruments");
-      it != options_list.symbol_list_options.end())
-    for (const auto &s : it->second.getSymbols())
+  if (options_list.contains("instruments"))
+    for (const auto &s : options_list.get<OptionsList::SymbolListVal>("instruments").getSymbols())
       check_symbol_is_endogenous(s);
 
   mod_file->addStatement(make_unique<RamseyModelStatement>(options_list));
@@ -2242,9 +2233,8 @@ ParsingDriver::ramsey_policy(vector<string> symbol_list)
     error("ramsey_policy: the 'planner_discount' option cannot be used when the 'optimal_policy_discount_factor' parameter is explicitly declared.");
 
   // Check that instruments are declared endogenous (#72)
-  if (auto it = options_list.symbol_list_options.find("instruments");
-      it != options_list.symbol_list_options.end())
-    for (const auto &s : it->second.getSymbols())
+  if (options_list.contains("instruments"))
+    for (const auto &s : options_list.get<OptionsList::SymbolListVal>("instruments").getSymbols())
       check_symbol_is_endogenous(s);
 
   mod_file->addStatement(make_unique<RamseyPolicyStatement>(move(symbol_list), options_list,
@@ -2302,9 +2292,8 @@ ParsingDriver::discretionary_policy(vector<string> symbol_list)
   init_param("optimal_policy_discount_factor", planner_discount);
 
   // Check that instruments are declared endogenous (#72)
-  if (auto it = options_list.symbol_list_options.find("instruments");
-      it != options_list.symbol_list_options.end())
-    for (const auto &s : it->second.getSymbols())
+  if (options_list.contains("instruments"))
+    for (const auto &s : options_list.get<OptionsList::SymbolListVal>("instruments").getSymbols())
       check_symbol_is_endogenous(s);
 
   mod_file->addStatement(make_unique<DiscretionaryPolicyStatement>(move(symbol_list), options_list,
@@ -2411,9 +2400,9 @@ ParsingDriver::ms_variance_decomposition()
 void
 ParsingDriver::svar()
 {
-  bool has_coefficients = options_list.string_options.contains("ms.coefficients"),
-    has_variances = options_list.string_options.contains("ms.variances"),
-    has_constants = options_list.string_options.contains("ms.constants");
+  bool has_coefficients = options_list.contains("ms.coefficients"),
+    has_variances = options_list.contains("ms.variances"),
+    has_constants = options_list.contains("ms.constants");
   if (!has_coefficients && !has_variances && !has_constants)
     error("You must pass one of 'coefficients', 'variances', or 'constants'.");
 
@@ -2421,17 +2410,20 @@ ParsingDriver::svar()
       || (has_coefficients && has_constants))
     error("You may only pass one of 'coefficients', 'variances', or 'constants'.");
 
-  if (auto itn = options_list.num_options.find("ms.chain");
-      itn == options_list.num_options.end())
-    error("A chain option must be passed to the svar statement.");
-  else if (stoi(itn->second) <= 0)
-    error("The value passed to the chain option must be greater than zero.");
+  try
+    {
+      if (stoi(options_list.get<OptionsList::NumVal>("ms.chain")) <= 0)
+        error("The value passed to the 'chain' option must be greater than zero.");
+    }
+  catch (OptionsList::UnknownOptionException &)
+    {
+      error("A 'chain' option must be passed to the 'svar' statement.");
+    }
 
-  if (auto itv = options_list.vector_int_options.find("ms.equations");
-      itv != options_list.vector_int_options.end())
-    for (int viit : itv->second)
+  if (options_list.contains("ms.equations"))
+    for (int viit : options_list.get<vector<int>>("ms.equations"))
       if (viit <= 0)
-        error("The value(s) passed to the equation option must be greater than zero.");
+        error("The value(s) passed to the 'equations' option must be greater than zero.");
 
   mod_file->addStatement(make_unique<SvarStatement>(options_list));
   options_list.clear();
@@ -2440,20 +2432,18 @@ ParsingDriver::svar()
 void
 ParsingDriver::markov_switching()
 {
-  auto it0 = options_list.num_options.find("ms.chain");
-  if (it0 == options_list.num_options.end())
-    error("A chain option must be passed to the markov_switching statement.");
-  else if (stoi(it0->second) <= 0)
-    error("The value passed to the chain option must be greater than zero.");
-
-  it0 = options_list.num_options.find("ms.number_of_regimes");
-  if (it0 == options_list.num_options.end())
-    error("A number_of_regimes option must be passed to the markov_switching statement.");
-  else if (stoi(it0->second) <= 0)
-    error("The value passed to the number_of_regimes option must be greater than zero.");
-
-  if (!options_list.num_options.contains("ms.duration"))
-    error("A duration option must be passed to the markov_switching statement.");
+  try
+    {
+      if (stoi(options_list.get<OptionsList::NumVal>("ms.chain")) <= 0)
+        error("The value passed to the chain option must be greater than zero.");
+      if (stoi(options_list.get<OptionsList::NumVal>("ms.number_of_regimes")) <= 0)
+        error("The value passed to the number_of_regimes option must be greater than zero.");
+      options_list.get<OptionsList::NumVal>("ms.duration"); // Just check its presence
+    }
+  catch (OptionsList::UnknownOptionException &e)
+    {
+      error("A '" + e.name.substr(3) + "' option must be passed to the 'markov_switching' statement.");
+    }
 
   mod_file->addStatement(make_unique<MarkovSwitchingStatement>(options_list));
   options_list.clear();
@@ -2785,24 +2775,20 @@ ParsingDriver::begin_pac_model()
 void
 ParsingDriver::pac_model()
 {
-  auto it = options_list.string_options.find("pac.model_name");
-  if (it == options_list.string_options.end())
-    error("You must pass the model_name option to the pac_model statement.");
-  auto &name = it->second;
+  try
+    {
+      auto discount {options_list.get<OptionsList::StringVal>("pac.discount")};
+      check_symbol_is_parameter(discount);
+      mod_file->pac_model_table.addPacModel(options_list.get<OptionsList::StringVal>("pac.model_name"),
+                                            options_list.get_if<OptionsList::StringVal>("pac.aux_model_name").value_or(OptionsList::StringVal{}),
+                                            move(discount), pac_growth,
+                                            pac_auxname, pac_kind);
+    }
+  catch (OptionsList::UnknownOptionException &e)
+    {
+      error("You must pass the '" + e.name.substr(4) + "' option to the 'pac_model' statement.");
+    }
 
-  string aux_model_name;
-  it = options_list.string_options.find("pac.aux_model_name");
-  if (it != options_list.string_options.end())
-    aux_model_name = it->second;
-
-  it = options_list.string_options.find("pac.discount");
-  if (it == options_list.string_options.end())
-    error("You must pass the discount option to the pac_model statement.");
-  auto &discount = it->second;
-  check_symbol_is_parameter(discount);
-
-  mod_file->pac_model_table.addPacModel(move(name), move(aux_model_name), move(discount), pac_growth,
-                                        pac_auxname, pac_kind);
   options_list.clear();
   parsing_pac_model = false;
 }
@@ -3310,21 +3296,21 @@ ParsingDriver::add_graph_format(string name)
 void
 ParsingDriver::process_graph_format_option()
 {
-  options_list.symbol_list_options["graph_format"] = graph_formats;
+  options_list.set("graph_format", OptionsList::SymbolListVal{move(graph_formats)});
   graph_formats.clear();
 }
 
 void
 ParsingDriver::initial_condition_decomp_process_graph_format_option()
 {
-  options_list.symbol_list_options["initial_condition_decomp.graph_format"] = graph_formats;
+  options_list.set("initial_condition_decomp.graph_format", OptionsList::SymbolListVal{move(graph_formats)});
   graph_formats.clear();
 }
 
 void
 ParsingDriver::plot_shock_decomp_process_graph_format_option()
 {
-  options_list.symbol_list_options["plot_shock_decomp.graph_format"] = graph_formats;
+  options_list.set("plot_shock_decomp.graph_format", OptionsList::SymbolListVal{move(graph_formats)});
   graph_formats.clear();
 }
 
@@ -3553,30 +3539,18 @@ ParsingDriver::end_init2shocks(const string &name)
 void
 ParsingDriver::var_expectation_model()
 {
-  auto it = options_list.string_options.find("variable");
-  if (it == options_list.string_options.end() && !var_expectation_model_expression)
-    error("You must pass either the 'variable' or the 'expression' option to the var_expectation_model statement.");
-  if (it != options_list.string_options.end())
+  try
     {
+      string v {options_list.get<OptionsList::StringVal>("variable")};
       if (var_expectation_model_expression)
         error("You can't pass both the 'variable' or the 'expression' options to the var_expectation_model statement.");
-      var_expectation_model_expression = data_tree->AddVariable(mod_file->symbol_table.getID(it->second));
+      var_expectation_model_expression = data_tree->AddVariable(mod_file->symbol_table.getID(v));
     }
-
-  it = options_list.string_options.find("auxiliary_model_name");
-  if (it == options_list.string_options.end())
-    error("You must pass the auxiliary_model_name option to the var_expectation_model statement.");
-  auto &var_model_name = it->second;
-
-  it = options_list.string_options.find("model_name");
-  if (it == options_list.string_options.end())
-    error("You must pass the model_name option to the var_expectation_model statement.");
-  auto &model_name = it->second;
-
-  it = options_list.num_options.find("horizon");
-  if (it == options_list.num_options.end())
-    error("You must pass the horizon option to the var_expectation_model statement.");
-  auto &horizon = it->second;
+  catch (OptionsList::UnknownOptionException &)
+    {
+      if (!var_expectation_model_expression)
+        error("You must pass either the 'variable' or the 'expression' option to the var_expectation_model statement.");
+    }
 
   if (var_expectation_model_discount)
     {
@@ -3589,16 +3563,23 @@ ParsingDriver::var_expectation_model()
   else
     var_expectation_model_discount = data_tree->One;
 
-  int time_shift = 0;
-  it = options_list.num_options.find("time_shift");
-  if (it != options_list.num_options.end())
-    time_shift = stoi(it->second);
+  int time_shift { stoi(options_list.get_if<OptionsList::NumVal>("time_shift").value_or(OptionsList::NumVal{"0"})) };
   if (time_shift > 0)
     error("The 'time_shift' option must be a non-positive integer");
 
-  mod_file->var_expectation_model_table.addVarExpectationModel(move(model_name), var_expectation_model_expression,
-                                                               move(var_model_name), move(horizon),
-                                                               var_expectation_model_discount, time_shift);
+  try
+    {
+      mod_file->var_expectation_model_table.addVarExpectationModel(options_list.get<OptionsList::StringVal>("model_name"),
+                                                                   var_expectation_model_expression,
+                                                                   options_list.get<OptionsList::StringVal>("auxiliary_model_name"),
+                                                                   options_list.get<OptionsList::NumVal>("horizon"),
+                                                                   var_expectation_model_discount,
+                                                                   time_shift);
+    }
+  catch (OptionsList::UnknownOptionException &e)
+    {
+      error("You must pass the '" + e.name + "' option to the 'var_expectation_model' statement.");
+    }
 
   options_list.clear();
   var_expectation_model_discount = nullptr;

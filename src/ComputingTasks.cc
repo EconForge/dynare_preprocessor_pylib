@@ -63,7 +63,7 @@ void
 SteadyStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "steady")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -95,7 +95,7 @@ void
 CheckStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "check")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -120,7 +120,7 @@ void
 ModelInfoStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "model_info")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -146,14 +146,13 @@ SimulStatement::writeOutput(ostream &output, [[maybe_unused]] const string &base
 {
   // Translate the “datafile” option into “initval_file” (see dynare#1663)
   auto options_list_new = options_list; // Need a copy, because of const
-  if (auto it = options_list_new.string_options.find("datafile");
-      it != options_list_new.string_options.end())
+  if (auto opt = options_list_new.get_if<OptionsList::StringVal>("datafile"))
     {
       output << "options_.initval_file = true;" << endl
              << "options_initvalf = struct();" << endl
-             << "options_initvalf.datafile = '" << it->second << "';" << endl
+             << "options_initvalf.datafile = '" << *opt << "';" << endl
              << "oo_.initval_series = histvalf_initvalf('INITVALF', M_, options_initvalf);" << endl;
-      options_list_new.string_options.erase(it);
+      options_list_new.erase("datafile");
     }
   options_list_new.writeOutput(output);
   output << "perfect_foresight_setup;" << endl
@@ -164,7 +163,7 @@ void
 SimulStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "simul")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -182,14 +181,13 @@ PerfectForesightSetupStatement::writeOutput(ostream &output, [[maybe_unused]] co
                                             [[maybe_unused]] bool minimal_workspace) const
 {
   auto options_list_new = options_list; // Need a copy, because of const
-  if (auto it = options_list_new.string_options.find("datafile");
-      it != options_list_new.string_options.end())
+  if (auto opt = options_list_new.get_if<OptionsList::StringVal>("datafile"))
     {
       output << "options_.initval_file = true;" << endl
              << "options_initvalf = struct();" << endl
-             << "options_initvalf.datafile = '" << it->second << "';" << endl
+             << "options_initvalf.datafile = '" << *opt << "';" << endl
              << "oo_.initval_series = histvalf_initvalf('INITVALF', M_, options_initvalf);" << endl;
-      options_list_new.string_options.erase(it);
+      options_list_new.erase("datafile");
     }
   options_list_new.writeOutput(output);
   output << "perfect_foresight_setup;" << endl;
@@ -199,7 +197,7 @@ void
 PerfectForesightSetupStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "perfect_foresight_setup")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -231,7 +229,7 @@ void
 PerfectForesightSolverStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "perfect_foresight_solver")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -257,7 +255,7 @@ void
 PerfectForesightWithExpectationErrorsSetupStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "perfect_foresight_with_expectation_errors_setup")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -290,7 +288,7 @@ void
 PerfectForesightWithExpectationErrorsSolverStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "perfect_foresight_with_expectation_errors_solver")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -309,10 +307,10 @@ void
 PriorPosteriorFunctionStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
                                            [[maybe_unused]] WarningConsolidation &warnings)
 {
-  if (auto it2 = options_list.string_options.find("function");
-      it2 == options_list.string_options.end() || it2->second.empty())
+  if (auto opt = options_list.get_if<OptionsList::StringVal>("function");
+      !opt || opt->empty())
     {
-      cerr << "ERROR: both the prior_function and posterior_function commands require the 'function' argument"
+      cerr << "ERROR: both the 'prior_function' and 'posterior_function' commands require the 'function' option"
            << endl;
       exit(EXIT_FAILURE);
     }
@@ -326,7 +324,7 @@ PriorPosteriorFunctionStatement::writeOutput(ostream &output, [[maybe_unused]] c
   string type = prior_func ? "prior" : "posterior";
 
   output << "oo_ = execute_prior_posterior_function("
-         << "'" << options_list.string_options.find("function")->second << "', "
+         << "'" << options_list.get<OptionsList::StringVal>("function") << "', "
          << "M_, options_, oo_, estim_params_, bayestopt_, dataset_, dataset_info, "
          << "'" << type << "');" << endl;
 }
@@ -336,7 +334,7 @@ PriorPosteriorFunctionStatement::writeJsonOutput(ostream &output) const
 {
   string type = prior_func ? "prior" : "posterior";
   output << R"({"statementName": "prior_posterior_function", "type": ")" << type << R"(")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -358,24 +356,22 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
   mod_file_struct.stoch_simul_present = true;
 
   // Fill in option_order of mod_file_struct
-  if (auto it = options_list.num_options.find("order");
-      it != options_list.num_options.end())
-    mod_file_struct.order_option = max(mod_file_struct.order_option, stoi(it->second));
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("order"))
+    mod_file_struct.order_option = max(mod_file_struct.order_option, stoi(*opt));
 
   // Fill in mod_file_struct.partial_information
-  if (auto it = options_list.num_options.find("partial_information");
-      it != options_list.num_options.end() && it->second == "true")
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("partial_information");
+      opt && *opt == "true")
     mod_file_struct.partial_information = true;
 
   // Option k_order_solver (implicit when order >= 3)
-  if (auto it = options_list.num_options.find("k_order_solver");
-      (it != options_list.num_options.end() && it->second == "true")
-      || mod_file_struct.order_option >= 3)
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("k_order_solver");
+      (opt && *opt == "true") || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
 
-  if (bool hp = options_list.num_options.contains("hp_filter"),
-      bandpass = options_list.num_options.contains("bandpass.indicator"),
-      one_sided_hp = options_list.num_options.contains("one_sided_hp_filter");
+  if (bool hp = options_list.contains("hp_filter"),
+      bandpass = options_list.contains("bandpass.indicator"),
+      one_sided_hp = options_list.contains("one_sided_hp_filter");
       (hp && bandpass) || (hp && one_sided_hp) || (bandpass && one_sided_hp))
     {
       cerr << "ERROR: stoch_simul: can only use one of hp, one-sided hp, and bandpass filters"
@@ -399,10 +395,9 @@ StochSimulStatement::writeOutput(ostream &output, [[maybe_unused]] const string 
                                  [[maybe_unused]] bool minimal_workspace) const
 {
   // Ensure that order 3 implies k_order (#844)
-  if (auto it = options_list.num_options.find("order"),
-      it1 = options_list.num_options.find("k_order_solver");
-      (it1 != options_list.num_options.end() && it1->second == "true")
-      || (it != options_list.num_options.end() && stoi(it->second) >= 3))
+  if (auto opt1 = options_list.get_if<OptionsList::NumVal>("order"),
+      opt2 = options_list.get_if<OptionsList::NumVal>("k_order_solver");
+      (opt2 && *opt2 == "true") || (opt1 && stoi(*opt1) >= 3))
     output << "options_.k_order_solver = true;" << endl;
 
   options_list.writeOutput(output);
@@ -414,7 +409,7 @@ void
 StochSimulStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "stoch_simul")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -463,7 +458,7 @@ void
 ForecastStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "forecast")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -490,10 +485,9 @@ RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct,
   /* Fill in option_order of mod_file_struct
      Since ramsey model needs one further order of derivation (for example, for 1st order
      approximation, it needs 2nd derivatives), we add 1 to the order declared by user */
-  if (auto it = options_list.num_options.find("order");
-      it != options_list.num_options.end())
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("order"))
     {
-      int order = stoi(it->second);
+      int order = stoi(*opt);
       if (order > 2)
         {
           cerr << "ERROR: ramsey_model: order > 2 is not  implemented" << endl;
@@ -503,20 +497,18 @@ RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct,
     }
 
   // Fill in mod_file_struct.partial_information
-  if (auto it = options_list.num_options.find("partial_information");
-      it != options_list.num_options.end() && it->second == "true")
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("partial_information");
+      opt && *opt == "true")
     mod_file_struct.partial_information = true;
 
   // Option k_order_solver (implicit when order >= 3)
-  if (auto it = options_list.num_options.find("k_order_solver");
-      (it != options_list.num_options.end() && it->second == "true")
-      || mod_file_struct.order_option >= 3)
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("k_order_solver");
+      (opt && *opt == "true") || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
 
   // Fill list of instruments
-  if (auto it = options_list.symbol_list_options.find("instruments");
-      it != options_list.symbol_list_options.end())
-    mod_file_struct.instruments = it->second;
+  if (auto opt = options_list.get_if<OptionsList::SymbolListVal>("instruments"))
+    mod_file_struct.instruments = *opt;
 }
 
 void
@@ -528,10 +520,9 @@ RamseyModelStatement::writeOutput(ostream &output, [[maybe_unused]] const string
   // It should probably rather be a M_ field, but we leave it in options_ for historical reason
 
   // Ensure that order 3 implies k_order (#844)
-  if (auto it = options_list.num_options.find("order"),
-      it1 = options_list.num_options.find("k_order_solver");
-      (it1 != options_list.num_options.end() && it1->second == "true")
-      || (it != options_list.num_options.end() && stoi(it->second) >= 3))
+  if (auto opt1 = options_list.get_if<OptionsList::NumVal>("order"),
+      opt2 = options_list.get_if<OptionsList::NumVal>("k_order_solver");
+      (opt2 && *opt2 == "true") || (opt1 && stoi(*opt1) >= 3))
     output << "options_.k_order_solver = true;" << endl;
 
   output << "options_.ramsey_policy = true;" << endl;
@@ -542,7 +533,7 @@ void
 RamseyModelStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "ramsey_model")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -657,10 +648,9 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
   /* Fill in option_order of mod_file_struct
      Since ramsey policy needs one further order of derivation (for example, for 1st order
      approximation, it needs 2nd derivatives), we add 1 to the order declared by user */
-  if (auto it = options_list.num_options.find("order");
-      it != options_list.num_options.end())
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("order"))
     {
-      int order = stoi(it->second);
+      int order = stoi(*opt);
       if (order > 2)
         {
           cerr << "ERROR: ramsey_policy: order > 2 is not  implemented" << endl;
@@ -670,20 +660,18 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
     }
 
   // Fill in mod_file_struct.partial_information
-  if (auto it = options_list.num_options.find("partial_information");
-      it != options_list.num_options.end() && it->second == "true")
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("partial_information");
+      opt && *opt == "true")
     mod_file_struct.partial_information = true;
 
   // Option k_order_solver (implicit when order >= 3)
-  if (auto it = options_list.num_options.find("k_order_solver");
-      (it != options_list.num_options.end() && it->second == "true")
-      || mod_file_struct.order_option >= 3)
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("k_order_solver");
+      (opt && *opt == "true") || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
 
   // Fill list of instruments
-  if (auto it = options_list.symbol_list_options.find("instruments");
-      it != options_list.symbol_list_options.end())
-    mod_file_struct.instruments = it->second;
+  if (auto opt = options_list.get_if<OptionsList::SymbolListVal>("instruments"))
+    mod_file_struct.instruments = *opt;
 
   try
     {
@@ -701,10 +689,9 @@ RamseyPolicyStatement::writeOutput(ostream &output, [[maybe_unused]] const strin
                                    [[maybe_unused]] bool minimal_workspace) const
 {
   // Ensure that order 3 implies k_order (#844)
-  if (auto it = options_list.num_options.find("order"),
-      it1 = options_list.num_options.find("k_order_solver");
-      (it1 != options_list.num_options.end() && it1->second == "true")
-      || (it != options_list.num_options.end() && stoi(it->second) >= 3))
+  if (auto opt1 = options_list.get_if<OptionsList::NumVal>("order"),
+      opt2 = options_list.get_if<OptionsList::NumVal>("k_order_solver");
+      (opt2 && *opt2 == "true") || (opt1 && stoi(*opt1) >= 3))
     output << "options_.k_order_solver = true;" << endl;
 
   options_list.writeOutput(output);
@@ -716,7 +703,7 @@ void
 RamseyPolicyStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "ramsey_policy")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -746,7 +733,7 @@ EvaluatePlannerObjectiveStatement::writeOutput(ostream &output,
 void
 EvaluatePlannerObjectiveStatement::writeJsonOutput(ostream &output) const
 {
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -768,7 +755,7 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
 {
   mod_file_struct.discretionary_policy_present = true;
 
-  if (!options_list.symbol_list_options.contains("instruments"))
+  if (!options_list.contains("instruments"))
     {
       cerr << "ERROR: discretionary_policy: the instruments option is required." << endl;
       exit(EXIT_FAILURE);
@@ -777,10 +764,9 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
   /* Fill in option_order of mod_file_struct
      Since discretionary policy needs one further order of derivation (for example, for 1st order
      approximation, it needs 2nd derivatives), we add 1 to the order declared by user */
-  if (auto it = options_list.num_options.find("order");
-      it != options_list.num_options.end())
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("order"))
     {
-      int order = stoi(it->second);
+      int order = stoi(*opt);
       if (order > 1)
         {
           cerr << "ERROR: discretionary_policy: order > 1 is not yet implemented" << endl;
@@ -790,20 +776,18 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
     }
 
   // Fill in mod_file_struct.partial_information
-  if (auto it = options_list.num_options.find("partial_information");
-      it != options_list.num_options.end() && it->second == "true")
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("partial_information");
+      opt && *opt == "true")
     mod_file_struct.partial_information = true;
 
   // Option k_order_solver (implicit when order >= 3)
-  if (auto it = options_list.num_options.find("k_order_solver");
-      (it != options_list.num_options.end() && it->second == "true")
-      || mod_file_struct.order_option >= 3)
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("k_order_solver");
+      (opt && *opt == "true") || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
 
   // Fill list of instruments
-  if (auto it = options_list.symbol_list_options.find("instruments");
-      it != options_list.symbol_list_options.end())
-    mod_file_struct.instruments = it->second;
+  if (auto opt = options_list.get_if<OptionsList::SymbolListVal>("instruments"))
+    mod_file_struct.instruments = *opt;
 
   try
     {
@@ -821,10 +805,9 @@ DiscretionaryPolicyStatement::writeOutput(ostream &output, [[maybe_unused]] cons
                                           [[maybe_unused]] bool minimal_workspace) const
 {
   // Ensure that order 3 implies k_order (#844)
-  if (auto it = options_list.num_options.find("order"),
-      it1 = options_list.num_options.find("k_order_solver");
-      (it1 != options_list.num_options.end() && it1->second == "true")
-      || (it != options_list.num_options.end() && stoi(it->second) >= 3))
+  if (auto opt1 = options_list.get_if<OptionsList::NumVal>("order"),
+      opt2 = options_list.get_if<OptionsList::NumVal>("k_order_solver");
+      (opt2 && *opt2 == "true") || (opt1 && stoi(*opt1) >= 3))
     output << "options_.k_order_solver = true;" << endl;
 
   options_list.writeOutput(output);
@@ -836,7 +819,7 @@ void
 DiscretionaryPolicyStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "discretionary_policy")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -866,7 +849,7 @@ void
 OccbinSetupStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "occbin_setup")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -891,7 +874,7 @@ void
 OccbinSolverStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "occbin_solver")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -916,7 +899,7 @@ void
 OccbinWriteRegimesStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "occbin_write_regimes_xls")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -944,7 +927,7 @@ void
 OccbinGraphStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "occbin_graph")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -972,10 +955,9 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
   mod_file_struct.estimation_present = true;
 
   // Fill in option_order of mod_file_struct
-  if (auto it = options_list.num_options.find("order");
-      it != options_list.num_options.end())
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("order"))
     {
-      int order = stoi(it->second);
+      int order = stoi(*opt);
 
       if (order > 2)
         mod_file_struct.k_order_solver = true;
@@ -984,30 +966,30 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
     }
 
   // Fill in mod_file_struct.partial_information
-  if (auto it = options_list.num_options.find("partial_information");
-      it != options_list.num_options.end() && it->second == "true")
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("partial_information");
+      opt && *opt == "true")
     mod_file_struct.partial_information = true;
 
   // Fill in mod_file_struct.estimation_analytic_derivation
-  if (auto it = options_list.num_options.find("analytic_derivation");
-      it != options_list.num_options.end() && it->second == "1")
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("analytic_derivation");
+      opt && *opt == "1")
     mod_file_struct.estimation_analytic_derivation = true;
 
-  if (auto it = options_list.num_options.find("dsge_var");
-      it != options_list.num_options.end())
-    // Fill in mod_file_struct.dsge_var_calibrated
-    mod_file_struct.dsge_var_calibrated = it->second;
-
-  // Fill in mod_file_struct.dsge_var_estimated
-  if (options_list.string_options.contains("dsge_var"))
-    mod_file_struct.dsge_var_estimated = true;
+  if (options_list.contains("dsge_var"))
+    options_list.visit("dsge_var", [&]<class T>(const T &v)
+                       {
+                         if constexpr(is_same_v<T, OptionsList::StringVal>)
+                           mod_file_struct.dsge_var_estimated = true;
+                         else if constexpr(is_same_v<T, OptionsList::NumVal>)
+                           mod_file_struct.dsge_var_calibrated = v;
+                       });
 
   // Fill in mod_file_struct.bayesian_irf_present
-  if (auto it = options_list.num_options.find("bayesian_irf");
-      it != options_list.num_options.end() && it->second == "true")
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("bayesian_irf");
+      opt && *opt == "true")
     mod_file_struct.bayesian_irf_present = true;
 
-  if (options_list.num_options.contains("dsge_varlag"))
+  if (options_list.contains("dsge_varlag"))
     if (mod_file_struct.dsge_var_calibrated.empty()
         && !mod_file_struct.dsge_var_estimated)
       {
@@ -1023,30 +1005,30 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       exit(EXIT_FAILURE);
     }
 
-  if (!options_list.string_options.contains("datafile")
+  if (!options_list.contains("datafile")
       && !mod_file_struct.estimation_data_statement_present)
     {
       cerr << "ERROR: The estimation statement requires a data file to be supplied via the datafile option." << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (options_list.string_options.contains("mode_file")
+  if (options_list.contains("mode_file")
       && mod_file_struct.estim_params_use_calib)
     {
       cerr << "ERROR: The mode_file option of the estimation statement is incompatible with the use_calibration option of the estimated_params_init block." << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (auto it = options_list.num_options.find("mh_tune_jscale.status"); 
-      it != options_list.num_options.end() && it->second == "true")
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("mh_tune_jscale.status");
+      opt && *opt == "true")
     {
-      if (options_list.num_options.find("mh_jscale") != options_list.num_options.end())      
-      {
-        cerr << "ERROR: The mh_tune_jscale and mh_jscale options of the estimation statement are incompatible." << endl;
-        exit(EXIT_FAILURE);
-      }
+      if (options_list.contains("mh_jscale"))
+        {
+          cerr << "ERROR: The mh_tune_jscale and mh_jscale options of the estimation statement are incompatible." << endl;
+          exit(EXIT_FAILURE);
+        }
     }
-  else if (options_list.num_options.contains("mh_tune_jscale.guess"))
+  else if (options_list.contains("mh_tune_jscale.guess"))
     {
       cerr << "ERROR: The option mh_tune_guess in estimation statement cannot be used without option mh_tune_jscale." << endl;
       exit(EXIT_FAILURE);
@@ -1087,19 +1069,20 @@ EstimationStatement::writeOutput(ostream &output, [[maybe_unused]] const string 
   options_list.writeOutput(output);
 
   // Special treatment for order option and particle filter
-  if (auto it = options_list.num_options.find("order");
-      it == options_list.num_options.end())
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("order");
+      !opt)
     output << "options_.order = 1;" << endl;
-  else if (stoi(it->second) >= 2)
+  else if (int order {stoi(*opt)};
+           order >= 2)
     {
       output << "options_.particle.status = true;" << endl;
-      if (stoi(it->second) > 2)
+      if (order > 2)
         output << "options_.k_order_solver = true;" << endl;
     }
 
   // Do not check for the steady state in diffuse filter mode (#400)
-  if (auto it = options_list.num_options.find("diffuse_filter");
-      it != options_list.num_options.end() && it->second == "true")
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("diffuse_filter");
+      opt && *opt == "true")
     output << "options_.steadystate.nocheck = true;" << endl;
 
   symbol_list.writeOutput("var_list_", output);
@@ -1110,7 +1093,7 @@ void
 EstimationStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "estimation")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -1132,8 +1115,8 @@ void
 DynareSensitivityStatement::checkPass(ModFileStructure &mod_file_struct,
                                       [[maybe_unused]] WarningConsolidation &warnings)
 {
-  if (auto it = options_list.num_options.find("identification");
-      it != options_list.num_options.end() && it->second == "1")
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("identification");
+      opt && *opt == "1")
     {
       mod_file_struct.identification_present = true;
       // The following triggers 3rd order derivatives, see preprocessor#40
@@ -1151,16 +1134,14 @@ DynareSensitivityStatement::writeOutput(ostream &output, [[maybe_unused]] const 
   /* Ensure that nograph, nodisplay and graph_format are also set in top-level
      options_.
      \todo factorize this code between identification and dynare_sensitivity,
-     and provide a generic mechanism for this situation (maybe using regexps) */
-  if (auto it = options_list.num_options.find("nodisplay");
-      it != options_list.num_options.end())
-    output << "options_.nodisplay = " << it->second << ";" << endl;
-  if (auto it = options_list.num_options.find("nograph");
-      it != options_list.num_options.end())
-    output << "options_.nograph = " << it->second << ";" << endl;
-  if (auto it = options_list.symbol_list_options.find("graph_format");
-      it != options_list.symbol_list_options.end())
-    it->second.writeOutput("options_.graph_format", output);
+     and provide a generic mechanism for this situation (maybe using regexps).
+     graph_format can then be turned into a VecCellStrVal. */
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("nodisplay"))
+    output << "options_.nodisplay = " << *opt << ";" << endl;
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("nograph"))
+    output << "options_.nograph = " << *opt << ";" << endl;
+  if (auto opt = options_list.get_if<OptionsList::SymbolListVal>("graph_format"))
+    opt->writeOutput("options_.graph_format", output);
 
   output << "dynare_sensitivity(options_gsa);" << endl;
 }
@@ -1169,7 +1150,7 @@ void
 DynareSensitivityStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "dynare_sensitivity")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -2178,19 +2159,17 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation 
   mod_file_struct.osr_present = true;
 
   // Fill in option_order of mod_file_struct
-  if (auto it = options_list.num_options.find("order");
-      it != options_list.num_options.end())
-    mod_file_struct.order_option = max(mod_file_struct.order_option, stoi(it->second));
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("order"))
+    mod_file_struct.order_option = max(mod_file_struct.order_option, stoi(*opt));
 
   // Fill in mod_file_struct.partial_information
-  if (auto it = options_list.num_options.find("partial_information");
-      it != options_list.num_options.end() && it->second == "true")
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("partial_information");
+      opt && *opt == "true")
     mod_file_struct.partial_information = true;
 
   // Option k_order_solver (implicit when order >= 3)
-  if (auto it = options_list.num_options.find("k_order_solver");
-      (it != options_list.num_options.end() && it->second == "true")
-      || mod_file_struct.order_option >= 3)
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("k_order_solver");
+      (opt && *opt == "true") || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
 
   try
@@ -2209,10 +2188,9 @@ OsrStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basena
                           [[maybe_unused]] bool minimal_workspace) const
 {
   // Ensure that order 3 implies k_order (#844)
-  if (auto it = options_list.num_options.find("order"),
-      it1 = options_list.num_options.find("k_order_solver");
-      (it1 != options_list.num_options.end() && it1->second == "true")
-      || (it != options_list.num_options.end() && stoi(it->second) >= 3))
+  if (auto opt1 = options_list.get_if<OptionsList::NumVal>("order"),
+      opt2 = options_list.get_if<OptionsList::NumVal>("k_order_solver");
+      (opt2 && *opt2 == "true") || (opt1 && stoi(*opt1) >= 3))
     output << "options_.k_order_solver = true;" << endl;
 
   options_list.writeOutput(output);
@@ -2224,7 +2202,7 @@ void
 OsrStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "osr")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -2444,7 +2422,7 @@ ModelComparisonStatement::writeJsonOutput(ostream &output) const
   if (!filename_list.empty())
     output << "}";
 
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -2539,7 +2517,7 @@ void
 BVARDensityStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "bvar_density")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -2572,7 +2550,7 @@ void
 BVARForecastStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "bvar_forecast")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -2604,7 +2582,7 @@ void
 SBVARStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "sbvar")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -2623,9 +2601,9 @@ MSSBVAREstimationStatement::checkPass(ModFileStructure &mod_file_struct,
 {
   mod_file_struct.bvar_present = true;
 
-  if (!options_list.num_options.contains("ms.create_init")
-      && (!options_list.string_options.contains("datafile")
-          || !options_list.num_options.contains("ms.initial_year")))
+  if (!options_list.contains("ms.create_init")
+      && (!options_list.contains("datafile")
+          || !options_list.contains("ms.initial_year")))
     {
       cerr << "ERROR: If you do not pass no_create_init to ms_estimation, "
            << "you must pass the datafile and initial_year options." << endl;
@@ -2647,7 +2625,7 @@ void
 MSSBVAREstimationStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "ms_sbvar_estimation")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -2675,9 +2653,9 @@ MSSBVARSimulationStatement::writeOutput(ostream &output, [[maybe_unused]] const 
   options_list.writeOutput(output);
 
   // Redeclare drop option if necessary
-  if ((options_list.num_options.contains("ms.mh_replic")
-       || options_list.num_options.contains("ms.thinning_factor"))
-      && !options_list.num_options.contains("ms.drop"))
+  if ((options_list.contains("ms.mh_replic")
+       || options_list.contains("ms.thinning_factor"))
+      && !options_list.contains("ms.drop"))
     output << "options_.ms.drop = 0.1*options_.ms.mh_replic*options_.ms.thinning_factor;" << endl;
 
   output << "[options_, oo_] = ms_simulation(M_, options_, oo_);" << endl;
@@ -2687,7 +2665,7 @@ void
 MSSBVARSimulationStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "ms_sbvar_simulation")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -2720,7 +2698,7 @@ void
 MSSBVARComputeMDDStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "ms_sbvar_compute_mdd")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -2739,8 +2717,8 @@ MSSBVARComputeProbabilitiesStatement::checkPass(ModFileStructure &mod_file_struc
 {
   mod_file_struct.bvar_present = true;
 
-  if (options_list.num_options.contains("ms.real_time_smoothed_probabilities")
-      && options_list.num_options.contains("ms.filtered_probabilities"))
+  if (options_list.contains("ms.real_time_smoothed_probabilities")
+      && options_list.contains("ms.filtered_probabilities"))
     {
       cerr << "ERROR: You may only pass one of real_time_smoothed "
            << "and filtered_probabilities to ms_compute_probabilities." << endl;
@@ -2762,7 +2740,7 @@ void
 MSSBVARComputeProbabilitiesStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "ms_sbvar_compute_probabilities")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -2783,9 +2761,9 @@ MSSBVARIrfStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 {
   mod_file_struct.bvar_present = true;
 
-  if (bool regime_present = options_list.num_options.contains("ms.regime"),
-      regimes_present = options_list.num_options.contains("ms.regimes"),
-      filtered_probabilities_present = options_list.num_options.contains("ms.filtered_probabilities");
+  if (bool regime_present = options_list.contains("ms.regime"),
+      regimes_present = options_list.contains("ms.regimes"),
+      filtered_probabilities_present = options_list.contains("ms.filtered_probabilities");
       (filtered_probabilities_present && regime_present)
       || (filtered_probabilities_present && regimes_present)
       || (regimes_present && regime_present))
@@ -2820,7 +2798,7 @@ void
 MSSBVARIrfStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "ms_sbvar_irf")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -2844,8 +2822,8 @@ MSSBVARForecastStatement::checkPass(ModFileStructure &mod_file_struct,
 {
   mod_file_struct.bvar_present = true;
 
-  if (options_list.num_options.contains("ms.regimes")
-      && options_list.num_options.contains("ms.regime"))
+  if (options_list.contains("ms.regimes")
+      && options_list.contains("ms.regime"))
     {
       cerr << "ERROR: You may only pass one of regime and regimes to ms_forecast" << endl;
       exit(EXIT_FAILURE);
@@ -2865,7 +2843,7 @@ void
 MSSBVARForecastStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "ms_sbvar_forecast")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -2884,9 +2862,9 @@ MSSBVARVarianceDecompositionStatement::checkPass(ModFileStructure &mod_file_stru
 {
   mod_file_struct.bvar_present = true;
 
-  if (bool regime_present = options_list.num_options.contains("ms.regime"),
-      regimes_present = options_list.num_options.contains("ms.regimes"),
-      filtered_probabilities_present = options_list.num_options.contains("ms.filtered_probabilities");
+  if (bool regime_present = options_list.contains("ms.regime"),
+      regimes_present = options_list.contains("ms.regimes"),
+      filtered_probabilities_present = options_list.contains("ms.filtered_probabilities");
       (filtered_probabilities_present && regime_present)
       || (filtered_probabilities_present && regimes_present)
       || (regimes_present && regime_present))
@@ -2911,7 +2889,7 @@ void
 MSSBVARVarianceDecompositionStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "ms_sbvar_variance_decomposition")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -2922,8 +2900,8 @@ MSSBVARVarianceDecompositionStatement::writeJsonOutput(ostream &output) const
 IdentificationStatement::IdentificationStatement(OptionsList options_list_arg)
   : options_list{move(options_list_arg)}
 {
-  if (auto it = options_list.num_options.find("max_dim_cova_group");
-      it != options_list.num_options.end() && stoi(it->second) == 0)
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("max_dim_cova_group");
+      opt && stoi(*opt) == 0)
     {
       cerr << "ERROR: The max_dim_cova_group option to identification only accepts integers > 0." << endl;
       exit(EXIT_FAILURE);
@@ -2936,10 +2914,9 @@ IdentificationStatement::checkPass(ModFileStructure &mod_file_struct,
 {
   mod_file_struct.identification_present = true;
 
-  if (auto it = options_list.num_options.find("order");
-      it != options_list.num_options.end())
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("order"))
     {
-      int order = stoi(it->second);
+      int order = stoi(*opt);
       if (order < 1 || order > 3)
         {
           cerr << "ERROR: the order option of identification command must be between 1 and 3" << endl;
@@ -2962,16 +2939,14 @@ IdentificationStatement::writeOutput(ostream &output, [[maybe_unused]] const str
   /* Ensure that nograph, nodisplay and graph_format are also set in top-level
      options_.
      \todo factorize this code between identification and dynare_sensitivity,
-     and provide a generic mechanism for this situation (maybe using regexps) */
-  if (auto it = options_list.num_options.find("nodisplay");
-      it != options_list.num_options.end())
-    output << "options_.nodisplay = " << it->second << ";" << endl;
-  if (auto it = options_list.num_options.find("nograph");
-      it != options_list.num_options.end())
-    output << "options_.nograph = " << it->second << ";" << endl;
-  if (auto it = options_list.symbol_list_options.find("graph_format");
-      it != options_list.symbol_list_options.end())
-    it->second.writeOutput("options_.graph_format", output);
+     and provide a generic mechanism for this situation (maybe using regexps).
+     graph_format can then be turned into a VecCellStrVal. */
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("nodisplay"))
+    output << "options_.nodisplay = " << *opt << ";" << endl;
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("nograph"))
+    output << "options_.nograph = " << *opt << ";" << endl;
+  if (auto opt = options_list.get_if<OptionsList::SymbolListVal>("graph_format"))
+    opt->writeOutput("options_.graph_format", output);
 
   output << "dynare_identification(options_ident);" << endl;
 }
@@ -2980,7 +2955,7 @@ void
 IdentificationStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "identification")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -3083,8 +3058,8 @@ ShockDecompositionStatement::ShockDecompositionStatement(SymbolList symbol_list_
 void
 ShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  if (auto it = options_list.num_options.find("shock_decomp.with_epilogue");
-      it != options_list.num_options.end() && it->second == "true")
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("shock_decomp.with_epilogue");
+      opt && *opt == "true")
     mod_file_struct.with_epilogue_option = true;
 
   try
@@ -3111,7 +3086,7 @@ void
 ShockDecompositionStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "shock_decomposition")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -3136,8 +3111,8 @@ RealtimeShockDecompositionStatement::RealtimeShockDecompositionStatement(SymbolL
 void
 RealtimeShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  if (auto it = options_list.num_options.find("shock_decomp.with_epilogue");
-      it != options_list.num_options.end() && it->second == "true")
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("shock_decomp.with_epilogue");
+      opt && *opt == "true")
     mod_file_struct.with_epilogue_option = true;
 
   try
@@ -3165,7 +3140,7 @@ void
 RealtimeShockDecompositionStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "realtime_shock_decomposition")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -3216,7 +3191,7 @@ void
 PlotShockDecompositionStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "plot_shock_decomposition")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -3241,8 +3216,8 @@ InitialConditionDecompositionStatement::InitialConditionDecompositionStatement(S
 void
 InitialConditionDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  if (auto it = options_list.num_options.find("initial_condition_decomp.with_epilogue");
-      it != options_list.num_options.end() && it->second == "true")
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("initial_condition_decomp.with_epilogue");
+      opt && *opt == "true")
     mod_file_struct.with_epilogue_option = true;
 
   try
@@ -3271,7 +3246,7 @@ void
 InitialConditionDecompositionStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "initial_condition_decomposition")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -3341,7 +3316,7 @@ void
 ConditionalForecastStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
                                         [[maybe_unused]] WarningConsolidation &warnings)
 {
-  if (!options_list.string_options.contains("parameter_set"))
+  if (!options_list.contains("parameter_set"))
     {
       cerr << "ERROR: You must pass the `parameter_set` option to conditional_forecast" << endl;
       exit(EXIT_FAILURE);
@@ -3360,7 +3335,7 @@ void
 ConditionalForecastStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "conditional_forecast")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -3568,14 +3543,11 @@ SvarIdentificationStatement::writeJsonOutput(ostream &output) const
 MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg) :
   options_list{move(options_list_arg)}
 {
-  if (auto it_num = options_list.vector_of_vector_value_options.find("ms.restrictions");
-      it_num != options_list.vector_of_vector_value_options.end())
+  if (auto opt = options_list.get_if<vector<vector<string>>>("ms.restrictions"))
     {
-      auto it_num_regimes = options_list.num_options.find("ms.number_of_regimes");
-      assert(it_num_regimes != options_list.num_options.end());
-      auto num_regimes = stoi(it_num_regimes->second);
+      int num_regimes {stoi(options_list.get<OptionsList::NumVal>("ms.number_of_regimes"))};
 
-      for (const vector<string> &restriction : it_num->second)
+      for (const vector<string> &restriction : *opt)
         {
           if (restriction.size() != 3)
             {
@@ -3626,9 +3598,7 @@ void
 MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct,
                                     [[maybe_unused]] WarningConsolidation &warnings)
 {
-  auto itChain = options_list.num_options.find("ms.chain");
-  assert(itChain != options_list.num_options.end());
-  int chainNumber = stoi(itChain->second);
+  int chainNumber {stoi(options_list.get<OptionsList::NumVal>("ms.chain"))};
   if (++mod_file_struct.last_markov_switching_chain != chainNumber)
     {
       cerr << "ERROR: The markov_switching chain option takes consecutive integers "
@@ -3636,11 +3606,9 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct,
       exit(EXIT_FAILURE);
     }
 
-  if (options_list.vector_of_vector_value_options.contains("ms.restrictions"))
+  if (options_list.contains("ms.restrictions"))
     {
-      auto it_num_regimes = options_list.num_options.find("ms.number_of_regimes");
-      assert(it_num_regimes != options_list.num_options.end());
-      auto num_regimes = stoi(it_num_regimes->second);
+      int num_regimes {stoi(options_list.get<OptionsList::NumVal>("ms.number_of_regimes"))};
       vector col_trans_prob_sum(num_regimes, 0.0);
       vector row_trans_prob_sum(num_regimes, 0.0);
       vector all_restrictions_in_row(num_regimes, true);
@@ -3694,7 +3662,7 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct,
         }
     }
 
-  if (options_list.symbol_list_options.contains("ms.parameters"))
+  if (options_list.contains("ms.parameters"))
     mod_file_struct.ms_dsge_present = true;
 }
 
@@ -3702,37 +3670,44 @@ void
 MarkovSwitchingStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
                                       [[maybe_unused]] bool minimal_workspace) const
 {
-  auto itChain = options_list.num_options.find("ms.chain");
-  assert(itChain != options_list.num_options.end());
+  string chainNumber {options_list.get<OptionsList::NumVal>("ms.chain")};
 
-  assert(options_list.num_options.contains("ms.duration")
-         || options_list.vector_value_options.contains("ms.duration"));
-
-  bool isDurationAVec = options_list.vector_value_options.contains("ms.duration");
+  assert(options_list.contains("ms.duration"));
 
   output << "options_.ms.duration = ";
-  if (isDurationAVec)
-    {
-      output << "[";
-      auto &v = options_list.vector_value_options.at("ms.duration");
-      for (bool printed_something{false};
-           const auto &it : v)
-        {
-          if (exchange(printed_something, true))
-            output << ", ";
-          output << it;
-        }
-      output << "]";
-    }
-  else
-    output << options_list.num_options.at("ms.duration");
+  bool isDurationAVec { options_list.visit("ms.duration",
+                                           [&]<class T>(const T &v) -> bool
+                                           {
+                                             if constexpr(is_same_v<T, OptionsList::VecValueVal>)
+                                               {
+                                                 output << "[";
+                                                 for (bool printed_something{false};
+                                                      const auto &it : v)
+                                                   {
+                                                     if (exchange(printed_something, true))
+                                                       output << ", ";
+                                                     output << it;
+                                                   }
+                                                 output << "]";
+                                                 return true;
+                                               }
+                                             else if constexpr(is_same_v<T, OptionsList::NumVal>)
+                                               {
+                                                 output << v;
+                                                 return false;
+                                               }
+                                             else
+                                               {
+                                                 cerr << "MarkovSwitchingStatement::writeOutput: incorrect value type for 'ms.duration' option" << endl;
+                                                 exit(EXIT_FAILURE);
+                                               }
+                                           }) };
   output << ";" << endl;
 
-  auto itNOR = options_list.num_options.find("ms.number_of_regimes");
-  assert(itNOR != options_list.num_options.end());
-  for (int i = 0; i < stoi(itNOR->second); i++)
+  int NOR {stoi(options_list.get<OptionsList::NumVal>("ms.number_of_regimes"))};
+  for (int i {0}; i < NOR; i++)
     {
-      output << "options_.ms.ms_chain(" << itChain->second << ").regime("
+      output << "options_.ms.ms_chain(" << chainNumber << ").regime("
              << i+1 << ").duration = options_.ms.duration";
       if (isDurationAVec)
         output << "(" << i+1 << ")";
@@ -3741,7 +3716,7 @@ MarkovSwitchingStatement::writeOutput(ostream &output, [[maybe_unused]] const st
 
   for (int restrictions_index{0};
        const auto &[regimes, prob] : restriction_map)
-    output << "options_.ms.ms_chain(" << itChain->second << ").restrictions("
+    output << "options_.ms.ms_chain(" << chainNumber << ").restrictions("
            << ++restrictions_index << ") = {[" << regimes.first << ", "
            << regimes.second << ", " << prob << "]};" << endl;
 }
@@ -3750,7 +3725,7 @@ void
 MarkovSwitchingStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "markov_switching")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -3782,9 +3757,9 @@ void
 SvarStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
                          [[maybe_unused]] WarningConsolidation &warnings)
 {
-  bool has_coefficients = options_list.string_options.contains("ms.coefficients"),
-    has_variances = options_list.string_options.contains("ms.variances"),
-    has_constants = options_list.string_options.contains("ms.constants");
+  bool has_coefficients = options_list.contains("ms.coefficients"),
+    has_variances = options_list.contains("ms.variances"),
+    has_constants = options_list.contains("ms.constants");
   assert((has_coefficients && !has_variances && !has_constants)
          || (!has_coefficients && has_variances && !has_constants)
          || (!has_coefficients && !has_variances && has_constants));
@@ -3794,33 +3769,28 @@ void
 SvarStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
                            [[maybe_unused]] bool minimal_workspace) const
 {
-  auto it = options_list.num_options.find("ms.chain");
-  assert(it != options_list.num_options.end());
-  output << "options_.ms.ms_chain(" << it->second << ")";
+  output << "options_.ms.ms_chain(" << options_list.get<OptionsList::NumVal>("ms.chain") << ")";
 
-  if (auto it0 = options_list.string_options.find("ms.coefficients");
-      it0 != options_list.string_options.end())
-    output << "." << it0->second;
-  else if (auto it1 = options_list.string_options.find("ms.variances");
-           it1 != options_list.string_options.end())
-    output << "." << it1->second;
+  if (auto opt1 = options_list.get_if<OptionsList::StringVal>("ms.coefficients"))
+    output << "." << *opt1;
+  else if (auto opt2 = options_list.get_if<OptionsList::StringVal>("ms.variances"))
+    output << "." << *opt2;
   else
-    output << "." << options_list.string_options.find("ms.constants")->second;
+    output << "." << options_list.get<OptionsList::StringVal>("ms.constants");
 
   output << ".equations = ";
-  if (auto itv = options_list.vector_int_options.find("ms.equations");
-      itv != options_list.vector_int_options.end())
+  if (auto opt = options_list.get_if<vector<int>>("ms.equations"))
     {
-      assert(itv->second.size() >= 1);
-      if (itv->second.size() > 1)
+      assert(opt->size() >= 1);
+      if (opt->size() > 1)
         {
           output << "[";
-          for (int viit : itv->second)
+          for (int viit : *opt)
             output << viit << ";";
           output << "];" << endl;
         }
       else
-        output << itv->second.front() << ";" << endl;
+        output << opt->front() << ";" << endl;
     }
   else
     output << "'ALL';" << endl;
@@ -3830,7 +3800,7 @@ void
 SvarStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "svar")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -3868,7 +3838,7 @@ void
 SetTimeStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "set_time")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -3887,16 +3857,15 @@ EstimationDataStatement::checkPass(ModFileStructure &mod_file_struct,
 {
   mod_file_struct.estimation_data_statement_present = true;
 
-  if (auto it = options_list.num_options.find("nobs");
-      it != options_list.num_options.end())
-    if (stoi(it->second) <= 0)
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("nobs"))
+    if (stoi(*opt) <= 0)
       {
         cerr << "ERROR: The nobs option of the data statement only accepts positive integers." << endl;
         exit(EXIT_FAILURE);
       }
 
-  bool has_file = options_list.string_options.contains("file"),
-    has_series = options_list.string_options.contains("series");
+  bool has_file = options_list.contains("file"),
+    has_series = options_list.contains("series");
   if (!has_file && !has_series)
     {
       cerr << "ERROR: The file or series option must be passed to the data statement." << endl;
@@ -3920,7 +3889,7 @@ void
 EstimationDataStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "estimation_data")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -4143,22 +4112,17 @@ JointPriorStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struc
       exit(EXIT_FAILURE);
     }
 
-  if (!options_list.num_options.contains("mean")
-      && !options_list.vector_value_options.contains("mean")
-      && !options_list.num_options.contains("mode"))
+  if (!options_list.contains("mean") && !options_list.contains("mode"))
     {
       cerr << "ERROR: You must pass at least one of mean and mode to the prior statement." << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (auto it = options_list.vector_value_options.find("domain");
-      it != options_list.vector_value_options.end())
+  if (auto opt = options_list.get_if<OptionsList::VecValueVal>("domain");
+      opt && opt->size() != 4)
     {
-      if (it->second.size() != 4)
-        {
-          cerr << "ERROR: You must pass exactly four values to the domain option." << endl;
-          exit(EXIT_FAILURE);
-        }
+      cerr << "ERROR: You must pass exactly four values to the domain option." << endl;
+      exit(EXIT_FAILURE);
     }
 }
 
@@ -4212,43 +4176,49 @@ void
 JointPriorStatement::writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const
 {
   output << lhs_field << "." << field << " = {";
-  if (auto it = options_list.num_options.find(field);
-      it != options_list.num_options.end())
-    output << it->second;
-  else if (auto it = options_list.vector_value_options.find(field);
-           it != options_list.vector_value_options.end())
-    {
-      output << "[";
-      for (bool printed_something{false};
-           const auto &it2 : it->second)
-        {
-          if (exchange(printed_something, true))
-            output << ", ";
-          output << it2;
-        }
-      output << "]";
-    }
-  else if (auto it = options_list.vector_of_vector_value_options.find(field);
-           it != options_list.vector_of_vector_value_options.end())
-    {
-      output << "{";
-      for (bool printed_something{false};
-           const auto &it2 : it->second)
-        {
-          if (exchange(printed_something, true))
-            output << ", ";
-          output << "[";
-          for (bool printed_something2{false};
-               const auto &it3 : it2)
-            {
-              if (exchange(printed_something2, true))
-                output << ", ";
-              output << it3;
-            }
-          output << "]";
-        }
-      output << "}";
-    }
+  if (options_list.contains(field))
+    options_list.visit(field, [&]<class T>(const T &v)
+                       {
+                         if constexpr(is_same_v<T, OptionsList::NumVal>)
+                           output << v;
+                         else if constexpr(is_same_v<T, OptionsList::VecValueVal>)
+                           {
+                             output << "[";
+                             for (bool printed_something{false};
+                                  const auto &it2 : v)
+                               {
+                                 if (exchange(printed_something, true))
+                                   output << ", ";
+                                 output << it2;
+                               }
+                             output << "]";
+                           }
+                         else if constexpr(is_same_v<T, vector<vector<string>>>)
+                           {
+                             output << "{";
+                             for (bool printed_something{false};
+                                  const auto &it2 : v)
+                               {
+                                 if (exchange(printed_something, true))
+                                   output << ", ";
+                                 output << "[";
+                                 for (bool printed_something2{false};
+                                      const auto &it3 : it2)
+                                   {
+                                     if (exchange(printed_something2, true))
+                                       output << ", ";
+                                     output << it3;
+                                   }
+                                 output << "]";
+                               }
+                             output << "}";
+                           }
+                         else
+                           {
+                             cerr << "JointPriorStatement::writeOutputHelper: unhandled alternative" << endl;
+                             exit(EXIT_FAILURE);
+                           }
+                       });
   else
     output << "{}";
   output << "};" << endl;
@@ -4268,7 +4238,7 @@ JointPriorStatement::writeJsonOutput(ostream &output) const
     }
   output << "]";
 
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -4331,29 +4301,24 @@ BasicPriorStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struc
       exit(EXIT_FAILURE);
     }
 
-  if (!options_list.num_options.contains("mean")
-      && !options_list.vector_value_options.contains("mean")
-      && !options_list.num_options.contains("mode"))
+  if (!options_list.contains("mean") && !options_list.contains("mode"))
     {
       cerr << "ERROR: You must pass at least one of mean and mode to the prior statement." << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (bool has_stdev = options_list.num_options.contains("stdev");
+  if (bool has_stdev = options_list.contains("stdev");
       (!has_stdev && !variance) || (has_stdev && variance))
     {
       cerr << "ERROR: You must pass exactly one of stdev and variance to the prior statement." << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (auto it = options_list.vector_value_options.find("domain");
-      it != options_list.vector_value_options.end())
+  if (auto opt = options_list.get_if<OptionsList::VecValueVal>("domain");
+      opt && opt->size() != 2)
     {
-      if (it->second.size() != 2)
-        {
-          cerr << "ERROR: You must pass exactly two values to the domain option." << endl;
-          exit(EXIT_FAILURE);
-        }
+      cerr << "ERROR: You must pass exactly two values to the domain option." << endl;
+      exit(EXIT_FAILURE);
     }
 }
 
@@ -4403,9 +4368,13 @@ BasicPriorStatement::writeCommonOutput(ostream &output, const string &lhs_field)
 void
 BasicPriorStatement::writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const
 {
-  if (auto itn = options_list.num_options.find(field);
-      itn != options_list.num_options.end())
-    output << lhs_field << "." << field << " = "<< itn->second << ";" << endl;
+  if (options_list.contains(field))
+    options_list.visit(field, [&]<class T>(const T &v)
+                       {
+                         if constexpr(is_same_v<T, OptionsList::NumVal>)
+                           output << lhs_field << "." << field << " = "<< v << ";" << endl;
+                         // TODO: handle other variant types
+                       });
 }
 
 void
@@ -4435,7 +4404,7 @@ BasicPriorStatement::writeJsonPriorOutput(ostream &output) const
       variance->writeJsonOutput(output, {}, {});
       output << R"(")";
     }
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -4744,9 +4713,13 @@ BasicOptionsStatement::writeCommonOutput(ostream &output, const string &lhs_fiel
 void
 BasicOptionsStatement::writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const
 {
-  if (auto itn = options_list.num_options.find(field);
-      itn != options_list.num_options.end())
-    output << lhs_field << "." << field << " = " << itn->second << ";" << endl;
+  if (options_list.contains(field))
+    options_list.visit(field, [&]<class T>(const T &v)
+                       {
+                         if constexpr(is_same_v<T, OptionsList::NumVal>)
+                           output << lhs_field << "." << field << " = "<< v << ";" << endl;
+                         // TODO: handle other variant types
+                       });
 }
 
 void
@@ -4769,7 +4742,7 @@ BasicOptionsStatement::writeJsonOptionsOutput(ostream &output) const
   output << R"(, "name": ")" << name << R"(")";
   if (!subsample_name.empty())
     output << R"(, "subsample_name": ")" << subsample_name << R"(")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -5029,7 +5002,7 @@ CalibSmootherStatement::writeOutput(ostream &output, [[maybe_unused]] const stri
                                     [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  if (!options_list.string_options.contains("parameter_set"))
+  if (!options_list.contains("parameter_set"))
     output << "options_.parameter_set = 'calibration';" << endl;
   symbol_list.writeOutput("var_list_", output);
   output << "options_.smoother = true;" << endl
@@ -5041,7 +5014,7 @@ void
 CalibSmootherStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "calib_smoother")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -5065,7 +5038,7 @@ ExtendedPathStatement::checkPass(ModFileStructure &mod_file_struct,
 {
   mod_file_struct.extended_path_present = true;
 
-  if (!options_list.num_options.contains("periods"))
+  if (!options_list.contains("periods"))
     {
       cerr << "ERROR: the 'periods' option of 'extended_path' is mandatory" << endl;
       exit(EXIT_FAILURE);
@@ -5077,20 +5050,20 @@ ExtendedPathStatement::writeOutput(ostream &output, [[maybe_unused]] const strin
                                    [[maybe_unused]] bool minimal_workspace) const
 {
   // Beware: options do not have the same name in the interface and in the M code...
+  string periods {options_list.get<OptionsList::NumVal>("periods")};
 
-  for (const auto &num_option : options_list.num_options)
-    if (num_option.first != "periods")
-      output << "options_." << num_option.first << " = " << num_option.second << ";" << endl;
+  OptionsList options_list_new {options_list};
+  options_list_new.erase("periods");
+  options_list_new.writeOutput(output);
 
-  output << "extended_path([], " << options_list.num_options.find("periods")->second
-         << ", [], options_, M_, oo_);" << endl;
+  output << "extended_path([], " << periods << ", [], options_, M_, oo_);" << endl;
 }
 
 void
 ExtendedPathStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "extended_path")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -5128,7 +5101,7 @@ void
 Smoother2histvalStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "smoother_2_histval")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -5147,10 +5120,9 @@ MethodOfMomentsStatement::checkPass(ModFileStructure &mod_file_struct,
 {
   mod_file_struct.mom_estimation_present = true;
   // Fill in option_order of mod_file_struct
-  if (auto it = options_list.num_options.find("order");
-      it != options_list.num_options.end())
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("order"))
     {
-      int order = stoi(it->second);
+      int order = stoi(*opt);
 
       if (order > 2)
         mod_file_struct.k_order_solver = true;
@@ -5159,41 +5131,41 @@ MethodOfMomentsStatement::checkPass(ModFileStructure &mod_file_struct,
       mod_file_struct.order_option = max(mod_file_struct.order_option, order);
     }
 
-    if (!options_list.string_options.contains("datafile"))
-      {
-        cerr << "ERROR: The method_of_moments statement requires a data file to be supplied via the datafile option." << endl;
-        exit(EXIT_FAILURE);
-      }
+  if (!options_list.contains("datafile"))
+    {
+      cerr << "ERROR: The method_of_moments statement requires a data file to be supplied via the datafile option." << endl;
+      exit(EXIT_FAILURE);
+    }
 
-    if (!options_list.string_options.contains("mom.mom_method"))
-      {
-        cerr << "ERROR: The method_of_moments statement requires a method to be supplied via the mom_method option. Possible values are GMM or SMM." << endl;
-        exit(EXIT_FAILURE);
-      }
+  if (!options_list.contains("mom.mom_method"))
+    {
+      cerr << "ERROR: The method_of_moments statement requires a method to be supplied via the mom_method option. Possible values are GMM or SMM." << endl;
+      exit(EXIT_FAILURE);
+    }
  
-    if (auto it = options_list.string_options.find("mom.mom_method");
-        it != options_list.string_options.end() && it->second == "GMM")
-      mod_file_struct.GMM_present = true;     
+  if (auto opt = options_list.get_if<OptionsList::StringVal>("mom.mom_method");
+      opt && *opt == "GMM")
+    mod_file_struct.GMM_present = true;
 
-    if (auto it = options_list.num_options.find("mom.analytic_standard_errors");
-        it != options_list.num_options.end() && it->second == "true")
-      mod_file_struct.analytic_standard_errors_present = true;
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("mom.analytic_standard_errors");
+      opt && *opt == "true")
+    mod_file_struct.analytic_standard_errors_present = true;
 
-    if (!mod_file_struct.GMM_present && mod_file_struct.analytic_standard_errors_present)
-      {
-        cerr << "ERROR: The analytic_standard_errors statement requires the GMM option." << endl;
-        exit(EXIT_FAILURE);
-      }
+  if (!mod_file_struct.GMM_present && mod_file_struct.analytic_standard_errors_present)
+    {
+      cerr << "ERROR: The analytic_standard_errors statement requires the GMM option." << endl;
+      exit(EXIT_FAILURE);
+    }
     
-    if (auto it = options_list.num_options.find("mom.analytic_jacobian");
-        it != options_list.num_options.end() && it->second == "true")
-      mod_file_struct.analytic_jacobian_present = true;
-    
-    if (!mod_file_struct.GMM_present && mod_file_struct.analytic_jacobian_present)
-      {
-        cerr << "ERROR: The analytic_jacobian statement requires the GMM option." << endl;
-        exit(EXIT_FAILURE);
-      }
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("mom.analytic_jacobian");
+      opt && *opt == "true")
+    mod_file_struct.analytic_jacobian_present = true;
+
+  if (!mod_file_struct.GMM_present && mod_file_struct.analytic_jacobian_present)
+    {
+      cerr << "ERROR: The analytic_jacobian statement requires the GMM option." << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 void
@@ -5209,7 +5181,7 @@ void
 MethodOfMomentsStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "method_of_moments")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -5255,7 +5227,7 @@ void
 GenerateIRFsStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "generate_irfs")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
@@ -5492,7 +5464,7 @@ void
 ResidStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "resid")";
-  if (options_list.getNumberOfOptions())
+  if (!options_list.empty())
     {
       output << ", ";
       options_list.writeJsonOutput(output);
