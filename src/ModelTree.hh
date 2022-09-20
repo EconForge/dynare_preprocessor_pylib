@@ -42,7 +42,7 @@ template<typename T, size_t... Indices>
 auto
 vectorToTupleHelper(const vector<T> &v, index_sequence<Indices...>)
 {
-  return tuple(v[Indices] ...);
+  return tuple{v[Indices]...};
 }
 template<size_t N, typename T>
 auto
