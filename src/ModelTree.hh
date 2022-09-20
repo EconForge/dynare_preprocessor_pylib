@@ -353,6 +353,11 @@ protected:
   template<ExprNodeBytecodeOutputType output_type>
   void writeBytecodeModelEquations(BytecodeWriter &code_file, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms) const;
 
+  // Writes the sparse representation of the model in Julia
+  // Assumes that the directory <MODFILE>/model/julia/ already exists
+  template<bool dynamic>
+  void writeSparseModelJuliaFiles(const string &basename) const;
+
   //! Writes LaTeX model file
   void writeLatexModelFile(const string &mod_basename, const string &latex_basename, ExprNodeOutputType output_type, bool write_equation_tags) const;
 
@@ -2249,4 +2254,122 @@ ModelTree::writeJsonSparseIndicesHelper(ostream &output) const
     }
 }
 
+template<bool dynamic>
+void
+ModelTree::writeSparseModelJuliaFiles(const string &basename) const
+{
+  auto [d_sparse_output, tt_sparse_output] = writeModelFileHelper<dynamic ? ExprNodeOutputType::juliaSparseDynamicModel : ExprNodeOutputType::juliaSparseStaticModel>();
+
+  filesystem::path julia_dir {filesystem::path{basename} / "model" / "julia"};
+  // TODO: when C++20 support is complete, mark the following strings constexpr
+  const string prefix { dynamic ? "SparseDynamic" : "SparseStatic" };
+  const string ss_argin { dynamic ? ", steady_state::Vector{<: Real}" : "" };
+  const string ss_argout { dynamic ? ", steady_state" : "" };
+  const int ylen {(dynamic ? 3 : 1)*symbol_table.endo_nbr()};
+  const int xlen {symbol_table.exo_nbr()+symbol_table.exo_det_nbr()};
+
+  size_t ttlen {0};
+
+  stringstream output;
+
+  // ResidTT!
+  output << "function " << prefix << "ResidTT!(T::Vector{<: Real}, "
+         << "y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}"
+         << ss_argin << ")" << endl
+         << "@inbounds begin" << endl
+         << tt_sparse_output[0].str()
+	 << "end" << endl
+         << "    return nothing" << endl
+         << "end" << endl << endl;
+  writeToFileIfModified(output, julia_dir / (prefix + "ResidTT!.jl"));
+  ttlen += temporary_terms_derivatives[0].size();
+
+  // Resid!
+  output.str("");
+  output << "function " << prefix << "Resid!(T::Vector{<: Real}, residual::AbstractVector{<: Real}, "
+         << "y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}"
+         << ss_argin << ")" << endl
+         << "    @assert length(T) >= " << ttlen << endl
+         << "    @assert length(residual) == " << equations.size() << endl
+         << "    @assert length(y) == " << ylen << endl
+         << "    @assert length(x) == " << xlen << endl
+         << "    @assert length(params) == " << symbol_table.param_nbr() << endl
+         << "@inbounds begin" << endl
+         << d_sparse_output[0].str()
+	 << "end" << endl;
+  if constexpr(!dynamic)
+    output << "    if ~isreal(residual)" << endl
+           << "        residual = real(residual)+imag(residual).^2;" << endl
+           << "    end" << endl;
+  output << "    return nothing" << endl
+         << "end" << endl << endl;
+  writeToFileIfModified(output, julia_dir / (prefix + "Resid!.jl"));
+
+  // G1TT!
+  output.str("");
+  output << "function " << prefix << "G1TT!(T::Vector{<: Real}, y::Vector{<: Real}, "
+         << "x::Vector{<: Real}, params::Vector{<: Real}" << ss_argin << ")" << endl
+         << "    " << prefix << "ResidTT!(T, y, x, params" << ss_argout << ")" << endl
+         << "@inbounds begin" << endl
+         << tt_sparse_output[1].str()
+	 << "end" << endl
+         << "    return nothing" << endl
+         << "end" << endl << endl;
+  writeToFileIfModified(output, julia_dir / (prefix + "G1TT!.jl"));
+  ttlen += temporary_terms_derivatives[1].size();
+
+  // G1!
+  output.str("");
+  output << "function " << prefix << "G1!(T::Vector{<: Real}, g1_v::Vector{<: Real}, "
+         << "y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}"
+         << ss_argin << ")" << endl
+         << "    @assert length(T) >= " << ttlen << endl
+         << "    @assert length(g1_v) == " << derivatives[1].size() << endl
+         << "    @assert length(y) == " << ylen << endl
+         << "    @assert length(x) == " << xlen << endl
+         << "    @assert length(params) == " << symbol_table.param_nbr() << endl
+         << "@inbounds begin" << endl
+         << d_sparse_output[1].str()
+	 << "end" << endl;
+  if constexpr(!dynamic)
+    output << "    if ~isreal(g1_v)" << endl
+           << "        g1_v = real(g1_v)+2*imag(g1_v);" << endl
+           << "    end" << endl;
+  output << "    return nothing" << endl
+         << "end" << endl << endl;
+  writeToFileIfModified(output, julia_dir / (prefix + "G1!.jl"));
+
+  for (int i {2}; i <= computed_derivs_order; i++)
+    {
+      // G<i>TT!
+      output.str("");
+      output << "function " << prefix << "G" << i << "TT!(T::Vector{<: Real}, y::Vector{<: Real}, "
+             << "x::Vector{<: Real}, params::Vector{<: Real}" << ss_argin << ")" << endl
+             << "    " << prefix << "G" << to_string(i-1) << "TT!(T, y, x, params" << ss_argout << ")" << endl
+             << "@inbounds begin" << endl
+             << tt_sparse_output[i].str()
+             << "end" << endl
+             << "    return nothing" << endl
+             << "end" << endl << endl;
+      writeToFileIfModified(output, julia_dir / (prefix + "G" + to_string(i) + "TT!.jl"));
+      ttlen += temporary_terms_derivatives[i].size();
+
+      // G<i>!
+      output.str("");
+      output << "function " << prefix << "G" << i << "!(T::Vector{<: Real}, g" << i << "_v::Vector{<: Real}, "
+             << "y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}"
+             << ss_argin << ")" << endl
+             << "    @assert length(T) >= " << ttlen << endl
+             << "    @assert length(g" << i << "_v) == " << derivatives[i].size() << endl
+             << "    @assert length(y) == " << ylen << endl
+             << "    @assert length(x) == " << xlen << endl
+             << "    @assert length(params) == " << symbol_table.param_nbr() << endl
+             << "@inbounds begin" << endl
+             << d_sparse_output[i].str()
+             << "end" << endl
+             << "    return nothing" << endl
+             << "end" << endl << endl;
+      writeToFileIfModified(output, julia_dir / (prefix + "G" + to_string(i) + "!.jl"));
+    }
+}
 #endif

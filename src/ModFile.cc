@@ -822,6 +822,7 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
 
       filesystem::remove_all(basename + "/model/src");
       filesystem::remove_all(basename + "/model/bytecode");
+      // Do not remove basename/model/julia/, otherwise it would break calls to writeToFileIfModified()
     }
 
   create_directory(plusfolder);

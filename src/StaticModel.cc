@@ -845,7 +845,9 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
   model_dir /= "model";
   if (use_dll)
     create_directories(model_dir / "src");
-  if (!julia)
+  if (julia)
+    create_directories(model_dir / "julia");
+  else
     {
       auto plusfolder {packageDir(basename)};
       /* The following is not a duplicate of the same call from
@@ -857,6 +859,7 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
     }
   create_directories(model_dir / "bytecode");
 
+  // Legacy representation
   if (block)
     {
       writeStaticBlockBytecode(basename);
@@ -888,6 +891,10 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
       else // M-files
         writeStaticMFile(basename);
     }
+
+  // Sparse representation
+  if (julia)
+    writeSparseModelJuliaFiles<false>(basename);
 
   writeSetAuxiliaryVariables(basename, julia);
 }

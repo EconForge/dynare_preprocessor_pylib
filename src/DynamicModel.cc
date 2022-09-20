@@ -3477,7 +3477,9 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
   model_dir /= "model";
   if (use_dll)
     create_directories(model_dir / "src");
-  if (!julia)
+  if (julia)
+    create_directories(model_dir / "julia");
+  else
     {
       auto plusfolder {packageDir(basename)};
       /* The following is not a duplicate of the same call from
@@ -3489,6 +3491,7 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
     }
   create_directories(model_dir / "bytecode");
 
+  // Legacy representation
   if (block)
     {
       writeDynamicBlockBytecode(basename);
@@ -3520,6 +3523,10 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
       else
         writeDynamicMFile(basename);
     }
+
+  // Sparse representation
+  if (julia)
+    writeSparseModelJuliaFiles<true>(basename);
 
   writeSetAuxiliaryVariables(basename, julia);
 }

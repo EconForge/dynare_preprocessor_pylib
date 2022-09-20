@@ -120,7 +120,7 @@ private:
 
   //! Writes dynamic model file (Matlab version)
   void writeDynamicMFile(const string &basename) const;
-  //! Writes dynamic model file (Julia version)
+  //! Writes dynamic model file (Julia version, legacy representation)
   void writeDynamicJuliaFile(const string &basename) const;
   //! Writes the main dynamic function of block decomposed model (MATLAB version)
   void writeDynamicBlockMFile(const string &basename) const;
