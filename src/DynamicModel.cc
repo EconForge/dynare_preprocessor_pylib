@@ -41,7 +41,7 @@ DynamicModel::copyHelper(const DynamicModel &m)
                                     {
                                       map<tuple<int, int, int>, expr_t> dt2;
                                       for (const auto &it : dt)
-                                        dt2[it.first] = f(it.second);
+                                        dt2.emplace(it.first, f(it.second));
                                       return dt2;
                                     };
   for (const auto &it : m.blocks_derivatives_other_endo)

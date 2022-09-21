@@ -47,7 +47,7 @@ ModelTree::copyHelper(const ModelTree &m)
   for (const auto &it : m.aux_equations)
     aux_equations.push_back(dynamic_cast<BinaryOpNode *>(f(it)));
 
-  auto convert_deriv_map = [f](map<vector<int>, expr_t> dm)
+  auto convert_deriv_map = [f](const map<vector<int>, expr_t> &dm)
                            {
                              map<vector<int>, expr_t> dm2;
                              for (const auto &it : dm)
@@ -59,9 +59,9 @@ ModelTree::copyHelper(const ModelTree &m)
   for (const auto &it : m.derivatives)
     derivatives.push_back(convert_deriv_map(it));
   for (const auto &it : m.params_derivatives)
-    params_derivatives[it.first] = convert_deriv_map(it.second);
+    params_derivatives.emplace(it.first, convert_deriv_map(it.second));
 
-  auto convert_temporary_terms_t = [f](temporary_terms_t tt)
+  auto convert_temporary_terms_t = [f](const temporary_terms_t &tt)
                                    {
                                      temporary_terms_t tt2;
                                      for (const auto &it : tt)
@@ -71,21 +71,21 @@ ModelTree::copyHelper(const ModelTree &m)
 
   // Temporary terms
   for (const auto &it : m.temporary_terms_mlv)
-    temporary_terms_mlv[dynamic_cast<VariableNode *>(f(it.first))] = f(it.second);
+    temporary_terms_mlv.emplace(dynamic_cast<VariableNode *>(f(it.first)), f(it.second));
   for (const auto &it : m.temporary_terms_derivatives)
     temporary_terms_derivatives.push_back(convert_temporary_terms_t(it));
   for (const auto &it : m.temporary_terms_idxs)
-    temporary_terms_idxs[f(it.first)] = it.second;
+    temporary_terms_idxs.emplace(f(it.first), it.second);
   for (const auto &it : m.params_derivs_temporary_terms)
-    params_derivs_temporary_terms[it.first] = convert_temporary_terms_t(it.second);
+    params_derivs_temporary_terms.emplace(it.first, convert_temporary_terms_t(it.second));
   for (const auto &it : m.params_derivs_temporary_terms_idxs)
-    params_derivs_temporary_terms_idxs[f(it.first)] = it.second;
+    params_derivs_temporary_terms_idxs.emplace(f(it.first), it.second);
 
   // Other stuff
   for (const auto &it : m.trend_symbols_map)
-    trend_symbols_map[it.first] = f(it.second);
+    trend_symbols_map.emplace(it.first, f(it.second));
   for (const auto &it : m.nonstationary_symbols_map)
-    nonstationary_symbols_map[it.first] = {it.second.first, f(it.second.second)};
+    nonstationary_symbols_map.emplace(it.first, pair{it.second.first, f(it.second.second)});
 
   for (const auto &it : m.equation_type_and_normalized_equation)
     equation_type_and_normalized_equation.emplace_back(it.first, dynamic_cast<BinaryOpNode *>(f(it.second)));
@@ -94,7 +94,7 @@ ModelTree::copyHelper(const ModelTree &m)
     {
       map<tuple<int, int, int>, expr_t> v;
       for (const auto &it2 : it)
-        v[it2.first] = f(it2.second);
+        v.emplace(it2.first, f(it2.second));
       blocks_derivatives.push_back(v);
     }
 
@@ -113,7 +113,7 @@ ModelTree::copyHelper(const ModelTree &m)
   for (const auto &it : m.blocks_temporary_terms)
     blocks_temporary_terms.push_back(convert_vector_tt(it));
   for (const auto &it : m.blocks_temporary_terms_idxs)
-    blocks_temporary_terms_idxs[f(it.first)] = it.second;
+    blocks_temporary_terms_idxs.emplace(f(it.first), it.second);
 }
 
 ModelTree::ModelTree(SymbolTable &symbol_table_arg,
