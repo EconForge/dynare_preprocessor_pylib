@@ -116,6 +116,9 @@ private:
      (failure can happen in normalization). */
   virtual bool computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms);
 
+  // Write the block structure of the model in the driver file
+  void writeBlockDriverOutput(ostream &output) const;
+
 protected:
   string
   modelClassName() const override

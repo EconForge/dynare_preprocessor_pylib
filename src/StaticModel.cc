@@ -1146,9 +1146,13 @@ StaticModel::writeDriverOutput(ostream &output, bool block) const
            << temporary_terms_idxs.at(mlv)+1 << ';' << endl;
   output << "};" << endl;
 
-  if (!block)
-    return;
+  if (block)
+    writeBlockDriverOutput(output);
+}
 
+void
+StaticModel::writeBlockDriverOutput(ostream &output) const
+{
   for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
       output << "block_structure_stat.block(" << blk+1 << ").Simulation_Type = " << static_cast<int>(blocks[blk].simulation_type) << ";" << endl
