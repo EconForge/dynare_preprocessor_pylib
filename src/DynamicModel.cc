@@ -668,19 +668,19 @@ DynamicModel::writeDynamicMFile(const string &basename) const
   ostringstream init_output, end_output;
   init_output << "residual = zeros(" << equations.size() << ", 1);";
   writeDynamicMFileHelper(basename, "dynamic_resid", "residual", "dynamic_resid_tt",
-                          temporary_terms_mlv.size() + temporary_terms_derivatives[0].size(),
+                          temporary_terms_derivatives[0].size(),
                           "", init_output, end_output, d_output[0], tt_output[0]);
 
   init_output.str("");
   init_output << "g1 = zeros(" << equations.size() << ", " << getJacobianColsNbr() << ");";
   writeDynamicMFileHelper(basename, "dynamic_g1", "g1", "dynamic_g1_tt",
-                          temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size(),
+                          temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size(),
                           "dynamic_resid_tt", init_output, end_output, d_output[1], tt_output[1]);
   writeDynamicMWrapperFunction(basename, "g1");
 
   // For order ≥ 2
   int ncols{getJacobianColsNbr()};
-  int ntt{static_cast<int>(temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size())};
+  int ntt { static_cast<int>(temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size()) };
   for (size_t i{2}; i < derivatives.size(); i++)
     {
       ncols *= getJacobianColsNbr();
@@ -772,7 +772,7 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
 
   // Write the number of temporary terms
   output << "tmp_nbr = zeros(Int,4)" << endl
-         << "tmp_nbr[1] = " << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() << "# Number of temporary terms for the residuals" << endl
+         << "tmp_nbr[1] = " << temporary_terms_derivatives[0].size() << "# Number of temporary terms for the residuals" << endl
          << "tmp_nbr[2] = " << temporary_terms_derivatives[1].size() << "# Number of temporary terms for g1 (jacobian)" << endl
          << "tmp_nbr[3] = " << temporary_terms_derivatives[2].size() << "# Number of temporary terms for g2 (hessian)" << endl
          << "tmp_nbr[4] = " << temporary_terms_derivatives[3].size() << "# Number of temporary terms for g3 (third order derivates)" << endl << endl;
@@ -791,7 +791,7 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
   output << "function dynamicResid!(T::Vector{<: Real}, residual::AbstractVector{<: Real}," << endl
          << "                       y::Vector{<: Real}, x::Matrix{<: Real}, "
          << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int, T_flag::Bool)" << endl
-         << "    @assert length(T) >= " << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() << endl
+         << "    @assert length(T) >= " << temporary_terms_derivatives[0].size() << endl
          << "    @assert length(residual) == " << equations.size() << endl
          << "    @assert length(y)+size(x, 2) == " << getJacobianColsNbr() << endl
          << "    @assert length(params) == " << symbol_table.param_nbr() << endl
@@ -820,7 +820,7 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "                    y::Vector{<: Real}, x::Matrix{<: Real}, "
          << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int, T_flag::Bool)" << endl
          << "    @assert length(T) >= "
-         << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() << endl
+         << temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() << endl
          << "    @assert size(g1) == (" << equations.size() << ", " << getJacobianColsNbr() << ")" << endl
          << "    @assert length(y)+size(x, 2) == " << getJacobianColsNbr() << endl
          << "    @assert length(params) == " << symbol_table.param_nbr() << endl
@@ -850,7 +850,7 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
   output << "function dynamicG2!(T::Vector{<: Real}, g2::Matrix{<: Real}," << endl
          << "                    y::Vector{<: Real}, x::Matrix{<: Real}, "
          << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int, T_flag::Bool)" << endl
-         << "    @assert length(T) >= " << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() << endl
+         << "    @assert length(T) >= " << temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() << endl
          << "    @assert size(g2) == (" << equations.size() << ", " << hessianColsNbr << ")" << endl
          << "    @assert length(y)+size(x, 2) == " << getJacobianColsNbr() << endl
          << "    @assert length(params) == " << symbol_table.param_nbr() << endl
@@ -881,7 +881,7 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "                    y::Vector{<: Real}, x::Matrix{<: Real}, "
          << "params::Vector{<: Real}, steady_state::Vector{<: Real}, it_::Int, T_flag::Bool)" << endl
          << "    @assert length(T) >= "
-         << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size() << endl
+         << temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size() << endl
          << "    @assert size(g3) == (" << equations.size() << ", " << ncols << ")" << endl
          << "    @assert length(y)+size(x, 2) == " << getJacobianColsNbr() << endl
          << "    @assert length(params) == " << symbol_table.param_nbr() << endl
@@ -944,7 +944,7 @@ DynamicModel::writeDynamicCFile(const string &basename) const
 {
   string filename = basename + "/model/src/dynamic.c";
 
-  int ntt{static_cast<int>(temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size())};
+  int ntt { static_cast<int>(temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size()) };
 
   ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
@@ -1370,7 +1370,7 @@ DynamicModel::writeDynamicMCompatFile(const string &basename) const
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
-  int ntt = temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size();
+  int ntt { static_cast<int>(temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size()) };
 
   output << "function [residual, g1, g2, g3] = dynamic(y, x, params, steady_state, it_)" << endl
          << "    T = NaN(" << ntt << ", 1);" << endl
@@ -2038,17 +2038,9 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
          << "M_.nspred   = " << npred+nboth   << ";" << endl
          << "M_.ndynamic   = " << npred+nboth+nfwrd << ";" << endl
          << "M_.dynamic_tmp_nbr = [";
-  for (size_t i = 0; i < temporary_terms_derivatives.size(); i++)
-    output << temporary_terms_derivatives[i].size() + (i == 0 ? temporary_terms_mlv.size() : 0) << "; ";
+  for (const auto &tts : temporary_terms_derivatives)
+    output << tts.size() << "; ";
   output << "];" << endl;
-
-  /* Write mapping between model local variables and indices in the temporary
-     terms vector (dynare#1722) */
-  output << "M_.model_local_variables_dynamic_tt_idxs = {" << endl;
-  for (auto [mlv, value] : temporary_terms_mlv)
-    output << "  '" << symbol_table.getName(mlv->symb_id) << "', "
-           << temporary_terms_idxs.at(mlv)+1 << ';' << endl;
-  output << "};" << endl;
 
   // Write equation tags
   equation_tags.writeOutput(output);
@@ -3291,8 +3283,6 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
 
   computeTemporaryTerms(!use_dll, no_tmp_terms);
 
-  /* Must be called after computeTemporaryTerms(), because it depends on
-     temporary_terms_mlv to be filled */
   if (paramsDerivsOrder > 0 && !no_tmp_terms)
     computeParamsDerivativesTemporaryTerms();
 
@@ -4708,8 +4698,6 @@ DynamicModel::isChecksumMatching(const string &basename) const
 
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;
-  writeModelLocalVariableTemporaryTerms<buffer_type>(temp_term_union, temporary_terms_idxs,
-                                                     buffer, tef_terms);
 
   writeTemporaryTerms<buffer_type>(temporary_terms_derivatives[0],
                                    temp_term_union, temporary_terms_idxs,

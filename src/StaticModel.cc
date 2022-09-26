@@ -369,8 +369,6 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
 
   computeTemporaryTerms(true, no_tmp_terms);
 
-  /* Must be called after computeTemporaryTerms(), because it depends on
-     temporary_terms_mlv to be filled */
   if (paramsDerivsOrder > 0 && !no_tmp_terms)
     computeParamsDerivativesTemporaryTerms();
 
@@ -412,7 +410,7 @@ StaticModel::writeStaticMFile(const string &basename) const
              << "  residual = real(residual)+imag(residual).^2;" << endl
              << "end";
   writeStaticMFileHelper(basename, "static_resid", "residual", "static_resid_tt",
-                         temporary_terms_mlv.size() + temporary_terms_derivatives[0].size(),
+                         temporary_terms_derivatives[0].size(),
                          "", init_output, end_output,
                          d_output[0], tt_output[0]);
 
@@ -423,7 +421,7 @@ StaticModel::writeStaticMFile(const string &basename) const
              << "    g1 = real(g1)+2*imag(g1);" << endl
              << "end";
   writeStaticMFileHelper(basename, "static_g1", "g1", "static_g1_tt",
-                         temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size(),
+                         temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size(),
                          "static_resid_tt",
                          init_output, end_output,
                          d_output[1], tt_output[1]);
@@ -431,7 +429,7 @@ StaticModel::writeStaticMFile(const string &basename) const
 
   // For order ≥ 2
   int ncols{symbol_table.endo_nbr()};
-  int ntt{static_cast<int>(temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size())};
+  int ntt { static_cast<int>(temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size()) };
   for (size_t i{2}; i < derivatives.size(); i++)
     {
       ncols *= symbol_table.endo_nbr();
@@ -603,7 +601,7 @@ StaticModel::writeStaticMCompatFile(const string &basename) const
       cerr << "Error: Can't open file " << filename << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
-  int ntt = temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size();
+  int ntt { static_cast<int>(temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size()) };
 
   output << "function [residual, g1, g2, g3] = static(y, x, params)" << endl
          << "    T = NaN(" << ntt << ", 1);" << endl
@@ -627,7 +625,7 @@ StaticModel::writeStaticCFile(const string &basename) const
   // Writing comments and function definition command
   string filename{basename + "/model/src/static.c"};
 
-  int ntt{static_cast<int>(temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size())};
+  int ntt { static_cast<int>(temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size()) };
 
   ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
@@ -791,7 +789,7 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
 
   // Write the number of temporary terms
   output << "tmp_nbr = zeros(Int,4)" << endl
-         << "tmp_nbr[1] = " << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() << "# Number of temporary terms for the residuals" << endl
+         << "tmp_nbr[1] = " << temporary_terms_derivatives[0].size() << "# Number of temporary terms for the residuals" << endl
          << "tmp_nbr[2] = " << temporary_terms_derivatives[1].size() << "# Number of temporary terms for g1 (jacobian)" << endl
          << "tmp_nbr[3] = " << temporary_terms_derivatives[2].size() << "# Number of temporary terms for g2 (hessian)" << endl
          << "tmp_nbr[4] = " << temporary_terms_derivatives[3].size() << "# Number of temporary terms for g3 (third order derivates)" << endl << endl;
@@ -799,7 +797,7 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
   // staticResidTT!
   output << "function staticResidTT!(T::Vector{<: Real}," << endl
          << "                        y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real})" << endl
-         << "    @assert length(T) >= " << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size()  << endl
+         << "    @assert length(T) >= " << temporary_terms_derivatives[0].size()  << endl
          << "    @inbounds begin" << endl
          << tt_output[0].str()
 	 << "    end" << endl
@@ -841,7 +839,7 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
   output << "function staticG1!(T::Vector{<: Real}, g1::Matrix{<: Real}," << endl
          << "                   y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}, T1_flag::Bool, T0_flag::Bool)" << endl
          << "    @assert length(T) >= "
-         << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() << endl
+         << temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() << endl
          << "    @assert size(g1) == (" << equations.size() << ", " << symbol_table.endo_nbr() << ")" << endl
          << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
          << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
@@ -876,7 +874,7 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
   output << "function staticG2!(T::Vector{<: Real}, g2::Matrix{<: Real}," << endl
          << "                   y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
          << "    @assert length(T) >= "
-         << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() << endl
+         << temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() << endl
          << "    @assert size(g2) == (" << equations.size() << ", " << hessianColsNbr << ")" << endl
          << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
          << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
@@ -908,7 +906,7 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
   output << "function staticG3!(T::Vector{<: Real}, g3::Matrix{<: Real}," << endl
          << "                   y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}, T3_flag::Bool, T2_flag::Bool, T1_flag::Bool, T0_flag::Bool)" << endl
          << "    @assert length(T) >= "
-         << temporary_terms_mlv.size() + temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size() << endl
+         << temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size() << endl
          << "    @assert size(g3) == (" << equations.size() << ", " << ncols << ")" << endl
          << "    @assert length(y) == " << symbol_table.endo_nbr() << endl
          << "    @assert length(x) == " << symbol_table.exo_nbr() << endl
@@ -1137,14 +1135,6 @@ StaticModel::writeDriverOutput(ostream &output, bool block) const
   for (const auto &temporary_terms_derivative : temporary_terms_derivatives)
     output << temporary_terms_derivative.size() << "; ";
   output << "];" << endl;
-
-  /* Write mapping between model local variables and indices in the temporary
-     terms vector (dynare#1722) */
-  output << "M_.model_local_variables_static_tt_idxs = {" << endl;
-  for (auto [mlv, value] : temporary_terms_mlv)
-    output << "  '" << symbol_table.getName(mlv->symb_id) << "', "
-           << temporary_terms_idxs.at(mlv)+1 << ';' << endl;
-  output << "};" << endl;
 
   if (block)
     writeBlockDriverOutput(output);

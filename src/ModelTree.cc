@@ -70,8 +70,6 @@ ModelTree::copyHelper(const ModelTree &m)
                                    };
 
   // Temporary terms
-  for (const auto &it : m.temporary_terms_mlv)
-    temporary_terms_mlv.emplace(dynamic_cast<VariableNode *>(f(it.first)), f(it.second));
   for (const auto &it : m.temporary_terms_derivatives)
     temporary_terms_derivatives.push_back(convert_temporary_terms_t(it));
   for (const auto &it : m.temporary_terms_idxs)
@@ -170,7 +168,6 @@ ModelTree::operator=(const ModelTree &m)
   derivatives.clear();
   params_derivatives.clear();
 
-  temporary_terms_mlv.clear();
   temporary_terms_derivatives.clear();
   params_derivs_temporary_terms.clear();
   params_derivs_temporary_terms_idxs.clear();
@@ -921,20 +918,15 @@ ModelTree::computeDerivatives(int order, const set<int> &vars)
 void
 ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
 {
-  /* Collect all model local variables appearing in equations (and only those,
-     because printing unused model local variables can lead to a crash,
-     see Dynare/dynare#101).
-     Then store them in a dedicated structure (temporary_terms_mlv), that will
-     be treated as the rest of temporary terms. */
-  temporary_terms_mlv.clear();
-  set<int> used_local_vars;
-  for (auto &equation : equations)
-    equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
-  for (int used_local_var : used_local_vars)
-    {
-      VariableNode *v = AddVariable(used_local_var);
-      temporary_terms_mlv[v] = local_variables_table.find(used_local_var)->second;
-    }
+  /* Ensure that we don’t have any model-local variable in the model at this
+     point (we used to treat them as temporary terms) */
+  assert([&]
+  {
+    set<int> used_local_vars;
+    for (auto &equation : equations)
+      equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
+    return used_local_vars.empty();
+  }());
 
   // Compute the temporary terms in equations and derivatives
   map<pair<int, int>, temporary_terms_t> temp_terms_map;
@@ -968,10 +960,7 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
     temporary_terms_derivatives[order] = move(temp_terms_map[{ 0, order }]);
 
   // Compute indices in MATLAB/Julia vector
-  int idx = 0;
-  for (auto [mlv, value] : temporary_terms_mlv)
-    temporary_terms_idxs[mlv] = idx++;
-  for (int order = 0; order < static_cast<int>(derivatives.size()); order++)
+  for (int order {0}, idx {0}; order < static_cast<int>(derivatives.size()); order++)
     for (auto it : temporary_terms_derivatives[order])
       temporary_terms_idxs[it] = idx++;
 }
@@ -1496,10 +1485,8 @@ ModelTree::computeParamsDerivativesTemporaryTerms()
       d->computeTemporaryTerms(order, params_derivs_temporary_terms,
                                reference_count, true);
 
-  int idx = 0;
-  for (auto &[mlv, value] : temporary_terms_mlv)
-    params_derivs_temporary_terms_idxs[mlv] = idx++;
-  for (const auto &[order, tts] : params_derivs_temporary_terms)
+  for (int idx {0};
+       const auto &[order, tts] : params_derivs_temporary_terms)
     for (const auto &tt : tts)
       params_derivs_temporary_terms_idxs[tt] = idx++;
 }

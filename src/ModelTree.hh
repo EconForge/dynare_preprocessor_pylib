@@ -125,10 +125,6 @@ protected:
   then the IDs of parameters (in non-decreasing order)*/
   map<pair<int,int>, map<vector<int>, expr_t>> params_derivatives;
 
-  //! Used model local variables, that will be treated as temporary terms
-  /*! See the comments in ModelTree::computeTemporaryTerms() */
-  map<VariableNode *, expr_t, ExprNodeLess> temporary_terms_mlv;
-
   //! Temporary terms for residuals and derivatives
   /*! Index 0 is temp. terms of residuals, index 1 for first derivatives, ... */
   vector<temporary_terms_t> temporary_terms_derivatives;
@@ -259,10 +255,6 @@ protected:
   //! Tests if string contains more than 32 nested parens, Issue #1201
   bool testNestedParenthesis(const string &str) const;
 
-  template<ExprNodeOutputType output_type>
-  void writeModelLocalVariableTemporaryTerms(temporary_terms_t &temp_term_union,
-                                             const temporary_terms_idxs_t &tt_idxs,
-                                             ostream &output, deriv_node_temp_terms_t &tef_terms) const;
   //! Writes model equations
   template<ExprNodeOutputType output_type>
   void writeModelEquations(ostream &output, const temporary_terms_t &temporary_terms) const;
@@ -596,38 +588,6 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t &tt,
 
 template<ExprNodeOutputType output_type>
 void
-ModelTree::writeModelLocalVariableTemporaryTerms(temporary_terms_t &temp_term_union,
-                                                 const temporary_terms_idxs_t &tt_idxs,
-                                                 ostream &output, deriv_node_temp_terms_t &tef_terms) const
-{
-  temporary_terms_t tto;
-  for (const auto &[mlv, value] : temporary_terms_mlv)
-    tto.insert(mlv);
-
-  for (const auto &[mlv, value] : temporary_terms_mlv)
-    {
-      value->writeExternalFunctionOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
-
-      if constexpr(isJuliaOutput(output_type))
-        output << "    const ";
-
-      mlv->writeOutput(output, output_type, tto, tt_idxs, tef_terms);
-      output << " = ";
-      value->writeOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
-
-      if constexpr(isCOutput(output_type) || isMatlabOutput(output_type))
-        output << ";";
-      output << endl;
-
-      /* We put in temp_term_union the VariableNode corresponding to the MLV,
-         not its definition, so that when equations use the MLV,
-         T(XXX) is printed instead of the MLV name */
-      temp_term_union.insert(mlv);
-    }
-}
-
-template<ExprNodeOutputType output_type>
-void
 ModelTree::writeModelEquations(ostream &output, const temporary_terms_t &temporary_terms) const
 {
   for (int eq {0}; eq < static_cast<int>(equations.size()); eq++)
@@ -691,9 +651,6 @@ ModelTree::writeModelFileHelper() const
 
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;
-
-  writeModelLocalVariableTemporaryTerms<output_type>(temp_term_union, temporary_terms_idxs,
-                                                     tt_output[0], tef_terms);
 
   writeTemporaryTerms<output_type>(temporary_terms_derivatives[0], temp_term_union,
                                    temporary_terms_idxs, tt_output[0], tef_terms);
@@ -921,9 +878,6 @@ ModelTree::writeParamsDerivativesFileHelper() const
   temporary_terms_t temp_term_union;
   deriv_node_temp_terms_t tef_terms;
 
-  writeModelLocalVariableTemporaryTerms<output_type>(temp_term_union,
-                                                     params_derivs_temporary_terms_idxs,
-                                                     tt_output, tef_terms);
   for (const auto &[order, tts] : params_derivs_temporary_terms)
     writeTemporaryTerms<output_type>(tts, temp_term_union, params_derivs_temporary_terms_idxs,
                                      tt_output, tef_terms);
