@@ -735,7 +735,7 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "#     from " << basename << ".mod" << endl
          << "#" << endl
          << "using StatsFuns" << endl << endl
-         << "export tmp_nbr, dynamic!, dynamicResid!, dynamicG1!, dynamicG2!, dynamicG3!" << endl << endl
+         << "export dynamic!, dynamicResid!, dynamicG1!, dynamicG2!, dynamicG3!" << endl << endl
          << "#=" << endl
          << "# The comments below apply to all functions contained in this module #" << endl
          << "  NB: The arguments contained on the first line of the function" << endl
@@ -747,9 +747,6 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "  dynamicG1!    : Computes the dynamic model Jacobian" << endl
          << "  dynamicG2!    : Computes the dynamic model Hessian" << endl
          << "  dynamicG3!    : Computes the dynamic model third derivatives" << endl << endl
-         << "## Exported Variables ##" << endl
-         << "  tmp_nbr       : Vector{Int}(4) respectively the number of temporary variables" << endl
-         << "                  for the residuals, g1, g2 and g3." << endl << endl
          << "## Local Functions ##" << endl
          << "  dynamicResidTT! : Computes the dynamic model temporary terms for the residuals" << endl
          << "  dynamicG1TT!    : Computes the dynamic model temporary terms for the Jacobian" << endl
@@ -780,13 +777,6 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "      number of temporaries used for the evaluation of the jacobian matrix, etc. If one calls the version of the dynamic model computing the" << endl
          << "      residuals, the jacobian and hessian matrices, then `T` must have at least `sum(tmp_nbr[1:3])` elements." << endl
          << "=#" << endl << endl;
-
-  // Write the number of temporary terms
-  output << "tmp_nbr = zeros(Int,4)" << endl
-         << "tmp_nbr[1] = " << temporary_terms_derivatives[0].size() << "# Number of temporary terms for the residuals" << endl
-         << "tmp_nbr[2] = " << temporary_terms_derivatives[1].size() << "# Number of temporary terms for g1 (jacobian)" << endl
-         << "tmp_nbr[3] = " << temporary_terms_derivatives[2].size() << "# Number of temporary terms for g2 (hessian)" << endl
-         << "tmp_nbr[4] = " << temporary_terms_derivatives[3].size() << "# Number of temporary terms for g3 (third order derivates)" << endl << endl;
 
   // dynamicResidTT!
   output << "function dynamicResidTT!(T::Vector{<: Real}," << endl
@@ -4664,7 +4654,15 @@ DynamicModel::writeJsonOutput(ostream &output) const
   writeJsonAST(output);
   output << ", ";
   writeJsonVariableMapping(output);
-  output << ", ";
+  output << R"(, "dynamic_tmp_nbr": [)";
+  for (bool printed_something {false};
+       const auto &tts : temporary_terms_derivatives)
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << tts.size();
+    }
+  output << "], ";
   writeJsonSparseIndicesHelper<true>(output);
 }
 

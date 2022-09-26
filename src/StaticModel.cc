@@ -622,7 +622,7 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "#     from " << basename << ".mod" << endl
          << "#" << endl
          << "using StatsFuns" << endl << endl
-         << "export tmp_nbr, static!, staticResid!, staticG1!, staticG2!, staticG3!" << endl << endl
+         << "export static!, staticResid!, staticG1!, staticG2!, staticG3!" << endl << endl
          << "#=" << endl
          << "# The comments below apply to all functions contained in this module #" << endl
          << "  NB: The arguments contained on the first line of the function" << endl
@@ -634,9 +634,6 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "  staticG1!    : Computes the static model Jacobian" << endl
          << "  staticG2!    : Computes the static model Hessian" << endl
          << "  staticG3!    : Computes the static model third derivatives" << endl << endl
-         << "## Exported Variables ##" << endl
-         << "  tmp_nbr      : Vector{Int}(4) respectively the number of temporary variables" << endl
-         << "                 for the residuals, g1, g2 and g3." << endl << endl
          << "## Local Functions ##" << endl
          << "  staticResidTT! : Computes the static model temporary terms for the residuals" << endl
          << "  staticG1TT!    : Computes the static model temporary terms for the Jacobian" << endl
@@ -666,13 +663,6 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "      number of temporaries used for the evaluation of the jacobian matrix, etc. If one calls the version of the static model computing the" << endl
          << "      residuals, and the jacobian and hessian matrices, then `T` must have at least `sum(tmp_nbr[1:3])` elements." << endl
          << "=#" << endl << endl;
-
-  // Write the number of temporary terms
-  output << "tmp_nbr = zeros(Int,4)" << endl
-         << "tmp_nbr[1] = " << temporary_terms_derivatives[0].size() << "# Number of temporary terms for the residuals" << endl
-         << "tmp_nbr[2] = " << temporary_terms_derivatives[1].size() << "# Number of temporary terms for g1 (jacobian)" << endl
-         << "tmp_nbr[3] = " << temporary_terms_derivatives[2].size() << "# Number of temporary terms for g2 (hessian)" << endl
-         << "tmp_nbr[4] = " << temporary_terms_derivatives[3].size() << "# Number of temporary terms for g3 (third order derivates)" << endl << endl;
 
   // staticResidTT!
   output << "function staticResidTT!(T::Vector{<: Real}," << endl
@@ -1310,6 +1300,15 @@ StaticModel::writeJsonAuxVarRecursiveDefinitions(ostream &output) const
 void
 StaticModel::writeJsonOutput(ostream &output) const
 {
+  output << R"("static_tmp_nbr": [)";
+  for (bool printed_something {false};
+       const auto &tts : temporary_terms_derivatives)
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << tts.size();
+    }
+  output << "], ";
   writeJsonSparseIndicesHelper<false>(output);
 }
 
