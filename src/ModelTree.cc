@@ -125,6 +125,9 @@ ModelTree::ModelTree(SymbolTable &symbol_table_arg,
   NNZDerivatives(4, 0),
   temporary_terms_derivatives(4)
 {
+  // Ensure that elements accessed by writeParamsDerivativesFileHelper() exist
+  for (const auto &ord : {pair{0, 1}, pair{1, 1}, pair{0, 2}, pair{1, 2}, pair{2, 1}, pair{3, 1}})
+    params_derivatives.emplace(ord, decltype(params_derivatives)::mapped_type{});
 }
 
 ModelTree::ModelTree(const ModelTree &m) :

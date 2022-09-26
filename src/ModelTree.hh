@@ -928,7 +928,7 @@ ModelTree::writeParamsDerivativesFileHelper() const
     writeTemporaryTerms<output_type>(tts, temp_term_union, params_derivs_temporary_terms_idxs,
                                      tt_output, tef_terms);
 
-  for (const auto &[indices, d1] : params_derivatives.find({ 0, 1 })->second)
+  for (const auto &[indices, d1] : params_derivatives.at({ 0, 1 }))
     {
       auto [eq, param] { vectorToTuple<2>(indices) };
 
@@ -940,7 +940,7 @@ ModelTree::writeParamsDerivativesFileHelper() const
       rp_output << ";" << endl;
     }
 
-  for (const auto &[indices, d2] : params_derivatives.find({ 1, 1 })->second)
+  for (const auto &[indices, d2] : params_derivatives.at({ 1, 1 }))
     {
       auto [eq, var, param] { vectorToTuple<3>(indices) };
 
@@ -954,7 +954,7 @@ ModelTree::writeParamsDerivativesFileHelper() const
     }
 
   for (int i {1};
-       const auto &[indices, d2] : params_derivatives.find({ 0, 2 })->second)
+       const auto &[indices, d2] : params_derivatives.at({ 0, 2 }))
     {
       auto [eq, param1, param2] { vectorToTuple<3>(indices) };
 
@@ -992,7 +992,7 @@ ModelTree::writeParamsDerivativesFileHelper() const
     }
 
   for (int i {1};
-       const auto &[indices, d2] : params_derivatives.find({ 1, 2 })->second)
+       const auto &[indices, d2] : params_derivatives.at({ 1, 2 }))
     {
       auto [eq, var, param1, param2] { vectorToTuple<4>(indices) };
 
@@ -1035,7 +1035,7 @@ ModelTree::writeParamsDerivativesFileHelper() const
     }
 
   for (int i {1};
-       const auto &[indices, d2] : params_derivatives.find({ 2, 1 })->second)
+       const auto &[indices, d2] : params_derivatives.at({ 2, 1 }))
     {
       auto [eq, var1, var2, param] { vectorToTuple<4>(indices) };
 
@@ -1080,7 +1080,7 @@ ModelTree::writeParamsDerivativesFileHelper() const
   if constexpr(output_type == ExprNodeOutputType::matlabDynamicModel
                || output_type == ExprNodeOutputType::juliaDynamicModel)
     for (int i {1};
-         const auto &[indices, d2] : params_derivatives.find({ 3, 1 })->second)
+         const auto &[indices, d2] : params_derivatives.at({ 3, 1 }))
       {
         auto [eq, var1, var2, var3, param] { vectorToTuple<5>(indices) };
 
