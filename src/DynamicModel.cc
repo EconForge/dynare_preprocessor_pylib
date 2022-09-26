@@ -930,12 +930,7 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
          << "    dynamicResid!(T, residual, y, x, params, steady_state, it_, false)" << endl
          << "    return nothing" << endl
          << "end" << endl
-         << endl;
-
-  // Write function definition if BinaryOpcode::powerDeriv is used
-  writePowerDerivJulia(output);
-
-  output << "end" << endl;
+         << "end" << endl;
 
   writeToFileIfModified(output, basename + "Dynamic.jl");
 }

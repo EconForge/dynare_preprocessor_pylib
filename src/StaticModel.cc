@@ -818,12 +818,7 @@ StaticModel::writeStaticJuliaFile(const string &basename) const
          << "    staticResid!(T, residual, y, x, params, false)" << endl
          << "    return nothing" << endl
          << "end" << endl
-         << endl;
-
-  // Write function definition if BinaryOpcode::powerDeriv is used
-  writePowerDerivJulia(output);
-
-  output << "end" << endl;
+         << "end" << endl;
 
   writeToFileIfModified(output, basename + "Static.jl");
 }

@@ -281,8 +281,6 @@ public:
   void writePowerDeriv(ostream &output) const;
   //! Write getPowerDeriv in C (prototype)
   void writePowerDerivHeader(ostream &output) const;
-  //! Write getPowerDeriv in Julia
-  void writePowerDerivJulia(ostream &output) const;
   //! Thrown when trying to access an unknown variable by deriv_id
   class UnknownDerivIDException
   {
