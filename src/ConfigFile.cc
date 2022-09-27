@@ -738,7 +738,7 @@ ConfigFile::writeCluster(ostream &output) const
              << "'ProgramConfig', '" << follower_node.second.programConfig << "', "
              << "'MatlabOctavePath', '" << follower_node.second.matlabOctavePath << "', "
              << "'OperatingSystem', '" << follower_node.second.operatingSystem << "', "
-             << "'NodeWeight', '" << (cluster_it->second.member_nodes.find(follower_node.first))->second << "', "
+             << "'NodeWeight', '" << cluster_it->second.member_nodes.at(follower_node.first) << "', "
              << "'NumberOfThreadsPerJob', " << follower_node.second.numberOfThreadsPerJob << ", ";
 
       if (follower_node.second.singleCompThread)

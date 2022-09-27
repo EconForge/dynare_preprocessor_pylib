@@ -916,17 +916,17 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
                        << "gp = zeros(" << equations.size() << ", " << getJacobianColsNbr() << ", " << symbol_table.param_nbr() << ");" << endl
                        << gp_output.str()
                        << "if nargout >= 3" << endl
-                       << "rpp = zeros(" << params_derivatives.find({ 0, 2 })->second.size() << ",4);" << endl
+                       << "rpp = zeros(" << params_derivatives.at({ 0, 2 }).size() << ",4);" << endl
                        << rpp_output.str()
-                       << "gpp = zeros(" << params_derivatives.find({ 1, 2 })->second.size() << ",5);" << endl
+                       << "gpp = zeros(" << params_derivatives.at({ 1, 2 }).size() << ",5);" << endl
                        << gpp_output.str()
                        << "end" << endl
                        << "if nargout >= 5" << endl
-                       << "hp = zeros(" << params_derivatives.find({ 2, 1 })->second.size() << ",5);" << endl
+                       << "hp = zeros(" << params_derivatives.at({ 2, 1 }).size() << ",5);" << endl
                        << hp_output.str()
                        << "end" << endl
                        << "if nargout >= 6" << endl
-                       << "g3p = zeros(" << params_derivatives.find({ 3, 1 })->second.size() << ",6);" << endl
+                       << "g3p = zeros(" << params_derivatives.at({ 3, 1 }).size() << ",6);" << endl
                        << g3p_output.str()
                        << "end" << endl
                        << "end" << endl;
@@ -952,19 +952,19 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
 		     << "@inbounds begin" << endl
                      << gp_output.str()
 		     << "end" << endl
-                     << "rpp = zeros(" << params_derivatives.find({ 0, 2 })->second.size() << ",4);" << endl
+                     << "rpp = zeros(" << params_derivatives.at({ 0, 2 }).size() << ",4);" << endl
 		     << "@inbounds begin" << endl
                      << rpp_output.str()
 		     << "end" << endl
-                     << "gpp = zeros(" << params_derivatives.find({ 1, 2 })->second.size() << ",5);" << endl
+                     << "gpp = zeros(" << params_derivatives.at({ 1, 2 }).size() << ",5);" << endl
 		     << "@inbounds begin" << endl
                      << gpp_output.str()
 		     << "end" << endl
-                     << "hp = zeros(" << params_derivatives.find({ 2, 1 })->second.size() << ",5);" << endl
+                     << "hp = zeros(" << params_derivatives.at({ 2, 1 }).size() << ",5);" << endl
 		     << "@inbounds begin" << endl
                      << hp_output.str()
 		     << "end" << endl
-                     << "g3p = zeros(" << params_derivatives.find({ 3, 1 })->second.size() << ",6);" << endl
+                     << "g3p = zeros(" << params_derivatives.at({ 3, 1 }).size() << ",6);" << endl
 		     << "@inbounds begin" << endl
                      << g3p_output.str()
 		     << "end" << endl

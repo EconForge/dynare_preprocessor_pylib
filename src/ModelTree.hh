@@ -1587,7 +1587,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
             << R"(, "nparamcols": )" << symbol_table.param_nbr()
             << R"(, "entries": [)";
   for (bool printed_something {false};
-       const auto &[vidx, d] : params_derivatives.find({ 0, 1 })->second)
+       const auto &[vidx, d] : params_derivatives.at({ 0, 1 }))
     {
       if (exchange(printed_something, true))
         rp_output << ", ";
@@ -1618,7 +1618,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
             << R"(, "nparamcols": )" << symbol_table.param_nbr()
             << R"(, "entries": [)";
   for (bool printed_something {false};
-       const auto &[vidx, d] : params_derivatives.find({ 1, 1 })->second)
+       const auto &[vidx, d] : params_derivatives.at({ 1, 1 }))
     {
       if (exchange(printed_something, true))
         gp_output << ", ";
@@ -1656,7 +1656,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
              << R"(, "nparam2cols": )" << symbol_table.param_nbr()
              << R"(, "entries": [)";
   for (bool printed_something {false};
-       const auto &[vidx, d] : params_derivatives.find({ 0, 2 })->second)
+       const auto &[vidx, d] : params_derivatives.at({ 0, 2 }))
     {
       if (exchange(printed_something, true))
         rpp_output << ", ";
@@ -1690,7 +1690,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
              << R"(, "nparam2cols": )" << symbol_table.param_nbr()
              << R"(, "entries": [)";
   for (bool printed_something {false};
-       const auto &[vidx, d] : params_derivatives.find({ 1, 2 })->second)
+       const auto &[vidx, d] : params_derivatives.at({ 1, 2 }))
     {
       if (exchange(printed_something, true))
         gpp_output << ", ";
@@ -1732,7 +1732,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
             << R"(, "nparamcols": )" << symbol_table.param_nbr()
             << R"(, "entries": [)";
   for (bool printed_something {false};
-       const auto &[vidx, d] : params_derivatives.find({ 2, 1 })->second)
+       const auto &[vidx, d] : params_derivatives.at({ 2, 1 }))
     {
       if (exchange(printed_something, true))
         hp_output << ", ";
@@ -1779,7 +1779,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
                  << R"(, "nparamcols": )" << symbol_table.param_nbr()
                  << R"(, "entries": [)";
       for (bool printed_something {false};
-           const auto &[vidx, d] : params_derivatives.find({ 3, 1 })->second)
+           const auto &[vidx, d] : params_derivatives.at({ 3, 1 }))
         {
           if (exchange(printed_something, true))
             g3p_output << ", ";

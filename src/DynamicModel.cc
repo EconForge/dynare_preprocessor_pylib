@@ -4130,7 +4130,7 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
 
   for (int used_local_var : used_local_vars)
     {
-      const expr_t value = local_variables_table.find(used_local_var)->second;
+      const expr_t value = local_variables_table.at(used_local_var);
       expr_t subst;
       switch (type)
         {

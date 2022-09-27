@@ -123,7 +123,7 @@ Environment::print(ostream &output, const vector<string> &vars, const optional<i
   else
     for (const auto &it : vars)
       if (isFunctionDefined(it))
-        printFunction(output, functions.find(it)->second, line, save);
+        printFunction(output, functions.at(it), line, save);
 
   if (parent)
     parent->print(output, vars, line, save);

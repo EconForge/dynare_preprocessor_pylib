@@ -130,7 +130,7 @@ const vector<string> &
 TrendComponentModelTable::getEqTags(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return eqtags.find(name_arg)->second;
+  return eqtags.at(name_arg);
 }
 
 void
@@ -148,28 +148,28 @@ const vector<int> &
 TrendComponentModelTable::getNonTargetLhs(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return nontarget_lhs.find(name_arg)->second;
+  return nontarget_lhs.at(name_arg);
 }
 
 const vector<int> &
 TrendComponentModelTable::getTargetLhs(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return target_lhs.find(name_arg)->second;
+  return target_lhs.at(name_arg);
 }
 
 const vector<int> &
 TrendComponentModelTable::getLhs(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return lhs.find(name_arg)->second;
+  return lhs.at(name_arg);
 }
 
 const vector<expr_t> &
 TrendComponentModelTable::getLhsExprT(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return lhs_expr_t.find(name_arg)->second;
+  return lhs_expr_t.at(name_arg);
 }
 
 const map<string, vector<string>> &
@@ -194,7 +194,7 @@ const vector<int> &
 TrendComponentModelTable::getTargetEqNums(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return target_eqnums.find(name_arg)->second;
+  return target_eqnums.at(name_arg);
 }
 
 const map<string, vector<int>> &
@@ -207,21 +207,21 @@ const vector<int> &
 TrendComponentModelTable::getNonTargetEqNums(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return nontarget_eqnums.find(name_arg)->second;
+  return nontarget_eqnums.at(name_arg);
 }
 
 const vector<int> &
 TrendComponentModelTable::getEqNums(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return eqnums.find(name_arg)->second;
+  return eqnums.at(name_arg);
 }
 
 const vector<int> &
 TrendComponentModelTable::getMaxLags(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return max_lags.find(name_arg)->second;
+  return max_lags.at(name_arg);
 }
 
 int
@@ -237,7 +237,7 @@ const vector<bool> &
 TrendComponentModelTable::getDiff(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return diff.find(name_arg)->second;
+  return diff.at(name_arg);
 }
 
 void
@@ -575,7 +575,7 @@ const vector<string> &
 VarModelTable::getEqTags(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return eqtags.find(name_arg)->second;
+  return eqtags.at(name_arg);
 }
 
 void
@@ -643,14 +643,14 @@ const vector<bool> &
 VarModelTable::getDiff(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return diff.find(name_arg)->second;
+  return diff.at(name_arg);
 }
 
 const vector<int> &
 VarModelTable::getEqNums(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return eqnums.find(name_arg)->second;
+  return eqnums.at(name_arg);
 }
 
 void
@@ -693,7 +693,7 @@ const vector<int> &
 VarModelTable::getMaxLags(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return max_lags.find(name_arg)->second;
+  return max_lags.at(name_arg);
 }
 
 int
@@ -709,28 +709,28 @@ const vector<int> &
 VarModelTable::getLhs(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return lhs.find(name_arg)->second;
+  return lhs.at(name_arg);
 }
 
 const vector<int> &
 VarModelTable::getLhsOrigIds(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return lhs_orig_symb_ids.find(name_arg)->second;
+  return lhs_orig_symb_ids.at(name_arg);
 }
 
 const vector<set<pair<int, int>>> &
 VarModelTable::getRhs(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return rhs.find(name_arg)->second;
+  return rhs.at(name_arg);
 }
 
 const vector<expr_t> &
 VarModelTable::getLhsExprT(const string &name_arg) const
 {
   checkModelName(name_arg);
-  return lhs_expr_t.find(name_arg)->second;
+  return lhs_expr_t.at(name_arg);
 }
 
 

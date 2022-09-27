@@ -1188,7 +1188,7 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, bool write_tef_terms, d
         if (exchange(printed_something, true))
           output << ", ";
 
-        expr_t value = local_variables_table.find(id)->second;
+        expr_t value = local_variables_table.at(id);
         if (write_tef_terms)
           {
             vector<string> efout;
@@ -1323,7 +1323,7 @@ ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_b
   // Write model local variables
   for (int id : local_variables_vector)
     {
-      expr_t value = local_variables_table.find(id)->second;
+      expr_t value = local_variables_table.at(id);
 
       content_output << R"(\begin{dmath*})" << endl
                      << symbol_table.getTeXName(id) << " = ";

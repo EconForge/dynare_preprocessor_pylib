@@ -80,8 +80,9 @@ ExternalFunctionsTable::exists(int symb_id) const
 inline int
 ExternalFunctionsTable::getNargs(int symb_id) const noexcept(false)
 {
-  if (exists(symb_id))
-    return externalFunctionTable.find(symb_id)->second.nargs;
+  if (auto it = externalFunctionTable.find(symb_id);
+      it != externalFunctionTable.end())
+    return it->second.nargs;
   else
     throw UnknownExternalFunctionSymbolIDException(symb_id);
 }
@@ -89,8 +90,9 @@ ExternalFunctionsTable::getNargs(int symb_id) const noexcept(false)
 inline int
 ExternalFunctionsTable::getFirstDerivSymbID(int symb_id) const noexcept(false)
 {
-  if (exists(symb_id))
-    return externalFunctionTable.find(symb_id)->second.firstDerivSymbID;
+  if (auto it = externalFunctionTable.find(symb_id);
+      it != externalFunctionTable.end())
+    return it->second.firstDerivSymbID;
   else
     throw UnknownExternalFunctionSymbolIDException(symb_id);
 }
@@ -98,8 +100,9 @@ ExternalFunctionsTable::getFirstDerivSymbID(int symb_id) const noexcept(false)
 inline int
 ExternalFunctionsTable::getSecondDerivSymbID(int symb_id) const noexcept(false)
 {
-  if (exists(symb_id))
-    return externalFunctionTable.find(symb_id)->second.secondDerivSymbID;
+  if (auto it = externalFunctionTable.find(symb_id);
+      it != externalFunctionTable.end())
+    return it->second.secondDerivSymbID;
   else
     throw UnknownExternalFunctionSymbolIDException(symb_id);
 }

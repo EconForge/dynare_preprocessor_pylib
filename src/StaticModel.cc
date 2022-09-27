@@ -53,7 +53,7 @@ StaticModel::StaticModel(const DynamicModel &m) :
 {
   // Convert model local variables (need to be done first)
   for (int it : m.local_variables_vector)
-    AddLocalVariable(it, m.local_variables_table.find(it)->second->toStatic(*this));
+    AddLocalVariable(it, m.local_variables_table.at(it)->toStatic(*this));
 
   // Convert equations
   int static_only_index = 0;
