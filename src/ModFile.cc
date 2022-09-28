@@ -967,9 +967,9 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
 
   if (dynamic_model.equation_number() > 0)
     {
-      dynamic_model.writeDriverOutput(mOutputFile, basename, block, mod_file_struct.estimation_present, compute_xrefs);
+      dynamic_model.writeDriverOutput(mOutputFile, basename, mod_file_struct.estimation_present, compute_xrefs);
       if (!no_static)
-        static_model.writeDriverOutput(mOutputFile, block);
+        static_model.writeDriverOutput(mOutputFile);
     }
 
   if (onlymodel || gui)

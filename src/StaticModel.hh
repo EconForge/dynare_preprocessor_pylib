@@ -127,7 +127,7 @@ public:
   explicit StaticModel(const DynamicModel &m);
 
   //! Writes information about the static model to the driver file
-  void writeDriverOutput(ostream &output, bool block) const;
+  void writeDriverOutput(ostream &output) const;
 
   //! Execute computations (variable sorting + derivation + block decomposition)
   /*!

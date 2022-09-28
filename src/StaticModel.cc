@@ -791,14 +791,14 @@ StaticModel::writeStaticBlockCFile(const string &basename, vector<filesystem::pa
 }
 
 void
-StaticModel::writeDriverOutput(ostream &output, bool block) const
+StaticModel::writeDriverOutput(ostream &output) const
 {
   output << "M_.static_tmp_nbr = [";
   for (const auto &temporary_terms_derivative : temporary_terms_derivatives)
     output << temporary_terms_derivative.size() << "; ";
   output << "];" << endl;
 
-  if (block)
+  if (block_decomposed)
     writeBlockDriverOutput(output);
 
   writeDriverSparseIndicesHelper<false>(output);

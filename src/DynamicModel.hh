@@ -327,7 +327,7 @@ public:
   void computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context,
                      bool no_tmp_terms, bool block, bool use_dll);
   //! Writes information about the dynamic model to the driver file
-  void writeDriverOutput(ostream &output, const string &basename, bool block, bool estimation_present, bool compute_xrefs) const;
+  void writeDriverOutput(ostream &output, const string &basename, bool estimation_present, bool compute_xrefs) const;
 
   //! Write JSON AST
   void writeJsonAST(ostream &output) const;

@@ -1615,7 +1615,7 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename,
 }
 
 void
-DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool block_decomposition, bool estimation_present, bool compute_xrefs) const
+DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool estimation_present, bool compute_xrefs) const
 {
   /* Writing initialisation for M_.lead_lag_incidence matrix
      M_.lead_lag_incidence is a matrix with as many columns as there are
@@ -1744,7 +1744,7 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool bl
         }
 
   // Write the block structure of the model
-  if (block_decomposition)
+  if (block_decomposed)
     writeBlockDriverOutput(output, basename, state_var, estimation_present);
 
   output << "M_.state_var = [";
