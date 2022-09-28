@@ -128,7 +128,7 @@ private:
   /* Computes the number of nonzero elements in deterministic Jacobian of
      block-decomposed model */
   int nzeDeterministicJacobianForBlock(int blk) const;
-  //! Helper for writing the per-block dynamic files of block decomposed models
+  // Helper for writing the per-block dynamic files of block decomposed models (legacy representation)
   template<ExprNodeOutputType output_type>
   void writeDynamicPerBlockHelper(int blk, ostream &output, temporary_terms_t &temporary_terms, int nze_stochastic, int nze_deterministic, int nze_exo, int nze_exo_det, int nze_other_endo) const;
   //! Writes the per-block dynamic files of block decomposed model (MATLAB version)
@@ -695,6 +695,8 @@ DynamicModel::writeDynamicPerBlockHelper(int blk, ostream &output, temporary_ter
                                          int nze_stochastic, int nze_deterministic, int nze_exo,
                                          int nze_exo_det, int nze_other_endo) const
 {
+  static_assert(!isSparseModelOutput(output_type));
+
   BlockSimulationType simulation_type { blocks[blk].simulation_type };
   int block_mfs_size { blocks[blk].mfs_size };
   int block_recursive_size { blocks[blk].getRecursiveSize() };

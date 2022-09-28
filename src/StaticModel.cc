@@ -846,6 +846,8 @@ StaticModel::writeBlockDriverOutput(ostream &output) const
   output << "];" << endl
          << "M_.block_structure_stat.tmp_nbr = " << blocks_temporary_terms_idxs.size()
          << ";" << endl;
+
+  writeBlockDriverSparseIndicesHelper<false>(output);
 }
 
 SymbolType
@@ -911,10 +913,15 @@ void
 StaticModel::computeChainRuleJacobian()
 {
   int nb_blocks = blocks.size();
+
   blocks_derivatives.resize(nb_blocks);
+  blocks_jacobian_sparse_column_major_order.resize(nb_blocks);
+  blocks_jacobian_sparse_colptr.resize(nb_blocks);
+
   for (int blk = 0; blk < nb_blocks; blk++)
     {
       int nb_recursives = blocks[blk].getRecursiveSize();
+      BlockSimulationType simulation_type { blocks[blk].simulation_type };
 
       map<int, BinaryOpNode *> recursive_vars;
       for (int i = 0; i < nb_recursives; i++)
@@ -926,8 +933,8 @@ StaticModel::computeChainRuleJacobian()
             recursive_vars[deriv_id] = getBlockEquationExpr(blk, i);
         }
 
-      assert(blocks[blk].simulation_type != BlockSimulationType::solveTwoBoundariesSimple
-             && blocks[blk].simulation_type != BlockSimulationType::solveTwoBoundariesComplete);
+      assert(simulation_type != BlockSimulationType::solveTwoBoundariesSimple
+             && simulation_type != BlockSimulationType::solveTwoBoundariesComplete);
 
       int size = blocks[blk].size;
 
@@ -941,6 +948,19 @@ StaticModel::computeChainRuleJacobian()
               if (d1 != Zero)
                 blocks_derivatives[blk][{ eq, var, 0 }] = d1;
             }
+        }
+
+      // Compute the sparse representation of the Jacobian
+      if (simulation_type != BlockSimulationType::evaluateForward
+          && simulation_type != BlockSimulationType::evaluateBackward)
+        {
+          for (const auto &[indices, d1] : blocks_derivatives[blk])
+            {
+              auto &[eq, var, lag] { indices };
+              assert(lag == 0);
+              blocks_jacobian_sparse_column_major_order[blk].emplace(pair{eq, var}, d1);
+            }
+          blocks_jacobian_sparse_colptr[blk] = computeCSCColPtr(blocks_jacobian_sparse_column_major_order[blk], size);
         }
     }
 }

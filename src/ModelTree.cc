@@ -125,6 +125,14 @@ ModelTree::copyHelper(const ModelTree &m)
     blocks_temporary_terms.push_back(convert_vector_tt(it));
   for (const auto &it : m.blocks_temporary_terms_idxs)
     blocks_temporary_terms_idxs.emplace(f(it.first), it.second);
+
+  for (const auto &it : m.blocks_jacobian_sparse_column_major_order)
+    {
+      map<pair<int, int>, expr_t, columnMajorOrderLess> v;
+      for (const auto &it2 : it)
+        v.emplace(it2.first, f(it2.second));
+      blocks_jacobian_sparse_column_major_order.push_back(v);
+    }
 }
 
 ModelTree::ModelTree(SymbolTable &symbol_table_arg,
@@ -160,6 +168,7 @@ ModelTree::ModelTree(const ModelTree &m) :
   blocks{m.blocks},
   endo2block{m.endo2block},
   eq2block{m.eq2block},
+  blocks_jacobian_sparse_colptr{m.blocks_jacobian_sparse_colptr},
   endo2eq{m.endo2eq},
   cutoff{m.cutoff},
   mfs{m.mfs}
@@ -204,6 +213,8 @@ ModelTree::operator=(const ModelTree &m)
   eq2block = m.eq2block;
   blocks_temporary_terms.clear();
   blocks_temporary_terms_idxs.clear();
+  blocks_jacobian_sparse_column_major_order.clear();
+  blocks_jacobian_sparse_colptr = m.blocks_jacobian_sparse_colptr;
   endo2eq = m.endo2eq;
   cutoff = m.cutoff;
   mfs = m.mfs;

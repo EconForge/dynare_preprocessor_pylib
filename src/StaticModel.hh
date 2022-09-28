@@ -44,7 +44,7 @@ private:
      then compiles it with the per-block functions into a single MEX */
   void writeStaticBlockCFile(const string &basename, vector<filesystem::path> per_block_object_files, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
 
-  //! Helper for writing a per-block static file of block decomposed model
+  // Helper for writing a per-block static file of block decomposed model (legacy representation)
   template<ExprNodeOutputType output_type>
   void writeStaticPerBlockHelper(int blk, ostream &output, temporary_terms_t &temporary_terms) const;
 
@@ -178,6 +178,8 @@ template<ExprNodeOutputType output_type>
 void
 StaticModel::writeStaticPerBlockHelper(int blk, ostream &output, temporary_terms_t &temporary_terms) const
 {
+  static_assert(!isSparseModelOutput(output_type));
+
   BlockSimulationType simulation_type { blocks[blk].simulation_type };
   int block_recursive_size { blocks[blk].getRecursiveSize() };
 

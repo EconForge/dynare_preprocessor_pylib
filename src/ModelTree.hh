@@ -238,6 +238,18 @@ protected:
      the vector of all temporary terms */
   temporary_terms_idxs_t blocks_temporary_terms_idxs;
 
+  /* The nonzero values of the sparse block Jacobians in column-major order
+     (which is the natural order for Compressed Sparse Column (CSC) storage).
+     The pair of indices is (row, column). Nothing is stored for blocks of
+     type “evaluate”, since their Jacobian is not used in the sparse
+     representation (since the latter does not support the stochastic mode,
+     which only exists in the legacy representation). */
+  vector<SparseColumnMajorOrderMatrix> blocks_jacobian_sparse_column_major_order;
+  /* Column indices for the sparse block Jacobian in Compressed Sparse Column
+     (CSC) storage (corresponds to the “jc” vector in MATLAB terminology).
+     Same remark as above regarding blocks of type “evaluate”. */
+  vector<vector<int>> blocks_jacobian_sparse_colptr;
+
   //! Computes derivatives
   /*! \param order the derivation order
       \param vars the derivation IDs w.r.t. which compute the derivatives */
@@ -296,8 +308,14 @@ protected:
   void writeModelCFile(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
 
   // Writes per-block residuals and temporary terms (incl. for derivatives)
+  // This part is common to the legacy and sparse representations
   template<ExprNodeOutputType output_type>
   void writePerBlockHelper(int blk, ostream &output, temporary_terms_t &temporary_terms) const;
+
+  // Writes per-block Jacobian (sparse representation)
+  // Assumes temporary terms for derivatives are already set.
+  template<ExprNodeOutputType output_type>
+  void writeSparsePerBlockJacobianHelper(int blk, ostream &output, temporary_terms_t &temporary_terms) const;
 
   /* Helper for writing derivatives w.r.t. parameters.
      Returns { tt, rp, gp, rpp, gpp, hp, g3p }.
@@ -328,6 +346,10 @@ protected:
   // Helper for writing sparse derivatives indices in JSON
   template<bool dynamic>
   void writeJsonSparseIndicesHelper(ostream &output) const;
+
+  // Helper for writing sparse block derivatives indices in MATLAB/Octave driver file
+  template<bool dynamic>
+  void writeBlockDriverSparseIndicesHelper(ostream &output) const;
 
   /* Helper for writing JSON output for residuals and derivatives.
      Returns mlv and derivatives output at each derivation order. */
@@ -2251,6 +2273,56 @@ ModelTree::writeJsonSparseIndicesHelper(ostream &output) const
           output << ']' << endl;
         }
       output << ']' << endl;
+    }
+}
+
+template<bool dynamic>
+void
+ModelTree::writeBlockDriverSparseIndicesHelper(ostream &output) const
+{
+  for (int blk {0}; blk < static_cast<int>(blocks.size()); blk++)
+    {
+      const string struct_name { "M_.block_structure"s + (dynamic ? "" : "_stat") + ".block(" + to_string(blk+1) + ")." };
+
+      // Write indices for the sparse Jacobian (both naive and CSC storage)
+      output << struct_name << "g1_sparse_rowval = int32([";
+      for (const auto &[indices, d1] : blocks_jacobian_sparse_column_major_order.at(blk))
+        output << indices.first+1 << ' ';
+      output << "]);" << endl
+             << struct_name << "g1_sparse_colval = int32([";
+      for (const auto &[indices, d1] : blocks_jacobian_sparse_column_major_order.at(blk))
+        output << indices.second+1 << ' ';
+      output << "]);" << endl
+             << struct_name << "g1_sparse_colptr = int32([";
+      for (int it : blocks_jacobian_sparse_colptr.at(blk))
+        output << it+1 << ' ';
+      output << "]);" << endl;
+    }
+}
+
+template<ExprNodeOutputType output_type>
+void
+ModelTree::writeSparsePerBlockJacobianHelper(int blk, ostream &output, temporary_terms_t &temporary_terms) const
+{
+  static_assert(isSparseModelOutput(output_type));
+
+  // NB: stochastic mode is currently unsupported by sparse representation
+  /* See also the comment above the definition of
+     blocks_jacobian_sparse_column_major_order and
+     blocks_jacobian_sparse_column_major_colptr */
+
+  assert(blocks[blk].simulation_type != BlockSimulationType::evaluateForward
+         && blocks[blk].simulation_type != BlockSimulationType::evaluateBackward);
+
+  int k {0};
+  for (const auto &[row_col, d1] : blocks_jacobian_sparse_column_major_order[blk])
+    {
+      output << "g1_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
+             << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+             << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+      d1->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
+      output << ";" << endl;
+      k++;
     }
 }
 

@@ -1461,6 +1461,8 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename,
              << "M_.block_structure.block(" << blk+1 << ").NNZDerivatives = " << blocks_derivatives[blk].size() << ';' << endl;
     }
 
+  writeBlockDriverSparseIndicesHelper<true>(output);
+
   output << "M_.block_structure.variable_reordered = [";
   for (int i = 0; i < symbol_table.endo_nbr(); i++)
     output << " " << endo_idx_block2orig[i]+1;
@@ -3101,10 +3103,14 @@ DynamicModel::computeChainRuleJacobian()
   size_t nb_blocks { blocks.size() };
 
   blocks_derivatives.resize(nb_blocks);
+  blocks_jacobian_sparse_column_major_order.resize(nb_blocks);
+  blocks_jacobian_sparse_colptr.resize(nb_blocks);
 
   for (int blk {0}; blk < static_cast<int>(nb_blocks); blk++)
     {
       int nb_recursives = blocks[blk].getRecursiveSize();
+      int mfs_size { blocks[blk].mfs_size };
+      BlockSimulationType simulation_type { blocks[blk].simulation_type };
 
       // Create a map from recursive vars to their defining (normalized) equation
       map<int, BinaryOpNode *> recursive_vars;
@@ -3143,6 +3149,25 @@ DynamicModel::computeChainRuleJacobian()
 
           if (d != Zero)
             blocks_derivatives[blk][{ eq, var, lag }] = d;
+        }
+
+      // Compute the sparse representation of the Jacobian
+      if (simulation_type != BlockSimulationType::evaluateForward
+          && simulation_type != BlockSimulationType::evaluateBackward)
+        {
+          const bool one_boundary {simulation_type == BlockSimulationType::solveBackwardSimple
+                                   || simulation_type == BlockSimulationType::solveForwardSimple
+                                   || simulation_type == BlockSimulationType::solveBackwardComplete
+                                   || simulation_type == BlockSimulationType::solveForwardComplete};
+          for (const auto &[indices, d1] : blocks_derivatives[blk])
+            {
+              auto &[eq, var, lag] { indices };
+              assert(lag >= -1 && lag <= 1);
+              if (eq >= nb_recursives && var >= nb_recursives
+                  && !(one_boundary && lag != 0))
+                blocks_jacobian_sparse_column_major_order[blk].emplace(pair{eq-nb_recursives, var-nb_recursives+static_cast<int>(!one_boundary)*(lag+1)*mfs_size}, d1);
+            }
+          blocks_jacobian_sparse_colptr[blk] = computeCSCColPtr(blocks_jacobian_sparse_column_major_order[blk], (one_boundary ? 1 : 3)*mfs_size);
         }
     }
 
