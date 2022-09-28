@@ -91,8 +91,7 @@ private:
     return symbol_table.endo_nbr();
   }
 
-  //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
-  void computeChainRuleJacobian();
+  void computeChainRuleJacobian() override;
 
   // Helper for writing MATLAB/Octave functions for residuals/derivatives and their temporary terms
   void writeStaticMFileHelper(const string &basename,
@@ -112,12 +111,6 @@ private:
   {
     return var;
   }
-
-  /* Compute block decomposition, its derivatives and temporary terms.
-     Meant to be overriden in derived classes which don’t support block
-     decomposition (currently PlannerObjective). Returns a boolean indicating success
-     (failure can happen in normalization). */
-  virtual bool computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms);
 
   // Write the block structure of the model in the driver file
   void writeBlockDriverOutput(ostream &output) const;

@@ -189,6 +189,9 @@ protected:
     };
   };
 
+  // Whether block decomposition has been successfully computed
+  bool block_decomposed {false};
+
   // Stores various informations on the blocks
   vector<BlockInfo> blocks;
 
@@ -321,6 +324,7 @@ protected:
   //! Writes LaTeX model file
   void writeLatexModelFile(const string &mod_basename, const string &latex_basename, ExprNodeOutputType output_type, bool write_equation_tags) const;
 
+private:
   //! Sparse matrix of double to store the values of the static Jacobian
   /*! First index is equation number, second index is endogenous type specific ID */
   using jacob_map_t = map<pair<int, int>, double>;
@@ -394,6 +398,7 @@ protected:
   //! Determine for each block if it is linear or not
   void determineLinearBlocks();
 
+protected:
   //! Return the type of equation belonging to the block
   EquationType
   getBlockEquationType(int blk, int eq) const
@@ -444,10 +449,22 @@ protected:
   };
   //! Initialize equation_reordered & variable_reordered
   void initializeVariablesAndEquations();
+
+private:
   //! Returns the 1st derivatives w.r.t. endogenous in a different format
   /*! Returns a map (equation, type-specific ID, lag) → derivative.
       Assumes that derivatives have already been computed. */
   map<tuple<int, int, int>, expr_t> collectFirstOrderDerivativesEndogenous();
+
+protected:
+  //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
+  virtual void computeChainRuleJacobian() = 0;
+
+  /* Compute block decomposition, its derivatives and temporary terms. Meant to
+     be overriden in derived classes which don’t support block decomposition
+     (currently Epilogue and PlannerObjective). Sets “block_decomposed” to true
+     in case of success. */
+  virtual void computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms);
 
   /* Get column number within Jacobian of a given block.
      “var” is the block-specific endogenous variable index. */

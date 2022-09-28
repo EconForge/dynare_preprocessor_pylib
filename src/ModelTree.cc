@@ -1874,3 +1874,23 @@ ModelTree::joinMEXCompilationThreads()
   for (auto &it : mex_compilation_threads)
     it.join();
 }
+
+void
+ModelTree::computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms)
+{
+  auto contemporaneous_jacobian = evaluateAndReduceJacobian(eval_context);
+  if (!computeNonSingularNormalization(contemporaneous_jacobian))
+    return;
+  auto [prologue, epilogue] = computePrologueAndEpilogue();
+  auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
+  equationTypeDetermination(first_order_endo_derivatives, mfs);
+  cout << "Finding the optimal block decomposition of the " << modelClassName() << "..." << endl;
+  computeBlockDecomposition(prologue, epilogue);
+  reduceBlockDecomposition();
+  printBlockDecomposition();
+  computeChainRuleJacobian();
+  determineLinearBlocks();
+  if (!no_tmp_terms)
+    computeBlockTemporaryTerms();
+  block_decomposed = true;
+}

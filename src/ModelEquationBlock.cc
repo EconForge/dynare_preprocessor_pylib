@@ -30,12 +30,11 @@ PlannerObjective::PlannerObjective(SymbolTable &symbol_table_arg,
 {
 }
 
-bool
+void
 PlannerObjective::computingPassBlock([[maybe_unused]] const eval_context_t &eval_context,
                                      [[maybe_unused]] bool no_tmp_terms)
 {
   // Disable block decomposition on planner objective
-  return false;
 }
 
 OrigRamseyDynamicModel::OrigRamseyDynamicModel(SymbolTable &symbol_table_arg,
@@ -521,10 +520,9 @@ Epilogue::writeOutput(ostream &output) const
   SymbolList{move(symbol_list)}.writeOutput("M_.epilogue_var_list_", output);
 }
 
-bool
+void
 Epilogue::computingPassBlock([[maybe_unused]] const eval_context_t &eval_context,
                              [[maybe_unused]] bool no_tmp_terms)
 {
   // Disable block decomposition on epilogue blocks
-  return false;
 }

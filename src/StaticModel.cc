@@ -375,31 +375,12 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
   if (paramsDerivsOrder > 0 && !no_tmp_terms)
     computeParamsDerivativesTemporaryTerms();
 
-  if (!computingPassBlock(eval_context, no_tmp_terms) && block)
+  computingPassBlock(eval_context, no_tmp_terms);
+  if (!block_decomposed && block)
     {
       cerr << "ERROR: Block decomposition requested but failed. If your model does not have a steady state, you may want to try the 'no_static' option of the 'model' block." << endl;
       exit(EXIT_FAILURE);
     }
-}
-
-bool
-StaticModel::computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms)
-{
-  auto contemporaneous_jacobian = evaluateAndReduceJacobian(eval_context);
-  if (!computeNonSingularNormalization(contemporaneous_jacobian))
-    return false;
-  auto [prologue, epilogue] = computePrologueAndEpilogue();
-  auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
-  equationTypeDetermination(first_order_endo_derivatives, mfs);
-  cout << "Finding the optimal block decomposition of the " << modelClassName() << "..." << endl;
-  computeBlockDecomposition(prologue, epilogue);
-  reduceBlockDecomposition();
-  printBlockDecomposition();
-  computeChainRuleJacobian();
-  determineLinearBlocks();
-  if (!no_tmp_terms)
-    computeBlockTemporaryTerms();
-  return true;
 }
 
 void

@@ -40,7 +40,7 @@ protected:
   }
 
 private:
-  bool computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms) override;
+  void computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms) override;
 };
 
 class OrigRamseyDynamicModel : public DynamicModel
@@ -141,7 +141,7 @@ private:
   //! Helper for public writeEpilogueFile
   void writeStaticEpilogueFile(const string &basename) const;
   void writeDynamicEpilogueFile(const string &basename) const;
-  bool computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms) override;
+  void computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms) override;
 };
 
 #endif

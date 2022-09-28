@@ -169,8 +169,7 @@ private:
      between 0 and blocks[blk].size-1). */
   map<tuple<int, int, int>, BlockDerivativeType> determineBlockDerivativesType(int blk);
 
-  //! Computes chain rule derivatives of the Jacobian w.r. to endogenous variables
-  void computeChainRuleJacobian();
+  void computeChainRuleJacobian() override;
 
   string reform(const string &name) const;
 
@@ -298,12 +297,6 @@ private:
   {
     return blocks_jacob_cols_endo[blk].at({ var, lag });
   }
-
-  /* Compute block decomposition, its derivatives and temporary terms.
-     Meant to be overriden in derived classes which don’t support block
-     decomposition (currently Epilogue). Returns a boolean indicating success
-     (failure can happen in normalization). */
-  virtual bool computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms);
 
 protected:
   string

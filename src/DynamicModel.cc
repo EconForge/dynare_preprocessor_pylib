@@ -3293,32 +3293,14 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
   if (paramsDerivsOrder > 0 && !no_tmp_terms)
     computeParamsDerivativesTemporaryTerms();
 
-  if (!computingPassBlock(eval_context, no_tmp_terms) && block)
+  computingPassBlock(eval_context, no_tmp_terms);
+  if (block_decomposed)
+    computeBlockDynJacobianCols();
+  if (!block_decomposed && block)
     {
       cerr << "ERROR: Block decomposition requested but failed." << endl;
       exit(EXIT_FAILURE);
     }
-}
-
-bool
-DynamicModel::computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms)
-{
-  auto contemporaneous_jacobian = evaluateAndReduceJacobian(eval_context);
-  if (!computeNonSingularNormalization(contemporaneous_jacobian))
-    return false;
-  auto [prologue, epilogue] = computePrologueAndEpilogue();
-  auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
-  equationTypeDetermination(first_order_endo_derivatives, mfs);
-  cout << "Finding the optimal block decomposition of the " << modelClassName() << "..." << endl;
-  computeBlockDecomposition(prologue, epilogue);
-  reduceBlockDecomposition();
-  printBlockDecomposition();
-  computeChainRuleJacobian();
-  determineLinearBlocks();
-  computeBlockDynJacobianCols();
-  if (!no_tmp_terms)
-    computeBlockTemporaryTerms();
-  return true;
 }
 
 void
@@ -3462,9 +3444,11 @@ DynamicModel::determineBlockDerivativesType(int blk)
 void
 DynamicModel::computeChainRuleJacobian()
 {
-  int nb_blocks = blocks.size();
+  size_t nb_blocks { blocks.size() };
+
   blocks_derivatives.resize(nb_blocks);
-  for (int blk = 0; blk < nb_blocks; blk++)
+
+  for (int blk {0}; blk < static_cast<int>(nb_blocks); blk++)
     {
       int nb_recursives = blocks[blk].getRecursiveSize();
 
@@ -3507,52 +3491,71 @@ DynamicModel::computeChainRuleJacobian()
             blocks_derivatives[blk][{ eq, var, lag }] = d;
         }
     }
-}
 
-void
-DynamicModel::computeBlockDynJacobianCols()
-{
-  int nb_blocks = blocks.size();
+  /* Also store information and derivatives w.r.t. other types of variables
+     (for the stochastic mode) */
   blocks_derivatives_other_endo.resize(nb_blocks);
   blocks_derivatives_exo.resize(nb_blocks);
   blocks_derivatives_exo_det.resize(nb_blocks);
   blocks_other_endo.resize(nb_blocks);
   blocks_exo.resize(nb_blocks);
   blocks_exo_det.resize(nb_blocks);
+  for (auto &[indices, d1] : derivatives[1])
+    {
+      auto [eq_orig, deriv_id] { vectorToTuple<2>(indices) };
+      int block_eq { eq2block[eq_orig] };
+      int eq { getBlockInitialEquationID(block_eq, eq_orig) };
+      int var { getTypeSpecificIDByDerivID(deriv_id) };
+      int lag { getLagByDerivID(deriv_id) };
+      switch (getTypeByDerivID(indices[1]))
+        {
+        case SymbolType::endogenous:
+          if (block_eq != endo2block[var])
+            {
+              blocks_derivatives_other_endo[block_eq][{ eq, var, lag }] = d1;
+              blocks_other_endo[block_eq].insert(var);
+            }
+          break;
+        case SymbolType::exogenous:
+          blocks_derivatives_exo[block_eq][{ eq, var, lag }] = d1;
+          blocks_exo[block_eq].insert(var);
+          break;
+        case SymbolType::exogenousDet:
+          blocks_derivatives_exo_det[block_eq][{ eq, var, lag }] = d1;
+          blocks_exo_det[block_eq].insert(var);
+          break;
+        default:
+          break;
+        }
+    }
+}
+
+void
+DynamicModel::computeBlockDynJacobianCols()
+{
+  size_t nb_blocks { blocks.size() };
   // Structures used for lexicographic ordering over (lag, var ID)
   vector<set<pair<int, int>>> dynamic_endo(nb_blocks), dynamic_other_endo(nb_blocks),
     dynamic_exo(nb_blocks), dynamic_exo_det(nb_blocks);
 
   for (auto & [indices, d1] : derivatives[1])
     {
-      int eq_orig = indices[0];
-      int block_eq = eq2block[eq_orig];
-      int eq = getBlockInitialEquationID(block_eq, eq_orig);
-      int var { getTypeSpecificIDByDerivID(indices[1]) };
-      int lag = getLagByDerivID(indices[1]);
-      switch (getTypeByDerivID(indices[1]))
+      auto [eq_orig, deriv_id] { vectorToTuple<2>(indices) };
+      int block_eq { eq2block[eq_orig] };
+      int var { getTypeSpecificIDByDerivID(deriv_id) };
+      int lag { getLagByDerivID(deriv_id) };
+      switch (getTypeByDerivID(deriv_id))
         {
         case SymbolType::endogenous:
           if (block_eq == endo2block[var])
-            {
-              int var_in_block = getBlockInitialVariableID(block_eq, var);
-              dynamic_endo[block_eq].emplace(lag, var_in_block);
-            }
+            dynamic_endo[block_eq].emplace(lag, getBlockInitialVariableID(block_eq, var));
           else
-            {
-              blocks_derivatives_other_endo[block_eq][{ eq, var, lag }] = derivatives[1][{ eq_orig, getDerivID(symbol_table.getID(SymbolType::endogenous, var), lag) }];
-              blocks_other_endo[block_eq].insert(var);
-              dynamic_other_endo[block_eq].emplace(lag, var);
-            }
+            dynamic_other_endo[block_eq].emplace(lag, var);
           break;
         case SymbolType::exogenous:
-          blocks_derivatives_exo[block_eq][{ eq, var, lag }] = derivatives[1][{ eq_orig, getDerivID(symbol_table.getID(SymbolType::exogenous, var), lag) }];
-          blocks_exo[block_eq].insert(var);
           dynamic_exo[block_eq].emplace(lag, var);
           break;
         case SymbolType::exogenousDet:
-          blocks_derivatives_exo_det[block_eq][{ eq, var, lag }] = derivatives[1][{ eq_orig, getDerivID(symbol_table.getID(SymbolType::exogenousDet, var), lag) }];
-          blocks_exo_det[block_eq].insert(var);
           dynamic_exo_det[block_eq].emplace(lag, var);
           break;
         default:
@@ -3565,7 +3568,7 @@ DynamicModel::computeBlockDynJacobianCols()
   blocks_jacob_cols_other_endo.resize(nb_blocks);
   blocks_jacob_cols_exo.resize(nb_blocks);
   blocks_jacob_cols_exo_det.resize(nb_blocks);
-  for (int blk = 0; blk < nb_blocks; blk++)
+  for (size_t blk {0}; blk < nb_blocks; blk++)
     {
       for (int index{0};
            auto [lag, var] : dynamic_endo[blk])
