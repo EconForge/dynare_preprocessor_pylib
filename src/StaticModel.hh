@@ -34,10 +34,11 @@ class DynamicModel;
 class StaticModel : public ModelTree
 {
 private:
-  //! Writes static model file (standard Matlab version)
+  // Writes static model file (MATLAB/Octave version, legacy representation)
   void writeStaticMFile(const string &basename) const;
 
-  //! Writes the main static function of block decomposed model (MATLAB version)
+  /* Writes the main static function of block decomposed model (MATLAB/Octave
+     version, legacy representation) */
   void writeStaticBlockMFile(const string &basename) const;
 
   /* Writes the main static functions of block decomposed model (C version),
@@ -48,7 +49,8 @@ private:
   template<ExprNodeOutputType output_type>
   void writeStaticPerBlockHelper(int blk, ostream &output, temporary_terms_t &temporary_terms) const;
 
-  //! Writes the per-block static files of block decomposed model (MATLAB version)
+  /* Writes the per-block static files of block decomposed model (MATLAB/Octave
+     version, legacy representation) */
   void writeStaticPerBlockMFiles(const string &basename) const;
 
   /* Writes and compiles the per-block static files of block decomposed model
@@ -86,17 +88,20 @@ private:
 
   void computeChainRuleJacobian() override;
 
-  // Helper for writing MATLAB/Octave functions for residuals/derivatives and their temporary terms
+  /* Helper for writing MATLAB/Octave functions for residuals/derivatives and
+     their temporary terms (legacy representation) */
   void writeStaticMFileHelper(const string &basename,
                               const string &name, const string &retvalname,
                               const string &name_tt, size_t ttlen,
                               const string &previous_tt_name,
                               const ostringstream &init_s, const ostringstream &end_s,
                               const ostringstream &s, const ostringstream &s_tt) const;
-  // Writes MATLAB/Octave wrapper function for computing residuals and derivatives at the same time
+  /* Writes MATLAB/Octave wrapper function for computing residuals and
+     derivatives at the same time (legacy representation) */
   void writeStaticMWrapperFunction(const string &basename, const string &ending) const;
 
-  //! Create a legacy *_static.m file for MATLAB/Octave not yet using the temporary terms array interface
+  /* Create the compatibility static.m file for MATLAB/Octave not yet using the
+     temporary terms array interface (legacy representation) */
   void writeStaticMCompatFile(const string &name) const;
 
   int

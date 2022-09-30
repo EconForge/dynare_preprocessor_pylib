@@ -3285,6 +3285,13 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
       create_directories(plusfolder);
       if (block && !use_dll)
         create_directories(plusfolder / "+block");
+
+      auto sparsefolder {plusfolder / "+sparse"};
+      create_directories(sparsefolder);
+      if (!use_dll)
+        create_directories(sparsefolder / "private");
+      if (block_decomposed)
+        create_directories(sparsefolder / "+block");
     }
   create_directories(model_dir / "bytecode");
 
@@ -3321,8 +3328,14 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
     }
 
   // Sparse representation
-  if (julia)
+  if (use_dll)
+    {
+      // TBD
+    }
+  else if (julia)
     writeSparseModelJuliaFiles<true>(basename);
+  else // MATLAB/Octave
+    writeSparseModelMFiles<true>(basename);
 
   writeSetAuxiliaryVariables(basename, julia);
 }

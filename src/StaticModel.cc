@@ -628,6 +628,13 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
       create_directories(plusfolder);
       if (block && !use_dll)
         create_directories(plusfolder / "+block");
+
+      auto sparsefolder {plusfolder / "+sparse"};
+      create_directories(sparsefolder);
+      if (!use_dll)
+        create_directories(sparsefolder / "private");
+      if (block_decomposed)
+        create_directories(sparsefolder / "+block");
     }
   create_directories(model_dir / "bytecode");
 
@@ -664,8 +671,14 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
     }
 
   // Sparse representation
-  if (julia)
+  if (use_dll)
+    {
+      // TBD
+    }
+  else if (julia)
     writeSparseModelJuliaFiles<false>(basename);
+  else // MATLAB/Octave
+    writeSparseModelMFiles<false>(basename);
 
   writeSetAuxiliaryVariables(basename, julia);
 }

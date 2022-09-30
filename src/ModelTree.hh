@@ -375,6 +375,10 @@ protected:
   template<ExprNodeBytecodeOutputType output_type>
   void writeBytecodeModelEquations(BytecodeWriter &code_file, const temporary_terms_t &temporary_terms, const deriv_node_temp_terms_t &tef_terms) const;
 
+  // Writes the sparse representation of the model in MATLAB/Octave
+  template<bool dynamic>
+  void writeSparseModelMFiles(const string &basename) const;
+
   // Writes the sparse representation of the model in Julia
   // Assumes that the directory <MODFILE>/model/julia/ already exists
   template<bool dynamic>
@@ -2445,3 +2449,164 @@ ModelTree::writeSparseModelJuliaFiles(const string &basename) const
     }
 }
 #endif
+
+template<bool dynamic>
+void
+ModelTree::writeSparseModelMFiles(const string &basename) const
+{
+  constexpr ExprNodeOutputType output_type {dynamic ? ExprNodeOutputType::matlabSparseDynamicModel : ExprNodeOutputType::matlabSparseStaticModel};
+  auto [d_sparse_output, tt_sparse_output] = writeModelFileHelper<output_type>();
+
+  const filesystem::path m_dir {packageDir(basename) / "+sparse"};
+  const filesystem::path private_m_dir {m_dir / "private"};
+  // TODO: when C++20 support is complete, mark the following strings constexpr
+  const string prefix { dynamic ? "dynamic_" : "static_" };
+  const string full_prefix { basename + ".sparse." + prefix };
+  const string ss_arg { dynamic ? ", steady_state" : "" };
+
+  size_t ttlen {temporary_terms_derivatives[0].size()};
+
+  ofstream output;
+  auto open_file = [&output](const filesystem::path &p)
+  {
+    output.open(p, ios::out | ios::binary);
+    if (!output.is_open())
+      {
+        cerr << "ERROR: Can't open file " << p.string() << " for writing" << endl;
+        exit(EXIT_FAILURE);
+      }
+  };
+
+  // Residuals (non-block)
+  open_file(private_m_dir / (prefix + "resid_tt.m"));
+  output << "function [T_order, T] = " << prefix << "resid_tt(y, x, params" << ss_arg << ", T_order, T)" << endl
+         << "if isempty(T_order)" << endl
+         << "    T_order = -1;" << endl
+         << "    T = NaN(" << ttlen << ", 1);" << endl
+         << "else if T_order >= 0" << endl
+         << "    return" << endl
+         << "end" << endl
+         << "T_order = 0;" << endl
+         << "if size(T, 1) < " << ttlen << endl
+         << "    T = resize(T, " << ttlen << ", 1);" << endl
+         << "end" << endl
+         << tt_sparse_output[0].str()
+         << "end" << endl;
+  output.close();
+
+  open_file(m_dir / (prefix + "resid.m"));
+  output << "function [residual, T_order, T] = " << prefix << "resid(y, x, params" << ss_arg << ", T_order, T)" << endl
+         << "[T_order, T] = " << full_prefix << "resid_tt(y, x, params" << ss_arg << ", T_order, T);" << endl
+         << "residual = NaN(" << equations.size() << ", 1);" << endl
+         << d_sparse_output[0].str();
+  if constexpr(!dynamic)
+    output << "if ~isreal(residual)" << endl
+           << "    residual = real(residual)+imag(residual).^2;" << endl
+           << "end" << endl;
+  output << "end" << endl;
+  output.close();
+
+  // Jacobian (non-block)
+  ttlen += temporary_terms_derivatives[1].size();
+
+  open_file(private_m_dir / (prefix + "g1_tt.m"));
+  output << "function [T_order, T] = " << prefix << "g1_tt(y, x, params" << ss_arg << ", T_order, T)" << endl
+         << "if isempty(T_order)" << endl
+         << "    T_order = -1;" << endl
+         << "    T = NaN(" << ttlen << ", 1);" << endl
+         << "else if T_order >= 1" << endl
+         << "    return" << endl
+         << "end" << endl
+         << "[T_order, T] = " << full_prefix << "resid_tt(y, x, params" << ss_arg << ", T_order, T);" << endl
+         << "T_order = 1;" << endl
+         << "if size(T, 1) < " << ttlen << endl
+         << "    T = resize(T, " << ttlen << ", 1);" << endl
+         << "end" << endl
+         << tt_sparse_output[1].str()
+         << "end" << endl;
+  output.close();
+
+  open_file(m_dir / (prefix + "g1.m"));
+  // NB: At first order, sparse indices are passed as extra arguments
+  output << "function [g1, T_order, T] = " << prefix << "g1(y, x, params" << ss_arg << ", sparse_rowval, sparse_colval, sparse_colptr, T_order, T)" << endl
+         << "[T_order, T] = " << full_prefix << "g1_tt(y, x, params" << ss_arg << ", T_order, T);" << endl
+         << "g1_v = NaN(" << jacobian_sparse_column_major_order.size() << ", 1);" << endl
+         << d_sparse_output[1].str();
+  if constexpr(!dynamic)
+    output << "if ~isreal(g1_v)" << endl
+           << "    g1_v = real(g1_v)+2*imag(g1_v);" << endl
+           << "end" << endl;
+  output << "g1 = sparse(sparse_rowval, sparse_colval, g1_v, " << equations.size() << ", " << getJacobianColsNbr(true) << ");" << endl
+         << "end" << endl;
+  output.close();
+
+  // Higher-order derivatives (non-block)
+  for (int i {2}; i <= computed_derivs_order; i++)
+    {
+      ttlen += temporary_terms_derivatives[i].size();
+
+      open_file(private_m_dir / (prefix + "g" + to_string(i) + "_tt.m"));
+      output << "function T = " << prefix << "g" << i << "_tt(y, x, params" << ss_arg << ")" << endl
+             << "if isempty(T_order)" << endl
+             << "    T_order = -1;" << endl
+             << "    T = NaN(" << ttlen << ", 1);" << endl
+             << "else if T_order >= " << i << endl
+             << "    return" << endl
+             << "end" << endl
+             << "[T_order, T] = " << full_prefix << "g" << i-1 << "_tt(y, x, params" << ss_arg << ", T_order, T);" << endl
+             << "T_order = " << i << ";" << endl
+             << "if size(T, 1) < " << ttlen << endl
+             << "    T = resize(T, " << ttlen << ", 1);" << endl
+             << "end" << endl
+             << tt_sparse_output[i].str()
+             << "end" << endl;
+      output.close();
+
+      open_file(m_dir / (prefix + "g" + to_string(i) + ".m"));
+      output << "function [g" << i << "_v, T_order, T] = " << prefix << "g" << i << "(y, x, params" << ss_arg << ", T_order, T)" << endl
+             << "[T_order, T] = " << full_prefix << "g" << i << "_tt(y, x, params" << ss_arg << ", T_order, T);" << endl
+             << "g" << i << "_v = NaN(" << derivatives[i].size() << ", 1);" << endl
+             << d_sparse_output[i].str()
+             << "end" << endl;
+      output.close();
+    }
+
+  // Block decomposition
+  if (block_decomposed)
+    {
+      const filesystem::path block_dir {m_dir / "+block"};
+      temporary_terms_t temporary_terms_written;
+      for (int blk {0}; blk < static_cast<int>(blocks.size()); blk++)
+        {
+          const string funcname {prefix + to_string(blk+1)};
+          const BlockSimulationType simulation_type {blocks[blk].simulation_type};
+          const bool evaluate {simulation_type == BlockSimulationType::evaluateForward
+                               || simulation_type == BlockSimulationType::evaluateBackward};
+          const string resid_g1_arg {evaluate ? "" : ", residual, g1"};
+          open_file(block_dir / (funcname + ".m"));
+          output << "function [y, T" << resid_g1_arg << "] = " << funcname << "(y, x, params" << ss_arg << ", sparse_rowval, sparse_colval, sparse_colptr, T)" << endl;
+          if (!evaluate)
+            output << "residual=NaN(" << blocks[blk].mfs_size << ", 1);" << endl;
+
+          // Write residuals and temporary terms (incl. those for derivatives)
+          writePerBlockHelper<output_type>(blk, output, temporary_terms_written);
+
+          // Write Jacobian
+          if (!evaluate)
+            {
+              const bool one_boundary {simulation_type == BlockSimulationType::solveBackwardSimple
+                                       || simulation_type == BlockSimulationType::solveForwardSimple
+                                       || simulation_type == BlockSimulationType::solveBackwardComplete
+                                       || simulation_type == BlockSimulationType::solveForwardComplete};
+              output << "if nargout > 3" << endl
+                     << "    g1_v = NaN(" << blocks_jacobian_sparse_column_major_order[blk].size() << ", 1);" << endl;
+              writeSparsePerBlockJacobianHelper<output_type>(blk, output, temporary_terms_written);
+              output << "    g1 = sparse(sparse_rowval, sparse_colval, g1_v, " << blocks[blk].mfs_size << ", "
+                     << (one_boundary ? 1 : 3)*blocks[blk].mfs_size << ");" << endl
+                     << "end" << endl;
+            }
+          output << "end" << endl;
+          output.close();
+        }
+    }
+}

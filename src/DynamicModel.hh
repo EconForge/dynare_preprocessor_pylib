@@ -118,9 +118,10 @@ private:
   //! Used for var_expectation and var_model
   map<string, set<int>> var_expectation_functions_to_write;
 
-  //! Writes dynamic model file (Matlab version)
+  // Writes dynamic model file (MATLAB/Octave version, legacy representation)
   void writeDynamicMFile(const string &basename) const;
-  //! Writes the main dynamic function of block decomposed model (MATLAB version)
+  /* Writes the main dynamic function of block decomposed model (MATLAB/Octave
+     version, legacy representation) */
   void writeDynamicBlockMFile(const string &basename) const;
   /* Writes the main dynamic functions of block decomposed model (C version),
      then compiles it with the per-block functions into a single MEX */
@@ -131,7 +132,8 @@ private:
   // Helper for writing the per-block dynamic files of block decomposed models (legacy representation)
   template<ExprNodeOutputType output_type>
   void writeDynamicPerBlockHelper(int blk, ostream &output, temporary_terms_t &temporary_terms, int nze_stochastic, int nze_deterministic, int nze_exo, int nze_exo_det, int nze_other_endo) const;
-  //! Writes the per-block dynamic files of block decomposed model (MATLAB version)
+  /* Writes the per-block dynamic files of block decomposed model (MATLAB/Octave
+     version, legacy representation) */
   void writeDynamicPerBlockMFiles(const string &basename) const;
   /* Writes and compiles the per-block dynamic files of block decomposed model
      (C version). Returns the list of paths to the compiled object files. */
@@ -206,9 +208,11 @@ private:
   //! Write reverse cross references
   void writeRevXrefs(ostream &output, const map<pair<int, int>, set<int>> &xrefmap, const string &type) const;
 
-  // Writes MATLAB/Octave wrapper function for computing residuals and derivatives at the same time
+  /* Writes MATLAB/Octave wrapper function for computing residuals and
+     derivatives at the same time (legacy representation) */
   void writeDynamicMWrapperFunction(const string &name, const string &ending) const;
-  // Helper for writing MATLAB/Octave functions for residuals/derivatives and their temporary terms
+  /* Helper for writing MATLAB/Octave functions for residuals/derivatives and
+     their temporary terms (legacy representation) */
   void writeDynamicMFileHelper(const string &basename,
                                const string &name, const string &retvalname,
                                const string &name_tt, size_t ttlen,
@@ -216,7 +220,8 @@ private:
                                const ostringstream &init_s, const ostringstream &end_s,
                                const ostringstream &s, const ostringstream &s_tt) const;
 
-  //! Create a legacy *_dynamic.m file for MATLAB/Octave not yet using the temporary terms array interface
+  /* Create the compatibility dynamic.m file for MATLAB/Octave not yet using
+     the temporary terms array interface (legacy representation) */
   void writeDynamicMCompatFile(const string &basename) const;
 
   //! Internal helper for the copy constructor and assignment operator
