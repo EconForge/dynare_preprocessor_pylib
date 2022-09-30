@@ -225,6 +225,8 @@ protected:
   void computeTemporaryTerms(bool is_matlab, bool no_tmp_terms);
   //! Computes temporary terms per block
   void computeBlockTemporaryTerms();
+
+private:
   /* Add additional temporary terms for a given block. This method is called by
      computeBlockTemporaryTerms(). It does nothing by default, but is meant to
      be overriden by subclasses (actually by DynamicModel, who needs extra
@@ -232,6 +234,8 @@ protected:
   virtual void additionalBlockTemporaryTerms(int blk,
                                              vector<vector<temporary_terms_t>> &blocks_temporary_terms,
                                              map<expr_t, tuple<int, int, int>> &reference_count) const;
+
+protected:
   //! Computes temporary terms for the file containing parameters derivatives
   void computeParamsDerivativesTemporaryTerms();
   //! Writes temporary terms
