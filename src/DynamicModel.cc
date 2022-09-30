@@ -345,10 +345,11 @@ DynamicModel::writeBlockBytecodeAdditionalDerivatives(BytecodeWriter &code_file,
     }
 }
 
-void
+vector<filesystem::path>
 DynamicModel::writeDynamicPerBlockCFiles(const string &basename) const
 {
   temporary_terms_t temporary_terms; // Temp terms written so far
+  vector<filesystem::path> written_src_files;
 
   for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
@@ -364,6 +365,7 @@ DynamicModel::writeDynamicPerBlockCFiles(const string &basename) const
       int nze_exo_det = blocks_derivatives_exo_det[blk].size();
 
       string filename = basename + "/model/src/dynamic_" + to_string(blk+1) + ".c";
+      written_src_files.emplace_back(filename);
       ofstream output{filename, ios::out | ios::binary};
       if (!output.is_open())
         {
@@ -539,6 +541,7 @@ DynamicModel::writeDynamicPerBlockCFiles(const string &basename) const
       header_output << header.str() << ';' << endl;
       header_output.close();
     }
+  return written_src_files;
 }
 
 void
@@ -939,7 +942,7 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
   writeToFileIfModified(output, basename + "Dynamic.jl");
 }
 
-void
+filesystem::path
 DynamicModel::writeDynamicCFile(const string &basename) const
 {
   string filename = basename + "/model/src/dynamic.c";
@@ -1069,6 +1072,8 @@ DynamicModel::writeDynamicCFile(const string &basename) const
          << "}" << endl;
 
   output.close();
+
+  return filename;
 }
 
 string
@@ -1138,7 +1143,7 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
   output.close();
 }
 
-void
+filesystem::path
 DynamicModel::writeDynamicBlockCFile(const string &basename) const
 {
   string filename = basename + "/model/src/dynamic.c";
@@ -1221,6 +1226,8 @@ DynamicModel::writeDynamicBlockCFile(const string &basename) const
          << "}" << endl;
 
   output.close();
+
+  return filename;
 }
 
 void
@@ -3593,12 +3600,8 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
 
       if (use_dll)
         {
-          writeDynamicPerBlockCFiles(basename);
-          writeDynamicBlockCFile(basename);
-          vector<filesystem::path> src_files(blocks.size() + 1);
-          for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
-            src_files[blk] = model_dir / "src" / ("dynamic_" + to_string(blk+1) + ".c");
-          src_files[blocks.size()] = model_dir / "src" / "dynamic.c";
+          auto src_files { writeDynamicPerBlockCFiles(basename) };
+          src_files.emplace_back(writeDynamicBlockCFile(basename));
           compileMEX(basename, "dynamic", mexext, src_files, matlabroot, dynareroot);
         }
       else if (julia)
@@ -3618,9 +3621,8 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
 
       if (use_dll)
         {
-          writeDynamicCFile(basename);
-          compileMEX(basename, "dynamic", mexext, { model_dir / "src" / "dynamic.c" },
-                     matlabroot, dynareroot);
+          auto src_file { writeDynamicCFile(basename) };
+          compileMEX(basename, "dynamic", mexext, { src_file }, matlabroot, dynareroot);
         }
       else if (julia)
         writeDynamicJuliaFile(basename);

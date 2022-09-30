@@ -122,12 +122,13 @@ private:
   //! Writes dynamic model file (Julia version)
   void writeDynamicJuliaFile(const string &basename) const;
   //! Writes dynamic model file (C version)
-  /*! \todo add third derivatives handling */
-  void writeDynamicCFile(const string &basename) const;
+  // Returns the path to the generated C source file
+  filesystem::path writeDynamicCFile(const string &basename) const;
   //! Writes the main dynamic function of block decomposed model (MATLAB version)
   void writeDynamicBlockMFile(const string &basename) const;
   //! Writes the main dynamic function of block decomposed model (C version)
-  void writeDynamicBlockCFile(const string &basename) const;
+  // Returns the path to the generated C source file
+  filesystem::path writeDynamicBlockCFile(const string &basename) const;
   /* Computes the number of nonzero elements in deterministic Jacobian of
      block-decomposed model */
   int nzeDeterministicJacobianForBlock(int blk) const;
@@ -136,8 +137,9 @@ private:
   void writeDynamicPerBlockHelper(int blk, ostream &output, temporary_terms_t &temporary_terms, int nze_stochastic, int nze_deterministic, int nze_exo, int nze_exo_det, int nze_other_endo) const;
   //! Writes the per-block dynamic files of block decomposed model (MATLAB version)
   void writeDynamicPerBlockMFiles(const string &basename) const;
-  //! Writes the per-block dynamic files of block decomposed model (C version)
-  void writeDynamicPerBlockCFiles(const string &basename) const;
+  /* Writes the per-block dynamic files of block decomposed model (C version).
+     Returns the list of paths to the generated C source files (not the headers) */
+  vector<filesystem::path> writeDynamicPerBlockCFiles(const string &basename) const;
   //! Writes the code of the block-decomposed model in virtual machine bytecode
   void writeDynamicBlockBytecode(const string &basename) const;
   // Writes derivatives w.r.t. exo, exo det and other endogenous

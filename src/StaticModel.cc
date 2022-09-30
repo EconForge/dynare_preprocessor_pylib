@@ -150,16 +150,18 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
     }
 }
 
-void
+vector<filesystem::path>
 StaticModel::writeStaticPerBlockCFiles(const string &basename) const
 {
   temporary_terms_t temporary_terms; // Temp terms written so far
+  vector<filesystem::path> written_src_files;
 
   for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
       BlockSimulationType simulation_type = blocks[blk].simulation_type;
 
       string filename = basename + "/model/src/static_" + to_string(blk+1) + ".c";
+      written_src_files.emplace_back(filename);
       ofstream output{filename, ios::out | ios::binary};
       if (!output.is_open())
         {
@@ -237,6 +239,7 @@ StaticModel::writeStaticPerBlockCFiles(const string &basename) const
       header_output << header.str() << ';' << endl;
       header_output.close();
     }
+  return written_src_files;
 }
 
 void
@@ -619,7 +622,7 @@ StaticModel::writeStaticMCompatFile(const string &basename) const
   output.close();
 }
 
-void
+filesystem::path
 StaticModel::writeStaticCFile(const string &basename) const
 {
   // Writing comments and function definition command
@@ -728,6 +731,8 @@ StaticModel::writeStaticCFile(const string &basename) const
          << "}" << endl;
 
   output.close();
+
+  return filename;
 }
 
 void
@@ -973,12 +978,8 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
 
       if (use_dll)
         {
-          writeStaticPerBlockCFiles(basename);
-          writeStaticBlockCFile(basename);
-          vector<filesystem::path> src_files(blocks.size() + 1);
-          for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
-            src_files[blk] = model_dir / "src" / ("static_" + to_string(blk+1) + ".c");
-          src_files[blocks.size()] = model_dir / "src" / "static.c";
+          auto src_files { writeStaticPerBlockCFiles(basename) };
+          src_files.emplace_back(writeStaticBlockCFile(basename));
           compileMEX(basename, "static", mexext, src_files, matlabroot, dynareroot);
         }
       else if (julia)
@@ -998,9 +999,8 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
 
       if (use_dll)
         {
-          writeStaticCFile(basename);
-          compileMEX(basename, "static", mexext, { model_dir / "src" / "static.c" },
-                     matlabroot, dynareroot);
+          auto src_file { writeStaticCFile(basename) };
+          compileMEX(basename, "static", mexext, { src_file }, matlabroot, dynareroot);
         }
       else if (julia)
         writeStaticJuliaFile(basename);
@@ -1055,7 +1055,7 @@ StaticModel::writeStaticBlockMFile(const string &basename) const
   output.close();
 }
 
-void
+filesystem::path
 StaticModel::writeStaticBlockCFile(const string &basename) const
 {
   string filename = basename + "/model/src/static.c";
@@ -1126,6 +1126,8 @@ StaticModel::writeStaticBlockCFile(const string &basename) const
          << "    mxDestroyArray(g1);" << endl
          << "}" << endl;
   output.close();
+
+  return filename;
 }
 
 void

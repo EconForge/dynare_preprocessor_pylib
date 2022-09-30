@@ -38,7 +38,8 @@ private:
   void writeStaticMFile(const string &basename) const;
 
   //! Writes static model file (C version)
-  void writeStaticCFile(const string &basename) const;
+  // Returns the path to the generated C source file
+  filesystem::path writeStaticCFile(const string &basename) const;
 
   //! Writes static model file (Julia version)
   void writeStaticJuliaFile(const string &basename) const;
@@ -47,7 +48,8 @@ private:
   void writeStaticBlockMFile(const string &basename) const;
 
   //! Writes the main static function of block decomposed model (C version)
-  void writeStaticBlockCFile(const string &basename) const;
+  // Returns the path to the generated C source file
+  filesystem::path writeStaticBlockCFile(const string &basename) const;
 
   //! Helper for writing a per-block static file of block decomposed model
   template<ExprNodeOutputType output_type>
@@ -56,8 +58,9 @@ private:
   //! Writes the per-block static files of block decomposed model (MATLAB version)
   void writeStaticPerBlockMFiles(const string &basename) const;
 
-  //! Writes the per-block static files of block decomposed model (C version)
-  void writeStaticPerBlockCFiles(const string &basename) const;
+  /* Writes the per-block static files of block decomposed model (C version).
+     Returns the list of paths to the generated C source files (not the headers) */
+  vector<filesystem::path> writeStaticPerBlockCFiles(const string &basename) const;
 
   //! Writes the code of the block-decomposed model in virtual machine bytecode
   void writeStaticBlockBytecode(const string &basename) const;
