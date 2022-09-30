@@ -524,6 +524,11 @@ main(int argc, char **argv)
                            nointeractive, config_file, check_model_changes, minimal_workspace, compute_xrefs,
                            mexext, matlabroot, dynareroot, onlymodel, gui, notime);
 
+  /* Not technically needed since those are std::jthread, but ensures that the
+     preprocessor final message is printed after the end of compilation (and is
+     not printed in case of compilation failure). */
+  ModelTree::joinMEXCompilationThreads();
+
   cout << "Preprocessing completed." << endl;
   return EXIT_SUCCESS;
 }

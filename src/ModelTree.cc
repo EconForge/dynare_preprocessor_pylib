@@ -36,6 +36,8 @@
 #include <regex>
 #include <utility>
 
+vector<jthread> ModelTree::mex_compilation_threads {};
+
 void
 ModelTree::copyHelper(const ModelTree &m)
 {
@@ -1751,11 +1753,18 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
 
   cout << "Compiling " << funcname << " MEX..." << endl << cmd.str() << endl;
 
-  if (system(cmd.str().c_str()))
-    {
-      cerr << "Compilation failed" << endl;
-      exit(EXIT_FAILURE);
-    }
+  /* The command line must be captured by value by the thread (a reference
+     would quickly become dangling). And std::ostringstream is not copyable, so
+     capture a std::string. */
+  string cmd_str { cmd.str() };
+  mex_compilation_threads.emplace_back([cmd_str]
+  {
+    if (system(cmd_str.c_str()))
+      {
+        cerr << "Compilation failed" << endl;
+        exit(EXIT_FAILURE);
+      }
+  });
 }
 
 void
@@ -1857,4 +1866,11 @@ ModelTree::writeBlockBytecodeAdditionalDerivatives([[maybe_unused]] BytecodeWrit
                                                    [[maybe_unused]] const temporary_terms_t &temporary_terms_union,
                                                    [[maybe_unused]] const deriv_node_temp_terms_t &tef_terms) const
 {
+}
+
+void
+ModelTree::joinMEXCompilationThreads()
+{
+  for (auto &it : mex_compilation_threads)
+    it.join();
 }

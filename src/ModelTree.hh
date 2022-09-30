@@ -29,6 +29,7 @@
 #include <filesystem>
 #include <optional>
 #include <cassert>
+#include <thread>
 
 #include "DataTree.hh"
 #include "EquationTags.hh"
@@ -324,6 +325,9 @@ protected:
   /*! Maps endogenous type specific IDs to equation numbers */
   vector<int> endo2eq;
 
+  // Stores threads for compiling MEX files in parallel
+  static vector<jthread> mex_compilation_threads;
+
   /* Compute a pseudo-Jacobian whose all elements are either zero or one,
      depending on whether the variable symbolically appears in the equation */
   jacob_map_t computeSymbolicJacobian() const;
@@ -459,7 +463,12 @@ private:
   //! Finds a suitable GCC compiler on macOS
   static string findGccOnMacos(const string &mexext);
 #endif
-  //! Compiles a MEX file
+  /* Compiles a MEX file. The compilation is done in a separate asynchronous
+     thread, so the call to this function is not blocking.
+     TODO: further improve the function so that when a MEX has multiple source
+     files, those get compiled in separate threads; this could however
+     require implementing a scheduler, so as to not run more threads than
+     there are logical cores. */
   void compileMEX(const string &basename, const string &funcname, const string &mexext, const vector<filesystem::path> &src_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
 
 public:
@@ -506,6 +515,9 @@ public:
      expression on the LHS, and returns the RHS of that equation.
      If no such equation can be found, throws an ExprNode::MatchFailureExpression */
   expr_t getRHSFromLHS(expr_t lhs) const;
+
+  // Calls join() on all MEX compilation threads
+  static void joinMEXCompilationThreads();
 
   //! Returns all the equation tags associated to an equation
   map<string, string>
