@@ -3381,6 +3381,7 @@ ParsingDriver::end_irf_calibration()
                                                      mod_file->symbol_table,
                                                      options_list));
   irf_calibration_constraints.clear();
+  options_list.clear();
 }
 
 void
