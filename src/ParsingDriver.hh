@@ -556,7 +556,7 @@ public:
   //! Estimation Data
   void estimation_data();
   //! Sets the prior for a parameter
-  void set_prior(const string &name, const string &subsample_name);
+  void set_prior(string name, string subsample_name);
   //! Sets the joint prior for a set of parameters
   void set_joint_prior(const vector<string> &symbol_vec);
   //! Adds a parameters to the list of joint parameters
@@ -564,21 +564,21 @@ public:
   //! Adds the variance option to its temporary holding place
   void set_prior_variance(expr_t variance = nullptr);
   //! Copies the prior from_name to_name
-  void copy_prior(const string &to_declaration_type, const string &to_name1, const string &to_name2, const string &to_subsample_name,
-                  const string &from_declaration_type, const string &from_name1, const string &from_name2, const string &from_subsample_name);
+  void copy_prior(string to_declaration_type, string to_name1, string to_name2, string to_subsample_name,
+                  string from_declaration_type, string from_name1, string from_name2, string from_subsample_name);
   //! Sets the options for a parameter
-  void set_options(const string &name, const string &subsample_name);
+  void set_options(string name, string subsample_name);
   //! Copies the options from_name to_name
-  void copy_options(const string &to_declaration_type, const string &to_name1, const string &to_name2, const string &to_subsample_name,
-                    const string &from_declaration_type, const string &from_name1, const string &from_name2, const string &from_subsample_name);
+  void copy_options(string to_declaration_type, string to_name1, string to_name2, string to_subsample_name,
+                    string from_declaration_type, string from_name1, string from_name2, string from_subsample_name);
   //! Sets the prior for estimated std dev
-  void set_std_prior(const string &name, const string &subsample_name);
+  void set_std_prior(string name, string subsample_name);
   //! Sets the options for estimated std dev
-  void set_std_options(const string &name, const string &subsample_name);
+  void set_std_options(string name, string subsample_name);
   //! Sets the prior for estimated correlation
-  void set_corr_prior(const string &name1, const string &name2, const string &subsample_name);
+  void set_corr_prior(string name1, string name2, string subsample_name);
   //! Sets the options for estimated correlation
-  void set_corr_options(const string &name1, const string &name2, const string &subsample_name);
+  void set_corr_options(string name1, string name2, string subsample_name);
   //! Runs estimation process
   void run_estimation(vector<string> symbol_list);
   //! Runs dynare_sensitivy()
@@ -641,10 +641,10 @@ public:
   void set_optim_weights(const string &name1, const string &name2, expr_t value);
   void set_osr_params(vector<string> symbol_list);
   void run_osr(vector<string> symbol_list);
-  void run_dynasave(const string &filename, vector<string> symbol_list);
-  void run_dynatype(const string &filename, vector<string> symbol_list);
+  void run_dynasave(string filename, vector<string> symbol_list);
+  void run_dynatype(string filename, vector<string> symbol_list);
   void run_load_params_and_steady_state(const string &filename);
-  void run_save_params_and_steady_state(const string &filename);
+  void run_save_params_and_steady_state(string filename);
   void run_identification();
   void add_mc_filename(string filename, string prior = "1");
   void run_model_comparison();
@@ -847,11 +847,11 @@ public:
   //! Adds an external function call node
   expr_t add_model_var_or_external_function(const string &function_name, bool in_model_block);
   //! Adds a native statement
-  void add_native(const string &s);
+  void add_native(string s);
   //! Adds a native statement, first removing the set of characters passed in token (and everything after)
   void add_native_remove_charset(string str, const string &token);
   //! Adds a verbatim statement
-  void add_verbatim(const string &s);
+  void add_verbatim(string s);
   //! Adds a verbatim statement, first removing the set of characters passed in token (and everything after)
   void add_verbatim_remove_charset(string str, const string &token);
   //! Resets data_tree and model_tree pointers to default (i.e. mod_file->expressions_tree)
@@ -891,11 +891,11 @@ public:
   //! Add a set of shock groups
   void add_shock_group(string name);
   //! End shock groups declaration
-  void end_shock_groups(const string &name);
+  void end_shock_groups(string name);
   //! Add a set of init2shocks
   void add_init2shocks(const string &endo_name, const string &exo_name);
   //! End init2shocks declaration
-  void end_init2shocks(const string &name);
+  void end_init2shocks(string name);
   void smoother2histval();
   void histval_file();
   void perfect_foresight_setup();
@@ -914,7 +914,7 @@ public:
   //! Start parsing an occbin_constraints block
   void begin_occbin_constraints();
   //! Add an occbin_constraints block
-  void end_occbin_constraints(const vector<tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>> &constraints);
+  void end_occbin_constraints(vector<tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>> constraints);
   // Process a model_remove statement
   void model_remove(const vector<pair<string, string>> &listed_eqs_by_tags);
   // Begin a model_replace statement

@@ -74,7 +74,7 @@ protected:
 class InitValStatement : public InitOrEndValStatement
 {
 public:
-  InitValStatement(const init_values_t &init_values_arg,
+  InitValStatement(init_values_t init_values_arg,
                    const SymbolTable &symbol_table_arg,
                    bool all_values_required_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
@@ -87,7 +87,7 @@ public:
 class EndValStatement : public InitOrEndValStatement
 {
 public:
-  EndValStatement(const init_values_t &init_values_arg,
+  EndValStatement(init_values_t init_values_arg,
                   const SymbolTable &symbol_table_arg,
                   bool all_values_required_arg);
   //! Workaround for trac ticket #35
@@ -114,7 +114,7 @@ private:
   static string typeToString(LearntEndValType type);
 public:
   EndValLearntInStatement(int learnt_in_period_arg,
-                          const learnt_end_values_t &learnt_end_values_arg,
+                          learnt_end_values_t learnt_end_values_arg,
                           const SymbolTable &symbol_table_arg);
   void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;

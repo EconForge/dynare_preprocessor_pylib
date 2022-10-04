@@ -885,10 +885,11 @@ Init2shocksStatement::writeJsonOutput(ostream &output) const
 }
 
 HeteroskedasticShocksStatement::HeteroskedasticShocksStatement(bool overwrite_arg,
-                                                               const heteroskedastic_shocks_t &values_arg,
-                                                               const heteroskedastic_shocks_t &scales_arg,
+                                                               heteroskedastic_shocks_t values_arg,
+                                                               heteroskedastic_shocks_t scales_arg,
                                                                const SymbolTable &symbol_table_arg)
-  : overwrite{overwrite_arg}, values{values_arg}, scales{scales_arg}, symbol_table{symbol_table_arg}
+  : overwrite{overwrite_arg}, values{move(values_arg)}, scales{move(scales_arg)},
+    symbol_table{symbol_table_arg}
 {
 }
 

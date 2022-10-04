@@ -176,10 +176,10 @@ InitOrEndValStatement::writeJsonInitValues(ostream &output) const
     }
 }
 
-InitValStatement::InitValStatement(const init_values_t &init_values_arg,
+InitValStatement::InitValStatement(init_values_t init_values_arg,
                                    const SymbolTable &symbol_table_arg,
                                    bool all_values_required_arg) :
-  InitOrEndValStatement{init_values_arg, symbol_table_arg, all_values_required_arg}
+  InitOrEndValStatement{move(init_values_arg), symbol_table_arg, all_values_required_arg}
 {
 }
 
@@ -242,10 +242,10 @@ InitValStatement::writeOutputPostInit(ostream &output) const
          <<"end" << endl;
 }
 
-EndValStatement::EndValStatement(const init_values_t &init_values_arg,
+EndValStatement::EndValStatement(init_values_t init_values_arg,
                                  const SymbolTable &symbol_table_arg,
                                  bool all_values_required_arg) :
-  InitOrEndValStatement{init_values_arg, symbol_table_arg, all_values_required_arg}
+  InitOrEndValStatement{move(init_values_arg), symbol_table_arg, all_values_required_arg}
 {
 }
 
@@ -299,7 +299,7 @@ EndValStatement::writeJsonOutput(ostream &output) const
 }
 
 EndValLearntInStatement::EndValLearntInStatement(int learnt_in_period_arg,
-                                                 const learnt_end_values_t &learnt_end_values_arg,
+                                                 learnt_end_values_t learnt_end_values_arg,
                                                  const SymbolTable &symbol_table_arg) :
   learnt_in_period{learnt_in_period_arg},
   learnt_end_values{move(learnt_end_values_arg)},

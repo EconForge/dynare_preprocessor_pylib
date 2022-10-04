@@ -5322,8 +5322,8 @@ MatchedMomentsStatement::writeJsonOutput(ostream &output) const
 }
 
 OccbinConstraintsStatement::OccbinConstraintsStatement(const DataTree &data_tree_arg,
-                                                       const vector<tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>> constraints_arg)
-  : data_tree{data_tree_arg}, constraints{constraints_arg}
+                                                       vector<tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>> constraints_arg)
+  : data_tree{data_tree_arg}, constraints{move(constraints_arg)}
 {
 }
 

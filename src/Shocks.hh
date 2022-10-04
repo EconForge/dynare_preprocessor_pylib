@@ -234,8 +234,8 @@ private:
   const heteroskedastic_shocks_t values, scales;
   const SymbolTable &symbol_table;
 public:
-  HeteroskedasticShocksStatement(bool overwrite_arg, const heteroskedastic_shocks_t &values_arg,
-                                 const heteroskedastic_shocks_t &scales_arg,
+  HeteroskedasticShocksStatement(bool overwrite_arg, heteroskedastic_shocks_t values_arg,
+                                 heteroskedastic_shocks_t scales_arg,
                                  const SymbolTable &symbol_table_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
