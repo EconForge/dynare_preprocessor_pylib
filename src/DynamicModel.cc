@@ -25,6 +25,7 @@
 #include <numeric>
 #include <regex>
 #include <sstream>
+#include <string_view>
 
 #include "DynamicModel.hh"
 #include "ParsingDriver.hh"
@@ -243,7 +244,7 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
         output << "function [residual, y, T, g1, varargout] = dynamic_" << blk+1 << "(y, x, params, steady_state, T, it_, stochastic_mode)" << endl;
 
       output << "  % ////////////////////////////////////////////////////////////////////////" << endl
-             << "  % //" << "                     Block "s.substr(static_cast<int>(log10(blk + 1))) << blk+1
+             << "  % //" << "                     Block "sv.substr(static_cast<int>(log10(blk + 1))) << blk+1
              << "                                        //" << endl
              << "  % //                     Simulation type "
              << BlockSim(simulation_type) << "  //" << endl
@@ -1528,9 +1529,12 @@ DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_option_value, b
   for (auto it = sregex_iterator(tags.begin(), tags.end(), s);
        it != sregex_iterator(); ++it)
     {
-      auto str = it->str();
-      if (str[0] == '\'' && str[str.size()-1] == '\'')
-        str = str.substr(1, str.size()-2);
+      string_view str {it->str()};
+      if (str.front() == '\'' && str.back() == '\'')
+        {
+          str.remove_prefix(1);
+          str.remove_suffix(1);
+        }
       eq_tag_set.emplace_back(tagname, str);
     }
   return eq_tag_set;

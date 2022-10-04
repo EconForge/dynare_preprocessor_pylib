@@ -3245,13 +3245,11 @@ ParsingDriver::add_native(string s)
 }
 
 void
-ParsingDriver::add_native_remove_charset(string str, const string &token)
+ParsingDriver::add_native_remove_charset(string_view str, string_view token)
 {
   size_t found = str.find(token);
-
-  assert(found != string::npos);
-  str.resize(found);
-  add_native(move(str));
+  assert(found != string_view::npos);
+  add_native(string{str.substr(0, found)});
 }
 
 void
@@ -3261,13 +3259,11 @@ ParsingDriver::add_verbatim(string s)
 }
 
 void
-ParsingDriver::add_verbatim_remove_charset(string str, const string &token)
+ParsingDriver::add_verbatim_remove_charset(string_view str, string_view token)
 {
   size_t found = str.find(token);
-
-  assert(found != string::npos);
-  str.resize(found);
-  add_verbatim(str);
+  assert(found != string_view::npos);
+  add_verbatim(string{str.substr(0, found)});
 }
 
 void
