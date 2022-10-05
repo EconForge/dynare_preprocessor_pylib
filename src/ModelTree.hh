@@ -303,7 +303,7 @@ protected:
   template<ExprNodeOutputType output_type>
   pair<vector<ostringstream>, vector<ostringstream>> writeModelFileHelper() const;
 
-  // Writes and compiles dynamic/static file (C version)
+  // Writes and compiles dynamic/static file (C version, legacy representation)
   template<bool dynamic>
   void writeModelCFile(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
 
@@ -378,6 +378,10 @@ protected:
   // Writes the sparse representation of the model in MATLAB/Octave
   template<bool dynamic>
   void writeSparseModelMFiles(const string &basename) const;
+
+  // Writes and compiles the sparse representation of the model in C
+  template<bool dynamic>
+  void writeSparseModelCFiles(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
 
   // Writes the sparse representation of the model in Julia
   // Assumes that the directory <MODFILE>/model/julia/ already exists
@@ -2607,6 +2611,326 @@ ModelTree::writeSparseModelMFiles(const string &basename) const
             }
           output << "end" << endl;
           output.close();
+        }
+    }
+}
+
+template<bool dynamic>
+void
+ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
+                                  const filesystem::path &matlabroot,
+                                  const filesystem::path &dynareroot) const
+{
+  constexpr ExprNodeOutputType output_type {dynamic ? ExprNodeOutputType::CSparseDynamicModel : ExprNodeOutputType::CSparseStaticModel};
+  auto [d_sparse_output, tt_sparse_output] = writeModelFileHelper<output_type>();
+
+  const filesystem::path mex_dir {packageDir(basename) / "+sparse"};
+  const filesystem::path model_src_dir {filesystem::path{basename} / "model" / "src" / "sparse"};
+  // TODO: when C++20 support is complete, mark the following strings constexpr
+  const string prefix { dynamic ? "dynamic_" : "static_" };
+  const string ss_argin { dynamic ? ", const double *restrict steady_state" : "" };
+  const string ss_argout { dynamic ? ", steady_state" : "" };
+  const int ylen {(dynamic ? 3 : 1)*symbol_table.endo_nbr()};
+  const int xlen {symbol_table.exo_nbr()+symbol_table.exo_det_nbr()};
+
+  vector<filesystem::path> tt_object_files;
+
+  ofstream output;
+  auto open_file = [&output](const filesystem::path &p)
+  {
+    output.open(p, ios::out | ios::binary);
+    if (!output.is_open())
+      {
+        cerr << "ERROR: Can't open file " << p.string() << " for writing" << endl;
+        exit(EXIT_FAILURE);
+      }
+  };
+
+  open_file(model_src_dir / "power_deriv.h");
+  writePowerDerivHeader(output);
+  output.close();
+
+  filesystem::path power_deriv_src {model_src_dir / "power_deriv.c"};
+  open_file(power_deriv_src);
+  output << "#include <math.h>" << endl << endl;
+  writePowerDeriv(output);
+  output.close();
+  auto power_deriv_object {compileMEX(model_src_dir, "power_deriv", mexext, { power_deriv_src },
+                                      matlabroot, dynareroot, false)};
+
+  size_t ttlen {0};
+
+  // Helper for dealing with y, x, params and steady_state inputs (shared with block case)
+  auto y_x_params_ss_inputs = [&](bool assign_y)
+  {
+    output << "  if (!(mxIsDouble(prhs[0]) && !mxIsComplex(prhs[0]) && !mxIsSparse(prhs[0]) && mxGetNumberOfElements(prhs[0]) == " << ylen << "))" << endl
+           << R"(    mexErrMsgTxt("y must be a real dense numeric array with )" << ylen << R"( elements");)" << endl;
+    if (assign_y)
+      output << "  const double *restrict y = mxGetPr(prhs[0]);" << endl;
+    output << "  if (!(mxIsDouble(prhs[1]) && !mxIsComplex(prhs[1]) && !mxIsSparse(prhs[1]) && mxGetNumberOfElements(prhs[1]) == " << xlen << "))" << endl
+           << R"(    mexErrMsgTxt("x must be a real dense numeric array with )" << xlen << R"( elements");)" << endl
+           << "  const double *restrict x = mxGetPr(prhs[1]);" << endl
+           << "  if (!(mxIsDouble(prhs[2]) && !mxIsComplex(prhs[2]) && !mxIsSparse(prhs[2]) && mxGetNumberOfElements(prhs[2]) == " << symbol_table.param_nbr() << "))" << endl
+           << R"(    mexErrMsgTxt("params must be a real dense numeric array with )" << symbol_table.param_nbr() << R"( elements");)" << endl
+           << "  const double *restrict params = mxGetPr(prhs[2]);" << endl;
+    if constexpr(dynamic)
+      output << "  if (!(mxIsDouble(prhs[3]) && !mxIsComplex(prhs[3]) && !mxIsSparse(prhs[3]) && mxGetNumberOfElements(prhs[3]) == " << symbol_table.endo_nbr() << "))" << endl
+             << R"(    mexErrMsgTxt("steady_state must be a real dense numeric array with )" << symbol_table.endo_nbr() << R"( elements");)" << endl
+             << "  const double *restrict steady_state = mxGetPr(prhs[3]);" << endl;
+  };
+
+  // Helper for dealing with sparse_rowval and sparse_colptr inputs (shared with block case)
+  auto sparse_indices_inputs = [&](int ncols, int nzval)
+  {
+    // We use sparse_rowval and sparse_colptr (sparse_colval is unused)
+    const int row_idx {3+static_cast<int>(dynamic)}, col_idx {row_idx+2};
+    output << "  if (!(mxIsInt32(prhs[" << row_idx << "]) && mxGetNumberOfElements(prhs[" << row_idx << "]) == " << nzval << "))" << endl
+           << R"(    mexErrMsgTxt("sparse_rowval must be an int32 array with )" << nzval << R"( elements");)" << endl
+           << "  if (!(mxIsInt32(prhs[" << col_idx << "]) && mxGetNumberOfElements(prhs[" << col_idx << "]) == " << ncols+1 << "))" << endl
+           << R"(    mexErrMsgTxt("sparse_colptr must be an int32 array with )" << ncols+1 << R"( elements");)" << endl
+           << "#if MX_HAS_INTERLEAVED_COMPLEX" << endl
+           << "  const int32_T *restrict sparse_rowval = mxGetInt32s(prhs[" << row_idx << "]);" << endl
+           << "  const int32_T *restrict sparse_colptr = mxGetInt32s(prhs[" << col_idx << "]);" << endl
+           << "#else" << endl
+           << "  const int32_T *restrict sparse_rowval = (int32_T *) mxGetData(prhs[" << row_idx << "]);" << endl
+           << "  const int32_T *restrict sparse_colptr = (int32_T *) mxGetData(prhs[" << col_idx << "]);" << endl
+           << "#endif" << endl;
+  };
+
+  // Helper for creating sparse Jacobian (shared with block case)
+  auto sparse_jacobian_create = [&](int argidx, int nrows, int ncols, int nzval)
+  {
+    output << "  plhs[" << argidx << "] = mxCreateSparse(" << nrows << ", " << ncols << ", " << nzval << ", mxREAL);" << endl
+           << "  mwIndex *restrict ir = mxGetIr(plhs[" << argidx << "]), *restrict jc = mxGetJc(plhs[" << argidx << "]);" << endl
+           << "  for (mwSize i = 0; i < " << nzval << "; i++)" << endl
+           << "    *ir++ = *sparse_rowval++ - 1;" << endl
+           << "  for (mwSize i = 0; i < " << ncols+1 << "; i++)" << endl
+           << "    *jc++ = *sparse_colptr++ - 1;" << endl;
+  };
+
+  for (int i {0}; i <= computed_derivs_order; i++)
+    {
+      const string funcname { prefix + (i == 0 ? "resid" : "g" + to_string(i))};
+      ttlen += temporary_terms_derivatives[i].size();
+
+      const string prototype_tt { "void " + funcname + "_tt(const double *restrict y, const double *restrict x, const double *restrict params" + ss_argin + ", double *restrict T)" };
+
+      const filesystem::path header_tt { model_src_dir / (funcname + "_tt.h") };
+      open_file(header_tt);
+      output << prototype_tt << ";" << endl;
+      output.close();
+
+      const filesystem::path source_tt { model_src_dir / (funcname + "_tt.c") };
+      open_file(source_tt);
+      output << "#include <math.h>" << endl
+             << R"(#include "mex.h")" << endl // Needed for calls to external functions
+             << R"(#include "power_deriv.h")" << endl
+             << endl
+             << prototype_tt << endl
+             << "{" << endl
+             << tt_sparse_output[i].str()
+             << "}" << endl
+             << endl;
+      output.close();
+      tt_object_files.push_back(compileMEX(model_src_dir, funcname + "_tt", mexext, { source_tt },
+                                           matlabroot, dynareroot, false));
+
+      const string prototype_main {"void " + funcname + "(const double *restrict y, const double *restrict x, const double *restrict params" + ss_argin + ", const double *restrict T, double *restrict " + (i == 0 ? "residual" : "g" + to_string(i) + "_v") + ")"};
+
+      const filesystem::path header_main { model_src_dir / (funcname + ".h") };
+      open_file(header_main);
+      output << prototype_main << ";" << endl;
+      output.close();
+
+      const filesystem::path source_main { model_src_dir / (funcname + ".c") };
+      open_file(source_main);
+      output << "#include <math.h>" << endl
+             << R"(#include "mex.h")" << endl // Needed for calls to external functions
+             << endl;
+      writePowerDerivHeader(output);
+      output << endl
+             << prototype_main << endl
+             << "{" << endl;
+      if (i == 0)
+        output << "  double lhs, rhs;" << endl;
+      output << d_sparse_output[i].str()
+             << "}" << endl
+             << endl;
+      output.close();
+      auto main_object_file {compileMEX(model_src_dir, funcname, mexext, { source_main },
+                                        matlabroot, dynareroot, false)};
+
+      const filesystem::path source_mex { model_src_dir / (funcname + "_mex.c")};
+      int nargin {5+static_cast<int>(dynamic)+3*static_cast<int>(i == 1)};
+      open_file(source_mex);
+      output << "#include <string.h>" << endl // For memcpy()
+             << R"(#include "mex.h")" << endl
+             << R"(#include ")" << funcname << R"(.h")" << endl;
+      for (int j {0}; j <= i; j++)
+        output << R"(#include ")" << prefix << (j == 0 ? "resid" : "g" + to_string(j)) << R"(_tt.h")" << endl;
+      output << endl
+             << "#define max(a, b) ((a > b) ? (a) : (b))" << endl
+             << endl
+             << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
+             << "{" << endl
+             << "  if (nrhs != " << nargin-2 << " && nrhs != " << nargin << ")" << endl
+             << R"(    mexErrMsgTxt("Accepts exactly )" << nargin-2 << " or " << nargin << R"( input arguments");)" << endl
+             << "  if (nlhs != 1 && nlhs != 3)" << endl
+             << R"(    mexErrMsgTxt("Accepts exactly 1 or 3 output arguments");)" << endl;
+
+      y_x_params_ss_inputs(true);
+
+      if (i == 1)
+        sparse_indices_inputs(getJacobianColsNbr(true), jacobian_sparse_column_major_order.size());
+
+      output << "  mxArray *T_mx, *T_order_mx;" << endl
+             << "  int T_order_on_input;" << endl
+             << "  if (nrhs > " << nargin-2 << ")" << endl
+             << "    {" << endl
+             << "      T_order_mx = (mxArray *) prhs[" << nargin-2 << "];" << endl
+             << "      T_mx = (mxArray *) prhs[" << nargin-1 << "];" << endl
+             << "      if (!(mxIsScalar(T_order_mx) && mxIsNumeric(T_order_mx)))" << endl
+             << R"(        mexErrMsgTxt("T_order should be a numeric scalar");)" << endl
+             << "      if (!(mxIsDouble(T_mx) && !mxIsComplex(T_mx) && !mxIsSparse(T_mx) && mxGetN(T_mx) == 1))" << endl
+             << R"(        mexErrMsgTxt("T_mx should be a real dense column vector");)" << endl
+             << "      T_order_on_input = mxGetScalar(T_order_mx);" << endl
+             << "      if (T_order_on_input < " << i << ")" << endl
+             << "        {" << endl
+             << "          T_order_mx = mxCreateDoubleScalar(" << i << ");" << endl
+             << "          const mxArray *T_old_mx = T_mx;" << endl
+             << "          T_mx = mxCreateDoubleMatrix(max(" << ttlen << ", mxGetM(T_old_mx)), 1, mxREAL);" << endl
+             << "          memcpy(mxGetPr(T_mx), mxGetPr(T_old_mx), mxGetM(T_old_mx)*sizeof(double));" << endl
+             << "        }" << endl
+             << "      else if (mxGetM(T_mx) < " << ttlen << ")" << endl
+             << R"(        mexErrMsgTxt("T_mx should have at least )" << ttlen << R"( elements");)" << endl
+             << "    }" << endl
+             << "  else" << endl
+             << "    {" << endl
+             << "      T_order_mx = mxCreateDoubleScalar(" << i << ");" << endl
+             << "      T_mx = mxCreateDoubleMatrix(" << ttlen << ", 1, mxREAL);" << endl
+             << "      T_order_on_input = -1;" << endl
+             << "    }" << endl
+             << "  double *restrict T = mxGetPr(T_mx);" << endl
+             << "  if (T_order_on_input < " << i << ")" << endl
+             << "    switch (T_order_on_input)" << endl
+             << "      {" << endl;
+      for (int j {0}; j <= i; j++)
+        {
+          if (j == 0)
+            output << "      default:" << endl
+                   << "        " << prefix << "resid";
+          else
+            output << "      case " << j-1 << ":" << endl
+                   << "        " << prefix << "g" << j;
+          output << "_tt(y, x, params" << ss_argout << ", T);" << endl;
+        }
+      output << "      }" << endl;
+      if (i == 1)
+        sparse_jacobian_create(0, equations.size(), getJacobianColsNbr(true), jacobian_sparse_column_major_order.size());
+      else
+        output << "  plhs[0] = mxCreateDoubleMatrix(" << (i == 0 ? equations.size() : derivatives[i].size()) << ", 1, mxREAL);" << endl;
+      output << "  " << prefix << (i == 0 ? "resid" : "g" + to_string(i)) << "(y, x, params" << ss_argout << ", T, mxGetPr(plhs[0]));" << endl
+             << "  if (nlhs == 3)" << endl
+             << "    {" << endl
+             << "      plhs[1] = T_order_mx;" << endl
+             << "      plhs[2] = T_mx;" << endl
+             << "    }" << endl
+             << "}" << endl;
+      output.close();
+
+      vector<filesystem::path> mex_input_files { power_deriv_object, main_object_file, source_mex };
+      for (int j {0}; j <= i; j++)
+        mex_input_files.push_back(tt_object_files[j]);
+      compileMEX(mex_dir, funcname, mexext, mex_input_files, matlabroot, dynareroot);
+    }
+
+  if (block_decomposed)
+    {
+      const filesystem::path block_dir {mex_dir / "+block"};
+      temporary_terms_t temporary_terms_written;
+      size_t total_blk_ttlen {0}; // Temporary terms of all blocks up to the present one
+      for (int blk {0}; blk < static_cast<int>(blocks.size()); blk++)
+        {
+          const string funcname {prefix + to_string(blk+1)};
+          const filesystem::path source_mex {model_src_dir / "block" / (funcname + ".c")};
+          int nargin {7+static_cast<int>(dynamic)};
+          const BlockSimulationType simulation_type {blocks[blk].simulation_type};
+          const bool evaluate {simulation_type == BlockSimulationType::evaluateForward
+                               || simulation_type == BlockSimulationType::evaluateBackward};
+          const bool one_boundary {simulation_type == BlockSimulationType::solveBackwardSimple
+                                   || simulation_type == BlockSimulationType::solveForwardSimple
+                                   || simulation_type == BlockSimulationType::solveBackwardComplete
+                                   || simulation_type == BlockSimulationType::solveForwardComplete};
+          // The following two variables are not used for “evaluate” blocks
+          int g1_ncols {(one_boundary ? 1 : 3)*blocks[blk].mfs_size};
+          open_file(source_mex);
+          output << "#include <math.h>" << endl
+                 << R"(#include "mex.h")" << endl
+                 << R"(#include "../power_deriv.h")" << endl
+                 << endl
+                 << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
+                 << "{" << endl
+                 << "  if (nrhs != " << nargin << ")" << endl
+                 << R"(    mexErrMsgTxt("Accepts exactly )" << nargin << R"( input arguments");)" << endl;
+          if (evaluate)
+            output << "  if (nlhs != 2)" << endl
+                 << R"(    mexErrMsgTxt("Accepts exactly 2 output arguments");)" << endl;
+          else
+            /* Only two output arguments make sense if one only wants to
+               evaluate the recursive variables. */
+            output << "  if (nlhs < 2 || nlhs > 4)" << endl
+                   << R"(    mexErrMsgTxt("Accepts 2 to 4 output arguments");)" << endl;
+          y_x_params_ss_inputs(false);
+
+          /* We’d like to avoid copying y if this is a “solve” block without
+            recursive variables. Unfortunately “plhs[0]=prhs[0]” leads to
+            crashes (at least with MATLAB R2022b), though it seems to work
+            under Octave. The undocumented mxCreateSharedDataCopy() could have
+            been a solution, but was removed in MATLAB R2018a. The solution
+            seems to be to use the C++ MEX API, but it is not supported by
+            Octave and older MATLAB (and also C++ does not have the “restrict”
+            qualifier, so it may not be a net gain). See:
+            https://fr.mathworks.com/matlabcentral/answers/77048-return-large-unchange-mxarray-from-mex
+            https://fr.mathworks.com/matlabcentral/answers/422751-how-to-output-a-mexfunction-input-without-copy */
+          output << "  plhs[0] = mxDuplicateArray(prhs[0]);" << endl
+                 << "  double *restrict y = mxGetPr(plhs[0]);" << endl;
+
+          // NB: For “evaluate” blocks, sparse_{rowval,colval,colptr} arguments are present but ignored
+          if (!evaluate)
+            sparse_indices_inputs(g1_ncols, blocks_jacobian_sparse_column_major_order[blk].size());
+
+          for (const auto &it : blocks_temporary_terms[blk])
+            total_blk_ttlen += it.size();
+
+          output << "  if (!(mxIsDouble(prhs[" << nargin-1 << "]) && !mxIsComplex(prhs[" << nargin-1 << "]) && !mxIsSparse(prhs[" << nargin-1 << "]) && mxGetNumberOfElements(prhs[" << nargin-1 << "]) >= " << total_blk_ttlen << "))" << endl
+                 << R"(    mexErrMsgTxt("T must be a real dense numeric array with at least )" << total_blk_ttlen << R"( elements");)" << endl
+            /* We’d like to avoid copying T when the block has no temporary
+               terms, but the same remark as above applies. */
+                 << "  plhs[1] = mxDuplicateArray(prhs[" << nargin-1 <<"]);" << endl
+                 << "  double *restrict T = mxGetPr(plhs[1]);" << endl;
+
+          if (!evaluate)
+            output << "  mxArray *residual_mx = mxCreateDoubleMatrix(" << blocks[blk].mfs_size << ", 1, mxREAL);" << endl
+                   << "  double *restrict residual = mxGetPr(residual_mx);" << endl
+                   << "  if (nlhs > 2)" << endl
+                   << "    plhs[2] = residual_mx;" << endl;
+
+          // Write residuals and temporary terms (incl. those for derivatives)
+          writePerBlockHelper<output_type>(blk, output, temporary_terms_written);
+
+          if (!evaluate)
+            {
+              // Write Jacobian
+              output << "  if (nlhs > 3)" << endl
+                     << "    {" << endl;
+              sparse_jacobian_create(3, blocks[blk].mfs_size, g1_ncols, blocks_jacobian_sparse_column_major_order[blk].size());
+              output << "      double *restrict g1_v = mxGetPr(plhs[3]);" << endl;
+              writeSparsePerBlockJacobianHelper<output_type>(blk, output, temporary_terms_written);
+              output << "    }" << endl;
+            }
+          output << "}" << endl;
+          output.close();
+          compileMEX(block_dir, funcname, mexext, { source_mex, power_deriv_object }, matlabroot, dynareroot);
         }
     }
 }

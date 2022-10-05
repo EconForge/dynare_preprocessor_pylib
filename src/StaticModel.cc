@@ -616,7 +616,11 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
   filesystem::path model_dir{basename};
   model_dir /= "model";
   if (use_dll)
-    create_directories(model_dir / "src");
+    {
+      create_directories(model_dir / "src" / "sparse");
+      if (block_decomposed)
+        create_directories(model_dir / "src" / "sparse" / "block");
+    }
   if (julia)
     create_directories(model_dir / "julia");
   else
@@ -672,9 +676,7 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
 
   // Sparse representation
   if (use_dll)
-    {
-      // TBD
-    }
+    writeSparseModelCFiles<false>(basename, mexext, matlabroot, dynareroot);
   else if (julia)
     writeSparseModelJuliaFiles<false>(basename);
   else // MATLAB/Octave
