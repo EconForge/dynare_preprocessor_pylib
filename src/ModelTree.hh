@@ -490,7 +490,7 @@ private:
      files, those get compiled in separate threads; this could however
      require implementing a scheduler, so as to not run more threads than
      there are logical cores. */
-  void compileMEX(const string &basename, const string &funcname, const string &mexext, const vector<filesystem::path> &src_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
+  void compileMEX(const filesystem::path &output_dir, const string &funcname, const string &mexext, const vector<filesystem::path> &src_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
 
 public:
   ModelTree(SymbolTable &symbol_table_arg,

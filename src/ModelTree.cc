@@ -1619,7 +1619,7 @@ ModelTree::findGccOnMacos(const string &mexext)
 #endif
 
 void
-ModelTree::compileMEX(const string &basename, const string &funcname, const string &mexext, const vector<filesystem::path> &src_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
+ModelTree::compileMEX(const filesystem::path &output_dir, const string &funcname, const string &mexext, const vector<filesystem::path> &src_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
 {
   const string opt_flags = "-O3 -g0 --param ira-max-conflict-table-size=1 -fno-forward-propagate -fno-gcse -fno-dce -fno-dse -fno-tree-fre -fno-tree-pre -fno-tree-cselim -fno-tree-dse -fno-tree-dce -fno-tree-pta -fno-gcse-after-reload";
 
@@ -1704,8 +1704,7 @@ ModelTree::compileMEX(const string &basename, const string &funcname, const stri
         }
     }
 
-  filesystem::path mex_dir{"+" + basename};
-  filesystem::path binary{mex_dir / (funcname + "." + mexext)};
+  filesystem::path binary{output_dir / (funcname + "." + mexext)};
 
   ostringstream cmd;
 

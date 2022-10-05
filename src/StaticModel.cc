@@ -713,7 +713,7 @@ StaticModel::writeStaticCFile(const string &basename, const string &mexext, cons
 
   output.close();
 
-  compileMEX(basename, "static", mexext, { filename }, matlabroot, dynareroot);
+  compileMEX("+" + basename, "static", mexext, { filename }, matlabroot, dynareroot);
 }
 
 void
@@ -1105,7 +1105,7 @@ StaticModel::writeStaticBlockCFile(const string &basename, vector<filesystem::pa
   output.close();
 
   per_block_src_files.push_back(filename);
-  compileMEX(basename, "static", mexext, per_block_src_files, matlabroot, dynareroot);
+  compileMEX("+" + basename, "static", mexext, per_block_src_files, matlabroot, dynareroot);
 }
 
 void

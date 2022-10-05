@@ -1074,7 +1074,7 @@ DynamicModel::writeDynamicCFile(const string &basename, const string &mexext, co
 
   output.close();
 
-  compileMEX(basename, "dynamic", mexext, { filename }, matlabroot, dynareroot);
+  compileMEX("+" + basename, "dynamic", mexext, { filename }, matlabroot, dynareroot);
 }
 
 string
@@ -1229,7 +1229,7 @@ DynamicModel::writeDynamicBlockCFile(const string &basename, vector<filesystem::
   output.close();
 
   per_block_src_files.push_back(filename);
-  compileMEX(basename, "dynamic", mexext, per_block_src_files, matlabroot, dynareroot);
+  compileMEX("+" + basename, "dynamic", mexext, per_block_src_files, matlabroot, dynareroot);
 }
 
 void
