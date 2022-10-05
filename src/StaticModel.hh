@@ -48,7 +48,7 @@ private:
 
   /* Writes the main static functions of block decomposed model (C version),
      then compiles it with the per-block functions into a single MEX */
-  void writeStaticBlockCFile(const string &basename, vector<filesystem::path> per_block_src_files, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
+  void writeStaticBlockCFile(const string &basename, vector<filesystem::path> per_block_object_files, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
 
   //! Helper for writing a per-block static file of block decomposed model
   template<ExprNodeOutputType output_type>
@@ -57,9 +57,9 @@ private:
   //! Writes the per-block static files of block decomposed model (MATLAB version)
   void writeStaticPerBlockMFiles(const string &basename) const;
 
-  /* Writes the per-block static files of block decomposed model (C version).
-     Returns the list of paths to the generated C source files (not the headers) */
-  vector<filesystem::path> writeStaticPerBlockCFiles(const string &basename) const;
+  /* Writes and compiles the per-block static files of block decomposed model
+     (C version). Returns the list of paths to the compiled object files. */
+  vector<filesystem::path> writeStaticPerBlockCFiles(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
 
   //! Writes the code of the block-decomposed model in virtual machine bytecode
   void writeStaticBlockBytecode(const string &basename) const;

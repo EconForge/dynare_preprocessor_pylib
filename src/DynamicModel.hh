@@ -127,7 +127,7 @@ private:
   void writeDynamicBlockMFile(const string &basename) const;
   /* Writes the main dynamic functions of block decomposed model (C version),
      then compiles it with the per-block functions into a single MEX */
-  void writeDynamicBlockCFile(const string &basename, vector<filesystem::path> per_block_src_files, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
+  void writeDynamicBlockCFile(const string &basename, vector<filesystem::path> per_block_object_files, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
   /* Computes the number of nonzero elements in deterministic Jacobian of
      block-decomposed model */
   int nzeDeterministicJacobianForBlock(int blk) const;
@@ -136,9 +136,9 @@ private:
   void writeDynamicPerBlockHelper(int blk, ostream &output, temporary_terms_t &temporary_terms, int nze_stochastic, int nze_deterministic, int nze_exo, int nze_exo_det, int nze_other_endo) const;
   //! Writes the per-block dynamic files of block decomposed model (MATLAB version)
   void writeDynamicPerBlockMFiles(const string &basename) const;
-  /* Writes the per-block dynamic files of block decomposed model (C version).
-     Returns the list of paths to the generated C source files (not the headers) */
-  vector<filesystem::path> writeDynamicPerBlockCFiles(const string &basename) const;
+  /* Writes and compiles the per-block dynamic files of block decomposed model
+     (C version). Returns the list of paths to the compiled object files. */
+  vector<filesystem::path> writeDynamicPerBlockCFiles(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
   //! Writes the code of the block-decomposed model in virtual machine bytecode
   void writeDynamicBlockBytecode(const string &basename) const;
   // Writes derivatives w.r.t. exo, exo det and other endogenous

@@ -41,6 +41,7 @@ vector<jthread> ModelTree::mex_compilation_threads {};
 condition_variable ModelTree::mex_compilation_cv;
 mutex ModelTree::mex_compilation_mut;
 unsigned int ModelTree::mex_compilation_available_processors {max(jthread::hardware_concurrency(), 1U)};
+set<filesystem::path> ModelTree::mex_compilation_done;
 
 void
 ModelTree::copyHelper(const ModelTree &m)
@@ -1622,8 +1623,8 @@ ModelTree::findGccOnMacos(const string &mexext)
 }
 #endif
 
-void
-ModelTree::compileMEX(const filesystem::path &output_dir, const string &funcname, const string &mexext, const vector<filesystem::path> &src_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
+filesystem::path
+ModelTree::compileMEX(const filesystem::path &output_dir, const string &output_basename, const string &mexext, const vector<filesystem::path> &input_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool link) const
 {
   const string opt_flags = "-O3 -g0 --param ira-max-conflict-table-size=1 -fno-forward-propagate -fno-gcse -fno-dce -fno-dse -fno-tree-fre -fno-tree-pre -fno-tree-cselim -fno-tree-dse -fno-tree-dce -fno-tree-pta -fno-gcse-after-reload";
 
@@ -1708,7 +1709,7 @@ ModelTree::compileMEX(const filesystem::path &output_dir, const string &funcname
         }
     }
 
-  filesystem::path binary{output_dir / (funcname + "." + mexext)};
+  filesystem::path output_filename {output_dir / (output_basename + "." + (link ? mexext : "o"))};
 
   ostringstream cmd;
 
@@ -1738,35 +1739,48 @@ ModelTree::compileMEX(const filesystem::path &output_dir, const string &funcname
   if (!user_set_add_flags.empty())
     cmd << user_set_add_flags << " ";
 
-  for (auto &src : src_files)
-    cmd << src << " ";
-  cmd << "-o " << binary << " ";
+  for (auto &f : input_files)
+    cmd << f << " ";
+  cmd << "-o " << output_filename << " ";
 
-  if (user_set_subst_libs.empty())
-    cmd << libs;
+  if (link)
+    {
+      if (user_set_subst_libs.empty())
+        cmd << libs;
+      else
+        cmd << user_set_subst_libs;
+      if (!user_set_add_libs.empty())
+        cmd << " " << user_set_add_libs;
+    }
   else
-    cmd << user_set_subst_libs;
-
-  if (!user_set_add_libs.empty())
-    cmd << " " << user_set_add_libs;
+    cmd << " -c";
 
 #ifdef _WIN32
   cmd << '"';
 #endif
 
-  cout << "Compiling " << funcname << " MEX..." << endl << cmd.str() << endl;
+  cout << "Compiling " << output_filename << endl;
 
-  /* The command line must be captured by value by the thread (a reference
-     would quickly become dangling). And std::ostringstream is not copyable, so
-     capture a std::string. */
+  // The prerequisites are the object files among the input files
+  set<filesystem::path> prerequisites;
+  copy_if(input_files.begin(), input_files.end(),
+          inserter(prerequisites, prerequisites.end()), [](const auto &p)
+          {
+            return p.extension() == ".o";
+          });
+
+  // std::ostringstream is not copyable, so capture a std::string
   string cmd_str { cmd.str() };
-  mex_compilation_threads.emplace_back([cmd_str]
+  mex_compilation_threads.emplace_back([cmd_str, output_filename, prerequisites]
   {
-    // Wait until a logical processor becomes available
+    /* Wait until a logical processor becomes available and all prerequisites
+       are done */
     unique_lock<mutex> lk {mex_compilation_mut};
-    mex_compilation_cv.wait(lk, []
+    mex_compilation_cv.wait(lk, [prerequisites]
     {
-      return mex_compilation_available_processors > 0;
+      return mex_compilation_available_processors > 0 &&
+        includes(mex_compilation_done.begin(), mex_compilation_done.end(),
+                 prerequisites.begin(), prerequisites.end());
     });
     // Signal to other threads that we have grabbed a logical processor
     mex_compilation_available_processors--;
@@ -1779,11 +1793,15 @@ ModelTree::compileMEX(const filesystem::path &output_dir, const string &funcname
         exit(EXIT_FAILURE);
       }
 
-    // Signal to other threads that we have freed a logical processor
+    /* Signal to other threads that we have freed a logical processor and
+       completed a possible prerequisite */
     lk.lock();
     mex_compilation_available_processors++;
-    mex_compilation_cv.notify_one();
+    mex_compilation_done.insert(output_filename);
+    mex_compilation_cv.notify_all();
   });
+
+  return output_filename;
 }
 
 void

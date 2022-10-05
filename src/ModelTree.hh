@@ -338,14 +338,13 @@ private:
   // Stores threads for compiling MEX files in parallel
   static vector<jthread> mex_compilation_threads;
 
-  /* The following three variables implement the synchronization mechanism for
-     limiting the number of concurrent GCC processes.
-     TODO: Replace these three variables with std::counting_semaphore (from
-     C++20) when upgrading to GCC 11 (and adjust included headers
-     correspondingly). */
+  /* The following variables implement the thread synchronization mechanism for
+     limiting the number of concurrent GCC processes and tracking dependencies
+     between object files. */
   static condition_variable mex_compilation_cv;
   static mutex mex_compilation_mut;
   static unsigned int mex_compilation_available_processors;
+  static set<filesystem::path> mex_compilation_done; // Object/MEX files already compiled
 
   /* Compute a pseudo-Jacobian whose all elements are either zero or one,
      depending on whether the variable symbolically appears in the equation */
@@ -495,11 +494,14 @@ private:
   //! Finds a suitable GCC compiler on macOS
   static string findGccOnMacos(const string &mexext);
 #endif
-  /* Compiles a MEX file. The compilation is done in a separate asynchronous
-     thread, so the call to this function is not blocking. The number of
-     concurrently running GCC processes is dynamically limited to the number of
-     available logical processors. */
-  void compileMEX(const filesystem::path &output_dir, const string &funcname, const string &mexext, const vector<filesystem::path> &src_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
+  /* Compiles a MEX file (if link=true) or an object file to be linked later
+     into a MEX file (if link=false). The compilation is done in a separate
+     asynchronous thread, so the call to this function is not blocking. The
+     number of concurrently running GCC processes is dynamically limited to the
+     number of available logical processors. The dependency of a linked MEX
+     file upon intermediary objects is nicely handled. Returns the name of the
+     output file (to be reused later as input file if link=false). */
+  filesystem::path compileMEX(const filesystem::path &output_dir, const string &output_basename, const string &mexext, const vector<filesystem::path> &input_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool link = true) const;
 
 public:
   ModelTree(SymbolTable &symbol_table_arg,

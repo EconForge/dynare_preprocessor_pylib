@@ -347,10 +347,13 @@ DynamicModel::writeBlockBytecodeAdditionalDerivatives(BytecodeWriter &code_file,
 }
 
 vector<filesystem::path>
-DynamicModel::writeDynamicPerBlockCFiles(const string &basename) const
+DynamicModel::writeDynamicPerBlockCFiles(const string &basename, const string &mexext,
+                                         const filesystem::path &matlabroot,
+                                         const filesystem::path &dynareroot) const
 {
   temporary_terms_t temporary_terms; // Temp terms written so far
-  vector<filesystem::path> written_src_files;
+  const filesystem::path model_src_dir { filesystem::path{basename} / "model" / "src" };
+  vector<filesystem::path> compiled_object_files;
 
   for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
@@ -365,8 +368,7 @@ DynamicModel::writeDynamicPerBlockCFiles(const string &basename) const
       int nze_exo = blocks_derivatives_exo[blk].size();
       int nze_exo_det = blocks_derivatives_exo_det[blk].size();
 
-      string filename = basename + "/model/src/dynamic_" + to_string(blk+1) + ".c";
-      written_src_files.emplace_back(filename);
+      filesystem::path filename { model_src_dir / ("dynamic_" + to_string(blk+1) + ".c") };
       ofstream output{filename, ios::out | ios::binary};
       if (!output.is_open())
         {
@@ -532,7 +534,12 @@ DynamicModel::writeDynamicPerBlockCFiles(const string &basename) const
              << "}" << endl;
       output.close();
 
-      filename = basename + "/model/src/dynamic_" + to_string(blk+1) + ".h";
+      // Compile intermediary object under <MODFILE>/model/src/
+      compiled_object_files.emplace_back(compileMEX(model_src_dir, "dynamic_" + to_string(blk+1),
+                                                    mexext, { filename }, matlabroot, dynareroot,
+                                                    false));
+
+      filename = model_src_dir / ("dynamic_" + to_string(blk+1) + ".h");
       ofstream header_output{filename, ios::out | ios::binary};
       if (!header_output.is_open())
         {
@@ -542,7 +549,7 @@ DynamicModel::writeDynamicPerBlockCFiles(const string &basename) const
       header_output << header.str() << ';' << endl;
       header_output.close();
     }
-  return written_src_files;
+  return compiled_object_files;
 }
 
 void
@@ -1145,7 +1152,7 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
 }
 
 void
-DynamicModel::writeDynamicBlockCFile(const string &basename, vector<filesystem::path> per_block_src_files, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
+DynamicModel::writeDynamicBlockCFile(const string &basename, vector<filesystem::path> per_block_object_files, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
 {
   string filename = basename + "/model/src/dynamic.c";
 
@@ -1228,8 +1235,8 @@ DynamicModel::writeDynamicBlockCFile(const string &basename, vector<filesystem::
 
   output.close();
 
-  per_block_src_files.push_back(filename);
-  compileMEX("+" + basename, "dynamic", mexext, per_block_src_files, matlabroot, dynareroot);
+  per_block_object_files.push_back(filename);
+  compileMEX("+" + basename, "dynamic", mexext, per_block_object_files, matlabroot, dynareroot);
 }
 
 void
@@ -3607,8 +3614,8 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
 
       if (use_dll)
         {
-          auto per_block_src_files { writeDynamicPerBlockCFiles(basename) };
-          writeDynamicBlockCFile(basename, move(per_block_src_files), mexext, matlabroot, dynareroot);
+          auto per_block_object_files { writeDynamicPerBlockCFiles(basename, mexext, matlabroot, dynareroot) };
+          writeDynamicBlockCFile(basename, move(per_block_object_files), mexext, matlabroot, dynareroot);
         }
       else if (julia)
         {
