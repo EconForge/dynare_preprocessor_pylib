@@ -603,8 +603,8 @@ StaticModel::writeStaticMCompatFile(const string &basename) const
   output.close();
 }
 
-filesystem::path
-StaticModel::writeStaticCFile(const string &basename) const
+void
+StaticModel::writeStaticCFile(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
 {
   // Writing comments and function definition command
   string filename{basename + "/model/src/static.c"};
@@ -713,7 +713,7 @@ StaticModel::writeStaticCFile(const string &basename) const
 
   output.close();
 
-  return filename;
+  compileMEX(basename, "static", mexext, { filename }, matlabroot, dynareroot);
 }
 
 void
@@ -959,9 +959,8 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
 
       if (use_dll)
         {
-          auto src_files { writeStaticPerBlockCFiles(basename) };
-          src_files.emplace_back(writeStaticBlockCFile(basename));
-          compileMEX(basename, "static", mexext, src_files, matlabroot, dynareroot);
+          auto per_block_src_files { writeStaticPerBlockCFiles(basename) };
+          writeStaticBlockCFile(basename, move(per_block_src_files), mexext, matlabroot, dynareroot);
         }
       else if (julia)
         {
@@ -979,10 +978,7 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
       writeStaticBytecode(basename);
 
       if (use_dll)
-        {
-          auto src_file { writeStaticCFile(basename) };
-          compileMEX(basename, "static", mexext, { src_file }, matlabroot, dynareroot);
-        }
+        writeStaticCFile(basename, mexext, matlabroot, dynareroot);
       else if (julia)
         writeStaticJuliaFile(basename);
       else // M-files
@@ -1036,8 +1032,8 @@ StaticModel::writeStaticBlockMFile(const string &basename) const
   output.close();
 }
 
-filesystem::path
-StaticModel::writeStaticBlockCFile(const string &basename) const
+void
+StaticModel::writeStaticBlockCFile(const string &basename, vector<filesystem::path> per_block_src_files, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
 {
   string filename = basename + "/model/src/static.c";
 
@@ -1108,7 +1104,8 @@ StaticModel::writeStaticBlockCFile(const string &basename) const
          << "}" << endl;
   output.close();
 
-  return filename;
+  per_block_src_files.push_back(filename);
+  compileMEX(basename, "static", mexext, per_block_src_files, matlabroot, dynareroot);
 }
 
 void

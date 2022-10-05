@@ -37,9 +37,8 @@ private:
   //! Writes static model file (standard Matlab version)
   void writeStaticMFile(const string &basename) const;
 
-  //! Writes static model file (C version)
-  // Returns the path to the generated C source file
-  filesystem::path writeStaticCFile(const string &basename) const;
+  // Writes and compiles static model file (C version)
+  void writeStaticCFile(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
 
   //! Writes static model file (Julia version)
   void writeStaticJuliaFile(const string &basename) const;
@@ -47,9 +46,9 @@ private:
   //! Writes the main static function of block decomposed model (MATLAB version)
   void writeStaticBlockMFile(const string &basename) const;
 
-  //! Writes the main static function of block decomposed model (C version)
-  // Returns the path to the generated C source file
-  filesystem::path writeStaticBlockCFile(const string &basename) const;
+  /* Writes the main static functions of block decomposed model (C version),
+     then compiles it with the per-block functions into a single MEX */
+  void writeStaticBlockCFile(const string &basename, vector<filesystem::path> per_block_src_files, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
 
   //! Helper for writing a per-block static file of block decomposed model
   template<ExprNodeOutputType output_type>

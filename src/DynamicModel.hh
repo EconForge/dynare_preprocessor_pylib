@@ -121,14 +121,13 @@ private:
   void writeDynamicMFile(const string &basename) const;
   //! Writes dynamic model file (Julia version)
   void writeDynamicJuliaFile(const string &basename) const;
-  //! Writes dynamic model file (C version)
-  // Returns the path to the generated C source file
-  filesystem::path writeDynamicCFile(const string &basename) const;
+  // Writes and compiles dynamic model file (C version)
+  void writeDynamicCFile(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
   //! Writes the main dynamic function of block decomposed model (MATLAB version)
   void writeDynamicBlockMFile(const string &basename) const;
-  //! Writes the main dynamic function of block decomposed model (C version)
-  // Returns the path to the generated C source file
-  filesystem::path writeDynamicBlockCFile(const string &basename) const;
+  /* Writes the main dynamic functions of block decomposed model (C version),
+     then compiles it with the per-block functions into a single MEX */
+  void writeDynamicBlockCFile(const string &basename, vector<filesystem::path> per_block_src_files, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
   /* Computes the number of nonzero elements in deterministic Jacobian of
      block-decomposed model */
   int nzeDeterministicJacobianForBlock(int blk) const;

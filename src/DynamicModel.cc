@@ -943,8 +943,8 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
   writeToFileIfModified(output, basename + "Dynamic.jl");
 }
 
-filesystem::path
-DynamicModel::writeDynamicCFile(const string &basename) const
+void
+DynamicModel::writeDynamicCFile(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
 {
   string filename = basename + "/model/src/dynamic.c";
 
@@ -1074,7 +1074,7 @@ DynamicModel::writeDynamicCFile(const string &basename) const
 
   output.close();
 
-  return filename;
+  compileMEX(basename, "dynamic", mexext, { filename }, matlabroot, dynareroot);
 }
 
 string
@@ -1144,8 +1144,8 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
   output.close();
 }
 
-filesystem::path
-DynamicModel::writeDynamicBlockCFile(const string &basename) const
+void
+DynamicModel::writeDynamicBlockCFile(const string &basename, vector<filesystem::path> per_block_src_files, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
 {
   string filename = basename + "/model/src/dynamic.c";
 
@@ -1228,7 +1228,8 @@ DynamicModel::writeDynamicBlockCFile(const string &basename) const
 
   output.close();
 
-  return filename;
+  per_block_src_files.push_back(filename);
+  compileMEX(basename, "dynamic", mexext, per_block_src_files, matlabroot, dynareroot);
 }
 
 void
@@ -3606,9 +3607,8 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
 
       if (use_dll)
         {
-          auto src_files { writeDynamicPerBlockCFiles(basename) };
-          src_files.emplace_back(writeDynamicBlockCFile(basename));
-          compileMEX(basename, "dynamic", mexext, src_files, matlabroot, dynareroot);
+          auto per_block_src_files { writeDynamicPerBlockCFiles(basename) };
+          writeDynamicBlockCFile(basename, move(per_block_src_files), mexext, matlabroot, dynareroot);
         }
       else if (julia)
         {
@@ -3626,10 +3626,7 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
       writeDynamicBytecode(basename);
 
       if (use_dll)
-        {
-          auto src_file { writeDynamicCFile(basename) };
-          compileMEX(basename, "dynamic", mexext, { src_file }, matlabroot, dynareroot);
-        }
+        writeDynamicCFile(basename, mexext, matlabroot, dynareroot);
       else if (julia)
         writeDynamicJuliaFile(basename);
       else
