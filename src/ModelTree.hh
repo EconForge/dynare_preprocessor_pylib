@@ -30,6 +30,8 @@
 #include <optional>
 #include <cassert>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 
 #include "DataTree.hh"
 #include "EquationTags.hh"
@@ -336,6 +338,15 @@ private:
   // Stores threads for compiling MEX files in parallel
   static vector<jthread> mex_compilation_threads;
 
+  /* The following three variables implement the synchronization mechanism for
+     limiting the number of concurrent GCC processes.
+     TODO: Replace these three variables with std::counting_semaphore (from
+     C++20) when upgrading to GCC 11 (and adjust included headers
+     correspondingly). */
+  static condition_variable mex_compilation_cv;
+  static mutex mex_compilation_mut;
+  static unsigned int mex_compilation_available_processors;
+
   /* Compute a pseudo-Jacobian whose all elements are either zero or one,
      depending on whether the variable symbolically appears in the equation */
   jacob_map_t computeSymbolicJacobian() const;
@@ -485,11 +496,9 @@ private:
   static string findGccOnMacos(const string &mexext);
 #endif
   /* Compiles a MEX file. The compilation is done in a separate asynchronous
-     thread, so the call to this function is not blocking.
-     TODO: further improve the function so that when a MEX has multiple source
-     files, those get compiled in separate threads; this could however
-     require implementing a scheduler, so as to not run more threads than
-     there are logical cores. */
+     thread, so the call to this function is not blocking. The number of
+     concurrently running GCC processes is dynamically limited to the number of
+     available logical processors. */
   void compileMEX(const filesystem::path &output_dir, const string &funcname, const string &mexext, const vector<filesystem::path> &src_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
 
 public:

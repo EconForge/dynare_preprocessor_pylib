@@ -35,8 +35,12 @@
 
 #include <regex>
 #include <utility>
+#include <algorithm>
 
 vector<jthread> ModelTree::mex_compilation_threads {};
+condition_variable ModelTree::mex_compilation_cv;
+mutex ModelTree::mex_compilation_mut;
+unsigned int ModelTree::mex_compilation_available_processors {max(jthread::hardware_concurrency(), 1U)};
 
 void
 ModelTree::copyHelper(const ModelTree &m)
@@ -1758,11 +1762,27 @@ ModelTree::compileMEX(const filesystem::path &output_dir, const string &funcname
   string cmd_str { cmd.str() };
   mex_compilation_threads.emplace_back([cmd_str]
   {
+    // Wait until a logical processor becomes available
+    unique_lock<mutex> lk {mex_compilation_mut};
+    mex_compilation_cv.wait(lk, []
+    {
+      return mex_compilation_available_processors > 0;
+    });
+    // Signal to other threads that we have grabbed a logical processor
+    mex_compilation_available_processors--;
+    lk.unlock();
+
+    // Effectively compile
     if (system(cmd_str.c_str()))
       {
         cerr << "Compilation failed" << endl;
         exit(EXIT_FAILURE);
       }
+
+    // Signal to other threads that we have freed a logical processor
+    lk.lock();
+    mex_compilation_available_processors++;
+    mex_compilation_cv.notify_one();
   });
 }
 
