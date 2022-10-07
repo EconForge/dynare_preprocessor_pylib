@@ -611,119 +611,6 @@ StaticModel::writeStaticMCompatFile(const string &basename) const
 }
 
 void
-StaticModel::writeStaticCFile(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
-{
-  // Writing comments and function definition command
-  string filename{basename + "/model/src/static.c"};
-
-  int ntt { static_cast<int>(temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size()) };
-
-  ofstream output{filename, ios::out | ios::binary};
-  if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  output << "/*" << endl
-         << " * " << filename << " : Computes " << modelClassName() << " for Dynare" << endl
-         << " *" << endl
-         << " * Warning : this file is generated automatically by Dynare" << endl
-         << " *           from model file (.mod)" << endl << endl
-         << " */" << endl
-         << endl
-         << "#include <math.h>" << endl
-         << "#include <stdlib.h>" << endl
-         << R"(#include "mex.h")" << endl
-         << endl;
-
-  // Write function definition if BinaryOpcode::powerDeriv is used
-  writePowerDeriv(output);
-
-  output << endl;
-
-  auto [d_output, tt_output] = writeModelFileHelper<ExprNodeOutputType::CStaticModel>();
-
-  for (size_t i = 0; i < d_output.size(); i++)
-    {
-      string funcname{i == 0 ? "resid" : "g" + to_string(i)};
-      output << "void static_" << funcname << "_tt(const double *restrict y, const double *restrict x, const double *restrict params, double *restrict T)" << endl
-             << "{" << endl
-             << tt_output[i].str()
-             << "}" << endl
-             << endl
-             << "void static_" << funcname << "(const double *restrict y, const double *restrict x, const double *restrict params, const double *restrict T, ";
-      if (i == 0)
-        output << "double *restrict residual";
-      else if (i == 1)
-        output << "double *restrict g1";
-      else
-        output << "double *restrict " << funcname << "_i, double *restrict " << funcname << "_j, double *restrict " << funcname << "_v";
-      output << ")" << endl
-                   << "{" << endl;
-      if (i == 0)
-        output << "  double lhs, rhs;" << endl;
-      output << d_output[i].str()
-             << "}" << endl
-             << endl;
-    }
-
-  output << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
-         << "{" << endl
-         << "  if (nrhs > 3)" << endl
-         << R"(    mexErrMsgTxt("Accepts at most 3 output arguments");)" << endl
-         << "  if (nrhs != 3)" << endl
-         << R"(    mexErrMsgTxt("Requires exactly 3 input arguments");)" << endl
-         << "  double *y = mxGetPr(prhs[0]);" << endl
-         << "  double *x = mxGetPr(prhs[1]);" << endl
-         << "  double *params = mxGetPr(prhs[2]);" << endl
-         << endl
-         << "  double *T = (double *) malloc(sizeof(double)*" << ntt << ");" << endl
-         << endl
-         << "  if (nlhs >= 1)" << endl
-         << "    {" << endl
-         << "      plhs[0] = mxCreateDoubleMatrix(" << equations.size() << ",1, mxREAL);" << endl
-         << "      double *residual = mxGetPr(plhs[0]);" << endl
-         << "      static_resid_tt(y, x, params, T);" << endl
-         << "      static_resid(y, x, params, T, residual);" << endl
-         << "    }" << endl
-         << endl
-         << "  if (nlhs >= 2)" << endl
-         << "    {" << endl
-         << "      plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << symbol_table.endo_nbr() << ", mxREAL);" << endl
-         << "      double *g1 = mxGetPr(plhs[1]);" << endl
-         << "      static_g1_tt(y, x, params, T);" << endl
-         << "      static_g1(y, x, params, T, g1);" << endl
-         << "    }" << endl
-         << endl
-         << "  if (nlhs >= 3)" << endl
-         << "    {" << endl
-         << "      mxArray *g2_i = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 1 << ", mxREAL);" << endl
-         << "      mxArray *g2_j = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 1 << ", mxREAL);" << endl
-         << "      mxArray *g2_v = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 1 << ", mxREAL);" << endl
-         << "      static_g2_tt(y, x, params, T);" << endl
-         << "      static_g2(y, x, params, T, mxGetPr(g2_i), mxGetPr(g2_j), mxGetPr(g2_v));" << endl
-         << "      mxArray *m = mxCreateDoubleScalar(" << equations.size() << ");" << endl
-         << "      mxArray *n = mxCreateDoubleScalar(" << symbol_table.endo_nbr()*symbol_table.endo_nbr() << ");" << endl
-         << "      mxArray *plhs_sparse[1], *prhs_sparse[5] = { g2_i, g2_j, g2_v, m, n };" << endl
-         << R"(      mexCallMATLAB(1, plhs_sparse, 5, prhs_sparse, "sparse");)" << endl
-         << "      plhs[2] = plhs_sparse[0];" << endl
-         << "      mxDestroyArray(g2_i);" << endl
-         << "      mxDestroyArray(g2_j);" << endl
-         << "      mxDestroyArray(g2_v);" << endl
-         << "      mxDestroyArray(m);" << endl
-         << "      mxDestroyArray(n);" << endl
-         << "    }" << endl
-         << endl
-         << "  free(T);" << endl
-         << "}" << endl;
-
-  output.close();
-
-  compileMEX("+" + basename, "static", mexext, { filename }, matlabroot, dynareroot);
-}
-
-void
 StaticModel::writeStaticJuliaFile(const string &basename) const
 {
   auto [d_output, tt_output] = writeModelFileHelper<ExprNodeOutputType::juliaStaticModel>();
@@ -985,7 +872,7 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
       writeStaticBytecode(basename);
 
       if (use_dll)
-        writeStaticCFile(basename, mexext, matlabroot, dynareroot);
+        writeModelCFile<false>(basename, mexext, matlabroot, dynareroot);
       else if (julia)
         writeStaticJuliaFile(basename);
       else // M-files

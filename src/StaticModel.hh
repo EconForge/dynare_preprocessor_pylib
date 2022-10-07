@@ -37,9 +37,6 @@ private:
   //! Writes static model file (standard Matlab version)
   void writeStaticMFile(const string &basename) const;
 
-  // Writes and compiles static model file (C version)
-  void writeStaticCFile(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
-
   //! Writes static model file (Julia version)
   void writeStaticJuliaFile(const string &basename) const;
 

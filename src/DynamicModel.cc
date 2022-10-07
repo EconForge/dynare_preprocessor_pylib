@@ -950,140 +950,6 @@ DynamicModel::writeDynamicJuliaFile(const string &basename) const
   writeToFileIfModified(output, basename + "Dynamic.jl");
 }
 
-void
-DynamicModel::writeDynamicCFile(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
-{
-  string filename = basename + "/model/src/dynamic.c";
-
-  int ntt { static_cast<int>(temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size()) };
-
-  ofstream output{filename, ios::out | ios::binary};
-  if (!output.is_open())
-    {
-      cerr << "Error: Can't open file " << filename << " for writing" << endl;
-      exit(EXIT_FAILURE);
-    }
-  output << "/*" << endl
-         << " * " << filename << " : Computes " << modelClassName() << " for Dynare" << endl
-         << " *" << endl
-         << " * Warning : this file is generated automatically by Dynare" << endl
-         << " *           from model file (.mod)" << endl
-         << " */" << endl
-         << endl
-         << "#include <math.h>" << endl
-         << "#include <stdlib.h>" << endl
-         << R"(#include "mex.h")" << endl
-         << endl;
-
-  // Write function definition if BinaryOpcode::powerDeriv is used
-  writePowerDeriv(output);
-
-  output << endl;
-
-  auto [d_output, tt_output] = writeModelFileHelper<ExprNodeOutputType::CDynamicModel>();
-
-  for (size_t i{0}; i < d_output.size(); i++)
-    {
-      string funcname{i == 0 ? "resid" : "g" + to_string(i)};
-      output << "void dynamic_" << funcname << "_tt(const double *restrict y, const double *restrict x, int nb_row_x, const double *restrict params, const double *restrict steady_state, int it_, double *restrict T)" << endl
-             << "{" << endl
-             << tt_output[i].str()
-             << "}" << endl
-             << endl
-             << "void dynamic_" << funcname << "(const double *restrict y, const double *restrict x, int nb_row_x, const double *restrict params, const double *restrict steady_state, int it_, const double *restrict T, ";
-      if (i == 0)
-        output << "double *restrict residual";
-      else if (i == 1)
-        output << "double *restrict g1";
-      else
-        output << "double *restrict " << funcname << "_i, double *restrict " << funcname << "_j, double *restrict " << funcname << "_v";
-      output << ")" << endl
-             << "{" << endl;
-      if (i == 0)
-        output << "  double lhs, rhs;" << endl;
-      output << d_output[i].str()
-             << "}" << endl
-             << endl;
-    }
-
-  output << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
-         << "{" << endl
-         << "  if (nlhs > " << min(computed_derivs_order + 1, 4) << ")" << endl
-         << R"(    mexErrMsgTxt("Derivatives of higher order than computed have been requested");)" << endl
-         << "  if (nrhs != 5)" << endl
-         << R"(    mexErrMsgTxt("Requires exactly 5 input arguments");)" << endl
-         << endl
-         << "  double *y = mxGetPr(prhs[0]);" << endl
-         << "  double *x = mxGetPr(prhs[1]);" << endl
-         << "  double *params = mxGetPr(prhs[2]);" << endl
-         << "  double *steady_state = mxGetPr(prhs[3]);" << endl
-         << "  int it_ = (int) mxGetScalar(prhs[4]) - 1;" << endl
-         << "  int nb_row_x = mxGetM(prhs[1]);" << endl
-         << endl
-         << "  double *T = (double *) malloc(sizeof(double)*" << ntt << ");" << endl
-         << endl
-         << "  if (nlhs >= 1)" << endl
-         << "    {" << endl
-         << "       plhs[0] = mxCreateDoubleMatrix(" << equations.size() << ",1, mxREAL);" << endl
-         << "       double *residual = mxGetPr(plhs[0]);" << endl
-         << "       dynamic_resid_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
-         << "       dynamic_resid(y, x, nb_row_x, params, steady_state, it_, T, residual);" << endl
-         << "    }" << endl
-         << endl
-         << "  if (nlhs >= 2)" << endl
-         << "    {" << endl
-         << "       plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", " << getJacobianColsNbr() << ", mxREAL);" << endl
-         << "       double *g1 = mxGetPr(plhs[1]);" << endl
-         << "       dynamic_g1_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
-         << "       dynamic_g1(y, x, nb_row_x, params, steady_state, it_, T, g1);" << endl
-         << "    }" << endl
-         << endl
-         << "  if (nlhs >= 3)" << endl
-         << "    {" << endl
-         << "      mxArray *g2_i = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 1 << ", mxREAL);" << endl
-         << "      mxArray *g2_j = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 1 << ", mxREAL);" << endl
-         << "      mxArray *g2_v = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 1 << ", mxREAL);" << endl
-         << "      dynamic_g2_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
-         << "      dynamic_g2(y, x, nb_row_x, params, steady_state, it_, T, mxGetPr(g2_i), mxGetPr(g2_j), mxGetPr(g2_v));" << endl
-         << "      mxArray *m = mxCreateDoubleScalar(" << equations.size() << ");" << endl
-         << "      mxArray *n = mxCreateDoubleScalar(" << getJacobianColsNbr()*getJacobianColsNbr() << ");" << endl
-         << "      mxArray *plhs_sparse[1], *prhs_sparse[5] = { g2_i, g2_j, g2_v, m, n };" << endl
-         << R"(      mexCallMATLAB(1, plhs_sparse, 5, prhs_sparse, "sparse");)" << endl
-         << "      plhs[2] = plhs_sparse[0];" << endl
-         << "      mxDestroyArray(g2_i);" << endl
-         << "      mxDestroyArray(g2_j);" << endl
-         << "      mxDestroyArray(g2_v);" << endl
-         << "      mxDestroyArray(m);" << endl
-         << "      mxDestroyArray(n);" << endl
-         << "    }" << endl
-         << endl
-         << "  if (nlhs >= 4)" << endl
-         << "    {" << endl
-         << "      mxArray *g3_i = mxCreateDoubleMatrix(" << NNZDerivatives[3] << ", " << 1 << ", mxREAL);" << endl
-         << "      mxArray *g3_j = mxCreateDoubleMatrix(" << NNZDerivatives[3] << ", " << 1 << ", mxREAL);" << endl
-         << "      mxArray *g3_v = mxCreateDoubleMatrix(" << NNZDerivatives[3] << ", " << 1 << ", mxREAL);" << endl
-         << "      dynamic_g3_tt(y, x, nb_row_x, params, steady_state, it_, T);" << endl
-         << "      dynamic_g3(y, x, nb_row_x, params, steady_state, it_, T, mxGetPr(g3_i), mxGetPr(g3_j), mxGetPr(g3_v));" << endl
-         << "      mxArray *m = mxCreateDoubleScalar(" << equations.size() << ");" << endl
-         << "      mxArray *n = mxCreateDoubleScalar(" << getJacobianColsNbr()*getJacobianColsNbr()*getJacobianColsNbr() << ");" << endl
-         << "      mxArray *plhs_sparse[1], *prhs_sparse[5] = { g3_i, g3_j, g3_v, m, n };" << endl
-         << R"(      mexCallMATLAB(1, plhs_sparse, 5, prhs_sparse, "sparse");)" << endl
-         << "      plhs[3] = plhs_sparse[0];" << endl
-         << "      mxDestroyArray(g3_i);" << endl
-         << "      mxDestroyArray(g3_j);" << endl
-         << "      mxDestroyArray(g3_v);" << endl
-         << "      mxDestroyArray(m);" << endl
-         << "      mxDestroyArray(n);" << endl
-         << "    }" << endl
-         << endl
-         << "  free(T);" << endl
-         << "}" << endl;
-
-  output.close();
-
-  compileMEX("+" + basename, "dynamic", mexext, { filename }, matlabroot, dynareroot);
-}
-
 string
 DynamicModel::reform(const string &name1) const
 {
@@ -3633,7 +3499,7 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
       writeDynamicBytecode(basename);
 
       if (use_dll)
-        writeDynamicCFile(basename, mexext, matlabroot, dynareroot);
+        writeModelCFile<true>(basename, mexext, matlabroot, dynareroot);
       else if (julia)
         writeDynamicJuliaFile(basename);
       else

@@ -121,8 +121,6 @@ private:
   void writeDynamicMFile(const string &basename) const;
   //! Writes dynamic model file (Julia version)
   void writeDynamicJuliaFile(const string &basename) const;
-  // Writes and compiles dynamic model file (C version)
-  void writeDynamicCFile(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
   //! Writes the main dynamic function of block decomposed model (MATLAB version)
   void writeDynamicBlockMFile(const string &basename) const;
   /* Writes the main dynamic functions of block decomposed model (C version),
