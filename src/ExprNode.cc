@@ -2824,7 +2824,10 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         output << "cbrt";
       break;
     case UnaryOpcode::abs:
-      output << "abs";
+      if (isCOutput(output_type))
+        output << "fabs";
+      else
+        output << "abs";
       break;
     case UnaryOpcode::sign:
       if (output_type == ExprNodeOutputType::CDynamicModel || output_type == ExprNodeOutputType::CStaticModel)
