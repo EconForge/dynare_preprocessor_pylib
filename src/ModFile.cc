@@ -700,7 +700,7 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
                 derivsOrder = 2;
               else if  (output == OutputType::third)
                 derivsOrder = 3;
-              dynamic_model.computingPass(true, derivsOrder, 0, global_eval_context, no_tmp_terms, block, use_dll);
+              dynamic_model.computingPass(derivsOrder, 0, global_eval_context, no_tmp_terms, block, use_dll);
             }
           else
             {
@@ -729,13 +729,13 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
                   || mod_file_struct.estimation_analytic_derivation
                   || (mod_file_struct.GMM_present && (mod_file_struct.analytic_standard_errors_present || mod_file_struct.analytic_jacobian_present)))
                 paramsDerivsOrder = params_derivs_order;
-              dynamic_model.computingPass(true, derivsOrder, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll);
+              dynamic_model.computingPass(derivsOrder, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll);
               if (linear && mod_file_struct.ramsey_model_present)
-                orig_ramsey_dynamic_model.computingPass(true, 2, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll);
+                orig_ramsey_dynamic_model.computingPass(2, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll);
             }
         }
       else // No computing task requested, compute derivatives up to 2nd order by default
-        dynamic_model.computingPass(true, 2, 0, global_eval_context, no_tmp_terms, block, use_dll);
+        dynamic_model.computingPass(2, 0, global_eval_context, no_tmp_terms, block, use_dll);
 
       /* Check that the model is linear.
          FIXME: this check always passes if derivsOrder = 1, i.e. for a perfect
@@ -772,7 +772,7 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
   // Compute epilogue derivatives (but silence standard output)
   streambuf *oldcout = cout.rdbuf();
   cout.rdbuf(nullptr);
-  epilogue.computingPass(true, 2, 0, global_eval_context, true, false, false);
+  epilogue.computingPass(2, 0, global_eval_context, true, false, false);
   cout.rdbuf(oldcout);
 }
 

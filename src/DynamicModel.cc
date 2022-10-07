@@ -3242,18 +3242,16 @@ DynamicModel::substitutePacTargetNonstationary(const string &pac_model_name, exp
 }
 
 void
-DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsOrder,
-                            const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll)
+DynamicModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context,
+                            bool no_tmp_terms, bool block, bool use_dll)
 {
-  assert(jacobianExo || (derivsOrder < 2 && paramsDerivsOrder == 0));
-
   initializeVariablesAndEquations();
 
   // Prepare for derivation
   computeDerivIDs();
 
   // Computes dynamic jacobian columns, must be done after computeDerivIDs()
-  computeDynJacobianCols(jacobianExo);
+  computeDynJacobianCols();
 
   /* In both MATLAB and Julia, tensors for higher-order derivatives are stored
      in matrices whose columns correspond to variable multi-indices. Since we
@@ -3268,12 +3266,13 @@ DynamicModel::computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsO
       exit(EXIT_FAILURE);
     }
 
-  // Compute derivatives w.r. to all endogenous, and possibly exogenous and exogenous deterministic
+  // Compute derivatives w.r. to all endogenous, exogenous and exogenous deterministic
   set<int> vars;
   for (auto &it : deriv_id_table)
     {
       SymbolType type = symbol_table.getType(it.first.first);
-      if (type == SymbolType::endogenous || (jacobianExo && (type == SymbolType::exogenous || type == SymbolType::exogenousDet)))
+      if (type == SymbolType::endogenous || type == SymbolType::exogenous
+          || type == SymbolType::exogenousDet)
         vars.insert(it.second);
     }
 
@@ -4024,7 +4023,7 @@ DynamicModel::addAllParamDerivId(set<int> &deriv_id_set)
 }
 
 void
-DynamicModel::computeDynJacobianCols(bool jacobianExo)
+DynamicModel::computeDynJacobianCols()
 {
   // Sort the dynamic endogenous variables by lexicographic order over (lag, type_specific_symbol_id)
   map<pair<int, int>, int> ordered_dyn_endo;
@@ -4039,17 +4038,16 @@ DynamicModel::computeDynJacobianCols(bool jacobianExo)
     dyn_jacobian_cols_table[deriv_id] = sorted_id++;
 
   // Fill the dynamic columns for exogenous and exogenous deterministic
-  if (jacobianExo)
-    for (const auto &[symb_lag, deriv_id] : deriv_id_table)
-      {
-        int symb_id{symb_lag.first};
-        int tsid{symbol_table.getTypeSpecificID(symb_id)};
-        if (SymbolType type{symbol_table.getType(symb_id)};
-            type == SymbolType::exogenous)
-          dyn_jacobian_cols_table[deriv_id] = ordered_dyn_endo.size() + tsid;
-        else if (type == SymbolType::exogenousDet)
-          dyn_jacobian_cols_table[deriv_id] = ordered_dyn_endo.size() + symbol_table.exo_nbr() + tsid;
-      }
+  for (const auto &[symb_lag, deriv_id] : deriv_id_table)
+    {
+      int symb_id{symb_lag.first};
+      int tsid{symbol_table.getTypeSpecificID(symb_id)};
+      if (SymbolType type{symbol_table.getType(symb_id)};
+          type == SymbolType::exogenous)
+        dyn_jacobian_cols_table[deriv_id] = ordered_dyn_endo.size() + tsid;
+      else if (type == SymbolType::exogenousDet)
+        dyn_jacobian_cols_table[deriv_id] = ordered_dyn_endo.size() + symbol_table.exo_nbr() + tsid;
+    }
 }
 
 void

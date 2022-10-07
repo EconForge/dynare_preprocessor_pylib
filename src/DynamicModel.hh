@@ -183,7 +183,7 @@ private:
   int getTypeSpecificIDByDerivID(int deriv_id) const override;
 
   //! Compute the column indices of the dynamic Jacobian
-  void computeDynJacobianCols(bool jacobianExo);
+  void computeDynJacobianCols();
   //! Computes derivatives of the Jacobian w.r. to trend vars and tests that they are equal to zero
   void testTrendDerivativesEqualToZero(const eval_context_t &eval_context);
 
@@ -323,14 +323,13 @@ public:
 
   //! Execute computations (variable sorting + derivation + block decomposition)
   /*!
-    \param jacobianExo whether derivatives w.r. to exo and exo_det should be in the Jacobian (derivatives w.r. to endo are always computed)
     \param derivsOrder order of derivatives w.r. to exo, exo_det and endo should be computed (implies jacobianExo = true when order >= 2)
     \param paramsDerivsOrder order of derivatives w.r. to a pair (endo/exo/exo_det, parameter) to be computed (>0 implies jacobianExo = true)
     \param eval_context evaluation context for normalization
     \param no_tmp_terms if true, no temporary terms will be computed in the dynamic files
   */
-  void computingPass(bool jacobianExo, int derivsOrder, int paramsDerivsOrder,
-                     const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll);
+  void computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context,
+                     bool no_tmp_terms, bool block, bool use_dll);
   //! Writes information about the dynamic model to the driver file
   void writeDriverOutput(ostream &output, const string &basename, bool block, bool estimation_present, bool compute_xrefs) const;
 
