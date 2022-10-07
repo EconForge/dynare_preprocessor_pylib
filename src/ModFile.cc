@@ -56,7 +56,7 @@ ModFile::ModFile(WarningConsolidation &warnings_arg)
 void
 ModFile::evalAllExpressions(bool warn_uninit)
 {
-  cout << "Evaluating expressions...";
+  cout << "Evaluating expressions..." << endl;
 
   // Loop over all statements, and fill global eval context if relevant
   for (auto &st : statements)
@@ -73,8 +73,6 @@ ModFile::evalAllExpressions(bool warn_uninit)
 
   // Evaluate model local variables
   dynamic_model.fillEvalContext(global_eval_context);
-
-  cout << "done" << endl;
 
   // Check if some symbols are not initialized, and give them a zero value then
   for (int id = 0; id <= symbol_table.maxID(); id++)
@@ -879,8 +877,6 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
   if (param_used_with_lead_lag)
     mOutputFile << "M_.parameter_used_with_lead_lag = true;" << endl;
 
-  cout << "Processing outputs ..." << endl;
-
   symbol_table.writeOutput(mOutputFile);
 
   // Fill the fields related to solve_algo={12,14} if possible.
@@ -1089,8 +1085,6 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
 
       pac_model_table.writeTargetCoefficientsFile(basename);
     }
-
-  cout << "done" << endl;
 }
 
 void
