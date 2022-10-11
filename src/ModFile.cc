@@ -775,6 +775,22 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
 }
 
 void
+ModFile::remove_directory_with_matlab_lock(const filesystem::path &dir)
+{
+  if (!exists(dir))
+    return;
+
+  if (is_directory(dir))
+    for (const auto &e : filesystem::directory_iterator{dir})
+      if (is_directory(e))
+        remove_directory_with_matlab_lock(e);
+
+  auto tmp {unique_path()};
+  rename(dir, tmp);
+  remove_all(tmp);
+}
+
+void
 ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global, bool no_warn,
                       bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
                       bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
@@ -794,27 +810,13 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
   if (hasModelChanged)
     {
       // Erase possible remnants of previous runs
+
       /* Under MATLAB+Windows (but not under Octave nor under GNU/Linux or
          macOS), if we directly remove the "+" subdirectory, then the
          preprocessor is not able to recreate it afterwards (presumably because
-         MATLAB maintains some sort of lock on it). The workaround is to rename
-         it before deleting it (the renaming must occur in the same directory,
-         otherwise it may file if the destination is not on the same
-         filesystem). */
-      if (exists(plusfolder))
-        {
-          if (exists(plusfolder / "+objective"))
-            {
-              // Do it recursively for the +objective folder, created by ramsey_policy
-              auto tmp2 = unique_path();
-              rename(plusfolder / "+objective", tmp2);
-              remove_all(tmp2);
-            }
+         MATLAB maintains some sort of lock on it). So we use a hack. */
+      remove_directory_with_matlab_lock(plusfolder);
 
-          auto tmp = unique_path();
-          rename(plusfolder, tmp);
-          remove_all(tmp);
-        }
       filesystem::remove_all(basename + "/model/src");
       filesystem::remove_all(basename + "/model/bytecode");
     }
