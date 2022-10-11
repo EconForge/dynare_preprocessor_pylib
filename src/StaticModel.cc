@@ -167,7 +167,7 @@ StaticModel::writeStaticPerBlockCFiles(const string &basename, const string &mex
       ofstream output{filename, ios::out | ios::binary};
       if (!output.is_open())
         {
-          cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
           exit(EXIT_FAILURE);
         }
       output << "/* Block " << blk+1 << endl

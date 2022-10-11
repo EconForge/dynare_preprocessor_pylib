@@ -837,7 +837,7 @@ ModelTree::writeModelCFile(const string &basename, const string &mexext,
     output.open(p, ios::out | ios::binary);
     if (!output.is_open())
       {
-        cerr << "ERROR: Can't open file " << p << " for writing" << endl;
+        cerr << "ERROR: Can't open file " << p.string() << " for writing" << endl;
         exit(EXIT_FAILURE);
       }
   };

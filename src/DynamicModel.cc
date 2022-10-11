@@ -372,7 +372,7 @@ DynamicModel::writeDynamicPerBlockCFiles(const string &basename, const string &m
       ofstream output{filename, ios::out | ios::binary};
       if (!output.is_open())
         {
-          cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
           exit(EXIT_FAILURE);
         }
 
@@ -543,7 +543,7 @@ DynamicModel::writeDynamicPerBlockCFiles(const string &basename, const string &m
       ofstream header_output{filename, ios::out | ios::binary};
       if (!header_output.is_open())
         {
-          cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
           exit(EXIT_FAILURE);
         }
       header_output << header.str() << ';' << endl;
@@ -4605,7 +4605,7 @@ DynamicModel::isChecksumMatching(const string &basename) const
   checksum_file.open(filename, ios::out | ios::binary);
   if (!checksum_file.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << endl;
       exit(EXIT_FAILURE);
     }
   checksum_file << result;

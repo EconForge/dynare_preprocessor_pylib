@@ -1759,7 +1759,7 @@ ModelTree::compileMEX(const filesystem::path &output_dir, const string &output_b
   cmd << '"';
 #endif
 
-  cout << "Compiling " << output_filename << endl;
+  cout << "Compiling " << output_filename.string() << endl;
 
   // The prerequisites are the object files among the input files
   set<filesystem::path> prerequisites;
