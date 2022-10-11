@@ -793,19 +793,19 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
          it before deleting it (the renaming must occur in the same directory,
          otherwise it may file if the destination is not on the same
          filesystem). */
-      if (filesystem::path plusfolder{"+" + basename}; filesystem::exists(plusfolder))
+      if (filesystem::path plusfolder{"+" + basename}; exists(plusfolder))
         {
-          if (filesystem::exists(plusfolder / "+objective"))
+          if (exists(plusfolder / "+objective"))
             {
               // Do it recursively for the +objective folder, created by ramsey_policy
               auto tmp2 = unique_path();
-              filesystem::rename(plusfolder / "+objective", tmp2);
-              filesystem::remove_all(tmp2);
+              rename(plusfolder / "+objective", tmp2);
+              remove_all(tmp2);
             }
 
           auto tmp = unique_path();
-          filesystem::rename(plusfolder, tmp);
-          filesystem::remove_all(tmp);
+          rename(plusfolder, tmp);
+          remove_all(tmp);
         }
       filesystem::remove_all(basename + "/model/src");
       filesystem::remove_all(basename + "/model/bytecode");
@@ -1408,7 +1408,7 @@ ModFile::unique_path()
         dis = possible_characters[distribution(generator)];
       path = rand_str;
     }
-  while (filesystem::exists(path));
+  while (exists(path));
 
   return path;
 }
