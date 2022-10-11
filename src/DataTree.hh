@@ -28,6 +28,8 @@
 #include <cmath>
 #include <utility>
 #include <memory>
+#include <filesystem>
+#include <string_view>
 
 #include "SymbolTable.hh"
 #include "NumericalConstants.hh"
@@ -109,7 +111,7 @@ protected:
   /* Writes the contents of “new_contents” to the file “filename”. However, if
      the file already exists and would not be modified by this operation, then do
      nothing. */
-  static void writeToFileIfModified(stringstream &new_contents, const string &filename);
+  static void writeToFileIfModified(stringstream &new_contents, const filesystem::path &filename);
 
 private:
   constexpr static int constants_precision{16};
@@ -361,11 +363,10 @@ public:
   static vector<string> strsplit(string_view str, char delim);
 
   /*! Takes a MATLAB/Octave package name (possibly with several levels nested using dots),
-    and returns the name of the corresponding filesystem directory (which
-    is created by the function if it does not exist).
+    and returns the path to the corresponding filesystem directory.
     In practice the package nesting is used for the planner_objective (stored
     inside +objective subdir). */
-  static string packageDir(const string &package);
+  static filesystem::path packageDir(string_view package);
 };
 
 inline expr_t

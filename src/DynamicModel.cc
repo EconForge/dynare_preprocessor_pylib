@@ -223,16 +223,16 @@ DynamicModel::writeDynamicPerBlockMFiles(const string &basename) const
       int nze_exo = blocks_derivatives_exo[blk].size();
       int nze_exo_det = blocks_derivatives_exo_det[blk].size();
 
-      string filename = packageDir(basename + ".block") + "/dynamic_" + to_string(blk+1) + ".m";
+      filesystem::path filename {packageDir(basename) / "+block" / ("dynamic_" + to_string(blk+1) + ".m")};
       ofstream output{filename, ios::out | ios::binary};
       if (!output.is_open())
         {
-          cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
           exit(EXIT_FAILURE);
         }
 
       output << "%" << endl
-             << "% " << filename << " : Computes dynamic version of one block" << endl
+             << "% " << filename.string() << " : Computes dynamic version of one block" << endl
              << "%" << endl
              << "% Warning : this file is generated automatically by Dynare" << endl
              << "%           from model file (.mod)" << endl << endl
@@ -987,11 +987,11 @@ DynamicModel::printNonZeroHessianEquations(ostream &output) const
 void
 DynamicModel::writeDynamicBlockMFile(const string &basename) const
 {
-  string filename = packageDir(basename) + "/dynamic.m";
+  filesystem::path filename {packageDir(basename) / "dynamic.m"};
   ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -1102,7 +1102,7 @@ DynamicModel::writeDynamicBlockCFile(const string &basename, vector<filesystem::
   output.close();
 
   per_block_object_files.push_back(filename);
-  compileMEX("+" + basename, "dynamic", mexext, per_block_object_files, matlabroot, dynareroot);
+  compileMEX(packageDir(basename), "dynamic", mexext, per_block_object_files, matlabroot, dynareroot);
 }
 
 void
@@ -1116,11 +1116,11 @@ DynamicModel::writeDynamicMWrapperFunction(const string &basename, const string 
   else if (ending == "g3")
     name = "dynamic_resid_g1_g2_g3";
 
-  string filename = packageDir(basename) + "/" + name + ".m";
+  filesystem::path filename {packageDir(basename) / (name + ".m")};
   ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -1164,11 +1164,11 @@ DynamicModel::writeDynamicMFileHelper(const string &basename,
                                       const ostringstream &init_s, const ostringstream &end_s,
                                       const ostringstream &s, const ostringstream &s_tt) const
 {
-  string filename = packageDir(basename) + "/" + name_tt + ".m";
+  filesystem::path filename {packageDir(basename) / (name_tt + ".m")};
   ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -1201,11 +1201,11 @@ DynamicModel::writeDynamicMFileHelper(const string &basename,
          << "end" << endl;
   output.close();
 
-  filename = packageDir(basename) + "/" + name + ".m";
+  filename = packageDir(basename) / (name + ".m");
   output.open(filename, ios::out | ios::binary);
   if (!output.is_open())
     {
-      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -1245,11 +1245,11 @@ DynamicModel::writeDynamicMFileHelper(const string &basename,
 void
 DynamicModel::writeDynamicMCompatFile(const string &basename) const
 {
-  string filename = packageDir(basename) + "/dynamic.m";
+  filesystem::path filename {packageDir(basename) / "dynamic.m"};
   ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
   int ntt { static_cast<int>(temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size()) };
@@ -1291,7 +1291,7 @@ DynamicModel::writeDynamicJacobianNonZeroEltsFile(const string &basename) const
   sort(nzij_current.begin(), nzij_current.end());
   sort(nzij_fwrd.begin(), nzij_fwrd.end());
 
-  ofstream output{"+" + basename + "/dynamic_g1_nz.m", ios::out | ios::binary};
+  ofstream output{packageDir(basename) / "dynamic_g1_nz.m", ios::out | ios::binary};
   output << "function [nzij_pred, nzij_current, nzij_fwrd] = dynamic_g1_nz()" << endl
          << "% Returns the coordinates of non-zero elements in the Jacobian, in column-major order, for each lead/lag (only for endogenous)" << endl;
   auto print_nzij = [&output](const vector<pair<int, int>> &nzij, const string &name) {
@@ -3472,6 +3472,16 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
   model_dir /= "model";
   if (use_dll)
     create_directories(model_dir / "src");
+  if (!julia)
+    {
+      auto plusfolder {packageDir(basename)};
+      /* The following is not a duplicate of the same call from
+         ModFile::writeMOutput(), because of planner_objective which needs its
+         +objective subdirectory */
+      create_directories(plusfolder);
+      if (block && !use_dll)
+        create_directories(plusfolder / "+block");
+    }
   create_directories(model_dir / "bytecode");
 
   if (block)
@@ -3543,7 +3553,22 @@ DynamicModel::writeSetAuxiliaryVariables(const string &basename, bool julia) con
     output << "end" << endl
            << "end" << endl;
 
-  writeToFileIfModified(output, julia ? basename + "DynamicSetAuxiliarySeries.jl" : packageDir(basename) + "/" + func_name + ".m");
+  if (julia)
+    writeToFileIfModified(output, basename + "DynamicSetAuxiliarySeries.jl");
+  else
+    {
+      /* Calling writeToFileIfModified() is useless here since we write inside
+         a subdirectory deleted at each preprocessor run. */
+      filesystem::path filename {packageDir(basename) / (func_name + ".m")};
+      ofstream output_file{filename, ios::out | ios::binary};
+      if (!output_file.is_open())
+        {
+          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+          exit(EXIT_FAILURE);
+        }
+      output_file << output.str();
+      output_file.close();
+    }
 }
 
 void

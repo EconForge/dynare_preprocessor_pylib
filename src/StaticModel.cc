@@ -104,15 +104,15 @@ StaticModel::writeStaticPerBlockMFiles(const string &basename) const
     {
       BlockSimulationType simulation_type = blocks[blk].simulation_type;
 
-      string filename = packageDir(basename + ".block") + "/static_" + to_string(blk+1) + ".m";
+      filesystem::path filename {packageDir(basename) / "+block" / ("static_" + to_string(blk+1) + ".m")};
       ofstream output{filename, ios::out | ios::binary};
       if (!output.is_open())
         {
-          cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
           exit(EXIT_FAILURE);
         }
       output << "%" << endl
-             << "% " << filename << " : Computes static version of one block" << endl
+             << "% " << filename.string() << " : Computes static version of one block" << endl
              << "%" << endl
              << "% Warning : this file is generated automatically by Dynare" << endl
              << "%           from model file (.mod)" << endl << endl
@@ -465,11 +465,11 @@ StaticModel::writeStaticMWrapperFunction(const string &basename, const string &e
   else if (ending == "g3")
     name = "static_resid_g1_g2_g3";
 
-  string filename = packageDir(basename) + "/" + name + ".m";
+  filesystem::path filename {packageDir(basename) / (name + ".m")};
   ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -513,11 +513,11 @@ StaticModel::writeStaticMFileHelper(const string &basename,
                                     const ostringstream &init_s, const ostringstream &end_s,
                                     const ostringstream &s, const ostringstream &s_tt) const
 {
-  string filename = packageDir(basename) + "/" + name_tt + ".m";
+  filesystem::path filename {packageDir(basename) / (name_tt + ".m")};
   ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -545,11 +545,11 @@ StaticModel::writeStaticMFileHelper(const string &basename,
          << "end" << endl;
   output.close();
 
-  filename = packageDir(basename) + "/" + name + ".m";
+  filename = packageDir(basename) / (name + ".m");
   output.open(filename, ios::out | ios::binary);
   if (!output.is_open())
     {
-      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -585,11 +585,11 @@ StaticModel::writeStaticMFileHelper(const string &basename,
 void
 StaticModel::writeStaticMCompatFile(const string &basename) const
 {
-  string filename = packageDir(basename) + "/static.m";
+  filesystem::path filename {packageDir(basename) / "static.m"};
   ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
   int ntt { static_cast<int>(temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size()) };
@@ -845,6 +845,16 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
   model_dir /= "model";
   if (use_dll)
     create_directories(model_dir / "src");
+  if (!julia)
+    {
+      auto plusfolder {packageDir(basename)};
+      /* The following is not a duplicate of the same call from
+         ModFile::writeMOutput(), because of planner_objective which needs its
+         +objective subdirectory */
+      create_directories(plusfolder);
+      if (block && !use_dll)
+        create_directories(plusfolder / "+block");
+    }
   create_directories(model_dir / "bytecode");
 
   if (block)
@@ -894,12 +904,12 @@ StaticModel::exoPresentInEqs() const
 void
 StaticModel::writeStaticBlockMFile(const string &basename) const
 {
-  string filename = packageDir(basename) + "/static.m";
+  filesystem::path filename {packageDir(basename) / "static.m"};
 
   ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -999,7 +1009,7 @@ StaticModel::writeStaticBlockCFile(const string &basename, vector<filesystem::pa
   output.close();
 
   per_block_object_files.push_back(filename);
-  compileMEX("+" + basename, "static", mexext, per_block_object_files, matlabroot, dynareroot);
+  compileMEX(packageDir(basename), "static", mexext, per_block_object_files, matlabroot, dynareroot);
 }
 
 void
@@ -1205,7 +1215,22 @@ StaticModel::writeSetAuxiliaryVariables(const string &basename, bool julia) cons
     output << "end" << endl
            << "end" << endl;
 
-  writeToFileIfModified(output, julia ? basename + "SetAuxiliaryVariables.jl" : packageDir(basename) + "/" + func_name + ".m");
+  if (julia)
+    writeToFileIfModified(output, basename + "SetAuxiliaryVariables.jl");
+  else
+    {
+      /* Calling writeToFileIfModified() is useless here since we write inside
+         a subdirectory deleted at each preprocessor run. */
+      filesystem::path filename {packageDir(basename) / (func_name + ".m")};
+      ofstream output_file{filename, ios::out | ios::binary};
+      if (!output_file.is_open())
+        {
+          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+          exit(EXIT_FAILURE);
+        }
+      output_file << output.str();
+      output_file.close();
+    }
 }
 
 void

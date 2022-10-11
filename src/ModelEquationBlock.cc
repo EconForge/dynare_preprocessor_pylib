@@ -259,7 +259,22 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool julia) const
   if (julia)
     output << "end" << endl << "end" << endl;
 
-  writeToFileIfModified(output, julia ? basename + "SteadyState2.jl" : packageDir(basename) + "/steadystate.m");
+  if (julia)
+    writeToFileIfModified(output, basename + "SteadyState2.jl");
+  else
+    {
+      /* Calling writeToFileIfModified() is useless here since we write inside
+         a subdirectory deleted at each preprocessor run. */
+      filesystem::path filename {packageDir(basename) / "steadystate.m"};
+      ofstream output_file{filename, ios::out | ios::binary};
+      if (!output_file.is_open())
+        {
+          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+          exit(EXIT_FAILURE);
+        }
+      output_file << output.str();
+      output_file.close();
+    }
 }
 
 void
@@ -407,11 +422,11 @@ Epilogue::writeEpilogueFile(const string &basename) const
 void
 Epilogue::writeStaticEpilogueFile(const string &basename) const
 {
-  string filename = packageDir(basename) + "/epilogue_static.m";
+  filesystem::path filename {packageDir(basename) / "epilogue_static.m"};
   ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -445,11 +460,11 @@ Epilogue::writeStaticEpilogueFile(const string &basename) const
 void
 Epilogue::writeDynamicEpilogueFile(const string &basename) const
 {
-  string filename = packageDir(basename) + "/epilogue_dynamic.m";
+  filesystem::path filename {packageDir(basename) / "epilogue_dynamic.m"};
   ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 

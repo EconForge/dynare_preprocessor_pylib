@@ -20,7 +20,6 @@
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
-#include <regex>
 #include <algorithm>
 #include <iterator>
 #include <filesystem>
@@ -962,17 +961,17 @@ DataTree::strsplit(string_view str, char delim)
   return result;
 }
 
-string
-DataTree::packageDir(const string &package)
+filesystem::path
+DataTree::packageDir(string_view package)
 {
-  regex pat{R"(\.)"};
-  string dirname = "+" + regex_replace(package, pat, "/+");
-  filesystem::create_directories(dirname);
-  return dirname;
+  filesystem::path d;
+  for (const auto &it : strsplit(move(package), '.'))
+    d /= "+" + it;
+  return d;
 }
 
 void
-DataTree::writeToFileIfModified(stringstream &new_contents, const string &filename)
+DataTree::writeToFileIfModified(stringstream &new_contents, const filesystem::path &filename)
 {
   ifstream old_file{filename, ios::in | ios::binary};
   if (old_file.is_open()
@@ -986,7 +985,7 @@ DataTree::writeToFileIfModified(stringstream &new_contents, const string &filena
   ofstream new_file{filename, ios::out | ios::binary};
   if (!new_file.is_open())
     {
-      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
   copy(istreambuf_iterator<char>{new_contents}, istreambuf_iterator<char>{},

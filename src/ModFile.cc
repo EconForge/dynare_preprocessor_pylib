@@ -782,6 +782,14 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
                       const filesystem::path &matlabroot,
                       const filesystem::path &dynareroot, bool onlymodel, bool gui, bool notime) const
 {
+  if (basename.empty())
+    {
+      cerr << "ERROR: Missing file name" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  auto plusfolder {DataTree::packageDir(basename)};
+
   bool hasModelChanged = !dynamic_model.isChecksumMatching(basename) || !check_model_changes;
   if (hasModelChanged)
     {
@@ -793,7 +801,7 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
          it before deleting it (the renaming must occur in the same directory,
          otherwise it may file if the destination is not on the same
          filesystem). */
-      if (filesystem::path plusfolder{"+" + basename}; exists(plusfolder))
+      if (exists(plusfolder))
         {
           if (exists(plusfolder / "+objective"))
             {
@@ -811,18 +819,12 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
       filesystem::remove_all(basename + "/model/bytecode");
     }
 
-  if (!basename.size())
-    {
-      cerr << "ERROR: Missing file name" << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  filesystem::create_directory("+" + basename);
-  string fname = "+" + basename + "/driver.m";
+  create_directory(plusfolder);
+  filesystem::path fname {plusfolder / "driver.m"};
   ofstream mOutputFile{fname, ios::out | ios::binary};
   if (!mOutputFile.is_open())
     {
-      cerr << "ERROR: Can't open file " << fname << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << fname.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 

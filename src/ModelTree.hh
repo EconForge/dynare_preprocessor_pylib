@@ -1031,7 +1031,7 @@ ModelTree::writeModelCFile(const string &basename, const string &mexext,
   output.close();
 
   object_files.push_back(filename);
-  compileMEX("+" + basename, dynamic ? "dynamic" : "static", mexext, object_files, matlabroot,
+  compileMEX(packageDir(basename), dynamic ? "dynamic" : "static", mexext, object_files, matlabroot,
              dynareroot);
 }
 

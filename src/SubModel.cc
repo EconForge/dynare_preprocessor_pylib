@@ -246,11 +246,11 @@ TrendComponentModelTable::writeOutput(const string &basename, ostream &output) c
   if (names.empty())
     return;
 
-  string filename = "+" + basename + "/trend_component_ar_a0.m";
+  const filesystem::path filename {DataTree::packageDir(basename) / "trend_component_ar_a0.m"};
   ofstream ar_ec_output{filename, ios::out | ios::binary};
   if (!ar_ec_output.is_open())
     {
-      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
   ar_ec_output << "function [AR, A0, A0star] = trend_component_ar_a0(model_name, params)" << endl
@@ -427,11 +427,11 @@ VarModelTable::writeOutput(const string &basename, ostream &output) const
   if (names.empty())
     return;
 
-  string filename = "+" + basename + "/varmatrices.m";
+  const filesystem::path filename {DataTree::packageDir(basename) / "varmatrices.m"};
   ofstream ar_output{filename, ios::out | ios::binary};
   if (!ar_output.is_open())
     {
-      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
   ar_output << "function [ar, a0, constants] = varmatrices(model_name, params, reducedform)" << endl
@@ -1751,11 +1751,11 @@ PacModelTable::writeTargetCoefficientsFile(const string &basename) const
   if (target_info.empty())
     return;
 
-  string filename = DataTree::packageDir(basename) + "/pac_target_coefficients.m";
+  filesystem::path filename {DataTree::packageDir(basename) / "pac_target_coefficients.m"};
   ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
   output << "function coeffs = pac_target_coefficients(model_name, params)" << endl;
