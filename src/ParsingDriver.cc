@@ -2587,8 +2587,8 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
       // If the equation has a “bind” or “relax” tag (occbin case)
       if (!eq_tags.contains("name"))
         error("An equation with a 'bind' or 'relax' tag must have a 'name' tag");
-      auto regimes_bind = strsplit(eq_tags["bind"], ',');
-      auto regimes_relax = strsplit(eq_tags["relax"], ',');
+      auto regimes_bind = DataTree::strsplit(eq_tags["bind"], ',');
+      auto regimes_relax = DataTree::strsplit(eq_tags["relax"], ',');
       auto regimes_all = regimes_bind;
       regimes_all.insert(regimes_all.end(), regimes_relax.begin(), regimes_relax.end()); // Concatenate the two vectors
       for (const auto &regime : regimes_all)
@@ -3730,25 +3730,6 @@ void
 ParsingDriver::set_pac_target_info_component_kind(PacTargetKind kind)
 {
   get<3>(pac_target_info_component) = kind;
-}
-
-vector<string>
-ParsingDriver::strsplit(const string &str, char delim)
-{
-  vector<string> result;
-  size_t idx = 0;
-  while (idx < str.size())
-    {
-      size_t idx2 = str.find(delim, idx);
-      if (idx2 == string::npos)
-        {
-          result.push_back(str.substr(idx));
-          break;
-        }
-      result.push_back(str.substr(idx, idx2-idx));
-      idx = idx2 + 1;
-    }
-  return result;
 }
 
 bool

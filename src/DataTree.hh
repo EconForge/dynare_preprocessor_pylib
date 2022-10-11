@@ -355,6 +355,11 @@ public:
     no_commutativity = true;
   }
 
+  /* Equivalent of MATLAB/Octave’s strsplit, except that it ignores empty
+     substring components (MATLAB/Octave adds them to the output); in
+     particular, returns an empty vector given an empty string. */
+  static vector<string> strsplit(string_view str, char delim);
+
   /*! Takes a MATLAB/Octave package name (possibly with several levels nested using dots),
     and returns the name of the corresponding filesystem directory (which
     is created by the function if it does not exist).

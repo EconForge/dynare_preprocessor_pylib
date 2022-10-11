@@ -945,6 +945,23 @@ DataTree::writePowerDerivHeader(ostream &output) const
     output << "double getPowerDeriv(double x, double p, int k);" << endl;
 }
 
+vector<string>
+DataTree::strsplit(string_view str, char delim)
+{
+  vector<string> result;
+  while (true)
+    {
+      size_t idx {str.find(delim)};
+      if (auto sub {str.substr(0, idx)};
+          !sub.empty())
+        result.emplace_back(sub);
+      if (idx == string_view::npos)
+        break;
+      str.remove_prefix(idx+1);
+    }
+  return result;
+}
+
 string
 DataTree::packageDir(const string &package)
 {
