@@ -23,6 +23,8 @@
 #include <vector>
 #include <string>
 #include <regex>
+#include <thread>
+#include <algorithm>
 
 #include <cstdlib>
 
@@ -494,6 +496,9 @@ main(int argc, char **argv)
   if (use_dll)
     mod_file->use_dll = true;
 
+  if (mod_file->use_dll)
+    ModelTree::initializeMEXCompilationWorkers(max(jthread::hardware_concurrency(), 1U));
+
   if (json == JsonOutputPointType::parsing)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
 
@@ -528,7 +533,8 @@ main(int argc, char **argv)
      compilation (and is not printed in case of compilation failure); also
      avoids potential issues with destroying the thread synchronization
      mechanism too soon. */
-  ModelTree::joinMEXCompilationThreads();
+  if (mod_file->use_dll)
+    ModelTree::terminateMEXCompilationWorkers();
 
   cout << "Preprocessing completed." << endl;
   return EXIT_SUCCESS;

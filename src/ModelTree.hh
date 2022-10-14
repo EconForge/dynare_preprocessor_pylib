@@ -339,16 +339,19 @@ private:
   /*! Maps endogenous type specific IDs to equation numbers */
   vector<int> endo2eq;
 
-  // Stores threads for compiling MEX files in parallel
-  static vector<jthread> mex_compilation_threads;
+  // Stores workers used for compiling MEX files in parallel
+  static vector<jthread> mex_compilation_workers;
 
   /* The following variables implement the thread synchronization mechanism for
      limiting the number of concurrent GCC processes and tracking dependencies
      between object files. */
   static condition_variable mex_compilation_cv;
   static mutex mex_compilation_mut;
-  static unsigned int mex_compilation_available_processors;
-  static set<filesystem::path> mex_compilation_done; // Object/MEX files already compiled
+  /* Object/MEX files waiting to be compiled (with their prerequisites as 2nd
+     element and compilation command as the 3rd element) */
+  static vector<tuple<filesystem::path, set<filesystem::path>, string>> mex_compilation_queue;
+  // Object/MEX files already compiled
+  static set<filesystem::path> mex_compilation_done;
 
   /* Compute a pseudo-Jacobian whose all elements are either zero or one,
      depending on whether the variable symbolically appears in the equation */
@@ -499,12 +502,11 @@ private:
   static string findGccOnMacos(const string &mexext);
 #endif
   /* Compiles a MEX file (if link=true) or an object file to be linked later
-     into a MEX file (if link=false). The compilation is done in a separate
-     asynchronous thread, so the call to this function is not blocking. The
-     number of concurrently running GCC processes is dynamically limited to the
-     number of available logical processors. The dependency of a linked MEX
-     file upon intermediary objects is nicely handled. Returns the name of the
-     output file (to be reused later as input file if link=false). */
+     into a MEX file (if link=false). The compilation is done in separate
+     worker threads working in parallel, so the call to this function is not
+     blocking. The dependency of a linked MEX file upon intermediary objects is
+     nicely handled. Returns the name of the output file (to be reused later as
+     input file if link=false). */
   filesystem::path compileMEX(const filesystem::path &output_dir, const string &output_basename, const string &mexext, const vector<filesystem::path> &input_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool link = true) const;
 
 public:
@@ -552,8 +554,12 @@ public:
      If no such equation can be found, throws an ExprNode::MatchFailureExpression */
   expr_t getRHSFromLHS(expr_t lhs) const;
 
-  // Calls join() on all MEX compilation threads
-  static void joinMEXCompilationThreads();
+  // Initialize the MEX compilation workers
+  static void initializeMEXCompilationWorkers(int numworkers);
+
+  /* Terminates all MEX compilation workers (after they have emptied the
+     waiting queue) */
+  static void terminateMEXCompilationWorkers();
 
   //! Returns all the equation tags associated to an equation
   map<string, string>

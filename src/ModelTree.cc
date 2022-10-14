@@ -37,10 +37,10 @@
 #include <utility>
 #include <algorithm>
 
-vector<jthread> ModelTree::mex_compilation_threads {};
+vector<jthread> ModelTree::mex_compilation_workers {};
 condition_variable ModelTree::mex_compilation_cv;
 mutex ModelTree::mex_compilation_mut;
-unsigned int ModelTree::mex_compilation_available_processors {max(jthread::hardware_concurrency(), 1U)};
+vector<tuple<filesystem::path, set<filesystem::path>, string>> ModelTree::mex_compilation_queue;
 set<filesystem::path> ModelTree::mex_compilation_done;
 
 void
@@ -1626,6 +1626,8 @@ ModelTree::findGccOnMacos(const string &mexext)
 filesystem::path
 ModelTree::compileMEX(const filesystem::path &output_dir, const string &output_basename, const string &mexext, const vector<filesystem::path> &input_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool link) const
 {
+  assert(!mex_compilation_workers.empty());
+
   const string opt_flags = "-O3 -g0 --param ira-max-conflict-table-size=1 -fno-forward-propagate -fno-gcse -fno-dce -fno-dse -fno-tree-fre -fno-tree-pre -fno-tree-cselim -fno-tree-dse -fno-tree-dce -fno-tree-pta -fno-gcse-after-reload";
 
   filesystem::path compiler;
@@ -1769,37 +1771,10 @@ ModelTree::compileMEX(const filesystem::path &output_dir, const string &output_b
             return p.extension() == ".o";
           });
 
-  // std::ostringstream is not copyable, so capture a std::string
-  string cmd_str { cmd.str() };
-  mex_compilation_threads.emplace_back([cmd_str, output_filename, prerequisites]
-  {
-    /* Wait until a logical processor becomes available and all prerequisites
-       are done */
-    unique_lock<mutex> lk {mex_compilation_mut};
-    mex_compilation_cv.wait(lk, [prerequisites]
-    {
-      return mex_compilation_available_processors > 0 &&
-        includes(mex_compilation_done.begin(), mex_compilation_done.end(),
-                 prerequisites.begin(), prerequisites.end());
-    });
-    // Signal to other threads that we have grabbed a logical processor
-    mex_compilation_available_processors--;
-    lk.unlock();
-
-    // Effectively compile
-    if (system(cmd_str.c_str()))
-      {
-        cerr << "Compilation failed" << endl;
-        exit(EXIT_FAILURE);
-      }
-
-    /* Signal to other threads that we have freed a logical processor and
-       completed a possible prerequisite */
-    lk.lock();
-    mex_compilation_available_processors++;
-    mex_compilation_done.insert(output_filename);
-    mex_compilation_cv.notify_all();
-  });
+  unique_lock<mutex> lk {mex_compilation_mut};
+  mex_compilation_queue.emplace_back(output_filename, prerequisites, cmd.str());
+  lk.unlock();
+  mex_compilation_cv.notify_one();
 
   return output_filename;
 }
@@ -1906,9 +1881,74 @@ ModelTree::writeBlockBytecodeAdditionalDerivatives([[maybe_unused]] BytecodeWrit
 }
 
 void
-ModelTree::joinMEXCompilationThreads()
+ModelTree::initializeMEXCompilationWorkers(int numworkers)
 {
-  for (auto &it : mex_compilation_threads)
+  assert(numworkers > 0);
+  assert(mex_compilation_workers.empty());
+
+  cout << "Spawning " << numworkers << " threads for compiling MEX files." << endl;
+
+  for (int i {0}; i < numworkers; i++)
+    mex_compilation_workers.emplace_back([](stop_token stoken)
+    {
+      unique_lock<mutex> lk {mex_compilation_mut};
+
+    look_for_job:
+      for (auto it {mex_compilation_queue.begin()}; it != mex_compilation_queue.end(); ++it)
+        {
+          /* The following is a copy and not a reference, because we need it
+             after erasing it, and also after releasing the lock (at which
+             point the mex_compilation_queue may be modified by others). */
+          const auto [output, prerequisites, cmd] {*it};
+          if (includes(mex_compilation_done.begin(), mex_compilation_done.end(),
+                       prerequisites.begin(), prerequisites.end()))
+            {
+              mex_compilation_queue.erase(it);
+              lk.unlock(); // After that point, the iterator may become invalid
+              if (system(cmd.c_str()))
+                {
+                  cerr << "Compilation failed" << endl;
+                  exit(EXIT_FAILURE);
+                }
+              lk.lock();
+              mex_compilation_done.insert(output);
+              /* The object just compiled may be a prerequisite for several
+                 other objects, so notify all waiting workers. Also needed to
+                 notify the main thread when in
+                 ModelTree::terminateMEXCompilationWorkers(). */
+              mex_compilation_cv.notify_all();
+              goto look_for_job;
+            }
+        }
+
+      if (stoken.stop_requested())
+        return;
+
+      mex_compilation_cv.wait(lk);
+
+      goto look_for_job;
+    });
+}
+
+void
+ModelTree::terminateMEXCompilationWorkers()
+{
+  // Wait until the queue is empty
+  unique_lock<mutex> lk {mex_compilation_mut};
+  mex_compilation_cv.wait(lk, [] { return mex_compilation_queue.empty(); });
+
+  /* Request stop while still holding the lock, so we are sure that workers are
+     either compiling or waiting right now. Otherwise there could theoretically
+     be a race condition where the condition variable is notified just after
+     the thread has checked for its stoken, and just before it begins waiting;
+     this would be deadlock. */
+  for (auto &it : mex_compilation_workers)
+    it.request_stop();
+
+  lk.unlock();
+
+  mex_compilation_cv.notify_all();
+  for (auto &it : mex_compilation_workers)
     it.join();
 }
 
