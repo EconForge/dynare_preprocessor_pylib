@@ -496,6 +496,12 @@ main(int argc, char **argv)
   if (use_dll)
     mod_file->use_dll = true;
 
+  if (mod_file->use_dll && language == LanguageOutputType::julia)
+    {
+      cerr << "ERROR: `use_dll` option is not compatible with Julia" << endl;
+      exit(EXIT_FAILURE);
+    }
+
   if (mod_file->use_dll)
     ModelTree::initializeMEXCompilationWorkers(max(jthread::hardware_concurrency(), 1U));
 
