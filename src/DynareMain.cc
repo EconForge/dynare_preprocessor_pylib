@@ -535,12 +535,11 @@ main(int argc, char **argv)
                            nointeractive, config_file, check_model_changes, minimal_workspace, compute_xrefs,
                            mexext, matlabroot, dynareroot, onlymodel, gui, notime);
 
-  /* Ensures that the preprocessor final message is printed after the end of
-     compilation (and is not printed in case of compilation failure); also
-     avoids potential issues with destroying the thread synchronization
-     mechanism too soon. */
+  /* Ensures that workers are not destroyed before they finish compiling.
+     Also ensures that the preprocessor final message is printed after the end of
+     compilation (and is not printed in case of compilation failure). */
   if (mod_file->use_dll)
-    ModelTree::terminateMEXCompilationWorkers();
+    ModelTree::waitForMEXCompilationWorkers();
 
   cout << "Preprocessing completed." << endl;
   return EXIT_SUCCESS;

@@ -37,11 +37,15 @@
 #include <utility>
 #include <algorithm>
 
-vector<jthread> ModelTree::mex_compilation_workers {};
-condition_variable ModelTree::mex_compilation_cv;
+/* NB: The workers must be listed *after* all the other static variables
+   related to MEX compilation, so that when the preprocessor exits, the workers
+   are destroyed *before* those variables (since the former rely on the latter
+   for their functioning). */
+condition_variable_any ModelTree::mex_compilation_cv;
 mutex ModelTree::mex_compilation_mut;
 vector<tuple<filesystem::path, set<filesystem::path>, string>> ModelTree::mex_compilation_queue;
 set<filesystem::path> ModelTree::mex_compilation_done;
+vector<jthread> ModelTree::mex_compilation_workers;
 
 void
 ModelTree::copyHelper(const ModelTree &m)
@@ -1892,64 +1896,52 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers)
     mex_compilation_workers.emplace_back([](stop_token stoken)
     {
       unique_lock<mutex> lk {mex_compilation_mut};
+      filesystem::path output;
+      string cmd;
 
-    look_for_job:
-      for (auto it {mex_compilation_queue.begin()}; it != mex_compilation_queue.end(); ++it)
-        {
-          /* The following is a copy and not a reference, because we need it
-             after erasing it, and also after releasing the lock (at which
-             point the mex_compilation_queue may be modified by others). */
-          const auto [output, prerequisites, cmd] {*it};
-          if (includes(mex_compilation_done.begin(), mex_compilation_done.end(),
+      /* Look for an object to compile, whose prerequisites are already
+         compiled. If found, remove it from the queue, save the output path and
+         the compilation command, and return true. Must be run under the lock. */
+      auto pick_job = [&cmd, &output]
+      {
+        for (auto it {mex_compilation_queue.begin()}; it != mex_compilation_queue.end(); ++it)
+          if (const auto &prerequisites {get<1>(*it)}; // Will become dangling after erase
+              includes(mex_compilation_done.begin(), mex_compilation_done.end(),
                        prerequisites.begin(), prerequisites.end()))
             {
+              output = get<0>(*it);
+              cmd = get<2>(*it);
               mex_compilation_queue.erase(it);
-              lk.unlock(); // After that point, the iterator may become invalid
-              if (system(cmd.c_str()))
-                {
-                  cerr << "Compilation failed" << endl;
-                  exit(EXIT_FAILURE);
-                }
-              lk.lock();
-              mex_compilation_done.insert(output);
-              /* The object just compiled may be a prerequisite for several
-                 other objects, so notify all waiting workers. Also needed to
-                 notify the main thread when in
-                 ModelTree::terminateMEXCompilationWorkers(). */
-              mex_compilation_cv.notify_all();
-              goto look_for_job;
+              return true;
             }
-        }
+        return false;
+      };
 
-      if (stoken.stop_requested())
-        return;
-
-      mex_compilation_cv.wait(lk);
-
-      goto look_for_job;
+      while (!stoken.stop_requested())
+        if (mex_compilation_cv.wait(lk, stoken, pick_job))
+          {
+            lk.unlock();
+            if (system(cmd.c_str()))
+              {
+                cerr << "Compilation failed" << endl;
+                exit(EXIT_FAILURE);
+              }
+            lk.lock();
+            mex_compilation_done.insert(output);
+            /* The object just compiled may be a prerequisite for several
+               other objects, so notify all waiting workers. Also needed to
+               notify the main thread when in
+               ModelTree::waitForMEXCompilationWorkers().*/
+            mex_compilation_cv.notify_all();
+          }
     });
 }
 
 void
-ModelTree::terminateMEXCompilationWorkers()
+ModelTree::waitForMEXCompilationWorkers()
 {
-  // Wait until the queue is empty
   unique_lock<mutex> lk {mex_compilation_mut};
   mex_compilation_cv.wait(lk, [] { return mex_compilation_queue.empty(); });
-
-  /* Request stop while still holding the lock, so we are sure that workers are
-     either compiling or waiting right now. Otherwise there could theoretically
-     be a race condition where the condition variable is notified just after
-     the thread has checked for its stoken, and just before it begins waiting;
-     this would be deadlock. */
-  for (auto &it : mex_compilation_workers)
-    it.request_stop();
-
-  lk.unlock();
-
-  mex_compilation_cv.notify_all();
-  for (auto &it : mex_compilation_workers)
-    it.join();
 }
 
 void

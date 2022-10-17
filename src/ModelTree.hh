@@ -345,7 +345,7 @@ private:
   /* The following variables implement the thread synchronization mechanism for
      limiting the number of concurrent GCC processes and tracking dependencies
      between object files. */
-  static condition_variable mex_compilation_cv;
+  static condition_variable_any mex_compilation_cv;
   static mutex mex_compilation_mut;
   /* Object/MEX files waiting to be compiled (with their prerequisites as 2nd
      element and compilation command as the 3rd element) */
@@ -557,9 +557,8 @@ public:
   // Initialize the MEX compilation workers
   static void initializeMEXCompilationWorkers(int numworkers);
 
-  /* Terminates all MEX compilation workers (after they have emptied the
-     waiting queue) */
-  static void terminateMEXCompilationWorkers();
+  // Waits until the MEX compilation queue is empty
+  static void waitForMEXCompilationWorkers();
 
   //! Returns all the equation tags associated to an equation
   map<string, string>
