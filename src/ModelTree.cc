@@ -253,7 +253,7 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
       it != mate_map.begin() + n)
     {
       if (verbose)
-        cerr << "Could not normalize the " << modelClassName() << " . Variable "
+        cerr << "Could not normalize the " << modelClassName() << ". Variable "
              << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, it - mate_map.begin()))
              << " is not in the maximum cardinality matching." << endl;
       check = false;
