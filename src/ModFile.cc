@@ -369,9 +369,12 @@ ModFile::checkPass(bool nostrict, bool stochastic)
     }
 
   // See dynare#1726
-  if ((stochastic_statement_present || mod_file_struct.check_present) && dynamic_model.mfs > 0)
+  if ((stochastic_statement_present || mod_file_struct.check_present) && block && dynamic_model.mfs > 0)
     {
-      cerr << "ERROR: mfs > 0 is incompatible with check, stoch_simul, estimation, osr, ramsey_policy, discretionary_policy, calib_smoother, identification, methods_of_moments and sensitivity commands" << endl;
+      /* NB: If mfs>0 but “block” is not passed, the block-DR routines will not
+         be called, so do not fail in that case (we may want to use the sparse
+         block representation) */
+      cerr << "ERROR: the `block` option used in conjunction with `mfs > 0` is incompatible with check, stoch_simul, estimation, osr, ramsey_policy, discretionary_policy, calib_smoother, identification, methods_of_moments and sensitivity commands" << endl;
       exit(EXIT_FAILURE);
     }
 }
