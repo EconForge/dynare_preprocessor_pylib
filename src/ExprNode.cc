@@ -3107,9 +3107,20 @@ UnaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &r
 void
 UnaryOpNode::computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const
 {
-  arg->computeSubExprContainingVariable(symb_id, lag, contain_var);
-  if (contain_var.contains(arg))
-    contain_var.insert(const_cast<UnaryOpNode *>(this));
+  if (op_code == UnaryOpcode::diff)
+    {
+      expr_t lagged_arg {arg->decreaseLeadsLags(1)};
+      expr_t substitute {datatree.AddMinus(arg, lagged_arg)};
+      substitute->computeSubExprContainingVariable(symb_id, lag, contain_var);
+      if (contain_var.contains(arg) || contain_var.contains(lagged_arg))
+        contain_var.insert(const_cast<UnaryOpNode *>(this));
+    }
+  else
+    {
+      arg->computeSubExprContainingVariable(symb_id, lag, contain_var);
+      if (contain_var.contains(arg))
+        contain_var.insert(const_cast<UnaryOpNode *>(this));
+    }
 }
 
 BinaryOpNode *
@@ -3173,6 +3184,13 @@ UnaryOpNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs)
     case UnaryOpcode::cbrt:
       rhs = datatree.AddPower(rhs, datatree.Three);
       break;
+    case UnaryOpcode::diff:
+      /* Recursively call the function on arg-arg(-1).
+         This is necessary to deal with the 3 different possible cases:
+         — var in arg but not arg(-1);
+         — var in arg(-1) but not arg;
+         — var in both arg and arg(-1). */
+      return datatree.AddMinus(arg, arg->decreaseLeadsLags(1))->normalizeEquationHelper(contain_var, rhs);
     default:
       throw NormalizationFailed();
     }
