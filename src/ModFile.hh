@@ -79,7 +79,7 @@ public:
   //! Option linear
   bool linear{false};
 
-  //! Is the model block decomposed?
+  //! Was the “block” option passed to the “model” block?
   bool block{false};
 
   //! Is the model stored in bytecode format (bytecode=true) or in a M-file (bytecode=false)
