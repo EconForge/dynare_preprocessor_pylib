@@ -121,7 +121,7 @@ class ParsingDriver;
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT PLANNER_DISCOUNT_LATEX_NAME
 %token DISCRETIONARY_POLICY DISCRETIONARY_TOL EVALUATE_PLANNER_OBJECTIVE
 %token OCCBIN_SETUP OCCBIN_SOLVER OCCBIN_WRITE_REGIMES OCCBIN_GRAPH SIMUL_MAXIT LIKELIHOOD_MAXIT SMOOTHER_MAXIT SIMUL_PERIODS LIKELIHOOD_PERIODS SMOOTHER_PERIODS
-%token SIMUL_CURB_RETRENCH LIKELIHOOD_CURB_RETRENCH SMOOTHER_CURB_RETRENCH SIMUL_CHECK_AHEAD_PERIODS LIKELIHOOD_CHECK_AHEAD_PERIODS SMOOTHER_CHECK_AHEAD_PERIODS
+%token SIMUL_CURB_RETRENCH LIKELIHOOD_CURB_RETRENCH SMOOTHER_CURB_RETRENCH SIMUL_CHECK_AHEAD_PERIODS SIMUL_RESET_CHECK_AHEAD_PERIODS LIKELIHOOD_CHECK_AHEAD_PERIODS SMOOTHER_CHECK_AHEAD_PERIODS
 %token SIMUL_DEBUG SMOOTHER_DEBUG SIMUL_PERIODIC_SOLUTION LIKELIHOOD_PERIODIC_SOLUTION SMOOTHER_PERIODIC_SOLUTION
 %token LIKELIHOOD_INVERSION_FILTER SMOOTHER_INVERSION_FILTER FILTER_USE_RELEXATION
 %token LIKELIHOOD_PIECEWISE_KALMAN_FILTER SMOOTHER_PIECEWISE_KALMAN_FILTER LIKELIHOOD_MAX_KALMAN_ITERATIONS
@@ -2555,6 +2555,7 @@ occbin_setup_option : o_occbin_simul_periods
                     | o_occbin_simul_check_ahead_periods
                     | o_occbin_simul_periodic_solution
                     | o_occbin_simul_debug
+                    | o_occbin_simul_reset_check_ahead_periods
                     | o_occbin_likelihood_periods
                     | o_occbin_likelihood_maxit
                     | o_occbin_likelihood_curb_retrench
@@ -2588,6 +2589,7 @@ occbin_solver_option : o_occbin_simul_periods
                      | o_occbin_simul_maxit
                      | o_occbin_simul_curb_retrench
                      | o_occbin_simul_check_ahead_periods
+                     | o_occbin_simul_reset_check_ahead_periods
                      | o_occbin_simul_debug
                      | o_occbin_simul_periodic_solution
                      ;
@@ -4143,6 +4145,7 @@ o_occbin_simul_maxit : SIMUL_MAXIT EQUAL INT_NUMBER { driver.option_num("simul.m
 o_occbin_simul_periods : SIMUL_PERIODS EQUAL INT_NUMBER { driver.option_num("simul.periods", $3); };
 o_occbin_simul_curb_retrench : SIMUL_CURB_RETRENCH { driver.option_num("simul.curb_retrench", "true"); };
 o_occbin_simul_check_ahead_periods : SIMUL_CHECK_AHEAD_PERIODS EQUAL INT_NUMBER { driver.option_num("simul.check_ahead_periods", $3); };
+o_occbin_simul_reset_check_ahead_periods : SIMUL_RESET_CHECK_AHEAD_PERIODS { driver.option_num("simul.reset_check_ahead_periods_in_new_period", "true"); };
 o_occbin_simul_debug : SIMUL_DEBUG { driver.option_num("simul.debug", "true"); };
 o_occbin_simul_periodic_solution : SIMUL_PERIODIC_SOLUTION { driver.option_num("simul.periodic_solution", "true"); };
 
