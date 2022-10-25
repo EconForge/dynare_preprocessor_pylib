@@ -238,12 +238,6 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
 
   assert(check);
 
-#ifdef DEBUG
-  for (int i = 0; i < n; i++)
-    cout << "Endogenous " << symbol_table.getName(symbol_table.getID(eEndogenous, i))
-         << " matched with equation " << (mate_map[i]-n+1) << endl;
-#endif
-
   // Create the resulting map, by copying the n first elements of mate_map, and substracting n to them
   endo2eq.resize(equations.size());
   transform(mate_map.begin(), mate_map.begin() + n, endo2eq.begin(), [=](int i) { return i-n; });
@@ -324,6 +318,12 @@ ModelTree::computeNonSingularNormalization(const jacob_map_t &contemporaneous_ja
       auto symbolic_jacobian = computeSymbolicJacobian();
       found_normalization = computeNormalization(symbolic_jacobian, true);
     }
+
+#ifdef DEBUG
+  for (size_t i {0}; i < equations.size(); i++)
+    cout << "Variable " << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, i))
+         << " associated to equation " << endo2eq[i] << " (" << equation_tags.getTagValueByEqnAndKey(endo2eq[i], "name") << ")" << endl;
+#endif
 
   /* NB: If normalization failed, an explanatory message has been printed by the last call
      to computeNormalization(), which has verbose=true */
