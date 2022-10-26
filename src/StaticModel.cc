@@ -1189,9 +1189,6 @@ StaticModel::writeSetAuxiliaryVariables(const string &basename, bool julia) cons
   string comment = julia ? "#" : "%";
 
   stringstream output;
-  if (julia)
-    output << "module " << basename << "SetAuxiliaryVariables" << endl
-           << "export " << func_name << endl;
   output << "function ";
   if (!julia)
     output << "y = ";
@@ -1206,8 +1203,7 @@ StaticModel::writeSetAuxiliaryVariables(const string &basename, bool julia) cons
   output << output_func_body.str()
          << "end" << endl;
   if (julia)
-    output << "end" << endl
-           << "end" << endl;
+    output << "end" << endl;
 
   if (julia)
     writeToFileIfModified(output, basename + "SetAuxiliaryVariables.jl");

@@ -3530,9 +3530,6 @@ DynamicModel::writeSetAuxiliaryVariables(const string &basename, bool julia) con
   string comment = julia ? "#" : "%";
 
   stringstream output;
-  if (julia)
-    output << "module " << basename << "DynamicSetAuxiliarySeries" << endl
-           << "export " << func_name << endl;
   output << "function ";
   if (!julia)
     output << "ds = ";
@@ -3547,8 +3544,7 @@ DynamicModel::writeSetAuxiliaryVariables(const string &basename, bool julia) con
   output << output_func_body.str()
          << "end" << endl;
   if (julia)
-    output << "end" << endl
-           << "end" << endl;
+    output << "end" << endl;
 
   if (julia)
     writeToFileIfModified(output, basename + "DynamicSetAuxiliarySeries.jl");
