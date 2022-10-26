@@ -988,7 +988,16 @@ ModelTree::computeBlockTemporaryTerms()
       blocks_temporary_terms[blk].resize(blocks[blk].size + 1);
       for (int eq = 0; eq < blocks[blk].size; eq++)
         {
-          if (eq < blocks[blk].getRecursiveSize() && isBlockEquationRenormalized(blk, eq))
+          /* It is important to compute temporary terms of the renormalized
+             equation if the latter is going to be used in the output files.
+             Otherwise, for an equation of the form log(x) = RHS, a temporary
+             term could be associated to log(x), and since it would be
+             associated to this equation, it would be printed and thus computed
+             *before* x is actually evaluated, and thus would be incorrect. */
+          if ((blocks[blk].simulation_type == BlockSimulationType::evaluateBackward
+               || blocks[blk].simulation_type == BlockSimulationType::evaluateForward
+               || eq < blocks[blk].getRecursiveSize())
+              && isBlockEquationRenormalized(blk, eq))
             getBlockEquationRenormalizedExpr(blk, eq)->computeBlockTemporaryTerms(blk, eq, blocks_temporary_terms, reference_count);
           else
             getBlockEquationExpr(blk, eq)->computeBlockTemporaryTerms(blk, eq, blocks_temporary_terms, reference_count);
