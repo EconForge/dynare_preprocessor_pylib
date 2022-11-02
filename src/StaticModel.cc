@@ -1206,7 +1206,7 @@ StaticModel::writeSetAuxiliaryVariables(const string &basename, bool julia) cons
     output << "end" << endl;
 
   if (julia)
-    writeToFileIfModified(output, basename + "SetAuxiliaryVariables.jl");
+    writeToFileIfModified(output, filesystem::path{basename} / "model" / "julia" / "SetAuxiliaryVariables.jl");
   else
     {
       /* Calling writeToFileIfModified() is useless here since we write inside

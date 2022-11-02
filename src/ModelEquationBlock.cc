@@ -260,7 +260,7 @@ SteadyStateModel::writeSteadyStateFile(const string &basename, bool julia) const
     output << "end" << endl << "end" << endl;
 
   if (julia)
-    writeToFileIfModified(output, basename + "SteadyState2.jl");
+    writeToFileIfModified(output, filesystem::path{basename} / "model" / "julia" / "SteadyState2.jl");
   else
     {
       /* Calling writeToFileIfModified() is useless here since we write inside

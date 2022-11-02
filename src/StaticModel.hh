@@ -225,7 +225,7 @@ StaticModel::writeParamsDerivativesFile(const string &basename) const
     { writeParamsDerivativesFileHelper<output_type>() };
   // g3p_output is ignored
 
-  filesystem::path filename {julia ? filesystem::path{basename + "StaticParamsDerivs.jl"} : packageDir(basename) / "static_params_derivs.m"};
+  filesystem::path filename {julia ? filesystem::path{basename} / "model" / "julia" / "StaticParamsDerivs.jl" : packageDir(basename) / "static_params_derivs.m"};
   ofstream paramsDerivsFile { filename, ios::out | ios::binary };
   if (!paramsDerivsFile.is_open())
     {

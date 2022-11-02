@@ -3547,7 +3547,7 @@ DynamicModel::writeSetAuxiliaryVariables(const string &basename, bool julia) con
     output << "end" << endl;
 
   if (julia)
-    writeToFileIfModified(output, basename + "DynamicSetAuxiliarySeries.jl");
+    writeToFileIfModified(output, filesystem::path{basename} / "model" / "julia" / "DynamicSetAuxiliarySeries.jl");
   else
     {
       /* Calling writeToFileIfModified() is useless here since we write inside

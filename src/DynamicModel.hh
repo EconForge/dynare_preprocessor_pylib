@@ -866,7 +866,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
   auto [tt_output, rp_output, gp_output, rpp_output, gpp_output, hp_output, g3p_output]
     { writeParamsDerivativesFileHelper<output_type>() };
 
-  const filesystem::path filename {julia ? filesystem::path{basename + "DynamicParamsDerivs.jl"} : packageDir(basename) / "dynamic_params_derivs.m"};
+  const filesystem::path filename {julia ? filesystem::path{basename} / "model" / "julia" / "DynamicParamsDerivs.jl" : packageDir(basename) / "dynamic_params_derivs.m"};
   ofstream paramsDerivsFile { filename, ios::out | ios::binary };
   if (!paramsDerivsFile.is_open())
     {
