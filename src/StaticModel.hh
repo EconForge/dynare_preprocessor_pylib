@@ -37,9 +37,6 @@ private:
   //! Writes static model file (standard Matlab version)
   void writeStaticMFile(const string &basename) const;
 
-  //! Writes static model file (Julia version, legacy representation)
-  void writeStaticJuliaFile(const string &basename) const;
-
   //! Writes the main static function of block decomposed model (MATLAB version)
   void writeStaticBlockMFile(const string &basename) const;
 
