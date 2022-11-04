@@ -699,11 +699,11 @@ ModelTree::computeBlockDecomposition(int prologue, int epilogue)
   // Determine the dynamic structure of each block
   auto [equation_lag_lead, variable_lag_lead] = getVariableLeadLagByBlock();
 
-  /* For each simultaneous block, the minimum set of feedback variable is computed.
-     Then, the variables within the blocks are reordered so that recursive
-     (non-feedback) appear first, to get a sub-recursive block without feedback variables.
-     Within each of the two sub-blocks, variables are reordered depending
-     on their dynamic status: static first, then backward, mixed and forward. */
+  /* For each simultaneous block, the minimum set of feedback variables is
+     computed. Then, the variables within the blocks are reordered so that
+     recursive (non-feedback) appear first, in recursive order. They are
+     followed by feedback variables, which are reordered according to their
+     dynamic status (static first, then backward, mixed and forward). */
 
   /* First, add a loop on vertices which could not be normalized or vertices
      related to lead/lag variables. This forces those vertices to belong to the
@@ -728,21 +728,18 @@ ModelTree::computeBlockDecomposition(int prologue, int epilogue)
       auto recursive_vertices = subG.reorderRecursiveVariables(feed_back_vertices);
       auto v_index1 = get(boost::vertex_index1, subG);
 
-      const vector dynamic_order{pair{0, 0}, pair{1, 0}, pair{1, 1}, pair{0, 1}};
+      /* First the recursive variables conditional on feedback variables, in
+         recursive order */
+      for (int vtx : recursive_vertices)
+        {
+          int simvar { v_index1[vertex(vtx, subG)] };
+          eq_idx_block2orig[ordidx] = old_eq_idx_block2orig[simvar+prologue];
+          endo_idx_block2orig[ordidx] = old_endo_idx_block2orig[simvar+prologue];
+          ordidx++;
+        }
 
-      // First the recursive equations conditional on feedback variables
-      for (auto max_lag_lead : dynamic_order)
-        for (int vtx : recursive_vertices)
-          if (int simvar = v_index1[vertex(vtx, subG)];
-              variable_lag_lead[old_endo_idx_block2orig[simvar+prologue]] == max_lag_lead)
-            {
-              eq_idx_block2orig[ordidx] = old_eq_idx_block2orig[simvar+prologue];
-              endo_idx_block2orig[ordidx] = old_endo_idx_block2orig[simvar+prologue];
-              ordidx++;
-            }
-
-      // Then the equations related to the feedback variables
-      for (auto max_lag_lead : dynamic_order)
+      // Then the feedback variables, reordered by dynamic status
+      for (auto max_lag_lead : { pair{0, 0}, pair{1, 0}, pair{1, 1}, pair{0, 1} })
         for (int vtx : feed_back_vertices)
           if (int simvar = v_index1[vertex(vtx, subG)];
               variable_lag_lead[old_endo_idx_block2orig[simvar+prologue]] == max_lag_lead)
