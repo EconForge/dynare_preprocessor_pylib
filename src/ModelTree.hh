@@ -247,7 +247,7 @@ protected:
   //! Computes temporary terms (for all equations and derivatives)
   void computeTemporaryTerms(bool is_matlab, bool no_tmp_terms);
   //! Computes temporary terms per block
-  void computeBlockTemporaryTerms();
+  void computeBlockTemporaryTerms(bool no_tmp_terms);
 
 private:
   /* Add additional temporary terms for a given block. This method is called by

@@ -986,7 +986,7 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
 }
 
 void
-ModelTree::computeBlockTemporaryTerms()
+ModelTree::computeBlockTemporaryTerms(bool no_tmp_terms)
 {
   int nb_blocks = blocks.size();
   blocks_temporary_terms.resize(nb_blocks);
@@ -1016,6 +1016,14 @@ ModelTree::computeBlockTemporaryTerms()
 
       additionalBlockTemporaryTerms(blk, blocks_temporary_terms, reference_count);
     }
+
+  /* If the user has specified the notmpterms option, clear all temporary
+     terms, except those that correspond to external functions (since they are
+     not optional) */
+  if (no_tmp_terms)
+    for (auto &it : blocks_temporary_terms)
+      for (auto &it2 : it)
+        erase_if(it2, [](expr_t e) { return !dynamic_cast<AbstractExternalFunctionNode *>(e); });
 
   // Compute indices in the temporary terms vector
   blocks_temporary_terms_idxs.clear();
@@ -1977,8 +1985,7 @@ ModelTree::computingPassBlock(const eval_context_t &eval_context, bool no_tmp_te
   printBlockDecomposition();
   computeChainRuleJacobian();
   determineLinearBlocks();
-  if (!no_tmp_terms)
-    computeBlockTemporaryTerms();
+  computeBlockTemporaryTerms(no_tmp_terms);
   block_decomposed = true;
 }
 
