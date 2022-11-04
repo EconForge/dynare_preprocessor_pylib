@@ -583,9 +583,12 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>likelihood_curb_retrench {return token::LIKELIHOOD_CURB_RETRENCH;}
 <DYNARE_STATEMENT>smoother_curb_retrench {return token::SMOOTHER_CURB_RETRENCH;}
 <DYNARE_STATEMENT>simul_check_ahead_periods {return token::SIMUL_CHECK_AHEAD_PERIODS;}
+<DYNARE_STATEMENT>simul_max_check_ahead_periods {return token::SIMUL_MAX_CHECK_AHEAD_PERIODS;}
 <DYNARE_STATEMENT>simul_reset_check_ahead_periods {return token::SIMUL_RESET_CHECK_AHEAD_PERIODS;}
 <DYNARE_STATEMENT>likelihood_check_ahead_periods {return token::LIKELIHOOD_CHECK_AHEAD_PERIODS;}
+<DYNARE_STATEMENT>likelihood_max_check_ahead_periods {return token::LIKELIHOOD_MAX_CHECK_AHEAD_PERIODS;}
 <DYNARE_STATEMENT>smoother_check_ahead_periods {return token::SMOOTHER_CHECK_AHEAD_PERIODS;}
+<DYNARE_STATEMENT>smoother_max_check_ahead_periods {return token::SMOOTHER_MAX_CHECK_AHEAD_PERIODS;}
 <DYNARE_STATEMENT>simul_debug {return token::SIMUL_DEBUG;}
 <DYNARE_STATEMENT>smoother_debug {return token::SMOOTHER_DEBUG;}
 <DYNARE_STATEMENT>simul_periodic_solution {return token::SIMUL_PERIODIC_SOLUTION;}
