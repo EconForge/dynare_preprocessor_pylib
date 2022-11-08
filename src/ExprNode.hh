@@ -247,6 +247,10 @@ private:
   /*! You shoud use getDerivative() to get the benefit of symbolic a priori and of caching */
   virtual expr_t computeDerivative(int deriv_id) = 0;
 
+  /* Internal helper for getChainRuleDerivative(), that does the computation
+     but assumes that the caching of this is handled elsewhere */
+  virtual expr_t computeChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables, map<pair<expr_t, int>, expr_t> &cache) = 0;
+
 protected:
   //! Reference to the enclosing DataTree
   DataTree &datatree;
@@ -327,12 +331,15 @@ public:
     For an equal node, returns the derivative of lhs minus rhs */
   expr_t getDerivative(int deriv_id);
 
-  //! Computes derivatives by applying the chain rule for some variables
-  /*!
-    \param deriv_id The derivation ID with respect to which we are derivating
-    \param recursive_variables Contains the derivation ID for which chain rules must be applied. Keys are derivation IDs, values are equations of the form x=f(y) where x is the key variable and x doesn't appear in y
-  */
-  virtual expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) = 0;
+  /* Computes derivatives by applying the chain rule for some variables.
+     — “recursive_variables” contains the derivation ID for which chain rules
+       must be applied. Keys are derivation IDs, values are equations of the
+       form x=f(y) where x is the key variable and x doesn't appear in y
+     — “cache” is used to store already-computed derivatives (in a map
+       <expression, deriv_id> → derivative); this cache is specific to a given
+       value of “recursive_variables”, and thus should not be reused accross
+       calls that use different values of “recursive_variables”. */
+  expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables, map<pair<expr_t, int>, expr_t> &cache);
 
   //! Returns precedence of node
   /*! Equals 100 for constants, variables, unary ops, and temporary terms */
@@ -836,6 +843,7 @@ public:
   const int id;
 private:
   expr_t computeDerivative(int deriv_id) override;
+  expr_t computeChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables, map<pair<expr_t, int>, expr_t> &cache) override;
 protected:
   void matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const override;
   void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
@@ -853,7 +861,6 @@ public:
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
-  expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
   int maxEndoLag() const override;
@@ -908,6 +915,7 @@ public:
   const int lag;
 private:
   expr_t computeDerivative(int deriv_id) override;
+  expr_t computeChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables, map<pair<expr_t, int>, expr_t> &cache) override;
 protected:
   void matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const override;
   void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
@@ -926,7 +934,6 @@ public:
   void computeXrefs(EquationInfo &ei) const override;
   SymbolType get_type() const;
   BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
-  expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
   int maxEndoLag() const override;
@@ -990,6 +997,7 @@ public:
   const vector<int> adl_lags;
 private:
   expr_t computeDerivative(int deriv_id) override;
+  expr_t computeChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables, map<pair<expr_t, int>, expr_t> &cache) override;
   int cost(int cost, bool is_matlab) const override;
   int cost(const vector<vector<temporary_terms_t>> &blocks_temporary_terms, bool is_matlab) const override;
   int cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
@@ -1029,7 +1037,6 @@ public:
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
-  expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
   int maxEndoLag() const override;
@@ -1091,6 +1098,7 @@ public:
   const string adlparam;
 private:
   expr_t computeDerivative(int deriv_id) override;
+  expr_t computeChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables, map<pair<expr_t, int>, expr_t> &cache) override;
   int cost(int cost, bool is_matlab) const override;
   int cost(const vector<vector<temporary_terms_t>> &blocks_temporary_terms, bool is_matlab) const override;
   int cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
@@ -1137,7 +1145,6 @@ public:
   //! Try to normalize an equation with respect to a given dynamic variable.
   /*! Should only be called on Equal nodes. The variable must appear in the equation. */
   BinaryOpNode *normalizeEquation(int symb_id, int lag) const;
-  expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
   int maxEndoLag() const override;
@@ -1235,6 +1242,7 @@ protected:
   void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
 private:
   expr_t computeDerivative(int deriv_id) override;
+  expr_t computeChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables, map<pair<expr_t, int>, expr_t> &cache) override;
   int cost(int cost, bool is_matlab) const override;
   int cost(const vector<vector<temporary_terms_t>> &blocks_temporary_terms, bool is_matlab) const override;
   int cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
@@ -1276,7 +1284,6 @@ public:
   expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
-  expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
   int maxEndoLag() const override;
@@ -1331,6 +1338,7 @@ public:
   const vector<expr_t> arguments;
 private:
   expr_t computeDerivative(int deriv_id) override;
+  expr_t computeChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables, map<pair<expr_t, int>, expr_t> &cache) override;
   virtual expr_t composeDerivatives(const vector<expr_t> &dargs) = 0;
 protected:
   //! Thrown when trying to access an unknown entry in external_function_node_map
@@ -1389,7 +1397,6 @@ public:
   expr_t toStatic(DataTree &static_datatree) const override = 0;
   void computeXrefs(EquationInfo &ei) const override = 0;
   BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
-  expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
   int maxEndoLag() const override;
@@ -1568,7 +1575,6 @@ public:
   expr_t toStatic(DataTree &static_datatree) const override;
   void prepareForDerivation() override;
   expr_t computeDerivative(int deriv_id) override;
-  expr_t getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables) override;
   int maxEndoLead() const override;
   int maxExoLead() const override;
   int maxEndoLag() const override;
@@ -1615,6 +1621,8 @@ public:
   expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
 protected:
   void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
+private:
+  expr_t computeChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables, map<pair<expr_t, int>, expr_t> &cache) override;
 };
 
 class VarExpectationNode : public SubModelNode

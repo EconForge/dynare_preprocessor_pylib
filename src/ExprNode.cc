@@ -53,6 +53,22 @@ ExprNode::getDerivative(int deriv_id)
     }
 }
 
+expr_t
+ExprNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables,
+                                 map<pair<expr_t, int>, expr_t> &cache)
+{
+  pair key {this, deriv_id};
+  if (auto it = cache.find(key);
+      it != cache.end())
+    return it->second;
+
+  auto r = computeChainRuleDerivative(deriv_id, recursive_variables, cache);
+
+  auto [ignore, success] = cache.emplace(key, r);
+  assert(success); // The element should not already exist
+  return r;
+}
+
 int
 ExprNode::precedence([[maybe_unused]] ExprNodeOutputType output_type,
                      [[maybe_unused]] const temporary_terms_t &temporary_terms) const
@@ -546,8 +562,9 @@ NumConstNode::normalizeEquationHelper([[maybe_unused]] const set<expr_t> &contai
 }
 
 expr_t
-NumConstNode::getChainRuleDerivative([[maybe_unused]] int deriv_id,
-                                     [[maybe_unused]] const map<int, BinaryOpNode *> &recursive_variables)
+NumConstNode::computeChainRuleDerivative([[maybe_unused]] int deriv_id,
+                                         [[maybe_unused]] const map<int, BinaryOpNode *> &recursive_variables,
+                                         [[maybe_unused]] map<pair<expr_t, int>, expr_t> &cache)
 {
   return datatree.Zero;
 }
@@ -1402,7 +1419,9 @@ VariableNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs
 }
 
 expr_t
-VariableNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables)
+VariableNode::computeChainRuleDerivative(int deriv_id,
+                                         const map<int, BinaryOpNode *> &recursive_variables,
+                                         map<pair<expr_t, int>, expr_t> &cache)
 {
   switch (get_type())
     {
@@ -1421,12 +1440,12 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *
       // If there is in the equation a recursive variable we could use a chaine rule derivation
       else if (auto it = recursive_variables.find(datatree.getDerivID(symb_id, lag));
                it != recursive_variables.end())
-        return it->second->arg2->getChainRuleDerivative(deriv_id, recursive_variables);
+        return it->second->arg2->getChainRuleDerivative(deriv_id, recursive_variables, cache);
       else
         return datatree.Zero;
 
     case SymbolType::modelLocalVariable:
-      return datatree.getLocalVariable(symb_id)->getChainRuleDerivative(deriv_id, recursive_variables);
+      return datatree.getLocalVariable(symb_id)->getChainRuleDerivative(deriv_id, recursive_variables, cache);
     case SymbolType::modFileLocalVariable:
       cerr << "modFileLocalVariable is not derivable" << endl;
       exit(EXIT_FAILURE);
@@ -1439,7 +1458,7 @@ VariableNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *
     case SymbolType::externalFunction:
     case SymbolType::epilogue:
     case SymbolType::excludedVariable:
-      cerr << "VariableNode::getChainRuleDerivative: Impossible case" << endl;
+      cerr << "VariableNode::computeChainRuleDerivative: Impossible case" << endl;
       exit(EXIT_FAILURE);
     }
   // Suppress GCC warning
@@ -3224,9 +3243,11 @@ UnaryOpNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs)
 }
 
 expr_t
-UnaryOpNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables)
+UnaryOpNode::computeChainRuleDerivative(int deriv_id,
+                                        const map<int, BinaryOpNode *> &recursive_variables,
+                                        map<pair<expr_t, int>, expr_t> &cache)
 {
-  expr_t darg = arg->getChainRuleDerivative(deriv_id, recursive_variables);
+  expr_t darg = arg->getChainRuleDerivative(deriv_id, recursive_variables, cache);
   return composeDerivatives(darg, deriv_id);
 }
 
@@ -4978,10 +4999,12 @@ BinaryOpNode::normalizeEquation(int symb_id, int lag) const
 }
 
 expr_t
-BinaryOpNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables)
+BinaryOpNode::computeChainRuleDerivative(int deriv_id,
+                                         const map<int, BinaryOpNode *> &recursive_variables,
+                                         map<pair<expr_t, int>, expr_t> &cache)
 {
-  expr_t darg1 = arg1->getChainRuleDerivative(deriv_id, recursive_variables);
-  expr_t darg2 = arg2->getChainRuleDerivative(deriv_id, recursive_variables);
+  expr_t darg1 = arg1->getChainRuleDerivative(deriv_id, recursive_variables, cache);
+  expr_t darg2 = arg2->getChainRuleDerivative(deriv_id, recursive_variables, cache);
   return composeDerivatives(darg1, darg2);
 }
 
@@ -6289,11 +6312,13 @@ TrinaryOpNode::normalizeEquationHelper([[maybe_unused]] const set<expr_t> &conta
 }
 
 expr_t
-TrinaryOpNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables)
+TrinaryOpNode::computeChainRuleDerivative(int deriv_id,
+                                          const map<int, BinaryOpNode *> &recursive_variables,
+                                          map<pair<expr_t, int>, expr_t> &cache)
 {
-  expr_t darg1 = arg1->getChainRuleDerivative(deriv_id, recursive_variables);
-  expr_t darg2 = arg2->getChainRuleDerivative(deriv_id, recursive_variables);
-  expr_t darg3 = arg3->getChainRuleDerivative(deriv_id, recursive_variables);
+  expr_t darg1 = arg1->getChainRuleDerivative(deriv_id, recursive_variables, cache);
+  expr_t darg2 = arg2->getChainRuleDerivative(deriv_id, recursive_variables, cache);
+  expr_t darg3 = arg3->getChainRuleDerivative(deriv_id, recursive_variables, cache);
   return composeDerivatives(darg1, darg2, darg3);
 }
 
@@ -6717,12 +6742,14 @@ AbstractExternalFunctionNode::computeDerivative(int deriv_id)
 }
 
 expr_t
-AbstractExternalFunctionNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables)
+AbstractExternalFunctionNode::computeChainRuleDerivative(int deriv_id,
+                                                         const map<int, BinaryOpNode *> &recursive_variables,
+                                                         map<pair<expr_t, int>, expr_t> &cache)
 {
   assert(datatree.external_functions_table.getNargs(symb_id) > 0);
   vector<expr_t> dargs;
   for (auto argument : arguments)
-    dargs.push_back(argument->getChainRuleDerivative(deriv_id, recursive_variables));
+    dargs.push_back(argument->getChainRuleDerivative(deriv_id, recursive_variables, cache));
   return composeDerivatives(dargs);
 }
 
@@ -8334,10 +8361,11 @@ SubModelNode::computeDerivative([[maybe_unused]] int deriv_id)
 }
 
 expr_t
-SubModelNode::getChainRuleDerivative([[maybe_unused]] int deriv_id,
-                                     [[maybe_unused]] const map<int, BinaryOpNode *> &recursive_variables)
+SubModelNode::computeChainRuleDerivative([[maybe_unused]] int deriv_id,
+                                         [[maybe_unused]] const map<int, BinaryOpNode *> &recursive_variables,
+                                         [[maybe_unused]] map<pair<expr_t, int>, expr_t> &cache)
 {
-  cerr << "SubModelNode::getChainRuleDerivative not implemented." << endl;
+  cerr << "SubModelNode::computeChainRuleDerivative not implemented." << endl;
   exit(EXIT_FAILURE);
 }
 

@@ -3124,6 +3124,7 @@ DynamicModel::computeChainRuleJacobian()
         }
 
       // Compute the block derivatives
+      map<pair<expr_t, int>, expr_t> chain_rule_deriv_cache;
       for (const auto &[indices, derivType] : determineBlockDerivativesType(blk))
         {
           auto [lag, eq, var] = indices;
@@ -3140,10 +3141,10 @@ DynamicModel::computeChainRuleJacobian()
                 d = Zero;
               break;
             case BlockDerivativeType::chainRule:
-              d = equations[eq_orig]->getChainRuleDerivative(deriv_id, recursive_vars);
+              d = equations[eq_orig]->getChainRuleDerivative(deriv_id, recursive_vars, chain_rule_deriv_cache);
               break;
             case BlockDerivativeType::normalizedChainRule:
-              d = equation_type_and_normalized_equation[eq_orig].second->getChainRuleDerivative(deriv_id, recursive_vars);
+              d = equation_type_and_normalized_equation[eq_orig].second->getChainRuleDerivative(deriv_id, recursive_vars, chain_rule_deriv_cache);
               break;
             }
 
