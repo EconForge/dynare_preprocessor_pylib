@@ -639,6 +639,8 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
         create_directories(sparsefolder / "private");
       if (block_decomposed)
         create_directories(sparsefolder / "+block");
+
+      create_directories(plusfolder / "+debug");
     }
   create_directories(model_dir / "bytecode");
 
@@ -683,6 +685,10 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
     writeSparseModelMFiles<false>(basename);
 
   writeSetAuxiliaryVariables(basename, julia);
+
+  // Support for model debugging
+  if (!julia)
+    writeDebugModelMFiles<false>(basename);
 }
 
 bool

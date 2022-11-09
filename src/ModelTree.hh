@@ -391,6 +391,15 @@ protected:
   //! Writes LaTeX model file
   void writeLatexModelFile(const string &mod_basename, const string &latex_basename, ExprNodeOutputType output_type, bool write_equation_tags) const;
 
+  /* Write files for helping a user to debug their model (MATLAB/Octave,
+     sparse representation).
+     Creates a dynamic/static files which evaluates separately the LHS and RHS
+     of each equation.
+     They are not optimized for performance (hence in particular the absence of
+     a C version, or the non-reuse of temporary terms). */
+  template<bool dynamic>
+  void writeDebugModelMFiles(const string &basename) const;
+
 private:
   //! Sparse matrix of double to store the values of the static Jacobian
   /*! First index is equation number, second index is endogenous type specific ID */
@@ -2938,4 +2947,50 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
           compileMEX(block_dir, funcname, mexext, { source_mex, power_deriv_object }, matlabroot, dynareroot);
         }
     }
+}
+
+template<bool dynamic>
+void
+ModelTree::writeDebugModelMFiles(const string &basename) const
+{
+  constexpr ExprNodeOutputType output_type {dynamic ? ExprNodeOutputType::matlabSparseDynamicModel : ExprNodeOutputType::matlabSparseStaticModel};
+
+  const filesystem::path m_dir {packageDir(basename) / "+debug"};
+  // TODO: when C++20 support is complete, mark the following strings constexpr
+  const string prefix { dynamic ? "dynamic_" : "static_" };
+  const string ss_arg { dynamic ? ", steady_state" : "" };
+
+  const filesystem::path resid_filename {m_dir / (prefix + "resid.m")};
+  ofstream output {resid_filename, ios::out | ios::binary};
+  if (!output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << resid_filename.string() << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  output << "function [lhs, rhs] = " << prefix << "resid(y, x, params" << ss_arg << ")" << endl
+         << "T = NaN(" << temporary_terms_derivatives[0].size() << ", 1);" << endl
+         << "lhs = NaN(" << equations.size() << ", 1);" << endl
+         << "rhs = NaN(" << equations.size() << ", 1);" << endl;
+  deriv_node_temp_terms_t tef_terms;
+  temporary_terms_t temporary_terms;
+  writeTemporaryTerms<output_type>(temporary_terms_derivatives[0], temporary_terms,
+                                   temporary_terms_idxs, output, tef_terms);
+  for (size_t eq {0}; eq < equations.size(); eq++)
+    {
+      output << "lhs" << LEFT_ARRAY_SUBSCRIPT(output_type)
+             << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
+             << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
+      equations[eq]->arg1->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
+      output << ";" << endl
+             << "rhs" << LEFT_ARRAY_SUBSCRIPT(output_type)
+             << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
+             << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
+      equations[eq]->arg2->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
+      output << ";" << endl;
+    }
+
+  output << "end" << endl;
+
+  output.close();
 }

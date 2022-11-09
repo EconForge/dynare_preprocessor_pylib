@@ -3297,6 +3297,8 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
         create_directories(sparsefolder / "private");
       if (block_decomposed)
         create_directories(sparsefolder / "+block");
+
+      create_directories(plusfolder / "+debug");
     }
   create_directories(model_dir / "bytecode");
 
@@ -3341,6 +3343,10 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
     writeSparseModelMFiles<true>(basename);
 
   writeSetAuxiliaryVariables(basename, julia);
+
+  // Support for model debugging
+  if (!julia)
+    writeDebugModelMFiles<true>(basename);
 }
 
 void
