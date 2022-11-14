@@ -2646,16 +2646,21 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
       }
   };
 
-  open_file(model_src_dir / "power_deriv.h");
+  /* Write source files for the derivative of the power function.
+     NB: The prefix (static/dynamic) is added to the filename (even though it’s
+     the same source between static and dynamic) to avoid a race condition when
+     static and dynamic are compiled in parallel. */
+  open_file(model_src_dir / (prefix + "power_deriv.h"));
   writePowerDerivHeader(output);
   output.close();
 
-  filesystem::path power_deriv_src {model_src_dir / "power_deriv.c"};
+  filesystem::path power_deriv_src {model_src_dir / (prefix + "power_deriv.c")};
   open_file(power_deriv_src);
   output << "#include <math.h>" << endl << endl;
   writePowerDeriv(output);
   output.close();
-  auto power_deriv_object {compileMEX(model_src_dir, "power_deriv", mexext, { power_deriv_src },
+  auto power_deriv_object {compileMEX(model_src_dir, (prefix + "power_deriv"),
+                                      mexext, { power_deriv_src },
                                       matlabroot, dynareroot, false)};
 
   size_t ttlen {0};
@@ -2724,7 +2729,7 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
       open_file(source_tt);
       output << "#include <math.h>" << endl
              << R"(#include "mex.h")" << endl // Needed for calls to external functions
-             << R"(#include "power_deriv.h")" << endl
+             << R"(#include ")" << prefix << R"(power_deriv.h")" << endl
              << endl
              << prototype_tt << endl
              << "{" << endl
@@ -2866,7 +2871,7 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
           open_file(source_mex);
           output << "#include <math.h>" << endl
                  << R"(#include "mex.h")" << endl
-                 << R"(#include "../power_deriv.h")" << endl
+                 << R"(#include "../)" << prefix << R"(power_deriv.h")" << endl
                  << endl
                  << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
                  << "{" << endl
