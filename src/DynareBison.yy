@@ -3288,6 +3288,8 @@ calib_smoother_option : o_filtered_vars
                       | o_parameter_set
                       | o_xls_sheet
                       | o_xls_range
+                      | o_heteroskedastic_filter
+                      | o_nobs
                       ;
 
 generate_irfs : GENERATE_IRFS ';' END ';'
