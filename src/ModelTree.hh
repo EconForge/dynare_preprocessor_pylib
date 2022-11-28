@@ -424,8 +424,10 @@ private:
   static set<filesystem::path> mex_compilation_done;
 
   /* Compute a pseudo-Jacobian whose all elements are either zero or one,
-     depending on whether the variable symbolically appears in the equation */
-  jacob_map_t computeSymbolicJacobian() const;
+     depending on whether the variable symbolically appears in the equation. If
+     contemporaneous_only=true, only considers contemporaneous occurences of
+     variables; otherwise also considers leads and lags. */
+  jacob_map_t computeSymbolicJacobian(bool contemporaneous_only) const;
 
   // Compute {var,eq}_idx_orig2block from {var,eq}_idx_block2orig
   void updateReverseVariableEquationOrderings();

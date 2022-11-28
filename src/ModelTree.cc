@@ -331,9 +331,8 @@ ModelTree::computeNonSingularNormalization(const jacob_map_t &contemporaneous_ja
     {
       cout << "Normalization failed with cutoff, trying symbolic normalization..." << endl;
       /* If no non-singular normalization can be found, try to find a
-         normalization even with a potential singularity.
-         TODO: Explain why symbolic_jacobian is not contemporaneous. */
-      auto symbolic_jacobian = computeSymbolicJacobian();
+         normalization even with a potential singularity. */
+      auto symbolic_jacobian = computeSymbolicJacobian(true);
       found_normalization = computeNormalization(symbolic_jacobian, true);
     }
 
@@ -661,7 +660,7 @@ ModelTree::computeBlockDecomposition(int prologue, int epilogue)
      For detecting dependencies between variables, use the symbolic adjacency
      matrix */
   VariableDependencyGraph G(nb_simvars);
-  for (const auto &[key, value] : computeSymbolicJacobian())
+  for (const auto &[key, value] : computeSymbolicJacobian(false))
     {
       auto [eq, endo] = key;
       if (eq_idx_orig2block[eq] >= prologue
@@ -1878,7 +1877,7 @@ ModelTree::collectFirstOrderDerivativesEndogenous()
 }
 
 ModelTree::jacob_map_t
-ModelTree::computeSymbolicJacobian() const
+ModelTree::computeSymbolicJacobian(bool contemporaneous_only) const
 {
   jacob_map_t symbolic_jacobian;
   for (int i = 0; i < static_cast<int>(equations.size()); i++)
@@ -1886,7 +1885,8 @@ ModelTree::computeSymbolicJacobian() const
       set<pair<int, int>> endos_and_lags;
       equations[i]->collectEndogenous(endos_and_lags);
       for (const auto &[endo, lag] : endos_and_lags)
-        symbolic_jacobian[{ i, endo }] = 1;
+        if (!contemporaneous_only || lag == 0)
+          symbolic_jacobian[{ i, endo }] = 1;
     }
   return symbolic_jacobian;
 }
