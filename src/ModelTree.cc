@@ -165,6 +165,7 @@ ModelTree::ModelTree(const ModelTree &m) :
   endo_idx_block2orig{m.endo_idx_block2orig},
   eq_idx_orig2block{m.eq_idx_orig2block},
   endo_idx_orig2block{m.endo_idx_orig2block},
+  block_decomposed{m.block_decomposed},
   blocks{m.blocks},
   endo2block{m.endo2block},
   eq2block{m.eq2block},
@@ -208,6 +209,7 @@ ModelTree::operator=(const ModelTree &m)
   endo_idx_orig2block = m.endo_idx_orig2block;
   equation_type_and_normalized_equation.clear();
   blocks_derivatives.clear();
+  block_decomposed = m.block_decomposed;
   blocks = m.blocks;
   endo2block = m.endo2block;
   eq2block = m.eq2block;
