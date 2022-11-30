@@ -887,9 +887,6 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
 
   symbol_table.writeOutput(mOutputFile);
 
-  // Fill the fields related to solve_algo={12,14} if possible.
-  mOutputFile << "M_ = setup_solvers(M_);" << endl;
-
   var_model_table.writeOutput(basename, mOutputFile);
   trend_component_model_table.writeOutput(basename, mOutputFile);
   var_expectation_model_table.writeOutput(mOutputFile);

@@ -1811,6 +1811,16 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool es
   output << "];" << endl;
 
   writeDriverSparseIndicesHelper<true>(output);
+
+  // Write LHS of each equation in text form
+  output << "M_.lhs = {" << endl;
+  for (auto eq : equations)
+    {
+      output << "'";
+      eq->arg1->writeJsonOutput(output, {}, {});
+      output << "'; " << endl;
+    }
+  output << "};" << endl;
 }
 
 void
