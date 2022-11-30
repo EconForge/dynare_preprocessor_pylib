@@ -166,6 +166,7 @@ ModelTree::ModelTree(const ModelTree &m) :
   eq_idx_orig2block{m.eq_idx_orig2block},
   endo_idx_orig2block{m.endo_idx_orig2block},
   block_decomposed{m.block_decomposed},
+  time_recursive_block_decomposition{m.time_recursive_block_decomposition},
   blocks{m.blocks},
   endo2block{m.endo2block},
   eq2block{m.eq2block},
@@ -210,6 +211,7 @@ ModelTree::operator=(const ModelTree &m)
   equation_type_and_normalized_equation.clear();
   blocks_derivatives.clear();
   block_decomposed = m.block_decomposed;
+  time_recursive_block_decomposition = m.time_recursive_block_decomposition;
   blocks = m.blocks;
   endo2block = m.endo2block;
   eq2block = m.eq2block;
@@ -408,7 +410,8 @@ ModelTree::computePrologueAndEpilogue()
       set<pair<int, int>> endos_and_lags;
       equations[i]->collectEndogenous(endos_and_lags);
       for (auto [endo, lag] : endos_and_lags)
-        IM[i * n + endo2eq[endo]] = true;
+        if (!time_recursive_block_decomposition || lag == 0)
+          IM[i * n + endo2eq[endo]] = true;
     }
 
   bool something_has_been_done;
@@ -662,7 +665,7 @@ ModelTree::computeBlockDecomposition(int prologue, int epilogue)
      For detecting dependencies between variables, use the symbolic adjacency
      matrix */
   VariableDependencyGraph G(nb_simvars);
-  for (const auto &[key, value] : computeSymbolicJacobian(false))
+  for (const auto &[key, value] : computeSymbolicJacobian(time_recursive_block_decomposition))
     {
       auto [eq, endo] = key;
       if (eq_idx_orig2block[eq] >= prologue
@@ -722,10 +725,11 @@ ModelTree::computeBlockDecomposition(int prologue, int epilogue)
      feedback set */
   for (int i = 0; i < nb_simvars; i++)
     if (equation_type_and_normalized_equation[eq_idx_block2orig[i+prologue]].first == EquationType::solve
-        || variable_lag_lead[endo_idx_block2orig[i+prologue]].first > 0
-        || variable_lag_lead[endo_idx_block2orig[i+prologue]].second > 0
-        || equation_lag_lead[eq_idx_block2orig[i+prologue]].first > 0
-        || equation_lag_lead[eq_idx_block2orig[i+prologue]].second > 0
+        || (!time_recursive_block_decomposition &&
+            (variable_lag_lead[endo_idx_block2orig[i+prologue]].first > 0
+             || variable_lag_lead[endo_idx_block2orig[i+prologue]].second > 0
+             || equation_lag_lead[eq_idx_block2orig[i+prologue]].first > 0
+             || equation_lag_lead[eq_idx_block2orig[i+prologue]].second > 0))
         || mfs == 0)
       add_edge(vertex(i, G), vertex(i, G), G);
 

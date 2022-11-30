@@ -212,6 +212,25 @@ protected:
   // Whether block decomposition has been successfully computed
   bool block_decomposed {false};
 
+  /* Whether the block decomposition to compute is time-recursive (i.e. the
+     model can be simulated as a whole period-by-period).
+
+     If true, only contemporaneous occurrences of variables are considered when
+     computing the block structure; leads and lags are essentially treated as
+     exogenous, i.e. they are ignored. Such a decomposition only makes sense
+     for models that are purely backward/forward/static. When using the
+     resulting block decomposition to simulate the model, periods must be the
+     outer loop, and blocks the inner loop.
+
+     If false, then the full lead/lag structure is taken into account when
+     computing the block structure. This is the only option if there are both
+     leads and lags. When using the
+     resulting block decomposition to simulate the model, blocks must be the
+     outer loop, and periods the inner loop.
+
+     Of course, this setting does not make any difference on StaticModel. */
+  bool time_recursive_block_decomposition {false};
+
   // Stores various informations on the blocks
   vector<BlockInfo> blocks;
 

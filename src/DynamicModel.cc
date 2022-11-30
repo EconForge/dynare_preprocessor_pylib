@@ -1350,6 +1350,8 @@ void
 DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename,
                                      const vector<int> &state_var, bool estimation_present) const
 {
+  output << "M_.block_structure.time_recursive = " << boolalpha << time_recursive_block_decomposition << ";" << endl;
+
   for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
       int block_size = blocks[blk].size;
@@ -2959,6 +2961,11 @@ DynamicModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_c
   if (paramsDerivsOrder > 0 && !no_tmp_terms)
     computeParamsDerivativesTemporaryTerms();
 
+  if (!block && (max_endo_lag == 0 || max_endo_lead == 0))
+    {
+      time_recursive_block_decomposition = true;
+      mfs = 3; // FIXME: remove this line when mfs=3 becomes the global default
+    }
   computingPassBlock(eval_context, no_tmp_terms);
   if (block_decomposed)
     computeBlockDynJacobianCols();
@@ -3077,7 +3084,9 @@ DynamicModel::determineBlockDerivativesType(int blk)
   map<tuple<int, int, int>, BlockDerivativeType> derivType;
   int size = blocks[blk].size;
   int nb_recursive = blocks[blk].getRecursiveSize();
-  for (int lag = -blocks[blk].max_lag; lag <= blocks[blk].max_lead; lag++)
+  for (int lag {time_recursive_block_decomposition ? 0 : -blocks[blk].max_lag};
+       lag <= (time_recursive_block_decomposition ? 0 : blocks[blk].max_lead);
+       lag++)
     for (int eq = 0; eq < size; eq++)
       {
         set<pair<int, int>> endos_and_lags;
