@@ -327,6 +327,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>mh_drop   		{return token::MH_DROP;}
 <DYNARE_STATEMENT>mh_jscale   		{return token::MH_JSCALE;}
 <DYNARE_STATEMENT>mh_init_scale 	{return token::MH_INIT_SCALE;}
+<DYNARE_STATEMENT>mh_init_scale_factor 	{return token::MH_INIT_SCALE_FACTOR;}
 <DYNARE_STATEMENT>mh_tune_jscale   	{return token::MH_TUNE_JSCALE;}
 <DYNARE_STATEMENT>mh_tune_guess   	{return token::MH_TUNE_GUESS;}
 <DYNARE_STATEMENT>mode_file 		{return token::MODE_FILE;}
