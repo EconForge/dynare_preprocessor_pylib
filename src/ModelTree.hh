@@ -2242,7 +2242,7 @@ ModelTree::writeDriverSparseIndicesHelper(ostream &output) const
   output << "]);" << endl;
 
   // Write indices for the sparse higher-order derivatives
-  for (int i {2}; i < computed_derivs_order; i++)
+  for (int i {2}; i <= computed_derivs_order; i++)
     {
       output << "M_." << model_name << "_g" << i << "_sparse_indices = int32([";
       for (const auto &[vidx, d] : derivatives[i])
@@ -2292,7 +2292,7 @@ ModelTree::writeJsonSparseIndicesHelper(ostream &output) const
   output << ']' << endl;
 
   // Write indices for the sparse higher-order derivatives
-  for (int i {2}; i < computed_derivs_order; i++)
+  for (int i {2}; i <= computed_derivs_order; i++)
     {
       output << R"(, ")" << model_name << "_g" << i << R"(_sparse_indices": [)";
       for (bool printed_something {false};
