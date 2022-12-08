@@ -2570,7 +2570,12 @@ ModelTree::writeSparseModelMFiles(const string &basename) const
     output << "if ~isreal(g1_v)" << endl
            << "    g1_v = real(g1_v)+2*imag(g1_v);" << endl
            << "end" << endl;
-  output << "g1 = sparse(sparse_rowval, sparse_colval, g1_v, " << equations.size() << ", " << getJacobianColsNbr(true) << ");" << endl
+  // On MATLAB < R2020a, sparse() does not accept int32 indices
+  output << "if ~isoctave && matlab_ver_less_than('9.8')" << endl
+         << "    sparse_rowval = double(sparse_rowval);" << endl
+         << "    sparse_colval = double(sparse_colval);" << endl
+         << "end" << endl
+         << "g1 = sparse(sparse_rowval, sparse_colval, g1_v, " << equations.size() << ", " << getJacobianColsNbr(true) << ");" << endl
          << "end" << endl;
   output.close();
 
@@ -2635,7 +2640,12 @@ ModelTree::writeSparseModelMFiles(const string &basename) const
               output << "if nargout > 3" << endl
                      << "    g1_v = NaN(" << blocks_jacobian_sparse_column_major_order[blk].size() << ", 1);" << endl;
               writeSparsePerBlockJacobianHelper<output_type>(blk, output, temporary_terms_written);
-              output << "    g1 = sparse(sparse_rowval, sparse_colval, g1_v, " << blocks[blk].mfs_size << ", "
+              // On MATLAB < R2020a, sparse() does not accept int32 indices
+              output << "    if ~isoctave && matlab_ver_less_than('9.8')" << endl
+                     << "        sparse_rowval = double(sparse_rowval);" << endl
+                     << "        sparse_colval = double(sparse_colval);" << endl
+                     << "    end" << endl
+                     << "    g1 = sparse(sparse_rowval, sparse_colval, g1_v, " << blocks[blk].mfs_size << ", "
                      << (one_boundary ? 1 : 3)*blocks[blk].mfs_size << ");" << endl
                      << "end" << endl;
             }
