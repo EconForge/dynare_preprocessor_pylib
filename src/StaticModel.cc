@@ -830,20 +830,19 @@ StaticModel::writeBlockDriverOutput(ostream &output) const
 {
   for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
-      output << "block_structure_stat.block(" << blk+1 << ").Simulation_Type = " << static_cast<int>(blocks[blk].simulation_type) << ";" << endl
-             << "block_structure_stat.block(" << blk+1 << ").endo_nbr = " << blocks[blk].size << ";" << endl
-             << "block_structure_stat.block(" << blk+1 << ").mfs = " << blocks[blk].mfs_size << ";" << endl
-             << "block_structure_stat.block(" << blk+1 << ").equation = [";
+      output << "M_.block_structure_stat.block(" << blk+1 << ").Simulation_Type = " << static_cast<int>(blocks[blk].simulation_type) << ";" << endl
+             << "M_.block_structure_stat.block(" << blk+1 << ").endo_nbr = " << blocks[blk].size << ";" << endl
+             << "M_.block_structure_stat.block(" << blk+1 << ").mfs = " << blocks[blk].mfs_size << ";" << endl
+             << "M_.block_structure_stat.block(" << blk+1 << ").equation = [";
       for (int eq = 0; eq < blocks[blk].size; eq++)
         output << " " << getBlockEquationID(blk, eq)+1;
       output << "];" << endl
-             << "block_structure_stat.block(" << blk+1 << ").variable = [";
+             << "M_.block_structure_stat.block(" << blk+1 << ").variable = [";
       for (int var = 0; var < blocks[blk].size; var++)
         output << " " << getBlockVariableID(blk, var)+1;
       output << "];" << endl;
     }
-  output << "M_.block_structure_stat.block = block_structure_stat.block;" << endl
-         << "M_.block_structure_stat.variable_reordered = [";
+  output << "M_.block_structure_stat.variable_reordered = [";
   for (int i = 0; i < symbol_table.endo_nbr(); i++)
     output << " " << endo_idx_block2orig[i]+1;
   output << "];" << endl
