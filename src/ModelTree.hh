@@ -2247,8 +2247,9 @@ ModelTree::writeDriverSparseIndicesHelper(ostream &output) const
       output << "M_." << model_name << "_g" << i << "_sparse_indices = int32([";
       for (const auto &[vidx, d] : derivatives[i])
         {
-          for (int it : vidx)
-            output << it+1 << ' ';
+          for (bool row_number {true}; // First element of vidx is row number
+               int it : vidx)
+            output << (exchange(row_number, false) ? it : getJacobianCol(it, true))+1 << ' ';
           output << ';' << endl;
         }
       output << "]);" << endl;
@@ -2304,9 +2305,10 @@ ModelTree::writeJsonSparseIndicesHelper(ostream &output) const
           for (bool printed_something2 {false};
                int it : vidx)
             {
-              if (exchange(printed_something2, true))
+              if (printed_something2)
                 output << ", ";
-              output << it+1;
+              // First element of vidx is row number
+              output << (exchange(printed_something2, true) ? getJacobianCol(it, true) : it)+1;
             }
           output << ']' << endl;
         }
