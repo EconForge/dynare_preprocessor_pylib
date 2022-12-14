@@ -88,7 +88,7 @@ Include::interpret(ostream &output, Environment &env, vector<filesystem::path> &
     {
       error(StackTrace("@#include", e.what(), location));
     }
-  printLineInfo(output);
+  printEndLineInfo(output);
 }
 
 void
@@ -129,6 +129,7 @@ IncludePath::interpret([[maybe_unused]] ostream &output, Environment &env, vecto
     {
       error(StackTrace("@#includepath", e.what(), location));
     }
+  printEndLineInfo(output);
 }
 
 void
@@ -152,6 +153,7 @@ Define::interpret([[maybe_unused]] ostream &output, Environment &env, [[maybe_un
     {
       error(StackTrace("@#define", e.what(), location));
     }
+  printEndLineInfo(output);
 }
 
 void
