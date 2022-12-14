@@ -68,7 +68,7 @@ Include::interpret(ostream &output, Environment &env, vector<filesystem::path> &
               errmsg << "   * " << current_path().string() << endl;
               for (const auto &dir : paths)
                 errmsg << "   * " << absolute(dir).string() << endl;
-              error(StackTrace("@#includepath", "Could not open " + filename.string()
+              error(StackTrace("@#include", "Could not open " + filename.string()
                                +". The following directories were searched:\n" + errmsg.str(), location));
             }
         }
