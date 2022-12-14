@@ -1789,13 +1789,13 @@ DynamicModel::writeDriverOutput(ostream &output, const string &basename, bool es
       if (auto it = nonstationary_symbols_map.find(symb_id); it != nonstationary_symbols_map.end())
         {
           auto [is_log, deflator] = it->second;
-          output << "M_.endo_trends(" << i << ")."
+          output << "M_.endo_trends(" << i+1 << ")."
                  << (is_log ? "log_deflator" : "deflator") << " = '";
           deflator->writeJsonOutput(output, {}, {});
           output << "';" << endl;
 
           auto growth_factor = const_cast<DynamicModel *>(this)->AddDivide(deflator, deflator->decreaseLeadsLags(1))->removeTrendLeadLag(trend_symbols_map)->replaceTrendVar();
-          output << "M_.endo_trends(" << i << ")."
+          output << "M_.endo_trends(" << i+1 << ")."
                  << (is_log ? "log_growth_factor" : "growth_factor") << " = '";
           growth_factor->writeJsonOutput(output, {}, {});
           output << "';" << endl;
