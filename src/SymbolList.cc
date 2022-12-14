@@ -38,7 +38,7 @@ SymbolList::checkPass(WarningConsolidation &warnings, const vector<SymbolType> &
   for (auto type : types)
     if (type == SymbolType::endogenous)
       {
-        regex_str += "|AUX_ENDO_";
+        regex_str += "|AUX_ENDO_|LOG_";
         break;
       }
   regex re("^(" + regex_str +")");
