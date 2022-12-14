@@ -278,11 +278,11 @@ OptionsList::writeJsonOutput(ostream &output) const
       output << R"(")" << name << R"(": )";
       std::visit([&]<class T>(const T &v)
       {
-        if constexpr(is_same_v<T, NumVal> || is_same_v<T, DateVal>)
+        if constexpr(is_same_v<T, NumVal>)
           output << v;
         else if constexpr(is_same_v<T, pair<string, string>>)
           output << '[' << v.first << ", " << v.second << ']';
-        else if constexpr(is_same_v<T, StringVal>)
+        else if constexpr(is_same_v<T, StringVal> || is_same_v<T, DateVal>)
           output << '"' << v << '"';
         else if constexpr(is_same_v<T, SymbolListVal>)
           {
