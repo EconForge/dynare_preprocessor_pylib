@@ -44,7 +44,7 @@
 condition_variable_any ModelTree::mex_compilation_cv;
 mutex ModelTree::mex_compilation_mut;
 vector<tuple<filesystem::path, set<filesystem::path>, string>> ModelTree::mex_compilation_queue;
-set<filesystem::path> ModelTree::mex_compilation_done;
+set<filesystem::path> ModelTree::mex_compilation_ongoing, ModelTree::mex_compilation_done, ModelTree::mex_compilation_failed;
 vector<jthread> ModelTree::mex_compilation_workers;
 
 void
@@ -1955,6 +1955,7 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers)
               output = get<0>(*it);
               cmd = get<2>(*it);
               mex_compilation_queue.erase(it);
+              mex_compilation_ongoing.insert(output);
               return true;
             }
         return false;
@@ -1964,13 +1965,13 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers)
         if (mex_compilation_cv.wait(lk, stoken, pick_job))
           {
             lk.unlock();
-            if (system(cmd.c_str()))
-              {
-                cerr << "Compilation failed" << endl;
-                exit(EXIT_FAILURE);
-              }
+            int r { system(cmd.c_str()) };
             lk.lock();
-            mex_compilation_done.insert(output);
+            mex_compilation_ongoing.erase(output);
+            if (r)
+              mex_compilation_failed.insert(output);
+            else
+              mex_compilation_done.insert(output);
             /* The object just compiled may be a prerequisite for several
                other objects, so notify all waiting workers. Also needed to
                notify the main thread when in
@@ -1984,7 +1985,18 @@ void
 ModelTree::waitForMEXCompilationWorkers()
 {
   unique_lock<mutex> lk {mex_compilation_mut};
-  mex_compilation_cv.wait(lk, [] { return mex_compilation_queue.empty(); });
+  mex_compilation_cv.wait(lk, [] {
+    return (mex_compilation_queue.empty() && mex_compilation_ongoing.empty())
+      || !mex_compilation_failed.empty(); });
+  if (!mex_compilation_failed.empty())
+    {
+      cerr << "Compilation failed for: ";
+      for (const auto &p : mex_compilation_failed)
+        cerr << p.string() << " ";
+      cerr << endl;
+      lk.unlock(); // So that threads can process their stoken
+      exit(EXIT_FAILURE);
+    }
 }
 
 void

@@ -439,8 +439,12 @@ private:
   /* Object/MEX files waiting to be compiled (with their prerequisites as 2nd
      element and compilation command as the 3rd element) */
   static vector<tuple<filesystem::path, set<filesystem::path>, string>> mex_compilation_queue;
-  // Object/MEX files already compiled
+  // Object/MEX files in the process of being compiled
+  static set<filesystem::path> mex_compilation_ongoing;
+  // Object/MEX files already compiled successfully
   static set<filesystem::path> mex_compilation_done;
+  // Object/MEX files whose compilation failed
+  static set<filesystem::path> mex_compilation_failed;
 
   /* Compute a pseudo-Jacobian whose all elements are either zero or one,
      depending on whether the variable symbolically appears in the equation. If
