@@ -1932,20 +1932,16 @@ DynamicModel::fillVarModelTable() const
       for (const auto &eqtag : eqtags)
         {
           set<pair<int, int>> lhs_set, lhs_tmp_set, rhs_set;
-          int eqn;
-          try
-            {
-              eqn = equation_tags.getEqnByTag("name", eqtag);
-            }
-          catch (EquationTags::TagNotFoundException &e)
+          optional<int> eqn { equation_tags.getEqnByTag("name", eqtag) };
+          if (!eqn)
             {
               cerr << "ERROR: no equation is named '" << eqtag << "'" << endl;
               exit(EXIT_FAILURE);
             }
 
-          equations[eqn]->arg1->collectDynamicVariables(SymbolType::endogenous, lhs_set);
-          equations[eqn]->arg1->collectDynamicVariables(SymbolType::exogenous, lhs_tmp_set);
-          equations[eqn]->arg1->collectDynamicVariables(SymbolType::parameter, lhs_tmp_set);
+          equations[*eqn]->arg1->collectDynamicVariables(SymbolType::endogenous, lhs_set);
+          equations[*eqn]->arg1->collectDynamicVariables(SymbolType::exogenous, lhs_tmp_set);
+          equations[*eqn]->arg1->collectDynamicVariables(SymbolType::parameter, lhs_tmp_set);
 
           if (lhs_set.size() != 1 || !lhs_tmp_set.empty())
             {
@@ -1963,14 +1959,14 @@ DynamicModel::fillVarModelTable() const
               exit(EXIT_FAILURE);
             }
 
-          eqnumber.push_back(eqn);
+          eqnumber.push_back(*eqn);
           lhs.push_back(itlhs->first);
           lhs_set.clear();
           set<expr_t> lhs_expr_t_set;
-          equations[eqn]->arg1->collectVARLHSVariable(lhs_expr_t_set);
+          equations[*eqn]->arg1->collectVARLHSVariable(lhs_expr_t_set);
           lhs_expr_t.push_back(*(lhs_expr_t_set.begin()));
 
-          equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_set);
+          equations[*eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_set);
           rhs.push_back(rhs_set);
         }
       eqnums[model_name] = eqnumber;
@@ -2227,17 +2223,13 @@ DynamicModel::fillTrendComponentModelTable() const
       vector<int> trend_eqnumber;
       for (const auto &eqtag : eqtags)
         {
-          int eqn;
-          try
-            {
-              eqn = equation_tags.getEqnByTag("name", eqtag);
-            }
-          catch (EquationTags::TagNotFoundException &e)
+          optional<int> eqn { equation_tags.getEqnByTag("name", eqtag) };
+          if (!eqn)
             {
               cerr << "ERROR: no equation is named '" << eqtag << "'" << endl;
               exit(EXIT_FAILURE);
             }
-          trend_eqnumber.push_back(eqn);
+          trend_eqnumber.push_back(*eqn);
         }
       trend_eqnums[model_name] = trend_eqnumber;
     }
@@ -2251,20 +2243,16 @@ DynamicModel::fillTrendComponentModelTable() const
       for (const auto &eqtag : eqtags)
         {
           set<pair<int, int>> lhs_set, lhs_tmp_set, rhs_set;
-          int eqn;
-          try
-            {
-              eqn = equation_tags.getEqnByTag("name", eqtag);
-            }
-          catch (EquationTags::TagNotFoundException &e)
+          optional<int> eqn { equation_tags.getEqnByTag("name", eqtag) };
+          if (!eqn)
             {
               cerr << "ERROR: no equation is named '" << eqtag << "'" << endl;
               exit(EXIT_FAILURE);
             }
 
-          equations[eqn]->arg1->collectDynamicVariables(SymbolType::endogenous, lhs_set);
-          equations[eqn]->arg1->collectDynamicVariables(SymbolType::exogenous, lhs_tmp_set);
-          equations[eqn]->arg1->collectDynamicVariables(SymbolType::parameter, lhs_tmp_set);
+          equations[*eqn]->arg1->collectDynamicVariables(SymbolType::endogenous, lhs_set);
+          equations[*eqn]->arg1->collectDynamicVariables(SymbolType::exogenous, lhs_tmp_set);
+          equations[*eqn]->arg1->collectDynamicVariables(SymbolType::parameter, lhs_tmp_set);
 
           if (lhs_set.size() != 1 || !lhs_tmp_set.empty())
             {
@@ -2282,14 +2270,14 @@ DynamicModel::fillTrendComponentModelTable() const
               exit(EXIT_FAILURE);
             }
 
-          eqnumber.push_back(eqn);
+          eqnumber.push_back(*eqn);
           lhs.push_back(itlhs->first);
           lhs_set.clear();
           set<expr_t> lhs_expr_t_set;
-          equations[eqn]->arg1->collectVARLHSVariable(lhs_expr_t_set);
+          equations[*eqn]->arg1->collectVARLHSVariable(lhs_expr_t_set);
           lhs_expr_t.push_back(*(lhs_expr_t_set.begin()));
 
-          equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_set);
+          equations[*eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_set);
           rhs.push_back(rhs_set);
         }
       eqnums[model_name] = eqnumber;
@@ -2889,10 +2877,10 @@ DynamicModel::substitutePacExpectation(const map<string, expr_t> &pac_expectatio
 {
   for (auto &[model_name, substexpr] : pac_expectation_substitution)
     {
-      int eq = equation_tags.getEqnByTag("name", pac_eq_name.at(model_name));
-      auto substeq = dynamic_cast<BinaryOpNode *>(equations[eq]->substitutePacExpectation(model_name, substexpr));
+      optional<int> eq { equation_tags.getEqnByTag("name", pac_eq_name.at(model_name)) };
+      auto substeq = dynamic_cast<BinaryOpNode *>(equations[eq.value()]->substitutePacExpectation(model_name, substexpr));
       assert(substeq);
-      equations[eq] = substeq;
+      equations[eq.value()] = substeq;
     }
 }
 
@@ -4394,17 +4382,17 @@ DynamicModel::addOccbinEquation(expr_t eq, optional<int> lineno, const map<strin
     }
 
   // Create or update the dynamic equation
-  try
+  optional<int> eqn { equation_tags.getEqnByTag("name", eq_tags.at("name")) };
+  if (eqn)
     {
-      int eqn = equation_tags.getEqnByTag("name", eq_tags.at("name"));
-      BinaryOpNode *orig_eq = equations[eqn];
+      BinaryOpNode *orig_eq { equations[*eqn] };
       /* In the following, we could have kept only orig_eq->arg1, but the
          following adds a (somewhat bizarre) support for equation snippets
          without “bind” nor “relax” */
-      equations[eqn] = AddEqual(AddPlus(AddMinus(orig_eq->arg1, orig_eq->arg2), term), Zero);
+      equations[*eqn] = AddEqual(AddPlus(AddMinus(orig_eq->arg1, orig_eq->arg2), term), Zero);
       // It’s unclear how to update lineno and tags, so don’t do it
     }
-  catch (EquationTags::TagNotFoundException &e)
+  else
     {
       auto eq_tags_dynamic = eq_tags;
       eq_tags_dynamic["dynamic"] = "";
@@ -4414,18 +4402,18 @@ DynamicModel::addOccbinEquation(expr_t eq, optional<int> lineno, const map<strin
   // Create or update the static equation (corresponding to the pure relax regime)
   if (regimes_bind.empty())
     {
-      try
+      /* Similar remark as above. We could have entirely skipped this
+         equation updating, since normally there is only one such clause,
+         but the following adds a (somewhat bizarre) support for equation
+         snippets without “bind” nor “relax” */
+      optional<int> eqn_static { static_only_equations_equation_tags.getEqnByTag("name", eq_tags.at("name")) };
+      if (eqn_static)
         {
-          /* Similar remark as above. We could have entirely skipped this
-             equation updating, since normally there is only one such clause,
-             but the following adds a (somewhat bizarre) support for equation
-             snippets without “bind” nor “relax” */
-          int eqn = static_only_equations_equation_tags.getEqnByTag("name", eq_tags.at("name"));
-          BinaryOpNode *orig_eq = static_only_equations[eqn];
-          static_only_equations[eqn] = AddEqual(AddPlus(AddMinus(orig_eq->arg1, orig_eq->arg2), basic_term), Zero);
+          BinaryOpNode *orig_eq { static_only_equations[*eqn_static] };
+          static_only_equations[*eqn_static] = AddEqual(AddPlus(AddMinus(orig_eq->arg1, orig_eq->arg2), basic_term), Zero);
           // It’s unclear how to update lineno and tags, so don’t do it
         }
-      catch (EquationTags::TagNotFoundException &e)
+      else
         {
           auto eq_tags_static = eq_tags;
           eq_tags_static["static"] = "";

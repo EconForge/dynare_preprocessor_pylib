@@ -32,11 +32,6 @@ class EquationTags
 private:
   map<int, map<string, string>> eqn_tags;
 public:
-  struct TagNotFoundException
-  {
-    const string key, value;
-  };
-
   // Add multiple equation tags for the given equation
   void
   add(int eqn, map<string, string> tags)
@@ -82,7 +77,7 @@ public:
   set<int> getEqnsByTag(const string &key, const string &value) const;
 
   //! Get the first equation that has the given key and value
-  int getEqnByTag(const string &key, const string &value) const;
+  optional<int> getEqnByTag(const string &key, const string &value) const;
 
   //! Get the tag value given the equation number and key
   optional<string>
@@ -105,15 +100,7 @@ public:
   bool
   exists(const string &key, const string &value) const
   {
-    try
-      {
-        getEqnByTag(key, value);
-      }
-    catch (TagNotFoundException &e)
-      {
-        return false;
-      }
-    return true;
+    return getEqnByTag(key, value).has_value();
   }
 
   bool

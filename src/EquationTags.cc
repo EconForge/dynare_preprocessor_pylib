@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020-2022 Dynare Team
+ * Copyright © 2020-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -42,13 +42,13 @@ EquationTags::getEqnsByTag(const string &key, const string &value) const
   return retval;
 }
 
-int
+optional<int>
 EquationTags::getEqnByTag(const string &key, const string &value) const
 {
   for (const auto & [eqn, tags] : eqn_tags)
     if (auto tmp = tags.find(key); tmp != tags.end() && tmp->second == value)
       return eqn;
-  throw TagNotFoundException(key, value);
+  return nullopt;
 }
 
 void
