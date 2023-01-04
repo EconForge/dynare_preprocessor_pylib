@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -758,30 +758,16 @@ ModelTree::writeModelEquations(ostream &output, const temporary_terms_t &tempora
         }
 
       if (vrhs != 0) // The right hand side of the equation is not empty ==> residual=lhs-rhs;
-        if constexpr(isJuliaOutput(output_type))
-          {
-            output << "    residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                   << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type)
-                   << " = (";
-            lhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
-            output << ") - (";
-            rhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
-            output << ")" << endl;
-          }
-        else
-          {
-            output << "lhs = ";
-            lhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
-            output << ";" << endl
-                   << "rhs = ";
-            rhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
-            output << ";" << endl
-                   << "residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                   << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type)
-                   << " = lhs - rhs;" << endl;
-          }
+        {
+          output << "    residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                 << eq + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type)
+                 << " = (";
+          lhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
+          output << ") - (";
+          rhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
+          output << ");" << endl;
+        }
       else // The right hand side of the equation is empty ==> residual=lhs;
         {
           output << "residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
@@ -1056,10 +1042,8 @@ ModelTree::writeModelCFile(const string &basename, const string &mexext,
       writePowerDerivHeader(output);
       output << endl
              << prototype_main << endl
-             << "{" << endl;
-      if (i == 0)
-        output << "  double lhs, rhs;" << endl;
-      output << d_output[i].str()
+             << "{" << endl
+             << d_output[i].str()
              << "}" << endl
              << endl;
       output.close();
@@ -2801,10 +2785,8 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
       writePowerDerivHeader(output);
       output << endl
              << prototype_main << endl
-             << "{" << endl;
-      if (i == 0)
-        output << "  double lhs, rhs;" << endl;
-      output << d_sparse_output[i].str()
+             << "{" << endl
+             << d_sparse_output[i].str()
              << "}" << endl
              << endl;
       output.close();
