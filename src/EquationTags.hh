@@ -23,6 +23,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <optional>
 
 using namespace std;
 
@@ -84,10 +85,13 @@ public:
   int getEqnByTag(const string &key, const string &value) const;
 
   //! Get the tag value given the equation number and key
-  string
+  optional<string>
   getTagValueByEqnAndKey(int eqn, const string &key) const
   {
-    return exists(eqn, key) ? eqn_tags.at(eqn).at(key) : "";
+    if (auto it = eqn_tags.find(eqn); it != eqn_tags.end())
+      if (auto it2 = it->second.find(key); it2 != it->second.end())
+        return it2->second;
+    return nullopt;
   }
 
   //! Get the equations marked dynamic

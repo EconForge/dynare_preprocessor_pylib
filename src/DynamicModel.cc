@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1229,8 +1229,8 @@ DynamicModel::removeEquationsHelper(set<pair<string, string>> &listed_eqs_by_tag
     if (eqs_to_delete_by_number.contains(i))
       {
         if (excluded_vars_change_type)
-          if (auto tmp = all_equation_tags.getTagValueByEqnAndKey(i, "endogenous"); !tmp.empty())
-            excluded_vars.push_back(symbol_table.getID(tmp));
+          if (auto tmp = all_equation_tags.getTagValueByEqnAndKey(i, "endogenous"); tmp)
+            excluded_vars.push_back(symbol_table.getID(*tmp));
           else
             {
               set<int> result;
@@ -1998,19 +1998,19 @@ DynamicModel::fillVarModelTableFromOrigModel() const
       for (auto eqn : eqns)
         {
           // Perform some sanity checks on the RHS
-          string eqtag = equation_tags.getTagValueByEqnAndKey(eqn, "name");
+          optional<string> eqtag { equation_tags.getTagValueByEqnAndKey(eqn, "name") };
           set<pair<int, int>> rhs_endo_set, rhs_exo_set;
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_endo_set);
           for (const auto &[symb_id, lag] : rhs_endo_set)
             if (lag > 0)
               {
-                cerr << "ERROR: in Equation " << eqtag
+                cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn+1))
                      << ". A VAR model may not have leaded endogenous variables on the RHS. " << endl;
                 exit(EXIT_FAILURE);
               }
             else if (!var_model_table.getStructural().at(model_name) && lag == 0)
               {
-                cerr << "ERROR: in Equation " << eqtag
+                cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn+1))
                      << ". A non-structural VAR model may not have contemporaneous endogenous variables on the RHS. " << endl;
                 exit(EXIT_FAILURE);
               }
@@ -2019,7 +2019,7 @@ DynamicModel::fillVarModelTableFromOrigModel() const
           for (const auto &[symb_id, lag] : rhs_exo_set)
             if (lag != 0)
               {
-                cerr << "ERROR: in Equation " << eqtag
+                cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn+1))
                      << ". A VAR model may not have lagged or leaded exogenous variables on the RHS. " << endl;
                 exit(EXIT_FAILURE);
               }
@@ -2149,7 +2149,7 @@ DynamicModel::fillVarModelTableMatrices()
                     {
                       if (!d->isConstant())
                         {
-                          cerr << "ERROR: Equation '" << equation_tags.getTagValueByEqnAndKey(eqns[i], "name") << "' is not linear" << endl;
+                          cerr << "ERROR: Equation " << equation_tags.getTagValueByEqnAndKey(eqns[i], "name").value_or(to_string(eqns[i]+1)) << " is not linear" << endl;
                           exit(EXIT_FAILURE);
                         }
 
@@ -2167,7 +2167,7 @@ DynamicModel::fillVarModelTableMatrices()
                 {
                   if (!d->isConstant())
                     {
-                      cerr << "ERROR: Equation '" << equation_tags.getTagValueByEqnAndKey(eqns[i], "name") << "' is not linear" << endl;
+                      cerr << "ERROR: Equation " << equation_tags.getTagValueByEqnAndKey(eqns[i], "name").value_or(to_string(eqns[i]+1)) << " is not linear" << endl;
                       exit(EXIT_FAILURE);
                     }
 
@@ -2347,13 +2347,13 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
       for (auto eqn : eqns)
         {
           // Perform some sanity checks on the RHS
-          string eqtag = equation_tags.getTagValueByEqnAndKey(eqn, "name");
+          optional<string> eqtag { equation_tags.getTagValueByEqnAndKey(eqn, "name") };
           set<pair<int, int>> rhs_endo_set, rhs_exo_set;
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_endo_set);
           for (const auto &[symb_id, lag] : rhs_endo_set)
             if (lag >= 0)
               {
-                cerr << "ERROR: in Equation " << eqtag
+                cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn+1))
                      << ". A trend component model may not have leaded or contemporaneous endogenous variables on the RHS. " << endl;
                 exit(EXIT_FAILURE);
               }
@@ -2361,7 +2361,7 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
           for (const auto &[symb_id, lag] : rhs_exo_set)
             if (lag != 0)
               {
-                cerr << "ERROR: in Equation " << eqtag
+                cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn+1))
                      << ". A trend component model may not have lagged or leaded exogenous variables on the RHS. " << endl;
                 exit(EXIT_FAILURE);
               }
@@ -2498,13 +2498,13 @@ DynamicModel::analyzePacEquationStructure(const string &name, map<string, string
             cerr << "It is not possible to use 'pac_expectation(" << name << ")' in several equations." << endl;
             exit(EXIT_FAILURE);
           }
-        string eqn = equation_tags.getTagValueByEqnAndKey(&equation - &equations[0], "name");
-        if (eqn.empty())
+        optional<string> eqn { equation_tags.getTagValueByEqnAndKey(&equation - &equations[0], "name") };
+        if (!eqn)
           {
             cerr << "Every equation with a 'pac_expectation' operator must have been assigned an equation tag name" << endl;
             exit(EXIT_FAILURE);
           }
-        pac_eq_name[name] = eqn;
+        pac_eq_name[name] = *eqn;
 
         set<pair<int, int>> lhss;
         equation->arg1->collectDynamicVariables(SymbolType::endogenous, lhss);
@@ -4545,11 +4545,11 @@ DynamicModel::writeJsonVariableMapping(ostream &output) const
       for (bool printed_something2{false};
            int it2 : eqs)
         if (auto tmp = equation_tags.getTagValueByEqnAndKey(it2, "name");
-            !tmp.empty())
+            tmp)
           {
             if (exchange(printed_something2, true))
               output << ", ";
-            output << '"' << tmp << '"';
+            output << '"' << *tmp << '"';
           }
       output << "]}" << endl;
     }
@@ -4752,7 +4752,7 @@ DynamicModel::checkNoRemainingPacExpectation() const
   for (size_t eq = 0; eq < equations.size(); eq++)
     if (equations[eq]->containsPacExpectation())
       {
-        cerr << "ERROR: in equation " << equation_tags.getTagValueByEqnAndKey(eq, "name")
+        cerr << "ERROR: in equation " << equation_tags.getTagValueByEqnAndKey(eq, "name").value_or(to_string(eq+1))
              << ", the pac_expectation operator references an unknown pac_model" << endl;
         exit(EXIT_FAILURE);
       }
@@ -4785,7 +4785,7 @@ DynamicModel::checkNoRemainingPacTargetNonstationary() const
   for (size_t eq = 0; eq < equations.size(); eq++)
     if (equations[eq]->containsPacTargetNonstationary())
       {
-        cerr << "ERROR: in equation " << equation_tags.getTagValueByEqnAndKey(eq, "name")
+        cerr << "ERROR: in equation " << equation_tags.getTagValueByEqnAndKey(eq, "name").value_or(to_string(eq+1))
              << ", the pac_target_nonstationary operator does not match a corresponding 'pac_target_info' block" << endl;
         exit(EXIT_FAILURE);
       }
