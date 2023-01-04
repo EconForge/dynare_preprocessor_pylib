@@ -103,12 +103,6 @@ public:
     return getEqnByTag(key, value).has_value();
   }
 
-  bool
-  exists(int eqn) const
-  {
-    return eqn_tags.contains(eqn);
-  }
-
   //! Returns true if equation tag with key exists for a given equation
   bool
   exists(int eqn, const string &key) const

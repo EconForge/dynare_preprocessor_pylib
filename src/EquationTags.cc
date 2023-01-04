@@ -91,7 +91,7 @@ EquationTags::writeOutput(ostream &output) const
 void
 EquationTags::writeLatexOutput(ostream &output, int eqn) const
 {
-  if (!exists(eqn))
+  if (!eqn_tags.contains(eqn))
     return;
 
   auto escape_special_latex_symbols = [](string str)
@@ -125,7 +125,7 @@ EquationTags::writeLatexOutput(ostream &output, int eqn) const
 void
 EquationTags::writeJsonAST(ostream &output, int eqn) const
 {
-  if (!exists(eqn))
+  if (!eqn_tags.contains(eqn))
     return;
 
   output << R"(, "tags": {)";
