@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020-2022 Dynare Team
+ * Copyright © 2020-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -123,13 +123,6 @@ public:
   exists(const int eqn, const string &key) const
   {
     return exists(eqn) && eqn_tags.at(eqn).contains(key);
-  }
-
-  //! Returns true if equation tag with key and value exists for a given equation
-  bool
-  exists(const int eqn, const string &key, const string &value) const
-  {
-    return exists(eqn, key) && eqn_tags.at(eqn).at(key) == value;
   }
 
   //! Various functions to write equation tags
