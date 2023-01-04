@@ -63,11 +63,11 @@ public:
   //! Various functions to get info from equation tags
   //! Get equation tags for a given equation
   map<string, string>
-  getTagsByEqn(const int eqn) const
+  getTagsByEqn(int eqn) const
   {
     if (auto it = eqn_tags.find(eqn); it != eqn_tags.end())
       return it->second;
-    return map<string, string>{};
+    return {};
   }
 
   //! Get equations that have the given key
@@ -104,23 +104,24 @@ public:
   }
 
   bool
-  exists(const int eqn) const
+  exists(int eqn) const
   {
     return eqn_tags.contains(eqn);
   }
 
   //! Returns true if equation tag with key exists for a given equation
   bool
-  exists(const int eqn, const string &key) const
+  exists(int eqn, const string &key) const
   {
-    return exists(eqn) && eqn_tags.at(eqn).contains(key);
+    auto it = eqn_tags.find(eqn);
+    return it != eqn_tags.end() && it->second.contains(key);
   }
 
   //! Various functions to write equation tags
   void writeCheckSumInfo(ostream &output) const;
   void writeOutput(ostream &output) const;
   void writeLatexOutput(ostream &output, int eqn) const;
-  void writeJsonAST(ostream &output, const int eq) const;
+  void writeJsonAST(ostream &output, int eq) const;
 };
 
 #endif

@@ -21,6 +21,7 @@
 
 #include <regex>
 #include <ostream>
+#include <utility>
 
 set<int>
 EquationTags::getEqnsByKey(const string &key) const
@@ -93,51 +94,46 @@ EquationTags::writeLatexOutput(ostream &output, int eqn) const
   if (!exists(eqn))
     return;
 
-  auto escape_special_latex_symbols
-    = [](string str)
-      {
-        const regex special_latex_chars (R"([&%$#_{}])");
-        const regex backslash (R"(\\)");
-        const regex tilde (R"(~)");
-        const regex carrot (R"(\^)");
-        const regex textbackslash (R"(\\textbackslash)");
-        str = regex_replace(str, backslash, R"(\textbackslash)");
-        str = regex_replace(str, special_latex_chars, R"(\$&)");
-        str = regex_replace(str, carrot, R"(\^{})");
-        str = regex_replace(str, tilde, R"(\textasciitilde{})");
-        return regex_replace(str, textbackslash, R"(\textbackslash{})");
-      };
+  auto escape_special_latex_symbols = [](string str)
+  {
+    const regex special_latex_chars (R"([&%$#_{}])");
+    const regex backslash (R"(\\)");
+    const regex tilde (R"(~)");
+    const regex carrot (R"(\^)");
+    const regex textbackslash (R"(\\textbackslash)");
+    str = regex_replace(str, backslash, R"(\textbackslash)");
+    str = regex_replace(str, special_latex_chars, R"(\$&)");
+    str = regex_replace(str, carrot, R"(\^{})");
+    str = regex_replace(str, tilde, R"(\textasciitilde{})");
+    return regex_replace(str, textbackslash, R"(\textbackslash{})");
+  };
 
-  bool wrote_eq_tag = false;
   output << R"(\noindent[)";
-  for (const auto & [key, value] : eqn_tags.at(eqn))
+  for (bool wrote_eq_tag {false};
+       const auto & [key, value] : eqn_tags.at(eqn))
     {
-      if (wrote_eq_tag)
+      if (exchange(wrote_eq_tag, true))
         output << ", ";
       output << escape_special_latex_symbols(key);
 
       if (!value.empty())
         output << "= `" << escape_special_latex_symbols(value) << "'";
-
-      wrote_eq_tag = true;
     }
   output << "]" << endl;
 }
 
 void
-EquationTags::writeJsonAST(ostream &output, const int eqn) const
+EquationTags::writeJsonAST(ostream &output, int eqn) const
 {
   if (!exists(eqn))
     return;
 
   output << R"(, "tags": {)";
-  bool wroteFirst = false;
-  for (const auto &[key, value] : eqn_tags.at(eqn))
+  for (bool wroteFirst {false};
+       const auto &[key, value] : eqn_tags.at(eqn))
     {
-      if (wroteFirst)
+      if (exchange(wroteFirst, true))
         output << ", ";
-      else
-        wroteFirst = true;
       output << R"(")" << key << R"(": ")" << value << R"(")";
     }
   output << "}";
