@@ -4790,3 +4790,22 @@ DynamicModel::checkNoRemainingPacTargetNonstationary() const
         exit(EXIT_FAILURE);
       }
 }
+
+void
+DynamicModel::checkIsLinear() const
+{
+  if (!nonzero_hessian_eqs.empty())
+    {
+      cerr << "ERROR: If the model is declared linear the second derivatives must be equal to zero." << endl
+           << "       The following equations have non-zero second derivatives:" << endl;
+      for (auto it : nonzero_hessian_eqs)
+        {
+          cerr << "       * Eq # " << it+1;
+          if (optional<string> eqname { equation_tags.getTagValueByEqnAndKey(it, "name") };
+              eqname)
+            cerr << " [" << *eqname << "]";
+          cerr << endl;
+        }
+      exit(EXIT_FAILURE);
+    }
+}

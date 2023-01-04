@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2022 Dynare Team
+ * Copyright © 2006-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -738,30 +738,11 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
       else // No computing task requested, compute derivatives up to 2nd order by default
         dynamic_model.computingPass(2, 0, global_eval_context, no_tmp_terms, block, use_dll);
 
-      /* Check that the model is linear.
-         FIXME: this check always passes if derivsOrder = 1, i.e. for a perfect
-         foresight model, because the Hessian is not computed in that case. */
       if (linear)
-        {
-          set<int> eqs = mod_file_struct.ramsey_model_present ?
-            orig_ramsey_dynamic_model.getNonZeroHessianEquations() :
-            dynamic_model.getNonZeroHessianEquations();
-
-          if (!eqs.empty())
-            {
-              cerr << "ERROR: If the model is declared linear the second derivatives must be equal to zero." << endl
-                   << "       The following equations have non-zero second derivatives:" << endl;
-              for (const auto &it : eqs)
-                {
-                  cerr << "       * Eq # " << it+1;
-                  auto tags = dynamic_model.getEquationTags(it);
-                  if (auto it2 = tags.find("name"); it2 != tags.end())
-                    cerr << " [" << it2->second << "]";
-                  cerr << endl;
-                }
-              exit(EXIT_FAILURE);
-            }
-        }
+        if (mod_file_struct.ramsey_model_present)
+          orig_ramsey_dynamic_model.checkIsLinear();
+        else
+          dynamic_model.checkIsLinear();
     }
 
   // Those matrices can only be filled here, because we use derivatives

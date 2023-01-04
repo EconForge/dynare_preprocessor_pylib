@@ -659,13 +659,6 @@ public:
   // Waits until the MEX compilation queue is empty
   static void waitForMEXCompilationWorkers();
 
-  //! Returns all the equation tags associated to an equation
-  map<string, string>
-  getEquationTags(int eq) const
-  {
-    return equation_tags.getTagsByEqn(eq);
-  }
-
   //! Returns the vector of non-zero derivative counts
   const vector<int> &
   getNNZDerivatives() const

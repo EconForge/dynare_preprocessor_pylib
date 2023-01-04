@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1418,8 +1418,7 @@ void
 ModelTree::findConstantEquationsWithoutMcpTag(map<VariableNode *, NumConstNode *> &subst_table) const
 {
   for (size_t i = 0; i < equations.size(); i++)
-    if (auto tags = getEquationTags(i);
-        tags.find("mcp") == tags.end())
+    if (!equation_tags.exists(i, "mcp"))
       equations[i]->findConstantEquations(subst_table);
 }
 
@@ -1587,7 +1586,7 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
           if (equations_lineno[eq])
             output << R"(, "line": )" << *equations_lineno[eq];
 
-          if (auto eqtags = getEquationTags(eq);
+          if (auto eqtags = equation_tags.getTagsByEqn(eq);
               !eqtags.empty())
             {
               output << R"(, "tags": {)";

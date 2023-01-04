@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -372,12 +372,13 @@ public:
   {
     return computed_derivs_order >= 2;
   }
-  //! Returns equations that have non-zero second derivatives
-  set<int>
-  getNonZeroHessianEquations() const
-  {
-    return nonzero_hessian_eqs;
-  }
+
+  /* Check whether the model is linear, by verifying that the hessian is zero,
+     and error out otherwise.
+     Must be called after computingPass().
+     FIXME: this check always passes if derivsOrder = 1, i.e. for a perfect
+     foresight model, because the Hessian is not computed in that case. */
+  void checkIsLinear() const;
 
   //! Fill the trend component model table with information available from the transformed model
   void fillTrendComponentModelTable() const;
