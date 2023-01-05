@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2022 Dynare Team
+ * Copyright © 2019-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -77,7 +77,7 @@ Include::interpret(ostream &output, Environment &env, vector<filesystem::path> &
          bug in GCC/MinGW 10.2 (shipped in Debian “Bullseye” 11), that fails
          to accept implicit conversion to string from filename::path. See
          https://en.cppreference.com/w/cpp/filesystem/path/native. */
-      m.parse(filename.string(), filename.stem().string(), incfile, false, {}, env, paths, output);
+      m.parse(filename.string(), incfile, false, {}, env, paths, output);
     }
   catch (StackTrace &ex)
     {

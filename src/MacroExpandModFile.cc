@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2020 Dynare Team
+ * Copyright © 2015-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -35,7 +35,7 @@ macroExpandModFile(const string &filename, const string &basename, const istream
   stringstream macro_output;
   macro::Environment env = macro::Environment();
   macro::Driver m;
-  m.parse(filename, basename, modfile, debug, defines, env, paths, macro_output);
+  m.parse(filename, modfile, debug, defines, env, paths, macro_output);
   if (save_macro)
     {
       if (save_macro_file.empty())

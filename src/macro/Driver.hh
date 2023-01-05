@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2022 Dynare Team
+ * Copyright © 2019-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -76,15 +76,12 @@ namespace macro
 
     //! Starts parsing a file, modifies `env`, `paths` and `output`
     //! as they are modified by various macro directives
-    void parse(const string &file, const string &basename, const istream &modfile,
+    void parse(const string &file, const istream &modfile,
                bool debug, const vector<pair<string, string>> &defines,
                Environment &env, vector<filesystem::path> &paths, ostream &output);
 
-    //! Name of main file being parsed
+    //! Name of main file being parsed (for error reporting purposes)
     string file;
-
-    //! Basename of main file being parsed
-    string basename;
 
     //! Reference to the lexer
     unique_ptr<TokenizerFlex> lexer;

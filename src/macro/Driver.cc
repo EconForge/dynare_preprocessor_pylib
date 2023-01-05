@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2022 Dynare Team
+ * Copyright © 2019-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -25,12 +25,11 @@
 using namespace macro;
 
 void
-Driver::parse(const string &file_arg, const string &basename_arg, const istream &modfile,
+Driver::parse(const string &file_arg, const istream &modfile,
               bool debug, const vector<pair<string, string>> &defines,
               Environment &env, vector<filesystem::path> &paths, ostream &output)
 {
   file = file_arg;
-  basename = basename_arg;
 
   if (!defines.empty())
     {
@@ -39,7 +38,7 @@ Driver::parse(const string &file_arg, const string &basename_arg, const istream 
         command_line_defines_with_endl << "@#define " << var << " = " << val << endl;
       Driver m;
       istream is(command_line_defines_with_endl.rdbuf());
-      m.parse("command_line_defines", "command_line_defines", is, debug, {}, env, paths, output);
+      m.parse("command_line_defines", is, debug, {}, env, paths, output);
     }
 
   stringstream file_with_endl;
