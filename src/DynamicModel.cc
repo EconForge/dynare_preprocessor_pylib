@@ -1065,6 +1065,11 @@ DynamicModel::writeDynamicJacobianNonZeroEltsFile(const string &basename) const
 
   const filesystem::path filename {packageDir(basename) / "dynamic_g1_nz.m"};
   ofstream output{filename, ios::out | ios::binary};
+  if (!output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
   output << "function [nzij_pred, nzij_current, nzij_fwrd] = dynamic_g1_nz()" << endl
          << "% Returns the coordinates of non-zero elements in the Jacobian, in column-major order, for each lead/lag (only for endogenous)" << endl;
   auto print_nzij = [&output](const vector<pair<int, int>> &nzij, const string &name) {
@@ -1500,6 +1505,11 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename,
       filesystem::create_directories(basename + "/model/bytecode");
       const filesystem::path main_name {basename + "/model/bytecode/kfi"};
       ofstream KF_index_file{main_name, ios::out | ios::binary | ios::ate};
+      if (!KF_index_file.is_open())
+        {
+          cerr << "ERROR: Can't open file " << main_name.string() << " for writing" << endl;
+          exit(EXIT_FAILURE);
+        }
       int n_obs = symbol_table.observedVariablesNbr();
       int n_state = state_var.size();
       for (int it : state_var)
