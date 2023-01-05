@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -611,18 +611,18 @@ SaveParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const string &filename,
+LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const filesystem::path &filename,
                                                                      const SymbolTable &symbol_table_arg,
                                                                      WarningConsolidation &warnings) :
   symbol_table{symbol_table_arg}
 {
-  cout << "Reading " << filename << "." << endl;
+  cout << "Reading " << filename.string() << "." << endl;
 
   ifstream f;
   f.open(filename, ios::in);
   if (f.fail())
     {
-      cerr << "ERROR: Can't open " << filename << endl;
+      cerr << "ERROR: Can't open " << filename.string() << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -640,7 +640,7 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const strin
         }
       catch (SymbolTable::UnknownSymbolNameException &e)
         {
-          warnings << "WARNING: Unknown symbol " << symb_name << " in " << filename << endl;
+          warnings << "WARNING: Unknown symbol " << symb_name << " in " << filename.string() << endl;
         }
     }
   f.close();

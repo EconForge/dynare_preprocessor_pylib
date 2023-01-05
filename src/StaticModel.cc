@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -240,7 +240,7 @@ StaticModel::writeStaticPerBlockCFiles(const string &basename, const string &mex
       ofstream header_output{filename, ios::out | ios::binary};
       if (!header_output.is_open())
         {
-          cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
           exit(EXIT_FAILURE);
         }
       header_output << header.str() << ';' << endl;
@@ -285,11 +285,11 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
 {
   BytecodeWriter code_file {basename + "/model/bytecode/static.cod"};
 
-  const string bin_filename {basename + "/model/bytecode/static.bin"};
+  const filesystem::path bin_filename {basename + "/model/bytecode/static.bin"};
   ofstream bin_file {bin_filename, ios::out | ios::binary};
   if (!bin_file.is_open())
     {
-      cerr << R"(Error : Can't open file ")" << bin_filename << R"(" for writing)" << endl;
+      cerr << R"(Error : Can't open file ")" << bin_filename.string() << R"(" for writing)" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -738,12 +738,12 @@ StaticModel::writeStaticBlockMFile(const string &basename) const
 void
 StaticModel::writeStaticBlockCFile(const string &basename, vector<filesystem::path> per_block_object_files, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
 {
-  string filename = basename + "/model/src/static.c";
+  const filesystem::path filename {basename + "/model/src/static.c"};
 
   ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 

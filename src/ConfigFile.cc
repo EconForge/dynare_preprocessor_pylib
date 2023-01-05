@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2022 Dynare Team
+ * Copyright © 2010-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -21,7 +21,6 @@
 #include <fstream>
 #include <utility>
 #include <vector>
-#include <filesystem>
 
 #include "ConfigFile.hh"
 
@@ -108,17 +107,20 @@ ConfigFile::ConfigFile(bool parallel_arg, bool parallel_test_arg,
 }
 
 void
-ConfigFile::getConfigFileInfo(const string &config_file)
+ConfigFile::getConfigFileInfo(const filesystem::path &config_file)
 {
   using namespace boost;
   ifstream configFile;
 
   if (config_file.empty())
     {
-      string defaultConfigFile;
+      filesystem::path defaultConfigFile;
       // Test OS and try to open default file
 #if defined(_WIN32) || defined(__CYGWIN32__)
-      if (getenv("APPDATA") == nullptr)
+      if (auto appdata = getenv("APPDATA");
+          appdata)
+        defaultConfigFile = filesystem::path{appdata} / "dynare.ini";
+      else
         {
           if (parallel || parallel_test)
             cerr << "ERROR: ";
@@ -129,13 +131,11 @@ ConfigFile::getConfigFileInfo(const string &config_file)
           if (parallel || parallel_test)
             exit(EXIT_FAILURE);
         }
-      else
-        {
-          defaultConfigFile += getenv("APPDATA");
-          defaultConfigFile += "\\dynare.ini";
-        }
 #else
-      if (getenv("HOME") == nullptr)
+      if (auto home = getenv("HOME");
+          home)
+        defaultConfigFile = filesystem::path{home} / ".dynare";
+      else
         {
           if (parallel || parallel_test)
             cerr << "ERROR: ";
@@ -145,17 +145,12 @@ ConfigFile::getConfigFileInfo(const string &config_file)
           if (parallel || parallel_test)
             exit(EXIT_FAILURE);
         }
-      else
-        {
-          defaultConfigFile += getenv("HOME");
-          defaultConfigFile += "/.dynare";
-        }
 #endif
       configFile.open(defaultConfigFile, fstream::in);
       if (!configFile.is_open())
         if (parallel || parallel_test)
           {
-            cerr << "ERROR: Could not open the default config file (" << defaultConfigFile << ")" << endl;
+            cerr << "ERROR: Could not open the default config file (" << defaultConfigFile.string() << ")" << endl;
             exit(EXIT_FAILURE);
           }
         else
@@ -166,7 +161,7 @@ ConfigFile::getConfigFileInfo(const string &config_file)
       configFile.open(config_file, fstream::in);
       if (!configFile.is_open())
         {
-          cerr << "ERROR: Couldn't open file " << config_file << endl;;
+          cerr << "ERROR: Couldn't open file " << config_file.string() << endl;;
           exit(EXIT_FAILURE);
         }
     }

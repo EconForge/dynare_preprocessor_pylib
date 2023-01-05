@@ -24,6 +24,7 @@
 #include <ctime>
 #include <iostream>
 #include <sstream>
+#include <filesystem>
 
 #include "SymbolTable.hh"
 #include "NumericalConstants.hh"
@@ -125,7 +126,7 @@ private:
   //! Functions used in writing of JSON outut. See writeJsonOutput
   void writeJsonOutputParsingCheck(const string &basename, JsonFileOutputType json_output_mode, bool transformpass, bool computingpass) const;
   void writeJsonComputingPassOutput(const string &basename, JsonFileOutputType json_output_mode, bool jsonderivsimple) const;
-  void writeJsonFileHelper(const string &fname, ostringstream &output) const;
+  void writeJsonFileHelper(const filesystem::path &fname, ostringstream &output) const;
   /* Generate a random temporary path, in the current directory. Equivalent to
      boost::filesystem::unique_path(). Both are insecure, but currently there
      is no better portable solution. Maybe in a later C++ standard? */

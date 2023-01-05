@@ -305,7 +305,7 @@ protected:
   /* Adds information for (non-block) bytecode simulation in a separate .bin
      file.
      Returns the number of first derivatives w.r.t. endogenous variables */
-  int writeBytecodeBinFile(const string &filename, bool is_two_boundaries) const;
+  int writeBytecodeBinFile(const filesystem::path &filename, bool is_two_boundaries) const;
   //! Adds per-block information for bytecode simulation in a separate .bin file
   int writeBlockBytecodeBinFile(ofstream &bin_file, int block) const;
 

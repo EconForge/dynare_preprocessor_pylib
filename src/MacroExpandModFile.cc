@@ -26,8 +26,8 @@
 #include "macro/Driver.hh"
 
 stringstream
-macroExpandModFile(const string &filename, const string &basename, const istream &modfile,
-                   bool debug, bool save_macro, string save_macro_file, bool line_macro,
+macroExpandModFile(const filesystem::path &filename, const istream &modfile,
+                   bool debug, bool save_macro, filesystem::path save_macro_file, bool line_macro,
                    const vector<pair<string, string>> &defines,
                    vector<filesystem::path> paths)
 {
@@ -35,15 +35,18 @@ macroExpandModFile(const string &filename, const string &basename, const istream
   stringstream macro_output;
   macro::Environment env = macro::Environment();
   macro::Driver m;
-  m.parse(filename, modfile, debug, defines, env, paths, macro_output);
+  /* Calling `string()` method on filename because of bug in GCC/MinGW 10.2
+     (shipped in Debian “Bullseye” 11), that fails to accept implicit
+     conversion to string from filename::path. */
+  m.parse(filename.string(), modfile, debug, defines, env, paths, macro_output);
   if (save_macro)
     {
       if (save_macro_file.empty())
-        save_macro_file = basename + "-macroexp.mod";
+        save_macro_file = filename.stem().string() + "-macroexp.mod";
       ofstream macro_output_file{save_macro_file};
       if (macro_output_file.fail())
         {
-          cerr << "Cannot open " << save_macro_file << " for macro output" << endl;
+          cerr << "Cannot open " << save_macro_file.string() << " for macro output" << endl;
           exit(EXIT_FAILURE);
         }
 

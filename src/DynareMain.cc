@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -25,6 +25,7 @@
 #include <regex>
 #include <thread>
 #include <algorithm>
+#include <filesystem>
 
 #include <cstdlib>
 
@@ -42,8 +43,8 @@
    Function can be found in: MacroExpandModFile.cc
 */
 stringstream
-macroExpandModFile(const string &filename, const string &basename, const istream &modfile,
-                   bool debug, bool save_macro, string save_macro_file, bool line_macro,
+macroExpandModFile(const filesystem::path &filename, const istream &modfile,
+                   bool debug, bool save_macro, filesystem::path save_macro_file, bool line_macro,
                    const vector<pair<string, string>> &defines,
                    vector<filesystem::path> paths);
 
@@ -107,11 +108,11 @@ main(int argc, char **argv)
       usage();
     }
 
-  string filename = argv[1];
+  const filesystem::path filename {argv[1]};
   ifstream modfile(filename, ios::binary);
   if (modfile.fail())
     {
-      cerr << "ERROR: Could not open file: " << argv[1] << endl;
+      cerr << "ERROR: Could not open file: " << filename.string() << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -125,7 +126,7 @@ main(int argc, char **argv)
   bool clear_all = true;
   bool clear_global = false;
   bool save_macro = false;
-  string save_macro_file;
+  filesystem::path save_macro_file;
   bool debug = false;
   bool no_tmp_terms = false;
   bool only_macro = false;
@@ -136,7 +137,7 @@ main(int argc, char **argv)
   bool console = false;
   bool nograph = false;
   bool nointeractive = false;
-  string parallel_config_file;
+  filesystem::path parallel_config_file;
   bool parallel = false;
   string cluster_name;
   bool parallel_follower_open_mode = false; // Must be the same default as in matlab/default_option_values.m
@@ -438,10 +439,10 @@ main(int argc, char **argv)
     dynareroot = dynareroot.parent_path();
 
   // Construct basename (i.e. remove file extension if there is one)
-  string basename = argv[1];
-  if (size_t pos = basename.find_last_of('.');
-      pos != string::npos)
-    basename.erase(pos);
+  /* Calling `string()` method on filename because of bug in GCC/MinGW 10.2
+     (shipped in Debian “Bullseye” 11), that fails to accept implicit
+     conversion to string from filename::path. */
+  const string basename {filename.stem().string()};
 
   // Forbid some basenames, since they will cause trouble (see preprocessor#62)
   set<string> forbidden_basenames = { "T", "y", "x", "params", "steady_state", "it_", "true" };
@@ -469,8 +470,7 @@ main(int argc, char **argv)
    * Macro-expand MOD file
    */
   stringstream macro_output =
-    macroExpandModFile(filename, basename, modfile, debug, save_macro,
-                       move(save_macro_file), line_macro,
+    macroExpandModFile(filename, modfile, debug, save_macro, move(save_macro_file), line_macro,
                        defines, move(paths));
 
   if (only_macro)

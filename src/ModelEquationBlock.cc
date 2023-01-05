@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2022 Dynare Team
+ * Copyright © 2010-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -163,20 +163,20 @@ SteadyStateModel::writeLatexSteadyStateFile(const string &basename) const
 {
   filesystem::create_directories(basename + "/latex");
 
-  string filename = basename + "/latex/steady_state.tex";
-  string content_filename = basename + "/latex/steady_state_content.tex";
+  const filesystem::path filename {basename + "/latex/steady_state.tex"},
+    content_filename {basename + "/latex/steady_state_content.tex"};
 
   ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
   ofstream content_output{content_filename, ios::out | ios::binary};
   if (!content_output.is_open())
     {
-      cerr << "ERROR: Can't open file " << content_filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << content_filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -5357,11 +5357,11 @@ OccbinConstraintsStatement::writeOutput(ostream &output, const string &basename,
          << "options_.occbin = occbin.set_default_options(options_.occbin, M_);" << endl
          << "oo_.dr=set_state_space(oo_.dr,M_,options_);" <<  endl;
 
-  string filename = "+" + basename + "/occbin_difference.m";
+  filesystem::path filename {"+" + basename + "/occbin_difference.m"};
   ofstream diff_output{filename, ios::out | ios::binary};
   if (!diff_output.is_open())
     {
-      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      cerr << "Error: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
   diff_output << "function [binding, relax, err] = occbin_difference(zdatalinear, params, steady_state)" << endl;

@@ -1267,12 +1267,12 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, bool write_tef_terms, d
 }
 
 int
-ModelTree::writeBytecodeBinFile(const string &filename, bool is_two_boundaries) const
+ModelTree::writeBytecodeBinFile(const filesystem::path &filename, bool is_two_boundaries) const
 {
   ofstream SaveCode { filename, ios::out | ios::binary };
   if (!SaveCode.is_open())
     {
-      cerr << R"(Error : Can't open file ")" << filename << R"(" for writing)" << endl;
+      cerr << R"(Error : Can't open file ")" << filename.string() << R"(" for writing)" << endl;
       exit(EXIT_FAILURE);
     }
   int u_count {0};
@@ -1349,19 +1349,19 @@ ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_b
 {
   filesystem::create_directories(mod_basename + "/latex");
 
-  string filename = mod_basename + "/latex/" + latex_basename + ".tex";
-  string content_filename = mod_basename + "/latex/" + latex_basename + "_content" + ".tex";
+  const filesystem::path filename {mod_basename + "/latex/" + latex_basename + ".tex"},
+    content_filename {mod_basename + "/latex/" + latex_basename + "_content" + ".tex"};
   ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
   ofstream content_output{content_filename, ios::out | ios::binary};
   if (!content_output.is_open())
     {
-      cerr << "ERROR: Can't open file " << content_filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << content_filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 

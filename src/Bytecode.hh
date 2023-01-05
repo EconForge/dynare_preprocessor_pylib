@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2022 Dynare Team
+ * Copyright © 2007-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -24,6 +24,7 @@
 #include <vector>
 #include <utility>
 #include <ios>
+#include <filesystem>
 
 #include "CommonEnums.hh"
 
@@ -1111,7 +1112,7 @@ private:
   // Stores the positions of all instructions in the byte stream
   vector<pos_type> instructions_positions;
 public:
-  BytecodeWriter(const string &filename);
+  BytecodeWriter(const filesystem::path &filename);
   // Returns the number of the next instruction to be written
   int
   getInstructionCounter() const

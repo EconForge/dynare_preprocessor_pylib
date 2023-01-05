@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <filesystem>
 
 #include "SymbolTable.hh"
 #include "ExprNode.hh"
@@ -198,7 +199,7 @@ private:
   /*! Maps symbol ID to numeric value (stored as string) */
   map<int, string> content;
 public:
-  LoadParamsAndSteadyStateStatement(const string &filename,
+  LoadParamsAndSteadyStateStatement(const filesystem::path &filename,
                                     const SymbolTable &symbol_table_arg,
                                     WarningConsolidation &warnings);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;

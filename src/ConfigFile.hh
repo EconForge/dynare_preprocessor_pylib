@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2022 Dynare Team
+ * Copyright © 2010-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -22,6 +22,7 @@
 
 #include <map>
 #include <vector>
+#include <filesystem>
 
 #include "WarningConsolidation.hh"
 
@@ -119,7 +120,7 @@ private:
                                   const string &operatingSystem);
 public:
   //! Parse config file
-  void getConfigFileInfo(const string &parallel_config_file);
+  void getConfigFileInfo(const filesystem::path &parallel_config_file);
   //! Check Pass
   void checkPass(WarningConsolidation &warnings) const;
   //! Check Pass

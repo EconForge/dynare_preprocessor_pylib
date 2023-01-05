@@ -621,11 +621,11 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
 {
   BytecodeWriter code_file {basename + "/model/bytecode/dynamic.cod"};
 
-  const string bin_filename {basename + "/model/bytecode/dynamic.bin"};
+  const filesystem::path bin_filename {basename + "/model/bytecode/dynamic.bin"};
   ofstream bin_file {bin_filename, ios::out | ios::binary};
   if (!bin_file.is_open())
     {
-      cerr << R"(Error : Can't open file ")" << bin_filename << R"(" for writing)" << endl;
+      cerr << R"(Error : Can't open file ")" << bin_filename.string() << R"(" for writing)" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -792,12 +792,12 @@ DynamicModel::writeDynamicBlockMFile(const string &basename) const
 void
 DynamicModel::writeDynamicBlockCFile(const string &basename, vector<filesystem::path> per_block_object_files, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const
 {
-  string filename = basename + "/model/src/dynamic.c";
+  const filesystem::path filename {basename + "/model/src/dynamic.c"};
 
   ofstream output{filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "Error: Can't open file " << filename << " for writing" << endl;
+      cerr << "Error: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -1063,7 +1063,8 @@ DynamicModel::writeDynamicJacobianNonZeroEltsFile(const string &basename) const
   sort(nzij_current.begin(), nzij_current.end());
   sort(nzij_fwrd.begin(), nzij_fwrd.end());
 
-  ofstream output{packageDir(basename) / "dynamic_g1_nz.m", ios::out | ios::binary};
+  const filesystem::path filename {packageDir(basename) / "dynamic_g1_nz.m"};
+  ofstream output{filename, ios::out | ios::binary};
   output << "function [nzij_pred, nzij_current, nzij_fwrd] = dynamic_g1_nz()" << endl
          << "% Returns the coordinates of non-zero elements in the Jacobian, in column-major order, for each lead/lag (only for endogenous)" << endl;
   auto print_nzij = [&output](const vector<pair<int, int>> &nzij, const string &name) {
@@ -1497,7 +1498,7 @@ DynamicModel::writeBlockDriverOutput(ostream &output, const string &basename,
   if (estimation_present)
     {
       filesystem::create_directories(basename + "/model/bytecode");
-      string main_name = basename + "/model/bytecode/kfi";
+      const filesystem::path main_name {basename + "/model/bytecode/kfi"};
       ofstream KF_index_file{main_name, ios::out | ios::binary | ios::ate};
       int n_obs = symbol_table.observedVariablesNbr();
       int n_state = state_var.size();
