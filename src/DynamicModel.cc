@@ -619,9 +619,9 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
 void
 DynamicModel::writeDynamicBlockBytecode(const string &basename) const
 {
-  BytecodeWriter code_file {basename + "/model/bytecode/dynamic.cod"};
+  BytecodeWriter code_file {basename + "/model/bytecode/block/dynamic.cod"};
 
-  const filesystem::path bin_filename {basename + "/model/bytecode/dynamic.bin"};
+  const filesystem::path bin_filename {basename + "/model/bytecode/block/dynamic.bin"};
   ofstream bin_file {bin_filename, ios::out | ios::binary};
   if (!bin_file.is_open())
     {
@@ -3318,13 +3318,11 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
 
       create_directories(plusfolder / "+debug");
     }
-  create_directories(model_dir / "bytecode");
+  create_directories(model_dir / "bytecode" / "block");
 
   // Legacy representation
   if (block)
     {
-      writeDynamicBlockBytecode(basename);
-
       if (use_dll)
         {
           auto per_block_object_files { writeDynamicPerBlockCFiles(basename, mexext, matlabroot, dynareroot) };
@@ -3343,14 +3341,15 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
     }
   else
     {
-      writeDynamicBytecode(basename);
-
       if (use_dll)
         writeModelCFile<true>(basename, mexext, matlabroot, dynareroot);
       else if (!julia) // M-files
         writeDynamicMFile(basename);
       // The legacy representation is no longer produced for Julia
     }
+  writeDynamicBytecode(basename);
+  if (block_decomposed)
+    writeDynamicBlockBytecode(basename);
 
   // Sparse representation
   if (use_dll)

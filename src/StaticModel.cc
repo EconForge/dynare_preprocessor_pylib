@@ -283,9 +283,9 @@ StaticModel::writeStaticBytecode(const string &basename) const
 void
 StaticModel::writeStaticBlockBytecode(const string &basename) const
 {
-  BytecodeWriter code_file {basename + "/model/bytecode/static.cod"};
+  BytecodeWriter code_file {basename + "/model/bytecode/block/static.cod"};
 
-  const filesystem::path bin_filename {basename + "/model/bytecode/static.bin"};
+  const filesystem::path bin_filename {basename + "/model/bytecode/block/static.bin"};
   ofstream bin_file {bin_filename, ios::out | ios::binary};
   if (!bin_file.is_open())
     {
@@ -642,13 +642,11 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
 
       create_directories(plusfolder / "+debug");
     }
-  create_directories(model_dir / "bytecode");
+  create_directories(model_dir / "bytecode" / "block");
 
   // Legacy representation
   if (block)
     {
-      writeStaticBlockBytecode(basename);
-
       if (use_dll)
         {
           auto per_block_object_files { writeStaticPerBlockCFiles(basename, mexext, matlabroot, dynareroot) };
@@ -667,14 +665,15 @@ StaticModel::writeStaticFile(const string &basename, bool block, bool use_dll, c
     }
   else
     {
-      writeStaticBytecode(basename);
-
       if (use_dll)
         writeModelCFile<false>(basename, mexext, matlabroot, dynareroot);
       else if (!julia) // M-files
         writeStaticMFile(basename);
       // The legacy representation is no longer produced for Julia
     }
+  writeStaticBytecode(basename);
+  if (block_decomposed)
+    writeStaticBlockBytecode(basename);
 
   // Sparse representation
   if (use_dll)
