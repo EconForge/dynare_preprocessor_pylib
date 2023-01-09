@@ -1178,12 +1178,12 @@ public:
     return code;
   };
   instructions_list_t
-  get_op_code(string file_name)
+  get_op_code(const filesystem::path &codfile)
   {
     instructions_list_t tags_liste;
     ifstream CompiledCode;
     streamoff Code_Size;
-    CompiledCode.open(file_name + ".cod", ios::in | ios::binary| ios::ate);
+    CompiledCode.open(codfile, ios::in | ios::binary| ios::ate);
     if (!CompiledCode.is_open())
       return tags_liste;
     Code_Size = CompiledCode.tellg();
