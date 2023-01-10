@@ -598,7 +598,7 @@ private:
   static string matlab_arch(const string &mexext);
 #ifdef __APPLE__
   //! Finds a suitable GCC compiler on macOS
-  static string findGccOnMacos(const string &mexext);
+  static filesystem::path findGccOnMacos(const string &mexext);
 #endif
   /* Compiles a MEX file (if link=true) or an object file to be linked later
      into a MEX file (if link=false). The compilation is done in separate

@@ -1634,14 +1634,14 @@ ModelTree::matlab_arch(const string &mexext)
 }
 
 #ifdef __APPLE__
-string
+filesystem::path
 ModelTree::findGccOnMacos(const string &mexext)
 {
   const string macos_gcc_version {"12"}; // doc/manual/source/installation-and-configuration.rst
                                          // should be updated when this is changed
   char dynare_preprocessor_path[PATH_MAX];
   uint32_t size = PATH_MAX;
-  string local_gcc_path;
+  filesystem::path local_gcc_path;
   if (_NSGetExecutablePath(dynare_preprocessor_path, &size) == 0)
     {
       string s = dynare_preprocessor_path;
@@ -1650,13 +1650,13 @@ ModelTree::findGccOnMacos(const string &mexext)
 
   // if user did not choose to install gcc locally via the pkg-installer then we need to find GNU gcc
   // homebrew binaries are located in /usr/local/bin/ on x86_64 systems and in /opt/homebrew/bin/ on arm64 systems
-  if (filesystem::exists(local_gcc_path))
+  if (exists(local_gcc_path))
     return local_gcc_path;
-  else if (string global_gcc_path = "/usr/local/bin/gcc-" + macos_gcc_version;
-           filesystem::exists(global_gcc_path) && mexext == "mexmaci64")
+  else if (filesystem::path global_gcc_path {"/usr/local/bin/gcc-" + macos_gcc_version};
+           exists(global_gcc_path) && mexext == "mexmaci64")
     return global_gcc_path;
-  else if (string global_gcc_path = "/opt/homebrew/bin/gcc-" + macos_gcc_version;
-           filesystem::exists(global_gcc_path) && mexext == "mexmaca64")
+  else if (filesystem::path global_gcc_path {"/opt/homebrew/bin/gcc-" + macos_gcc_version};
+           exists(global_gcc_path) && mexext == "mexmaca64")
     return global_gcc_path;
   else
     {
@@ -1693,7 +1693,7 @@ ModelTree::compileMEX(const filesystem::path &output_dir, const string &output_b
 #ifdef __APPLE__
       /* On macOS, enforce GCC, otherwise Clang will be used, and it does not
          accept our custom optimization flags (see dynare#1797) */
-      string gcc_path = findGccOnMacos(mexext);
+      filesystem::path gcc_path {findGccOnMacos(mexext)};
       if (setenv("CC", gcc_path.c_str(), 1) != 0)
         {
           cerr << "Can't set CC environment variable" << endl;
