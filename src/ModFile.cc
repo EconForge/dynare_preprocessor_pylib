@@ -761,12 +761,13 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
 void
 ModFile::remove_directory_with_matlab_lock(const filesystem::path &dir)
 {
-  if (!exists(dir))
+  auto dirStatus {status(dir)};
+  if (!exists(dirStatus))
     return;
 
-  if (is_directory(dir))
+  if (is_directory(dirStatus))
     for (const auto &e : filesystem::directory_iterator{dir})
-      if (is_directory(e))
+      if (e.is_directory())
         remove_directory_with_matlab_lock(e);
 
   auto tmp {unique_path()};
