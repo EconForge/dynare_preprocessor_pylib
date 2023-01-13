@@ -120,26 +120,6 @@ private:
 
   // Writes dynamic model file (MATLAB/Octave version, legacy representation)
   void writeDynamicMFile(const string &basename) const;
-  /* Writes the main dynamic function of block decomposed model (MATLAB/Octave
-     version, legacy representation) */
-  void writeDynamicBlockMFile(const string &basename) const;
-  /* Writes the main dynamic functions of block decomposed model (C version,
-     legacy representation), then compiles it with the per-block functions into
-     a single MEX */
-  void writeDynamicBlockCFile(const string &basename, vector<filesystem::path> per_block_object_files, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
-  /* Computes the number of nonzero elements in deterministic Jacobian of
-     block-decomposed model */
-  int nzeDeterministicJacobianForBlock(int blk) const;
-  // Helper for writing the per-block dynamic files of block decomposed models (legacy representation)
-  template<ExprNodeOutputType output_type>
-  void writeDynamicPerBlockHelper(int blk, ostream &output, temporary_terms_t &temporary_terms, int nze_stochastic, int nze_deterministic, int nze_exo, int nze_exo_det, int nze_other_endo) const;
-  /* Writes the per-block dynamic files of block decomposed model (MATLAB/Octave
-     version, legacy representation) */
-  void writeDynamicPerBlockMFiles(const string &basename) const;
-  /* Writes the per-block dynamic files of block decomposed model (C version,
-     legacy representation).
-     Returns the list of paths to the generated C source files (not the headers) */
-  vector<filesystem::path> writeDynamicPerBlockCFiles(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
   //! Writes the code of the block-decomposed model in virtual machine bytecode
   void writeDynamicBlockBytecode(const string &basename) const;
   // Writes derivatives w.r.t. exo, exo det and other endogenous
@@ -153,8 +133,7 @@ private:
   void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
 
   // Write the block structure of the model in the driver file
-  void writeBlockDriverOutput(ostream &output, const string &basename,
-                              const vector<int> &state_var, bool estimation_present) const;
+  void writeBlockDriverOutput(ostream &output) const;
 
   // Used by determineBlockDerivativesType()
   enum class BlockDerivativeType
@@ -334,7 +313,7 @@ public:
   void computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context,
                      bool no_tmp_terms, bool block, bool use_dll);
   //! Writes information about the dynamic model to the driver file
-  void writeDriverOutput(ostream &output, const string &basename, bool estimation_present, bool compute_xrefs) const;
+  void writeDriverOutput(ostream &output, bool compute_xrefs) const;
 
   //! Write JSON AST
   void writeJsonAST(ostream &output) const;
@@ -696,171 +675,6 @@ public:
   // Returns the set of equations (as numbers) which have a pac_expectation operator
   set<int> findPacExpectationEquationNumbers() const;
 };
-
-template<ExprNodeOutputType output_type>
-void
-DynamicModel::writeDynamicPerBlockHelper(int blk, ostream &output, temporary_terms_t &temporary_terms,
-                                         int nze_stochastic, int nze_deterministic, int nze_exo,
-                                         int nze_exo_det, int nze_other_endo) const
-{
-  static_assert(!isSparseModelOutput(output_type));
-
-  BlockSimulationType simulation_type { blocks[blk].simulation_type };
-  int block_mfs_size { blocks[blk].mfs_size };
-  int block_recursive_size { blocks[blk].getRecursiveSize() };
-
-  // Write residuals and temporary terms (incl. for derivatives)
-  writePerBlockHelper<output_type>(blk, output, temporary_terms);
-
-  if constexpr(isCOutput(output_type))
-    output << "  if (stochastic_mode) {" << endl;
-  else
-    output << "  if stochastic_mode" << endl;
-
-  ostringstream i_output, j_output, v_output;
-  int line_counter { ARRAY_SUBSCRIPT_OFFSET(output_type) };
-  for (const auto &[indices, d] : blocks_derivatives[blk])
-    {
-      const auto &[eq, var, lag] {indices};
-      int jacob_col { blocks_jacob_cols_endo[blk].at({ var, lag }) };
-      i_output << "    g1_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << eq+1 << ';' << endl;
-      j_output << "    g1_j" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << jacob_col+1 << ';' << endl;
-      v_output << "    g1_v" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=';
-      d->writeOutput(v_output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-      v_output << ';' << endl;
-      line_counter++;
-    }
-  assert(line_counter == nze_stochastic+ARRAY_SUBSCRIPT_OFFSET(output_type));
-  output << i_output.str() << j_output.str() << v_output.str();
-
-  i_output.str("");
-  j_output.str("");
-  v_output.str("");
-  line_counter = ARRAY_SUBSCRIPT_OFFSET(output_type);
-  for (const auto &[indices, d] : blocks_derivatives_exo[blk])
-    {
-      const auto &[eq, var, lag] {indices};
-      int jacob_col { blocks_jacob_cols_exo[blk].at({ var, lag }) };
-      i_output << "    g1_x_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << eq+1 << ';' << endl;
-      j_output << "    g1_x_j" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << jacob_col+1 << ';' << endl;
-      v_output << "    g1_x_v" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=';
-      d->writeOutput(v_output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-      v_output << ';' << endl;
-      line_counter++;
-    }
-  assert(line_counter == nze_exo+ARRAY_SUBSCRIPT_OFFSET(output_type));
-  output << i_output.str() << j_output.str() << v_output.str();
-
-  i_output.str("");
-  j_output.str("");
-  v_output.str("");
-  line_counter = ARRAY_SUBSCRIPT_OFFSET(output_type);
-  for (const auto &[indices, d] : blocks_derivatives_exo_det[blk])
-    {
-      const auto &[eq, var, lag] {indices};
-      int jacob_col { blocks_jacob_cols_exo_det[blk].at({ var, lag }) };
-      i_output << "    g1_xd_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << eq+1 << ';' << endl;
-      j_output << "    g1_xd_j" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << jacob_col+1 << ';' << endl;
-      v_output << "    g1_xd_v" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=';
-      d->writeOutput(v_output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-      v_output << ';' << endl;
-      line_counter++;
-    }
-  assert(line_counter == nze_exo_det+ARRAY_SUBSCRIPT_OFFSET(output_type));
-  output << i_output.str() << j_output.str() << v_output.str();
-
-  i_output.str("");
-  j_output.str("");
-  v_output.str("");
-  line_counter = ARRAY_SUBSCRIPT_OFFSET(output_type);
-  for (const auto &[indices, d] : blocks_derivatives_other_endo[blk])
-    {
-      const auto &[eq, var, lag] {indices};
-      int jacob_col { blocks_jacob_cols_other_endo[blk].at({ var, lag }) };
-      i_output << "    g1_o_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << eq+1 << ';' << endl;
-      j_output << "    g1_o_j" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << jacob_col+1 << ';' << endl;
-      v_output << "    g1_o_v" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-               << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=';
-      d->writeOutput(v_output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-      v_output << ';' << endl;
-      line_counter++;
-    }
-  assert(line_counter == nze_other_endo+ARRAY_SUBSCRIPT_OFFSET(output_type));
-  output << i_output.str() << j_output.str() << v_output.str();
-
-  // Deterministic mode
-  if (simulation_type != BlockSimulationType::evaluateForward
-      && simulation_type != BlockSimulationType::evaluateBackward)
-    {
-      if constexpr(isCOutput(output_type))
-        output << "  } else {" << endl;
-      else
-        output << "  else" << endl;
-      i_output.str("");
-      j_output.str("");
-      v_output.str("");
-      line_counter = ARRAY_SUBSCRIPT_OFFSET(output_type);
-      if (simulation_type == BlockSimulationType::solveBackwardSimple
-          || simulation_type == BlockSimulationType::solveForwardSimple
-          || simulation_type == BlockSimulationType::solveBackwardComplete
-          || simulation_type == BlockSimulationType::solveForwardComplete)
-        for (const auto &[indices, d] : blocks_derivatives[blk])
-          {
-            const auto &[eq, var, lag] {indices};
-            if (lag == 0 && eq >= block_recursive_size && var >= block_recursive_size)
-              {
-                i_output << "    g1_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-                         << RIGHT_ARRAY_SUBSCRIPT(output_type) << '='
-                         << eq+1-block_recursive_size << ';' << endl;
-                j_output << "    g1_j" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-                         << RIGHT_ARRAY_SUBSCRIPT(output_type) << '='
-                         << var+1-block_recursive_size << ';' << endl;
-                v_output << "    g1_v" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-                         << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=';
-                d->writeOutput(v_output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-                v_output << ';' << endl;
-                line_counter++;
-              }
-          }
-      else // solveTwoBoundariesSimple || solveTwoBoundariesComplete
-        for (const auto &[indices, d] : blocks_derivatives[blk])
-        {
-          const auto &[eq, var, lag] {indices};
-          assert(lag >= -1 && lag <= 1);
-          if (eq >= block_recursive_size && var >= block_recursive_size)
-            {
-              i_output << "    g1_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << '='
-                       << eq+1-block_recursive_size << ';' << endl;
-              j_output << "    g1_j" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << '='
-                       << var+1-block_recursive_size+block_mfs_size*(lag+1) << ';' << endl;
-              v_output << "    g1_v" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=';
-              d->writeOutput(v_output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-              v_output << ';' << endl;
-              line_counter++;
-            }
-        }
-      assert(line_counter == nze_deterministic+ARRAY_SUBSCRIPT_OFFSET(output_type));
-      output << i_output.str() << j_output.str() << v_output.str();
-    }
-  if constexpr(isCOutput(output_type))
-    output << "  }" << endl;
-  else
-    output << "  end" << endl;
-}
 
 template<bool julia>
 void

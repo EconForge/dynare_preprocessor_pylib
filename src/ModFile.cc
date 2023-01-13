@@ -367,16 +367,6 @@ ModFile::checkPass(bool nostrict, bool stochastic)
           exit(EXIT_FAILURE);
         }
     }
-
-  // See dynare#1726
-  if ((stochastic_statement_present || mod_file_struct.check_present) && block && dynamic_model.mfs > 0)
-    {
-      /* NB: If mfs>0 but “block” is not passed, the block-DR routines will not
-         be called, so do not fail in that case (we may want to use the sparse
-         block representation) */
-      cerr << "ERROR: the `block` option used in conjunction with `mfs > 0` is incompatible with check, stoch_simul, estimation, osr, ramsey_policy, discretionary_policy, calib_smoother, identification, methods_of_moments and sensitivity commands" << endl;
-      exit(EXIT_FAILURE);
-    }
 }
 
 void
@@ -946,7 +936,7 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
 
   if (dynamic_model.equation_number() > 0)
     {
-      dynamic_model.writeDriverOutput(mOutputFile, basename, mod_file_struct.estimation_present, compute_xrefs);
+      dynamic_model.writeDriverOutput(mOutputFile, compute_xrefs);
       if (!no_static)
         static_model.writeDriverOutput(mOutputFile);
     }

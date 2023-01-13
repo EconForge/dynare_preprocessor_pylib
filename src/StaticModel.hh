@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -36,28 +36,6 @@ class StaticModel : public ModelTree
 private:
   // Writes static model file (MATLAB/Octave version, legacy representation)
   void writeStaticMFile(const string &basename) const;
-
-  /* Writes the main static function of block decomposed model (MATLAB/Octave
-     version, legacy representation) */
-  void writeStaticBlockMFile(const string &basename) const;
-
-  /* Writes the main static functions of block decomposed model (C version,
-     legacy representation), then compiles it with the per-block functions into
-     a single MEX */
-  void writeStaticBlockCFile(const string &basename, vector<filesystem::path> per_block_object_files, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
-
-  // Helper for writing a per-block static file of block decomposed model (legacy representation)
-  template<ExprNodeOutputType output_type>
-  void writeStaticPerBlockHelper(int blk, ostream &output, temporary_terms_t &temporary_terms) const;
-
-  /* Writes the per-block static files of block decomposed model (MATLAB/Octave
-     version, legacy representation) */
-  void writeStaticPerBlockMFiles(const string &basename) const;
-
-  /* Writes the per-block static files of block decomposed model (C version,
-     legacy representation).
-     Returns the list of paths to the generated C source files (not the headers) */
-  vector<filesystem::path> writeStaticPerBlockCFiles(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
 
   //! Writes the code of the block-decomposed model in virtual machine bytecode
   void writeStaticBlockBytecode(const string &basename) const;
@@ -180,43 +158,6 @@ public:
   int getDerivID(int symb_id, int lag) const noexcept(false) override;
   void addAllParamDerivId(set<int> &deriv_id_set) override;
 };
-
-template<ExprNodeOutputType output_type>
-void
-StaticModel::writeStaticPerBlockHelper(int blk, ostream &output, temporary_terms_t &temporary_terms) const
-{
-  static_assert(!isSparseModelOutput(output_type));
-
-  BlockSimulationType simulation_type { blocks[blk].simulation_type };
-  int block_recursive_size { blocks[blk].getRecursiveSize() };
-
-  // Write residuals and temporary terms (incl. for derivatives)
-  writePerBlockHelper<output_type>(blk, output, temporary_terms);
-
-  // The Jacobian if we have to solve the block
-  if (simulation_type != BlockSimulationType::evaluateBackward
-      && simulation_type != BlockSimulationType::evaluateForward)
-    {
-      ostringstream i_output, j_output, v_output;
-      for (int line_counter { ARRAY_SUBSCRIPT_OFFSET(output_type) };
-           const auto &[indices, d] : blocks_derivatives[blk])
-        {
-          const auto &[eq, var, ignore] {indices};
-          i_output << "  g1_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << eq+1-block_recursive_size
-                   << ';' << endl;
-          j_output << "  g1_j" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=' << var+1-block_recursive_size
-                   << ';' << endl;
-          v_output << "  g1_v" << LEFT_ARRAY_SUBSCRIPT(output_type) << line_counter
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << '=';
-          d->writeOutput(v_output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-          v_output << ';' << endl;
-          line_counter++;
-        }
-      output << i_output.str() << j_output.str() << v_output.str();
-    }
-}
 
 template<bool julia>
 void

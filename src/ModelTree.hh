@@ -327,7 +327,6 @@ protected:
   void writeModelCFile(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
 
   // Writes per-block residuals and temporary terms (incl. for derivatives)
-  // This part is common to the legacy and sparse representations
   template<ExprNodeOutputType output_type>
   void writePerBlockHelper(int blk, ostream &output, temporary_terms_t &temporary_terms) const;
 
