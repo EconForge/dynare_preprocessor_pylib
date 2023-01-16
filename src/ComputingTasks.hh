@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -281,16 +281,6 @@ public:
 class UnitRootVarsStatement : public Statement
 {
 public:
-  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
-  void writeJsonOutput(ostream &output) const override;
-};
-
-class PeriodsStatement : public Statement
-{
-private:
-  const int periods;
-public:
-  explicit PeriodsStatement(int periods_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };

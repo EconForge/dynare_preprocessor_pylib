@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -499,15 +499,6 @@ ParsingDriver::end_nonstationary_var(bool log_deflator, expr_t deflator, const v
 
   declared_nonstationary_vars.clear();
   reset_data_tree();
-}
-
-void
-ParsingDriver::periods(const string &periods)
-{
-  warning("periods: this command is now deprecated and may be removed in a future version of Dynare. Please use the ''periods'' option of the ''simul'' command instead.");
-
-  int periods_val = stoi(periods);
-  mod_file->addStatement(make_unique<PeriodsStatement>(periods_val));
 }
 
 void

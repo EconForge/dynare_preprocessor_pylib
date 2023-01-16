@@ -1216,24 +1216,6 @@ UnitRootVarsStatement::writeJsonOutput(ostream &output) const
          << R"("steady_state.nocheck": 1})";
 }
 
-PeriodsStatement::PeriodsStatement(int periods_arg) : periods{periods_arg}
-{
-}
-
-void
-PeriodsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
-                              [[maybe_unused]] bool minimal_workspace) const
-{
-  output << "options_.periods = " << periods << ";" << endl;
-}
-
-void
-PeriodsStatement::writeJsonOutput(ostream &output) const
-{
-  output << R"({"statementName": "periods", )"
-         << R"("periods": )" << periods << "}";
-}
-
 DsampleStatement::DsampleStatement(int val1_arg) : val1{val1_arg}, val2{-1}
 {
 }

@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -112,7 +112,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>predetermined_variables {BEGIN DYNARE_STATEMENT; return token::PREDETERMINED_VARIABLES;}
 <INITIAL>parameters {BEGIN DYNARE_STATEMENT; return token::PARAMETERS;}
 <INITIAL>model_local_variable {BEGIN DYNARE_STATEMENT; return token::MODEL_LOCAL_VARIABLE;}
-<INITIAL>periods 	{BEGIN DYNARE_STATEMENT; return token::PERIODS;}
 <INITIAL>model_info {BEGIN DYNARE_STATEMENT; return token::MODEL_INFO;}
 <INITIAL>estimation {BEGIN DYNARE_STATEMENT; return token::ESTIMATION;}
 <INITIAL>set_time {BEGIN DYNARE_STATEMENT; return token::SET_TIME;}

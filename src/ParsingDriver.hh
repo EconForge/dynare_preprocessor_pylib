@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -408,8 +408,6 @@ public:
   expr_t declare_or_change_type(SymbolType new_type, const string &name);
   //! Adds an Expression's variable
   expr_t add_expression_variable(const string &name);
-  //! Adds a "periods" statement
-  void periods(const string &periods);
   //! Adds a "dsample" statement
   void dsample(const string &arg1);
   //! Adds a "dsample" statement
