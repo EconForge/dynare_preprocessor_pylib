@@ -2474,7 +2474,6 @@ ModelTree::writeSparseModelMFiles(const string &basename) const
   auto [d_sparse_output, tt_sparse_output] = writeModelFileHelper<output_type>();
 
   const filesystem::path m_dir {packageDir(basename) / "+sparse"};
-  const filesystem::path private_m_dir {m_dir / "private"};
   // TODO: when C++20 support is complete, mark the following strings constexpr
   const string prefix { dynamic ? "dynamic_" : "static_" };
   const string full_prefix { basename + ".sparse." + prefix };
@@ -2494,7 +2493,7 @@ ModelTree::writeSparseModelMFiles(const string &basename) const
   };
 
   // Residuals (non-block)
-  open_file(private_m_dir / (prefix + "resid_tt.m"));
+  open_file(m_dir / (prefix + "resid_tt.m"));
   output << "function [T_order, T] = " << prefix << "resid_tt(y, x, params" << ss_arg << ", T_order, T)" << endl
          << "if T_order >= 0" << endl
          << "    return" << endl
@@ -2513,7 +2512,7 @@ ModelTree::writeSparseModelMFiles(const string &basename) const
          << "    T_order = -1;" << endl
          << "    T = NaN(" << ttlen << ", 1);" << endl
          << "end" << endl
-         << "[T_order, T] = " << prefix << "resid_tt(y, x, params" << ss_arg << ", T_order, T);" << endl
+         << "[T_order, T] = " << full_prefix << "resid_tt(y, x, params" << ss_arg << ", T_order, T);" << endl
          << "residual = NaN(" << equations.size() << ", 1);" << endl
          << d_sparse_output[0].str();
   if constexpr(!dynamic)
@@ -2526,12 +2525,12 @@ ModelTree::writeSparseModelMFiles(const string &basename) const
   // Jacobian (non-block)
   ttlen += temporary_terms_derivatives[1].size();
 
-  open_file(private_m_dir / (prefix + "g1_tt.m"));
+  open_file(m_dir / (prefix + "g1_tt.m"));
   output << "function [T_order, T] = " << prefix << "g1_tt(y, x, params" << ss_arg << ", T_order, T)" << endl
          << "if T_order >= 1" << endl
          << "    return" << endl
          << "end" << endl
-         << "[T_order, T] = " << prefix << "resid_tt(y, x, params" << ss_arg << ", T_order, T);" << endl
+         << "[T_order, T] = " << full_prefix << "resid_tt(y, x, params" << ss_arg << ", T_order, T);" << endl
          << "T_order = 1;" << endl
          << "if size(T, 1) < " << ttlen << endl
          << "    T = [T; NaN(" << ttlen << " - size(T, 1), 1)];" << endl
@@ -2547,7 +2546,7 @@ ModelTree::writeSparseModelMFiles(const string &basename) const
          << "    T_order = -1;" << endl
          << "    T = NaN(" << ttlen << ", 1);" << endl
          << "end" << endl
-         << "[T_order, T] = " << prefix << "g1_tt(y, x, params" << ss_arg << ", T_order, T);" << endl
+         << "[T_order, T] = " << full_prefix << "g1_tt(y, x, params" << ss_arg << ", T_order, T);" << endl
          << "g1_v = NaN(" << jacobian_sparse_column_major_order.size() << ", 1);" << endl
          << d_sparse_output[1].str();
   if constexpr(!dynamic)
@@ -2568,12 +2567,12 @@ ModelTree::writeSparseModelMFiles(const string &basename) const
     {
       ttlen += temporary_terms_derivatives[i].size();
 
-      open_file(private_m_dir / (prefix + "g" + to_string(i) + "_tt.m"));
+      open_file(m_dir / (prefix + "g" + to_string(i) + "_tt.m"));
       output << "function T = " << prefix << "g" << i << "_tt(y, x, params" << ss_arg << ")" << endl
              << "if T_order >= " << i << endl
              << "    return" << endl
              << "end" << endl
-             << "[T_order, T] = " << prefix << "g" << i-1 << "_tt(y, x, params" << ss_arg << ", T_order, T);" << endl
+             << "[T_order, T] = " << full_prefix << "g" << i-1 << "_tt(y, x, params" << ss_arg << ", T_order, T);" << endl
              << "T_order = " << i << ";" << endl
              << "if size(T, 1) < " << ttlen << endl
              << "    T = [T; NaN(" << ttlen << " - size(T, 1), 1)];" << endl
@@ -2588,7 +2587,7 @@ ModelTree::writeSparseModelMFiles(const string &basename) const
              << "    T_order = -1;" << endl
              << "    T = NaN(" << ttlen << ", 1);" << endl
              << "end" << endl
-             << "[T_order, T] = " << prefix << "g" << i << "_tt(y, x, params" << ss_arg << ", T_order, T);" << endl
+             << "[T_order, T] = " << full_prefix << "g" << i << "_tt(y, x, params" << ss_arg << ", T_order, T);" << endl
              << "g" << i << "_v = NaN(" << derivatives[i].size() << ", 1);" << endl
              << d_sparse_output[i].str()
              << "end" << endl;

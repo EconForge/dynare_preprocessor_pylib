@@ -2628,8 +2628,6 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
 
       auto sparsefolder {plusfolder / "+sparse"};
       create_directories(sparsefolder);
-      if (!use_dll)
-        create_directories(sparsefolder / "private");
       if (block_decomposed)
         create_directories(sparsefolder / "+block");
 
