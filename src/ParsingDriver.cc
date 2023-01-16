@@ -1323,43 +1323,6 @@ ParsingDriver::add_svar_global_identification_check()
 }
 
 void
-ParsingDriver::do_sigma_e()
-{
-  warning("Sigma_e: this command is now deprecated and may be removed in a future version of Dynare. Please use the ''shocks'' command instead.");
-
-  try
-    {
-      mod_file->addStatement(make_unique<SigmaeStatement>(move(sigmae_matrix)));
-    }
-  catch (SigmaeStatement::MatrixFormException &e)
-    {
-      error("Sigma_e: matrix is neither upper triangular nor lower triangular");
-    }
-  sigmae_matrix.clear();
-}
-
-void
-ParsingDriver::end_of_row()
-{
-  sigmae_matrix.push_back(sigmae_row);
-  sigmae_row.clear();
-}
-
-void
-ParsingDriver::add_to_row_const(const string &v)
-{
-  sigmae_row.push_back(v.at(0) == '-' ?
-                       data_tree->AddUMinus(data_tree->AddNonNegativeConstant(v.substr(1))) :
-                       data_tree->AddNonNegativeConstant(v));
-}
-
-void
-ParsingDriver::add_to_row(expr_t v)
-{
-  sigmae_row.push_back(v);
-}
-
-void
 ParsingDriver::steady()
 {
   mod_file->addStatement(make_unique<SteadyStatement>(move(options_list)));

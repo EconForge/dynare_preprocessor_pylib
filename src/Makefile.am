@@ -24,8 +24,6 @@ dynare_preprocessor_SOURCES = \
 	NumericalInitialization.hh \
 	Shocks.cc \
 	Shocks.hh \
-	SigmaeInitialization.cc \
-	SigmaeInitialization.hh \
 	SymbolTable.cc \
 	SymbolTable.hh \
 	SymbolList.cc \

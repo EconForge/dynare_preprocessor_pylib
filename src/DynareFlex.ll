@@ -41,10 +41,6 @@ using token = Dynare::parser::token;
 #define yyterminate() return Dynare::parser::token_type (0);
 
 int comment_caller, line_caller;
-/* Particular value : when sigma_e command is found
- this flag is set to 1, when command finished it is set to 0
- */
-int sigma_e = 0;
 string eofbuff;
 %}
 
@@ -142,7 +138,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>var_expectation_model {BEGIN DYNARE_STATEMENT; return token::VAR_EXPECTATION_MODEL;}
 <INITIAL>pac_model {BEGIN DYNARE_STATEMENT; return token::PAC_MODEL;}
 <INITIAL>dsample {BEGIN DYNARE_STATEMENT; return token::DSAMPLE;}
-<INITIAL>Sigma_e {BEGIN DYNARE_STATEMENT; sigma_e = 1; return token::SIGMA_E;}
 <INITIAL>planner_objective {BEGIN DYNARE_STATEMENT; return token::PLANNER_OBJECTIVE;}
 <INITIAL>ramsey_model {BEGIN DYNARE_STATEMENT; return token::RAMSEY_MODEL;}
 <INITIAL>ramsey_policy {BEGIN DYNARE_STATEMENT; return token::RAMSEY_POLICY;}
@@ -196,11 +191,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>var_remove {BEGIN DYNARE_STATEMENT; return token::VAR_REMOVE;}
 <INITIAL>resid {BEGIN DYNARE_STATEMENT; return token::RESID;}
 
-<DYNARE_STATEMENT>; {
-  if (!sigma_e)
-    BEGIN INITIAL;
-  return Dynare::parser::token_type (yytext[0]);
-}
+<DYNARE_STATEMENT>; {BEGIN INITIAL; return Dynare::parser::token_type (yytext[0]);}
 
 
  /* Begin of a Dynare block */
@@ -942,11 +933,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT,DYNARE_BLOCK>: {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_STATEMENT,DYNARE_BLOCK>[\(\)] {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_STATEMENT,DYNARE_BLOCK>\[ {return Dynare::parser::token_type (yytext[0]);}
-<DYNARE_STATEMENT,DYNARE_BLOCK>\] {
-  if (sigma_e)
-    sigma_e = 0;
-  return Dynare::parser::token_type (yytext[0]);
-}
+<DYNARE_STATEMENT,DYNARE_BLOCK>\] {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_STATEMENT,DYNARE_BLOCK>\+ {return token::PLUS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>-  {return token::MINUS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>\* {return token::TIMES;}

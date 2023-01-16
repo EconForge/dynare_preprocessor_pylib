@@ -116,7 +116,7 @@ class ParsingDriver;
 %token <string> QUOTED_STRING
 %token QZ_CRITERIUM QZ_ZERO_THRESHOLD DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE PIPE_E PIPE_X PIPE_P
 %token RELATIVE_IRF REPLIC SIMUL_REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY TARGETS
-%token SHOCKS HETEROSKEDASTIC_SHOCKS SHOCK_DECOMPOSITION SHOCK_GROUPS USE_SHOCK_GROUPS SIGMA_E SIMUL SIMUL_ALGO SIMUL_SEED ENDOGENOUS_TERMINAL_PERIOD
+%token SHOCKS HETEROSKEDASTIC_SHOCKS SHOCK_DECOMPOSITION SHOCK_GROUPS USE_SHOCK_GROUPS SIMUL SIMUL_ALGO SIMUL_SEED ENDOGENOUS_TERMINAL_PERIOD
 %token SMOOTHER SMOOTHER2HISTVAL SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS ROBUST_LIN_SOLVE
 %token STDERR STEADY STOCH_SIMUL SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME REALTIME_SHOCK_DECOMPOSITION CONDITIONAL UNCONDITIONAL
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT PLANNER_DISCOUNT_LATEX_NAME
@@ -245,7 +245,6 @@ statement : parameters
           | shocks
           | mshocks
           | heteroskedastic_shocks
-          | sigma_e
           | steady
           | check
           | simul
@@ -1322,8 +1321,6 @@ period_list : period_list COMMA INT_NUMBER
               }
             ;
 
-sigma_e : SIGMA_E EQUAL '[' triangular_matrix ']' ';' { driver.do_sigma_e(); };
-
 value_list : value_list COMMA '(' expression ')'
              {
                $$ = $1;
@@ -1357,26 +1354,6 @@ value_list : value_list COMMA '(' expression ')'
                       driver.add_non_negative_constant($1) };
              }
            ;
-
-triangular_matrix : triangular_matrix ';' triangular_row
-                    { driver.end_of_row(); }
-                  | triangular_row
-                    { driver.end_of_row(); }
-                  ;
-
-triangular_row : triangular_row COMMA '(' expression ')'
-                 { driver.add_to_row($4); }
-               | triangular_row COMMA signed_number
-                 { driver.add_to_row_const($3); }
-               | triangular_row '(' expression ')'
-                 { driver.add_to_row($3); }
-               | triangular_row signed_number
-                 { driver.add_to_row_const($2); }
-               | '(' expression ')'
-                 { driver.add_to_row($2); }
-               | signed_number
-                 { driver.add_to_row_const($1); }
-               ;
 
 steady : STEADY ';'
          { driver.steady(); }

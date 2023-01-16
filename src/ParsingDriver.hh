@@ -40,7 +40,6 @@ class ParsingDriver;
 
 #include "ComputingTasks.hh"
 #include "Shocks.hh"
-#include "SigmaeInitialization.hh"
 #include "NumericalInitialization.hh"
 #include "DynamicModel.hh"
 
@@ -165,10 +164,6 @@ private:
   ShocksStatement::covar_and_corr_shocks_t corr_shocks;
   //! Temporary storage for values and scales of heteroskedastic_shocks
   HeteroskedasticShocksStatement::heteroskedastic_shocks_t heteroskedastic_shocks_values, heteroskedastic_shocks_scales;
-  //! Temporary storage for Sigma_e rows
-  SigmaeStatement::row_t sigmae_row;
-  //! Temporary storage for Sigma_e matrix
-  SigmaeStatement::matrix_t sigmae_matrix;
   //! Temporary storage for initval blocks
   InitOrEndValStatement::init_values_t init_values;
   /* Temporary storage for endval blocks. Uses a type that encompasses both
@@ -486,14 +481,6 @@ public:
   //! Adds a deterministic shock value
   /*! \param v a string containing a (possibly negative) numeric constant */
   void add_value(const string &v);
-  //! Writes a Sigma_e block
-  void do_sigma_e();
-  //! Ends row of Sigma_e block
-  void end_of_row();
-  //! Adds a constant element to current row of Sigma_e
-  void add_to_row_const(const string &v);
-  //! Adds an expression element to current row of Sigma_e
-  void add_to_row(expr_t v);
   //! Write a steady command
   void steady();
   //! Sets an option to a numerical value
