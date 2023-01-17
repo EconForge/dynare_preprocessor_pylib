@@ -536,16 +536,13 @@ ModelTree::computeDynamicStructureOfBlock(int blk)
 {
   vector max_endo_lag_lead(blocks[blk].size, pair{0, 0});
   blocks[blk].max_endo_lag = blocks[blk].max_endo_lead = 0;
-  blocks[blk].max_other_endo_lag = blocks[blk].max_other_endo_lead = 0;
-  blocks[blk].max_exo_lag = blocks[blk].max_exo_lead = 0;
-  blocks[blk].max_exo_det_lag = blocks[blk].max_exo_det_lead = 0;
   for (int eq = 0; eq < blocks[blk].size; eq++)
     {
       set<pair<int, int>> endos_and_lags;
       expr_t e = getBlockEquationExpr(blk, eq);
 
-      /* Compute max lags/leads for endogenous. Also fill per-variable structure
-         for endos belonging to this block */
+      /* Compute max lags/leads and per-variable structure for endos belonging
+         to this block */
       e->collectEndogenous(endos_and_lags);
       for (auto [endo, lag] : endos_and_lags)
         if (endo2block[endo] == blk)
@@ -556,33 +553,7 @@ ModelTree::computeDynamicStructureOfBlock(int blk)
             max_endo_lag = max(max_endo_lag, -lag);
             max_endo_lead = max(max_endo_lead, lag);
           }
-        else
-          {
-            blocks[blk].max_other_endo_lag = max(blocks[blk].max_other_endo_lag, -lag);
-            blocks[blk].max_other_endo_lead = max(blocks[blk].max_other_endo_lead, lag);
-          }
-
-      // Compute max lags/leads for exogenous
-      blocks[blk].max_exo_lag = max(e->maxExoLag(), blocks[blk].max_exo_lag);
-      blocks[blk].max_exo_lead = max(e->maxExoLead(), blocks[blk].max_exo_lead);
-
-      // Compute max lags/leads for deterministic exogenous
-      set<pair<int, int>> dynvars;
-      e->collectDynamicVariables(SymbolType::exogenousDet, dynvars);
-      for (auto [symb_id, lag] : dynvars)
-        {
-          blocks[blk].max_exo_det_lag = max(-lag, blocks[blk].max_exo_det_lag);
-          blocks[blk].max_exo_det_lead = max(lag, blocks[blk].max_exo_det_lead);
-        }
     }
-
-  // Compute max lags/leads over all variables
-  blocks[blk].max_lag = max(blocks[blk].max_endo_lag, max(blocks[blk].max_other_endo_lag,
-                                                          max(blocks[blk].max_exo_lag,
-                                                              blocks[blk].max_exo_det_lag)));
-  blocks[blk].max_lead = max(blocks[blk].max_endo_lead, max(blocks[blk].max_other_endo_lead,
-                                                            max(blocks[blk].max_exo_lead,
-                                                                blocks[blk].max_exo_det_lead)));
 }
 
 void

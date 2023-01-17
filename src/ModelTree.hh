@@ -196,10 +196,6 @@ protected:
     int mfs_size{0}; // Size of the minimal feedback set
     bool linear{true}; // Whether the block is linear in endogenous variable
     int max_endo_lag{0}, max_endo_lead{0}; // Maximum lag/lead on endos that appear in and *that belong to* the block
-    int max_other_endo_lag{0}, max_other_endo_lead{0}; // Maximum lag/lead on endos that appear in but do not belong to the block
-    int max_exo_lag{0}, max_exo_lead{0};
-    int max_exo_det_lag{0}, max_exo_det_lead{0};
-    int max_lag{0}, max_lead{0}; // The max over all endo/exo variables
 
     int
     getRecursiveSize() const

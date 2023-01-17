@@ -182,8 +182,6 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
                             eq_idx,
                             false,
                             symbol_table.endo_nbr(),
-                            max_endo_lag,
-                            max_endo_lead,
                             u_count_int,
                             jacobian_ncols_endo,
                             symbol_table.exo_det_nbr(),
@@ -230,8 +228,6 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
                                 eq_idx_block2orig,
                                 blocks[block].linear,
                                 symbol_table.endo_nbr(),
-                                blocks[block].max_lag,
-                                blocks[block].max_lead,
                                 u_count,
                                 static_cast<int>(blocks_jacob_cols_endo[block].size())};
 
@@ -2309,8 +2305,8 @@ DynamicModel::determineBlockDerivativesType(int blk)
   map<tuple<int, int, int>, BlockDerivativeType> derivType;
   int size = blocks[blk].size;
   int nb_recursive = blocks[blk].getRecursiveSize();
-  for (int lag {time_recursive_block_decomposition ? 0 : -blocks[blk].max_lag};
-       lag <= (time_recursive_block_decomposition ? 0 : blocks[blk].max_lead);
+  for (int lag {time_recursive_block_decomposition ? 0 : -blocks[blk].max_endo_lag};
+       lag <= (time_recursive_block_decomposition ? 0 : blocks[blk].max_endo_lead);
        lag++)
     for (int eq = 0; eq < size; eq++)
       {

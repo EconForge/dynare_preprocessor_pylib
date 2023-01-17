@@ -899,8 +899,6 @@ private:
   bool is_linear{false};
   vector<Block_contain_type> Block_Contain_;
   int endo_nbr{0};
-  int Max_Lag{0};
-  int Max_Lead{0};
   int u_count_int{0};
   int nb_col_jacob{0};
   int det_exo_size, exo_size;
@@ -914,7 +912,7 @@ public:
      derivatives w.r.t. endogenous not belonging to the block) */
   FBEGINBLOCK_(int size_arg, BlockSimulationType type_arg, int first_element, int block_size,
                const vector<int> &variable_arg, const vector<int> &equation_arg,
-               bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int u_count_int_arg, int nb_col_jacob_arg,
+               bool is_linear_arg, int endo_nbr_arg, int u_count_int_arg, int nb_col_jacob_arg,
                int det_exo_size_arg, int exo_size_arg,
                vector<int> det_exogenous_arg, vector<int> exogenous_arg) :
     BytecodeInstruction{Tags::FBEGINBLOCK},
@@ -926,8 +924,6 @@ public:
     det_exogenous{move(det_exogenous_arg)},
     is_linear{is_linear_arg},
     endo_nbr{endo_nbr_arg},
-    Max_Lag{Max_Lag_arg},
-    Max_Lead{Max_Lead_arg},
     u_count_int{u_count_int_arg},
     nb_col_jacob{nb_col_jacob_arg},
     det_exo_size{det_exo_size_arg},
@@ -937,7 +933,7 @@ public:
   // Constructor when derivatives w.r.t. exogenous are absent
   FBEGINBLOCK_(int size_arg, BlockSimulationType type_arg, int first_element, int block_size,
                const vector<int> &variable_arg, const vector<int> &equation_arg,
-               bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int u_count_int_arg, int nb_col_jacob_arg) :
+               bool is_linear_arg, int endo_nbr_arg, int u_count_int_arg, int nb_col_jacob_arg) :
     BytecodeInstruction{Tags::FBEGINBLOCK},
     size{size_arg},
     type{type_arg},
@@ -945,8 +941,6 @@ public:
     equation{equation_arg.begin()+first_element, equation_arg.begin()+(first_element+block_size)},
     is_linear{is_linear_arg},
     endo_nbr{endo_nbr_arg},
-    Max_Lag{Max_Lag_arg},
-    Max_Lead{Max_Lead_arg},
     u_count_int{u_count_int_arg},
     nb_col_jacob{nb_col_jacob_arg},
     det_exo_size{0},
@@ -972,16 +966,6 @@ public:
   get_endo_nbr()
   {
     return endo_nbr;
-  };
-  int
-  get_Max_Lag()
-  {
-    return Max_Lag;
-  };
-  int
-  get_Max_Lead()
-  {
-    return Max_Lead;
   };
   int
   get_u_count_int()
@@ -1040,8 +1024,6 @@ public:
       {
         memcpy(&is_linear, code, sizeof(is_linear)); code += sizeof(is_linear);
         memcpy(&endo_nbr, code, sizeof(endo_nbr)); code += sizeof(endo_nbr);
-        memcpy(&Max_Lag, code, sizeof(Max_Lag)); code += sizeof(Max_Lag);
-        memcpy(&Max_Lead, code, sizeof(Max_Lead)); code += sizeof(Max_Lead);
         memcpy(&u_count_int, code, sizeof(u_count_int)); code += sizeof(u_count_int);
       }
     memcpy(&nb_col_jacob, code, sizeof(nb_col_jacob)); code += sizeof(nb_col_jacob);

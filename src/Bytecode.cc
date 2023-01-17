@@ -82,8 +82,6 @@ operator<<(BytecodeWriter &code_file, const FBEGINBLOCK_ &instr)
     {
       code_file.write(reinterpret_cast<const char *>(&instr.is_linear), sizeof instr.is_linear);
       code_file.write(reinterpret_cast<const char *>(&instr.endo_nbr), sizeof instr.endo_nbr);
-      code_file.write(reinterpret_cast<const char *>(&instr.Max_Lag), sizeof instr.Max_Lag);
-      code_file.write(reinterpret_cast<const char *>(&instr.Max_Lead), sizeof instr.Max_Lead);
       code_file.write(reinterpret_cast<const char *>(&instr.u_count_int), sizeof instr.u_count_int);
     }
   code_file.write(reinterpret_cast<const char *>(&instr.nb_col_jacob), sizeof instr.nb_col_jacob);
