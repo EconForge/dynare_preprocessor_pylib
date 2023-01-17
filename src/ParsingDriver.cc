@@ -686,7 +686,6 @@ ParsingDriver::cutoff(const string &value)
 {
   double val = stod(value);
   mod_file->dynamic_model.cutoff = val;
-  mod_file->static_model.cutoff = val;
 }
 
 void
@@ -694,7 +693,6 @@ ParsingDriver::mfs(const string &value)
 {
   int val = stoi(value);
   mod_file->dynamic_model.mfs = val;
-  mod_file->static_model.mfs = val;
 }
 
 void
