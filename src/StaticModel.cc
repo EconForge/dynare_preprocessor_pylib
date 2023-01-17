@@ -687,7 +687,8 @@ StaticModel::computeChainRuleJacobian()
             {
               auto &[eq, var, lag] { indices };
               assert(lag == 0);
-              blocks_jacobian_sparse_column_major_order[blk].emplace(pair{eq, var}, d1);
+              if (eq >= nb_recursives && var >= nb_recursives)
+                blocks_jacobian_sparse_column_major_order[blk].emplace(pair{eq-nb_recursives, var-nb_recursives}, d1);
             }
           blocks_jacobian_sparse_colptr[blk] = computeCSCColPtr(blocks_jacobian_sparse_column_major_order[blk], size);
         }
