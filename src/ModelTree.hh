@@ -195,7 +195,6 @@ protected:
     int size{0};
     int mfs_size{0}; // Size of the minimal feedback set
     bool linear{true}; // Whether the block is linear in endogenous variable
-    int n_static{0}, n_forward{0}, n_backward{0}, n_mixed{0};
     int max_endo_lag{0}, max_endo_lead{0}; // Maximum lag/lead on endos that appear in and *that belong to* the block
     int max_other_endo_lag{0}, max_other_endo_lead{0}; // Maximum lag/lead on endos that appear in but do not belong to the block
     int max_exo_lag{0}, max_exo_lead{0};

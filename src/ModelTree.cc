@@ -583,21 +583,6 @@ ModelTree::computeDynamicStructureOfBlock(int blk)
   blocks[blk].max_lead = max(blocks[blk].max_endo_lead, max(blocks[blk].max_other_endo_lead,
                                                             max(blocks[blk].max_exo_lead,
                                                                 blocks[blk].max_exo_det_lead)));
-
-  // Categorize endos that belong to the block
-  blocks[blk].n_mixed = blocks[blk].n_forward = blocks[blk].n_backward = blocks[blk].n_static = 0;
-  for (int var = 0; var < blocks[blk].size; var++)
-    {
-      auto [max_lag, max_lead] = max_endo_lag_lead[var];
-      if (max_lag != 0 && max_lead != 0)
-        blocks[blk].n_mixed++;
-      else if (max_lag == 0 && max_lead != 0)
-        blocks[blk].n_forward++;
-      else if (max_lag != 0 && max_lead == 0)
-        blocks[blk].n_backward++;
-      else
-        blocks[blk].n_static++;
-    }
 }
 
 void
