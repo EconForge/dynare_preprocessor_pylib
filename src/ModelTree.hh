@@ -279,16 +279,6 @@ protected:
   //! Computes temporary terms per block
   void computeBlockTemporaryTerms(bool no_tmp_terms);
 
-private:
-  /* Add additional temporary terms for a given block. This method is called by
-     computeBlockTemporaryTerms(). It does nothing by default, but is meant to
-     be overriden by subclasses (actually by DynamicModel, who needs extra
-     temporary terms for derivatives w.r.t. exogenous and other endogenous) */
-  virtual void additionalBlockTemporaryTerms(int blk,
-                                             vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                             map<expr_t, tuple<int, int, int>> &reference_count) const;
-
-protected:
   //! Computes temporary terms for the file containing parameters derivatives
   void computeParamsDerivativesTemporaryTerms();
   //! Writes temporary terms
@@ -348,13 +338,6 @@ protected:
   // Helper for writing blocks in bytecode
   template<bool dynamic>
   void writeBlockBytecodeHelper(BytecodeWriter &code_file, int block) const;
-
-  /* Write additional derivatives w.r.t. to exogenous, exogenous det and other endo
-     in block+bytecode mode. Does nothing by default, but overriden by
-     DynamicModel which needs those. */
-  virtual void writeBlockBytecodeAdditionalDerivatives(BytecodeWriter &code_file, int block,
-                                                       const temporary_terms_t &temporary_terms_union,
-                                                       const deriv_node_temp_terms_t &tef_terms) const;
 
   // Helper for writing sparse derivatives indices in MATLAB/Octave driver file
   template<bool dynamic>
@@ -1850,10 +1833,6 @@ ModelTree::writeBlockBytecodeHelper(BytecodeWriter &code_file, int block) const
       else
         code_file << FSTPG2_{eq, getBlockJacobianEndoCol(block, var, lag)};
     }
-
-  /* Write derivatives w.r.t. exo, exo det and other endogenous, but only in
-     dynamic mode */
-  writeBlockBytecodeAdditionalDerivatives(code_file, block, temporary_terms_union, tef_terms);
 
   // Update jump offset for previous JMP
   int pos_end_block {code_file.getInstructionCounter()};

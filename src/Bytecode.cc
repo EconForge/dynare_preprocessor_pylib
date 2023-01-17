@@ -88,18 +88,12 @@ operator<<(BytecodeWriter &code_file, const FBEGINBLOCK_ &instr)
     }
   code_file.write(reinterpret_cast<const char *>(&instr.nb_col_jacob), sizeof instr.nb_col_jacob);
   code_file.write(reinterpret_cast<const char *>(&instr.det_exo_size), sizeof instr.det_exo_size);
-  code_file.write(reinterpret_cast<const char *>(&instr.nb_col_det_exo_jacob), sizeof instr.nb_col_det_exo_jacob);
   code_file.write(reinterpret_cast<const char *>(&instr.exo_size), sizeof instr.exo_size);
-  code_file.write(reinterpret_cast<const char *>(&instr.nb_col_exo_jacob), sizeof instr.nb_col_exo_jacob);
-  code_file.write(reinterpret_cast<const char *>(&instr.other_endo_size), sizeof instr.other_endo_size);
-  code_file.write(reinterpret_cast<const char *>(&instr.nb_col_other_endo_jacob), sizeof instr.nb_col_other_endo_jacob);
 
   for (int i{0}; i < instr.det_exo_size; i++)
     code_file.write(reinterpret_cast<const char *>(&instr.det_exogenous[i]), sizeof instr.det_exogenous[i]);
   for (int i{0}; i < instr.exo_size; i++)
     code_file.write(reinterpret_cast<const char *>(&instr.exogenous[i]), sizeof instr.exogenous[i]);
-  for (int i{0}; i < instr.other_endo_size; i++)
-    code_file.write(reinterpret_cast<const char *>(&instr.other_endogenous[i]), sizeof instr.other_endogenous[i]);
 
   return code_file;
 }

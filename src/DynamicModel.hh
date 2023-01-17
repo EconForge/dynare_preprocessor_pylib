@@ -100,20 +100,9 @@ private:
   //! Creates mapping for variables and equations they are present in
   map<int, set<int>> variableMapping;
 
-  /* Derivatives of block equations with respect to: endogenous that do not
-     belong to the block, exogenous, deterministic exogenous.
-     Tuples are of the form (equation no. within the block, type-specific ID, lag) */
-  vector<map<tuple<int, int, int>, expr_t>> blocks_derivatives_other_endo,
-    blocks_derivatives_exo, blocks_derivatives_exo_det;
-
-  // For each block, gives type-specific other endos / exo / exo det that appear in it
-  vector<set<int>> blocks_other_endo, blocks_exo, blocks_exo_det;
-
   /* For each block, and for each variable type, maps (variable ID, lag) to
-     Jacobian column.
-     For the “endo” version, the variable ID is the index within the block. For
-     the three others, it’s the type-specific ID */
-  vector<map<pair<int, int>, int>> blocks_jacob_cols_endo, blocks_jacob_cols_other_endo, blocks_jacob_cols_exo, blocks_jacob_cols_exo_det;
+     Jacobian column. The variable ID is the index within the block. */
+  vector<map<pair<int, int>, int>> blocks_jacob_cols_endo;
 
   //! Used for var_expectation and var_model
   map<string, set<int>> var_expectation_functions_to_write;
@@ -122,10 +111,6 @@ private:
   void writeDynamicMFile(const string &basename) const;
   //! Writes the code of the block-decomposed model in virtual machine bytecode
   void writeDynamicBlockBytecode(const string &basename) const;
-  // Writes derivatives w.r.t. exo, exo det and other endogenous
-  void writeBlockBytecodeAdditionalDerivatives(BytecodeWriter &code_file, int block,
-                                               const temporary_terms_t &temporary_terms_union,
-                                               const deriv_node_temp_terms_t &tef_terms) const override;
   //! Writes the code of the model in virtual machine bytecode
   void writeDynamicBytecode(const string &basename) const;
 
@@ -151,10 +136,6 @@ private:
   void computeChainRuleJacobian() override;
 
   string reform(const string &name) const;
-
-  void additionalBlockTemporaryTerms(int blk,
-                                     vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                     map<expr_t, tuple<int, int, int>> &reference_count) const override;
 
   SymbolType getTypeByDerivID(int deriv_id) const noexcept(false) override;
   int getLagByDerivID(int deriv_id) const noexcept(false) override;

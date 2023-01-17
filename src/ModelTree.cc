@@ -1014,8 +1014,6 @@ ModelTree::computeBlockTemporaryTerms(bool no_tmp_terms)
         }
       for (const auto &[ignore, d] : blocks_derivatives[blk])
         d->computeBlockTemporaryTerms(blk, blocks[blk].size, blocks_temporary_terms, reference_count);
-
-      additionalBlockTemporaryTerms(blk, blocks_temporary_terms, reference_count);
     }
 
   /* If the user has specified the notmpterms option, clear all temporary
@@ -1033,13 +1031,6 @@ ModelTree::computeBlockTemporaryTerms(bool no_tmp_terms)
     for (auto &eq_tt : blk_tt)
       for (auto tt : eq_tt)
         blocks_temporary_terms_idxs[tt] = idx++;
-}
-
-void
-ModelTree::additionalBlockTemporaryTerms([[maybe_unused]] int blk,
-                                         [[maybe_unused]] vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                         [[maybe_unused]] map<expr_t, tuple<int, int, int>> &reference_count) const
-{
 }
 
 void
@@ -1901,14 +1892,6 @@ ModelTree::getRHSFromLHS(expr_t lhs) const
     if (eq->arg1 == lhs)
       return eq->arg2;
   throw ExprNode::MatchFailureException{"Cannot find an equation with the requested LHS"};
-}
-
-void
-ModelTree::writeBlockBytecodeAdditionalDerivatives([[maybe_unused]] BytecodeWriter &code_file,
-                                                   [[maybe_unused]] int block,
-                                                   [[maybe_unused]] const temporary_terms_t &temporary_terms_union,
-                                                   [[maybe_unused]] const deriv_node_temp_terms_t &tef_terms) const
-{
 }
 
 void

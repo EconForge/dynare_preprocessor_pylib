@@ -37,20 +37,6 @@ DynamicModel::copyHelper(const DynamicModel &m)
 
   for (const auto &it : m.static_only_equations)
     static_only_equations.push_back(dynamic_cast<BinaryOpNode *>(f(it)));
-
-  auto convert_block_derivative = [f](const map<tuple<int, int, int>, expr_t> &dt)
-                                    {
-                                      map<tuple<int, int, int>, expr_t> dt2;
-                                      for (const auto &it : dt)
-                                        dt2.emplace(it.first, f(it.second));
-                                      return dt2;
-                                    };
-  for (const auto &it : m.blocks_derivatives_other_endo)
-    blocks_derivatives_other_endo.emplace_back(convert_block_derivative(it));
-  for (const auto &it : m.blocks_derivatives_exo)
-    blocks_derivatives_exo.emplace_back(convert_block_derivative(it));
-  for (const auto &it : m.blocks_derivatives_exo_det)
-    blocks_derivatives_exo_det.emplace_back(convert_block_derivative(it));
 }
 
 DynamicModel::DynamicModel(SymbolTable &symbol_table_arg,
@@ -98,13 +84,7 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   xref_exo_det{m.xref_exo_det},
   nonzero_hessian_eqs{m.nonzero_hessian_eqs},
   variableMapping{m.variableMapping},
-  blocks_other_endo{m.blocks_other_endo},
-  blocks_exo{m.blocks_exo},
-  blocks_exo_det{m.blocks_exo_det},
   blocks_jacob_cols_endo{m.blocks_jacob_cols_endo},
-  blocks_jacob_cols_other_endo{m.blocks_jacob_cols_other_endo},
-  blocks_jacob_cols_exo{m.blocks_jacob_cols_exo},
-  blocks_jacob_cols_exo_det{m.blocks_jacob_cols_exo_det},
   var_expectation_functions_to_write{m.var_expectation_functions_to_write}
 {
   copyHelper(m);
@@ -148,68 +128,13 @@ DynamicModel::operator=(const DynamicModel &m)
   xref_exo_det = m.xref_exo_det;
   nonzero_hessian_eqs = m.nonzero_hessian_eqs;
   variableMapping = m.variableMapping;
-  blocks_derivatives_other_endo.clear();
-  blocks_derivatives_exo.clear();
-  blocks_derivatives_exo_det.clear();
-  blocks_other_endo = m.blocks_other_endo;
-  blocks_exo = m.blocks_exo;
-  blocks_exo_det = m.blocks_exo_det;
   blocks_jacob_cols_endo = m.blocks_jacob_cols_endo;
-  blocks_jacob_cols_other_endo = m.blocks_jacob_cols_other_endo;
-  blocks_jacob_cols_exo = m.blocks_jacob_cols_exo;
-  blocks_jacob_cols_exo_det = m.blocks_jacob_cols_exo_det;
 
   var_expectation_functions_to_write = m.var_expectation_functions_to_write;
 
   copyHelper(m);
 
   return *this;
-}
-
-void
-DynamicModel::additionalBlockTemporaryTerms(int blk,
-                                            vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                            map<expr_t, tuple<int, int, int>> &reference_count) const
-{
-  for (const auto &[ignore, d] : blocks_derivatives_exo[blk])
-    d->computeBlockTemporaryTerms(blk, blocks[blk].size, blocks_temporary_terms, reference_count);
-  for (const auto &[ignore, d] : blocks_derivatives_exo_det[blk])
-    d->computeBlockTemporaryTerms(blk, blocks[blk].size, blocks_temporary_terms, reference_count);
-  for (const auto &[ignore, d] : blocks_derivatives_other_endo[blk])
-    d->computeBlockTemporaryTerms(blk, blocks[blk].size, blocks_temporary_terms, reference_count);
-}
-
-void
-DynamicModel::writeBlockBytecodeAdditionalDerivatives(BytecodeWriter &code_file, int block,
-                                                      const temporary_terms_t &temporary_terms_union,
-                                                      const deriv_node_temp_terms_t &tef_terms) const
-{
-  constexpr ExprNodeBytecodeOutputType output_type {ExprNodeBytecodeOutputType::dynamicModel};
-
-  /* FIXME: there is an inconsistency between endos and the following 3 other
-     variable types. For the latter, the index of equation within the block is
-     taken from FNUMEXPR, while it is taken from FSTPG3 for the former. */
-  for (const auto &[indices, d] : blocks_derivatives_exo[block])
-    {
-      const auto &[eq, var, lag] {indices};
-      code_file << FNUMEXPR_{ExpressionType::FirstExoDerivative, eq, 0, lag};
-      d->writeBytecodeOutput(code_file, output_type, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-      code_file << FSTPG3_{eq, var, lag, blocks_jacob_cols_exo[block].at({ var, lag })};
-    }
-  for (const auto &[indices, d] : blocks_derivatives_exo_det[block])
-    {
-      const auto &[eq, var, lag] {indices};
-      code_file << FNUMEXPR_{ExpressionType::FirstExodetDerivative, eq, 0, lag};
-      d->writeBytecodeOutput(code_file, output_type, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-      code_file << FSTPG3_{eq, var, lag, blocks_jacob_cols_exo_det[block].at({ var, lag })};
-    }
-  for (const auto &[indices, d] : blocks_derivatives_other_endo[block])
-    {
-      const auto &[eq, var, lag] {indices};
-      code_file << FNUMEXPR_{ExpressionType::FirstOtherEndoDerivative, eq, 0, lag};
-      d->writeBytecodeOutput(code_file, output_type, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-      code_file << FSTPG3_{eq, var, lag, blocks_jacob_cols_other_endo[block].at({ var, lag })};
-    }
 }
 
 void
@@ -244,8 +169,6 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
                                 [this](const auto &v)
                                 { return getTypeByDerivID(v.first) == SymbolType::endogenous; }))
     };
-  int jacobian_ncols_exo {symbol_table.exo_nbr()};
-  int jacobian_ncols_exo_det {symbol_table.exo_det_nbr()};
   vector<int> eq_idx(equations.size());
   iota(eq_idx.begin(), eq_idx.end(), 0);
   vector<int> endo_idx(symbol_table.endo_nbr());
@@ -264,14 +187,9 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
                             u_count_int,
                             jacobian_ncols_endo,
                             symbol_table.exo_det_nbr(),
-                            jacobian_ncols_exo_det,
                             symbol_table.exo_nbr(),
-                            jacobian_ncols_exo,
-                            0,
-                            0,
                             exo_det,
-                            exo,
-                            {}};
+                            exo};
 
   writeBytecodeHelper<true>(code_file);
 }
@@ -315,16 +233,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
                                 blocks[block].max_lag,
                                 blocks[block].max_lead,
                                 u_count,
-                                static_cast<int>(blocks_jacob_cols_endo[block].size()),
-                                static_cast<int>(blocks_exo_det[block].size()),
-                                static_cast<int>(blocks_jacob_cols_exo_det[block].size()),
-                                static_cast<int>(blocks_exo[block].size()),
-                                static_cast<int>(blocks_jacob_cols_exo[block].size()),
-                                static_cast<int>(blocks_other_endo[block].size()),
-                                static_cast<int>(blocks_jacob_cols_other_endo[block].size()),
-                                { blocks_exo_det[block].begin(), blocks_exo_det[block].end() },
-                                { blocks_exo[block].begin(), blocks_exo[block].end() },
-                                { blocks_other_endo[block].begin(), blocks_other_endo[block].end() }};
+                                static_cast<int>(blocks_jacob_cols_endo[block].size())};
 
       writeBlockBytecodeHelper<true>(code_file, block);
     }
@@ -2506,43 +2415,6 @@ DynamicModel::computeChainRuleJacobian()
           blocks_jacobian_sparse_colptr[blk] = computeCSCColPtr(blocks_jacobian_sparse_column_major_order[blk], (one_boundary ? 1 : 3)*mfs_size);
         }
     }
-
-  /* Also store information and derivatives w.r.t. other types of variables
-     (for the stochastic mode) */
-  blocks_derivatives_other_endo.resize(nb_blocks);
-  blocks_derivatives_exo.resize(nb_blocks);
-  blocks_derivatives_exo_det.resize(nb_blocks);
-  blocks_other_endo.resize(nb_blocks);
-  blocks_exo.resize(nb_blocks);
-  blocks_exo_det.resize(nb_blocks);
-  for (auto &[indices, d1] : derivatives[1])
-    {
-      auto [eq_orig, deriv_id] { vectorToTuple<2>(indices) };
-      int block_eq { eq2block[eq_orig] };
-      int eq { getBlockInitialEquationID(block_eq, eq_orig) };
-      int var { getTypeSpecificIDByDerivID(deriv_id) };
-      int lag { getLagByDerivID(deriv_id) };
-      switch (getTypeByDerivID(indices[1]))
-        {
-        case SymbolType::endogenous:
-          if (block_eq != endo2block[var])
-            {
-              blocks_derivatives_other_endo[block_eq][{ eq, var, lag }] = d1;
-              blocks_other_endo[block_eq].insert(var);
-            }
-          break;
-        case SymbolType::exogenous:
-          blocks_derivatives_exo[block_eq][{ eq, var, lag }] = d1;
-          blocks_exo[block_eq].insert(var);
-          break;
-        case SymbolType::exogenousDet:
-          blocks_derivatives_exo_det[block_eq][{ eq, var, lag }] = d1;
-          blocks_exo_det[block_eq].insert(var);
-          break;
-        default:
-          break;
-        }
-    }
 }
 
 void
@@ -2580,27 +2452,10 @@ DynamicModel::computeBlockDynJacobianCols()
 
   // Compute Jacobian column indices
   blocks_jacob_cols_endo.resize(nb_blocks);
-  blocks_jacob_cols_other_endo.resize(nb_blocks);
-  blocks_jacob_cols_exo.resize(nb_blocks);
-  blocks_jacob_cols_exo_det.resize(nb_blocks);
   for (size_t blk {0}; blk < nb_blocks; blk++)
-    {
-      for (int index{0};
-           auto [lag, var] : dynamic_endo[blk])
-        blocks_jacob_cols_endo[blk][{ var, lag }] = index++;
-
-      for (int index{0};
-           auto [lag, var] : dynamic_other_endo[blk])
-        blocks_jacob_cols_other_endo[blk][{ var, lag }] = index++;
-
-      for (int index{0};
-           auto [lag, var] : dynamic_exo[blk])
-        blocks_jacob_cols_exo[blk][{ var, lag }] = index++;
-
-      for (int index{0};
-           auto [lag, var] : dynamic_exo_det[blk])
-        blocks_jacob_cols_exo_det[blk][{ var, lag }] = index++;
-    }
+    for (int index{0};
+         auto [lag, var] : dynamic_endo[blk])
+      blocks_jacob_cols_endo[blk][{ var, lag }] = index++;
 }
 
 void

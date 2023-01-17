@@ -94,7 +94,6 @@ enum class ExpressionType
    TemporaryTerm,
    ModelEquation,
    FirstEndoDerivative,
-   FirstOtherEndoDerivative,
    FirstExoDerivative,
    FirstExodetDerivative,
   };
@@ -895,7 +894,6 @@ private:
   BlockSimulationType type;
   vector<int> variable;
   vector<int> equation;
-  vector<int> other_endogenous;
   vector<int> exogenous;
   vector<int> det_exogenous;
   bool is_linear{false};
@@ -905,24 +903,25 @@ private:
   int Max_Lead{0};
   int u_count_int{0};
   int nb_col_jacob{0};
-  int det_exo_size, exo_size, other_endo_size;
-  int nb_col_det_exo_jacob, nb_col_exo_jacob, nb_col_other_endo_jacob;
+  int det_exo_size, exo_size;
 public:
   FBEGINBLOCK_() : BytecodeInstruction{Tags::FBEGINBLOCK},
                    type{BlockSimulationType::unknown}
   {
   }
+  /* Constructor when derivatives w.r.t. exogenous are present (only makes
+     sense when there is no block-decomposition, since there is no provision for
+     derivatives w.r.t. endogenous not belonging to the block) */
   FBEGINBLOCK_(int size_arg, BlockSimulationType type_arg, int first_element, int block_size,
                const vector<int> &variable_arg, const vector<int> &equation_arg,
                bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int u_count_int_arg, int nb_col_jacob_arg,
-               int det_exo_size_arg, int nb_col_det_exo_jacob_arg, int exo_size_arg, int nb_col_exo_jacob_arg, int other_endo_size_arg, int nb_col_other_endo_jacob_arg,
-               vector<int> det_exogenous_arg, vector<int> exogenous_arg, vector<int> other_endogenous_arg) :
+               int det_exo_size_arg, int exo_size_arg,
+               vector<int> det_exogenous_arg, vector<int> exogenous_arg) :
     BytecodeInstruction{Tags::FBEGINBLOCK},
     size{size_arg},
     type{type_arg},
     variable{variable_arg.begin()+first_element, variable_arg.begin()+(first_element+block_size)},
     equation{equation_arg.begin()+first_element, equation_arg.begin()+(first_element+block_size)},
-    other_endogenous{move(other_endogenous_arg)},
     exogenous{move(exogenous_arg)},
     det_exogenous{move(det_exogenous_arg)},
     is_linear{is_linear_arg},
@@ -932,13 +931,10 @@ public:
     u_count_int{u_count_int_arg},
     nb_col_jacob{nb_col_jacob_arg},
     det_exo_size{det_exo_size_arg},
-    exo_size{exo_size_arg},
-    other_endo_size{other_endo_size_arg},
-    nb_col_det_exo_jacob{nb_col_det_exo_jacob_arg},
-    nb_col_exo_jacob{nb_col_exo_jacob_arg},
-    nb_col_other_endo_jacob{nb_col_other_endo_jacob_arg}
+    exo_size{exo_size_arg}
   {
   }
+  // Constructor when derivatives w.r.t. exogenous are absent
   FBEGINBLOCK_(int size_arg, BlockSimulationType type_arg, int first_element, int block_size,
                const vector<int> &variable_arg, const vector<int> &equation_arg,
                bool is_linear_arg, int endo_nbr_arg, int Max_Lag_arg, int Max_Lead_arg, int u_count_int_arg, int nb_col_jacob_arg) :
@@ -954,11 +950,7 @@ public:
     u_count_int{u_count_int_arg},
     nb_col_jacob{nb_col_jacob_arg},
     det_exo_size{0},
-    exo_size{0},
-    other_endo_size{0},
-    nb_col_det_exo_jacob{0},
-    nb_col_exo_jacob{0},
-    nb_col_other_endo_jacob{0}
+    exo_size{0}
   {
   }
   int
@@ -1012,29 +1004,9 @@ public:
     return exo_size;
   };
   int
-  get_nb_col_exo_jacob()
-  {
-    return nb_col_exo_jacob;
-  };
-  int
   get_det_exo_size()
   {
     return det_exo_size;
-  };
-  int
-  get_nb_col_det_exo_jacob()
-  {
-    return nb_col_det_exo_jacob;
-  };
-  int
-  get_other_endo_size()
-  {
-    return other_endo_size;
-  };
-  int
-  get_nb_col_other_endo_jacob()
-  {
-    return nb_col_other_endo_jacob;
   };
   vector<int>
   get_endogenous()
@@ -1074,11 +1046,7 @@ public:
       }
     memcpy(&nb_col_jacob, code, sizeof(nb_col_jacob)); code += sizeof(nb_col_jacob);
     memcpy(&det_exo_size, code, sizeof(det_exo_size)); code += sizeof(det_exo_size);
-    memcpy(&nb_col_det_exo_jacob, code, sizeof(nb_col_det_exo_jacob)); code += sizeof(nb_col_det_exo_jacob);
     memcpy(&exo_size, code, sizeof(exo_size)); code += sizeof(exo_size);
-    memcpy(&nb_col_exo_jacob, code, sizeof(nb_col_exo_jacob)); code += sizeof(nb_col_exo_jacob);
-    memcpy(&other_endo_size, code, sizeof(other_endo_size)); code += sizeof(other_endo_size);
-    memcpy(&nb_col_other_endo_jacob, code, sizeof(nb_col_other_endo_jacob)); code += sizeof(nb_col_other_endo_jacob);
 
     for (int i{0}; i < det_exo_size; i++)
       {
@@ -1091,12 +1059,6 @@ public:
         int tmp_i;
         memcpy(&tmp_i, code, sizeof(tmp_i)); code += sizeof(tmp_i);
         exogenous.push_back(tmp_i);
-      }
-    for (int i{0}; i < other_endo_size; i++)
-      {
-        int tmp_i;
-        memcpy(&tmp_i, code, sizeof(tmp_i)); code += sizeof(tmp_i);
-        other_endogenous.push_back(tmp_i);
       }
     return code;
   };
