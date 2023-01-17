@@ -365,7 +365,7 @@ public:
   void updateVarAndTrendModel() const;
 
   //! Writes dynamic model file (+ bytecode)
-  void writeDynamicFile(const string &basename, bool block, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const;
+  void writeDynamicFile(const string &basename, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const;
 
   //! Writes file containing parameters derivatives
   template<bool julia>

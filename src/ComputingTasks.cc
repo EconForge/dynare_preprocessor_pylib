@@ -2458,7 +2458,7 @@ PlannerObjectiveStatement::writeOutput(ostream &output, const string &basename,
   for (const auto &temporary_terms_derivative : model_tree.getTemporaryTermsDerivatives())
     output << temporary_terms_derivative.size() << "; ";
   output << "];" << endl;
-  model_tree.writeStaticFile(basename + ".objective", false, false, "", {}, {}, false);
+  model_tree.writeStaticFile(basename + ".objective", false, "", {}, {}, false);
 }
 
 void

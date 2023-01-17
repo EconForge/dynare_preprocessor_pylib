@@ -2455,7 +2455,7 @@ DynamicModel::computeBlockDynJacobianCols()
 }
 
 void
-DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const
+DynamicModel::writeDynamicFile(const string &basename, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const
 {
   filesystem::path model_dir{basename};
   model_dir /= "model";
@@ -2474,8 +2474,6 @@ DynamicModel::writeDynamicFile(const string &basename, bool block, bool use_dll,
          ModFile::writeMOutput(), because of planner_objective which needs its
          +objective subdirectory */
       create_directories(plusfolder);
-      if (block && !use_dll)
-        create_directories(plusfolder / "+block");
 
       auto sparsefolder {plusfolder / "+sparse"};
       create_directories(sparsefolder);
