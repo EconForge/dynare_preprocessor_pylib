@@ -598,12 +598,7 @@ protected:
 public:
   //! Absolute value under which a number is considered to be zero
   double cutoff{1e-15};
-  //! Compute the minimum feedback set
-  /*!   0 : all endogenous variables are considered as feedback variables
-    1 : the variables belonging to non normalized equation are considered as feedback variables
-    2 : the variables belonging to a non linear equation are considered as feedback variables
-    3 : the variables belonging to a non normalizable non linear equation are considered as feedback variables
-    default value = 0 */
+  // Setting for minimum feedback set computation (see the reference manual)
   int mfs{0};
   //! Declare a node as an equation of the model; also give its line number
   void addEquation(expr_t eq, optional<int> lineno);
