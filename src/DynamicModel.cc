@@ -60,6 +60,7 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   deriv_id_table{m.deriv_id_table},
   inv_deriv_id_table{m.inv_deriv_id_table},
   dyn_jacobian_cols_table{m.dyn_jacobian_cols_table},
+  dyn_jacobian_ncols{m.dyn_jacobian_ncols},
   max_lag{m.max_lag},
   max_lead{m.max_lead},
   max_endo_lag{m.max_endo_lag},
@@ -104,6 +105,7 @@ DynamicModel::operator=(const DynamicModel &m)
   deriv_id_table = m.deriv_id_table;
   inv_deriv_id_table = m.inv_deriv_id_table;
   dyn_jacobian_cols_table = m.dyn_jacobian_cols_table;
+  dyn_jacobian_ncols = m.dyn_jacobian_ncols;
   max_lag = m.max_lag;
   max_lead = m.max_lead;
   max_endo_lag = m.max_endo_lag;
@@ -2931,6 +2933,10 @@ DynamicModel::computeDynJacobianCols()
       else if (type == SymbolType::exogenousDet)
         dyn_jacobian_cols_table[deriv_id] = ordered_dyn_endo.size() + symbol_table.exo_nbr() + tsid;
     }
+
+  /* NB: the following could differ from dyn_jacobian_cols_table.size() if
+     there are unused exogenous (and “nostrict” option is given) */
+  dyn_jacobian_ncols = ordered_dyn_endo.size() + symbol_table.exo_nbr() + symbol_table.exo_det_nbr();
 }
 
 void

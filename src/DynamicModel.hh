@@ -67,6 +67,8 @@ private:
      representation.
      Contains only endogenous, exogenous and exogenous deterministic */
   map<int, int> dyn_jacobian_cols_table;
+  // Number of columns of the dynamic Jacobian (legacy representation)
+  int dyn_jacobian_ncols;
 
   //! Maximum lag and lead over all types of variables (positive values)
   /*! Set by computeDerivIDs() */
@@ -471,7 +473,7 @@ public:
   {
     return sparse ?
       3*symbol_table.endo_nbr() + symbol_table.exo_nbr() + symbol_table.exo_det_nbr() :
-      dyn_jacobian_cols_table.size();
+      dyn_jacobian_ncols;
   }
 
   void addAllParamDerivId(set<int> &deriv_id_set) override;
