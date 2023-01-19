@@ -690,7 +690,7 @@ StaticModel::computeChainRuleJacobian()
               if (eq >= nb_recursives && var >= nb_recursives)
                 blocks_jacobian_sparse_column_major_order[blk].emplace(pair{eq-nb_recursives, var-nb_recursives}, d1);
             }
-          blocks_jacobian_sparse_colptr[blk] = computeCSCColPtr(blocks_jacobian_sparse_column_major_order[blk], size);
+          blocks_jacobian_sparse_colptr[blk] = computeCSCColPtr(blocks_jacobian_sparse_column_major_order[blk], blocks[blk].mfs_size);
         }
     }
 }
