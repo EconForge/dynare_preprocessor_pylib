@@ -488,53 +488,6 @@ DynamicModel::writeDynamicMCompatFile(const string &basename) const
   output.close();
 }
 
-void
-DynamicModel::writeDynamicJacobianNonZeroEltsFile(const string &basename) const
-{
-  vector<pair<int, int>> nzij_pred, nzij_current, nzij_fwrd; // pairs (tsid, equation)
-  for (const auto &[indices, d1] : derivatives[1])
-    {
-      if (getTypeByDerivID(indices[1]) != SymbolType::endogenous)
-        continue;
-      int tsid { getTypeSpecificIDByDerivID(indices[1]) };
-      int lag = getLagByDerivID(indices[1]);
-      if (lag == -1)
-        nzij_pred.emplace_back(tsid, indices[0]);
-      else if (lag == 0)
-        nzij_current.emplace_back(tsid, indices[0]);
-      else
-        nzij_fwrd.emplace_back(tsid, indices[0]);
-    }
-  sort(nzij_pred.begin(), nzij_pred.end());
-  sort(nzij_current.begin(), nzij_current.end());
-  sort(nzij_fwrd.begin(), nzij_fwrd.end());
-
-  const filesystem::path filename {packageDir(basename) / "dynamic_g1_nz.m"};
-  ofstream output{filename, ios::out | ios::binary};
-  if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
-    }
-  output << "function [nzij_pred, nzij_current, nzij_fwrd] = dynamic_g1_nz()" << endl
-         << "% Returns the coordinates of non-zero elements in the Jacobian, in column-major order, for each lead/lag (only for endogenous)" << endl;
-  auto print_nzij = [&output](const vector<pair<int, int>> &nzij, const string &name) {
-                      output << "  " << name << " = zeros(" << nzij.size() << ", 2, 'int32');" << endl;
-                      for (int idx{1};
-                           const auto &it : nzij)
-                        {
-                          output << "  " << name << "(" << idx << ",1)=" << it.second+1 << ';'
-                                 << " " << name << "(" << idx << ",2)=" << it.first+1 << ';' << endl;
-                          idx++;
-                        }
-                    };
-  print_nzij(nzij_pred, "nzij_pred");
-  print_nzij(nzij_current, "nzij_current");
-  print_nzij(nzij_fwrd, "nzij_fwrd");
-  output << "end" << endl;
-  output.close();
-}
-
 vector<pair<string, string>>
 DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_option_value, bool exclude_eqs)
 {

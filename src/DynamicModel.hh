@@ -373,10 +373,6 @@ public:
   template<bool julia>
   void writeParamsDerivativesFile(const string &basename) const;
 
-  //! Writes file containing coordinates of non-zero elements in the Jacobian
-  /*! Used by the perfect_foresight_problem MEX */
-  void writeDynamicJacobianNonZeroEltsFile(const string &basename) const;
-
   //! Creates mapping for variables and equations they are present in
   void createVariableMapping();
 
