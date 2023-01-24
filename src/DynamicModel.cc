@@ -2879,7 +2879,7 @@ DynamicModel::computeDynJacobianCols()
   for (const auto &[symb_lag, deriv_id] : deriv_id_table)
     {
       int symb_id{symb_lag.first};
-      int tsid{symbol_table.getTypeSpecificID(symb_id)};
+      int tsid{symbol_table.getTypeSpecificID(symb_id)}; // At this point, there is no trend_var
       if (SymbolType type{symbol_table.getType(symb_id)};
           type == SymbolType::exogenous)
         dyn_jacobian_cols_table[deriv_id] = ordered_dyn_endo.size() + tsid;

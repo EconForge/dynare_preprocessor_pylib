@@ -272,6 +272,10 @@ ParsingDriver::set_planner_discount_latex_name(string tex_name)
 void
 ParsingDriver::end_trend_var(bool log_trend, expr_t growth_factor, const vector<pair<string, string>> &symbol_list)
 {
+  /* Run detrending engine if trend variables are present, even if unused in
+     a var(deflator=…) statement (see #113). */
+  mod_file->nonstationary_variables = true;
+
   vector<int> declared_trend_vars;
   for (auto &[name, tex_name] : symbol_list)
     {
