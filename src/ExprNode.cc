@@ -557,7 +557,7 @@ BinaryOpNode *
 NumConstNode::normalizeEquationHelper([[maybe_unused]] const set<expr_t> &contain_var,
                                       [[maybe_unused]] expr_t rhs) const
 {
-  cerr << "NumConstNode::normalizeEquation: this should not happen" << endl;
+  cerr << "NumConstNode::normalizeEquationHelper: this should not happen" << endl;
   exit(EXIT_FAILURE);
 }
 
