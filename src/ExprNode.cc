@@ -3186,15 +3186,20 @@ UnaryOpNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs)
     case UnaryOpcode::log10:
       rhs = datatree.AddPower(datatree.AddNonNegativeConstant("10"), rhs);
       break;
-    case UnaryOpcode::cos:
-      rhs = datatree.AddAcos(rhs);
-      break;
-    case UnaryOpcode::sin:
-      rhs = datatree.AddAsin(rhs);
-      break;
-    case UnaryOpcode::tan:
-      rhs = datatree.AddAtan(rhs);
-      break;
+    /* Trigonometric functions:
+       – acos(cos(x))=x holds ∀x∈[0,π], but not ∀x∈ℝ (Counter example: x=2π).
+         So we don’t transform cos(x)=RHS into x=acos(RHS).
+       – asin(sin(x))=x holds ∀x∈[−π/2,π/2], but not ∀x∈ℝ (Counter example: x=π).
+         So we don’t transform sin(x)=RHS into x=asin(RHS).
+       – atan(tan(x))=x holds ∀x∈(−π/2,π/2), but not ∀x∈ℝ (Counter example: x=π).
+         So we don’t transform tan(x)=RHS into x=atan(RHS).
+       – cos(acos(x))=x holds ∀x∈[−1,1]. However, for x∈ℝ\[−1,1], acos(x)=NaN.
+         So it’s ok to transform acos(x)=RHS into x=cos(RHS) (it naturally enforces
+         the already existing restriction that x must belong to [−1,1]).
+       – sin(asin(x))=x holds ∀x∈[−1,1]. However, for x∈ℝ\[−1,1], asin(x)=NaN.
+         So it’s ok to transform asin(x)=RHS into x=sin(RHS), by the same reasoning.
+       – tan(atan(x))=x holds ∀x∈ℝ.
+         So it’s ok to transform atan(x)=RHS into x=tan(RHS). */
     case UnaryOpcode::acos:
       rhs = datatree.AddCos(rhs);
       break;
@@ -3204,9 +3209,20 @@ UnaryOpNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs)
     case UnaryOpcode::atan:
       rhs = datatree.AddTan(rhs);
       break;
-    case UnaryOpcode::cosh:
-      rhs = datatree.AddAcosh(rhs);
-      break;
+    /* Hyperbolic functions:
+       – acosh(cosh(x))=x holds ∀x⩾0, but not ∀x∈ℝ (Counter example: x=−1).
+         So we don’t transform cosh(x)=RHS into x=acosh(RHS).
+       – asinh(sinh(x))=x holds ∀x∈ℝ.
+         So it’s ok to transform sinh(x)=RHS into x=asinh(RHS).
+       – atanh(tanh(x))=x holds ∀x∈ℝ.
+         So it’s ok to transform tanh(x)=RHS into x=atanh(RHS).
+       – cosh(acosh(x))=x holds ∀x⩾1. However, for x<1, acosh(x)=NaN.
+         So it’s ok to transform acosh(x)=RHS into x=cosh(RHS) (it naturally enforces
+         the already existing restriction that x must belong to [1,+∞)).
+       – sinh(asinh(x))=x holds ∀x∈ℝ.
+         So it’s ok to transform asinh(x)=RHS into x=sinh(RHS).
+       – tanh(atanh(x))=x holds ∀x∈ℝ.
+         So it’s ok to transform atanh(x)=RHS into x=tanh(RHS). */
     case UnaryOpcode::sinh:
       rhs = datatree.AddAsinh(rhs);
       break;
@@ -3222,6 +3238,9 @@ UnaryOpNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs)
     case UnaryOpcode::atanh:
       rhs = datatree.AddTanh(rhs);
       break;
+      /* (√x)²=x holds ∀x⩾0. However, for x<0, √x=NaN.
+         So it’s ok to transform √x=RHS into x=RHS² (it naturally enforces
+         the already existing restriction that x must be non-negative). */
     case UnaryOpcode::sqrt:
       rhs = datatree.AddPower(rhs, datatree.Two);
       break;
@@ -4947,6 +4966,15 @@ BinaryOpNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs
       else
         rhs = datatree.AddMinus(arg1, rhs);
       break;
+    /* (x*a)/a=x holds ∀x>0, but requires a≠0. So, transforming x*a=RHS into
+       x=RHS/a is incorrect when a=0, and may generate NaNs. However, since
+       this equation is supposed to pin down the variable of interest contained
+       in x (through the matching between equations and variables), this case
+       should not happen (it will not happen at the initial values if the
+       matching has been performed using the numerical Jacobian, which is tried
+       first; it could happen with other values than the initial ones, or if
+       the symbolic Jacobian has been used as a last resort, but this indicates
+       a problem in the matching which is beyond our control at this point). */
     case BinaryOpcode::times:
       if (arg1_contains_var)
         rhs = datatree.AddDivide(rhs, arg2);
@@ -4957,13 +4985,21 @@ BinaryOpNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs
       if (arg1_contains_var)
         rhs = datatree.AddTimes(rhs, arg2);
       else
+        /* Transforming a/x=RHS into x=a/RHS is incorrect if RHS=0. However,
+           per the same reasoning as for the multiplication case above, it
+           nevertheless makes sense to do the transformation. */
         rhs = datatree.AddDivide(arg1, rhs);
       break;
     case BinaryOpcode::power:
       if (arg1_contains_var)
-        rhs = datatree.AddPower(rhs, datatree.AddDivide(datatree.One, arg2));
+        /* (x^a)^(1/a)=x holds ∀x>0 when a≠0, and ∀x∈ℝ when a is an odd integer.
+           However, it does not hold if x<0 and a is an even integer (different
+           from zero). For example, ((−1)^2)^½ = 1.
+           So in the general case, we cannot transform x^a=RHS into
+           x=RHS^(1/a). */
+        throw NormalizationFailed();
       else
-        // a^f(X)=rhs is normalized in f(X)=ln(rhs)/ln(a)
+        // a^x=RHS is normalized in x=ln(RHS)/ln(a)
         rhs = datatree.AddDivide(datatree.AddLog(rhs), datatree.AddLog(arg1));
       break;
     case BinaryOpcode::equal:
