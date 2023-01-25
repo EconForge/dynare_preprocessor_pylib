@@ -2137,10 +2137,13 @@ DynamicModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_c
   if (paramsDerivsOrder > 0 && !no_tmp_terms)
     computeParamsDerivativesTemporaryTerms();
 
+  /* Change block decomposition settings when the “block” keyword has not been
+     used and the model is purely backward/forward or static. This is meant to
+     be used with solve_algo={12,14}. */
   if (!block && (max_endo_lag == 0 || max_endo_lead == 0))
     {
       time_recursive_block_decomposition = true;
-      mfs = 3; // FIXME: remove this line when mfs=3 becomes the global default
+      mfs = 3; // Typically useful for equations of the form log(x)=RHS
     }
   computingPassBlock(eval_context, no_tmp_terms);
   if (block_decomposed)

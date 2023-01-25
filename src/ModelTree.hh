@@ -599,7 +599,7 @@ public:
   //! Absolute value under which a number is considered to be zero
   double cutoff{1e-15};
   // Setting for minimum feedback set computation (see the reference manual)
-  int mfs{0};
+  int mfs{1};
   //! Declare a node as an equation of the model; also give its line number
   void addEquation(expr_t eq, optional<int> lineno);
   //! Declare a node as an equation of the model, also giving its tags
