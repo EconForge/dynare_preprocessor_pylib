@@ -189,7 +189,7 @@ class ParsingDriver;
 %token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS ZERO_MOMENTS_TOLERANCE
 %token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION WITH_EPILOGUE MODEL_REMOVE MODEL_REPLACE MODEL_OPTIONS
 %token VAR_REMOVE ESTIMATED_PARAMS_REMOVE BLOCK_STATIC BLOCK_DYNAMIC INCIDENCE RESID NON_ZERO LEARNT_IN PLUS_EQUAL TIMES_EQUAL
-%token FSOLVE_OPTIONS
+%token FSOLVE_OPTIONS HOMOTOPY_ALT_STARTING_POINT
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -1437,6 +1437,7 @@ perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_endogenous_terminal_period
                                  | o_linear_approximation
                                  | o_no_homotopy
+                                 | o_homotopy_alt_starting_point
                                  | o_solve_algo
                                  | o_robust_lin_solve
                                  | o_lmmcp
@@ -4047,6 +4048,7 @@ o_consider_all_endogenous : CONSIDER_ALL_ENDOGENOUS { driver.option_str("endo_va
 o_consider_all_endogenous_and_auxiliary : CONSIDER_ALL_ENDOGENOUS_AND_AUXILIARY { driver.option_str("endo_vars_for_moment_computations_in_estimation", "all_endogenous_and_auxiliary_variables"); };
 o_consider_only_observed : CONSIDER_ONLY_OBSERVED { driver.option_str("endo_vars_for_moment_computations_in_estimation", "only_observed_variables"); };
 o_no_homotopy : NO_HOMOTOPY { driver.option_num("no_homotopy", "true"); };
+o_homotopy_alt_starting_point : HOMOTOPY_ALT_STARTING_POINT { driver.option_num("homotopy_alt_starting_point", "true"); };
 
 o_infile : INFILE EQUAL filename { driver.option_str("infile", $3); };
 o_invars : INVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("invars", $4); };

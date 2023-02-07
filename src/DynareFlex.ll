@@ -880,6 +880,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>calibration {return token::CALIBRATION;}
 <DYNARE_STATEMENT>irf_plot_threshold {return token::IRF_PLOT_THRESHOLD;}
 <DYNARE_STATEMENT>no_homotopy {return token::NO_HOMOTOPY;}
+<DYNARE_STATEMENT>homotopy_alt_starting_point {return token::HOMOTOPY_ALT_STARTING_POINT;}
 <DYNARE_STATEMENT>particle_filter_options {return token::PARTICLE_FILTER_OPTIONS;}
 <DYNARE_STATEMENT>terminal_steady_state_as_guess_value {return token::TERMINAL_STEADY_STATE_AS_GUESS_VALUE;}
 <DYNARE_STATEMENT>constant_simulation_length {return token::CONSTANT_SIMULATION_LENGTH;}
