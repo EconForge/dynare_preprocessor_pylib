@@ -39,24 +39,27 @@ operator<<(BytecodeWriter &code_file, const FCALL_ &instr)
 {
   code_file.instructions_positions.push_back(code_file.tellp());
 
-  code_file.write(reinterpret_cast<const char *>(&instr.op_code), sizeof instr.op_code);
-  code_file.write(reinterpret_cast<const char *>(&instr.nb_output_arguments), sizeof instr.nb_output_arguments);
-  code_file.write(reinterpret_cast<const char *>(&instr.nb_input_arguments), sizeof instr.nb_input_arguments);
-  code_file.write(reinterpret_cast<const char *>(&instr.indx), sizeof instr.indx);
-  code_file.write(reinterpret_cast<const char *>(&instr.add_input_arguments), sizeof instr.add_input_arguments);
-  code_file.write(reinterpret_cast<const char *>(&instr.row), sizeof instr.row);
-  code_file.write(reinterpret_cast<const char *>(&instr.col), sizeof instr.col);
-  code_file.write(reinterpret_cast<const char *>(&instr.call_type), sizeof instr.call_type);
+  auto write_member = [&code_file](const auto &member)
+  {
+    code_file.write(reinterpret_cast<const char *>(&member), sizeof member);
+  };
+
+  write_member(instr.op_code);
+  write_member(instr.nb_output_arguments);
+  write_member(instr.nb_input_arguments);
+  write_member(instr.indx);
+  write_member(instr.add_input_arguments);
+  write_member(instr.row);
+  write_member(instr.col);
+  write_member(instr.call_type);
 
   int size = static_cast<int>(instr.func_name.size());
-  code_file.write(reinterpret_cast<char *>(&size), sizeof size);
-  const char *name = instr.func_name.c_str();
-  code_file.write(name, size);
+  write_member(size);
+  code_file.write(instr.func_name.c_str(), size);
 
   size = static_cast<int>(instr.arg_func_name.size());
-  code_file.write(reinterpret_cast<char *>(&size), sizeof size);
-  name = instr.arg_func_name.c_str();
-  code_file.write(name, size);
+  write_member(size);
+  code_file.write(instr.arg_func_name.c_str(), size);
 
   return code_file;
 }
@@ -67,31 +70,36 @@ operator<<(BytecodeWriter &code_file, const FBEGINBLOCK_ &instr)
 {
   code_file.instructions_positions.push_back(code_file.tellp());
 
-  code_file.write(reinterpret_cast<const char *>(&instr.op_code), sizeof instr.op_code);
-  code_file.write(reinterpret_cast<const char *>(&instr.size), sizeof instr.size);
-  code_file.write(reinterpret_cast<const char *>(&instr.type), sizeof instr.type);
+  auto write_member = [&code_file](const auto &member)
+  {
+    code_file.write(reinterpret_cast<const char *>(&member), sizeof member);
+  };
+
+  write_member(instr.op_code);
+  write_member(instr.size);
+  write_member(instr.type);
   for (int i = 0; i < instr.size; i++)
     {
-      code_file.write(reinterpret_cast<const char *>(&instr.variable[i]), sizeof instr.variable[i]);
-      code_file.write(reinterpret_cast<const char *>(&instr.equation[i]), sizeof instr.equation[i]);
+      write_member(instr.variable[i]);
+      write_member(instr.equation[i]);
     }
   if (instr.type == BlockSimulationType::solveTwoBoundariesSimple
       || instr.type == BlockSimulationType::solveTwoBoundariesComplete
       || instr.type == BlockSimulationType::solveBackwardComplete
       || instr.type == BlockSimulationType::solveForwardComplete)
     {
-      code_file.write(reinterpret_cast<const char *>(&instr.is_linear), sizeof instr.is_linear);
-      code_file.write(reinterpret_cast<const char *>(&instr.endo_nbr), sizeof instr.endo_nbr);
-      code_file.write(reinterpret_cast<const char *>(&instr.u_count_int), sizeof instr.u_count_int);
+      write_member(instr.is_linear);
+      write_member(instr.endo_nbr);
+      write_member(instr.u_count_int);
     }
-  code_file.write(reinterpret_cast<const char *>(&instr.nb_col_jacob), sizeof instr.nb_col_jacob);
-  code_file.write(reinterpret_cast<const char *>(&instr.det_exo_size), sizeof instr.det_exo_size);
-  code_file.write(reinterpret_cast<const char *>(&instr.exo_size), sizeof instr.exo_size);
+  write_member(instr.nb_col_jacob);
+  write_member(instr.det_exo_size);
+  write_member(instr.exo_size);
 
   for (int i{0}; i < instr.det_exo_size; i++)
-    code_file.write(reinterpret_cast<const char *>(&instr.det_exogenous[i]), sizeof instr.det_exogenous[i]);
+    write_member(instr.det_exogenous[i]);
   for (int i{0}; i < instr.exo_size; i++)
-    code_file.write(reinterpret_cast<const char *>(&instr.exogenous[i]), sizeof instr.exogenous[i]);
+    write_member(instr.exogenous[i]);
 
   return code_file;
 }
