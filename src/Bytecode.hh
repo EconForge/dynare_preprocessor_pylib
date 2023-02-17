@@ -25,12 +25,12 @@
 #include <utility>
 #include <ios>
 #include <filesystem>
+#include <type_traits>
 
 #include "CommonEnums.hh"
 
 #ifdef BYTECODE_MEX
 # include <dynmex.h>
-# include <cstring>
 #endif
 
 using namespace std;
@@ -722,9 +722,6 @@ private:
   int add_input_arguments{0}, row{0}, col{0};
   ExternalFunctionCallType call_type;
 public:
-  FCALL_() : BytecodeInstruction{Tags::FCALL}
-  {
-  };
   FCALL_(int nb_output_arguments_arg, int nb_input_arguments_arg, string func_name_arg, int indx_arg, ExternalFunctionCallType call_type_arg) :
     BytecodeInstruction{Tags::FCALL},
     nb_output_arguments{nb_output_arguments_arg},
@@ -734,6 +731,37 @@ public:
     call_type{call_type_arg}
   {
   };
+  /* Deserializing constructor.
+     Updates the code pointer to point beyond the bytes read. */
+  FCALL_(char *&code) :
+    BytecodeInstruction{Tags::FCALL}
+  {
+    code += sizeof(op_code);
+
+    auto read_member = [&code](auto &member)
+    {
+      member = *reinterpret_cast<add_pointer_t<decltype(member)>>(code);
+      code += sizeof member;
+    };
+
+    read_member(nb_output_arguments);
+    read_member(nb_input_arguments);
+    read_member(indx);
+    read_member(add_input_arguments);
+    read_member(row);
+    read_member(col);
+    read_member(call_type);
+
+    int size;
+    read_member(size);
+    func_name = code;
+    code += size+1;
+
+    read_member(size);
+    arg_func_name = code;
+    code += size+1;
+  }
+
   string
   get_function_name()
   {
@@ -800,35 +828,6 @@ public:
   {
     return call_type;
   }
-#ifdef BYTECODE_MEX
-
-  char *
-  load(char *code)
-  {
-    code += sizeof(op_code);
-    memcpy(&nb_output_arguments, code, sizeof(nb_output_arguments)); code += sizeof(nb_output_arguments);
-    memcpy(&nb_input_arguments, code, sizeof(nb_input_arguments)); code += sizeof(nb_input_arguments);
-    memcpy(&indx, code, sizeof(indx)); code += sizeof(indx);
-    memcpy(&add_input_arguments, code, sizeof(add_input_arguments)); code += sizeof(add_input_arguments);
-    memcpy(&row, code, sizeof(row)); code += sizeof(row);
-    memcpy(&col, code, sizeof(col)); code += sizeof(col);
-    memcpy(&call_type, code, sizeof(call_type)); code += sizeof(call_type);
-    int size;
-    memcpy(&size, code, sizeof(size)); code += sizeof(size);
-    char *name = static_cast<char *>(mxMalloc((size+1)*sizeof(char)));
-    memcpy(name, code, size); code += size;
-    name[size] = 0;
-    func_name = name;
-    mxFree(name);
-    memcpy(&size, code, sizeof(size)); code += sizeof(size);
-    name = static_cast<char *>(mxMalloc((size+1)*sizeof(char)));
-    memcpy(name, code, size); code += size;
-    name[size] = 0;
-    arg_func_name = name;
-    mxFree(name);
-    return code;
-  }
-#endif
 };
 
 class FNUMEXPR_ : public BytecodeInstruction
@@ -903,10 +902,6 @@ private:
   int nb_col_jacob{0};
   int det_exo_size, exo_size;
 public:
-  FBEGINBLOCK_() : BytecodeInstruction{Tags::FBEGINBLOCK},
-                   type{BlockSimulationType::unknown}
-  {
-  }
   /* Constructor when derivatives w.r.t. exogenous are present (only makes
      sense when there is no block-decomposition, since there is no provision for
      derivatives w.r.t. endogenous not belonging to the block) */
@@ -947,6 +942,55 @@ public:
     exo_size{0}
   {
   }
+  /* Deserializing constructor.
+     Updates the code pointer to point beyond the bytes read. */
+  FBEGINBLOCK_(char *&code) :
+    BytecodeInstruction{Tags::FBEGINBLOCK}
+  {
+    code += sizeof(op_code);
+
+    auto read_member = [&code](auto &member)
+    {
+      member = *reinterpret_cast<add_pointer_t<decltype(member)>>(code);
+      code += sizeof member;
+    };
+
+    read_member(size);
+    read_member(type);
+    for (int i {0}; i < size; i++)
+      {
+        Block_contain_type bc;
+        read_member(bc.Variable);
+        read_member(bc.Equation);
+        Block_Contain_.push_back(move(bc));
+      }
+    if (type == BlockSimulationType::solveTwoBoundariesSimple
+        || type == BlockSimulationType::solveTwoBoundariesComplete
+        || type == BlockSimulationType::solveBackwardComplete
+        || type == BlockSimulationType::solveForwardComplete)
+      {
+        read_member(is_linear);
+        read_member(endo_nbr);
+        read_member(u_count_int);
+      }
+    read_member(nb_col_jacob);
+    read_member(det_exo_size);
+    read_member(exo_size);
+
+    for (int i {0}; i < det_exo_size; i++)
+      {
+        int tmp_i;
+        read_member(tmp_i);
+        det_exogenous.push_back(tmp_i);
+      }
+    for (int i {0}; i < exo_size; i++)
+      {
+        int tmp_i;
+        read_member(tmp_i);
+        exogenous.push_back(tmp_i);
+      }
+  }
+
   int
   get_size()
   {
@@ -1002,49 +1046,6 @@ public:
   {
     return exogenous;
   }
-#ifdef BYTECODE_MEX
-
-  char *
-  load(char *code)
-  {
-    code += sizeof(op_code);
-    memcpy(&size, code, sizeof(size)); code += sizeof(size);
-    memcpy(&type, code, sizeof(type)); code += sizeof(type);
-    for (int i = 0; i < size; i++)
-      {
-        Block_contain_type bc;
-        memcpy(&bc.Variable, code, sizeof(bc.Variable)); code += sizeof(bc.Variable);
-        memcpy(&bc.Equation, code, sizeof(bc.Equation)); code += sizeof(bc.Equation);
-        Block_Contain_.push_back(bc);
-      }
-    if (type == BlockSimulationType::solveTwoBoundariesSimple
-        || type == BlockSimulationType::solveTwoBoundariesComplete
-        || type == BlockSimulationType::solveBackwardComplete
-        || type == BlockSimulationType::solveForwardComplete)
-      {
-        memcpy(&is_linear, code, sizeof(is_linear)); code += sizeof(is_linear);
-        memcpy(&endo_nbr, code, sizeof(endo_nbr)); code += sizeof(endo_nbr);
-        memcpy(&u_count_int, code, sizeof(u_count_int)); code += sizeof(u_count_int);
-      }
-    memcpy(&nb_col_jacob, code, sizeof(nb_col_jacob)); code += sizeof(nb_col_jacob);
-    memcpy(&det_exo_size, code, sizeof(det_exo_size)); code += sizeof(det_exo_size);
-    memcpy(&exo_size, code, sizeof(exo_size)); code += sizeof(exo_size);
-
-    for (int i{0}; i < det_exo_size; i++)
-      {
-        int tmp_i;
-        memcpy(&tmp_i, code, sizeof(tmp_i)); code += sizeof(tmp_i);
-        det_exogenous.push_back(tmp_i);
-      }
-    for (int i{0}; i < exo_size; i++)
-      {
-        int tmp_i;
-        memcpy(&tmp_i, code, sizeof(tmp_i)); code += sizeof(tmp_i);
-        exogenous.push_back(tmp_i);
-      }
-    return code;
-  };
-#endif
 };
 
 // Superclass of std::ofstream for writing a sequence of bytecode instructions
@@ -1353,11 +1354,7 @@ public:
             mexPrintf("FBEGINBLOCK\n");
 # endif
             {
-              // TODO: remove default FBEGINBLOCK_ constructor when the following is remove
-              auto *fbegin_block = new FBEGINBLOCK_;
-
-              code = fbegin_block->load(code);
-
+              auto *fbegin_block = new FBEGINBLOCK_{code};
               begin_block.push_back(tags_liste.size());
               tags_liste.push_back(fbegin_block);
               nb_blocks++;
@@ -1382,11 +1379,7 @@ public:
 # ifdef DEBUGL
               mexPrintf("FCALL\n");
 # endif
-              // TODO: remove default FCALL_ constructor when the following is remove
-              auto *fcall = new FCALL_;
-
-              code = fcall->load(code);
-
+              auto *fcall = new FCALL_{code};
               tags_liste.push_back(fcall);
 # ifdef DEBUGL
               mexPrintf("FCALL finish\n"); mexEvalString("drawnow;");

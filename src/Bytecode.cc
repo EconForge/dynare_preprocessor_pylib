@@ -55,11 +55,11 @@ operator<<(BytecodeWriter &code_file, const FCALL_ &instr)
 
   int size = static_cast<int>(instr.func_name.size());
   write_member(size);
-  code_file.write(instr.func_name.c_str(), size);
+  code_file.write(instr.func_name.c_str(), size+1);
 
   size = static_cast<int>(instr.arg_func_name.size());
   write_member(size);
-  code_file.write(instr.arg_func_name.c_str(), size);
+  code_file.write(instr.arg_func_name.c_str(), size+1);
 
   return code_file;
 }
