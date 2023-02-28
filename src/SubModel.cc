@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018-2022 Dynare Team
+ * Copyright © 2018-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <numeric>
 
 #include "SubModel.hh"
 #include "DynamicModel.hh"
@@ -699,10 +700,8 @@ VarModelTable::getMaxLags(const string &name_arg) const
 int
 VarModelTable::getMaxLag(const string &name_arg) const
 {
-  int max_lag_int = 0;
-  for (auto it : getMaxLags(name_arg))
-    max_lag_int = max(max_lag_int, it);
-  return max_lag_int;
+  vector<int> maxlags { getMaxLags(name_arg) };
+  return reduce(maxlags.begin(), maxlags.end(), 0, [](int a, int b) { return max(a, b); });
 }
 
 const vector<int> &

@@ -840,11 +840,8 @@ DataTree::addAllParamDerivId([[maybe_unused]] set<int> &deriv_id_set)
 bool
 DataTree::isUnaryOpUsed(UnaryOpcode opcode) const
 {
-  for (const auto &it : unary_op_node_map)
-    if (get<1>(it.first) == opcode)
-      return true;
-
-  return false;
+  return any_of(unary_op_node_map.begin(), unary_op_node_map.end(),
+                [=](const auto &it) { return get<1>(it.first) == opcode; });
 }
 
 bool
@@ -864,11 +861,8 @@ DataTree::isUnaryOpUsedOnType(SymbolType type, UnaryOpcode opcode) const
 bool
 DataTree::isBinaryOpUsed(BinaryOpcode opcode) const
 {
-  for (const auto &it : binary_op_node_map)
-    if (get<2>(it.first) == opcode)
-      return true;
-
-  return false;
+  return any_of(binary_op_node_map.begin(), binary_op_node_map.end(),
+                [=](const auto &it) { return get<2>(it.first) == opcode; });
 }
 
 bool

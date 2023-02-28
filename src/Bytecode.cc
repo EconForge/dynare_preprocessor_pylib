@@ -20,6 +20,7 @@
 #include <iostream>
 #include <ios>
 #include <cstdlib>
+#include <algorithm>
 
 #include "Bytecode.hh"
 
@@ -96,10 +97,8 @@ operator<<(BytecodeWriter &code_file, const FBEGINBLOCK_ &instr)
   write_member(instr.det_exo_size);
   write_member(instr.exo_size);
 
-  for (int i{0}; i < instr.det_exo_size; i++)
-    write_member(instr.det_exogenous[i]);
-  for (int i{0}; i < instr.exo_size; i++)
-    write_member(instr.exogenous[i]);
+  for_each_n(instr.det_exogenous.begin(), instr.det_exo_size, write_member);
+  for_each_n(instr.exogenous.begin(), instr.exo_size, write_member);
 
   return code_file;
 }

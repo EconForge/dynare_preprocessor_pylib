@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -859,31 +859,25 @@ SymbolTable::getEndogenous() const
 bool
 SymbolTable::isAuxiliaryVariable(int symb_id) const
 {
-  for (const auto &aux_var : aux_vars)
-    if (aux_var.symb_id == symb_id)
-      return true;
-  return false;
+  return any_of(aux_vars.begin(), aux_vars.end(), [=](const auto &av) { return av.symb_id == symb_id; });
 }
 
 bool
 SymbolTable::isAuxiliaryVariableButNotMultiplier(int symb_id) const
 {
-  for (const auto &aux_var : aux_vars)
-    if (aux_var.symb_id == symb_id && aux_var.type != AuxVarType::multiplier)
-      return true;
-  return false;
+  return any_of(aux_vars.begin(), aux_vars.end(),
+                [=](const auto &av)
+                { return av.symb_id == symb_id && av.type != AuxVarType::multiplier; });
 }
 
 bool
 SymbolTable::isDiffAuxiliaryVariable(int symb_id) const
 {
-  for (const auto &aux_var : aux_vars)
-    if (aux_var.symb_id == symb_id
-        && (aux_var.type == AuxVarType::diff
-            || aux_var.type == AuxVarType::diffLag
-            || aux_var.type == AuxVarType::diffLead))
-      return true;
-  return false;
+  return any_of(aux_vars.begin(), aux_vars.end(),
+                [=](const auto &av) { return av.symb_id == symb_id
+                    && (av.type == AuxVarType::diff
+                        || av.type == AuxVarType::diffLag
+                        || av.type == AuxVarType::diffLead); });
 }
 
 set<int>

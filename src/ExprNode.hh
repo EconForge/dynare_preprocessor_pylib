@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2022 Dynare Team
+ * Copyright © 2007-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1340,6 +1340,8 @@ private:
   expr_t computeDerivative(int deriv_id) override;
   expr_t computeChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables, map<pair<expr_t, int>, expr_t> &cache) override;
   virtual expr_t composeDerivatives(const vector<expr_t> &dargs) = 0;
+  // Computes the maximum of f applied to all arguments (result will always be non-negative)
+  int maxHelper(const function<int (expr_t)> &f) const;
 protected:
   //! Thrown when trying to access an unknown entry in external_function_node_map
   class UnknownFunctionNameAndArgs

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2022 Dynare Team
+ * Copyright © 2007-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -23,6 +23,7 @@
 #include <cmath>
 #include <utility>
 #include <limits>
+#include <numeric>
 
 #include "ExprNode.hh"
 #include "DataTree.hh"
@@ -3430,19 +3431,13 @@ UnaryOpNode::substituteAdl() const
     }
 
   expr_t arg1subst = arg->substituteAdl();
-  expr_t retval = nullptr;
 
-  for (bool first_term{true};
-       int lag : adl_lags)
-    {
-      expr_t e = datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.getID(adl_param_name + "_lag_" + to_string(lag)), 0),
-                                   arg1subst->decreaseLeadsLags(lag));
-      if (exchange(first_term, false))
-        retval = e;
-      else
-        retval = datatree.AddPlus(retval, e);
-    }
-  return retval;
+  return transform_reduce(adl_lags.begin(), adl_lags.end(), static_cast<expr_t>(datatree.Zero),
+                          [&](expr_t e1, expr_t e2) { return datatree.AddPlus(e1, e2); },
+                          [&](int lag) {
+                            return datatree.AddTimes(datatree.AddVariable(datatree.symbol_table.getID(adl_param_name + "_lag_" + to_string(lag)), 0),
+                                                     arg1subst->decreaseLeadsLags(lag));
+                          });
 }
 
 expr_t
@@ -6822,66 +6817,52 @@ AbstractExternalFunctionNode::eval([[maybe_unused]] const eval_context_t &eval_c
 }
 
 int
+AbstractExternalFunctionNode::maxHelper(const function<int (expr_t)> &f) const
+{
+  return transform_reduce(arguments.begin(), arguments.end(), 0,
+                          [](int a, int b) { return max(a, b); }, f);
+}
+
+int
 AbstractExternalFunctionNode::maxEndoLead() const
 {
-  int val = 0;
-  for (auto argument : arguments)
-    val = max(val, argument->maxEndoLead());
-  return val;
+  return maxHelper([](expr_t e) { return e->maxEndoLead(); });
 }
 
 int
 AbstractExternalFunctionNode::maxExoLead() const
 {
-  int val = 0;
-  for (auto argument : arguments)
-    val = max(val, argument->maxExoLead());
-  return val;
+  return maxHelper([](expr_t e) { return e->maxExoLead(); });
 }
 
 int
 AbstractExternalFunctionNode::maxEndoLag() const
 {
-  int val = 0;
-  for (auto argument : arguments)
-    val = max(val, argument->maxEndoLag());
-  return val;
+  return maxHelper([](expr_t e) { return e->maxEndoLag(); });
 }
 
 int
 AbstractExternalFunctionNode::maxExoLag() const
 {
-  int val = 0;
-  for (auto argument : arguments)
-    val = max(val, argument->maxExoLag());
-  return val;
+  return maxHelper([](expr_t e) { return e->maxExoLag(); });
 }
 
 int
 AbstractExternalFunctionNode::maxLead() const
 {
-  int val = 0;
-  for (auto argument : arguments)
-    val = max(val, argument->maxLead());
-  return val;
+  return maxHelper([](expr_t e) { return e->maxLead(); });
 }
 
 int
 AbstractExternalFunctionNode::maxLag() const
 {
-  int val = 0;
-  for (auto argument : arguments)
-    val = max(val, argument->maxLag());
-  return val;
+  return maxHelper([](expr_t e) { return e->maxLag(); });
 }
 
 int
 AbstractExternalFunctionNode::maxLagWithDiffsExpanded() const
 {
-  int val = 0;
-  for (auto argument : arguments)
-    val = max(val, argument->maxLagWithDiffsExpanded());
-  return val;
+  return maxHelper([](expr_t e) { return e->maxLagWithDiffsExpanded(); });
 }
 
 expr_t
@@ -6896,10 +6877,7 @@ AbstractExternalFunctionNode::undiff() const
 int
 AbstractExternalFunctionNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 {
-  int max_lag = 0;
-  for (auto argument : arguments)
-    max_lag = max(max_lag, argument->VarMaxLag(lhs_lag_equiv));
-  return max_lag;
+  return maxHelper([&](expr_t e) { return e->VarMaxLag(lhs_lag_equiv); });
 }
 
 expr_t
@@ -7038,10 +7016,7 @@ AbstractExternalFunctionNode::substituteUnaryOpNodes(const lag_equivalence_table
 int
 AbstractExternalFunctionNode::countDiffs() const
 {
-  int ndiffs = 0;
-  for (auto argument : arguments)
-    ndiffs = max(ndiffs, argument->countDiffs());
-  return ndiffs;
+  return maxHelper([](expr_t e) { return e->countDiffs(); });
 }
 
 expr_t
@@ -7148,19 +7123,15 @@ AbstractExternalFunctionNode::isVariableNodeEqualTo([[maybe_unused]] SymbolType 
 bool
 AbstractExternalFunctionNode::containsPacExpectation(const string &pac_model_name) const
 {
-  for (auto argument : arguments)
-    if (argument->containsPacExpectation(pac_model_name))
-      return true;
-  return false;
+  return any_of(arguments.begin(), arguments.end(),
+                [&](expr_t e) { return e->containsPacExpectation(pac_model_name); });
 }
 
 bool
 AbstractExternalFunctionNode::containsPacTargetNonstationary(const string &pac_model_name) const
 {
-  for (auto argument : arguments)
-    if (argument->containsPacTargetNonstationary(pac_model_name))
-      return true;
-  return false;
+  return any_of(arguments.begin(), arguments.end(),
+                [&](expr_t e) { return e->containsPacTargetNonstationary(pac_model_name); });
 }
 
 expr_t
@@ -7193,10 +7164,8 @@ AbstractExternalFunctionNode::removeTrendLeadLag(const map<int, expr_t> &trend_s
 bool
 AbstractExternalFunctionNode::isInStaticForm() const
 {
-  for (auto argument : arguments)
-    if (!argument->isInStaticForm())
-      return false;
-  return true;
+  return all_of(arguments.begin(), arguments.end(),
+                [](expr_t e) { return e->isInStaticForm(); });
 }
 
 bool
@@ -7337,10 +7306,8 @@ ExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
     dNodes.push_back(datatree.AddTimes(dargs.at(i),
                                        datatree.AddFirstDerivExternalFunction(symb_id, arguments, i+1)));
 
-  expr_t theDeriv = datatree.Zero;
-  for (auto &dNode : dNodes)
-    theDeriv = datatree.AddPlus(theDeriv, dNode);
-  return theDeriv;
+  return accumulate(dNodes.begin(), dNodes.end(), static_cast<expr_t>(datatree.Zero),
+                    [&](expr_t e1, expr_t e2) { return datatree.AddPlus(e1, e2); });
 }
 
 void
@@ -7644,10 +7611,8 @@ FirstDerivExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
   for (int i = 0; i < static_cast<int>(dargs.size()); i++)
     dNodes.push_back(datatree.AddTimes(dargs.at(i),
                                        datatree.AddSecondDerivExternalFunction(symb_id, arguments, inputIndex, i+1)));
-  expr_t theDeriv = datatree.Zero;
-  for (auto &dNode : dNodes)
-    theDeriv = datatree.AddPlus(theDeriv, dNode);
-  return theDeriv;
+  return accumulate(dNodes.begin(), dNodes.end(), static_cast<expr_t>(datatree.Zero),
+                    [&](expr_t e1, expr_t e2) { return datatree.AddPlus(e1, e2); });
 }
 
 void

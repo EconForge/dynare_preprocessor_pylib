@@ -22,6 +22,7 @@
 #include <cassert>
 #include <sstream>
 #include <cmath>
+#include <numeric>
 
 #include "ParsingDriver.hh"
 #include "Statement.hh"
@@ -2819,10 +2820,8 @@ ParsingDriver::add_diff(expr_t arg1)
 expr_t
 ParsingDriver::add_adl(expr_t arg1, const string &name, const string &lag)
 {
-  vector<int> lags;
-  for (int i = 1; i <= stoi(lag); i++)
-    lags.push_back(i);
-
+  vector<int> lags(stoi(lag));
+  iota(lags.begin(), lags.end(), 1);
   return add_adl(arg1, name, lags);
 }
 
