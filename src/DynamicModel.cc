@@ -2109,13 +2109,11 @@ DynamicModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_c
 
   // Compute derivatives w.r. to all endogenous, exogenous and exogenous deterministic
   set<int> vars;
-  for (auto &it : deriv_id_table)
-    {
-      SymbolType type = symbol_table.getType(it.first.first);
-      if (type == SymbolType::endogenous || type == SymbolType::exogenous
-          || type == SymbolType::exogenousDet)
-        vars.insert(it.second);
-    }
+  for (auto &[symb_lag, deriv_id] : deriv_id_table)
+    if (SymbolType type = symbol_table.getType(symb_lag.first);
+        type == SymbolType::endogenous || type == SymbolType::exogenous
+        || type == SymbolType::exogenousDet)
+      vars.insert(deriv_id);
 
   // Launch computations
   cout << "Computing " << modelClassName() << " derivatives (order " << derivsOrder << ")." << endl;
