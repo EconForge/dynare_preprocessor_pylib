@@ -1,65 +1,38 @@
 variables:
   TERM: linux
-  MINGW32_BOOST_VERSION: 1.79.0-3
-  MINGW64_BOOST_VERSION: 1.79.0-3
+  MINGW32_BOOST_VERSION: 1.81.0-6
+  MINGW64_BOOST_VERSION: 1.81.0-6
   WGET_OPTIONS: '--no-verbose --no-use-server-timestamps --retry-connrefused --retry-on-host-error'
-  JULIA_VERSION: 1.6.2
-
-stages:
-  - build
-  - deploy
 
 build_linux_i686:
   stage: build
   script:
     - autoreconf -si
-    - './configure --host=i686-linux-gnu LDFLAGS="-static-libstdc++ -static-libgcc -s"'
+    - './configure --host=i686-linux-gnu'
     - make -j$(nproc)
-    - mkdir -p $CI_COMMIT_SHA/linux-i686
-    - tar -caf $CI_COMMIT_SHA/linux-i686/dynare-preprocessor.tar.gz -C src dynare-preprocessor
   artifacts:
     paths:
-      - $CI_COMMIT_SHA/linux-i686/*
+      - src/dynare-preprocessor
 
 build_linux_x86_64:
   stage: build
   script:
     - autoreconf -si
-    - './configure --host=x86_64-linux-gnu LDFLAGS="-static-libstdc++ -static-libgcc -s"'
+    - './configure --host=x86_64-linux-gnu'
     - make -j$(nproc)
-    - mkdir -p $CI_COMMIT_SHA/linux-x86_64
-    - tar -caf $CI_COMMIT_SHA/linux-x86_64/dynare-preprocessor.tar.gz -C src dynare-preprocessor
   artifacts:
     paths:
-      - $CI_COMMIT_SHA/linux-x86_64/*
+      - src/dynare-preprocessor
 
-build_linux_aarch64:
+build_linux_arm64:
   stage: build
   script:
     - autoreconf -si
-    - './configure --host=aarch64-linux-gnu LDFLAGS="-static-libstdc++ -static-libgcc -s"'
+    - './configure --host=aarch64-linux-gnu'
     - make -j$(nproc)
-    - mkdir -p $CI_COMMIT_SHA/linux-aarch64
-    - tar -caf $CI_COMMIT_SHA/linux-aarch64/dynare-preprocessor.tar.gz -C src dynare-preprocessor
   artifacts:
     paths:
-      - $CI_COMMIT_SHA/linux-aarch64/*
-
-build_windows_i686:
-  stage: build
-  script:
-    - mkdir -p ~/tarballs
-    - '[[ -f ~/tarballs/mingw-w64-i686-boost-$MINGW32_BOOST_VERSION-any.pkg.tar.zst ]] || wget $WGET_OPTIONS -P ~/tarballs http://repo.msys2.org/mingw/i686/mingw-w64-i686-boost-$MINGW32_BOOST_VERSION-any.pkg.tar.zst'
-    - mkdir -p deps
-    - tar xf ~/tarballs/mingw-w64-i686-boost-$MINGW32_BOOST_VERSION-any.pkg.tar.zst --directory deps
-    - autoreconf -si
-    - './configure --host=i686-w64-mingw32 --with-boost=$(pwd)/deps/mingw32/include LDFLAGS="-static -static-libgcc -static-libstdc++ -s"'
-    - make -j$(nproc)
-    - mkdir -p $CI_COMMIT_SHA/windows-i686
-    - tar -caf $CI_COMMIT_SHA/windows-i686/dynare-preprocessor.tar.gz -C src dynare-preprocessor.exe
-  artifacts:
-    paths:
-      - $CI_COMMIT_SHA/windows-i686/*
+      - src/dynare-preprocessor
 
 build_windows_x86_64:
   stage: build
@@ -69,13 +42,11 @@ build_windows_x86_64:
     - mkdir -p deps
     - tar xf ~/tarballs/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.zst --directory deps
     - autoreconf -si
-    - './configure --host=x86_64-w64-mingw32 --with-boost=$(pwd)/deps/mingw64/include LDFLAGS="-static -static-libgcc -static-libstdc++ -s"'
+    - './configure --host=x86_64-w64-mingw32 --with-boost=$(pwd)/deps/mingw64/include'
     - make -j$(nproc)
-    - mkdir -p $CI_COMMIT_SHA/windows-x86_64
-    - tar -caf $CI_COMMIT_SHA/windows-x86_64/dynare-preprocessor.tar.gz -C src dynare-preprocessor.exe
   artifacts:
     paths:
-      - $CI_COMMIT_SHA/windows-x86_64/*
+      - src/dynare-preprocessor.exe
 
 build_macos_x86_64:
   stage: build
@@ -83,26 +54,8 @@ build_macos_x86_64:
     - macOS
   script:
     - autoreconf -si
-    - './configure CC=gcc-12 CXX=g++-12 LDFLAGS="-static-libgcc -s" LEX=/usr/local/opt/flex/bin/flex YACC=/usr/local/opt/bison/bin/bison'
+    - './configure CC=gcc-12 CXX=g++-12 LEX=/usr/local/opt/flex/bin/flex YACC=/usr/local/opt/bison/bin/bison'
     - make -j$(nproc)
-    - mkdir -p $CI_COMMIT_SHA/macos-x86_64
-    - tar -caf $CI_COMMIT_SHA/macos-x86_64/dynare-preprocessor.tar.gz -C src dynare-preprocessor
   artifacts:
     paths:
-      - $CI_COMMIT_SHA/macos-x86_64/*
-
-deploy_julia:
-  stage: deploy
-  tags:
-    - restricted
-  rules:
-    - if: '$CI_PROJECT_NAMESPACE == "Dynare" && $CI_COMMIT_REF_NAME == "master"'
-      when: manual
-      allow_failure: true
-    - when: never
-  script:
-    - PATH=$PATH:/usr/local/julia/$JULIA_VERSION/bin scripts/create-julia-artifacts-toml $CI_COMMIT_SHA https://www.dynare.org/preprocessor
-    - cp -R $CI_COMMIT_SHA /srv/www.dynare.org/preprocessor/
-  artifacts:
-    paths:
-      - $CI_COMMIT_SHA/Artifacts.toml
+      - src/dynare-preprocessor
