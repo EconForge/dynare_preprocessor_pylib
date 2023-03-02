@@ -6758,11 +6758,15 @@ AbstractExternalFunctionNode::prepareForDerivation()
 
   non_null_derivatives = arguments.at(0)->non_null_derivatives;
   for (int i = 1; i < static_cast<int>(arguments.size()); i++)
-    set_union(non_null_derivatives.begin(),
-              non_null_derivatives.end(),
-              arguments.at(i)->non_null_derivatives.begin(),
-              arguments.at(i)->non_null_derivatives.end(),
-              inserter(non_null_derivatives, non_null_derivatives.begin()));
+    {
+      set<int> non_null_derivatives_tmp;
+      set_union(non_null_derivatives.begin(),
+                non_null_derivatives.end(),
+                arguments.at(i)->non_null_derivatives.begin(),
+                arguments.at(i)->non_null_derivatives.end(),
+                inserter(non_null_derivatives_tmp, non_null_derivatives_tmp.begin()));
+      non_null_derivatives = move(non_null_derivatives_tmp);
+    }
 
   preparedForDerivation = true;
 }
