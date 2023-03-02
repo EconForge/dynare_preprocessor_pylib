@@ -1436,10 +1436,11 @@ VariableNode::computeChainRuleDerivative(int deriv_id,
       [[fallthrough]];
     case SymbolType::endogenous:
     case SymbolType::parameter:
-      if (deriv_id == datatree.getDerivID(symb_id, lag))
+      if (int my_deriv_id {datatree.getDerivID(symb_id, lag)};
+          deriv_id == my_deriv_id)
         return datatree.One;
       // If there is in the equation a recursive variable we could use a chaine rule derivation
-      else if (auto it = recursive_variables.find(datatree.getDerivID(symb_id, lag));
+      else if (auto it = recursive_variables.find(my_deriv_id);
                it != recursive_variables.end())
         return it->second->arg2->getChainRuleDerivative(deriv_id, recursive_variables, cache);
       else
