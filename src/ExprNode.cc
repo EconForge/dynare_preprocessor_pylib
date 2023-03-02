@@ -868,7 +868,7 @@ VariableNode::prepareForDerivation()
     case SymbolType::trend:
     case SymbolType::logTrend:
       // In static models, exogenous and trends do not have deriv IDs
-      if (dynamic_cast<StaticModel *>(&datatree))
+      if (!datatree.isDynamic())
         break;
       [[fallthrough]];
     case SymbolType::endogenous:
@@ -907,7 +907,7 @@ VariableNode::computeDerivative(int deriv_id)
     case SymbolType::trend:
     case SymbolType::logTrend:
       // In static models, exogenous and trends do not have deriv IDs
-      if (dynamic_cast<StaticModel *>(&datatree))
+      if (!datatree.isDynamic())
         return datatree.Zero;
       [[fallthrough]];
     case SymbolType::endogenous:
@@ -1431,7 +1431,7 @@ VariableNode::computeChainRuleDerivative(int deriv_id,
     case SymbolType::trend:
     case SymbolType::logTrend:
       // In static models, exogenous and trends do not have deriv IDs
-      if (dynamic_cast<StaticModel *>(&datatree))
+      if (!datatree.isDynamic())
         return datatree.Zero;
       [[fallthrough]];
     case SymbolType::endogenous:
