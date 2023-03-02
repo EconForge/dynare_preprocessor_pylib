@@ -2136,13 +2136,18 @@ UnaryOpNode::prepareForDerivation()
 
   preparedForDerivation = true;
 
-  arg->prepareForDerivation();
-
-  // Non-null derivatives are those of the argument (except for STEADY_STATE)
-  non_null_derivatives = arg->non_null_derivatives;
-  if (op_code == UnaryOpcode::steadyState || op_code == UnaryOpcode::steadyStateParamDeriv
-      || op_code == UnaryOpcode::steadyStateParam2ndDeriv)
+  /* Non-null derivatives are those of the argument (except for STEADY_STATE in
+     a dynamic context, in which case the potentially non-null derivatives are
+     all the parameters) */
+  if ((op_code == UnaryOpcode::steadyState || op_code == UnaryOpcode::steadyStateParamDeriv
+       || op_code == UnaryOpcode::steadyStateParam2ndDeriv)
+      && datatree.isDynamic())
     datatree.addAllParamDerivId(non_null_derivatives);
+  else
+    {
+      arg->prepareForDerivation();
+      non_null_derivatives = arg->non_null_derivatives;
+    }
 }
 
 expr_t
