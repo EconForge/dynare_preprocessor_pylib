@@ -666,6 +666,7 @@ StaticModel::computeChainRuleJacobian()
              && simulation_type != BlockSimulationType::solveTwoBoundariesComplete);
 
       int size = blocks[blk].size;
+      map<expr_t, set<int>> non_null_chain_rule_derivatives;
       map<pair<expr_t, int>, expr_t> chain_rule_deriv_cache;
       for (int eq = nb_recursives; eq < size; eq++)
         {
@@ -673,7 +674,7 @@ StaticModel::computeChainRuleJacobian()
           for (int var = nb_recursives; var < size; var++)
             {
               int var_orig = getBlockVariableID(blk, var);
-              expr_t d1 = equations[eq_orig]->getChainRuleDerivative(getDerivID(symbol_table.getID(SymbolType::endogenous, var_orig), 0), recursive_vars, chain_rule_deriv_cache);
+              expr_t d1 = equations[eq_orig]->getChainRuleDerivative(getDerivID(symbol_table.getID(SymbolType::endogenous, var_orig), 0), recursive_vars, non_null_chain_rule_derivatives, chain_rule_deriv_cache);
               if (d1 != Zero)
                 blocks_derivatives[blk][{ eq, var, 0 }] = d1;
             }
