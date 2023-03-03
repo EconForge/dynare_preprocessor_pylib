@@ -87,7 +87,8 @@ private:
   int
   getBlockJacobianEndoCol([[maybe_unused]] int blk, int var, [[maybe_unused]] int lag) const override
   {
-    return var;
+    assert(var >= blocks[blk].getRecursiveSize());
+    return var - blocks[blk].getRecursiveSize();
   }
 
   // Write the block structure of the model in the driver file
