@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2022 Dynare Team
+ * Copyright © 2019-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -120,7 +120,7 @@ namespace macro
       Node(move(location_arg)) { }
     virtual string to_string() const noexcept = 0;
     virtual void print(ostream &output, bool matlab_output = false) const noexcept = 0;
-    virtual BaseTypePtr eval(Environment &env) = 0;
+    virtual BaseTypePtr eval(Environment &env) const = 0;
     virtual ExpressionPtr clone() const noexcept = 0;
   };
 
@@ -131,7 +131,7 @@ namespace macro
     explicit BaseType(Tokenizer::location location_arg = Tokenizer::location()) :
       Expression(move(location_arg)) { }
     virtual codes::BaseType getType() const noexcept = 0;
-    BaseTypePtr eval([[maybe_unused]] Environment &env) override { return shared_from_this(); }
+    BaseTypePtr eval([[maybe_unused]] Environment &env) const override { return const_pointer_cast<BaseType>(shared_from_this()); }
   public:
     virtual BaseTypePtr plus([[maybe_unused]] const BaseTypePtr &bt) const { throw StackTrace("Operator + does not exist for this type"); }
     virtual BaseTypePtr unary_plus() const { throw StackTrace("Unary operator + does not exist for this type"); }
@@ -400,7 +400,7 @@ namespace macro
     codes::BaseType getType() const noexcept override { return codes::BaseType::Tuple; }
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
-    BaseTypePtr eval(Environment &env) override;
+    BaseTypePtr eval(Environment &env) const override;
     ExpressionPtr clone() const noexcept override;
   public:
     size_t size() const { return tup.size(); }
@@ -431,7 +431,7 @@ namespace macro
     codes::BaseType getType() const noexcept override { return codes::BaseType::Array; }
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
-    BaseTypePtr eval(Environment &env) override;
+    BaseTypePtr eval(Environment &env) const override;
     ExpressionPtr clone() const noexcept override;
   public:
     size_t size() const { return arr.size(); }
@@ -480,7 +480,7 @@ namespace macro
       return retval + end->to_string() + "]";
     }
     void print(ostream &output, [[maybe_unused]] bool matlab_output = false) const noexcept override { output << to_string(); }
-    BaseTypePtr eval(Environment &env) override;
+    BaseTypePtr eval(Environment &env) const override;
     ExpressionPtr
     clone() const noexcept override
     {
@@ -511,7 +511,7 @@ namespace macro
       Expression(move(location_arg)), name{move(name_arg)}, indices{move(indices_arg)} { }
     string to_string() const noexcept override { return name; }
     void print(ostream &output, [[maybe_unused]] bool matlab_output = false) const noexcept override { output << name; }
-    BaseTypePtr eval(Environment &env) override;
+    BaseTypePtr eval(Environment &env) const override;
     ExpressionPtr
     clone() const noexcept override
     {
@@ -540,7 +540,7 @@ namespace macro
     {
       printName(output); printArgs(output);
     }
-    BaseTypePtr eval(Environment &env) override;
+    BaseTypePtr eval(Environment &env) const override;
     ExpressionPtr clone() const noexcept override;
   public:
     void printName(ostream &output) const noexcept { output << name; }
@@ -562,7 +562,7 @@ namespace macro
       Expression(move(location_arg)), op_code{move(op_code_arg)}, arg{move(arg_arg)} { }
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
-    BaseTypePtr eval(Environment &env) override;
+    BaseTypePtr eval(Environment &env) const override;
     ExpressionPtr
     clone() const noexcept override
     {
@@ -585,7 +585,7 @@ namespace macro
   public:
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
-    BaseTypePtr eval(Environment &env) override;
+    BaseTypePtr eval(Environment &env) const override;
     ExpressionPtr
     clone() const noexcept override
     {
@@ -607,7 +607,7 @@ namespace macro
       arg1{move(arg1_arg)}, arg2{move(arg2_arg)}, arg3{move(arg3_arg)} { }
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
-    BaseTypePtr eval(Environment &env) override;
+    BaseTypePtr eval(Environment &env) const override;
     ExpressionPtr
     clone() const noexcept override
     {
@@ -649,7 +649,7 @@ namespace macro
       c_vars{move(c_vars_arg)}, c_set{move(c_set_arg)}, c_when{move(c_when_arg)} { }
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
-    BaseTypePtr eval(Environment &env) override;
+    BaseTypePtr eval(Environment &env) const override;
     ExpressionPtr clone() const noexcept override;
   };
 }

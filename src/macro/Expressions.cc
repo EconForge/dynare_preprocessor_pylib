@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2022 Dynare Team
+ * Copyright © 2019-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -607,7 +607,7 @@ Tuple::cast_real(Environment &env) const
 }
 
 BaseTypePtr
-Range::eval(Environment &env)
+Range::eval(Environment &env) const
 {
   RealPtr incdbl = make_shared<Real>(1);
   if (inc)
@@ -630,7 +630,7 @@ Range::eval(Environment &env)
 }
 
 BaseTypePtr
-Array::eval(Environment &env)
+Array::eval(Environment &env) const
 {
   vector<ExpressionPtr> retval;
   for (const auto &it : arr)
@@ -639,7 +639,7 @@ Array::eval(Environment &env)
 }
 
 BaseTypePtr
-Tuple::eval(Environment &env)
+Tuple::eval(Environment &env) const
 {
   vector<ExpressionPtr> retval;
   for (const auto &it : tup)
@@ -648,7 +648,7 @@ Tuple::eval(Environment &env)
 }
 
 BaseTypePtr
-Variable::eval(Environment &env)
+Variable::eval(Environment &env) const
 {
   if (indices && !indices->empty())
     {
@@ -731,7 +731,7 @@ Variable::eval(Environment &env)
 }
 
 BaseTypePtr
-Function::eval(Environment &env)
+Function::eval(Environment &env) const
 {
   FunctionPtr func;
   ExpressionPtr body;
@@ -770,7 +770,7 @@ Function::eval(Environment &env)
 }
 
 BaseTypePtr
-UnaryOp::eval(Environment &env)
+UnaryOp::eval(Environment &env) const
 {
   try
     {
@@ -870,7 +870,7 @@ UnaryOp::eval(Environment &env)
 }
 
 BaseTypePtr
-BinaryOp::eval(Environment &env)
+BinaryOp::eval(Environment &env) const
 {
   try
     {
@@ -930,7 +930,7 @@ BinaryOp::eval(Environment &env)
 }
 
 BaseTypePtr
-TrinaryOp::eval(Environment &env)
+TrinaryOp::eval(Environment &env) const
 {
   try
     {
@@ -956,7 +956,7 @@ TrinaryOp::eval(Environment &env)
 }
 
 BaseTypePtr
-Comprehension::eval(Environment &env)
+Comprehension::eval(Environment &env) const
 {
   ArrayPtr input_set;
   VariablePtr vp;
