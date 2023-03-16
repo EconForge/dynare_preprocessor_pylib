@@ -121,7 +121,6 @@ namespace macro
     virtual string to_string() const noexcept = 0;
     virtual void print(ostream &output, bool matlab_output = false) const noexcept = 0;
     virtual BaseTypePtr eval(Environment &env) const = 0;
-    virtual ExpressionPtr clone() const noexcept = 0;
   };
 
 
@@ -213,7 +212,6 @@ namespace macro
     codes::BaseType getType() const noexcept override { return codes::BaseType::Bool; }
     string to_string() const noexcept override { return value ? "true" : "false"; }
     void print(ostream &output, [[maybe_unused]] bool matlab_output = false) const noexcept override { output << to_string(); }
-    ExpressionPtr clone() const noexcept override { return make_shared<Bool>(value, location); }
   public:
     operator bool() const { return value; }
     BoolPtr is_equal(const BaseTypePtr &btp) const override;
@@ -261,7 +259,6 @@ namespace macro
       return strs.str();
     }
     void print(ostream &output, [[maybe_unused]] bool matlab_output = false) const noexcept override { output << to_string(); }
-    ExpressionPtr clone() const noexcept override { return make_shared<Real>(value, location); }
   public:
     operator double() const { return value; }
     BaseTypePtr plus(const BaseTypePtr &bt) const override;
@@ -355,7 +352,6 @@ namespace macro
     codes::BaseType getType() const noexcept override { return codes::BaseType::String; }
     string to_string() const noexcept override { return value; }
     void print(ostream &output, bool matlab_output = false) const noexcept override;
-    ExpressionPtr clone() const noexcept override { return make_shared<String>(value, location); }
   public:
     operator string() const { return value; }
     BaseTypePtr plus(const BaseTypePtr &bt) const override;
@@ -401,7 +397,6 @@ namespace macro
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval(Environment &env) const override;
-    ExpressionPtr clone() const noexcept override;
   public:
     size_t size() const { return tup.size(); }
     bool empty() const { return tup.empty(); }
@@ -432,7 +427,6 @@ namespace macro
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval(Environment &env) const override;
-    ExpressionPtr clone() const noexcept override;
   public:
     size_t size() const { return arr.size(); }
     const vector<ExpressionPtr> &getValue() const { return arr; }
@@ -481,13 +475,6 @@ namespace macro
     }
     void print(ostream &output, [[maybe_unused]] bool matlab_output = false) const noexcept override { output << to_string(); }
     BaseTypePtr eval(Environment &env) const override;
-    ExpressionPtr
-    clone() const noexcept override
-    {
-      return inc ?
-        make_shared<Range>(start, inc, end, location)
-        : make_shared<Range>(start, end, location);
-    }
   public:
     BoolPtr
     is_equal([[maybe_unused]] const BaseTypePtr &btp) const override
@@ -512,12 +499,6 @@ namespace macro
     string to_string() const noexcept override { return name; }
     void print(ostream &output, [[maybe_unused]] bool matlab_output = false) const noexcept override { output << name; }
     BaseTypePtr eval(Environment &env) const override;
-    ExpressionPtr
-    clone() const noexcept override
-    {
-      return indices ? make_shared<Variable>(name, indices, location) :
-        make_shared<Variable>(name, location);
-    }
   public:
     const string &getName() const noexcept { return name; }
     codes::BaseType getType(const Environment &env) const { return env.getType(name); }
@@ -541,7 +522,6 @@ namespace macro
       printName(output); printArgs(output);
     }
     BaseTypePtr eval(Environment &env) const override;
-    ExpressionPtr clone() const noexcept override;
   public:
     void printName(ostream &output) const noexcept { output << name; }
     void printArgs(ostream &output) const noexcept;
@@ -563,11 +543,6 @@ namespace macro
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval(Environment &env) const override;
-    ExpressionPtr
-    clone() const noexcept override
-    {
-      return make_shared<UnaryOp>(op_code, arg->clone(), location);
-    }
   };
 
 
@@ -586,11 +561,6 @@ namespace macro
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval(Environment &env) const override;
-    ExpressionPtr
-    clone() const noexcept override
-    {
-      return make_shared<BinaryOp>(op_code, arg1->clone(), arg2->clone(), location);
-    }
   };
 
 
@@ -608,11 +578,6 @@ namespace macro
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval(Environment &env) const override;
-    ExpressionPtr
-    clone() const noexcept override
-    {
-      return make_shared<TrinaryOp>(op_code, arg1->clone(), arg2->clone(), arg3->clone(), location);
-    }
   };
 
 
@@ -650,7 +615,6 @@ namespace macro
     string to_string() const noexcept override;
     void print(ostream &output, bool matlab_output = false) const noexcept override;
     BaseTypePtr eval(Environment &env) const override;
-    ExpressionPtr clone() const noexcept override;
   };
 }
 #endif

@@ -1010,7 +1010,7 @@ Comprehension::eval(Environment &env) const
         if (!c_expr)
           throw StackTrace("Comprehension", "Internal Error: Impossible case", location);
         else
-          values.emplace_back(c_expr->clone()->eval(env));
+          values.emplace_back(c_expr->eval(env));
       else
         {
           RealPtr dp;
@@ -1030,50 +1030,12 @@ Comprehension::eval(Environment &env) const
             }
           if ((bp && *bp) || (dp && *dp))
             if (c_expr)
-              values.emplace_back(c_expr->clone()->eval(env));
+              values.emplace_back(c_expr->eval(env));
             else
               values.emplace_back(btp);
         }
     }
   return make_shared<Array>(values);
-}
-
-ExpressionPtr
-Tuple::clone() const noexcept
-{
-  vector<ExpressionPtr> tup_copy;
-  for (const auto &it : tup)
-    tup_copy.emplace_back(it->clone());
-  return make_shared<Tuple>(tup_copy, location);
-}
-
-ExpressionPtr
-Array::clone() const noexcept
-{
-  vector<ExpressionPtr> arr_copy;
-  for (const auto &it : arr)
-    arr_copy.emplace_back(it->clone());
-  return make_shared<Array>(arr_copy, location);
-}
-
-ExpressionPtr
-Function::clone() const noexcept
-{
-  vector<ExpressionPtr> args_copy;
-  for (const auto &it : args)
-    args_copy.emplace_back(it->clone());
-  return make_shared<Function>(name, args_copy, location);
-}
-
-ExpressionPtr
-Comprehension::clone() const noexcept
-{
-  if (c_expr && c_when)
-    return make_shared<Comprehension>(c_expr->clone(), c_vars->clone(), c_set->clone(), c_when->clone(), location);
-  else if (c_expr)
-    return make_shared<Comprehension>(c_expr->clone(), c_vars->clone(), c_set->clone(), location);
-  else
-    return make_shared<Comprehension>(true, c_vars->clone(), c_set->clone(), c_when->clone(), location);
 }
 
 string
