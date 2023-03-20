@@ -503,7 +503,8 @@ main(int argc, char **argv)
     }
 
   if (mod_file->use_dll)
-    ModelTree::initializeMEXCompilationWorkers(max(jthread::hardware_concurrency(), 1U));
+    ModelTree::initializeMEXCompilationWorkers(max(jthread::hardware_concurrency(), 1U),
+                                               dynareroot, mexext);
 
   if (json == JsonOutputPointType::parsing)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
@@ -533,7 +534,7 @@ main(int argc, char **argv)
   else
     mod_file->writeMOutput(basename, clear_all, clear_global, no_warn, console, nograph,
                            nointeractive, config_file, check_model_changes, minimal_workspace, compute_xrefs,
-                           mexext, matlabroot, dynareroot, onlymodel, gui, notime);
+                           mexext, matlabroot, onlymodel, gui, notime);
 
   /* Ensures that workers are not destroyed before they finish compiling.
      Also ensures that the preprocessor final message is printed after the end of

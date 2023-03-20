@@ -770,8 +770,7 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
                       bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
                       bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
                       const string &mexext,
-                      const filesystem::path &matlabroot,
-                      const filesystem::path &dynareroot, bool onlymodel, bool gui, bool notime) const
+                      const filesystem::path &matlabroot, bool onlymodel, bool gui, bool notime) const
 {
   if (basename.empty())
     {
@@ -1043,11 +1042,11 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
         {
           if (!no_static)
             {
-              static_model.writeStaticFile(basename, use_dll, mexext, matlabroot, dynareroot, false);
+              static_model.writeStaticFile(basename, use_dll, mexext, matlabroot, false);
               static_model.writeParamsDerivativesFile<false>(basename);
             }
 
-          dynamic_model.writeDynamicFile(basename, use_dll, mexext, matlabroot, dynareroot, false);
+          dynamic_model.writeDynamicFile(basename, use_dll, mexext, matlabroot, false);
 
           dynamic_model.writeParamsDerivativesFile<false>(basename);
         }
@@ -1069,10 +1068,10 @@ ModFile::writeJuliaOutput(const string &basename) const
     {
       if (!no_static)
         {
-          static_model.writeStaticFile(basename, false, "", {}, {}, true);
+          static_model.writeStaticFile(basename, false, "", {}, true);
           static_model.writeParamsDerivativesFile<true>(basename);
         }
-      dynamic_model.writeDynamicFile(basename, use_dll, "", {}, {}, true);
+      dynamic_model.writeDynamicFile(basename, use_dll, "", {}, true);
       dynamic_model.writeParamsDerivativesFile<true>(basename);
     }
   steady_state_model.writeSteadyStateFile(basename, true);

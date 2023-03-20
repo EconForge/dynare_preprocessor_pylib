@@ -309,7 +309,7 @@ protected:
 
   // Writes and compiles dynamic/static file (C version, legacy representation)
   template<bool dynamic>
-  void writeModelCFile(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
+  void writeModelCFile(const string &basename, const string &mexext, const filesystem::path &matlabroot) const;
 
   // Writes per-block residuals and temporary terms (incl. for derivatives)
   template<ExprNodeOutputType output_type>
@@ -377,7 +377,7 @@ protected:
 
   // Writes and compiles the sparse representation of the model in C
   template<bool dynamic>
-  void writeSparseModelCFiles(const string &basename, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot) const;
+  void writeSparseModelCFiles(const string &basename, const string &mexext, const filesystem::path &matlabroot) const;
 
   // Writes the sparse representation of the model in Julia
   // Assumes that the directory <MODFILE>/model/julia/ already exists
@@ -583,7 +583,7 @@ private:
      blocking. The dependency of a linked MEX file upon intermediary objects is
      nicely handled. Returns the name of the output file (to be reused later as
      input file if link=false). */
-  filesystem::path compileMEX(const filesystem::path &output_dir, const string &output_basename, const string &mexext, const vector<filesystem::path> &input_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool link = true) const;
+  filesystem::path compileMEX(const filesystem::path &output_dir, const string &output_basename, const string &mexext, const vector<filesystem::path> &input_files, const filesystem::path &matlabroot, bool link = true) const;
 
 public:
   ModelTree(SymbolTable &symbol_table_arg,
@@ -625,8 +625,10 @@ public:
      If no such equation can be found, throws an ExprNode::MatchFailureExpression */
   expr_t getRHSFromLHS(expr_t lhs) const;
 
-  // Initialize the MEX compilation workers
-  static void initializeMEXCompilationWorkers(int numworkers);
+  /* Initialize the MEX compilation workers (and some environment variables
+     needed for finding GCC) */
+  static void initializeMEXCompilationWorkers(int numworkers, const filesystem::path &dynareroot,
+                                              const string &mexext);
 
   // Waits until the MEX compilation queue is empty
   static void waitForMEXCompilationWorkers();
@@ -922,8 +924,7 @@ ModelTree::writeModelFileHelper() const
 template<bool dynamic>
 void
 ModelTree::writeModelCFile(const string &basename, const string &mexext,
-                           const filesystem::path &matlabroot,
-                           const filesystem::path &dynareroot) const
+                           const filesystem::path &matlabroot) const
 {
   ofstream output;
   auto open_file = [&output](const filesystem::path &p)
@@ -974,7 +975,7 @@ ModelTree::writeModelCFile(const string &basename, const string &mexext,
              << endl;
       output.close();
       object_files.push_back(compileMEX(model_src_dir, funcname + "_tt" , mexext, { source_tt },
-                                        matlabroot, dynareroot, false));
+                                        matlabroot, false));
 
       const string prototype_main
         {
@@ -1013,7 +1014,7 @@ ModelTree::writeModelCFile(const string &basename, const string &mexext,
              << endl;
       output.close();
       object_files.push_back(compileMEX(model_src_dir, funcname, mexext, { source_main },
-                                        matlabroot, dynareroot, false));
+                                        matlabroot, false));
     }
 
   const filesystem::path filename { model_src_dir / (dynamic ? "dynamic.c" : "static.c") };
@@ -1123,8 +1124,7 @@ ModelTree::writeModelCFile(const string &basename, const string &mexext,
   output.close();
 
   object_files.push_back(filename);
-  compileMEX(packageDir(basename), dynamic ? "dynamic" : "static", mexext, object_files, matlabroot,
-             dynareroot);
+  compileMEX(packageDir(basename), dynamic ? "dynamic" : "static", mexext, object_files, matlabroot);
 }
 
 template<ExprNodeOutputType output_type>
@@ -2611,8 +2611,7 @@ ModelTree::writeSparseModelMFiles(const string &basename) const
 template<bool dynamic>
 void
 ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
-                                  const filesystem::path &matlabroot,
-                                  const filesystem::path &dynareroot) const
+                                  const filesystem::path &matlabroot) const
 {
   constexpr ExprNodeOutputType output_type {dynamic ? ExprNodeOutputType::CSparseDynamicModel : ExprNodeOutputType::CSparseStaticModel};
   auto [d_sparse_output, tt_sparse_output] = writeModelFileHelper<output_type>();
@@ -2654,7 +2653,7 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
   output.close();
   auto power_deriv_object {compileMEX(model_src_dir, (prefix + "power_deriv"),
                                       mexext, { power_deriv_src },
-                                      matlabroot, dynareroot, false)};
+                                      matlabroot, false)};
 
   size_t ttlen {0};
 
@@ -2731,7 +2730,7 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
              << endl;
       output.close();
       tt_object_files.push_back(compileMEX(model_src_dir, funcname + "_tt", mexext, { source_tt },
-                                           matlabroot, dynareroot, false));
+                                           matlabroot, false));
 
       const string prototype_main {"void " + funcname + "(const double *restrict y, const double *restrict x, const double *restrict params" + ss_argin + ", const double *restrict T, double *restrict " + (i == 0 ? "residual" : "g" + to_string(i) + "_v") + ")"};
 
@@ -2754,7 +2753,7 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
              << endl;
       output.close();
       auto main_object_file {compileMEX(model_src_dir, funcname, mexext, { source_main },
-                                        matlabroot, dynareroot, false)};
+                                        matlabroot, false)};
 
       const filesystem::path source_mex { model_src_dir / (funcname + "_mex.c")};
       int nargin {5+static_cast<int>(dynamic)+3*static_cast<int>(i == 1)};
@@ -2837,7 +2836,7 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
       vector<filesystem::path> mex_input_files { power_deriv_object, main_object_file, source_mex };
       for (int j {0}; j <= i; j++)
         mex_input_files.push_back(tt_object_files[j]);
-      compileMEX(mex_dir, funcname, mexext, mex_input_files, matlabroot, dynareroot);
+      compileMEX(mex_dir, funcname, mexext, mex_input_files, matlabroot);
     }
 
   if (block_decomposed)
@@ -2926,7 +2925,7 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
             }
           output << "}" << endl;
           output.close();
-          compileMEX(block_dir, funcname, mexext, { source_mex, power_deriv_object }, matlabroot, dynareroot);
+          compileMEX(block_dir, funcname, mexext, { source_mex, power_deriv_object }, matlabroot);
         }
     }
 }

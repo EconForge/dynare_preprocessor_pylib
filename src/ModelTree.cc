@@ -1616,7 +1616,7 @@ ModelTree::findGccOnMacos(const string &mexext)
 #endif
 
 filesystem::path
-ModelTree::compileMEX(const filesystem::path &output_dir, const string &output_basename, const string &mexext, const vector<filesystem::path> &input_files, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool link) const
+ModelTree::compileMEX(const filesystem::path &output_dir, const string &output_basename, const string &mexext, const vector<filesystem::path> &input_files, const filesystem::path &matlabroot, bool link) const
 {
   assert(!mex_compilation_workers.empty());
 
@@ -1637,22 +1637,6 @@ ModelTree::compileMEX(const filesystem::path &output_dir, const string &output_b
       // Octave
       compiler = matlabroot / "bin" / "mkoctfile";
       flags << "--mex";
-#ifdef __APPLE__
-      /* On macOS, enforce GCC, otherwise Clang will be used, and it does not
-         accept our custom optimization flags (see dynare#1797) */
-      filesystem::path gcc_path {findGccOnMacos(mexext)};
-      if (setenv("CC", gcc_path.c_str(), 1) != 0)
-        {
-          cerr << "Can't set CC environment variable" << endl;
-          exit(EXIT_FAILURE);
-        }
-      // We also define CXX, because that is used for linking
-      if (setenv("CXX", gcc_path.c_str(), 1) != 0)
-        {
-          cerr << "Can't set CXX environment variable" << endl;
-          exit(EXIT_FAILURE);
-        }
-#endif
     }
   else
     {
@@ -1672,22 +1656,8 @@ ModelTree::compileMEX(const filesystem::path &output_dir, const string &output_b
                 << " -shared -Wl,--no-undefined -Wl,-rpath-link," << bin_dir;
           libs += " -lm";
         }
-      else if (mexext == "mexw64")
-        {
-          // Windows
-          flags << " -static-libgcc -shared";
-          // Put the MinGW environment shipped with Dynare in the path
-          auto mingwpath = dynareroot / "mingw64" / "bin";
-          string newpath = "PATH=" + mingwpath.string() + ';' + getenv("PATH");
-          /* We can’t use setenv() since it is not available on MinGW. Note
-            that putenv() seems to make a copy of the string on MinGW, contrary
-            to what is done on GNU/Linux and macOS. */
-          if (putenv(const_cast<char *>(newpath.c_str())) != 0)
-            {
-              cerr << "Can't set PATH" << endl;
-              exit(EXIT_FAILURE);
-            }
-        }
+      else if (mexext == "mexw64") // Windows
+        flags << " -static-libgcc -shared";
 #ifdef __APPLE__
       else if (mexext == "mexmaci64" || mexext == "mexmaca64")
         {
@@ -1866,7 +1836,8 @@ ModelTree::getRHSFromLHS(expr_t lhs) const
 }
 
 void
-ModelTree::initializeMEXCompilationWorkers(int numworkers)
+ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::path &dynareroot,
+                                           const string &mexext)
 {
   assert(numworkers > 0);
   assert(mex_compilation_workers.empty());
@@ -1917,6 +1888,44 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers)
             mex_compilation_cv.notify_all();
           }
     });
+
+  /* Set some environment variables needed for compilation on Windows/MATLAB
+     and macOS/Octave.
+     For Windows/MATLAB, this should be done only once, because otherwise
+     the PATH variable can become too long and GCC will not be found. */
+  if (mexext == "mexw64")
+    {
+      // Put the MinGW environment shipped with Dynare in the path
+      auto mingwpath = dynareroot / "mingw64" / "bin";
+      string newpath = "PATH=" + mingwpath.string() + ';' + getenv("PATH");
+      /* We can’t use setenv() since it is not available on MinGW. Note that
+         putenv() seems to make an internal copy of the string on MinGW,
+         contrary to what is done on GNU/Linux and macOS. */
+      if (putenv(const_cast<char *>(newpath.c_str())) != 0)
+        {
+          cerr << "Can't set PATH" << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+#ifdef __APPLE__
+  else if (mexext == "mex")
+    {
+      /* On macOS, with Octave, enforce GCC, otherwise Clang will be used, and
+         it does not accept our custom optimization flags (see dynare#1797) */
+      filesystem::path gcc_path {findGccOnMacos(mexext)};
+      if (setenv("CC", gcc_path.c_str(), 1) != 0)
+        {
+          cerr << "Can't set CC environment variable" << endl;
+          exit(EXIT_FAILURE);
+        }
+      // We also define CXX, because that is used for linking
+      if (setenv("CXX", gcc_path.c_str(), 1) != 0)
+        {
+          cerr << "Can't set CXX environment variable" << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+#endif
 }
 
 void

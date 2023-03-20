@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2022 Dynare Team
+ * Copyright © 2006-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -173,7 +173,7 @@ public:
                     bool console, bool nograph, bool nointeractive, const ConfigFile &config_file,
                     bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
                     const string &mexext, const filesystem::path &matlabroot,
-                    const filesystem::path &dynareroot, bool onlymodel, bool gui, bool notime) const;
+                    bool onlymodel, bool gui, bool notime) const;
 
   void writeJuliaOutput(const string &basename) const;
 

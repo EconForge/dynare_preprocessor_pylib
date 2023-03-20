@@ -456,7 +456,7 @@ StaticModel::writeStaticMCompatFile(const string &basename) const
 }
 
 void
-StaticModel::writeStaticFile(const string &basename, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const
+StaticModel::writeStaticFile(const string &basename, bool use_dll, const string &mexext, const filesystem::path &matlabroot, bool julia) const
 {
   filesystem::path model_dir{basename};
   model_dir /= "model";
@@ -487,7 +487,7 @@ StaticModel::writeStaticFile(const string &basename, bool use_dll, const string 
 
   // Legacy representation
   if (use_dll)
-    writeModelCFile<false>(basename, mexext, matlabroot, dynareroot);
+    writeModelCFile<false>(basename, mexext, matlabroot);
   else if (!julia) // M-files
     writeStaticMFile(basename);
   // The legacy representation is no longer produced for Julia
@@ -498,7 +498,7 @@ StaticModel::writeStaticFile(const string &basename, bool use_dll, const string 
 
   // Sparse representation
   if (use_dll)
-    writeSparseModelCFiles<false>(basename, mexext, matlabroot, dynareroot);
+    writeSparseModelCFiles<false>(basename, mexext, matlabroot);
   else if (julia)
     writeSparseModelJuliaFiles<false>(basename);
   else // MATLAB/Octave

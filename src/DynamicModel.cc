@@ -2412,7 +2412,7 @@ DynamicModel::computeBlockDynJacobianCols()
 }
 
 void
-DynamicModel::writeDynamicFile(const string &basename, bool use_dll, const string &mexext, const filesystem::path &matlabroot, const filesystem::path &dynareroot, bool julia) const
+DynamicModel::writeDynamicFile(const string &basename, bool use_dll, const string &mexext, const filesystem::path &matlabroot, bool julia) const
 {
   filesystem::path model_dir{basename};
   model_dir /= "model";
@@ -2443,7 +2443,7 @@ DynamicModel::writeDynamicFile(const string &basename, bool use_dll, const strin
 
   // Legacy representation
   if (use_dll)
-    writeModelCFile<true>(basename, mexext, matlabroot, dynareroot);
+    writeModelCFile<true>(basename, mexext, matlabroot);
   else if (!julia) // M-files
     writeDynamicMFile(basename);
   // The legacy representation is no longer produced for Julia
@@ -2454,7 +2454,7 @@ DynamicModel::writeDynamicFile(const string &basename, bool use_dll, const strin
 
   // Sparse representation
   if (use_dll)
-    writeSparseModelCFiles<true>(basename, mexext, matlabroot, dynareroot);
+    writeSparseModelCFiles<true>(basename, mexext, matlabroot);
   else if (julia)
     writeSparseModelJuliaFiles<true>(basename);
   else // MATLAB/Octave
