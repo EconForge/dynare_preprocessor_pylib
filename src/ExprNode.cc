@@ -7470,6 +7470,24 @@ AbstractExternalFunctionNode::substituteLogTransform(int orig_symb_id, int aux_s
 }
 
 expr_t
+AbstractExternalFunctionNode::toStatic(DataTree &static_datatree) const
+{
+  vector<expr_t> static_arguments;
+  for (auto argument : arguments)
+    static_arguments.push_back(argument->toStatic(static_datatree));
+  return buildSimilarExternalFunctionNode(static_arguments, static_datatree);
+}
+
+expr_t
+AbstractExternalFunctionNode::clone(DataTree &datatree) const
+{
+  vector<expr_t> dynamic_arguments;
+  for (auto argument : arguments)
+    dynamic_arguments.push_back(argument->clone(datatree));
+  return buildSimilarExternalFunctionNode(dynamic_arguments, datatree);
+}
+
+expr_t
 ExternalFunctionNode::composeDerivatives(const vector<expr_t> &dargs)
 {
   vector<expr_t> dNodes;
@@ -7724,30 +7742,12 @@ ExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> &efout,
     }
 }
 
-expr_t
-ExternalFunctionNode::toStatic(DataTree &static_datatree) const
-{
-  vector<expr_t> static_arguments;
-  for (auto argument : arguments)
-    static_arguments.push_back(argument->toStatic(static_datatree));
-  return static_datatree.AddExternalFunction(symb_id, static_arguments);
-}
-
 void
 ExternalFunctionNode::computeXrefs(EquationInfo &ei) const
 {
   vector<expr_t> dynamic_arguments;
   for (auto argument : arguments)
     argument->computeXrefs(ei);
-}
-
-expr_t
-ExternalFunctionNode::clone(DataTree &datatree) const
-{
-  vector<expr_t> dynamic_arguments;
-  for (auto argument : arguments)
-    dynamic_arguments.push_back(argument->clone(datatree));
-  return datatree.AddExternalFunction(symb_id, dynamic_arguments);
 }
 
 expr_t
@@ -8071,29 +8071,9 @@ FirstDerivExternalFunctionNode::writeBytecodeExternalFunctionOutput(BytecodeWrit
 }
 
 expr_t
-FirstDerivExternalFunctionNode::clone(DataTree &datatree) const
-{
-  vector<expr_t> dynamic_arguments;
-  for (auto argument : arguments)
-    dynamic_arguments.push_back(argument->clone(datatree));
-  return datatree.AddFirstDerivExternalFunction(symb_id, dynamic_arguments,
-                                                inputIndex);
-}
-
-expr_t
 FirstDerivExternalFunctionNode::buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const
 {
   return alt_datatree.AddFirstDerivExternalFunction(symb_id, alt_args, inputIndex);
-}
-
-expr_t
-FirstDerivExternalFunctionNode::toStatic(DataTree &static_datatree) const
-{
-  vector<expr_t> static_arguments;
-  for (auto argument : arguments)
-    static_arguments.push_back(argument->toStatic(static_datatree));
-  return static_datatree.AddFirstDerivExternalFunction(symb_id, static_arguments,
-                                                       inputIndex);
 }
 
 void
@@ -8365,29 +8345,9 @@ SecondDerivExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string> 
 }
 
 expr_t
-SecondDerivExternalFunctionNode::clone(DataTree &datatree) const
-{
-  vector<expr_t> dynamic_arguments;
-  for (auto argument : arguments)
-    dynamic_arguments.push_back(argument->clone(datatree));
-  return datatree.AddSecondDerivExternalFunction(symb_id, dynamic_arguments,
-                                                 inputIndex1, inputIndex2);
-}
-
-expr_t
 SecondDerivExternalFunctionNode::buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const
 {
   return alt_datatree.AddSecondDerivExternalFunction(symb_id, alt_args, inputIndex1, inputIndex2);
-}
-
-expr_t
-SecondDerivExternalFunctionNode::toStatic(DataTree &static_datatree) const
-{
-  vector<expr_t> static_arguments;
-  for (auto argument : arguments)
-    static_arguments.push_back(argument->toStatic(static_datatree));
-  return static_datatree.AddSecondDerivExternalFunction(symb_id, static_arguments,
-                                                        inputIndex1, inputIndex2);
 }
 
 void

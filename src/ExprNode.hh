@@ -1416,7 +1416,7 @@ public:
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>> &result) const override;
   double eval(const eval_context_t &eval_context) const noexcept(false) override;
   void writeBytecodeOutput(BytecodeWriter &code_file, ExprNodeBytecodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override = 0;
-  expr_t toStatic(DataTree &static_datatree) const override = 0;
+  expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override = 0;
   BinaryOpNode *normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs) const override;
   int maxEndoLead() const override;
@@ -1453,7 +1453,7 @@ public:
   void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
-  expr_t clone(DataTree &datatree) const override = 0;
+  expr_t clone(DataTree &datatree) const override;
   expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
@@ -1493,10 +1493,8 @@ public:
                                            const temporary_terms_idxs_t &temporary_terms_idxs,
                                            deriv_node_temp_terms_t &tef_terms) const override;
   void writeBytecodeOutput(BytecodeWriter &code_file, ExprNodeBytecodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
-  expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const override;
-  expr_t clone(DataTree &datatree) const override;
 };
 
 class FirstDerivExternalFunctionNode : public AbstractExternalFunctionNode
@@ -1532,10 +1530,8 @@ public:
                                            const temporary_terms_t &temporary_terms,
                                            const temporary_terms_idxs_t &temporary_terms_idxs,
                                            deriv_node_temp_terms_t &tef_terms) const override;
-  expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const override;
-  expr_t clone(DataTree &datatree) const override;
 };
 
 class SecondDerivExternalFunctionNode : public AbstractExternalFunctionNode
@@ -1573,10 +1569,8 @@ public:
                                            const temporary_terms_t &temporary_terms,
                                            const temporary_terms_idxs_t &temporary_terms_idxs,
                                            deriv_node_temp_terms_t &tef_terms) const override;
-  expr_t toStatic(DataTree &static_datatree) const override;
   void computeXrefs(EquationInfo &ei) const override;
   expr_t buildSimilarExternalFunctionNode(vector<expr_t> &alt_args, DataTree &alt_datatree) const override;
-  expr_t clone(DataTree &datatree) const override;
 };
 
 /* Common superclass for nodes that have the following two characteristics:
