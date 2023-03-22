@@ -600,9 +600,9 @@ NumConstNode::computeXrefs([[maybe_unused]] EquationInfo &ei) const
 }
 
 expr_t
-NumConstNode::clone(DataTree &datatree) const
+NumConstNode::clone(DataTree &alt_datatree) const
 {
-  return datatree.AddNonNegativeConstant(datatree.num_constants.get(id));
+  return alt_datatree.AddNonNegativeConstant(datatree.num_constants.get(id));
 }
 
 int
@@ -1581,9 +1581,9 @@ VariableNode::get_type() const
 }
 
 expr_t
-VariableNode::clone(DataTree &datatree) const
+VariableNode::clone(DataTree &alt_datatree) const
 {
-  return datatree.AddVariable(symb_id, lag);
+  return alt_datatree.AddVariable(symb_id, lag);
 }
 
 int
@@ -3451,10 +3451,10 @@ UnaryOpNode::computeXrefs(EquationInfo &ei) const
 }
 
 expr_t
-UnaryOpNode::clone(DataTree &datatree) const
+UnaryOpNode::clone(DataTree &alt_datatree) const
 {
-  expr_t substarg = arg->clone(datatree);
-  return buildSimilarUnaryOpNode(substarg, datatree);
+  expr_t substarg = arg->clone(alt_datatree);
+  return buildSimilarUnaryOpNode(substarg, alt_datatree);
 }
 
 int
@@ -5212,11 +5212,11 @@ BinaryOpNode::computeXrefs(EquationInfo &ei) const
 }
 
 expr_t
-BinaryOpNode::clone(DataTree &datatree) const
+BinaryOpNode::clone(DataTree &alt_datatree) const
 {
-  expr_t substarg1 = arg1->clone(datatree);
-  expr_t substarg2 = arg2->clone(datatree);
-  return buildSimilarBinaryOpNode(substarg1, substarg2, datatree);
+  expr_t substarg1 = arg1->clone(alt_datatree);
+  expr_t substarg2 = arg2->clone(alt_datatree);
+  return buildSimilarBinaryOpNode(substarg1, substarg2, alt_datatree);
 }
 
 int
@@ -6527,12 +6527,12 @@ TrinaryOpNode::computeXrefs(EquationInfo &ei) const
 }
 
 expr_t
-TrinaryOpNode::clone(DataTree &datatree) const
+TrinaryOpNode::clone(DataTree &alt_datatree) const
 {
-  expr_t substarg1 = arg1->clone(datatree);
-  expr_t substarg2 = arg2->clone(datatree);
-  expr_t substarg3 = arg3->clone(datatree);
-  return buildSimilarTrinaryOpNode(substarg1, substarg2, substarg3, datatree);
+  expr_t substarg1 = arg1->clone(alt_datatree);
+  expr_t substarg2 = arg2->clone(alt_datatree);
+  expr_t substarg3 = arg3->clone(alt_datatree);
+  return buildSimilarTrinaryOpNode(substarg1, substarg2, substarg3, alt_datatree);
 }
 
 int
@@ -7479,12 +7479,12 @@ AbstractExternalFunctionNode::toStatic(DataTree &static_datatree) const
 }
 
 expr_t
-AbstractExternalFunctionNode::clone(DataTree &datatree) const
+AbstractExternalFunctionNode::clone(DataTree &alt_datatree) const
 {
   vector<expr_t> dynamic_arguments;
   for (auto argument : arguments)
-    dynamic_arguments.push_back(argument->clone(datatree));
-  return buildSimilarExternalFunctionNode(dynamic_arguments, datatree);
+    dynamic_arguments.push_back(argument->clone(alt_datatree));
+  return buildSimilarExternalFunctionNode(dynamic_arguments, alt_datatree);
 }
 
 expr_t
@@ -8813,9 +8813,9 @@ VarExpectationNode::VarExpectationNode(DataTree &datatree_arg,
 }
 
 expr_t
-VarExpectationNode::clone(DataTree &datatree) const
+VarExpectationNode::clone(DataTree &alt_datatree) const
 {
-  return datatree.AddVarExpectation(model_name);
+  return alt_datatree.AddVarExpectation(model_name);
 }
 
 
@@ -8914,9 +8914,9 @@ PacExpectationNode::PacExpectationNode(DataTree &datatree_arg,
 }
 
 expr_t
-PacExpectationNode::clone(DataTree &datatree) const
+PacExpectationNode::clone(DataTree &alt_datatree) const
 {
-  return datatree.AddPacExpectation(model_name);
+  return alt_datatree.AddPacExpectation(model_name);
 }
 
 void
@@ -9005,9 +9005,9 @@ PacTargetNonstationaryNode::PacTargetNonstationaryNode(DataTree &datatree_arg,
 }
 
 expr_t
-PacTargetNonstationaryNode::clone(DataTree &datatree) const
+PacTargetNonstationaryNode::clone(DataTree &alt_datatree) const
 {
-  return datatree.AddPacTargetNonstationary(model_name);
+  return alt_datatree.AddPacTargetNonstationary(model_name);
 }
 
 void

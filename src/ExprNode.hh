@@ -704,7 +704,7 @@ public:
   virtual optional<int> findTargetVariable(int lhs_symb_id) const = 0;
 
   //! Add ExprNodes to the provided datatree
-  virtual expr_t clone(DataTree &datatree) const = 0;
+  virtual expr_t clone(DataTree &alt_datatree) const = 0;
 
   //! Move a trend variable with lag/lead to time t by dividing/multiplying by its growth factor
   virtual expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const = 0;
@@ -908,7 +908,7 @@ public:
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
-  expr_t clone(DataTree &datatree) const override;
+  expr_t clone(DataTree &alt_datatree) const override;
   expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
@@ -982,7 +982,7 @@ public:
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
-  expr_t clone(DataTree &datatree) const override;
+  expr_t clone(DataTree &alt_datatree) const override;
   expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
@@ -1089,7 +1089,7 @@ public:
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
-  expr_t clone(DataTree &datatree) const override;
+  expr_t clone(DataTree &alt_datatree) const override;
   expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
@@ -1199,7 +1199,7 @@ public:
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
-  expr_t clone(DataTree &datatree) const override;
+  expr_t clone(DataTree &alt_datatree) const override;
   expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   //! Function to write out the oPowerNode in expr_t terms as opposed to writing out the function itself
   expr_t unpackPowerDeriv() const;
@@ -1337,7 +1337,7 @@ public:
   bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const override;
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
-  expr_t clone(DataTree &datatree) const override;
+  expr_t clone(DataTree &alt_datatree) const override;
   expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
@@ -1453,7 +1453,7 @@ public:
   void writePrhs(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const;
   expr_t replaceTrendVar() const override;
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
-  expr_t clone(DataTree &datatree) const override;
+  expr_t clone(DataTree &alt_datatree) const override;
   expr_t removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const override;
   bool isInStaticForm() const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
@@ -1647,7 +1647,7 @@ class VarExpectationNode : public SubModelNode
 public:
   VarExpectationNode(DataTree &datatree_arg, int idx_arg, string model_name_arg);
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
-  expr_t clone(DataTree &datatree) const override;
+  expr_t clone(DataTree &alt_datatree) const override;
   int maxLagWithDiffsExpanded() const override;
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
@@ -1663,7 +1663,7 @@ class PacExpectationNode : public SubModelNode
 public:
   PacExpectationNode(DataTree &datatree_arg, int idx_arg, string model_name);
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
-  expr_t clone(DataTree &datatree) const override;
+  expr_t clone(DataTree &alt_datatree) const override;
   int maxLagWithDiffsExpanded() const override;
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
@@ -1679,7 +1679,7 @@ class PacTargetNonstationaryNode : public SubModelNode
 public:
   PacTargetNonstationaryNode(DataTree &datatree_arg, int idx_arg, string model_name);
   void writeOutput(ostream &output, ExprNodeOutputType output_type, const temporary_terms_t &temporary_terms, const temporary_terms_idxs_t &temporary_terms_idxs, const deriv_node_temp_terms_t &tef_terms) const override;
-  expr_t clone(DataTree &datatree) const override;
+  expr_t clone(DataTree &alt_datatree) const override;
   int maxLagWithDiffsExpanded() const override;
   expr_t substituteVarExpectation(const map<string, expr_t> &subst_table) const override;
   expr_t substitutePacExpectation(const string &name, expr_t subexpr) override;
