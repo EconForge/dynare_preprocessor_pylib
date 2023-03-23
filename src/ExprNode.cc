@@ -7570,7 +7570,7 @@ ExternalFunctionNode::sameTefTermPredicate() const
 {
   return [this](expr_t e) {
            auto e2 = dynamic_cast<ExternalFunctionNode *>(e);
-           return (e2 != nullptr && e2->symb_id == symb_id);
+           return (e2 != nullptr && e2->symb_id == symb_id && e2->arguments == arguments);
          };
 }
 
@@ -7900,12 +7900,12 @@ FirstDerivExternalFunctionNode::sameTefTermPredicate() const
   if (first_deriv_symb_id == symb_id)
     return [this](expr_t e) {
       auto e2 = dynamic_cast<ExternalFunctionNode *>(e);
-      return (e2 && e2->symb_id == symb_id);
+      return (e2 && e2->symb_id == symb_id && e2->arguments == arguments);
     };
   else
     return [this](expr_t e) {
       auto e2 = dynamic_cast<FirstDerivExternalFunctionNode *>(e);
-      return (e2 && e2->symb_id == symb_id);
+      return (e2 && e2->symb_id == symb_id && e2->arguments == arguments);
     };
 }
 
@@ -8244,12 +8244,12 @@ SecondDerivExternalFunctionNode::sameTefTermPredicate() const
   if (second_deriv_symb_id == symb_id)
     return [this](expr_t e) {
       auto e2 = dynamic_cast<ExternalFunctionNode *>(e);
-      return (e2 && e2->symb_id == symb_id);
+      return (e2 && e2->symb_id == symb_id && e2->arguments == arguments);
     };
   else
     return [this](expr_t e) {
       auto e2 = dynamic_cast<SecondDerivExternalFunctionNode *>(e);
-      return (e2 && e2->symb_id == symb_id);
+      return (e2 && e2->symb_id == symb_id && e2->arguments == arguments);
     };
 }
 
