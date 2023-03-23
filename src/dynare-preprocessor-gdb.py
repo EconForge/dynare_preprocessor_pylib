@@ -1,6 +1,6 @@
 # GDB pretty-printer for ExprNode class hierarchy
 
-# Copyright © 2022 Dynare Team
+# Copyright © 2022-2023 Dynare Team
 #
 # This file is part of Dynare.
 #
@@ -44,7 +44,7 @@ class ExprNodePrinterControl(gdb.printing.PrettyPrinter):
     def __call__(self, val):
         # Check if the value is a subtype of ExprNode *.
         # Doing a dynamic_cast on a non-pointer type triggers an exception, so we first check
-        # whethe it’s a pointer (after resolving for typedefs, such as “expr_t”).
+        # whether it’s a pointer (after resolving for typedefs, such as “expr_t”).
         if val.type.strip_typedefs().code == gdb.TYPE_CODE_PTR and val.dynamic_cast(gdb.lookup_type('ExprNode').pointer()) != 0:
             return ExprNodePrinter(val)
 
