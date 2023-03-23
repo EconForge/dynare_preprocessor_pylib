@@ -6928,7 +6928,12 @@ AbstractExternalFunctionNode::decreaseLeadsLagsPredeterminedVariables() const
 expr_t
 AbstractExternalFunctionNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
-  return recurseTransform(&ExprNode::substituteEndoLeadGreaterThanTwo, subst_table, neweqs, deterministic_model);
+  if (maxEndoLead() < 2)
+    return const_cast<AbstractExternalFunctionNode *>(this);
+  else if (deterministic_model)
+    return recurseTransform(&ExprNode::substituteEndoLeadGreaterThanTwo, subst_table, neweqs, deterministic_model);
+  else
+    return createEndoLeadAuxiliaryVarForMyself(subst_table, neweqs);
 }
 
 expr_t
@@ -6940,7 +6945,12 @@ AbstractExternalFunctionNode::substituteEndoLagGreaterThanTwo(subst_table_t &sub
 expr_t
 AbstractExternalFunctionNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
-  return recurseTransform(&ExprNode::substituteExoLead, subst_table, neweqs, deterministic_model);
+  if (maxExoLead() == 0)
+    return const_cast<AbstractExternalFunctionNode *>(this);
+  else if (deterministic_model)
+    return recurseTransform(&ExprNode::substituteExoLead, subst_table, neweqs, deterministic_model);
+  else
+    return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
 }
 
 expr_t
