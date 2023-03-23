@@ -766,7 +766,7 @@ StaticModel::writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType
   deriv_node_temp_terms_t tef_terms;
   for (auto aux_equation : aux_equations)
     if (dynamic_cast<ExprNode *>(aux_equation)->containsExternalFunction())
-      dynamic_cast<ExprNode *>(aux_equation)->writeExternalFunctionOutput(output, ExprNodeOutputType::matlabStaticModel, {}, {}, tef_terms);
+      dynamic_cast<ExprNode *>(aux_equation)->writeExternalFunctionOutput(output, output_type, {}, {}, tef_terms);
   for (auto aux_equation : aux_equations)
     {
       dynamic_cast<ExprNode *>(aux_equation->substituteStaticAuxiliaryDefinition())->writeOutput(output, output_type);
