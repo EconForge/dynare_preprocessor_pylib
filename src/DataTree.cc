@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -132,7 +132,7 @@ DataTree::AddNonNegativeConstant(const string &value)
   auto sp = make_unique<NumConstNode>(*this, node_list.size(), id);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  num_const_node_map[id] = p;
+  num_const_node_map.emplace(id, p);
   return p;
 }
 
@@ -152,7 +152,7 @@ DataTree::AddVariable(int symb_id, int lag)
   auto sp = make_unique<VariableNode>(*this, node_list.size(), symb_id, lag);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  variable_node_map[{ symb_id, lag }] = p;
+  variable_node_map.try_emplace({ symb_id, lag }, p);
   return p;
 }
 
@@ -687,7 +687,7 @@ DataTree::AddVarExpectation(const string &model_name)
   auto sp = make_unique<VarExpectationNode>(*this, node_list.size(), model_name);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  var_expectation_node_map[model_name] = p;
+  var_expectation_node_map.emplace(model_name, p);
   return p;
 }
 
@@ -701,7 +701,7 @@ DataTree::AddPacExpectation(const string &model_name)
   auto sp = make_unique<PacExpectationNode>(*this, node_list.size(), model_name);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  pac_expectation_node_map[model_name] = p;
+  pac_expectation_node_map.emplace(model_name, p);
   return p;
 }
 
@@ -715,7 +715,7 @@ DataTree::AddPacTargetNonstationary(const string &model_name)
   auto sp = make_unique<PacTargetNonstationaryNode>(*this, node_list.size(), model_name);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  pac_target_nonstationary_node_map[model_name] = p;
+  pac_target_nonstationary_node_map.emplace(model_name, p);
   return p;
 }
 
@@ -736,7 +736,7 @@ DataTree::AddLocalVariable(int symb_id, expr_t value) noexcept(false)
   if (local_variables_table.contains(symb_id))
     throw LocalVariableException(symbol_table.getName(symb_id));
 
-  local_variables_table[symb_id] = value;
+  local_variables_table.emplace(symb_id, value);
   local_variables_vector.push_back(symb_id);
 }
 
@@ -752,7 +752,7 @@ DataTree::AddExternalFunction(int symb_id, const vector<expr_t> &arguments)
   auto sp = make_unique<ExternalFunctionNode>(*this, node_list.size(), symb_id, arguments);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  external_function_node_map[{ arguments, symb_id }] = p;
+  external_function_node_map.try_emplace({ arguments, symb_id }, p);
   return p;
 }
 
@@ -768,7 +768,7 @@ DataTree::AddFirstDerivExternalFunction(int top_level_symb_id, const vector<expr
   auto sp = make_unique<FirstDerivExternalFunctionNode>(*this, node_list.size(), top_level_symb_id, arguments, input_index);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  first_deriv_external_function_node_map[{ arguments, input_index, top_level_symb_id }] = p;
+  first_deriv_external_function_node_map.try_emplace({ arguments, input_index, top_level_symb_id }, p);
   return p;
 }
 
@@ -785,7 +785,7 @@ DataTree::AddSecondDerivExternalFunction(int top_level_symb_id, const vector<exp
   auto sp = make_unique<SecondDerivExternalFunctionNode>(*this, node_list.size(), top_level_symb_id, arguments, input_index1, input_index2);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  second_deriv_external_function_node_map[{ arguments, input_index1, input_index2, top_level_symb_id }] = p;
+  second_deriv_external_function_node_map.try_emplace({ arguments, input_index1, input_index2, top_level_symb_id }, p);
   return p;
 }
 

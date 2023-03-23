@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -425,7 +425,7 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int 
   auto sp = make_unique<UnaryOpNode>(*this, node_list.size(), op_code, arg, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  unary_op_node_map[{ arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags }] = p;
+  unary_op_node_map.try_emplace({ arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags }, p);
   return p;
 }
 
@@ -451,7 +451,7 @@ DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerD
   auto sp = make_unique<BinaryOpNode>(*this, node_list.size(), arg1, op_code, arg2, powerDerivOrder);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  binary_op_node_map[{ arg1, arg2, op_code, powerDerivOrder }] = p;
+  binary_op_node_map.try_emplace({ arg1, arg2, op_code, powerDerivOrder }, p);
   return p;
 }
 
@@ -478,7 +478,7 @@ DataTree::AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t a
   auto sp = make_unique<TrinaryOpNode>(*this, node_list.size(), arg1, op_code, arg2, arg3);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  trinary_op_node_map[{ arg1, arg2, arg3, op_code }] = p;
+  trinary_op_node_map.try_emplace({ arg1, arg2, arg3, op_code }, p);
   return p;
 }
 
