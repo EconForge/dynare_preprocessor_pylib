@@ -499,10 +499,10 @@ ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, const member
           exit(EXIT_FAILURE);
         }
       else
-        follower_nodes.emplace(name, FollowerNode{computerName, port, minCpuNbr, maxCpuNbr, userName,
-                                                  password, remoteDrive, remoteDirectory, programPath, programConfig,
-                                                  matlabOctavePath, singleCompThread, numberOfThreadsPerJob,
-                                                  operatingSystem});
+        follower_nodes.try_emplace(name, computerName, port, minCpuNbr, maxCpuNbr, userName,
+                                   password, remoteDrive, remoteDirectory, programPath, programConfig,
+                                   matlabOctavePath, singleCompThread, numberOfThreadsPerJob,
+                                   operatingSystem);
   //! ADD CLUSTER
   else if (inCluster)
     if (minCpuNbr > 0 || maxCpuNbr > 0 || !userName.empty()
@@ -523,7 +523,7 @@ ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, const member
         {
           if (clusters.empty())
             firstClusterName = name;
-          clusters.emplace(name, Cluster{member_nodes});
+          clusters.emplace(name, member_nodes);
         }
 }
 

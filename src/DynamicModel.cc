@@ -2363,7 +2363,7 @@ DynamicModel::computeChainRuleJacobian()
               assert(lag >= -1 && lag <= 1);
               if (eq >= nb_recursives && var >= nb_recursives
                   && !(one_boundary && lag != 0))
-                blocks_jacobian_sparse_column_major_order[blk].emplace(pair{eq-nb_recursives, var-nb_recursives+static_cast<int>(!one_boundary)*(lag+1)*mfs_size}, d1);
+                blocks_jacobian_sparse_column_major_order[blk].try_emplace({eq-nb_recursives, var-nb_recursives+static_cast<int>(!one_boundary)*(lag+1)*mfs_size}, d1);
             }
           blocks_jacobian_sparse_colptr[blk] = computeCSCColPtr(blocks_jacobian_sparse_column_major_order[blk], (one_boundary ? 1 : 3)*mfs_size);
         }

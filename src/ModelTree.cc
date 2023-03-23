@@ -146,7 +146,7 @@ ModelTree::ModelTree(SymbolTable &symbol_table_arg,
 {
   // Ensure that elements accessed by writeParamsDerivativesFileHelper() exist
   for (const auto &ord : {pair{0, 1}, pair{1, 1}, pair{0, 2}, pair{1, 2}, pair{2, 1}, pair{3, 1}})
-    params_derivatives.emplace(ord, decltype(params_derivatives)::mapped_type{});
+    params_derivatives.try_emplace(ord);
 }
 
 ModelTree::ModelTree(const ModelTree &m) :
@@ -880,7 +880,7 @@ ModelTree::computeDerivatives(int order, const set<int> &vars)
 
   // Compute the sparse representation of the Jacobian
   for (const auto &[indices, d1] : derivatives[1])
-    jacobian_sparse_column_major_order.emplace(pair{indices[0], getJacobianCol(indices[1], true)}, d1);
+    jacobian_sparse_column_major_order.try_emplace({indices[0], getJacobianCol(indices[1], true)}, d1);
   jacobian_sparse_colptr = computeCSCColPtr(jacobian_sparse_column_major_order, getJacobianColsNbr(true));
 
   // Higher-order derivatives
