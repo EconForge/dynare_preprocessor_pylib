@@ -3523,10 +3523,7 @@ expr_t
 UnaryOpNode::substituteAdl() const
 {
   if (op_code != UnaryOpcode::adl)
-    {
-      expr_t argsubst = arg->substituteAdl();
-      return buildSimilarUnaryOpNode(argsubst, datatree);
-    }
+    return recurseTransform(&ExprNode::substituteAdl);
 
   expr_t arg1subst = arg->substituteAdl();
 
@@ -3541,15 +3538,13 @@ UnaryOpNode::substituteAdl() const
 expr_t
 UnaryOpNode::substituteModelLocalVariables() const
 {
-  expr_t argsubst = arg->substituteModelLocalVariables();
-  return buildSimilarUnaryOpNode(argsubst, datatree);
+  return recurseTransform(&ExprNode::substituteModelLocalVariables);
 }
 
 expr_t
 UnaryOpNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
 {
-  expr_t argsubst = arg->substituteVarExpectation(subst_table);
-  return buildSimilarUnaryOpNode(argsubst, datatree);
+  return recurseTransform(&ExprNode::substituteVarExpectation, subst_table);
 }
 
 int
@@ -3836,39 +3831,33 @@ UnaryOpNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_
 expr_t
 UnaryOpNode::substitutePacExpectation(const string &name, expr_t subexpr)
 {
-  expr_t argsubst = arg->substitutePacExpectation(name, subexpr);
-  return buildSimilarUnaryOpNode(argsubst, datatree);
+  return recurseTransform(&ExprNode::substitutePacExpectation, name, subexpr);
 }
 
 expr_t
 UnaryOpNode::substitutePacTargetNonstationary(const string &name, expr_t subexpr)
 {
-  expr_t argsubst = arg->substitutePacTargetNonstationary(name, subexpr);
-  return buildSimilarUnaryOpNode(argsubst, datatree);
+  return recurseTransform(&ExprNode::substitutePacTargetNonstationary, name, subexpr);
 }
 
 expr_t
 UnaryOpNode::decreaseLeadsLags(int n) const
 {
-  expr_t argsubst = arg->decreaseLeadsLags(n);
-  return buildSimilarUnaryOpNode(argsubst, datatree);
+  return recurseTransform(&ExprNode::decreaseLeadsLags, n);
 }
 
 expr_t
 UnaryOpNode::decreaseLeadsLagsPredeterminedVariables() const
 {
-  expr_t argsubst = arg->decreaseLeadsLagsPredeterminedVariables();
-  return buildSimilarUnaryOpNode(argsubst, datatree);
+  return recurseTransform(&ExprNode::decreaseLeadsLagsPredeterminedVariables);
 }
 
 expr_t
 UnaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
   if (op_code == UnaryOpcode::uminus || deterministic_model)
-    {
-      expr_t argsubst = arg->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
-      return buildSimilarUnaryOpNode(argsubst, datatree);
-    }
+    return recurseTransform(&ExprNode::substituteEndoLeadGreaterThanTwo, subst_table, neweqs,
+                            deterministic_model);
   else
     {
       if (maxEndoLead() >= 2)
@@ -3881,18 +3870,14 @@ UnaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector
 expr_t
 UnaryOpNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t argsubst = arg->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
-  return buildSimilarUnaryOpNode(argsubst, datatree);
+  return recurseTransform(&ExprNode::substituteEndoLagGreaterThanTwo, subst_table, neweqs);
 }
 
 expr_t
 UnaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
   if (op_code == UnaryOpcode::uminus || deterministic_model)
-    {
-      expr_t argsubst = arg->substituteExoLead(subst_table, neweqs, deterministic_model);
-      return buildSimilarUnaryOpNode(argsubst, datatree);
-    }
+    return recurseTransform(&ExprNode::substituteExoLead, subst_table, neweqs, deterministic_model);
   else
     {
       if (maxExoLead() >= 1)
@@ -3905,8 +3890,7 @@ UnaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *
 expr_t
 UnaryOpNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t argsubst = arg->substituteExoLag(subst_table, neweqs);
-  return buildSimilarUnaryOpNode(argsubst, datatree);
+  return recurseTransform(&ExprNode::substituteExoLag, subst_table, neweqs);
 }
 
 expr_t
@@ -3943,17 +3927,13 @@ UnaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNo
       return newAuxE;
     }
   else
-    {
-      expr_t argsubst = arg->substituteExpectation(subst_table, neweqs, partial_information_model);
-      return buildSimilarUnaryOpNode(argsubst, datatree);
-    }
+    return recurseTransform(&ExprNode::substituteExpectation, subst_table, neweqs, partial_information_model);
 }
 
 expr_t
 UnaryOpNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t argsubst = arg->differentiateForwardVars(subset, subst_table, neweqs);
-  return buildSimilarUnaryOpNode(argsubst, datatree);
+  return recurseTransform(&ExprNode::differentiateForwardVars, subset, subst_table, neweqs);
 }
 
 bool
@@ -3985,22 +3965,19 @@ UnaryOpNode::containsPacTargetNonstationary(const string &pac_model_name) const
 expr_t
 UnaryOpNode::replaceTrendVar() const
 {
-  expr_t argsubst = arg->replaceTrendVar();
-  return buildSimilarUnaryOpNode(argsubst, datatree);
+  return recurseTransform(&ExprNode::replaceTrendVar);
 }
 
 expr_t
 UnaryOpNode::detrend(int symb_id, bool log_trend, expr_t trend) const
 {
-  expr_t argsubst = arg->detrend(symb_id, log_trend, trend);
-  return buildSimilarUnaryOpNode(argsubst, datatree);
+  return recurseTransform(&ExprNode::detrend, symb_id, log_trend, trend);
 }
 
 expr_t
 UnaryOpNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const
 {
-  expr_t argsubst = arg->removeTrendLeadLag(trend_symbols_map);
-  return buildSimilarUnaryOpNode(argsubst, datatree);
+  return recurseTransform(&ExprNode::removeTrendLeadLag, trend_symbols_map);
 }
 
 bool
@@ -4036,15 +4013,13 @@ UnaryOpNode::substituteStaticAuxiliaryVariable() const
 expr_t
 UnaryOpNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
-  expr_t argsubst = arg->replaceVarsInEquation(table);
-  return buildSimilarUnaryOpNode(argsubst, datatree);
+  return recurseTransform(&ExprNode::replaceVarsInEquation, table);
 }
 
 expr_t
 UnaryOpNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
 {
-  expr_t argsubst = arg->substituteLogTransform(orig_symb_id, aux_symb_id);
-  return buildSimilarUnaryOpNode(argsubst, datatree);
+  return recurseTransform(&ExprNode::substituteLogTransform, orig_symb_id, aux_symb_id);
 }
 
 BinaryOpNode::BinaryOpNode(DataTree &datatree_arg, int idx_arg, const expr_t arg1_arg,
@@ -5264,25 +5239,19 @@ BinaryOpNode::maxLagWithDiffsExpanded() const
 expr_t
 BinaryOpNode::undiff() const
 {
-  expr_t arg1subst = arg1->undiff();
-  expr_t arg2subst = arg2->undiff();
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::undiff);
 }
 
 expr_t
 BinaryOpNode::decreaseLeadsLags(int n) const
 {
-  expr_t arg1subst = arg1->decreaseLeadsLags(n);
-  expr_t arg2subst = arg2->decreaseLeadsLags(n);
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::decreaseLeadsLags, n);
 }
 
 expr_t
 BinaryOpNode::decreaseLeadsLagsPredeterminedVariables() const
 {
-  expr_t arg1subst = arg1->decreaseLeadsLagsPredeterminedVariables();
-  expr_t arg2subst = arg2->decreaseLeadsLagsPredeterminedVariables();
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::decreaseLeadsLagsPredeterminedVariables);
 }
 
 expr_t
@@ -5330,9 +5299,7 @@ BinaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vecto
 expr_t
 BinaryOpNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t arg1subst = arg1->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
-  expr_t arg2subst = arg2->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::substituteEndoLagGreaterThanTwo, subst_table, neweqs);
 }
 
 expr_t
@@ -5380,41 +5347,31 @@ BinaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode 
 expr_t
 BinaryOpNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t arg1subst = arg1->substituteExoLag(subst_table, neweqs);
-  expr_t arg2subst = arg2->substituteExoLag(subst_table, neweqs);
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::substituteExoLag, subst_table, neweqs);
 }
 
 expr_t
 BinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
 {
-  expr_t arg1subst = arg1->substituteExpectation(subst_table, neweqs, partial_information_model);
-  expr_t arg2subst = arg2->substituteExpectation(subst_table, neweqs, partial_information_model);
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::substituteExpectation, subst_table, neweqs, partial_information_model);
 }
 
 expr_t
 BinaryOpNode::substituteAdl() const
 {
-  expr_t arg1subst = arg1->substituteAdl();
-  expr_t arg2subst = arg2->substituteAdl();
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::substituteAdl);
 }
 
 expr_t
 BinaryOpNode::substituteModelLocalVariables() const
 {
-  expr_t arg1subst = arg1->substituteModelLocalVariables();
-  expr_t arg2subst = arg2->substituteModelLocalVariables();
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::substituteModelLocalVariables);
 }
 
 expr_t
 BinaryOpNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
 {
-  expr_t arg1subst = arg1->substituteVarExpectation(subst_table);
-  expr_t arg2subst = arg2->substituteVarExpectation(subst_table);
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::substituteVarExpectation, subst_table);
 }
 
 void
@@ -5435,17 +5392,13 @@ expr_t
 BinaryOpNode::substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table,
                              vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t arg1subst = arg1->substituteDiff(nodes, subst_table, neweqs);
-  expr_t arg2subst = arg2->substituteDiff(nodes, subst_table, neweqs);
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::substituteDiff, nodes, subst_table, neweqs);
 }
 
 expr_t
 BinaryOpNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t arg1subst = arg1->substituteUnaryOpNodes(nodes, subst_table, neweqs);
-  expr_t arg2subst = arg2->substituteUnaryOpNodes(nodes, subst_table, neweqs);
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::substituteUnaryOpNodes, nodes, subst_table, neweqs);
 }
 
 int
@@ -5457,25 +5410,19 @@ BinaryOpNode::countDiffs() const
 expr_t
 BinaryOpNode::substitutePacExpectation(const string &name, expr_t subexpr)
 {
-  expr_t arg1subst = arg1->substitutePacExpectation(name, subexpr);
-  expr_t arg2subst = arg2->substitutePacExpectation(name, subexpr);
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::substitutePacExpectation, name, subexpr);
 }
 
 expr_t
 BinaryOpNode::substitutePacTargetNonstationary(const string &name, expr_t subexpr)
 {
-  expr_t arg1subst = arg1->substitutePacTargetNonstationary(name, subexpr);
-  expr_t arg2subst = arg2->substitutePacTargetNonstationary(name, subexpr);
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::substitutePacTargetNonstationary, name, subexpr);
 }
 
 expr_t
 BinaryOpNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t arg1subst = arg1->differentiateForwardVars(subset, subst_table, neweqs);
-  expr_t arg2subst = arg2->differentiateForwardVars(subset, subst_table, neweqs);
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::differentiateForwardVars, subset, subst_table, neweqs);
 }
 
 expr_t
@@ -5515,25 +5462,19 @@ BinaryOpNode::containsPacTargetNonstationary(const string &pac_model_name) const
 expr_t
 BinaryOpNode::replaceTrendVar() const
 {
-  expr_t arg1subst = arg1->replaceTrendVar();
-  expr_t arg2subst = arg2->replaceTrendVar();
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::replaceTrendVar);
 }
 
 expr_t
 BinaryOpNode::detrend(int symb_id, bool log_trend, expr_t trend) const
 {
-  expr_t arg1subst = arg1->detrend(symb_id, log_trend, trend);
-  expr_t arg2subst = arg2->detrend(symb_id, log_trend, trend);
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::detrend, symb_id, log_trend, trend);
 }
 
 expr_t
 BinaryOpNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const
 {
-  expr_t arg1subst = arg1->removeTrendLeadLag(trend_symbols_map);
-  expr_t arg2subst = arg2->removeTrendLeadLag(trend_symbols_map);
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::removeTrendLeadLag, trend_symbols_map);
 }
 
 bool
@@ -5909,17 +5850,13 @@ BinaryOpNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) 
     for (auto &it : table)
       if ((it.first == arg1 && it.second == arg2) || (it.first == arg2 && it.second == arg1))
         return const_cast<BinaryOpNode *>(this);
-  expr_t arg1subst = arg1->replaceVarsInEquation(table);
-  expr_t arg2subst = arg2->replaceVarsInEquation(table);
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::replaceVarsInEquation, table);
 }
 
 expr_t
 BinaryOpNode::substituteStaticAuxiliaryVariable() const
 {
-  expr_t arg1subst = arg1->substituteStaticAuxiliaryVariable();
-  expr_t arg2subst = arg2->substituteStaticAuxiliaryVariable();
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::substituteStaticAuxiliaryVariable);
 }
 
 expr_t
@@ -5957,9 +5894,7 @@ BinaryOpNode::matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vecto
 expr_t
 BinaryOpNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
 {
-  expr_t arg1subst = arg1->substituteLogTransform(orig_symb_id, aux_symb_id);
-  expr_t arg2subst = arg2->substituteLogTransform(orig_symb_id, aux_symb_id);
-  return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+  return recurseTransform(&ExprNode::substituteLogTransform, orig_symb_id, aux_symb_id);
 }
 
 TrinaryOpNode::TrinaryOpNode(DataTree &datatree_arg, int idx_arg, const expr_t arg1_arg,
@@ -6581,10 +6516,7 @@ TrinaryOpNode::maxLagWithDiffsExpanded() const
 expr_t
 TrinaryOpNode::undiff() const
 {
-  expr_t arg1subst = arg1->undiff();
-  expr_t arg2subst = arg2->undiff();
-  expr_t arg3subst = arg3->undiff();
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::undiff);
 }
 
 int
@@ -6598,19 +6530,13 @@ TrinaryOpNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 expr_t
 TrinaryOpNode::decreaseLeadsLags(int n) const
 {
-  expr_t arg1subst = arg1->decreaseLeadsLags(n);
-  expr_t arg2subst = arg2->decreaseLeadsLags(n);
-  expr_t arg3subst = arg3->decreaseLeadsLags(n);
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::decreaseLeadsLags, n);
 }
 
 expr_t
 TrinaryOpNode::decreaseLeadsLagsPredeterminedVariables() const
 {
-  expr_t arg1subst = arg1->decreaseLeadsLagsPredeterminedVariables();
-  expr_t arg2subst = arg2->decreaseLeadsLagsPredeterminedVariables();
-  expr_t arg3subst = arg3->decreaseLeadsLagsPredeterminedVariables();
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::decreaseLeadsLagsPredeterminedVariables);
 }
 
 expr_t
@@ -6619,12 +6545,7 @@ TrinaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vect
   if (maxEndoLead() < 2)
     return const_cast<TrinaryOpNode *>(this);
   else if (deterministic_model)
-    {
-      expr_t arg1subst = arg1->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
-      expr_t arg2subst = arg2->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
-      expr_t arg3subst = arg3->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model);
-      return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
-    }
+    return recurseTransform(&ExprNode::substituteEndoLeadGreaterThanTwo, subst_table, neweqs, deterministic_model);
   else
     return createEndoLeadAuxiliaryVarForMyself(subst_table, neweqs);
 }
@@ -6632,10 +6553,7 @@ TrinaryOpNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vect
 expr_t
 TrinaryOpNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t arg1subst = arg1->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
-  expr_t arg2subst = arg2->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
-  expr_t arg3subst = arg3->substituteEndoLagGreaterThanTwo(subst_table, neweqs);
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::substituteEndoLagGreaterThanTwo, subst_table, neweqs);
 }
 
 expr_t
@@ -6644,12 +6562,7 @@ TrinaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode
   if (maxExoLead() == 0)
     return const_cast<TrinaryOpNode *>(this);
   else if (deterministic_model)
-    {
-      expr_t arg1subst = arg1->substituteExoLead(subst_table, neweqs, deterministic_model);
-      expr_t arg2subst = arg2->substituteExoLead(subst_table, neweqs, deterministic_model);
-      expr_t arg3subst = arg3->substituteExoLead(subst_table, neweqs, deterministic_model);
-      return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
-    }
+    return recurseTransform(&ExprNode::substituteExoLead, subst_table, neweqs, deterministic_model);
   else
     return createExoLeadAuxiliaryVarForMyself(subst_table, neweqs);
 }
@@ -6657,46 +6570,31 @@ TrinaryOpNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode
 expr_t
 TrinaryOpNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t arg1subst = arg1->substituteExoLag(subst_table, neweqs);
-  expr_t arg2subst = arg2->substituteExoLag(subst_table, neweqs);
-  expr_t arg3subst = arg3->substituteExoLag(subst_table, neweqs);
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::substituteExoLag, subst_table, neweqs);
 }
 
 expr_t
 TrinaryOpNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
 {
-  expr_t arg1subst = arg1->substituteExpectation(subst_table, neweqs, partial_information_model);
-  expr_t arg2subst = arg2->substituteExpectation(subst_table, neweqs, partial_information_model);
-  expr_t arg3subst = arg3->substituteExpectation(subst_table, neweqs, partial_information_model);
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::substituteExpectation, subst_table, neweqs, partial_information_model);
 }
 
 expr_t
 TrinaryOpNode::substituteAdl() const
 {
-  expr_t arg1subst = arg1->substituteAdl();
-  expr_t arg2subst = arg2->substituteAdl();
-  expr_t arg3subst = arg3->substituteAdl();
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::substituteAdl);
 }
 
 expr_t
 TrinaryOpNode::substituteModelLocalVariables() const
 {
-  expr_t arg1subst = arg1->substituteModelLocalVariables();
-  expr_t arg2subst = arg2->substituteModelLocalVariables();
-  expr_t arg3subst = arg3->substituteModelLocalVariables();
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::substituteModelLocalVariables);
 }
 
 expr_t
 TrinaryOpNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
 {
-  expr_t arg1subst = arg1->substituteVarExpectation(subst_table);
-  expr_t arg2subst = arg2->substituteVarExpectation(subst_table);
-  expr_t arg3subst = arg3->substituteVarExpectation(subst_table);
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::substituteVarExpectation, subst_table);
 }
 
 void
@@ -6730,19 +6628,13 @@ expr_t
 TrinaryOpNode::substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table,
                               vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t arg1subst = arg1->substituteDiff(nodes, subst_table, neweqs);
-  expr_t arg2subst = arg2->substituteDiff(nodes, subst_table, neweqs);
-  expr_t arg3subst = arg3->substituteDiff(nodes, subst_table, neweqs);
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::substituteDiff, nodes, subst_table, neweqs);
 }
 
 expr_t
 TrinaryOpNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t arg1subst = arg1->substituteUnaryOpNodes(nodes, subst_table, neweqs);
-  expr_t arg2subst = arg2->substituteUnaryOpNodes(nodes, subst_table, neweqs);
-  expr_t arg3subst = arg3->substituteUnaryOpNodes(nodes, subst_table, neweqs);
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::substituteUnaryOpNodes, nodes, subst_table, neweqs);
 }
 
 int
@@ -6754,28 +6646,19 @@ TrinaryOpNode::countDiffs() const
 expr_t
 TrinaryOpNode::substitutePacExpectation(const string &name, expr_t subexpr)
 {
-  expr_t arg1subst = arg1->substitutePacExpectation(name, subexpr);
-  expr_t arg2subst = arg2->substitutePacExpectation(name, subexpr);
-  expr_t arg3subst = arg3->substitutePacExpectation(name, subexpr);
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::substitutePacExpectation, name, subexpr);
 }
 
 expr_t
 TrinaryOpNode::substitutePacTargetNonstationary(const string &name, expr_t subexpr)
 {
-  expr_t arg1subst = arg1->substitutePacTargetNonstationary(name, subexpr);
-  expr_t arg2subst = arg2->substitutePacTargetNonstationary(name, subexpr);
-  expr_t arg3subst = arg3->substitutePacTargetNonstationary(name, subexpr);
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::substitutePacTargetNonstationary, name, subexpr);
 }
 
 expr_t
 TrinaryOpNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  expr_t arg1subst = arg1->differentiateForwardVars(subset, subst_table, neweqs);
-  expr_t arg2subst = arg2->differentiateForwardVars(subset, subst_table, neweqs);
-  expr_t arg3subst = arg3->differentiateForwardVars(subset, subst_table, neweqs);
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::differentiateForwardVars, subset, subst_table, neweqs);
 }
 
 bool
@@ -6809,28 +6692,19 @@ TrinaryOpNode::containsPacTargetNonstationary(const string &pac_model_name) cons
 expr_t
 TrinaryOpNode::replaceTrendVar() const
 {
-  expr_t arg1subst = arg1->replaceTrendVar();
-  expr_t arg2subst = arg2->replaceTrendVar();
-  expr_t arg3subst = arg3->replaceTrendVar();
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::replaceTrendVar);
 }
 
 expr_t
 TrinaryOpNode::detrend(int symb_id, bool log_trend, expr_t trend) const
 {
-  expr_t arg1subst = arg1->detrend(symb_id, log_trend, trend);
-  expr_t arg2subst = arg2->detrend(symb_id, log_trend, trend);
-  expr_t arg3subst = arg3->detrend(symb_id, log_trend, trend);
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::detrend, symb_id, log_trend, trend);
 }
 
 expr_t
 TrinaryOpNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const
 {
-  expr_t arg1subst = arg1->removeTrendLeadLag(trend_symbols_map);
-  expr_t arg2subst = arg2->removeTrendLeadLag(trend_symbols_map);
-  expr_t arg3subst = arg3->removeTrendLeadLag(trend_symbols_map);
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::removeTrendLeadLag, trend_symbols_map);
 }
 
 bool
@@ -6850,28 +6724,19 @@ TrinaryOpNode::isParamTimesEndogExpr() const
 expr_t
 TrinaryOpNode::substituteStaticAuxiliaryVariable() const
 {
-  expr_t arg1subst = arg1->substituteStaticAuxiliaryVariable();
-  expr_t arg2subst = arg2->substituteStaticAuxiliaryVariable();
-  expr_t arg3subst = arg3->substituteStaticAuxiliaryVariable();
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::substituteStaticAuxiliaryVariable);
 }
 
 expr_t
 TrinaryOpNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
-  expr_t arg1subst = arg1->replaceVarsInEquation(table);
-  expr_t arg2subst = arg2->replaceVarsInEquation(table);
-  expr_t arg3subst = arg3->replaceVarsInEquation(table);
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::replaceVarsInEquation, table);
 }
 
 expr_t
 TrinaryOpNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
 {
-  expr_t arg1subst = arg1->substituteLogTransform(orig_symb_id, aux_symb_id);
-  expr_t arg2subst = arg2->substituteLogTransform(orig_symb_id, aux_symb_id);
-  expr_t arg3subst = arg3->substituteLogTransform(orig_symb_id, aux_symb_id);
-  return buildSimilarTrinaryOpNode(arg1subst, arg2subst, arg3subst, datatree);
+  return recurseTransform(&ExprNode::substituteLogTransform, orig_symb_id, aux_symb_id);
 }
 
 AbstractExternalFunctionNode::AbstractExternalFunctionNode(DataTree &datatree_arg,
@@ -7039,10 +6904,7 @@ AbstractExternalFunctionNode::maxLagWithDiffsExpanded() const
 expr_t
 AbstractExternalFunctionNode::undiff() const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->undiff());
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::undiff);
 }
 
 int
@@ -7054,91 +6916,61 @@ AbstractExternalFunctionNode::VarMaxLag(const set<expr_t> &lhs_lag_equiv) const
 expr_t
 AbstractExternalFunctionNode::decreaseLeadsLags(int n) const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->decreaseLeadsLags(n));
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::decreaseLeadsLags, n);
 }
 
 expr_t
 AbstractExternalFunctionNode::decreaseLeadsLagsPredeterminedVariables() const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->decreaseLeadsLagsPredeterminedVariables());
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::decreaseLeadsLagsPredeterminedVariables);
 }
 
 expr_t
 AbstractExternalFunctionNode::substituteEndoLeadGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->substituteEndoLeadGreaterThanTwo(subst_table, neweqs, deterministic_model));
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::substituteEndoLeadGreaterThanTwo, subst_table, neweqs, deterministic_model);
 }
 
 expr_t
 AbstractExternalFunctionNode::substituteEndoLagGreaterThanTwo(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->substituteEndoLagGreaterThanTwo(subst_table, neweqs));
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::substituteEndoLagGreaterThanTwo, subst_table, neweqs);
 }
 
 expr_t
 AbstractExternalFunctionNode::substituteExoLead(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool deterministic_model) const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->substituteExoLead(subst_table, neweqs, deterministic_model));
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::substituteExoLead, subst_table, neweqs, deterministic_model);
 }
 
 expr_t
 AbstractExternalFunctionNode::substituteExoLag(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->substituteExoLag(subst_table, neweqs));
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::substituteExoLag, subst_table, neweqs);
 }
 
 expr_t
 AbstractExternalFunctionNode::substituteExpectation(subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs, bool partial_information_model) const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->substituteExpectation(subst_table, neweqs, partial_information_model));
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::substituteExpectation, subst_table, neweqs, partial_information_model);
 }
 
 expr_t
 AbstractExternalFunctionNode::substituteAdl() const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->substituteAdl());
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::substituteAdl);
 }
 
 expr_t
 AbstractExternalFunctionNode::substituteModelLocalVariables() const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->substituteModelLocalVariables());
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::substituteModelLocalVariables);
 }
 
 expr_t
 AbstractExternalFunctionNode::substituteVarExpectation(const map<string, expr_t> &subst_table) const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->substituteVarExpectation(subst_table));
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::substituteVarExpectation, subst_table);
 }
 
 void
@@ -7169,19 +7001,13 @@ expr_t
 AbstractExternalFunctionNode::substituteDiff(const lag_equivalence_table_t &nodes, subst_table_t &subst_table,
                                              vector<BinaryOpNode *> &neweqs) const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->substituteDiff(nodes, subst_table, neweqs));
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::substituteDiff, nodes, subst_table, neweqs);
 }
 
 expr_t
 AbstractExternalFunctionNode::substituteUnaryOpNodes(const lag_equivalence_table_t &nodes, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->substituteUnaryOpNodes(nodes, subst_table, neweqs));
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::substituteUnaryOpNodes, nodes, subst_table, neweqs);
 }
 
 int
@@ -7193,28 +7019,19 @@ AbstractExternalFunctionNode::countDiffs() const
 expr_t
 AbstractExternalFunctionNode::substitutePacExpectation(const string &name, expr_t subexpr)
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->substitutePacExpectation(name, subexpr));
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::substitutePacExpectation, name, subexpr);
 }
 
 expr_t
 AbstractExternalFunctionNode::substitutePacTargetNonstationary(const string &name, expr_t subexpr)
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->substitutePacTargetNonstationary(name, subexpr));
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::substitutePacTargetNonstationary, name, subexpr);
 }
 
 expr_t
 AbstractExternalFunctionNode::differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->differentiateForwardVars(subset, subst_table, neweqs));
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::differentiateForwardVars, subset, subst_table, neweqs);
 }
 
 bool
@@ -7308,28 +7125,19 @@ AbstractExternalFunctionNode::containsPacTargetNonstationary(const string &pac_m
 expr_t
 AbstractExternalFunctionNode::replaceTrendVar() const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->replaceTrendVar());
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::replaceTrendVar);
 }
 
 expr_t
 AbstractExternalFunctionNode::detrend(int symb_id, bool log_trend, expr_t trend) const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->detrend(symb_id, log_trend, trend));
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::detrend, symb_id, log_trend, trend);
 }
 
 expr_t
 AbstractExternalFunctionNode::removeTrendLeadLag(const map<int, expr_t> &trend_symbols_map) const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->removeTrendLeadLag(trend_symbols_map));
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::removeTrendLeadLag, trend_symbols_map);
 }
 
 bool
@@ -7437,19 +7245,13 @@ AbstractExternalFunctionNode::containsExternalFunction() const
 expr_t
 AbstractExternalFunctionNode::substituteStaticAuxiliaryVariable() const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->substituteStaticAuxiliaryVariable());
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::substituteStaticAuxiliaryVariable);
 }
 
 expr_t
 AbstractExternalFunctionNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->replaceVarsInEquation(table));
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::replaceVarsInEquation, table);
 }
 
 ExternalFunctionNode::ExternalFunctionNode(DataTree &datatree_arg,
@@ -7463,10 +7265,7 @@ ExternalFunctionNode::ExternalFunctionNode(DataTree &datatree_arg,
 expr_t
 AbstractExternalFunctionNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
 {
-  vector<expr_t> arguments_subst;
-  for (auto argument : arguments)
-    arguments_subst.push_back(argument->substituteLogTransform(orig_symb_id, aux_symb_id));
-  return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  return recurseTransform(&ExprNode::substituteLogTransform, orig_symb_id, aux_symb_id);
 }
 
 expr_t

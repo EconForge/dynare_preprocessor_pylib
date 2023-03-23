@@ -26,6 +26,7 @@
 #include <ostream>
 #include <functional>
 #include <optional>
+#include <utility>
 
 using namespace std;
 
@@ -1004,6 +1005,14 @@ protected:
   void prepareForChainRuleDerivation(const map<int, BinaryOpNode *> &recursive_variables, map<expr_t, set<int>> &non_null_chain_rule_derivatives) const override;
   void matchVTCTPHelper(optional<int> &var_id, int &lag, optional<int> &param_id, double &constant, bool at_denominator) const override;
   void computeSubExprContainingVariable(int symb_id, int lag, set<expr_t> &contain_var) const override;
+  // Returns the node obtained by applying a transformation recursively on the argument (in same datatree)
+  template<typename Callable, typename... Args>
+  expr_t
+  recurseTransform(Callable&& op, Args&&... args) const
+  {
+    expr_t substarg { invoke(forward<Callable>(op), arg, forward<Args>(args)...) };
+    return buildSimilarUnaryOpNode(substarg, datatree);
+  }
 public:
   const expr_t arg;
   //! Stores the information set. Only used for expectation operator
@@ -1123,6 +1132,15 @@ private:
   int cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
   //! Returns the derivative of this node if darg1 and darg2 are the derivatives of the arguments
   expr_t composeDerivatives(expr_t darg1, expr_t darg2);
+  // Returns the node obtained by applying a transformation recursively on the arguments (in same datatree)
+  template<typename Callable, typename... Args>
+  expr_t
+  recurseTransform(Callable&& op, Args&&... args) const
+  {
+    expr_t substarg1 { invoke(forward<Callable>(op), arg1, forward<Args>(args)...) };
+    expr_t substarg2 { invoke(forward<Callable>(op), arg2, forward<Args>(args)...) };
+    return buildSimilarBinaryOpNode(substarg1, substarg2, datatree);
+  }
 public:
   BinaryOpNode(DataTree &datatree_arg, int idx_arg, const expr_t arg1_arg,
                BinaryOpcode op_code_arg, const expr_t arg2_arg, int powerDerivOrder);
@@ -1268,6 +1286,16 @@ private:
   int cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const override;
   //! Returns the derivative of this node if darg1, darg2 and darg3 are the derivatives of the arguments
   expr_t composeDerivatives(expr_t darg1, expr_t darg2, expr_t darg3);
+  // Returns the node obtained by applying a transformation recursively on the arguments (in same datatree)
+  template<typename Callable, typename... Args>
+  expr_t
+  recurseTransform(Callable&& op, Args&&... args) const
+  {
+    expr_t substarg1 { invoke(forward<Callable>(op), arg1, forward<Args>(args)...) };
+    expr_t substarg2 { invoke(forward<Callable>(op), arg2, forward<Args>(args)...) };
+    expr_t substarg3 { invoke(forward<Callable>(op), arg3, forward<Args>(args)...) };
+    return buildSimilarTrinaryOpNode(substarg1, substarg2, substarg3, datatree);
+  }
 public:
   TrinaryOpNode(DataTree &datatree_arg, int idx_arg, const expr_t arg1_arg,
                 TrinaryOpcode op_code_arg, const expr_t arg2_arg, const expr_t arg3_arg);
@@ -1361,6 +1389,16 @@ private:
   virtual expr_t composeDerivatives(const vector<expr_t> &dargs) = 0;
   // Computes the maximum of f applied to all arguments (result will always be non-negative)
   int maxHelper(const function<int (expr_t)> &f) const;
+  // Returns the node obtained by applying a transformation recursively on the arguments (in same datatree)
+  template<typename Callable, typename... Args>
+  expr_t
+  recurseTransform(Callable&& op, Args&&... args) const
+  {
+    vector<expr_t> arguments_subst;
+    for (auto argument : arguments)
+      arguments_subst.push_back(invoke(forward<Callable>(op), argument, forward<Args>(args)...));
+    return buildSimilarExternalFunctionNode(arguments_subst, datatree);
+  }
 protected:
   //! Thrown when trying to access an unknown entry in external_function_node_map
   class UnknownFunctionNameAndArgs
