@@ -174,22 +174,6 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
 {
   initializeVariablesAndEquations();
 
-  vector<BinaryOpNode *> neweqs;
-  for (int eq = 0; eq < static_cast<int>(equations.size() - aux_equations.size()); eq++)
-    {
-      expr_t eq_tmp = equations[eq]->substituteStaticAuxiliaryVariable();
-      neweqs.push_back(dynamic_cast<BinaryOpNode *>(eq_tmp->toStatic(*this)));
-    }
-
-  for (auto &aux_equation : aux_equations)
-    {
-      expr_t eq_tmp = aux_equation->substituteStaticAuxiliaryDefinition();
-      neweqs.push_back(dynamic_cast<BinaryOpNode *>(eq_tmp->toStatic(*this)));
-    }
-
-  equations.clear();
-  copy(neweqs.begin(), neweqs.end(), back_inserter(equations));
-
   /* In both MATLAB and Julia, tensors for higher-order derivatives are stored
      in matrices whose columns correspond to variable multi-indices. Since we
      currently are limited to 32-bit signed integers (hence 31 bits) for matrix
@@ -769,7 +753,7 @@ StaticModel::writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType
       dynamic_cast<ExprNode *>(aux_equation)->writeExternalFunctionOutput(output, output_type, {}, {}, tef_terms);
   for (auto aux_equation : aux_equations)
     {
-      dynamic_cast<ExprNode *>(aux_equation->substituteStaticAuxiliaryDefinition())->writeOutput(output, output_type, {}, {}, tef_terms);
+      aux_equation->writeOutput(output, output_type, {}, {}, tef_terms);
       output << ";" << endl;
     }
 }
@@ -787,7 +771,7 @@ StaticModel::writeLatexAuxVarRecursiveDefinitions(ostream &output) const
   for (auto aux_equation : aux_equations)
     {
       output << R"(\begin{dmath})" << endl;
-      dynamic_cast<ExprNode *>(aux_equation->substituteStaticAuxiliaryDefinition())->writeOutput(output, ExprNodeOutputType::latexStaticModel);
+      dynamic_cast<ExprNode *>(aux_equation)->writeOutput(output, ExprNodeOutputType::latexStaticModel);
       output << endl << R"(\end{dmath})" << endl;
     }
 }
@@ -820,7 +804,7 @@ StaticModel::writeJsonAuxVarRecursiveDefinitions(ostream &output) const
       output << R"(, {"lhs": ")";
       aux_equation->arg1->writeJsonOutput(output, temporary_terms, tef_terms, false);
       output << R"(", "rhs": ")";
-      dynamic_cast<BinaryOpNode *>(aux_equation->substituteStaticAuxiliaryDefinition())->arg2->writeJsonOutput(output, temporary_terms, tef_terms, false);
+      aux_equation->arg2->writeJsonOutput(output, temporary_terms, tef_terms, false);
       output << R"("})";
     }
 }

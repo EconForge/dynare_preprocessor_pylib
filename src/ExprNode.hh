@@ -713,9 +713,6 @@ public:
   //! Returns true if the expression is in static form (no lead, no lag, no expectation, no STEADY_STATE)
   virtual bool isInStaticForm() const = 0;
 
-  //! Substitute auxiliary variables by their expression in static model
-  virtual expr_t substituteStaticAuxiliaryVariable() const = 0;
-
   //! Matches a linear combination of variables (endo or exo), where scalars can be constant*parameter
   /*! Returns a list of (variable_id, lag, param_id, constant)
     corresponding to the terms in the expression. When there is no
@@ -916,7 +913,6 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool containsPacTargetNonstationary(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
-  expr_t substituteStaticAuxiliaryVariable() const override;
   expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
 };
 
@@ -990,8 +986,6 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool containsPacTargetNonstationary(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
-  //! Substitute auxiliary variables by their expression in static model
-  expr_t substituteStaticAuxiliaryVariable() const override;
   void matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<int> &powers) const override;
   pair<int, expr_t> matchEndogenousTimesConstant() const override;
   expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
@@ -1105,8 +1099,6 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool containsPacTargetNonstationary(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
-  //! Substitute auxiliary variables by their expression in static model
-  expr_t substituteStaticAuxiliaryVariable() const override;
   void decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign) const override;
   expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
 };
@@ -1256,10 +1248,6 @@ public:
   pair<optional<int>, expr_t> getPacOptimizingShareAndExprNodesHelper(int lhs_orig_symb_id) const;
   expr_t getPacNonOptimizingPart(int optim_share_symb_id) const;
   bool isParamTimesEndogExpr() const override;
-  //! Substitute auxiliary variables by their expression in static model
-  expr_t substituteStaticAuxiliaryVariable() const override;
-  //! Substitute auxiliary variables by their expression in static model auxiliary variable definition
-  expr_t substituteStaticAuxiliaryDefinition() const;
   void decomposeAdditiveTerms(vector<pair<expr_t, int>> &terms, int current_sign) const override;
   void decomposeMultiplicativeFactors(vector<pair<expr_t, int>> &factors, int current_exponent = 1) const override;
   void matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<int> &powers) const override;
@@ -1372,8 +1360,6 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool containsPacTargetNonstationary(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
-  //! Substitute auxiliary variables by their expression in static model
-  expr_t substituteStaticAuxiliaryVariable() const override;
   expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
 };
 
@@ -1498,8 +1484,6 @@ public:
   bool containsPacExpectation(const string &pac_model_name = "") const override;
   bool containsPacTargetNonstationary(const string &pac_model_name = "") const override;
   bool isParamTimesEndogExpr() const override;
-  //! Substitute auxiliary variables by their expression in static model
-  expr_t substituteStaticAuxiliaryVariable() const override;
   expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
 };
 
@@ -1665,7 +1649,6 @@ public:
   bool isInStaticForm() const override;
   expr_t replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const override;
   bool isParamTimesEndogExpr() const override;
-  expr_t substituteStaticAuxiliaryVariable() const override;
   expr_t differentiateForwardVars(const vector<string> &subset, subst_table_t &subst_table, vector<BinaryOpNode *> &neweqs) const override;
   expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t replaceTrendVar() const override;

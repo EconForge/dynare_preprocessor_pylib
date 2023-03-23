@@ -309,8 +309,6 @@ public:
   {
     return aux_vars.size();
   };
-  //! Retruns expr_node for an auxiliary variable
-  expr_t getAuxiliaryVarsExprNode(int symb_id) const noexcept(false);
   //! Tests if symbol already exists
   inline bool exists(const string &name) const;
   //! Get symbol name (by ID)

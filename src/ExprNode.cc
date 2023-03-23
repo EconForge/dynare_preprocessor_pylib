@@ -842,12 +842,6 @@ NumConstNode::isParamTimesEndogExpr() const
 }
 
 expr_t
-NumConstNode::substituteStaticAuxiliaryVariable() const
-{
-  return const_cast<NumConstNode *>(this);
-}
-
-expr_t
 NumConstNode::replaceVarsInEquation([[maybe_unused]] map<VariableNode *, NumConstNode *> &table) const
 {
   return const_cast<NumConstNode *>(this);
@@ -1380,20 +1374,6 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       cerr << "VariableNode::writeOutput: Impossible case" << endl;
       exit(EXIT_FAILURE);
     }
-}
-
-expr_t
-VariableNode::substituteStaticAuxiliaryVariable() const
-{
-  if (get_type() == SymbolType::endogenous)
-    try
-      {
-        return datatree.symbol_table.getAuxiliaryVarsExprNode(symb_id)->substituteStaticAuxiliaryVariable();
-      }
-    catch (SymbolTable::SearchFailedException &e)
-      {
-      }
-  return const_cast<VariableNode *>(this);
 }
 
 double
@@ -3998,19 +3978,6 @@ UnaryOpNode::isParamTimesEndogExpr() const
 }
 
 expr_t
-UnaryOpNode::substituteStaticAuxiliaryVariable() const
-{
-  if (op_code == UnaryOpcode::diff)
-    return datatree.Zero;
-
-  expr_t argsubst = arg->substituteStaticAuxiliaryVariable();
-  if (op_code == UnaryOpcode::expectation)
-    return argsubst;
-  else
-    return buildSimilarUnaryOpNode(argsubst, datatree);
-}
-
-expr_t
 UnaryOpNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
   return recurseTransform(&ExprNode::replaceVarsInEquation, table);
@@ -5853,19 +5820,6 @@ BinaryOpNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) 
   return recurseTransform(&ExprNode::replaceVarsInEquation, table);
 }
 
-expr_t
-BinaryOpNode::substituteStaticAuxiliaryVariable() const
-{
-  return recurseTransform(&ExprNode::substituteStaticAuxiliaryVariable);
-}
-
-expr_t
-BinaryOpNode::substituteStaticAuxiliaryDefinition() const
-{
-  expr_t arg2subst = arg2->substituteStaticAuxiliaryVariable();
-  return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
-}
-
 void
 BinaryOpNode::matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vector<int> &powers) const
 {
@@ -6722,12 +6676,6 @@ TrinaryOpNode::isParamTimesEndogExpr() const
 }
 
 expr_t
-TrinaryOpNode::substituteStaticAuxiliaryVariable() const
-{
-  return recurseTransform(&ExprNode::substituteStaticAuxiliaryVariable);
-}
-
-expr_t
 TrinaryOpNode::replaceVarsInEquation(map<VariableNode *, NumConstNode *> &table) const
 {
   return recurseTransform(&ExprNode::replaceVarsInEquation, table);
@@ -7250,12 +7198,6 @@ bool
 AbstractExternalFunctionNode::containsExternalFunction() const
 {
   return true;
-}
-
-expr_t
-AbstractExternalFunctionNode::substituteStaticAuxiliaryVariable() const
-{
-  return recurseTransform(&ExprNode::substituteStaticAuxiliaryVariable);
 }
 
 expr_t
@@ -8555,12 +8497,6 @@ bool
 SubModelNode::isParamTimesEndogExpr() const
 {
   return false;
-}
-
-expr_t
-SubModelNode::substituteStaticAuxiliaryVariable() const
-{
-  return const_cast<SubModelNode *>(this);
 }
 
 expr_t

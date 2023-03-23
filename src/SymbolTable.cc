@@ -706,20 +706,6 @@ SymbolTable::unrollDiffLeadLagChain(int symb_id, int lag) const noexcept(false)
   return { symb_id, lag };
 }
 
-expr_t
-SymbolTable::getAuxiliaryVarsExprNode(int symb_id) const noexcept(false)
-// throw exception if it is a Lagrange multiplier
-{
-  for (const auto &aux_var : aux_vars)
-    if (aux_var.symb_id == symb_id)
-      if (expr_t expr_node = aux_var.expr_node;
-          expr_node)
-        return expr_node;
-      else
-        throw SearchFailedException(symb_id);
-  throw SearchFailedException(symb_id);
-}
-
 void
 SymbolTable::markPredetermined(int symb_id) noexcept(false)
 {
