@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -391,8 +391,6 @@ public:
   set <int> getEndogenous() const;
   //! Is a given symbol an auxiliary variable
   bool isAuxiliaryVariable(int symb_id) const;
-  //! Is a given symbol an auxiliary variable but not a Lagrange multiplier
-  bool isAuxiliaryVariableButNotMultiplier(int symb_id) const;
   //! Is a given symbol a diff, diff lead, or diff lag auxiliary variable
   bool isDiffAuxiliaryVariable(int symb_id) const;
   //! Get list of endogenous variables without aux vars

@@ -863,14 +863,6 @@ SymbolTable::isAuxiliaryVariable(int symb_id) const
 }
 
 bool
-SymbolTable::isAuxiliaryVariableButNotMultiplier(int symb_id) const
-{
-  return any_of(aux_vars.begin(), aux_vars.end(),
-                [=](const auto &av)
-                { return av.symb_id == symb_id && av.type != AuxVarType::multiplier; });
-}
-
-bool
 SymbolTable::isDiffAuxiliaryVariable(int symb_id) const
 {
   return any_of(aux_vars.begin(), aux_vars.end(),
