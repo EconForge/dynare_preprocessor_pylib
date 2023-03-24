@@ -1026,3 +1026,13 @@ SymbolTable::getVariablesWithLogTransform() const
 {
   return with_log_transform;
 }
+
+set<int>
+SymbolTable::getLagrangeMultipliers() const
+{
+  set<int> r;
+  for (const auto &aux_var : aux_vars)
+    if (aux_var.type == AuxVarType::multiplier)
+      r.insert(aux_var.symb_id);
+  return r;
+}

@@ -34,6 +34,25 @@ class DynamicModel;
 class StaticModel : public ModelTree
 {
 private:
+  /* First-order derivatives of equations w.r.t. Lagrange multipliers, using
+     chain rule derivation for auxiliary variables added after the multipliers
+     (so that derivatives of optimality FOCs w.r.t. multipliers with lead or
+     lag ⩾ 2 are self-contained, which is required by dyn_ramsey_static.m).
+     Only used if 'ramsey_model' or 'ramsey_policy' is present.
+     The first index of the key is the equation number (NB: auxiliary equations
+     added after the multipliers do not appear).
+     The second index is the index of the Lagrange multiplier (ordered by
+     increasing symbol ID) */
+  SparseColumnMajorOrderMatrix ramsey_multipliers_derivatives;
+  /* Column indices for the derivatives w.r.t. Lagrange multipliers in
+     Compressed Sparse Column (CSC) storage (corresponds to the “jc” vector in
+     MATLAB terminology) */
+  vector<int> ramsey_multipliers_derivatives_sparse_colptr;
+  // Temporary terms for ramsey_multipliers_derivatives
+  temporary_terms_t ramsey_multipliers_derivatives_temporary_terms;
+  // Stores, for each temporary term, its index in the MATLAB/Octave vector
+  temporary_terms_idxs_t ramsey_multipliers_derivatives_temporary_terms_idxs;
+
   // Writes static model file (MATLAB/Octave version, legacy representation)
   void writeStaticMFile(const string &basename) const;
 
@@ -93,6 +112,10 @@ private:
 
   // Write the block structure of the model in the driver file
   void writeBlockDriverOutput(ostream &output) const;
+
+  // Helper for writing ramsey_multipliers_derivatives
+  template<ExprNodeOutputType output_type>
+  void writeRamseyMultipliersDerivativesHelper(ostream &output) const;
 
 protected:
   string
@@ -158,6 +181,18 @@ public:
 
   int getDerivID(int symb_id, int lag) const noexcept(false) override;
   void addAllParamDerivId(set<int> &deriv_id_set) override;
+
+  // Fills the ramsey_multipliers_derivatives structure (see the comment there)
+  void computeRamseyMultipliersDerivatives(int ramsey_orig_endo_nbr, bool is_matlab, bool no_tmp_terms);
+
+  // Writes the sparse indices of ramsey_multipliers_derivatives to the driver file
+  void writeDriverRamseyMultipliersDerivativesSparseIndices(ostream &output) const;
+
+  // Writes ramsey_multipliers_derivatives (MATLAB/Octave version)
+  void writeRamseyMultipliersDerivativesMFile(const string &basename, int ramsey_orig_endo_nbr) const;
+
+  // Writes ramsey_multipliers_derivatives (C version)
+  void writeRamseyMultipliersDerivativesCFile(const string &basename, const string &mexext, const filesystem::path &matlabroot, int ramsey_orig_endo_nbr) const;
 };
 
 template<bool julia>
@@ -261,6 +296,32 @@ StaticModel::writeParamsDerivativesFile(const string &basename) const
              << "end" << endl;
 
       writeToFileIfModified(output, filesystem::path{basename} / "model" / "julia" / "StaticParamsDerivs.jl");
+    }
+}
+
+template<ExprNodeOutputType output_type>
+void
+StaticModel::writeRamseyMultipliersDerivativesHelper(ostream &output) const
+{
+  // Write temporary terms (which includes external function stuff)
+  deriv_node_temp_terms_t tef_terms;
+  temporary_terms_t unused_tt_copy;
+  writeTemporaryTerms<output_type>(ramsey_multipliers_derivatives_temporary_terms,
+                                   unused_tt_copy,
+                                   ramsey_multipliers_derivatives_temporary_terms_idxs,
+                                   output, tef_terms);
+
+  // Write chain rule derivatives
+  for (int k {0};
+       auto &[row_col, d] : ramsey_multipliers_derivatives)
+    {
+      output << "g1m_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
+             << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+             << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+      d->writeOutput(output, output_type, ramsey_multipliers_derivatives_temporary_terms,
+                     ramsey_multipliers_derivatives_temporary_terms_idxs, tef_terms);
+      output << ";" << endl;
+      k++;
     }
 }
 

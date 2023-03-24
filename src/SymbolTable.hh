@@ -91,7 +91,11 @@ struct AuxVarInfo
 
 //! Stores the symbol table
 /*!
-  A symbol is given by its name, and is internally represented by a unique integer.
+  A symbol is given by its name, and is internally represented by a unique
+  integer, called a symbol ID.
+
+  There is a guarantee that symbol IDs are increasing, i.e. if symbol A is
+  added after symbol B, then the ID of A is greater than the ID of B.
 
   When method freeze() is called, computes a distinct sequence of IDs for some types
   (endogenous, exogenous, parameters), which are used by the Matlab/Octave functions.
@@ -407,6 +411,8 @@ public:
   const AuxVarInfo &getAuxVarInfo(int symb_id) const;
   // Returns the set of all endogenous declared with “var(log)”
   const set<int> &getVariablesWithLogTransform() const;
+  // Returns all Lagrange multipliers
+  set<int> getLagrangeMultipliers() const;
 };
 
 inline void

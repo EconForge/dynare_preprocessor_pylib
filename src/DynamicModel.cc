@@ -2548,19 +2548,19 @@ DynamicModel::replaceMyEquations(DynamicModel &dynamic_model) const
   dynamic_model.equation_tags = equation_tags;
 }
 
-void
+int
 DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
 {
+  cout << "Ramsey Problem: added " << equations.size() << " multipliers." << endl;
+
   // Add aux LM to constraints in equations
   // equation[i]->lhs = rhs becomes equation[i]->MULT_(i+1)*(lhs-rhs) = 0
-  int i;
-  for (i = 0; i < static_cast<int>(equations.size()); i++)
+  for (int i {0}; i < static_cast<int>(equations.size()); i++)
     {
       auto substeq = dynamic_cast<BinaryOpNode *>(equations[i]->addMultipliersToConstraints(i));
       assert(substeq);
       equations[i] = substeq;
     }
-  cout << "Ramsey Problem: added " << i << " Multipliers." << endl;
 
   // Add Planner Objective to equations so that it appears in Lagrangian
   assert(static_model.equations.size() == 1);
@@ -2587,7 +2587,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
 
   // Create (modified) Lagrangian (so that we can take the derivative once at time t)
   expr_t lagrangian = Zero;
-  for (i = 0; i < static_cast<int>(equations.size()); i++)
+  for (int i {0}; i < static_cast<int>(equations.size()); i++)
     for (int lag = -max_eq_lag; lag <= max_eq_lead; lag++)
       {
         expr_t dfpower = nullptr;
@@ -2615,10 +2615,15 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
 
   /* Compute Lagrangian derivatives.
      Also restore line numbers and tags for FOCs w.r.t. a Lagrange multiplier
-     (i.e. a FOC identical to an equation of the original model) */
+     (i.e. a FOC identical to an equation of the original model).
+     The guarantee given by the SymbolTable class that symbol IDs are
+     increasing, plus the fact that derivation IDs are increasing with symbol
+     IDs for a given lag, gives the expected ordering of the equations
+     (optimality FOCs first, then original equations a.k.a. constraints). */
   vector<expr_t> neweqs;
   vector<optional<int>> neweqs_lineno;
   map<int, map<string, string>> neweqs_tags;
+  int orig_endo_nbr {0};
   for (auto &[symb_id_and_lag, deriv_id] : deriv_id_table)
     {
       auto &[symb_id, lag] = symb_id_and_lag;
@@ -2633,7 +2638,10 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
               neweqs_tags[neweqs.size()-1] = old_equation_tags.getTagsByEqn(*i);
             }
           else
-            neweqs_lineno.push_back(nullopt);
+            {
+              orig_endo_nbr++;
+              neweqs_lineno.push_back(nullopt);
+            }
         }
     }
 
@@ -2641,6 +2649,8 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel &static_model)
   clearEquations();
   for (size_t i = 0; i < neweqs.size(); i++)
     addEquation(neweqs[i], neweqs_lineno[i], neweqs_tags[i]);
+
+  return orig_endo_nbr;
 }
 
 bool

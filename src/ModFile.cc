@@ -497,7 +497,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
         orig_ramsey_dynamic_model = dynamic_model;
       DynamicModel ramsey_FOC_equations_dynamic_model {symbol_table, num_constants, external_functions_table, trend_component_model_table, var_model_table};
       ramsey_FOC_equations_dynamic_model = dynamic_model;
-      ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(planner_objective);
+      mod_file_struct.ramsey_orig_endo_nbr = ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(planner_objective);
       ramsey_FOC_equations_dynamic_model.replaceMyEquations(dynamic_model);
       mod_file_struct.ramsey_eq_nbr = dynamic_model.equation_number() - mod_file_struct.orig_eq_nbr;
     }
@@ -673,6 +673,9 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
             paramsDerivsOrder = params_derivs_order;
 
           static_model.computingPass(derivsOrder, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll);
+          if (mod_file_struct.ramsey_model_present)
+            static_model.computeRamseyMultipliersDerivatives(mod_file_struct.ramsey_orig_endo_nbr,
+                                                             !use_dll, no_tmp_terms);
         }
       // Set things to compute for dynamic model
       if (mod_file_struct.perfect_foresight_solver_present
@@ -937,7 +940,11 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
     {
       dynamic_model.writeDriverOutput(mOutputFile, compute_xrefs);
       if (!no_static)
-        static_model.writeDriverOutput(mOutputFile);
+        {
+          static_model.writeDriverOutput(mOutputFile);
+          if (mod_file_struct.ramsey_model_present)
+            static_model.writeDriverRamseyMultipliersDerivativesSparseIndices(mOutputFile);
+        }
     }
 
   if (onlymodel || gui)
@@ -1044,6 +1051,13 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
             {
               static_model.writeStaticFile(basename, use_dll, mexext, matlabroot, false);
               static_model.writeParamsDerivativesFile<false>(basename);
+              if (mod_file_struct.ramsey_model_present)
+                {
+                  if (use_dll)
+                    static_model.writeRamseyMultipliersDerivativesCFile(basename, mexext, matlabroot, mod_file_struct.ramsey_orig_endo_nbr);
+                  else
+                    static_model.writeRamseyMultipliersDerivativesMFile(basename, mod_file_struct.ramsey_orig_endo_nbr);
+                }
             }
 
           dynamic_model.writeDynamicFile(basename, use_dll, mexext, matlabroot, false);

@@ -396,8 +396,13 @@ public:
   void removeEquations(const vector<pair<string, string>> &listed_eqs_by_tag, bool exclude_eqs,
                        bool excluded_vars_change_type);
 
-  //! Replaces model equations with derivatives of Lagrangian w.r.t. endogenous
-  void computeRamseyPolicyFOCs(const StaticModel &static_model);
+  /* Replaces model equations with derivatives of Lagrangian w.r.t. endogenous.
+     The optimality FOCs (derivatives w.r.t. ordinary endogenous) will appear
+     first, followed by the constraints (derivatives w.r.t. multipliers).
+     Returns the number of optimality FOCs, which is by construction equal to
+     the number of endogenous before adding the Lagrange multipliers
+     (internally called ramsey_endo_nbr). */
+  int computeRamseyPolicyFOCs(const StaticModel &static_model);
 
   //! Clears all equations
   void clearEquations();

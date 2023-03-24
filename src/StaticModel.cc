@@ -862,3 +862,172 @@ StaticModel::writeJsonParamsDerivatives(ostream &output, bool writeDetails) cons
          << ", " << hp_output.str()
          << "}";
 }
+
+void
+StaticModel::computeRamseyMultipliersDerivatives(int ramsey_orig_endo_nbr, bool is_matlab,
+                                                 bool no_tmp_terms)
+{
+  // Compute derivation IDs of Lagrange multipliers
+  set<int> mult_symb_ids { symbol_table.getLagrangeMultipliers() };
+  vector<int> mult_deriv_ids;
+  for (int symb_id : mult_symb_ids)
+    mult_deriv_ids.push_back(getDerivID(symb_id, 0));
+
+  // Compute the list of aux vars for which to apply the chain rule derivation
+  map<int, BinaryOpNode *> recursive_variables;
+  for (auto aux_eq : aux_equations)
+    {
+      auto varexpr { dynamic_cast<VariableNode *>(aux_eq->arg1) };
+      assert(varexpr && symbol_table.isAuxiliaryVariable(varexpr->symb_id));
+      /* Determine whether the auxiliary variable has been added after the last
+         Lagrange multiplier. We use the guarantee given by SymbolTable that
+         symbol IDs are increasing. */
+      if (varexpr->symb_id > *mult_symb_ids.crbegin())
+        recursive_variables.emplace(getDerivID(varexpr->symb_id, 0), aux_eq);
+    }
+
+  // Compute the chain rule derivatives w.r.t. multipliers
+  map<expr_t, set<int>> non_null_chain_rule_derivatives;
+  map<pair<expr_t, int>, expr_t> cache;
+  for (int eq {0}; eq < ramsey_orig_endo_nbr; eq++)
+    for (int mult {0}; mult < static_cast<int>(mult_deriv_ids.size()); mult++)
+      if (expr_t d { equations[eq]->getChainRuleDerivative(mult_deriv_ids[mult], recursive_variables,
+                                                           non_null_chain_rule_derivatives, cache) };
+          d != Zero)
+        ramsey_multipliers_derivatives.try_emplace({ eq, mult }, d);
+
+  // Compute the temporary terms
+  map<pair<int, int>, temporary_terms_t> temp_terms_map;
+  map<expr_t, pair<int, pair<int, int>>> reference_count;
+  for (const auto &[row_col, d] : ramsey_multipliers_derivatives)
+    d->computeTemporaryTerms({ 1, 0 }, temp_terms_map, reference_count, is_matlab);
+  /* If the user has specified the notmpterms option, clear all temporary
+     terms, except those that correspond to external functions (since they are
+     not optional) */
+  if (no_tmp_terms)
+    for (auto &it : temp_terms_map)
+      erase_if(it.second,
+               [](expr_t e) { return !dynamic_cast<AbstractExternalFunctionNode *>(e); });
+  ramsey_multipliers_derivatives_temporary_terms = move(temp_terms_map[{ 1, 0 }]);
+  for (int idx {0};
+       auto it : ramsey_multipliers_derivatives_temporary_terms)
+    ramsey_multipliers_derivatives_temporary_terms_idxs[it] = idx++;
+
+  // Compute the CSC format
+  ramsey_multipliers_derivatives_sparse_colptr = computeCSCColPtr(ramsey_multipliers_derivatives,
+                                                                  mult_deriv_ids.size());
+}
+
+void
+StaticModel::writeDriverRamseyMultipliersDerivativesSparseIndices(ostream &output) const
+{
+  output << "M_.ramsey_multipliers_static_g1_sparse_rowval = int32([";
+  for (auto &[row_col, d] : ramsey_multipliers_derivatives)
+    output << row_col.first+1 << ' ';
+  output << "]);" << endl
+         << "M_.ramsey_multipliers_static_g1_sparse_colval = int32([";
+  for (auto &[row_col, d] : ramsey_multipliers_derivatives)
+    output << row_col.second+1 << ' ';
+  output << "]);" << endl
+         << "M_.ramsey_multipliers_static_g1_sparse_colptr = int32([";
+  for (int it : ramsey_multipliers_derivatives_sparse_colptr)
+    output << it+1 << ' ';
+  output << "]);" << endl;
+}
+
+void
+StaticModel::writeRamseyMultipliersDerivativesMFile(const string &basename, int ramsey_orig_endo_nbr) const
+{
+  constexpr auto output_type { ExprNodeOutputType::matlabStaticModel };
+  filesystem::path filename {packageDir(basename) / "ramsey_multipliers_static_g1.m"};
+  ofstream output_file{filename, ios::out | ios::binary};
+  if (!output_file.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  output_file << "function g1m = ramsey_multipliers_static_g1(y, x, params, sparse_rowval, sparse_colval, sparse_colptr)" << endl
+              << "g1m_v=NaN(" << ramsey_multipliers_derivatives.size() << ",1);" << endl;
+
+  writeRamseyMultipliersDerivativesHelper<output_type>(output_file);
+
+  // On MATLAB < R2020a, sparse() does not accept int32 indices
+  output_file << "if ~isoctave && matlab_ver_less_than('9.8')" << endl
+              << "    sparse_rowval = double(sparse_rowval);" << endl
+              << "    sparse_colval = double(sparse_colval);" << endl
+              << "end" << endl
+              << "g1m = sparse(sparse_rowval, sparse_colval, g1m_v, " << ramsey_orig_endo_nbr << ", " << symbol_table.getLagrangeMultipliers().size() << ");" << endl
+              << "end" << endl;
+  output_file.close();
+}
+
+void
+StaticModel::writeRamseyMultipliersDerivativesCFile(const string &basename, const string &mexext, const filesystem::path &matlabroot, int ramsey_orig_endo_nbr) const
+{
+  constexpr auto output_type { ExprNodeOutputType::CStaticModel };
+  const filesystem::path model_src_dir {filesystem::path{basename} / "model" / "src"};
+
+  const int xlen { symbol_table.exo_nbr()+symbol_table.exo_det_nbr() };
+  const int nzval { static_cast<int>(ramsey_multipliers_derivatives.size()) };
+  const int ncols { static_cast<int>(symbol_table.getLagrangeMultipliers().size()) };
+
+  const filesystem::path p {model_src_dir / "ramsey_multipliers_static_g1.c"};
+  ofstream output{p, ios::out | ios::binary};
+  if (!output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << p.string() << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  output << "#include <math.h>" << endl << endl
+         << R"(#include "mex.h")" << endl // Needed for calls to external functions
+         << endl;
+  writePowerDeriv(output);
+  output << endl
+         << "void ramsey_multipliers_static_g1(const double *restrict y, const double *restrict x, const double *restrict params, double *restrict T, double *restrict g1m_v)" << endl
+         << "{" << endl;
+  writeRamseyMultipliersDerivativesHelper<output_type>(output);
+  output << "}" << endl
+         << endl
+         << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
+         << "{" << endl
+         << "  if (nrhs != 6)" << endl
+         << R"(    mexErrMsgTxt("Accepts exactly 6 input arguments");)" << endl
+         << "  if (nlhs != 1)" << endl
+         << R"(    mexErrMsgTxt("Accepts exactly 1 output argument");)" << endl
+         << "  if (!(mxIsDouble(prhs[0]) && !mxIsComplex(prhs[0]) && !mxIsSparse(prhs[0]) && mxGetNumberOfElements(prhs[0]) == " << symbol_table.endo_nbr() << "))" << endl
+           << R"(    mexErrMsgTxt("y must be a real dense numeric array with )" << symbol_table.endo_nbr() << R"( elements");)" << endl
+         << "  const double *restrict y = mxGetPr(prhs[0]);" << endl
+         << "  if (!(mxIsDouble(prhs[1]) && !mxIsComplex(prhs[1]) && !mxIsSparse(prhs[1]) && mxGetNumberOfElements(prhs[1]) == " << xlen << "))" << endl
+         << R"(    mexErrMsgTxt("x must be a real dense numeric array with )" << xlen << R"( elements");)" << endl
+         << "  const double *restrict x = mxGetPr(prhs[1]);" << endl
+         << "  if (!(mxIsDouble(prhs[2]) && !mxIsComplex(prhs[2]) && !mxIsSparse(prhs[2]) && mxGetNumberOfElements(prhs[2]) == " << symbol_table.param_nbr() << "))" << endl
+         << R"(    mexErrMsgTxt("params must be a real dense numeric array with )" << symbol_table.param_nbr() << R"( elements");)" << endl
+         << "  const double *restrict params = mxGetPr(prhs[2]);" << endl
+         << "  if (!(mxIsInt32(prhs[3]) && mxGetNumberOfElements(prhs[3]) == " << nzval << "))" << endl
+         << R"(    mexErrMsgTxt("sparse_rowval must be an int32 array with )" << nzval << R"( elements");)" << endl
+         << "  if (!(mxIsInt32(prhs[5]) && mxGetNumberOfElements(prhs[5]) == " << ncols+1 << "))" << endl
+         << R"(    mexErrMsgTxt("sparse_colptr must be an int32 array with )" << ncols+1 << R"( elements");)" << endl
+         << "#if MX_HAS_INTERLEAVED_COMPLEX" << endl
+         << "  const int32_T *restrict sparse_rowval = mxGetInt32s(prhs[3]);" << endl
+         << "  const int32_T *restrict sparse_colptr = mxGetInt32s(prhs[5]);" << endl
+         << "#else" << endl
+         << "  const int32_T *restrict sparse_rowval = (int32_T *) mxGetData(prhs[3]);" << endl
+         << "  const int32_T *restrict sparse_colptr = (int32_T *) mxGetData(prhs[5]);" << endl
+         << "#endif" << endl
+         << "  plhs[0] = mxCreateSparse(" << ramsey_orig_endo_nbr << ", " << ncols << ", " << nzval << ", mxREAL);" << endl
+         << "  mwIndex *restrict ir = mxGetIr(plhs[0]), *restrict jc = mxGetJc(plhs[0]);" << endl
+         << "  for (mwSize i = 0; i < " << nzval << "; i++)" << endl
+         << "    *ir++ = *sparse_rowval++ - 1;" << endl
+         << "  for (mwSize i = 0; i < " << ncols+1 << "; i++)" << endl
+         << "    *jc++ = *sparse_colptr++ - 1;" << endl
+         << "  mxArray *T_mx = mxCreateDoubleMatrix(" << ramsey_multipliers_derivatives_temporary_terms.size() << ", 1, mxREAL);" << endl
+         << "  ramsey_multipliers_static_g1(y, x, params, mxGetPr(T_mx), mxGetPr(plhs[0]));" << endl
+         << "  mxDestroyArray(T_mx);" << endl
+         << "}" << endl;
+
+  output.close();
+
+  compileMEX(packageDir(basename), "ramsey_multipliers_static_g1", mexext, { p }, matlabroot);
+}
