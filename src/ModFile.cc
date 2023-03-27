@@ -672,7 +672,7 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
               || (mod_file_struct.GMM_present && (mod_file_struct.analytic_standard_errors_present || mod_file_struct.analytic_jacobian_present)))
             paramsDerivsOrder = params_derivs_order;
 
-          static_model.computingPass(derivsOrder, paramsDerivsOrder, global_eval_context, no_tmp_terms, block);
+          static_model.computingPass(derivsOrder, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll);
         }
       // Set things to compute for dynamic model
       if (mod_file_struct.perfect_foresight_solver_present

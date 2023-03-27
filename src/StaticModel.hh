@@ -122,7 +122,7 @@ public:
     \param derivsOrder order of derivation with respect to endogenous
     \param paramsDerivsOrder order of derivatives w.r. to a pair (endogenous, parameter) to be computed
   */
-  void computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context, bool no_tmp_terms, bool block);
+  void computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll);
 
   //! Writes static model file (+ bytecode)
   void writeStaticFile(const string &basename, bool use_dll, const string &mexext, const filesystem::path &matlabroot, bool julia) const;

@@ -170,7 +170,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
 }
 
 void
-StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context, bool no_tmp_terms, bool block)
+StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context, bool no_tmp_terms, bool block, bool use_dll)
 {
   initializeVariablesAndEquations();
 
@@ -222,7 +222,7 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
       computeParamsDerivatives(paramsDerivsOrder);
     }
 
-  computeTemporaryTerms(true, no_tmp_terms);
+  computeTemporaryTerms(!use_dll, no_tmp_terms);
 
   if (paramsDerivsOrder > 0 && !no_tmp_terms)
     computeParamsDerivativesTemporaryTerms();
