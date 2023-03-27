@@ -932,7 +932,7 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
 
   for (int order = 1; order < static_cast<int>(derivatives.size()); order++)
     for (const auto &it : derivatives[order])
-      it.second->computeTemporaryTerms({ 0, order },
+      it.second->computeTemporaryTerms({ order, 0 },
                                        temp_terms_map,
                                        reference_count,
                                        is_matlab);
@@ -949,7 +949,7 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
   temporary_terms_derivatives.clear();
   temporary_terms_derivatives.resize(derivatives.size());
   for (int order = 0; order < static_cast<int>(derivatives.size()); order++)
-    temporary_terms_derivatives[order] = move(temp_terms_map[{ 0, order }]);
+    temporary_terms_derivatives[order] = move(temp_terms_map[{ order, 0 }]);
 
   // Compute indices in MATLAB/Julia vector
   for (int order {0}, idx {0}; order < static_cast<int>(derivatives.size()); order++)
