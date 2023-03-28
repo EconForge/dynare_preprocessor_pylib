@@ -515,17 +515,12 @@ void
 RamseyModelStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
                                   [[maybe_unused]] bool minimal_workspace) const
 {
-  // options_.ramsey_policy indicates that a Ramsey model is present in the *.mod file
-  // this affects the computation of the steady state that uses a special algorithm
-  // It should probably rather be a M_ field, but we leave it in options_ for historical reason
-
   // Ensure that order 3 implies k_order (#844)
   if (auto opt1 = options_list.get_if<OptionsList::NumVal>("order"),
       opt2 = options_list.get_if<OptionsList::NumVal>("k_order_solver");
       (opt2 && *opt2 == "true") || (opt1 && stoi(*opt1) >= 3))
     output << "options_.k_order_solver = true;" << endl;
 
-  output << "options_.ramsey_policy = true;" << endl;
   options_list.writeOutput(output);
 }
 

@@ -892,11 +892,14 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
               << "M_.heteroskedastic_shocks.Qvalue_orig = [];" << endl
               << "M_.heteroskedastic_shocks.Qscale_orig = [];" << endl;
 
+  // NB: options_.{ramsey,discretionary}_policy should rather be fields of M_
   mOutputFile << boolalpha
               << "options_.linear = " << linear << ";" << endl
               << "options_.block = " << block << ";" << endl
               << "options_.bytecode = " << bytecode << ";" << endl
-              << "options_.use_dll = " << use_dll << ";" << endl;
+              << "options_.use_dll = " << use_dll << ";" << endl
+              << "options_.ramsey_policy = " << (mod_file_struct.ramsey_model_present || mod_file_struct.ramsey_policy_present) << ";" << endl
+              << "options_.discretionary_policy = " << mod_file_struct.discretionary_policy_present << ";" << endl;
 
   if (parallel_local_files.size() > 0)
     {
