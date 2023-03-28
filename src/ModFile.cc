@@ -900,6 +900,9 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
               << "options_.ramsey_policy = " << (mod_file_struct.ramsey_model_present || mod_file_struct.ramsey_policy_present) << ";" << endl
               << "options_.discretionary_policy = " << mod_file_struct.discretionary_policy_present << ";" << endl;
 
+  if (mod_file_struct.discretionary_policy_present)
+    mOutputFile << "M_.discretionary_orig_eq_nbr = " << original_model.equation_number() << ";" << endl;
+
   if (parallel_local_files.size() > 0)
     {
       mOutputFile << "options_.parallel_info.local_files = {" << endl;
