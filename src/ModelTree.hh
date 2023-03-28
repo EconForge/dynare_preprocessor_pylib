@@ -396,6 +396,10 @@ protected:
   template<bool dynamic>
   void writeDebugModelMFiles(const string &basename) const;
 
+  // Write the file that sets auxiliary variables given the original variables
+  template<bool dynamic>
+  void writeSetAuxiliaryVariablesFile(const string &basename, bool julia) const;
+
 private:
   //! Sparse matrix of double to store the values of the static Jacobian
   /*! First index is equation number, second index is endogenous type specific ID */
@@ -632,6 +636,9 @@ public:
 
   // Waits until the MEX compilation queue is empty
   static void waitForMEXCompilationWorkers();
+
+  // Write the definitions of the auxiliary variables (assumed to be in recursive order)
+  void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
 
   //! Returns the vector of non-zero derivative counts
   const vector<int> &
@@ -2974,4 +2981,65 @@ ModelTree::writeDebugModelMFiles(const string &basename) const
   output << "end" << endl;
 
   output.close();
+}
+
+template<bool dynamic>
+void
+ModelTree::writeSetAuxiliaryVariablesFile(const string &basename, bool julia) const
+{
+  const auto output_type { julia ? (dynamic ? ExprNodeOutputType::juliaTimeDataFrame : ExprNodeOutputType::juliaStaticModel)
+                           : (dynamic ? ExprNodeOutputType::matlabDseries : ExprNodeOutputType::matlabStaticModel) };
+
+  ostringstream output_func_body;
+  writeAuxVarRecursiveDefinitions(output_func_body, output_type);
+
+  if (output_func_body.str().empty())
+    return;
+
+  string func_name { dynamic ? "dynamic_set_auxiliary_series" : "set_auxiliary_variables" };
+  if (julia)
+    func_name.push_back('!');
+  const char comment {julia ? '#' : '%'};
+
+  stringstream output;
+  output << "function ";
+  if (!julia)
+    {
+      if constexpr(dynamic)
+        output << "ds = ";
+      else
+        output << "y = ";
+    }
+  output << func_name + "(";
+  if constexpr(dynamic)
+    output << "ds";
+  else
+    output << "y, x";
+  output << ", params)" << endl
+         << comment << endl
+         << comment << " Computes auxiliary variables of the " << modelClassName() << endl
+         << comment << endl;
+  if (julia)
+    output << "@inbounds begin" << endl;
+  output << output_func_body.str()
+         << "end" << endl;
+  if (julia)
+    output << "end" << endl;
+
+  if (julia)
+    writeToFileIfModified(output, filesystem::path{basename} / "model" / "julia" / (dynamic ? "DynamicSetAuxiliarySeries.jl" : "SetAuxiliaryVariables.jl"));
+  else
+    {
+      /* Calling writeToFileIfModified() is useless here since we write inside
+         a subdirectory deleted at each preprocessor run. */
+      filesystem::path filename {packageDir(basename) / (func_name + ".m")};
+      ofstream output_file{filename, ios::out | ios::binary};
+      if (!output_file.is_open())
+        {
+          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+          exit(EXIT_FAILURE);
+        }
+      output_file << output.str();
+      output_file.close();
+    }
 }

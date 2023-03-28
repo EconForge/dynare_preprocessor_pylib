@@ -2460,73 +2460,11 @@ DynamicModel::writeDynamicFile(const string &basename, bool use_dll, const strin
   else // MATLAB/Octave
     writeSparseModelMFiles<true>(basename);
 
-  writeSetAuxiliaryVariables(basename, julia);
+  writeSetAuxiliaryVariablesFile<true>(basename, julia);
 
   // Support for model debugging
   if (!julia)
     writeDebugModelMFiles<true>(basename);
-}
-
-void
-DynamicModel::writeSetAuxiliaryVariables(const string &basename, bool julia) const
-{
-  ostringstream output_func_body;
-  writeAuxVarRecursiveDefinitions(output_func_body, julia ? ExprNodeOutputType::juliaTimeDataFrame
-                                  : ExprNodeOutputType::matlabDseries);
-
-  if (output_func_body.str().empty())
-    return;
-
-  string func_name = julia ? "dynamic_set_auxiliary_series!" : "dynamic_set_auxiliary_series";
-  string comment = julia ? "#" : "%";
-
-  stringstream output;
-  output << "function ";
-  if (!julia)
-    output << "ds = ";
-  output << func_name + "(ds, params)" << endl
-         << comment << endl
-         << comment << " Status : Computes Auxiliary variables of the " << modelClassName() << " and returns a dseries" << endl
-         << comment << endl
-         << comment << " Warning : this file is generated automatically by Dynare" << endl
-         << comment << "           from model file (.mod)" << endl << endl;
-  if (julia)
-    output << "@inbounds begin" << endl;
-  output << output_func_body.str()
-         << "end" << endl;
-  if (julia)
-    output << "end" << endl;
-
-  if (julia)
-    writeToFileIfModified(output, filesystem::path{basename} / "model" / "julia" / "DynamicSetAuxiliarySeries.jl");
-  else
-    {
-      /* Calling writeToFileIfModified() is useless here since we write inside
-         a subdirectory deleted at each preprocessor run. */
-      filesystem::path filename {packageDir(basename) / (func_name + ".m")};
-      ofstream output_file{filename, ios::out | ios::binary};
-      if (!output_file.is_open())
-        {
-          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-          exit(EXIT_FAILURE);
-        }
-      output_file << output.str();
-      output_file.close();
-    }
-}
-
-void
-DynamicModel::writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const
-{
-  deriv_node_temp_terms_t tef_terms;
-  for (auto aux_eq : aux_equations)
-    if (aux_eq->containsExternalFunction())
-      aux_eq->writeExternalFunctionOutput(output, output_type, {}, {}, tef_terms);
-  for (auto aux_eq : aux_equations)
-    {
-      aux_eq->writeOutput(output, output_type, {}, {}, tef_terms);
-      output << ";" << endl;
-    }
 }
 
 void

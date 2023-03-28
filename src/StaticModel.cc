@@ -488,7 +488,7 @@ StaticModel::writeStaticFile(const string &basename, bool use_dll, const string 
   else // MATLAB/Octave
     writeSparseModelMFiles<false>(basename);
 
-  writeSetAuxiliaryVariables(basename, julia);
+  writeSetAuxiliaryVariablesFile<false>(basename, julia);
 
   // Support for model debugging
   if (!julia)
@@ -692,68 +692,6 @@ StaticModel::writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type)
   for (auto aux_equation : aux_equations)
     {
       dynamic_cast<ExprNode *>(aux_equation)->writeOutput(output, output_type);
-      output << ";" << endl;
-    }
-}
-
-void
-StaticModel::writeSetAuxiliaryVariables(const string &basename, bool julia) const
-{
-  ostringstream output_func_body;
-  ExprNodeOutputType output_type = julia ? ExprNodeOutputType::juliaStaticModel : ExprNodeOutputType::matlabStaticModel;
-  writeAuxVarRecursiveDefinitions(output_func_body, output_type);
-
-  if (output_func_body.str().empty())
-    return;
-
-  string func_name = julia ? "set_auxiliary_variables!" : "set_auxiliary_variables";
-  string comment = julia ? "#" : "%";
-
-  stringstream output;
-  output << "function ";
-  if (!julia)
-    output << "y = ";
-  output << func_name << "(y, x, params)" << endl
-         << comment << endl
-         << comment << " Status : Computes Auxiliary variables of the " << modelClassName() << endl
-         << comment << endl
-         << comment << " Warning : this file is generated automatically by Dynare" << endl
-         << comment << "           from model file (.mod)" << endl << endl;
-  if (julia)
-    output << "@inbounds begin" << endl;
-  output << output_func_body.str()
-         << "end" << endl;
-  if (julia)
-    output << "end" << endl;
-
-  if (julia)
-    writeToFileIfModified(output, filesystem::path{basename} / "model" / "julia" / "SetAuxiliaryVariables.jl");
-  else
-    {
-      /* Calling writeToFileIfModified() is useless here since we write inside
-         a subdirectory deleted at each preprocessor run. */
-      filesystem::path filename {packageDir(basename) / (func_name + ".m")};
-      ofstream output_file{filename, ios::out | ios::binary};
-      if (!output_file.is_open())
-        {
-          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-          exit(EXIT_FAILURE);
-        }
-      output_file << output.str();
-      output_file.close();
-    }
-}
-
-void
-StaticModel::writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const
-{
-  deriv_node_temp_terms_t tef_terms;
-  for (auto aux_equation : aux_equations)
-    if (dynamic_cast<ExprNode *>(aux_equation)->containsExternalFunction())
-      dynamic_cast<ExprNode *>(aux_equation)->writeExternalFunctionOutput(output, output_type, {}, {}, tef_terms);
-  for (auto aux_equation : aux_equations)
-    {
-      aux_equation->writeOutput(output, output_type, {}, {}, tef_terms);
       output << ";" << endl;
     }
 }

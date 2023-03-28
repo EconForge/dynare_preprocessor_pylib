@@ -1978,3 +1978,17 @@ ModelTree::computeCSCColPtr(const SparseColumnMajorOrderMatrix &matrix, int ncol
     }
   return colptr;
 }
+
+void
+ModelTree::writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const
+{
+  deriv_node_temp_terms_t tef_terms;
+  for (auto aux_equation : aux_equations)
+    if (aux_equation->containsExternalFunction())
+      aux_equation->writeExternalFunctionOutput(output, output_type, {}, {}, tef_terms);
+  for (auto aux_equation : aux_equations)
+    {
+      aux_equation->writeOutput(output, output_type, {}, {}, tef_terms);
+      output << ";" << endl;
+    }
+}

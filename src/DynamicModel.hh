@@ -116,9 +116,6 @@ private:
   //! Writes the code of the model in virtual machine bytecode
   void writeDynamicBytecode(const string &basename) const;
 
-  void writeSetAuxiliaryVariables(const string &basename, bool julia) const;
-  void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
-
   // Write the block structure of the model in the driver file
   void writeBlockDriverOutput(ostream &output) const;
 

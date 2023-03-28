@@ -169,9 +169,6 @@ public:
   //! Writes initializations in oo_.steady_state or steady state file for the auxiliary variables
   void writeAuxVarInitval(ostream &output, ExprNodeOutputType output_type) const;
 
-  //! Writes definition of the auxiliary variables in a .m or .jl file
-  void writeSetAuxiliaryVariables(const string &basename, bool julia) const;
-  void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
   void writeLatexAuxVarRecursiveDefinitions(ostream &output) const;
   void writeJsonAuxVarRecursiveDefinitions(ostream &output) const;
 
