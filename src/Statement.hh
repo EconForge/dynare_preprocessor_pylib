@@ -30,10 +30,8 @@
 #include "SymbolList.hh"
 #include "WarningConsolidation.hh"
 
-class ModFileStructure
+struct ModFileStructure
 {
-public:
-  ModFileStructure() = default;
   //! Whether check is present
   bool check_present{false};
   //! Whether steady is present
