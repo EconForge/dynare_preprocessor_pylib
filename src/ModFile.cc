@@ -473,9 +473,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
 
   epilogue.toStatic();
 
-  mod_file_struct.orig_eq_nbr = dynamic_model.equation_number();
   if (mod_file_struct.ramsey_model_present)
     {
+      mod_file_struct.ramsey_orig_eq_nbr = dynamic_model.equation_number();
       PlannerObjectiveStatement *pos = nullptr;
       for (auto &statement : statements)
         if (auto pos2 = dynamic_cast<PlannerObjectiveStatement *>(statement.get()); pos2)
@@ -499,7 +499,6 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       ramsey_FOC_equations_dynamic_model = dynamic_model;
       mod_file_struct.ramsey_orig_endo_nbr = ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(planner_objective);
       ramsey_FOC_equations_dynamic_model.replaceMyEquations(dynamic_model);
-      mod_file_struct.ramsey_eq_nbr = dynamic_model.equation_number() - mod_file_struct.orig_eq_nbr;
     }
 
   dynamic_model.createVariableMapping();
@@ -620,7 +619,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
     cout << "Found " << dynamic_model.equation_number() << " equation(s)." << endl;
   else
     {
-      cout << "Found " << mod_file_struct.orig_eq_nbr  << " equation(s)." << endl;
+      cout << "Found " << mod_file_struct.ramsey_orig_eq_nbr  << " equation(s)." << endl;
       cout << "Found " << dynamic_model.equation_number() << " FOC equation(s) for Ramsey Problem." << endl;
     }
 
@@ -932,9 +931,9 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
                 << "  error('DYNARE: Can''t find bytecode DLL. Please compile it or remove the ''bytecode'' option.')" << endl
                 << "end" << endl;
 
-  mOutputFile << "M_.orig_eq_nbr = " << mod_file_struct.orig_eq_nbr << ";" << endl
-              << "M_.eq_nbr = " << dynamic_model.equation_number() << ";" << endl
-              << "M_.ramsey_eq_nbr = " << mod_file_struct.ramsey_eq_nbr << ";" << endl
+  mOutputFile << "M_.eq_nbr = " << dynamic_model.equation_number() << ";" << endl
+              << "M_.ramsey_orig_eq_nbr = " << mod_file_struct.ramsey_orig_eq_nbr << ";" << endl
+              << "M_.ramsey_orig_endo_nbr = " << mod_file_struct.ramsey_orig_endo_nbr << ";" << endl
               << "M_.set_auxiliary_variables = exist(['./+' M_.fname '/set_auxiliary_variables.m'], 'file') == 2;" << endl;
 
   epilogue.writeOutput(mOutputFile);

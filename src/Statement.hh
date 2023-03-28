@@ -129,14 +129,19 @@ struct ModFileStructure
   bool corr_options_statement_present{false};
   //! Whether a Markov Switching DSGE is present
   bool ms_dsge_present{false};
-  //! Stores the original number of equations in the model_block
-  int orig_eq_nbr{0};
-  //! Stores the number of equations added to the Ramsey model
-  int ramsey_eq_nbr{0};
+  /* The number of equations in the model present just before adding the
+     Lagrange multipliers and computing the Ramsey FOC; it is by construction
+     equal to the number of Lagrange multipliers that will be added by the
+     process of computing the FOCs. May be greater than the number of equations
+     written by the user, because some auxiliary variables may have already
+     been added. */
+  int ramsey_orig_eq_nbr {0};
   /* The number of endogenous variables in the model present just before adding
      the Lagrange multipliers and computing the Ramsey FOC; it is by
      construction equal to the number of equations that will be added by the
-     process of computing the FOCs */
+     process of computing the FOCs. May be greater than the number of
+     endogenous declared by the user, because some auxiliary variables may have
+     already been added. */
   int ramsey_orig_endo_nbr {0};
   //! Whether there was a steady_state_model block
   bool steady_state_model_present{false};
