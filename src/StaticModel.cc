@@ -703,9 +703,9 @@ StaticModel::writeLatexAuxVarRecursiveDefinitions(ostream &output) const
   temporary_terms_t temporary_terms;
   temporary_terms_idxs_t temporary_terms_idxs;
   for (auto aux_equation : aux_equations)
-    if (dynamic_cast<ExprNode *>(aux_equation)->containsExternalFunction())
-      dynamic_cast<ExprNode *>(aux_equation)->writeExternalFunctionOutput(output, ExprNodeOutputType::latexStaticModel,
-                                                                          temporary_terms, temporary_terms_idxs, tef_terms);
+    if (aux_equation->containsExternalFunction())
+      aux_equation->writeExternalFunctionOutput(output, ExprNodeOutputType::latexStaticModel,
+                                                temporary_terms, temporary_terms_idxs, tef_terms);
   for (auto aux_equation : aux_equations)
     {
       output << R"(\begin{dmath})" << endl;
@@ -721,13 +721,10 @@ StaticModel::writeJsonAuxVarRecursiveDefinitions(ostream &output) const
   temporary_terms_t temporary_terms;
 
   for (auto aux_equation : aux_equations)
-    if (dynamic_cast<ExprNode *>(aux_equation)->containsExternalFunction())
+    if (aux_equation->containsExternalFunction())
       {
         vector<string> efout;
-        dynamic_cast<ExprNode *>(aux_equation)->writeJsonExternalFunctionOutput(efout,
-                                                                                temporary_terms,
-                                                                                tef_terms,
-                                                                                false);
+        aux_equation->writeJsonExternalFunctionOutput(efout, temporary_terms, tef_terms, false);
         for (bool printed_something{false};
              const auto &it : efout)
           {
