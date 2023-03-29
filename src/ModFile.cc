@@ -575,9 +575,10 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       exit(EXIT_FAILURE);
     }
 
-  if (mod_file_struct.ramsey_policy_present && symbol_table.exo_det_nbr() > 0)
+  if ((mod_file_struct.ramsey_model_present || mod_file_struct.ramsey_policy_present)
+      && symbol_table.exo_det_nbr() > 0)
     {
-      cerr << "ERROR: ramsey_policy is incompatible with deterministic exogenous variables" << endl;
+      cerr << "ERROR: ramsey_model and ramsey_policy are incompatible with deterministic exogenous variables" << endl;
       exit(EXIT_FAILURE);
     }
 
