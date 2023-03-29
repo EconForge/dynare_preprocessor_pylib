@@ -150,7 +150,7 @@ SteadyStateModel::checkPass(ModFileStructure &mod_file_struct, WarningConsolidat
      Ramsey model, since the steady_state_block should give the steady state
      *conditional* to those instruments) */
   set<int> should_be_defined = symbol_table.getOrigEndogenous();
-  if (mod_file_struct.ramsey_policy_present || mod_file_struct.ramsey_model_present)
+  if (mod_file_struct.ramsey_model_present)
     for (const auto &s : mod_file_struct.instruments.getSymbols())
       should_be_defined.erase(symbol_table.getID(s));
   for (int v : should_be_defined)

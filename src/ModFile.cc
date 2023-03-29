@@ -132,7 +132,6 @@ ModFile::checkPass(bool nostrict, bool stochastic)
   bool stochastic_statement_present = mod_file_struct.stoch_simul_present
     || mod_file_struct.estimation_present
     || mod_file_struct.osr_present
-    || mod_file_struct.ramsey_policy_present
     || mod_file_struct.discretionary_policy_present
     || mod_file_struct.calib_smoother_present
     || mod_file_struct.identification_present
@@ -151,8 +150,7 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
-  if ((mod_file_struct.ramsey_model_present || mod_file_struct.ramsey_policy_present)
-      && mod_file_struct.discretionary_policy_present)
+  if (mod_file_struct.ramsey_model_present && mod_file_struct.discretionary_policy_present)
     {
       cerr << "ERROR: You cannot use the discretionary_policy command when you use either ramsey_model or ramsey_policy and vice versa" << endl;
       exit(EXIT_FAILURE);
@@ -167,7 +165,7 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
-  if (mod_file_struct.ramsey_constraints_present && !mod_file_struct.ramsey_model_present && !mod_file_struct.ramsey_policy_present)
+  if (mod_file_struct.ramsey_constraints_present && !mod_file_struct.ramsey_model_present)
     {
       cerr << "ERROR: A ramsey_constraints block requires the presence of a ramsey_model or ramsey_policy statement" << endl;
       exit(EXIT_FAILURE);
@@ -513,7 +511,6 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   bool deterministic_model = !(mod_file_struct.stoch_simul_present
                                || mod_file_struct.estimation_present
                                || mod_file_struct.osr_present
-                               || mod_file_struct.ramsey_policy_present
                                || mod_file_struct.discretionary_policy_present
                                || mod_file_struct.calib_smoother_present
                                || mod_file_struct.identification_present
@@ -575,8 +572,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       exit(EXIT_FAILURE);
     }
 
-  if ((mod_file_struct.ramsey_model_present || mod_file_struct.ramsey_policy_present)
-      && symbol_table.exo_det_nbr() > 0)
+  if (mod_file_struct.ramsey_model_present && symbol_table.exo_det_nbr() > 0)
     {
       cerr << "ERROR: ramsey_model and ramsey_policy are incompatible with deterministic exogenous variables" << endl;
       exit(EXIT_FAILURE);
@@ -590,7 +586,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
 
   if (mod_file_struct.occbin_constraints_present
       && (mod_file_struct.osr_present || mod_file_struct.mom_estimation_present
-          || mod_file_struct.ramsey_model_present || mod_file_struct.ramsey_policy_present
+          || mod_file_struct.ramsey_model_present
           || mod_file_struct.discretionary_policy_present || mod_file_struct.extended_path_present
           || mod_file_struct.identification_present || mod_file_struct.sensitivity_present))
     {
@@ -898,7 +894,7 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
               << "options_.block = " << block << ";" << endl
               << "options_.bytecode = " << bytecode << ";" << endl
               << "options_.use_dll = " << use_dll << ";" << endl
-              << "options_.ramsey_policy = " << (mod_file_struct.ramsey_model_present || mod_file_struct.ramsey_policy_present) << ";" << endl
+              << "options_.ramsey_policy = " << mod_file_struct.ramsey_model_present << ";" << endl
               << "options_.discretionary_policy = " << mod_file_struct.discretionary_policy_present << ";" << endl;
 
   if (mod_file_struct.discretionary_policy_present)

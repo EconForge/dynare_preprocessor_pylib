@@ -604,31 +604,35 @@ RamseyPolicyStatement::RamseyPolicyStatement(SymbolList symbol_list_arg,
 void
 RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
 {
-  // ramsey_model_present indicates that the model is augmented with the FOC of the planner problem
+  // Copied from RamseyModelStatement::checkPass()
   mod_file_struct.ramsey_model_present = true;
-  // ramsey_policy_present indicates that ramsey_policy instruction for computation of first order approximation
-  // of  a stochastic Ramsey problem if present in the *.mod file
-  mod_file_struct.ramsey_policy_present = true;
 
-  /* Fill in option_order of mod_file_struct
-     Since ramsey policy needs one further order of derivation (for example, for 1st order
-     approximation, it needs 2nd derivatives), we add 1 to the order declared by user */
+  if (auto opt = options_list.get_if<OptionsList::SymbolListVal>("instruments"))
+    mod_file_struct.instruments = *opt;
+
+  // Copied from StochSimulStatement::checkPass()
+  mod_file_struct.stoch_simul_present = true;
+
   if (auto opt = options_list.get_if<OptionsList::NumVal>("order"))
     mod_file_struct.order_option = max(mod_file_struct.order_option, stoi(*opt));
 
-  // Fill in mod_file_struct.partial_information
   if (auto opt = options_list.get_if<OptionsList::NumVal>("partial_information");
       opt && *opt == "true")
     mod_file_struct.partial_information = true;
 
-  // Option k_order_solver (implicit when order >= 3)
   if (auto opt = options_list.get_if<OptionsList::NumVal>("k_order_solver");
       (opt && *opt == "true") || mod_file_struct.order_option >= 3)
     mod_file_struct.k_order_solver = true;
 
-  // Fill list of instruments
-  if (auto opt = options_list.get_if<OptionsList::SymbolListVal>("instruments"))
-    mod_file_struct.instruments = *opt;
+  if (bool hp = options_list.contains("hp_filter"),
+      bandpass = options_list.contains("bandpass.indicator"),
+      one_sided_hp = options_list.contains("one_sided_hp_filter");
+      (hp && bandpass) || (hp && one_sided_hp) || (bandpass && one_sided_hp))
+    {
+      cerr << "ERROR: ramsey_policy: can only use one of hp, one-sided hp, and bandpass filters"
+           << endl;
+      exit(EXIT_FAILURE);
+    }
 
   try
     {
@@ -653,7 +657,9 @@ RamseyPolicyStatement::writeOutput(ostream &output, [[maybe_unused]] const strin
 
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "ramsey_policy(var_list_);" << endl;
+  output << "[info, oo_, options_, M_] = stoch_simul(M_, options_, oo_, var_list_);" << endl
+         << "oo_.steady_state = oo_.dr.ys;" << endl
+         << "oo_.planner_objective_value = evaluate_planner_objective(M_, options_, oo_);" << endl;
 }
 
 void

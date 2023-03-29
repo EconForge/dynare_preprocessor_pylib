@@ -52,8 +52,6 @@ struct ModFileStructure
   bool optim_weights_present{false};
   //! Whether a ramsey_model statement is present
   bool ramsey_model_present{false};
-  //! Whether a ramsey_policy statement is present
-  bool ramsey_policy_present{false};
   //! Whether a discretionary_objective statement is present
   bool discretionary_policy_present{false};
   //! Whether a planner_objective statement is present
