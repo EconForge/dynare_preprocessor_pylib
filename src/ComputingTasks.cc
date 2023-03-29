@@ -614,15 +614,7 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
      Since ramsey policy needs one further order of derivation (for example, for 1st order
      approximation, it needs 2nd derivatives), we add 1 to the order declared by user */
   if (auto opt = options_list.get_if<OptionsList::NumVal>("order"))
-    {
-      int order = stoi(*opt);
-      if (order > 2)
-        {
-          cerr << "ERROR: ramsey_policy: order > 2 is not  implemented" << endl;
-          exit(EXIT_FAILURE);
-        }
-      mod_file_struct.order_option = max(mod_file_struct.order_option, order + 1);
-    }
+    mod_file_struct.order_option = max(mod_file_struct.order_option, stoi(*opt));
 
   // Fill in mod_file_struct.partial_information
   if (auto opt = options_list.get_if<OptionsList::NumVal>("partial_information");
