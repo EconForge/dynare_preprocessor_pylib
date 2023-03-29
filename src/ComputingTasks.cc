@@ -482,30 +482,6 @@ RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct,
 {
   mod_file_struct.ramsey_model_present = true;
 
-  /* Fill in option_order of mod_file_struct
-     Since ramsey model needs one further order of derivation (for example, for 1st order
-     approximation, it needs 2nd derivatives), we add 1 to the order declared by user */
-  if (auto opt = options_list.get_if<OptionsList::NumVal>("order"))
-    {
-      int order = stoi(*opt);
-      if (order > 2)
-        {
-          cerr << "ERROR: ramsey_model: order > 2 is not  implemented" << endl;
-          exit(EXIT_FAILURE);
-        }
-      mod_file_struct.order_option = max(mod_file_struct.order_option, order + 1);
-    }
-
-  // Fill in mod_file_struct.partial_information
-  if (auto opt = options_list.get_if<OptionsList::NumVal>("partial_information");
-      opt && *opt == "true")
-    mod_file_struct.partial_information = true;
-
-  // Option k_order_solver (implicit when order >= 3)
-  if (auto opt = options_list.get_if<OptionsList::NumVal>("k_order_solver");
-      (opt && *opt == "true") || mod_file_struct.order_option >= 3)
-    mod_file_struct.k_order_solver = true;
-
   // Fill list of instruments
   if (auto opt = options_list.get_if<OptionsList::SymbolListVal>("instruments"))
     mod_file_struct.instruments = *opt;
@@ -515,12 +491,6 @@ void
 RamseyModelStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
                                   [[maybe_unused]] bool minimal_workspace) const
 {
-  // Ensure that order 3 implies k_order (#844)
-  if (auto opt1 = options_list.get_if<OptionsList::NumVal>("order"),
-      opt2 = options_list.get_if<OptionsList::NumVal>("k_order_solver");
-      (opt2 && *opt2 == "true") || (opt1 && stoi(*opt1) >= 3))
-    output << "options_.k_order_solver = true;" << endl;
-
   options_list.writeOutput(output);
 }
 
