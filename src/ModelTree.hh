@@ -1756,7 +1756,7 @@ ModelTree::writeBlockBytecodeHelper(BytecodeWriter &code_file, int block) const
             vector<vector<tuple<int, int, int>>> Uf(symbol_table.endo_nbr());
 
             for (int count_u {block_mfs};
-                 const auto &[indices, ignore] : blocks_derivatives[block])
+                 const auto &[indices, d1] : blocks_derivatives[block])
               {
                 const auto &[eq, var, lag] {indices};
                 int eqr {getBlockEquationID(block, eq)};
@@ -1769,11 +1769,7 @@ ModelTree::writeBlockBytecodeHelper(BytecodeWriter &code_file, int block) const
                               || simulation_type == BlockSimulationType::solveBackwardComplete))
                         continue;
                     code_file << FNUMEXPR_{ExpressionType::FirstEndoDerivative, eqr, varr, lag};
-                    if (auto it { blocks_derivatives[block].find({ eq, var, lag }) };
-                        it != blocks_derivatives[block].end())
-                      it->second->writeBytecodeOutput(code_file, output_type, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
-                    else
-                      code_file << FLDZ_{};
+                    d1->writeBytecodeOutput(code_file, output_type, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
                     if constexpr(dynamic)
                       code_file << FSTPU_{count_u};
                     else
