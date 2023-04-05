@@ -921,8 +921,8 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
   }());
 
   // Compute the temporary terms in equations and derivatives
-  map<pair<int, int>, temporary_terms_t> temp_terms_map;
-  map<expr_t, pair<int, pair<int, int>>> reference_count;
+  map<pair<int, int>, unordered_set<expr_t>> temp_terms_map;
+  unordered_map<expr_t, pair<int, pair<int, int>>> reference_count;
 
   for (auto &equation : equations)
     equation->computeTemporaryTerms({ 0, 0 },
@@ -949,7 +949,8 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
   temporary_terms_derivatives.clear();
   temporary_terms_derivatives.resize(derivatives.size());
   for (int order = 0; order < static_cast<int>(derivatives.size()); order++)
-    temporary_terms_derivatives[order] = move(temp_terms_map[{ order, 0 }]);
+    copy(temp_terms_map[{ order, 0 }].begin(), temp_terms_map[{ order, 0 }].end(),
+         inserter(temporary_terms_derivatives.at(order), temporary_terms_derivatives.at(order).begin()));
 
   // Compute indices in MATLAB/Julia vector
   for (int order {0}, idx {0}; order < static_cast<int>(derivatives.size()); order++)
@@ -961,12 +962,12 @@ void
 ModelTree::computeBlockTemporaryTerms(bool no_tmp_terms)
 {
   int nb_blocks = blocks.size();
-  blocks_temporary_terms.resize(nb_blocks);
 
-  map<expr_t, tuple<int, int, int>> reference_count;
+  unordered_map<expr_t, tuple<int, int, int>> reference_count;
+  vector<vector<unordered_set<expr_t>>> temp_terms(nb_blocks);
   for (int blk = 0; blk < nb_blocks; blk++)
     {
-      blocks_temporary_terms[blk].resize(blocks[blk].size + 1);
+      temp_terms[blk].resize(blocks[blk].size + 1);
       for (int eq = 0; eq < blocks[blk].size; eq++)
         {
           /* It is important to compute temporary terms of the renormalized
@@ -979,21 +980,29 @@ ModelTree::computeBlockTemporaryTerms(bool no_tmp_terms)
                || blocks[blk].simulation_type == BlockSimulationType::evaluateForward
                || eq < blocks[blk].getRecursiveSize())
               && isBlockEquationRenormalized(blk, eq))
-            getBlockEquationRenormalizedExpr(blk, eq)->computeBlockTemporaryTerms(blk, eq, blocks_temporary_terms, reference_count);
+            getBlockEquationRenormalizedExpr(blk, eq)->computeBlockTemporaryTerms(blk, eq, temp_terms, reference_count);
           else
-            getBlockEquationExpr(blk, eq)->computeBlockTemporaryTerms(blk, eq, blocks_temporary_terms, reference_count);
+            getBlockEquationExpr(blk, eq)->computeBlockTemporaryTerms(blk, eq, temp_terms, reference_count);
         }
       for (const auto &[ignore, d] : blocks_derivatives[blk])
-        d->computeBlockTemporaryTerms(blk, blocks[blk].size, blocks_temporary_terms, reference_count);
+        d->computeBlockTemporaryTerms(blk, blocks[blk].size, temp_terms, reference_count);
     }
 
   /* If the user has specified the notmpterms option, clear all temporary
      terms, except those that correspond to external functions (since they are
      not optional) */
   if (no_tmp_terms)
-    for (auto &it : blocks_temporary_terms)
+    for (auto &it : temp_terms)
       for (auto &it2 : it)
         erase_if(it2, [](expr_t e) { return !dynamic_cast<AbstractExternalFunctionNode *>(e); });
+
+  blocks_temporary_terms.resize(nb_blocks);
+  for (int blk {0}; blk < nb_blocks; blk++)
+    {
+      blocks_temporary_terms.at(blk).resize(temp_terms.at(blk).size());
+      for (size_t i {0}; i < temp_terms.at(blk).size(); i++)
+        copy(temp_terms.at(blk).at(i).begin(), temp_terms.at(blk).at(i).end(), inserter(blocks_temporary_terms.at(blk).at(i), blocks_temporary_terms.at(blk).at(i).begin()));
+    }
 
   // Compute indices in the temporary terms vector
   blocks_temporary_terms_idxs.clear();
@@ -1474,15 +1483,18 @@ ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
 void
 ModelTree::computeParamsDerivativesTemporaryTerms()
 {
-  map<expr_t, pair<int, pair<int, int>>> reference_count;
+  unordered_map<expr_t, pair<int, pair<int, int>>> reference_count;
 
   /* The temp terms should be constructed in the same order as the for loops in
      {Static,Dynamic}Model::write{Json,}ParamsDerivativesFile() */
-  params_derivs_temporary_terms.clear();
+  map<pair<int, int>, unordered_set<expr_t>> temp_terms_map;
   for (const auto &[order, derivs] : params_derivatives)
     for (const auto &[indices, d] : derivs)
-      d->computeTemporaryTerms(order, params_derivs_temporary_terms,
-                               reference_count, true);
+      d->computeTemporaryTerms(order, temp_terms_map, reference_count, true);
+
+  for (const auto &[order, tts] : temp_terms_map)
+    copy(temp_terms_map[order].begin(), temp_terms_map[order].end(),
+         inserter(params_derivs_temporary_terms[order], params_derivs_temporary_terms[order].begin()));
 
   for (int idx {0};
        const auto &[order, tts] : params_derivs_temporary_terms)

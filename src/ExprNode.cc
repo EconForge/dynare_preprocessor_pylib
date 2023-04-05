@@ -104,7 +104,7 @@ ExprNode::cost([[maybe_unused]] int cost, [[maybe_unused]] bool is_matlab) const
 }
 
 int
-ExprNode::cost([[maybe_unused]] const vector<vector<temporary_terms_t>> &blocks_temporary_terms,
+ExprNode::cost([[maybe_unused]] const vector<vector<unordered_set<expr_t>>> &blocks_temporary_terms,
                [[maybe_unused]] bool is_matlab) const
 {
   // For a terminal node, the cost is null
@@ -112,7 +112,7 @@ ExprNode::cost([[maybe_unused]] const vector<vector<temporary_terms_t>> &blocks_
 }
 
 int
-ExprNode::cost([[maybe_unused]] const map<pair<int, int>, temporary_terms_t> &temp_terms_map,
+ExprNode::cost([[maybe_unused]] const map<pair<int, int>, unordered_set<expr_t>> &temp_terms_map,
                [[maybe_unused]] bool is_matlab) const
 {
   // For a terminal node, the cost is null
@@ -211,8 +211,8 @@ ExprNode::collectEndogenous(set<pair<int, int>> &result) const
 
 void
 ExprNode::computeTemporaryTerms([[maybe_unused]] const pair<int, int> &derivOrder,
-                                [[maybe_unused]] map<pair<int, int>, temporary_terms_t> &temp_terms_map,
-                                [[maybe_unused]] map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                [[maybe_unused]] map<pair<int, int>, unordered_set<expr_t>> &temp_terms_map,
+                                [[maybe_unused]] unordered_map<expr_t, pair<int, pair<int, int>>> &reference_count,
                                 [[maybe_unused]] bool is_matlab) const
 {
   // Nothing to do for a terminal node
@@ -220,8 +220,8 @@ ExprNode::computeTemporaryTerms([[maybe_unused]] const pair<int, int> &derivOrde
 
 void
 ExprNode::computeBlockTemporaryTerms([[maybe_unused]] int blk, [[maybe_unused]] int eq,
-                                     [[maybe_unused]] vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                     [[maybe_unused]] map<expr_t, tuple<int, int, int>> &reference_count) const
+                                     [[maybe_unused]] vector<vector<unordered_set<expr_t>>> &blocks_temporary_terms,
+                                     [[maybe_unused]] unordered_map<expr_t, tuple<int, int, int>> &reference_count) const
 {
   // Nothing to do for a terminal node
 }
@@ -2377,7 +2377,7 @@ UnaryOpNode::computeDerivative(int deriv_id)
 }
 
 int
-UnaryOpNode::cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const
+UnaryOpNode::cost(const map<pair<int, int>, unordered_set<expr_t>> &temp_terms_map, bool is_matlab) const
 {
   // For a temporary term, the cost is null
   for (const auto &it : temp_terms_map)
@@ -2388,7 +2388,7 @@ UnaryOpNode::cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, 
 }
 
 int
-UnaryOpNode::cost(const vector<vector<temporary_terms_t>> &blocks_temporary_terms, bool is_matlab) const
+UnaryOpNode::cost(const vector<vector<unordered_set<expr_t>>> &blocks_temporary_terms, bool is_matlab) const
 {
   // For a temporary term, the cost is null
   for (const auto &blk_tt : blocks_temporary_terms)
@@ -2513,8 +2513,8 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
 
 void
 UnaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
-                                   map<pair<int, int>, temporary_terms_t> &temp_terms_map,
-                                   map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                   map<pair<int, int>, unordered_set<expr_t>> &temp_terms_map,
+                                   unordered_map<expr_t, pair<int, pair<int, int>>> &reference_count,
                                    bool is_matlab) const
 {
   expr_t this2 = const_cast<UnaryOpNode *>(this);
@@ -2535,8 +2535,8 @@ UnaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
 }
 
 void
-UnaryOpNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                        map<expr_t, tuple<int, int, int>> &reference_count) const
+UnaryOpNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<unordered_set<expr_t>>> &blocks_temporary_terms,
+                                        unordered_map<expr_t, tuple<int, int, int>> &reference_count) const
 {
   expr_t this2 = const_cast<UnaryOpNode *>(this);
   if (auto it = reference_count.find(this2);
@@ -4256,7 +4256,7 @@ BinaryOpNode::precedenceJson(const temporary_terms_t &temporary_terms) const
 }
 
 int
-BinaryOpNode::cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const
+BinaryOpNode::cost(const map<pair<int, int>, unordered_set<expr_t>> &temp_terms_map, bool is_matlab) const
 {
   // For a temporary term, the cost is null
   for (const auto &it : temp_terms_map)
@@ -4269,7 +4269,7 @@ BinaryOpNode::cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map,
 }
 
 int
-BinaryOpNode::cost(const vector<vector<temporary_terms_t>> &blocks_temporary_terms, bool is_matlab) const
+BinaryOpNode::cost(const vector<vector<unordered_set<expr_t>>> &blocks_temporary_terms, bool is_matlab) const
 {
   // For a temporary term, the cost is null
   for (const auto &blk_tt : blocks_temporary_terms)
@@ -4344,8 +4344,8 @@ BinaryOpNode::cost(int cost, bool is_matlab) const
 
 void
 BinaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
-                                    map<pair<int, int>, temporary_terms_t> &temp_terms_map,
-                                    map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                    map<pair<int, int>, unordered_set<expr_t>> &temp_terms_map,
+                                    unordered_map<expr_t, pair<int, pair<int, int>>> &reference_count,
                                     bool is_matlab) const
 {
   expr_t this2 = const_cast<BinaryOpNode *>(this);
@@ -4372,8 +4372,8 @@ BinaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
 }
 
 void
-BinaryOpNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                         map<expr_t, tuple<int, int, int>> &reference_count) const
+BinaryOpNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<unordered_set<expr_t>>> &blocks_temporary_terms,
+                                         unordered_map<expr_t, tuple<int, int, int>> &reference_count) const
 {
   expr_t this2 = const_cast<BinaryOpNode *>(this);
   if (auto it = reference_count.find(this2);
@@ -6009,7 +6009,7 @@ TrinaryOpNode::precedence([[maybe_unused]] ExprNodeOutputType output_type,
 }
 
 int
-TrinaryOpNode::cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map, bool is_matlab) const
+TrinaryOpNode::cost(const map<pair<int, int>, unordered_set<expr_t>> &temp_terms_map, bool is_matlab) const
 {
   // For a temporary term, the cost is null
   for (const auto &it : temp_terms_map)
@@ -6024,7 +6024,7 @@ TrinaryOpNode::cost(const map<pair<int, int>, temporary_terms_t> &temp_terms_map
 }
 
 int
-TrinaryOpNode::cost(const vector<vector<temporary_terms_t>> &blocks_temporary_terms, bool is_matlab) const
+TrinaryOpNode::cost(const vector<vector<unordered_set<expr_t>>> &blocks_temporary_terms, bool is_matlab) const
 {
   // For a temporary term, the cost is null
   for (const auto &blk_tt : blocks_temporary_terms)
@@ -6064,8 +6064,8 @@ TrinaryOpNode::cost(int cost, bool is_matlab) const
 
 void
 TrinaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
-                                     map<pair<int, int>, temporary_terms_t> &temp_terms_map,
-                                     map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                     map<pair<int, int>, unordered_set<expr_t>> &temp_terms_map,
+                                     unordered_map<expr_t, pair<int, pair<int, int>>> &reference_count,
                                      bool is_matlab) const
 {
   expr_t this2 = const_cast<TrinaryOpNode *>(this);
@@ -6091,8 +6091,8 @@ TrinaryOpNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
 }
 
 void
-TrinaryOpNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                          map<expr_t, tuple<int, int, int>> &reference_count) const
+TrinaryOpNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<unordered_set<expr_t>>> &blocks_temporary_terms,
+                                          unordered_map<expr_t, tuple<int, int, int>> &reference_count) const
 {
   expr_t this2 = const_cast<TrinaryOpNode *>(this);
   if (auto it = reference_count.find(this2);
@@ -7010,8 +7010,8 @@ AbstractExternalFunctionNode::getIndxInTefTerms(int the_symb_id, const deriv_nod
 
 void
 AbstractExternalFunctionNode::computeTemporaryTerms(const pair<int, int> &derivOrder,
-                                                    map<pair<int, int>, temporary_terms_t> &temp_terms_map,
-                                                    [[maybe_unused]] map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                                    map<pair<int, int>, unordered_set<expr_t>> &temp_terms_map,
+                                                    [[maybe_unused]] unordered_map<expr_t, pair<int, pair<int, int>>> &reference_count,
                                                     [[maybe_unused]] bool is_matlab) const
 {
   /* All external function nodes are declared as temporary terms.
@@ -7037,8 +7037,8 @@ AbstractExternalFunctionNode::computeTemporaryTerms(const pair<int, int> &derivO
 }
 
 void
-AbstractExternalFunctionNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                                         [[maybe_unused]] map<expr_t, tuple<int, int, int>> &reference_count) const
+AbstractExternalFunctionNode::computeBlockTemporaryTerms(int blk, int eq, vector<vector<unordered_set<expr_t>>> &blocks_temporary_terms,
+                                                         [[maybe_unused]] unordered_map<expr_t, tuple<int, int, int>> &reference_count) const
 {
   // See comments in computeTemporaryTerms() for the logic
   expr_t this2 = const_cast<AbstractExternalFunctionNode *>(this);
@@ -8206,8 +8206,8 @@ SubModelNode::SubModelNode(DataTree &datatree_arg,
 
 void
 SubModelNode::computeTemporaryTerms([[maybe_unused]] const pair<int, int> &derivOrder,
-                                    [[maybe_unused]] map<pair<int, int>, temporary_terms_t> &temp_terms_map,
-                                    [[maybe_unused]] map<expr_t, pair<int, pair<int, int>>> &reference_count,
+                                    [[maybe_unused]] map<pair<int, int>, unordered_set<expr_t>> &temp_terms_map,
+                                    [[maybe_unused]] unordered_map<expr_t, pair<int, pair<int, int>>> &reference_count,
                                     [[maybe_unused]] bool is_matlab) const
 {
   cerr << "SubModelNode::computeTemporaryTerms not implemented." << endl;
@@ -8216,8 +8216,8 @@ SubModelNode::computeTemporaryTerms([[maybe_unused]] const pair<int, int> &deriv
 
 void
 SubModelNode::computeBlockTemporaryTerms([[maybe_unused]] int blk, [[maybe_unused]] int eq,
-                                         [[maybe_unused]] vector<vector<temporary_terms_t>> &blocks_temporary_terms,
-                                         [[maybe_unused]] map<expr_t, tuple<int, int, int>> &reference_count) const
+                                         [[maybe_unused]] vector<vector<unordered_set<expr_t>>> &blocks_temporary_terms,
+                                         [[maybe_unused]] unordered_map<expr_t, tuple<int, int, int>> &reference_count) const
 {
   cerr << "SubModelNode::computeBlocksTemporaryTerms not implemented." << endl;
   exit(EXIT_FAILURE);

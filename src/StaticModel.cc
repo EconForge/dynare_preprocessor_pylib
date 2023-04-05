@@ -833,8 +833,8 @@ StaticModel::computeRamseyMultipliersDerivatives(int ramsey_orig_endo_nbr, bool 
         ramsey_multipliers_derivatives.try_emplace({ eq, mult }, d);
 
   // Compute the temporary terms
-  map<pair<int, int>, temporary_terms_t> temp_terms_map;
-  map<expr_t, pair<int, pair<int, int>>> reference_count;
+  map<pair<int, int>, unordered_set<expr_t>> temp_terms_map;
+  unordered_map<expr_t, pair<int, pair<int, int>>> reference_count;
   for (const auto &[row_col, d] : ramsey_multipliers_derivatives)
     d->computeTemporaryTerms({ 1, 0 }, temp_terms_map, reference_count, is_matlab);
   /* If the user has specified the notmpterms option, clear all temporary
@@ -844,7 +844,8 @@ StaticModel::computeRamseyMultipliersDerivatives(int ramsey_orig_endo_nbr, bool 
     for (auto &it : temp_terms_map)
       erase_if(it.second,
                [](expr_t e) { return !dynamic_cast<AbstractExternalFunctionNode *>(e); });
-  ramsey_multipliers_derivatives_temporary_terms = move(temp_terms_map[{ 1, 0 }]);
+  copy(temp_terms_map[{1, 0}].begin(), temp_terms_map[{1, 0}].end(),
+       inserter(ramsey_multipliers_derivatives_temporary_terms, ramsey_multipliers_derivatives_temporary_terms.begin()));
   for (int idx {0};
        auto it : ramsey_multipliers_derivatives_temporary_terms)
     ramsey_multipliers_derivatives_temporary_terms_idxs[it] = idx++;
