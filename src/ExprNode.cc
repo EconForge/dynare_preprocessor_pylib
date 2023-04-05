@@ -56,8 +56,8 @@ ExprNode::getDerivative(int deriv_id)
 
 expr_t
 ExprNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &recursive_variables,
-                                 map<expr_t, set<int>> &non_null_chain_rule_derivatives,
-                                 map<pair<expr_t, int>, expr_t> &cache)
+                                 unordered_map<expr_t, set<int>> &non_null_chain_rule_derivatives,
+                                 unordered_map<expr_t, map<int, expr_t>> &cache)
 {
   if (!non_null_chain_rule_derivatives.contains(this))
     prepareForChainRuleDerivation(recursive_variables, non_null_chain_rule_derivatives);
@@ -67,15 +67,16 @@ ExprNode::getChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode *> &r
     return datatree.Zero;
 
   // If derivative is in the cache, return that value
-  pair key {this, deriv_id};
-  if (auto it = cache.find(key);
+  if (auto it = cache.find(this);
       it != cache.end())
-    return it->second;
+    if (auto it2 = it->second.find(deriv_id);
+        it2 != it->second.end())
+      return it2->second;
 
   auto r = computeChainRuleDerivative(deriv_id, recursive_variables,
                                       non_null_chain_rule_derivatives, cache);
 
-  auto [ignore, success] = cache.emplace(key, r);
+  auto [ignore, success] = cache[this].emplace(deriv_id, r);
   assert(success); // The element should not already exist
   return r;
 }
@@ -489,7 +490,7 @@ NumConstNode::prepareForDerivation()
 
 void
 NumConstNode::prepareForChainRuleDerivation([[maybe_unused]] const map<int, BinaryOpNode *> &recursive_variables,
-                                            map<expr_t, set<int>> &non_null_chain_rule_derivatives) const
+                                            unordered_map<expr_t, set<int>> &non_null_chain_rule_derivatives) const
 {
   non_null_chain_rule_derivatives.try_emplace(const_cast<NumConstNode *>(this));
 }
@@ -582,8 +583,8 @@ NumConstNode::normalizeEquationHelper([[maybe_unused]] const set<expr_t> &contai
 expr_t
 NumConstNode::computeChainRuleDerivative([[maybe_unused]] int deriv_id,
                                          [[maybe_unused]] const map<int, BinaryOpNode *> &recursive_variables,
-                                         [[maybe_unused]] map<expr_t, set<int>> &non_null_chain_rule_derivatives,
-                                         [[maybe_unused]] map<pair<expr_t, int>, expr_t> &cache)
+                                         [[maybe_unused]] unordered_map<expr_t, set<int>> &non_null_chain_rule_derivatives,
+                                         [[maybe_unused]] unordered_map<expr_t, map<int, expr_t>> &cache)
 {
   return datatree.Zero;
 }
@@ -911,7 +912,7 @@ VariableNode::prepareForDerivation()
 
 void
 VariableNode::prepareForChainRuleDerivation(const map<int, BinaryOpNode *> &recursive_variables,
-                                            map<expr_t, set<int>> &non_null_chain_rule_derivatives) const
+                                            unordered_map<expr_t, set<int>> &non_null_chain_rule_derivatives) const
 {
   if (non_null_chain_rule_derivatives.contains(const_cast<VariableNode *>(this)))
     return;
@@ -1470,8 +1471,8 @@ VariableNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs
 expr_t
 VariableNode::computeChainRuleDerivative(int deriv_id,
                                          const map<int, BinaryOpNode *> &recursive_variables,
-                                         map<expr_t, set<int>> &non_null_chain_rule_derivatives,
-                                         map<pair<expr_t, int>, expr_t> &cache)
+                                         unordered_map<expr_t, set<int>> &non_null_chain_rule_derivatives,
+                                         unordered_map<expr_t, map<int, expr_t>> &cache)
 {
   switch (get_type())
     {
@@ -2202,7 +2203,7 @@ UnaryOpNode::prepareForDerivation()
 
 void
 UnaryOpNode::prepareForChainRuleDerivation(const map<int, BinaryOpNode *> &recursive_variables,
-                                           map<expr_t, set<int>> &non_null_chain_rule_derivatives) const
+                                           unordered_map<expr_t, set<int>> &non_null_chain_rule_derivatives) const
 {
   if (non_null_chain_rule_derivatives.contains(const_cast<UnaryOpNode *>(this)))
     return;
@@ -3342,8 +3343,8 @@ UnaryOpNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs)
 expr_t
 UnaryOpNode::computeChainRuleDerivative(int deriv_id,
                                         const map<int, BinaryOpNode *> &recursive_variables,
-                                        map<expr_t, set<int>> &non_null_chain_rule_derivatives,
-                                        map<pair<expr_t, int>, expr_t> &cache)
+                                        unordered_map<expr_t, set<int>> &non_null_chain_rule_derivatives,
+                                        unordered_map<expr_t, map<int, expr_t>> &cache)
 {
   expr_t darg = arg->getChainRuleDerivative(deriv_id, recursive_variables, non_null_chain_rule_derivatives, cache);
   return composeDerivatives(darg, deriv_id);
@@ -4022,7 +4023,7 @@ BinaryOpNode::prepareForDerivation()
 
 void
 BinaryOpNode::prepareForChainRuleDerivation(const map<int, BinaryOpNode *> &recursive_variables,
-                                            map<expr_t, set<int>> &non_null_chain_rule_derivatives) const
+                                            unordered_map<expr_t, set<int>> &non_null_chain_rule_derivatives) const
 {
   if (non_null_chain_rule_derivatives.contains(const_cast<BinaryOpNode *>(this)))
     return;
@@ -5090,8 +5091,8 @@ BinaryOpNode::normalizeEquation(int symb_id, int lag) const
 expr_t
 BinaryOpNode::computeChainRuleDerivative(int deriv_id,
                                          const map<int, BinaryOpNode *> &recursive_variables,
-                                         map<expr_t, set<int>> &non_null_chain_rule_derivatives,
-                                         map<pair<expr_t, int>, expr_t> &cache)
+                                         unordered_map<expr_t, set<int>> &non_null_chain_rule_derivatives,
+                                         unordered_map<expr_t, map<int, expr_t>> &cache)
 {
   expr_t darg1 = arg1->getChainRuleDerivative(deriv_id, recursive_variables, non_null_chain_rule_derivatives, cache);
   expr_t darg2 = arg2->getChainRuleDerivative(deriv_id, recursive_variables, non_null_chain_rule_derivatives, cache);
@@ -5890,7 +5891,7 @@ TrinaryOpNode::prepareForDerivation()
 
 void
 TrinaryOpNode::prepareForChainRuleDerivation(const map<int, BinaryOpNode *> &recursive_variables,
-                                             map<expr_t, set<int>> &non_null_chain_rule_derivatives) const
+                                             unordered_map<expr_t, set<int>> &non_null_chain_rule_derivatives) const
 {
   if (non_null_chain_rule_derivatives.contains(const_cast<TrinaryOpNode *>(this)))
     return;
@@ -6375,8 +6376,8 @@ TrinaryOpNode::normalizeEquationHelper([[maybe_unused]] const set<expr_t> &conta
 expr_t
 TrinaryOpNode::computeChainRuleDerivative(int deriv_id,
                                           const map<int, BinaryOpNode *> &recursive_variables,
-                                          map<expr_t, set<int>> &non_null_chain_rule_derivatives,
-                                          map<pair<expr_t, int>, expr_t> &cache)
+                                          unordered_map<expr_t, set<int>> &non_null_chain_rule_derivatives,
+                                          unordered_map<expr_t, map<int, expr_t>> &cache)
 {
   expr_t darg1 = arg1->getChainRuleDerivative(deriv_id, recursive_variables, non_null_chain_rule_derivatives, cache);
   expr_t darg2 = arg2->getChainRuleDerivative(deriv_id, recursive_variables, non_null_chain_rule_derivatives, cache);
@@ -6723,7 +6724,7 @@ AbstractExternalFunctionNode::prepareForDerivation()
 
 void
 AbstractExternalFunctionNode::prepareForChainRuleDerivation(const map<int, BinaryOpNode *> &recursive_variables,
-                                                            map<expr_t, set<int>> &non_null_chain_rule_derivatives) const
+                                                            unordered_map<expr_t, set<int>> &non_null_chain_rule_derivatives) const
 {
   if (non_null_chain_rule_derivatives.contains(const_cast<AbstractExternalFunctionNode *>(this)))
     return;
@@ -6758,8 +6759,8 @@ AbstractExternalFunctionNode::computeDerivative(int deriv_id)
 expr_t
 AbstractExternalFunctionNode::computeChainRuleDerivative(int deriv_id,
                                                          const map<int, BinaryOpNode *> &recursive_variables,
-                                                         map<expr_t, set<int>> &non_null_chain_rule_derivatives,
-                                                         map<pair<expr_t, int>, expr_t> &cache)
+                                                         unordered_map<expr_t, set<int>> &non_null_chain_rule_derivatives,
+                                                         unordered_map<expr_t, map<int, expr_t>> &cache)
 {
   assert(datatree.external_functions_table.getNargs(symb_id) > 0);
   vector<expr_t> dargs;
@@ -8238,7 +8239,7 @@ SubModelNode::prepareForDerivation()
 
 void
 SubModelNode::prepareForChainRuleDerivation([[maybe_unused]] const map<int, BinaryOpNode *> &recursive_variables,
-                                            [[maybe_unused]] map<expr_t, set<int>> &non_null_chain_rule_derivatives) const
+                                            [[maybe_unused]] unordered_map<expr_t, set<int>> &non_null_chain_rule_derivatives) const
 {
   cerr << "SubModelNode::prepareForChainRuleDerivation not implemented." << endl;
   exit(EXIT_FAILURE);
@@ -8254,8 +8255,8 @@ SubModelNode::computeDerivative([[maybe_unused]] int deriv_id)
 expr_t
 SubModelNode::computeChainRuleDerivative([[maybe_unused]] int deriv_id,
                                          [[maybe_unused]] const map<int, BinaryOpNode *> &recursive_variables,
-                                         [[maybe_unused]] map<expr_t, set<int>> &non_null_chain_rule_derivatives,
-                                         [[maybe_unused]] map<pair<expr_t, int>, expr_t> &cache)
+                                         [[maybe_unused]] unordered_map<expr_t, set<int>> &non_null_chain_rule_derivatives,
+                                         [[maybe_unused]] unordered_map<expr_t, map<int, expr_t>> &cache)
 {
   cerr << "SubModelNode::computeChainRuleDerivative not implemented." << endl;
   exit(EXIT_FAILURE);

@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <sstream>
 #include <numeric>
+#include <unordered_map>
 
 #include "StaticModel.hh"
 #include "DynamicModel.hh"
@@ -650,8 +651,8 @@ StaticModel::computeChainRuleJacobian()
              && simulation_type != BlockSimulationType::solveTwoBoundariesComplete);
 
       int size = blocks[blk].size;
-      map<expr_t, set<int>> non_null_chain_rule_derivatives;
-      map<pair<expr_t, int>, expr_t> chain_rule_deriv_cache;
+      unordered_map<expr_t, set<int>> non_null_chain_rule_derivatives;
+      unordered_map<expr_t, map<int, expr_t>> chain_rule_deriv_cache;
       for (int eq = nb_recursives; eq < size; eq++)
         {
           int eq_orig = getBlockEquationID(blk, eq);
@@ -822,8 +823,8 @@ StaticModel::computeRamseyMultipliersDerivatives(int ramsey_orig_endo_nbr, bool 
     }
 
   // Compute the chain rule derivatives w.r.t. multipliers
-  map<expr_t, set<int>> non_null_chain_rule_derivatives;
-  map<pair<expr_t, int>, expr_t> cache;
+  unordered_map<expr_t, set<int>> non_null_chain_rule_derivatives;
+  unordered_map<expr_t, map<int, expr_t>> cache;
   for (int eq {0}; eq < ramsey_orig_endo_nbr; eq++)
     for (int mult {0}; mult < static_cast<int>(mult_deriv_ids.size()); mult++)
       if (expr_t d { equations[eq]->getChainRuleDerivative(mult_deriv_ids[mult], recursive_variables,

@@ -2320,8 +2320,8 @@ DynamicModel::computeChainRuleJacobian()
         }
 
       // Compute the block derivatives
-      map<expr_t, set<int>> non_null_chain_rule_derivatives;
-      map<pair<expr_t, int>, expr_t> chain_rule_deriv_cache;
+      unordered_map<expr_t, set<int>> non_null_chain_rule_derivatives;
+      unordered_map<expr_t, map<int, expr_t>> chain_rule_deriv_cache;
       for (const auto &[indices, derivType] : determineBlockDerivativesType(blk))
         {
           auto [lag, eq, var] = indices;
