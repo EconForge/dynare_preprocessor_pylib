@@ -890,7 +890,7 @@ DataTree::minLagForSymbol(int symb_id) const
 }
 
 void
-DataTree::writePowerDeriv(ostream &output) const
+DataTree::writeCHelpersDefinition(ostream &output) const
 {
   if (isBinaryOpUsed(BinaryOpcode::powerDeriv))
     output << "/*" << endl
@@ -909,13 +909,21 @@ DataTree::writePowerDeriv(ostream &output) const
            << "      return dxp;" << endl
            << "    }" << endl
            << "}" << endl;
+
+  if (isUnaryOpUsed(UnaryOpcode::sign))
+    output << "double sign(double x)" << endl
+           << "{" << endl
+           << "  return (x > 0) ? 1 : ((x < 0) ? -1 : 0);" << endl
+           << "}" << endl;
 }
 
 void
-DataTree::writePowerDerivHeader(ostream &output) const
+DataTree::writeCHelpersDeclaration(ostream &output) const
 {
   if (isBinaryOpUsed(BinaryOpcode::powerDeriv))
     output << "double getPowerDeriv(double x, double p, int k);" << endl;
+  if (isUnaryOpUsed(UnaryOpcode::sign))
+    output << "double sign(double x);" << endl;
 }
 
 vector<string>

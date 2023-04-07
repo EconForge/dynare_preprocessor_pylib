@@ -2950,10 +2950,10 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
         output << "abs";
       break;
     case UnaryOpcode::sign:
-      if (isCOutput(output_type))
-        output << "copysign";
-      else
-        output << "sign";
+      /* C does not have a sign() function, and copysign() is not suitable
+         because it does not handle zero correctly, so we define our own sign()
+         helper function, see DataTree::writeCHelpersDefinition() */
+      output << "sign";
       break;
     case UnaryOpcode::steadyState:
       ExprNodeOutputType new_output_type;
@@ -3054,8 +3054,6 @@ UnaryOpNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
           && arg->precedence(output_type, temporary_terms) < precedence(output_type, temporary_terms)))
     {
       output << LEFT_PAR(output_type);
-      if (op_code == UnaryOpcode::sign && isCOutput(output_type))
-        output << "1.0,";
       close_parenthesis = true;
     }
 

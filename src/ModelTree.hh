@@ -973,7 +973,7 @@ ModelTree::writeModelCFile(const string &basename, const string &mexext,
       output << "#include <math.h>" << endl
              << R"(#include "mex.h")" << endl // Needed for calls to external functions
              << endl;
-      writePowerDerivHeader(output);
+      writeCHelpersDeclaration(output);
       output << endl
              << prototype_tt << endl
              << "{" << endl
@@ -1012,7 +1012,7 @@ ModelTree::writeModelCFile(const string &basename, const string &mexext,
       output << "#include <math.h>" << endl
              << R"(#include "mex.h")" << endl // Needed for calls to external functions
              << endl;
-      writePowerDerivHeader(output);
+      writeCHelpersDeclaration(output);
       output << endl
              << prototype_main << endl
              << "{" << endl
@@ -1043,8 +1043,7 @@ ModelTree::writeModelCFile(const string &basename, const string &mexext,
     output << "#include " << it.filename() << endl;
   output << endl;
 
-  // Write function definition if BinaryOpcode::powerDeriv is used
-  writePowerDeriv(output);
+  writeCHelpersDefinition(output);
 
   output << endl
          << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
@@ -2645,18 +2644,13 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
      NB: The prefix (static/dynamic) is added to the filename (even though it’s
      the same source between static and dynamic) to avoid a race condition when
      static and dynamic are compiled in parallel. */
-  open_file(model_src_dir / (prefix + "power_deriv.h"));
-  writePowerDerivHeader(output);
-  output.close();
-
-  filesystem::path power_deriv_src {model_src_dir / (prefix + "power_deriv.c")};
-  open_file(power_deriv_src);
+  filesystem::path helpers_src {model_src_dir / (prefix + "helpers.c")};
+  open_file(helpers_src);
   output << "#include <math.h>" << endl << endl;
-  writePowerDeriv(output);
+  writeCHelpersDefinition(output);
   output.close();
-  auto power_deriv_object {compileMEX(model_src_dir, (prefix + "power_deriv"),
-                                      mexext, { power_deriv_src },
-                                      matlabroot, false)};
+  auto helpers_object {compileMEX(model_src_dir, (prefix + "helpers"),
+                                  mexext, { helpers_src }, matlabroot, false)};
 
   size_t ttlen {0};
 
@@ -2724,8 +2718,9 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
       open_file(source_tt);
       output << "#include <math.h>" << endl
              << R"(#include "mex.h")" << endl // Needed for calls to external functions
-             << R"(#include ")" << prefix << R"(power_deriv.h")" << endl
-             << endl
+             << endl;
+      writeCHelpersDeclaration(output);
+      output << endl
              << prototype_tt << endl
              << "{" << endl
              << tt_sparse_output[i].str()
@@ -2747,7 +2742,7 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
       output << "#include <math.h>" << endl
              << R"(#include "mex.h")" << endl // Needed for calls to external functions
              << endl;
-      writePowerDerivHeader(output);
+      writeCHelpersDeclaration(output);
       output << endl
              << prototype_main << endl
              << "{" << endl
@@ -2836,7 +2831,7 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
              << "}" << endl;
       output.close();
 
-      vector<filesystem::path> mex_input_files { power_deriv_object, main_object_file, source_mex };
+      vector<filesystem::path> mex_input_files { helpers_object, main_object_file, source_mex };
       for (int j {0}; j <= i; j++)
         mex_input_files.push_back(tt_object_files[j]);
       compileMEX(mex_dir, funcname, mexext, mex_input_files, matlabroot);
@@ -2864,8 +2859,9 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
           open_file(source_mex);
           output << "#include <math.h>" << endl
                  << R"(#include "mex.h")" << endl
-                 << R"(#include "../)" << prefix << R"(power_deriv.h")" << endl
-                 << endl
+                 << endl;
+          writeCHelpersDeclaration(output);
+          output << endl
                  << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
                  << "{" << endl
                  << "  if (nrhs != " << nargin << ")" << endl
@@ -2928,7 +2924,7 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
             }
           output << "}" << endl;
           output.close();
-          compileMEX(block_dir, funcname, mexext, { source_mex, power_deriv_object }, matlabroot);
+          compileMEX(block_dir, funcname, mexext, { source_mex, helpers_object }, matlabroot);
         }
     }
 }
