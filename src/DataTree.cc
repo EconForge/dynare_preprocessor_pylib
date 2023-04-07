@@ -893,18 +893,15 @@ void
 DataTree::writeCHelpersDefinition(ostream &output) const
 {
   if (isBinaryOpUsed(BinaryOpcode::powerDeriv))
-    output << "/*" << endl
-           << " * The k-th derivative of x^p" << endl
-           << " */" << endl
+    output << "// The k-th derivative of x^p" << endl
            << "double getPowerDeriv(double x, double p, int k)" << endl
            << "{" << endl
            << "  if (fabs(x) < " << power_deriv_near_zero << " && p > 0 && k > p && fabs(p-nearbyint(p)) < " << power_deriv_near_zero << ')' << endl
            << "    return 0.0;" << endl
            << "  else" << endl
            << "    {" << endl
-           << "      int i = 0;" << endl
            << "      double dxp = pow(x, p-k);" << endl
-           << "      for (; i<k; i++)" << endl
+           << "      for (int i = 0; i<k; i++)" << endl
            << "        dxp *= p--;" << endl
            << "      return dxp;" << endl
            << "    }" << endl
