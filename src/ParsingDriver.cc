@@ -845,13 +845,15 @@ ParsingDriver::end_model()
 
   if (undeclared_model_variable_errors.size() > 0)
     for (auto &it : undeclared_model_variable_errors)
-      if (nostrict)
-        warning(it.second);
-      else
-        {
-          exit_after_write = true;
-          cerr << it.second << endl;
-        }
+      {
+        if (nostrict)
+          warning(it.second);
+        else
+          {
+            exit_after_write = true;
+            cerr << it.second << endl;
+          }
+      }
   undeclared_model_variable_errors.clear();
 
   if (exit_after_write)
@@ -2154,13 +2156,15 @@ ParsingDriver::end_planner_objective(expr_t expr)
   bool exit_after_write = false;
   if (undeclared_model_variable_errors.size() > 0)
     for (auto &it : undeclared_model_variable_errors)
-      if (nostrict)
-        warning(it.second);
-      else
-        {
-          exit_after_write = true;
-          cerr << it.second << endl;
-        }
+      {
+        if (nostrict)
+          warning(it.second);
+        else
+          {
+            exit_after_write = true;
+            cerr << it.second << endl;
+          }
+      }
   undeclared_model_variable_errors.clear();
   if (exit_after_write)
     exit(EXIT_FAILURE);
@@ -3149,12 +3153,14 @@ ParsingDriver::add_model_var_or_external_function(const string &function_name, b
           error("Using a derivative of an external function (" + function_name + ") in the model block is currently not allowed.");
 
         if (in_model_block || parsing_epilogue)
-          if (mod_file->external_functions_table.getNargs(symb_id) == ExternalFunctionsTable::IDNotSet)
-            error("Before using " + function_name
-                  +"() in the model block, you must first declare it via the external_function() statement");
-          else if (static_cast<int>(stack_external_function_args.top().size()) != mod_file->external_functions_table.getNargs(symb_id))
-            error("The number of arguments passed to " + function_name
-                  +"() does not match those of a previous call or declaration of this function.");
+          {
+            if (mod_file->external_functions_table.getNargs(symb_id) == ExternalFunctionsTable::IDNotSet)
+              error("Before using " + function_name
+                    +"() in the model block, you must first declare it via the external_function() statement");
+            else if (static_cast<int>(stack_external_function_args.top().size()) != mod_file->external_functions_table.getNargs(symb_id))
+              error("The number of arguments passed to " + function_name
+                    +"() does not match those of a previous call or declaration of this function.");
+          }
       }
   else
     { //First time encountering this external function i.e., not previously declared or encountered

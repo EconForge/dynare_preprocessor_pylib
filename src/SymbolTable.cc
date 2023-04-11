@@ -686,10 +686,12 @@ SymbolTable::getOrigSymbIdForAuxVar(int aux_var_symb_id_arg) const noexcept(fals
          || aux_var.type == AuxVarType::diffForward
          || aux_var.type == AuxVarType::unaryOp)
         && aux_var.symb_id == aux_var_symb_id_arg)
-      if (optional<int> r = aux_var.orig_symb_id; r)
-        return *r;
-      else
-        throw UnknownSymbolIDException(aux_var_symb_id_arg); // Some diff and unaryOp auxvars have orig_symb_id unset
+      {
+        if (optional<int> r = aux_var.orig_symb_id; r)
+          return *r;
+        else
+          throw UnknownSymbolIDException(aux_var_symb_id_arg); // Some diff and unaryOp auxvars have orig_symb_id unset
+      }
   throw UnknownSymbolIDException(aux_var_symb_id_arg);
 }
 

@@ -5664,10 +5664,12 @@ BinaryOpNode::getPacNonOptimizingPart(int optim_share_symb_id) const
   expr_t non_optim_part = datatree.One;
   for (auto [factor, exponent] : factors)
     if (factor != one_minus_optim_share)
-      if (exponent == 1)
-        non_optim_part = datatree.AddTimes(non_optim_part, factor);
-      else
-        non_optim_part = datatree.AddDivide(non_optim_part, factor);
+      {
+        if (exponent == 1)
+          non_optim_part = datatree.AddTimes(non_optim_part, factor);
+        else
+          non_optim_part = datatree.AddDivide(non_optim_part, factor);
+      }
 
   return non_optim_part;
 }

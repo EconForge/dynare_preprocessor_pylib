@@ -245,18 +245,20 @@ ModFile::checkPass(bool nostrict, bool stochastic)
     }
 
   if (mod_file_struct.dsge_prior_weight_in_estimated_params)
-    if (!mod_file_struct.dsge_var_estimated && !mod_file_struct.dsge_var_calibrated.empty())
-      {
-        cerr << "ERROR: If dsge_prior_weight is in the estimated_params block, the prior weight cannot be calibrated "
-             << "via the dsge_var option in the estimation statement." << endl;
-        exit(EXIT_FAILURE);
-      }
-    else if (!mod_file_struct.dsge_var_estimated && !symbol_table.exists("dsge_prior_weight"))
-      {
-        cerr << "ERROR: If dsge_prior_weight is in the estimated_params block, it must either be declared as a parameter "
+    {
+      if (!mod_file_struct.dsge_var_estimated && !mod_file_struct.dsge_var_calibrated.empty())
+        {
+          cerr << "ERROR: If dsge_prior_weight is in the estimated_params block, the prior weight cannot be calibrated "
+               << "via the dsge_var option in the estimation statement." << endl;
+          exit(EXIT_FAILURE);
+        }
+      else if (!mod_file_struct.dsge_var_estimated && !symbol_table.exists("dsge_prior_weight"))
+        {
+          cerr << "ERROR: If dsge_prior_weight is in the estimated_params block, it must either be declared as a parameter "
              << "(deprecated) or the dsge_var option must be passed to the estimation statement (preferred)." << endl;
-        exit(EXIT_FAILURE);
-      }
+          exit(EXIT_FAILURE);
+        }
+    }
 
   if (dynamic_model.staticOnlyEquationsNbr() != dynamic_model.dynamicOnlyEquationsNbr())
     {
@@ -477,13 +479,15 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       PlannerObjectiveStatement *pos = nullptr;
       for (auto &statement : statements)
         if (auto pos2 = dynamic_cast<PlannerObjectiveStatement *>(statement.get()); pos2)
-          if (pos)
-            {
-              cerr << "ERROR: there can only be one planner_objective statement" << endl;
-              exit(EXIT_FAILURE);
-            }
-          else
-            pos = pos2;
+          {
+            if (pos)
+              {
+                cerr << "ERROR: there can only be one planner_objective statement" << endl;
+                exit(EXIT_FAILURE);
+              }
+            else
+              pos = pos2;
+          }
       assert(pos);
       const PlannerObjective &planner_objective = pos->getPlannerObjective();
 
@@ -621,22 +625,23 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
     }
 
   if (symbol_table.exists("dsge_prior_weight"))
-    if (mod_file_struct.bayesian_irf_present)
-      {
-        if (symbol_table.exo_nbr() != symbol_table.observedVariablesNbr())
-          {
-            cerr << "ERROR: When estimating a DSGE-Var and the bayesian_irf option is passed to the estimation "
-                 << "statement, the number of shocks must equal the number of observed variables." << endl;
-            exit(EXIT_FAILURE);
-          }
-      }
-    else
-      if (symbol_table.exo_nbr() < symbol_table.observedVariablesNbr())
+    {
+      if (mod_file_struct.bayesian_irf_present)
+        {
+          if (symbol_table.exo_nbr() != symbol_table.observedVariablesNbr())
+            {
+              cerr << "ERROR: When estimating a DSGE-Var and the bayesian_irf option is passed to the estimation "
+                   << "statement, the number of shocks must equal the number of observed variables." << endl;
+              exit(EXIT_FAILURE);
+            }
+        }
+      else if (symbol_table.exo_nbr() < symbol_table.observedVariablesNbr())
         {
           cerr << "ERROR: When estimating a DSGE-Var, the number of shocks must be "
                << "greater than or equal to the number of observed variables." << endl;
           exit(EXIT_FAILURE);
         }
+    }
 }
 
 void
@@ -728,10 +733,12 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
         dynamic_model.computingPass(2, 0, global_eval_context, no_tmp_terms, block, use_dll);
 
       if (linear)
-        if (mod_file_struct.ramsey_model_present)
-          orig_ramsey_dynamic_model.checkIsLinear();
-        else
-          dynamic_model.checkIsLinear();
+        {
+          if (mod_file_struct.ramsey_model_present)
+            orig_ramsey_dynamic_model.checkIsLinear();
+          else
+            dynamic_model.checkIsLinear();
+        }
     }
 
   // Those matrices can only be filled here, because we use derivatives

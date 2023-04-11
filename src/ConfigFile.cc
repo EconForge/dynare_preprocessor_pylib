@@ -148,13 +148,15 @@ ConfigFile::getConfigFileInfo(const filesystem::path &config_file)
 #endif
       configFile.open(defaultConfigFile, fstream::in);
       if (!configFile.is_open())
-        if (parallel || parallel_test)
-          {
-            cerr << "ERROR: Could not open the default config file (" << defaultConfigFile.string() << ")" << endl;
-            exit(EXIT_FAILURE);
-          }
-        else
-          return;
+        {
+          if (parallel || parallel_test)
+            {
+              cerr << "ERROR: Could not open the default config file (" << defaultConfigFile.string() << ")" << endl;
+              exit(EXIT_FAILURE);
+            }
+          else
+            return;
+        }
     }
   else
     {
@@ -396,13 +398,15 @@ ConfigFile::getConfigFileInfo(const filesystem::path &config_file)
                     if (!begin_weight)
                       {
                         if (!node_name.empty())
-                          if (member_nodes.contains(node_name))
-                            {
-                              cerr << "ERROR (in config file): Node entered twice in specification of cluster." << endl;
-                              exit(EXIT_FAILURE);
-                            }
-                          else
-                            member_nodes[node_name] = 1.0;
+                          {
+                            if (member_nodes.contains(node_name))
+                              {
+                                cerr << "ERROR (in config file): Node entered twice in specification of cluster." << endl;
+                                exit(EXIT_FAILURE);
+                              }
+                            else
+                              member_nodes[node_name] = 1.0;
+                          }
                         node_name = token;
                       }
                     else
@@ -423,13 +427,15 @@ ConfigFile::getConfigFileInfo(const filesystem::path &config_file)
                         }
                   }
                 if (!node_name.empty())
-                  if (!member_nodes.contains(node_name))
-                    member_nodes[node_name] = 1.0;
-                  else
-                    {
-                      cerr << "ERROR (in config file): Node entered twice in specification of cluster." << endl;
-                      exit(EXIT_FAILURE);
-                    }
+                  {
+                    if (!member_nodes.contains(node_name))
+                      member_nodes[node_name] = 1.0;
+                    else
+                      {
+                        cerr << "ERROR (in config file): Node entered twice in specification of cluster." << endl;
+                        exit(EXIT_FAILURE);
+                      }
+                  }
               }
             else
               {
@@ -505,16 +511,16 @@ ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, const member
                                    operatingSystem);
   //! ADD CLUSTER
   else if (inCluster)
-    if (minCpuNbr > 0 || maxCpuNbr > 0 || !userName.empty()
-        || !password.empty() || !remoteDrive.empty() || !remoteDirectory.empty()
-        || !programPath.empty() || !programConfig.empty()
-        || !matlabOctavePath.empty() || !operatingSystem.empty())
-      {
-        cerr << "Invalid option passed to [cluster]." << endl;
-        exit(EXIT_FAILURE);
-      }
-    else
-      if (name.empty() || clusters.contains(name))
+    {
+      if (minCpuNbr > 0 || maxCpuNbr > 0 || !userName.empty()
+          || !password.empty() || !remoteDrive.empty() || !remoteDirectory.empty()
+          || !programPath.empty() || !programConfig.empty()
+          || !matlabOctavePath.empty() || !operatingSystem.empty())
+        {
+          cerr << "Invalid option passed to [cluster]." << endl;
+          exit(EXIT_FAILURE);
+        }
+      else if (name.empty() || clusters.contains(name))
         {
           cerr << "ERROR: The cluster must be assigned a unique name." << endl;
           exit(EXIT_FAILURE);
@@ -525,6 +531,7 @@ ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, const member
             firstClusterName = name;
           clusters.emplace(name, member_nodes);
         }
+    }
 }
 
 void

@@ -514,16 +514,17 @@ DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_option_value, b
         {
           removeLeadingTrailingWhitespace(line);
           if (!line.empty())
-            if (tags.empty() && line.find("=") != string::npos)
-              {
-                tagname_on_first_line = true;
-                tags += line + "(";
-              }
-            else
-              if (line.find("'") != string::npos)
+            {
+              if (tags.empty() && line.find("=") != string::npos)
+                {
+                  tagname_on_first_line = true;
+                  tags += line + "(";
+                }
+              else if (line.find("'") != string::npos)
                 tags += line + ",";
               else
                 tags += "'" + line + "',";
+            }
         }
 
       if (!tags.empty())
@@ -634,21 +635,23 @@ DynamicModel::removeEquationsHelper(set<pair<string, string>> &listed_eqs_by_tag
     if (eqs_to_delete_by_number.contains(i))
       {
         if (excluded_vars_change_type)
-          if (auto tmp = all_equation_tags.getTagValueByEqnAndKey(i, "endogenous"); tmp)
-            excluded_vars.push_back(symbol_table.getID(*tmp));
-          else
-            {
-              set<int> result;
-              all_equations[i]->arg1->collectVariables(SymbolType::endogenous, result);
-              if (result.size() == 1)
-                excluded_vars.push_back(*result.begin());
-              else
-                {
-                  cerr << "ERROR: Equation " << i+1
-                       << " has been excluded but it does not have a single variable on its left-hand side or an `endogenous` tag" << endl;
-                  exit(EXIT_FAILURE);
-                }
-            }
+          {
+            if (auto tmp = all_equation_tags.getTagValueByEqnAndKey(i, "endogenous"); tmp)
+              excluded_vars.push_back(symbol_table.getID(*tmp));
+            else
+              {
+                set<int> result;
+                all_equations[i]->arg1->collectVariables(SymbolType::endogenous, result);
+                if (result.size() == 1)
+                  excluded_vars.push_back(*result.begin());
+                else
+                  {
+                    cerr << "ERROR: Equation " << i+1
+                         << " has been excluded but it does not have a single variable on its left-hand side or an `endogenous` tag" << endl;
+                    exit(EXIT_FAILURE);
+                  }
+              }
+          }
       }
     else
       {
@@ -2616,17 +2619,19 @@ DynamicModel::expandEqTags()
   set<int> existing_tags = equation_tags.getEqnsByKey("name");
   for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     if (!existing_tags.contains(eq))
-      if (auto lhs_expr = dynamic_cast<VariableNode *>(equations[eq]->arg1);
-          lhs_expr
-          && !equation_tags.exists("name", symbol_table.getName(lhs_expr->symb_id)))
-        equation_tags.add(eq, "name", symbol_table.getName(lhs_expr->symb_id));
-      else if (!equation_tags.exists("name", to_string(eq+1)))
-        equation_tags.add(eq, "name", to_string(eq+1));
-      else
-        {
-          cerr << "Error creating default equation tag: cannot assign default tag to equation number " << eq+1 << " because it is already in use" << endl;
-          exit(EXIT_FAILURE);
-        }
+      {
+        if (auto lhs_expr = dynamic_cast<VariableNode *>(equations[eq]->arg1);
+            lhs_expr
+            && !equation_tags.exists("name", symbol_table.getName(lhs_expr->symb_id)))
+          equation_tags.add(eq, "name", symbol_table.getName(lhs_expr->symb_id));
+        else if (!equation_tags.exists("name", to_string(eq+1)))
+          equation_tags.add(eq, "name", to_string(eq+1));
+        else
+          {
+            cerr << "Error creating default equation tag: cannot assign default tag to equation number " << eq+1 << " because it is already in use" << endl;
+            exit(EXIT_FAILURE);
+          }
+      }
 }
 
 set<int>

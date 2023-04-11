@@ -1029,10 +1029,12 @@ Comprehension::eval(Environment &env) const
               throw;
             }
           if ((bp && *bp) || (dp && *dp))
-            if (c_expr)
-              values.emplace_back(c_expr->eval(env));
-            else
-              values.emplace_back(btp);
+            {
+              if (c_expr)
+                values.emplace_back(c_expr->eval(env));
+              else
+                values.emplace_back(btp);
+            }
         }
     }
   return make_shared<Array>(values);
