@@ -921,6 +921,7 @@ StaticModel::writeRamseyMultipliersDerivativesCFile(const string &basename, cons
          << R"(#include "mex.h")" << endl // Needed for calls to external functions
          << endl;
   writeCHelpersDefinition(output);
+  writeCHelpersDeclaration(output); // Provide external definition of helpers
   output << endl
          << "void ramsey_multipliers_static_g1(const double *restrict y, const double *restrict x, const double *restrict params, double *restrict T, double *restrict g1m_v)" << endl
          << "{" << endl;

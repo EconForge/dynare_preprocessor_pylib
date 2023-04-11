@@ -894,7 +894,8 @@ DataTree::writeCHelpersDefinition(ostream &output) const
 {
   if (isBinaryOpUsed(BinaryOpcode::powerDeriv))
     output << "// The k-th derivative of x^p" << endl
-           << "double getPowerDeriv(double x, double p, int k)" << endl
+           << "inline double" << endl
+           << "getPowerDeriv(double x, double p, int k)" << endl
            << "{" << endl
            << "  if (fabs(x) < " << power_deriv_near_zero << " && p > 0 && k > p && fabs(p-nearbyint(p)) < " << power_deriv_near_zero << ')' << endl
            << "    return 0.0;" << endl
@@ -908,7 +909,8 @@ DataTree::writeCHelpersDefinition(ostream &output) const
            << "}" << endl;
 
   if (isUnaryOpUsed(UnaryOpcode::sign))
-    output << "double sign(double x)" << endl
+    output << "inline double" << endl
+           << "sign(double x)" << endl
            << "{" << endl
            << "  return (x > 0) ? 1 : ((x < 0) ? -1 : 0);" << endl
            << "}" << endl;
@@ -918,9 +920,9 @@ void
 DataTree::writeCHelpersDeclaration(ostream &output) const
 {
   if (isBinaryOpUsed(BinaryOpcode::powerDeriv))
-    output << "double getPowerDeriv(double x, double p, int k);" << endl;
+    output << "extern inline double getPowerDeriv(double x, double p, int k);" << endl;
   if (isUnaryOpUsed(UnaryOpcode::sign))
-    output << "double sign(double x);" << endl;
+    output << "extern inline double sign(double x);" << endl;
 }
 
 vector<string>

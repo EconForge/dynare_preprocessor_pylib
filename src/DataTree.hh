@@ -277,9 +277,14 @@ public:
   //! Returns the minimum lag (as a negative number) of the given symbol in the whole data tree (and not only in the equations !!)
   /*! Returns 0 if the symbol is not used */
   int minLagForSymbol(int symb_id) const;
-  //! Writes definitions of C function helpers (getPowerDeriv(), sign())
+  /* Writes definitions of C function helpers (getPowerDeriv(), sign()) as
+     inline functions */
   void writeCHelpersDefinition(ostream &output) const;
-  //! Writes declarations of C function helpers (getPowerDeriv(), sign())
+  /* Writes declarations of C function helpers (getPowerDeriv(), sign()) as
+     extern inline (external definition). Those need to be included in exactly
+     one translation unit. That external definition will be used or not,
+     depending on the optimization decision by the compiler.
+     See https://en.cppreference.com/w/c/language/inline */
   void writeCHelpersDeclaration(ostream &output) const;
   //! Thrown when trying to access an unknown variable by deriv_id
   class UnknownDerivIDException

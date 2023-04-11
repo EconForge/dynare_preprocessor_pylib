@@ -973,7 +973,7 @@ ModelTree::writeModelCFile(const string &basename, const string &mexext,
       output << "#include <math.h>" << endl
              << R"(#include "mex.h")" << endl // Needed for calls to external functions
              << endl;
-      writeCHelpersDeclaration(output);
+      writeCHelpersDefinition(output);
       output << endl
              << prototype_tt << endl
              << "{" << endl
@@ -1012,7 +1012,9 @@ ModelTree::writeModelCFile(const string &basename, const string &mexext,
       output << "#include <math.h>" << endl
              << R"(#include "mex.h")" << endl // Needed for calls to external functions
              << endl;
-      writeCHelpersDeclaration(output);
+      writeCHelpersDefinition(output);
+      if (i == 0)
+        writeCHelpersDeclaration(output); // Provide external definition of helpers in resid main file
       output << endl
              << prototype_main << endl
              << "{" << endl
@@ -1041,10 +1043,6 @@ ModelTree::writeModelCFile(const string &basename, const string &mexext,
          << R"(#include "mex.h")" << endl;
   for (const auto &it : header_files)
     output << "#include " << it.filename() << endl;
-  output << endl;
-
-  writeCHelpersDefinition(output);
-
   output << endl
          << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
          << "{" << endl;
@@ -2640,18 +2638,6 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
       }
   };
 
-  /* Write source files for the derivative of the power function.
-     NB: The prefix (static/dynamic) is added to the filename (even though it’s
-     the same source between static and dynamic) to avoid a race condition when
-     static and dynamic are compiled in parallel. */
-  filesystem::path helpers_src {model_src_dir / (prefix + "helpers.c")};
-  open_file(helpers_src);
-  output << "#include <math.h>" << endl << endl;
-  writeCHelpersDefinition(output);
-  output.close();
-  auto helpers_object {compileMEX(model_src_dir, (prefix + "helpers"),
-                                  mexext, { helpers_src }, matlabroot, false)};
-
   size_t ttlen {0};
 
   // Helper for dealing with y, x, params and steady_state inputs (shared with block case)
@@ -2719,7 +2705,7 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
       output << "#include <math.h>" << endl
              << R"(#include "mex.h")" << endl // Needed for calls to external functions
              << endl;
-      writeCHelpersDeclaration(output);
+      writeCHelpersDefinition(output);
       output << endl
              << prototype_tt << endl
              << "{" << endl
@@ -2742,7 +2728,8 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
       output << "#include <math.h>" << endl
              << R"(#include "mex.h")" << endl // Needed for calls to external functions
              << endl;
-      writeCHelpersDeclaration(output);
+      writeCHelpersDefinition(output);
+      writeCHelpersDeclaration(output); // Provide external definition of helpers in main file
       output << endl
              << prototype_main << endl
              << "{" << endl
@@ -2831,7 +2818,7 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
              << "}" << endl;
       output.close();
 
-      vector<filesystem::path> mex_input_files { helpers_object, main_object_file, source_mex };
+      vector<filesystem::path> mex_input_files { main_object_file, source_mex };
       for (int j {0}; j <= i; j++)
         mex_input_files.push_back(tt_object_files[j]);
       compileMEX(mex_dir, funcname, mexext, mex_input_files, matlabroot);
@@ -2860,7 +2847,8 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
           output << "#include <math.h>" << endl
                  << R"(#include "mex.h")" << endl
                  << endl;
-          writeCHelpersDeclaration(output);
+          writeCHelpersDefinition(output);
+          writeCHelpersDeclaration(output); // Provide external definition of helpers
           output << endl
                  << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
                  << "{" << endl
@@ -2924,7 +2912,7 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
             }
           output << "}" << endl;
           output.close();
-          compileMEX(block_dir, funcname, mexext, { source_mex, helpers_object }, matlabroot);
+          compileMEX(block_dir, funcname, mexext, { source_mex }, matlabroot);
         }
     }
 }
