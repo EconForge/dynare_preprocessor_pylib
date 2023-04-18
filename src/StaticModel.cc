@@ -121,7 +121,6 @@ StaticModel::writeStaticBytecode(const string &basename) const
                             endo_idx,
                             eq_idx,
                             false,
-                            symbol_table.endo_nbr(),
                             u_count_int,
                             symbol_table.endo_nbr()};
 
@@ -161,7 +160,6 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
                                 endo_idx_block2orig,
                                 eq_idx_block2orig,
                                 blocks[block].linear,
-                                symbol_table.endo_nbr(),
                                 u_count,
                                 block_size};
 

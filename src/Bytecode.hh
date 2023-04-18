@@ -893,7 +893,6 @@ private:
   vector<int> det_exogenous;
   bool is_linear{false};
   vector<Block_contain_type> Block_Contain_;
-  int endo_nbr{0};
   int u_count_int{0};
   int nb_col_jacob{0};
   int det_exo_size, exo_size;
@@ -903,7 +902,7 @@ public:
      derivatives w.r.t. endogenous not belonging to the block) */
   FBEGINBLOCK_(int size_arg, BlockSimulationType type_arg, int first_element, int block_size,
                const vector<int> &variable_arg, const vector<int> &equation_arg,
-               bool is_linear_arg, int endo_nbr_arg, int u_count_int_arg, int nb_col_jacob_arg,
+               bool is_linear_arg, int u_count_int_arg, int nb_col_jacob_arg,
                int det_exo_size_arg, int exo_size_arg,
                vector<int> det_exogenous_arg, vector<int> exogenous_arg) :
     BytecodeInstruction{Tags::FBEGINBLOCK},
@@ -914,7 +913,6 @@ public:
     exogenous{move(exogenous_arg)},
     det_exogenous{move(det_exogenous_arg)},
     is_linear{is_linear_arg},
-    endo_nbr{endo_nbr_arg},
     u_count_int{u_count_int_arg},
     nb_col_jacob{nb_col_jacob_arg},
     det_exo_size{det_exo_size_arg},
@@ -924,14 +922,13 @@ public:
   // Constructor when derivatives w.r.t. exogenous are absent
   FBEGINBLOCK_(int size_arg, BlockSimulationType type_arg, int first_element, int block_size,
                const vector<int> &variable_arg, const vector<int> &equation_arg,
-               bool is_linear_arg, int endo_nbr_arg, int u_count_int_arg, int nb_col_jacob_arg) :
+               bool is_linear_arg, int u_count_int_arg, int nb_col_jacob_arg) :
     BytecodeInstruction{Tags::FBEGINBLOCK},
     size{size_arg},
     type{type_arg},
     variable{variable_arg.begin()+first_element, variable_arg.begin()+(first_element+block_size)},
     equation{equation_arg.begin()+first_element, equation_arg.begin()+(first_element+block_size)},
     is_linear{is_linear_arg},
-    endo_nbr{endo_nbr_arg},
     u_count_int{u_count_int_arg},
     nb_col_jacob{nb_col_jacob_arg},
     det_exo_size{0},
@@ -966,7 +963,6 @@ public:
         || type == BlockSimulationType::solveForwardComplete)
       {
         read_member(is_linear);
-        read_member(endo_nbr);
         read_member(u_count_int);
       }
     read_member(nb_col_jacob);
@@ -1001,11 +997,6 @@ public:
   get_is_linear()
   {
     return is_linear;
-  };
-  int
-  get_endo_nbr()
-  {
-    return endo_nbr;
   };
   int
   get_u_count_int()

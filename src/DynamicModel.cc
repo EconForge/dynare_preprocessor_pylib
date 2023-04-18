@@ -183,7 +183,6 @@ DynamicModel::writeDynamicBytecode(const string &basename) const
                             endo_idx,
                             eq_idx,
                             false,
-                            symbol_table.endo_nbr(),
                             u_count_int,
                             jacobian_ncols_endo,
                             symbol_table.exo_det_nbr(),
@@ -229,7 +228,6 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
                                 endo_idx_block2orig,
                                 eq_idx_block2orig,
                                 blocks[block].linear,
-                                symbol_table.endo_nbr(),
                                 u_count,
                                 static_cast<int>(blocks_jacob_cols_endo[block].size())};
 

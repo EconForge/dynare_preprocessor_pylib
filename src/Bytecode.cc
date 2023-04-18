@@ -90,7 +90,6 @@ operator<<(BytecodeWriter &code_file, const FBEGINBLOCK_ &instr)
       || instr.type == BlockSimulationType::solveForwardComplete)
     {
       write_member(instr.is_linear);
-      write_member(instr.endo_nbr);
       write_member(instr.u_count_int);
     }
   write_member(instr.nb_col_jacob);
