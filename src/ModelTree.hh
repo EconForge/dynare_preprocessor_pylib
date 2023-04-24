@@ -451,7 +451,7 @@ private:
     The resulting normalization is stored in endo2eq.
     Returns a boolean indicating success.
   */
-  bool computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian);
+  bool computeNonSingularNormalization(const eval_context_t &eval_context);
   //! Evaluate the jacobian (w.r.t. endogenous) and suppress all the elements below the cutoff
   /*! Returns the contemporaneous_jacobian.
       Elements below the cutoff are discarded. External functions are evaluated to 1. */

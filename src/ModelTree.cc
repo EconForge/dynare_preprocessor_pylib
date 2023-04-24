@@ -237,11 +237,12 @@ ModelTree::operator=(const ModelTree &m)
 bool
 ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, bool verbose)
 {
-  const int n = equations.size();
+  const int n {static_cast<int>(equations.size())};
 
   assert(n == symbol_table.endo_nbr());
 
   using BipartiteGraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
+  using vertex_descriptor_t = boost::graph_traits<BipartiteGraph>::vertex_descriptor;
 
   /*
     Vertices 0 to n-1 are for endogenous (using type specific ID)
@@ -254,15 +255,8 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
     add_edge(eq_and_endo.first + n, eq_and_endo.second, g);
 
   // Compute maximum cardinality matching
-  vector<int> mate_map(2*n);
-
-  bool check = checked_edmonds_maximum_cardinality_matching(g, &mate_map[0]);
-
-  assert(check);
-
-  // Create the resulting map, by copying the n first elements of mate_map, and substracting n to them
-  endo2eq.resize(equations.size());
-  transform(mate_map.begin(), mate_map.begin() + n, endo2eq.begin(), [=](int i) { return i-n; });
+  vector<vertex_descriptor_t> mate_map(2*n);
+  edmonds_maximum_cardinality_matching(g, &mate_map[0]);
 
   // Check if all variables are normalized
   if (auto it = find(mate_map.begin(), mate_map.begin() + n, boost::graph_traits<BipartiteGraph>::null_vertex());
@@ -272,15 +266,20 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
         cerr << "Could not normalize the " << modelClassName() << ". Variable "
              << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, it - mate_map.begin()))
              << " is not in the maximum cardinality matching." << endl;
-      check = false;
+      return false;
     }
-  return check;
+
+  // Create the resulting map, by copying the n first elements of mate_map, and substracting n to them
+  endo2eq.resize(equations.size());
+  transform(mate_map.begin(), mate_map.begin() + n, endo2eq.begin(), [=](vertex_descriptor_t i) { return i-n; });
+
+  return true;
 }
 
 bool
-ModelTree::computeNonSingularNormalization(const jacob_map_t &contemporaneous_jacobian)
+ModelTree::computeNonSingularNormalization(const eval_context_t &eval_context)
 {
-  int n = equations.size();
+  const int n {static_cast<int>(equations.size())};
 
   /* Optimal policy models (discretionary, or Ramsey before computing FOCs) do
      not have as many equations as variables. */
@@ -291,6 +290,8 @@ ModelTree::computeNonSingularNormalization(const jacob_map_t &contemporaneous_ja
     }
 
   cout << "Normalizing the " << modelClassName() << "..." << endl;
+
+  auto contemporaneous_jacobian {evaluateAndReduceJacobian(eval_context)};
 
   // Compute the maximum value of each row of the contemporaneous Jacobian matrix
   vector max_val(n, 0.0);
@@ -1820,7 +1821,7 @@ ModelTree::computeSymbolicJacobian(bool contemporaneous_only) const
       equations[i]->collectEndogenous(endos_and_lags);
       for (const auto &[endo, lag] : endos_and_lags)
         if (!contemporaneous_only || lag == 0)
-          symbolic_jacobian[{ i, endo }] = 1;
+          symbolic_jacobian.try_emplace({ i, endo }, 1);
     }
   return symbolic_jacobian;
 }
@@ -1961,8 +1962,7 @@ ModelTree::waitForMEXCompilationWorkers()
 void
 ModelTree::computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms)
 {
-  auto contemporaneous_jacobian = evaluateAndReduceJacobian(eval_context);
-  if (!computeNonSingularNormalization(contemporaneous_jacobian))
+  if (!computeNonSingularNormalization(eval_context))
     return;
   auto [prologue, epilogue] = computePrologueAndEpilogue();
   auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
