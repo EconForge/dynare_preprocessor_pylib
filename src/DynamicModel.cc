@@ -2992,7 +2992,7 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
   for (auto &neweq : neweqs)
     {
       addEquation(neweq, nullopt);
-      aux_equations.push_back(neweq);
+      addAuxEquation(neweq);
     }
 
   if (neweqs.size() > 0)
@@ -3139,7 +3139,7 @@ DynamicModel::substituteUnaryOps(const set<int> &eqnumbers, VarExpectationModelT
   for (auto &neweq : neweqs)
     {
       addEquation(neweq, nullopt);
-      aux_equations.push_back(neweq);
+      addAuxEquation(neweq);
     }
 
   if (subst_table.size() > 0)
@@ -3194,7 +3194,7 @@ DynamicModel::substituteDiff(VarExpectationModelTable &var_expectation_model_tab
   for (auto neweq : neweqs)
     {
       addEquation(neweq, nullopt);
-      aux_equations.push_back(neweq);
+      addAuxEquation(neweq);
     }
 
   if (diff_subst_table.size() > 0)
@@ -3227,7 +3227,7 @@ DynamicModel::substituteExpectation(bool partial_information_model)
   for (auto neweq : neweqs)
     {
       addEquation(neweq, nullopt);
-      aux_equations.push_back(neweq);
+      addAuxEquation(neweq);
     }
 
   if (subst_table.size() > 0)
