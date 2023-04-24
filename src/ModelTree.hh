@@ -433,6 +433,17 @@ private:
      variables; otherwise also considers leads and lags. */
   jacob_map_t computeSymbolicJacobian(bool contemporaneous_only) const;
 
+  /* Compute a pseudo-Jacobian whose all elements are either zero or one.
+     For the equations that were originally written by the user (identified as
+     those having an associated line number), checks whether there is a single
+     contemporaneous endogenous on the left-hand side; if yes, only this
+     endogenous is associated with a one on the line of the corresponding
+     equation; otherwise, returns false as the first output argument and
+     aborts the computation.
+     For the other equations, fills the corresponding lines as is done
+     by computeSymbolicJacobian(true). */
+  pair<bool, jacob_map_t> computeLeftHandSideSymbolicJacobian() const;
+
   // Compute {var,eq}_idx_orig2block from {var,eq}_idx_block2orig
   void updateReverseVariableEquationOrderings();
 

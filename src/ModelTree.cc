@@ -283,6 +283,25 @@ ModelTree::computeNonSingularNormalization(const eval_context_t &eval_context)
 
   cout << "Normalizing the " << modelClassName() << "..." << endl;
 
+  /* If the model is purely backward, determine whether all original equations
+     have a single contemporaneous endogenous on the LHS. If this is the case,
+     then first try a normalization by enforcing that each original equation is
+     matched with the endogenous on the LHS. */
+  if (time_recursive_block_decomposition)
+    {
+      auto [normalize_by_lhs, lhs_symbolic_jacobian] { computeLeftHandSideSymbolicJacobian() };
+      if (normalize_by_lhs)
+        try
+          {
+            computeNormalization(lhs_symbolic_jacobian);
+            return true;
+          }
+        catch (ModelNormalizationFailed &e)
+          {
+            cerr << "WARNING: All equations are written so that a single contemporaneous endogenous variable appears on the left-hand side. This suggests a natural normalization of the model. However, variable " << e.unmatched_endo << " could not be matched with an equation. Check whether this is desired." << endl;
+          }
+    }
+
   auto contemporaneous_jacobian {evaluateAndReduceJacobian(eval_context)};
 
   // Compute the maximum value of each row of the contemporaneous Jacobian matrix
@@ -1824,6 +1843,35 @@ ModelTree::computeSymbolicJacobian(bool contemporaneous_only) const
           symbolic_jacobian.try_emplace({ i, endo }, 1);
     }
   return symbolic_jacobian;
+}
+
+pair<bool, ModelTree::jacob_map_t>
+ModelTree::computeLeftHandSideSymbolicJacobian() const
+{
+  jacob_map_t lhs_symbolic_jacobian;
+  auto not_contemporaneous = [](const pair<int, int> &p) { return p.second != 0; };
+
+  for (int eq {0}; eq < static_cast<int>(equations.size()); eq++)
+    if (equations_lineno[eq]) // Hand-written equation: test whether LHS has single contemporaneous endo
+      {
+        set<pair<int, int>> endos_and_lags;
+        equations[eq]->arg1->collectEndogenous(endos_and_lags);
+        erase_if(endos_and_lags, not_contemporaneous);
+        if (endos_and_lags.size() == 1)
+          lhs_symbolic_jacobian.try_emplace({ eq, endos_and_lags.begin()->first }, 1);
+        else
+          return { false, {} };
+      }
+    else // Generated equation: keep all endos on both LHS and RHS
+      {
+        set<pair<int, int>> endos_and_lags;
+        equations[eq]->collectEndogenous(endos_and_lags);
+        erase_if(endos_and_lags, not_contemporaneous);
+        for (const auto &[endo, lag] : endos_and_lags)
+          lhs_symbolic_jacobian.try_emplace({ eq, endo }, 1);
+      }
+
+  return { true, lhs_symbolic_jacobian };
 }
 
 void
