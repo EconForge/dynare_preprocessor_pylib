@@ -436,12 +436,17 @@ private:
   // Compute {var,eq}_idx_orig2block from {var,eq}_idx_block2orig
   void updateReverseVariableEquationOrderings();
 
+  struct ModelNormalizationFailed
+  {
+    string unmatched_endo; // Name of endogenous not in maximum cardinality matching
+  };
+
   //! Compute the matching between endogenous and variable using the jacobian contemporaneous_jacobian
   /*!
     \param contemporaneous_jacobian Jacobian used as an incidence matrix: all elements declared in the map (even if they are zero), are used as vertices of the incidence matrix
     \return True if a complete normalization has been achieved
   */
-  bool computeNormalization(const jacob_map_t &contemporaneous_jacobian, bool verbose);
+  void computeNormalization(const jacob_map_t &contemporaneous_jacobian);
 
   //! Try to compute the matching between endogenous and variable using a decreasing cutoff
   /*!

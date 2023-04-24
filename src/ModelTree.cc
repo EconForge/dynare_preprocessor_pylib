@@ -234,8 +234,8 @@ ModelTree::operator=(const ModelTree &m)
   return *this;
 }
 
-bool
-ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, bool verbose)
+void
+ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian)
 {
   const int n {static_cast<int>(equations.size())};
 
@@ -261,19 +261,11 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian, boo
   // Check if all variables are normalized
   if (auto it = find(mate_map.begin(), mate_map.begin() + n, boost::graph_traits<BipartiteGraph>::null_vertex());
       it != mate_map.begin() + n)
-    {
-      if (verbose)
-        cerr << "Could not normalize the " << modelClassName() << ". Variable "
-             << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, it - mate_map.begin()))
-             << " is not in the maximum cardinality matching." << endl;
-      return false;
-    }
+    throw ModelNormalizationFailed {symbol_table.getName(symbol_table.getID(SymbolType::endogenous, it - mate_map.begin())) };
 
   // Create the resulting map, by copying the n first elements of mate_map, and substracting n to them
   endo2eq.resize(equations.size());
   transform(mate_map.begin(), mate_map.begin() + n, endo2eq.begin(), [=](vertex_descriptor_t i) { return i-n; });
-
-  return true;
 }
 
 bool
@@ -307,9 +299,8 @@ ModelTree::computeNonSingularNormalization(const eval_context_t &eval_context)
   double current_cutoff = 0.99999999;
   const double cutoff_lower_limit = 1e-19;
 
-  bool found_normalization = false;
   int last_suppressed = 0;
-  while (!found_normalization && current_cutoff > cutoff_lower_limit)
+  while (current_cutoff > cutoff_lower_limit)
     {
       // Drop elements below cutoff from normalized contemporaneous Jacobian
       jacob_map_t normalized_contemporaneous_jacobian_above_cutoff;
@@ -321,35 +312,44 @@ ModelTree::computeNonSingularNormalization(const eval_context_t &eval_context)
           suppressed++;
 
       if (suppressed != last_suppressed)
-        found_normalization = computeNormalization(normalized_contemporaneous_jacobian_above_cutoff, false);
+        try
+          {
+            computeNormalization(normalized_contemporaneous_jacobian_above_cutoff);
+            return true;
+          }
+        catch (ModelNormalizationFailed &e)
+          {
+          }
       last_suppressed = suppressed;
-      if (!found_normalization)
-        {
-          current_cutoff /= 2;
-          // In this last case try to normalize with the complete jacobian
-          if (current_cutoff <= cutoff_lower_limit)
-            found_normalization = computeNormalization(normalized_contemporaneous_jacobian, false);
-        }
+      current_cutoff /= 2;
     }
 
-  if (!found_normalization)
+  // Try to normalize with the complete numerical jacobian
+  try
     {
-      cout << "Normalization failed with cutoff, trying symbolic normalization..." << endl;
-      /* If no non-singular normalization can be found, try to find a
-         normalization even with a potential singularity. */
-      auto symbolic_jacobian = computeSymbolicJacobian(true);
-      found_normalization = computeNormalization(symbolic_jacobian, true);
+      computeNormalization(normalized_contemporaneous_jacobian);
+      return true;
+    }
+  catch (ModelNormalizationFailed &e)
+    {
     }
 
-#ifdef DEBUG
-  for (size_t i {0}; i < equations.size(); i++)
-    cout << "Variable " << symbol_table.getName(symbol_table.getID(SymbolType::endogenous, i))
-         << " associated to equation " << endo2eq[i] << " (" << equation_tags.getTagValueByEqnAndKey(endo2eq[i], "name") << ")" << endl;
-#endif
+  cout << "Normalization failed with cutoff, trying symbolic normalization..." << endl;
+  /* If no non-singular normalization can be found, try to find a
+     normalization even with a potential singularity. */
+  auto symbolic_jacobian { computeSymbolicJacobian(true) };
+  try
+    {
+      computeNormalization(symbolic_jacobian);
+      return true;
+    }
+  catch (ModelNormalizationFailed &e)
+    {
+      cerr << "Could not normalize the " << modelClassName() << ". Variable "
+           << e.unmatched_endo << " is not in the maximum cardinality matching." << endl;
+    }
 
-  /* NB: If normalization failed, an explanatory message has been printed by the last call
-     to computeNormalization(), which has verbose=true */
-  return found_normalization;
+  return false;
 }
 
 ModelTree::jacob_map_t
