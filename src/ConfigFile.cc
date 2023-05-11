@@ -753,7 +753,7 @@ ConfigFile::writeCluster(ostream &output) const
   if (parallel_follower_open_mode)
     output << "options_.parallel_info.leaveSlaveOpen = 1;" << endl;
   if (!parallel_use_psexec)
-    output << "options_.parallel_use_psexec = false;" << endl;
+    output << "options_.parallel_info.use_psexec = false;" << endl;
 
   output << "options_.parallel_info.console_mode= isoctave;" << endl;
 
