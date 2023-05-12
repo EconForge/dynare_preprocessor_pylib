@@ -143,6 +143,8 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
   // Temporary variables declaration
   code_file << FDIMST_{static_cast<int>(blocks_temporary_terms_idxs.size())};
 
+  temporary_terms_t temporary_terms_written;
+
   for (int block {0}; block < static_cast<int>(blocks.size()); block++)
     {
       const BlockSimulationType simulation_type {blocks[block].simulation_type};
@@ -163,7 +165,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
                                 u_count,
                                 block_size};
 
-      writeBlockBytecodeHelper<false>(code_file, block);
+      writeBlockBytecodeHelper<false>(code_file, block, temporary_terms_written);
     }
   code_file << FEND_{};
 }

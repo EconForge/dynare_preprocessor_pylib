@@ -333,7 +333,7 @@ protected:
 
   // Helper for writing blocks in bytecode
   template<bool dynamic>
-  void writeBlockBytecodeHelper(BytecodeWriter &code_file, int block) const;
+  void writeBlockBytecodeHelper(BytecodeWriter &code_file, int block, temporary_terms_t &temporary_terms_union) const;
 
   // Helper for writing sparse derivatives indices in MATLAB/Octave driver file
   template<bool dynamic>
@@ -1642,7 +1642,7 @@ ModelTree::writeBytecodeHelper(BytecodeWriter &code_file) const
 
 template<bool dynamic>
 void
-ModelTree::writeBlockBytecodeHelper(BytecodeWriter &code_file, int block) const
+ModelTree::writeBlockBytecodeHelper(BytecodeWriter &code_file, int block, temporary_terms_t &temporary_terms_union) const
 {
   constexpr ExprNodeBytecodeOutputType output_type
     { dynamic ? ExprNodeBytecodeOutputType::dynamicModel : ExprNodeBytecodeOutputType::staticModel };
@@ -1654,7 +1654,6 @@ ModelTree::writeBlockBytecodeHelper(BytecodeWriter &code_file, int block) const
   const int block_mfs {blocks[block].mfs_size};
   const int block_recursive {blocks[block].getRecursiveSize()};
 
-  temporary_terms_t temporary_terms_union;
   deriv_node_temp_terms_t tef_terms;
 
   auto write_eq_tt = [&](int eq)

@@ -209,6 +209,8 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
   // Temporary variables declaration
   code_file << FDIMT_{static_cast<int>(blocks_temporary_terms_idxs.size())};
 
+  temporary_terms_t temporary_terms_written;
+
   for (int block {0}; block < static_cast<int>(blocks.size()); block++)
     {
       const BlockSimulationType simulation_type {blocks[block].simulation_type};
@@ -231,7 +233,7 @@ DynamicModel::writeDynamicBlockBytecode(const string &basename) const
                                 u_count,
                                 static_cast<int>(blocks_jacob_cols_endo[block].size())};
 
-      writeBlockBytecodeHelper<true>(code_file, block);
+      writeBlockBytecodeHelper<true>(code_file, block, temporary_terms_written);
     }
   code_file << FEND_{};
 }
