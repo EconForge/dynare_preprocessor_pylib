@@ -8,44 +8,12 @@
 
 \usetheme{Boadilla}
 
-\titlegraphic{\includegraphics{../logos/dlogo.png}}
-
 \title{The Dynare Macro Processor}
+\author{Sébastien Villemot}
+\pgfdeclareimage[height=0.8cm]{logo}{../logos/dlogo}
+\institute[Dynare Team]{\pgfuseimage{logo}}
 
-\author[S. Villemot, H.Bastani]{Sébastien Villemot \and Houtan Bastani}
-
-\institute[CEPREMAP]{\includegraphics[scale=0.15]{../logos/cepremap.jpg}}
-
-\date{3 June 2022}
-
-
-\setbeamertemplate{title page}
-{
-  \vbox{}
-  \begingroup
-    \centering
-    {\usebeamercolor[fg]{titlegraphic}\inserttitlegraphic\par}\vskip1em
-    \begin{beamercolorbox}[sep=8pt,center]{title}
-      \usebeamerfont{title}\inserttitle\par%
-      \ifx\insertsubtitle\@empty%
-      \else%
-        \vskip0.25em%
-        {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\insertsubtitle\par}%
-      \fi%
-    \end{beamercolorbox}%
-    \vskip1em\par
-    \begin{beamercolorbox}[sep=8pt,center]{author}
-      \usebeamerfont{author}\insertauthor
-    \end{beamercolorbox}
-    \begin{beamercolorbox}[sep=8pt,center]{institute}
-      \usebeamerfont{institute}\insertinstitute
-    \end{beamercolorbox}
-    \begin{beamercolorbox}[sep=8pt,center]{date}
-      \usebeamerfont{date}\insertdate
-    \end{beamercolorbox}
-  \endgroup
-  \vfill
-}
+\date{23 May 2023}
 
 \AtBeginSection[]
 {
@@ -59,18 +27,6 @@
 
 \begin{frame}
   \titlepage
-
-  \begin{columns}[T]
-    \column{0.2\textwidth}
-    \column{0.09\textwidth}
-
-    \ccbysa
-    \column{0.71\textwidth}
-    \tiny
-    Copyright © 2008--2022 Dynare Team \\
-    Licence: \href{http://creativecommons.org/licenses/by-sa/4.0/}{Creative
-      Commons Attribution-ShareAlike 4.0}
-  \end{columns}
 \end{frame}
 
 \begin{frame}
@@ -894,12 +850,24 @@ rhos = [ 0.8, 0.9, 1];
 
 \begin{frame}
   \begin{center}
-    \vfill {\LARGE Thanks for your attention!} \vfill
-    {\LARGE Questions?}
+    \vfill {\LARGE Thanks for your attention! \\
+    Questions?}
+    \vfill
+    {\LARGE My email: \texttt{sebastien@dynare.org}}
     \vfill
   \end{center}
   \vfill
-  \end{frame}
+  \begin{columns}[T]
+    \column{0.2\textwidth}
+    \column{0.09\textwidth}
 
+    \ccbysa
+    \column{0.71\textwidth}
+    \tiny
+    Copyright © 2008-2023 Dynare Team \\
+    License: \href{http://creativecommons.org/licenses/by-sa/4.0/}{Creative
+      Commons Attribution-ShareAlike 4.0}
+  \end{columns}
+\end{frame}
 
 \end{document}
