@@ -24,6 +24,7 @@
 #include <utility>
 #include <limits>
 #include <numeric>
+#include <numbers>
 
 #include "ExprNode.hh"
 #include "DataTree.hh"
@@ -6118,9 +6119,9 @@ TrinaryOpNode::eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v
   switch (op_code)
     {
     case TrinaryOpcode::normcdf:
-      return (0.5*(1+erf((v1-v2)/v3/M_SQRT2)));
+      return (0.5*(1+erf((v1-v2)/v3/numbers::sqrt2)));
     case TrinaryOpcode::normpdf:
-      return (1/(v3*sqrt(2*M_PI)*exp(pow((v1-v2)/v3, 2)/2)));
+      return (1/(v3*sqrt(2*numbers::pi)*exp(pow((v1-v2)/v3, 2)/2)));
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);

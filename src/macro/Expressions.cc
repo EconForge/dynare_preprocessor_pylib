@@ -18,6 +18,7 @@
  */
 
 #include <utility>
+#include <numbers>
 
 #include "Expressions.hh"
 
@@ -240,7 +241,7 @@ Real::normpdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const
   auto btp22 = dynamic_pointer_cast<Real>(btp2);
   if (!btp12 || !btp22)
     throw StackTrace("Type mismatch for operands of `normpdf` operator");
-  return make_shared<Real>((1/(btp22->value*std::sqrt(2*M_PI)*std::exp(pow((value-btp12->value)/btp22->value, 2)/2))));
+  return make_shared<Real>((1/(btp22->value*std::sqrt(2*numbers::pi)*std::exp(pow((value-btp12->value)/btp22->value, 2)/2))));
 }
 
 RealPtr
@@ -250,7 +251,7 @@ Real::normcdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const
   auto btp22 = dynamic_pointer_cast<Real>(btp2);
   if (!btp12 || !btp22)
     throw StackTrace("Type mismatch for operands of `normpdf` operator");
-  return make_shared<Real>((0.5*(1+std::erf((value-btp12->value)/btp22->value/M_SQRT2))));
+  return make_shared<Real>((0.5*(1+std::erf((value-btp12->value)/btp22->value/numbers::sqrt2))));
 }
 
 BaseTypePtr
