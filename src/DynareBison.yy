@@ -23,6 +23,7 @@
 %defines
 %define api.value.type variant
 %define api.namespace {Dynare}
+%define api.location.file "DynareBisonLocation.hh"
 %define parse.assert
 %define parse.error verbose
 %define parse.trace

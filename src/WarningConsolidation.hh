@@ -22,7 +22,7 @@
 
 #include <sstream>
 #include <string>
-#include "location.hh"
+#include "DynareBisonLocation.hh"
 
 using namespace std;
 

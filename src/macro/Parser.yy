@@ -23,6 +23,7 @@
 %defines
 %define api.value.type variant
 %define api.namespace {Tokenizer}
+%define api.location.file "ParserLocation.hh"
 %define parse.assert
 %define parse.error verbose
 %define parse.trace

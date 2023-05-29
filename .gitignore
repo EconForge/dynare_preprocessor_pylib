@@ -27,13 +27,13 @@ TAGS
 /src/dynare-preprocessor.exe
 /src/DynareBison.cc
 /src/DynareBison.hh
+/src/DynareBisonLocation.hh
 /src/FlexLexer.h
 /src/DynareFlex.cc
-/src/location.hh
 /src/macro/Parser.cc
 /src/macro/Parser.hh
+/src/macro/ParserLocation.hh
 /src/macro/Tokenizer.cc
-/src/macro/location.hh
 /src/doc/
 
 # Symlinks created by Dynare/MATLAB’s main Makefile.am

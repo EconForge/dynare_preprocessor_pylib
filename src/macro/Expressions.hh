@@ -22,7 +22,7 @@
 
 #include "ForwardDeclarationsAndEnums.hh"
 #include "Environment.hh"
-#include "location.hh"
+#include "ParserLocation.hh"
 
 #include <cmath>
 #include <vector>
