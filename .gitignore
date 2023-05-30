@@ -30,14 +30,10 @@ TAGS
 /src/FlexLexer.h
 /src/DynareFlex.cc
 /src/location.hh
-/src/position.hh
-/src/stack.hh
 /src/macro/Parser.cc
 /src/macro/Parser.hh
 /src/macro/Tokenizer.cc
 /src/macro/location.hh
-/src/macro/position.hh
-/src/macro/stack.hh
 /src/doc/
 
 # Symlinks created by Dynare/MATLAB’s main Makefile.am
