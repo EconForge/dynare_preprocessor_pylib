@@ -37,13 +37,18 @@ build_linux_arm64:
 build_windows_x86_64:
   stage: build
   script:
-    - mkdir -p ~/tarballs
-    - '[[ -f ~/tarballs/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.zst ]] || wget $WGET_OPTIONS -P ~/tarballs http://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.zst'
+    - mkdir -p tarballs
+    - '[[ -f tarballs/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.zst ]] || wget $WGET_OPTIONS -P tarballs http://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.zst'
     - mkdir -p deps
-    - tar xf ~/tarballs/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.zst --directory deps
+    - tar xf tarballs/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.zst --directory deps
     - autoreconf -si
     - ./configure --host=x86_64-w64-mingw32 --with-boost=$(pwd)/deps/mingw64/include
     - make -j$(nproc)
+  cache:
+    # This cache is shared between all branches, to save space
+    key: $CI_JOB_NAME
+    paths:
+      - tarballs/
   artifacts:
     paths:
       - src/dynare-preprocessor.exe
