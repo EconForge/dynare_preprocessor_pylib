@@ -1,7 +1,7 @@
 variables:
   TERM: linux
-  MINGW32_BOOST_VERSION: 1.81.0-6
-  MINGW64_BOOST_VERSION: 1.81.0-6
+  MINGW32_BOOST_VERSION: 1.81.0-7
+  MINGW64_BOOST_VERSION: 1.81.0-7
   WGET_OPTIONS: '--no-verbose --no-use-server-timestamps --retry-connrefused --retry-on-host-error'
 
 build_linux_i686:
