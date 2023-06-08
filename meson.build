@@ -1,9 +1,6 @@
 # TODO for reaching feature parity with current autotools-based build system:
-# - Detection of Boost Graph library and corresponding include directory
-# - Detection of FlexLexer.h and corresponding include directory
 # - Build and install documentation (with a configuration option to disable it explicitly)
-# - Link with pthread with old glibc
-# - Add -Wold-style-cast flag when building flex-generated files
+# - Add -Wold-style-cast flag except when building flex-generated files
 
 project('dynare-preprocessor', 'cpp',
         version : '6-unstable',
@@ -11,20 +8,34 @@ project('dynare-preprocessor', 'cpp',
 
 add_global_arguments('-DPACKAGE_VERSION="' + meson.project_version() + '"', language : 'cpp')
 
+boost_dep = dependency('boost')
+
+## Flex stuff
 flex_exe = find_program('flex')
 # The -Ca flag comes from hitting a hard-coded size limit.
 # Partial explanation: https://www.owlfolio.org/possibly-useful/flex-input-scanner-rules-are-too-complicated
 # There is a Debian bug report about this: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=642040
 flex_gen = generator(flex_exe, output : '@BASENAME@.cc',
                      arguments : ['-Ca', '-o', '@OUTPUT@', '@INPUT@'])
+flex_src = flex_gen.process('src/macro/Tokenizer.ll', 'src/DynareFlex.ll')
+# If FlexLexer.h is not found by the compiler, copy it to the build directory
+# (adding an include directory could create problems for cross-compilation, because
+# flex is typically provided by the system of the build machine)
+compiler = meson.get_compiler('cpp')
+if not compiler.has_header('FlexLexer.h')
+  message('FlexLexer.h cannot be found by the compiler, it will be manually copied to the build directory')
+  fs = import('fs')
+  flexlexer_h = fs.copyfile(fs.parent(fs.parent(flex_exe.full_path())) / 'include' / 'FlexLexer.h', 'FlexLexer.h')
+else
+  flexlexer_h = []
+endif
 
+## Bison stuff
 bison_exe = find_program('bison')
 # By convention, all our Bison source files define the api.location.file variable
 # so that the generated location file follows the @BASENAME@Location.hh pattern
 bison_gen = generator(bison_exe, output : ['@BASENAME@.cc', '@BASENAME@.hh', '@BASENAME@Location.hh'],
                       arguments : ['-W', '-o', '@OUTPUT0@', '@INPUT@'])
-
-flex_src = flex_gen.process('src/macro/Tokenizer.ll', 'src/DynareFlex.ll')
 bison_src = bison_gen.process('src/macro/Parser.yy', 'src/DynareBison.yy')
 
 incdir = include_directories('src', 'src/macro')
@@ -58,5 +69,7 @@ main_src = [ 'src/ComputingTasks.cc',
 	     'src/macro/Expressions.cc',
 	     'src/macro/Directives.cc' ]
 
-executable('dynare-preprocessor', main_src, flex_src, bison_src,
-           include_directories : incdir, install : true)
+executable('dynare-preprocessor', main_src, flex_src, flexlexer_h, bison_src,
+           include_directories : incdir, dependencies : boost_dep,
+           link_args : get_option('prefer_static') ? '-static' : '',
+           install : true)
