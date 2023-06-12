@@ -4,16 +4,6 @@ variables:
   MINGW64_BOOST_VERSION: 1.81.0-7
   WGET_OPTIONS: '--no-verbose --no-use-server-timestamps --retry-connrefused --retry-on-host-error'
 
-build_linux_i686:
-  stage: build
-  script:
-    - autoreconf -si
-    - ./configure --host=i686-linux-gnu
-    - make -j$(nproc)
-  artifacts:
-    paths:
-      - src/dynare-preprocessor
-
 build_linux_x86_64:
   stage: build
   script:
