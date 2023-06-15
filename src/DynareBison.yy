@@ -175,7 +175,7 @@ class ParsingDriver;
 %token PARAMETER_CONVERGENCE_CRITERION NUMBER_OF_LARGE_PERTURBATIONS NUMBER_OF_SMALL_PERTURBATIONS
 %token NUMBER_OF_POSTERIOR_DRAWS_AFTER_PERTURBATION MAX_NUMBER_OF_STAGES
 %token RANDOM_FUNCTION_CONVERGENCE_CRITERION RANDOM_PARAMETER_CONVERGENCE_CRITERION NO_INIT_ESTIMATION_CHECK_FIRST_OBS
-%token HETEROSKEDASTIC_FILTER TIME_SHIFT STRUCTURAL TERMINAL_STEADY_STATE_AS_GUESS_VALUE CONSTANT_SIMULATION_LENGTH
+%token HETEROSKEDASTIC_FILTER TIME_SHIFT STRUCTURAL CONSTANT_SIMULATION_LENGTH
 %token SURPRISE OCCBIN_CONSTRAINTS
 %token PAC_TARGET_INFO COMPONENT TARGET AUXNAME AUXNAME_TARGET_NONSTATIONARY PAC_TARGET_NONSTATIONARY
 %token <string> KIND LL DL DD ADD MULTIPLY
@@ -1477,8 +1477,7 @@ perfect_foresight_with_expectation_errors_solver_options_list : perfect_foresigh
                                                               | perfect_foresight_with_expectation_errors_solver_options
                                                               ;
 
-perfect_foresight_with_expectation_errors_solver_options : o_pfwee_terminal_steady_state_as_guess_value
-                                                         | o_pfwee_constant_simulation_length
+perfect_foresight_with_expectation_errors_solver_options : o_pfwee_constant_simulation_length
                                                          | perfect_foresight_solver_options
                                                          ;
 
@@ -4066,7 +4065,6 @@ o_colormap : COLORMAP EQUAL symbol { driver.option_num("plot_shock_decomp.colorm
 o_icd_colormap : COLORMAP EQUAL symbol { driver.option_num("initial_condition_decomp.colormap",$3); };
 o_no_init_estimation_check_first_obs : NO_INIT_ESTIMATION_CHECK_FIRST_OBS { driver.option_num("no_init_estimation_check_first_obs", "true"); };
 o_heteroskedastic_filter : HETEROSKEDASTIC_FILTER { driver.option_num("heteroskedastic_filter", "true"); };
-o_pfwee_terminal_steady_state_as_guess_value : TERMINAL_STEADY_STATE_AS_GUESS_VALUE { driver.option_num("pfwee.terminal_steady_state_as_guess_value", "true"); };
 o_pfwee_constant_simulation_length : CONSTANT_SIMULATION_LENGTH { driver.option_num("pfwee.constant_simulation_length", "true"); };
 o_fsolve_options : FSOLVE_OPTIONS EQUAL '(' name_value_pair_with_boolean_list ')' { driver.option_str("fsolve_options", $4); };
 
