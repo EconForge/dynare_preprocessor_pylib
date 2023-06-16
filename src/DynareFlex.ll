@@ -358,6 +358,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>nocorr	{return token::NOCORR;}
 <DYNARE_STATEMENT>optim		{return token::OPTIM;}
 <DYNARE_STATEMENT>periods	{return token::PERIODS;}
+<DYNARE_STATEMENT>endval_steady	{return token::ENDVAL_STEADY;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>model_name	{return token::MODEL_NAME;}
 <DYNARE_STATEMENT>auxiliary_model_name    {return token::AUXILIARY_MODEL_NAME;}
 <DYNARE_STATEMENT>endogenous_terminal_period 	{return token::ENDOGENOUS_TERMINAL_PERIOD;}
@@ -642,7 +643,19 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>homotopy_mode {return token::HOMOTOPY_MODE; }
 <DYNARE_STATEMENT>homotopy_steps {return token::HOMOTOPY_STEPS; }
 <DYNARE_STATEMENT>homotopy_force_continue {return token::HOMOTOPY_FORCE_CONTINUE;}
+<DYNARE_STATEMENT>homotopy_max_completion_share {return token::HOMOTOPY_MAX_COMPLETION_SHARE;}
+<DYNARE_STATEMENT>homotopy_min_step_size {return token::HOMOTOPY_MIN_STEP_SIZE;}
+<DYNARE_STATEMENT>homotopy_initial_step_size {return token::HOMOTOPY_INITIAL_STEP_SIZE;}
+<DYNARE_STATEMENT>homotopy_step_size_increase_success_count {return token::HOMOTOPY_STEP_SIZE_INCREASE_SUCCESS_COUNT;}
+<DYNARE_STATEMENT>homotopy_linearization_fallback {return token::HOMOTOPY_LINEARIZATION_FALLBACK;}
+<DYNARE_STATEMENT>homotopy_marginal_linearization_fallback {return token::HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK;}
 <DYNARE_STATEMENT>nocheck {return token::NOCHECK; }
+
+<DYNARE_STATEMENT>steady_solve_algo {return token::STEADY_SOLVE_ALGO;}
+<DYNARE_STATEMENT>steady_maxit {return token::STEADY_MAXIT;}
+<DYNARE_STATEMENT>steady_tolf {return token::STEADY_TOLF;}
+<DYNARE_STATEMENT>steady_tolx {return token::STEADY_TOLX;}
+<DYNARE_STATEMENT>steady_markowitz {return token::STEADY_MARKOWITZ;}
 
 <DYNARE_STATEMENT>controlled_varexo {return token::CONTROLLED_VAREXO; }
 <DYNARE_STATEMENT>parameter_set {return token::PARAMETER_SET; }
@@ -880,7 +893,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>calibration {return token::CALIBRATION;}
 <DYNARE_STATEMENT>irf_plot_threshold {return token::IRF_PLOT_THRESHOLD;}
 <DYNARE_STATEMENT>no_homotopy {return token::NO_HOMOTOPY;}
-<DYNARE_STATEMENT>homotopy_alt_starting_point {return token::HOMOTOPY_ALT_STARTING_POINT;}
 <DYNARE_STATEMENT>particle_filter_options {return token::PARTICLE_FILTER_OPTIONS;}
 <DYNARE_STATEMENT>constant_simulation_length {return token::CONSTANT_SIMULATION_LENGTH;}
 <DYNARE_STATEMENT>block_static { return token::BLOCK_STATIC; }

@@ -190,7 +190,10 @@ class ParsingDriver;
 %token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS ZERO_MOMENTS_TOLERANCE
 %token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION WITH_EPILOGUE MODEL_REMOVE MODEL_REPLACE MODEL_OPTIONS
 %token VAR_REMOVE ESTIMATED_PARAMS_REMOVE BLOCK_STATIC BLOCK_DYNAMIC INCIDENCE RESID NON_ZERO LEARNT_IN PLUS_EQUAL TIMES_EQUAL
-%token FSOLVE_OPTIONS HOMOTOPY_ALT_STARTING_POINT
+%token FSOLVE_OPTIONS
+%token ENDVAL_STEADY STEADY_SOLVE_ALGO STEADY_MAXIT STEADY_TOLF STEADY_TOLX STEADY_MARKOWITZ
+%token HOMOTOPY_MAX_COMPLETION_SHARE HOMOTOPY_MIN_STEP_SIZE HOMOTOPY_INITIAL_STEP_SIZE HOMOTOPY_STEP_SIZE_INCREASE_SUCCESS_COUNT
+%token HOMOTOPY_LINEARIZATION_FALLBACK HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -1419,6 +1422,7 @@ perfect_foresight_setup_options_list : perfect_foresight_setup_options_list COMM
 
 perfect_foresight_setup_options : o_periods
                                 | o_datafile
+                                | o_endval_steady
                                 ;
 
 perfect_foresight_solver : PERFECT_FORESIGHT_SOLVER ';'
@@ -1438,7 +1442,6 @@ perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_endogenous_terminal_period
                                  | o_linear_approximation
                                  | o_no_homotopy
-                                 | o_homotopy_alt_starting_point
                                  | o_solve_algo
                                  | o_robust_lin_solve
                                  | o_lmmcp
@@ -1446,6 +1449,17 @@ perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_pf_tolx
                                  | o_noprint
                                  | o_print
+                                 | o_pf_steady_solve_algo
+                                 | o_pf_steady_maxit
+                                 | o_pf_steady_tolf
+                                 | o_pf_steady_tolx
+                                 | o_pf_steady_markowitz
+                                 | o_homotopy_max_completion_share
+                                 | o_homotopy_min_step_size
+                                 | o_homotopy_initial_step_size
+                                 | o_homotopy_step_size_increase_success_count
+                                 | o_homotopy_linearization_fallback
+                                 | o_homotopy_marginal_linearization_fallback
                                  ;
 
 perfect_foresight_with_expectation_errors_setup : PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SETUP ';'
@@ -1460,11 +1474,6 @@ perfect_foresight_with_expectation_errors_setup_options_list : perfect_foresight
 
 perfect_foresight_with_expectation_errors_setup_options : o_periods
                                                         | o_datafile
-                                                        | o_solve_algo
-                                                        | o_markowitz
-                                                        | o_steady_maxit
-                                                        | o_steady_tolf
-                                                        | o_steady_tolx
                                                         ;
 
 perfect_foresight_with_expectation_errors_solver : PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SOLVER ';'
@@ -3470,6 +3479,14 @@ o_opt_algo : OPT_ALGO EQUAL INT_NUMBER { driver.option_num("osr.opt_algo", $3); 
            ;
 o_cutoff : CUTOFF EQUAL non_negative_number { driver.cutoff($3); };
 o_markowitz : MARKOWITZ EQUAL non_negative_number { driver.option_num("markowitz", $3); };
+
+// Options of perfect_foresight_* commands that control steady state computation at terminal condition
+o_pf_steady_solve_algo : STEADY_SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("simul.steady_solve_algo", $3); };
+o_pf_steady_maxit : STEADY_MAXIT EQUAL INT_NUMBER { driver.option_num("simul.steady_maxit", $3); };
+o_pf_steady_tolf : STEADY_TOLF EQUAL non_negative_number { driver.option_num("simul.steady_tolf", $3); };
+o_pf_steady_tolx : STEADY_TOLX EQUAL non_negative_number { driver.option_num("simul.steady_tolx", $3); };
+o_pf_steady_markowitz : STEADY_MARKOWITZ EQUAL non_negative_number { driver.option_num("simul.steady_markowitz", $3); };
+
 o_minimal_solving_periods : MINIMAL_SOLVING_PERIODS EQUAL non_negative_number { driver.option_num("minimal_solving_periods", $3); };
 o_mfs : MFS EQUAL INT_NUMBER { driver.mfs($3); };
 o_simul : SIMUL; // Do nothing, only here for backward compatibility
@@ -4048,7 +4065,14 @@ o_consider_all_endogenous : CONSIDER_ALL_ENDOGENOUS { driver.option_str("endo_va
 o_consider_all_endogenous_and_auxiliary : CONSIDER_ALL_ENDOGENOUS_AND_AUXILIARY { driver.option_str("endo_vars_for_moment_computations_in_estimation", "all_endogenous_and_auxiliary_variables"); };
 o_consider_only_observed : CONSIDER_ONLY_OBSERVED { driver.option_str("endo_vars_for_moment_computations_in_estimation", "only_observed_variables"); };
 o_no_homotopy : NO_HOMOTOPY { driver.option_num("no_homotopy", "true"); };
-o_homotopy_alt_starting_point : HOMOTOPY_ALT_STARTING_POINT { driver.option_num("homotopy_alt_starting_point", "true"); };
+o_endval_steady : ENDVAL_STEADY { driver.option_num("simul.endval_steady", "true"); }
+o_homotopy_max_completion_share : HOMOTOPY_MAX_COMPLETION_SHARE EQUAL non_negative_number { driver.option_num("simul.homotopy_max_completion_share", $3); }
+o_homotopy_min_step_size : HOMOTOPY_MIN_STEP_SIZE EQUAL non_negative_number { driver.option_num("simul.homotopy_min_step_size", $3); }
+o_homotopy_initial_step_size : HOMOTOPY_INITIAL_STEP_SIZE EQUAL non_negative_number { driver.option_num("simul.homotopy_initial_step_size", $3); }
+o_homotopy_step_size_increase_success_count : HOMOTOPY_STEP_SIZE_INCREASE_SUCCESS_COUNT EQUAL INT_NUMBER { driver.option_num("simul.homotopy_step_size_increase_success_count", $3); }
+o_homotopy_linearization_fallback : HOMOTOPY_LINEARIZATION_FALLBACK { driver.option_num("simul.homotopy_linearization_fallback", "true"); }
+o_homotopy_marginal_linearization_fallback : HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK { driver.option_num("simul.homotopy_marginal_linearization_fallback", "0.01"); }
+                                           | HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK EQUAL non_negative_number { driver.option_num("simul.homotopy_marginal_linearization_fallback", $3); }
 
 o_infile : INFILE EQUAL filename { driver.option_str("infile", $3); };
 o_invars : INVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("invars", $4); };
