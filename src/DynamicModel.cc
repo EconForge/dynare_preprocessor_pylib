@@ -948,8 +948,6 @@ DynamicModel::writeDriverOutput(ostream &output, bool compute_xrefs) const
   output << "];" << endl;
 
   // Writing initialization for some other variables
-  output << "M_.exo_names_orig_ord = [1:" << symbol_table.exo_nbr() << "];" << endl;
-
   output << "M_.maximum_lag = " << max_lag << ";" << endl
          << "M_.maximum_lead = " << max_lead << ";" << endl;
 
