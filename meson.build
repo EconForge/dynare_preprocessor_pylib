@@ -1,5 +1,5 @@
 # TODO for reaching feature parity with current autotools-based build system:
-# - Build and install documentation (with a configuration option to disable it explicitly)
+# - Configuration option to disable documentation
 # - Add -Wold-style-cast flag except when building flex-generated files
 
 project('dynare-preprocessor', 'cpp',
@@ -73,3 +73,35 @@ executable('dynare-preprocessor', main_src, flex_src, flexlexer_h, bison_src,
            include_directories : incdir, dependencies : boost_dep,
            link_args : get_option('prefer_static') ? '-static' : '',
            install : true)
+
+## LaTeX stuff
+
+latexmk = find_program('latexmk')
+
+# We have to set TEXINPUTS because the current directory is not the source
+# directory when latexmk is invoked (and using the -cd option in combination
+# with -outdir/-auxdir does not work in all cases because @OUTDIR@ and
+# @PRIVATE_DIR@ can be relative paths)
+
+# Without the -g flag, latexmk remembers a previous build failure and will refuse
+# to recompile even if the error has been fixed in the TeX source
+
+# The \graphicspath{} command does not compute directories relative to TEXINPUTS,
+# so add these manually
+logos_dir = meson.current_source_dir() + '/doc/logos'
+
+custom_target('macroprocessor.pdf',
+              output : 'macroprocessor.pdf',
+              input : 'doc/macroprocessor/macroprocessor.tex',
+              command : [ latexmk, '-pdf', '-g', '-auxdir=@PRIVATE_DIR@', '@INPUT@'],
+              env : { 'TEXINPUTS': meson.current_source_dir() + '/doc/macroprocessor:' + logos_dir + ':' },
+              install : true,
+              install_dir : 'share/doc/dynare')
+
+custom_target('preprocessor.pdf',
+              output : 'preprocessor.pdf',
+              input : 'doc/preprocessor/preprocessor.tex',
+              command : [ latexmk, '-pdf', '-g', '-auxdir=@PRIVATE_DIR@', '@INPUT@'],
+              env : { 'TEXINPUTS': meson.current_source_dir() + '/doc/preprocessor:' + logos_dir + ':' },
+              install : true,
+              install_dir : 'share/doc/dynare')
