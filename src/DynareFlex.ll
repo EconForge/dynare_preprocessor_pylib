@@ -299,6 +299,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>geweke_interval   {return token::GEWEKE_INTERVAL;}
 <DYNARE_STATEMENT>raftery_lewis_qrs {return token::RAFTERY_LEWIS_QRS;}
 <DYNARE_STATEMENT>raftery_lewis_diagnostics {return token::RAFTERY_LEWIS_DIAGNOSTICS;}
+<DYNARE_STATEMENT>brooks_gelman_plotrows {return token::BROOKS_GELMAN_PLOTROWS;}
 <DYNARE_STATEMENT>graph   		{return token::GRAPH;}
 <DYNARE_STATEMENT>nograph   		{return token::NOGRAPH;}
 <DYNARE_STATEMENT>posterior_graph   		{return token::POSTERIOR_GRAPH;}
