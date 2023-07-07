@@ -185,7 +185,7 @@ void
 OptionsList::writeOutputCommon(ostream &output, const string &option_group) const
 {
   for (const auto &[name, val] : options)
-    std::visit([&]<class T>(const T &v)
+    std::visit([&, &name = name, &val = val]<class T>(const T &v)
     {
       if constexpr(is_same_v<T, SymbolListVal>)
         v.writeOutput(option_group + "." + name, output);

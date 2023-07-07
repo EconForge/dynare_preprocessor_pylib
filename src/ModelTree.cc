@@ -373,7 +373,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context) const
           int eq = indices[0];
           int var { getTypeSpecificIDByDerivID(deriv_id) };
           int lag = getLagByDerivID(deriv_id);
-          double val { [&]
+          double val { [&, d1 = d1]
           {
             try
               {

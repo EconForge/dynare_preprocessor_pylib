@@ -1227,7 +1227,7 @@ PacModelTable::transformPass(const lag_equivalence_table_t &unary_ops_nodes,
           // Associate the coefficients of the linear combination with the right components
           for (auto [var, coeff] : terms)
             if (auto it = find_if(components.begin(), components.end(),
-                                  [&](const auto &v) { return get<0>(v) == dynamic_model.AddVariable(var); });
+                                  [&, &var = var](const auto &v) { return get<0>(v) == dynamic_model.AddVariable(var); });
                 it != components.end())
               get<4>(*it) = coeff;
             else
