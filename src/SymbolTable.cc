@@ -420,7 +420,7 @@ SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index, expr_t expr_arg) 
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, (endo ? AuxVarType::endoLead : AuxVarType::exoLead), 0, 0, 0, 0, expr_arg, "");
+  aux_vars.push_back(AuxVarInfo{symb_id, (endo ? AuxVarType::endoLead : AuxVarType::exoLead), 0, 0, 0, 0, expr_arg, ""});
 
   return symb_id;
 }
@@ -440,7 +440,7 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, (endo ? AuxVarType::endoLag : AuxVarType::exoLag), orig_symb_id, orig_lead_lag, 0, 0, expr_arg, "");
+  aux_vars.push_back(AuxVarInfo{symb_id, (endo ? AuxVarType::endoLag : AuxVarType::exoLag), orig_symb_id, orig_lead_lag, 0, 0, expr_arg, ""});
 
   return symb_id;
 }
@@ -485,7 +485,7 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t e
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::expectation, 0, 0, 0, information_set, expr_arg, "");
+  aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::expectation, 0, 0, 0, information_set, expr_arg, ""});
 
   return symb_id;
 }
@@ -505,7 +505,7 @@ SymbolTable::addLogTransformAuxiliaryVar(int orig_symb_id, int orig_lead_lag, ex
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::logTransform, orig_symb_id, orig_lead_lag, 0, 0, expr_arg, "");
+  aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::logTransform, orig_symb_id, orig_lead_lag, 0, 0, expr_arg, ""});
 
   return symb_id;
 }
@@ -525,7 +525,7 @@ SymbolTable::addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::diffLag, orig_symb_id, orig_lag, 0, 0, expr_arg, "");
+  aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::diffLag, orig_symb_id, orig_lag, 0, 0, expr_arg, ""});
 
   return symb_id;
 }
@@ -545,7 +545,7 @@ SymbolTable::addDiffLeadAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_i
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::diffLead, orig_symb_id, orig_lead, 0, 0, expr_arg, "");
+  aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::diffLead, orig_symb_id, orig_lead, 0, 0, expr_arg, ""});
 
   return symb_id;
 }
@@ -565,7 +565,7 @@ SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, optional<int> orig_
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::diff, move(orig_symb_id), move(orig_lag), 0, 0, expr_arg, "");
+  aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::diff, move(orig_symb_id), move(orig_lag), 0, 0, expr_arg, ""});
 
   return symb_id;
 }
@@ -585,7 +585,7 @@ SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op,
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::unaryOp, move(orig_symb_id), move(orig_lag), 0, 0, expr_arg, unary_op);
+  aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::unaryOp, move(orig_symb_id), move(orig_lag), 0, 0, expr_arg, unary_op});
 
   return symb_id;
 }
@@ -605,7 +605,7 @@ SymbolTable::addMultiplierAuxiliaryVar(int index) noexcept(false)
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::multiplier, 0, 0, index, 0, nullptr, "");
+  aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::multiplier, 0, 0, index, 0, nullptr, ""});
   return symb_id;
 }
 
@@ -624,7 +624,7 @@ SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id, int orig_lead_lag, exp
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::diffForward, orig_symb_id, orig_lead_lag, 0, 0, expr_arg, "");
+  aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::diffForward, orig_symb_id, orig_lead_lag, 0, 0, expr_arg, ""});
   return symb_id;
 }
 
@@ -642,7 +642,7 @@ SymbolTable::addPacExpectationAuxiliaryVar(const string &name, expr_t expr_arg)
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::pacExpectation, 0, 0, 0, 0, expr_arg, "");
+  aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::pacExpectation, 0, 0, 0, 0, expr_arg, ""});
   return symb_id;
 }
 
@@ -660,7 +660,7 @@ SymbolTable::addPacTargetNonstationaryAuxiliaryVar(const string &name, expr_t ex
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::pacTargetNonstationary, 0, 0, 0, 0, expr_arg, "");
+  aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::pacTargetNonstationary, 0, 0, 0, 0, expr_arg, ""});
   return symb_id;
 }
 
