@@ -409,24 +409,6 @@ private:
   /*! Maps endogenous type specific IDs to equation numbers */
   vector<int> endo2eq;
 
-  // Stores workers used for compiling MEX files in parallel
-  static vector<jthread> mex_compilation_workers;
-
-  /* The following variables implement the thread synchronization mechanism for
-     limiting the number of concurrent GCC processes and tracking dependencies
-     between object files. */
-  static condition_variable_any mex_compilation_cv;
-  static mutex mex_compilation_mut;
-  /* Object/MEX files waiting to be compiled (with their prerequisites as 2nd
-     element and compilation command as the 3rd element) */
-  static vector<tuple<filesystem::path, set<filesystem::path>, string>> mex_compilation_queue;
-  // Object/MEX files in the process of being compiled
-  static set<filesystem::path> mex_compilation_ongoing;
-  // Object/MEX files already compiled successfully
-  static set<filesystem::path> mex_compilation_done;
-  // Object/MEX files whose compilation failed
-  static set<filesystem::path> mex_compilation_failed;
-
   /* Compute a pseudo-Jacobian whose all elements are either zero or one,
      depending on whether the variable symbolically appears in the equation. If
      contemporaneous_only=true, only considers contemporaneous occurences of
@@ -645,14 +627,6 @@ public:
      expression on the LHS, and returns the RHS of that equation.
      If no such equation can be found, throws an ExprNode::MatchFailureExpression */
   expr_t getRHSFromLHS(expr_t lhs) const;
-
-  /* Initialize the MEX compilation workers (and some environment variables
-     needed for finding GCC) */
-  static void initializeMEXCompilationWorkers(int numworkers, const filesystem::path &dynareroot,
-                                              const string &mexext);
-
-  // Waits until the MEX compilation queue is empty
-  static void waitForMEXCompilationWorkers();
 
   // Write the definitions of the auxiliary variables (assumed to be in recursive order)
   void writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const;
