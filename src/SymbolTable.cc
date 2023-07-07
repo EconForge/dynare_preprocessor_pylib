@@ -38,9 +38,9 @@ SymbolTable::addSymbol(const string &name, SymbolType type, const string &tex_na
   if (exists(name))
     {
       if (type_table[getID(name)] == type)
-        throw AlreadyDeclaredException(name, true);
+        throw AlreadyDeclaredException{name, true};
       else
-        throw AlreadyDeclaredException(name, false);
+        throw AlreadyDeclaredException{name, false};
     }
 
   string final_tex_name = tex_name;
@@ -154,26 +154,26 @@ SymbolTable::getID(SymbolType type, int tsid) const noexcept(false)
     {
     case SymbolType::endogenous:
       if (tsid < 0 || tsid >= static_cast<int>(endo_ids.size()))
-        throw UnknownTypeSpecificIDException(tsid, type);
+        throw UnknownTypeSpecificIDException{tsid, type};
       else
         return endo_ids[tsid];
     case SymbolType::exogenous:
       if (tsid < 0 || tsid >= static_cast<int>(exo_ids.size()))
-        throw UnknownTypeSpecificIDException(tsid, type);
+        throw UnknownTypeSpecificIDException{tsid, type};
       else
         return exo_ids[tsid];
     case SymbolType::exogenousDet:
       if (tsid < 0 || tsid >= static_cast<int>(exo_det_ids.size()))
-        throw UnknownTypeSpecificIDException(tsid, type);
+        throw UnknownTypeSpecificIDException{tsid, type};
       else
         return exo_det_ids[tsid];
     case SymbolType::parameter:
       if (tsid < 0 || tsid >= static_cast<int>(param_ids.size()))
-        throw UnknownTypeSpecificIDException(tsid, type);
+        throw UnknownTypeSpecificIDException{tsid, type};
       else
         return param_ids[tsid];
     default:
-      throw UnknownTypeSpecificIDException(tsid, type);
+      throw UnknownTypeSpecificIDException{tsid, type};
     }
 }
 
@@ -671,7 +671,7 @@ SymbolTable::searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const noex
     if ((aux_var.type == AuxVarType::endoLag || aux_var.type == AuxVarType::exoLag)
         && aux_var.orig_symb_id == orig_symb_id && aux_var.orig_lead_lag == orig_lead_lag)
       return aux_var.symb_id;
-  throw SearchFailedException(orig_symb_id, orig_lead_lag);
+  throw SearchFailedException{orig_symb_id, orig_lead_lag};
 }
 
 int
@@ -690,9 +690,9 @@ SymbolTable::getOrigSymbIdForAuxVar(int aux_var_symb_id_arg) const noexcept(fals
         if (optional<int> r = aux_var.orig_symb_id; r)
           return *r;
         else
-          throw UnknownSymbolIDException(aux_var_symb_id_arg); // Some diff and unaryOp auxvars have orig_symb_id unset
+          throw UnknownSymbolIDException{aux_var_symb_id_arg}; // Some diff and unaryOp auxvars have orig_symb_id unset
       }
-  throw UnknownSymbolIDException(aux_var_symb_id_arg);
+  throw UnknownSymbolIDException{aux_var_symb_id_arg};
 }
 
 pair<int, int>

@@ -353,7 +353,7 @@ public:
   {
     auto it = local_variables_table.find(symb_id);
     if (it == local_variables_table.end())
-      throw UnknownLocalVariableException(symb_id);
+      throw UnknownLocalVariableException{symb_id};
 
     return it->second;
   }

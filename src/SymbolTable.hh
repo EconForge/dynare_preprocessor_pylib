@@ -419,7 +419,7 @@ inline void
 SymbolTable::validateSymbID(int symb_id) const noexcept(false)
 {
   if (symb_id < 0 || symb_id > static_cast<int>(symbol_table.size()))
-    throw UnknownSymbolIDException(symb_id);
+    throw UnknownSymbolIDException{symb_id};
 }
 
 inline bool
@@ -469,7 +469,7 @@ SymbolTable::getID(const string &name) const noexcept(false)
       iter != symbol_table.end())
     return iter->second;
   else
-    throw UnknownSymbolNameException(name);
+    throw UnknownSymbolNameException{name};
 }
 
 inline int
@@ -484,7 +484,7 @@ SymbolTable::getTypeSpecificID(int id) const noexcept(false)
       it != type_specific_ids.end())
     return it->second;
   else
-    throw NoTypeSpecificIDException(id);
+    throw NoTypeSpecificIDException{id};
 }
 
 inline int
@@ -547,7 +547,7 @@ SymbolTable::getAuxVarInfo(int symb_id) const
   for (const auto &aux_var : aux_vars)
     if (aux_var.symb_id == symb_id)
       return aux_var;
-  throw UnknownSymbolIDException(symb_id);
+  throw UnknownSymbolIDException{symb_id};
 }
 
 #endif

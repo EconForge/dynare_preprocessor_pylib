@@ -84,7 +84,7 @@ ExternalFunctionsTable::getNargs(int symb_id) const noexcept(false)
       it != externalFunctionTable.end())
     return it->second.nargs;
   else
-    throw UnknownExternalFunctionSymbolIDException(symb_id);
+    throw UnknownExternalFunctionSymbolIDException{symb_id};
 }
 
 inline int
@@ -94,7 +94,7 @@ ExternalFunctionsTable::getFirstDerivSymbID(int symb_id) const noexcept(false)
       it != externalFunctionTable.end())
     return it->second.firstDerivSymbID;
   else
-    throw UnknownExternalFunctionSymbolIDException(symb_id);
+    throw UnknownExternalFunctionSymbolIDException{symb_id};
 }
 
 inline int
@@ -104,7 +104,7 @@ ExternalFunctionsTable::getSecondDerivSymbID(int symb_id) const noexcept(false)
       it != externalFunctionTable.end())
     return it->second.secondDerivSymbID;
   else
-    throw UnknownExternalFunctionSymbolIDException(symb_id);
+    throw UnknownExternalFunctionSymbolIDException{symb_id};
 }
 
 #endif

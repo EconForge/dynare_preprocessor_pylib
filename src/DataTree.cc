@@ -734,7 +734,7 @@ DataTree::AddLocalVariable(int symb_id, expr_t value) noexcept(false)
 
   // Throw an exception if symbol already declared
   if (local_variables_table.contains(symb_id))
-    throw LocalVariableException(symbol_table.getName(symb_id));
+    throw LocalVariableException{symbol_table.getName(symb_id)};
 
   local_variables_table.emplace(symb_id, value);
   local_variables_vector.push_back(symb_id);

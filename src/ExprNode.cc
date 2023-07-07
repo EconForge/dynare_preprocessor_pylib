@@ -5833,18 +5833,18 @@ BinaryOpNode::matchMatchedMoment(vector<int> &symb_ids, vector<int> &lags, vecto
   else if (op_code == BinaryOpcode::power)
     {
       if (!dynamic_cast<const VariableNode *>(arg1))
-        throw MatchFailureException("First argument of power expression must be a variable");
+        throw MatchFailureException{"First argument of power expression must be a variable"};
       auto ncn = dynamic_cast<const NumConstNode *>(arg2);
       if (!ncn)
-        throw MatchFailureException("Second argument of power expression must be a positive integer");
+        throw MatchFailureException{"Second argument of power expression must be a positive integer"};
       double c = datatree.num_constants.getDouble(ncn->id);
       if (c <= 0 || round(c) != c)
-        throw MatchFailureException("Second argument of power expression must be a positive integer");
+        throw MatchFailureException{"Second argument of power expression must be a positive integer"};
       arg1->matchMatchedMoment(symb_ids, lags, powers);
       powers.back() = static_cast<int>(c);
     }
   else
-    throw MatchFailureException("Unsupported binary operator");
+    throw MatchFailureException{"Unsupported binary operator"};
 }
 
 expr_t

@@ -1419,7 +1419,7 @@ ModelTree::addTrendVariables(const vector<int> &trend_vars, expr_t growth_factor
 {
   for (int id : trend_vars)
     if (trend_symbols_map.contains(id))
-      throw TrendException(symbol_table.getName(id));
+      throw TrendException{symbol_table.getName(id)};
     else
       trend_symbols_map[id] = growth_factor;
 }
@@ -1429,7 +1429,7 @@ ModelTree::addNonstationaryVariables(const vector<int> &nonstationary_vars, bool
 {
   for (int id : nonstationary_vars)
     if (nonstationary_symbols_map.contains(id))
-      throw TrendException(symbol_table.getName(id));
+      throw TrendException{symbol_table.getName(id)};
     else
       nonstationary_symbols_map[id] = { log_deflator, deflator };
 }
