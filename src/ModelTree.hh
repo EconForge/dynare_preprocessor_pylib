@@ -594,8 +594,9 @@ private:
   //! Returns the name of the MATLAB architecture given the extension used for MEX files
   static string matlab_arch(const string &mexext);
 #ifdef __APPLE__
-  //! Finds a suitable GCC compiler on macOS
-  static filesystem::path findGccOnMacos(const string &mexext);
+  /* Finds a suitable compiler on macOS.
+     The boolean is false if this is GCC and true if this is Clang */
+  static pair<filesystem::path, bool> findCompilerOnMacos(const string &mexext);
 #endif
   /* Compiles a MEX file (if link=true) or an object file to be linked later
      into a MEX file (if link=false). The compilation is done in separate

@@ -1613,34 +1613,36 @@ ModelTree::matlab_arch(const string &mexext)
 }
 
 #ifdef __APPLE__
-filesystem::path
-ModelTree::findGccOnMacos(const string &mexext)
-{
-  const string macos_gcc_version {"13"};
-  char dynare_preprocessor_path[PATH_MAX];
-  uint32_t size = PATH_MAX;
-  filesystem::path local_gcc_path;
-  if (_NSGetExecutablePath(dynare_preprocessor_path, &size) == 0)
-    {
-      string s = dynare_preprocessor_path;
-      local_gcc_path = s.substr(0, s.find_last_of("/")) + "/../.brew/bin/gcc-" + macos_gcc_version;
-    }
 
-  // if user did not choose to install gcc locally via the pkg-installer then we need to find GNU gcc
-  // homebrew binaries are located in /usr/local/bin/ on x86_64 systems and in /opt/homebrew/bin/ on arm64 systems
-  if (exists(local_gcc_path))
-    return local_gcc_path;
-  else if (filesystem::path global_gcc_path {"/usr/local/bin/gcc-" + macos_gcc_version};
-           exists(global_gcc_path) && mexext == "mexmaci64")
-    return global_gcc_path;
+pair<filesystem::path, bool>
+ModelTree::findCompilerOnMacos(const string &mexext)
+{
+  /* Try to find gcc, otherwise use Apple’s clang compiler.
+     Homebrew binaries are located in /usr/local/bin/ on x86_64 systems and in
+     /opt/homebrew/bin/ on arm64 systems.
+     Apple’s clang is located both in /usr/bin/gcc and /usr/bin/clang, it
+     automatically selects x86_64 or arm64 depending on the compile-time
+     environment. */
+  const string macos_gcc_version {"13"};
+
+  if (filesystem::path global_gcc_path {"/usr/local/bin/gcc-" + macos_gcc_version};
+      exists(global_gcc_path) && mexext == "mexmaci64")
+    return { global_gcc_path, false };
   else if (filesystem::path global_gcc_path {"/opt/homebrew/bin/gcc-" + macos_gcc_version};
            exists(global_gcc_path) && mexext == "mexmaca64")
-    return global_gcc_path;
+    return { global_gcc_path, false };
+  else if (filesystem::path global_clang_path {"/usr/bin/clang"}; exists(global_clang_path))
+    return { global_clang_path, true };
   else
     {
       cerr << "ERROR: You must install gcc-" << macos_gcc_version
            << " on your system before using the `use_dll` option of Dynare. "
-           << "If using MATLAB, you can do this via the Dynare installation package. If using Octave, you should run `brew install gcc-" << macos_gcc_version << "` in a terminal." << endl;
+           << "You should install Homebrew";
+      if (mexext == "mexmaca64")
+        cerr << " for arm64";
+      else if (mexext == "mexmaci64")
+        cerr << " for x86_64";
+      cerr << " and run `brew install gcc-" << macos_gcc_version << "` in a terminal." << endl;
       exit(EXIT_FAILURE);
     }
 }
@@ -1651,11 +1653,13 @@ ModelTree::compileMEX(const filesystem::path &output_dir, const string &output_b
 {
   assert(!mex_compilation_workers.empty());
 
-  const string opt_flags = "-O3 -g0 --param ira-max-conflict-table-size=1 -fno-forward-propagate -fno-gcse -fno-dce -fno-dse -fno-tree-fre -fno-tree-pre -fno-tree-cselim -fno-tree-dse -fno-tree-dce -fno-tree-pta -fno-gcse-after-reload";
+  const string gcc_opt_flags { "-O3 -g0 --param ira-max-conflict-table-size=1 -fno-forward-propagate -fno-gcse -fno-dce -fno-dse -fno-tree-fre -fno-tree-pre -fno-tree-cselim -fno-tree-dse -fno-tree-dce -fno-tree-pta -fno-gcse-after-reload" };
+  const string clang_opt_flags { "-O3 -g0 --param ira-max-conflict-table-size=1 -Wno-unused-command-line-argument" };
 
   filesystem::path compiler;
   ostringstream flags;
   string libs;
+  bool is_clang {false};
 
   if (matlabroot.empty())
     {
@@ -1692,7 +1696,7 @@ ModelTree::compileMEX(const filesystem::path &output_dir, const string &output_b
 #ifdef __APPLE__
       else if (mexext == "mexmaci64" || mexext == "mexmaca64")
         {
-          compiler = findGccOnMacos(mexext);
+          tie(compiler, is_clang) = findCompilerOnMacos(mexext);
           flags << " -fno-common -Wl,-twolevel_namespace -undefined error -bundle";
           libs += " -lm";
         }
@@ -1727,7 +1731,7 @@ ModelTree::compileMEX(const filesystem::path &output_dir, const string &output_b
       cmd << user_set_compiler << " ";
 
   if (user_set_subst_flags.empty())
-    cmd << opt_flags << " " << flags.str() << " ";
+    cmd << (is_clang ? clang_opt_flags : gcc_opt_flags) << " " << flags.str() << " ";
   else
     cmd << user_set_subst_flags << " ";
 
@@ -1970,16 +1974,17 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
 #ifdef __APPLE__
   else if (mexext == "mex")
     {
-      /* On macOS, with Octave, enforce GCC, otherwise Clang will be used, and
-         it does not accept our custom optimization flags (see dynare#1797) */
-      filesystem::path gcc_path {findGccOnMacos(mexext)};
-      if (setenv("CC", gcc_path.c_str(), 1) != 0)
+      /* On macOS, with Octave, enforce our compiler. In particular this is
+         necessary if we’ve selected GCC; otherwise Clang will be used, and
+         it does not accept the same optimization flags (see dynare#1797) */
+      auto [compiler_path, is_clang] { findCompilerOnMacos(mexext) };
+      if (setenv("CC", compiler_path.c_str(), 1) != 0)
         {
           cerr << "Can't set CC environment variable" << endl;
           exit(EXIT_FAILURE);
         }
       // We also define CXX, because that is used for linking
-      if (setenv("CXX", gcc_path.c_str(), 1) != 0)
+      if (setenv("CXX", compiler_path.c_str(), 1) != 0)
         {
           cerr << "Can't set CXX environment variable" << endl;
           exit(EXIT_FAILURE);
