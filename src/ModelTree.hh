@@ -2500,10 +2500,6 @@ ModelTree::writeSparseModelMFiles(const string &basename) const
          << "[T_order, T] = " << full_prefix << "resid_tt(y, x, params" << ss_arg << ", T_order, T);" << endl
          << "residual = NaN(" << equations.size() << ", 1);" << endl
          << d_sparse_output[0].str();
-  if constexpr(!dynamic)
-    output << "if ~isreal(residual)" << endl
-           << "    residual = real(residual)+imag(residual).^2;" << endl
-           << "end" << endl;
   output << "end" << endl;
   output.close();
 
@@ -2534,10 +2530,6 @@ ModelTree::writeSparseModelMFiles(const string &basename) const
          << "[T_order, T] = " << full_prefix << "g1_tt(y, x, params" << ss_arg << ", T_order, T);" << endl
          << "g1_v = NaN(" << jacobian_sparse_column_major_order.size() << ", 1);" << endl
          << d_sparse_output[1].str();
-  if constexpr(!dynamic)
-    output << "if ~isreal(g1_v)" << endl
-           << "    g1_v = real(g1_v)+2*imag(g1_v);" << endl
-           << "end" << endl;
   // On MATLAB < R2020a, sparse() does not accept int32 indices
   output << "if ~isoctave && matlab_ver_less_than('9.8')" << endl
          << "    sparse_rowval = double(sparse_rowval);" << endl
