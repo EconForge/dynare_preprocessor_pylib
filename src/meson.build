@@ -58,7 +58,18 @@ preprocessor_src = [ 'ComputingTasks.cc',
 	             'macro/Expressions.cc',
 	             'macro/Directives.cc' ]
 
+if get_option('prefer_static')
+  preprocessor_link_args = [ '-static-libgcc', '-static-libstdc++' ]
+  if host_machine.system() == 'windows'
+    # See comment in rules for MEX files
+    preprocessor_link_args += [ '-Wl,-Bstatic', '-lssp', '-Wl,-Bdynamic',
+                                '-Wl,-Bstatic,--whole-archive', '-lwinpthread', '-Wl,-Bdynamic,--no-whole-archive' ]
+  endif
+else
+  preprocessor_link_args = []
+endif
+
 executable('dynare-preprocessor', preprocessor_src, flex_src, flexlexer_h, bison_src,
            include_directories : preprocessor_incdir, dependencies : boost_dep,
-           link_args : get_option('prefer_static') ? '-static' : '',
+           link_args : preprocessor_link_args,
            install : true)
