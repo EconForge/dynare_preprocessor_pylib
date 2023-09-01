@@ -115,6 +115,17 @@ class BytecodeWriter;
 struct BytecodeInstruction
 {
   const Tags op_code;
+  explicit BytecodeInstruction(Tags op_code_arg) :
+    op_code {op_code_arg}
+  {
+  }
+protected:
+  /* This is a base class, so the destructor should be either public+virtual or
+     protected+non-virtual. We opt for the latter, because otherwise this class
+     would no longer be POD; its memory representation would also include
+     runtime type information, and our crude serialization technique (copying the
+     whole object from memory) would thus not work. */
+  ~BytecodeInstruction() = default;
 };
 
 template<typename T1>
@@ -127,6 +138,9 @@ public:
                                                       arg1{arg_arg1}
   {
   };
+protected:
+  // See BytecodeInstruction destructor for the rationale
+  ~TagWithOneArgument() = default;
 };
 
 template<typename T1, typename T2>
@@ -140,6 +154,9 @@ public:
     BytecodeInstruction{op_code_arg}, arg1{arg_arg1}, arg2{arg_arg2}
   {
   };
+protected:
+  // See BytecodeInstruction destructor for the rationale
+  ~TagWithTwoArguments() = default;
 };
 
 template<typename T1, typename T2, typename T3>
@@ -154,6 +171,9 @@ public:
     BytecodeInstruction{op_code_arg}, arg1{arg_arg1}, arg2{arg_arg2}, arg3{arg_arg3}
   {
   };
+protected:
+  // See BytecodeInstruction destructor for the rationale
+  ~TagWithThreeArguments() = default;
 };
 
 template<typename T1, typename T2, typename T3, typename T4>
@@ -170,9 +190,12 @@ public:
     arg3{move(arg_arg3)}, arg4{arg_arg4}
   {
   };
+protected:
+  // See BytecodeInstruction destructor for the rationale
+  ~TagWithFourArguments() = default;
 };
 
-class FLDZ_ : public BytecodeInstruction
+class FLDZ_ final : public BytecodeInstruction
 {
 public:
   FLDZ_() : BytecodeInstruction{Tags::FLDZ}
@@ -180,7 +203,7 @@ public:
   };
 };
 
-class FEND_ : public BytecodeInstruction
+class FEND_ final : public BytecodeInstruction
 {
 public:
   FEND_() : BytecodeInstruction{Tags::FEND}
@@ -188,7 +211,7 @@ public:
   };
 };
 
-class FENDBLOCK_ : public BytecodeInstruction
+class FENDBLOCK_ final : public BytecodeInstruction
 {
 public:
   FENDBLOCK_() : BytecodeInstruction{Tags::FENDBLOCK}
@@ -196,7 +219,7 @@ public:
   };
 };
 
-class FENDEQU_ : public BytecodeInstruction
+class FENDEQU_ final : public BytecodeInstruction
 {
 public:
   FENDEQU_() : BytecodeInstruction{Tags::FENDEQU}
@@ -204,7 +227,7 @@ public:
   };
 };
 
-class FDIMT_ : public TagWithOneArgument<int>
+class FDIMT_ final : public TagWithOneArgument<int>
 {
 public:
   explicit FDIMT_(int size_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FDIMT, size_arg}
@@ -217,7 +240,7 @@ public:
   };
 };
 
-class FDIMST_ : public TagWithOneArgument<int>
+class FDIMST_ final : public TagWithOneArgument<int>
 {
 public:
   explicit FDIMST_(int size_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FDIMST, size_arg}
@@ -230,7 +253,7 @@ public:
   };
 };
 
-class FLDC_ : public TagWithOneArgument<double>
+class FLDC_ final : public TagWithOneArgument<double>
 {
 public:
   explicit FLDC_(double value_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FLDC, value_arg}
@@ -243,7 +266,7 @@ public:
   };
 };
 
-class FLDU_ : public TagWithOneArgument<int>
+class FLDU_ final : public TagWithOneArgument<int>
 {
 public:
   explicit FLDU_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FLDU, pos_arg}
@@ -256,7 +279,7 @@ public:
   };
 };
 
-class FLDSU_ : public TagWithOneArgument<int>
+class FLDSU_ final : public TagWithOneArgument<int>
 {
 public:
   explicit FLDSU_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FLDSU, pos_arg}
@@ -269,7 +292,7 @@ public:
   };
 };
 
-class FLDR_ : public TagWithOneArgument<int>
+class FLDR_ final : public TagWithOneArgument<int>
 {
 public:
   explicit FLDR_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FLDR, pos_arg}
@@ -282,7 +305,7 @@ public:
   };
 };
 
-class FLDT_ : public TagWithOneArgument<int>
+class FLDT_ final : public TagWithOneArgument<int>
 {
 public:
   explicit FLDT_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FLDT, pos_arg}
@@ -295,7 +318,7 @@ public:
   };
 };
 
-class FLDST_ : public TagWithOneArgument<int>
+class FLDST_ final : public TagWithOneArgument<int>
 {
 public:
   explicit FLDST_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FLDST, pos_arg}
@@ -308,7 +331,7 @@ public:
   };
 };
 
-class FSTPT_ : public TagWithOneArgument<int>
+class FSTPT_ final : public TagWithOneArgument<int>
 {
 public:
   explicit FSTPT_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FSTPT, pos_arg}
@@ -321,7 +344,7 @@ public:
   };
 };
 
-class FSTPST_ : public TagWithOneArgument<int>
+class FSTPST_ final : public TagWithOneArgument<int>
 {
 public:
   explicit FSTPST_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FSTPST, pos_arg}
@@ -334,7 +357,7 @@ public:
   };
 };
 
-class FSTPR_ : public TagWithOneArgument<int>
+class FSTPR_ final : public TagWithOneArgument<int>
 {
 public:
   explicit FSTPR_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FSTPR, pos_arg}
@@ -347,7 +370,7 @@ public:
   };
 };
 
-class FSTPU_ : public TagWithOneArgument<int>
+class FSTPU_ final : public TagWithOneArgument<int>
 {
 public:
   explicit FSTPU_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FSTPU, pos_arg}
@@ -360,7 +383,7 @@ public:
   };
 };
 
-class FSTPSU_ : public TagWithOneArgument<int>
+class FSTPSU_ final : public TagWithOneArgument<int>
 {
 public:
   explicit FSTPSU_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FSTPSU, pos_arg}
@@ -373,7 +396,7 @@ public:
   };
 };
 
-class FSTPG_ : public TagWithOneArgument<int>
+class FSTPG_ final : public TagWithOneArgument<int>
 {
 public:
   explicit FSTPG_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FSTPG, pos_arg}
@@ -386,7 +409,7 @@ public:
   };
 };
 
-class FSTPG2_ : public TagWithTwoArguments<int, int>
+class FSTPG2_ final : public TagWithTwoArguments<int, int>
 {
 public:
   FSTPG2_(int row_arg, int col_arg) : TagWithTwoArguments::TagWithTwoArguments{Tags::FSTPG2, row_arg, col_arg}
@@ -404,7 +427,7 @@ public:
   };
 };
 
-class FSTPG3_ : public TagWithFourArguments<int, int, int, int>
+class FSTPG3_ final : public TagWithFourArguments<int, int, int, int>
 {
 public:
   FSTPG3_(int row_arg, int col_arg, int lag_arg, int col_pos_arg) : TagWithFourArguments::TagWithFourArguments{Tags::FSTPG3, row_arg, col_arg, lag_arg, col_pos_arg}
@@ -432,7 +455,7 @@ public:
   };
 };
 
-class FUNARY_ : public TagWithOneArgument<UnaryOpcode>
+class FUNARY_ final : public TagWithOneArgument<UnaryOpcode>
 {
 public:
   explicit FUNARY_(UnaryOpcode op_type_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FUNARY, op_type_arg}
@@ -445,7 +468,7 @@ public:
   };
 };
 
-class FBINARY_ : public TagWithOneArgument<BinaryOpcode>
+class FBINARY_ final : public TagWithOneArgument<BinaryOpcode>
 {
 public:
   explicit FBINARY_(BinaryOpcode op_type_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FBINARY, op_type_arg}
@@ -458,7 +481,7 @@ public:
   };
 };
 
-class FTRINARY_ : public TagWithOneArgument<TrinaryOpcode>
+class FTRINARY_ final : public TagWithOneArgument<TrinaryOpcode>
 {
 public:
   explicit FTRINARY_(TrinaryOpcode op_type_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FTRINARY, op_type_arg}
@@ -471,7 +494,7 @@ public:
   };
 };
 
-class FJMPIFEVAL_ : public TagWithOneArgument<int>
+class FJMPIFEVAL_ final : public TagWithOneArgument<int>
 {
 public:
   explicit FJMPIFEVAL_(int arg_pos) : TagWithOneArgument::TagWithOneArgument{Tags::FJMPIFEVAL, arg_pos}
@@ -484,7 +507,7 @@ public:
   }
 };
 
-class FJMP_ : public TagWithOneArgument<int>
+class FJMP_ final : public TagWithOneArgument<int>
 {
 public:
   explicit FJMP_(int arg_pos) : TagWithOneArgument::TagWithOneArgument{Tags::FJMP, arg_pos}
@@ -497,7 +520,7 @@ public:
   }
 };
 
-class FLDTEF_ : public TagWithOneArgument<int>
+class FLDTEF_ final : public TagWithOneArgument<int>
 {
 public:
   explicit FLDTEF_(int number) : TagWithOneArgument::TagWithOneArgument{Tags::FLDTEF, number}
@@ -510,7 +533,7 @@ public:
   }
 };
 
-class FSTPTEF_ : public TagWithOneArgument<int>
+class FSTPTEF_ final : public TagWithOneArgument<int>
 {
 public:
   explicit FSTPTEF_(int number) : TagWithOneArgument::TagWithOneArgument{Tags::FSTPTEF, number}
@@ -523,7 +546,7 @@ public:
   }
 };
 
-class FLDTEFD_ : public TagWithTwoArguments<int, int>
+class FLDTEFD_ final : public TagWithTwoArguments<int, int>
 {
 public:
   FLDTEFD_(int indx, int row) : TagWithTwoArguments::TagWithTwoArguments{Tags::FLDTEFD, indx, row}
@@ -541,7 +564,7 @@ public:
   };
 };
 
-class FSTPTEFD_ : public TagWithTwoArguments<int, int>
+class FSTPTEFD_ final : public TagWithTwoArguments<int, int>
 {
 public:
   FSTPTEFD_(int indx, int row) : TagWithTwoArguments::TagWithTwoArguments{Tags::FSTPTEFD, indx, row}
@@ -559,7 +582,7 @@ public:
   };
 };
 
-class FLDTEFDD_ : public TagWithThreeArguments<int, int, int>
+class FLDTEFDD_ final : public TagWithThreeArguments<int, int, int>
 {
 public:
   FLDTEFDD_(int indx, int row, int col) : TagWithThreeArguments::TagWithThreeArguments{Tags::FLDTEFDD, indx, row, col}
@@ -582,7 +605,7 @@ public:
   };
 };
 
-class FSTPTEFDD_ : public TagWithThreeArguments<int, int, int>
+class FSTPTEFDD_ final : public TagWithThreeArguments<int, int, int>
 {
 public:
   FSTPTEFDD_(int indx, int row, int col) : TagWithThreeArguments::TagWithThreeArguments{Tags::FSTPTEF, indx, row, col}
@@ -605,7 +628,7 @@ public:
   };
 };
 
-class FLDVS_ : public TagWithTwoArguments<SymbolType, int>
+class FLDVS_ final : public TagWithTwoArguments<SymbolType, int>
 {
 public:
   FLDVS_(SymbolType type_arg, int pos_arg) : TagWithTwoArguments::TagWithTwoArguments{Tags::FLDVS, type_arg, pos_arg}
@@ -623,7 +646,7 @@ public:
   };
 };
 
-class FLDSV_ : public TagWithTwoArguments<SymbolType, int>
+class FLDSV_ final : public TagWithTwoArguments<SymbolType, int>
 {
 public:
   FLDSV_(SymbolType type_arg, int pos_arg) : TagWithTwoArguments::TagWithTwoArguments{Tags::FLDSV, type_arg, pos_arg}
@@ -641,7 +664,7 @@ public:
   };
 };
 
-class FSTPSV_ : public TagWithTwoArguments<SymbolType, int>
+class FSTPSV_ final : public TagWithTwoArguments<SymbolType, int>
 {
 public:
   FSTPSV_(SymbolType type_arg, int pos_arg) : TagWithTwoArguments::TagWithTwoArguments{Tags::FSTPSV, type_arg, pos_arg}
@@ -659,7 +682,7 @@ public:
   };
 };
 
-class FLDV_ : public TagWithThreeArguments<SymbolType, int, int>
+class FLDV_ final : public TagWithThreeArguments<SymbolType, int, int>
 {
 public:
   FLDV_(SymbolType type_arg, int pos_arg, int lead_lag_arg) :
@@ -683,7 +706,7 @@ public:
   };
 };
 
-class FSTPV_ : public TagWithThreeArguments<SymbolType, int, int>
+class FSTPV_ final : public TagWithThreeArguments<SymbolType, int, int>
 {
 public:
   FSTPV_(SymbolType type_arg, int pos_arg, int lead_lag_arg) :
@@ -707,7 +730,7 @@ public:
   };
 };
 
-class FCALL_ : public BytecodeInstruction
+class FCALL_ final : public BytecodeInstruction
 {
   template<typename B>
   friend BytecodeWriter &operator<<(BytecodeWriter &code_file, const B &instr);
@@ -826,7 +849,7 @@ public:
   }
 };
 
-class FNUMEXPR_ : public BytecodeInstruction
+class FNUMEXPR_ final : public BytecodeInstruction
 {
 private:
   ExpressionType expression_type;
@@ -880,7 +903,7 @@ public:
   };
 };
 
-class FBEGINBLOCK_ : public BytecodeInstruction
+class FBEGINBLOCK_ final : public BytecodeInstruction
 {
   template<typename B>
   friend BytecodeWriter &operator<<(BytecodeWriter &code_file, const B &instr);
