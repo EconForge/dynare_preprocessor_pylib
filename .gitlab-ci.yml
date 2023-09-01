@@ -7,22 +7,20 @@ variables:
 build_linux_x86_64:
   stage: build
   script:
-    - autoreconf -si
-    - ./configure --host=x86_64-linux-gnu
-    - make -j$(nproc)
+    - meson setup -D buildtype=release build
+    - meson compile -C build -v
   artifacts:
     paths:
-      - src/dynare-preprocessor
+      - build/src/dynare-preprocessor
 
 build_linux_arm64:
   stage: build
   script:
-    - autoreconf -si
-    - ./configure --host=aarch64-linux-gnu
-    - make -j$(nproc)
+    - meson setup -D buildtype=release --cross-file scripts/arm64-cross.ini build
+    - meson compile -C build -v
   artifacts:
     paths:
-      - src/dynare-preprocessor
+      - build/src/dynare-preprocessor
 
 build_windows_x86_64:
   stage: build
@@ -31,9 +29,9 @@ build_windows_x86_64:
     - '[[ -f tarballs/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.zst ]] || wget $WGET_OPTIONS -P tarballs http://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.zst'
     - mkdir -p deps
     - tar xf tarballs/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.zst --directory deps
-    - autoreconf -si
-    - ./configure --host=x86_64-w64-mingw32 --with-boost=$(pwd)/deps/mingw64/include
-    - make -j$(nproc)
+    - echo -e "[properties]\nboost_root = '$(pwd)/deps/mingw64/'" > boost.ini
+    - meson setup -D buildtype=release --cross-file scripts/windows-cross.ini --cross-file boost.ini build
+    - meson compile -C build -v
   cache:
     # This cache is shared between all branches, to save space
     key: $CI_JOB_NAME
@@ -41,16 +39,15 @@ build_windows_x86_64:
       - tarballs/
   artifacts:
     paths:
-      - src/dynare-preprocessor.exe
+      - build/src/dynare-preprocessor.exe
 
 build_macos_x86_64:
   stage: build
   tags:
     - macOS
   script:
-    - autoreconf -si
-    - arch -x86_64 ./configure CC=gcc-13 CXX=g++-13 LEX=/usr/local/opt/flex/bin/flex YACC=/usr/local/opt/bison/bin/bison
-    - arch -x86_64 make -j$(sysctl -n hw.ncpu)
+    - arch -x86_64 meson setup -D buildtype=release --native-file scripts/homebrew-native.ini build
+    - arch -x86_64 meson compile -C build -v
   artifacts:
     paths:
-      - src/dynare-preprocessor
+      - build/src/dynare-preprocessor
