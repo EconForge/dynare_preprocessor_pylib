@@ -609,6 +609,18 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
+class BVARIRFStatement : public Statement
+{
+private:
+  const int nirf;
+  const string identificationname;
+public:
+  BVARIRFStatement(int nirf_arg, string identificationname_arg);
+  void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings) override;
+  void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream &output) const override;
+};
+
 class SBVARStatement : public Statement
 {
 private:

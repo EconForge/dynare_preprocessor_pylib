@@ -2461,7 +2461,7 @@ BVARDensityStatement::writeOutput(ostream &output, [[maybe_unused]] const string
                                   [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  output << "bvar_density(" << maxnlags << ");" << endl;
+  output << "bvar.density(" << maxnlags << ");" << endl;
 }
 
 void
@@ -2494,7 +2494,7 @@ BVARForecastStatement::writeOutput(ostream &output, [[maybe_unused]] const strin
                                    [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  output << "bvar_forecast(" << nlags << ");" << endl;
+  output << "bvar.forecast(" << nlags << ");" << endl;
 }
 
 void
@@ -2506,6 +2506,33 @@ BVARForecastStatement::writeJsonOutput(ostream &output) const
       output << ", ";
       options_list.writeJsonOutput(output);
     }
+  output << "}";
+}
+
+BVARIRFStatement::BVARIRFStatement(int nirf_arg, string identificationname_arg) :
+  nirf{nirf_arg},
+  identificationname{move(identificationname_arg)}
+{
+}
+
+void
+BVARIRFStatement::checkPass(ModFileStructure &mod_file_struct,
+                            [[maybe_unused]] WarningConsolidation &warnings)
+{
+  mod_file_struct.bvar_present = true;
+}
+
+void
+BVARIRFStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                              [[maybe_unused]] bool minimal_workspace) const
+{
+  output << "bvar.irf(" << nirf << ",'" << identificationname << "');" << endl;
+}
+
+void
+BVARIRFStatement::writeJsonOutput(ostream &output) const
+{
+  output << R"({"statementName": "bvar_irf")";
   output << "}";
 }
 

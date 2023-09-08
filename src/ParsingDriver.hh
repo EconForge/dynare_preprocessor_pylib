@@ -678,6 +678,8 @@ public:
   void bvar_density(const string &maxnlags);
   //! BVAR forecast
   void bvar_forecast(const string &nlags);
+  //! BVAR IRF
+  void bvar_irf(const string &nirf, string identificationname);
   //! SBVAR statement
   void sbvar();
   //! Markov Switching Statement: Estimation
