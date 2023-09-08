@@ -2140,7 +2140,7 @@ OsrStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basena
 
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "oo_.osr = osr(var_list_,M_.osr.param_names,M_.osr.variable_indices,M_.osr.variable_weights);" << endl;
+  output << "[info, oo_, options_, M_] = osr.run(M_, options_, oo_, var_list_,M_.osr.param_names,M_.osr.variable_indices,M_.osr.variable_weights);" << endl;
 }
 
 void
