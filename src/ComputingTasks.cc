@@ -5402,7 +5402,7 @@ ResidStatement::writeOutput(ostream &output, [[maybe_unused]] const string &base
                             [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_resid_");
-  output << "display_static_residuals(options_resid_);" << endl;
+  output << "display_static_residuals(M_, options_, oo_, options_resid_);" << endl;
 }
 
 void
