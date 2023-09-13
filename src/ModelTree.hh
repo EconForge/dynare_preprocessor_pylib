@@ -2374,10 +2374,6 @@ ModelTree::writeSparseModelJuliaFiles(const string &basename) const
          << "@inbounds begin" << endl
          << d_sparse_output[0].str()
 	 << "end" << endl;
-  if constexpr(!dynamic)
-    output << "    if ~isreal(residual)" << endl
-           << "        residual = real(residual)+imag(residual).^2;" << endl
-           << "    end" << endl;
   output << "    return nothing" << endl
          << "end" << endl << endl;
   writeToFileIfModified(output, julia_dir / (prefix + "Resid!.jl"));
@@ -2408,10 +2404,6 @@ ModelTree::writeSparseModelJuliaFiles(const string &basename) const
          << "@inbounds begin" << endl
          << d_sparse_output[1].str()
 	 << "end" << endl;
-  if constexpr(!dynamic)
-    output << "    if ~isreal(g1_v)" << endl
-           << "        g1_v = real(g1_v)+2*imag(g1_v);" << endl
-           << "    end" << endl;
   output << "    return nothing" << endl
          << "end" << endl << endl;
   writeToFileIfModified(output, julia_dir / (prefix + "G1!.jl"));
