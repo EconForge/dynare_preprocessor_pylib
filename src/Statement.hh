@@ -74,6 +74,8 @@ struct ModFileStructure
   bool sensitivity_present{false};
   //! Whether the option analytic_derivation is given to estimation
   bool estimation_analytic_derivation{false};
+  //! Whether the option analytic_derivation is given to osr
+  bool osr_analytic_derivation{false};
   //! Whether the option partial_information is given to stoch_simul/estimation/osr/ramsey_policy
   bool partial_information{false};
   //! Whether the "k_order_solver" option is used (explictly, or implicitly if order >= 3)

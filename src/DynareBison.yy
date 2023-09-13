@@ -2356,6 +2356,8 @@ osr_options : stoch_simul_primary_options
             | o_optim
             | o_huge_number
             | o_silent_optimizer
+            | o_analytic_derivation
+            | o_analytic_derivation_mode
             ;
 
 osr : OSR ';'

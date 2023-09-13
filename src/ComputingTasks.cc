@@ -2112,6 +2112,12 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation 
       opt && *opt == "true")
     mod_file_struct.partial_information = true;
 
+  // Fill in mod_file_struct.estimation_analytic_derivation
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("analytic_derivation");
+      opt && *opt == "1")
+    mod_file_struct.osr_analytic_derivation = true;
+
+
   // Option k_order_solver (implicit when order >= 3)
   if (auto opt = options_list.get_if<OptionsList::NumVal>("k_order_solver");
       (opt && *opt == "true") || mod_file_struct.order_option >= 3)

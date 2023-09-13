@@ -670,6 +670,7 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
 
           if (mod_file_struct.identification_present 
               || mod_file_struct.estimation_analytic_derivation
+              || mod_file_struct.osr_analytic_derivation
               || (mod_file_struct.GMM_present && (mod_file_struct.analytic_standard_errors_present || mod_file_struct.analytic_jacobian_present)))
             paramsDerivsOrder = params_derivs_order;
 
@@ -722,6 +723,7 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
               int paramsDerivsOrder = 0;
               if (mod_file_struct.identification_present 
                   || mod_file_struct.estimation_analytic_derivation
+                  || mod_file_struct.osr_analytic_derivation
                   || (mod_file_struct.GMM_present && (mod_file_struct.analytic_standard_errors_present || mod_file_struct.analytic_jacobian_present)))
                 paramsDerivsOrder = params_derivs_order;
               dynamic_model.computingPass(derivsOrder, paramsDerivsOrder, global_eval_context, no_tmp_terms, block, use_dll);
