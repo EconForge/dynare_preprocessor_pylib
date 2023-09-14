@@ -2137,6 +2137,7 @@ estimation_options : o_datafile
                    | o_mh_init_scale_factor
                    | o_mode_file
                    | o_mode_compute
+                   | o_additional_optimizer_steps
                    | o_mode_check
                    | o_mode_check_neighbourhood_size
                    | o_mode_check_symmetric_plots
