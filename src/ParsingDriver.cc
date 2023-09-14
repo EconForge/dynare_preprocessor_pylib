@@ -2335,6 +2335,12 @@ ParsingDriver::bvar_forecast(const string &nlags)
 }
 
 void
+ParsingDriver::bvar_irf(const string &nirf, string identificationname)
+{
+  mod_file->addStatement(make_unique<BVARIRFStatement>(stoi(nirf), move(identificationname)));
+}
+
+void
 ParsingDriver::sbvar()
 {
   mod_file->addStatement(make_unique<SBVARStatement>(move(options_list)));

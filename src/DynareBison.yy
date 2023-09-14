@@ -75,7 +75,7 @@ class ParsingDriver;
 
 %token AIM_SOLVER ANALYTIC_DERIVATION ANALYTIC_DERIVATION_MODE AR POSTERIOR_SAMPLING_METHOD
 %token BALANCED_GROWTH_TEST_TOL BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION SILENT_OPTIMIZER
-%token BVAR_DENSITY BVAR_FORECAST NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER FIG_NAME WRITE_XLS
+%token BVAR_DENSITY BVAR_FORECAST BVAR_IRF NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER FIG_NAME WRITE_XLS
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA INTERACTIVE SCREEN_SHOCKS STEADYSTATE
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN DETAIL_PLOT TYPE
 %token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED PROPOSAL_DISTRIBUTION REALTIME VINTAGE
@@ -298,6 +298,7 @@ statement : parameters
           | discretionary_policy
           | bvar_density
           | bvar_forecast
+          | bvar_irf
           | sbvar
           | dynare_sensitivity
           | homotopy_setup
@@ -2768,6 +2769,9 @@ bvar_forecast : BVAR_FORECAST INT_NUMBER ';'
               | BVAR_FORECAST '(' bvar_forecast_options_list ')' INT_NUMBER ';'
                 { driver.bvar_forecast($5); }
               ;
+
+bvar_irf : BVAR_IRF '(' INT_NUMBER COMMA QUOTED_STRING ')' ';'
+                { driver.bvar_irf($3, $5); }
 
 sbvar_option : o_datafile
              | o_freq
