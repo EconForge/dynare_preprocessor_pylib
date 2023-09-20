@@ -1,4 +1,4 @@
-latexmk_exe = find_program('latexmk', required : false)
+latexmk_exe = find_program('latexmk', required : false, disabler : true)
 
 # We have to set TEXINPUTS because the current directory is not the source
 # directory when latexmk is invoked (and using the -cd option in combination
