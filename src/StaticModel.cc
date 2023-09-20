@@ -227,9 +227,6 @@ StaticModel::writeStaticMFile(const string &basename) const
 
   ostringstream init_output, end_output;
   init_output << "residual = zeros(" << equations.size() << ", 1);";
-  end_output << "if ~isreal(residual)" << endl
-             << "  residual = real(residual)+imag(residual).^2;" << endl
-             << "end";
   writeStaticMFileHelper(basename, "static_resid", "residual", "static_resid_tt",
                          temporary_terms_derivatives[0].size(),
                          "", init_output, end_output,
@@ -238,9 +235,6 @@ StaticModel::writeStaticMFile(const string &basename) const
   init_output.str("");
   end_output.str("");
   init_output << "g1 = zeros(" << equations.size() << ", " << symbol_table.endo_nbr() << ");";
-  end_output << "if ~isreal(g1)" << endl
-             << "    g1 = real(g1)+2*imag(g1);" << endl
-             << "end";
   writeStaticMFileHelper(basename, "static_g1", "g1", "static_g1_tt",
                          temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size(),
                          "static_resid_tt",
