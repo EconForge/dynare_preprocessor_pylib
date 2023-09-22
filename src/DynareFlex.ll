@@ -42,6 +42,9 @@ using token = Dynare::parser::token;
 
 int comment_caller, line_caller;
 string eofbuff;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 %}
 
 %option c++
@@ -1207,6 +1210,8 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 
 <*>.      { driver.error(*yylloc, "character unrecognized by lexer"); }
 %%
+
+#pragma GCC diagnostic pop
 
 DynareFlex::DynareFlex(istream* in, ostream* out)
   : DynareFlexLexer{in, out}

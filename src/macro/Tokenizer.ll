@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
 /*
- * Copyright © 2019-2021 Dynare Team
+ * Copyright © 2019-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -35,6 +35,9 @@ using token = Tokenizer::parser::token;
    Unfortunately yyterminate by default returns 0, which is
    not of token_type.  */
 #define yyterminate() return Tokenizer::parser::token_type (0);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 %}
 
 %option c++
@@ -192,6 +195,8 @@ CONT \\\\{SPC}*
 <*>.|{EOL}                                { driver.error(*yylloc, "character unrecognized by lexer"); }
 
 %%
+
+#pragma GCC diagnostic pop
 
 void
 TokenizerFlex::location_increment(Tokenizer::parser::location_type *yylloc, const char *yytext)
