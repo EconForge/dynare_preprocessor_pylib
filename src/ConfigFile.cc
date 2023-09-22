@@ -535,7 +535,7 @@ ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, const member
 }
 
 void
-ConfigFile::checkPass(WarningConsolidation &warnings) const
+ConfigFile::checkPass([[maybe_unused]] WarningConsolidation &warnings) const
 {
   for (bool global_init_file_declared{false};
        const auto &hook : hooks)
