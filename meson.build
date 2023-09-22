@@ -8,6 +8,10 @@ project('dynare-preprocessor', 'cpp',
 
 add_global_arguments('-DPACKAGE_VERSION="' + meson.project_version() + '"', language : 'cpp')
 
+if get_option('warning_level').to_int() >= 2
+  add_global_arguments('-Wold-style-cast', language : 'cpp')
+endif
+
 cpp_compiler = meson.get_compiler('cpp')
 
 subdir('src')
