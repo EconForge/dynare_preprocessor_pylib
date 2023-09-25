@@ -297,7 +297,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>jscale                {return token::JSCALE;}
 <DYNARE_STATEMENT>prefilter 		{return token::PREFILTER;}
 <DYNARE_STATEMENT>presample 		{return token::PRESAMPLE;}
-<DYNARE_STATEMENT>lik_algo  		{return token::LIK_ALGO;}
 <DYNARE_STATEMENT>lik_init  		{return token::LIK_INIT;}
 <DYNARE_STATEMENT>taper_steps       {return token::TAPER_STEPS;}
 <DYNARE_STATEMENT>geweke_interval   {return token::GEWEKE_INTERVAL;}

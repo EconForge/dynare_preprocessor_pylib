@@ -830,7 +830,7 @@ OccbinSolverStatement::writeOutput(ostream &output, [[maybe_unused]] const strin
                                    [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_.occbin");
-  output << "oo_ = occbin.solver(M_, oo_, options_);" << endl;
+  output << "[oo_.dr, oo_.occbin.simul]= occbin.solver(M_, options_, oo_.dr , oo_.steady_state, oo_.exo_steady_state, oo_.exo_det_steady_state);" << endl;
 }
 
 void
