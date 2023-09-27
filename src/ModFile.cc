@@ -823,7 +823,7 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
     mOutputFile << "warning off" << endl; // This will be executed *after* function warning_config()
 
   if (clear_all)
-    mOutputFile << "if isoctave || matlab_ver_less_than('8.6')" << endl
+    mOutputFile << "if ~isoctave && matlab_ver_less_than('8.6')" << endl
                 << "    clear all" << endl
                 << "else" << endl
                 << "    clearvars -global" << endl
