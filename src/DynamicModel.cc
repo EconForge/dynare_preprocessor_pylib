@@ -2453,7 +2453,10 @@ DynamicModel::writeDynamicFile(const string &basename, bool use_dll, const strin
     writeDynamicMFile(basename);
   // The legacy representation is no longer produced for Julia
 
-  writeDynamicBytecode(basename);
+  /* Discretionary optimal policy models don’t have as many variables as
+     equations; bytecode does not support that case */
+  if (static_cast<int>(equations.size()) == symbol_table.endo_nbr())
+    writeDynamicBytecode(basename);
   if (block_decomposed)
     writeDynamicBlockBytecode(basename);
 

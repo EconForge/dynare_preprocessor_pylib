@@ -41,7 +41,6 @@ protected:
 
 private:
   void computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms) override;
-  void writeStaticBytecode(const string &basename) const override;
 };
 
 class OrigRamseyDynamicModel : public DynamicModel

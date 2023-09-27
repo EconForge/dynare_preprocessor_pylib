@@ -475,7 +475,11 @@ StaticModel::writeStaticFile(const string &basename, bool use_dll, const string 
     writeStaticMFile(basename);
   // The legacy representation is no longer produced for Julia
 
-  writeStaticBytecode(basename);
+  /* PlannerObjective subclass or discretionary optimal policy models don’t
+     have as many variables as equations; bytecode does not support that
+     case */
+  if (static_cast<int>(equations.size()) == symbol_table.endo_nbr())
+    writeStaticBytecode(basename);
   if (block_decomposed)
     writeStaticBlockBytecode(basename);
 

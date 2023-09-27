@@ -37,12 +37,6 @@ PlannerObjective::computingPassBlock([[maybe_unused]] const eval_context_t &eval
   // Disable block decomposition on planner objective
 }
 
-void
-PlannerObjective::writeStaticBytecode([[maybe_unused]] const string &basename) const
-{
-  // Disable bytecode output, because there are not as many variables as equations
-}
-
 OrigRamseyDynamicModel::OrigRamseyDynamicModel(SymbolTable &symbol_table_arg,
                                                NumericalConstants &num_constants_arg,
                                                ExternalFunctionsTable &external_functions_table_arg,
