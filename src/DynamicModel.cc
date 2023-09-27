@@ -142,6 +142,10 @@ DynamicModel::operator=(const DynamicModel &m)
 void
 DynamicModel::writeDynamicBytecode(const string &basename) const
 {
+  /* Bytecode only works when there are with as many endogenous as equations.
+     (e.g. the constructor of FBEGINBLOCK_ makes this assumption) */
+  assert(static_cast<int>(equations.size()) == symbol_table.endo_nbr());
+
   // Determine the type of model (used for typing the single block)
   BlockSimulationType simulation_type;
   if (max_endo_lag > 0 && max_endo_lead > 0)

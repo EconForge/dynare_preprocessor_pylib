@@ -102,6 +102,10 @@ StaticModel::StaticModel(const DynamicModel &m) :
 void
 StaticModel::writeStaticBytecode(const string &basename) const
 {
+  /* Bytecode only works when there are with as many endogenous as equations.
+     (e.g. the constructor of FBEGINBLOCK_ makes this assumption) */
+  assert(static_cast<int>(equations.size()) == symbol_table.endo_nbr());
+
   // First write the .bin file
   int u_count_int { writeBytecodeBinFile(basename + "/model/bytecode/static.bin", false) };
 

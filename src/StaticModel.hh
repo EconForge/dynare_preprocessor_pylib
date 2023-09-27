@@ -60,7 +60,7 @@ private:
   void writeStaticBlockBytecode(const string &basename) const;
 
   //! Writes the code of the model in virtual machine bytecode
-  void writeStaticBytecode(const string &basename) const;
+  virtual void writeStaticBytecode(const string &basename) const;
 
   //! Computes jacobian and prepares for equation normalization
   /*! Using values from initval/endval blocks and parameter initializations:
