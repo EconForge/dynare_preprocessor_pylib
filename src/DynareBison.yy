@@ -152,7 +152,7 @@ class ParsingDriver;
 %token RESTRICTION RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST
 %token DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR SPECIFICATION SIMS_ZHA
 %token <string> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX DIRICHLET DIAGONAL OPTIMAL
-%token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD WEIBULL WEIBULL_PDF GMM SMM
+%token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD WEIBULL WEIBULL_PDF
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
 %token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE UPDATED_COVARIANCE FILTER_DECOMPOSITION SMOOTHED_STATE_UNCERTAINTY SMOOTHER_REDUX
 %token EQ_CMS TLINDX TLNUMBER RESTRICTIONS POSTERIOR_SAMPLER_OPTIONS
@@ -180,9 +180,11 @@ class ParsingDriver;
 %token PAC_TARGET_INFO COMPONENT TARGET AUXNAME AUXNAME_TARGET_NONSTATIONARY PAC_TARGET_NONSTATIONARY
 %token <string> KIND LL DL DD ADD MULTIPLY
 /* Method of Moments */
-%token METHOD_OF_MOMENTS MOM_METHOD
+%token GMM SMM IRF_MATCHING
+%token METHOD_OF_MOMENTS MOM_METHOD SIMULATION_METHOD
 %token BARTLETT_KERNEL_LAG WEIGHTING_MATRIX WEIGHTING_MATRIX_SCALING_FACTOR ANALYTIC_STANDARD_ERRORS ANALYTIC_JACOBIAN PENALIZED_ESTIMATOR VERBOSE
 %token SIMULATION_MULTIPLE MOM_SEED SEED BOUNDED_SHOCK_SUPPORT ADDITIONAL_OPTIMIZER_STEPS MOM_SE_TOLX SE_TOLX MOM_BURNIN BURNIN
+%token IRF_MATCHING_FILE ADD_TINY_NUMBER_TO_CHOLESKY
 %token EQTAGS
 %token ANALYTICAL_GIRF IRF_IN_PERCENT EMAS_GIRF EMAS_DROP EMAS_TOLF EMAS_MAX_ITER
 %token NO_IDENTIFICATION_STRENGTH NO_IDENTIFICATION_REDUCEDFORM NO_IDENTIFICATION_MOMENTS
@@ -1555,6 +1557,43 @@ method_of_moments_option : o_mom_method
                          | o_mode_check_neighbourhood_size
                          | o_mode_check_symmetric_plots
                          | o_mode_check_number_of_points
+                         | o_add_tiny_number_to_cholesky
+                         | o_brooks_gelman_plotrows
+                         | o_cova_compute
+                         | o_drop
+                         | o_geweke_interval
+                         | o_irf_matching_file
+                         | o_load_mh_file
+                         | o_load_results_after_load_mh
+                         | o_mcmc_jumping_covariance
+                         | o_mh_conf_sig
+                         | o_mh_drop
+                         | o_mh_init_scale_factor
+                         | o_mh_initialize_from_previous_mcmc
+                         | o_mh_initialize_from_previous_mcmc_directory
+                         | o_mh_initialize_from_previous_mcmc_prior
+                         | o_mh_initialize_from_previous_mcmc_record
+                         | o_mh_jscale
+                         | o_mh_nblocks
+                         | o_mh_posterior_mode_estimation
+                         | o_mh_recover
+                         | o_mh_replic
+                         | o_mh_tune_guess
+                         | o_mh_tune_jscale
+                         | o_mode_file
+                         | o_no_posterior_kernel_density
+                         | o_nodiagnostic
+                         | o_posterior_max_subsample_draws
+                         | o_posterior_sampler_options
+                         | o_posterior_sampling_method
+                         | o_raftery_lewis_diagnostics
+                         | o_raftery_lewis_qrs
+                         | o_relative_irf
+                         | o_replic
+                         | o_simulation_method
+                         | o_sub_draws
+                         | o_taper_steps
+                         | o_use_penalized_objective_for_hessian
                          ;
 
 prior_function : PRIOR_FUNCTION '(' prior_posterior_function_options_list ')' ';'
@@ -4099,30 +4138,28 @@ o_fsolve_options : FSOLVE_OPTIONS EQUAL '(' name_value_pair_with_boolean_list ')
 
 // Some options to "method_of_moments"
 o_bartlett_kernel_lag : BARTLETT_KERNEL_LAG EQUAL INT_NUMBER { driver.option_num("mom.bartlett_kernel_lag", $3); };
-
 o_weighting_matrix : WEIGHTING_MATRIX EQUAL vec_str { driver.option_vec_cellstr("mom.weighting_matrix", $3); }
-
 o_weighting_matrix_scaling_factor : WEIGHTING_MATRIX_SCALING_FACTOR EQUAL non_negative_number { driver.option_num("mom.weighting_matrix_scaling_factor", $3); };
-
 o_analytic_standard_errors : ANALYTIC_STANDARD_ERRORS { driver.option_num("mom.analytic_standard_errors", "true"); };
-
 o_analytic_jacobian : ANALYTIC_JACOBIAN { driver.option_num("mom.analytic_jacobian", "true"); };
-
 o_mom_method : MOM_METHOD EQUAL GMM
                { driver.option_str("mom.mom_method", "GMM"); }
              | MOM_METHOD EQUAL SMM
                { driver.option_str("mom.mom_method", "SMM"); }
-             ;
+             | MOM_METHOD EQUAL IRF_MATCHING
+               { driver.option_str("mom.mom_method", "IRF_MATCHING"); };
+o_simulation_method : SIMULATION_METHOD EQUAL STOCH_SIMUL
+               { driver.option_str("mom.simulation_method", "STOCH_SIMUL"); };
 o_penalized_estimator : PENALIZED_ESTIMATOR { driver.option_num("mom.penalized_estimator", "true"); };
 o_verbose : VERBOSE { driver.option_num("mom.verbose", "true"); };
-
 o_simulation_multiple : SIMULATION_MULTIPLE EQUAL INT_NUMBER { driver.option_num("mom.simulation_multiple", $3); };
 o_mom_burnin : BURNIN EQUAL INT_NUMBER { driver.option_num("mom.burnin", $3); };
 o_bounded_shock_support : BOUNDED_SHOCK_SUPPORT { driver.option_num("mom.bounded_shock_support", "true"); };
 o_mom_seed : SEED EQUAL INT_NUMBER { driver.option_num("mom.seed", $3); };
 o_additional_optimizer_steps : ADDITIONAL_OPTIMIZER_STEPS EQUAL vec_int { driver.option_vec_int("additional_optimizer_steps", $3); };
-
 o_mom_se_tolx : SE_TOLX EQUAL non_negative_number { driver.option_num("mom.se_tolx", $3); };
+o_irf_matching_file : IRF_MATCHING_FILE EQUAL filename { driver.option_str("mom.irf_matching_file.name", $3); };
+o_add_tiny_number_to_cholesky : ADD_TINY_NUMBER_TO_CHOLESKY EQUAL non_negative_number { driver.option_num("add_tiny_number_to_cholesky", $3); };
 
 o_analytical_girf : ANALYTICAL_GIRF { driver.option_num("irf_opt.analytical_GIRF", "true"); };
 o_irf_in_percent : IRF_IN_PERCENT { driver.option_num("irf_opt.percent", "true"); };

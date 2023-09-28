@@ -5109,18 +5109,19 @@ MethodOfMomentsStatement::checkPass(ModFileStructure &mod_file_struct,
       mod_file_struct.order_option = max(mod_file_struct.order_option, order);
     }
 
-  if (!options_list.contains("datafile"))
+  if (!options_list.contains("mom.mom_method"))
     {
-      cerr << "ERROR: The method_of_moments statement requires a data file to be supplied via the datafile option." << endl;
+      cerr << "ERROR: The 'method_of_moments' statement requires a method to be supplied via the 'mom_method' option. Possible values are 'GMM', 'SMM', or 'IRF_MATCHING'." << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (!options_list.contains("mom.mom_method"))
+  auto mom_method_value = options_list.get_if<OptionsList::StringVal>("mom.mom_method");
+  if ((mom_method_value == "GMM" || mom_method_value == "SMM") && !options_list.contains("datafile"))
     {
-      cerr << "ERROR: The method_of_moments statement requires a method to be supplied via the mom_method option. Possible values are GMM or SMM." << endl;
+      cerr << "ERROR: The 'method_of_moments' statement requires a data file to be supplied via the 'datafile' option." << endl;
       exit(EXIT_FAILURE);
     }
- 
+    
   if (auto opt = options_list.get_if<OptionsList::StringVal>("mom.mom_method");
       opt && *opt == "GMM")
     mod_file_struct.GMM_present = true;

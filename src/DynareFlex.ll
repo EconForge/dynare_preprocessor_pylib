@@ -734,11 +734,14 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 }
 <DYNARE_STATEMENT>gmm {return token::GMM;}
 <DYNARE_STATEMENT>smm {return token::SMM;}
+<DYNARE_STATEMENT>irf_matching {return token::IRF_MATCHING;}
+<DYNARE_STATEMENT>stoch_simul {return token::STOCH_SIMUL;}
 <DYNARE_STATEMENT>weighting_matrix {return token::WEIGHTING_MATRIX; }
 <DYNARE_STATEMENT>weighting_matrix_scaling_factor {return token::WEIGHTING_MATRIX_SCALING_FACTOR; }
 <DYNARE_STATEMENT>analytic_standard_errors {return token::ANALYTIC_STANDARD_ERRORS; }
 <DYNARE_STATEMENT>analytic_jacobian {return token::ANALYTIC_JACOBIAN; }
 <DYNARE_STATEMENT>mom_method {return token::MOM_METHOD; }
+<DYNARE_STATEMENT>simulation_method {return token::SIMULATION_METHOD; }
 <DYNARE_STATEMENT>penalized_estimator {return token::PENALIZED_ESTIMATOR; }
 <DYNARE_STATEMENT>verbose {return token::VERBOSE; }
 <DYNARE_STATEMENT>simulation_multiple {return token::SIMULATION_MULTIPLE; }
@@ -746,6 +749,9 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>seed {return token::SEED; }
 <DYNARE_STATEMENT>se_tolx {return token::SE_TOLX;}
 <DYNARE_STATEMENT>bounded_shock_support {return token::BOUNDED_SHOCK_SUPPORT; }
+<DYNARE_STATEMENT>irf_matching_file {return token::IRF_MATCHING_FILE;}
+<DYNARE_STATEMENT>add_tiny_number_to_cholesky {return token::ADD_TINY_NUMBER_TO_CHOLESKY; }
+
 <DYNARE_STATEMENT>analytical_girf {return token::ANALYTICAL_GIRF; }
 <DYNARE_STATEMENT>irf_in_percent {return token::IRF_IN_PERCENT; }
 <DYNARE_STATEMENT>emas_girf {return token::EMAS_GIRF; }
