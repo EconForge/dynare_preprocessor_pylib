@@ -5029,10 +5029,17 @@ BinaryOpNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs
        the symbolic Jacobian has been used as a last resort, but this indicates
        a problem in the matching which is beyond our control at this point). */
     case BinaryOpcode::times:
-      if (arg1_contains_var)
-        rhs = datatree.AddDivide(rhs, arg2);
-      else
-        rhs = datatree.AddDivide(rhs, arg1);
+      try
+        {
+          if (arg1_contains_var)
+            rhs = datatree.AddDivide(rhs, arg2);
+          else
+            rhs = datatree.AddDivide(rhs, arg1);
+        }
+      catch (DataTree::DivisionByZeroException)
+        {
+          throw NormalizationFailed{};
+        }
       break;
     case BinaryOpcode::divide:
       if (arg1_contains_var)
@@ -5041,7 +5048,14 @@ BinaryOpNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs
         /* Transforming a/x=RHS into x=a/RHS is incorrect if RHS=0. However,
            per the same reasoning as for the multiplication case above, it
            nevertheless makes sense to do the transformation. */
-        rhs = datatree.AddDivide(arg1, rhs);
+        try
+          {
+            rhs = datatree.AddDivide(arg1, rhs);
+          }
+        catch (DataTree::DivisionByZeroException)
+          {
+            throw NormalizationFailed{};
+          }
       break;
     case BinaryOpcode::power:
       if (arg1_contains_var)
@@ -5053,7 +5067,14 @@ BinaryOpNode::normalizeEquationHelper(const set<expr_t> &contain_var, expr_t rhs
         throw NormalizationFailed();
       else
         // a^x=RHS is normalized in x=ln(RHS)/ln(a)
-        rhs = datatree.AddDivide(datatree.AddLog(rhs), datatree.AddLog(arg1));
+        try
+          {
+            rhs = datatree.AddDivide(datatree.AddLog(rhs), datatree.AddLog(arg1));
+          }
+        catch (DataTree::DivisionByZeroException)
+          {
+            throw NormalizationFailed{};
+          }
       break;
     case BinaryOpcode::equal:
       cerr << "BinaryOpCode::normalizeEquationHelper: this case should not happen" << endl;
