@@ -1503,68 +1503,35 @@ method_of_moments_options_list : method_of_moments_option COMMA method_of_moment
                                | method_of_moments_option
                                ;
 
-method_of_moments_option : o_mom_method
-                         | o_datafile
-                         | o_bartlett_kernel_lag
-                         | o_order
-                         | o_penalized_estimator
-                         | o_pruning
-                         | o_verbose
-                         | o_weighting_matrix
-                         | o_weighting_matrix_scaling_factor
-                         | o_mom_se_tolx
-                         | o_mom_burnin
-                         | o_bounded_shock_support
-                         | o_mom_seed
-                         | o_simulation_multiple
-                         | o_analytic_standard_errors
-                         | o_dirname
-                         | o_graph_format
-                         | o_nodisplay
-                         | o_nograph
-                         | o_noprint
-                         | o_plot_priors
-                         | o_prior_trunc
-                         | o_tex
-                         | o_first_obs
-                         | o_logdata
-                         | o_nobs
-                         | o_prefilter
-                         | o_xls_sheet
-                         | o_xls_range
-                         | o_mode_compute
+method_of_moments_option : o_add_tiny_number_to_cholesky
                          | o_additional_optimizer_steps
-                         | o_optim
-                         | o_silent_optimizer
-                         | o_huge_number
-                         | o_analytic_jacobian
                          | o_aim_solver
-                         | o_dr
-                         | o_dr_cycle_reduction_tol
-                         | o_dr_logarithmic_reduction_tol
-                         | o_dr_logarithmic_reduction_maxiter
-                         | o_k_order_solver
-                         | o_lyapunov
-                         | o_lyapunov_complex_threshold
-                         | o_lyapunov_fixed_point_tol
-                         | o_lyapunov_doubling_tol
-                         | o_sylvester
-                         | o_sylvester_fixed_point_tol
-                         | o_qz_criterium
-                         | o_qz_zero_threshold
-                         | o_schur_vec_tol
-                         | o_mode_check
-                         | o_mode_check_neighbourhood_size
-                         | o_mode_check_symmetric_plots
-                         | o_mode_check_number_of_points
-                         | o_add_tiny_number_to_cholesky
+                         | o_analytic_jacobian
+                         | o_analytic_standard_errors
+                         | o_bartlett_kernel_lag
+                         | o_bounded_shock_support
                          | o_brooks_gelman_plotrows
                          | o_cova_compute
+                         | o_datafile
+                         | o_dirname
+                         | o_dr
+                         | o_dr_cycle_reduction_tol
+                         | o_dr_logarithmic_reduction_maxiter
+                         | o_dr_logarithmic_reduction_tol
                          | o_drop
+                         | o_first_obs
                          | o_geweke_interval
+                         | o_graph_format
+                         | o_huge_number
                          | o_irf_matching_file
+                         | o_k_order_solver
                          | o_load_mh_file
                          | o_load_results_after_load_mh
+                         | o_logdata
+                         | o_lyapunov
+                         | o_lyapunov_complex_threshold
+                         | o_lyapunov_doubling_tol
+                         | o_lyapunov_fixed_point_tol
                          | o_mcmc_jumping_covariance
                          | o_mh_conf_sig
                          | o_mh_drop
@@ -1580,20 +1547,53 @@ method_of_moments_option : o_mom_method
                          | o_mh_replic
                          | o_mh_tune_guess
                          | o_mh_tune_jscale
+                         | o_mom_burnin
+                         | o_mom_method
+                         | o_mom_seed
+                         | o_mom_se_tolx
+                         | o_mode_check
+                         | o_mode_check_neighbourhood_size
+                         | o_mode_check_number_of_points
+                         | o_mode_check_symmetric_plots
+                         | o_mode_compute
                          | o_mode_file
+                         | o_nobs
                          | o_no_posterior_kernel_density
                          | o_nodiagnostic
+                         | o_nodisplay
+                         | o_nograph
+                         | o_noprint
+                         | o_optim
+                         | o_order
+                         | o_penalized_estimator
+                         | o_plot_priors
                          | o_posterior_max_subsample_draws
                          | o_posterior_sampler_options
                          | o_posterior_sampling_method
+                         | o_prefilter
+                         | o_prior_trunc
+                         | o_pruning
+                         | o_qz_criterium
+                         | o_qz_zero_threshold
                          | o_raftery_lewis_diagnostics
                          | o_raftery_lewis_qrs
                          | o_relative_irf
                          | o_replic
+                         | o_schur_vec_tol
+                         | o_silent_optimizer
                          | o_simulation_method
+                         | o_simulation_multiple
                          | o_sub_draws
+                         | o_sylvester
+                         | o_sylvester_fixed_point_tol
                          | o_taper_steps
+                         | o_tex
                          | o_use_penalized_objective_for_hessian
+                         | o_verbose
+                         | o_weighting_matrix
+                         | o_weighting_matrix_scaling_factor
+                         | o_xls_range
+                         | o_xls_sheet
                          ;
 
 prior_function : PRIOR_FUNCTION '(' prior_posterior_function_options_list ')' ';'
