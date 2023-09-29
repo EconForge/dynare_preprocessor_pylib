@@ -152,7 +152,7 @@ class ParsingDriver;
 %token RESTRICTION RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST
 %token DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR SPECIFICATION SIMS_ZHA
 %token <string> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX DIRICHLET DIAGONAL OPTIMAL
-%token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD WEIBULL WEIBULL_PDF GMM SMM
+%token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD WEIBULL WEIBULL_PDF
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
 %token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE UPDATED_COVARIANCE FILTER_DECOMPOSITION SMOOTHED_STATE_UNCERTAINTY SMOOTHER_REDUX
 %token EQ_CMS TLINDX TLNUMBER RESTRICTIONS POSTERIOR_SAMPLER_OPTIONS
@@ -180,14 +180,16 @@ class ParsingDriver;
 %token PAC_TARGET_INFO COMPONENT TARGET AUXNAME AUXNAME_TARGET_NONSTATIONARY PAC_TARGET_NONSTATIONARY
 %token <string> KIND LL DL DD ADD MULTIPLY
 /* Method of Moments */
-%token METHOD_OF_MOMENTS MOM_METHOD
+%token GMM SMM IRF_MATCHING
+%token METHOD_OF_MOMENTS MOM_METHOD SIMULATION_METHOD
 %token BARTLETT_KERNEL_LAG WEIGHTING_MATRIX WEIGHTING_MATRIX_SCALING_FACTOR ANALYTIC_STANDARD_ERRORS ANALYTIC_JACOBIAN PENALIZED_ESTIMATOR VERBOSE
 %token SIMULATION_MULTIPLE MOM_SEED SEED BOUNDED_SHOCK_SUPPORT ADDITIONAL_OPTIMIZER_STEPS MOM_SE_TOLX SE_TOLX MOM_BURNIN BURNIN
+%token IRF_MATCHING_FILE ADD_TINY_NUMBER_TO_CHOLESKY
 %token EQTAGS
 %token ANALYTICAL_GIRF IRF_IN_PERCENT EMAS_GIRF EMAS_DROP EMAS_TOLF EMAS_MAX_ITER
 %token NO_IDENTIFICATION_STRENGTH NO_IDENTIFICATION_REDUCEDFORM NO_IDENTIFICATION_MOMENTS
 %token NO_IDENTIFICATION_MINIMAL NO_IDENTIFICATION_SPECTRUM NORMALIZE_JACOBIANS GRID_NBR
-%token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS ZERO_MOMENTS_TOLERANCE
+%token TOL_RANK TOL_DERIV TOL_SV CHECKS_VIA_SUBSETS MAX_DIM_SUBSETS_GROUPS
 %token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION WITH_EPILOGUE MODEL_REMOVE MODEL_REPLACE MODEL_OPTIONS
 %token VAR_REMOVE ESTIMATED_PARAMS_REMOVE BLOCK_STATIC BLOCK_DYNAMIC INCIDENCE RESID NON_ZERO LEARNT_IN PLUS_EQUAL TIMES_EQUAL
 %token FSOLVE_OPTIONS
@@ -1501,61 +1503,97 @@ method_of_moments_options_list : method_of_moments_option COMMA method_of_moment
                                | method_of_moments_option
                                ;
 
-method_of_moments_option : o_mom_method
-                         | o_datafile
-                         | o_bartlett_kernel_lag
-                         | o_order
-                         | o_penalized_estimator
-                         | o_pruning
-                         | o_verbose
-                         | o_weighting_matrix
-                         | o_weighting_matrix_scaling_factor
-                         | o_mom_se_tolx
-                         | o_mom_burnin
-                         | o_bounded_shock_support
-                         | o_mom_seed
-                         | o_simulation_multiple
+method_of_moments_option : o_add_tiny_number_to_cholesky
+                         | o_additional_optimizer_steps
+                         | o_aim_solver
+                         | o_analytic_jacobian
                          | o_analytic_standard_errors
+                         | o_bartlett_kernel_lag
+                         | o_bounded_shock_support
+                         | o_brooks_gelman_plotrows
+                         | o_cova_compute
+                         | o_datafile
                          | o_dirname
+                         | o_dr
+                         | o_dr_cycle_reduction_tol
+                         | o_dr_logarithmic_reduction_maxiter
+                         | o_dr_logarithmic_reduction_tol
+                         | o_drop
+                         | o_first_obs
+                         | o_geweke_interval
                          | o_graph_format
+                         | o_huge_number
+                         | o_irf_matching_file
+                         | o_k_order_solver
+                         | o_load_mh_file
+                         | o_load_results_after_load_mh
+                         | o_logdata
+                         | o_lyapunov
+                         | o_lyapunov_complex_threshold
+                         | o_lyapunov_doubling_tol
+                         | o_lyapunov_fixed_point_tol
+                         | o_mcmc_jumping_covariance
+                         | o_mh_conf_sig
+                         | o_mh_drop
+                         | o_mh_init_scale_factor
+                         | o_mh_initialize_from_previous_mcmc
+                         | o_mh_initialize_from_previous_mcmc_directory
+                         | o_mh_initialize_from_previous_mcmc_prior
+                         | o_mh_initialize_from_previous_mcmc_record
+                         | o_mh_jscale
+                         | o_mh_nblocks
+                         | o_mh_posterior_mode_estimation
+                         | o_mh_recover
+                         | o_mh_replic
+                         | o_mh_tune_guess
+                         | o_mh_tune_jscale
+                         | o_mom_burnin
+                         | o_mom_method
+                         | o_mom_seed
+                         | o_mom_se_tolx
+                         | o_mode_check
+                         | o_mode_check_neighbourhood_size
+                         | o_mode_check_number_of_points
+                         | o_mode_check_symmetric_plots
+                         | o_mode_compute
+                         | o_mode_file
+                         | o_nobs
+                         | o_no_posterior_kernel_density
+                         | o_nodiagnostic
                          | o_nodisplay
                          | o_nograph
                          | o_noprint
-                         | o_plot_priors
-                         | o_prior_trunc
-                         | o_tex
-                         | o_first_obs
-                         | o_logdata
-                         | o_nobs
-                         | o_prefilter
-                         | o_xls_sheet
-                         | o_xls_range
-                         | o_mode_compute
-                         | o_additional_optimizer_steps
                          | o_optim
-                         | o_silent_optimizer
-                         | o_huge_number
-                         | o_analytic_jacobian
-                         | o_aim_solver
-                         | o_dr
-                         | o_dr_cycle_reduction_tol
-                         | o_dr_logarithmic_reduction_tol
-                         | o_dr_logarithmic_reduction_maxiter
-                         | o_k_order_solver
-                         | o_lyapunov
-                         | o_lyapunov_complex_threshold
-                         | o_lyapunov_fixed_point_tol
-                         | o_lyapunov_doubling_tol
-                         | o_sylvester
-                         | o_sylvester_fixed_point_tol
+                         | o_order
+                         | o_penalized_estimator
+                         | o_plot_priors
+                         | o_posterior_max_subsample_draws
+                         | o_posterior_sampler_options
+                         | o_posterior_sampling_method
+                         | o_prefilter
+                         | o_prior_trunc
+                         | o_pruning
                          | o_qz_criterium
                          | o_qz_zero_threshold
+                         | o_raftery_lewis_diagnostics
+                         | o_raftery_lewis_qrs
+                         | o_relative_irf
+                         | o_replic
                          | o_schur_vec_tol
-                         | o_zero_moments_tolerance
-                         | o_mode_check
-                         | o_mode_check_neighbourhood_size
-                         | o_mode_check_symmetric_plots
-                         | o_mode_check_number_of_points
+                         | o_silent_optimizer
+                         | o_simulation_method
+                         | o_simulation_multiple
+                         | o_sub_draws
+                         | o_sylvester
+                         | o_sylvester_fixed_point_tol
+                         | o_taper_steps
+                         | o_tex
+                         | o_use_penalized_objective_for_hessian
+                         | o_verbose
+                         | o_weighting_matrix
+                         | o_weighting_matrix_scaling_factor
+                         | o_xls_range
+                         | o_xls_sheet
                          ;
 
 prior_function : PRIOR_FUNCTION '(' prior_posterior_function_options_list ')' ';'
@@ -2436,7 +2474,6 @@ identification_option : o_ar
                       | o_max_dim_subsets_groups
                       | o_order
                       | o_schur_vec_tol
-                      | o_zero_moments_tolerance
                       ;
 
 model_comparison : MODEL_COMPARISON mc_filename_list ';'
@@ -4101,30 +4138,28 @@ o_fsolve_options : FSOLVE_OPTIONS EQUAL '(' name_value_pair_with_boolean_list ')
 
 // Some options to "method_of_moments"
 o_bartlett_kernel_lag : BARTLETT_KERNEL_LAG EQUAL INT_NUMBER { driver.option_num("mom.bartlett_kernel_lag", $3); };
-
 o_weighting_matrix : WEIGHTING_MATRIX EQUAL vec_str { driver.option_vec_cellstr("mom.weighting_matrix", $3); }
-
 o_weighting_matrix_scaling_factor : WEIGHTING_MATRIX_SCALING_FACTOR EQUAL non_negative_number { driver.option_num("mom.weighting_matrix_scaling_factor", $3); };
-
 o_analytic_standard_errors : ANALYTIC_STANDARD_ERRORS { driver.option_num("mom.analytic_standard_errors", "true"); };
-
 o_analytic_jacobian : ANALYTIC_JACOBIAN { driver.option_num("mom.analytic_jacobian", "true"); };
-
 o_mom_method : MOM_METHOD EQUAL GMM
                { driver.option_str("mom.mom_method", "GMM"); }
              | MOM_METHOD EQUAL SMM
                { driver.option_str("mom.mom_method", "SMM"); }
-             ;
+             | MOM_METHOD EQUAL IRF_MATCHING
+               { driver.option_str("mom.mom_method", "IRF_MATCHING"); };
+o_simulation_method : SIMULATION_METHOD EQUAL STOCH_SIMUL
+               { driver.option_str("mom.simulation_method", "STOCH_SIMUL"); };
 o_penalized_estimator : PENALIZED_ESTIMATOR { driver.option_num("mom.penalized_estimator", "true"); };
 o_verbose : VERBOSE { driver.option_num("mom.verbose", "true"); };
-
 o_simulation_multiple : SIMULATION_MULTIPLE EQUAL INT_NUMBER { driver.option_num("mom.simulation_multiple", $3); };
 o_mom_burnin : BURNIN EQUAL INT_NUMBER { driver.option_num("mom.burnin", $3); };
 o_bounded_shock_support : BOUNDED_SHOCK_SUPPORT { driver.option_num("mom.bounded_shock_support", "true"); };
 o_mom_seed : SEED EQUAL INT_NUMBER { driver.option_num("mom.seed", $3); };
 o_additional_optimizer_steps : ADDITIONAL_OPTIMIZER_STEPS EQUAL vec_int { driver.option_vec_int("additional_optimizer_steps", $3); };
-
 o_mom_se_tolx : SE_TOLX EQUAL non_negative_number { driver.option_num("mom.se_tolx", $3); };
+o_irf_matching_file : IRF_MATCHING_FILE EQUAL filename { driver.option_str("mom.irf_matching_file.name", $3); };
+o_add_tiny_number_to_cholesky : ADD_TINY_NUMBER_TO_CHOLESKY EQUAL non_negative_number { driver.option_num("add_tiny_number_to_cholesky", $3); };
 
 o_analytical_girf : ANALYTICAL_GIRF { driver.option_num("irf_opt.analytical_GIRF", "true"); };
 o_irf_in_percent : IRF_IN_PERCENT { driver.option_num("irf_opt.percent", "true"); };
@@ -4147,7 +4182,6 @@ o_tol_deriv : TOL_DERIV EQUAL non_negative_number { driver.option_num("tol_deriv
 o_tol_sv : TOL_SV EQUAL non_negative_number { driver.option_num("tol_sv", $3); };
 o_checks_via_subsets : CHECKS_VIA_SUBSETS EQUAL INT_NUMBER { driver.option_num("checks_via_subsets", $3); };
 o_max_dim_subsets_groups : MAX_DIM_SUBSETS_GROUPS EQUAL INT_NUMBER { driver.option_num("max_dim_subsets_groups", $3); };
-o_zero_moments_tolerance : ZERO_MOMENTS_TOLERANCE EQUAL non_negative_number { driver.option_num("zero_moments_tolerance", $3); };
 o_block_static : BLOCK_STATIC { driver.option_num("block_static","true"); };
 o_block_dynamic : BLOCK_DYNAMIC { driver.option_num("block_dynamic","true"); };
 o_incidence : INCIDENCE { driver.option_num("incidence","true"); };

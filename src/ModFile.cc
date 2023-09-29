@@ -1036,7 +1036,9 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
                   << "if exist('dataset_info', 'var') == 1" << endl
                   << "  save([M_.dname filesep 'Output' filesep '" << basename << "_results.mat'], 'dataset_info', '-append');" << endl << "end" << endl
                   << "if exist('oo_recursive_', 'var') == 1" << endl
-                  << "  save([M_.dname filesep 'Output' filesep '" << basename << "_results.mat'], 'oo_recursive_', '-append');" << endl << "end" << endl;
+                  << "  save([M_.dname filesep 'Output' filesep '" << basename << "_results.mat'], 'oo_recursive_', '-append');" << endl << "end" << endl
+                  << "if exist('options_mom_', 'var') == 1" << endl
+                  << "  save([M_.dname filesep 'Output' filesep '" << basename << "_results.mat'], 'options_mom_', '-append');" << endl << "end" << endl;
 
       config_file.writeEndParallel(mOutputFile);
 
