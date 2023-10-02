@@ -46,7 +46,7 @@ build_macos_x86_64:
   tags:
     - macOS
   script:
-    - arch -x86_64 meson setup -D buildtype=release --native-file scripts/homebrew-native.ini build
+    - arch -x86_64 meson setup -D buildtype=release --native-file scripts/homebrew-native-x86_64.ini build
     - arch -x86_64 meson compile -C build -v
   artifacts:
     paths:
