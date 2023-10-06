@@ -362,6 +362,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>nocorr	{return token::NOCORR;}
 <DYNARE_STATEMENT>optim		{return token::OPTIM;}
 <DYNARE_STATEMENT>periods	{return token::PERIODS;}
+<DYNARE_BLOCK>from_initval_to_endval	{return token::FROM_INITVAL_TO_ENDVAL;}
 <DYNARE_STATEMENT>endval_steady	{return token::ENDVAL_STEADY;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>model_name	{return token::MODEL_NAME;}
 <DYNARE_STATEMENT>auxiliary_model_name    {return token::AUXILIARY_MODEL_NAME;}

@@ -427,7 +427,7 @@ public:
   //! Writes end of an histval block
   void end_histval(bool all_values_required);
   //! Writes end of an homotopy_setup block
-  void end_homotopy();
+  void end_homotopy(bool from_initval_to_endval);
   //! Begin epilogue block
   void begin_epilogue();
   //! End epilogue block

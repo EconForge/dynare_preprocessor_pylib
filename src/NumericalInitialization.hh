@@ -172,10 +172,11 @@ public:
   /*! Order matter so we use a vector. First expr_t can be NULL if no initial value given. */
   using homotopy_values_t = vector<tuple<int, expr_t, expr_t>>;
 private:
+  const bool from_initval_to_endval; // Whether the from_initval_to_endval option was passed
   const homotopy_values_t homotopy_values;
   const SymbolTable &symbol_table;
 public:
-  HomotopySetupStatement(homotopy_values_t homotopy_values_arg,
+  HomotopySetupStatement(bool from_initval_to_endval_arg, homotopy_values_t homotopy_values_arg,
                          const SymbolTable &symbol_table_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;

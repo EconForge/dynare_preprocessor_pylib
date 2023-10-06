@@ -195,7 +195,7 @@ class ParsingDriver;
 %token FSOLVE_OPTIONS
 %token ENDVAL_STEADY STEADY_SOLVE_ALGO STEADY_MAXIT STEADY_TOLF STEADY_TOLX STEADY_MARKOWITZ
 %token HOMOTOPY_MAX_COMPLETION_SHARE HOMOTOPY_MIN_STEP_SIZE HOMOTOPY_INITIAL_STEP_SIZE HOMOTOPY_STEP_SIZE_INCREASE_SUCCESS_COUNT
-%token HOMOTOPY_LINEARIZATION_FALLBACK HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK
+%token HOMOTOPY_LINEARIZATION_FALLBACK HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK FROM_INITVAL_TO_ENDVAL
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -3204,8 +3204,13 @@ initial_condition_decomposition_option : o_icd_type
                                        | o_icd_with_epilogue
                                        ;
 
-homotopy_setup: HOMOTOPY_SETUP ';' homotopy_list END ';'
-               { driver.end_homotopy();};
+homotopy_setup : HOMOTOPY_SETUP ';' homotopy_list END ';'
+                 { driver.end_homotopy(false); }
+               | HOMOTOPY_SETUP '(' FROM_INITVAL_TO_ENDVAL ')' ';' END ';'
+                 { driver.end_homotopy(true); }
+               | HOMOTOPY_SETUP '(' FROM_INITVAL_TO_ENDVAL ')' ';' homotopy_list END ';'
+                 { driver.end_homotopy(true); }
+               ;
 
 homotopy_list : homotopy_item
               | homotopy_list homotopy_item

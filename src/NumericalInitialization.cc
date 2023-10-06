@@ -534,8 +534,10 @@ HistvalFileStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-HomotopySetupStatement::HomotopySetupStatement(homotopy_values_t homotopy_values_arg,
+HomotopySetupStatement::HomotopySetupStatement(bool from_initval_to_endval_arg,
+                                               homotopy_values_t homotopy_values_arg,
                                                const SymbolTable &symbol_table_arg) :
+  from_initval_to_endval{from_initval_to_endval_arg},
   homotopy_values{move(homotopy_values_arg)},
   symbol_table{symbol_table_arg}
 {
@@ -548,7 +550,8 @@ HomotopySetupStatement::writeOutput(ostream &output, [[maybe_unused]] const stri
   output << "%" << endl
          << "% HOMOTOPY_SETUP instructions" << endl
          << "%" << endl
-         << "options_.homotopy_values = [];" << endl;
+         << "options_.homotopy_from_initval_to_endval = " << boolalpha << from_initval_to_endval << ';' << endl
+         << "options_.homotopy_values = zeros(0, 4);" << endl;
 
   for (auto [symb_id, expression1, expression2] : homotopy_values)
     {
