@@ -172,7 +172,7 @@ private:
   //! Temporary storage for histval blocks
   HistValStatement::hist_values_t hist_values;
   //! Temporary storage for homotopy_setup blocks
-  HomotopyStatement::homotopy_values_t homotopy_values;
+  HomotopySetupStatement::homotopy_values_t homotopy_values;
   //! Temporary storage for moment_calibration
   MomentCalibration::constraints_t moment_calibration_constraints;
   //! Temporary storage for irf_calibration

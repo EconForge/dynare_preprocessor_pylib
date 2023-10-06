@@ -534,16 +534,16 @@ HistvalFileStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-HomotopyStatement::HomotopyStatement(homotopy_values_t homotopy_values_arg,
-                                     const SymbolTable &symbol_table_arg) :
+HomotopySetupStatement::HomotopySetupStatement(homotopy_values_t homotopy_values_arg,
+                                               const SymbolTable &symbol_table_arg) :
   homotopy_values{move(homotopy_values_arg)},
   symbol_table{symbol_table_arg}
 {
 }
 
 void
-HomotopyStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
-                               [[maybe_unused]] bool minimal_workspace) const
+HomotopySetupStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+                                    [[maybe_unused]] bool minimal_workspace) const
 {
   output << "%" << endl
          << "% HOMOTOPY_SETUP instructions" << endl
@@ -567,7 +567,7 @@ HomotopyStatement::writeOutput(ostream &output, [[maybe_unused]] const string &b
 }
 
 void
-HomotopyStatement::writeJsonOutput(ostream &output) const
+HomotopySetupStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "homotopy", )"
          << R"("values": [)";

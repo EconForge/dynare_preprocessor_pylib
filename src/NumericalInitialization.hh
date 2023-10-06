@@ -165,7 +165,7 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
-class HomotopyStatement : public Statement
+class HomotopySetupStatement : public Statement
 {
 public:
   //! Stores the declarations of homotopy_setup
@@ -175,8 +175,8 @@ private:
   const homotopy_values_t homotopy_values;
   const SymbolTable &symbol_table;
 public:
-  HomotopyStatement(homotopy_values_t homotopy_values_arg,
-                    const SymbolTable &symbol_table_arg);
+  HomotopySetupStatement(homotopy_values_t homotopy_values_arg,
+                         const SymbolTable &symbol_table_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream &output) const override;
 };

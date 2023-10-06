@@ -795,7 +795,7 @@ ParsingDriver::end_histval(bool all_values_required)
 void
 ParsingDriver::end_homotopy()
 {
-  mod_file->addStatement(make_unique<HomotopyStatement>(move(homotopy_values), mod_file->symbol_table));
+  mod_file->addStatement(make_unique<HomotopySetupStatement>(move(homotopy_values), mod_file->symbol_table));
   homotopy_values.clear();
 }
 
