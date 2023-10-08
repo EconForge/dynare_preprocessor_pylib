@@ -108,7 +108,7 @@ class ParsingDriver;
 %token <string> NAME
 %token USE_PENALIZED_OBJECTIVE_FOR_HESSIAN INIT_STATE FAST_REALTIME RESCALE_PREDICTION_ERROR_COVARIANCE GENERATE_IRFS
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS NO_HOMOTOPY
-%token NOGRAPH POSTERIOR_NOGRAPH POSTERIOR_GRAPH NOMOMENTS NOPRINT NORMAL_PDF SAVE_DRAWS MODEL_NAME STDERR_MULTIPLES DIAGONAL_ONLY
+%token NOGRAPH POSTERIOR_NOGRAPH POSTERIOR_GRAPH NOMOMENTS NOMODELSUMMARY NOPRINT NORMAL_PDF SAVE_DRAWS MODEL_NAME STDERR_MULTIPLES DIAGONAL_ONLY
 %token DETERMINISTIC_TRENDS OBSERVATION_TRENDS OPTIM OPTIM_WEIGHTS ORDER OSR OSR_PARAMS MAX_DIM_COVA_GROUP ADVANCED OUTFILE OUTVARS OVERWRITE DISCOUNT
 %token PARALLEL_LOCAL_FILES PARAMETERS PARAMETER_SET PARTIAL_INFORMATION PERIODS PERIOD PLANNER_OBJECTIVE PLOT_CONDITIONAL_FORECAST PLOT_PRIORS PREFILTER PRESAMPLE
 %token PERFECT_FORESIGHT_SETUP PERFECT_FORESIGHT_SOLVER NO_POSTERIOR_KERNEL_DENSITY FUNCTION
@@ -1665,6 +1665,7 @@ stoch_simul_primary_options : o_dr_algo
                             | o_contemporaneous_correlation
                             | o_nofunctions
                             | o_nomoments
+                            | o_nomodelsummary
                             | o_nograph
                             | o_nodisplay
                             | o_graph_format
@@ -3494,6 +3495,7 @@ o_ar : AR EQUAL INT_NUMBER { driver.option_num("ar", $3); };
 o_nocorr : NOCORR { driver.option_num("nocorr", "true"); };
 o_nofunctions : NOFUNCTIONS { driver.option_num("nofunctions", "true"); };
 o_nomoments : NOMOMENTS { driver.option_num("nomoments", "true"); };
+o_nomodelsummary : NOMODELSUMMARY { driver.option_num("nomodelsummary", "true"); };
 o_irf : IRF EQUAL INT_NUMBER { driver.option_num("irf", $3); };
 o_irf_shocks : IRF_SHOCKS EQUAL '(' symbol_list ')' { driver.option_symbol_list("irf_shocks", $4); };
 o_hp_filter : HP_FILTER EQUAL non_negative_number { driver.option_num("hp_filter", $3); };

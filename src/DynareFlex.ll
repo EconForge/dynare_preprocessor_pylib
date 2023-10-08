@@ -357,6 +357,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT,DYNARE_BLOCK>relative_irf {return token::RELATIVE_IRF;}
 <DYNARE_STATEMENT>tex		{return token::TEX;}
 <DYNARE_STATEMENT>nomoments	{return token::NOMOMENTS;}
+<DYNARE_STATEMENT>nomodelsummary {return token::NOMODELSUMMARY;}
 <DYNARE_STATEMENT>std		{return token::STD;}
 <DYNARE_STATEMENT>corr		{return token::CORR;}
 <DYNARE_STATEMENT>nocorr	{return token::NOCORR;}
