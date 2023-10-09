@@ -5334,7 +5334,7 @@ OccbinConstraintsStatement::writeOutput(ostream &output, const string &basename,
   output << "];" << endl
          << "options_.occbin = struct();" << endl
          << "options_.occbin = occbin.set_default_options(options_.occbin, M_);" << endl
-         << "oo_.dr=set_state_space(oo_.dr,M_,options_);" <<  endl;
+         << "oo_.dr=set_state_space(oo_.dr,M_);" <<  endl;
 
   filesystem::path filename {"+" + basename + "/occbin_difference.m"};
   ofstream diff_output{filename, ios::out | ios::binary};
