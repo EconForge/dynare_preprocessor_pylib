@@ -51,3 +51,15 @@ build_macos_x86_64:
   artifacts:
     paths:
       - build/src/dynare-preprocessor
+
+build_macos_arm64:
+  stage: build
+  tags:
+    - macOS
+  script:
+    - export PATH="/opt/homebrew/bin:$PATH"
+    - arch -arm64 meson setup -D buildtype=release --native-file scripts/homebrew-native-arm64.ini build
+    - arch -arm64 meson compile -C build -v
+  artifacts:
+    paths:
+      - build/src/dynare-preprocessor
