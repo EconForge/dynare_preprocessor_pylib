@@ -511,7 +511,7 @@ ModelTree::computePrologueAndEpilogue()
 }
 
 void
-ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives, int mfs)
+ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives)
 {
   equation_type_and_normalized_equation.clear();
   equation_type_and_normalized_equation.resize(equations.size());
@@ -2018,7 +2018,7 @@ ModelTree::computingPassBlock(const eval_context_t &eval_context, bool no_tmp_te
     return;
   auto [prologue, epilogue] = computePrologueAndEpilogue();
   auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
-  equationTypeDetermination(first_order_endo_derivatives, mfs);
+  equationTypeDetermination(first_order_endo_derivatives);
   cout << "Finding the optimal block decomposition of the " << modelClassName() << "..." << endl;
   computeBlockDecomposition(prologue, epilogue);
   reduceBlockDecomposition();

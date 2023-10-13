@@ -478,7 +478,7 @@ private:
      Returns the sizes of the prologue and epilogue. */
   pair<int, int> computePrologueAndEpilogue();
   //! Determine the type of each equation of model and try to normalize the unnormalized equation
-  void equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives, int mfs);
+  void equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives);
   /* Fills the max lags/leads and n_{static,mixed,forward,backward} fields of a
      given block.
      Needs the fields size and first_equation. */
