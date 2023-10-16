@@ -619,8 +619,6 @@ protected:
 public:
   //! Absolute value under which a number is considered to be zero
   double cutoff{1e-15};
-  // Setting for minimum feedback set computation (see the reference manual)
-  int mfs{1};
   //! Declare a node as an equation of the model; also give its line number
   void addEquation(expr_t eq, optional<int> lineno);
   //! Declare a node as an equation of the model, also giving its tags
@@ -703,6 +701,10 @@ public:
         return "UNKNOWN                      ";
       }
   }
+
+  /* Returns the minimum feedback set value (see the “mfs” option of the
+     “model” block in the reference manual for the possible values) */
+  virtual int getMFS() const = 0;
 };
 
 template<ExprNodeOutputType output_type>

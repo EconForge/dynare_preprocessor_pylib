@@ -86,7 +86,8 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   nonzero_hessian_eqs{m.nonzero_hessian_eqs},
   variableMapping{m.variableMapping},
   blocks_jacob_cols_endo{m.blocks_jacob_cols_endo},
-  var_expectation_functions_to_write{m.var_expectation_functions_to_write}
+  var_expectation_functions_to_write{m.var_expectation_functions_to_write},
+  mfs{m.mfs}
 {
   copyHelper(m);
 }
@@ -133,6 +134,7 @@ DynamicModel::operator=(const DynamicModel &m)
   blocks_jacob_cols_endo = m.blocks_jacob_cols_endo;
 
   var_expectation_functions_to_write = m.var_expectation_functions_to_write;
+  mfs = m.mfs;
 
   copyHelper(m);
 

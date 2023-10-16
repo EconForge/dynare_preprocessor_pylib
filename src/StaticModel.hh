@@ -190,6 +190,12 @@ public:
 
   // Writes ramsey_multipliers_derivatives (C version)
   void writeRamseyMultipliersDerivativesCFile(const string &basename, const string &mexext, const filesystem::path &matlabroot, int ramsey_orig_endo_nbr) const;
+
+  int
+  getMFS() const override
+  {
+    return 0;
+  }
 };
 
 template<bool julia>

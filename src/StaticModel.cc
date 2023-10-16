@@ -90,7 +90,6 @@ StaticModel::StaticModel(const DynamicModel &m) :
     addAuxEquation(aux_eq->toStatic(*this));
 
   cutoff = m.cutoff;
-  mfs = m.mfs;
 
   user_set_add_flags = m.user_set_add_flags;
   user_set_subst_flags = m.user_set_subst_flags;

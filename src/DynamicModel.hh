@@ -109,6 +109,9 @@ private:
   //! Used for var_expectation and var_model
   map<string, set<int>> var_expectation_functions_to_write;
 
+  // Value of the “mfs” option of “model” block (or ”model_options” command)
+  int mfs{1};
+
   // Writes dynamic model file (MATLAB/Octave version, legacy representation)
   void writeDynamicMFile(const string &basename) const;
   //! Writes the code of the block-decomposed model in virtual machine bytecode
@@ -655,6 +658,18 @@ public:
 
   // Returns the set of equations (as numbers) which have a pac_expectation operator
   set<int> findPacExpectationEquationNumbers() const;
+
+  int
+  getMFS() const override
+  {
+    return mfs;
+  }
+
+  void
+  setMFS(int mfs_arg)
+  {
+    mfs = mfs_arg;
+  }
 };
 
 template<bool julia>

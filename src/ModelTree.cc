@@ -172,8 +172,7 @@ ModelTree::ModelTree(const ModelTree &m) :
   eq2block{m.eq2block},
   blocks_jacobian_sparse_colptr{m.blocks_jacobian_sparse_colptr},
   endo2eq{m.endo2eq},
-  cutoff{m.cutoff},
-  mfs{m.mfs}
+  cutoff{m.cutoff}
 {
   copyHelper(m);
 }
@@ -221,7 +220,6 @@ ModelTree::operator=(const ModelTree &m)
   blocks_jacobian_sparse_colptr = m.blocks_jacobian_sparse_colptr;
   endo2eq = m.endo2eq;
   cutoff = m.cutoff;
-  mfs = m.mfs;
 
   user_set_add_flags = m.user_set_add_flags;
   user_set_subst_flags = m.user_set_subst_flags;
@@ -539,7 +537,7 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
               try
                 {
                   normalized_eq = equations[eq]->normalizeEquation(symbol_table.getID(SymbolType::endogenous, var), 0);
-                  if ((mfs == 2 && variable_not_in_derivative) || mfs == 3)
+                  if ((getMFS() == 2 && variable_not_in_derivative) || getMFS() == 3)
                     Equation_Simulation_Type = EquationType::evaluateRenormalized;
                 }
               catch (ExprNode::NormalizationFailed &e)
@@ -706,7 +704,7 @@ ModelTree::computeBlockDecomposition(int prologue, int epilogue)
              || variable_lag_lead[endo_idx_block2orig[i+prologue]].second > 0
              || equation_lag_lead[eq_idx_block2orig[i+prologue]].first > 0
              || equation_lag_lead[eq_idx_block2orig[i+prologue]].second > 0))
-        || mfs == 0)
+        || getMFS() == 0)
       add_edge(vertex(i, G), vertex(i, G), G);
 
   const vector<int> old_eq_idx_block2orig(eq_idx_block2orig), old_endo_idx_block2orig(endo_idx_block2orig);

@@ -697,7 +697,7 @@ void
 ParsingDriver::mfs(const string &value)
 {
   int val = stoi(value);
-  mod_file->dynamic_model.mfs = val;
+  mod_file->dynamic_model.setMFS(val);
 }
 
 void
