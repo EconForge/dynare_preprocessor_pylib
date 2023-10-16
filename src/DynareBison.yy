@@ -942,14 +942,14 @@ resid : RESID ';'
 /* The tokens below must be accepted in both DYNARE_STATEMENT and DYNARE_BLOCK
    states in the lexer, because of model block and model_options statement */
 model_option : BLOCK { driver.block(); }
-             | o_cutoff
-             | o_mfs
+             | CUTOFF EQUAL non_negative_number { driver.cutoff($3); };
+             | MFS EQUAL INT_NUMBER { driver.mfs($3); };
              | BYTECODE { driver.bytecode(); }
              | USE_DLL { driver.use_dll(); }
              | NO_STATIC { driver.no_static();}
              | DIFFERENTIATE_FORWARD_VARS { driver.differentiate_forward_vars_all(); }
              | DIFFERENTIATE_FORWARD_VARS EQUAL '(' symbol_list ')' { driver.differentiate_forward_vars_some($4); }
-             | o_linear
+             | LINEAR { driver.linear(); };
              | PARALLEL_LOCAL_FILES EQUAL '(' parallel_local_filename_list ')'
              | BALANCED_GROWTH_TEST_TOL EQUAL non_negative_number { driver.balanced_growth_test_tol($3); }
              ;
@@ -3487,7 +3487,6 @@ o_simul_algo : SIMUL_ALGO EQUAL INT_NUMBER {
 o_stack_solve_algo : STACK_SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("stack_solve_algo", $3); };
 o_robust_lin_solve : ROBUST_LIN_SOLVE { driver.option_num("simul.robust_lin_solve", "true"); };
 o_endogenous_terminal_period : ENDOGENOUS_TERMINAL_PERIOD { driver.option_num("endogenous_terminal_period", "true"); };
-o_linear : LINEAR { driver.linear(); };
 o_order : ORDER EQUAL INT_NUMBER { driver.option_num("order", $3); };
 o_replic : REPLIC EQUAL INT_NUMBER { driver.option_num("replic", $3); };
 o_drop : DROP EQUAL INT_NUMBER { driver.option_num("drop", $3); };
@@ -3528,7 +3527,6 @@ o_steady_tolx : TOLX EQUAL non_negative_number { driver.option_num("solve_tolx",
 o_opt_algo : OPT_ALGO EQUAL INT_NUMBER { driver.option_num("osr.opt_algo", $3); }
            | OPT_ALGO EQUAL filename { driver.option_str("osr.opt_algo", $3); }
            ;
-o_cutoff : CUTOFF EQUAL non_negative_number { driver.cutoff($3); };
 o_markowitz : MARKOWITZ EQUAL non_negative_number { driver.option_num("markowitz", $3); };
 
 // Options of perfect_foresight_* commands that control steady state computation at terminal condition
@@ -3539,7 +3537,6 @@ o_pf_steady_tolx : STEADY_TOLX EQUAL non_negative_number { driver.option_num("si
 o_pf_steady_markowitz : STEADY_MARKOWITZ EQUAL non_negative_number { driver.option_num("simul.steady_markowitz", $3); };
 
 o_minimal_solving_periods : MINIMAL_SOLVING_PERIODS EQUAL non_negative_number { driver.option_num("minimal_solving_periods", $3); };
-o_mfs : MFS EQUAL INT_NUMBER { driver.mfs($3); };
 o_simul : SIMUL; // Do nothing, only here for backward compatibility
 o_simul_replic : SIMUL_REPLIC EQUAL INT_NUMBER { driver.option_num("simul_replic", $3); };
 o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.error("'simul_seed' option is no longer supported; use 'set_dynare_seed' command instead"); } ;
