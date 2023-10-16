@@ -117,6 +117,11 @@ private:
   template<ExprNodeOutputType output_type>
   void writeRamseyMultipliersDerivativesHelper(ostream &output) const;
 
+  //! Internal helper for the copy constructor and assignment operator
+  /*! Copies all the structures that contain ExprNode*, by the converting the
+      pointers into their equivalent in the new tree */
+  void copyHelper(const StaticModel &m);
+
 protected:
   string
   modelClassName() const override

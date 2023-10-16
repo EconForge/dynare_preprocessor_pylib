@@ -36,15 +36,34 @@ StaticModel::StaticModel(SymbolTable &symbol_table_arg,
 {
 }
 
-StaticModel::StaticModel(const StaticModel &m) :
-  ModelTree{m}
+void
+StaticModel::copyHelper(const StaticModel &m)
 {
+  auto f = [this](const ExprNode *e) { return e->clone(*this); };
+
+  for (const auto &it : m.ramsey_multipliers_derivatives_temporary_terms)
+    ramsey_multipliers_derivatives_temporary_terms.insert(f(it));
+  for (const auto &it : m.ramsey_multipliers_derivatives_temporary_terms_idxs)
+    ramsey_multipliers_derivatives_temporary_terms_idxs.emplace(f(it.first), it.second);
+}
+
+StaticModel::StaticModel(const StaticModel &m) :
+  ModelTree{m},
+  ramsey_multipliers_derivatives{m.ramsey_multipliers_derivatives},
+  ramsey_multipliers_derivatives_sparse_colptr{m.ramsey_multipliers_derivatives_sparse_colptr}
+{
+  copyHelper(m);
 }
 
 StaticModel &
 StaticModel::operator=(const StaticModel &m)
 {
   ModelTree::operator=(m);
+
+  ramsey_multipliers_derivatives = m.ramsey_multipliers_derivatives;
+  ramsey_multipliers_derivatives_sparse_colptr = m.ramsey_multipliers_derivatives_sparse_colptr;
+
+  copyHelper(m);
 
   return *this;
 }
