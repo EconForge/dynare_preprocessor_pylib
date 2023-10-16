@@ -337,6 +337,8 @@ public:
   void cutoff(const string &value);
   //! mfs option of model block
   void mfs(const string &value);
+  //! static_mfs option of model block
+  void static_mfs(const string &value);
   //! the flags to substitute for the default compiler flags used by `use_dll`
   void compilation_setup_substitute_flags(const string &flags);
   //! the flags to add to the default compiler flags used by `use_dll`

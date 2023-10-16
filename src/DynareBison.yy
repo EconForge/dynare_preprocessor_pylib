@@ -196,6 +196,7 @@ class ParsingDriver;
 %token ENDVAL_STEADY STEADY_SOLVE_ALGO STEADY_MAXIT STEADY_TOLF STEADY_TOLX STEADY_MARKOWITZ
 %token HOMOTOPY_MAX_COMPLETION_SHARE HOMOTOPY_MIN_STEP_SIZE HOMOTOPY_INITIAL_STEP_SIZE HOMOTOPY_STEP_SIZE_INCREASE_SUCCESS_COUNT
 %token HOMOTOPY_LINEARIZATION_FALLBACK HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK FROM_INITVAL_TO_ENDVAL
+%token STATIC_MFS
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -944,6 +945,7 @@ resid : RESID ';'
 model_option : BLOCK { driver.block(); }
              | CUTOFF EQUAL non_negative_number { driver.cutoff($3); };
              | MFS EQUAL INT_NUMBER { driver.mfs($3); };
+             | STATIC_MFS EQUAL INT_NUMBER { driver.static_mfs($3); };
              | BYTECODE { driver.bytecode(); }
              | USE_DLL { driver.use_dll(); }
              | NO_STATIC { driver.no_static();}

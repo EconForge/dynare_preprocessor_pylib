@@ -701,6 +701,13 @@ ParsingDriver::mfs(const string &value)
 }
 
 void
+ParsingDriver::static_mfs(const string &value)
+{
+  int val = stoi(value);
+  mod_file->dynamic_model.setStaticMFS(val);
+}
+
+void
 ParsingDriver::compilation_setup_substitute_flags(const string &flags)
 {
   mod_file->dynamic_model.user_set_subst_flags = flags;

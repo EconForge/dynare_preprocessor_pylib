@@ -50,7 +50,8 @@ StaticModel::copyHelper(const StaticModel &m)
 StaticModel::StaticModel(const StaticModel &m) :
   ModelTree{m},
   ramsey_multipliers_derivatives{m.ramsey_multipliers_derivatives},
-  ramsey_multipliers_derivatives_sparse_colptr{m.ramsey_multipliers_derivatives_sparse_colptr}
+  ramsey_multipliers_derivatives_sparse_colptr{m.ramsey_multipliers_derivatives_sparse_colptr},
+  static_mfs{m.static_mfs}
 {
   copyHelper(m);
 }
@@ -62,6 +63,8 @@ StaticModel::operator=(const StaticModel &m)
 
   ramsey_multipliers_derivatives = m.ramsey_multipliers_derivatives;
   ramsey_multipliers_derivatives_sparse_colptr = m.ramsey_multipliers_derivatives_sparse_colptr;
+
+  static_mfs = m.static_mfs;
 
   copyHelper(m);
 
@@ -115,6 +118,8 @@ StaticModel::StaticModel(const DynamicModel &m) :
   user_set_add_libs = m.user_set_add_libs;
   user_set_subst_libs = m.user_set_subst_libs;
   user_set_compiler = m.user_set_compiler;
+
+  static_mfs = m.static_mfs;
 }
 
 void

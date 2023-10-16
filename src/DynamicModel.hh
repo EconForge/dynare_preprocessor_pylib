@@ -31,6 +31,7 @@ using namespace std;
 //! Stores a dynamic model
 class DynamicModel : public ModelTree
 {
+  friend class StaticModel; // For reading static_mfs from converting constructor
 public:
   //! A reference to the trend component model table
   TrendComponentModelTable &trend_component_model_table;
@@ -111,6 +112,11 @@ private:
 
   // Value of the “mfs” option of “model” block (or ”model_options” command)
   int mfs{1};
+
+  /* Value of the “static_mfs” option of “model” block (or the “model_options”
+     command).
+     Only used when converting to StaticModel class. */
+  int static_mfs{0};
 
   // Writes dynamic model file (MATLAB/Octave version, legacy representation)
   void writeDynamicMFile(const string &basename) const;
@@ -669,6 +675,12 @@ public:
   setMFS(int mfs_arg)
   {
     mfs = mfs_arg;
+  }
+
+  void
+  setStaticMFS(int static_mfs_arg)
+  {
+    static_mfs = static_mfs_arg;
   }
 };
 

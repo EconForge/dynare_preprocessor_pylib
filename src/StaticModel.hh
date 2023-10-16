@@ -53,6 +53,13 @@ private:
   // Stores, for each temporary term, its index in the MATLAB/Octave vector
   temporary_terms_idxs_t ramsey_multipliers_derivatives_temporary_terms_idxs;
 
+  /* Value of the “static_mfs” option of “model” block (or the “model_options”
+     command).
+     NB: the default value defined here is not used when converting from
+     DynamicModel class, and in particular it does not affect the main “model”
+     block. See the DynamicModel class for the default value in that case. */
+  int static_mfs{0};
+
   // Writes static model file (MATLAB/Octave version, legacy representation)
   void writeStaticMFile(const string &basename) const;
 
@@ -199,7 +206,7 @@ public:
   int
   getMFS() const override
   {
-    return 0;
+    return static_mfs;
   }
 };
 

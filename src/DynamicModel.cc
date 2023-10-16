@@ -87,7 +87,8 @@ DynamicModel::DynamicModel(const DynamicModel &m) :
   variableMapping{m.variableMapping},
   blocks_jacob_cols_endo{m.blocks_jacob_cols_endo},
   var_expectation_functions_to_write{m.var_expectation_functions_to_write},
-  mfs{m.mfs}
+  mfs{m.mfs},
+  static_mfs{m.static_mfs}
 {
   copyHelper(m);
 }
@@ -135,6 +136,7 @@ DynamicModel::operator=(const DynamicModel &m)
 
   var_expectation_functions_to_write = m.var_expectation_functions_to_write;
   mfs = m.mfs;
+  static_mfs = m.static_mfs;
 
   copyHelper(m);
 
