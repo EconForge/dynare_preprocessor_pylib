@@ -149,7 +149,7 @@ private:
   //! Temporary storage of covariances from optim_weights
   OptimWeightsStatement::covar_weights_t covar_weights;
   /* Temporary storage for deterministic shocks. Also used for
-     conditional_forecast paths, for shocks(surprise), and shocks(learnt_in=…)
+     conditional_forecast paths, for mshocks, shocks(surprise) and shocks(learnt_in=…)
      (for the latter, only used for shocks declared in level through “values”). */
   ShocksStatement::det_shocks_t det_shocks;
   // Temporary storage for shocks declared with “add” and “multiply” in shocks(learnt_in=…)
@@ -452,6 +452,8 @@ public:
   void end_shocks_surprise(bool overwrite);
   //! Writes a shocks(learnt_in=…) block
   void end_shocks_learnt_in(const string &learnt_in_period, bool overwrite);
+  //! Writes a mshocks(learnt_in=…) block
+  void end_mshocks_learnt_in(const string &learnt_in_period, bool overwrite);
   //! Writes a heteroskedastic_shocks statement
   void end_heteroskedastic_shocks(bool overwrite);
   /* Adds a deterministic shock, a path element inside a

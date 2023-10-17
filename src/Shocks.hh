@@ -106,20 +106,21 @@ public:
   void writeJsonOutput(ostream &output) const override;
 };
 
-/* Represents a shocks(learnt_in=…) block.
-   Given the differences with the plain “shocks” block, it was easier to make
-   it a separate class. */
+/* Represents a shocks(learnt_in=…) or mshocks(learnt_in=…) block.
+   Given the differences with the plain “shocks” and “mshocks” blocks,
+   it was easier to make it a separate class. */
 class ShocksLearntInStatement : public Statement
 {
 public:
   const int learnt_in_period;
-  //! Does this "shocks(learnt_in=…)" statement replace the previous ones?
+  //! Does this “shocks(learnt_in=…)” or “mshocks(learnt_in=…)” block replace the previous ones?
   const bool overwrite;
   enum class LearntShockType
     {
-      level,
-      add,
-      multiply
+      level,              // The value is the level of the exogenous (“values” statement in “shocks(learnt_in=…)”)
+      add,                // The value is the additive change of the exogenous compared to previous information period (“add” statement in “shocks(learnt_in=…)”)
+      multiply,           // The value is the multiplicative change of the exogenous compared to previous information period (“multiply” statement in “shocks(learnt_in=…)”)
+      multiplySteadyState // The value is the ratio of the exogenous over its (terminal) steady state as anticipated in the same informational period (“values” statement in “mshocks(learnt_in=…)”)
     };
   // The tuple is (type, period1, period2, value)
   using learnt_shocks_t = map<int, vector<tuple<LearntShockType, int, int, expr_t>>>;

@@ -524,6 +524,8 @@ ShocksLearntInStatement::typeToString(LearntShockType type)
       return "add";
     case LearntShockType::multiply:
       return "multiply";
+    case LearntShockType::multiplySteadyState:
+      return "multiply_steady_state";
     }
   exit(EXIT_FAILURE); // Silence GCC warning
 }

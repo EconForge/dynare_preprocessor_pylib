@@ -1282,6 +1282,9 @@ svar_options : o_coefficients
 
 mshocks : MSHOCKS ';' mshock_list END ';' { driver.end_mshocks(false); }
         | MSHOCKS '(' OVERWRITE ')' ';' mshock_list END ';' { driver.end_mshocks(true); }
+        | MSHOCKS '(' LEARNT_IN EQUAL INT_NUMBER ')' ';' mshock_list END ';' { driver.end_mshocks_learnt_in($5, false); }
+        | MSHOCKS '(' LEARNT_IN EQUAL INT_NUMBER COMMA OVERWRITE ')' ';' mshock_list END ';' { driver.end_mshocks_learnt_in($5, true); }
+        | MSHOCKS '(' OVERWRITE COMMA LEARNT_IN EQUAL INT_NUMBER ')' ';' mshock_list END ';' { driver.end_mshocks_learnt_in($7, true); }
         ;
 
 mshock_list : mshock_list det_shock_elem

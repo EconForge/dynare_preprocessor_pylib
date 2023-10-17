@@ -921,10 +921,11 @@ ParsingDriver::end_shocks_learnt_in(const string &learnt_in_period, bool overwri
       end_shocks(overwrite);
       return;
     }
-  for (auto &[symb_id, vals] : det_shocks)
-    for (auto [period1, period2, expr] : vals)
-      if (period1 < learnt_in_period_int)
-        error("shocks: for variable " + mod_file->symbol_table.getName(symb_id) + ", shock period (" + to_string(period1) + ") is earlier than the period in which the shock is learnt (" + learnt_in_period + ")");
+  for (auto &storage : { det_shocks, learnt_shocks_add, learnt_shocks_multiply } )
+    for (auto &[symb_id, vals] : storage)
+      for (auto [period1, period2, expr] : vals)
+        if (period1 < learnt_in_period_int)
+          error("shocks: for variable " + mod_file->symbol_table.getName(symb_id) + ", shock period (" + to_string(period1) + ") is earlier than the period in which the shock is learnt (" + learnt_in_period + ")");
 
   // Aggregate the three types of shocks
   ShocksLearntInStatement::learnt_shocks_t learnt_shocks;
@@ -956,6 +957,42 @@ ParsingDriver::end_shocks_learnt_in(const string &learnt_in_period, bool overwri
   det_shocks.clear();
   learnt_shocks_add.clear();
   learnt_shocks_multiply.clear();
+}
+
+void
+ParsingDriver::end_mshocks_learnt_in(const string &learnt_in_period, bool overwrite)
+{
+  int learnt_in_period_int = stoi(learnt_in_period);
+  if (learnt_in_period_int < 1)
+    error("mshocks: value '" + learnt_in_period + "' is not allowed for 'learnt_in' option");
+  if (learnt_in_period_int == 1)
+    {
+      end_mshocks(overwrite);
+      return;
+    }
+
+  for (auto &[symb_id, vals] : det_shocks)
+    for (auto [period1, period2, expr] : vals)
+      if (period1 < learnt_in_period_int)
+        error("mshocks: for variable " + mod_file->symbol_table.getName(symb_id) + ", shock period (" + to_string(period1) + ") is earlier than the period in which the shock is learnt (" + learnt_in_period + ")");
+
+  ShocksLearntInStatement::learnt_shocks_t learnt_shocks;
+  for (const auto &[id, v] : det_shocks)
+    {
+      vector<tuple<ShocksLearntInStatement::LearntShockType, int, int, expr_t>> v2;
+      for (auto [period1, period2, value] : v)
+        v2.emplace_back(ShocksLearntInStatement::LearntShockType::multiplySteadyState, period1, period2, value);
+      learnt_shocks[id] = v2;
+    }
+
+  mod_file->addStatement(make_unique<ShocksLearntInStatement>(learnt_in_period_int, overwrite,
+                                                              move(learnt_shocks),
+                                                              mod_file->symbol_table));
+  det_shocks.clear();
+  if (!learnt_shocks_add.empty())
+    error("mshocks: 'add' keyword not allowed");
+  if (!learnt_shocks_multiply.empty())
+    error("mshocks: 'multiply' keyword not allowed");
 }
 
 void
