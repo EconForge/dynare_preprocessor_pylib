@@ -1714,8 +1714,7 @@ PacModelTable::kindToString(PacTargetKind kind)
     case PacTargetKind::dd:
       return "dd";
     }
-  // Silent GCC warning
-  assert(false);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 void

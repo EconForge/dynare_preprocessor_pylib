@@ -527,7 +527,7 @@ ShocksLearntInStatement::typeToString(LearntShockType type)
     case LearntShockType::multiplySteadyState:
       return "multiply_steady_state";
     }
-  exit(EXIT_FAILURE); // Silence GCC warning
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 void

@@ -326,7 +326,7 @@ EndValLearntInStatement::typeToString(LearntEndValType type)
     case LearntEndValType::multiply:
       return "multiply";
     }
-  exit(EXIT_FAILURE); // Silence GCC warning
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 void

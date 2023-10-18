@@ -997,8 +997,7 @@ VariableNode::computeDerivative(int deriv_id)
       cerr << "VariableNode::computeDerivative: Impossible case!" << endl;
       exit(EXIT_FAILURE);
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 bool
@@ -1514,8 +1513,7 @@ VariableNode::computeChainRuleDerivative(int deriv_id,
       cerr << "VariableNode::computeChainRuleDerivative: Impossible case" << endl;
       exit(EXIT_FAILURE);
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 expr_t
@@ -2366,8 +2364,7 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
       cerr << "UnaryOpNode::composeDerivatives: not implemented on UnaryOpcode::adl" << endl;
       exit(EXIT_FAILURE);
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 expr_t
@@ -2509,7 +2506,7 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
         cerr << "UnaryOpNode::cost: not implemented on UnaryOpcode::adl" << endl;
         exit(EXIT_FAILURE);
       }
-  exit(EXIT_FAILURE);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 void
@@ -3165,8 +3162,7 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) noexcept(false)
       cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::adl" << endl;
       exit(EXIT_FAILURE);
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 double
@@ -3413,8 +3409,7 @@ UnaryOpNode::buildSimilarUnaryOpNode(expr_t alt_arg, DataTree &alt_datatree) con
     case UnaryOpcode::adl:
       return alt_datatree.AddAdl(alt_arg, adl_param_name, adl_lags);
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 expr_t
@@ -4149,8 +4144,7 @@ BinaryOpNode::composeDerivatives(expr_t darg1, expr_t darg2)
       t14 = datatree.AddTimes(t13, darg2);
       return datatree.AddPlus(t14, t12);
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 expr_t
@@ -4214,8 +4208,7 @@ BinaryOpNode::precedence(ExprNodeOutputType output_type, const temporary_terms_t
     case BinaryOpcode::max:
       return 100;
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 int
@@ -4250,8 +4243,7 @@ BinaryOpNode::precedenceJson(const temporary_terms_t &temporary_terms) const
     case BinaryOpcode::max:
       return 100;
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 int
@@ -4337,8 +4329,7 @@ BinaryOpNode::cost(int cost, bool is_matlab) const
       case BinaryOpcode::equal:
         return cost;
       }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 void
@@ -4444,8 +4435,7 @@ BinaryOpNode::eval_opcode(double v1, BinaryOpcode op_code, double v2, int derivO
     case BinaryOpcode::equal:
       throw EvalException();
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 double
@@ -5155,8 +5145,7 @@ BinaryOpNode::buildSimilarBinaryOpNode(expr_t alt_arg1, expr_t alt_arg2, DataTre
     case BinaryOpcode::powerDeriv:
       return alt_datatree.AddPowerDeriv(alt_arg1, alt_arg2, powerDerivOrder);
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 expr_t
@@ -5999,8 +5988,7 @@ TrinaryOpNode::composeDerivatives(expr_t darg1, expr_t darg2, expr_t darg3)
       // (this / sigma) * (((x - mu)/sigma) * (darg2 - darg1 + darg3 * (x - mu)/sigma) - darg3)
       return datatree.AddTimes(t11, t12);
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 expr_t
@@ -6026,8 +6014,7 @@ TrinaryOpNode::precedence([[maybe_unused]] ExprNodeOutputType output_type,
     case TrinaryOpcode::normpdf:
       return 100;
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 int
@@ -6080,8 +6067,7 @@ TrinaryOpNode::cost(int cost, bool is_matlab) const
       case TrinaryOpcode::normpdf:
         return cost+1000;
       }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 void
@@ -6144,8 +6130,7 @@ TrinaryOpNode::eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v
     case TrinaryOpcode::normpdf:
       return (1/(v3*sqrt(2*numbers::pi)*exp(pow((v1-v2)/v3, 2)/2)));
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 double
@@ -6417,8 +6402,7 @@ TrinaryOpNode::buildSimilarTrinaryOpNode(expr_t alt_arg1, expr_t alt_arg2, expr_
     case TrinaryOpcode::normpdf:
       return alt_datatree.AddNormpdf(alt_arg1, alt_arg2, alt_arg3);
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 expr_t
