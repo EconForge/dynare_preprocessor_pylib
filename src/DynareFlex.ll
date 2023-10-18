@@ -829,6 +829,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
   yylval->build<string>(yytext);
   return token::ERROR_RELAX;
 }
+<DYNARE_BLOCK>relative_to_initval {return token::RELATIVE_TO_INITVAL;}
 
 <DYNARE_BLOCK>; {return Dynare::parser::token_type (yytext[0]);}
 <DYNARE_BLOCK># {return Dynare::parser::token_type (yytext[0]);}

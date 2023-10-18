@@ -887,9 +887,10 @@ ParsingDriver::end_shocks(bool overwrite)
 }
 
 void
-ParsingDriver::end_mshocks(bool overwrite)
+ParsingDriver::end_mshocks(bool overwrite, bool relative_to_initval)
 {
-  mod_file->addStatement(make_unique<MShocksStatement>(overwrite, move(det_shocks),
+  mod_file->addStatement(make_unique<MShocksStatement>(overwrite, relative_to_initval,
+                                                       move(det_shocks),
                                                        mod_file->symbol_table));
   det_shocks.clear();
   if (!learnt_shocks_add.empty())
@@ -960,14 +961,14 @@ ParsingDriver::end_shocks_learnt_in(const string &learnt_in_period, bool overwri
 }
 
 void
-ParsingDriver::end_mshocks_learnt_in(const string &learnt_in_period, bool overwrite)
+ParsingDriver::end_mshocks_learnt_in(const string &learnt_in_period, bool overwrite, bool relative_to_initval)
 {
   int learnt_in_period_int = stoi(learnt_in_period);
   if (learnt_in_period_int < 1)
     error("mshocks: value '" + learnt_in_period + "' is not allowed for 'learnt_in' option");
   if (learnt_in_period_int == 1)
     {
-      end_mshocks(overwrite);
+      end_mshocks(overwrite, relative_to_initval);
       return;
     }
 
@@ -977,11 +978,14 @@ ParsingDriver::end_mshocks_learnt_in(const string &learnt_in_period, bool overwr
         error("mshocks: for variable " + mod_file->symbol_table.getName(symb_id) + ", shock period (" + to_string(period1) + ") is earlier than the period in which the shock is learnt (" + learnt_in_period + ")");
 
   ShocksLearntInStatement::learnt_shocks_t learnt_shocks;
+  const auto type { relative_to_initval ?
+                    ShocksLearntInStatement::LearntShockType::multiplyInitialSteadyState :
+                    ShocksLearntInStatement::LearntShockType::multiplySteadyState };
   for (const auto &[id, v] : det_shocks)
     {
       vector<tuple<ShocksLearntInStatement::LearntShockType, int, int, expr_t>> v2;
       for (auto [period1, period2, value] : v)
-        v2.emplace_back(ShocksLearntInStatement::LearntShockType::multiplySteadyState, period1, period2, value);
+        v2.emplace_back(type, period1, period2, value);
       learnt_shocks[id] = v2;
     }
 

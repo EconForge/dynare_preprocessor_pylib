@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -24,12 +24,11 @@
 
 #include "Shocks.hh"
 
-AbstractShocksStatement::AbstractShocksStatement(bool mshocks_arg,
-                                                 bool overwrite_arg,
+AbstractShocksStatement::AbstractShocksStatement(bool overwrite_arg, ShockType type_arg,
                                                  det_shocks_t det_shocks_arg,
                                                  const SymbolTable &symbol_table_arg) :
-  mshocks{mshocks_arg},
   overwrite{overwrite_arg},
+  type{type_arg},
   det_shocks{move(det_shocks_arg)},
   symbol_table{symbol_table_arg}
 {
@@ -48,7 +47,7 @@ AbstractShocksStatement::writeDetShocks(ostream &output) const
                << boolalpha
                << "struct('exo_det'," << exo_det
                << ",'exo_id'," << symbol_table.getTypeSpecificID(id)+1
-               << ",'multiplicative'," << mshocks
+               << ",'type','" << typeToString(type) << "'"
                << ",'periods'," << period1 << ":" << period2
                << ",'value',";
         value->writeOutput(output);
@@ -87,6 +86,21 @@ AbstractShocksStatement::writeJsonDetShocks(ostream &output) const
   output << "]";
 }
 
+string
+AbstractShocksStatement::typeToString(ShockType type)
+{
+  switch (type)
+    {
+    case ShockType::level:
+      return "level";
+    case ShockType::multiplySteadyState:
+      return "multiply_steady_state";
+    case ShockType::multiplyInitialSteadyState:
+      return "multiply_initial_steady_state";
+    }
+  __builtin_unreachable(); // Silence GCC warning
+}
+
 ShocksStatement::ShocksStatement(bool overwrite_arg,
                                  det_shocks_t det_shocks_arg,
                                  var_and_std_shocks_t var_shocks_arg,
@@ -94,7 +108,7 @@ ShocksStatement::ShocksStatement(bool overwrite_arg,
                                  covar_and_corr_shocks_t covar_shocks_arg,
                                  covar_and_corr_shocks_t corr_shocks_arg,
                                  const SymbolTable &symbol_table_arg) :
-  AbstractShocksStatement{false, overwrite_arg, move(det_shocks_arg), symbol_table_arg},
+  AbstractShocksStatement{overwrite_arg, ShockType::level, move(det_shocks_arg), symbol_table_arg},
   var_shocks{move(var_shocks_arg)},
   std_shocks{move(std_shocks_arg)},
   covar_shocks{move(covar_shocks_arg)},
@@ -400,10 +414,13 @@ ShocksStatement::has_calibrated_measurement_errors() const
   return false;
 }
 
-MShocksStatement::MShocksStatement(bool overwrite_arg,
+MShocksStatement::MShocksStatement(bool overwrite_arg, bool relative_to_initval_arg,
                                    det_shocks_t det_shocks_arg,
                                    const SymbolTable &symbol_table_arg) :
-  AbstractShocksStatement{true, overwrite_arg, move(det_shocks_arg), symbol_table_arg}
+  AbstractShocksStatement{overwrite_arg,
+                          relative_to_initval_arg ? ShockType::multiplyInitialSteadyState : ShockType::multiplySteadyState,
+                          move(det_shocks_arg), symbol_table_arg},
+  relative_to_initval{relative_to_initval_arg}
 {
 }
 
@@ -425,7 +442,8 @@ void
 MShocksStatement::writeJsonOutput(ostream &output) const
 {
   output << R"({"statementName": "mshocks")"
-         << R"(, "overwrite": )" << boolalpha << overwrite;
+         << R"(, "overwrite": )" << boolalpha << overwrite
+         << R"(, "relative_to_initval": )" << boolalpha << relative_to_initval;
   if (!det_shocks.empty())
     {
       output << ", ";
@@ -526,6 +544,8 @@ ShocksLearntInStatement::typeToString(LearntShockType type)
       return "multiply";
     case LearntShockType::multiplySteadyState:
       return "multiply_steady_state";
+    case LearntShockType::multiplyInitialSteadyState:
+      return "multiply_initial_steady_state";
     }
   __builtin_unreachable(); // Silence GCC warning
 }

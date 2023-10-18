@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -35,17 +35,23 @@ class AbstractShocksStatement : public Statement
 public:
   // The tuple is (period1, period2, value)
   using det_shocks_t = map<int, vector<tuple<int, int, expr_t>>>;
+  enum class ShockType
+    {
+      level,                     // The value is the level of the exogenous (“values” statement in “shocks”)
+      multiplySteadyState,       // The value is the ratio of the exogenous over its (terminal) steady state (“values” statement in “mshocks”)
+      multiplyInitialSteadyState // The value is the ratio of the exogenous over its initial steady state (“values” statement in “mshocks(relative_to_initval)”)
+    };
 protected:
-  //! Is this statement a "mshocks" statement ? (instead of a "shocks" statement)
-  const bool mshocks;
   //! Does this "shocks" statement replace the previous ones?
   const bool overwrite;
+  const ShockType type; // Type of shocks represented by this block
   const det_shocks_t det_shocks;
   const SymbolTable &symbol_table;
   void writeDetShocks(ostream &output) const;
   void writeJsonDetShocks(ostream &output) const;
+  static string typeToString(ShockType type);
 
-  AbstractShocksStatement(bool mshocks_arg, bool overwrite_arg,
+  AbstractShocksStatement(bool overwrite_arg, ShockType type_arg,
                           det_shocks_t det_shocks_arg,
                           const SymbolTable &symbol_table_arg);
 };
@@ -79,7 +85,8 @@ public:
 class MShocksStatement : public AbstractShocksStatement
 {
 public:
-  MShocksStatement(bool overwrite_arg,
+  const bool relative_to_initval;
+  MShocksStatement(bool overwrite_arg, bool relative_to_initval_arg,
                    det_shocks_t det_shocks_arg,
                    const SymbolTable &symbol_table_arg);
   void writeOutput(ostream &output, const string &basename, bool minimal_workspace) const override;
@@ -120,7 +127,8 @@ public:
       level,              // The value is the level of the exogenous (“values” statement in “shocks(learnt_in=…)”)
       add,                // The value is the additive change of the exogenous compared to previous information period (“add” statement in “shocks(learnt_in=…)”)
       multiply,           // The value is the multiplicative change of the exogenous compared to previous information period (“multiply” statement in “shocks(learnt_in=…)”)
-      multiplySteadyState // The value is the ratio of the exogenous over its (terminal) steady state as anticipated in the same informational period (“values” statement in “mshocks(learnt_in=…)”)
+      multiplySteadyState, // The value is the ratio of the exogenous over its (terminal) steady state as anticipated in the same informational period (“values” statement in “mshocks(learnt_in=…)”)
+      multiplyInitialSteadyState // The value is the ratio of the exogenous over its initial steady state as anticipated in the same informational period (“values” statement in “mshocks(learnt_in=…, relative_to_initval)”)
     };
   // The tuple is (type, period1, period2, value)
   using learnt_shocks_t = map<int, vector<tuple<LearntShockType, int, int, expr_t>>>;

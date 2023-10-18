@@ -33,6 +33,13 @@ class ParsingDriver;
 }
 
 %code requires {
+#include <string>
+#include <vector>
+#include <map>
+#include <utility>
+#include <tuple>
+#include <variant>
+
 #include "CommonEnums.hh"
 #include "ExprNode.hh"
 }
@@ -196,7 +203,7 @@ class ParsingDriver;
 %token ENDVAL_STEADY STEADY_SOLVE_ALGO STEADY_MAXIT STEADY_TOLF STEADY_TOLX STEADY_MARKOWITZ
 %token HOMOTOPY_MAX_COMPLETION_SHARE HOMOTOPY_MIN_STEP_SIZE HOMOTOPY_INITIAL_STEP_SIZE HOMOTOPY_STEP_SIZE_INCREASE_SUCCESS_COUNT
 %token HOMOTOPY_LINEARIZATION_FALLBACK HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK FROM_INITVAL_TO_ENDVAL
-%token STATIC_MFS
+%token STATIC_MFS RELATIVE_TO_INITVAL
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -228,6 +235,8 @@ class ParsingDriver;
 %type <pair<string, expr_t>> occbin_constraints_regime_option
 %type <PacTargetKind> pac_target_kind
 %type <vector<tuple<string, string, vector<pair<string, string>>>>> symbol_list_with_tex_and_partition
+%type <map<string, variant<bool, string>>> mshocks_options_list
+%type <pair<string, variant<bool, string>>> mshocks_option
 %%
 
 %start statement_list;
@@ -1280,12 +1289,38 @@ svar_options : o_coefficients
              | o_chain
              ;
 
-mshocks : MSHOCKS ';' mshock_list END ';' { driver.end_mshocks(false); }
-        | MSHOCKS '(' OVERWRITE ')' ';' mshock_list END ';' { driver.end_mshocks(true); }
-        | MSHOCKS '(' LEARNT_IN EQUAL INT_NUMBER ')' ';' mshock_list END ';' { driver.end_mshocks_learnt_in($5, false); }
-        | MSHOCKS '(' LEARNT_IN EQUAL INT_NUMBER COMMA OVERWRITE ')' ';' mshock_list END ';' { driver.end_mshocks_learnt_in($5, true); }
-        | MSHOCKS '(' OVERWRITE COMMA LEARNT_IN EQUAL INT_NUMBER ')' ';' mshock_list END ';' { driver.end_mshocks_learnt_in($7, true); }
+mshocks : MSHOCKS ';' mshock_list END ';'
+          { driver.end_mshocks(false, false); }
+        | MSHOCKS '(' mshocks_options_list ')' ';' mshock_list END ';'
+          {
+            /* NB: the following relies of the fact that bool is the first
+               alternative in the variant, so that default initialization of the
+               variant by the [] operator will give false */
+            if ($3.contains("learnt_in"))
+              driver.end_mshocks_learnt_in(get<string>($3.at("learnt_in")), get<bool>($3["overwrite"]), get<bool>($3["relative_to_initval"]));
+            else
+              driver.end_mshocks(get<bool>($3["overwrite"]), get<bool>($3["relative_to_initval"]));
+          }
         ;
+
+mshocks_options_list : mshocks_option
+                       { $$ = { $1 }; }
+                     | mshocks_options_list mshocks_option
+                       {
+                         $$ = $1;
+                         auto [it, success] = $$.insert($2);
+                         if (!success)
+                           driver.error("The '" + $2.first + "' option is declared multiple times");
+                       }
+                     ;
+
+mshocks_option : OVERWRITE
+                 { $$ = { "overwrite", true }; }
+               | LEARNT_IN EQUAL INT_NUMBER
+                 { $$ = { "learnt_in", $3 }; }
+               | RELATIVE_TO_INITVAL
+                 { $$ = { "relative_to_initval", true }; }
+               ;
 
 mshock_list : mshock_list det_shock_elem
             | det_shock_elem

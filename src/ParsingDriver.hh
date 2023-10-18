@@ -447,13 +447,13 @@ public:
   //! Writes a shocks statement
   void end_shocks(bool overwrite);
   //! Writes a mshocks statement
-  void end_mshocks(bool overwrite);
+  void end_mshocks(bool overwrite, bool relative_to_initval);
   //! Writes a shocks(surprise) statement
   void end_shocks_surprise(bool overwrite);
   //! Writes a shocks(learnt_in=…) block
   void end_shocks_learnt_in(const string &learnt_in_period, bool overwrite);
   //! Writes a mshocks(learnt_in=…) block
-  void end_mshocks_learnt_in(const string &learnt_in_period, bool overwrite);
+  void end_mshocks_learnt_in(const string &learnt_in_period, bool overwrite, bool relative_to_initval);
   //! Writes a heteroskedastic_shocks statement
   void end_heteroskedastic_shocks(bool overwrite);
   /* Adds a deterministic shock, a path element inside a
