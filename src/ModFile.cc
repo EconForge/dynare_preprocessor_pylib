@@ -186,12 +186,6 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
-  if (mod_file_struct.k_order_solver && bytecode)
-    {
-      cerr << "ERROR: 'k_order_solver' (which is implicit if order >= 3), is not yet compatible with 'bytecode'." << endl;
-      exit(EXIT_FAILURE);
-    }
-
   if (use_dll && bytecode)
     {
       cerr << "ERROR: In 'model' block, 'use_dll' option is not compatible with 'bytecode'" << endl;
