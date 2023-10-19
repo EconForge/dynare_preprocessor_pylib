@@ -1106,7 +1106,7 @@ VariableNode::writeOutput(ostream &output, ExprNodeOutputType output_type,
       return;
     }
 
-  auto juliaTimeDataFrameHelper = [&]()
+  auto juliaTimeDataFrameHelper = [&]
   {
     if (lag != 0)
       output << "lag(";
@@ -9061,7 +9061,7 @@ ExprNode::matchParamTimesTargetMinusVariable(int symb_id) const
   auto lhs_level = dynamic_cast<const VariableNode *>(bminus->arg2);
   auto target = dynamic_cast<const VariableNode *>(bminus->arg1);
 
-  auto check_target = [&]()
+  auto check_target = [&]
     {
       if (target->get_type() != SymbolType::endogenous
           && target->get_type() != SymbolType::exogenous)
