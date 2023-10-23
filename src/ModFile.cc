@@ -824,13 +824,13 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
                 << "    clear_persistent_variables(fileparts(which('dynare')), false)" << endl
                 << "end" << endl;
   else if (clear_global)
-    mOutputFile << "clear M_ options_ oo_ estim_params_ bayestopt_ dataset_ dataset_info estimation_info ys0_ ex0_;" << endl;
+    mOutputFile << "clear M_ options_ oo_ estim_params_ bayestopt_ dataset_ dataset_info estimation_info;" << endl;
 
   if (!notime)
     mOutputFile << "tic0 = tic;" << endl;
 
   mOutputFile << "% Define global variables." << endl
-              << "global M_ options_ oo_ estim_params_ bayestopt_ dataset_ dataset_info estimation_info ys0_ ex0_" << endl
+              << "global M_ options_ oo_ estim_params_ bayestopt_ dataset_ dataset_info estimation_info" << endl
               << "options_ = [];" << endl
               << "M_.fname = '" << basename << "';" << endl
               << "M_.dynare_version = '" << PACKAGE_VERSION << "';" << endl

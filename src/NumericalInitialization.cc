@@ -284,8 +284,8 @@ EndValStatement::writeOutput(ostream &output, [[maybe_unused]] const string &bas
          << "% ENDVAL instructions" << endl
          << "%" << endl;
   // Writing endval block to set terminal values for variables
-  output << "ys0_= oo_.steady_state;" << endl
-         << "ex0_ = oo_.exo_steady_state;" << endl;
+  output << "oo_.initial_steady_state = oo_.steady_state;" << endl
+         << "oo_.initial_exo_steady_state = oo_.exo_steady_state;" << endl;
 
   writeInitValues(output);
 }
