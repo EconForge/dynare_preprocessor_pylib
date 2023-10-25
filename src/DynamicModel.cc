@@ -2383,9 +2383,8 @@ void
 DynamicModel::computeBlockDynJacobianCols()
 {
   size_t nb_blocks { blocks.size() };
-  // Structures used for lexicographic ordering over (lag, var ID)
-  vector<set<pair<int, int>>> dynamic_endo(nb_blocks), dynamic_other_endo(nb_blocks),
-    dynamic_exo(nb_blocks), dynamic_exo_det(nb_blocks);
+  // Structure used for lexicographic ordering over (lag, var ID)
+  vector<set<pair<int, int>>> dynamic_endo(nb_blocks);
 
   for (auto & [indices, d1] : derivatives[1])
     {
@@ -2393,23 +2392,9 @@ DynamicModel::computeBlockDynJacobianCols()
       int block_eq { eq2block[eq_orig] };
       int var { getTypeSpecificIDByDerivID(deriv_id) };
       int lag { getLagByDerivID(deriv_id) };
-      switch (getTypeByDerivID(deriv_id))
-        {
-        case SymbolType::endogenous:
-          if (block_eq == endo2block[var])
-            dynamic_endo[block_eq].emplace(lag, getBlockInitialVariableID(block_eq, var));
-          else
-            dynamic_other_endo[block_eq].emplace(lag, var);
-          break;
-        case SymbolType::exogenous:
-          dynamic_exo[block_eq].emplace(lag, var);
-          break;
-        case SymbolType::exogenousDet:
-          dynamic_exo_det[block_eq].emplace(lag, var);
-          break;
-        default:
-          break;
-        }
+      if (getTypeByDerivID(deriv_id) == SymbolType::endogenous
+          && block_eq == endo2block[var])
+        dynamic_endo[block_eq].emplace(lag, getBlockInitialVariableID(block_eq, var));
     }
 
   // Compute Jacobian column indices
