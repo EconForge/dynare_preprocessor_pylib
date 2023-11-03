@@ -446,7 +446,7 @@ public:
   int
   get_lag()
   {
-    return arg2;
+    return arg3;
   };
   int
   get_col_pos()
