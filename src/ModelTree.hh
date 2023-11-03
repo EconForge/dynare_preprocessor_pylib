@@ -1776,7 +1776,8 @@ ModelTree::writeBlockBytecodeHelper(BytecodeWriter &code_file, int block, tempor
                 const auto &[eq, var, lag] {indices};
                 int eqr {getBlockEquationID(block, eq)};
                 int varr {getBlockVariableID(block, var)};
-                if (eq >= block_recursive && var >= block_recursive)
+                assert(eq >= block_recursive);
+                if (var >= block_recursive)
                   {
                     if constexpr(dynamic)
                       if (lag != 0
@@ -1837,10 +1838,11 @@ ModelTree::writeBlockBytecodeHelper(BytecodeWriter &code_file, int block, tempor
       int varr {getBlockVariableID(block, var)};
       code_file << FNUMEXPR_{ExpressionType::FirstEndoDerivative, eqr, varr, lag};
       d->writeBytecodeOutput(code_file, output_type, temporary_terms_union, blocks_temporary_terms_idxs, tef_terms);
+      assert(eq >= block_recursive);
       if constexpr(dynamic)
-        code_file << FSTPG3_{eq, var, lag, getBlockJacobianEndoCol(block, var, lag)};
+        code_file << FSTPG3_{eq-block_recursive, var, lag, getBlockJacobianEndoCol(block, var, lag)};
       else
-        code_file << FSTPG2_{eq, getBlockJacobianEndoCol(block, var, lag)};
+        code_file << FSTPG2_{eq-block_recursive, getBlockJacobianEndoCol(block, var, lag)};
     }
 
   // Update jump offset for previous JMP

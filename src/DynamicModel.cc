@@ -2354,7 +2354,7 @@ DynamicModel::computeChainRuleJacobian()
               break;
             }
 
-          if (d != Zero)
+          if (d != Zero && eq >= nb_recursives)
             blocks_derivatives[blk][{ eq, var, lag }] = d;
         }
 
@@ -2369,9 +2369,8 @@ DynamicModel::computeChainRuleJacobian()
           for (const auto &[indices, d1] : blocks_derivatives[blk])
             {
               auto &[eq, var, lag] { indices };
-              assert(lag >= -1 && lag <= 1);
-              if (eq >= nb_recursives && var >= nb_recursives
-                  && !(one_boundary && lag != 0))
+              assert(lag >= -1 && lag <= 1 && eq >= nb_recursives);
+              if (var >= nb_recursives && !(one_boundary && lag != 0))
                 blocks_jacobian_sparse_column_major_order[blk].try_emplace({eq-nb_recursives, var-nb_recursives+static_cast<int>(!one_boundary)*(lag+1)*mfs_size}, d1);
             }
           blocks_jacobian_sparse_colptr[blk] = computeCSCColPtr(blocks_jacobian_sparse_column_major_order[blk], (one_boundary ? 1 : 3)*mfs_size);
