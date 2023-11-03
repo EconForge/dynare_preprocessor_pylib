@@ -119,7 +119,6 @@ enum class PriorDistributions
 
 enum class EquationType
   {
-   unknown, //!< Unknown equation type
    evaluate, //!< Simple evaluation, normalized variable on left-hand side (written as such by the user)
    evaluateRenormalized, //!< Simple evaluation, normalized variable on left-hand side (normalization computed by the preprocessor)
    solve //!< No simple evaluation of the equation, it has to be solved
@@ -127,8 +126,7 @@ enum class EquationType
 
 enum class BlockSimulationType
   {
-   unknown, //!< Unknown simulation type
-   evaluateForward, //!< Simple evaluation, normalized variable on left-hand side, forward
+   evaluateForward = 1, //!< Simple evaluation, normalized variable on left-hand side, forward
    evaluateBackward, //!< Simple evaluation, normalized variable on left-hand side, backward
    solveForwardSimple, //!< Block of one equation, newton solver needed, forward
    solveBackwardSimple, //!< Block of one equation, newton solver needed, backward
