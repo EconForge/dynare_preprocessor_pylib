@@ -782,7 +782,32 @@ DynamicModel::writeBlockDriverOutput(ostream &output) const
         output << " " << getBlockVariableID(blk, var)+1;
       output << "];" << endl
              << "M_.block_structure.block(" << blk+1 << ").is_linear = " << boolalpha << blocks[blk].linear << ';' << endl
-             << "M_.block_structure.block(" << blk+1 << ").NNZDerivatives = " << blocks_derivatives[blk].size() << ';' << endl;
+             << "M_.block_structure.block(" << blk+1 << ").NNZDerivatives = " << blocks_derivatives[blk].size() << ';' << endl
+             << "M_.block_structure.block(" << blk+1 << ").bytecode_jacob_cols_to_sparse = [";
+      const bool one_boundary {blocks[blk].simulation_type == BlockSimulationType::solveBackwardSimple
+                               || blocks[blk].simulation_type == BlockSimulationType::solveForwardSimple
+                               || blocks[blk].simulation_type == BlockSimulationType::solveBackwardComplete
+                               || blocks[blk].simulation_type == BlockSimulationType::solveForwardComplete};
+      /* bytecode_jacob_cols_to_sparse is an array that maps column indices in
+         the Jacobian returned by bytecode MEX in evaluate mode (which only
+         contains nonzero columns, but also incorporate recursive variables),
+         into column indices in the sparse representiation (which has 3×n
+         columns for two-boundaries blocks and n columns for one-boundary
+         blocks). Columns unused in the sparse representation are indicated by
+         a zero. */
+      vector<int> bytecode_jacob_cols_to_sparse(blocks_jacob_cols_endo[blk].size());
+      for (auto &[key, index] : blocks_jacob_cols_endo[blk])
+        {
+          auto [var, lag] {key};
+          if (var >= blocks[blk].getRecursiveSize() // NB: this check can be removed once Jacobian no longer contains columns for derivatives w.r.t. recursive variables
+              && !(one_boundary && lag != 0))
+            bytecode_jacob_cols_to_sparse[index] = static_cast<int>(!one_boundary)*(lag+1)*blocks[blk].mfs_size + var - blocks[blk].getRecursiveSize();
+          else
+            bytecode_jacob_cols_to_sparse[index] = -1;
+        }
+      for (int i : bytecode_jacob_cols_to_sparse)
+        output << i+1 << " ";
+      output << "];" << endl;
     }
 
   writeBlockDriverSparseIndicesHelper<true>(output);
