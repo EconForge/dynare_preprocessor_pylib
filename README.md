@@ -5,6 +5,9 @@
 </a>
 </div>
 
+This repository contains a version of the dynare preprocessor meant to be compiled as a python shared library.
+
+
 # Dynare Preprocessor
 
 The Dynare Preprocessor defines the Dynare model language. It takes in a `.mod`
