@@ -3,7 +3,7 @@
 
 project('dynare-preprocessor', 'cpp',
         version : '6-unstable',
-        default_options : [ 'cpp_std=gnu++20', 'warning_level=0' ],
+        default_options : [ 'cpp_std=c++20', 'warning_level=0' ],
         meson_version : '>=0.64.0')
 
 add_global_arguments('-DPACKAGE_VERSION="' + meson.project_version() + '"', language : 'cpp')
