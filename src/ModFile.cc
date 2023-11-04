@@ -1113,9 +1113,10 @@ ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonF
   if (json == JsonOutputPointType::parsing || json == JsonOutputPointType::checkpass)
     symbol_table.freeze();
 
+  // TODO: option for writing in a stringstream (or if not onlyjson)
   if (json_output_mode == JsonFileOutputType::standardout)
-    cout << "//-- BEGIN JSON --// " << endl
-         << "{" << endl;
+  //   cout << "//-- BEGIN JSON --// " << endl
+      cout << "{" << endl;
 
   writeJsonOutputParsingCheck(basename, json_output_mode, json == JsonOutputPointType::transformpass, json == JsonOutputPointType::computingpass);
 
@@ -1125,28 +1126,29 @@ ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonF
   if (json == JsonOutputPointType::computingpass)
     writeJsonComputingPassOutput(basename, json_output_mode, jsonderivsimple);
 
+  // TODO: option for writing in a stringstream 
   if (json_output_mode == JsonFileOutputType::standardout)
-    cout << "}" << endl
-         << "//-- END JSON --// " << endl;
+      cout << "}" << endl;
+    //      << "//-- END JSON --// " << endl;
 
-  switch (json)
-    {
-    case JsonOutputPointType::parsing:
-      cout << "JSON written after Parsing step." << endl;
-      break;
-    case JsonOutputPointType::checkpass:
-      cout << "JSON written after Check step." << endl;
-      break;
-    case JsonOutputPointType::transformpass:
-      cout << "JSON written after Transform step." << endl;
-      break;
-    case JsonOutputPointType::computingpass:
-      cout << "JSON written after Computing step." << endl;
-      break;
-    case JsonOutputPointType::nojson:
-      cerr << "ModFile::writeJsonOutput: should not arrive here." << endl;
-      exit(EXIT_FAILURE);
-    }
+  // switch (json)
+  //   {
+  //   case JsonOutputPointType::parsing:
+  //     cout << "JSON written after Parsing step." << endl;
+  //     break;
+  //   case JsonOutputPointType::checkpass:
+  //     cout << "JSON written after Check step." << endl;
+  //     break;
+  //   case JsonOutputPointType::transformpass:
+  //     cout << "JSON written after Transform step." << endl;
+  //     break;
+  //   case JsonOutputPointType::computingpass:
+  //     cout << "JSON written after Computing step." << endl;
+  //     break;
+  //   case JsonOutputPointType::nojson:
+  //     cerr << "ModFile::writeJsonOutput: should not arrive here." << endl;
+  //     exit(EXIT_FAILURE);
+  //   }
 
   if (onlyjson)
     exit(EXIT_SUCCESS);

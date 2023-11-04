@@ -1,3 +1,15 @@
+
+py3_inst = import('python').find_installation('python3')
+
+pybind11_config = find_program('pybind11-config')
+pybind11_config_ret = run_command(pybind11_config, ['--includes'])
+pybind11 = declare_dependency(
+    include_directories: [pybind11_config_ret.stdout().split('-I')[-1].strip()],
+)
+
+python3 = dependency('python3') 
+
+
 boost_dep = dependency('boost')
 
 ## Flex stuff
@@ -69,7 +81,15 @@ else
   preprocessor_link_args = []
 endif
 
-executable('dynare-preprocessor', preprocessor_src, flex_src, flexlexer_h, bison_src,
-           include_directories : preprocessor_incdir, dependencies : boost_dep,
-           link_args : preprocessor_link_args,
-           install : true)
+# executable('dynare-preprocessor', preprocessor_src, flex_src, flexlexer_h, bison_src,
+#           include_directories : preprocessor_incdir, dependencies : boost_dep,
+#           link_args : preprocessor_link_args,
+#           install : true)
+
+
+py3_inst.extension_module('dynare_preprocessor', preprocessor_src, flex_src, flexlexer_h, bison_src, 'DynLib.cc', include_directories : preprocessor_incdir, dependencies : [boost_dep, python3, pybind11],
+           link_args : preprocessor_link_args)
+
+
+# library('dynare_preprocessor', preprocessor_src, flex_src, flexlexer_h, bison_src, 'DynLib.cc', include_directories : preprocessor_incdir, dependencies : [boost_dep, python3, pybind11],
+#           link_args : preprocessor_link_args)

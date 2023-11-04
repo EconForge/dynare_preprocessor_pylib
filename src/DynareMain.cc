@@ -92,8 +92,8 @@ parse_options_line(istream &modfile)
   return options;
 }
 
-int
-main(int argc, char **argv)
+
+int main(int argc, char **argv)
 {
   /*
     Redirect stderr to stdout.
@@ -108,7 +108,7 @@ main(int argc, char **argv)
       usage();
     }
 
-  const filesystem::path filename {argv[1]};
+  const filesystem::path filename = "/home/pablo/Source/dynare/examples/example1.mod"; //{argv[1]};
   ifstream modfile(filename, ios::binary);
   if (modfile.fail())
     {
