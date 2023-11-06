@@ -88,7 +88,7 @@ endif
 
 
 py3_inst.extension_module('dynare_preprocessor', preprocessor_src, flex_src, flexlexer_h, bison_src, 'DynLib.cc', include_directories : preprocessor_incdir, dependencies : [boost_dep, python3, pybind11],
-           link_args : preprocessor_link_args)
+           link_args : preprocessor_link_args, install: true)
 
 
 # library('dynare_preprocessor', preprocessor_src, flex_src, flexlexer_h, bison_src, 'DynLib.cc', include_directories : preprocessor_incdir, dependencies : [boost_dep, python3, pybind11],

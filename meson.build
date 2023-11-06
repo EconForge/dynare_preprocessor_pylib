@@ -2,7 +2,7 @@
 # It is not used when building Dynare as a whole.
 
 project('dynare-preprocessor', 'cpp',
-        version : '6-unstable',
+        version : '0.0.1',
         default_options : [ 'cpp_std=c++20', 'warning_level=0' ],
         meson_version : '>=0.64.0')
 
