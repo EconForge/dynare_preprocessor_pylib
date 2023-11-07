@@ -1113,9 +1113,12 @@ ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonF
   if (json == JsonOutputPointType::parsing || json == JsonOutputPointType::checkpass)
     symbol_table.freeze();
 
-  if (json_output_mode == JsonFileOutputType::standardout)
-    cout << "//-- BEGIN JSON --// " << endl
-         << "{" << endl;
+  if (json_output_mode == JsonFileOutputType::standardout) {
+    if (!onlyjson) {
+      cout << "//-- BEGIN JSON --// " << endl;
+    };
+    cout << "{" << endl;
+  }
 
   writeJsonOutputParsingCheck(basename, json_output_mode, json == JsonOutputPointType::transformpass, json == JsonOutputPointType::computingpass);
 
@@ -1125,9 +1128,12 @@ ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonF
   if (json == JsonOutputPointType::computingpass)
     writeJsonComputingPassOutput(basename, json_output_mode, jsonderivsimple);
 
-  if (json_output_mode == JsonFileOutputType::standardout)
-    cout << "}" << endl
-         << "//-- END JSON --// " << endl;
+  if (json_output_mode == JsonFileOutputType::standardout) {
+    cout << "}" << endl;
+    if (!onlyjson) {
+      cout << "//-- END JSON --// " << endl;
+    };
+  }
 
   switch (json)
     {
@@ -1148,8 +1154,6 @@ ModFile::writeJsonOutput(const string &basename, JsonOutputPointType json, JsonF
       exit(EXIT_FAILURE);
     }
 
-  if (onlyjson)
-    exit(EXIT_SUCCESS);
 }
 
 void

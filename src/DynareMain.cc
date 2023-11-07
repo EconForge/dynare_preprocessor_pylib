@@ -509,12 +509,14 @@ main(int argc, char **argv)
   mod_file->checkPass(nostrict, stochastic);
   if (json == JsonOutputPointType::checkpass)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
+    if (onlyjson) exit(EXIT_SUCCESS);
 
   // Perform transformations on the model (creation of auxiliary vars and equations)
   mod_file->transformPass(nostrict, stochastic, compute_xrefs || json == JsonOutputPointType::transformpass,
                           transform_unary_ops, exclude_eqs, include_eqs);
   if (json == JsonOutputPointType::transformpass)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
+    if (onlyjson) exit(EXIT_SUCCESS);
 
   // Evaluate parameters initialization, initval, endval and pounds
   mod_file->evalAllExpressions(warn_uninit);
@@ -523,6 +525,7 @@ main(int argc, char **argv)
   mod_file->computingPass(no_tmp_terms, output_mode, params_derivs_order);
   if (json == JsonOutputPointType::computingpass)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, jsonderivsimple);
+    if (onlyjson) exit(EXIT_SUCCESS);
 
   // Write output files
   if (language == LanguageOutputType::julia)
