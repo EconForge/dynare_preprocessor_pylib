@@ -1694,9 +1694,7 @@ stoch_simul_options_list : stoch_simul_options_list COMMA stoch_simul_options
                          | stoch_simul_options
                          ;
 
-stoch_simul_primary_options : o_dr_algo
-                            | o_solve_algo
-                            | o_simul_algo
+stoch_simul_primary_options : o_solve_algo
                             | o_order
                             | o_replic
                             | o_drop
@@ -1724,8 +1722,6 @@ stoch_simul_primary_options : o_dr_algo
                             | o_hp_ngrid
                             | o_filtered_theoretical_moments_grid
                             | o_periods
-                            | o_simul
-                            | o_simul_seed
                             | o_simul_replic
                             | o_qz_criterium
                             | o_qz_zero_threshold
@@ -3511,19 +3507,7 @@ init2shocks_element : symbol symbol ';' { driver.add_init2shocks($1, $2); }
                     | symbol COMMA symbol ';' { driver.add_init2shocks($1, $3); }
                     ;
 
-o_dr_algo : DR_ALGO EQUAL INT_NUMBER {
-                                       if ($3 == "0")
-                                         driver.warning("dr_algo option is now deprecated, and may be removed in a future version of Dynare");
-                                       else
-                                         driver.error("dr_algo=1 option is no longer supported");
-                                     };
 o_solve_algo : SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("solve_algo", $3); };
-o_simul_algo : SIMUL_ALGO EQUAL INT_NUMBER {
-                                             if ($3 == "0")
-                                               driver.warning("simul_algo option is now deprecated, and may be removed in a future version of Dynare");
-                                             else
-                                               driver.error("simul_algo=1 option is no longer supported");
-                                           };
 o_stack_solve_algo : STACK_SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("stack_solve_algo", $3); };
 o_robust_lin_solve : ROBUST_LIN_SOLVE { driver.option_num("simul.robust_lin_solve", "true"); };
 o_endogenous_terminal_period : ENDOGENOUS_TERMINAL_PERIOD { driver.option_num("endogenous_terminal_period", "true"); };
@@ -3577,9 +3561,7 @@ o_pf_steady_tolx : STEADY_TOLX EQUAL non_negative_number { driver.option_num("si
 o_pf_steady_markowitz : STEADY_MARKOWITZ EQUAL non_negative_number { driver.option_num("simul.steady_markowitz", $3); };
 
 o_minimal_solving_periods : MINIMAL_SOLVING_PERIODS EQUAL non_negative_number { driver.option_num("minimal_solving_periods", $3); };
-o_simul : SIMUL; // Do nothing, only here for backward compatibility
 o_simul_replic : SIMUL_REPLIC EQUAL INT_NUMBER { driver.option_num("simul_replic", $3); };
-o_simul_seed : SIMUL_SEED EQUAL INT_NUMBER { driver.error("'simul_seed' option is no longer supported; use 'set_dynare_seed' command instead"); } ;
 o_qz_criterium : QZ_CRITERIUM EQUAL non_negative_number { driver.option_num("qz_criterium", $3); };
 o_qz_zero_threshold : QZ_ZERO_THRESHOLD EQUAL non_negative_number { driver.option_num("qz_zero_threshold", $3); };
 o_file : FILE EQUAL filename { driver.option_str("file", $3); };
