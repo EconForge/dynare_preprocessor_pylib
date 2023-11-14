@@ -107,6 +107,20 @@
   \end{witemize}
 \end{frame}
 
+\section{Macro processing}
+
+\begin{frame}
+  \frametitle{Macro processing}
+  \begin{witemize}
+  \item The Dynare macro language provides a set of macro commands that can be used in \texttt{mod} files
+  \item The macro processor employs text expansions/inclusions to transform a \texttt{mod} file with macro commands into a \texttt{mod} file without macro commands\\
+  $\rightarrow$ result can be stored using \texttt{savemacro} option
+  \item The result is fed to the parser\\
+  $\rightarrow$ use \texttt{onlymacro} to stop after macro processing before parsing
+  \item Attention: the macro processor only does text substitution; objects computed in later steps are not available yet and cannot be conditioned on for that reason
+  \end{witemize}
+\end{frame}
+
 \section{Parsing}
 
 \begin{frame}
@@ -584,7 +598,7 @@ The class \texttt{ParsingDriver} has the following roles:
     \item computes equation cross references, if desired
     \end{itemize}
   \item NB: analogous operations for static model are performed by \texttt{StaticModel::computingPass()}
-  \item Asserts that equations declared linear are indeed linear (by checking that Hessian == 0)
+  \item Asserts that equations declared \texttt{linear} are indeed linear (by checking that Hessian == 0)
   \item Finally, calls \texttt{Statement::computingPass()} on all statements
   \end{itemize}
 \end{frame}
@@ -597,7 +611,7 @@ The class \texttt{ParsingDriver} has the following roles:
   \item The \texttt{SymbolTable} class keeps track of valid symbols, while the \texttt{variable\_node\_map} keeps track of model variables (symbol, lag pairs stored in \texttt{VariableNode} objects)
   \item After the computing pass, the \texttt{DynamicModel} class writes the leag/lag incidence matrix:
     \begin{witemize}
-    \item three rows: the first row indicates $t-1$, the second row $t$, and the third row $t+1$
+    \item \texttt{max\_lag + max\_lead + 1} rows (usually 3): the first row indicates $t-1$ (if applicable), the second row $t$, and the third row $t+1$ (if applicable)
     \item one column for every endogenous symbol in order of declaration; NB: includes endogenous auxiliary variables created during the transform pass
     \item elements of the matrix are either 0 (if the variable does not appear in the model) or correspond to the variable's column in the Jacobian of the dynamic model
     \end{witemize}
@@ -714,7 +728,8 @@ residual(1)=3*T1+1;
     \item cost of creating new variables
     \end{witemize}
   \item Algorithm uses a recursive cost calculation, which marks some nodes as being ``temporary''
-  \item \textit{Problem}: redundant with optimizations done by the C/C++ compiler (when Dynare is in DLL mode) $\Rightarrow$ compilation very slow on big models
+  \item \textit{Problem}: redundant with optimizations done by the C/C++ compiler (when Dynare is in DLL mode)\\
+   $\Rightarrow$ compilation very slow on big models
   \end{witemize}
 \end{frame}
 
@@ -744,11 +759,12 @@ residual(1)=3*T1+1;
     \end{itemize}
   \item Subsidiary output files:
     \begin{itemize}
-    \item one for the static model
-    \item one for the dynamic model
-    \item one for the auxiliary variables
+    \item for the static model (residuals, temporary terms, derivatives)
+    \item for the dynamic model (residuals, temporary terms, derivatives)
+    \item one for the auxiliary variables in the dynamic model (if relevant)
     \item one for the steady state file (if relevant)
-    \item one for the planner objective (if relevant)
+    \item for the planner objective and Lagrange multipliers (static residuals and derivatives, if relevant)
+    \item one each for the static and dynamic parameter derivatives (if required)
     \end{itemize}
   \end{itemize}
 \end{frame}
