@@ -417,7 +417,7 @@ public:
   void replaceMyEquations(DynamicModel &dynamic_model) const;
 
   //! Adds an equation marked as [static]
-  void addStaticOnlyEquation(expr_t eq, optional<int> lineno, const map<string, string> &eq_tags);
+  void addStaticOnlyEquation(expr_t eq, optional<int> lineno, map<string, string> eq_tags);
 
   //! Returns number of static only equations
   size_t staticOnlyEquationsNbr() const;
@@ -430,7 +430,7 @@ public:
      auxiliary parameters have already been added to the symbol table.
      It also assumes that the “bind” and “relax” tags have been cleared from
      eq_tags. */
-  void addOccbinEquation(expr_t eq, optional<int> lineno, const map<string, string> &eq_tags, const vector<string> &regimes_bind, const vector<string> &regimes_relax);
+  void addOccbinEquation(expr_t eq, optional<int> lineno, map<string, string> eq_tags, const vector<string> &regimes_bind, const vector<string> &regimes_relax);
 
   //! Writes LaTeX file with the equations of the dynamic model
   void writeLatexFile(const string &basename, bool write_equation_tags) const;

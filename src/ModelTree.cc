@@ -1397,9 +1397,9 @@ ModelTree::findConstantEquationsWithoutMcpTag(map<VariableNode *, NumConstNode *
 }
 
 void
-ModelTree::addEquation(expr_t eq, optional<int> lineno, const map<string, string> &eq_tags)
+ModelTree::addEquation(expr_t eq, optional<int> lineno, map<string, string> eq_tags)
 {
-  equation_tags.add(equations.size(), eq_tags);
+  equation_tags.add(equations.size(), move(eq_tags));
   addEquation(eq, move(lineno));
 }
 

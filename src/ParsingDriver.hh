@@ -239,8 +239,6 @@ private:
   expr_t add_model_variable(int symb_id, int lag);
   //! For parsing the graph_format option
   vector<string> graph_formats;
-  //! Temporary storage for equation tags
-  map<string, string> eq_tags;
   // Temporary storages for pac_target_info
   string pac_target_info_name;
   PacModelTable::target_component_t pac_target_info_component;
@@ -390,8 +388,6 @@ public:
   void declare_and_init_model_local_variable(const string &name, expr_t rhs);
   //! Changes type of a symbol
   void change_type(SymbolType new_type, const vector<string> &symbol_list);
-  //! Adds a list of tags for the current equation
-  void add_equation_tags(string key, string value);
   //! Adds a non-negative constant to DataTree
   expr_t add_non_negative_constant(const string &constant);
   //! Adds a NaN constant to DataTree
@@ -725,9 +721,9 @@ public:
   //! Extended path
   void extended_path();
   //! Writes token "arg1=arg2" to model tree
-  expr_t add_model_equal(expr_t arg1, expr_t arg2);
+  expr_t add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_tags);
   //! Writes token "arg=0" to model tree
-  expr_t add_model_equal_with_zero_rhs(expr_t arg);
+  expr_t add_model_equal_with_zero_rhs(expr_t arg, map<string, string> eq_tags);
   //! Writes token "arg1+arg2" to model tree
   expr_t add_plus(expr_t arg1, expr_t arg2);
   //! Writes token "arg1-arg2" to model tree

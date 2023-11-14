@@ -78,6 +78,16 @@ class ParsingDriver;
  * current lexer object of the driver context. */
 #undef yylex
 #define yylex driver.lexer->lex
+
+#include <cctype>
+
+string
+str_tolower(string s)
+{
+  // Converting to unsigned char is needed, see https://en.cppreference.com/w/cpp/string/byte/tolower
+  transform(s.begin(), s.end(), s.begin(), [](unsigned char c){ return std::tolower(c); });
+  return s;
+}
 }
 
 %token AIM_SOLVER ANALYTIC_DERIVATION ANALYTIC_DERIVATION_MODE AR POSTERIOR_SAMPLING_METHOD
@@ -224,8 +234,9 @@ class ParsingDriver;
 %type <vector<int>> vec_int_elem vec_int_1 vec_int vec_int_number
 %type <PriorDistributions> prior_pdf prior_distribution
 %type <pair<expr_t,expr_t>> calibration_range
-%type <pair<string,string>> partition_elem subsamples_eq_opt integer_range_w_inf
+%type <pair<string,string>> partition_elem subsamples_eq_opt integer_range_w_inf tag_pair
 %type <vector<pair<string,string>>> partition partition_1 tag_pair_list_for_selection symbol_list_with_tex
+%type <map<string, string>> tag_pair_list
 %type <tuple<string,string,string,string>> prior_eq_opt options_eq_opt
 %type <vector<pair<int, int>>> period_list
 %type <vector<expr_t>> matched_moments_list value_list
@@ -982,23 +993,30 @@ equation_list : equation_list equation
               ;
 
 equation : hand_side EQUAL hand_side ';'
-           { $$ = driver.add_model_equal($1, $3); }
+           { $$ = driver.add_model_equal($1, $3, {}); }
          | hand_side ';'
-           { $$ = driver.add_model_equal_with_zero_rhs($1); }
-         | '[' tags_list ']' hand_side EQUAL hand_side ';'
-           { $$ = driver.add_model_equal($4, $6); }
-         | '[' tags_list ']' hand_side ';'
-           { $$ = driver.add_model_equal_with_zero_rhs($4); }
+           { $$ = driver.add_model_equal_with_zero_rhs($1, {}); }
+         | '[' tag_pair_list ']' hand_side EQUAL hand_side ';'
+           { $$ = driver.add_model_equal($4, $6, $2); }
+         | '[' tag_pair_list ']' hand_side ';'
+           { $$ = driver.add_model_equal_with_zero_rhs($4, $2); }
          ;
 
-tags_list : tags_list COMMA tag_pair
-          | tag_pair
-          ;
+tag_pair_list : tag_pair_list COMMA tag_pair
+                {
+                  $$ = $1;
+                  auto [it, success] = $$.emplace($3);
+                  if (!success)
+                    driver.error("Tag '" + $3.first + "' cannot be used twice for the same equation");
+                }
+              | tag_pair
+                { $$ = { $1 }; }
+              ;
 
 tag_pair : symbol EQUAL QUOTED_STRING
-           { driver.add_equation_tags($1, $3); }
+           { $$ = { str_tolower($1), $3 }; }
          | symbol
-           { driver.add_equation_tags($1, ""); }
+           { $$ = { str_tolower($1), "" }; }
          ;
 
 hand_side : '(' hand_side ')'
@@ -1138,17 +1156,17 @@ model_options : MODEL_OPTIONS '(' model_options_list ')' ';'
 
 tag_pair_list_for_selection : QUOTED_STRING
                               { $$ = { { "name", $1 } }; }
-                            | symbol EQUAL QUOTED_STRING
-                              { $$ = { { $1, $3 } }; }
+                            | tag_pair
+                              { $$ = { $1 }; }
                             | tag_pair_list_for_selection COMMA QUOTED_STRING
                               {
                                 $$ = $1;
                                 $$.emplace_back("name", $3);
                               }
-                            | tag_pair_list_for_selection COMMA symbol EQUAL QUOTED_STRING
+                            | tag_pair_list_for_selection COMMA tag_pair
                               {
                                 $$ = $1;
-                                $$.emplace_back($3, $5);
+                                $$.push_back($3);
                               }
                             ;
 

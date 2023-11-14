@@ -3425,12 +3425,12 @@ DynamicModel::fillEvalContext(eval_context_t &eval_context) const
 }
 
 void
-DynamicModel::addStaticOnlyEquation(expr_t eq, optional<int> lineno, const map<string, string> &eq_tags)
+DynamicModel::addStaticOnlyEquation(expr_t eq, optional<int> lineno, map<string, string> eq_tags)
 {
   auto beq = dynamic_cast<BinaryOpNode *>(eq);
   assert(beq && beq->op_code == BinaryOpcode::equal);
 
-  static_only_equations_equation_tags.add(static_only_equations.size(), eq_tags);
+  static_only_equations_equation_tags.add(static_only_equations.size(), move(eq_tags));
   static_only_equations.push_back(beq);
   static_only_equations_lineno.push_back(move(lineno));
 }
@@ -3448,7 +3448,7 @@ DynamicModel::dynamicOnlyEquationsNbr() const
 }
 
 void
-DynamicModel::addOccbinEquation(expr_t eq, optional<int> lineno, const map<string, string> &eq_tags, const vector<string> &regimes_bind, const vector<string> &regimes_relax)
+DynamicModel::addOccbinEquation(expr_t eq, optional<int> lineno, map<string, string> eq_tags, const vector<string> &regimes_bind, const vector<string> &regimes_relax)
 {
   auto beq = dynamic_cast<BinaryOpNode *>(eq);
   assert(beq && beq->op_code == BinaryOpcode::equal);
@@ -3501,9 +3501,8 @@ DynamicModel::addOccbinEquation(expr_t eq, optional<int> lineno, const map<strin
         }
       else
         {
-          auto eq_tags_static = eq_tags;
-          eq_tags_static["static"] = "";
-          addStaticOnlyEquation(AddEqual(basic_term, Zero), lineno, eq_tags_static);
+          eq_tags["static"] = "";
+          addStaticOnlyEquation(AddEqual(basic_term, Zero), lineno, move(eq_tags));
         }
     }
 }

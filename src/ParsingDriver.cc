@@ -307,19 +307,6 @@ ParsingDriver::predetermined_variables(const vector<string> &symbol_list)
     }
 }
 
-void
-ParsingDriver::add_equation_tags(string key, string value)
-{
-  if (eq_tags.contains(key))
-    error("Tag '" + key + "' cannot be declared twice for the same equation");
-
-  eq_tags[key] = value;
-
-  transform(key.begin(), key.end(), key.begin(), ::tolower);
-  if (key == "endogenous")
-    declare_or_change_type(SymbolType::endogenous, value);
-}
-
 expr_t
 ParsingDriver::add_non_negative_constant(const string &constant)
 {
@@ -2585,9 +2572,13 @@ ParsingDriver::extended_path()
 }
 
 expr_t
-ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
+ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_tags)
 {
   expr_t id = model_tree->AddEqual(arg1, arg2);
+
+  for (const auto &[key, value] : eq_tags)
+    if (key == "endogenous")
+      declare_or_change_type(SymbolType::endogenous, value);
 
   if (eq_tags.contains("static"))
     {
@@ -2625,19 +2616,18 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2)
         }
       eq_tags.erase("bind");
       eq_tags.erase("relax");
-      dynamic_model->addOccbinEquation(id, location.begin.line, eq_tags, regimes_bind, regimes_relax);
+      dynamic_model->addOccbinEquation(id, location.begin.line, move(eq_tags), regimes_bind, regimes_relax);
     }
   else // General case
-    model_tree->addEquation(id, location.begin.line, eq_tags);
+    model_tree->addEquation(id, location.begin.line, move(eq_tags));
 
-  eq_tags.clear();
   return id;
 }
 
 expr_t
-ParsingDriver::add_model_equal_with_zero_rhs(expr_t arg)
+ParsingDriver::add_model_equal_with_zero_rhs(expr_t arg, map<string, string> eq_tags)
 {
-  return add_model_equal(arg, model_tree->Zero);
+  return add_model_equal(arg, model_tree->Zero, move(eq_tags));
 }
 
 void
