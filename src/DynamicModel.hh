@@ -221,11 +221,12 @@ private:
     Returns a set of pairs (tag name, tag value) corresponding to the set of
     equations to be included or excluded.
    */
-  static vector<pair<string, string>> parseIncludeExcludeEquations(const string &inc_exc_option_value, bool exclude_eqs);
+  static vector<map<string, string>> parseIncludeExcludeEquations(const string &inc_exc_option_value, bool exclude_eqs);
 
   /* Helper for the removeEquations() method.
-     listed_eqs_by_tag is the list of (tag name, tag value) pairs corresponding
-     to the option value, exclude_eqs is a boolean indicating whether we’re
+     listed_eqs_by_tag describes a list of equations to remove (identified by
+     one or more tags; if multiple tags are present for a single equation, they
+     are understood as a conjunction), exclude_eqs is a boolean indicating whether we’re
      excluding or including, and excluded_vars_change_type is a boolean
      indicating whether to compute variables to be excluded.
 
@@ -233,13 +234,13 @@ private:
      equations. They are either the main structures for storing equations in
      ModelTree, or their counterpart for static-only equations. The
      static_equations boolean indicates when we are in the latter case.
-     The listed_eqs_by_tag structure will be updated by removing those tag
-     pairs that have been matched with equations in the all_equations*
-     argument*.
+
+     The listed_eqs_by_tag structure will be updated by removing the tags
+     matched with equations in the all_equations* argument*.
 
      Returns a list of excluded variables (empty if
      excluded_vars_change_type=false) */
-  vector<int> removeEquationsHelper(set<pair<string, string>> &listed_eqs_by_tag,
+  vector<int> removeEquationsHelper(set<map<string, string>> &listed_eqs_by_tag,
                                     bool exclude_eqs, bool excluded_vars_change_type,
                                     vector<BinaryOpNode *> &all_equations,
                                     vector<optional<int>> &all_equations_lineno,
@@ -396,10 +397,12 @@ public:
   //! Implements the include_eqs/exclude_eqs options
   void includeExcludeEquations(const string &inc_exc_option_value, bool exclude_eqs);
 
-  /* Removes equations from the model (identified by their name tags).
+  /* Removes equations from the model (identified by one or more tags; if
+     multiple tags are present for a single equation, they are understood as a
+     conjunction).
      Used for include_eqs/exclude_eqs options and for model_remove and
      model_replace blocks */
-  void removeEquations(const vector<pair<string, string>> &listed_eqs_by_tag, bool exclude_eqs,
+  void removeEquations(const vector<map<string, string>> &listed_eqs_by_tag, bool exclude_eqs,
                        bool excluded_vars_change_type);
 
   /* Replaces model equations with derivatives of Lagrangian w.r.t. endogenous.

@@ -235,7 +235,8 @@ str_tolower(string s)
 %type <PriorDistributions> prior_pdf prior_distribution
 %type <pair<expr_t,expr_t>> calibration_range
 %type <pair<string,string>> partition_elem subsamples_eq_opt integer_range_w_inf tag_pair
-%type <vector<pair<string,string>>> partition partition_1 tag_pair_list_for_selection symbol_list_with_tex
+%type <vector<pair<string,string>>> partition partition_1 symbol_list_with_tex
+%type <vector<map<string, string>>> tag_pair_list_for_selection
 %type <map<string, string>> tag_pair_list
 %type <tuple<string,string,string,string>> prior_eq_opt options_eq_opt
 %type <vector<pair<int, int>>> period_list
@@ -1155,18 +1156,25 @@ model_replace : MODEL_REPLACE '(' tag_pair_list_for_selection ')' ';'
 model_options : MODEL_OPTIONS '(' model_options_list ')' ';'
 
 tag_pair_list_for_selection : QUOTED_STRING
-                              { $$ = { { "name", $1 } }; }
+                              { $$ = { { { "name", $1 } } }; }
                             | tag_pair
-                              { $$ = { $1 }; }
+                              { $$ = { { $1 } }; }
+                            | '[' tag_pair_list ']'
+                              { $$ = { $2 }; }
                             | tag_pair_list_for_selection COMMA QUOTED_STRING
                               {
                                 $$ = $1;
-                                $$.emplace_back("name", $3);
+                                $$.push_back({ { "name", $3 } });
                               }
                             | tag_pair_list_for_selection COMMA tag_pair
                               {
                                 $$ = $1;
-                                $$.push_back($3);
+                                $$.push_back({ $3 });
+                              }
+                            | tag_pair_list_for_selection COMMA '[' tag_pair_list ']'
+                              {
+                                $$ = $1;
+                                $$.push_back($4);
                               }
                             ;
 

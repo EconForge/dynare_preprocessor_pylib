@@ -904,9 +904,9 @@ public:
   //! Add an occbin_constraints block
   void end_occbin_constraints(vector<tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>> constraints);
   // Process a model_remove statement
-  void model_remove(const vector<pair<string, string>> &listed_eqs_by_tags);
+  void model_remove(const vector<map<string, string>> &listed_eqs_by_tags);
   // Begin a model_replace statement
-  void begin_model_replace(const vector<pair<string, string>> &listed_eqs_by_tags);
+  void begin_model_replace(const vector<map<string, string>> &listed_eqs_by_tags);
   // Add a var_remove statement
   void var_remove(const vector<string> &symbol_list);
   void begin_pac_target_info(string name);

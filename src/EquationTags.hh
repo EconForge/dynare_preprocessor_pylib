@@ -79,6 +79,9 @@ public:
   //! Get the first equation that has the given key and value
   optional<int> getEqnByTag(const string &key, const string &value) const;
 
+  // Get equations that have all the given keys and values (seen as a conjunction)
+  set<int> getEqnsByTags(const map<string, string> &tags_selected) const;
+
   //! Get the tag value given the equation number and key
   optional<string>
   getTagValueByEqnAndKey(int eqn, const string &key) const

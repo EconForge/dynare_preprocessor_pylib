@@ -3756,13 +3756,13 @@ ParsingDriver::isSymbolIdentifier(const string &str)
 }
 
 void
-ParsingDriver::model_remove(const vector<pair<string, string>> &listed_eqs_by_tags)
+ParsingDriver::model_remove(const vector<map<string, string>> &listed_eqs_by_tags)
 {
   mod_file->dynamic_model.removeEquations(listed_eqs_by_tags, true, true);
 }
 
 void
-ParsingDriver::begin_model_replace(const vector<pair<string, string>> &listed_eqs_by_tags)
+ParsingDriver::begin_model_replace(const vector<map<string, string>> &listed_eqs_by_tags)
 {
   mod_file->dynamic_model.removeEquations(listed_eqs_by_tags, true, false);
   set_current_data_tree(&mod_file->dynamic_model);

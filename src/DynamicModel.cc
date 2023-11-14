@@ -496,7 +496,7 @@ DynamicModel::writeDynamicMCompatFile(const string &basename) const
   output.close();
 }
 
-vector<pair<string, string>>
+vector<map<string, string>>
 DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_option_value, bool exclude_eqs)
 {
   auto removeLeadingTrailingWhitespace = [](string &str)
@@ -584,7 +584,7 @@ DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_option_value, b
       exit(EXIT_FAILURE);
     }
 
-  vector<pair<string, string>> eq_tag_set;
+  vector<map<string, string>> eq_tag_set;
   regex s(quote_regex + "|" + non_quote_regex);
   for (auto it = sregex_iterator(tags.begin(), tags.end(), s);
        it != sregex_iterator(); ++it)
@@ -595,13 +595,13 @@ DynamicModel::parseIncludeExcludeEquations(const string &inc_exc_option_value, b
           str.remove_prefix(1);
           str.remove_suffix(1);
         }
-      eq_tag_set.emplace_back(tagname, str);
+      eq_tag_set.push_back({ { tagname, string{str} } });
     }
   return eq_tag_set;
 }
 
 vector<int>
-DynamicModel::removeEquationsHelper(set<pair<string, string>> &listed_eqs_by_tag, bool exclude_eqs,
+DynamicModel::removeEquationsHelper(set<map<string, string>> &listed_eqs_by_tag, bool exclude_eqs,
                                     bool excluded_vars_change_type,
                                     vector<BinaryOpNode *> &all_equations,
                                     vector<optional<int>> &all_equations_lineno,
@@ -616,7 +616,7 @@ DynamicModel::removeEquationsHelper(set<pair<string, string>> &listed_eqs_by_tag
      the caller knows which tag pairs have not been handled. */
   set<int> listed_eqs_by_number;
   for (auto it = listed_eqs_by_tag.begin(); it != listed_eqs_by_tag.end();)
-    if (auto tmp = all_equation_tags.getEqnsByTag(it->first, it->second);
+    if (auto tmp = all_equation_tags.getEqnsByTags(*it);
         !tmp.empty())
       {
         listed_eqs_by_number.insert(tmp.begin(), tmp.end());
@@ -691,7 +691,7 @@ DynamicModel::removeEquationsHelper(set<pair<string, string>> &listed_eqs_by_tag
 }
 
 void
-DynamicModel::removeEquations(const vector<pair<string, string>> &listed_eqs_by_tag, bool exclude_eqs,
+DynamicModel::removeEquations(const vector<map<string, string>> &listed_eqs_by_tag, bool exclude_eqs,
                               bool excluded_vars_change_type)
 {
   /* Convert the const vector to a (mutable) set */
@@ -710,8 +710,22 @@ DynamicModel::removeEquations(const vector<pair<string, string>> &listed_eqs_by_
   if (!listed_eqs_by_tag2.empty())
     {
       cerr << "ERROR: model_remove/model_replace/exclude_eqs/include_eqs: The equations specified by" << endl;
-      for (const auto &[tagname, tagvalue] : listed_eqs_by_tag)
-        cerr << " " << tagname << "=" << tagvalue << endl;
+      for (const auto &m : listed_eqs_by_tag)
+        {
+          cerr << " ";
+          if (m.size() > 1)
+            cerr << "[ ";
+          bool first_printed {false};
+          for (const auto &[tagname, tagvalue] : m)
+            {
+              if (exchange(first_printed, true))
+                cerr << ", ";
+              cerr << tagname << "=" << tagvalue;
+            }
+          if (m.size() > 1)
+            cerr << " ]";
+          cerr << endl;
+        }
       cerr << "were not found." << endl;
       exit(EXIT_FAILURE);
     }

@@ -52,6 +52,22 @@ EquationTags::getEqnByTag(const string &key, const string &value) const
   return nullopt;
 }
 
+set<int>
+EquationTags::getEqnsByTags(const map<string, string> &tags_selected) const
+{
+  set<int> retval;
+  for (const auto &[eqn, tags] : eqn_tags)
+    {
+      for (const auto &[key, value] : tags_selected)
+        if (auto tmp = tags.find(key); tmp == tags.end() || tmp->second != value)
+          goto next_eq;
+      retval.insert(eqn);
+    next_eq:
+      ;
+    }
+  return retval;
+}
+
 void
 EquationTags::erase(const set<int> &eqns, const map<int, int> &old_eqn_num_2_new)
 {
