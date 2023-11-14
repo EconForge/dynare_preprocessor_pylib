@@ -187,6 +187,12 @@ void
 InitValStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
                             [[maybe_unused]] WarningConsolidation &warnings)
 {
+  if (mod_file_struct.endval_present)
+    {
+      cerr << "ERROR: an 'initval' block cannot appear after an 'endval' block" << endl; // See #104
+      exit(EXIT_FAILURE);
+    }
+
   set<int> exogs = getUninitializedVariables(SymbolType::exogenous);
   set<int> endogs = getUninitializedVariables(SymbolType::endogenous);
 
@@ -253,6 +259,8 @@ void
 EndValStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
                            [[maybe_unused]] WarningConsolidation &warnings)
 {
+  mod_file_struct.endval_present = true;
+
   set<int> exogs = getUninitializedVariables(SymbolType::exogenous);
   set<int> endogs = getUninitializedVariables(SymbolType::endogenous);
 
