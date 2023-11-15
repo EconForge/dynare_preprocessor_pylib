@@ -107,6 +107,26 @@
   \end{witemize}
 \end{frame}
 
+\begin{frame}[fragile]
+  \frametitle{Command line options in the mod-file}
+  \begin{witemize}
+  \item Command line options can alternatively be defined in the first line of the .mod file
+  \item Avoids to always have to invoke an option at the command line\\
+  $\rightarrow$ particularly useful for the \texttt{nostrict} option during the development phase of a model
+  \item Definition must be
+  \begin{itemize}
+    \item a one-line Dynare comment, i.e. begin //
+    \item the options must be enclosed in \texttt{----+ options:} and \texttt{+----} and must be whitespace separated
+    \item As in the command line, if an option admits a value, the equal symbol must not be surrounded by spaces
+  \end{itemize}
+  \begin{block}{Example}
+    \begin{verbatim}
+      // --+ options: json=compute, stochastic, nostrict +--
+    \end{verbatim}
+    \end{block}
+  \end{witemize}
+\end{frame}
+
 \section{Macro processing}
 
 \begin{frame}
@@ -135,6 +155,39 @@
   \end{wenumerate}
 \end{witemize}
 \end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Undesired Parsing}
+\begin{witemize}
+  \item Dynare will try to parse all tokens it recognizes
+  \item Code not recognized by the parser is directly passed to the preprocessor output\\
+  $\rightarrow$ allows using MATLAB/Octave commands directly in the mod-file
+  \item Causes problems when one wants to invoke commands containing recognized tokens
+ \end{witemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Bypassing the parsing}
+\begin{witemize}
+  \item The \texttt{verbatim} block instructs Dynare not to parse text contained in it
+  \item In the following example, \texttt{stoch\_simul} would otherwise be recognized as a Dynare command during parsing
+\end{witemize}
+\begin{block}{Verbatim example}
+  \begin{verbatim}
+verbatim;
+rhos = [ 0.8, 0.9, 1];
+for iter = 1:length(rhos)
+    set_param_value('rho',rhos(iter));
+    [info, oo_, options_, M_] = stoch_simul(M_, options_, oo_, var_list_)
+    if info(1)~=0
+        error('Simulation failed for parameter draw')
+    end
+end
+end;
+  \end{verbatim}
+\end{block}
+\end{frame}
+
 
 \begin{frame}
 \frametitle{1.\ Lexical analysis}
