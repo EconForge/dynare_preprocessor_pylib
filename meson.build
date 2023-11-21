@@ -3,6 +3,7 @@
 
 project('dynare-preprocessor', 'cpp',
         version : '6-unstable',
+        # NB: update C++ standard in .clang-format whenever the following is modified
         default_options : [ 'cpp_std=gnu++20', 'warning_level=2' ],
         meson_version : '>=0.64.0')
 

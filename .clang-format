@@ -1,0 +1,18 @@
+# This file should be kept in sync with the one in dynare.git (which also
+# contains more explanations).
+Language: Cpp
+Standard: c++20
+ColumnLimit: 100
+BasedOnStyle: GNU
+AllowShortFunctionsOnASingleLine: InlineOnly
+AlwaysBreakTemplateDeclarations: Yes
+BreakConstructorInitializers: AfterColon
+BreakInheritanceList: AfterColon
+Cpp11BracedListStyle: true
+DeriveLineEnding: false
+IndentPPDirectives: AfterHash
+PPIndentWidth: 1
+PointerAlignment: Left
+SpaceAfterTemplateKeyword: false
+SpaceBeforeParens: ControlStatements
+SpaceBeforeCpp11BracedList: true
