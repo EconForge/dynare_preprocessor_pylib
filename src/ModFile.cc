@@ -817,12 +817,8 @@ ModFile::writeMOutput(const string &basename, bool clear_all, bool clear_global,
     mOutputFile << "warning off" << endl; // This will be executed *after* function warning_config()
 
   if (clear_all)
-    mOutputFile << "if ~isoctave && matlab_ver_less_than('8.6')" << endl
-                << "    clear all" << endl
-                << "else" << endl
-                << "    clearvars -global" << endl
-                << "    clear_persistent_variables(fileparts(which('dynare')), false)" << endl
-                << "end" << endl;
+    mOutputFile << "clearvars -global" << endl
+                << "clear_persistent_variables(fileparts(which('dynare')), false)" << endl;
   else if (clear_global)
     mOutputFile << "clear M_ options_ oo_ estim_params_ bayestopt_ dataset_ dataset_info estimation_info;" << endl;
 
