@@ -1106,7 +1106,7 @@ DynareSensitivityStatement::writeOutput(ostream& output, [[maybe_unused]] const 
   if (auto opt = options_list.get_if<OptionsList::SymbolListVal>("graph_format"))
     opt->writeOutput("options_.graph_format", output);
 
-  output << "dynare_sensitivity(options_gsa);" << endl;
+  output << "dynare_sensitivity(M_,oo_,options_,bayestopt_,estim_params_,options_gsa);" << endl;
 }
 
 void
@@ -2941,7 +2941,8 @@ IdentificationStatement::writeOutput(ostream& output, [[maybe_unused]] const str
   if (auto opt = options_list.get_if<OptionsList::SymbolListVal>("graph_format"))
     opt->writeOutput("options_.graph_format", output);
 
-  output << "dynare_identification(options_ident);" << endl;
+  output << "dynare_identification(M_,oo_,options_,bayestopt_,estim_params_,"
+         << "options_ident);" << endl;
 }
 
 void
