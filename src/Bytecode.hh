@@ -20,12 +20,12 @@
 #ifndef _BYTECODE_HH
 #define _BYTECODE_HH
 
-#include <fstream>
-#include <vector>
-#include <utility>
-#include <ios>
 #include <filesystem>
+#include <fstream>
+#include <ios>
 #include <type_traits>
+#include <utility>
+#include <vector>
 
 #include "CommonEnums.hh"
 
@@ -33,77 +33,91 @@ using namespace std;
 
 // The different opcodes of bytecode
 enum class Tags
-  {
-   FLDZ, // Loads a zero onto the stack
-   FLDC, // Loads a constant term onto the stack
+{
+  FLDZ, // Loads a zero onto the stack
+  FLDC, // Loads a constant term onto the stack
 
-   FDIMT, // Defines the number of temporary terms - dynamic context (the period has to be indicated)
-   FDIMST, // Defines the number of temporary terms - static context (the period hasn’t to be indicated)
-   FLDT, // Loads a temporary term onto the stack - dynamic context (the period has to be indicated)
-   FLDST, // Loads a temporary term onto the stack - static context (the period hasn’t to be indicated)
-   FSTPT, // Stores a temporary term from the stack - dynamic context (the period has to be indicated)
-   FSTPST, // Stores a temporary term from the stack - static context (the period hasn’t to be indicated)
+  FDIMT, // Defines the number of temporary terms - dynamic context (the period has to be indicated)
+  FDIMST, // Defines the number of temporary terms - static context (the period hasn’t to be
+          // indicated)
+  FLDT,  // Loads a temporary term onto the stack - dynamic context (the period has to be indicated)
+  FLDST, // Loads a temporary term onto the stack - static context (the period hasn’t to be
+         // indicated)
+  FSTPT, // Stores a temporary term from the stack - dynamic context (the period has to be
+         // indicated)
+  FSTPST, // Stores a temporary term from the stack - static context (the period hasn’t to be
+          // indicated)
 
-   FLDU, // Loads an element of the vector U onto the stack - dynamic context (the period has to be indicated)
-   FLDSU, // Loads an element of the vector U onto the stack - static context (the period hasn’t to be indicated)
-   FSTPU, // Stores an element of the vector U from the stack - dynamic context (the period has to be indicated)
-   FSTPSU, // Stores an element of the vector U from the stack - static context (the period hasn’t to be indicated)
+  FLDU,  // Loads an element of the vector U onto the stack - dynamic context (the period has to be
+         // indicated)
+  FLDSU, // Loads an element of the vector U onto the stack - static context (the period hasn’t to
+         // be indicated)
+  FSTPU, // Stores an element of the vector U from the stack - dynamic context (the period has to be
+         // indicated)
+  FSTPSU, // Stores an element of the vector U from the stack - static context (the period hasn’t to
+          // be indicated)
 
-   FLDV, // Loads a variable (described in SymbolType) onto the stack - dynamic context (the period has to be indicated)
-   FLDSV, // Loads a variable (described in SymbolType) onto the stack - static context (the period hasn’t to be indicated)
-   FLDVS, // Loads a variable (described in SymbolType) onto the stack - dynamic context but inside the STEADY_STATE operator (the period hasn’t to be indicated)
-   FSTPV, // Stores a variable (described in SymbolType) from the stack - dynamic context (the period has to be indicated)
-   FSTPSV, // Stores a variable (described in SymbolType) from the stack - static context (the period hasn’t to be indicated)
+  FLDV,  // Loads a variable (described in SymbolType) onto the stack - dynamic context (the period
+         // has to be indicated)
+  FLDSV, // Loads a variable (described in SymbolType) onto the stack - static context (the period
+         // hasn’t to be indicated)
+  FLDVS, // Loads a variable (described in SymbolType) onto the stack - dynamic context but inside
+         // the STEADY_STATE operator (the period hasn’t to be indicated)
+  FSTPV, // Stores a variable (described in SymbolType) from the stack - dynamic context (the period
+         // has to be indicated)
+  FSTPSV, // Stores a variable (described in SymbolType) from the stack - static context (the period
+          // hasn’t to be indicated)
 
-   FLDR, // Loads a residual onto the stack
-   FSTPR, // Stores a residual from the stack
+  FLDR,  // Loads a residual onto the stack
+  FSTPR, // Stores a residual from the stack
 
-   FSTPG, // Stores a derivative from the stack
-   FSTPG2, // Stores a derivative matrix for a static model from the stack
-   FSTPG3, // Stores a derivative matrix for a dynamic model from the stack
+  FSTPG,  // Stores a derivative from the stack
+  FSTPG2, // Stores a derivative matrix for a static model from the stack
+  FSTPG3, // Stores a derivative matrix for a dynamic model from the stack
 
-   FUNARY, // A unary operator
-   FBINARY, // A binary operator
-   FTRINARY, // A trinary operator
+  FUNARY,   // A unary operator
+  FBINARY,  // A binary operator
+  FTRINARY, // A trinary operator
 
-   FJMPIFEVAL, // Jump if evaluate = true
-   FJMP, // Jump
+  FJMPIFEVAL, // Jump if evaluate = true
+  FJMP,       // Jump
 
-   FBEGINBLOCK, // Marks the beginning of a model block
-   FENDBLOCK, // Marks the end of a model block
-   FENDEQU, // Marks the last equation of the block; for a block that has to be solved, the derivatives appear just after this flag
-   FEND, // Marks the end of the model code
+  FBEGINBLOCK, // Marks the beginning of a model block
+  FENDBLOCK,   // Marks the end of a model block
+  FENDEQU,     // Marks the last equation of the block; for a block that has to be solved, the
+               // derivatives appear just after this flag
+  FEND,        // Marks the end of the model code
 
-   FNUMEXPR, // Stores the expression type and references
+  FNUMEXPR, // Stores the expression type and references
 
-   FCALL, // Call an external function
-   FLDTEF, // Loads the result of an external function onto the stack
-   FSTPTEF, // Stores the result of an external function from the stack
-   FLDTEFD, // Loads the result of the 1st derivative of an external function onto the stack
-   FSTPTEFD, // Stores the result of the 1st derivative of an external function from the stack
-   FLDTEFDD, // Loads the result of the 2nd derivative of an external function onto the stack
-   FSTPTEFDD // Stores the result of the 2nd derivative of an external function from the stack
-  };
+  FCALL,    // Call an external function
+  FLDTEF,   // Loads the result of an external function onto the stack
+  FSTPTEF,  // Stores the result of an external function from the stack
+  FLDTEFD,  // Loads the result of the 1st derivative of an external function onto the stack
+  FSTPTEFD, // Stores the result of the 1st derivative of an external function from the stack
+  FLDTEFDD, // Loads the result of the 2nd derivative of an external function onto the stack
+  FSTPTEFDD // Stores the result of the 2nd derivative of an external function from the stack
+};
 
 enum class ExpressionType
-  {
-   TemporaryTerm,
-   ModelEquation,
-   FirstEndoDerivative,
-   FirstExoDerivative,
-   FirstExodetDerivative,
-  };
+{
+  TemporaryTerm,
+  ModelEquation,
+  FirstEndoDerivative,
+  FirstExoDerivative,
+  FirstExodetDerivative,
+};
 
 enum class ExternalFunctionCallType
-  {
-   levelWithoutDerivative,
-   levelWithFirstDerivative,
-   levelWithFirstAndSecondDerivative,
-   separatelyProvidedFirstDerivative,
-   numericalFirstDerivative,
-   separatelyProvidedSecondDerivative,
-   numericalSecondDerivative
-  };
+{
+  levelWithoutDerivative,
+  levelWithFirstDerivative,
+  levelWithFirstAndSecondDerivative,
+  separatelyProvidedFirstDerivative,
+  numericalFirstDerivative,
+  separatelyProvidedSecondDerivative,
+  numericalSecondDerivative
+};
 
 struct Block_contain_type
 {
@@ -115,10 +129,10 @@ class BytecodeWriter;
 struct BytecodeInstruction
 {
   const Tags op_code;
-  explicit BytecodeInstruction(Tags op_code_arg) :
-    op_code {op_code_arg}
+  explicit BytecodeInstruction(Tags op_code_arg) : op_code {op_code_arg}
   {
   }
+
 protected:
   /* This is a base class, so the destructor should be either public+virtual or
      protected+non-virtual. We opt for the latter, because otherwise this class
@@ -133,11 +147,13 @@ class TagWithOneArgument : public BytecodeInstruction
 {
 protected:
   T1 arg1;
+
 public:
-  TagWithOneArgument(Tags op_code_arg, T1 arg_arg1) : BytecodeInstruction{op_code_arg},
-                                                      arg1{arg_arg1}
+  TagWithOneArgument(Tags op_code_arg, T1 arg_arg1) :
+      BytecodeInstruction {op_code_arg}, arg1 {arg_arg1}
   {
-  };
+  }
+
 protected:
   // See BytecodeInstruction destructor for the rationale
   ~TagWithOneArgument() = default;
@@ -149,11 +165,13 @@ class TagWithTwoArguments : public BytecodeInstruction
 protected:
   T1 arg1;
   T2 arg2;
+
 public:
   TagWithTwoArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2) :
-    BytecodeInstruction{op_code_arg}, arg1{arg_arg1}, arg2{arg_arg2}
+      BytecodeInstruction {op_code_arg}, arg1 {arg_arg1}, arg2 {arg_arg2}
   {
-  };
+  }
+
 protected:
   // See BytecodeInstruction destructor for the rationale
   ~TagWithTwoArguments() = default;
@@ -166,11 +184,13 @@ protected:
   T1 arg1;
   T2 arg2;
   T3 arg3;
+
 public:
   TagWithThreeArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3) :
-    BytecodeInstruction{op_code_arg}, arg1{arg_arg1}, arg2{arg_arg2}, arg3{arg_arg3}
+      BytecodeInstruction {op_code_arg}, arg1 {arg_arg1}, arg2 {arg_arg2}, arg3 {arg_arg3}
   {
-  };
+  }
+
 protected:
   // See BytecodeInstruction destructor for the rationale
   ~TagWithThreeArguments() = default;
@@ -184,12 +204,17 @@ protected:
   T2 arg2;
   T3 arg3;
   T4 arg4;
+
 public:
   TagWithFourArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3, T4 arg_arg4) :
-    BytecodeInstruction{op_code_arg}, arg1{arg_arg1}, arg2{arg_arg2},
-    arg3{move(arg_arg3)}, arg4{arg_arg4}
+      BytecodeInstruction {op_code_arg},
+      arg1 {arg_arg1},
+      arg2 {arg_arg2},
+      arg3 {move(arg_arg3)},
+      arg4 {arg_arg4}
   {
-  };
+  }
+
 protected:
   // See BytecodeInstruction destructor for the rationale
   ~TagWithFourArguments() = default;
@@ -198,41 +223,41 @@ protected:
 class FLDZ_ final : public BytecodeInstruction
 {
 public:
-  FLDZ_() : BytecodeInstruction{Tags::FLDZ}
+  FLDZ_() : BytecodeInstruction {Tags::FLDZ}
   {
-  };
+  }
 };
 
 class FEND_ final : public BytecodeInstruction
 {
 public:
-  FEND_() : BytecodeInstruction{Tags::FEND}
+  FEND_() : BytecodeInstruction {Tags::FEND}
   {
-  };
+  }
 };
 
 class FENDBLOCK_ final : public BytecodeInstruction
 {
 public:
-  FENDBLOCK_() : BytecodeInstruction{Tags::FENDBLOCK}
+  FENDBLOCK_() : BytecodeInstruction {Tags::FENDBLOCK}
   {
-  };
+  }
 };
 
 class FENDEQU_ final : public BytecodeInstruction
 {
 public:
-  FENDEQU_() : BytecodeInstruction{Tags::FENDEQU}
+  FENDEQU_() : BytecodeInstruction {Tags::FENDEQU}
   {
-  };
+  }
 };
 
 class FDIMT_ final : public TagWithOneArgument<int>
 {
 public:
-  explicit FDIMT_(int size_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FDIMT, size_arg}
+  explicit FDIMT_(int size_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FDIMT, size_arg}
   {
-  };
+  }
   int
   get_size()
   {
@@ -243,9 +268,9 @@ public:
 class FDIMST_ final : public TagWithOneArgument<int>
 {
 public:
-  explicit FDIMST_(int size_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FDIMST, size_arg}
+  explicit FDIMST_(int size_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FDIMST, size_arg}
   {
-  };
+  }
   int
   get_size()
   {
@@ -256,9 +281,9 @@ public:
 class FLDC_ final : public TagWithOneArgument<double>
 {
 public:
-  explicit FLDC_(double value_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FLDC, value_arg}
+  explicit FLDC_(double value_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FLDC, value_arg}
   {
-  };
+  }
   double
   get_value()
   {
@@ -269,9 +294,9 @@ public:
 class FLDU_ final : public TagWithOneArgument<int>
 {
 public:
-  explicit FLDU_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FLDU, pos_arg}
+  explicit FLDU_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FLDU, pos_arg}
   {
-  };
+  }
   int
   get_pos()
   {
@@ -282,9 +307,9 @@ public:
 class FLDSU_ final : public TagWithOneArgument<int>
 {
 public:
-  explicit FLDSU_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FLDSU, pos_arg}
+  explicit FLDSU_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FLDSU, pos_arg}
   {
-  };
+  }
   int
   get_pos()
   {
@@ -295,9 +320,9 @@ public:
 class FLDR_ final : public TagWithOneArgument<int>
 {
 public:
-  explicit FLDR_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FLDR, pos_arg}
+  explicit FLDR_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FLDR, pos_arg}
   {
-  };
+  }
   int
   get_pos()
   {
@@ -308,9 +333,9 @@ public:
 class FLDT_ final : public TagWithOneArgument<int>
 {
 public:
-  explicit FLDT_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FLDT, pos_arg}
+  explicit FLDT_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FLDT, pos_arg}
   {
-  };
+  }
   int
   get_pos()
   {
@@ -321,9 +346,9 @@ public:
 class FLDST_ final : public TagWithOneArgument<int>
 {
 public:
-  explicit FLDST_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FLDST, pos_arg}
+  explicit FLDST_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FLDST, pos_arg}
   {
-  };
+  }
   int
   get_pos()
   {
@@ -334,9 +359,9 @@ public:
 class FSTPT_ final : public TagWithOneArgument<int>
 {
 public:
-  explicit FSTPT_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FSTPT, pos_arg}
+  explicit FSTPT_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FSTPT, pos_arg}
   {
-  };
+  }
   int
   get_pos()
   {
@@ -347,9 +372,9 @@ public:
 class FSTPST_ final : public TagWithOneArgument<int>
 {
 public:
-  explicit FSTPST_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FSTPST, pos_arg}
+  explicit FSTPST_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FSTPST, pos_arg}
   {
-  };
+  }
   int
   get_pos()
   {
@@ -360,9 +385,9 @@ public:
 class FSTPR_ final : public TagWithOneArgument<int>
 {
 public:
-  explicit FSTPR_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FSTPR, pos_arg}
+  explicit FSTPR_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FSTPR, pos_arg}
   {
-  };
+  }
   int
   get_pos()
   {
@@ -373,9 +398,9 @@ public:
 class FSTPU_ final : public TagWithOneArgument<int>
 {
 public:
-  explicit FSTPU_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FSTPU, pos_arg}
+  explicit FSTPU_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FSTPU, pos_arg}
   {
-  };
+  }
   int
   get_pos()
   {
@@ -386,9 +411,9 @@ public:
 class FSTPSU_ final : public TagWithOneArgument<int>
 {
 public:
-  explicit FSTPSU_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FSTPSU, pos_arg}
+  explicit FSTPSU_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FSTPSU, pos_arg}
   {
-  };
+  }
   int
   get_pos()
   {
@@ -399,9 +424,9 @@ public:
 class FSTPG_ final : public TagWithOneArgument<int>
 {
 public:
-  explicit FSTPG_(int pos_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FSTPG, pos_arg}
+  explicit FSTPG_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FSTPG, pos_arg}
   {
-  };
+  }
   int
   get_pos()
   {
@@ -412,9 +437,10 @@ public:
 class FSTPG2_ final : public TagWithTwoArguments<int, int>
 {
 public:
-  FSTPG2_(int row_arg, int col_arg) : TagWithTwoArguments::TagWithTwoArguments{Tags::FSTPG2, row_arg, col_arg}
+  FSTPG2_(int row_arg, int col_arg) :
+      TagWithTwoArguments::TagWithTwoArguments {Tags::FSTPG2, row_arg, col_arg}
   {
-  };
+  }
   int
   get_row()
   {
@@ -430,9 +456,11 @@ public:
 class FSTPG3_ final : public TagWithFourArguments<int, int, int, int>
 {
 public:
-  FSTPG3_(int row_arg, int col_arg, int lag_arg, int col_pos_arg) : TagWithFourArguments::TagWithFourArguments{Tags::FSTPG3, row_arg, col_arg, lag_arg, col_pos_arg}
+  FSTPG3_(int row_arg, int col_arg, int lag_arg, int col_pos_arg) :
+      TagWithFourArguments::TagWithFourArguments {Tags::FSTPG3, row_arg, col_arg, lag_arg,
+                                                  col_pos_arg}
   {
-  };
+  }
   int
   get_row()
   {
@@ -458,9 +486,10 @@ public:
 class FUNARY_ final : public TagWithOneArgument<UnaryOpcode>
 {
 public:
-  explicit FUNARY_(UnaryOpcode op_type_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FUNARY, op_type_arg}
+  explicit FUNARY_(UnaryOpcode op_type_arg) :
+      TagWithOneArgument::TagWithOneArgument {Tags::FUNARY, op_type_arg}
   {
-  };
+  }
   UnaryOpcode
   get_op_type()
   {
@@ -471,9 +500,10 @@ public:
 class FBINARY_ final : public TagWithOneArgument<BinaryOpcode>
 {
 public:
-  explicit FBINARY_(BinaryOpcode op_type_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FBINARY, op_type_arg}
+  explicit FBINARY_(BinaryOpcode op_type_arg) :
+      TagWithOneArgument::TagWithOneArgument {Tags::FBINARY, op_type_arg}
   {
-  };
+  }
   BinaryOpcode
   get_op_type()
   {
@@ -484,9 +514,10 @@ public:
 class FTRINARY_ final : public TagWithOneArgument<TrinaryOpcode>
 {
 public:
-  explicit FTRINARY_(TrinaryOpcode op_type_arg) : TagWithOneArgument::TagWithOneArgument{Tags::FTRINARY, op_type_arg}
+  explicit FTRINARY_(TrinaryOpcode op_type_arg) :
+      TagWithOneArgument::TagWithOneArgument {Tags::FTRINARY, op_type_arg}
   {
-  };
+  }
   TrinaryOpcode
   get_op_type()
   {
@@ -497,9 +528,10 @@ public:
 class FJMPIFEVAL_ final : public TagWithOneArgument<int>
 {
 public:
-  explicit FJMPIFEVAL_(int arg_pos) : TagWithOneArgument::TagWithOneArgument{Tags::FJMPIFEVAL, arg_pos}
+  explicit FJMPIFEVAL_(int arg_pos) :
+      TagWithOneArgument::TagWithOneArgument {Tags::FJMPIFEVAL, arg_pos}
   {
-  };
+  }
   int
   get_pos()
   {
@@ -510,9 +542,9 @@ public:
 class FJMP_ final : public TagWithOneArgument<int>
 {
 public:
-  explicit FJMP_(int arg_pos) : TagWithOneArgument::TagWithOneArgument{Tags::FJMP, arg_pos}
+  explicit FJMP_(int arg_pos) : TagWithOneArgument::TagWithOneArgument {Tags::FJMP, arg_pos}
   {
-  };
+  }
   int
   get_pos()
   {
@@ -523,9 +555,9 @@ public:
 class FLDTEF_ final : public TagWithOneArgument<int>
 {
 public:
-  explicit FLDTEF_(int number) : TagWithOneArgument::TagWithOneArgument{Tags::FLDTEF, number}
+  explicit FLDTEF_(int number) : TagWithOneArgument::TagWithOneArgument {Tags::FLDTEF, number}
   {
-  };
+  }
   int
   get_number()
   {
@@ -536,9 +568,9 @@ public:
 class FSTPTEF_ final : public TagWithOneArgument<int>
 {
 public:
-  explicit FSTPTEF_(int number) : TagWithOneArgument::TagWithOneArgument{Tags::FSTPTEF, number}
+  explicit FSTPTEF_(int number) : TagWithOneArgument::TagWithOneArgument {Tags::FSTPTEF, number}
   {
-  };
+  }
   int
   get_number()
   {
@@ -549,9 +581,9 @@ public:
 class FLDTEFD_ final : public TagWithTwoArguments<int, int>
 {
 public:
-  FLDTEFD_(int indx, int row) : TagWithTwoArguments::TagWithTwoArguments{Tags::FLDTEFD, indx, row}
+  FLDTEFD_(int indx, int row) : TagWithTwoArguments::TagWithTwoArguments {Tags::FLDTEFD, indx, row}
   {
-  };
+  }
   int
   get_indx()
   {
@@ -567,9 +599,10 @@ public:
 class FSTPTEFD_ final : public TagWithTwoArguments<int, int>
 {
 public:
-  FSTPTEFD_(int indx, int row) : TagWithTwoArguments::TagWithTwoArguments{Tags::FSTPTEFD, indx, row}
+  FSTPTEFD_(int indx, int row) :
+      TagWithTwoArguments::TagWithTwoArguments {Tags::FSTPTEFD, indx, row}
   {
-  };
+  }
   int
   get_indx()
   {
@@ -585,9 +618,10 @@ public:
 class FLDTEFDD_ final : public TagWithThreeArguments<int, int, int>
 {
 public:
-  FLDTEFDD_(int indx, int row, int col) : TagWithThreeArguments::TagWithThreeArguments{Tags::FLDTEFDD, indx, row, col}
+  FLDTEFDD_(int indx, int row, int col) :
+      TagWithThreeArguments::TagWithThreeArguments {Tags::FLDTEFDD, indx, row, col}
   {
-  };
+  }
   int
   get_indx()
   {
@@ -608,9 +642,10 @@ public:
 class FSTPTEFDD_ final : public TagWithThreeArguments<int, int, int>
 {
 public:
-  FSTPTEFDD_(int indx, int row, int col) : TagWithThreeArguments::TagWithThreeArguments{Tags::FSTPTEF, indx, row, col}
+  FSTPTEFDD_(int indx, int row, int col) :
+      TagWithThreeArguments::TagWithThreeArguments {Tags::FSTPTEF, indx, row, col}
   {
-  };
+  }
   int
   get_indx()
   {
@@ -631,9 +666,10 @@ public:
 class FLDVS_ final : public TagWithTwoArguments<SymbolType, int>
 {
 public:
-  FLDVS_(SymbolType type_arg, int pos_arg) : TagWithTwoArguments::TagWithTwoArguments{Tags::FLDVS, type_arg, pos_arg}
+  FLDVS_(SymbolType type_arg, int pos_arg) :
+      TagWithTwoArguments::TagWithTwoArguments {Tags::FLDVS, type_arg, pos_arg}
   {
-  };
+  }
   SymbolType
   get_type()
   {
@@ -649,9 +685,10 @@ public:
 class FLDSV_ final : public TagWithTwoArguments<SymbolType, int>
 {
 public:
-  FLDSV_(SymbolType type_arg, int pos_arg) : TagWithTwoArguments::TagWithTwoArguments{Tags::FLDSV, type_arg, pos_arg}
+  FLDSV_(SymbolType type_arg, int pos_arg) :
+      TagWithTwoArguments::TagWithTwoArguments {Tags::FLDSV, type_arg, pos_arg}
   {
-  };
+  }
   SymbolType
   get_type()
   {
@@ -667,9 +704,10 @@ public:
 class FSTPSV_ final : public TagWithTwoArguments<SymbolType, int>
 {
 public:
-  FSTPSV_(SymbolType type_arg, int pos_arg) : TagWithTwoArguments::TagWithTwoArguments{Tags::FSTPSV, type_arg, pos_arg}
+  FSTPSV_(SymbolType type_arg, int pos_arg) :
+      TagWithTwoArguments::TagWithTwoArguments {Tags::FSTPSV, type_arg, pos_arg}
   {
-  };
+  }
   SymbolType
   get_type()
   {
@@ -686,9 +724,9 @@ class FLDV_ final : public TagWithThreeArguments<SymbolType, int, int>
 {
 public:
   FLDV_(SymbolType type_arg, int pos_arg, int lead_lag_arg) :
-    TagWithThreeArguments::TagWithThreeArguments{Tags::FLDV, type_arg, pos_arg, lead_lag_arg}
+      TagWithThreeArguments::TagWithThreeArguments {Tags::FLDV, type_arg, pos_arg, lead_lag_arg}
   {
-  };
+  }
   SymbolType
   get_type()
   {
@@ -710,9 +748,9 @@ class FSTPV_ final : public TagWithThreeArguments<SymbolType, int, int>
 {
 public:
   FSTPV_(SymbolType type_arg, int pos_arg, int lead_lag_arg) :
-    TagWithThreeArguments::TagWithThreeArguments{Tags::FSTPV, type_arg, pos_arg, lead_lag_arg}
+      TagWithThreeArguments::TagWithThreeArguments {Tags::FSTPV, type_arg, pos_arg, lead_lag_arg}
   {
-  };
+  }
   SymbolType
   get_type()
   {
@@ -733,32 +771,33 @@ public:
 class FCALL_ final : public BytecodeInstruction
 {
   template<typename B>
-  friend BytecodeWriter &operator<<(BytecodeWriter &code_file, const B &instr);
+  friend BytecodeWriter& operator<<(BytecodeWriter& code_file, const B& instr);
+
 private:
   int nb_output_arguments, nb_input_arguments, indx;
   string func_name;
   string arg_func_name;
-  int add_input_arguments{0}, row{0}, col{0};
+  int add_input_arguments {0}, row {0}, col {0};
   ExternalFunctionCallType call_type;
+
 public:
-  FCALL_(int nb_output_arguments_arg, int nb_input_arguments_arg, string func_name_arg, int indx_arg, ExternalFunctionCallType call_type_arg) :
-    BytecodeInstruction{Tags::FCALL},
-    nb_output_arguments{nb_output_arguments_arg},
-    nb_input_arguments{nb_input_arguments_arg},
-    indx{indx_arg},
-    func_name{move(func_name_arg)},
-    call_type{call_type_arg}
+  FCALL_(int nb_output_arguments_arg, int nb_input_arguments_arg, string func_name_arg,
+         int indx_arg, ExternalFunctionCallType call_type_arg) :
+      BytecodeInstruction {Tags::FCALL},
+      nb_output_arguments {nb_output_arguments_arg},
+      nb_input_arguments {nb_input_arguments_arg},
+      indx {indx_arg},
+      func_name {move(func_name_arg)},
+      call_type {call_type_arg}
   {
-  };
+  }
   /* Deserializing constructor.
      Updates the code pointer to point beyond the bytes read. */
-  FCALL_(char *&code) :
-    BytecodeInstruction{Tags::FCALL}
+  FCALL_(char*& code) : BytecodeInstruction {Tags::FCALL}
   {
     code += sizeof(op_code);
 
-    auto read_member = [&code](auto &member)
-    {
+    auto read_member = [&code](auto& member) {
       member = *reinterpret_cast<add_pointer_t<decltype(member)>>(code);
       code += sizeof member;
     };
@@ -774,17 +813,17 @@ public:
     int size;
     read_member(size);
     func_name = code;
-    code += size+1;
+    code += size + 1;
 
     read_member(size);
     arg_func_name = code;
-    code += size+1;
+    code += size + 1;
   }
 
   string
   get_function_name()
   {
-    //printf("get_function_name => func_name=%s\n",func_name.c_str());fflush(stdout);
+    // printf("get_function_name => func_name=%s\n",func_name.c_str());fflush(stdout);
     return func_name;
   };
   int
@@ -853,34 +892,36 @@ class FNUMEXPR_ final : public BytecodeInstruction
 {
 private:
   ExpressionType expression_type;
-  int equation; // Equation number (non-block-specific) (or temporary term number for ExpressionType::TemporaryTerm)
+  int equation;   // Equation number (non-block-specific) (or temporary term number for
+                  // ExpressionType::TemporaryTerm)
   int dvariable1; // For derivatives, type-specific ID of the derivation variable
-  int lag1; // For derivatives, lead/lag of the derivation variable
+  int lag1;       // For derivatives, lead/lag of the derivation variable
 public:
   FNUMEXPR_(const ExpressionType expression_type_arg, int equation_arg) :
-    BytecodeInstruction{Tags::FNUMEXPR},
-    expression_type{expression_type_arg},
-    equation{equation_arg},
-    dvariable1{0},
-    lag1{0}
+      BytecodeInstruction {Tags::FNUMEXPR},
+      expression_type {expression_type_arg},
+      equation {equation_arg},
+      dvariable1 {0},
+      lag1 {0}
   {
-  };
+  }
   FNUMEXPR_(const ExpressionType expression_type_arg, int equation_arg, int dvariable1_arg) :
-    BytecodeInstruction{Tags::FNUMEXPR},
-    expression_type{expression_type_arg},
-    equation{equation_arg},
-    dvariable1{dvariable1_arg},
-    lag1{0}
+      BytecodeInstruction {Tags::FNUMEXPR},
+      expression_type {expression_type_arg},
+      equation {equation_arg},
+      dvariable1 {dvariable1_arg},
+      lag1 {0}
   {
-  };
-  FNUMEXPR_(const ExpressionType expression_type_arg, int equation_arg, int dvariable1_arg, int lag1_arg) :
-    BytecodeInstruction{Tags::FNUMEXPR},
-    expression_type{expression_type_arg},
-    equation{equation_arg},
-    dvariable1{dvariable1_arg},
-    lag1{lag1_arg}
+  }
+  FNUMEXPR_(const ExpressionType expression_type_arg, int equation_arg, int dvariable1_arg,
+            int lag1_arg) :
+      BytecodeInstruction {Tags::FNUMEXPR},
+      expression_type {expression_type_arg},
+      equation {equation_arg},
+      dvariable1 {dvariable1_arg},
+      lag1 {lag1_arg}
   {
-  };
+  }
   ExpressionType
   get_expression_type()
   {
@@ -906,67 +947,70 @@ public:
 class FBEGINBLOCK_ final : public BytecodeInstruction
 {
   template<typename B>
-  friend BytecodeWriter &operator<<(BytecodeWriter &code_file, const B &instr);
+  friend BytecodeWriter& operator<<(BytecodeWriter& code_file, const B& instr);
+
 private:
-  int size{0};
+  int size {0};
   BlockSimulationType type;
   vector<int> variable;
   vector<int> equation;
   vector<int> exogenous;
   vector<int> det_exogenous;
-  bool is_linear{false};
+  bool is_linear {false};
   vector<Block_contain_type> Block_Contain_;
-  int u_count_int{0};
-  int nb_col_jacob{0};
+  int u_count_int {0};
+  int nb_col_jacob {0};
   int det_exo_size, exo_size;
+
 public:
   /* Constructor when derivatives w.r.t. exogenous are present (only makes
      sense when there is no block-decomposition, since there is no provision for
      derivatives w.r.t. endogenous not belonging to the block) */
   FBEGINBLOCK_(int size_arg, BlockSimulationType type_arg, int first_element, int block_size,
-               const vector<int> &variable_arg, const vector<int> &equation_arg,
-               bool is_linear_arg, int u_count_int_arg, int nb_col_jacob_arg,
-               int det_exo_size_arg, int exo_size_arg,
+               const vector<int>& variable_arg, const vector<int>& equation_arg, bool is_linear_arg,
+               int u_count_int_arg, int nb_col_jacob_arg, int det_exo_size_arg, int exo_size_arg,
                vector<int> det_exogenous_arg, vector<int> exogenous_arg) :
-    BytecodeInstruction{Tags::FBEGINBLOCK},
-    size{size_arg},
-    type{type_arg},
-    variable{variable_arg.begin()+first_element, variable_arg.begin()+(first_element+block_size)},
-    equation{equation_arg.begin()+first_element, equation_arg.begin()+(first_element+block_size)},
-    exogenous{move(exogenous_arg)},
-    det_exogenous{move(det_exogenous_arg)},
-    is_linear{is_linear_arg},
-    u_count_int{u_count_int_arg},
-    nb_col_jacob{nb_col_jacob_arg},
-    det_exo_size{det_exo_size_arg},
-    exo_size{exo_size_arg}
+      BytecodeInstruction {Tags::FBEGINBLOCK},
+      size {size_arg},
+      type {type_arg},
+      variable {variable_arg.begin() + first_element,
+                variable_arg.begin() + (first_element + block_size)},
+      equation {equation_arg.begin() + first_element,
+                equation_arg.begin() + (first_element + block_size)},
+      exogenous {move(exogenous_arg)},
+      det_exogenous {move(det_exogenous_arg)},
+      is_linear {is_linear_arg},
+      u_count_int {u_count_int_arg},
+      nb_col_jacob {nb_col_jacob_arg},
+      det_exo_size {det_exo_size_arg},
+      exo_size {exo_size_arg}
   {
   }
   // Constructor when derivatives w.r.t. exogenous are absent
   FBEGINBLOCK_(int size_arg, BlockSimulationType type_arg, int first_element, int block_size,
-               const vector<int> &variable_arg, const vector<int> &equation_arg,
-               bool is_linear_arg, int u_count_int_arg, int nb_col_jacob_arg) :
-    BytecodeInstruction{Tags::FBEGINBLOCK},
-    size{size_arg},
-    type{type_arg},
-    variable{variable_arg.begin()+first_element, variable_arg.begin()+(first_element+block_size)},
-    equation{equation_arg.begin()+first_element, equation_arg.begin()+(first_element+block_size)},
-    is_linear{is_linear_arg},
-    u_count_int{u_count_int_arg},
-    nb_col_jacob{nb_col_jacob_arg},
-    det_exo_size{0},
-    exo_size{0}
+               const vector<int>& variable_arg, const vector<int>& equation_arg, bool is_linear_arg,
+               int u_count_int_arg, int nb_col_jacob_arg) :
+      BytecodeInstruction {Tags::FBEGINBLOCK},
+      size {size_arg},
+      type {type_arg},
+      variable {variable_arg.begin() + first_element,
+                variable_arg.begin() + (first_element + block_size)},
+      equation {equation_arg.begin() + first_element,
+                equation_arg.begin() + (first_element + block_size)},
+      is_linear {is_linear_arg},
+      u_count_int {u_count_int_arg},
+      nb_col_jacob {nb_col_jacob_arg},
+      det_exo_size {0},
+      exo_size {0}
   {
   }
   /* Deserializing constructor.
      Updates the code pointer to point beyond the bytes read. */
-  FBEGINBLOCK_(char *&code) :
-    BytecodeInstruction{Tags::FBEGINBLOCK}
+  FBEGINBLOCK_(char*& code) : BytecodeInstruction {Tags::FBEGINBLOCK}
   {
     code += sizeof(op_code);
 
-    auto read_member = [&code](auto &member)
-    {
+    auto read_member = [&code](auto& member) {
       member = *reinterpret_cast<add_pointer_t<decltype(member)>>(code);
       code += sizeof member;
     };
@@ -1062,12 +1106,14 @@ public:
 class BytecodeWriter : private ofstream
 {
   template<typename B>
-  friend BytecodeWriter &operator<<(BytecodeWriter &code_file, const B &instr);
+  friend BytecodeWriter& operator<<(BytecodeWriter& code_file, const B& instr);
+
 private:
   // Stores the positions of all instructions in the byte stream
   vector<pos_type> instructions_positions;
+
 public:
-  BytecodeWriter(const filesystem::path &filename);
+  BytecodeWriter(const filesystem::path& filename);
   // Returns the number of the next instruction to be written
   int
   getInstructionCounter() const
@@ -1079,7 +1125,7 @@ public:
      occupies exactly as many bytes as the former one. */
   template<typename B>
   void
-  overwriteInstruction(int instruction_number, const B &new_instruction)
+  overwriteInstruction(int instruction_number, const B& new_instruction)
   {
     seekp(instructions_positions.at(instruction_number));
     *this << new_instruction;
@@ -1091,18 +1137,18 @@ public:
 // Overloads of operator<< for writing bytecode instructions
 
 template<typename B>
-BytecodeWriter &
-operator<<(BytecodeWriter &code_file, const B &instr)
+BytecodeWriter&
+operator<<(BytecodeWriter& code_file, const B& instr)
 {
   code_file.instructions_positions.push_back(code_file.tellp());
-  code_file.write(reinterpret_cast<const char *>(&instr), sizeof(B));
+  code_file.write(reinterpret_cast<const char*>(&instr), sizeof(B));
   return code_file;
 }
 
 template<>
-BytecodeWriter &operator<<(BytecodeWriter &code_file, const FCALL_ &instr);
+BytecodeWriter& operator<<(BytecodeWriter& code_file, const FCALL_& instr);
 
 template<>
-BytecodeWriter &operator<<(BytecodeWriter &code_file, const FBEGINBLOCK_ &instr);
+BytecodeWriter& operator<<(BytecodeWriter& code_file, const FBEGINBLOCK_& instr);
 
 #endif // _BYTECODE_HH

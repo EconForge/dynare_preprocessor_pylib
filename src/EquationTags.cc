@@ -19,63 +19,62 @@
 
 #include "EquationTags.hh"
 
-#include <regex>
 #include <ostream>
+#include <regex>
 #include <utility>
 
 set<int>
-EquationTags::getEqnsByKey(const string &key) const
+EquationTags::getEqnsByKey(const string& key) const
 {
   set<int> retval;
-  for (const auto & [eqn, tags] : eqn_tags)
+  for (const auto& [eqn, tags] : eqn_tags)
     if (tags.contains(key))
       retval.insert(eqn);
   return retval;
 }
 
 set<int>
-EquationTags::getEqnsByTag(const string &key, const string &value) const
+EquationTags::getEqnsByTag(const string& key, const string& value) const
 {
   set<int> retval;
-  for (const auto & [eqn, tags] : eqn_tags)
+  for (const auto& [eqn, tags] : eqn_tags)
     if (auto tmp = tags.find(key); tmp != tags.end() && tmp->second == value)
       retval.insert(eqn);
   return retval;
 }
 
 optional<int>
-EquationTags::getEqnByTag(const string &key, const string &value) const
+EquationTags::getEqnByTag(const string& key, const string& value) const
 {
-  for (const auto & [eqn, tags] : eqn_tags)
+  for (const auto& [eqn, tags] : eqn_tags)
     if (auto tmp = tags.find(key); tmp != tags.end() && tmp->second == value)
       return eqn;
   return nullopt;
 }
 
 set<int>
-EquationTags::getEqnsByTags(const map<string, string> &tags_selected) const
+EquationTags::getEqnsByTags(const map<string, string>& tags_selected) const
 {
   set<int> retval;
-  for (const auto &[eqn, tags] : eqn_tags)
+  for (const auto& [eqn, tags] : eqn_tags)
     {
-      for (const auto &[key, value] : tags_selected)
+      for (const auto& [key, value] : tags_selected)
         if (auto tmp = tags.find(key); tmp == tags.end() || tmp->second != value)
           goto next_eq;
       retval.insert(eqn);
-    next_eq:
-      ;
+    next_eq:;
     }
   return retval;
 }
 
 void
-EquationTags::erase(const set<int> &eqns, const map<int, int> &old_eqn_num_2_new)
+EquationTags::erase(const set<int>& eqns, const map<int, int>& old_eqn_num_2_new)
 {
   for (int eqn : eqns)
     eqn_tags.erase(eqn);
 
-  for (const auto & [oldeqn, neweqn] : old_eqn_num_2_new)
-    for (auto & [eqn, tags] : eqn_tags)
+  for (const auto& [oldeqn, neweqn] : old_eqn_num_2_new)
+    for (auto& [eqn, tags] : eqn_tags)
       if (eqn == oldeqn)
         {
           auto tmp = eqn_tags.extract(eqn);
@@ -85,38 +84,35 @@ EquationTags::erase(const set<int> &eqns, const map<int, int> &old_eqn_num_2_new
 }
 
 void
-EquationTags::writeCheckSumInfo(ostream &output) const
+EquationTags::writeCheckSumInfo(ostream& output) const
 {
-  for (const auto & [eqn, tags] : eqn_tags)
-    for (const auto & [key, value] : tags)
-      output << "  " << eqn + 1
-             << key << " " << value << endl;
+  for (const auto& [eqn, tags] : eqn_tags)
+    for (const auto& [key, value] : tags)
+      output << "  " << eqn + 1 << key << " " << value << endl;
 }
 
 void
-EquationTags::writeOutput(ostream &output) const
+EquationTags::writeOutput(ostream& output) const
 {
   output << "M_.equations_tags = {" << endl;
-  for (const auto & [eqn, tags] : eqn_tags)
-    for (const auto & [key, value] : tags)
-      output << "  " << eqn + 1 << " , '"
-             << key << "' , '" << value << "' ;" << endl;
+  for (const auto& [eqn, tags] : eqn_tags)
+    for (const auto& [key, value] : tags)
+      output << "  " << eqn + 1 << " , '" << key << "' , '" << value << "' ;" << endl;
   output << "};" << endl;
 }
 
 void
-EquationTags::writeLatexOutput(ostream &output, int eqn) const
+EquationTags::writeLatexOutput(ostream& output, int eqn) const
 {
   if (!eqn_tags.contains(eqn))
     return;
 
-  auto escape_special_latex_symbols = [](string str)
-  {
-    const regex special_latex_chars (R"([&%$#_{}])");
-    const regex backslash (R"(\\)");
-    const regex tilde (R"(~)");
-    const regex carrot (R"(\^)");
-    const regex textbackslash (R"(\\textbackslash)");
+  auto escape_special_latex_symbols = [](string str) {
+    const regex special_latex_chars(R"([&%$#_{}])");
+    const regex backslash(R"(\\)");
+    const regex tilde(R"(~)");
+    const regex carrot(R"(\^)");
+    const regex textbackslash(R"(\\textbackslash)");
     str = regex_replace(str, backslash, R"(\textbackslash)");
     str = regex_replace(str, special_latex_chars, R"(\$&)");
     str = regex_replace(str, carrot, R"(\^{})");
@@ -125,8 +121,7 @@ EquationTags::writeLatexOutput(ostream &output, int eqn) const
   };
 
   output << R"(\noindent[)";
-  for (bool wrote_eq_tag {false};
-       const auto & [key, value] : eqn_tags.at(eqn))
+  for (bool wrote_eq_tag {false}; const auto& [key, value] : eqn_tags.at(eqn))
     {
       if (exchange(wrote_eq_tag, true))
         output << ", ";
@@ -139,14 +134,13 @@ EquationTags::writeLatexOutput(ostream &output, int eqn) const
 }
 
 void
-EquationTags::writeJsonAST(ostream &output, int eqn) const
+EquationTags::writeJsonAST(ostream& output, int eqn) const
 {
   if (!eqn_tags.contains(eqn))
     return;
 
   output << R"(, "tags": {)";
-  for (bool wroteFirst {false};
-       const auto &[key, value] : eqn_tags.at(eqn))
+  for (bool wroteFirst {false}; const auto& [key, value] : eqn_tags.at(eqn))
     {
       if (exchange(wroteFirst, true))
         output << ", ";

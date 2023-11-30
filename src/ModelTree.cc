@@ -33,9 +33,9 @@
 # include <mach-o/dyld.h>
 #endif
 
+#include <algorithm>
 #include <regex>
 #include <utility>
-#include <algorithm>
 
 /* NB: The workers must be listed *after* all the other static variables
    related to MEX compilation, so that when the preprocessor exits, the workers
@@ -44,141 +44,139 @@
 condition_variable_any ModelTree::mex_compilation_cv;
 mutex ModelTree::mex_compilation_mut;
 vector<tuple<filesystem::path, set<filesystem::path>, string>> ModelTree::mex_compilation_queue;
-set<filesystem::path> ModelTree::mex_compilation_ongoing, ModelTree::mex_compilation_done, ModelTree::mex_compilation_failed;
+set<filesystem::path> ModelTree::mex_compilation_ongoing, ModelTree::mex_compilation_done,
+    ModelTree::mex_compilation_failed;
 vector<jthread> ModelTree::mex_compilation_workers;
 
 void
-ModelTree::copyHelper(const ModelTree &m)
+ModelTree::copyHelper(const ModelTree& m)
 {
   auto f = [this](expr_t e) { return e->clone(*this); };
 
   // Equations
-  for (const auto &it : m.equations)
-    equations.push_back(dynamic_cast<BinaryOpNode *>(f(it)));
-  for (const auto &it : m.aux_equations)
-    aux_equations.push_back(dynamic_cast<BinaryOpNode *>(f(it)));
+  for (const auto& it : m.equations)
+    equations.push_back(dynamic_cast<BinaryOpNode*>(f(it)));
+  for (const auto& it : m.aux_equations)
+    aux_equations.push_back(dynamic_cast<BinaryOpNode*>(f(it)));
 
-  auto convert_deriv_map = [f](const map<vector<int>, expr_t> &dm)
-                           {
-                             map<vector<int>, expr_t> dm2;
-                             for (const auto &it : dm)
-                               dm2.emplace(it.first, f(it.second));
-                             return dm2;
-                           };
+  auto convert_deriv_map = [f](const map<vector<int>, expr_t>& dm) {
+    map<vector<int>, expr_t> dm2;
+    for (const auto& it : dm)
+      dm2.emplace(it.first, f(it.second));
+    return dm2;
+  };
 
   // Derivatives
-  for (const auto &it : m.derivatives)
+  for (const auto& it : m.derivatives)
     derivatives.push_back(convert_deriv_map(it));
-  for (const auto &it : m.params_derivatives)
+  for (const auto& it : m.params_derivatives)
     params_derivatives.emplace(it.first, convert_deriv_map(it.second));
-  for (const auto &it : m.jacobian_sparse_column_major_order)
+  for (const auto& it : m.jacobian_sparse_column_major_order)
     jacobian_sparse_column_major_order.emplace(it.first, f(it.second));
 
-  auto convert_temporary_terms_t = [f](const temporary_terms_t &tt)
-                                   {
-                                     temporary_terms_t tt2;
-                                     for (const auto &it : tt)
-                                       tt2.insert(f(it));
-                                     return tt2;
-                                   };
+  auto convert_temporary_terms_t = [f](const temporary_terms_t& tt) {
+    temporary_terms_t tt2;
+    for (const auto& it : tt)
+      tt2.insert(f(it));
+    return tt2;
+  };
 
   // Temporary terms
-  for (const auto &it : m.temporary_terms_derivatives)
+  for (const auto& it : m.temporary_terms_derivatives)
     temporary_terms_derivatives.push_back(convert_temporary_terms_t(it));
-  for (const auto &it : m.temporary_terms_idxs)
+  for (const auto& it : m.temporary_terms_idxs)
     temporary_terms_idxs.emplace(f(it.first), it.second);
-  for (const auto &it : m.params_derivs_temporary_terms)
+  for (const auto& it : m.params_derivs_temporary_terms)
     params_derivs_temporary_terms.emplace(it.first, convert_temporary_terms_t(it.second));
-  for (const auto &it : m.params_derivs_temporary_terms_idxs)
+  for (const auto& it : m.params_derivs_temporary_terms_idxs)
     params_derivs_temporary_terms_idxs.emplace(f(it.first), it.second);
 
   // Other stuff
-  for (const auto &it : m.trend_symbols_map)
+  for (const auto& it : m.trend_symbols_map)
     trend_symbols_map.emplace(it.first, f(it.second));
-  for (const auto &it : m.nonstationary_symbols_map)
-    nonstationary_symbols_map.emplace(it.first, pair{it.second.first, f(it.second.second)});
+  for (const auto& it : m.nonstationary_symbols_map)
+    nonstationary_symbols_map.emplace(it.first, pair {it.second.first, f(it.second.second)});
 
-  for (const auto &it : m.equation_type_and_normalized_equation)
-    equation_type_and_normalized_equation.emplace_back(it.first, dynamic_cast<BinaryOpNode *>(f(it.second)));
+  for (const auto& it : m.equation_type_and_normalized_equation)
+    equation_type_and_normalized_equation.emplace_back(it.first,
+                                                       dynamic_cast<BinaryOpNode*>(f(it.second)));
 
-  for (const auto &it : m.blocks_derivatives)
+  for (const auto& it : m.blocks_derivatives)
     {
       map<tuple<int, int, int>, expr_t> v;
-      for (const auto &it2 : it)
+      for (const auto& it2 : it)
         v.emplace(it2.first, f(it2.second));
       blocks_derivatives.push_back(v);
     }
 
-  auto convert_vector_tt = [f](vector<temporary_terms_t> vtt)
-                           {
-                             vector<temporary_terms_t> vtt2;
-                             for (const auto &tt : vtt)
-                               {
-                                 temporary_terms_t tt2;
-                                 for (const auto &it : tt)
-                                   tt2.insert(f(it));
-                                 vtt2.push_back(tt2);
-                               }
-                             return vtt2;
-                           };
-  for (const auto &it : m.blocks_temporary_terms)
+  auto convert_vector_tt = [f](vector<temporary_terms_t> vtt) {
+    vector<temporary_terms_t> vtt2;
+    for (const auto& tt : vtt)
+      {
+        temporary_terms_t tt2;
+        for (const auto& it : tt)
+          tt2.insert(f(it));
+        vtt2.push_back(tt2);
+      }
+    return vtt2;
+  };
+  for (const auto& it : m.blocks_temporary_terms)
     blocks_temporary_terms.push_back(convert_vector_tt(it));
-  for (const auto &it : m.blocks_temporary_terms_idxs)
+  for (const auto& it : m.blocks_temporary_terms_idxs)
     blocks_temporary_terms_idxs.emplace(f(it.first), it.second);
 
-  for (const auto &it : m.blocks_jacobian_sparse_column_major_order)
+  for (const auto& it : m.blocks_jacobian_sparse_column_major_order)
     {
       map<pair<int, int>, expr_t, columnMajorOrderLess> v;
-      for (const auto &it2 : it)
+      for (const auto& it2 : it)
         v.emplace(it2.first, f(it2.second));
       blocks_jacobian_sparse_column_major_order.push_back(v);
     }
 }
 
-ModelTree::ModelTree(SymbolTable &symbol_table_arg,
-                     NumericalConstants &num_constants_arg,
-                     ExternalFunctionsTable &external_functions_table_arg,
-                     bool is_dynamic_arg) :
-  DataTree{symbol_table_arg, num_constants_arg, external_functions_table_arg, is_dynamic_arg},
-  derivatives(4),
-  NNZDerivatives(4, 0),
-  temporary_terms_derivatives(4)
+ModelTree::ModelTree(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
+                     ExternalFunctionsTable& external_functions_table_arg, bool is_dynamic_arg) :
+    DataTree {symbol_table_arg, num_constants_arg, external_functions_table_arg, is_dynamic_arg},
+    derivatives(4),
+    NNZDerivatives(4, 0),
+    temporary_terms_derivatives(4)
 {
   // Ensure that elements accessed by writeParamsDerivativesFileHelper() exist
-  for (const auto &ord : {pair{0, 1}, pair{1, 1}, pair{0, 2}, pair{1, 2}, pair{2, 1}, pair{3, 1}})
+  for (const auto& ord :
+       {pair {0, 1}, pair {1, 1}, pair {0, 2}, pair {1, 2}, pair {2, 1}, pair {3, 1}})
     params_derivatives.try_emplace(ord);
 }
 
-ModelTree::ModelTree(const ModelTree &m) :
-  DataTree{m},
-  user_set_add_flags{m.user_set_add_flags},
-  user_set_subst_flags{m.user_set_subst_flags},
-  user_set_add_libs{m.user_set_add_libs},
-  user_set_subst_libs{m.user_set_subst_libs},
-  user_set_compiler{m.user_set_compiler},
-  equations_lineno{m.equations_lineno},
-  equation_tags{m.equation_tags},
-  computed_derivs_order{m.computed_derivs_order},
-  NNZDerivatives{m.NNZDerivatives},
-  jacobian_sparse_colptr{m.jacobian_sparse_colptr},
-  eq_idx_block2orig{m.eq_idx_block2orig},
-  endo_idx_block2orig{m.endo_idx_block2orig},
-  eq_idx_orig2block{m.eq_idx_orig2block},
-  endo_idx_orig2block{m.endo_idx_orig2block},
-  block_decomposed{m.block_decomposed},
-  time_recursive_block_decomposition{m.time_recursive_block_decomposition},
-  blocks{m.blocks},
-  endo2block{m.endo2block},
-  eq2block{m.eq2block},
-  blocks_jacobian_sparse_colptr{m.blocks_jacobian_sparse_colptr},
-  endo2eq{m.endo2eq},
-  cutoff{m.cutoff}
+ModelTree::ModelTree(const ModelTree& m) :
+    DataTree {m},
+    user_set_add_flags {m.user_set_add_flags},
+    user_set_subst_flags {m.user_set_subst_flags},
+    user_set_add_libs {m.user_set_add_libs},
+    user_set_subst_libs {m.user_set_subst_libs},
+    user_set_compiler {m.user_set_compiler},
+    equations_lineno {m.equations_lineno},
+    equation_tags {m.equation_tags},
+    computed_derivs_order {m.computed_derivs_order},
+    NNZDerivatives {m.NNZDerivatives},
+    jacobian_sparse_colptr {m.jacobian_sparse_colptr},
+    eq_idx_block2orig {m.eq_idx_block2orig},
+    endo_idx_block2orig {m.endo_idx_block2orig},
+    eq_idx_orig2block {m.eq_idx_orig2block},
+    endo_idx_orig2block {m.endo_idx_orig2block},
+    block_decomposed {m.block_decomposed},
+    time_recursive_block_decomposition {m.time_recursive_block_decomposition},
+    blocks {m.blocks},
+    endo2block {m.endo2block},
+    eq2block {m.eq2block},
+    blocks_jacobian_sparse_colptr {m.blocks_jacobian_sparse_colptr},
+    endo2eq {m.endo2eq},
+    cutoff {m.cutoff}
 {
   copyHelper(m);
 }
 
-ModelTree &
-ModelTree::operator=(const ModelTree &m)
+ModelTree&
+ModelTree::operator=(const ModelTree& m)
 {
   DataTree::operator=(m);
 
@@ -233,7 +231,7 @@ ModelTree::operator=(const ModelTree &m)
 }
 
 void
-ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian)
+ModelTree::computeNormalization(const jacob_map_t& contemporaneous_jacobian)
 {
   const int n {static_cast<int>(equations.size())};
 
@@ -249,25 +247,29 @@ ModelTree::computeNormalization(const jacob_map_t &contemporaneous_jacobian)
   BipartiteGraph g(2 * n);
 
   // Fill in the graph
-  for (const auto &[eq_and_endo, val] : contemporaneous_jacobian)
+  for (const auto& [eq_and_endo, val] : contemporaneous_jacobian)
     add_edge(eq_and_endo.first + n, eq_and_endo.second, g);
 
   // Compute maximum cardinality matching
-  vector<vertex_descriptor_t> mate_map(2*n);
+  vector<vertex_descriptor_t> mate_map(2 * n);
   edmonds_maximum_cardinality_matching(g, &mate_map[0]);
 
   // Check if all variables are normalized
-  if (auto it = find(mate_map.begin(), mate_map.begin() + n, boost::graph_traits<BipartiteGraph>::null_vertex());
+  if (auto it = find(mate_map.begin(), mate_map.begin() + n,
+                     boost::graph_traits<BipartiteGraph>::null_vertex());
       it != mate_map.begin() + n)
-    throw ModelNormalizationFailed {symbol_table.getName(symbol_table.getID(SymbolType::endogenous, it - mate_map.begin())) };
+    throw ModelNormalizationFailed {
+        symbol_table.getName(symbol_table.getID(SymbolType::endogenous, it - mate_map.begin()))};
 
-  // Create the resulting map, by copying the n first elements of mate_map, and substracting n to them
+  // Create the resulting map, by copying the n first elements of mate_map, and substracting n to
+  // them
   endo2eq.resize(equations.size());
-  transform(mate_map.begin(), mate_map.begin() + n, endo2eq.begin(), [=](vertex_descriptor_t i) { return i-n; });
+  transform(mate_map.begin(), mate_map.begin() + n, endo2eq.begin(),
+            [=](vertex_descriptor_t i) { return i - n; });
 }
 
 bool
-ModelTree::computeNonSingularNormalization(const eval_context_t &eval_context)
+ModelTree::computeNonSingularNormalization(const eval_context_t& eval_context)
 {
   const int n {static_cast<int>(equations.size())};
 
@@ -275,7 +277,9 @@ ModelTree::computeNonSingularNormalization(const eval_context_t &eval_context)
      not have as many equations as variables. */
   if (n != symbol_table.endo_nbr())
     {
-      cout << "The " << modelClassName() << " cannot be normalized, since it does not have as many equations as variables." << endl;
+      cout << "The " << modelClassName()
+           << " cannot be normalized, since it does not have as many equations as variables."
+           << endl;
       return false;
     }
 
@@ -287,16 +291,21 @@ ModelTree::computeNonSingularNormalization(const eval_context_t &eval_context)
      matched with the endogenous on the LHS. */
   if (time_recursive_block_decomposition)
     {
-      auto [normalize_by_lhs, lhs_symbolic_jacobian] { computeLeftHandSideSymbolicJacobian() };
+      auto [normalize_by_lhs, lhs_symbolic_jacobian] {computeLeftHandSideSymbolicJacobian()};
       if (normalize_by_lhs)
         try
           {
             computeNormalization(lhs_symbolic_jacobian);
             return true;
           }
-        catch (ModelNormalizationFailed &e)
+        catch (ModelNormalizationFailed& e)
           {
-            cerr << "WARNING: All equations are written so that a single contemporaneous endogenous variable appears on the left-hand side. This suggests a natural normalization of the model. However, variable " << e.unmatched_endo << " could not be matched with an equation. Check whether this is desired." << endl;
+            cerr << "WARNING: All equations are written so that a single contemporaneous "
+                    "endogenous variable appears on the left-hand side. This suggests a natural "
+                    "normalization of the model. However, variable "
+                 << e.unmatched_endo
+                 << " could not be matched with an equation. Check whether this is desired."
+                 << endl;
           }
     }
 
@@ -304,12 +313,12 @@ ModelTree::computeNonSingularNormalization(const eval_context_t &eval_context)
 
   // Compute the maximum value of each row of the contemporaneous Jacobian matrix
   vector max_val(n, 0.0);
-  for (const auto &[eq_and_endo, val] : contemporaneous_jacobian)
+  for (const auto& [eq_and_endo, val] : contemporaneous_jacobian)
     max_val[eq_and_endo.first] = max(max_val[eq_and_endo.first], fabs(val));
 
   // Compute normalized contemporaneous Jacobian
   jacob_map_t normalized_contemporaneous_jacobian(contemporaneous_jacobian);
-  for (auto &[eq_and_endo, val] : normalized_contemporaneous_jacobian)
+  for (auto& [eq_and_endo, val] : normalized_contemporaneous_jacobian)
     val /= max_val[eq_and_endo.first];
 
   // We start with the highest value of the cutoff and try to normalize the model
@@ -322,7 +331,7 @@ ModelTree::computeNonSingularNormalization(const eval_context_t &eval_context)
       // Drop elements below cutoff from normalized contemporaneous Jacobian
       jacob_map_t normalized_contemporaneous_jacobian_above_cutoff;
       int suppressed = 0;
-      for (const auto &[eq_and_endo, val] : normalized_contemporaneous_jacobian)
+      for (const auto& [eq_and_endo, val] : normalized_contemporaneous_jacobian)
         if (fabs(val) > max(current_cutoff, cutoff))
           normalized_contemporaneous_jacobian_above_cutoff[eq_and_endo] = val;
         else
@@ -334,7 +343,7 @@ ModelTree::computeNonSingularNormalization(const eval_context_t &eval_context)
             computeNormalization(normalized_contemporaneous_jacobian_above_cutoff);
             return true;
           }
-        catch (ModelNormalizationFailed &e)
+        catch (ModelNormalizationFailed& e)
           {
           }
       last_suppressed = suppressed;
@@ -347,56 +356,55 @@ ModelTree::computeNonSingularNormalization(const eval_context_t &eval_context)
       computeNormalization(normalized_contemporaneous_jacobian);
       return true;
     }
-  catch (ModelNormalizationFailed &e)
+  catch (ModelNormalizationFailed& e)
     {
     }
 
   cout << "Normalization failed with cutoff, trying symbolic normalization..." << endl;
   /* If no non-singular normalization can be found, try to find a
      normalization even with a potential singularity. */
-  auto symbolic_jacobian { computeSymbolicJacobian(true) };
+  auto symbolic_jacobian {computeSymbolicJacobian(true)};
   try
     {
       computeNormalization(symbolic_jacobian);
       return true;
     }
-  catch (ModelNormalizationFailed &e)
+  catch (ModelNormalizationFailed& e)
     {
-      cerr << "Could not normalize the " << modelClassName() << ". Variable "
-           << e.unmatched_endo << " is not in the maximum cardinality matching." << endl;
+      cerr << "Could not normalize the " << modelClassName() << ". Variable " << e.unmatched_endo
+           << " is not in the maximum cardinality matching." << endl;
     }
 
   return false;
 }
 
 ModelTree::jacob_map_t
-ModelTree::evaluateAndReduceJacobian(const eval_context_t &eval_context) const
+ModelTree::evaluateAndReduceJacobian(const eval_context_t& eval_context) const
 {
   jacob_map_t contemporaneous_jacobian;
-  for (const auto &[indices, d1] : derivatives[1])
+  for (const auto& [indices, d1] : derivatives[1])
     {
       int deriv_id = indices[1];
       if (getTypeByDerivID(deriv_id) == SymbolType::endogenous)
         {
           int eq = indices[0];
-          int var { getTypeSpecificIDByDerivID(deriv_id) };
+          int var {getTypeSpecificIDByDerivID(deriv_id)};
           int lag = getLagByDerivID(deriv_id);
-          double val { [&]
-          {
+          double val {[&] {
             try
               {
                 return d1->eval(eval_context);
               }
-            catch (ExprNode::EvalExternalFunctionException &e)
+            catch (ExprNode::EvalExternalFunctionException& e)
               {
                 return 1.0;
               }
             /* Other types of EvalException should not happen (all symbols should
                have a value; we don’t evaluate an equal sign) */
-          }() };
+          }()};
 
           if ((isnan(val) || fabs(val) >= cutoff) && lag == 0)
-            contemporaneous_jacobian[{ eq, var }] = val;
+            contemporaneous_jacobian[{eq, var}] = val;
         }
     }
 
@@ -422,7 +430,7 @@ ModelTree::computePrologueAndEpilogue()
      (resp. column) indices are to be interpreted according to
      “eq_idx_block2orig” (resp. “endo_idx_block2orig”). Stored in row-major
      order. */
-  vector IM(n*n, false);
+  vector IM(n * n, false);
   for (int i = 0; i < n; i++)
     {
       set<pair<int, int>> endos_and_lags;
@@ -468,7 +476,7 @@ ModelTree::computePrologueAndEpilogue()
       prologue = new_prologue;
     }
   while (something_has_been_done);
-  
+
   // Find the epilogue equations
   int epilogue = 0;
   do
@@ -505,11 +513,12 @@ ModelTree::computePrologueAndEpilogue()
 
   updateReverseVariableEquationOrderings();
 
-  return { prologue, epilogue };
+  return {prologue, epilogue};
 }
 
 void
-ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &first_order_endo_derivatives)
+ModelTree::equationTypeDetermination(
+    const map<tuple<int, int, int>, expr_t>& first_order_endo_derivatives)
 {
   equation_type_and_normalized_equation.clear();
   equation_type_and_normalized_equation.resize(equations.size());
@@ -519,8 +528,8 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
       int var = endo_idx_block2orig[i];
       expr_t lhs = equations[eq]->arg1;
       EquationType Equation_Simulation_Type = EquationType::solve;
-      BinaryOpNode *normalized_eq = nullptr;
-      if (auto it = first_order_endo_derivatives.find({ eq, var, 0 });
+      BinaryOpNode* normalized_eq = nullptr;
+      if (auto it = first_order_endo_derivatives.find({eq, var, 0});
           it != first_order_endo_derivatives.end())
         {
           expr_t derivative = it->second;
@@ -532,27 +541,28 @@ ModelTree::equationTypeDetermination(const map<tuple<int, int, int>, expr_t> &fi
             {
               set<pair<int, int>> result;
               derivative->collectEndogenous(result);
-              bool variable_not_in_derivative = !result.contains({ var, 0 });
+              bool variable_not_in_derivative = !result.contains({var, 0});
 
               try
                 {
-                  normalized_eq = equations[eq]->normalizeEquation(symbol_table.getID(SymbolType::endogenous, var), 0);
+                  normalized_eq = equations[eq]->normalizeEquation(
+                      symbol_table.getID(SymbolType::endogenous, var), 0);
                   if ((getMFS() == 2 && variable_not_in_derivative) || getMFS() == 3)
                     Equation_Simulation_Type = EquationType::evaluateRenormalized;
                 }
-              catch (ExprNode::NormalizationFailed &e)
+              catch (ExprNode::NormalizationFailed& e)
                 {
                 }
             }
         }
-      equation_type_and_normalized_equation[eq] = { Equation_Simulation_Type, normalized_eq };
+      equation_type_and_normalized_equation[eq] = {Equation_Simulation_Type, normalized_eq};
     }
 }
 
 void
 ModelTree::computeDynamicStructureOfBlock(int blk)
 {
-  vector max_endo_lag_lead(blocks[blk].size, pair{0, 0});
+  vector max_endo_lag_lead(blocks[blk].size, pair {0, 0});
   blocks[blk].max_endo_lag = blocks[blk].max_endo_lead = 0;
   for (int eq = 0; eq < blocks[blk].size; eq++)
     {
@@ -567,7 +577,8 @@ ModelTree::computeDynamicStructureOfBlock(int blk)
           {
             blocks[blk].max_endo_lag = max(blocks[blk].max_endo_lag, -lag);
             blocks[blk].max_endo_lead = max(blocks[blk].max_endo_lead, lag);
-            auto &[max_endo_lag, max_endo_lead] = max_endo_lag_lead[getBlockInitialVariableID(blk, endo)];
+            auto& [max_endo_lag, max_endo_lead]
+                = max_endo_lag_lead[getBlockInitialVariableID(blk, endo)];
             max_endo_lag = max(max_endo_lag, -lag);
             max_endo_lead = max(max_endo_lead, lag);
           }
@@ -577,7 +588,7 @@ ModelTree::computeDynamicStructureOfBlock(int blk)
 void
 ModelTree::computeSimulationTypeOfBlock(int blk)
 {
-  auto &type = blocks[blk].simulation_type;
+  auto& type = blocks[blk].simulation_type;
   if (blocks[blk].max_endo_lag > 0 && blocks[blk].max_endo_lead > 0)
     {
       if (blocks[blk].size == 1)
@@ -597,11 +608,11 @@ ModelTree::computeSimulationTypeOfBlock(int blk)
       bool can_eval = (getBlockEquationType(blk, 0) == EquationType::evaluate
                        || getBlockEquationType(blk, 0) == EquationType::evaluateRenormalized);
       if (blocks[blk].max_endo_lead > 0)
-        type = can_eval ? BlockSimulationType::evaluateBackward :
-          BlockSimulationType::solveBackwardSimple;
+        type = can_eval ? BlockSimulationType::evaluateBackward
+                        : BlockSimulationType::solveBackwardSimple;
       else
-        type = can_eval ? BlockSimulationType::evaluateForward :
-          BlockSimulationType::solveForwardSimple;
+        type = can_eval ? BlockSimulationType::evaluateForward
+                        : BlockSimulationType::solveForwardSimple;
     }
 }
 
@@ -610,7 +621,7 @@ ModelTree::getVariableLeadLagByBlock() const
 {
   int nb_endo = symbol_table.endo_nbr();
 
-  lag_lead_vector_t variable_lag_lead(nb_endo, { 0, 0 }), equation_lag_lead(nb_endo, { 0, 0 });
+  lag_lead_vector_t variable_lag_lead(nb_endo, {0, 0}), equation_lag_lead(nb_endo, {0, 0});
   for (int eq = 0; eq < nb_endo; eq++)
     {
       set<pair<int, int>> endos_and_lags;
@@ -624,7 +635,7 @@ ModelTree::getVariableLeadLagByBlock() const
             equation_lag_lead[eq].second = max(equation_lag_lead[eq].second, lag);
           }
     }
-  return { equation_lag_lead, variable_lag_lead };
+  return {equation_lag_lead, variable_lag_lead};
 }
 
 void
@@ -639,23 +650,21 @@ ModelTree::computeBlockDecomposition(int prologue, int epilogue)
      For detecting dependencies between variables, use the symbolic adjacency
      matrix */
   VariableDependencyGraph G(nb_simvars);
-  for (const auto &[key, value] : computeSymbolicJacobian(time_recursive_block_decomposition))
+  for (const auto& [key, value] : computeSymbolicJacobian(time_recursive_block_decomposition))
     {
       auto [eq, endo] = key;
-      if (eq_idx_orig2block[eq] >= prologue
-          && eq_idx_orig2block[eq] < nb_var - epilogue
-          && endo_idx_orig2block[endo] >= prologue
-          && endo_idx_orig2block[endo] < nb_var - epilogue
+      if (eq_idx_orig2block[eq] >= prologue && eq_idx_orig2block[eq] < nb_var - epilogue
+          && endo_idx_orig2block[endo] >= prologue && endo_idx_orig2block[endo] < nb_var - epilogue
           && eq != endo2eq[endo])
-        add_edge(vertex(eq_idx_orig2block[endo2eq[endo]]-prologue, G),
-                 vertex(eq_idx_orig2block[eq]-prologue, G), G);
+        add_edge(vertex(eq_idx_orig2block[endo2eq[endo]] - prologue, G),
+                 vertex(eq_idx_orig2block[eq] - prologue, G), G);
     }
 
   /* Identify the simultaneous blocks. Each simultaneous block is given an
      index, starting from 0, in recursive order */
   auto [num_simblocks, simvar2simblock] = G.sortedStronglyConnectedComponents();
 
-  int num_blocks = prologue+num_simblocks+epilogue;
+  int num_blocks = prologue + num_simblocks + epilogue;
 
   blocks.clear();
   blocks.resize(num_blocks);
@@ -664,9 +673,9 @@ ModelTree::computeBlockDecomposition(int prologue, int epilogue)
 
   // Initialize size and mfs_size for prologue and epilogue, plus eq/endo→block mappings
   for (int blk = 0; blk < num_blocks; blk++)
-    if (blk < prologue || blk >= num_blocks-epilogue)
+    if (blk < prologue || blk >= num_blocks - epilogue)
       {
-        int var_eq = (blk < prologue ? blk : blk-num_simblocks+nb_simvars);
+        int var_eq = (blk < prologue ? blk : blk - num_simblocks + nb_simvars);
         blocks[blk].size = 1;
         blocks[blk].mfs_size = 1;
         blocks[blk].first_equation = var_eq;
@@ -679,10 +688,10 @@ ModelTree::computeBlockDecomposition(int prologue, int epilogue)
   for (int i = 0; i < static_cast<int>(simvar2simblock.size()); i++)
     {
       simblock2simvars[simvar2simblock[i]].push_back(i);
-      int blk = prologue+simvar2simblock[i];
+      int blk = prologue + simvar2simblock[i];
       blocks[blk].size++;
-      endo2block[endo_idx_block2orig[prologue+i]] = blk;
-      eq2block[eq_idx_block2orig[prologue+i]] = blk;
+      endo2block[endo_idx_block2orig[prologue + i]] = blk;
+      eq2block[eq_idx_block2orig[prologue + i]] = blk;
     }
 
   // Determine the dynamic structure of each block
@@ -698,21 +707,24 @@ ModelTree::computeBlockDecomposition(int prologue, int epilogue)
      related to lead/lag variables. This forces those vertices to belong to the
      feedback set */
   for (int i = 0; i < nb_simvars; i++)
-    if (equation_type_and_normalized_equation[eq_idx_block2orig[i+prologue]].first == EquationType::solve
-        || (!time_recursive_block_decomposition &&
-            (variable_lag_lead[endo_idx_block2orig[i+prologue]].first > 0
-             || variable_lag_lead[endo_idx_block2orig[i+prologue]].second > 0
-             || equation_lag_lead[eq_idx_block2orig[i+prologue]].first > 0
-             || equation_lag_lead[eq_idx_block2orig[i+prologue]].second > 0))
+    if (equation_type_and_normalized_equation[eq_idx_block2orig[i + prologue]].first
+            == EquationType::solve
+        || (!time_recursive_block_decomposition
+            && (variable_lag_lead[endo_idx_block2orig[i + prologue]].first > 0
+                || variable_lag_lead[endo_idx_block2orig[i + prologue]].second > 0
+                || equation_lag_lead[eq_idx_block2orig[i + prologue]].first > 0
+                || equation_lag_lead[eq_idx_block2orig[i + prologue]].second > 0))
         || getMFS() == 0)
       add_edge(vertex(i, G), vertex(i, G), G);
 
-  const vector<int> old_eq_idx_block2orig(eq_idx_block2orig), old_endo_idx_block2orig(endo_idx_block2orig);
+  const vector<int> old_eq_idx_block2orig(eq_idx_block2orig),
+      old_endo_idx_block2orig(endo_idx_block2orig);
   int ordidx = prologue;
-  for (int blk = prologue; blk < prologue+num_simblocks; blk++)
+  for (int blk = prologue; blk < prologue + num_simblocks; blk++)
     {
-      blocks[blk].first_equation = (blk == 0 ? 0 : blocks[blk-1].first_equation + blocks[blk-1].size);
-      auto subG = G.extractSubgraph(simblock2simvars[blk-prologue]);
+      blocks[blk].first_equation
+          = (blk == 0 ? 0 : blocks[blk - 1].first_equation + blocks[blk - 1].size);
+      auto subG = G.extractSubgraph(simblock2simvars[blk - prologue]);
       auto feed_back_vertices = subG.minimalSetOfFeedbackVertices();
       blocks[blk].mfs_size = feed_back_vertices.size();
       auto recursive_vertices = subG.reorderRecursiveVariables(feed_back_vertices);
@@ -722,20 +734,20 @@ ModelTree::computeBlockDecomposition(int prologue, int epilogue)
          recursive order */
       for (int vtx : recursive_vertices)
         {
-          int simvar { v_index1[vertex(vtx, subG)] };
-          eq_idx_block2orig[ordidx] = old_eq_idx_block2orig[simvar+prologue];
-          endo_idx_block2orig[ordidx] = old_endo_idx_block2orig[simvar+prologue];
+          int simvar {v_index1[vertex(vtx, subG)]};
+          eq_idx_block2orig[ordidx] = old_eq_idx_block2orig[simvar + prologue];
+          endo_idx_block2orig[ordidx] = old_endo_idx_block2orig[simvar + prologue];
           ordidx++;
         }
 
       // Then the feedback variables, reordered by dynamic status
-      for (auto max_lag_lead : { pair{0, 0}, pair{1, 0}, pair{1, 1}, pair{0, 1} })
+      for (auto max_lag_lead : {pair {0, 0}, pair {1, 0}, pair {1, 1}, pair {0, 1}})
         for (int vtx : feed_back_vertices)
           if (int simvar = v_index1[vertex(vtx, subG)];
-              variable_lag_lead[old_endo_idx_block2orig[simvar+prologue]] == max_lag_lead)
+              variable_lag_lead[old_endo_idx_block2orig[simvar + prologue]] == max_lag_lead)
             {
-              eq_idx_block2orig[ordidx] = old_eq_idx_block2orig[simvar+prologue];
-              endo_idx_block2orig[ordidx] = old_endo_idx_block2orig[simvar+prologue];
+              eq_idx_block2orig[ordidx] = old_eq_idx_block2orig[simvar + prologue];
+              endo_idx_block2orig[ordidx] = old_endo_idx_block2orig[simvar + prologue];
               ordidx++;
             }
     }
@@ -761,8 +773,7 @@ ModelTree::printBlockDecomposition() const
         || simulation_type == BlockSimulationType::solveTwoBoundariesComplete)
       {
         Nb_SimulBlocks++;
-        if (int size = blocks[block].size;
-            size > largest_block)
+        if (int size = blocks[block].size; size > largest_block)
           {
             largest_block = size;
             Nb_feedback_variable = blocks[block].mfs_size;
@@ -771,9 +782,11 @@ ModelTree::printBlockDecomposition() const
 
   int Nb_RecursBlocks = Nb_TotalBlocks - Nb_SimulBlocks;
   cout << Nb_TotalBlocks << " block(s) found:" << endl
-       << "  " << Nb_RecursBlocks << " recursive block(s) and " << Nb_SimulBlocks << " simultaneous block(s)." << endl
+       << "  " << Nb_RecursBlocks << " recursive block(s) and " << Nb_SimulBlocks
+       << " simultaneous block(s)." << endl
        << "  the largest simultaneous block has " << largest_block << " equation(s)" << endl
-       << "                                 and " << Nb_feedback_variable << " feedback variable(s)." << endl;
+       << "                                 and " << Nb_feedback_variable
+       << " feedback variable(s)." << endl;
 }
 
 void
@@ -789,28 +802,26 @@ ModelTree::reduceBlockDecomposition()
         set<pair<int, int>> endos_and_lags;
         getBlockEquationExpr(blk, 0)->collectEndogenous(endos_and_lags);
         bool is_lead = false, is_lag = false;
-        for (int var = 0; var < blocks[blk-1].size; var++)
+        for (int var = 0; var < blocks[blk - 1].size; var++)
           {
-            is_lag = is_lag || endos_and_lags.contains({ getBlockVariableID(blk-1, var), -1 });
-            is_lead = is_lead || endos_and_lags.contains({ getBlockVariableID(blk-1, var), 1 });
+            is_lag = is_lag || endos_and_lags.contains({getBlockVariableID(blk - 1, var), -1});
+            is_lead = is_lead || endos_and_lags.contains({getBlockVariableID(blk - 1, var), 1});
           }
 
-        if ((blocks[blk-1].simulation_type == BlockSimulationType::evaluateForward
-             && blocks[blk].simulation_type == BlockSimulationType::evaluateForward
-             && !is_lead)
-            || (blocks[blk-1].simulation_type == BlockSimulationType::evaluateBackward
-                && blocks[blk].simulation_type == BlockSimulationType::evaluateBackward
-                && !is_lag))
+        if ((blocks[blk - 1].simulation_type == BlockSimulationType::evaluateForward
+             && blocks[blk].simulation_type == BlockSimulationType::evaluateForward && !is_lead)
+            || (blocks[blk - 1].simulation_type == BlockSimulationType::evaluateBackward
+                && blocks[blk].simulation_type == BlockSimulationType::evaluateBackward && !is_lag))
           {
             // Merge the current block into the previous one
-            blocks[blk-1].size++;
-            blocks[blk-1].mfs_size = blocks[blk-1].size;
-            computeDynamicStructureOfBlock(blk-1);
-            blocks.erase(blocks.begin()+blk);
-            for (auto &b : endo2block)
+            blocks[blk - 1].size++;
+            blocks[blk - 1].mfs_size = blocks[blk - 1].size;
+            computeDynamicStructureOfBlock(blk - 1);
+            blocks.erase(blocks.begin() + blk);
+            for (auto& b : endo2block)
               if (b >= blk)
                 b--;
-            for (auto &b : eq2block)
+            for (auto& b : eq2block)
               if (b >= blk)
                 b--;
             blk--;
@@ -830,7 +841,7 @@ ModelTree::determineLinearBlocks()
       case BlockSimulationType::solveBackwardComplete:
       case BlockSimulationType::solveForwardSimple:
       case BlockSimulationType::solveForwardComplete:
-        for (const auto &[indices, d1] : blocks_derivatives[blk])
+        for (const auto& [indices, d1] : blocks_derivatives[blk])
           {
             int lag = get<2>(indices);
             if (lag == 0)
@@ -838,7 +849,7 @@ ModelTree::determineLinearBlocks()
                 set<pair<int, int>> endogenous;
                 d1->collectEndogenous(endogenous);
                 for (int l = 0; l < blocks[blk].size; l++)
-                  if (endogenous.contains({ endo_idx_block2orig[blocks[blk].first_equation+l], 0 }))
+                  if (endogenous.contains({endo_idx_block2orig[blocks[blk].first_equation + l], 0}))
                     {
                       blocks[blk].linear = false;
                       goto the_end;
@@ -849,13 +860,13 @@ ModelTree::determineLinearBlocks()
         break;
       case BlockSimulationType::solveTwoBoundariesComplete:
       case BlockSimulationType::solveTwoBoundariesSimple:
-        for (const auto &[indices, d1] : blocks_derivatives[blk])
+        for (const auto& [indices, d1] : blocks_derivatives[blk])
           {
             int lag = get<2>(indices);
             set<pair<int, int>> endogenous;
             d1->collectEndogenous(endogenous);
             for (int l = 0; l < blocks[blk].size; l++)
-              if (endogenous.contains({ endo_idx_block2orig[blocks[blk].first_equation+l], lag }))
+              if (endogenous.contains({endo_idx_block2orig[blocks[blk].first_equation + l], lag}))
                 {
                   blocks[blk].linear = false;
                   goto the_end2;
@@ -875,15 +886,15 @@ ModelTree::equation_number() const
 }
 
 void
-ModelTree::computeDerivatives(int order, const set<int> &vars)
+ModelTree::computeDerivatives(int order, const set<int>& vars)
 {
   assert(order >= 1);
 
   computed_derivs_order = order;
 
   // Do not shrink the vectors, since they have a minimal size of 4 (see constructor)
-  derivatives.resize(max(static_cast<size_t>(order+1), derivatives.size()));
-  NNZDerivatives.resize(max(static_cast<size_t>(order+1), NNZDerivatives.size()), 0);
+  derivatives.resize(max(static_cast<size_t>(order + 1), derivatives.size()));
+  NNZDerivatives.resize(max(static_cast<size_t>(order + 1), NNZDerivatives.size()), 0);
 
   // First-order derivatives
   for (int var : vars)
@@ -892,18 +903,20 @@ ModelTree::computeDerivatives(int order, const set<int> &vars)
         expr_t d1 = equations[eq]->getDerivative(var);
         if (d1 == Zero)
           continue;
-        derivatives[1][{ eq, var }] = d1;
+        derivatives[1][{eq, var}] = d1;
         ++NNZDerivatives[1];
       }
 
   // Compute the sparse representation of the Jacobian
-  for (const auto &[indices, d1] : derivatives[1])
-    jacobian_sparse_column_major_order.try_emplace({indices[0], getJacobianCol(indices[1], true)}, d1);
-  jacobian_sparse_colptr = computeCSCColPtr(jacobian_sparse_column_major_order, getJacobianColsNbr(true));
+  for (const auto& [indices, d1] : derivatives[1])
+    jacobian_sparse_column_major_order.try_emplace({indices[0], getJacobianCol(indices[1], true)},
+                                                   d1);
+  jacobian_sparse_colptr
+      = computeCSCColPtr(jacobian_sparse_column_major_order, getJacobianColsNbr(true));
 
   // Higher-order derivatives
   for (int o = 2; o <= order; o++)
-    for (const auto &[lower_indices, lower_d] : derivatives[o-1])
+    for (const auto& [lower_indices, lower_d] : derivatives[o - 1])
       for (int var : vars)
         {
           if (lower_indices.back() > var)
@@ -913,7 +926,7 @@ ModelTree::computeDerivatives(int order, const set<int> &vars)
           if (d == Zero)
             continue;
 
-          vector<int> indices{lower_indices};
+          vector<int> indices {lower_indices};
           indices.push_back(var);
           // At this point, indices of endogenous variables are sorted in non-decreasing order
           derivatives[o][indices] = d;
@@ -930,10 +943,9 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
 {
   /* Ensure that we don’t have any model-local variable in the model at this
      point (we used to treat them as temporary terms) */
-  assert([&]
-  {
+  assert([&] {
     set<int> used_local_vars;
-    for (auto &equation : equations)
+    for (auto& equation : equations)
       equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
     return used_local_vars.empty();
   }());
@@ -942,33 +954,27 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
   map<pair<int, int>, unordered_set<expr_t>> temp_terms_map;
   unordered_map<expr_t, pair<int, pair<int, int>>> reference_count;
 
-  for (auto &equation : equations)
-    equation->computeTemporaryTerms({ 0, 0 },
-                                    temp_terms_map,
-                                    reference_count,
-                                    is_matlab);
+  for (auto& equation : equations)
+    equation->computeTemporaryTerms({0, 0}, temp_terms_map, reference_count, is_matlab);
 
   for (int order = 1; order < static_cast<int>(derivatives.size()); order++)
-    for (const auto &it : derivatives[order])
-      it.second->computeTemporaryTerms({ order, 0 },
-                                       temp_terms_map,
-                                       reference_count,
-                                       is_matlab);
+    for (const auto& it : derivatives[order])
+      it.second->computeTemporaryTerms({order, 0}, temp_terms_map, reference_count, is_matlab);
 
   /* If the user has specified the notmpterms option, clear all temporary
      terms, except those that correspond to external functions (since they are
      not optional) */
   if (no_tmp_terms)
-    for (auto &it : temp_terms_map)
-      erase_if(it.second,
-               [](expr_t e) { return !dynamic_cast<AbstractExternalFunctionNode *>(e); });
+    for (auto& it : temp_terms_map)
+      erase_if(it.second, [](expr_t e) { return !dynamic_cast<AbstractExternalFunctionNode*>(e); });
 
   // Fill the structures
   temporary_terms_derivatives.clear();
   temporary_terms_derivatives.resize(derivatives.size());
   for (int order = 0; order < static_cast<int>(derivatives.size()); order++)
-    copy(temp_terms_map[{ order, 0 }].begin(), temp_terms_map[{ order, 0 }].end(),
-         inserter(temporary_terms_derivatives.at(order), temporary_terms_derivatives.at(order).begin()));
+    copy(temp_terms_map[{order, 0}].begin(), temp_terms_map[{order, 0}].end(),
+         inserter(temporary_terms_derivatives.at(order),
+                  temporary_terms_derivatives.at(order).begin()));
 
   // Compute indices in MATLAB/Julia vector
   for (int order {0}, idx {0}; order < static_cast<int>(derivatives.size()); order++)
@@ -998,11 +1004,13 @@ ModelTree::computeBlockTemporaryTerms(bool no_tmp_terms)
                || blocks[blk].simulation_type == BlockSimulationType::evaluateForward
                || eq < blocks[blk].getRecursiveSize())
               && isBlockEquationRenormalized(blk, eq))
-            getBlockEquationRenormalizedExpr(blk, eq)->computeBlockTemporaryTerms(blk, eq, temp_terms, reference_count);
+            getBlockEquationRenormalizedExpr(blk, eq)->computeBlockTemporaryTerms(
+                blk, eq, temp_terms, reference_count);
           else
-            getBlockEquationExpr(blk, eq)->computeBlockTemporaryTerms(blk, eq, temp_terms, reference_count);
+            getBlockEquationExpr(blk, eq)->computeBlockTemporaryTerms(blk, eq, temp_terms,
+                                                                      reference_count);
         }
-      for (const auto &[ignore, d] : blocks_derivatives[blk])
+      for (const auto& [ignore, d] : blocks_derivatives[blk])
         d->computeBlockTemporaryTerms(blk, blocks[blk].size, temp_terms, reference_count);
     }
 
@@ -1010,48 +1018,46 @@ ModelTree::computeBlockTemporaryTerms(bool no_tmp_terms)
      terms, except those that correspond to external functions (since they are
      not optional) */
   if (no_tmp_terms)
-    for (auto &it : temp_terms)
-      for (auto &it2 : it)
-        erase_if(it2, [](expr_t e) { return !dynamic_cast<AbstractExternalFunctionNode *>(e); });
+    for (auto& it : temp_terms)
+      for (auto& it2 : it)
+        erase_if(it2, [](expr_t e) { return !dynamic_cast<AbstractExternalFunctionNode*>(e); });
 
   blocks_temporary_terms.resize(nb_blocks);
   for (int blk {0}; blk < nb_blocks; blk++)
     {
       blocks_temporary_terms.at(blk).resize(temp_terms.at(blk).size());
       for (size_t i {0}; i < temp_terms.at(blk).size(); i++)
-        copy(temp_terms.at(blk).at(i).begin(), temp_terms.at(blk).at(i).end(), inserter(blocks_temporary_terms.at(blk).at(i), blocks_temporary_terms.at(blk).at(i).begin()));
+        copy(temp_terms.at(blk).at(i).begin(), temp_terms.at(blk).at(i).end(),
+             inserter(blocks_temporary_terms.at(blk).at(i),
+                      blocks_temporary_terms.at(blk).at(i).begin()));
     }
 
   // Compute indices in the temporary terms vector
   blocks_temporary_terms_idxs.clear();
-  for (int idx{0};
-       auto &blk_tt : blocks_temporary_terms)
-    for (auto &eq_tt : blk_tt)
+  for (int idx {0}; auto& blk_tt : blocks_temporary_terms)
+    for (auto& eq_tt : blk_tt)
       for (auto tt : eq_tt)
         blocks_temporary_terms_idxs[tt] = idx++;
 }
 
 void
-ModelTree::writeJsonTemporaryTerms(const temporary_terms_t &tt,
-                                   temporary_terms_t &temp_term_union,
-                                   ostream &output,
-                                   deriv_node_temp_terms_t &tef_terms, const string &concat) const
+ModelTree::writeJsonTemporaryTerms(const temporary_terms_t& tt, temporary_terms_t& temp_term_union,
+                                   ostream& output, deriv_node_temp_terms_t& tef_terms,
+                                   const string& concat) const
 {
   // Local var used to keep track of temp nodes already written
   temporary_terms_t tt2 = temp_term_union;
 
   output << R"("external_functions_temporary_terms_)" << concat << R"(": [)";
-  for (bool printed_term{false};
-       auto it : tt)
+  for (bool printed_term {false}; auto it : tt)
     {
-      if (dynamic_cast<AbstractExternalFunctionNode *>(it))
+      if (dynamic_cast<AbstractExternalFunctionNode*>(it))
         {
           if (exchange(printed_term, true))
             output << ", ";
           vector<string> efout;
           it->writeJsonExternalFunctionOutput(efout, tt2, tef_terms);
-          for (bool printed_efout{false};
-               auto &it : efout)
+          for (bool printed_efout {false}; auto& it : efout)
             {
               if (exchange(printed_efout, true))
                 output << ", ";
@@ -1063,8 +1069,7 @@ ModelTree::writeJsonTemporaryTerms(const temporary_terms_t &tt,
 
   output << "]"
          << R"(, "temporary_terms_)" << concat << R"(": [)";
-  for (bool printed_term{false};
-       const auto &it : tt)
+  for (bool printed_term {false}; const auto& it : tt)
     {
       if (exchange(printed_term, true))
         output << ", ";
@@ -1081,7 +1086,8 @@ ModelTree::writeJsonTemporaryTerms(const temporary_terms_t &tt,
 }
 
 void
-ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_paren_vars, bool &message_printed) const
+ModelTree::fixNestedParenthesis(ostringstream& output, map<string, string>& tmp_paren_vars,
+                                bool& message_printed) const
 {
   string str = output.str();
   if (!testNestedParenthesis(str))
@@ -1112,11 +1118,23 @@ ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_
         {
           if (!message_printed)
             {
-              cerr << "Warning: A .m file created by Dynare will have more than 32 nested parenthesis. MATLAB cannot support this. " << endl
-                   << "         We are going to modify, albeit inefficiently, this output to have fewer than 32 nested parenthesis. " << endl
-                   << "         It would hence behoove you to use the use_dll option of the model block to circumnavigate this problem." << endl
-                   << "         If you have not yet set up a compiler on your system, see the MATLAB documentation for doing so." << endl
-                   << "         For Windows, see: https://www.mathworks.com/help/matlab/matlab_external/install-mingw-support-package.html" << endl << endl;
+              cerr << "Warning: A .m file created by Dynare will have more than 32 nested "
+                      "parenthesis. MATLAB cannot support this. "
+                   << endl
+                   << "         We are going to modify, albeit inefficiently, this output to have "
+                      "fewer than 32 nested parenthesis. "
+                   << endl
+                   << "         It would hence behoove you to use the use_dll option of the model "
+                      "block to circumnavigate this problem."
+                   << endl
+                   << "         If you have not yet set up a compiler on your system, see the "
+                      "MATLAB documentation for doing so."
+                   << endl
+                   << "         For Windows, see: "
+                      "https://www.mathworks.com/help/matlab/matlab_external/"
+                      "install-mingw-support-package.html"
+                   << endl
+                   << endl;
               message_printed = true;
             }
           string str1 = str.substr(first_open_paren, matching_paren - first_open_paren + 1);
@@ -1146,9 +1164,9 @@ ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_
 
                   if (open_paren_idx != string::npos && match_paren_idx != string::npos)
                     {
-                      string val = str1.substr(open_paren_idx, match_paren_idx - open_paren_idx + 1);
-                      if (auto it = tmp_paren_vars.find(val);
-                          it == tmp_paren_vars.end())
+                      string val
+                          = str1.substr(open_paren_idx, match_paren_idx - open_paren_idx + 1);
+                      if (auto it = tmp_paren_vars.find(val); it == tmp_paren_vars.end())
                         {
                           varname = "paren32_tmp_var_" + to_string(i1++);
                           repstr = repstr + varname + " = " + val + ";\n";
@@ -1161,8 +1179,7 @@ ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_
                     }
                 }
             }
-          if (auto it = tmp_paren_vars.find(str1);
-              it == tmp_paren_vars.end())
+          if (auto it = tmp_paren_vars.find(str1); it == tmp_paren_vars.end())
             {
               varname = "paren32_tmp_var_" + to_string(i1++);
               repstr = repstr + varname + " = " + str1 + ";\n";
@@ -1181,10 +1198,9 @@ ModelTree::fixNestedParenthesis(ostringstream &output, map<string, string> &tmp_
 }
 
 bool
-ModelTree::testNestedParenthesis(const string &str) const
+ModelTree::testNestedParenthesis(const string& str) const
 {
-  for (int open{0};
-       char i : str)
+  for (int open {0}; char i : str)
     {
       if (i == '(')
         open++;
@@ -1197,7 +1213,8 @@ ModelTree::testNestedParenthesis(const string &str) const
 }
 
 void
-ModelTree::writeJsonModelLocalVariables(ostream &output, bool write_tef_terms, deriv_node_temp_terms_t &tef_terms) const
+ModelTree::writeJsonModelLocalVariables(ostream& output, bool write_tef_terms,
+                                        deriv_node_temp_terms_t& tef_terms) const
 {
   /* Collect all model local variables appearing in equations, and print only
      them. Printing unused model local variables can lead to a crash (see
@@ -1208,8 +1225,7 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, bool write_tef_terms, d
     equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
 
   output << R"("model_local_variables": [)";
-  for (bool printed_something{false};
-       int id : local_variables_vector)
+  for (bool printed_something {false}; int id : local_variables_vector)
     if (used_local_vars.contains(id))
       {
         if (exchange(printed_something, true))
@@ -1220,8 +1236,7 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, bool write_tef_terms, d
           {
             vector<string> efout;
             value->writeJsonExternalFunctionOutput(efout, {}, tef_terms);
-            for (bool printed_efout{false};
-                 auto &it : efout)
+            for (bool printed_efout {false}; auto& it : efout)
               {
                 if (exchange(printed_efout, true))
                   output << ", ";
@@ -1232,8 +1247,7 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, bool write_tef_terms, d
               output << ", ";
           }
 
-        output << R"({"variable": ")" << symbol_table.getName(id)
-               << R"(", "value": ")";
+        output << R"({"variable": ")" << symbol_table.getName(id) << R"(", "value": ")";
         value->writeJsonOutput(output, {}, tef_terms);
         output << R"("})" << endl;
       }
@@ -1241,42 +1255,41 @@ ModelTree::writeJsonModelLocalVariables(ostream &output, bool write_tef_terms, d
 }
 
 int
-ModelTree::writeBytecodeBinFile(const filesystem::path &filename, bool is_two_boundaries) const
+ModelTree::writeBytecodeBinFile(const filesystem::path& filename, bool is_two_boundaries) const
 {
-  ofstream SaveCode { filename, ios::out | ios::binary };
+  ofstream SaveCode {filename, ios::out | ios::binary};
   if (!SaveCode.is_open())
     {
       cerr << R"(Error : Can't open file ")" << filename.string() << R"(" for writing)" << endl;
       exit(EXIT_FAILURE);
     }
   int u_count {0};
-  for (const auto &[indices, d1] : derivatives[1])
-    if (int deriv_id {indices[1]};
-        getTypeByDerivID(deriv_id) == SymbolType::endogenous)
+  for (const auto& [indices, d1] : derivatives[1])
+    if (int deriv_id {indices[1]}; getTypeByDerivID(deriv_id) == SymbolType::endogenous)
       {
         int eq {indices[0]};
-        SaveCode.write(reinterpret_cast<char *>(&eq), sizeof eq);
+        SaveCode.write(reinterpret_cast<char*>(&eq), sizeof eq);
         int tsid {getTypeSpecificIDByDerivID(deriv_id)};
         int lag {getLagByDerivID(deriv_id)};
         int varr {tsid + lag * symbol_table.endo_nbr()};
-        SaveCode.write(reinterpret_cast<char *>(&varr), sizeof varr);
-        SaveCode.write(reinterpret_cast<char *>(&lag), sizeof lag);
+        SaveCode.write(reinterpret_cast<char*>(&varr), sizeof varr);
+        SaveCode.write(reinterpret_cast<char*>(&lag), sizeof lag);
         int u {u_count + symbol_table.endo_nbr()};
-        SaveCode.write(reinterpret_cast<char *>(&u), sizeof u);
+        SaveCode.write(reinterpret_cast<char*>(&u), sizeof u);
         u_count++;
       }
   if (is_two_boundaries)
     u_count += symbol_table.endo_nbr();
   for (int j {0}; j < symbol_table.endo_nbr(); j++)
-    SaveCode.write(reinterpret_cast<char *>(&j), sizeof j);
+    SaveCode.write(reinterpret_cast<char*>(&j), sizeof j);
   for (int j {0}; j < symbol_table.endo_nbr(); j++)
-    SaveCode.write(reinterpret_cast<char *>(&j), sizeof j);
+    SaveCode.write(reinterpret_cast<char*>(&j), sizeof j);
   SaveCode.close();
   return u_count;
 }
 
 int
-ModelTree::writeBlockBytecodeBinFile(ofstream &bin_file, int block) const
+ModelTree::writeBlockBytecodeBinFile(ofstream& bin_file, int block) const
 {
   int u_count {0};
   int block_size {blocks[block].size};
@@ -1285,20 +1298,20 @@ ModelTree::writeBlockBytecodeBinFile(ofstream &bin_file, int block) const
   BlockSimulationType simulation_type {blocks[block].simulation_type};
   bool is_two_boundaries {simulation_type == BlockSimulationType::solveTwoBoundariesComplete
                           || simulation_type == BlockSimulationType::solveTwoBoundariesSimple};
-  for (const auto &[indices, ignore] : blocks_derivatives[block])
+  for (const auto& [indices, ignore] : blocks_derivatives[block])
     {
-      const auto &[eq, var, lag] {indices};
+      const auto& [eq, var, lag] {indices};
       if (lag != 0 && !is_two_boundaries)
         continue;
       if (eq >= block_recursive && var >= block_recursive)
         {
           int v {eq - block_recursive};
-          bin_file.write(reinterpret_cast<char *>(&v), sizeof v);
+          bin_file.write(reinterpret_cast<char*>(&v), sizeof v);
           int varr {var - block_recursive + lag * block_mfs};
-          bin_file.write(reinterpret_cast<char *>(&varr), sizeof varr);
-          bin_file.write(reinterpret_cast<const char *>(&lag), sizeof lag);
+          bin_file.write(reinterpret_cast<char*>(&varr), sizeof varr);
+          bin_file.write(reinterpret_cast<const char*>(&lag), sizeof lag);
           int u {u_count + block_mfs};
-          bin_file.write(reinterpret_cast<char *>(&u), sizeof u);
+          bin_file.write(reinterpret_cast<char*>(&u), sizeof u);
           u_count++;
         }
     }
@@ -1308,31 +1321,32 @@ ModelTree::writeBlockBytecodeBinFile(ofstream &bin_file, int block) const
   for (int j {block_recursive}; j < block_size; j++)
     {
       int varr {getBlockVariableID(block, j)};
-      bin_file.write(reinterpret_cast<char *>(&varr), sizeof varr);
+      bin_file.write(reinterpret_cast<char*>(&varr), sizeof varr);
     }
   for (int j {block_recursive}; j < block_size; j++)
     {
       int eqr {getBlockEquationID(block, j)};
-      bin_file.write(reinterpret_cast<char *>(&eqr), sizeof eqr);
+      bin_file.write(reinterpret_cast<char*>(&eqr), sizeof eqr);
     }
   return u_count;
 }
 
 void
-ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_basename, ExprNodeOutputType output_type, bool write_equation_tags) const
+ModelTree::writeLatexModelFile(const string& mod_basename, const string& latex_basename,
+                               ExprNodeOutputType output_type, bool write_equation_tags) const
 {
   filesystem::create_directories(mod_basename + "/latex");
 
   const filesystem::path filename {mod_basename + "/latex/" + latex_basename + ".tex"},
-    content_filename {mod_basename + "/latex/" + latex_basename + "_content" + ".tex"};
-  ofstream output{filename, ios::out | ios::binary};
+      content_filename {mod_basename + "/latex/" + latex_basename + "_content" + ".tex"};
+  ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
 
-  ofstream content_output{content_filename, ios::out | ios::binary};
+  ofstream content_output {content_filename, ios::out | ios::binary};
   if (!content_output.is_open())
     {
       cerr << "ERROR: Can't open file " << content_filename.string() << " for writing" << endl;
@@ -1352,8 +1366,7 @@ ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_b
     {
       expr_t value = local_variables_table.at(id);
 
-      content_output << R"(\begin{dmath*})" << endl
-                     << symbol_table.getTeXName(id) << " = ";
+      content_output << R"(\begin{dmath*})" << endl << symbol_table.getTeXName(id) << " = ";
       // Use an empty set for the temporary terms
       value->writeOutput(content_output, output_type);
       content_output << endl << R"(\end{dmath*})" << endl;
@@ -1366,12 +1379,14 @@ ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_b
         equation_tags.writeLatexOutput(content_output, eq);
 
       content_output << R"(\begin{dmath})" << endl;
-      // Here it is necessary to cast to superclass ExprNode, otherwise the overloaded writeOutput() method is not found
-      dynamic_cast<ExprNode *>(equations[eq])->writeOutput(content_output, output_type);
+      // Here it is necessary to cast to superclass ExprNode, otherwise the overloaded writeOutput()
+      // method is not found
+      dynamic_cast<ExprNode*>(equations[eq])->writeOutput(content_output, output_type);
       content_output << endl << R"(\end{dmath})" << endl;
     }
 
-  output << R"(\include{)" << latex_basename + "_content" << "}" << endl
+  output << R"(\include{)" << latex_basename + "_content"
+         << "}" << endl
          << R"(\end{document})" << endl;
 
   output.close();
@@ -1381,7 +1396,7 @@ ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_b
 void
 ModelTree::addEquation(expr_t eq, optional<int> lineno)
 {
-  auto beq = dynamic_cast<BinaryOpNode *>(eq);
+  auto beq = dynamic_cast<BinaryOpNode*>(eq);
   assert(beq && beq->op_code == BinaryOpcode::equal);
 
   equations.push_back(beq);
@@ -1389,7 +1404,7 @@ ModelTree::addEquation(expr_t eq, optional<int> lineno)
 }
 
 void
-ModelTree::findConstantEquationsWithoutMcpTag(map<VariableNode *, NumConstNode *> &subst_table) const
+ModelTree::findConstantEquationsWithoutMcpTag(map<VariableNode*, NumConstNode*>& subst_table) const
 {
   for (size_t i = 0; i < equations.size(); i++)
     if (!equation_tags.exists(i, "mcp"))
@@ -1406,30 +1421,31 @@ ModelTree::addEquation(expr_t eq, optional<int> lineno, map<string, string> eq_t
 void
 ModelTree::addAuxEquation(expr_t eq)
 {
-  auto beq = dynamic_cast<BinaryOpNode *>(eq);
+  auto beq = dynamic_cast<BinaryOpNode*>(eq);
   assert(beq && beq->op_code == BinaryOpcode::equal);
 
   aux_equations.push_back(beq);
 }
 
 void
-ModelTree::addTrendVariables(const vector<int> &trend_vars, expr_t growth_factor) noexcept(false)
+ModelTree::addTrendVariables(const vector<int>& trend_vars, expr_t growth_factor) noexcept(false)
 {
   for (int id : trend_vars)
     if (trend_symbols_map.contains(id))
-      throw TrendException{symbol_table.getName(id)};
+      throw TrendException {symbol_table.getName(id)};
     else
       trend_symbols_map[id] = growth_factor;
 }
 
 void
-ModelTree::addNonstationaryVariables(const vector<int> &nonstationary_vars, bool log_deflator, expr_t deflator) noexcept(false)
+ModelTree::addNonstationaryVariables(const vector<int>& nonstationary_vars, bool log_deflator,
+                                     expr_t deflator) noexcept(false)
 {
   for (int id : nonstationary_vars)
     if (nonstationary_symbols_map.contains(id))
-      throw TrendException{symbol_table.getName(id)};
+      throw TrendException {symbol_table.getName(id)};
     else
-      nonstationary_symbols_map[id] = { log_deflator, deflator };
+      nonstationary_symbols_map[id] = {log_deflator, deflator};
 }
 
 void
@@ -1464,25 +1480,25 @@ ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
           expr_t d = equations[eq]->getDerivative(param);
           if (d == Zero)
             continue;
-          params_derivatives[{ 0, 1 }][{ eq, param }] = d;
+          params_derivatives[{0, 1}][{eq, param}] = d;
         }
 
       for (int endoOrd = 1; endoOrd < static_cast<int>(derivatives.size()); endoOrd++)
-        for (const auto &[lower_indices, lower_d] : derivatives[endoOrd])
+        for (const auto& [lower_indices, lower_d] : derivatives[endoOrd])
           {
             expr_t d = lower_d->getDerivative(param);
             if (d == Zero)
               continue;
-            vector<int> indices{lower_indices};
+            vector<int> indices {lower_indices};
             indices.push_back(param);
-            params_derivatives[{ endoOrd, 1 }][indices] = d;
+            params_derivatives[{endoOrd, 1}][indices] = d;
           }
     }
 
   // Higher-order derivatives w.r.t. parameters
   for (int endoOrd = 0; endoOrd < static_cast<int>(derivatives.size()); endoOrd++)
     for (int paramOrd = 2; paramOrd <= paramsDerivsOrder; paramOrd++)
-      for (const auto &[lower_indices, lower_d] : params_derivatives[{ endoOrd, paramOrd-1 }])
+      for (const auto& [lower_indices, lower_d] : params_derivatives[{endoOrd, paramOrd - 1}])
         for (int param : deriv_id_set)
           {
             if (lower_indices.back() > param)
@@ -1491,10 +1507,11 @@ ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
             expr_t d = lower_d->getDerivative(param);
             if (d == Zero)
               continue;
-            vector<int> indices{lower_indices};
+            vector<int> indices {lower_indices};
             indices.push_back(param);
-            // At this point, indices of both endogenous and parameters are sorted in non-decreasing order
-            params_derivatives[{ endoOrd, paramOrd }][indices] = d;
+            // At this point, indices of both endogenous and parameters are sorted in non-decreasing
+            // order
+            params_derivatives[{endoOrd, paramOrd}][indices] = d;
           }
 }
 
@@ -1506,17 +1523,17 @@ ModelTree::computeParamsDerivativesTemporaryTerms()
   /* The temp terms should be constructed in the same order as the for loops in
      {Static,Dynamic}Model::write{Json,}ParamsDerivativesFile() */
   map<pair<int, int>, unordered_set<expr_t>> temp_terms_map;
-  for (const auto &[order, derivs] : params_derivatives)
-    for (const auto &[indices, d] : derivs)
+  for (const auto& [order, derivs] : params_derivatives)
+    for (const auto& [indices, d] : derivs)
       d->computeTemporaryTerms(order, temp_terms_map, reference_count, true);
 
-  for (const auto &[order, tts] : temp_terms_map)
+  for (const auto& [order, tts] : temp_terms_map)
     copy(temp_terms_map[order].begin(), temp_terms_map[order].end(),
-         inserter(params_derivs_temporary_terms[order], params_derivs_temporary_terms[order].begin()));
+         inserter(params_derivs_temporary_terms[order],
+                  params_derivs_temporary_terms[order].begin()));
 
-  for (int idx {0};
-       const auto &[order, tts] : params_derivs_temporary_terms)
-    for (const auto &tt : tts)
+  for (int idx {0}; const auto& [order, tts] : params_derivs_temporary_terms)
+    for (const auto& tt : tts)
       params_derivs_temporary_terms_idxs[tt] = idx++;
 }
 
@@ -1527,7 +1544,7 @@ ModelTree::isNonstationary(int symb_id) const
 }
 
 void
-ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
+ModelTree::writeJsonModelEquations(ostream& output, bool residuals) const
 {
   if (residuals)
     output << endl << R"("residuals":[)" << endl;
@@ -1538,7 +1555,7 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
       if (eq > 0)
         output << ", ";
 
-      BinaryOpNode *eq_node = equations[eq];
+      BinaryOpNode* eq_node = equations[eq];
       expr_t lhs = eq_node->arg1;
       expr_t rhs = eq_node->arg2;
 
@@ -1563,12 +1580,10 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
           if (equations_lineno[eq])
             output << R"(, "line": )" << *equations_lineno[eq];
 
-          if (auto eqtags = equation_tags.getTagsByEqn(eq);
-              !eqtags.empty())
+          if (auto eqtags = equation_tags.getTagsByEqn(eq); !eqtags.empty())
             {
               output << R"(, "tags": {)";
-              for (bool printed_something{false};
-                   const auto &[name, value] : eqtags)
+              for (bool printed_something {false}; const auto& [name, value] : eqtags)
                 {
                   if (exchange(printed_something, true))
                     output << ", ";
@@ -1584,7 +1599,7 @@ ModelTree::writeJsonModelEquations(ostream &output, bool residuals) const
 }
 
 string
-ModelTree::matlab_arch(const string &mexext)
+ModelTree::matlab_arch(const string& mexext)
 {
   if (mexext == "mexglx")
     return "glnx86";
@@ -1605,7 +1620,8 @@ ModelTree::matlab_arch(const string &mexext)
     return "maca64";
   else
     {
-      cerr << "ERROR: 'mexext' option to preprocessor incorrectly set, needed with 'use_dll'" << endl;
+      cerr << "ERROR: 'mexext' option to preprocessor incorrectly set, needed with 'use_dll'"
+           << endl;
       exit(EXIT_FAILURE);
     }
 }
@@ -1613,7 +1629,7 @@ ModelTree::matlab_arch(const string &mexext)
 #ifdef __APPLE__
 
 pair<filesystem::path, bool>
-ModelTree::findCompilerOnMacos(const string &mexext)
+ModelTree::findCompilerOnMacos(const string& mexext)
 {
   /* Try to find gcc, otherwise use Apple’s clang compiler.
      Homebrew binaries are located in /usr/local/bin/ on x86_64 systems and in
@@ -1625,12 +1641,12 @@ ModelTree::findCompilerOnMacos(const string &mexext)
 
   if (filesystem::path global_gcc_path {"/usr/local/bin/gcc-" + macos_gcc_version};
       exists(global_gcc_path) && mexext == "mexmaci64")
-    return { global_gcc_path, false };
+    return {global_gcc_path, false};
   else if (filesystem::path global_gcc_path {"/opt/homebrew/bin/gcc-" + macos_gcc_version};
            exists(global_gcc_path) && mexext == "mexmaca64")
-    return { global_gcc_path, false };
+    return {global_gcc_path, false};
   else if (filesystem::path global_clang_path {"/usr/bin/clang"}; exists(global_clang_path))
-    return { global_clang_path, true };
+    return {global_clang_path, true};
   else
     {
       cerr << "ERROR: You must install gcc-" << macos_gcc_version
@@ -1647,12 +1663,18 @@ ModelTree::findCompilerOnMacos(const string &mexext)
 #endif
 
 filesystem::path
-ModelTree::compileMEX(const filesystem::path &output_dir, const string &output_basename, const string &mexext, const vector<filesystem::path> &input_files, const filesystem::path &matlabroot, bool link) const
+ModelTree::compileMEX(const filesystem::path& output_dir, const string& output_basename,
+                      const string& mexext, const vector<filesystem::path>& input_files,
+                      const filesystem::path& matlabroot, bool link) const
 {
   assert(!mex_compilation_workers.empty());
 
-  const string gcc_opt_flags { "-O3 -g0 --param ira-max-conflict-table-size=1 -fno-forward-propagate -fno-gcse -fno-dce -fno-dse -fno-tree-fre -fno-tree-pre -fno-tree-cselim -fno-tree-dse -fno-tree-dce -fno-tree-pta -fno-gcse-after-reload" };
-  const string clang_opt_flags { "-O3 -g0 --param ira-max-conflict-table-size=1 -Wno-unused-command-line-argument" };
+  const string gcc_opt_flags {
+      "-O3 -g0 --param ira-max-conflict-table-size=1 -fno-forward-propagate -fno-gcse -fno-dce "
+      "-fno-dse -fno-tree-fre -fno-tree-pre -fno-tree-cselim -fno-tree-dse -fno-tree-dce "
+      "-fno-tree-pta -fno-gcse-after-reload"};
+  const string clang_opt_flags {
+      "-O3 -g0 --param ira-max-conflict-table-size=1 -Wno-unused-command-line-argument"};
 
   filesystem::path compiler;
   ostringstream flags;
@@ -1661,7 +1683,8 @@ ModelTree::compileMEX(const filesystem::path &output_dir, const string &output_b
 
   if (matlabroot.empty())
     {
-      cerr << "ERROR: 'matlabroot' option to preprocessor is not set, needed with 'use_dll'" << endl;
+      cerr << "ERROR: 'matlabroot' option to preprocessor is not set, needed with 'use_dll'"
+           << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -1719,14 +1742,14 @@ ModelTree::compileMEX(const filesystem::path &output_dir, const string &output_b
 
   if (user_set_compiler.empty())
     cmd << compiler << " ";
+  else if (!filesystem::exists(user_set_compiler))
+    {
+      cerr << "Error: The specified compiler '" << user_set_compiler
+           << "' cannot be found on your system" << endl;
+      exit(EXIT_FAILURE);
+    }
   else
-    if (!filesystem::exists(user_set_compiler))
-      {
-        cerr << "Error: The specified compiler '" << user_set_compiler << "' cannot be found on your system" << endl;
-        exit(EXIT_FAILURE);
-      }
-    else
-      cmd << user_set_compiler << " ";
+    cmd << user_set_compiler << " ";
 
   if (user_set_subst_flags.empty())
     cmd << (is_clang ? clang_opt_flags : gcc_opt_flags) << " " << flags.str() << " ";
@@ -1736,7 +1759,7 @@ ModelTree::compileMEX(const filesystem::path &output_dir, const string &output_b
   if (!user_set_add_flags.empty())
     cmd << user_set_add_flags << " ";
 
-  for (auto &f : input_files)
+  for (auto& f : input_files)
     cmd << f << " ";
   cmd << "-o " << output_filename << " ";
 
@@ -1760,11 +1783,8 @@ ModelTree::compileMEX(const filesystem::path &output_dir, const string &output_b
 
   // The prerequisites are the object files among the input files
   set<filesystem::path> prerequisites;
-  copy_if(input_files.begin(), input_files.end(),
-          inserter(prerequisites, prerequisites.end()), [](const auto &p)
-          {
-            return p.extension() == ".o";
-          });
+  copy_if(input_files.begin(), input_files.end(), inserter(prerequisites, prerequisites.end()),
+          [](const auto& p) { return p.extension() == ".o"; });
 
   unique_lock<mutex> lk {mex_compilation_mut};
   mex_compilation_queue.emplace_back(output_filename, prerequisites, cmd.str());
@@ -1784,7 +1804,7 @@ ModelTree::reorderAuxiliaryEquations()
   map<int, int> auxEndoToEq;
   for (int i = 0; i < n; i++)
     {
-      auto varexpr = dynamic_cast<VariableNode *>(aux_equations[i]->arg1);
+      auto varexpr = dynamic_cast<VariableNode*>(aux_equations[i]->arg1);
       assert(varexpr && symbol_table.getType(varexpr->symb_id) == SymbolType::endogenous);
       auxEndoToEq[varexpr->symb_id] = i;
     }
@@ -1799,8 +1819,7 @@ ModelTree::reorderAuxiliaryEquations()
       set<int> endos;
       aux_equations[i]->collectVariables(SymbolType::endogenous, endos);
       for (int endo : endos)
-        if (auto it = auxEndoToEq.find(endo);
-            it != auxEndoToEq.end() && it->second != i)
+        if (auto it = auxEndoToEq.find(endo); it != auxEndoToEq.end() && it->second != i)
           add_edge(i, it->second, g);
     }
 
@@ -1820,13 +1839,13 @@ map<tuple<int, int, int>, expr_t>
 ModelTree::collectFirstOrderDerivativesEndogenous()
 {
   map<tuple<int, int, int>, expr_t> endo_derivatives;
-  for (auto &[indices, d1] : derivatives[1])
+  for (auto& [indices, d1] : derivatives[1])
     if (getTypeByDerivID(indices[1]) == SymbolType::endogenous)
       {
         int eq = indices[0];
-        int var { getTypeSpecificIDByDerivID(indices[1]) };
+        int var {getTypeSpecificIDByDerivID(indices[1])};
         int lag = getLagByDerivID(indices[1]);
-        endo_derivatives[{ eq, var, lag }] = d1;
+        endo_derivatives[{eq, var, lag}] = d1;
       }
   return endo_derivatives;
 }
@@ -1839,9 +1858,9 @@ ModelTree::computeSymbolicJacobian(bool contemporaneous_only) const
     {
       set<pair<int, int>> endos_and_lags;
       equations[i]->collectEndogenous(endos_and_lags);
-      for (const auto &[endo, lag] : endos_and_lags)
+      for (const auto& [endo, lag] : endos_and_lags)
         if (!contemporaneous_only || lag == 0)
-          symbolic_jacobian.try_emplace({ i, endo }, 1);
+          symbolic_jacobian.try_emplace({i, endo}, 1);
     }
   return symbolic_jacobian;
 }
@@ -1850,29 +1869,30 @@ pair<bool, ModelTree::jacob_map_t>
 ModelTree::computeLeftHandSideSymbolicJacobian() const
 {
   jacob_map_t lhs_symbolic_jacobian;
-  auto not_contemporaneous = [](const pair<int, int> &p) { return p.second != 0; };
+  auto not_contemporaneous = [](const pair<int, int>& p) { return p.second != 0; };
 
   for (int eq {0}; eq < static_cast<int>(equations.size()); eq++)
-    if (equations_lineno[eq]) // Hand-written equation: test whether LHS has single contemporaneous endo
+    if (equations_lineno[eq]) // Hand-written equation: test whether LHS has single contemporaneous
+                              // endo
       {
         set<pair<int, int>> endos_and_lags;
         equations[eq]->arg1->collectEndogenous(endos_and_lags);
         erase_if(endos_and_lags, not_contemporaneous);
         if (endos_and_lags.size() == 1)
-          lhs_symbolic_jacobian.try_emplace({ eq, endos_and_lags.begin()->first }, 1);
+          lhs_symbolic_jacobian.try_emplace({eq, endos_and_lags.begin()->first}, 1);
         else
-          return { false, {} };
+          return {false, {}};
       }
     else // Generated equation: keep all endos on both LHS and RHS
       {
         set<pair<int, int>> endos_and_lags;
         equations[eq]->collectEndogenous(endos_and_lags);
         erase_if(endos_and_lags, not_contemporaneous);
-        for (const auto &[endo, lag] : endos_and_lags)
-          lhs_symbolic_jacobian.try_emplace({ eq, endo }, 1);
+        for (const auto& [endo, lag] : endos_and_lags)
+          lhs_symbolic_jacobian.try_emplace({eq, endo}, 1);
       }
 
-  return { true, lhs_symbolic_jacobian };
+  return {true, lhs_symbolic_jacobian};
 }
 
 void
@@ -1894,12 +1914,12 @@ ModelTree::getRHSFromLHS(expr_t lhs) const
   for (auto eq : equations)
     if (eq->arg1 == lhs)
       return eq->arg2;
-  throw ExprNode::MatchFailureException{"Cannot find an equation with the requested LHS"};
+  throw ExprNode::MatchFailureException {"Cannot find an equation with the requested LHS"};
 }
 
 void
-ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::path &dynareroot,
-                                           const string &mexext)
+ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::path& dynareroot,
+                                           const string& mexext)
 {
   assert(numworkers > 0);
   assert(mex_compilation_workers.empty());
@@ -1907,8 +1927,7 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
   cout << "Spawning " << numworkers << " threads for compiling MEX files." << endl;
 
   for (int i {0}; i < numworkers; i++)
-    mex_compilation_workers.emplace_back([](stop_token stoken)
-    {
+    mex_compilation_workers.emplace_back([](stop_token stoken) {
       unique_lock<mutex> lk {mex_compilation_mut};
       filesystem::path output;
       string cmd;
@@ -1916,10 +1935,9 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
       /* Look for an object to compile, whose prerequisites are already
          compiled. If found, remove it from the queue, save the output path and
          the compilation command, and return true. Must be run under the lock. */
-      auto pick_job = [&cmd, &output]
-      {
+      auto pick_job = [&cmd, &output] {
         for (auto it {mex_compilation_queue.begin()}; it != mex_compilation_queue.end(); ++it)
-          if (const auto &prerequisites {get<1>(*it)}; // Will become dangling after erase
+          if (const auto& prerequisites {get<1>(*it)}; // Will become dangling after erase
               includes(mex_compilation_done.begin(), mex_compilation_done.end(),
                        prerequisites.begin(), prerequisites.end()))
             {
@@ -1936,7 +1954,7 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
         if (mex_compilation_cv.wait(lk, stoken, pick_job))
           {
             lk.unlock();
-            int r { system(cmd.c_str()) };
+            int r {system(cmd.c_str())};
             lk.lock();
             mex_compilation_ongoing.erase(output);
             if (r)
@@ -1963,7 +1981,7 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
       /* We can’t use setenv() since it is not available on MinGW. Note that
          putenv() seems to make an internal copy of the string on MinGW,
          contrary to what is done on GNU/Linux and macOS. */
-      if (putenv(const_cast<char *>(newpath.c_str())) != 0)
+      if (putenv(const_cast<char*>(newpath.c_str())) != 0)
         {
           cerr << "Can't set PATH" << endl;
           exit(EXIT_FAILURE);
@@ -1975,7 +1993,7 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
       /* On macOS, with Octave, enforce our compiler. In particular this is
          necessary if we’ve selected GCC; otherwise Clang will be used, and
          it does not accept the same optimization flags (see dynare#1797) */
-      auto [compiler_path, is_clang] { findCompilerOnMacos(mexext) };
+      auto [compiler_path, is_clang] {findCompilerOnMacos(mexext)};
       if (setenv("CC", compiler_path.c_str(), 1) != 0)
         {
           cerr << "Can't set CC environment variable" << endl;
@@ -1997,11 +2015,12 @@ ModelTree::waitForMEXCompilationWorkers()
   unique_lock<mutex> lk {mex_compilation_mut};
   mex_compilation_cv.wait(lk, [] {
     return (mex_compilation_queue.empty() && mex_compilation_ongoing.empty())
-      || !mex_compilation_failed.empty(); });
+           || !mex_compilation_failed.empty();
+  });
   if (!mex_compilation_failed.empty())
     {
       cerr << "Compilation failed for: ";
-      for (const auto &p : mex_compilation_failed)
+      for (const auto& p : mex_compilation_failed)
         cerr << p.string() << " ";
       cerr << endl;
       lk.unlock(); // So that threads can process their stoken
@@ -2010,7 +2029,7 @@ ModelTree::waitForMEXCompilationWorkers()
 }
 
 void
-ModelTree::computingPassBlock(const eval_context_t &eval_context, bool no_tmp_terms)
+ModelTree::computingPassBlock(const eval_context_t& eval_context, bool no_tmp_terms)
 {
   if (!computeNonSingularNormalization(eval_context))
     return;
@@ -2028,11 +2047,10 @@ ModelTree::computingPassBlock(const eval_context_t &eval_context, bool no_tmp_te
 }
 
 vector<int>
-ModelTree::computeCSCColPtr(const SparseColumnMajorOrderMatrix &matrix, int ncols)
+ModelTree::computeCSCColPtr(const SparseColumnMajorOrderMatrix& matrix, int ncols)
 {
-  vector<int> colptr(ncols+1, matrix.size());
-  for (int k {0}, current_col {0};
-       const auto &[indices, d1] : matrix)
+  vector<int> colptr(ncols + 1, matrix.size());
+  for (int k {0}, current_col {0}; const auto& [indices, d1] : matrix)
     {
       while (indices.second >= current_col)
         colptr[current_col++] = k;
@@ -2042,7 +2060,7 @@ ModelTree::computeCSCColPtr(const SparseColumnMajorOrderMatrix &matrix, int ncol
 }
 
 void
-ModelTree::writeAuxVarRecursiveDefinitions(ostream &output, ExprNodeOutputType output_type) const
+ModelTree::writeAuxVarRecursiveDefinitions(ostream& output, ExprNodeOutputType output_type) const
 {
   deriv_node_temp_terms_t tef_terms;
   for (auto aux_equation : aux_equations)

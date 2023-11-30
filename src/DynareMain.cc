@@ -17,24 +17,24 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <vector>
-#include <string>
-#include <regex>
-#include <thread>
 #include <algorithm>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <regex>
+#include <sstream>
+#include <string>
+#include <thread>
+#include <vector>
 
 #include <cstdlib>
 
 #include <unistd.h>
 
-#include "ParsingDriver.hh"
-#include "ExtendedPreprocessorTypes.hh"
 #include "ConfigFile.hh"
+#include "ExtendedPreprocessorTypes.hh"
 #include "ModFile.hh"
+#include "ParsingDriver.hh"
 
 /* Prototype for the function that handles the macro-expansion of the .mod file
    Splitting this out was necessary because ParsingDriver.hh and macro/Driver.hh can't be
@@ -42,21 +42,27 @@
 
    Function can be found in: MacroExpandModFile.cc
 */
-stringstream
-macroExpandModFile(const filesystem::path &filename, const istream &modfile,
-                   bool debug, bool save_macro, filesystem::path save_macro_file, bool line_macro,
-                   const vector<pair<string, string>> &defines,
-                   vector<filesystem::path> paths);
+stringstream macroExpandModFile(const filesystem::path& filename, const istream& modfile,
+                                bool debug, bool save_macro, filesystem::path save_macro_file,
+                                bool line_macro, const vector<pair<string, string>>& defines,
+                                vector<filesystem::path> paths);
 
 void
 usage()
 {
-  cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] [savemacro[=macro_file]] [onlymacro] [linemacro] [notmpterms] [nolog] [warn_uninit]"
-       << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] [conffile=parallel_config_path_and_filename] [parallel_follower_open_mode] [parallel_test] [parallel_use_psexec=true|false]"
-       << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] [compute_xrefs] [output=second|third] [language=matlab|julia]"
-       << " [params_derivs_order=0|1|2] [transform_unary_ops] [exclude_eqs=<equation_tag_list_or_file>] [include_eqs=<equation_tag_list_or_file>]"
-       << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] [nopathchange] [nopreprocessoroutput]"
-       << " [mexext=<extension>] [matlabroot=<path>] [onlymodel] [notime] [use_dll] [nocommutativity]"
+  cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] "
+          "[savemacro[=macro_file]] [onlymacro] [linemacro] [notmpterms] [nolog] [warn_uninit]"
+       << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] "
+          "[conffile=parallel_config_path_and_filename] [parallel_follower_open_mode] "
+          "[parallel_test] [parallel_use_psexec=true|false]"
+       << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] "
+          "[compute_xrefs] [output=second|third] [language=matlab|julia]"
+       << " [params_derivs_order=0|1|2] [transform_unary_ops] "
+          "[exclude_eqs=<equation_tag_list_or_file>] [include_eqs=<equation_tag_list_or_file>]"
+       << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] "
+          "[nopathchange] [nopreprocessoroutput]"
+       << " [mexext=<extension>] [matlabroot=<path>] [onlymodel] [notime] [use_dll] "
+          "[nocommutativity]"
        << endl;
   exit(EXIT_FAILURE);
 }
@@ -65,23 +71,22 @@ usage()
    the input stream afterwards).
    This function should be kept in sync with the one with the same name in matlab/dynare.m */
 vector<string>
-parse_options_line(istream &modfile)
+parse_options_line(istream& modfile)
 {
   vector<string> options;
   string first_nonempty_line;
-  regex pat{R"(^\s*//\s*--\+\s*options:([^\+]*)\+--)"};
+  regex pat {R"(^\s*//\s*--\+\s*options:([^\+]*)\+--)"};
   smatch matches;
 
   while (getline(modfile, first_nonempty_line))
     if (!first_nonempty_line.empty())
       {
-        if (regex_search(first_nonempty_line, matches, pat)
-            && matches.size() > 1 && matches[1].matched)
+        if (regex_search(first_nonempty_line, matches, pat) && matches.size() > 1
+            && matches[1].matched)
           {
-            regex pat2{R"([^,\s]+)"};
-            string s{matches[1]};
-            for (sregex_iterator p(s.begin(), s.end(), pat2);
-                 p != sregex_iterator{}; ++p)
+            regex pat2 {R"([^,\s]+)"};
+            string s {matches[1]};
+            for (sregex_iterator p(s.begin(), s.end(), pat2); p != sregex_iterator {}; ++p)
               options.push_back(p->str());
           }
         break;
@@ -93,7 +98,7 @@ parse_options_line(istream &modfile)
 }
 
 int
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
   /*
     Redirect stderr to stdout.
@@ -140,7 +145,8 @@ main(int argc, char **argv)
   filesystem::path parallel_config_file;
   bool parallel = false;
   string cluster_name;
-  bool parallel_follower_open_mode = false; // Must be the same default as in matlab/default_option_values.m
+  bool parallel_follower_open_mode
+      = false; // Must be the same default as in matlab/default_option_values.m
   bool parallel_test = false;
   bool parallel_use_psexec = true; // Must be the same default as in matlab/default_option_values.m
   bool nostrict = false;
@@ -153,12 +159,12 @@ main(int argc, char **argv)
   string exclude_eqs, include_eqs;
   vector<pair<string, string>> defines;
   vector<filesystem::path> paths;
-  OutputType output_mode{OutputType::standard};
-  JsonOutputPointType json{JsonOutputPointType::nojson};
-  JsonFileOutputType json_output_mode{JsonFileOutputType::file};
+  OutputType output_mode {OutputType::standard};
+  JsonOutputPointType json {JsonOutputPointType::nojson};
+  JsonFileOutputType json_output_mode {JsonFileOutputType::file};
   bool onlyjson = false;
   bool jsonderivsimple = false;
-  LanguageOutputType language{LanguageOutputType::matlab};
+  LanguageOutputType language {LanguageOutputType::matlab};
   string mexext;
   filesystem::path matlabroot;
   bool onlymodel = false;
@@ -289,9 +295,8 @@ main(int argc, char **argv)
               usage();
             }
 
-          if (auto equal_index = s.find('=');
-              equal_index != string::npos)
-            defines.emplace_back(s.substr(2, equal_index-2), s.substr(equal_index+1));
+          if (auto equal_index = s.find('='); equal_index != string::npos)
+            defines.emplace_back(s.substr(2, equal_index - 2), s.substr(equal_index + 1));
           else
             defines.emplace_back(s.substr(2), "true");
         }
@@ -411,7 +416,7 @@ main(int argc, char **argv)
               cerr << "Incorrect syntax for matlabroot option" << endl;
               usage();
             }
-          matlabroot = filesystem::path{s.substr(11)};
+          matlabroot = filesystem::path {s.substr(11)};
         }
       else if (s == "onlymodel")
         onlymodel = true;
@@ -431,7 +436,7 @@ main(int argc, char **argv)
   cout << "Starting preprocessing of the model file ..." << endl;
 
   // Determine root of Dynare installation
-  const filesystem::path argv0{argv[0]};
+  const filesystem::path argv0 {argv[0]};
   // Normal case: binary is in preprocessor/dynare-preprocessor(.exe)?
   filesystem::path dynareroot = argv0.parent_path().parent_path();
   if (argv0.filename().stem() == "dynare_m")
@@ -445,7 +450,7 @@ main(int argc, char **argv)
   const string basename {filename.stem().string()};
 
   // Forbid some basenames, since they will cause trouble (see preprocessor#62)
-  set<string> forbidden_basenames = { "T", "y", "x", "params", "steady_state", "it_", "true" };
+  set<string> forbidden_basenames = {"T", "y", "x", "params", "steady_state", "it_", "true"};
   if (forbidden_basenames.contains(basename))
     {
       cerr << "ERROR: Please use another name for your .mod file. The one you have chosen ("
@@ -456,22 +461,23 @@ main(int argc, char **argv)
   WarningConsolidation warnings(no_warn);
 
   // Process config file
-  ConfigFile config_file(parallel, parallel_test, parallel_follower_open_mode, parallel_use_psexec, cluster_name);
+  ConfigFile config_file(parallel, parallel_test, parallel_follower_open_mode, parallel_use_psexec,
+                         cluster_name);
   config_file.getConfigFileInfo(parallel_config_file);
   config_file.checkPass(warnings);
   config_file.transformPass();
 
   // If Include option was passed to the [paths] block of the config file, add
   // it to paths before macroprocessing
-  for (const auto &it : config_file.getIncludePaths())
+  for (const auto& it : config_file.getIncludePaths())
     paths.emplace_back(it);
 
   /*
    * Macro-expand MOD file
    */
-  stringstream macro_output =
-    macroExpandModFile(filename, modfile, debug, save_macro, move(save_macro_file), line_macro,
-                       defines, move(paths));
+  stringstream macro_output
+      = macroExpandModFile(filename, modfile, debug, save_macro, move(save_macro_file), line_macro,
+                           defines, move(paths));
 
   if (only_macro)
     return EXIT_SUCCESS;
@@ -503,8 +509,8 @@ main(int argc, char **argv)
     }
 
   if (mod_file->use_dll)
-    ModelTree::initializeMEXCompilationWorkers(max(jthread::hardware_concurrency(), 1U),
-                                               dynareroot, mexext);
+    ModelTree::initializeMEXCompilationWorkers(max(jthread::hardware_concurrency(), 1U), dynareroot,
+                                               mexext);
 
   if (json == JsonOutputPointType::parsing)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
@@ -515,7 +521,8 @@ main(int argc, char **argv)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
 
   // Perform transformations on the model (creation of auxiliary vars and equations)
-  mod_file->transformPass(nostrict, stochastic, compute_xrefs || json == JsonOutputPointType::transformpass,
+  mod_file->transformPass(nostrict, stochastic,
+                          compute_xrefs || json == JsonOutputPointType::transformpass,
                           transform_unary_ops, exclude_eqs, include_eqs);
   if (json == JsonOutputPointType::transformpass)
     mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
@@ -533,8 +540,8 @@ main(int argc, char **argv)
     mod_file->writeJuliaOutput(basename);
   else
     mod_file->writeMOutput(basename, clear_all, clear_global, no_warn, console, nograph,
-                           nointeractive, config_file, check_model_changes, minimal_workspace, compute_xrefs,
-                           mexext, matlabroot, onlymodel, gui, notime);
+                           nointeractive, config_file, check_model_changes, minimal_workspace,
+                           compute_xrefs, mexext, matlabroot, onlymodel, gui, notime);
 
   /* Ensures that workers are not destroyed before they finish compiling.
      Also ensures that the preprocessor final message is printed after the end of

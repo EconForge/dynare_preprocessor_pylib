@@ -17,15 +17,15 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <utility>
 #include <numbers>
+#include <utility>
 
 #include "Expressions.hh"
 
 using namespace macro;
 
 BoolPtr
-BaseType::is_different(const BaseTypePtr &btp) const
+BaseType::is_different(const BaseTypePtr& btp) const
 {
   if (*(this->is_equal(btp)))
     return make_shared<Bool>(false);
@@ -33,7 +33,7 @@ BaseType::is_different(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-Bool::is_equal(const BaseTypePtr &btp) const
+Bool::is_equal(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Bool>(btp);
   if (!btp2)
@@ -42,7 +42,7 @@ Bool::is_equal(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-Bool::logical_and(const ExpressionPtr &ep, Environment &env) const
+Bool::logical_and(const ExpressionPtr& ep, Environment& env) const
 {
   if (!value)
     return make_shared<Bool>(false);
@@ -58,7 +58,7 @@ Bool::logical_and(const ExpressionPtr &ep, Environment &env) const
 }
 
 BoolPtr
-Bool::logical_or(const ExpressionPtr &ep, Environment &env) const
+Bool::logical_or(const ExpressionPtr& ep, Environment& env) const
 {
   if (value)
     return make_shared<Bool>(true);
@@ -80,7 +80,7 @@ Bool::logical_not() const
 }
 
 BaseTypePtr
-Real::plus(const BaseTypePtr &btp) const
+Real::plus(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
@@ -89,7 +89,7 @@ Real::plus(const BaseTypePtr &btp) const
 }
 
 BaseTypePtr
-Real::minus(const BaseTypePtr &btp) const
+Real::minus(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
@@ -98,7 +98,7 @@ Real::minus(const BaseTypePtr &btp) const
 }
 
 BaseTypePtr
-Real::times(const BaseTypePtr &btp) const
+Real::times(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
@@ -107,7 +107,7 @@ Real::times(const BaseTypePtr &btp) const
 }
 
 BaseTypePtr
-Real::divide(const BaseTypePtr &btp) const
+Real::divide(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
@@ -116,7 +116,7 @@ Real::divide(const BaseTypePtr &btp) const
 }
 
 BaseTypePtr
-Real::power(const BaseTypePtr &btp) const
+Real::power(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
@@ -125,7 +125,7 @@ Real::power(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-Real::is_less(const BaseTypePtr &btp) const
+Real::is_less(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
@@ -134,7 +134,7 @@ Real::is_less(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-Real::is_greater(const BaseTypePtr &btp) const
+Real::is_greater(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
@@ -143,7 +143,7 @@ Real::is_greater(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-Real::is_less_equal(const BaseTypePtr &btp) const
+Real::is_less_equal(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
@@ -152,7 +152,7 @@ Real::is_less_equal(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-Real::is_greater_equal(const BaseTypePtr &btp) const
+Real::is_greater_equal(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
@@ -161,7 +161,7 @@ Real::is_greater_equal(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-Real::is_equal(const BaseTypePtr &btp) const
+Real::is_equal(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
@@ -170,7 +170,7 @@ Real::is_equal(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-Real::logical_and(const ExpressionPtr &ep, Environment &env) const
+Real::logical_and(const ExpressionPtr& ep, Environment& env) const
 {
   if (!value)
     return make_shared<Bool>(false);
@@ -186,7 +186,7 @@ Real::logical_and(const ExpressionPtr &ep, Environment &env) const
 }
 
 BoolPtr
-Real::logical_or(const ExpressionPtr &ep, Environment &env) const
+Real::logical_or(const ExpressionPtr& ep, Environment& env) const
 {
   if (value)
     return make_shared<Bool>(true);
@@ -208,7 +208,7 @@ Real::logical_not() const
 }
 
 RealPtr
-Real::max(const BaseTypePtr &btp) const
+Real::max(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
@@ -217,7 +217,7 @@ Real::max(const BaseTypePtr &btp) const
 }
 
 RealPtr
-Real::min(const BaseTypePtr &btp) const
+Real::min(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
@@ -226,7 +226,7 @@ Real::min(const BaseTypePtr &btp) const
 }
 
 RealPtr
-Real::mod(const BaseTypePtr &btp) const
+Real::mod(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2)
@@ -235,27 +235,30 @@ Real::mod(const BaseTypePtr &btp) const
 }
 
 RealPtr
-Real::normpdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const
+Real::normpdf(const BaseTypePtr& btp1, const BaseTypePtr& btp2) const
 {
   auto btp12 = dynamic_pointer_cast<Real>(btp1);
   auto btp22 = dynamic_pointer_cast<Real>(btp2);
   if (!btp12 || !btp22)
     throw StackTrace("Type mismatch for operands of `normpdf` operator");
-  return make_shared<Real>((1/(btp22->value*std::sqrt(2*numbers::pi)*std::exp(pow((value-btp12->value)/btp22->value, 2)/2))));
+  return make_shared<Real>((1
+                            / (btp22->value * std::sqrt(2 * numbers::pi)
+                               * std::exp(pow((value - btp12->value) / btp22->value, 2) / 2))));
 }
 
 RealPtr
-Real::normcdf(const BaseTypePtr &btp1, const BaseTypePtr &btp2) const
+Real::normcdf(const BaseTypePtr& btp1, const BaseTypePtr& btp2) const
 {
   auto btp12 = dynamic_pointer_cast<Real>(btp1);
   auto btp22 = dynamic_pointer_cast<Real>(btp2);
   if (!btp12 || !btp22)
     throw StackTrace("Type mismatch for operands of `normpdf` operator");
-  return make_shared<Real>((0.5*(1+std::erf((value-btp12->value)/btp22->value/numbers::sqrt2))));
+  return make_shared<Real>(
+      (0.5 * (1 + std::erf((value - btp12->value) / btp22->value / numbers::sqrt2))));
 }
 
 BaseTypePtr
-String::plus(const BaseTypePtr &btp) const
+String::plus(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<String>(btp);
   if (!btp2)
@@ -264,7 +267,7 @@ String::plus(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-String::is_less(const BaseTypePtr &btp) const
+String::is_less(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<String>(btp);
   if (!btp2)
@@ -273,7 +276,7 @@ String::is_less(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-String::is_greater(const BaseTypePtr &btp) const
+String::is_greater(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<String>(btp);
   if (!btp2)
@@ -282,7 +285,7 @@ String::is_greater(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-String::is_less_equal(const BaseTypePtr &btp) const
+String::is_less_equal(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<String>(btp);
   if (!btp2)
@@ -291,7 +294,7 @@ String::is_less_equal(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-String::is_greater_equal(const BaseTypePtr &btp) const
+String::is_greater_equal(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<String>(btp);
   if (!btp2)
@@ -300,7 +303,7 @@ String::is_greater_equal(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-String::is_equal(const BaseTypePtr &btp) const
+String::is_equal(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<String>(btp);
   if (!btp2)
@@ -309,9 +312,9 @@ String::is_equal(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-String::cast_bool([[maybe_unused]] Environment &env) const
+String::cast_bool([[maybe_unused]] Environment& env) const
 {
-  auto f = [](const char &a, const char &b) { return (tolower(a) == tolower(b)); };
+  auto f = [](const char& a, const char& b) { return (tolower(a) == tolower(b)); };
 
   if (string tf = "true"; equal(value.begin(), value.end(), tf.begin(), tf.end(), f))
     return make_shared<Bool>(true);
@@ -334,7 +337,7 @@ String::cast_bool([[maybe_unused]] Environment &env) const
 }
 
 RealPtr
-String::cast_real([[maybe_unused]] Environment &env) const
+String::cast_real([[maybe_unused]] Environment& env) const
 {
   try
     {
@@ -351,19 +354,19 @@ String::cast_real([[maybe_unused]] Environment &env) const
 }
 
 BaseTypePtr
-Array::plus(const BaseTypePtr &btp) const
+Array::plus(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Array>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of + operator");
 
-  vector<ExpressionPtr> arr_copy{arr};
+  vector<ExpressionPtr> arr_copy {arr};
   arr_copy.insert(arr_copy.end(), btp2->arr.begin(), btp2->arr.end());
   return make_shared<Array>(arr_copy);
 }
 
 BaseTypePtr
-Array::minus(const BaseTypePtr &btp) const
+Array::minus(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Array>(btp);
   if (!btp2)
@@ -372,7 +375,7 @@ Array::minus(const BaseTypePtr &btp) const
   /* Highly inefficient algorithm for computing set difference
      (but vector<T> is not suited for that...) */
   vector<ExpressionPtr> arr_copy;
-  for (const auto &it : arr)
+  for (const auto& it : arr)
     {
       auto itbtp = dynamic_pointer_cast<BaseType>(it);
       auto it2 = btp2->arr.cbegin();
@@ -386,15 +389,15 @@ Array::minus(const BaseTypePtr &btp) const
 }
 
 BaseTypePtr
-Array::times(const BaseTypePtr &btp) const
+Array::times(const BaseTypePtr& btp) const
 {
   vector<ExpressionPtr> values;
   auto btp2 = dynamic_pointer_cast<Array>(btp);
   if (!btp2)
     throw StackTrace("Type mismatch for operands of * operator");
 
-  for (const auto &itl : arr)
-    for (const auto &itr : btp2->getValue())
+  for (const auto& itl : arr)
+    for (const auto& itr : btp2->getValue())
       {
         vector<ExpressionPtr> new_tuple;
         if (dynamic_pointer_cast<Real>(itl) || dynamic_pointer_cast<String>(itl))
@@ -407,7 +410,7 @@ Array::times(const BaseTypePtr &btp) const
         if (dynamic_pointer_cast<Real>(itr) || dynamic_pointer_cast<String>(itr))
           new_tuple.push_back(itr);
         else if (dynamic_pointer_cast<Tuple>(itr))
-          for (const auto &tit : dynamic_pointer_cast<Tuple>(itr)->getValue())
+          for (const auto& tit : dynamic_pointer_cast<Tuple>(itr)->getValue())
             new_tuple.push_back(tit);
         else
           throw StackTrace("Array::times: unsupported type on rhs");
@@ -419,7 +422,7 @@ Array::times(const BaseTypePtr &btp) const
 }
 
 BaseTypePtr
-Array::power(const BaseTypePtr &btp) const
+Array::power(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Real>(btp);
   if (!btp2 || !*(btp2->isinteger()))
@@ -435,7 +438,7 @@ Array::power(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-Array::is_equal(const BaseTypePtr &btp) const
+Array::is_equal(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Array>(btp);
   if (!btp2)
@@ -455,20 +458,20 @@ Array::is_equal(const BaseTypePtr &btp) const
 }
 
 ArrayPtr
-Array::set_union(const BaseTypePtr &btp) const
+Array::set_union(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Array>(btp);
   if (!btp2)
     throw StackTrace("Arguments of the union operator (|) must be sets");
 
   vector<ExpressionPtr> new_values = arr;
-  for (const auto &it : btp2->arr)
+  for (const auto& it : btp2->arr)
     {
       bool found = false;
       auto it2 = dynamic_pointer_cast<BaseType>(it);
       if (!it2)
         throw StackTrace("Type mismatch for operands of in operator");
-      for (const auto &nvit : new_values)
+      for (const auto& nvit : new_values)
         {
           auto v2 = dynamic_pointer_cast<BaseType>(nvit);
           if (!v2)
@@ -486,19 +489,19 @@ Array::set_union(const BaseTypePtr &btp) const
 }
 
 ArrayPtr
-Array::set_intersection(const BaseTypePtr &btp) const
+Array::set_intersection(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Array>(btp);
   if (!btp2)
     throw StackTrace("Arguments of the intersection operator (|) must be sets");
 
   vector<ExpressionPtr> new_values;
-  for (const auto &it : btp2->arr)
+  for (const auto& it : btp2->arr)
     {
       auto it2 = dynamic_pointer_cast<BaseType>(it);
       if (!it2)
         throw StackTrace("Type mismatch for operands of in operator");
-      for (const auto &nvit : arr)
+      for (const auto& nvit : arr)
         {
           auto v2 = dynamic_pointer_cast<BaseType>(nvit);
           if (!v2)
@@ -514,9 +517,9 @@ Array::set_intersection(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-Array::contains(const BaseTypePtr &btp) const
+Array::contains(const BaseTypePtr& btp) const
 {
-  for (const auto &v : arr)
+  for (const auto& v : arr)
     {
       auto v2 = dynamic_pointer_cast<BaseType>(v);
       if (!v2)
@@ -531,7 +534,7 @@ RealPtr
 Array::sum() const
 {
   double retval = 0;
-  for (const auto &v : arr)
+  for (const auto& v : arr)
     {
       auto v2 = dynamic_pointer_cast<Real>(v);
       if (!v2)
@@ -542,7 +545,7 @@ Array::sum() const
 }
 
 BoolPtr
-Array::cast_bool(Environment &env) const
+Array::cast_bool(Environment& env) const
 {
   if (arr.size() != 1)
     throw StackTrace("Array must be of size 1 to be cast to a boolean");
@@ -550,7 +553,7 @@ Array::cast_bool(Environment &env) const
 }
 
 RealPtr
-Array::cast_real(Environment &env) const
+Array::cast_real(Environment& env) const
 {
   if (arr.size() != 1)
     throw StackTrace("Array must be of size 1 to be cast to a real");
@@ -558,7 +561,7 @@ Array::cast_real(Environment &env) const
 }
 
 BoolPtr
-Tuple::is_equal(const BaseTypePtr &btp) const
+Tuple::is_equal(const BaseTypePtr& btp) const
 {
   auto btp2 = dynamic_pointer_cast<Tuple>(btp);
   if (!btp2)
@@ -578,9 +581,9 @@ Tuple::is_equal(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-Tuple::contains(const BaseTypePtr &btp) const
+Tuple::contains(const BaseTypePtr& btp) const
 {
-  for (const auto &v : tup)
+  for (const auto& v : tup)
     {
       auto v2 = dynamic_pointer_cast<BaseType>(v);
       if (!v2)
@@ -592,7 +595,7 @@ Tuple::contains(const BaseTypePtr &btp) const
 }
 
 BoolPtr
-Tuple::cast_bool(Environment &env) const
+Tuple::cast_bool(Environment& env) const
 {
   if (tup.size() != 1)
     throw StackTrace("Tuple must be of size 1 to be cast to a boolean");
@@ -600,7 +603,7 @@ Tuple::cast_bool(Environment &env) const
 }
 
 RealPtr
-Tuple::cast_real(Environment &env) const
+Tuple::cast_real(Environment& env) const
 {
   if (tup.size() != 1)
     throw StackTrace("Tuple must be of size 1 to be cast to a real");
@@ -608,7 +611,7 @@ Tuple::cast_real(Environment &env) const
 }
 
 BaseTypePtr
-Range::eval(Environment &env) const
+Range::eval(Environment& env) const
 {
   RealPtr incdbl = make_shared<Real>(1);
   if (inc)
@@ -631,55 +634,64 @@ Range::eval(Environment &env) const
 }
 
 BaseTypePtr
-Array::eval(Environment &env) const
+Array::eval(Environment& env) const
 {
   vector<ExpressionPtr> retval;
-  for (const auto &it : arr)
+  for (const auto& it : arr)
     retval.emplace_back(it->eval(env));
   return make_shared<Array>(retval);
 }
 
 BaseTypePtr
-Tuple::eval(Environment &env) const
+Tuple::eval(Environment& env) const
 {
   vector<ExpressionPtr> retval;
-  for (const auto &it : tup)
+  for (const auto& it : tup)
     retval.emplace_back(it->eval(env));
   return make_shared<Tuple>(retval);
 }
 
 BaseTypePtr
-Variable::eval(Environment &env) const
+Variable::eval(Environment& env) const
 {
   if (indices && !indices->empty())
     {
       ArrayPtr map = dynamic_pointer_cast<Array>(indices->eval(env));
       vector<int> ind;
-      for (const auto &it : map->getValue())
+      for (const auto& it : map->getValue())
         // Necessary to handle indexes like: y[1:2,2]
-        // In general this evaluates to [[1:2],2] but when subscripting we want to expand it to [1,2,2]
+        // In general this evaluates to [[1:2],2] but when subscripting we want to expand it to
+        // [1,2,2]
         if (auto db = dynamic_pointer_cast<Real>(it); db)
           {
             if (!*(db->isinteger()))
-              throw StackTrace("variable", "When indexing a variable you must pass "
-                               "an int or an int array", location);
+              throw StackTrace("variable",
+                               "When indexing a variable you must pass "
+                               "an int or an int array",
+                               location);
             ind.emplace_back(*db);
           }
         else if (dynamic_pointer_cast<Array>(it))
-          for (const auto &it1 : dynamic_pointer_cast<Array>(it)->getValue())
+          for (const auto& it1 : dynamic_pointer_cast<Array>(it)->getValue())
             if (db = dynamic_pointer_cast<Real>(it1); db)
               {
                 if (!*(db->isinteger()))
-                  throw StackTrace("variable", "When indexing a variable you must pass "
-                                   "an int or an int array", location);
+                  throw StackTrace("variable",
+                                   "When indexing a variable you must pass "
+                                   "an int or an int array",
+                                   location);
                 ind.emplace_back(*db);
               }
             else
-              throw StackTrace("variable", "You cannot index a variable with a "
-                               "nested array", location);
+              throw StackTrace("variable",
+                               "You cannot index a variable with a "
+                               "nested array",
+                               location);
         else
-          throw StackTrace("variable", "You can only index a variable with an int or "
-                           "an int array", location);
+          throw StackTrace("variable",
+                           "You can only index a variable with an int or "
+                           "an int array",
+                           location);
 
       switch (env.getType(name))
         {
@@ -693,15 +705,14 @@ Variable::eval(Environment &env) const
           throw StackTrace("variable", "Internal Error: Range: should not arrive here", location);
         case codes::BaseType::String:
           {
-            string orig_string
-              = dynamic_pointer_cast<String>(env.getVariable(name))->to_string();
+            string orig_string = dynamic_pointer_cast<String>(env.getVariable(name))->to_string();
             string retvals;
             for (auto it : ind)
               try
                 {
                   retvals += orig_string.substr(it - 1, 1);
                 }
-              catch (const out_of_range &ex)
+              catch (const out_of_range& ex)
                 {
                   throw StackTrace("variable", "Index out of range", location);
                 }
@@ -716,7 +727,7 @@ Variable::eval(Environment &env) const
                 {
                   retval.emplace_back(ap->at(it - 1)->eval(env));
                 }
-              catch (const out_of_range &ex)
+              catch (const out_of_range& ex)
                 {
                   throw StackTrace("variable", "Index out of range", location);
                 }
@@ -732,7 +743,7 @@ Variable::eval(Environment &env) const
 }
 
 BaseTypePtr
-Function::eval(Environment &env) const
+Function::eval(Environment& env) const
 {
   FunctionPtr func;
   ExpressionPtr body;
@@ -742,15 +753,17 @@ Function::eval(Environment &env) const
     {
       tie(func, body) = env.getFunction(name);
     }
-  catch (StackTrace &ex)
+  catch (StackTrace& ex)
     {
       ex.push("Function", location);
       throw;
     }
 
   if (func->args.size() != args.size())
-    throw StackTrace("Function", "The number of arguments used to call " + name
-                     +" does not match the number used in its definition", location);
+    throw StackTrace("Function",
+                     "The number of arguments used to call " + name
+                         + " does not match the number used in its definition",
+                     location);
 
   try
     {
@@ -763,7 +776,7 @@ Function::eval(Environment &env) const
       env = env_orig;
       return retval;
     }
-  catch (StackTrace &ex)
+  catch (StackTrace& ex)
     {
       ex.push("Function", location);
       throw;
@@ -771,7 +784,7 @@ Function::eval(Environment &env) const
 }
 
 BaseTypePtr
-UnaryOp::eval(Environment &env) const
+UnaryOp::eval(Environment& env) const
 {
   try
     {
@@ -857,12 +870,12 @@ UnaryOp::eval(Environment &env) const
           return arg->eval(env)->defined(env);
         }
     }
-  catch (StackTrace &ex)
+  catch (StackTrace& ex)
     {
       ex.push("unary operation", location);
       throw;
     }
-  catch (exception &e)
+  catch (exception& e)
     {
       throw StackTrace("unary operation", e.what(), location);
     }
@@ -871,7 +884,7 @@ UnaryOp::eval(Environment &env) const
 }
 
 BaseTypePtr
-BinaryOp::eval(Environment &env) const
+BinaryOp::eval(Environment& env) const
 {
   try
     {
@@ -917,12 +930,12 @@ BinaryOp::eval(Environment &env) const
           return arg1->eval(env)->mod(arg2->eval(env));
         }
     }
-  catch (StackTrace &ex)
+  catch (StackTrace& ex)
     {
       ex.push("binary operation", location);
       throw;
     }
-  catch (exception &e)
+  catch (exception& e)
     {
       throw StackTrace("binary operation", e.what(), location);
     }
@@ -931,7 +944,7 @@ BinaryOp::eval(Environment &env) const
 }
 
 BaseTypePtr
-TrinaryOp::eval(Environment &env) const
+TrinaryOp::eval(Environment& env) const
 {
   try
     {
@@ -943,12 +956,12 @@ TrinaryOp::eval(Environment &env) const
           return arg1->eval(env)->normcdf(arg2->eval(env), arg3->eval(env));
         }
     }
-  catch (StackTrace &ex)
+  catch (StackTrace& ex)
     {
       ex.push("trinary operation", location);
       throw;
     }
-  catch (exception &e)
+  catch (exception& e)
     {
       throw StackTrace("trinary operation", e.what(), location);
     }
@@ -957,7 +970,7 @@ TrinaryOp::eval(Environment &env) const
 }
 
 BaseTypePtr
-Comprehension::eval(Environment &env) const
+Comprehension::eval(Environment& env) const
 {
   ArrayPtr input_set;
   VariablePtr vp;
@@ -970,10 +983,12 @@ Comprehension::eval(Environment &env) const
       vp = dynamic_pointer_cast<Variable>(c_vars);
       mt = dynamic_pointer_cast<Tuple>(c_vars);
       if ((!vp && !mt) || (vp && mt))
-        throw StackTrace("Comprehension", "the loop variables must be either "
-                         "a tuple or a variable", location);
+        throw StackTrace("Comprehension",
+                         "the loop variables must be either "
+                         "a tuple or a variable",
+                         location);
     }
-  catch (StackTrace &ex)
+  catch (StackTrace& ex)
     {
       ex.push("Comprehension: ", location);
       throw;
@@ -985,27 +1000,32 @@ Comprehension::eval(Environment &env) const
       auto btp = dynamic_pointer_cast<BaseType>(input_set->at(i));
       if (vp)
         env.define(vp, btp);
-      else
-        if (btp->getType() == codes::BaseType::Tuple)
-          {
-            auto mt2 = dynamic_pointer_cast<Tuple>(btp);
-            if (mt->size() != mt2->size())
-              throw StackTrace("Comprehension", "The number of elements in the input "
-                               " set tuple are not the same as the number of elements in "
-                               "the output expression tuple", location);
+      else if (btp->getType() == codes::BaseType::Tuple)
+        {
+          auto mt2 = dynamic_pointer_cast<Tuple>(btp);
+          if (mt->size() != mt2->size())
+            throw StackTrace("Comprehension",
+                             "The number of elements in the input "
+                             " set tuple are not the same as the number of elements in "
+                             "the output expression tuple",
+                             location);
 
-            for (size_t j = 0; j < mt->size(); j++)
-              {
-                auto vp2 = dynamic_pointer_cast<Variable>(mt->at(j));
-                if (!vp2)
-                  throw StackTrace("Comprehension", "Output expression tuple must be "
-                                   "comprised of variable names", location);
-                env.define(vp2, mt2->at(j));
-              }
-          }
-        else
-          throw StackTrace("Comprehension", "assigning to tuple in output expression "
-                           "but input expression does not contain tuples", location);
+          for (size_t j = 0; j < mt->size(); j++)
+            {
+              auto vp2 = dynamic_pointer_cast<Variable>(mt->at(j));
+              if (!vp2)
+                throw StackTrace("Comprehension",
+                                 "Output expression tuple must be "
+                                 "comprised of variable names",
+                                 location);
+              env.define(vp2, mt2->at(j));
+            }
+        }
+      else
+        throw StackTrace("Comprehension",
+                         "assigning to tuple in output expression "
+                         "but input expression does not contain tuples",
+                         location);
 
       if (!c_when)
         if (!c_expr)
@@ -1024,7 +1044,7 @@ Comprehension::eval(Environment &env) const
               if (!bp && !dp)
                 throw StackTrace("The condition must evaluate to a boolean or a real");
             }
-          catch (StackTrace &ex)
+          catch (StackTrace& ex)
             {
               ex.push("Comprehension", location);
               throw;
@@ -1047,27 +1067,27 @@ Array::to_string() const noexcept
   if (arr.empty())
     return "[]";
   string retval = "[";
-  for (const auto &it : arr)
+  for (const auto& it : arr)
     retval += it->to_string() + ", ";
-  return retval.substr(0, retval.size()-2) + "]";
+  return retval.substr(0, retval.size() - 2) + "]";
 }
 
 string
 Tuple::to_string() const noexcept
 {
   string retval = "(";
-  for (const auto &it : tup)
+  for (const auto& it : tup)
     retval += it->to_string() + ", ";
-  return retval.substr(0, retval.size()-2) + ")";
+  return retval.substr(0, retval.size() - 2) + ")";
 }
 
 string
 Function::to_string() const noexcept
 {
   string retval = name + "(";
-  for (const auto &it : args)
+  for (const auto& it : args)
     retval += it->to_string() + ", ";
-  return retval.substr(0, retval.size()-2) + ")";
+  return retval.substr(0, retval.size() - 2) + ")";
 }
 
 string
@@ -1227,9 +1247,11 @@ TrinaryOp::to_string() const noexcept
   switch (op_code)
     {
     case codes::TrinaryOp::normpdf:
-      return "normpdf(" + arg1->to_string() + ", " + arg2->to_string() + ", " + arg3->to_string() + ")";
+      return "normpdf(" + arg1->to_string() + ", " + arg2->to_string() + ", " + arg3->to_string()
+             + ")";
     case codes::TrinaryOp::normcdf:
-      return "normcdf(" + arg1->to_string() + ", " + arg2->to_string() + ", " + arg3->to_string() + ")";
+      return "normcdf(" + arg1->to_string() + ", " + arg2->to_string() + ", " + arg3->to_string()
+             + ")";
     }
   // Suppress GCC warning
   exit(EXIT_FAILURE);
@@ -1248,19 +1270,16 @@ Comprehension::to_string() const noexcept
 }
 
 void
-String::print(ostream &output, bool matlab_output) const noexcept
+String::print(ostream& output, bool matlab_output) const noexcept
 {
-  output << (matlab_output ? "'" : R"(")")
-         << value
-         << (matlab_output ? "'" : R"(")");
+  output << (matlab_output ? "'" : R"(")") << value << (matlab_output ? "'" : R"(")");
 }
 
 void
-Array::print(ostream &output, bool matlab_output) const noexcept
+Array::print(ostream& output, bool matlab_output) const noexcept
 {
   output << (matlab_output ? "{" : "[");
-  for (bool printed_something{false};
-       auto e : arr)
+  for (bool printed_something {false}; auto e : arr)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -1270,11 +1289,10 @@ Array::print(ostream &output, bool matlab_output) const noexcept
 }
 
 void
-Tuple::print(ostream &output, bool matlab_output) const noexcept
+Tuple::print(ostream& output, bool matlab_output) const noexcept
 {
   output << (matlab_output ? "{" : "(");
-  for (bool printed_something{false};
-       auto e : tup)
+  for (bool printed_something {false}; auto e : tup)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -1284,11 +1302,10 @@ Tuple::print(ostream &output, bool matlab_output) const noexcept
 }
 
 void
-Function::printArgs(ostream &output) const noexcept
+Function::printArgs(ostream& output) const noexcept
 {
   output << "(";
-  for (bool printed_something{false};
-       auto e : args)
+  for (bool printed_something {false}; auto e : args)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -1298,7 +1315,7 @@ Function::printArgs(ostream &output) const noexcept
 }
 
 void
-UnaryOp::print(ostream &output, bool matlab_output) const noexcept
+UnaryOp::print(ostream& output, bool matlab_output) const noexcept
 {
   switch (op_code)
     {
@@ -1423,24 +1440,18 @@ UnaryOp::print(ostream &output, bool matlab_output) const noexcept
 
   arg->print(output, matlab_output);
 
-  if (op_code != codes::UnaryOp::cast_bool
-      && op_code != codes::UnaryOp::cast_real
-      && op_code != codes::UnaryOp::cast_string
-      && op_code != codes::UnaryOp::cast_tuple
-      && op_code != codes::UnaryOp::cast_array
-      && op_code != codes::UnaryOp::logical_not
-      && op_code != codes::UnaryOp::unary_plus
-      && op_code != codes::UnaryOp::unary_minus)
+  if (op_code != codes::UnaryOp::cast_bool && op_code != codes::UnaryOp::cast_real
+      && op_code != codes::UnaryOp::cast_string && op_code != codes::UnaryOp::cast_tuple
+      && op_code != codes::UnaryOp::cast_array && op_code != codes::UnaryOp::logical_not
+      && op_code != codes::UnaryOp::unary_plus && op_code != codes::UnaryOp::unary_minus)
     output << ")";
 }
 
 void
-BinaryOp::print(ostream &output, bool matlab_output) const noexcept
+BinaryOp::print(ostream& output, bool matlab_output) const noexcept
 {
-  if (op_code == codes::BinaryOp::set_union
-      || op_code == codes::BinaryOp::set_intersection
-      || op_code == codes::BinaryOp::max
-      || op_code == codes::BinaryOp::min
+  if (op_code == codes::BinaryOp::set_union || op_code == codes::BinaryOp::set_intersection
+      || op_code == codes::BinaryOp::max || op_code == codes::BinaryOp::min
       || op_code == codes::BinaryOp::mod)
     {
       switch (op_code)
@@ -1529,7 +1540,7 @@ BinaryOp::print(ostream &output, bool matlab_output) const noexcept
 }
 
 void
-TrinaryOp::print(ostream &output, bool matlab_output) const noexcept
+TrinaryOp::print(ostream& output, bool matlab_output) const noexcept
 {
   switch (op_code)
     {
@@ -1549,7 +1560,7 @@ TrinaryOp::print(ostream &output, bool matlab_output) const noexcept
 }
 
 void
-Comprehension::print(ostream &output, bool matlab_output) const noexcept
+Comprehension::print(ostream& output, bool matlab_output) const noexcept
 {
   output << "[";
   if (c_expr)

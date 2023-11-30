@@ -17,13 +17,13 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <cstdlib>
-#include <cassert>
-#include <iostream>
 #include <algorithm>
-#include <iterator>
+#include <cassert>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <iterator>
 
 #include "DataTree.hh"
 
@@ -46,39 +46,37 @@ DataTree::initConstants()
   Pi = AddNonNegativeConstant("3.141592653589793");
 }
 
-DataTree::DataTree(SymbolTable &symbol_table_arg,
-                   NumericalConstants &num_constants_arg,
-                   ExternalFunctionsTable &external_functions_table_arg,
-                   bool is_dynamic_arg) :
-  symbol_table{symbol_table_arg},
-  num_constants{num_constants_arg},
-  external_functions_table{external_functions_table_arg},
-  is_dynamic{is_dynamic_arg}
+DataTree::DataTree(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
+                   ExternalFunctionsTable& external_functions_table_arg, bool is_dynamic_arg) :
+    symbol_table {symbol_table_arg},
+    num_constants {num_constants_arg},
+    external_functions_table {external_functions_table_arg},
+    is_dynamic {is_dynamic_arg}
 {
   initConstants();
 }
 
-DataTree::DataTree(const DataTree &d) :
-  symbol_table{d.symbol_table},
-  num_constants{d.num_constants},
-  external_functions_table{d.external_functions_table},
-  is_dynamic{d.is_dynamic},
-  local_variables_vector{d.local_variables_vector}
+DataTree::DataTree(const DataTree& d) :
+    symbol_table {d.symbol_table},
+    num_constants {d.num_constants},
+    external_functions_table {d.external_functions_table},
+    is_dynamic {d.is_dynamic},
+    local_variables_vector {d.local_variables_vector}
 {
   // Constants must be initialized first because they are used in some Add* methods
   initConstants();
 
-  for (const auto &it : d.node_list)
+  for (const auto& it : d.node_list)
     it->clone(*this);
 
   assert(node_list.size() == d.node_list.size());
 
-  for (const auto &[symb_id, value] : d.local_variables_table)
+  for (const auto& [symb_id, value] : d.local_variables_table)
     local_variables_table[symb_id] = value->clone(*this);
 }
 
-DataTree &
-DataTree::operator=(const DataTree &d)
+DataTree&
+DataTree::operator=(const DataTree& d)
 {
   assert(&symbol_table == &d.symbol_table);
   assert(&num_constants == &d.num_constants);
@@ -110,7 +108,7 @@ DataTree::operator=(const DataTree &d)
   for (int symb_id : d.local_variables_vector)
     local_variables_table[symb_id] = d.local_variables_table.at(symb_id)->clone(*this);
 
-  for (const auto &it : d.node_list)
+  for (const auto& it : d.node_list)
     it->clone(*this);
 
   assert(node_list.size() == d.node_list.size());
@@ -120,13 +118,12 @@ DataTree::operator=(const DataTree &d)
   return *this;
 }
 
-NumConstNode *
-DataTree::AddNonNegativeConstant(const string &value)
+NumConstNode*
+DataTree::AddNonNegativeConstant(const string& value)
 {
   int id = num_constants.AddNonNegativeConstant(value);
 
-  if (auto it = num_const_node_map.find(id);
-      it != num_const_node_map.end())
+  if (auto it = num_const_node_map.find(id); it != num_const_node_map.end())
     return it->second;
 
   auto sp = make_unique<NumConstNode>(*this, node_list.size(), id);
@@ -136,7 +133,7 @@ DataTree::AddNonNegativeConstant(const string &value)
   return p;
 }
 
-VariableNode *
+VariableNode*
 DataTree::AddVariable(int symb_id, int lag)
 {
   if (lag != 0 && !is_dynamic)
@@ -145,24 +142,24 @@ DataTree::AddVariable(int symb_id, int lag)
       exit(EXIT_FAILURE);
     }
 
-  if (auto it = variable_node_map.find({ symb_id, lag });
-      it != variable_node_map.end())
+  if (auto it = variable_node_map.find({symb_id, lag}); it != variable_node_map.end())
     return it->second;
 
   auto sp = make_unique<VariableNode>(*this, node_list.size(), symb_id, lag);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  variable_node_map.try_emplace({ symb_id, lag }, p);
+  variable_node_map.try_emplace({symb_id, lag}, p);
   return p;
 }
 
-VariableNode *
+VariableNode*
 DataTree::getVariable(int symb_id, int lag) const
 {
-  auto it = variable_node_map.find({ symb_id, lag });
+  auto it = variable_node_map.find({symb_id, lag});
   if (it == variable_node_map.end())
     {
-      cerr << "DataTree::getVariable: unknown variable node for symb_id=" << symb_id << " and lag=" << lag << endl;
+      cerr << "DataTree::getVariable: unknown variable node for symb_id=" << symb_id
+           << " and lag=" << lag << endl;
       exit(EXIT_FAILURE);
     }
   return it->second;
@@ -171,7 +168,7 @@ DataTree::getVariable(int symb_id, int lag) const
 bool
 DataTree::ParamUsedWithLeadLagInternal() const
 {
-  for (const auto &[symb_lag, expr] : variable_node_map)
+  for (const auto& [symb_lag, expr] : variable_node_map)
     if (symbol_table.getType(symb_lag.first) == SymbolType::parameter && symb_lag.second != 0)
       return true;
   return false;
@@ -187,22 +184,22 @@ DataTree::AddPlus(expr_t iArg1, expr_t iArg2)
     return iArg2;
 
   // Simplify x+(-y) in x-y
-  if (auto uarg2 = dynamic_cast<UnaryOpNode *>(iArg2);
+  if (auto uarg2 = dynamic_cast<UnaryOpNode*>(iArg2);
       uarg2 && uarg2->op_code == UnaryOpcode::uminus)
     return AddMinus(iArg1, uarg2->arg);
 
   // Simplify (-x)+y in y-x
-  if (auto uarg1 = dynamic_cast<UnaryOpNode *>(iArg1);
+  if (auto uarg1 = dynamic_cast<UnaryOpNode*>(iArg1);
       uarg1 && uarg1->op_code == UnaryOpcode::uminus)
     return AddMinus(iArg2, uarg1->arg);
 
   // Simplify (x-y)+y in x
-  if (auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
+  if (auto barg1 = dynamic_cast<BinaryOpNode*>(iArg1);
       barg1 && barg1->op_code == BinaryOpcode::minus && barg1->arg2 == iArg2)
     return barg1->arg1;
 
   // Simplify y+(x-y) in x
-  if (auto barg2 = dynamic_cast<BinaryOpNode *>(iArg2);
+  if (auto barg2 = dynamic_cast<BinaryOpNode*>(iArg2);
       barg2 && barg2->op_code == BinaryOpcode::minus && barg2->arg2 == iArg1)
     return barg2->arg1;
 
@@ -226,12 +223,12 @@ DataTree::AddMinus(expr_t iArg1, expr_t iArg2)
     return Zero;
 
   // Simplify x-(-y) in x+y
-  if (auto uarg2 = dynamic_cast<UnaryOpNode *>(iArg2);
+  if (auto uarg2 = dynamic_cast<UnaryOpNode*>(iArg2);
       uarg2 && uarg2->op_code == UnaryOpcode::uminus)
     return AddPlus(iArg1, uarg2->arg);
 
   // Simplify (x+y)-y and (y+x)-y in x
-  if (auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
+  if (auto barg1 = dynamic_cast<BinaryOpNode*>(iArg1);
       barg1 && barg1->op_code == BinaryOpcode::plus)
     {
       if (barg1->arg2 == iArg2)
@@ -250,8 +247,7 @@ DataTree::AddUMinus(expr_t iArg1)
     return Zero;
 
   // Simplify -(-x) in x
-  if (auto uarg = dynamic_cast<UnaryOpNode *>(iArg1);
-      uarg && uarg->op_code == UnaryOpcode::uminus)
+  if (auto uarg = dynamic_cast<UnaryOpNode*>(iArg1); uarg && uarg->op_code == UnaryOpcode::uminus)
     return uarg->arg;
 
   return AddUnaryOp(UnaryOpcode::uminus, iArg1);
@@ -276,12 +272,12 @@ DataTree::AddTimes(expr_t iArg1, expr_t iArg2)
     return AddUMinus(iArg1);
 
   // Simplify (x/y)*y in x
-  if (auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
+  if (auto barg1 = dynamic_cast<BinaryOpNode*>(iArg1);
       barg1 && barg1->op_code == BinaryOpcode::divide && barg1->arg2 == iArg2)
     return barg1->arg1;
 
   // Simplify y*(x/y) in x
-  if (auto barg2 = dynamic_cast<BinaryOpNode *>(iArg2);
+  if (auto barg2 = dynamic_cast<BinaryOpNode*>(iArg2);
       barg2 && barg2->op_code == BinaryOpcode::divide && barg2->arg2 == iArg1)
     return barg2->arg1;
 
@@ -312,12 +308,12 @@ DataTree::AddDivide(expr_t iArg1, expr_t iArg2) noexcept(false)
     return One;
 
   // Simplify x/(1/y) in x*y
-  if (auto barg2 = dynamic_cast<BinaryOpNode *>(iArg2);
+  if (auto barg2 = dynamic_cast<BinaryOpNode*>(iArg2);
       barg2 && barg2->op_code == BinaryOpcode::divide && barg2->arg1 == One)
     return AddTimes(iArg1, barg2->arg2);
 
   // Simplify (x*y)/y and (y*x)/y in x
-  if (auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
+  if (auto barg1 = dynamic_cast<BinaryOpNode*>(iArg1);
       barg1 && barg1->op_code == BinaryOpcode::times)
     {
       if (barg1->arg2 == iArg2)
@@ -401,7 +397,7 @@ DataTree::AddDiff(expr_t iArg1)
 }
 
 expr_t
-DataTree::AddAdl(expr_t iArg1, const string &name, const vector<int> &lags)
+DataTree::AddAdl(expr_t iArg1, const string& name, const vector<int>& lags)
 {
   return AddUnaryOp(UnaryOpcode::adl, iArg1, 0, 0, 0, name, lags);
 }
@@ -428,7 +424,7 @@ DataTree::AddLog(expr_t iArg1)
     }
 
   // Simplify log(1/x) in −log(x)
-  if (auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
+  if (auto barg1 = dynamic_cast<BinaryOpNode*>(iArg1);
       barg1 && barg1->op_code == BinaryOpcode::divide && barg1->arg1 == One)
     return AddUMinus(AddLog(barg1->arg2));
 
@@ -448,7 +444,7 @@ DataTree::AddLog10(expr_t iArg1)
     }
 
   // Simplify log₁₀(1/x) in −log₁₀(x)
-  if (auto barg1 = dynamic_cast<BinaryOpNode *>(iArg1);
+  if (auto barg1 = dynamic_cast<BinaryOpNode*>(iArg1);
       barg1 && barg1->op_code == BinaryOpcode::divide && barg1->arg1 == One)
     return AddUMinus(AddLog10(barg1->arg2));
 
@@ -668,7 +664,8 @@ DataTree::AddSteadyStateParamDeriv(expr_t iArg1, int param_symb_id)
 expr_t
 DataTree::AddSteadyStateParam2ndDeriv(expr_t iArg1, int param1_symb_id, int param2_symb_id)
 {
-  return AddUnaryOp(UnaryOpcode::steadyStateParam2ndDeriv, iArg1, 0, param1_symb_id, param2_symb_id);
+  return AddUnaryOp(UnaryOpcode::steadyStateParam2ndDeriv, iArg1, 0, param1_symb_id,
+                    param2_symb_id);
 }
 
 expr_t
@@ -678,10 +675,9 @@ DataTree::AddExpectation(int iArg1, expr_t iArg2)
 }
 
 expr_t
-DataTree::AddVarExpectation(const string &model_name)
+DataTree::AddVarExpectation(const string& model_name)
 {
-  if (auto it = var_expectation_node_map.find(model_name);
-      it != var_expectation_node_map.end())
+  if (auto it = var_expectation_node_map.find(model_name); it != var_expectation_node_map.end())
     return it->second;
 
   auto sp = make_unique<VarExpectationNode>(*this, node_list.size(), model_name);
@@ -692,10 +688,9 @@ DataTree::AddVarExpectation(const string &model_name)
 }
 
 expr_t
-DataTree::AddPacExpectation(const string &model_name)
+DataTree::AddPacExpectation(const string& model_name)
 {
-  if (auto it = pac_expectation_node_map.find(model_name);
-      it != pac_expectation_node_map.end())
+  if (auto it = pac_expectation_node_map.find(model_name); it != pac_expectation_node_map.end())
     return it->second;
 
   auto sp = make_unique<PacExpectationNode>(*this, node_list.size(), model_name);
@@ -706,7 +701,7 @@ DataTree::AddPacExpectation(const string &model_name)
 }
 
 expr_t
-DataTree::AddPacTargetNonstationary(const string &model_name)
+DataTree::AddPacTargetNonstationary(const string& model_name)
 {
   if (auto it = pac_target_nonstationary_node_map.find(model_name);
       it != pac_target_nonstationary_node_map.end())
@@ -719,12 +714,12 @@ DataTree::AddPacTargetNonstationary(const string &model_name)
   return p;
 }
 
-BinaryOpNode *
+BinaryOpNode*
 DataTree::AddEqual(expr_t iArg1, expr_t iArg2)
 {
   /* We know that we can safely cast to BinaryOpNode because
      BinaryOpCode::equal can never be reduced to a constant. */
-  return dynamic_cast<BinaryOpNode *>(AddBinaryOp(iArg1, BinaryOpcode::equal, iArg2));
+  return dynamic_cast<BinaryOpNode*>(AddBinaryOp(iArg1, BinaryOpcode::equal, iArg2));
 }
 
 void
@@ -734,65 +729,72 @@ DataTree::AddLocalVariable(int symb_id, expr_t value) noexcept(false)
 
   // Throw an exception if symbol already declared
   if (local_variables_table.contains(symb_id))
-    throw LocalVariableException{symbol_table.getName(symb_id)};
+    throw LocalVariableException {symbol_table.getName(symb_id)};
 
   local_variables_table.emplace(symb_id, value);
   local_variables_vector.push_back(symb_id);
 }
 
 expr_t
-DataTree::AddExternalFunction(int symb_id, const vector<expr_t> &arguments)
+DataTree::AddExternalFunction(int symb_id, const vector<expr_t>& arguments)
 {
   assert(symbol_table.getType(symb_id) == SymbolType::externalFunction);
 
-  if (auto it = external_function_node_map.find({ arguments, symb_id });
+  if (auto it = external_function_node_map.find({arguments, symb_id});
       it != external_function_node_map.end())
     return it->second;
 
   auto sp = make_unique<ExternalFunctionNode>(*this, node_list.size(), symb_id, arguments);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  external_function_node_map.try_emplace({ arguments, symb_id }, p);
+  external_function_node_map.try_emplace({arguments, symb_id}, p);
   return p;
 }
 
 expr_t
-DataTree::AddFirstDerivExternalFunction(int top_level_symb_id, const vector<expr_t> &arguments, int input_index)
+DataTree::AddFirstDerivExternalFunction(int top_level_symb_id, const vector<expr_t>& arguments,
+                                        int input_index)
 {
   assert(symbol_table.getType(top_level_symb_id) == SymbolType::externalFunction);
 
-  if (auto it = first_deriv_external_function_node_map.find({ arguments, input_index, top_level_symb_id });
+  if (auto it
+      = first_deriv_external_function_node_map.find({arguments, input_index, top_level_symb_id});
       it != first_deriv_external_function_node_map.end())
     return it->second;
 
-  auto sp = make_unique<FirstDerivExternalFunctionNode>(*this, node_list.size(), top_level_symb_id, arguments, input_index);
+  auto sp = make_unique<FirstDerivExternalFunctionNode>(*this, node_list.size(), top_level_symb_id,
+                                                        arguments, input_index);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  first_deriv_external_function_node_map.try_emplace({ arguments, input_index, top_level_symb_id }, p);
+  first_deriv_external_function_node_map.try_emplace({arguments, input_index, top_level_symb_id},
+                                                     p);
   return p;
 }
 
 expr_t
-DataTree::AddSecondDerivExternalFunction(int top_level_symb_id, const vector<expr_t> &arguments, int input_index1, int input_index2)
+DataTree::AddSecondDerivExternalFunction(int top_level_symb_id, const vector<expr_t>& arguments,
+                                         int input_index1, int input_index2)
 {
   assert(symbol_table.getType(top_level_symb_id) == SymbolType::externalFunction);
 
-  if (auto it = second_deriv_external_function_node_map.find({ arguments, input_index1, input_index2,
-                                                               top_level_symb_id });
-    it != second_deriv_external_function_node_map.end())
+  if (auto it = second_deriv_external_function_node_map.find(
+          {arguments, input_index1, input_index2, top_level_symb_id});
+      it != second_deriv_external_function_node_map.end())
     return it->second;
 
-  auto sp = make_unique<SecondDerivExternalFunctionNode>(*this, node_list.size(), top_level_symb_id, arguments, input_index1, input_index2);
+  auto sp = make_unique<SecondDerivExternalFunctionNode>(*this, node_list.size(), top_level_symb_id,
+                                                         arguments, input_index1, input_index2);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  second_deriv_external_function_node_map.try_emplace({ arguments, input_index1, input_index2, top_level_symb_id }, p);
+  second_deriv_external_function_node_map.try_emplace(
+      {arguments, input_index1, input_index2, top_level_symb_id}, p);
   return p;
 }
 
 bool
 DataTree::isSymbolUsed(int symb_id) const
 {
-  for (const auto &[symb_lag, expr] : variable_node_map)
+  for (const auto& [symb_lag, expr] : variable_node_map)
     if (symb_lag.first == symb_id)
       return true;
 
@@ -833,7 +835,7 @@ DataTree::getTypeSpecificIDByDerivID([[maybe_unused]] int deriv_id) const
 }
 
 void
-DataTree::addAllParamDerivId([[maybe_unused]] set<int> &deriv_id_set)
+DataTree::addAllParamDerivId([[maybe_unused]] set<int>& deriv_id_set)
 {
 }
 
@@ -841,14 +843,14 @@ bool
 DataTree::isUnaryOpUsed(UnaryOpcode opcode) const
 {
   return any_of(unary_op_node_map.begin(), unary_op_node_map.end(),
-                [=](const auto &it) { return get<1>(it.first) == opcode; });
+                [=](const auto& it) { return get<1>(it.first) == opcode; });
 }
 
 bool
 DataTree::isUnaryOpUsedOnType(SymbolType type, UnaryOpcode opcode) const
 {
   set<int> var;
-  for (const auto &it : unary_op_node_map)
+  for (const auto& it : unary_op_node_map)
     if (get<1>(it.first) == opcode)
       {
         it.second->collectVariables(type, var);
@@ -862,14 +864,14 @@ bool
 DataTree::isBinaryOpUsed(BinaryOpcode opcode) const
 {
   return any_of(binary_op_node_map.begin(), binary_op_node_map.end(),
-                [=](const auto &it) { return get<2>(it.first) == opcode; });
+                [=](const auto& it) { return get<2>(it.first) == opcode; });
 }
 
 bool
 DataTree::isBinaryOpUsedOnType(SymbolType type, BinaryOpcode opcode) const
 {
   set<int> var;
-  for (const auto &it : binary_op_node_map)
+  for (const auto& it : binary_op_node_map)
     if (get<2>(it.first) == opcode)
       {
         it.second->collectVariables(type, var);
@@ -883,21 +885,23 @@ int
 DataTree::minLagForSymbol(int symb_id) const
 {
   int r = 0;
-  for (const auto &[symb_lag, expr] : variable_node_map)
+  for (const auto& [symb_lag, expr] : variable_node_map)
     if (symb_lag.first == symb_id)
       r = min(r, symb_lag.second);
   return r;
 }
 
 void
-DataTree::writeCHelpersDefinition(ostream &output) const
+DataTree::writeCHelpersDefinition(ostream& output) const
 {
   if (isBinaryOpUsed(BinaryOpcode::powerDeriv))
     output << "// The k-th derivative of x^p" << endl
            << "inline double" << endl
            << "getPowerDeriv(double x, double p, int k)" << endl
            << "{" << endl
-           << "  if (fabs(x) < " << power_deriv_near_zero << " && p > 0 && k > p && fabs(p-nearbyint(p)) < " << power_deriv_near_zero << ')' << endl
+           << "  if (fabs(x) < " << power_deriv_near_zero
+           << " && p > 0 && k > p && fabs(p-nearbyint(p)) < " << power_deriv_near_zero << ')'
+           << endl
            << "    return 0.0;" << endl
            << "  else" << endl
            << "    {" << endl
@@ -917,7 +921,7 @@ DataTree::writeCHelpersDefinition(ostream &output) const
 }
 
 void
-DataTree::writeCHelpersDeclaration(ostream &output) const
+DataTree::writeCHelpersDeclaration(ostream& output) const
 {
   if (isBinaryOpUsed(BinaryOpcode::powerDeriv))
     output << "extern inline double getPowerDeriv(double x, double p, int k);" << endl;
@@ -932,12 +936,11 @@ DataTree::strsplit(string_view str, char delim)
   while (true)
     {
       size_t idx {str.find(delim)};
-      if (auto sub {str.substr(0, idx)};
-          !sub.empty())
+      if (auto sub {str.substr(0, idx)}; !sub.empty())
         result.emplace_back(sub);
       if (idx == string_view::npos)
         break;
-      str.remove_prefix(idx+1);
+      str.remove_prefix(idx + 1);
     }
   return result;
 }
@@ -946,30 +949,30 @@ filesystem::path
 DataTree::packageDir(string_view package)
 {
   filesystem::path d;
-  for (const auto &it : strsplit(move(package), '.'))
+  for (const auto& it : strsplit(move(package), '.'))
     d /= "+" + it;
   return d;
 }
 
 void
-DataTree::writeToFileIfModified(stringstream &new_contents, const filesystem::path &filename)
+DataTree::writeToFileIfModified(stringstream& new_contents, const filesystem::path& filename)
 {
-  ifstream old_file{filename, ios::in | ios::binary};
+  ifstream old_file {filename, ios::in | ios::binary};
   if (old_file.is_open()
-      && equal(istreambuf_iterator<char>{old_file}, istreambuf_iterator<char>{},
-               istreambuf_iterator<char>{new_contents}, istreambuf_iterator<char>{}))
+      && equal(istreambuf_iterator<char> {old_file}, istreambuf_iterator<char> {},
+               istreambuf_iterator<char> {new_contents}, istreambuf_iterator<char> {}))
     return;
   old_file.close();
 
   new_contents.seekg(0);
 
-  ofstream new_file{filename, ios::out | ios::binary};
+  ofstream new_file {filename, ios::out | ios::binary};
   if (!new_file.is_open())
     {
       cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
-  copy(istreambuf_iterator<char>{new_contents}, istreambuf_iterator<char>{},
-       ostreambuf_iterator<char>{new_file});
+  copy(istreambuf_iterator<char> {new_contents}, istreambuf_iterator<char> {},
+       ostreambuf_iterator<char> {new_file});
   new_file.close();
 }

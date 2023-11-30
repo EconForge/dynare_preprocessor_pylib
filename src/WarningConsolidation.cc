@@ -20,8 +20,8 @@
 #include "WarningConsolidation.hh"
 #include <ostream>
 
-WarningConsolidation &
-operator<<(WarningConsolidation &wcc, const string &warning)
+WarningConsolidation&
+operator<<(WarningConsolidation& wcc, const string& warning)
 {
   if (wcc.no_warn)
     return wcc;
@@ -31,8 +31,8 @@ operator<<(WarningConsolidation &wcc, const string &warning)
   return wcc;
 };
 
-WarningConsolidation &
-operator<<(WarningConsolidation &wcc, const Dynare::location &loc)
+WarningConsolidation&
+operator<<(WarningConsolidation& wcc, const Dynare::location& loc)
 {
   if (wcc.no_warn)
     return wcc;
@@ -40,12 +40,10 @@ operator<<(WarningConsolidation &wcc, const Dynare::location &loc)
   stringstream ostr;
   Dynare::position last = loc.end - 1;
   ostr << loc.begin;
-  if (last.filename
-      && (!loc.begin.filename
-          || *loc.begin.filename != *last.filename))
+  if (last.filename && (!loc.begin.filename || *loc.begin.filename != *last.filename))
     ostr << '-' << last;
   else if (loc.begin.line != last.line)
-    ostr << '-' << last.line  << '.' << last.column;
+    ostr << '-' << last.line << '.' << last.column;
   else if (loc.begin.column != last.column)
     ostr << '-' << last.column;
 
@@ -54,8 +52,8 @@ operator<<(WarningConsolidation &wcc, const Dynare::location &loc)
   return wcc;
 };
 
-WarningConsolidation &
-operator<<(WarningConsolidation &wcc, ostream &(*pf)(ostream &))
+WarningConsolidation&
+operator<<(WarningConsolidation& wcc, ostream& (*pf)(ostream&))
 {
   if (wcc.no_warn)
     return wcc;
@@ -66,7 +64,7 @@ operator<<(WarningConsolidation &wcc, ostream &(*pf)(ostream &))
 }
 
 void
-WarningConsolidation::writeOutput(ostream &output) const
+WarningConsolidation::writeOutput(ostream& output) const
 {
   if (warnings.str().empty())
     return;
@@ -88,7 +86,7 @@ WarningConsolidation::writeOutput(ostream &output) const
       else
         {
           output << "');" << endl;
-          if (i+1 < warningsstr.length())
+          if (i + 1 < warningsstr.length())
             writedisp = true;
         }
     }

@@ -26,123 +26,123 @@ using namespace std;
 
 namespace macro
 {
-  // For Expressions.hh
-  class BaseType;
-  using BaseTypePtr = shared_ptr<BaseType>;
-  class Bool;
-  using BoolPtr = shared_ptr<Bool>;
-  class Real;
-  using RealPtr = shared_ptr<Real>;
-  class String;
-  using StringPtr = shared_ptr<String>;
-  class Tuple;
-  using TuplePtr = shared_ptr<Tuple>;
-  class Array;
-  using ArrayPtr = shared_ptr<Array>;
-  class Range;
-  using RangePtr = shared_ptr<Range>;
+// For Expressions.hh
+class BaseType;
+using BaseTypePtr = shared_ptr<BaseType>;
+class Bool;
+using BoolPtr = shared_ptr<Bool>;
+class Real;
+using RealPtr = shared_ptr<Real>;
+class String;
+using StringPtr = shared_ptr<String>;
+class Tuple;
+using TuplePtr = shared_ptr<Tuple>;
+class Array;
+using ArrayPtr = shared_ptr<Array>;
+class Range;
+using RangePtr = shared_ptr<Range>;
 
-  // For Environment.hh
-  class Expression;
-  using ExpressionPtr = shared_ptr<Expression>;
-  class Variable;
-  using VariablePtr = shared_ptr<Variable>;
-  class Function;
-  using FunctionPtr = shared_ptr<Function>;
+// For Environment.hh
+class Expression;
+using ExpressionPtr = shared_ptr<Expression>;
+class Variable;
+using VariablePtr = shared_ptr<Variable>;
+class Function;
+using FunctionPtr = shared_ptr<Function>;
 
-  // For Parser.yy
-  class Directive;
-  using DirectivePtr = shared_ptr<Directive>;
-  class Eval;
-  using EvalPtr = shared_ptr<Eval>;
+// For Parser.yy
+class Directive;
+using DirectivePtr = shared_ptr<Directive>;
+class Eval;
+using EvalPtr = shared_ptr<Eval>;
 
-  // For Directives.cc
-  class Driver;
+// For Directives.cc
+class Driver;
 
-  namespace codes
-  {
-    enum class BaseType
-      {
-       Bool,
-       Real,
-       String,
-       Array,
-       Range,
-       Tuple
-      };
+namespace codes
+{
+enum class BaseType
+{
+  Bool,
+  Real,
+  String,
+  Array,
+  Range,
+  Tuple
+};
 
-    enum class UnaryOp
-      {
-       cast_bool,
-       cast_real,
-       cast_string,
-       cast_tuple,
-       cast_array,
-       logical_not,
-       unary_minus,
-       unary_plus,
-       length,
-       isempty,
-       isboolean,
-       isreal,
-       isstring,
-       istuple,
-       isarray,
-       exp,
-       ln,
-       log10,
-       sin,
-       cos,
-       tan,
-       asin,
-       acos,
-       atan,
-       sqrt,
-       cbrt,
-       sign,
-       floor,
-       ceil,
-       trunc,
-       sum,
-       erf,
-       erfc,
-       gamma,
-       lgamma,
-       round,
-       normpdf,
-       normcdf,
-       defined
-      };
+enum class UnaryOp
+{
+  cast_bool,
+  cast_real,
+  cast_string,
+  cast_tuple,
+  cast_array,
+  logical_not,
+  unary_minus,
+  unary_plus,
+  length,
+  isempty,
+  isboolean,
+  isreal,
+  isstring,
+  istuple,
+  isarray,
+  exp,
+  ln,
+  log10,
+  sin,
+  cos,
+  tan,
+  asin,
+  acos,
+  atan,
+  sqrt,
+  cbrt,
+  sign,
+  floor,
+  ceil,
+  trunc,
+  sum,
+  erf,
+  erfc,
+  gamma,
+  lgamma,
+  round,
+  normpdf,
+  normcdf,
+  defined
+};
 
-    enum class BinaryOp
-      {
-       plus,
-       minus,
-       times,
-       divide,
-       power,
-       equal_equal,
-       not_equal,
-       less,
-       greater,
-       less_equal,
-       greater_equal,
-       logical_and,
-       logical_or,
-       in,
-       set_union,
-       set_intersection,
-       max,
-       min,
-       mod
-      };
+enum class BinaryOp
+{
+  plus,
+  minus,
+  times,
+  divide,
+  power,
+  equal_equal,
+  not_equal,
+  less,
+  greater,
+  less_equal,
+  greater_equal,
+  logical_and,
+  logical_or,
+  in,
+  set_union,
+  set_intersection,
+  max,
+  min,
+  mod
+};
 
-    enum class TrinaryOp
-      {
-       normpdf,
-       normcdf
-      };
-  }
+enum class TrinaryOp
+{
+  normpdf,
+  normcdf
+};
+}
 }
 
 #endif

@@ -17,36 +17,36 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 #include <utility>
 
 #include "NumericalInitialization.hh"
 
-InitParamStatement::InitParamStatement(int symb_id_arg,
-                                       const expr_t param_value_arg,
-                                       const SymbolTable &symbol_table_arg) :
-  symb_id{symb_id_arg},
-  param_value{param_value_arg},
-  symbol_table{symbol_table_arg}
+InitParamStatement::InitParamStatement(int symb_id_arg, const expr_t param_value_arg,
+                                       const SymbolTable& symbol_table_arg) :
+    symb_id {symb_id_arg}, param_value {param_value_arg}, symbol_table {symbol_table_arg}
 {
 }
 
 void
-InitParamStatement::checkPass(ModFileStructure &mod_file_struct, [[maybe_unused]] WarningConsolidation &warnings)
+InitParamStatement::checkPass(ModFileStructure& mod_file_struct,
+                              [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (symbol_table.getName(symb_id) == "dsge_prior_weight")
     mod_file_struct.dsge_prior_weight_initialized = true;
 
   // Needed for the workaround discussed in dynare#1173
   if (symbol_table.getName(symb_id) == "optimal_policy_discount_factor")
-    param_value->collectVariables(SymbolType::parameter, mod_file_struct.parameters_in_planner_discount);
+    param_value->collectVariables(SymbolType::parameter,
+                                  mod_file_struct.parameters_in_planner_discount);
 }
 
 void
-InitParamStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename, bool minimal_workspace) const
+InitParamStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
+                                bool minimal_workspace) const
 {
   int id = symbol_table.getTypeSpecificID(symb_id) + 1;
   output << "M_.params(" << id << ") = ";
@@ -57,44 +57,46 @@ InitParamStatement::writeOutput(ostream &output, [[maybe_unused]] const string &
 }
 
 void
-InitParamStatement::writeJsonOutput(ostream &output) const
+InitParamStatement::writeJsonOutput(ostream& output) const
 {
-  output << R"({"statementName": "param_init", "name": ")" << symbol_table.getName(symb_id) << R"(", )" << R"("value": ")";
+  output << R"({"statementName": "param_init", "name": ")" << symbol_table.getName(symb_id)
+         << R"(", )"
+         << R"("value": ")";
   param_value->writeJsonOutput(output, {}, {});
   output << R"("})";
 }
 
 void
-InitParamStatement::fillEvalContext(eval_context_t &eval_context) const
+InitParamStatement::fillEvalContext(eval_context_t& eval_context) const
 {
   try
     {
       eval_context[symb_id] = param_value->eval(eval_context);
     }
-  catch (ExprNode::EvalException &e)
+  catch (ExprNode::EvalException& e)
     {
       // Do nothing
     }
 }
 
 InitOrEndValStatement::InitOrEndValStatement(init_values_t init_values_arg,
-                                             const SymbolTable &symbol_table_arg,
+                                             const SymbolTable& symbol_table_arg,
                                              bool all_values_required_arg) :
-  init_values{move(init_values_arg)},
-  symbol_table{symbol_table_arg},
-  all_values_required{all_values_required_arg}
+    init_values {move(init_values_arg)},
+    symbol_table {symbol_table_arg},
+    all_values_required {all_values_required_arg}
 {
 }
 
 void
-InitOrEndValStatement::fillEvalContext(eval_context_t &eval_context) const
+InitOrEndValStatement::fillEvalContext(eval_context_t& eval_context) const
 {
   for (auto [symb_id, value] : init_values)
     try
       {
         eval_context[symb_id] = value->eval(eval_context);
       }
-    catch (ExprNode::EvalException &e)
+    catch (ExprNode::EvalException& e)
       {
         // Do nothing
       }
@@ -124,7 +126,7 @@ InitOrEndValStatement::getUninitializedVariables(SymbolType type)
 }
 
 void
-InitOrEndValStatement::writeInitValues(ostream &output) const
+InitOrEndValStatement::writeInitValues(ostream& output) const
 {
   for (auto [symb_id, value] : init_values)
     {
@@ -161,31 +163,31 @@ InitOrEndValStatement::writeInitValues(ostream &output) const
 }
 
 void
-InitOrEndValStatement::writeJsonInitValues(ostream &output) const
+InitOrEndValStatement::writeJsonInitValues(ostream& output) const
 {
-  for (bool printed_something{false};
-       auto &[symb_id, value] : init_values)
+  for (bool printed_something {false}; auto& [symb_id, value] : init_values)
     {
       if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
         continue;
       if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"name": ")" << symbol_table.getName(symb_id) << R"(", )" << R"("value": ")";
+      output << R"({"name": ")" << symbol_table.getName(symb_id) << R"(", )"
+             << R"("value": ")";
       value->writeJsonOutput(output, {}, {});
       output << R"("})";
     }
 }
 
 InitValStatement::InitValStatement(init_values_t init_values_arg,
-                                   const SymbolTable &symbol_table_arg,
+                                   const SymbolTable& symbol_table_arg,
                                    bool all_values_required_arg) :
-  InitOrEndValStatement{move(init_values_arg), symbol_table_arg, all_values_required_arg}
+    InitOrEndValStatement {move(init_values_arg), symbol_table_arg, all_values_required_arg}
 {
 }
 
 void
-InitValStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                            [[maybe_unused]] WarningConsolidation &warnings)
+InitValStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                            [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (mod_file_struct.endval_present)
     {
@@ -217,12 +219,10 @@ InitValStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
 }
 
 void
-InitValStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+InitValStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                               [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "%" << endl
-         << "% INITVAL instructions" << endl
-         << "%" << endl;
+  output << "%" << endl << "% INITVAL instructions" << endl << "%" << endl;
   // Writing initval block to set initial values for variables
   output << "options_.initval_file = false;" << endl;
 
@@ -230,7 +230,7 @@ InitValStatement::writeOutput(ostream &output, [[maybe_unused]] const string &ba
 }
 
 void
-InitValStatement::writeJsonOutput(ostream &output) const
+InitValStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "initval", "vals": [)";
   writeJsonInitValues(output);
@@ -238,26 +238,25 @@ InitValStatement::writeJsonOutput(ostream &output) const
 }
 
 void
-InitValStatement::writeOutputPostInit(ostream &output) const
+InitValStatement::writeOutputPostInit(ostream& output) const
 {
   output << "if M_.exo_nbr > 0" << endl
          << "\too_.exo_simul = ones(M_.maximum_lag,1)*oo_.exo_steady_state';" << endl
-         <<"end" << endl
+         << "end" << endl
          << "if M_.exo_det_nbr > 0" << endl
          << "\too_.exo_det_simul = ones(M_.maximum_lag,1)*oo_.exo_det_steady_state';" << endl
-         <<"end" << endl;
+         << "end" << endl;
 }
 
-EndValStatement::EndValStatement(init_values_t init_values_arg,
-                                 const SymbolTable &symbol_table_arg,
+EndValStatement::EndValStatement(init_values_t init_values_arg, const SymbolTable& symbol_table_arg,
                                  bool all_values_required_arg) :
-  InitOrEndValStatement{move(init_values_arg), symbol_table_arg, all_values_required_arg}
+    InitOrEndValStatement {move(init_values_arg), symbol_table_arg, all_values_required_arg}
 {
 }
 
 void
-EndValStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                           [[maybe_unused]] WarningConsolidation &warnings)
+EndValStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                           [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.endval_present = true;
 
@@ -285,12 +284,10 @@ EndValStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
 }
 
 void
-EndValStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+EndValStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                              [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "%" << endl
-         << "% ENDVAL instructions" << endl
-         << "%" << endl;
+  output << "%" << endl << "% ENDVAL instructions" << endl << "%" << endl;
   // Writing endval block to set terminal values for variables
   output << "oo_.initial_steady_state = oo_.steady_state;" << endl
          << "oo_.initial_exo_steady_state = oo_.exo_steady_state;" << endl;
@@ -299,7 +296,7 @@ EndValStatement::writeOutput(ostream &output, [[maybe_unused]] const string &bas
 }
 
 void
-EndValStatement::writeJsonOutput(ostream &output) const
+EndValStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "endval", "vals": [)";
   writeJsonInitValues(output);
@@ -308,16 +305,16 @@ EndValStatement::writeJsonOutput(ostream &output) const
 
 EndValLearntInStatement::EndValLearntInStatement(int learnt_in_period_arg,
                                                  learnt_end_values_t learnt_end_values_arg,
-                                                 const SymbolTable &symbol_table_arg) :
-  learnt_in_period{learnt_in_period_arg},
-  learnt_end_values{move(learnt_end_values_arg)},
-  symbol_table{symbol_table_arg}
+                                                 const SymbolTable& symbol_table_arg) :
+    learnt_in_period {learnt_in_period_arg},
+    learnt_end_values {move(learnt_end_values_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-EndValLearntInStatement::checkPass(ModFileStructure &mod_file_struct,
-                                   [[maybe_unused]] WarningConsolidation &warnings)
+EndValLearntInStatement::checkPass(ModFileStructure& mod_file_struct,
+                                   [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.endval_learnt_in_present = true;
 }
@@ -338,7 +335,7 @@ EndValLearntInStatement::typeToString(LearntEndValType type)
 }
 
 void
-EndValLearntInStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+EndValLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                      [[maybe_unused]] bool minimal_workspace) const
 {
   output << "M_.learnt_endval = [ M_.learnt_endval;" << endl;
@@ -346,9 +343,9 @@ EndValLearntInStatement::writeOutput(ostream &output, [[maybe_unused]] const str
     {
       if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
         continue;
-      output << "struct('learnt_in'," << learnt_in_period
-             << ",'exo_id'," << symbol_table.getTypeSpecificID(symb_id)+1
-             << ",'type','" << typeToString(type) << "'"
+      output << "struct('learnt_in'," << learnt_in_period << ",'exo_id',"
+             << symbol_table.getTypeSpecificID(symb_id) + 1 << ",'type','" << typeToString(type)
+             << "'"
              << ",'value',";
       value->writeOutput(output);
       output << ");" << endl;
@@ -357,12 +354,10 @@ EndValLearntInStatement::writeOutput(ostream &output, [[maybe_unused]] const str
 }
 
 void
-EndValLearntInStatement::writeJsonOutput(ostream &output) const
+EndValLearntInStatement::writeJsonOutput(ostream& output) const
 {
-  output << R"({"statementName": "endval", "learnt_in": )"
-         << learnt_in_period <<  R"(, "vals": [)";
-  for (bool printed_something{false};
-       auto &[type, symb_id, value] : learnt_end_values)
+  output << R"({"statementName": "endval", "learnt_in": )" << learnt_in_period << R"(, "vals": [)";
+  for (bool printed_something {false}; auto& [type, symb_id, value] : learnt_end_values)
     {
       if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
         continue;
@@ -378,24 +373,24 @@ EndValLearntInStatement::writeJsonOutput(ostream &output) const
 }
 
 HistValStatement::HistValStatement(hist_values_t hist_values_arg,
-                                   const SymbolTable &symbol_table_arg,
+                                   const SymbolTable& symbol_table_arg,
                                    bool all_values_required_arg) :
-  hist_values{move(hist_values_arg)},
-  symbol_table{symbol_table_arg},
-  all_values_required{all_values_required_arg}
+    hist_values {move(hist_values_arg)},
+    symbol_table {symbol_table_arg},
+    all_values_required {all_values_required_arg}
 {
 }
 
 void
-HistValStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                            [[maybe_unused]] WarningConsolidation &warnings)
+HistValStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                            [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (all_values_required)
     {
       set<int> unused_endo = symbol_table.getEndogenous();
       set<int> unused_exo = symbol_table.getExogenous();
 
-      for (const auto &[key, value] : hist_values)
+      for (const auto& [key, value] : hist_values)
         {
           int symb_id = key.first;
           unused_endo.erase(symb_id);
@@ -424,60 +419,71 @@ HistValStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
 }
 
 void
-HistValStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+HistValStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                               [[maybe_unused]] bool minimal_workspace) const
 {
   output << "%" << endl
          << "% HISTVAL instructions" << endl
          << "%" << endl
-         << "M_.histval_dseries = dseries(zeros(M_.orig_maximum_lag_with_diffs_expanded, M_.orig_endo_nbr"
+         << "M_.histval_dseries = dseries(zeros(M_.orig_maximum_lag_with_diffs_expanded, "
+            "M_.orig_endo_nbr"
          << (symbol_table.AuxVarsSize() > 0 ? "+sum([M_.aux_vars.type]==6)" : "")
          << (symbol_table.exo_nbr() > 0 ? "+M_.exo_nbr" : "")
          << (symbol_table.exo_det_nbr() > 0 ? "+M_.exo_det_nbr" : "")
-         << "), dates(sprintf('%dY', -M_.orig_maximum_lag_with_diffs_expanded+1)), [ M_.endo_names(1:M_.orig_endo_nbr); "
-         << (symbol_table.AuxVarsSize() > 0 ? "M_.endo_names([M_.aux_vars(find([M_.aux_vars.type]==6)).endo_index]); " : "")
+         << "), dates(sprintf('%dY', -M_.orig_maximum_lag_with_diffs_expanded+1)), [ "
+            "M_.endo_names(1:M_.orig_endo_nbr); "
+         << (symbol_table.AuxVarsSize() > 0
+                 ? "M_.endo_names([M_.aux_vars(find([M_.aux_vars.type]==6)).endo_index]); "
+                 : "")
          << (symbol_table.exo_nbr() > 0 ? "M_.exo_names; " : "")
-         << (symbol_table.exo_det_nbr() > 0 ? "M_.exo_det_names; " : "")
-         << "]);" << endl;
+         << (symbol_table.exo_det_nbr() > 0 ? "M_.exo_det_names; " : "") << "]);" << endl;
 
-  for (const auto &[key, value] : hist_values)
+  for (const auto& [key, value] : hist_values)
     {
       auto [symb_id, lag] = key;
       if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
         continue;
 
-      output << "M_.histval_dseries{'" << symbol_table.getName(symb_id) << "'}(dates('" << lag << "Y'))=";
+      output << "M_.histval_dseries{'" << symbol_table.getName(symb_id) << "'}(dates('" << lag
+             << "Y'))=";
       value->writeOutput(output);
       output << ";" << endl;
     }
 
   output << "if exist(['+' M_.fname '/dynamic_set_auxiliary_series.m'])" << endl
-         << "  eval(['M_.histval_dseries = ' M_.fname '.dynamic_set_auxiliary_series(M_.histval_dseries, M_.params);']);" << endl
+         << "  eval(['M_.histval_dseries = ' M_.fname "
+            "'.dynamic_set_auxiliary_series(M_.histval_dseries, M_.params);']);"
+         << endl
          << "end" << endl
-         << "M_.endo_histval = M_.histval_dseries{M_.endo_names{:}}(dates(sprintf('%dY', 1-M_.maximum_lag)):dates('0Y')).data';" << endl
-         << "M_.endo_histval(isnan(M_.endo_histval)) = 0;" << endl; // Ensure that lead aux variables do not have a NaN
+         << "M_.endo_histval = M_.histval_dseries{M_.endo_names{:}}(dates(sprintf('%dY', "
+            "1-M_.maximum_lag)):dates('0Y')).data';"
+         << endl
+         << "M_.endo_histval(isnan(M_.endo_histval)) = 0;"
+         << endl; // Ensure that lead aux variables do not have a NaN
 
   if (symbol_table.exo_nbr() > 0)
-    output << "M_.exo_histval = M_.histval_dseries{M_.exo_names{:}}(dates(sprintf('%dY', 1-M_.maximum_lag)):dates('0Y')).data';" << endl;
+    output << "M_.exo_histval = M_.histval_dseries{M_.exo_names{:}}(dates(sprintf('%dY', "
+              "1-M_.maximum_lag)):dates('0Y')).data';"
+           << endl;
   if (symbol_table.exo_det_nbr() > 0)
-    output << "M_.exo_det_histval = M_.histval_dseries{M_.exo_det_names{:}}(dates(sprintf('%dY', 1-M_.maximum_lag)):dates('0Y')).data';" << endl;
+    output << "M_.exo_det_histval = M_.histval_dseries{M_.exo_det_names{:}}(dates(sprintf('%dY', "
+              "1-M_.maximum_lag)):dates('0Y')).data';"
+           << endl;
 }
 
 void
-HistValStatement::writeJsonOutput(ostream &output) const
+HistValStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "histval", "vals": [)";
-  for (bool printed_something{false};
-       const auto &[key, value] : hist_values)
+  for (bool printed_something {false}; const auto& [key, value] : hist_values)
     {
-      auto &[symb_id, lag] = key;
+      auto& [symb_id, lag] = key;
       if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
         continue;
       if (exchange(printed_something, true))
         output << ", ";
       output << R"({ "name": ")" << symbol_table.getName(symb_id) << R"(")"
-             << R"(, "lag": )" << lag
-             << R"(, "value": ")";
+             << R"(, "lag": )" << lag << R"(, "value": ")";
       value->writeJsonOutput(output, {}, {});
       output << R"("})";
     }
@@ -485,12 +491,12 @@ HistValStatement::writeJsonOutput(ostream &output) const
 }
 
 InitvalFileStatement::InitvalFileStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-InitvalFileStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+InitvalFileStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                   [[maybe_unused]] bool minimal_workspace) const
 {
   output << "%" << endl
@@ -498,11 +504,13 @@ InitvalFileStatement::writeOutput(ostream &output, [[maybe_unused]] const string
          << "%" << endl
          << "options_.initval_file = true;" << endl;
   options_list.writeOutput(output, "options_initvalf");
-  output << "[oo_.initval_series, options_.periods] = histvalf_initvalf('INITVALF', M_, options_initvalf);" << endl;
+  output << "[oo_.initval_series, options_.periods] = histvalf_initvalf('INITVALF', M_, "
+            "options_initvalf);"
+         << endl;
 }
 
 void
-InitvalFileStatement::writeJsonOutput(ostream &output) const
+InitvalFileStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "initval_file")";
   if (!options_list.empty())
@@ -514,12 +522,12 @@ InitvalFileStatement::writeJsonOutput(ostream &output) const
 }
 
 HistvalFileStatement::HistvalFileStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-HistvalFileStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+HistvalFileStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                   [[maybe_unused]] bool minimal_workspace) const
 {
   output << "%" << endl
@@ -527,11 +535,13 @@ HistvalFileStatement::writeOutput(ostream &output, [[maybe_unused]] const string
          << "%" << endl
          << "options_.histval_file = true;" << endl;
   options_list.writeOutput(output, "options_histvalf");
-  output << "[M_.endo_histval, M_.exo_histval, M_.exo_det_histval] = histvalf(M_, options_histvalf);" << endl;
+  output
+      << "[M_.endo_histval, M_.exo_histval, M_.exo_det_histval] = histvalf(M_, options_histvalf);"
+      << endl;
 }
 
 void
-HistvalFileStatement::writeJsonOutput(ostream &output) const
+HistvalFileStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "histval_file")";
   if (!options_list.empty())
@@ -544,21 +554,22 @@ HistvalFileStatement::writeJsonOutput(ostream &output) const
 
 HomotopySetupStatement::HomotopySetupStatement(bool from_initval_to_endval_arg,
                                                homotopy_values_t homotopy_values_arg,
-                                               const SymbolTable &symbol_table_arg) :
-  from_initval_to_endval{from_initval_to_endval_arg},
-  homotopy_values{move(homotopy_values_arg)},
-  symbol_table{symbol_table_arg}
+                                               const SymbolTable& symbol_table_arg) :
+    from_initval_to_endval {from_initval_to_endval_arg},
+    homotopy_values {move(homotopy_values_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-HomotopySetupStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+HomotopySetupStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                     [[maybe_unused]] bool minimal_workspace) const
 {
   output << "%" << endl
          << "% HOMOTOPY_SETUP instructions" << endl
          << "%" << endl
-         << "options_.homotopy_from_initval_to_endval = " << boolalpha << from_initval_to_endval << ';' << endl
+         << "options_.homotopy_from_initval_to_endval = " << boolalpha << from_initval_to_endval
+         << ';' << endl
          << "options_.homotopy_values = zeros(0, 4);" << endl;
 
   for (auto [symb_id, expression1, expression2] : homotopy_values)
@@ -566,7 +577,8 @@ HomotopySetupStatement::writeOutput(ostream &output, [[maybe_unused]] const stri
       const SymbolType type = symbol_table.getType(symb_id);
       const int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;
 
-      output << "options_.homotopy_values = vertcat(options_.homotopy_values, [ " << static_cast<int>(type) << ", " << tsid << ", ";
+      output << "options_.homotopy_values = vertcat(options_.homotopy_values, [ "
+             << static_cast<int>(type) << ", " << tsid << ", ";
       if (expression1)
         expression1->writeOutput(output);
       else
@@ -578,12 +590,12 @@ HomotopySetupStatement::writeOutput(ostream &output, [[maybe_unused]] const stri
 }
 
 void
-HomotopySetupStatement::writeJsonOutput(ostream &output) const
+HomotopySetupStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "homotopy", )"
          << R"("values": [)";
-  for (bool printed_something{false};
-       const auto &[symb_id, expression1, expression2] : homotopy_values)
+  for (bool printed_something {false};
+       const auto& [symb_id, expression1, expression2] : homotopy_values)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -603,29 +615,30 @@ HomotopySetupStatement::writeJsonOutput(ostream &output) const
 }
 
 SaveParamsAndSteadyStateStatement::SaveParamsAndSteadyStateStatement(string filename_arg) :
-  filename{move(filename_arg)}
+    filename {move(filename_arg)}
 {
 }
 
 void
-SaveParamsAndSteadyStateStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+SaveParamsAndSteadyStateStatement::writeOutput(ostream& output,
+                                               [[maybe_unused]] const string& basename,
                                                [[maybe_unused]] bool minimal_workspace) const
 {
   output << "save_params_and_steady_state('" << filename << "');" << endl;
 }
 
 void
-SaveParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
+SaveParamsAndSteadyStateStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "save_params_and_steady_state")"
          << R"(, "filename": ")" << filename << R"(")"
          << "}";
 }
 
-LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const filesystem::path &filename,
-                                                                     const SymbolTable &symbol_table_arg,
-                                                                     WarningConsolidation &warnings) :
-  symbol_table{symbol_table_arg}
+LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(
+    const filesystem::path& filename, const SymbolTable& symbol_table_arg,
+    WarningConsolidation& warnings) :
+    symbol_table {symbol_table_arg}
 {
   cout << "Reading " << filename.string() << "." << endl;
 
@@ -649,19 +662,21 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const files
           int symb_id = symbol_table.getID(symb_name);
           content[symb_id] = value;
         }
-      catch (SymbolTable::UnknownSymbolNameException &e)
+      catch (SymbolTable::UnknownSymbolNameException& e)
         {
-          warnings << "WARNING: Unknown symbol " << symb_name << " in " << filename.string() << endl;
+          warnings << "WARNING: Unknown symbol " << symb_name << " in " << filename.string()
+                   << endl;
         }
     }
   f.close();
 }
 
 void
-LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+LoadParamsAndSteadyStateStatement::writeOutput(ostream& output,
+                                               [[maybe_unused]] const string& basename,
                                                [[maybe_unused]] bool minimal_workspace) const
 {
-  for (const auto &[id, value] : content)
+  for (const auto& [id, value] : content)
     {
       switch (symbol_table.getType(id))
         {
@@ -678,7 +693,8 @@ LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, [[maybe_unused]]
           output << "oo_.exo_det_steady_state";
           break;
         default:
-          cerr << "ERROR: Unsupported variable type for " << symbol_table.getName(id) << " in load_params_and_steady_state" << endl;
+          cerr << "ERROR: Unsupported variable type for " << symbol_table.getName(id)
+               << " in load_params_and_steady_state" << endl;
           exit(EXIT_FAILURE);
         }
 
@@ -688,12 +704,11 @@ LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, [[maybe_unused]]
 }
 
 void
-LoadParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
+LoadParamsAndSteadyStateStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "load_params_and_steady_state",)"
          << R"("values": [)";
-  for (bool printed_something{false};
-       const auto &[id, value] : content)
+  for (bool printed_something {false}; const auto& [id, value] : content)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -705,9 +720,9 @@ LoadParamsAndSteadyStateStatement::writeJsonOutput(ostream &output) const
 }
 
 void
-LoadParamsAndSteadyStateStatement::fillEvalContext(eval_context_t &eval_context) const
+LoadParamsAndSteadyStateStatement::fillEvalContext(eval_context_t& eval_context) const
 {
-  for (const auto & [id, value] : content)
+  for (const auto& [id, value] : content)
     /* We use strtod() instead of stod() because we want underflows and
        overflows to respectively yield 0 and ±Inf. See also the comment in
        NumericalConstants.cc */

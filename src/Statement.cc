@@ -25,23 +25,23 @@
 #include <utility>
 
 void
-Statement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                     [[maybe_unused]] WarningConsolidation &warnings)
+Statement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                     [[maybe_unused]] WarningConsolidation& warnings)
 {
 }
 
 void
-Statement::computingPass([[maybe_unused]] const ModFileStructure &mod_file_struct)
+Statement::computingPass([[maybe_unused]] const ModFileStructure& mod_file_struct)
 {
 }
 
 NativeStatement::NativeStatement(string native_statement_arg) :
-  native_statement{move(native_statement_arg)}
+    native_statement {move(native_statement_arg)}
 {
 }
 
 void
-NativeStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+NativeStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                              [[maybe_unused]] bool minimal_workspace) const
 {
   using namespace boost::xpressive;
@@ -50,12 +50,12 @@ NativeStatement::writeOutput(ostream &output, [[maybe_unused]] const string &bas
   sregex regex_dollar = sregex::compile(R"((\$))" + date_regex);
 
   string ns = regex_replace(native_statement, regex_lookbehind, "dates('$&')");
-  ns = regex_replace(ns, regex_dollar, "$2"); //replace $DATE with DATE
+  ns = regex_replace(ns, regex_dollar, "$2"); // replace $DATE with DATE
   output << ns << endl;
 }
 
 void
-NativeStatement::writeJsonOutput(ostream &output) const
+NativeStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "native")"
          << R"(, "string": ")";
@@ -65,55 +65,55 @@ NativeStatement::writeJsonOutput(ostream &output) const
     switch (ch)
       {
       case '\b':
-	output << R"(\b)";
-	break;
+        output << R"(\b)";
+        break;
 
       case '\f':
-	output << R"(\f)";
-	break;
+        output << R"(\f)";
+        break;
 
       case '\n':
-	output << R"(\n)";
-	break;
+        output << R"(\n)";
+        break;
 
       case '\r':
-	output << R"(\r)";
-	break;
+        output << R"(\r)";
+        break;
 
       case '\t':
-	output << R"(\t)";
-	break;
+        output << R"(\t)";
+        break;
 
       case '"':
-	output << R"(\")";
-	break;
+        output << R"(\")";
+        break;
 
       case '\\':
-	output << R"(\\)";
+        output << R"(\\)";
         break;
 
       default:
-	output << ch;
-	break;
+        output << ch;
+        break;
       }
 
   output << R"("})";
 }
 
 VerbatimStatement::VerbatimStatement(string verbatim_statement_arg) :
-  verbatim_statement{move(verbatim_statement_arg)}
+    verbatim_statement {move(verbatim_statement_arg)}
 {
 }
 
 void
-VerbatimStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+VerbatimStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                [[maybe_unused]] bool minimal_workspace) const
 {
   output << verbatim_statement << endl;
 }
 
 void
-VerbatimStatement::writeJsonOutput(ostream &output) const
+VerbatimStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "verbatim")"
          << R"(, "string": ")";
@@ -123,55 +123,55 @@ VerbatimStatement::writeJsonOutput(ostream &output) const
     switch (ch)
       {
       case '\b':
-	output << R"(\b)";
-	break;
+        output << R"(\b)";
+        break;
 
       case '\f':
-	output << R"(\f)";
-	break;
+        output << R"(\f)";
+        break;
 
       case '\n':
-	output << R"(\n)";
-	break;
+        output << R"(\n)";
+        break;
 
       case '\r':
-	output << R"(\r)";
-	break;
+        output << R"(\r)";
+        break;
 
       case '\t':
-	output << R"(\t)";
-	break;
+        output << R"(\t)";
+        break;
 
       case '"':
-	output << R"(\")";
-	break;
+        output << R"(\")";
+        break;
 
       case '\\':
-	output << R"(\\)";
+        output << R"(\\)";
         break;
 
       default:
-	output << ch;
-	break;
+        output << ch;
+        break;
       }
 
   output << R"("})";
 }
 
 void
-OptionsList::writeOutput(ostream &output) const
+OptionsList::writeOutput(ostream& output) const
 {
   writeOutputCommon(output, "options_");
 }
 
 void
-OptionsList::writeOutput(ostream &output, const string &option_group) const
+OptionsList::writeOutput(ostream& output, const string& option_group) const
 {
   // Initialize option_group as an empty struct iff the field does not exist!
-  if (size_t idx = option_group.find_last_of(".");
-      idx != string::npos)
+  if (size_t idx = option_group.find_last_of("."); idx != string::npos)
     {
-      output << "if ~isfield(" << option_group.substr(0, idx) << ",'" << option_group.substr(idx+1) << "')" << endl;
+      output << "if ~isfield(" << option_group.substr(0, idx) << ",'"
+             << option_group.substr(idx + 1) << "')" << endl;
       output << "    " << option_group << " = struct();" << endl;
       output << "end" << endl;
     }
@@ -182,146 +182,145 @@ OptionsList::writeOutput(ostream &output, const string &option_group) const
 }
 
 void
-OptionsList::writeOutputCommon(ostream &output, const string &option_group) const
+OptionsList::writeOutputCommon(ostream& output, const string& option_group) const
 {
-  for (const auto &[name, val] : options)
-    std::visit([&]<class T>(const T &v)
-    {
-      if constexpr(is_same_v<T, SymbolListVal>)
-        v.writeOutput(option_group + "." + name, output);
-      else
-        {
-          output << option_group << "." << name << " = ";
-          if constexpr(is_same_v<T, NumVal> || is_same_v<T, DateVal>)
-            output << v;
-          else if constexpr(is_same_v<T, pair<string, string>>)
-            output << '[' << v.first << "; " << v.second << ']';
-          else if constexpr(is_same_v<T, StringVal>)
-            output << "'" << v << "'";
-          else if constexpr(is_same_v<T, vector<int>>)
+  for (const auto& [name, val] : options)
+    std::visit(
+        [&]<class T>(const T& v) {
+          if constexpr (is_same_v<T, SymbolListVal>)
+            v.writeOutput(option_group + "." + name, output);
+          else
             {
-              if (v.size() > 1)
+              output << option_group << "." << name << " = ";
+              if constexpr (is_same_v<T, NumVal> || is_same_v<T, DateVal>)
+                output << v;
+              else if constexpr (is_same_v<T, pair<string, string>>)
+                output << '[' << v.first << "; " << v.second << ']';
+              else if constexpr (is_same_v<T, StringVal>)
+                output << "'" << v << "'";
+              else if constexpr (is_same_v<T, vector<int>>)
                 {
-                  output << '[';
-                  for (int it : v)
-                    output << it << ";";
-                  output << ']';
+                  if (v.size() > 1)
+                    {
+                      output << '[';
+                      for (int it : v)
+                        output << it << ";";
+                      output << ']';
+                    }
+                  else
+                    output << v.front();
                 }
-              else
-                output << v.front();
-            }
-          else if constexpr(is_same_v<T, VecStrVal>)
-            {
-              if (v.size() > 1)
+              else if constexpr (is_same_v<T, VecStrVal>)
                 {
+                  if (v.size() > 1)
+                    {
+                      output << '{';
+                      for (const auto& it : v)
+                        output << "'" << it << "';";
+                      output << '}';
+                    }
+                  else
+                    output << v.front();
+                }
+              else if constexpr (is_same_v<T, VecCellStrVal>)
+                {
+                  /* VecCellStrVal should ideally be merged into VecStrVal.
+                     only difference is treatment of v.size==1, where VecStrVal
+                     does not add quotes and curly brackets, i.e. allows for type conversion of
+                     '2' into the number 2 */
                   output << '{';
-                  for (const auto &it : v)
+                  for (const auto& it : v)
                     output << "'" << it << "';";
                   output << '}';
                 }
-              else
-                output << v.front();
-            }
-          else if constexpr(is_same_v<T, VecCellStrVal>)
-            {
-              /* VecCellStrVal should ideally be merged into VecStrVal.
-                 only difference is treatment of v.size==1, where VecStrVal
-                 does not add quotes and curly brackets, i.e. allows for type conversion of
-                 '2' into the number 2 */
-              output << '{';
-              for (const auto &it : v)
-                output << "'" << it << "';";
-              output << '}';
-            }
-          else if constexpr(is_same_v<T, VecValueVal>)
-            {
-              /* For historical reason, those vectors are output as row vectors (contrary
-                 to vectors of integers which are output as column vectors) */
-              output << '[';
-              for (const auto &it : v)
-                output << it << ',';
-              output << ']';
-            }
-          else if constexpr(is_same_v<T, vector<vector<string>>>)
-            {
-              // Same remark as for VecValueVal
-              output << '{';
-              for (const auto &v2 : v)
+              else if constexpr (is_same_v<T, VecValueVal>)
                 {
+                  /* For historical reason, those vectors are output as row vectors (contrary
+                     to vectors of integers which are output as column vectors) */
                   output << '[';
-                  for (const auto &it : v2)
+                  for (const auto& it : v)
                     output << it << ',';
-                  output << "], ";
+                  output << ']';
                 }
-              output << '}';
+              else if constexpr (is_same_v<T, vector<vector<string>>>)
+                {
+                  // Same remark as for VecValueVal
+                  output << '{';
+                  for (const auto& v2 : v)
+                    {
+                      output << '[';
+                      for (const auto& it : v2)
+                        output << it << ',';
+                      output << "], ";
+                    }
+                  output << '}';
+                }
+              else
+                static_assert(always_false_v<T>, "Non-exhaustive visitor!");
+              output << ";" << endl;
             }
-          else
-            static_assert(always_false_v<T>, "Non-exhaustive visitor!");
-          output << ";" << endl;
-        }
-    }, val);
+        },
+        val);
 }
 
 void
-OptionsList::writeJsonOutput(ostream &output) const
+OptionsList::writeJsonOutput(ostream& output) const
 {
   if (empty())
     return;
 
   output << R"("options": {)";
 
-  for (bool opt_written {false};
-       const auto &[name, val] : options)
+  for (bool opt_written {false}; const auto& [name, val] : options)
     {
       if (exchange(opt_written, true))
         output << ", ";
       output << R"(")" << name << R"(": )";
-      std::visit([&]<class T>(const T &v)
-      {
-        if constexpr(is_same_v<T, NumVal>)
-          output << v;
-        else if constexpr(is_same_v<T, pair<string, string>>)
-          output << '[' << v.first << ", " << v.second << ']';
-        else if constexpr(is_same_v<T, StringVal> || is_same_v<T, DateVal>)
-          output << '"' << v << '"';
-        else if constexpr(is_same_v<T, SymbolListVal>)
-          {
-            output << '{';
-            v.writeJsonOutput(output);
-            output << '}';
-          }
-        else if constexpr(is_same_v<T, vector<int>> || is_same_v<T, VecStrVal>
-                          || is_same_v<T, VecCellStrVal> || is_same_v<T, VecValueVal>
-                          || is_same_v<T, vector<vector<string>>>)
-          {
-            output << '[';
-            for (bool printed_something{false};
-                 const auto &it : v)
+      std::visit(
+          [&]<class T>(const T& v) {
+            if constexpr (is_same_v<T, NumVal>)
+              output << v;
+            else if constexpr (is_same_v<T, pair<string, string>>)
+              output << '[' << v.first << ", " << v.second << ']';
+            else if constexpr (is_same_v<T, StringVal> || is_same_v<T, DateVal>)
+              output << '"' << v << '"';
+            else if constexpr (is_same_v<T, SymbolListVal>)
               {
-                if (exchange(printed_something, true))
-                  output << ", ";
-                if constexpr(is_same_v<T, vector<int>> || is_same_v<T, VecValueVal>)
-                  output << it;
-                else if constexpr(is_same_v<T, VecStrVal> || is_same_v<T, VecCellStrVal>)
-                  output << '"' << it << '"';
-                else // vector<vector<string>>
-                  {
-                    output << '[';
-                    for (bool printed_something2{false};
-                         const auto &it2 : it)
-                      {
-                        if (exchange(printed_something2, true))
-                          output << ", ";
-                        output << it2;
-                      }
-                    output << ']';
-                  }
+                output << '{';
+                v.writeJsonOutput(output);
+                output << '}';
               }
-            output << ']';
-          }
-        else
-          static_assert(always_false_v<T>, "Non-exhaustive visitor!");
-      }, val);
+            else if constexpr (is_same_v<T, vector<int>> || is_same_v<T, VecStrVal>
+                               || is_same_v<T, VecCellStrVal> || is_same_v<T, VecValueVal>
+                               || is_same_v<T, vector<vector<string>>>)
+              {
+                output << '[';
+                for (bool printed_something {false}; const auto& it : v)
+                  {
+                    if (exchange(printed_something, true))
+                      output << ", ";
+                    if constexpr (is_same_v<T, vector<int>> || is_same_v<T, VecValueVal>)
+                      output << it;
+                    else if constexpr (is_same_v<T, VecStrVal> || is_same_v<T, VecCellStrVal>)
+                      output << '"' << it << '"';
+                    else // vector<vector<string>>
+                      {
+                        output << '[';
+                        for (bool printed_something2 {false}; const auto& it2 : it)
+                          {
+                            if (exchange(printed_something2, true))
+                              output << ", ";
+                            output << it2;
+                          }
+                        output << ']';
+                      }
+                  }
+                output << ']';
+              }
+            else
+              static_assert(always_false_v<T>, "Non-exhaustive visitor!");
+          },
+          val);
     }
 
   output << "}";
@@ -334,13 +333,13 @@ OptionsList::clear()
 }
 
 bool
-OptionsList::contains(const string &name) const
+OptionsList::contains(const string& name) const
 {
   return options.contains(name);
 }
 
 void
-OptionsList::erase(const string &name)
+OptionsList::erase(const string& name)
 {
   options.erase(name);
 }

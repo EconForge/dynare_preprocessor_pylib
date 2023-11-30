@@ -24,24 +24,24 @@
 # error Impossible to include both ParsingDriver.hh and macro/Driver.hh
 #endif
 
-#include <string>
-#include <vector>
 #include <istream>
-#include <stack>
 #include <optional>
+#include <stack>
+#include <string>
 #include <string_view>
+#include <vector>
 
 #include "ModFile.hh"
 #include "SymbolList.hh"
 
 class ParsingDriver;
-#include "ExprNode.hh"
 #include "DynareBison.hh"
+#include "ExprNode.hh"
 
 #include "ComputingTasks.hh"
-#include "Shocks.hh"
-#include "NumericalInitialization.hh"
 #include "DynamicModel.hh"
+#include "NumericalInitialization.hh"
+#include "Shocks.hh"
 
 using namespace std;
 
@@ -59,22 +59,21 @@ using namespace std;
 class DynareFlex : public DynareFlexLexer
 {
 public:
-  DynareFlex(istream *in = nullptr, ostream *out = nullptr);
+  DynareFlex(istream* in = nullptr, ostream* out = nullptr);
 
-  DynareFlex(const DynareFlex &) = delete;
-  DynareFlex &operator=(const DynareFlex &) = delete;
+  DynareFlex(const DynareFlex&) = delete;
+  DynareFlex& operator=(const DynareFlex&) = delete;
 
   //! The main lexing function
-  Dynare::parser::token_type lex(Dynare::parser::semantic_type *yylval,
-                                 Dynare::parser::location_type *yylloc,
-                                 ParsingDriver &driver);
+  Dynare::parser::token_type lex(Dynare::parser::semantic_type* yylval,
+                                 Dynare::parser::location_type* yylloc, ParsingDriver& driver);
 
   //! The filename being parsed
   /*! The bison parser locations (begin and end) contain a pointer to that string */
   string filename;
 
   //! Increment the location counter given a token
-  static void location_increment(Dynare::parser::location_type *yylloc, const char *yytext);
+  static void location_increment(Dynare::parser::location_type* yylloc, const char* yytext);
 
   //! Count parens in dates statement
   int dates_parens_nb;
@@ -86,29 +85,34 @@ class ParsingDriver
 {
 private:
   //! Checks that a given symbol exists, and stops with an error message if it doesn't
-  void check_symbol_existence(const string &name);
+  void check_symbol_existence(const string& name);
 
-  //! Checks that a given symbol exists and is a parameter, and stops with an error message if it isn't
-  void check_symbol_is_parameter(const string &name);
+  //! Checks that a given symbol exists and is a parameter, and stops with an error message if it
+  //! isn't
+  void check_symbol_is_parameter(const string& name);
 
   //! Checks that a given symbol was assigned within a Statement
-  void check_symbol_is_statement_variable(const string &name);
+  void check_symbol_is_statement_variable(const string& name);
 
-  //! Checks that a given symbol exists and is a endogenous or exogenous, and stops with an error message if it isn't
-  void check_symbol_is_endogenous_or_exogenous(const string &name, bool allow_exo_det);
+  //! Checks that a given symbol exists and is a endogenous or exogenous, and stops with an error
+  //! message if it isn't
+  void check_symbol_is_endogenous_or_exogenous(const string& name, bool allow_exo_det);
 
-  //! Checks that a given symbol exists and is a endogenous, and stops with an error message if it isn't
-  void check_symbol_is_endogenous(const string &name);
+  //! Checks that a given symbol exists and is a endogenous, and stops with an error message if it
+  //! isn't
+  void check_symbol_is_endogenous(const string& name);
 
-  //! Checks that a given symbol exists and is a exogenous, and stops with an error message if it isn't
-  void check_symbol_is_exogenous(const string &name, bool allow_exo_det);
+  //! Checks that a given symbol exists and is a exogenous, and stops with an error message if it
+  //! isn't
+  void check_symbol_is_exogenous(const string& name, bool allow_exo_det);
 
-  //! Checks for symbol existence in model block. If it doesn't exist, an error message is stored to be printed at
-  //! the end of the model block
-  void check_symbol_existence_in_model_block(const string &name);
+  //! Checks for symbol existence in model block. If it doesn't exist, an error message is stored to
+  //! be printed at the end of the model block
+  void check_symbol_existence_in_model_block(const string& name);
 
   //! Helper to add a symbol declaration (returns its symbol ID)
-  int declare_symbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string, string>> &partition_value);
+  int declare_symbol(const string& name, SymbolType type, const string& tex_name,
+                     const vector<pair<string, string>>& partition_value);
 
   //! Temporary store for the planner objective
   unique_ptr<PlannerObjective> planner_objective;
@@ -119,18 +123,20 @@ private:
   //! The data tree in which to add expressions currently parsed
   /*! The object pointed to is not owned by the parsing driver. It is essentially a
       reference. */
-  DataTree *data_tree;
+  DataTree* data_tree;
 
   //! The model tree in which to add expressions currently parsed
-  /*! It is only a dynamic cast of data_tree pointer, and is therefore null if data_tree is not a ModelTree instance */
-  ModelTree *model_tree;
+  /*! It is only a dynamic cast of data_tree pointer, and is therefore null if data_tree is not a
+   * ModelTree instance */
+  ModelTree* model_tree;
 
   //! The dynamic model tree in which to add expressions currently parsed
-  /*! It is only a dynamic cast of data_tree pointer, and is therefore null if data_tree is not a DynamicModel instance */
-  DynamicModel *dynamic_model;
+  /*! It is only a dynamic cast of data_tree pointer, and is therefore null if data_tree is not a
+   * DynamicModel instance */
+  DynamicModel* dynamic_model;
 
   //! Sets data_tree and model_tree pointers
-  void set_current_data_tree(DataTree *data_tree_arg);
+  void set_current_data_tree(DataTree* data_tree_arg);
 
   //! Stores options lists
   OptionsList options_list;
@@ -163,7 +169,8 @@ private:
   //! Temporary storage for correlations of shocks
   ShocksStatement::covar_and_corr_shocks_t corr_shocks;
   //! Temporary storage for values and scales of heteroskedastic_shocks
-  HeteroskedasticShocksStatement::heteroskedastic_shocks_t heteroskedastic_shocks_values, heteroskedastic_shocks_scales;
+  HeteroskedasticShocksStatement::heteroskedastic_shocks_t heteroskedastic_shocks_values,
+      heteroskedastic_shocks_scales;
   //! Temporary storage for initval blocks
   InitOrEndValStatement::init_values_t init_values;
   /* Temporary storage for endval blocks. Uses a type that encompasses both
@@ -181,7 +188,8 @@ private:
   RamseyConstraintsStatement::constraints_t ramsey_constraints;
   //! Temporary storage for svar_identification blocks
   SvarIdentificationStatement::svar_identification_restrictions_t svar_ident_restrictions;
-  //! Temporary storage for mapping the equation number to the restrictions within an svar_identification block
+  //! Temporary storage for mapping the equation number to the restrictions within an
+  //! svar_identification block
   map<int, vector<int>> svar_equation_restrictions;
   //! Temporary storage for constants exculsion within an svar_identification
   bool svar_constants_exclusion;
@@ -191,7 +199,8 @@ private:
   bool svar_lower_cholesky;
   //! Temporary storage for equation number for a restriction within an svar_identification block
   int svar_equation_nbr;
-  //! Temporary storage for left/right handside of a restriction equation within an svar_identificaton block
+  //! Temporary storage for left/right handside of a restriction equation within an
+  //! svar_identificaton block
   bool svar_left_handside;
   //! Temporary storage for current restriction number in svar_identification block
   map<int, int> svar_Qi_restriction_nbr;
@@ -200,11 +209,11 @@ private:
   set<string> undeclared_model_vars;
   //! Temporary storage for restriction type
   enum class SvarRestrictionType
-    {
-     NOT_SET,
-     Qi_TYPE,
-     Ri_TYPE
-    };
+  {
+    NOT_SET,
+    Qi_TYPE,
+    Ri_TYPE
+  };
   SvarRestrictionType svar_restriction_type;
   //! Temporary storage for generate_irfs
   vector<string> generate_irf_names;
@@ -214,15 +223,18 @@ private:
   stack<vector<expr_t>> stack_external_function_args;
   //! Temporary storage for parameters in joint prior statement
   vector<string> joint_parameters;
-  //! Temporary storage for the symb_id associated with the "name" symbol of the current external_function statement
+  //! Temporary storage for the symb_id associated with the "name" symbol of the current
+  //! external_function statement
   int current_external_function_id;
   //! Temporary storage for option list provided to external_function()
   ExternalFunctionsTable::external_function_options current_external_function_options;
   //! Temporary storage for a variance declared in the prior statement
   expr_t prior_variance;
   SubsamplesStatement::subsample_declaration_map_t subsample_declaration_map;
-  //! Temporary storage for subsample statement: map<pair<var_name1, var_name2>>, subsample_declaration_map >
-  using subsample_declarations_t = map<pair<string, string >, SubsamplesStatement::subsample_declaration_map_t >;
+  //! Temporary storage for subsample statement: map<pair<var_name1, var_name2>>,
+  //! subsample_declaration_map >
+  using subsample_declarations_t
+      = map<pair<string, string>, SubsamplesStatement::subsample_declaration_map_t>;
   subsample_declarations_t subsample_declarations;
   //! Temporary storage for shock_groups
   vector<string> shock_group;
@@ -231,7 +243,7 @@ private:
   vector<pair<int, int>> init2shocks;
   /* Temporary storage for planner_discount and planner_discount_latex_name
      options of ramsey_model and ramsey_policy */
-  expr_t planner_discount{nullptr};
+  expr_t planner_discount {nullptr};
   string planner_discount_latex_name;
   //! reset the values for temporary storage
   void reset_current_external_function_options();
@@ -246,7 +258,7 @@ private:
   //! The mod file representation constructed by this ParsingDriver
   unique_ptr<ModFile> mod_file;
 
-  WarningConsolidation &warnings;
+  WarningConsolidation& warnings;
 
   //! Temporary storage for several options of pac_model
   expr_t pac_growth;
@@ -259,27 +271,27 @@ private:
   vector<pair<string, string>> undeclared_model_variable_errors;
 
   //! True when parsing the epilogue block
-  bool parsing_epilogue{false};
+  bool parsing_epilogue {false};
 
   //! True when parsing pac_model statement
-  bool parsing_pac_model{false};
+  bool parsing_pac_model {false};
 
   //! True if a ramsey_model statement has already been seen
-  bool ramsey_model_seen{false};
+  bool ramsey_model_seen {false};
   //! True if a ramsey_policy statement has already been seen
-  bool ramsey_policy_seen{false};
+  bool ramsey_policy_seen {false};
 
 public:
-  ParsingDriver(WarningConsolidation &warnings_arg, bool nostrict_arg) :
-    warnings{warnings_arg}, nostrict{nostrict_arg}
+  ParsingDriver(WarningConsolidation& warnings_arg, bool nostrict_arg) :
+      warnings {warnings_arg}, nostrict {nostrict_arg}
   {
-  };
+  }
 
-  ParsingDriver(const ParsingDriver &) = delete;
-  ParsingDriver &operator=(const ParsingDriver &) = delete;
+  ParsingDriver(const ParsingDriver&) = delete;
+  ParsingDriver& operator=(const ParsingDriver&) = delete;
 
   //! Starts parsing, and constructs the MOD file representation
-  unique_ptr<ModFile> parse(istream &in, bool debug);
+  unique_ptr<ModFile> parse(istream& in, bool debug);
 
   //! Reference to the lexer
   unique_ptr<DynareFlex> lexer;
@@ -297,27 +309,30 @@ public:
   PriorDistributions prior_shape;
 
   //! Temporary storage for "expression" option of VAR_EXPECTATION_MODEL
-  expr_t var_expectation_model_expression{nullptr};
+  expr_t var_expectation_model_expression {nullptr};
   //! Temporary storage for discount option of VAR_EXPECTATION_MODEL
-  expr_t var_expectation_model_discount{nullptr};
+  expr_t var_expectation_model_discount {nullptr};
 
   //! Error handler with explicit location
-  void error(const Dynare::parser::location_type &l, const string &m) __attribute__ ((noreturn));
+  void error(const Dynare::parser::location_type& l, const string& m) __attribute__((noreturn));
   //! Error handler using saved location
-  void error(const string &m) __attribute__ ((noreturn));
+  void error(const string& m) __attribute__((noreturn));
   //! Warning handler using saved location
-  void warning(const string &m);
+  void warning(const string& m);
 
-  //! Error handler with explicit location (used in model block, accumulating error messages to be printed later)
-  void model_error(const string &m, const string &var);
-  void undeclared_model_variable_error(const string &m, const string &var);
+  //! Error handler with explicit location (used in model block, accumulating error messages to be
+  //! printed later)
+  void model_error(const string& m, const string& var);
+  void undeclared_model_variable_error(const string& m, const string& var);
 
   //! Code shared between model_error() and error()
-  void create_error_string(const Dynare::parser::location_type &l, const string &m, const string &var);
-  void create_error_string(const Dynare::parser::location_type &l, const string &m, ostream &stream);
+  void create_error_string(const Dynare::parser::location_type& l, const string& m,
+                           const string& var);
+  void create_error_string(const Dynare::parser::location_type& l, const string& m,
+                           ostream& stream);
 
   //! Check if a given symbol exists in the parsing context, and is not a mod file local variable
-  bool symbol_exists_and_is_not_modfile_local_or_external_function(const string &s);
+  bool symbol_exists_and_is_not_modfile_local_or_external_function(const string& s);
   //! Sets mode of ModelTree class to use C output
   void use_dll();
   //! the modelis block decomposed
@@ -332,50 +347,55 @@ public:
   //! the differentiate_forward_vars option is enabled (for a subset of vars)
   void differentiate_forward_vars_some(vector<string> symbol_list);
   //! cutoff option of model block
-  void cutoff(const string &value);
+  void cutoff(const string& value);
   //! mfs option of model block
-  void mfs(const string &value);
+  void mfs(const string& value);
   //! static_mfs option of model block
-  void static_mfs(const string &value);
+  void static_mfs(const string& value);
   //! the flags to substitute for the default compiler flags used by `use_dll`
-  void compilation_setup_substitute_flags(const string &flags);
+  void compilation_setup_substitute_flags(const string& flags);
   //! the flags to add to the default compiler flags used by `use_dll`
-  void compilation_setup_add_flags(const string &flags);
+  void compilation_setup_add_flags(const string& flags);
   //! the libs to substitute for the default compiler libs used by `use_dll`
-  void compilation_setup_substitute_libs(const string &libs);
+  void compilation_setup_substitute_libs(const string& libs);
   //! the libs to add to the default compiler libs used by `use_dll`
-  void compilation_setup_add_libs(const string &libs);
+  void compilation_setup_add_libs(const string& libs);
   //! the compiler to replace the default compiler used by `use_dll`
-  void compilation_setup_compiler(const string &path);
+  void compilation_setup_compiler(const string& path);
   //! balanced_growth_test_tol option of model block
-  void balanced_growth_test_tol(const string &value);
+  void balanced_growth_test_tol(const string& value);
   //! Sets the FILENAME for the initial value in initval
   void initval_file();
   //! Declares an endogenous variable (and returns its symbol ID)
-  int declare_endogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
+  int declare_endogenous(const string& name, const string& tex_name = "",
+                         const vector<pair<string, string>>& partition_value = {});
   // Handles a “var” or “var(log)” statement (without “deflator” or “log_deflator” options)
-  void var(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list, bool log_option);
+  void var(const vector<tuple<string, string, vector<pair<string, string>>>>& symbol_list,
+           bool log_option);
   //! Declares an exogenous variable (and returns its symbol ID)
-  int declare_exogenous(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
+  int declare_exogenous(const string& name, const string& tex_name = "",
+                        const vector<pair<string, string>>& partition_value = {});
   // Handles a “varexo” statement
-  void varexo(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list);
+  void varexo(const vector<tuple<string, string, vector<pair<string, string>>>>& symbol_list);
   // Handles a “varexo_det” statement
-  void varexo_det(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list);
+  void varexo_det(const vector<tuple<string, string, vector<pair<string, string>>>>& symbol_list);
   //! Declares a parameter (and returns its symbol ID)
-  int declare_parameter(const string &name, const string &tex_name = "", const vector<pair<string, string>> &partition_value = {});
+  int declare_parameter(const string& name, const string& tex_name = "",
+                        const vector<pair<string, string>>& partition_value = {});
   // Handles a “parameters” statement
-  void parameters(const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list);
+  void parameters(const vector<tuple<string, string, vector<pair<string, string>>>>& symbol_list);
   // Handles a “model_local_variable” statement
-  void model_local_variable(const vector<pair<string, string>> &symbol_list);
+  void model_local_variable(const vector<pair<string, string>>& symbol_list);
   //! Declares a statement local variable
-  void declare_statement_local_variable(const string &name);
+  void declare_statement_local_variable(const string& name);
   //! Completes a subsample statement
   void set_subsamples(string name1, string name2);
   //! Declares a subsample, assigning the value to name
   void set_subsample_name_equal_to_date_range(string name, string date1, string date2);
   //! Checks that a subsample statement (and given name) were provided for the pair name1 & name2
-  void check_subsample_declaration_exists(const string &name1, const string &subsample_name);
-  void check_subsample_declaration_exists(const string &name1, const string &name2, const string &subsample_name);
+  void check_subsample_declaration_exists(const string& name1, const string& subsample_name);
+  void check_subsample_declaration_exists(const string& name1, const string& name2,
+                                          const string& subsample_name);
   //! Copies the set of subsamples from_name to_name
   void copy_subsamples(string to_name1, string to_name2, string from_name1, string from_name2);
   //! Sets the value of the planner_discount option of ramsey_{model,policy}
@@ -383,45 +403,45 @@ public:
   //! Sets the value of the planner_discount_latex_name option of ramsey_model
   void set_planner_discount_latex_name(string tex_name);
   //! Handles a “predetermined_variables” statement
-  void predetermined_variables(const vector<string> &symbol_list);
+  void predetermined_variables(const vector<string>& symbol_list);
   //! Declares and initializes a local parameter
-  void declare_and_init_model_local_variable(const string &name, expr_t rhs);
+  void declare_and_init_model_local_variable(const string& name, expr_t rhs);
   //! Changes type of a symbol
-  void change_type(SymbolType new_type, const vector<string> &symbol_list);
+  void change_type(SymbolType new_type, const vector<string>& symbol_list);
   //! Adds a non-negative constant to DataTree
-  expr_t add_non_negative_constant(const string &constant);
+  expr_t add_non_negative_constant(const string& constant);
   //! Adds a NaN constant to DataTree
   expr_t add_nan_constant();
   //! Adds an Inf constant to DataTree
   expr_t add_inf_constant();
   //! Adds a model variable to ModelTree and VariableTable
-  expr_t add_model_variable(const string &name);
+  expr_t add_model_variable(const string& name);
   //! Declares a variable of type new_type OR changes a variable in the equations to type new_type
   //! and removes any error messages that may have been issued in model_errors
-  expr_t declare_or_change_type(SymbolType new_type, const string &name);
+  expr_t declare_or_change_type(SymbolType new_type, const string& name);
   //! Adds an Expression's variable
-  expr_t add_expression_variable(const string &name);
+  expr_t add_expression_variable(const string& name);
   //! Adds a "dsample" statement
-  void dsample(const string &arg1);
+  void dsample(const string& arg1);
   //! Adds a "dsample" statement
-  void dsample(const string &arg1, const string &arg2);
+  void dsample(const string& arg1, const string& arg2);
   //! Writes parameter intitialisation expression
-  void init_param(const string &name, expr_t rhs);
+  void init_param(const string& name, expr_t rhs);
   //! Add a line inside an initval block
-  void init_val(const string &name, expr_t rhs);
+  void init_val(const string& name, expr_t rhs);
   //! Add a line inside an endval block
-  void end_val(EndValLearntInStatement::LearntEndValType type, const string &name, expr_t rhs);
+  void end_val(EndValLearntInStatement::LearntEndValType type, const string& name, expr_t rhs);
   //! Add a line inside a histval block
-  void hist_val(const string &name, const string &lag, expr_t rhs);
+  void hist_val(const string& name, const string& lag, expr_t rhs);
   //! Adds an entry in a homotopy_setup block
   /*! Second argument "val1" can be NULL if no initial value provided */
-  void homotopy_val(const string &name, expr_t val1, expr_t val2);
+  void homotopy_val(const string& name, expr_t val1, expr_t val2);
   //! Writes end of an initval block
   void end_initval(bool all_values_required);
   //! Writes end of an endval block
   void end_endval(bool all_values_required);
   //! Writes end of an endval(learnt_in=…) block
-  void end_endval_learnt_in(const string &learnt_in_period);
+  void end_endval_learnt_in(const string& learnt_in_period);
   //! Writes end of an histval block
   void end_histval(bool all_values_required);
   //! Writes end of an homotopy_setup block
@@ -431,9 +451,9 @@ public:
   //! End epilogue block
   void end_epilogue();
   //! Add epilogue variable
-  void add_epilogue_variable(const string &varname);
+  void add_epilogue_variable(const string& varname);
   //! Add equation in epilogue block
-  void add_epilogue_equal(const string &varname, expr_t expr);
+  void add_epilogue_equal(const string& varname, expr_t expr);
   /* Begin a model or model_replace block, or an expression as an option value
      of some statement.
      Must be followed by a call to reset_data_tree(). */
@@ -447,40 +467,43 @@ public:
   //! Writes a shocks(surprise) statement
   void end_shocks_surprise(bool overwrite);
   //! Writes a shocks(learnt_in=…) block
-  void end_shocks_learnt_in(const string &learnt_in_period, bool overwrite);
+  void end_shocks_learnt_in(const string& learnt_in_period, bool overwrite);
   //! Writes a mshocks(learnt_in=…) block
-  void end_mshocks_learnt_in(const string &learnt_in_period, bool overwrite, bool relative_to_initval);
+  void end_mshocks_learnt_in(const string& learnt_in_period, bool overwrite,
+                             bool relative_to_initval);
   //! Writes a heteroskedastic_shocks statement
   void end_heteroskedastic_shocks(bool overwrite);
   /* Adds a deterministic shock, a path element inside a
      conditional_forecast_paths block, or a surprise shock */
   enum class DetShockType
-    {
-      standard,
-      add, // for “add” in “shocks(learnt_in)”
-      multiply, // for “multiply” in “shocks(learnt_in)”
-      conditional_forecast
-    };
-  void add_det_shock(const string &var, const vector<pair<int, int>> &periods, const vector<expr_t> &values, DetShockType type);
+  {
+    standard,
+    add,      // for “add” in “shocks(learnt_in)”
+    multiply, // for “multiply” in “shocks(learnt_in)”
+    conditional_forecast
+  };
+  void add_det_shock(const string& var, const vector<pair<int, int>>& periods,
+                     const vector<expr_t>& values, DetShockType type);
   //! Adds a heteroskedastic shock (either values or scales)
-  void add_heteroskedastic_shock(const string &var, const vector<pair<int, int>> &periods, const vector<expr_t> &values, bool scales);
+  void add_heteroskedastic_shock(const string& var, const vector<pair<int, int>>& periods,
+                                 const vector<expr_t>& values, bool scales);
   //! Adds a std error shock
-  void add_stderr_shock(const string &var, expr_t value);
+  void add_stderr_shock(const string& var, expr_t value);
   //! Adds a variance shock
-  void add_var_shock(const string &var, expr_t value);
+  void add_var_shock(const string& var, expr_t value);
   //! Adds a covariance shock
-  void add_covar_shock(const string &var1, const string &var2, expr_t value);
+  void add_covar_shock(const string& var1, const string& var2, expr_t value);
   //! Adds a correlated shock
-  void add_correl_shock(const string &var1, const string &var2, expr_t value);
+  void add_correl_shock(const string& var1, const string& var2, expr_t value);
   //! Adds a shock period range
-  void add_period(const string &p1, const string &p2);
+  void add_period(const string& p1, const string& p2);
   //! Adds a shock period
-  void add_period(const string &p1);
+  void add_period(const string& p1);
   //! Adds a deterministic shock value
   void add_value(expr_t value);
   //! Adds a deterministic shock value
   /*! \param v a string containing a (possibly negative) numeric constant */
-  void add_value(const string &v);
+  void add_value(const string& v);
   //! Write a steady command
   void steady();
   //! Sets an option to a numerical value
@@ -530,7 +553,7 @@ public:
   //! Adds a declaration for a user-defined external function
   void external_function();
   //! Sets an external_function option to a string value
-  void external_function_option(const string &name_option, const string &opt);
+  void external_function_option(const string& name_option, const string& opt);
   //! Add a line in an estimated params block
   void add_estimated_params_element();
   //! Writes osr params bounds command
@@ -538,25 +561,27 @@ public:
   //! Add a line in an osr params block
   void add_osr_params_element();
   //! Sets the frequency of the data
-  void set_time(const string &arg);
+  void set_time(const string& arg);
   //! Estimation Data
   void estimation_data();
   //! Sets the prior for a parameter
   void set_prior(string name, string subsample_name);
   //! Sets the joint prior for a set of parameters
-  void set_joint_prior(const vector<string> &symbol_vec);
+  void set_joint_prior(const vector<string>& symbol_vec);
   //! Adds a parameters to the list of joint parameters
   void add_joint_parameter(string name);
   //! Adds the variance option to its temporary holding place
   void set_prior_variance(expr_t variance = nullptr);
   //! Copies the prior from_name to_name
-  void copy_prior(string to_declaration_type, string to_name1, string to_name2, string to_subsample_name,
-                  string from_declaration_type, string from_name1, string from_name2, string from_subsample_name);
+  void copy_prior(string to_declaration_type, string to_name1, string to_name2,
+                  string to_subsample_name, string from_declaration_type, string from_name1,
+                  string from_name2, string from_subsample_name);
   //! Sets the options for a parameter
   void set_options(string name, string subsample_name);
   //! Copies the options from_name to_name
-  void copy_options(string to_declaration_type, string to_name1, string to_name2, string to_subsample_name,
-                    string from_declaration_type, string from_name1, string from_name2, string from_subsample_name);
+  void copy_options(string to_declaration_type, string to_name1, string to_name2,
+                    string to_subsample_name, string from_declaration_type, string from_name1,
+                    string from_name2, string from_subsample_name);
   //! Sets the prior for estimated std dev
   void set_std_prior(string name, string subsample_name);
   //! Sets the options for estimated std dev
@@ -572,34 +597,34 @@ public:
   //! Check that no observed variable has yet be defined
   void check_varobs();
   //! Add a new observed variable
-  void add_varobs(const string &name);
+  void add_varobs(const string& name);
   //! Check that no observed exogenous variable has yet be defined
   void check_varexobs();
   //! Add a new observed exogenous variable
-  void add_varexobs(const string &name);
+  void add_varexobs(const string& name);
   //! Svar_Identification Statement
   void begin_svar_identification();
   void end_svar_identification();
   //! Svar_Identification Statement: match list of restrictions and equation number with lag
-  void combine_lag_and_restriction(const string &lag);
+  void combine_lag_and_restriction(const string& lag);
   //! Svar_Identification Statement: match list of restrictions with equation number
-  void add_restriction_in_equation(const string &equation, const vector<string> &symbol_list);
+  void add_restriction_in_equation(const string& equation, const vector<string>& symbol_list);
   //! Svar_Identification Statement: add exclusions of constants
   void add_constants_exclusion();
   //! Svar_Identification Statement: add equation number for following restriction equations
-  void add_restriction_equation_nbr(const string &eq_nbr);
+  void add_restriction_equation_nbr(const string& eq_nbr);
   //! Svar_Identification Statement: record presence of equal sign
   void add_restriction_equal();
   //! Svar_Idenditification Statement: add coefficient of a linear restriction (positive value)
-  void add_positive_restriction_element(expr_t value, const string &variable, const string &lag);
+  void add_positive_restriction_element(expr_t value, const string& variable, const string& lag);
   //! Svar_Idenditification Statement: add unit coefficient of a linear restriction
-  void add_positive_restriction_element(const string &variable, const string &lag);
+  void add_positive_restriction_element(const string& variable, const string& lag);
   //! Svar_Idenditification Statement: add coefficient of a linear restriction (negative value)
-  void add_negative_restriction_element(expr_t value, const string &variable, const string &lag);
+  void add_negative_restriction_element(expr_t value, const string& variable, const string& lag);
   //! Svar_Idenditification Statement: add negative unit coefficient of a linear restriction
-  void add_negative_restriction_element(const string &variable, const string &lag);
+  void add_negative_restriction_element(const string& variable, const string& lag);
   //! Svar_Idenditification Statement: add restriction element
-  void add_restriction_element(expr_t value, const string &variable, const string &lag);
+  void add_restriction_element(expr_t value, const string& variable, const string& lag);
   //! Svar_Identification Statement: check that restriction is homogenous
   void check_restriction_expression_constant(expr_t value);
   //! Svar_Identification Statement: restriction of form upper cholesky
@@ -611,7 +636,7 @@ public:
   //! generate_irfs Block
   void end_generate_irfs();
   void add_generate_irfs_element(string name);
-  void add_generate_irfs_exog_element(string exo, const string &value);
+  void add_generate_irfs_exog_element(string exo, const string& value);
   //! Forecast Statement
   void forecast(vector<string> symbol_list);
   void set_trends();
@@ -620,16 +645,16 @@ public:
   //! filter_initial_state block
   void set_filter_initial_state();
   //! element for filter_initial_state block
-  void set_filter_initial_state_element(const string &name, const string &lag, expr_t rhs);
+  void set_filter_initial_state_element(const string& name, const string& lag, expr_t rhs);
   void set_unit_root_vars();
   void optim_weights();
   void set_optim_weights(string name, expr_t value);
-  void set_optim_weights(const string &name1, const string &name2, expr_t value);
+  void set_optim_weights(const string& name1, const string& name2, expr_t value);
   void set_osr_params(vector<string> symbol_list);
   void run_osr(vector<string> symbol_list);
   void run_dynasave(string filename, vector<string> symbol_list);
   void run_dynatype(string filename, vector<string> symbol_list);
-  void run_load_params_and_steady_state(const string &filename);
+  void run_load_params_and_steady_state(const string& filename);
   void run_save_params_and_steady_state(string filename);
   void run_identification();
   void add_mc_filename(string filename, string prior = "1");
@@ -643,15 +668,15 @@ public:
   //! Ramsey constraints statement
   void add_ramsey_constraints_statement();
   //! Ramsey less constraint
-  void ramsey_constraint_add_less(const string &name, const expr_t rhs);
+  void ramsey_constraint_add_less(const string& name, const expr_t rhs);
   //! Ramsey greater constraint
-  void ramsey_constraint_add_greater(const string &name, const expr_t rhs);
+  void ramsey_constraint_add_greater(const string& name, const expr_t rhs);
   //! Ramsey less or equal constraint
-  void ramsey_constraint_add_less_equal(const string &name, const expr_t rhs);
+  void ramsey_constraint_add_less_equal(const string& name, const expr_t rhs);
   //! Ramsey greater or equal constraint
-  void ramsey_constraint_add_greater_equal(const string &name, const expr_t rhs);
+  void ramsey_constraint_add_greater_equal(const string& name, const expr_t rhs);
   //! Ramsey constraint helper function
-  void add_ramsey_constraint(const string &name, BinaryOpcode op_code, const expr_t rhs);
+  void add_ramsey_constraint(const string& name, BinaryOpcode op_code, const expr_t rhs);
   //! Ramsey policy statement
   void ramsey_policy(vector<string> symbol_list);
   //! Evaluate Planner Objective
@@ -675,11 +700,11 @@ public:
   //! Adds a write_latex_steady_state_model statement
   void write_latex_steady_state_model();
   //! BVAR marginal density
-  void bvar_density(const string &maxnlags);
+  void bvar_density(const string& maxnlags);
   //! BVAR forecast
-  void bvar_forecast(const string &nlags);
+  void bvar_forecast(const string& nlags);
   //! BVAR IRF
-  void bvar_irf(const string &nirf, string identificationname);
+  void bvar_irf(const string& nirf, string identificationname);
   //! SBVAR statement
   void sbvar();
   //! Markov Switching Statement: Estimation
@@ -715,7 +740,7 @@ public:
   //! Conditional forecast paths block
   void conditional_forecast_paths();
   //! Plot conditional forecast statement
-  void plot_conditional_forecast(const optional<string> &periods, vector<string> symbol_list);
+  void plot_conditional_forecast(const optional<string>& periods, vector<string> symbol_list);
   //! Smoother on calibrated models
   void calib_smoother(vector<string> symbol_list);
   //! Extended path
@@ -749,13 +774,13 @@ public:
   //! Writes token "arg1^arg2" to model tree
   expr_t add_power(expr_t arg1, expr_t arg2);
   //! Writes token "E(arg1)(arg2)" to model tree
-  expr_t add_expectation(const string &arg1, expr_t arg2);
+  expr_t add_expectation(const string& arg1, expr_t arg2);
   //! Writes token "VAR_EXPECTATION(model_name)" to model tree
-  expr_t add_var_expectation(const string &model_name);
+  expr_t add_var_expectation(const string& model_name);
   //! Writes token "PAC_EXPECTATION(model_name, discount, growth)" to model tree
-  expr_t add_pac_expectation(const string &model_name);
+  expr_t add_pac_expectation(const string& model_name);
   //! Adds a pac_target_nonstationary(model_name, discount, growth) node to model tree
-  expr_t add_pac_target_nonstationary(const string &model_name);
+  expr_t add_pac_target_nonstationary(const string& model_name);
   //! Creates pac_model statement
   void begin_pac_model();
   void pac_model();
@@ -768,8 +793,8 @@ public:
   //! Writes token "diff(arg1)" to model tree
   expr_t add_diff(expr_t arg1);
   //! Writes token "adl(arg1, lag)" to model tree
-  expr_t add_adl(expr_t arg1, const string &name, const string &lag);
-  expr_t add_adl(expr_t arg1, const string &name, const vector<int> &lags);
+  expr_t add_adl(expr_t arg1, const string& name, const string& lag);
+  expr_t add_adl(expr_t arg1, const string& name, const vector<int>& lags);
   //! Writes token "exp(arg1)" to model tree
   expr_t add_exp(expr_t arg1);
   //! Writes token "log(arg1)" to model tree
@@ -833,32 +858,39 @@ public:
   //! Test to see if model/external function has exactly one integer argument
   optional<int> is_there_one_integer_argument() const;
   //! Adds an external function call node
-  expr_t add_model_var_or_external_function(const string &function_name, bool in_model_block);
+  expr_t add_model_var_or_external_function(const string& function_name, bool in_model_block);
   //! Adds a native statement
   void add_native(string s);
-  //! Adds a native statement, first removing the set of characters passed in token (and everything after)
+  //! Adds a native statement, first removing the set of characters passed in token (and everything
+  //! after)
   void add_native_remove_charset(string_view str, string_view token);
   //! Adds a verbatim statement
   void add_verbatim(string s);
-  //! Adds a verbatim statement, first removing the set of characters passed in token (and everything after)
+  //! Adds a verbatim statement, first removing the set of characters passed in token (and
+  //! everything after)
   void add_verbatim_remove_charset(string_view str, string_view token);
   //! Resets data_tree and model_tree pointers to default (i.e. mod_file->expressions_tree)
   void reset_data_tree();
   //! Begin a steady_state_model block
   void begin_steady_state_model();
   //! Add an assignment equation in steady_state_model block
-  void add_steady_state_model_equal(const string &varname, expr_t expr);
+  void add_steady_state_model_equal(const string& varname, expr_t expr);
   //! Add a multiple assignment equation in steady_state_model block
-  void add_steady_state_model_equal_multiple(const vector<string> &symbol_list, expr_t expr);
+  void add_steady_state_model_equal_multiple(const vector<string>& symbol_list, expr_t expr);
   //! Ends declaration of trend variable
-  void end_trend_var(bool log_trend, expr_t growth_factor, const vector<pair<string, string>> &symbol_list);
+  void end_trend_var(bool log_trend, expr_t growth_factor,
+                     const vector<pair<string, string>>& symbol_list);
   //! Handles a “var(deflator=…)”, “var(log, deflator=…)” or “var(log_deflator=…)” statement
-  void end_nonstationary_var(bool log_deflator, expr_t deflator, const vector<tuple<string, string, vector<pair<string, string>>>> &symbol_list, bool log_option);
+  void end_nonstationary_var(
+      bool log_deflator, expr_t deflator,
+      const vector<tuple<string, string, vector<pair<string, string>>>>& symbol_list,
+      bool log_option);
   //! Add a graph format to the list of formats requested
   void add_graph_format(string name);
   //! Add the graph_format option to the OptionsList structure
   void process_graph_format_option();
-  //! Add the graph_format option to the initial_condition_decomp substructure of the OptionsList structure
+  //! Add the graph_format option to the initial_condition_decomp substructure of the OptionsList
+  //! structure
   void initial_condition_decomp_process_graph_format_option();
   //! Add the graph_format option to the plot_shock_decomp substructure of the OptionsList structure
   void plot_shock_decomp_process_graph_format_option();
@@ -867,11 +899,13 @@ public:
   //! Processing the parallel_local_files option
   void add_parallel_local_file(string filename);
   //! Add an item of a moment_calibration statement
-  void add_moment_calibration_item(const string &endo1, const string &endo2, string lags, const pair<expr_t, expr_t> &range);
+  void add_moment_calibration_item(const string& endo1, const string& endo2, string lags,
+                                   const pair<expr_t, expr_t>& range);
   //! End a moment_calibration statement
   void end_moment_calibration();
   //! Add an item of an irf_calibration statement
-  void add_irf_calibration_item(const string &endo, string periods, const string &exo, const pair<expr_t, expr_t> &range);
+  void add_irf_calibration_item(const string& endo, string periods, const string& exo,
+                                const pair<expr_t, expr_t>& range);
   //! End a moment_calibration statement
   void end_irf_calibration();
   //! Add a shock to a group
@@ -881,7 +915,7 @@ public:
   //! End shock groups declaration
   void end_shock_groups(string name);
   //! Add a set of init2shocks
-  void add_init2shocks(const string &endo_name, const string &exo_name);
+  void add_init2shocks(const string& endo_name, const string& exo_name);
   //! End init2shocks declaration
   void end_init2shocks(string name);
   void smoother2histval();
@@ -898,17 +932,18 @@ public:
   //! Start parsing a matched_moments block
   void begin_matched_moments();
   //! Add a matched_moments block
-  void end_matched_moments(const vector<expr_t> &moments);
+  void end_matched_moments(const vector<expr_t>& moments);
   //! Start parsing an occbin_constraints block
   void begin_occbin_constraints();
   //! Add an occbin_constraints block
-  void end_occbin_constraints(vector<tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>> constraints);
+  void end_occbin_constraints(
+      vector<tuple<string, BinaryOpNode*, BinaryOpNode*, expr_t, expr_t>> constraints);
   // Process a model_remove statement
-  void model_remove(const vector<map<string, string>> &listed_eqs_by_tags);
+  void model_remove(const vector<map<string, string>>& listed_eqs_by_tags);
   // Begin a model_replace statement
-  void begin_model_replace(const vector<map<string, string>> &listed_eqs_by_tags);
+  void begin_model_replace(const vector<map<string, string>>& listed_eqs_by_tags);
   // Add a var_remove statement
-  void var_remove(const vector<string> &symbol_list);
+  void var_remove(const vector<string>& symbol_list);
   void begin_pac_target_info(string name);
   void end_pac_target_info();
   void set_pac_target_info_target(expr_t target);
@@ -920,9 +955,10 @@ public:
   // Add a resid statement
   void resid();
   // Returns true iff the string is a legal symbol identifier (see NAME token in lexer)
-  static bool isSymbolIdentifier(const string &str);
+  static bool isSymbolIdentifier(const string& str);
   // Given an Occbin regime name, returns the corresponding auxiliary parameter
-  static string buildOccbinBindParamName(const string &regime)
+  static string
+  buildOccbinBindParamName(const string& regime)
   {
     return "occbin_" + regime + "_bind";
   }

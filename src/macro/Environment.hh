@@ -23,44 +23,51 @@
 #include "ForwardDeclarationsAndEnums.hh"
 
 #include <map>
-#include <vector>
 #include <optional>
+#include <vector>
 
 namespace macro
 {
-  class Environment
+class Environment
+{
+private:
+  const Environment* parent {nullptr};
+  map<string, ExpressionPtr> variables;
+  map<string, tuple<FunctionPtr, ExpressionPtr>> functions;
+
+public:
+  Environment() = default;
+  Environment(const Environment* parent_arg) : parent {parent_arg}
   {
-  private:
-    const Environment *parent{nullptr};
-    map<string, ExpressionPtr> variables;
-    map<string, tuple<FunctionPtr, ExpressionPtr>> functions;
-  public:
-    Environment() = default;
-    Environment(const Environment *parent_arg) : parent{parent_arg} { }
-    void define(VariablePtr var, ExpressionPtr value);
-    void define(FunctionPtr func, ExpressionPtr value);
-    ExpressionPtr getVariable(const string &name) const;
-    tuple<FunctionPtr, ExpressionPtr> getFunction(const string &name) const;
-    codes::BaseType getType(const string &name) const;
-    bool isVariableDefined(const string &name) const noexcept;
-    bool isFunctionDefined(const string &name) const noexcept;
-    bool isSymbolDefined(const string &name) const noexcept
-    {
-      return isVariableDefined(name) || isFunctionDefined(name);
-    }
-    void print(ostream &output, const vector<string> &vars, const optional<int> &line = nullopt, bool save = false) const;
-    void printVariable(ostream &output, const string &name, const optional<int> &line, bool save) const;
-    void printFunction(ostream &output, const tuple<FunctionPtr, ExpressionPtr> &function, const optional<int> &line, bool save) const;
-    size_t
-    size() const noexcept
-    {
-      return variables.size() + functions.size();
-    }
-    const Environment *
-    getGlobalEnv() const noexcept
-    {
-      return parent == nullptr ? this : parent->getGlobalEnv();
-    }
-  };
+  }
+  void define(VariablePtr var, ExpressionPtr value);
+  void define(FunctionPtr func, ExpressionPtr value);
+  ExpressionPtr getVariable(const string& name) const;
+  tuple<FunctionPtr, ExpressionPtr> getFunction(const string& name) const;
+  codes::BaseType getType(const string& name) const;
+  bool isVariableDefined(const string& name) const noexcept;
+  bool isFunctionDefined(const string& name) const noexcept;
+  bool
+  isSymbolDefined(const string& name) const noexcept
+  {
+    return isVariableDefined(name) || isFunctionDefined(name);
+  }
+  void print(ostream& output, const vector<string>& vars, const optional<int>& line = nullopt,
+             bool save = false) const;
+  void printVariable(ostream& output, const string& name, const optional<int>& line,
+                     bool save) const;
+  void printFunction(ostream& output, const tuple<FunctionPtr, ExpressionPtr>& function,
+                     const optional<int>& line, bool save) const;
+  size_t
+  size() const noexcept
+  {
+    return variables.size() + functions.size();
+  }
+  const Environment*
+  getGlobalEnv() const noexcept
+  {
+    return parent == nullptr ? this : parent->getGlobalEnv();
+  }
+};
 }
 #endif

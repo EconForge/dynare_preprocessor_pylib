@@ -20,9 +20,9 @@
 #ifndef _WARNINGCONSOLIDATION_HH
 #define _WARNINGCONSOLIDATION_HH
 
+#include "DynareBisonLocation.hh"
 #include <sstream>
 #include <string>
-#include "DynareBisonLocation.hh"
 
 using namespace std;
 
@@ -34,28 +34,28 @@ private:
   bool no_warn;
 
 public:
-  explicit WarningConsolidation(bool no_warn_arg) : no_warn{no_warn_arg}
+  explicit WarningConsolidation(bool no_warn_arg) : no_warn {no_warn_arg}
   {
-  };
+  }
 
   //! Add A Warning to the StringStream
-  friend WarningConsolidation &operator<<(WarningConsolidation &wcc, const string &warning);
-  friend WarningConsolidation &operator<<(WarningConsolidation &wcc, const Dynare::location &loc);
-  friend WarningConsolidation &operator<<(WarningConsolidation &wcc, ostream &(*pf)(ostream &));
+  friend WarningConsolidation& operator<<(WarningConsolidation& wcc, const string& warning);
+  friend WarningConsolidation& operator<<(WarningConsolidation& wcc, const Dynare::location& loc);
+  friend WarningConsolidation& operator<<(WarningConsolidation& wcc, ostream& (*pf)(ostream&));
 
   void
-  addWarning(const string &w)
+  addWarning(const string& w)
   {
     warnings << w;
   };
   void
-  addWarning(ostream &(*pf)(ostream &))
+  addWarning(ostream& (*pf)(ostream&))
   {
     warnings << pf;
   };
 
   //! Write Warnings to m file
-  void writeOutput(ostream &output) const;
+  void writeOutput(ostream& output) const;
   //! Count warnings
   /*! This is done in a very lousy way, by counting newlines in the
     stringstream... */

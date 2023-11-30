@@ -25,16 +25,16 @@
 using namespace macro;
 
 void
-Driver::parse(const string &file_arg, const istream &modfile,
-              bool debug, const vector<pair<string, string>> &defines,
-              Environment &env, vector<filesystem::path> &paths, ostream &output)
+Driver::parse(const string& file_arg, const istream& modfile, bool debug,
+              const vector<pair<string, string>>& defines, Environment& env,
+              vector<filesystem::path>& paths, ostream& output)
 {
   file = file_arg;
 
   if (!defines.empty())
     {
       stringstream command_line_defines_with_endl;
-      for (const auto & [var, val] : defines)
+      for (const auto& [var, val] : defines)
         command_line_defines_with_endl << "@#define " << var << " = " << val << endl;
       Driver m;
       istream is(command_line_defines_with_endl.rdbuf());
@@ -54,8 +54,7 @@ Driver::parse(const string &file_arg, const istream &modfile,
   parser.parse();
 
   // Interpret parsed statements
-  for (bool printLine{true};
-       const auto &statement : statements)
+  for (bool printLine {true}; const auto& statement : statements)
     {
       if (exchange(printLine, false))
         statement->printLineInfo(output);
@@ -64,7 +63,7 @@ Driver::parse(const string &file_arg, const istream &modfile,
 }
 
 void
-Driver::error(const Tokenizer::parser::location_type &location, const string &message) const
+Driver::error(const Tokenizer::parser::location_type& location, const string& message) const
 {
   cerr << "ERROR in macro-processor: " << location << ": " << message << endl;
   exit(EXIT_FAILURE);

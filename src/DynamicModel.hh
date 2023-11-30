@@ -20,11 +20,11 @@
 #ifndef _DYNAMICMODEL_HH
 #define _DYNAMICMODEL_HH
 
-#include <fstream>
 #include <filesystem>
+#include <fstream>
 
-#include "StaticModel.hh"
 #include "Bytecode.hh"
+#include "StaticModel.hh"
 
 using namespace std;
 
@@ -34,23 +34,24 @@ class DynamicModel : public ModelTree
   friend class StaticModel; // For reading static_mfs from converting constructor
 public:
   //! A reference to the trend component model table
-  TrendComponentModelTable &trend_component_model_table;
+  TrendComponentModelTable& trend_component_model_table;
   //! A reference to the VAR model table
-  VarModelTable &var_model_table;
+  VarModelTable& var_model_table;
   /* Used in the balanced growth test, for determining whether the
      cross-derivative of a given equation, w.r.t. an endogenous and a trend
      variable is zero. Controlled by option “balanced_growth_test_tol” of the
      “model” block. The default should not be too small (see dynare#1389). */
-  double balanced_growth_test_tol{1e-6};
+  double balanced_growth_test_tol {1e-6};
+
 private:
   /* Used in the balanced growth test, for skipping equations where the test
      cannot be performed (i.e. when LHS=RHS at the initial values). Should not
      be too large, otherwise the test becomes less powerful. */
-  constexpr static double zero_band{1e-8};
+  constexpr static double zero_band {1e-8};
 
   //! Stores equations declared as [static]
   /*! They will be used in the conversion to StaticModel to replace equations marked as [dynamic] */
-  vector<BinaryOpNode *> static_only_equations;
+  vector<BinaryOpNode*> static_only_equations;
 
   //! Stores line numbers of equations declared as [static]
   vector<optional<int>> static_only_equations_lineno;
@@ -73,24 +74,25 @@ private:
 
   //! Maximum lag and lead over all types of variables (positive values)
   /*! Set by computeDerivIDs() */
-  int max_lag{0}, max_lead{0};
+  int max_lag {0}, max_lead {0};
   //! Maximum lag and lead over endogenous variables (positive values)
   /*! Set by computeDerivIDs() */
-  int max_endo_lag{0}, max_endo_lead{0};
+  int max_endo_lag {0}, max_endo_lead {0};
   //! Maximum lag and lead over exogenous variables (positive values)
   /*! Set by computeDerivIDs() */
-  int max_exo_lag{0}, max_exo_lead{0};
+  int max_exo_lag {0}, max_exo_lead {0};
   //! Maximum lag and lead over deterministic exogenous variables (positive values)
   /*! Set by computeDerivIDs() */
-  int max_exo_det_lag{0}, max_exo_det_lead{0};
+  int max_exo_det_lag {0}, max_exo_det_lead {0};
   //! Maximum lag and lead over all types of variables (positive values) of original model
-  int max_lag_orig{0}, max_lead_orig{0}, max_lag_with_diffs_expanded_orig{0};
+  int max_lag_orig {0}, max_lead_orig {0}, max_lag_with_diffs_expanded_orig {0};
   //! Maximum lag and lead over endogenous variables (positive values) of original model
-  int max_endo_lag_orig{0}, max_endo_lead_orig{0};
+  int max_endo_lag_orig {0}, max_endo_lead_orig {0};
   //! Maximum lag and lead over exogenous variables (positive values) of original model
-  int max_exo_lag_orig{0}, max_exo_lead_orig{0};
-  //! Maximum lag and lead over deterministic exogenous variables (positive values) of original model
-  int max_exo_det_lag_orig{0}, max_exo_det_lead_orig{0};
+  int max_exo_lag_orig {0}, max_exo_lead_orig {0};
+  //! Maximum lag and lead over deterministic exogenous variables (positive values) of original
+  //! model
+  int max_exo_det_lag_orig {0}, max_exo_det_lead_orig {0};
 
   // Cross reference information: eq → set of (symb_id, lag) for each symbol type
   map<int, ExprNode::EquationInfo> xrefs;
@@ -111,30 +113,30 @@ private:
   map<string, set<int>> var_expectation_functions_to_write;
 
   // Value of the “mfs” option of “model” block (or ”model_options” command)
-  int mfs{1};
+  int mfs {1};
 
   /* Value of the “static_mfs” option of “model” block (or the “model_options”
      command).
      Only used when converting to StaticModel class. */
-  int static_mfs{0};
+  int static_mfs {0};
 
   // Writes dynamic model file (MATLAB/Octave version, legacy representation)
-  void writeDynamicMFile(const string &basename) const;
+  void writeDynamicMFile(const string& basename) const;
   //! Writes the code of the block-decomposed model in virtual machine bytecode
-  void writeDynamicBlockBytecode(const string &basename) const;
+  void writeDynamicBlockBytecode(const string& basename) const;
   //! Writes the code of the model in virtual machine bytecode
-  void writeDynamicBytecode(const string &basename) const;
+  void writeDynamicBytecode(const string& basename) const;
 
   // Write the block structure of the model in the driver file
-  void writeBlockDriverOutput(ostream &output) const;
+  void writeBlockDriverOutput(ostream& output) const;
 
   // Used by determineBlockDerivativesType()
   enum class BlockDerivativeType
-    {
-     standard,
-     chainRule,
-     normalizedChainRule
-    };
+  {
+    standard,
+    chainRule,
+    normalizedChainRule
+  };
 
   /* For each tuple (lag, eq, var) within the given block, determine the type
      of the derivative to be computed. Indices are within the block (i.e.
@@ -143,7 +145,7 @@ private:
 
   void computeChainRuleJacobian() override;
 
-  string reform(const string &name) const;
+  string reform(const string& name) const;
 
   SymbolType getTypeByDerivID(int deriv_id) const noexcept(false) override;
   int getLagByDerivID(int deriv_id) const noexcept(false) override;
@@ -153,10 +155,11 @@ private:
   //! Compute the column indices of the dynamic Jacobian
   void computeDynJacobianCols();
   //! Computes derivatives of the Jacobian w.r. to trend vars and tests that they are equal to zero
-  void testTrendDerivativesEqualToZero(const eval_context_t &eval_context);
+  void testTrendDerivativesEqualToZero(const eval_context_t& eval_context);
 
   //! Allocates the derivation IDs for all dynamic variables of the model
-  /*! Also computes max_{endo,exo}_{lead_lag}, and initializes dynJacobianColsNbr to the number of dynamic endos */
+  /*! Also computes max_{endo,exo}_{lead_lag}, and initializes dynJacobianColsNbr to the number of
+   * dynamic endos */
   void computeDerivIDs();
 
   /* Compute the Jacobian column indices in the block decomposition case
@@ -167,37 +170,39 @@ private:
 
   //! Factorized code for substitutions of leads/lags
   /*! \param[in] type determines which type of variables is concerned
-    \param[in] deterministic_model whether we are in a deterministic model (only for exogenous leads/lags)
-    \param[in] subset variables to which to apply the transformation (only for diff of forward vars)
+    \param[in] deterministic_model whether we are in a deterministic model (only for exogenous
+    leads/lags) \param[in] subset variables to which to apply the transformation (only for diff of
+    forward vars)
   */
-  void substituteLeadLagInternal(AuxVarType type, bool deterministic_model, const vector<string> &subset);
+  void substituteLeadLagInternal(AuxVarType type, bool deterministic_model,
+                                 const vector<string>& subset);
 
   //! Help computeXrefs to compute the reverse references (i.e. param->eqs, endo->eqs, etc)
-  void computeRevXref(map<pair<int, int>, set<int>> &xrefset, const set<pair<int, int>> &eiref, int eqn);
+  void computeRevXref(map<pair<int, int>, set<int>>& xrefset, const set<pair<int, int>>& eiref,
+                      int eqn);
 
   //! Write reverse cross references
-  void writeRevXrefs(ostream &output, const map<pair<int, int>, set<int>> &xrefmap, const string &type) const;
+  void writeRevXrefs(ostream& output, const map<pair<int, int>, set<int>>& xrefmap,
+                     const string& type) const;
 
   /* Writes MATLAB/Octave wrapper function for computing residuals and
      derivatives at the same time (legacy representation) */
-  void writeDynamicMWrapperFunction(const string &name, const string &ending) const;
+  void writeDynamicMWrapperFunction(const string& name, const string& ending) const;
   /* Helper for writing MATLAB/Octave functions for residuals/derivatives and
      their temporary terms (legacy representation) */
-  void writeDynamicMFileHelper(const string &basename,
-                               const string &name, const string &retvalname,
-                               const string &name_tt, size_t ttlen,
-                               const string &previous_tt_name,
-                               const ostringstream &init_s, const ostringstream &end_s,
-                               const ostringstream &s, const ostringstream &s_tt) const;
+  void writeDynamicMFileHelper(const string& basename, const string& name, const string& retvalname,
+                               const string& name_tt, size_t ttlen, const string& previous_tt_name,
+                               const ostringstream& init_s, const ostringstream& end_s,
+                               const ostringstream& s, const ostringstream& s_tt) const;
 
   /* Create the compatibility dynamic.m file for MATLAB/Octave not yet using
      the temporary terms array interface (legacy representation) */
-  void writeDynamicMCompatFile(const string &basename) const;
+  void writeDynamicMCompatFile(const string& basename) const;
 
   //! Internal helper for the copy constructor and assignment operator
   /*! Copies all the structures that contain ExprNode*, by the converting the
       pointers into their equivalent in the new tree */
-  void copyHelper(const DynamicModel &m);
+  void copyHelper(const DynamicModel& m);
 
   /* Handles parsing of argument passed to exclude_eqs/include_eqs.
 
@@ -221,7 +226,8 @@ private:
     Returns a set of pairs (tag name, tag value) corresponding to the set of
     equations to be included or excluded.
    */
-  static vector<map<string, string>> parseIncludeExcludeEquations(const string &inc_exc_option_value, bool exclude_eqs);
+  static vector<map<string, string>>
+  parseIncludeExcludeEquations(const string& inc_exc_option_value, bool exclude_eqs);
 
   /* Helper for the removeEquations() method.
      listed_eqs_by_tag describes a list of equations to remove (identified by
@@ -240,12 +246,11 @@ private:
 
      Returns a list of excluded variables (empty if
      excluded_vars_change_type=false) */
-  vector<int> removeEquationsHelper(set<map<string, string>> &listed_eqs_by_tag,
-                                    bool exclude_eqs, bool excluded_vars_change_type,
-                                    vector<BinaryOpNode *> &all_equations,
-                                    vector<optional<int>> &all_equations_lineno,
-                                    EquationTags &all_equation_tags,
-                                    bool static_equations) const;
+  vector<int> removeEquationsHelper(set<map<string, string>>& listed_eqs_by_tag, bool exclude_eqs,
+                                    bool excluded_vars_change_type,
+                                    vector<BinaryOpNode*>& all_equations,
+                                    vector<optional<int>>& all_equations_lineno,
+                                    EquationTags& all_equation_tags, bool static_equations) const;
 
   //! Compute autoregressive matrices of trend component models
   /* The algorithm uses matching rules over expression trees. It cannot handle
@@ -254,7 +259,8 @@ private:
 
   //! Compute error component matrices of trend component_models
   /*! Returns a pair (A0r, A0starr) */
-  pair<map<string, map<tuple<int, int>, expr_t>>, map<string, map<tuple<int, int>, expr_t>>> computeErrorComponentMatrices(const ExprNode::subst_table_t &diff_subst_table) const;
+  pair<map<string, map<tuple<int, int>, expr_t>>, map<string, map<tuple<int, int>, expr_t>>>
+  computeErrorComponentMatrices(const ExprNode::subst_table_t& diff_subst_table) const;
 
   /* For a VAR model, given the symbol ID of a LHS variable, and a (negative)
      lag, returns all the corresponding deriv_ids (by properly dealing with two
@@ -267,7 +273,7 @@ private:
   int
   getBlockJacobianEndoCol(int blk, int var, int lag) const override
   {
-    return blocks_jacob_cols_endo[blk].at({ var, lag });
+    return blocks_jacob_cols_endo[blk].at({var, lag});
   }
 
 protected:
@@ -278,60 +284,60 @@ protected:
   }
 
 public:
-  DynamicModel(SymbolTable &symbol_table_arg,
-               NumericalConstants &num_constants_arg,
-               ExternalFunctionsTable &external_functions_table_arg,
-               TrendComponentModelTable &trend_component_model_table_arg,
-               VarModelTable &var_model_table_arg);
+  DynamicModel(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
+               ExternalFunctionsTable& external_functions_table_arg,
+               TrendComponentModelTable& trend_component_model_table_arg,
+               VarModelTable& var_model_table_arg);
 
-  DynamicModel(const DynamicModel &m);
-  DynamicModel &operator=(const DynamicModel &m);
+  DynamicModel(const DynamicModel& m);
+  DynamicModel& operator=(const DynamicModel& m);
 
   //! Compute cross references
   void computeXrefs();
 
   //! Write cross references
-  void writeXrefs(ostream &output) const;
+  void writeXrefs(ostream& output) const;
 
   //! Execute computations (variable sorting + derivation + block decomposition)
   /*!
-    \param derivsOrder order of derivatives w.r. to exo, exo_det and endo should be computed (implies jacobianExo = true when order >= 2)
-    \param paramsDerivsOrder order of derivatives w.r. to a pair (endo/exo/exo_det, parameter) to be computed (>0 implies jacobianExo = true)
-    \param eval_context evaluation context for normalization
-    \param no_tmp_terms if true, no temporary terms will be computed in the dynamic files
+    \param derivsOrder order of derivatives w.r. to exo, exo_det and endo should be computed
+    (implies jacobianExo = true when order >= 2) \param paramsDerivsOrder order of derivatives w.r.
+    to a pair (endo/exo/exo_det, parameter) to be computed (>0 implies jacobianExo = true) \param
+    eval_context evaluation context for normalization \param no_tmp_terms if true, no temporary
+    terms will be computed in the dynamic files
   */
-  void computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t &eval_context,
+  void computingPass(int derivsOrder, int paramsDerivsOrder, const eval_context_t& eval_context,
                      bool no_tmp_terms, bool block, bool use_dll);
   //! Writes information about the dynamic model to the driver file
-  void writeDriverOutput(ostream &output, bool compute_xrefs) const;
+  void writeDriverOutput(ostream& output, bool compute_xrefs) const;
 
   //! Write JSON AST
-  void writeJsonAST(ostream &output) const;
+  void writeJsonAST(ostream& output) const;
 
   //! Write JSON variable mapping
-  void writeJsonVariableMapping(ostream &output) const;
+  void writeJsonVariableMapping(ostream& output) const;
 
   //! Write JSON Output
-  void writeJsonOutput(ostream &output) const;
+  void writeJsonOutput(ostream& output) const;
 
   //! Write JSON Output representation of original dynamic model
-  void writeJsonOriginalModelOutput(ostream &output) const;
+  void writeJsonOriginalModelOutput(ostream& output) const;
 
   //! Write JSON Output representation of model info (useful stuff from M_)
-  void writeJsonDynamicModelInfo(ostream &output) const;
+  void writeJsonDynamicModelInfo(ostream& output) const;
 
   //! Write JSON Output representation of dynamic model after computing pass
-  void writeJsonComputingPassOutput(ostream &output, bool writeDetails) const;
+  void writeJsonComputingPassOutput(ostream& output, bool writeDetails) const;
 
   //! Write JSON params derivatives
-  void writeJsonParamsDerivatives(ostream &output, bool writeDetails) const;
+  void writeJsonParamsDerivatives(ostream& output, bool writeDetails) const;
 
   //! Write cross reference output if the xref maps have been filed
-  void writeJsonXrefs(ostream &output) const;
-  void writeJsonXrefsHelper(ostream &output, const map<pair<int, int>, set<int>> &xrefmap) const;
+  void writeJsonXrefs(ostream& output) const;
+  void writeJsonXrefsHelper(ostream& output, const map<pair<int, int>, set<int>>& xrefmap) const;
 
   //! Print equations that have non-zero second derivatives
-  void printNonZeroHessianEquations(ostream &output) const;
+  void printNonZeroHessianEquations(ostream& output) const;
 
   //! Tells whether Hessian has been computed
   /*! This is needed to know whether no non-zero equation in Hessian means a
@@ -357,7 +363,7 @@ public:
      components, available from the transformed model. Needs to be called after
      fillTrendComponentModelTableFromOrigModel() has been called on the
      original model */
-  void fillTrendComponentModelTableAREC(const ExprNode::subst_table_t &diff_subst_table) const;
+  void fillTrendComponentModelTableAREC(const ExprNode::subst_table_t& diff_subst_table) const;
 
   //! Fill the VAR model table with information available from the transformed model
   // NB: Does not fill the AR and A0 matrices
@@ -374,16 +380,18 @@ public:
   void updateVarAndTrendModel() const;
 
   //! Writes dynamic model file (+ bytecode)
-  void writeDynamicFile(const string &basename, bool use_dll, const string &mexext, const filesystem::path &matlabroot, bool julia) const;
+  void writeDynamicFile(const string& basename, bool use_dll, const string& mexext,
+                        const filesystem::path& matlabroot, bool julia) const;
 
   //! Writes file containing parameters derivatives
   template<bool julia>
-  void writeParamsDerivativesFile(const string &basename) const;
+  void writeParamsDerivativesFile(const string& basename) const;
 
   //! Creates mapping for variables and equations they are present in
   void createVariableMapping();
 
-  //! Expands equation tags with default equation names (available "name" tag or LHS variable or equation ID)
+  //! Expands equation tags with default equation names (available "name" tag or LHS variable or
+  //! equation ID)
   void expandEqTags();
 
   //! Find endogenous variables not used in model
@@ -395,14 +403,14 @@ public:
   void setLeadsLagsOrig();
 
   //! Implements the include_eqs/exclude_eqs options
-  void includeExcludeEquations(const string &inc_exc_option_value, bool exclude_eqs);
+  void includeExcludeEquations(const string& inc_exc_option_value, bool exclude_eqs);
 
   /* Removes equations from the model (identified by one or more tags; if
      multiple tags are present for a single equation, they are understood as a
      conjunction).
      Used for include_eqs/exclude_eqs options and for model_remove and
      model_replace blocks */
-  void removeEquations(const vector<map<string, string>> &listed_eqs_by_tag, bool exclude_eqs,
+  void removeEquations(const vector<map<string, string>>& listed_eqs_by_tag, bool exclude_eqs,
                        bool excluded_vars_change_type);
 
   /* Replaces model equations with derivatives of Lagrangian w.r.t. endogenous.
@@ -411,13 +419,13 @@ public:
      Returns the number of optimality FOCs, which is by construction equal to
      the number of endogenous before adding the Lagrange multipliers
      (internally called ramsey_endo_nbr). */
-  int computeRamseyPolicyFOCs(const StaticModel &static_model);
+  int computeRamseyPolicyFOCs(const StaticModel& static_model);
 
   //! Clears all equations
   void clearEquations();
 
   //! Replaces the model equations in dynamic_model with those in this model
-  void replaceMyEquations(DynamicModel &dynamic_model) const;
+  void replaceMyEquations(DynamicModel& dynamic_model) const;
 
   //! Adds an equation marked as [static]
   void addStaticOnlyEquation(expr_t eq, optional<int> lineno, map<string, string> eq_tags);
@@ -433,13 +441,14 @@ public:
      auxiliary parameters have already been added to the symbol table.
      It also assumes that the “bind” and “relax” tags have been cleared from
      eq_tags. */
-  void addOccbinEquation(expr_t eq, optional<int> lineno, map<string, string> eq_tags, const vector<string> &regimes_bind, const vector<string> &regimes_relax);
+  void addOccbinEquation(expr_t eq, optional<int> lineno, map<string, string> eq_tags,
+                         const vector<string>& regimes_bind, const vector<string>& regimes_relax);
 
   //! Writes LaTeX file with the equations of the dynamic model
-  void writeLatexFile(const string &basename, bool write_equation_tags) const;
+  void writeLatexFile(const string& basename, bool write_equation_tags) const;
 
   //! Writes LaTeX file with the equations of the dynamic model (for the original model)
-  void writeLatexOriginalFile(const string &basename, bool write_equation_tags) const;
+  void writeLatexOriginalFile(const string& basename, bool write_equation_tags) const;
 
   int getDerivID(int symb_id, int lag) const noexcept(false) override;
 
@@ -454,25 +463,24 @@ public:
         if (type == SymbolType::endogenous)
           {
             assert(lag >= -1 && lag <= 1);
-            return tsid+(lag+1)*symbol_table.endo_nbr();
+            return tsid + (lag + 1) * symbol_table.endo_nbr();
           }
         else if (type == SymbolType::exogenous)
           {
             assert(lag == 0);
-            return tsid+3*symbol_table.endo_nbr();
+            return tsid + 3 * symbol_table.endo_nbr();
           }
         else if (type == SymbolType::exogenousDet)
           {
             assert(lag == 0);
-            return tsid+3*symbol_table.endo_nbr()+symbol_table.exo_nbr();
+            return tsid + 3 * symbol_table.endo_nbr() + symbol_table.exo_nbr();
           }
         else
           throw UnknownDerivIDException();
       }
     else
       {
-        if (auto it = dyn_jacobian_cols_table.find(deriv_id);
-            it == dyn_jacobian_cols_table.end())
+        if (auto it = dyn_jacobian_cols_table.find(deriv_id); it == dyn_jacobian_cols_table.end())
           throw UnknownDerivIDException();
         else
           return it->second;
@@ -481,12 +489,12 @@ public:
   int
   getJacobianColsNbr(bool sparse) const override
   {
-    return sparse ?
-      3*symbol_table.endo_nbr() + symbol_table.exo_nbr() + symbol_table.exo_det_nbr() :
-      dyn_jacobian_ncols;
+    return sparse
+               ? 3 * symbol_table.endo_nbr() + symbol_table.exo_nbr() + symbol_table.exo_det_nbr()
+               : dyn_jacobian_ncols;
   }
 
-  void addAllParamDerivId(set<int> &deriv_id_set) override;
+  void addAllParamDerivId(set<int>& deriv_id_set) override;
 
   //! Returns true indicating that this is a dynamic model
   bool
@@ -496,7 +504,7 @@ public:
   };
 
   //! Drive test of detrended equations
-  void runTrendTest(const eval_context_t &eval_context);
+  void runTrendTest(const eval_context_t& eval_context);
 
   //! Transforms the model by removing all leads greater or equal than 2 on endos
   /*! Note that this can create new lags on endos and exos */
@@ -515,25 +523,26 @@ public:
   //! Transforms the model by removing all UnaryOpcode::expectation
   void substituteExpectation(bool partial_information_model);
 
-  //! Transforms the model by decreasing the lead/lag of predetermined variables in model equations by one
+  //! Transforms the model by decreasing the lead/lag of predetermined variables in model equations
+  //! by one
   void transformPredeterminedVariables();
 
   // Performs the transformations associated to variables declared with “var(log)”
   void substituteLogTransform();
 
   // Check that no variable was declared with “var(log)” in the given equations
-  void checkNoWithLogTransform(const set<int> &eqnumbers);
+  void checkNoWithLogTransform(const set<int>& eqnumbers);
 
   //! Transforms the model by removing trends specified by the user
   void detrendEquations();
 
-  const nonstationary_symbols_map_t &
+  const nonstationary_symbols_map_t&
   getNonstationarySymbolsMap() const
   {
     return nonstationary_symbols_map;
   }
 
-  const map<int, expr_t> &
+  const map<int, expr_t>&
   getTrendSymbolsMap() const
   {
     return trend_symbols_map;
@@ -548,20 +557,28 @@ public:
   /* Creates aux vars for all unary operators in all equations. Also makes the
      substitution in growth terms of pac_model/pac_target_info and in
      expressions of var_expectation_model. */
-  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(VarExpectationModelTable &var_expectation_model_table, PacModelTable &pac_model_table);
+  pair<lag_equivalence_table_t, ExprNode::subst_table_t>
+  substituteUnaryOps(VarExpectationModelTable& var_expectation_model_table,
+                     PacModelTable& pac_model_table);
 
   /* Creates aux vars for all unary operators in specified equations. Also makes the
      substitution in growth terms of pac_model/pac_target_info and in
      expressions of var_expectation_model. */
-  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteUnaryOps(const set<int> &eqnumbers, VarExpectationModelTable &var_expectation_model_table, PacModelTable &pac_model_table);
+  pair<lag_equivalence_table_t, ExprNode::subst_table_t>
+  substituteUnaryOps(const set<int>& eqnumbers,
+                     VarExpectationModelTable& var_expectation_model_table,
+                     PacModelTable& pac_model_table);
 
   //! Substitutes diff operator
-  pair<lag_equivalence_table_t, ExprNode::subst_table_t> substituteDiff(VarExpectationModelTable &var_expectation_model_table, PacModelTable &pac_model_table);
+  pair<lag_equivalence_table_t, ExprNode::subst_table_t>
+  substituteDiff(VarExpectationModelTable& var_expectation_model_table,
+                 PacModelTable& pac_model_table);
 
   //! Substitute VarExpectation operators
-  void substituteVarExpectation(const map<string, expr_t> &subst_table);
+  void substituteVarExpectation(const map<string, expr_t>& subst_table);
 
-  void analyzePacEquationStructure(const string &name, map<string, string> &pac_eq_name, PacModelTable::equation_info_t &pac_equation_info);
+  void analyzePacEquationStructure(const string& name, map<string, string>& pac_eq_name,
+                                   PacModelTable::equation_info_t& pac_equation_info);
 
   // Exception thrown by getPacTargetSymbId()
   struct PacTargetNotIdentifiedException
@@ -570,7 +587,7 @@ public:
   };
 
   //! Return target of the pac equation
-  int getPacTargetSymbId(const string &pac_model_name) const;
+  int getPacTargetSymbId(const string& pac_model_name) const;
 
   /* For a PAC MCE model, fill pac_expectation_substitution with the
      expression that will be substituted for the pac_expectation operator.
@@ -578,29 +595,22 @@ public:
      The symbol IDs of the new endogenous are added to pac_aux_var_symb_ids,
      and the new auxiliary parameters to pac_mce_alpha_symb_ids.
   */
-  void computePacModelConsistentExpectationSubstitution(const string &name,
-                                                        int discount_symb_id, int pac_eq_max_lag,
-                                                        expr_t growth_correction_term,
-                                                        string auxname,
-                                                        ExprNode::subst_table_t &diff_subst_table,
-                                                        map<string, int> &pac_aux_var_symb_ids,
-                                                        map<string, vector<int>> &pac_aux_param_symb_ids,
-                                                        map<string, expr_t> &pac_expectation_substitution);
-
+  void computePacModelConsistentExpectationSubstitution(
+      const string& name, int discount_symb_id, int pac_eq_max_lag, expr_t growth_correction_term,
+      string auxname, ExprNode::subst_table_t& diff_subst_table,
+      map<string, int>& pac_aux_var_symb_ids, map<string, vector<int>>& pac_aux_param_symb_ids,
+      map<string, expr_t>& pac_expectation_substitution);
 
   /* For a PAC backward model, fill pac_expectation_substitution with the
      expression that will be substituted for the pac_expectation operator.
      The symbol IDs of the new parameters are also added to pac_aux_param_symb_ids.
      The symbol ID of the new auxiliary variable is added to pac_aux_var_symb_ids. */
-  void computePacBackwardExpectationSubstitution(const string &name,
-                                                 const vector<int> &lhs,
-                                                 int max_lag,
-                                                 const string &aux_model_type,
-                                                 expr_t growth_correction_term,
-                                                 string auxname,
-                                                 map<string, int> &pac_aux_var_symb_ids,
-                                                 map<string, vector<int>> &pac_aux_param_symb_ids,
-                                                 map<string, expr_t> &pac_expectation_substitution);
+  void computePacBackwardExpectationSubstitution(const string& name, const vector<int>& lhs,
+                                                 int max_lag, const string& aux_model_type,
+                                                 expr_t growth_correction_term, string auxname,
+                                                 map<string, int>& pac_aux_var_symb_ids,
+                                                 map<string, vector<int>>& pac_aux_param_symb_ids,
+                                                 map<string, expr_t>& pac_expectation_substitution);
 
   /* Same as above, but for PAC models which have an associated
      pac_target_info.
@@ -610,23 +620,21 @@ public:
      in target_components.
      The routine also creates the auxiliary variables for the components, and
      adds the corresponding equations. */
-  void computePacBackwardExpectationSubstitutionWithComponents(const string &name,
-                                                               const vector<int> &lhs,
-                                                               int max_lag,
-                                                               const string &aux_model_type,
-                                                               vector<PacModelTable::target_component_t> &pac_target_components,
-                                                               map<string, expr_t> &pac_expectation_substitution);
+  void computePacBackwardExpectationSubstitutionWithComponents(
+      const string& name, const vector<int>& lhs, int max_lag, const string& aux_model_type,
+      vector<PacModelTable::target_component_t>& pac_target_components,
+      map<string, expr_t>& pac_expectation_substitution);
 
   //! Substitutes pac_expectation operator with expectation based on auxiliary model
-  void substitutePacExpectation(const map<string, expr_t> &pac_expectation_substitution,
-                                const map<string, string> &pac_eq_name);
+  void substitutePacExpectation(const map<string, expr_t>& pac_expectation_substitution,
+                                const map<string, string>& pac_eq_name);
 
   //! Substitutes the pac_target_nonstationary operator of a given pac_model
-  void substitutePacTargetNonstationary(const string &pac_model_name, expr_t substexpr);
+  void substitutePacTargetNonstationary(const string& pac_model_name, expr_t substexpr);
 
   //! Table to undiff LHS variables for pac vector z
-  vector<int> getUndiffLHSForPac(const string &aux_model_name,
-                                 const ExprNode::subst_table_t &diff_subst_table) const;
+  vector<int> getUndiffLHSForPac(const string& aux_model_name,
+                                 const ExprNode::subst_table_t& diff_subst_table) const;
 
   //! Transforms the model by replacing trend variables with a 1
   void removeTrendVariableFromEquations();
@@ -634,10 +642,10 @@ public:
   //! Transforms the model by creating aux vars for the diff of forward vars
   /*! If subset is empty, does the transformation for all fwrd vars; otherwise
     restrict it to the vars in subset */
-  void differentiateForwardVars(const vector<string> &subset);
+  void differentiateForwardVars(const vector<string>& subset);
 
   //! Fills eval context with values of model local variables and auxiliary variables
-  void fillEvalContext(eval_context_t &eval_context) const;
+  void fillEvalContext(eval_context_t& eval_context) const;
 
   /*! Checks that all pac_expectation operators have been substituted, error
     out otherwise */
@@ -650,20 +658,22 @@ public:
   auto
   getStaticOnlyEquationsInfo() const
   {
-    return tuple{static_only_equations, static_only_equations_lineno, static_only_equations_equation_tags};
+    return tuple {static_only_equations, static_only_equations_lineno,
+                  static_only_equations_equation_tags};
   };
 
   //! Returns true if a parameter was used in the model block with a lead or lag
   bool ParamUsedWithLeadLag() const;
 
-  bool isChecksumMatching(const string &basename) const;
+  bool isChecksumMatching(const string& basename) const;
 
-  //! Simplify model equations: if a variable is equal to a constant, replace that variable elsewhere in the model
+  //! Simplify model equations: if a variable is equal to a constant, replace that variable
+  //! elsewhere in the model
   /*! Equations with MCP tags are excluded, see dynare#1697 */
   void simplifyEquations();
 
   // Converts a set of equation tags into the corresponding set of equation numbers
-  set<int> getEquationNumbersFromTags(const set<string> &eqtags) const;
+  set<int> getEquationNumbersFromTags(const set<string>& eqtags) const;
 
   // Returns the set of equations (as numbers) which have a pac_expectation operator
   set<int> findPacExpectationEquationNumbers() const;
@@ -689,17 +699,18 @@ public:
 
 template<bool julia>
 void
-DynamicModel::writeParamsDerivativesFile(const string &basename) const
+DynamicModel::writeParamsDerivativesFile(const string& basename) const
 {
   if (!params_derivatives.size())
     return;
 
-  constexpr ExprNodeOutputType output_type { julia ? ExprNodeOutputType::juliaDynamicModel : ExprNodeOutputType::matlabDynamicModel };
+  constexpr ExprNodeOutputType output_type {julia ? ExprNodeOutputType::juliaDynamicModel
+                                                  : ExprNodeOutputType::matlabDynamicModel};
 
-  auto [tt_output, rp_output, gp_output, rpp_output, gpp_output, hp_output, g3p_output]
-    { writeParamsDerivativesFileHelper<output_type>() };
+  auto [tt_output, rp_output, gp_output, rpp_output, gpp_output, hp_output,
+        g3p_output] {writeParamsDerivativesFileHelper<output_type>()};
 
-  if constexpr(!julia)
+  if constexpr (!julia)
     {
       filesystem::path filename {packageDir(basename) / "dynamic_params_derivs.m"};
       ofstream paramsDerivsFile {filename, ios::out | ios::binary};
@@ -708,80 +719,160 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
           cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
           exit(EXIT_FAILURE);
         }
-      paramsDerivsFile << "function [rp, gp, rpp, gpp, hp, g3p] = dynamic_params_derivs(y, x, params, steady_state, it_, ss_param_deriv, ss_param_2nd_deriv)" << endl
-                       << "%" << endl
-                       << "% Compute the derivatives of the dynamic model with respect to the parameters" << endl
-                       << "% Inputs :" << endl
-                       << "%   y         [#dynamic variables by 1] double    vector of endogenous variables in the order stored" << endl
-                       << "%                                                 in M_.lead_lag_incidence; see the Manual" << endl
-                       << "%   x         [nperiods by M_.exo_nbr] double     matrix of exogenous variables (in declaration order)" << endl
-                       << "%                                                 for all simulation periods" << endl
-                       << "%   params    [M_.param_nbr by 1] double          vector of parameter values in declaration order" << endl
-                       << "%   steady_state  [M_.endo_nbr by 1] double       vector of steady state values" << endl
-                       << "%   it_       scalar double                       time period for exogenous variables for which to evaluate the model" << endl
-                       << "%   ss_param_deriv     [M_.eq_nbr by #params]     Jacobian matrix of the steady states values with respect to the parameters" << endl
-                       << "%   ss_param_2nd_deriv [M_.eq_nbr by #params by #params] Hessian matrix of the steady states values with respect to the parameters" << endl
-                       << "%" << endl
-                       << "% Outputs:" << endl
-                       << "%   rp        [M_.eq_nbr by #params] double    Jacobian matrix of dynamic model equations with respect to parameters " << endl
-                       << "%                                              Dynare may prepend or append auxiliary equations, see M_.aux_vars" << endl
-                       << "%   gp        [M_.endo_nbr by #dynamic variables by #params] double    Derivative of the Jacobian matrix of the dynamic model equations with respect to the parameters" << endl
-                       << "%                                                           rows: equations in order of declaration" << endl
-                       << "%                                                           columns: variables in order stored in M_.lead_lag_incidence" << endl
-                       << "%   rpp       [#second_order_residual_terms by 4] double   Hessian matrix of second derivatives of residuals with respect to parameters;" << endl
-                       << "%                                                              rows: respective derivative term" << endl
-                       << "%                                                              1st column: equation number of the term appearing" << endl
-                       << "%                                                              2nd column: number of the first parameter in derivative" << endl
-                       << "%                                                              3rd column: number of the second parameter in derivative" << endl
-                       << "%                                                              4th column: value of the Hessian term" << endl
-                       << "%   gpp      [#second_order_Jacobian_terms by 5] double   Hessian matrix of second derivatives of the Jacobian with respect to the parameters;" << endl
-                       << "%                                                              rows: respective derivative term" << endl
-                       << "%                                                              1st column: equation number of the term appearing" << endl
-                       << "%                                                              2nd column: column number of variable in Jacobian of the dynamic model" << endl
-                       << "%                                                              3rd column: number of the first parameter in derivative" << endl
-                       << "%                                                              4th column: number of the second parameter in derivative" << endl
-                       << "%                                                              5th column: value of the Hessian term" << endl
-                       << "%   hp      [#first_order_Hessian_terms by 5] double   Jacobian matrix of derivatives of the dynamic Hessian with respect to the parameters;" << endl
-                       << "%                                                              rows: respective derivative term" << endl
-                       << "%                                                              1st column: equation number of the term appearing" << endl
-                       << "%                                                              2nd column: column number of first variable in Hessian of the dynamic model" << endl
-                       << "%                                                              3rd column: column number of second variable in Hessian of the dynamic model" << endl
-                       << "%                                                              4th column: number of the parameter in derivative" << endl
-                       << "%                                                              5th column: value of the Hessian term" << endl
-                       << "%   g3p      [#first_order_g3_terms by 6] double   Jacobian matrix of derivatives of g3 (dynamic 3rd derivs) with respect to the parameters;" << endl
-                       << "%                                                              rows: respective derivative term" << endl
-                       << "%                                                              1st column: equation number of the term appearing" << endl
-                       << "%                                                              2nd column: column number of first variable in g3 of the dynamic model" << endl
-                       << "%                                                              3rd column: column number of second variable in g3 of the dynamic model" << endl
-                       << "%                                                              4th column: column number of third variable in g3 of the dynamic model" << endl
-                       << "%                                                              5th column: number of the parameter in derivative" << endl
-                       << "%                                                              6th column: value of the Hessian term" << endl
-                       << "%" << endl
-                       << "%" << endl
-                       << "% Warning : this file is generated automatically by Dynare" << endl
-                       << "%           from model file (.mod)" << endl << endl
-                       << "T = NaN(" << params_derivs_temporary_terms_idxs.size() << ",1);" << endl
-                       << tt_output.str()
-                       << "rp = zeros(" << equations.size() << ", "
-                       << symbol_table.param_nbr() << ");" << endl
-                       << rp_output.str()
-                       << "gp = zeros(" << equations.size() << ", " << getJacobianColsNbr(false) << ", " << symbol_table.param_nbr() << ");" << endl
-                       << gp_output.str()
-                       << "if nargout >= 3" << endl
-                       << "rpp = zeros(" << params_derivatives.at({ 0, 2 }).size() << ",4);" << endl
-                       << rpp_output.str()
-                       << "gpp = zeros(" << params_derivatives.at({ 1, 2 }).size() << ",5);" << endl
-                       << gpp_output.str()
-                       << "end" << endl
-                       << "if nargout >= 5" << endl
-                       << "hp = zeros(" << params_derivatives.at({ 2, 1 }).size() << ",5);" << endl
-                       << hp_output.str()
-                       << "end" << endl
-                       << "if nargout >= 6" << endl
-                       << "g3p = zeros(" << params_derivatives.at({ 3, 1 }).size() << ",6);" << endl
-                       << g3p_output.str()
-                       << "end" << endl
-                       << "end" << endl;
+      paramsDerivsFile
+          << "function [rp, gp, rpp, gpp, hp, g3p] = dynamic_params_derivs(y, x, params, "
+             "steady_state, it_, ss_param_deriv, ss_param_2nd_deriv)"
+          << endl
+          << "%" << endl
+          << "% Compute the derivatives of the dynamic model with respect to the parameters" << endl
+          << "% Inputs :" << endl
+          << "%   y         [#dynamic variables by 1] double    vector of endogenous variables in "
+             "the order stored"
+          << endl
+          << "%                                                 in M_.lead_lag_incidence; see the "
+             "Manual"
+          << endl
+          << "%   x         [nperiods by M_.exo_nbr] double     matrix of exogenous variables (in "
+             "declaration order)"
+          << endl
+          << "%                                                 for all simulation periods" << endl
+          << "%   params    [M_.param_nbr by 1] double          vector of parameter values in "
+             "declaration order"
+          << endl
+          << "%   steady_state  [M_.endo_nbr by 1] double       vector of steady state values"
+          << endl
+          << "%   it_       scalar double                       time period for exogenous "
+             "variables for which to evaluate the model"
+          << endl
+          << "%   ss_param_deriv     [M_.eq_nbr by #params]     Jacobian matrix of the steady "
+             "states values with respect to the parameters"
+          << endl
+          << "%   ss_param_2nd_deriv [M_.eq_nbr by #params by #params] Hessian matrix of the "
+             "steady states values with respect to the parameters"
+          << endl
+          << "%" << endl
+          << "% Outputs:" << endl
+          << "%   rp        [M_.eq_nbr by #params] double    Jacobian matrix of dynamic model "
+             "equations with respect to parameters "
+          << endl
+          << "%                                              Dynare may prepend or append "
+             "auxiliary equations, see M_.aux_vars"
+          << endl
+          << "%   gp        [M_.endo_nbr by #dynamic variables by #params] double    Derivative of "
+             "the Jacobian matrix of the dynamic model equations with respect to the parameters"
+          << endl
+          << "%                                                           rows: equations in order "
+             "of declaration"
+          << endl
+          << "%                                                           columns: variables in "
+             "order stored in M_.lead_lag_incidence"
+          << endl
+          << "%   rpp       [#second_order_residual_terms by 4] double   Hessian matrix of second "
+             "derivatives of residuals with respect to parameters;"
+          << endl
+          << "%                                                              rows: respective "
+             "derivative term"
+          << endl
+          << "%                                                              1st column: equation "
+             "number of the term appearing"
+          << endl
+          << "%                                                              2nd column: number of "
+             "the first parameter in derivative"
+          << endl
+          << "%                                                              3rd column: number of "
+             "the second parameter in derivative"
+          << endl
+          << "%                                                              4th column: value of "
+             "the Hessian term"
+          << endl
+          << "%   gpp      [#second_order_Jacobian_terms by 5] double   Hessian matrix of second "
+             "derivatives of the Jacobian with respect to the parameters;"
+          << endl
+          << "%                                                              rows: respective "
+             "derivative term"
+          << endl
+          << "%                                                              1st column: equation "
+             "number of the term appearing"
+          << endl
+          << "%                                                              2nd column: column "
+             "number of variable in Jacobian of the dynamic model"
+          << endl
+          << "%                                                              3rd column: number of "
+             "the first parameter in derivative"
+          << endl
+          << "%                                                              4th column: number of "
+             "the second parameter in derivative"
+          << endl
+          << "%                                                              5th column: value of "
+             "the Hessian term"
+          << endl
+          << "%   hp      [#first_order_Hessian_terms by 5] double   Jacobian matrix of "
+             "derivatives of the dynamic Hessian with respect to the parameters;"
+          << endl
+          << "%                                                              rows: respective "
+             "derivative term"
+          << endl
+          << "%                                                              1st column: equation "
+             "number of the term appearing"
+          << endl
+          << "%                                                              2nd column: column "
+             "number of first variable in Hessian of the dynamic model"
+          << endl
+          << "%                                                              3rd column: column "
+             "number of second variable in Hessian of the dynamic model"
+          << endl
+          << "%                                                              4th column: number of "
+             "the parameter in derivative"
+          << endl
+          << "%                                                              5th column: value of "
+             "the Hessian term"
+          << endl
+          << "%   g3p      [#first_order_g3_terms by 6] double   Jacobian matrix of derivatives of "
+             "g3 (dynamic 3rd derivs) with respect to the parameters;"
+          << endl
+          << "%                                                              rows: respective "
+             "derivative term"
+          << endl
+          << "%                                                              1st column: equation "
+             "number of the term appearing"
+          << endl
+          << "%                                                              2nd column: column "
+             "number of first variable in g3 of the dynamic model"
+          << endl
+          << "%                                                              3rd column: column "
+             "number of second variable in g3 of the dynamic model"
+          << endl
+          << "%                                                              4th column: column "
+             "number of third variable in g3 of the dynamic model"
+          << endl
+          << "%                                                              5th column: number of "
+             "the parameter in derivative"
+          << endl
+          << "%                                                              6th column: value of "
+             "the Hessian term"
+          << endl
+          << "%" << endl
+          << "%" << endl
+          << "% Warning : this file is generated automatically by Dynare" << endl
+          << "%           from model file (.mod)" << endl
+          << endl
+          << "T = NaN(" << params_derivs_temporary_terms_idxs.size() << ",1);" << endl
+          << tt_output.str() << "rp = zeros(" << equations.size() << ", "
+          << symbol_table.param_nbr() << ");" << endl
+          << rp_output.str() << "gp = zeros(" << equations.size() << ", "
+          << getJacobianColsNbr(false) << ", " << symbol_table.param_nbr() << ");" << endl
+          << gp_output.str() << "if nargout >= 3" << endl
+          << "rpp = zeros(" << params_derivatives.at({0, 2}).size() << ",4);" << endl
+          << rpp_output.str() << "gpp = zeros(" << params_derivatives.at({1, 2}).size() << ",5);"
+          << endl
+          << gpp_output.str() << "end" << endl
+          << "if nargout >= 5" << endl
+          << "hp = zeros(" << params_derivatives.at({2, 1}).size() << ",5);" << endl
+          << hp_output.str() << "end" << endl
+          << "if nargout >= 6" << endl
+          << "g3p = zeros(" << params_derivatives.at({3, 1}).size() << ",6);" << endl
+          << g3p_output.str() << "end" << endl
+          << "end" << endl;
       paramsDerivsFile.close();
     }
   else
@@ -793,25 +884,24 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
              << "function dynamic_params_derivs(y, x, params, steady_state, it_,"
              << "ss_param_deriv, ss_param_2nd_deriv)" << endl
              << "@inbounds begin" << endl
-             << tt_output.str()
-             << "rp = zeros(" << equations.size() << ", "
+             << tt_output.str() << "rp = zeros(" << equations.size() << ", "
              << symbol_table.param_nbr() << ");" << endl
-             << rp_output.str()
-             << "gp = zeros(" << equations.size() << ", " << getJacobianColsNbr(false) << ", " << symbol_table.param_nbr() << ");" << endl
-             << gp_output.str()
-             << "rpp = zeros(" << params_derivatives.at({ 0, 2 }).size() << ",4);" << endl
-             << rpp_output.str()
-             << "gpp = zeros(" << params_derivatives.at({ 1, 2 }).size() << ",5);" << endl
-             << gpp_output.str()
-             << "hp = zeros(" << params_derivatives.at({ 2, 1 }).size() << ",5);" << endl
-             << hp_output.str()
-             << "g3p = zeros(" << params_derivatives.at({ 3, 1 }).size() << ",6);" << endl
-             << g3p_output.str()
-             << "end" << endl
+             << rp_output.str() << "gp = zeros(" << equations.size() << ", "
+             << getJacobianColsNbr(false) << ", " << symbol_table.param_nbr() << ");" << endl
+             << gp_output.str() << "rpp = zeros(" << params_derivatives.at({0, 2}).size() << ",4);"
+             << endl
+             << rpp_output.str() << "gpp = zeros(" << params_derivatives.at({1, 2}).size() << ",5);"
+             << endl
+             << gpp_output.str() << "hp = zeros(" << params_derivatives.at({2, 1}).size() << ",5);"
+             << endl
+             << hp_output.str() << "g3p = zeros(" << params_derivatives.at({3, 1}).size() << ",6);"
+             << endl
+             << g3p_output.str() << "end" << endl
              << "return (rp, gp, rpp, gpp, hp, g3p)" << endl
              << "end" << endl;
 
-      writeToFileIfModified(output, filesystem::path{basename} / "model" / "julia" / "DynamicParamsDerivs.jl");
+      writeToFileIfModified(output, filesystem::path {basename} / "model" / "julia"
+                                        / "DynamicParamsDerivs.jl");
     }
 }
 

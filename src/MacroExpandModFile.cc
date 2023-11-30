@@ -17,19 +17,18 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
+#include <filesystem>
+#include <fstream>
 #include <regex>
 #include <sstream>
-#include <fstream>
-#include <filesystem>
-#include <algorithm>
 
 #include "macro/Driver.hh"
 
 stringstream
-macroExpandModFile(const filesystem::path &filename, const istream &modfile,
-                   bool debug, bool save_macro, filesystem::path save_macro_file, bool line_macro,
-                   const vector<pair<string, string>> &defines,
-                   vector<filesystem::path> paths)
+macroExpandModFile(const filesystem::path& filename, const istream& modfile, bool debug,
+                   bool save_macro, filesystem::path save_macro_file, bool line_macro,
+                   const vector<pair<string, string>>& defines, vector<filesystem::path> paths)
 {
   // Do macro processing
   stringstream macro_output;
@@ -43,7 +42,7 @@ macroExpandModFile(const filesystem::path &filename, const istream &modfile,
     {
       if (save_macro_file.empty())
         save_macro_file = filename.stem().string() + "-macroexp.mod";
-      ofstream macro_output_file{save_macro_file};
+      ofstream macro_output_file {save_macro_file};
       if (macro_output_file.fail())
         {
           cerr << "Cannot open " << save_macro_file.string() << " for macro output" << endl;

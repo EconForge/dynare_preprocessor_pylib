@@ -17,17 +17,16 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <cstdlib>
 #include <cassert>
 #include <cmath>
+#include <cstdlib>
 
 #include "NumericalConstants.hh"
 
 int
-NumericalConstants::AddNonNegativeConstant(const string &iConst)
+NumericalConstants::AddNonNegativeConstant(const string& iConst)
 {
-  if (auto iter = numConstantsIndex.find(iConst);
-      iter != numConstantsIndex.end())
+  if (auto iter = numConstantsIndex.find(iConst); iter != numConstantsIndex.end())
     return iter->second;
 
   auto id = static_cast<int>(mNumericalConstants.size());

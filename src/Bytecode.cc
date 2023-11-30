@@ -17,14 +17,14 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
-#include <ios>
-#include <cstdlib>
 #include <algorithm>
+#include <cstdlib>
+#include <ios>
+#include <iostream>
 
 #include "Bytecode.hh"
 
-BytecodeWriter::BytecodeWriter(const filesystem::path &filename)
+BytecodeWriter::BytecodeWriter(const filesystem::path& filename)
 {
   open(filename, ios::out | ios::binary);
   if (!is_open())
@@ -35,14 +35,13 @@ BytecodeWriter::BytecodeWriter(const filesystem::path &filename)
 }
 
 template<>
-BytecodeWriter &
-operator<<(BytecodeWriter &code_file, const FCALL_ &instr)
+BytecodeWriter&
+operator<<(BytecodeWriter& code_file, const FCALL_& instr)
 {
   code_file.instructions_positions.push_back(code_file.tellp());
 
-  auto write_member = [&code_file](const auto &member)
-  {
-    code_file.write(reinterpret_cast<const char *>(&member), sizeof member);
+  auto write_member = [&code_file](const auto& member) {
+    code_file.write(reinterpret_cast<const char*>(&member), sizeof member);
   };
 
   write_member(instr.op_code);
@@ -56,24 +55,23 @@ operator<<(BytecodeWriter &code_file, const FCALL_ &instr)
 
   int size = static_cast<int>(instr.func_name.size());
   write_member(size);
-  code_file.write(instr.func_name.c_str(), size+1);
+  code_file.write(instr.func_name.c_str(), size + 1);
 
   size = static_cast<int>(instr.arg_func_name.size());
   write_member(size);
-  code_file.write(instr.arg_func_name.c_str(), size+1);
+  code_file.write(instr.arg_func_name.c_str(), size + 1);
 
   return code_file;
 }
 
 template<>
-BytecodeWriter &
-operator<<(BytecodeWriter &code_file, const FBEGINBLOCK_ &instr)
+BytecodeWriter&
+operator<<(BytecodeWriter& code_file, const FBEGINBLOCK_& instr)
 {
   code_file.instructions_positions.push_back(code_file.tellp());
 
-  auto write_member = [&code_file](const auto &member)
-  {
-    code_file.write(reinterpret_cast<const char *>(&member), sizeof member);
+  auto write_member = [&code_file](const auto& member) {
+    code_file.write(reinterpret_cast<const char*>(&member), sizeof member);
   };
 
   write_member(instr.op_code);

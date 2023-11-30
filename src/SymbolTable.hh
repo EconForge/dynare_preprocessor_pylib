@@ -21,53 +21,55 @@
 #define _SYMBOLTABLE_HH
 
 #include <map>
+#include <optional>
+#include <ostream>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
-#include <set>
-#include <ostream>
-#include <optional>
 
 #include "CommonEnums.hh"
 #include "ExprNode.hh"
 
 using namespace std;
 
-using expr_t = class ExprNode *;
+using expr_t = class ExprNode*;
 
 //! Types of auxiliary variables
 enum class AuxVarType
-  {
-   endoLead = 0, //!< Substitute for endo leads >= 2
-   endoLag = 1, //!< Substitute for endo lags >= 2
-   exoLead = 2, //!< Substitute for exo leads >= 1
-   exoLag = 3, //!< Substitute for exo lags >= 1
-   expectation = 4, //!< Substitute for Expectation Operator
-   diffForward = 5, /* Substitute for the differentiate of a forward variable,
+{
+  endoLead = 0,     //!< Substitute for endo leads >= 2
+  endoLag = 1,      //!< Substitute for endo lags >= 2
+  exoLead = 2,      //!< Substitute for exo leads >= 1
+  exoLag = 3,       //!< Substitute for exo lags >= 1
+  expectation = 4,  //!< Substitute for Expectation Operator
+  diffForward = 5,  /* Substitute for the differentiate of a forward variable,
                        for the differentiate_forward_vars option.
                        N.B.: nothing to do with the diff() operator! */
-   multiplier = 6, //!< Multipliers for FOC of Ramsey Problem
-   logTransform = 7, //!< Log-transformation of a variable declared with “var(log)”
-   diff = 8, //!< Variable for Diff operator
-   diffLag = 9, //!< Variable for timing between Diff operators (lag)
-   unaryOp = 10, //!< Variable for allowing the undiff operator to work when diff was taken of unary op, eg diff(log(x))
-   diffLead = 11, //!< Variable for timing between Diff operators (lead)
-   pacExpectation = 12, //!< Variable created for the substitution of the pac_expectation operator
-   pacTargetNonstationary = 13 //!< Variable created for the substitution of the pac_target_nonstationary operator
-  };
+  multiplier = 6,   //!< Multipliers for FOC of Ramsey Problem
+  logTransform = 7, //!< Log-transformation of a variable declared with “var(log)”
+  diff = 8,         //!< Variable for Diff operator
+  diffLag = 9,      //!< Variable for timing between Diff operators (lag)
+  unaryOp = 10,  //!< Variable for allowing the undiff operator to work when diff was taken of unary
+                 //!< op, eg diff(log(x))
+  diffLead = 11, //!< Variable for timing between Diff operators (lead)
+  pacExpectation = 12, //!< Variable created for the substitution of the pac_expectation operator
+  pacTargetNonstationary
+  = 13 //!< Variable created for the substitution of the pac_target_nonstationary operator
+};
 
 //! Information on some auxiliary variables
 struct AuxVarInfo
 {
-  const int symb_id; // Symbol ID of the auxiliary variable
-  const AuxVarType type; // Its type
-  const optional<int> orig_symb_id; /* Symbol ID of the (only) endo that appears on the RHS of
-                                       the definition of this auxvar.
-                                       Used by endoLag, exoLag, diffForward, logTransform, diff,
-                                       diffLag, diffLead and unaryOp.
-                                       For diff and unaryOp, if the argument expression is more complex
-                                       than than a simple variable, this value is unset
-                                       (hence the need for std::optional). */
+  const int symb_id;                 // Symbol ID of the auxiliary variable
+  const AuxVarType type;             // Its type
+  const optional<int> orig_symb_id;  /* Symbol ID of the (only) endo that appears on the RHS of
+                                        the definition of this auxvar.
+                                        Used by endoLag, exoLag, diffForward, logTransform, diff,
+                                        diffLag, diffLead and unaryOp.
+                                        For diff and unaryOp, if the argument expression is more
+                                        complex  than than a simple variable, this value is unset
+                                        (hence the need for std::optional). */
   const optional<int> orig_lead_lag; /* Lead/lag of the (only) endo as it appears on the RHS of the
                                         definition of this auxvar. Only set if orig_symb_id is set
                                         (in particular, for diff and unaryOp, unset
@@ -79,8 +81,8 @@ struct AuxVarInfo
                                                associated with this aux var. Only used for
                                                avMultiplier. */
   const int information_set; // Argument of expectation operator. Only used for avExpectation.
-  const expr_t expr_node; // Auxiliary variable definition
-  const string unary_op; // Used with AuxUnaryOp
+  const expr_t expr_node;    // Auxiliary variable definition
+  const string unary_op;     // Used with AuxUnaryOp
 
   int
   get_type_id() const
@@ -107,7 +109,7 @@ class SymbolTable
 {
 private:
   //! Has method freeze() been called?
-  bool frozen{false};
+  bool frozen {false};
 
   using symbol_table_type = map<string, int>;
   //! Maps strings to symbol IDs
@@ -196,31 +198,34 @@ public:
   {
   public:
     int orig_symb_id, orig_lead_lag, symb_id;
-    SearchFailedException(int orig_symb_id_arg, int orig_lead_lag_arg) : orig_symb_id{orig_symb_id_arg},
-                                                                         orig_lead_lag{orig_lead_lag_arg}
+    SearchFailedException(int orig_symb_id_arg, int orig_lead_lag_arg) :
+        orig_symb_id {orig_symb_id_arg}, orig_lead_lag {orig_lead_lag_arg}
     {
     }
-    explicit SearchFailedException(int symb_id_arg) : symb_id{symb_id_arg}
+    explicit SearchFailedException(int symb_id_arg) : symb_id {symb_id_arg}
     {
     }
   };
 
 private:
   //! Factorized code for adding aux lag variables
-  int addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lead_lag, expr_t arg) noexcept(false);
+  int addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lead_lag,
+                                 expr_t arg) noexcept(false);
   //! Factorized code for adding aux lead variables
   int addLeadAuxiliaryVarInternal(bool endo, int index, expr_t arg) noexcept(false);
   //! Factorized code for Json writing
-  void writeJsonVarVector(ostream &output, const vector<int> &varvec) const;
+  void writeJsonVarVector(ostream& output, const vector<int>& varvec) const;
   //! Factorized code for asserting that 0 <= symb_id <= symbol_table.size()
   inline void validateSymbID(int symb_id) const noexcept(false);
+
 public:
   //! Add a symbol
   /*! Returns the symbol ID */
-  int addSymbol(const string &name, SymbolType type, const string &tex_name, const vector<pair<string, string>> &partition_value) noexcept(false);
+  int addSymbol(const string& name, SymbolType type, const string& tex_name,
+                const vector<pair<string, string>>& partition_value) noexcept(false);
   //! Add a symbol without its TeX name (will be equal to its name)
   /*! Returns the symbol ID */
-  int addSymbol(const string &name, SymbolType type) noexcept(false);
+  int addSymbol(const string& name, SymbolType type) noexcept(false);
   //! Adds an auxiliary variable for endogenous with lead >= 2
   /*!
     \param[in] index Used to construct the variable name
@@ -228,9 +233,9 @@ public:
   int addEndoLeadAuxiliaryVar(int index, expr_t arg) noexcept(false);
   //! Adds an auxiliary variable for endogenous with lag >= 2
   /*!
-    \param[in] orig_symb_id symbol ID of the endogenous declared by the user that this new variable will represent
-    \param[in] orig_lead_lag lag value such that this new variable will be equivalent to orig_symb_id(orig_lead_lag)
-    \return the symbol ID of the new symbol */
+    \param[in] orig_symb_id symbol ID of the endogenous declared by the user that this new variable
+    will represent \param[in] orig_lead_lag lag value such that this new variable will be equivalent
+    to orig_symb_id(orig_lead_lag) \return the symbol ID of the new symbol */
   int addEndoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t arg) noexcept(false);
   //! Adds an auxiliary variable for endogenous with lead >= 1
   /*!
@@ -239,9 +244,9 @@ public:
   int addExoLeadAuxiliaryVar(int index, expr_t arg) noexcept(false);
   //! Adds an auxiliary variable for exogenous with lag >= 1
   /*!
-    \param[in] orig_symb_id symbol ID of the exogenous declared by the user that this new variable will represent
-    \param[in] orig_lead_lag lag value such that this new variable will be equivalent to orig_symb_id(orig_lead_lag)
-    \return the symbol ID of the new symbol */
+    \param[in] orig_symb_id symbol ID of the exogenous declared by the user that this new variable
+    will represent \param[in] orig_lead_lag lag value such that this new variable will be equivalent
+    to orig_symb_id(orig_lead_lag) \return the symbol ID of the new symbol */
   int addExoLagAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t arg) noexcept(false);
   //! Adds an auxiliary variable for the expectation operator
   /*!
@@ -262,7 +267,8 @@ public:
      – orig_lead_lag is typically 0
      – expr_arg is typically log(orig_symb_id)
   */
-  int addLogTransformAuxiliaryVar(int orig_symb_id, int orig_lead_lag, expr_t expr_arg) noexcept(false);
+  int addLogTransformAuxiliaryVar(int orig_symb_id, int orig_lead_lag,
+                                  expr_t expr_arg) noexcept(false);
   //! Adds an auxiliary variable for the (time) differentiate of a forward var
   /*!
     \param[in] orig_symb_id The symb_id of the forward variable
@@ -296,17 +302,22 @@ public:
      diffLead increases it). */
   pair<int, int> unrollDiffLeadLagChain(int symb_id, int lag) const noexcept(false);
   //! Adds an auxiliary variable when the diff operator is encountered
-  int addDiffAuxiliaryVar(int index, expr_t expr_arg, optional<int> orig_symb_id = nullopt, optional<int> orig_lag = nullopt) noexcept(false);
+  int addDiffAuxiliaryVar(int index, expr_t expr_arg, optional<int> orig_symb_id = nullopt,
+                          optional<int> orig_lag = nullopt) noexcept(false);
   //! Takes care of timing between diff statements
-  int addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lag) noexcept(false);
+  int addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id,
+                             int orig_lag) noexcept(false);
   //! Takes care of timing between diff statements
-  int addDiffLeadAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id, int orig_lead) noexcept(false);
+  int addDiffLeadAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id,
+                              int orig_lead) noexcept(false);
   //! An Auxiliary variable for a unary op
-  int addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op, optional<int> orig_symb_id = nullopt, optional<int> orig_lag = nullopt) noexcept(false);
+  int addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op,
+                             optional<int> orig_symb_id = nullopt,
+                             optional<int> orig_lag = nullopt) noexcept(false);
   //! An auxiliary variable for a pac_expectation operator
-  int addPacExpectationAuxiliaryVar(const string &name, expr_t expr_arg);
+  int addPacExpectationAuxiliaryVar(const string& name, expr_t expr_arg);
   //! An auxiliary variable for a pac_target_nonstationary operator
-  int addPacTargetNonstationaryAuxiliaryVar(const string &name, expr_t expr_arg);
+  int addPacTargetNonstationaryAuxiliaryVar(const string& name, expr_t expr_arg);
   //! Returns the number of auxiliary variables
   int
   AuxVarsSize() const
@@ -314,23 +325,24 @@ public:
     return aux_vars.size();
   };
   //! Tests if symbol already exists
-  inline bool exists(const string &name) const;
+  inline bool exists(const string& name) const;
   //! Get symbol name (by ID)
   inline string getName(int id) const noexcept(false);
   //! Get TeX name
   inline string getTeXName(int id) const noexcept(false);
   //! Get long name
   inline string getLongName(int id) const noexcept(false);
-  //! Returns true if the partition name is the first encountered for the type of variable represented by id
+  //! Returns true if the partition name is the first encountered for the type of variable
+  //! represented by id
   bool isFirstOfPartitionForType(int id) const noexcept(false);
   //! Returns a list of partitions and symbols that belong to that partition
   map<string, map<int, string>> getPartitionsForType(SymbolType st) const noexcept(false);
   //! Get type (by ID)
   inline SymbolType getType(int id) const noexcept(false);
   //! Get type (by name)
-  inline SymbolType getType(const string &name) const noexcept(false);
+  inline SymbolType getType(const string& name) const noexcept(false);
   //! Get ID (by name)
-  inline int getID(const string &name) const noexcept(false);
+  inline int getID(const string& name) const noexcept(false);
   //! Get ID (by type specific ID)
   int getID(SymbolType type, int tsid) const noexcept(false);
   //! Freeze symbol table
@@ -343,7 +355,7 @@ public:
   //! Get type specific ID (by symbol ID)
   inline int getTypeSpecificID(int id) const noexcept(false);
   //! Get type specific ID (by symbol name)
-  inline int getTypeSpecificID(const string &name) const noexcept(false);
+  inline int getTypeSpecificID(const string& name) const noexcept(false);
   //! Get number of endogenous variables
   inline int endo_nbr() const noexcept(false);
   //! Get number of exogenous variables
@@ -357,9 +369,9 @@ public:
   //! Get number of user-declared endogenous variables (without the auxiliary variables)
   inline int orig_endo_nbr() const noexcept(false);
   //! Write output of this class
-  void writeOutput(ostream &output) const noexcept(false);
+  void writeOutput(ostream& output) const noexcept(false);
   //! Write JSON Output
-  void writeJsonOutput(ostream &output) const;
+  void writeJsonOutput(ostream& output) const;
   //! Mark a symbol as predetermined variable
   void markPredetermined(int symb_id) noexcept(false);
   //! Mark an endogenous as having been declared with “var(log)”
@@ -382,21 +394,22 @@ public:
   int observedExogenousVariablesNbr() const;
   //! Is a given symbol in the set of observed exogenous variables
   bool isObservedExogenousVariable(int symb_id) const;
-  //! Return the index of a given observed exogenous variable in the vector of all observed variables
+  //! Return the index of a given observed exogenous variable in the vector of all observed
+  //! variables
   int getObservedExogenousVariableIndex(int symb_id) const;
-  vector <int> getTrendVarIds() const;
+  vector<int> getTrendVarIds() const;
   //! Get list of exogenous variables
-  set <int> getExogenous() const;
+  set<int> getExogenous() const;
   //! Get list of exogenous variables
-  set <int> getObservedExogenous() const;
+  set<int> getObservedExogenous() const;
   //! Get list of endogenous variables
-  set <int> getEndogenous() const;
+  set<int> getEndogenous() const;
   //! Is a given symbol an auxiliary variable
   bool isAuxiliaryVariable(int symb_id) const;
   //! Is a given symbol a diff, diff lead, or diff lag auxiliary variable
   bool isDiffAuxiliaryVariable(int symb_id) const;
   //! Get list of endogenous variables without aux vars
-  set <int> getOrigEndogenous() const;
+  set<int> getOrigEndogenous() const;
   //! Returns the original symbol corresponding to this variable
   /* If symb_id has no original variable, returns symb_id. Otherwise,
      repeatedly call getOrigSymbIDForAuxVar() until an original variable is
@@ -404,13 +417,14 @@ public:
      no original variable (e.g. aux var for lead, Lagrange Multiplier or diff
      associated to a complex expression). */
   int getUltimateOrigSymbID(int symb_id) const;
-  //! If this is a Lagrange multiplier, return its associated equation number; otherwise return nullopt
+  //! If this is a Lagrange multiplier, return its associated equation number; otherwise return
+  //! nullopt
   optional<int> getEquationNumberForMultiplier(int symb_id) const;
   /* Return all the information about a given auxiliary variable. Throws
      UnknownSymbolIDException if it is not an aux var */
-  const AuxVarInfo &getAuxVarInfo(int symb_id) const;
+  const AuxVarInfo& getAuxVarInfo(int symb_id) const;
   // Returns the set of all endogenous declared with “var(log)”
-  const set<int> &getVariablesWithLogTransform() const;
+  const set<int>& getVariablesWithLogTransform() const;
   // Returns all Lagrange multipliers
   set<int> getLagrangeMultipliers() const;
 };
@@ -419,11 +433,11 @@ inline void
 SymbolTable::validateSymbID(int symb_id) const noexcept(false)
 {
   if (symb_id < 0 || symb_id > static_cast<int>(symbol_table.size()))
-    throw UnknownSymbolIDException{symb_id};
+    throw UnknownSymbolIDException {symb_id};
 }
 
 inline bool
-SymbolTable::exists(const string &name) const
+SymbolTable::exists(const string& name) const
 {
   return symbol_table.contains(name);
 }
@@ -457,19 +471,18 @@ SymbolTable::getType(int id) const noexcept(false)
 }
 
 inline SymbolType
-SymbolTable::getType(const string &name) const noexcept(false)
+SymbolTable::getType(const string& name) const noexcept(false)
 {
   return getType(getID(name));
 }
 
 inline int
-SymbolTable::getID(const string &name) const noexcept(false)
+SymbolTable::getID(const string& name) const noexcept(false)
 {
-  if (auto iter = symbol_table.find(name);
-      iter != symbol_table.end())
+  if (auto iter = symbol_table.find(name); iter != symbol_table.end())
     return iter->second;
   else
-    throw UnknownSymbolNameException{name};
+    throw UnknownSymbolNameException {name};
 }
 
 inline int
@@ -480,15 +493,14 @@ SymbolTable::getTypeSpecificID(int id) const noexcept(false)
 
   validateSymbID(id);
 
-  if (auto it = type_specific_ids.find(id);
-      it != type_specific_ids.end())
+  if (auto it = type_specific_ids.find(id); it != type_specific_ids.end())
     return it->second;
   else
-    throw NoTypeSpecificIDException{id};
+    throw NoTypeSpecificIDException {id};
 }
 
 inline int
-SymbolTable::getTypeSpecificID(const string &name) const noexcept(false)
+SymbolTable::getTypeSpecificID(const string& name) const noexcept(false)
 {
   return getTypeSpecificID(getID(name));
 }
@@ -541,13 +553,13 @@ SymbolTable::orig_endo_nbr() const noexcept(false)
   return endo_nbr() - aux_vars.size();
 }
 
-inline const AuxVarInfo &
+inline const AuxVarInfo&
 SymbolTable::getAuxVarInfo(int symb_id) const
 {
-  for (const auto &aux_var : aux_vars)
+  for (const auto& aux_var : aux_vars)
     if (aux_var.symb_id == symb_id)
       return aux_var;
-  throw UnknownSymbolIDException{symb_id};
+  throw UnknownSymbolIDException {symb_id};
 }
 
 #endif

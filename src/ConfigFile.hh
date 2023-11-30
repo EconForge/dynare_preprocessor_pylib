@@ -20,9 +20,9 @@
 #ifndef _CONFIG_FILE_HH
 #define _CONFIG_FILE_HH
 
+#include <filesystem>
 #include <map>
 #include <vector>
-#include <filesystem>
 
 #include "WarningConsolidation.hh"
 
@@ -34,8 +34,10 @@ class Hook
 {
 public:
   explicit Hook(string global_init_file_arg);
+
 private:
   map<string, string> hooks;
+
 public:
   map<string, string>
   get_hooks() const
@@ -48,8 +50,10 @@ class Path
 {
 public:
   explicit Path(vector<string> includepath_arg);
+
 private:
   map<string, vector<string>> paths;
+
 public:
   map<string, vector<string>>
   get_paths() const
@@ -61,10 +65,12 @@ public:
 class FollowerNode
 {
   friend class ConfigFile;
+
 public:
-  FollowerNode(string computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg, string userName_arg,
-               string password_arg, string remoteDrive_arg, string remoteDirectory_arg,
-               string programPath_arg, string programConfig_arg, string matlabOctavePath_arg, bool singleCompThread_arg,
+  FollowerNode(string computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg,
+               string userName_arg, string password_arg, string remoteDrive_arg,
+               string remoteDirectory_arg, string programPath_arg, string programConfig_arg,
+               string matlabOctavePath_arg, bool singleCompThread_arg,
                int numberOfThreadsPerJob_arg, string operatingSystem_arg);
 
 protected:
@@ -81,6 +87,7 @@ protected:
 class Cluster
 {
   friend class ConfigFile;
+
 public:
   explicit Cluster(member_nodes_t member_nodes_arg);
 
@@ -112,27 +119,30 @@ private:
   //! Add Paths
   void addPathsConfFileElement(vector<string> includepath);
   //! Add a FollowerNode or a Cluster object
-  void addParallelConfFileElement(bool inNode, bool inCluster, const member_nodes_t &member_nodes, const string &name,
-                                  const string &computerName, const string &port, int minCpuNbr, int maxCpuNbr,
-                                  const string &userName, const string &password, const string &remoteDrive,
-                                  const string &remoteDirectory, const string &programPath, const string &programConfig,
-                                  const string &matlabOctavePath, bool singleCompThread, int numberOfThreadsPerJob,
-                                  const string &operatingSystem);
+  void addParallelConfFileElement(bool inNode, bool inCluster, const member_nodes_t& member_nodes,
+                                  const string& name, const string& computerName,
+                                  const string& port, int minCpuNbr, int maxCpuNbr,
+                                  const string& userName, const string& password,
+                                  const string& remoteDrive, const string& remoteDirectory,
+                                  const string& programPath, const string& programConfig,
+                                  const string& matlabOctavePath, bool singleCompThread,
+                                  int numberOfThreadsPerJob, const string& operatingSystem);
+
 public:
   //! Parse config file
-  void getConfigFileInfo(const filesystem::path &parallel_config_file);
+  void getConfigFileInfo(const filesystem::path& parallel_config_file);
   //! Check Pass
-  void checkPass(WarningConsolidation &warnings) const;
+  void checkPass(WarningConsolidation& warnings) const;
   //! Check Pass
   void transformPass();
   //! Get Path Info
   vector<filesystem::path> getIncludePaths() const;
   //! Write any hooks
-  void writeHooks(ostream &output) const;
+  void writeHooks(ostream& output) const;
   //! Create options_.parallel structure, write options
-  void writeCluster(ostream &output) const;
+  void writeCluster(ostream& output) const;
   //! Close follower nodes if needed
-  void writeEndParallel(ostream &output) const;
+  void writeEndParallel(ostream& output) const;
 };
 
 #endif // ! CONFIG_FILE_HH

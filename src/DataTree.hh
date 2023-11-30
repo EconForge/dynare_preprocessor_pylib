@@ -20,22 +20,22 @@
 #ifndef _DATATREE_HH
 #define _DATATREE_HH
 
-#include <string>
-#include <map>
-#include <vector>
-#include <sstream>
-#include <iomanip>
 #include <cmath>
-#include <utility>
-#include <memory>
 #include <filesystem>
+#include <iomanip>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
-#include "SymbolTable.hh"
-#include "NumericalConstants.hh"
-#include "ExternalFunctionsTable.hh"
 #include "ExprNode.hh"
+#include "ExternalFunctionsTable.hh"
+#include "NumericalConstants.hh"
 #include "SubModel.hh"
+#include "SymbolTable.hh"
 
 using namespace std;
 
@@ -43,57 +43,61 @@ class DataTree
 {
 public:
   //! A reference to the symbol table
-  SymbolTable &symbol_table;
+  SymbolTable& symbol_table;
   //! Reference to numerical constants table
-  NumericalConstants &num_constants;
+  NumericalConstants& num_constants;
   //! A reference to the external functions table
-  ExternalFunctionsTable &external_functions_table;
+  ExternalFunctionsTable& external_functions_table;
   //! Is it possible to use leads/lags on variable nodes?
   const bool is_dynamic;
 
 private:
   //! num_constant_id -> NumConstNode
-  using num_const_node_map_t = map<int, NumConstNode *>;
+  using num_const_node_map_t = map<int, NumConstNode*>;
   num_const_node_map_t num_const_node_map;
 
   //! (symbol_id, lag) -> VariableNode
-  using variable_node_map_t = map<pair<int, int>, VariableNode *>;
+  using variable_node_map_t = map<pair<int, int>, VariableNode*>;
   variable_node_map_t variable_node_map;
 
-  //! (arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags) -> UnaryOpNode
-  using unary_op_node_map_t = map<tuple<expr_t, UnaryOpcode, int, int, int, string, vector<int>>, UnaryOpNode *>;
+  //! (arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags) ->
+  //! UnaryOpNode
+  using unary_op_node_map_t
+      = map<tuple<expr_t, UnaryOpcode, int, int, int, string, vector<int>>, UnaryOpNode*>;
   unary_op_node_map_t unary_op_node_map;
 
   //! ( arg1, arg2, opCode, order of Power Derivative) -> BinaryOpNode
-  using binary_op_node_map_t = map<tuple<expr_t, expr_t, BinaryOpcode, int>, BinaryOpNode *>;
+  using binary_op_node_map_t = map<tuple<expr_t, expr_t, BinaryOpcode, int>, BinaryOpNode*>;
   binary_op_node_map_t binary_op_node_map;
 
   //! ( arg1, arg2, arg3, opCode) -> TrinaryOpNode
-  using trinary_op_node_map_t = map<tuple<expr_t, expr_t, expr_t, TrinaryOpcode>, TrinaryOpNode *>;
+  using trinary_op_node_map_t = map<tuple<expr_t, expr_t, expr_t, TrinaryOpcode>, TrinaryOpNode*>;
   trinary_op_node_map_t trinary_op_node_map;
 
   // (arguments, symb_id) -> ExternalFunctionNode
-  using external_function_node_map_t = map<pair<vector<expr_t>, int>, ExternalFunctionNode *>;
+  using external_function_node_map_t = map<pair<vector<expr_t>, int>, ExternalFunctionNode*>;
   external_function_node_map_t external_function_node_map;
 
   // (model_name, symb_id, forecast_horizon) -> VarExpectationNode
-  using var_expectation_node_map_t = map<string, VarExpectationNode *>;
+  using var_expectation_node_map_t = map<string, VarExpectationNode*>;
   var_expectation_node_map_t var_expectation_node_map;
 
   // model_name -> PacExpectationNode
-  using pac_expectation_node_map_t = map<string, PacExpectationNode *>;
+  using pac_expectation_node_map_t = map<string, PacExpectationNode*>;
   pac_expectation_node_map_t pac_expectation_node_map;
 
   // model_name -> PacTargetNonstationaryNode
-  using pac_target_nonstationary_node_map_t = map<string, PacTargetNonstationaryNode *>;
+  using pac_target_nonstationary_node_map_t = map<string, PacTargetNonstationaryNode*>;
   pac_target_nonstationary_node_map_t pac_target_nonstationary_node_map;
 
   // (arguments, deriv_idx, symb_id) -> FirstDerivExternalFunctionNode
-  using first_deriv_external_function_node_map_t = map<tuple<vector<expr_t>, int, int>, FirstDerivExternalFunctionNode *>;
+  using first_deriv_external_function_node_map_t
+      = map<tuple<vector<expr_t>, int, int>, FirstDerivExternalFunctionNode*>;
   first_deriv_external_function_node_map_t first_deriv_external_function_node_map;
 
   // (arguments, deriv_idx1, deriv_idx2, symb_id) -> SecondDerivExternalFunctionNode
-  using second_deriv_external_function_node_map_t = map<tuple<vector<expr_t>, int, int, int>, SecondDerivExternalFunctionNode *>;
+  using second_deriv_external_function_node_map_t
+      = map<tuple<vector<expr_t>, int, int, int>, SecondDerivExternalFunctionNode*>;
   second_deriv_external_function_node_map_t second_deriv_external_function_node_map;
 
   // Flag to disable simplifications related to commutativity of addition and multiplication
@@ -102,7 +106,8 @@ private:
 protected:
   //! Stores local variables value (maps symbol ID to corresponding node)
   map<int, expr_t> local_variables_table;
-  //! Stores the order of appearance of local variables in the model block. Needed following change in #563
+  //! Stores the order of appearance of local variables in the model block. Needed following change
+  //! in #563
   vector<int> local_variables_vector;
 
   //! Internal implementation of ParamUsedWithLeadLag()
@@ -111,31 +116,33 @@ protected:
   /* Writes the contents of “new_contents” to the file “filename”. However, if
      the file already exists and would not be modified by this operation, then do
      nothing. */
-  static void writeToFileIfModified(stringstream &new_contents, const filesystem::path &filename);
+  static void writeToFileIfModified(stringstream& new_contents, const filesystem::path& filename);
 
 private:
-  constexpr static int constants_precision{16};
+  constexpr static int constants_precision {16};
 
   //! The list of nodes
   vector<unique_ptr<ExprNode>> node_list;
 
-  inline expr_t AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set = 0, int param1_symb_id = 0, int param2_symb_id = 0, const string &adl_param_name = "", const vector<int> &adl_lags = vector<int>());
-  inline expr_t AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerDerivOrder = 0);
+  inline expr_t AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set = 0,
+                           int param1_symb_id = 0, int param2_symb_id = 0,
+                           const string& adl_param_name = "",
+                           const vector<int>& adl_lags = vector<int>());
+  inline expr_t AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2,
+                            int powerDerivOrder = 0);
   inline expr_t AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t arg3);
 
   //! Initializes the predefined constants, used only from the constructors
   void initConstants();
 
 public:
-  DataTree(SymbolTable &symbol_table_arg,
-           NumericalConstants &num_constants_arg,
-           ExternalFunctionsTable &external_functions_table_arg,
-           bool is_static_args = false);
+  DataTree(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
+           ExternalFunctionsTable& external_functions_table_arg, bool is_static_args = false);
 
   virtual ~DataTree() = default;
 
-  DataTree(const DataTree &d);
-  DataTree &operator=(const DataTree &d);
+  DataTree(const DataTree& d);
+  DataTree& operator=(const DataTree& d);
 
   //! Some predefined constants
   NumConstNode *Zero, *One, *Two, *Three, *NaN, *Infinity, *Pi;
@@ -153,13 +160,13 @@ public:
 
   inline expr_t AddPossiblyNegativeConstant(double val);
   //! Adds a non-negative numerical constant (possibly Inf or NaN)
-  NumConstNode *AddNonNegativeConstant(const string &value);
+  NumConstNode* AddNonNegativeConstant(const string& value);
   //! Adds a variable
-  VariableNode *AddVariable(int symb_id, int lag = 0);
+  VariableNode* AddVariable(int symb_id, int lag = 0);
   //! Gets a variable
   /*! Same as AddVariable, except that it fails if the variable node has not
     already been created */
-  VariableNode *getVariable(int symb_id, int lag = 0) const;
+  VariableNode* getVariable(int symb_id, int lag = 0) const;
   //! Adds "arg1+arg2" to model tree
   expr_t AddPlus(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1-arg2" to model tree
@@ -191,7 +198,7 @@ public:
   //! Adds "diff(arg)" to model tree
   expr_t AddDiff(expr_t iArg1);
   //! Adds "adl(arg1, name, lag/lags)" to model tree
-  expr_t AddAdl(expr_t iArg1, const string &name, const vector<int> &lags);
+  expr_t AddAdl(expr_t iArg1, const string& name, const vector<int>& lags);
   //! Adds "exp(arg)" to model tree
   expr_t AddExp(expr_t iArg1);
   //! Adds "log(arg)" to model tree
@@ -249,21 +256,23 @@ public:
   //! Add 2nd derivative of steady state w.r.t. parameter to model tree
   expr_t AddSteadyStateParam2ndDeriv(expr_t iArg1, int param1_symb_id, int param2_symb_id);
   //! Adds "arg1=arg2" to model tree
-  BinaryOpNode *AddEqual(expr_t iArg1, expr_t iArg2);
+  BinaryOpNode* AddEqual(expr_t iArg1, expr_t iArg2);
   //! Adds "var_expectation(model_name)" to model tree
-  expr_t AddVarExpectation(const string &model_name);
+  expr_t AddVarExpectation(const string& model_name);
   //! Adds pac_expectation command to model tree
-  expr_t AddPacExpectation(const string &model_name);
+  expr_t AddPacExpectation(const string& model_name);
   //! Adds a pac_target_nonstationary node to model tree
-  expr_t AddPacTargetNonstationary(const string &model_name);
+  expr_t AddPacTargetNonstationary(const string& model_name);
   //! Adds a model local variable with its value
   void AddLocalVariable(int symb_id, expr_t value) noexcept(false);
   //! Adds an external function node
-  expr_t AddExternalFunction(int symb_id, const vector<expr_t> &arguments);
+  expr_t AddExternalFunction(int symb_id, const vector<expr_t>& arguments);
   //! Adds an external function node for the first derivative of an external function
-  expr_t AddFirstDerivExternalFunction(int top_level_symb_id, const vector<expr_t> &arguments, int input_index);
+  expr_t AddFirstDerivExternalFunction(int top_level_symb_id, const vector<expr_t>& arguments,
+                                       int input_index);
   //! Adds an external function node for the second derivative of an external function
-  expr_t AddSecondDerivExternalFunction(int top_level_symb_id, const vector<expr_t> &arguments, int input_index1, int input_index2);
+  expr_t AddSecondDerivExternalFunction(int top_level_symb_id, const vector<expr_t>& arguments,
+                                        int input_index1, int input_index2);
   //! Checks if a given symbol is used somewhere in the data tree
   bool isSymbolUsed(int symb_id) const;
   //! Checks if a given unary op is used somewhere in the data tree
@@ -274,18 +283,19 @@ public:
   bool isBinaryOpUsed(BinaryOpcode opcode) const;
   //! Checks if a given binary op is used somewhere in the data tree on an endogenous variable
   bool isBinaryOpUsedOnType(SymbolType type, BinaryOpcode opcode) const;
-  //! Returns the minimum lag (as a negative number) of the given symbol in the whole data tree (and not only in the equations !!)
+  //! Returns the minimum lag (as a negative number) of the given symbol in the whole data tree (and
+  //! not only in the equations !!)
   /*! Returns 0 if the symbol is not used */
   int minLagForSymbol(int symb_id) const;
   /* Writes definitions of C function helpers (getPowerDeriv(), sign()) as
      inline functions */
-  void writeCHelpersDefinition(ostream &output) const;
+  void writeCHelpersDefinition(ostream& output) const;
   /* Writes declarations of C function helpers (getPowerDeriv(), sign()) as
      extern inline (external definition). Those need to be included in exactly
      one translation unit. That external definition will be used or not,
      depending on the optimization decision by the compiler.
      See https://en.cppreference.com/w/c/language/inline */
-  void writeCHelpersDeclaration(ostream &output) const;
+  void writeCHelpersDeclaration(ostream& output) const;
   //! Thrown when trying to access an unknown variable by deriv_id
   class UnknownDerivIDException
   {
@@ -333,9 +343,10 @@ public:
   }
 
   //! Adds to the set all the deriv IDs corresponding to parameters
-  virtual void addAllParamDerivId(set<int> &deriv_id_set);
+  virtual void addAllParamDerivId(set<int>& deriv_id_set);
 
-  //! Returns bool indicating whether DataTree represents a Dynamic Model (returns true in DynamicModel.hh)
+  //! Returns bool indicating whether DataTree represents a Dynamic Model (returns true in
+  //! DynamicModel.hh)
   virtual bool
   isDynamic() const
   {
@@ -353,7 +364,7 @@ public:
   {
     auto it = local_variables_table.find(symb_id);
     if (it == local_variables_table.end())
-      throw UnknownLocalVariableException{symb_id};
+      throw UnknownLocalVariableException {symb_id};
 
     return it->second;
   }
@@ -404,17 +415,19 @@ DataTree::AddPossiblyNegativeConstant(double v)
 }
 
 inline expr_t
-DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int param1_symb_id, int param2_symb_id, const string &adl_param_name, const vector<int> &adl_lags)
+DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int param1_symb_id,
+                     int param2_symb_id, const string& adl_param_name, const vector<int>& adl_lags)
 {
   // If the node already exists in tree, share it
-  if (auto it = unary_op_node_map.find({ arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags });
+  if (auto it = unary_op_node_map.find({arg, op_code, arg_exp_info_set, param1_symb_id,
+                                        param2_symb_id, adl_param_name, adl_lags});
       it != unary_op_node_map.end())
     return it->second;
 
   // Try to reduce to a constant
-  // Case where arg is a constant and op_code == UnaryOpcode::uminus (i.e. we're adding a negative constant) is skipped
-  if (auto carg = dynamic_cast<NumConstNode *>(arg);
-      op_code != UnaryOpcode::uminus || !carg)
+  // Case where arg is a constant and op_code == UnaryOpcode::uminus (i.e. we're adding a negative
+  // constant) is skipped
+  if (auto carg = dynamic_cast<NumConstNode*>(arg); op_code != UnaryOpcode::uminus || !carg)
     {
       try
         {
@@ -422,22 +435,25 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int 
           double val = UnaryOpNode::eval_opcode(op_code, argval);
           return AddPossiblyNegativeConstant(val);
         }
-      catch (ExprNode::EvalException &e)
+      catch (ExprNode::EvalException& e)
         {
         }
     }
 
-  auto sp = make_unique<UnaryOpNode>(*this, node_list.size(), op_code, arg, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags);
+  auto sp = make_unique<UnaryOpNode>(*this, node_list.size(), op_code, arg, arg_exp_info_set,
+                                     param1_symb_id, param2_symb_id, adl_param_name, adl_lags);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  unary_op_node_map.try_emplace({ arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags }, p);
+  unary_op_node_map.try_emplace(
+      {arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags},
+      p);
   return p;
 }
 
 inline expr_t
 DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerDerivOrder)
 {
-  if (auto it = binary_op_node_map.find({ arg1, arg2, op_code, powerDerivOrder });
+  if (auto it = binary_op_node_map.find({arg1, arg2, op_code, powerDerivOrder});
       it != binary_op_node_map.end())
     return it->second;
 
@@ -449,21 +465,22 @@ DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerD
       double val = BinaryOpNode::eval_opcode(argval1, op_code, argval2, powerDerivOrder);
       return AddPossiblyNegativeConstant(val);
     }
-  catch (ExprNode::EvalException &e)
+  catch (ExprNode::EvalException& e)
     {
     }
 
-  auto sp = make_unique<BinaryOpNode>(*this, node_list.size(), arg1, op_code, arg2, powerDerivOrder);
+  auto sp
+      = make_unique<BinaryOpNode>(*this, node_list.size(), arg1, op_code, arg2, powerDerivOrder);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  binary_op_node_map.try_emplace({ arg1, arg2, op_code, powerDerivOrder }, p);
+  binary_op_node_map.try_emplace({arg1, arg2, op_code, powerDerivOrder}, p);
   return p;
 }
 
 inline expr_t
 DataTree::AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t arg3)
 {
-  if (auto it = trinary_op_node_map.find({ arg1, arg2, arg3, op_code });
+  if (auto it = trinary_op_node_map.find({arg1, arg2, arg3, op_code});
       it != trinary_op_node_map.end())
     return it->second;
 
@@ -476,14 +493,14 @@ DataTree::AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t a
       double val = TrinaryOpNode::eval_opcode(argval1, op_code, argval2, argval3);
       return AddPossiblyNegativeConstant(val);
     }
-  catch (ExprNode::EvalException &e)
+  catch (ExprNode::EvalException& e)
     {
     }
 
   auto sp = make_unique<TrinaryOpNode>(*this, node_list.size(), arg1, op_code, arg2, arg3);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  trinary_op_node_map.try_emplace({ arg1, arg2, arg3, op_code }, p);
+  trinary_op_node_map.try_emplace({arg1, arg2, arg3, op_code}, p);
   return p;
 }
 

@@ -20,11 +20,11 @@
 #ifndef _EXTERNALFUNCTIONSTABLE_HH
 #define _EXTERNALFUNCTIONSTABLE_HH
 
+#include <algorithm>
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-#include <algorithm>
 
 using namespace std;
 
@@ -55,12 +55,16 @@ public:
   constexpr static int IDSetButNoNameProvided = -2;
   //! Default number of arguments when nargs is not specified
   constexpr static int defaultNargs = 1;
+
 private:
   //! Map containing options provided to external_functions()
   external_function_table_type externalFunctionTable;
+
 public:
   //! Adds an external function to the table as well as its derivative functions
-  void addExternalFunction(int symb_id, const external_function_options &external_function_options_arg, bool track_nargs);
+  void addExternalFunction(int symb_id,
+                           const external_function_options& external_function_options_arg,
+                           bool track_nargs);
   //! See if the function exists in the External Functions Table
   inline bool exists(int symb_id) const;
   //! Get the number of arguments for a given external function
@@ -80,31 +84,28 @@ ExternalFunctionsTable::exists(int symb_id) const
 inline int
 ExternalFunctionsTable::getNargs(int symb_id) const noexcept(false)
 {
-  if (auto it = externalFunctionTable.find(symb_id);
-      it != externalFunctionTable.end())
+  if (auto it = externalFunctionTable.find(symb_id); it != externalFunctionTable.end())
     return it->second.nargs;
   else
-    throw UnknownExternalFunctionSymbolIDException{symb_id};
+    throw UnknownExternalFunctionSymbolIDException {symb_id};
 }
 
 inline int
 ExternalFunctionsTable::getFirstDerivSymbID(int symb_id) const noexcept(false)
 {
-  if (auto it = externalFunctionTable.find(symb_id);
-      it != externalFunctionTable.end())
+  if (auto it = externalFunctionTable.find(symb_id); it != externalFunctionTable.end())
     return it->second.firstDerivSymbID;
   else
-    throw UnknownExternalFunctionSymbolIDException{symb_id};
+    throw UnknownExternalFunctionSymbolIDException {symb_id};
 }
 
 inline int
 ExternalFunctionsTable::getSecondDerivSymbID(int symb_id) const noexcept(false)
 {
-  if (auto it = externalFunctionTable.find(symb_id);
-      it != externalFunctionTable.end())
+  if (auto it = externalFunctionTable.find(symb_id); it != externalFunctionTable.end())
     return it->second.secondDerivSymbID;
   else
-    throw UnknownExternalFunctionSymbolIDException{symb_id};
+    throw UnknownExternalFunctionSymbolIDException {symb_id};
 }
 
 #endif

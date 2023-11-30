@@ -17,16 +17,17 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <cstdlib>
 #include <cassert>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 
 #include "ExternalFunctionsTable.hh"
 #include "SymbolTable.hh"
 
 void
-ExternalFunctionsTable::addExternalFunction(int symb_id, const external_function_options &external_function_options_arg, bool track_nargs)
+ExternalFunctionsTable::addExternalFunction(
+    int symb_id, const external_function_options& external_function_options_arg, bool track_nargs)
 {
   assert(symb_id >= 0);
   assert(external_function_options_arg.nargs > 0);
@@ -63,11 +64,14 @@ ExternalFunctionsTable::addExternalFunction(int symb_id, const external_function
   if (external_function_options_chng.secondDerivSymbID != IDNotSet
       && external_function_options_chng.firstDerivSymbID == IDNotSet)
     {
-      cerr << "ERROR: If the second derivative is provided, the first derivative must also be provided." << endl;
+      cerr << "ERROR: If the second derivative is provided, the first derivative must also be "
+              "provided."
+           << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (external_function_options_chng.secondDerivSymbID == external_function_options_chng.firstDerivSymbID
+  if (external_function_options_chng.secondDerivSymbID
+          == external_function_options_chng.firstDerivSymbID
       && external_function_options_chng.firstDerivSymbID != symb_id
       && external_function_options_chng.firstDerivSymbID != IDNotSet)
     {
@@ -80,29 +84,40 @@ ExternalFunctionsTable::addExternalFunction(int symb_id, const external_function
   if (exists(symb_id))
     {
       bool ok_to_overwrite = false;
-      if (getNargs(symb_id) == IDNotSet) // implies that the information stored about this function is not important
+      if (getNargs(symb_id)
+          == IDNotSet) // implies that the information stored about this function is not important
         ok_to_overwrite = true;
 
-      if (!ok_to_overwrite) // prevents multiple non-compatible calls to external_function(name=funcname)
+      if (!ok_to_overwrite) // prevents multiple non-compatible calls to
+                            // external_function(name=funcname)
         { // e.g. e_f(name=a,nargs=1,fd,sd) and e_f(name=a,nargs=2,fd=b,sd=c) should cause an error
           if (external_function_options_chng.nargs != getNargs(symb_id))
             {
-              cerr << "ERROR: The number of arguments passed to the external_function() statement do not "
-                   << "match the number of arguments passed to a previous call or declaration of the top-level function."<< endl;
+              cerr << "ERROR: The number of arguments passed to the external_function() statement "
+                      "do not "
+                   << "match the number of arguments passed to a previous call or declaration of "
+                      "the top-level function."
+                   << endl;
               exit(EXIT_FAILURE);
             }
 
           if (external_function_options_chng.firstDerivSymbID != getFirstDerivSymbID(symb_id))
             {
-              cerr << "ERROR: The first derivative function passed to the external_function() statement does not "
-                   << "match the first derivative function passed to a previous call or declaration of the top-level function."<< endl;
+              cerr << "ERROR: The first derivative function passed to the external_function() "
+                      "statement does not "
+                   << "match the first derivative function passed to a previous call or "
+                      "declaration of the top-level function."
+                   << endl;
               exit(EXIT_FAILURE);
             }
 
           if (external_function_options_chng.secondDerivSymbID != getSecondDerivSymbID(symb_id))
             {
-              cerr << "ERROR: The second derivative function passed to the external_function() statement does not "
-                   << "match the second derivative function passed to a previous call or declaration of the top-level function."<< endl;
+              cerr << "ERROR: The second derivative function passed to the external_function() "
+                      "statement does not "
+                   << "match the second derivative function passed to a previous call or "
+                      "declaration of the top-level function."
+                   << endl;
               exit(EXIT_FAILURE);
             }
         }

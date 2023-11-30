@@ -20,9 +20,9 @@
 #ifndef _NUMERICALCONSTANTS_HH
 #define _NUMERICALCONSTANTS_HH
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 using namespace std;
 
@@ -36,9 +36,10 @@ private:
   vector<double> double_vals;
   //! Map matching constants to their id
   map<string, int> numConstantsIndex;
+
 public:
   //! Adds a non-negative constant (possibly Inf or NaN) and returns its ID
-  int AddNonNegativeConstant(const string &iConst);
+  int AddNonNegativeConstant(const string& iConst);
   //! Get a constant in string form
   string get(int ID) const;
   //! Get a constant in double form

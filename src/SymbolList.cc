@@ -21,14 +21,13 @@
 
 #include "SymbolList.hh"
 
-SymbolList::SymbolList(vector<string> symbols_arg) :
-  symbols{move(symbols_arg)}
+SymbolList::SymbolList(vector<string> symbols_arg) : symbols {move(symbols_arg)}
 {
 }
 
 void
-SymbolList::checkPass(WarningConsolidation &warnings, const vector<SymbolType> &types,
-                      const SymbolTable &symbol_table) const noexcept(false)
+SymbolList::checkPass(WarningConsolidation& warnings, const vector<SymbolType>& types,
+                      const SymbolTable& symbol_table) const noexcept(false)
 {
   if (types.empty())
     return;
@@ -41,20 +40,21 @@ SymbolList::checkPass(WarningConsolidation &warnings, const vector<SymbolType> &
         regex_str += "|AUX_ENDO_|LOG_";
         break;
       }
-  regex re("^(" + regex_str +")");
-  for (const auto &symbol : symbols)
+  regex re("^(" + regex_str + ")");
+  for (const auto& symbol : symbols)
     {
       if (!symbol_table.exists(symbol))
         {
           if (regex_search(symbol, m, re))
             {
-              warnings << "WARNING: symbol_list variable " << symbol << " has not yet been declared. "
-                       << "This is being ignored because the variable name corresponds to a possible "
-                       << "auxiliary variable name." << endl;
+              warnings
+                  << "WARNING: symbol_list variable " << symbol << " has not yet been declared. "
+                  << "This is being ignored because the variable name corresponds to a possible "
+                  << "auxiliary variable name." << endl;
               return;
             }
           else
-            throw SymbolListException{"Variable " + symbol +  " was not declared."};
+            throw SymbolListException {"Variable " + symbol + " was not declared."};
         }
 
       if (none_of(types.begin(), types.end(),
@@ -62,7 +62,7 @@ SymbolList::checkPass(WarningConsolidation &warnings, const vector<SymbolType> &
         {
           string valid_types;
           for (auto type : types)
-            switch(type)
+            switch (type)
               {
               case SymbolType::endogenous:
                 valid_types += "endogenous, ";
@@ -104,18 +104,17 @@ SymbolList::checkPass(WarningConsolidation &warnings, const vector<SymbolType> &
                 valid_types += "excludedVariable, ";
                 break;
               }
-          valid_types = valid_types.erase(valid_types.size()-2, 2);
-          throw SymbolListException{"Variable " + symbol +  " is not one of {" + valid_types + "}"};
+          valid_types = valid_types.erase(valid_types.size() - 2, 2);
+          throw SymbolListException {"Variable " + symbol + " is not one of {" + valid_types + "}"};
         }
     }
 }
 
 void
-SymbolList::writeOutput(const string &varname, ostream &output) const
+SymbolList::writeOutput(const string& varname, ostream& output) const
 {
   output << varname << " = {";
-  for (bool printed_something{false};
-       const auto &name : symbols)
+  for (bool printed_something {false}; const auto& name : symbols)
     {
       if (exchange(printed_something, true))
         output << ";";
@@ -125,11 +124,10 @@ SymbolList::writeOutput(const string &varname, ostream &output) const
 }
 
 void
-SymbolList::writeJsonOutput(ostream &output) const
+SymbolList::writeJsonOutput(ostream& output) const
 {
   output << R"("symbol_list": [)";
-  for (bool printed_something{false};
-       const auto &name : symbols)
+  for (bool printed_something {false}; const auto& name : symbols)
     {
       if (exchange(printed_something, true))
         output << ",";
@@ -145,14 +143,15 @@ SymbolList::getSymbols() const
 }
 
 void
-SymbolList::removeDuplicates(const string &dynare_command, WarningConsolidation &warnings)
+SymbolList::removeDuplicates(const string& dynare_command, WarningConsolidation& warnings)
 {
   vector<string> unique_symbols;
-  for (const auto &it : symbols)
+  for (const auto& it : symbols)
     if (find(unique_symbols.begin(), unique_symbols.end(), it) == unique_symbols.end())
       unique_symbols.push_back(it);
     else
       warnings << "WARNING: In " << dynare_command << ": " << it
-               << " found more than once in symbol list. Removing all but first occurrence." << endl;
+               << " found more than once in symbol list. Removing all but first occurrence."
+               << endl;
   symbols = unique_symbols;
 }

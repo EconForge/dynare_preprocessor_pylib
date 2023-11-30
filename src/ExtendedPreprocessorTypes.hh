@@ -22,33 +22,33 @@
 
 // Values for the “output” option
 enum class OutputType
-  {
-   standard, // Default value, infer the derivation order from .mod file only
-   second, // Output at least 2nd dynamic derivatives
-   third, // Output at least 3rd dynamic derivatives
-  };
+{
+  standard, // Default value, infer the derivation order from .mod file only
+  second,   // Output at least 2nd dynamic derivatives
+  third,    // Output at least 3rd dynamic derivatives
+};
 
 // Values for the “language” option
 enum class LanguageOutputType
-  {
-   matlab, // outputs files for MATLAB/Octave processing
-   julia, // outputs files for Julia
-  };
+{
+  matlab, // outputs files for MATLAB/Octave processing
+  julia,  // outputs files for Julia
+};
 
 enum class JsonFileOutputType
-  {
-   file, // output JSON files to file
-   standardout, // output JSON files to stdout
-  };
+{
+  file,        // output JSON files to file
+  standardout, // output JSON files to stdout
+};
 
 // Values for the “json” option
 enum class JsonOutputPointType
-  {
-   nojson, // don't output JSON
-   parsing, // output JSON after the parsing step
-   checkpass, // output JSON after the check pass
-   transformpass, // output JSON after the transform pass
-   computingpass // output JSON after the computing pass
-  };
+{
+  nojson,        // don't output JSON
+  parsing,       // output JSON after the parsing step
+  checkpass,     // output JSON after the check pass
+  transformpass, // output JSON after the transform pass
+  computingpass  // output JSON after the computing pass
+};
 
 #endif

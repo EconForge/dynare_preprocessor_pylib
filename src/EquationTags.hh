@@ -21,9 +21,9 @@
 #define _EQUATION_TAGS_HH
 
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
-#include <optional>
 
 using namespace std;
 
@@ -31,13 +31,14 @@ class EquationTags
 {
 private:
   map<int, map<string, string>> eqn_tags;
+
 public:
   // Add multiple equation tags for the given equation
   void
   add(int eqn, map<string, string> tags)
   {
     if (eqn_tags.contains(eqn))
-      eqn_tags[eqn].insert(move_iterator{tags.begin()}, move_iterator{tags.end()});
+      eqn_tags[eqn].insert(move_iterator {tags.begin()}, move_iterator {tags.end()});
     else
       eqn_tags[eqn] = move(tags);
   }
@@ -58,7 +59,7 @@ public:
 
   //! Erase tags for given equations, using old_eqn_num_2_new as the mapping
   //! to use for the remaining equation numbers
-  void erase(const set<int> &eqns, const map<int, int> &old_eqn_num_2_new);
+  void erase(const set<int>& eqns, const map<int, int>& old_eqn_num_2_new);
 
   //! Various functions to get info from equation tags
   //! Get equation tags for a given equation
@@ -71,20 +72,20 @@ public:
   }
 
   //! Get equations that have the given key
-  set<int> getEqnsByKey(const string &key) const;
+  set<int> getEqnsByKey(const string& key) const;
 
   //! Get equations that have the given key and value
-  set<int> getEqnsByTag(const string &key, const string &value) const;
+  set<int> getEqnsByTag(const string& key, const string& value) const;
 
   //! Get the first equation that has the given key and value
-  optional<int> getEqnByTag(const string &key, const string &value) const;
+  optional<int> getEqnByTag(const string& key, const string& value) const;
 
   // Get equations that have all the given keys and values (seen as a conjunction)
-  set<int> getEqnsByTags(const map<string, string> &tags_selected) const;
+  set<int> getEqnsByTags(const map<string, string>& tags_selected) const;
 
   //! Get the tag value given the equation number and key
   optional<string>
-  getTagValueByEqnAndKey(int eqn, const string &key) const
+  getTagValueByEqnAndKey(int eqn, const string& key) const
   {
     if (auto it = eqn_tags.find(eqn); it != eqn_tags.end())
       if (auto it2 = it->second.find(key); it2 != it->second.end())
@@ -101,24 +102,24 @@ public:
 
   //! Returns true if equation tag with key and value exists
   bool
-  exists(const string &key, const string &value) const
+  exists(const string& key, const string& value) const
   {
     return getEqnByTag(key, value).has_value();
   }
 
   //! Returns true if equation tag with key exists for a given equation
   bool
-  exists(int eqn, const string &key) const
+  exists(int eqn, const string& key) const
   {
     auto it = eqn_tags.find(eqn);
     return it != eqn_tags.end() && it->second.contains(key);
   }
 
   //! Various functions to write equation tags
-  void writeCheckSumInfo(ostream &output) const;
-  void writeOutput(ostream &output) const;
-  void writeLatexOutput(ostream &output, int eqn) const;
-  void writeJsonAST(ostream &output, int eq) const;
+  void writeCheckSumInfo(ostream& output) const;
+  void writeOutput(ostream& output) const;
+  void writeLatexOutput(ostream& output, int eqn) const;
+  void writeJsonAST(ostream& output, int eq) const;
 };
 
 #endif

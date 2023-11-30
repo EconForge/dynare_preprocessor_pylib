@@ -17,42 +17,42 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <sstream>
-#include <algorithm>
 #include <iterator>
+#include <sstream>
 
 using namespace std;
 
 #include "ComputingTasks.hh"
-#include "Statement.hh"
 #include "ParsingDriver.hh"
+#include "Statement.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
-#include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/trim.hpp>
 #include <boost/tokenizer.hpp>
 #pragma GCC diagnostic pop
 
-#include <utility>
 #include <algorithm>
+#include <utility>
 
 SteadyStatement::SteadyStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-SteadyStatement::checkPass(ModFileStructure &mod_file_struct,
-                           [[maybe_unused]] WarningConsolidation &warnings)
+SteadyStatement::checkPass(ModFileStructure& mod_file_struct,
+                           [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.steady_present = true;
 }
 
 void
-SteadyStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+SteadyStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                              [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
@@ -60,7 +60,7 @@ SteadyStatement::writeOutput(ostream &output, [[maybe_unused]] const string &bas
 }
 
 void
-SteadyStatement::writeJsonOutput(ostream &output) const
+SteadyStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "steady")";
   if (!options_list.empty())
@@ -71,13 +71,12 @@ SteadyStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-CheckStatement::CheckStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+CheckStatement::CheckStatement(OptionsList options_list_arg) : options_list {move(options_list_arg)}
 {
 }
 
 void
-CheckStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+CheckStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                             [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
@@ -85,14 +84,14 @@ CheckStatement::writeOutput(ostream &output, [[maybe_unused]] const string &base
 }
 
 void
-CheckStatement::checkPass(ModFileStructure &mod_file_struct,
-                          [[maybe_unused]] WarningConsolidation &warnings)
+CheckStatement::checkPass(ModFileStructure& mod_file_struct,
+                          [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.check_present = true;
 }
 
 void
-CheckStatement::writeJsonOutput(ostream &output) const
+CheckStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "check")";
   if (!options_list.empty())
@@ -104,12 +103,12 @@ CheckStatement::writeJsonOutput(ostream &output) const
 }
 
 ModelInfoStatement::ModelInfoStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-ModelInfoStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+ModelInfoStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                 [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_model_info_");
@@ -117,7 +116,7 @@ ModelInfoStatement::writeOutput(ostream &output, [[maybe_unused]] const string &
 }
 
 void
-ModelInfoStatement::writeJsonOutput(ostream &output) const
+ModelInfoStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "model_info")";
   if (!options_list.empty())
@@ -128,20 +127,19 @@ ModelInfoStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-SimulStatement::SimulStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+SimulStatement::SimulStatement(OptionsList options_list_arg) : options_list {move(options_list_arg)}
 {
 }
 
 void
-SimulStatement::checkPass(ModFileStructure &mod_file_struct,
-                          [[maybe_unused]] WarningConsolidation &warnings)
+SimulStatement::checkPass(ModFileStructure& mod_file_struct,
+                          [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.perfect_foresight_solver_present = true;
 }
 
 void
-SimulStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+SimulStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                             [[maybe_unused]] bool minimal_workspace) const
 {
   // Translate the “datafile” option into “initval_file” (see dynare#1663)
@@ -155,12 +153,11 @@ SimulStatement::writeOutput(ostream &output, [[maybe_unused]] const string &base
       options_list_new.erase("datafile");
     }
   options_list_new.writeOutput(output);
-  output << "perfect_foresight_setup;" << endl
-         << "perfect_foresight_solver;" << endl;
+  output << "perfect_foresight_setup;" << endl << "perfect_foresight_solver;" << endl;
 }
 
 void
-SimulStatement::writeJsonOutput(ostream &output) const
+SimulStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "simul")";
   if (!options_list.empty())
@@ -172,12 +169,13 @@ SimulStatement::writeJsonOutput(ostream &output) const
 }
 
 PerfectForesightSetupStatement::PerfectForesightSetupStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-PerfectForesightSetupStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+PerfectForesightSetupStatement::writeOutput(ostream& output,
+                                            [[maybe_unused]] const string& basename,
                                             [[maybe_unused]] bool minimal_workspace) const
 {
   auto options_list_new = options_list; // Need a copy, because of const
@@ -194,7 +192,7 @@ PerfectForesightSetupStatement::writeOutput(ostream &output, [[maybe_unused]] co
 }
 
 void
-PerfectForesightSetupStatement::writeJsonOutput(ostream &output) const
+PerfectForesightSetupStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "perfect_foresight_setup")";
   if (!options_list.empty())
@@ -206,19 +204,20 @@ PerfectForesightSetupStatement::writeJsonOutput(ostream &output) const
 }
 
 PerfectForesightSolverStatement::PerfectForesightSolverStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+    options_list(move(options_list_arg))
 {
 }
 
 void
-PerfectForesightSolverStatement::checkPass(ModFileStructure &mod_file_struct,
-                                           [[maybe_unused]] WarningConsolidation &warnings)
+PerfectForesightSolverStatement::checkPass(ModFileStructure& mod_file_struct,
+                                           [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.perfect_foresight_solver_present = true;
 }
 
 void
-PerfectForesightSolverStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+PerfectForesightSolverStatement::writeOutput(ostream& output,
+                                             [[maybe_unused]] const string& basename,
                                              [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
@@ -226,7 +225,7 @@ PerfectForesightSolverStatement::writeOutput(ostream &output, [[maybe_unused]] c
 }
 
 void
-PerfectForesightSolverStatement::writeJsonOutput(ostream &output) const
+PerfectForesightSolverStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "perfect_foresight_solver")";
   if (!options_list.empty())
@@ -237,22 +236,23 @@ PerfectForesightSolverStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-PerfectForesightWithExpectationErrorsSetupStatement::PerfectForesightWithExpectationErrorsSetupStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+PerfectForesightWithExpectationErrorsSetupStatement::
+    PerfectForesightWithExpectationErrorsSetupStatement(OptionsList options_list_arg) :
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-PerfectForesightWithExpectationErrorsSetupStatement::writeOutput(ostream &output,
-                                                                 [[maybe_unused]] const string &basename,
-                                                                 [[maybe_unused]] bool minimal_workspace) const
+PerfectForesightWithExpectationErrorsSetupStatement::writeOutput(
+    ostream& output, [[maybe_unused]] const string& basename,
+    [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "perfect_foresight_with_expectation_errors_setup;" << endl;
 }
 
 void
-PerfectForesightWithExpectationErrorsSetupStatement::writeJsonOutput(ostream &output) const
+PerfectForesightWithExpectationErrorsSetupStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "perfect_foresight_with_expectation_errors_setup")";
   if (!options_list.empty())
@@ -263,29 +263,30 @@ PerfectForesightWithExpectationErrorsSetupStatement::writeJsonOutput(ostream &ou
   output << "}";
 }
 
-PerfectForesightWithExpectationErrorsSolverStatement::PerfectForesightWithExpectationErrorsSolverStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+PerfectForesightWithExpectationErrorsSolverStatement::
+    PerfectForesightWithExpectationErrorsSolverStatement(OptionsList options_list_arg) :
+    options_list(move(options_list_arg))
 {
 }
 
 void
-PerfectForesightWithExpectationErrorsSolverStatement::checkPass(ModFileStructure &mod_file_struct,
-                                                                [[maybe_unused]] WarningConsolidation &warnings)
+PerfectForesightWithExpectationErrorsSolverStatement::checkPass(
+    ModFileStructure& mod_file_struct, [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.perfect_foresight_with_expectation_errors_solver_present = true;
 }
 
 void
-PerfectForesightWithExpectationErrorsSolverStatement::writeOutput(ostream &output,
-                                                                  [[maybe_unused]] const string &basename,
-                                                                  [[maybe_unused]] bool minimal_workspace) const
+PerfectForesightWithExpectationErrorsSolverStatement::writeOutput(
+    ostream& output, [[maybe_unused]] const string& basename,
+    [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   output << "perfect_foresight_with_expectation_errors_solver;" << endl;
 }
 
 void
-PerfectForesightWithExpectationErrorsSolverStatement::writeJsonOutput(ostream &output) const
+PerfectForesightWithExpectationErrorsSolverStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "perfect_foresight_with_expectation_errors_solver")";
   if (!options_list.empty())
@@ -298,26 +299,26 @@ PerfectForesightWithExpectationErrorsSolverStatement::writeJsonOutput(ostream &o
 
 PriorPosteriorFunctionStatement::PriorPosteriorFunctionStatement(const bool prior_func_arg,
                                                                  OptionsList options_list_arg) :
-  prior_func{prior_func_arg},
-  options_list{move(options_list_arg)}
+    prior_func {prior_func_arg}, options_list {move(options_list_arg)}
 {
 }
 
 void
-PriorPosteriorFunctionStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                                           [[maybe_unused]] WarningConsolidation &warnings)
+PriorPosteriorFunctionStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                                           [[maybe_unused]] WarningConsolidation& warnings)
 {
-  if (auto opt = options_list.get_if<OptionsList::StringVal>("function");
-      !opt || opt->empty())
+  if (auto opt = options_list.get_if<OptionsList::StringVal>("function"); !opt || opt->empty())
     {
-      cerr << "ERROR: both the 'prior_function' and 'posterior_function' commands require the 'function' option"
+      cerr << "ERROR: both the 'prior_function' and 'posterior_function' commands require the "
+              "'function' option"
            << endl;
       exit(EXIT_FAILURE);
     }
 }
 
 void
-PriorPosteriorFunctionStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+PriorPosteriorFunctionStatement::writeOutput(ostream& output,
+                                             [[maybe_unused]] const string& basename,
                                              [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
@@ -330,7 +331,7 @@ PriorPosteriorFunctionStatement::writeOutput(ostream &output, [[maybe_unused]] c
 }
 
 void
-PriorPosteriorFunctionStatement::writeJsonOutput(ostream &output) const
+PriorPosteriorFunctionStatement::writeJsonOutput(ostream& output) const
 {
   string type = prior_func ? "prior" : "posterior";
   output << R"({"statementName": "prior_posterior_function", "type": ")" << type << R"(")";
@@ -343,15 +344,15 @@ PriorPosteriorFunctionStatement::writeJsonOutput(ostream &output) const
 }
 
 StochSimulStatement::StochSimulStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
-                                         const SymbolTable &symbol_table_arg) :
-  symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)},
-  symbol_table{symbol_table_arg}
+                                         const SymbolTable& symbol_table_arg) :
+    symbol_list {move(symbol_list_arg)},
+    options_list {move(options_list_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+StochSimulStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings)
 {
   mod_file_struct.stoch_simul_present = true;
 
@@ -381,9 +382,9 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::endogenous}, symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: stoch_simul: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -391,7 +392,7 @@ StochSimulStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 }
 
 void
-StochSimulStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+StochSimulStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                  [[maybe_unused]] bool minimal_workspace) const
 {
   // Ensure that order 3 implies k_order (#844)
@@ -406,7 +407,7 @@ StochSimulStatement::writeOutput(ostream &output, [[maybe_unused]] const string 
 }
 
 void
-StochSimulStatement::writeJsonOutput(ostream &output) const
+StochSimulStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "stoch_simul")";
   if (!options_list.empty())
@@ -423,22 +424,22 @@ StochSimulStatement::writeJsonOutput(ostream &output) const
 }
 
 ForecastStatement::ForecastStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
-                                     const SymbolTable &symbol_table_arg) :
-  symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)},
-  symbol_table{symbol_table_arg}
+                                     const SymbolTable& symbol_table_arg) :
+    symbol_list {move(symbol_list_arg)},
+    options_list {move(options_list_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-ForecastStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                             WarningConsolidation &warnings)
+ForecastStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                             WarningConsolidation& warnings)
 {
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::endogenous}, symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: forecast: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -446,7 +447,7 @@ ForecastStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
 }
 
 void
-ForecastStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+ForecastStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
@@ -455,7 +456,7 @@ ForecastStatement::writeOutput(ostream &output, [[maybe_unused]] const string &b
 }
 
 void
-ForecastStatement::writeJsonOutput(ostream &output) const
+ForecastStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "forecast")";
   if (!options_list.empty())
@@ -472,13 +473,13 @@ ForecastStatement::writeJsonOutput(ostream &output) const
 }
 
 RamseyModelStatement::RamseyModelStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct,
-                                [[maybe_unused]] WarningConsolidation &warnings)
+RamseyModelStatement::checkPass(ModFileStructure& mod_file_struct,
+                                [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.ramsey_model_present = true;
 
@@ -488,14 +489,14 @@ RamseyModelStatement::checkPass(ModFileStructure &mod_file_struct,
 }
 
 void
-RamseyModelStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+RamseyModelStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                   [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
 }
 
 void
-RamseyModelStatement::writeJsonOutput(ostream &output) const
+RamseyModelStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "ramsey_model")";
   if (!options_list.empty())
@@ -506,26 +507,25 @@ RamseyModelStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-RamseyConstraintsStatement::RamseyConstraintsStatement(const SymbolTable &symbol_table_arg, constraints_t constraints_arg) :
-  symbol_table{symbol_table_arg},
-  constraints{move(constraints_arg)}
+RamseyConstraintsStatement::RamseyConstraintsStatement(const SymbolTable& symbol_table_arg,
+                                                       constraints_t constraints_arg) :
+    symbol_table {symbol_table_arg}, constraints {move(constraints_arg)}
 {
 }
 
 void
-RamseyConstraintsStatement::checkPass(ModFileStructure &mod_file_struct,
-                                      [[maybe_unused]] WarningConsolidation &warnings)
+RamseyConstraintsStatement::checkPass(ModFileStructure& mod_file_struct,
+                                      [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.ramsey_constraints_present = true;
 }
 
 void
-RamseyConstraintsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+RamseyConstraintsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                         [[maybe_unused]] bool minimal_workspace) const
 {
   output << "M_.ramsey_model_constraints = {" << endl;
-  for (bool printed_something{false};
-       const auto &it : constraints)
+  for (bool printed_something {false}; const auto& it : constraints)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -556,12 +556,11 @@ RamseyConstraintsStatement::writeOutput(ostream &output, [[maybe_unused]] const 
 }
 
 void
-RamseyConstraintsStatement::writeJsonOutput(ostream &output) const
+RamseyConstraintsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "ramsey_constraints")"
          << R"(, "ramsey_model_constraints": [)" << endl;
-  for (bool printed_something{false};
-       const auto &it : constraints)
+  for (bool printed_something {false}; const auto& it : constraints)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -594,15 +593,15 @@ RamseyConstraintsStatement::writeJsonOutput(ostream &output) const
 
 RamseyPolicyStatement::RamseyPolicyStatement(SymbolList symbol_list_arg,
                                              OptionsList options_list_arg,
-                                             const SymbolTable &symbol_table_arg) :
-  symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)},
-  symbol_table{symbol_table_arg}
+                                             const SymbolTable& symbol_table_arg) :
+    symbol_list {move(symbol_list_arg)},
+    options_list {move(options_list_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+RamseyPolicyStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings)
 {
   // Copied from RamseyModelStatement::checkPass()
   mod_file_struct.ramsey_model_present = true;
@@ -636,9 +635,9 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::endogenous}, symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: ramsey_policy: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -646,7 +645,7 @@ RamseyPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConso
 }
 
 void
-RamseyPolicyStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+RamseyPolicyStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                    [[maybe_unused]] bool minimal_workspace) const
 {
   // Ensure that order 3 implies k_order (#844)
@@ -663,7 +662,7 @@ RamseyPolicyStatement::writeOutput(ostream &output, [[maybe_unused]] const strin
 }
 
 void
-RamseyPolicyStatement::writeJsonOutput(ostream &output) const
+RamseyPolicyStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "ramsey_policy")";
   if (!options_list.empty())
@@ -680,13 +679,13 @@ RamseyPolicyStatement::writeJsonOutput(ostream &output) const
 }
 
 EvaluatePlannerObjectiveStatement::EvaluatePlannerObjectiveStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-EvaluatePlannerObjectiveStatement::writeOutput(ostream &output,
-                                               [[maybe_unused]] const string &basename,
+EvaluatePlannerObjectiveStatement::writeOutput(ostream& output,
+                                               [[maybe_unused]] const string& basename,
                                                [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
@@ -694,7 +693,7 @@ EvaluatePlannerObjectiveStatement::writeOutput(ostream &output,
 }
 
 void
-EvaluatePlannerObjectiveStatement::writeJsonOutput(ostream &output) const
+EvaluatePlannerObjectiveStatement::writeJsonOutput(ostream& output) const
 {
   if (!options_list.empty())
     {
@@ -706,15 +705,16 @@ EvaluatePlannerObjectiveStatement::writeJsonOutput(ostream &output) const
 
 DiscretionaryPolicyStatement::DiscretionaryPolicyStatement(SymbolList symbol_list_arg,
                                                            OptionsList options_list_arg,
-                                                           const SymbolTable &symbol_table_arg) :
-  symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)},
-  symbol_table{symbol_table_arg}
+                                                           const SymbolTable& symbol_table_arg) :
+    symbol_list {move(symbol_list_arg)},
+    options_list {move(options_list_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+DiscretionaryPolicyStatement::checkPass(ModFileStructure& mod_file_struct,
+                                        WarningConsolidation& warnings)
 {
   mod_file_struct.discretionary_policy_present = true;
 
@@ -754,9 +754,9 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::endogenous}, symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: discretionary_policy: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -764,7 +764,7 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure &mod_file_struct, Warni
 }
 
 void
-DiscretionaryPolicyStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+DiscretionaryPolicyStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                           [[maybe_unused]] bool minimal_workspace) const
 {
   // Ensure that order 3 implies k_order (#844)
@@ -775,11 +775,12 @@ DiscretionaryPolicyStatement::writeOutput(ostream &output, [[maybe_unused]] cons
 
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "[info, oo_, options_, M_] = discretionary_policy(M_, options_, oo_, var_list_);" << endl;
+  output << "[info, oo_, options_, M_] = discretionary_policy(M_, options_, oo_, var_list_);"
+         << endl;
 }
 
 void
-DiscretionaryPolicyStatement::writeJsonOutput(ostream &output) const
+DiscretionaryPolicyStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "discretionary_policy")";
   if (!options_list.empty())
@@ -796,20 +797,20 @@ DiscretionaryPolicyStatement::writeJsonOutput(ostream &output) const
 }
 
 OccbinSetupStatement::OccbinSetupStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-OccbinSetupStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+OccbinSetupStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                   [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_occbin_");
-  output << "[M_, options_] = occbin.setup(M_, options_, options_occbin_);" << endl;  
+  output << "[M_, options_] = occbin.setup(M_, options_, options_occbin_);" << endl;
 }
 
 void
-OccbinSetupStatement::writeJsonOutput(ostream &output) const
+OccbinSetupStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "occbin_setup")";
   if (!options_list.empty())
@@ -821,20 +822,22 @@ OccbinSetupStatement::writeJsonOutput(ostream &output) const
 }
 
 OccbinSolverStatement::OccbinSolverStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-OccbinSolverStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+OccbinSolverStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                    [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_.occbin");
-  output << "[oo_.dr, oo_.occbin.simul]= occbin.solver(M_, options_, oo_.dr , oo_.steady_state, oo_.exo_steady_state, oo_.exo_det_steady_state);" << endl;
+  output << "[oo_.dr, oo_.occbin.simul]= occbin.solver(M_, options_, oo_.dr , oo_.steady_state, "
+            "oo_.exo_steady_state, oo_.exo_det_steady_state);"
+         << endl;
 }
 
 void
-OccbinSolverStatement::writeJsonOutput(ostream &output) const
+OccbinSolverStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "occbin_solver")";
   if (!options_list.empty())
@@ -846,20 +849,20 @@ OccbinSolverStatement::writeJsonOutput(ostream &output) const
 }
 
 OccbinWriteRegimesStatement::OccbinWriteRegimesStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-OccbinWriteRegimesStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+OccbinWriteRegimesStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                          [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_.occbin");
-  output << "occbin.write_regimes_to_xls(oo_.occbin, M_, options_);" << endl;  
+  output << "occbin.write_regimes_to_xls(oo_.occbin, M_, options_);" << endl;
 }
 
 void
-OccbinWriteRegimesStatement::writeJsonOutput(ostream &output) const
+OccbinWriteRegimesStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "occbin_write_regimes_xls")";
   if (!options_list.empty())
@@ -872,13 +875,12 @@ OccbinWriteRegimesStatement::writeJsonOutput(ostream &output) const
 
 OccbinGraphStatement::OccbinGraphStatement(SymbolList symbol_list_arg,
                                            OptionsList options_list_arg) :
-  symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)}
+    symbol_list {move(symbol_list_arg)}, options_list {move(options_list_arg)}
 {
 }
 
 void
-OccbinGraphStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+OccbinGraphStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                   [[maybe_unused]] bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
@@ -887,7 +889,7 @@ OccbinGraphStatement::writeOutput(ostream &output, [[maybe_unused]] const string
 }
 
 void
-OccbinGraphStatement::writeJsonOutput(ostream &output) const
+OccbinGraphStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "occbin_graph")";
   if (!options_list.empty())
@@ -903,17 +905,16 @@ OccbinGraphStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-EstimationStatement::EstimationStatement(const SymbolTable &symbol_table_arg,
-                                         SymbolList symbol_list_arg,
-                                         OptionsList options_list_arg) :
-  symbol_table{symbol_table_arg},
-  symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)}
+EstimationStatement::EstimationStatement(const SymbolTable& symbol_table_arg,
+                                         SymbolList symbol_list_arg, OptionsList options_list_arg) :
+    symbol_table {symbol_table_arg},
+    symbol_list {move(symbol_list_arg)},
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings)
 {
   mod_file_struct.estimation_present = true;
 
@@ -939,46 +940,44 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
     mod_file_struct.estimation_analytic_derivation = true;
 
   if (options_list.contains("dsge_var"))
-    options_list.visit("dsge_var", [&]<class T>(const T &v)
-                       {
-                         if constexpr(is_same_v<T, OptionsList::StringVal>)
-                           mod_file_struct.dsge_var_estimated = true;
-                         else if constexpr(is_same_v<T, OptionsList::NumVal>)
-                           mod_file_struct.dsge_var_calibrated = v;
-                       });
+    options_list.visit("dsge_var", [&]<class T>(const T& v) {
+      if constexpr (is_same_v<T, OptionsList::StringVal>)
+        mod_file_struct.dsge_var_estimated = true;
+      else if constexpr (is_same_v<T, OptionsList::NumVal>)
+        mod_file_struct.dsge_var_calibrated = v;
+    });
 
   // Fill in mod_file_struct.bayesian_irf_present
-  if (auto opt = options_list.get_if<OptionsList::NumVal>("bayesian_irf");
-      opt && *opt == "true")
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("bayesian_irf"); opt && *opt == "true")
     mod_file_struct.bayesian_irf_present = true;
 
   if (options_list.contains("dsge_varlag"))
-    if (mod_file_struct.dsge_var_calibrated.empty()
-        && !mod_file_struct.dsge_var_estimated)
+    if (mod_file_struct.dsge_var_calibrated.empty() && !mod_file_struct.dsge_var_estimated)
       {
         cerr << "ERROR: The estimation statement requires a dsge_var option to be passed "
              << "if the dsge_varlag option is passed." << endl;
         exit(EXIT_FAILURE);
       }
 
-  if (!mod_file_struct.dsge_var_calibrated.empty()
-      && mod_file_struct.dsge_var_estimated)
+  if (!mod_file_struct.dsge_var_calibrated.empty() && mod_file_struct.dsge_var_estimated)
     {
       cerr << "ERROR: An estimation statement cannot take more than one dsge_var option." << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (!options_list.contains("datafile")
-      && !mod_file_struct.estimation_data_statement_present)
+  if (!options_list.contains("datafile") && !mod_file_struct.estimation_data_statement_present)
     {
-      cerr << "ERROR: The estimation statement requires a data file to be supplied via the datafile option." << endl;
+      cerr << "ERROR: The estimation statement requires a data file to be supplied via the "
+              "datafile option."
+           << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (options_list.contains("mode_file")
-      && mod_file_struct.estim_params_use_calib)
+  if (options_list.contains("mode_file") && mod_file_struct.estim_params_use_calib)
     {
-      cerr << "ERROR: The mode_file option of the estimation statement is incompatible with the use_calibration option of the estimated_params_init block." << endl;
+      cerr << "ERROR: The mode_file option of the estimation statement is incompatible with the "
+              "use_calibration option of the estimated_params_init block."
+           << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -987,16 +986,19 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
     {
       if (options_list.contains("mh_jscale"))
         {
-          cerr << "ERROR: The mh_tune_jscale and mh_jscale options of the estimation statement are incompatible." << endl;
+          cerr << "ERROR: The mh_tune_jscale and mh_jscale options of the estimation statement are "
+                  "incompatible."
+               << endl;
           exit(EXIT_FAILURE);
         }
     }
   else if (options_list.contains("mh_tune_jscale.guess"))
     {
-      cerr << "ERROR: The option mh_tune_guess in estimation statement cannot be used without option mh_tune_jscale." << endl;
+      cerr << "ERROR: The option mh_tune_guess in estimation statement cannot be used without "
+              "option mh_tune_jscale."
+           << endl;
       exit(EXIT_FAILURE);
     }
-    
 
   /* Check that we are not trying to estimate a parameter appearing in the
      planner discount factor (see dynare#1173) */
@@ -1010,15 +1012,17 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
     {
       cerr << "ERROR: It is not possible to estimate a parameter ("
            << symbol_table.getName(estimated_params_in_planner_discount[0])
-           << ") that appears in the discount factor of the planner (i.e. in the 'planner_discount' option)." << endl;
+           << ") that appears in the discount factor of the planner (i.e. in the "
+              "'planner_discount' option)."
+           << endl;
       exit(EXIT_FAILURE);
     }
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::endogenous}, symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: estimation: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -1026,17 +1030,15 @@ EstimationStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 }
 
 void
-EstimationStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+EstimationStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                  [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
 
   // Special treatment for order option and particle filter
-  if (auto opt = options_list.get_if<OptionsList::NumVal>("order");
-      !opt)
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("order"); !opt)
     output << "options_.order = 1;" << endl;
-  else if (int order {stoi(*opt)};
-           order >= 2)
+  else if (int order {stoi(*opt)}; order >= 2)
     {
       output << "options_.particle.status = true;" << endl;
       if (order > 2)
@@ -1044,8 +1046,7 @@ EstimationStatement::writeOutput(ostream &output, [[maybe_unused]] const string 
     }
 
   // Do not check for the steady state in diffuse filter mode (#400)
-  if (auto opt = options_list.get_if<OptionsList::NumVal>("diffuse_filter");
-      opt && *opt == "true")
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("diffuse_filter"); opt && *opt == "true")
     output << "options_.steadystate.nocheck = true;" << endl;
 
   symbol_list.writeOutput("var_list_", output);
@@ -1053,7 +1054,7 @@ EstimationStatement::writeOutput(ostream &output, [[maybe_unused]] const string 
 }
 
 void
-EstimationStatement::writeJsonOutput(ostream &output) const
+EstimationStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "estimation")";
   if (!options_list.empty())
@@ -1070,16 +1071,15 @@ EstimationStatement::writeJsonOutput(ostream &output) const
 }
 
 DynareSensitivityStatement::DynareSensitivityStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-DynareSensitivityStatement::checkPass(ModFileStructure &mod_file_struct,
-                                      [[maybe_unused]] WarningConsolidation &warnings)
+DynareSensitivityStatement::checkPass(ModFileStructure& mod_file_struct,
+                                      [[maybe_unused]] WarningConsolidation& warnings)
 {
-  if (auto opt = options_list.get_if<OptionsList::NumVal>("identification");
-      opt && *opt == "1")
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("identification"); opt && *opt == "1")
     {
       mod_file_struct.identification_present = true;
       // The following triggers 3rd order derivatives, see preprocessor#40
@@ -1089,7 +1089,7 @@ DynareSensitivityStatement::checkPass(ModFileStructure &mod_file_struct,
 }
 
 void
-DynareSensitivityStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+DynareSensitivityStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                         [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_gsa");
@@ -1110,7 +1110,7 @@ DynareSensitivityStatement::writeOutput(ostream &output, [[maybe_unused]] const 
 }
 
 void
-DynareSensitivityStatement::writeJsonOutput(ostream &output) const
+DynareSensitivityStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "dynare_sensitivity")";
   if (!options_list.empty())
@@ -1121,22 +1121,21 @@ DynareSensitivityStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-RplotStatement::RplotStatement(SymbolList symbol_list_arg,
-                               const SymbolTable &symbol_table_arg) :
-  symbol_list{move(symbol_list_arg)},
-  symbol_table{symbol_table_arg}
+RplotStatement::RplotStatement(SymbolList symbol_list_arg, const SymbolTable& symbol_table_arg) :
+    symbol_list {move(symbol_list_arg)}, symbol_table {symbol_table_arg}
 {
 }
 
 void
-RplotStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                          WarningConsolidation &warnings)
+RplotStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                          WarningConsolidation& warnings)
 {
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous, SymbolType::exogenous}, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::endogenous, SymbolType::exogenous},
+                            symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: rplot: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -1144,7 +1143,7 @@ RplotStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
 }
 
 void
-RplotStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+RplotStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                             [[maybe_unused]] bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
@@ -1152,7 +1151,7 @@ RplotStatement::writeOutput(ostream &output, [[maybe_unused]] const string &base
 }
 
 void
-RplotStatement::writeJsonOutput(ostream &output) const
+RplotStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "rplot")";
   if (!symbol_list.empty())
@@ -1164,31 +1163,30 @@ RplotStatement::writeJsonOutput(ostream &output) const
 }
 
 void
-UnitRootVarsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+UnitRootVarsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                    [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "options_.diffuse_filter = 1;" << endl
-         << "options_.steadystate.nocheck = 1;" << endl;
+  output << "options_.diffuse_filter = 1;" << endl << "options_.steadystate.nocheck = 1;" << endl;
 }
 
 void
-UnitRootVarsStatement::writeJsonOutput(ostream &output) const
+UnitRootVarsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "unit_root_vars", )"
          << R"("diffuse_filter": 1, )"
          << R"("steady_state.nocheck": 1})";
 }
 
-DsampleStatement::DsampleStatement(int val1_arg) : val1{val1_arg}, val2{-1}
+DsampleStatement::DsampleStatement(int val1_arg) : val1 {val1_arg}, val2 {-1}
 {
 }
 
-DsampleStatement::DsampleStatement(int val1_arg, int val2_arg) : val1{val1_arg}, val2{val2_arg}
+DsampleStatement::DsampleStatement(int val1_arg, int val2_arg) : val1 {val1_arg}, val2 {val2_arg}
 {
 }
 
 void
-DsampleStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+DsampleStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                               [[maybe_unused]] bool minimal_workspace) const
 {
   if (val2 < 0)
@@ -1198,17 +1196,16 @@ DsampleStatement::writeOutput(ostream &output, [[maybe_unused]] const string &ba
 }
 
 void
-DsampleStatement::writeJsonOutput(ostream &output) const
+DsampleStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "dsample", )"
          << R"("value1": )" << val1 << ", "
          << R"("value2": )" << val2 << "}";
 }
 
-AbstractEstimatedParamsStatement::AbstractEstimatedParamsStatement(vector<EstimationParams> estim_params_list_arg,
-                                                                   const SymbolTable &symbol_table_arg) :
-  estim_params_list{move(estim_params_list_arg)},
-  symbol_table{symbol_table_arg}
+AbstractEstimatedParamsStatement::AbstractEstimatedParamsStatement(
+    vector<EstimationParams> estim_params_list_arg, const SymbolTable& symbol_table_arg) :
+    estim_params_list {move(estim_params_list_arg)}, symbol_table {symbol_table_arg}
 {
 }
 
@@ -1220,16 +1217,17 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
      concatenated blocks that is implemented in the writeOutput() method. */
   set<string> already_declared;
   set<pair<string, string>> already_declared_corr;
-  for (const auto &it : estim_params_list)
+  for (const auto& it : estim_params_list)
     {
       if (it.type == 3) // Correlation
         {
           // Use lexical ordering for the pair of symbols
-          auto x = it.name < it.name2 ? pair{it.name, it.name2} : pair{it.name2, it.name};
+          auto x = it.name < it.name2 ? pair {it.name, it.name2} : pair {it.name2, it.name};
 
           if (already_declared_corr.contains(x))
             {
-              cerr << "ERROR: in `" << blockName() << "' block, the correlation between " << it.name << " and " << it.name2 << " is declared twice." << endl;
+              cerr << "ERROR: in `" << blockName() << "' block, the correlation between " << it.name
+                   << " and " << it.name2 << " is declared twice." << endl;
               exit(EXIT_FAILURE);
             }
           else
@@ -1239,7 +1237,8 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
         {
           if (already_declared.contains(it.name))
             {
-              cerr << "ERROR: in `" << blockName() << "' block, the symbol " << it.name << " is declared twice." << endl;
+              cerr << "ERROR: in `" << blockName() << "' block, the symbol " << it.name
+                   << " is declared twice." << endl;
               exit(EXIT_FAILURE);
             }
           else
@@ -1251,11 +1250,11 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
      associated to other parameters in the same block (see issue #77) */
   // First compute the symbol IDs of parameters declared in this block
   set<int> declared_params;
-  for (const string &name : already_declared)
+  for (const string& name : already_declared)
     if (name != "dsge_prior_weight")
       declared_params.insert(symbol_table.getID(name));
   // Then look for (apparently) recursive definitions
-  for (const auto &it : estim_params_list)
+  for (const auto& it : estim_params_list)
     {
       set<int> used_params;
       it.init_val->collectVariables(SymbolType::parameter, used_params);
@@ -1267,9 +1266,8 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
       it.p4->collectVariables(SymbolType::parameter, used_params);
       it.jscale->collectVariables(SymbolType::parameter, used_params);
       vector<int> intersect;
-      set_intersection(declared_params.begin(), declared_params.end(),
-                       used_params.begin(), used_params.end(),
-                       back_inserter(intersect));
+      set_intersection(declared_params.begin(), declared_params.end(), used_params.begin(),
+                       used_params.end(), back_inserter(intersect));
       if (intersect.size() > 0)
         {
           cerr << "ERROR: in `" << blockName() << "' block, the value of estimated parameter "
@@ -1285,20 +1283,20 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
 }
 
 EstimatedParamsStatement::EstimatedParamsStatement(vector<EstimationParams> estim_params_list_arg,
-                                                   const SymbolTable &symbol_table_arg,
+                                                   const SymbolTable& symbol_table_arg,
                                                    bool overwrite_arg) :
-  AbstractEstimatedParamsStatement(move(estim_params_list_arg), symbol_table_arg),
-  overwrite{overwrite_arg}
+    AbstractEstimatedParamsStatement(move(estim_params_list_arg), symbol_table_arg),
+    overwrite {overwrite_arg}
 {
 }
 
 void
-EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct,
-                                    [[maybe_unused]] WarningConsolidation &warnings)
+EstimatedParamsStatement::checkPass(ModFileStructure& mod_file_struct,
+                                    [[maybe_unused]] WarningConsolidation& warnings)
 {
   commonCheckPass();
 
-  for (const auto &it : estim_params_list)
+  for (const auto& it : estim_params_list)
     {
       if (it.name == "dsge_prior_weight")
         mod_file_struct.dsge_prior_weight_in_estimated_params = true;
@@ -1307,27 +1305,28 @@ EstimatedParamsStatement::checkPass(ModFileStructure &mod_file_struct,
       if (it.prior == PriorDistributions::beta)
         try
           {
-            if (it.mean->eval(eval_context_t()) == 0.5
-                && it.std->eval(eval_context_t()) == 0.5)
+            if (it.mean->eval(eval_context_t()) == 0.5 && it.std->eval(eval_context_t()) == 0.5)
               {
-                cerr << "ERROR: The prior density is not defined for the beta distribution when the mean = standard deviation = 0.5." << endl;
+                cerr << "ERROR: The prior density is not defined for the beta distribution when "
+                        "the mean = standard deviation = 0.5."
+                     << endl;
                 exit(EXIT_FAILURE);
               }
           }
-        catch (ExprNode::EvalException &e)
+        catch (ExprNode::EvalException& e)
           {
             // We don't have enough information to compute the numerical value, skip the test
           }
     }
 
   // Fill in mod_file_struct.estimated_parameters (related to #469)
-  for (const auto &it : estim_params_list)
+  for (const auto& it : estim_params_list)
     if (it.type == 2 && it.name != "dsge_prior_weight")
       mod_file_struct.estimated_parameters.insert(symbol_table.getID(it.name));
 }
 
 void
-EstimatedParamsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+EstimatedParamsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                       [[maybe_unused]] bool minimal_workspace) const
 {
   string indent;
@@ -1347,12 +1346,14 @@ EstimatedParamsStatement::writeOutput(ostream &output, [[maybe_unused]] const st
   /* Note that we verify that parameters are not declared twice across
      concatenated blocks, because this case is not covered by the check
      implemented in AbstractEstimatedParamsStatement::commonCheckPass() */
-  for (const auto &it : estim_params_list)
+  for (const auto& it : estim_params_list)
     {
       int tsid = symbol_table.getTypeSpecificID(it.name) + 1;
       int tsid2;
       SymbolType symb_type = symbol_table.getType(it.name);
-      string errmsg = " has been specified twice in two concatenated ''estimated_params'' blocks. Depending on your intention, you may want to use the ''overwrite'' option or an ''estimated_params_remove'' block.";
+      string errmsg = " has been specified twice in two concatenated ''estimated_params'' blocks. "
+                      "Depending on your intention, you may want to use the ''overwrite'' option "
+                      "or an ''estimated_params_remove'' block.";
 
       switch (it.type)
         {
@@ -1364,7 +1365,8 @@ EstimatedParamsStatement::writeOutput(ostream &output, [[maybe_unused]] const st
                    << "estim_params_.var_exo = [estim_params_.var_exo; ";
           else if (symb_type == SymbolType::endogenous)
             output << "if ~isempty(find(estim_params_.var_endo(:,1)==" << tsid << "))" << endl
-                   << "    error('The standard deviation of the measurement error for " << it.name << errmsg << "')" << endl
+                   << "    error('The standard deviation of the measurement error for " << it.name
+                   << errmsg << "')" << endl
                    << "end" << endl
                    << "estim_params_.var_endo = [estim_params_.var_endo; ";
           output << tsid;
@@ -1373,24 +1375,29 @@ EstimatedParamsStatement::writeOutput(ostream &output, [[maybe_unused]] const st
           output << "if ~isempty(find(estim_params_.param_vals(:,1)==" << tsid << "))" << endl
                  << "    error('Parameter " << it.name << errmsg << "')" << endl
                  << "end" << endl
-                 << "estim_params_.param_vals = [estim_params_.param_vals; "
-                 << tsid;
+                 << "estim_params_.param_vals = [estim_params_.param_vals; " << tsid;
           break;
         case 3:
           tsid2 = symbol_table.getTypeSpecificID(it.name2) + 1;
           if (symb_type == SymbolType::exogenous)
-            output << "if ~isempty(find((estim_params_.corrx(:,1)==" << tsid << " & estim_params_.corrx(:,2)==" << tsid2 << ") | "
-                   <<                  "(estim_params_.corrx(:,2)==" << tsid << " & estim_params_.corrx(:,1)==" << tsid2 << ")))" << endl
-                   << "    error('The correlation between " << it.name << " and " << it.name2 << errmsg << "')" << endl
+            output << "if ~isempty(find((estim_params_.corrx(:,1)==" << tsid
+                   << " & estim_params_.corrx(:,2)==" << tsid2 << ") | "
+                   << "(estim_params_.corrx(:,2)==" << tsid
+                   << " & estim_params_.corrx(:,1)==" << tsid2 << ")))" << endl
+                   << "    error('The correlation between " << it.name << " and " << it.name2
+                   << errmsg << "')" << endl
                    << "end" << endl
                    << "estim_params_.corrx = [estim_params_.corrx; ";
           else if (symb_type == SymbolType::endogenous)
-            output << "if ~isempty(find((estim_params_.corrn(:,1)==" << tsid << " & estim_params_.corrn(:,2)==" << tsid2 << ") | "
-                   <<                  "(estim_params_.corrn(:,2)==" << tsid << " & estim_params_.corrn(:,1)==" << tsid2 << ")))" << endl
-                   << "    error('The correlation between measurement errors on " << it.name << " and " << it.name2 << errmsg << "')" << endl
+            output << "if ~isempty(find((estim_params_.corrn(:,1)==" << tsid
+                   << " & estim_params_.corrn(:,2)==" << tsid2 << ") | "
+                   << "(estim_params_.corrn(:,2)==" << tsid
+                   << " & estim_params_.corrn(:,1)==" << tsid2 << ")))" << endl
+                   << "    error('The correlation between measurement errors on " << it.name
+                   << " and " << it.name2 << errmsg << "')" << endl
                    << "end" << endl
                    << "estim_params_.corrn = [estim_params_.corrn; ";
-          output << tsid << ", " << symbol_table.getTypeSpecificID(it.name2)+1;
+          output << tsid << ", " << symbol_table.getTypeSpecificID(it.name2) + 1;
           break;
         }
       output << ", ";
@@ -1399,8 +1406,7 @@ EstimatedParamsStatement::writeOutput(ostream &output, [[maybe_unused]] const st
       it.low_bound->writeOutput(output);
       output << ", ";
       it.up_bound->writeOutput(output);
-      output << ", "
-             << static_cast<int>(it.prior) << ", ";
+      output << ", " << static_cast<int>(it.prior) << ", ";
       it.mean->writeOutput(output);
       output << ", ";
       it.std->writeOutput(output);
@@ -1415,12 +1421,11 @@ EstimatedParamsStatement::writeOutput(ostream &output, [[maybe_unused]] const st
 }
 
 void
-EstimatedParamsStatement::writeJsonOutput(ostream &output) const
+EstimatedParamsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "estimated_params", )"
          << R"("params": [)";
-  for (bool printed_something{false};
-       const auto &it : estim_params_list)
+  for (bool printed_something {false}; const auto& it : estim_params_list)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -1445,9 +1450,7 @@ EstimatedParamsStatement::writeJsonOutput(ostream &output) const
       it.low_bound->writeJsonOutput(output, {}, {});
       output << R"(", "upper_bound": ")";
       it.up_bound->writeJsonOutput(output, {}, {});
-      output << R"(", "prior_distribution": )"
-             << static_cast<int>(it.prior)
-             << R"(, "mean": ")";
+      output << R"(", "prior_distribution": )" << static_cast<int>(it.prior) << R"(, "mean": ")";
       it.mean->writeJsonOutput(output, {}, {});
       output << R"(", "std": ")";
       it.std->writeJsonOutput(output, {}, {});
@@ -1463,17 +1466,17 @@ EstimatedParamsStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-EstimatedParamsInitStatement::EstimatedParamsInitStatement(vector<EstimationParams> estim_params_list_arg,
-                                                           const SymbolTable &symbol_table_arg,
-                                                           const bool use_calibration_arg) :
-  AbstractEstimatedParamsStatement(move(estim_params_list_arg), symbol_table_arg),
-  use_calibration{use_calibration_arg}
+EstimatedParamsInitStatement::EstimatedParamsInitStatement(
+    vector<EstimationParams> estim_params_list_arg, const SymbolTable& symbol_table_arg,
+    const bool use_calibration_arg) :
+    AbstractEstimatedParamsStatement(move(estim_params_list_arg), symbol_table_arg),
+    use_calibration {use_calibration_arg}
 {
 }
 
 void
-EstimatedParamsInitStatement::checkPass(ModFileStructure &mod_file_struct,
-                                        [[maybe_unused]] WarningConsolidation &warnings)
+EstimatedParamsInitStatement::checkPass(ModFileStructure& mod_file_struct,
+                                        [[maybe_unused]] WarningConsolidation& warnings)
 {
   commonCheckPass();
 
@@ -1482,7 +1485,7 @@ EstimatedParamsInitStatement::checkPass(ModFileStructure &mod_file_struct,
 }
 
 void
-EstimatedParamsInitStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+EstimatedParamsInitStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                           [[maybe_unused]] bool minimal_workspace) const
 {
   if (use_calibration)
@@ -1490,7 +1493,7 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, [[maybe_unused]] cons
 
   bool skipline = false;
 
-  for (const auto &it : estim_params_list)
+  for (const auto& it : estim_params_list)
     {
       int tsid = symbol_table.getTypeSpecificID(it.name) + 1;
       SymbolType symb_type = symbol_table.getType(it.name);
@@ -1501,37 +1504,38 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, [[maybe_unused]] cons
             {
               output << "tmp1 = find(estim_params_.var_exo(:,1)==" << tsid << ");" << endl
                      << "if isempty(tmp1)" << endl
-                     << "    disp(sprintf('The standard deviation of %s is not estimated (the value provided in estimated_params_init is not used).', M_.exo_names{" << tsid << "}))" << endl;
+                     << "    disp(sprintf('The standard deviation of %s is not estimated (the "
+                        "value provided in estimated_params_init is not used).', M_.exo_names{"
+                     << tsid << "}))" << endl;
               skipline = true;
-              output << "else" << endl
-                     << "    estim_params_.var_exo(tmp1,2) = ";
+              output << "else" << endl << "    estim_params_.var_exo(tmp1,2) = ";
               it.init_val->writeOutput(output);
-              output << ";" << endl
-                     << "end" << endl;
+              output << ";" << endl << "end" << endl;
             }
           else if (symb_type == SymbolType::endogenous)
             {
               output << "tmp1 = find(estim_params_.var_endo(:,1)==" << tsid << ");" << endl
                      << "if isempty(tmp1)" << endl
-                     << "    disp(sprintf('The standard deviation of the measurement error on %s is not estimated (the value provided in estimated_params_init is not used).', M_.endo_names{" << tsid << "}))" << endl;
+                     << "    disp(sprintf('The standard deviation of the measurement error on %s "
+                        "is not estimated (the value provided in estimated_params_init is not "
+                        "used).', M_.endo_names{"
+                     << tsid << "}))" << endl;
               skipline = true;
-              output << "else" << endl
-                     << "    estim_params_.var_endo(tmp1,2) = ";
+              output << "else" << endl << "    estim_params_.var_endo(tmp1,2) = ";
               it.init_val->writeOutput(output);
-              output << ";" << endl
-                     << "end" << endl;
+              output << ";" << endl << "end" << endl;
             }
           else if (symb_type == SymbolType::parameter)
             {
               output << "tmp1 = find(estim_params_.param_vals(:,1)==" << tsid << ");" << endl
                      << "if isempty(tmp1)" << endl
-                     << "    disp(sprintf('Parameter %s is not estimated (the value provided in estimated_params_init is not used).', M_.param_names{" << tsid << "}))" << endl;
+                     << "    disp(sprintf('Parameter %s is not estimated (the value provided in "
+                        "estimated_params_init is not used).', M_.param_names{"
+                     << tsid << "}))" << endl;
               skipline = true;
-              output << "else" << endl
-                     << "    estim_params_.param_vals(tmp1,2) = ";
+              output << "else" << endl << "    estim_params_.param_vals(tmp1,2) = ";
               it.init_val->writeOutput(output);
-              output << ";" << endl
-                     << "end" << endl;
+              output << ";" << endl << "end" << endl;
             }
         }
       else
@@ -1539,31 +1543,34 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, [[maybe_unused]] cons
           int tsid2 = symbol_table.getTypeSpecificID(it.name2) + 1;
           if (symb_type == SymbolType::exogenous)
             {
-              output << "tmp1 = find((estim_params_.corrx(:,1)==" << tsid << " & estim_params_.corrx(:,2)==" << tsid2 << ") | "
-                     <<             "(estim_params_.corrx(:,2)==" << tsid << " & estim_params_.corrx(:,1)==" << tsid2 << "));" << endl
+              output << "tmp1 = find((estim_params_.corrx(:,1)==" << tsid
+                     << " & estim_params_.corrx(:,2)==" << tsid2 << ") | "
+                     << "(estim_params_.corrx(:,2)==" << tsid
+                     << " & estim_params_.corrx(:,1)==" << tsid2 << "));" << endl
                      << "if isempty(tmp1)" << endl
-                     << "    disp(sprintf('The correlation between %s and %s is not estimated (the value provided in estimated_params_init is not used).', M_.exo_names{"
+                     << "    disp(sprintf('The correlation between %s and %s is not estimated (the "
+                        "value provided in estimated_params_init is not used).', M_.exo_names{"
                      << tsid << "}, M_.exo_names{" << tsid2 << "}))" << endl;
               skipline = true;
-              output << "else" << endl
-                     << "    estim_params_.corrx(tmp1,3) = ";
+              output << "else" << endl << "    estim_params_.corrx(tmp1,3) = ";
               it.init_val->writeOutput(output);
-              output << ";" << endl
-                     << "end" << endl;
+              output << ";" << endl << "end" << endl;
             }
           else if (symb_type == SymbolType::endogenous)
             {
-              output << "tmp1 = find((estim_params_.corrn(:,1)==" << tsid << " & estim_params_.corrn(:,2)==" << tsid2 << ") | "
-                     <<             "(estim_params_.corrn(:,2)==" << tsid << " & estim_params_.corrn(:,1)==" << tsid2 << "));" << endl
+              output << "tmp1 = find((estim_params_.corrn(:,1)==" << tsid
+                     << " & estim_params_.corrn(:,2)==" << tsid2 << ") | "
+                     << "(estim_params_.corrn(:,2)==" << tsid
+                     << " & estim_params_.corrn(:,1)==" << tsid2 << "));" << endl
                      << "if isempty(tmp1)" << endl
-                     << "    disp(sprintf('The correlation between measurement errors on %s and %s is not estimated (the value provided in estimated_params_init is not used).', M_.endo_names{"
+                     << "    disp(sprintf('The correlation between measurement errors on %s and %s "
+                        "is not estimated (the value provided in estimated_params_init is not "
+                        "used).', M_.endo_names{"
                      << tsid << "}, M_.endo_names{" << tsid2 << "}))" << endl;
               skipline = true;
-              output << "else" << endl
-                     << "    estim_params_.corrn(tmp1,3) = ";
+              output << "else" << endl << "    estim_params_.corrn(tmp1,3) = ";
               it.init_val->writeOutput(output);
-              output << ";" << endl
-                     << "end" << endl;
+              output << ";" << endl << "end" << endl;
             }
         }
     }
@@ -1572,7 +1579,7 @@ EstimatedParamsInitStatement::writeOutput(ostream &output, [[maybe_unused]] cons
 }
 
 void
-EstimatedParamsInitStatement::writeJsonOutput(ostream &output) const
+EstimatedParamsInitStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "estimated_params_init")";
 
@@ -1580,8 +1587,7 @@ EstimatedParamsInitStatement::writeJsonOutput(ostream &output) const
     output << R"(, "use_calibration_initialization": 1)";
 
   output << R"(, "params": [)";
-  for (bool printed_something{false};
-       const auto &it : estim_params_list)
+  for (bool printed_something {false}; const auto& it : estim_params_list)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -1607,24 +1613,25 @@ EstimatedParamsInitStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-EstimatedParamsBoundsStatement::EstimatedParamsBoundsStatement(vector<EstimationParams> estim_params_list_arg,
-                                                               const SymbolTable &symbol_table_arg) :
-  AbstractEstimatedParamsStatement(move(estim_params_list_arg), symbol_table_arg)
+EstimatedParamsBoundsStatement::EstimatedParamsBoundsStatement(
+    vector<EstimationParams> estim_params_list_arg, const SymbolTable& symbol_table_arg) :
+    AbstractEstimatedParamsStatement(move(estim_params_list_arg), symbol_table_arg)
 {
 }
 
 void
-EstimatedParamsBoundsStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                                          [[maybe_unused]] WarningConsolidation &warnings)
+EstimatedParamsBoundsStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                                          [[maybe_unused]] WarningConsolidation& warnings)
 {
   commonCheckPass();
 }
 
 void
-EstimatedParamsBoundsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+EstimatedParamsBoundsStatement::writeOutput(ostream& output,
+                                            [[maybe_unused]] const string& basename,
                                             [[maybe_unused]] bool minimal_workspace) const
 {
-  for (const auto &it : estim_params_list)
+  for (const auto& it : estim_params_list)
     {
       int tsid = symbol_table.getTypeSpecificID(it.name) + 1;
       SymbolType symb_type = symbol_table.getType(it.name);
@@ -1636,8 +1643,7 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, [[maybe_unused]] co
               output << "tmp1 = find(estim_params_.var_exo(:,1)==" << tsid << ");" << endl
                      << "estim_params_.var_exo(tmp1,3) = ";
               it.low_bound->writeOutput(output);
-              output << ";" << endl
-                     << "estim_params_.var_exo(tmp1,4) = ";
+              output << ";" << endl << "estim_params_.var_exo(tmp1,4) = ";
               it.up_bound->writeOutput(output);
               output << ";" << endl;
             }
@@ -1646,8 +1652,7 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, [[maybe_unused]] co
               output << "tmp1 = find(estim_params_.var_endo(:,1)==" << tsid << ");" << endl
                      << "estim_params_.var_endo(tmp1,3) = ";
               it.low_bound->writeOutput(output);
-              output << ";" << endl
-                     << "estim_params_.var_endo(tmp1,4) = ";
+              output << ";" << endl << "estim_params_.var_endo(tmp1,4) = ";
               it.up_bound->writeOutput(output);
               output << ";" << endl;
             }
@@ -1656,8 +1661,7 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, [[maybe_unused]] co
               output << "tmp1 = find(estim_params_.param_vals(:,1)==" << tsid << ");" << endl
                      << "estim_params_.param_vals(tmp1,3) = ";
               it.low_bound->writeOutput(output);
-              output << ";" << endl
-                     << "estim_params_.param_vals(tmp1,4) = ";
+              output << ";" << endl << "estim_params_.param_vals(tmp1,4) = ";
               it.up_bound->writeOutput(output);
               output << ";" << endl;
             }
@@ -1667,23 +1671,25 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, [[maybe_unused]] co
           int tsid2 = symbol_table.getTypeSpecificID(it.name2) + 1;
           if (symb_type == SymbolType::exogenous)
             {
-              output << "tmp1 = find((estim_params_.corrx(:,1)==" << tsid << " & estim_params_.corrx(:,2)==" << tsid2 << ") | "
-                     <<             "(estim_params_.corrx(:,2)==" << tsid << " & estim_params_.corrx(:,1)==" << tsid2 << "));" << endl
+              output << "tmp1 = find((estim_params_.corrx(:,1)==" << tsid
+                     << " & estim_params_.corrx(:,2)==" << tsid2 << ") | "
+                     << "(estim_params_.corrx(:,2)==" << tsid
+                     << " & estim_params_.corrx(:,1)==" << tsid2 << "));" << endl
                      << "estim_params_.corrx(tmp1,4) = ";
               it.low_bound->writeOutput(output);
-              output << ";" << endl
-                     << "estim_params_.corrx(tmp1,5) = ";
+              output << ";" << endl << "estim_params_.corrx(tmp1,5) = ";
               it.up_bound->writeOutput(output);
               output << ";" << endl;
             }
           else if (symb_type == SymbolType::endogenous)
             {
-              output << "tmp1 = find((estim_params_.corrn(:,1)==" << tsid << " & estim_params_.corrn(:,2)==" << tsid2 << ") | "
-                     <<             "(estim_params_.corrn(:,2)==" << tsid << " & estim_params_.corrn(:,1)==" << tsid2 << "));" << endl
+              output << "tmp1 = find((estim_params_.corrn(:,1)==" << tsid
+                     << " & estim_params_.corrn(:,2)==" << tsid2 << ") | "
+                     << "(estim_params_.corrn(:,2)==" << tsid
+                     << " & estim_params_.corrn(:,1)==" << tsid2 << "));" << endl
                      << "estim_params_.corrn(tmp1,4) = ";
               it.low_bound->writeOutput(output);
-              output << ";" << endl
-                     << "estim_params_.corrn(tmp1,5) = ";
+              output << ";" << endl << "estim_params_.corrn(tmp1,5) = ";
               it.up_bound->writeOutput(output);
               output << ";" << endl;
             }
@@ -1692,13 +1698,12 @@ EstimatedParamsBoundsStatement::writeOutput(ostream &output, [[maybe_unused]] co
 }
 
 void
-EstimatedParamsBoundsStatement::writeJsonOutput(ostream &output) const
+EstimatedParamsBoundsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "estimated_params_bounds", )"
          << R"("params": [)";
 
-  for (bool printed_something{false};
-       const auto &it : estim_params_list)
+  for (bool printed_something {false}; const auto& it : estim_params_list)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -1726,18 +1731,18 @@ EstimatedParamsBoundsStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-EstimatedParamsRemoveStatement::EstimatedParamsRemoveStatement(vector<EstimationParams> estim_params_list_arg,
-                                                               const SymbolTable &symbol_table_arg) :
-  estim_params_list{move(estim_params_list_arg)},
-  symbol_table{symbol_table_arg}
+EstimatedParamsRemoveStatement::EstimatedParamsRemoveStatement(
+    vector<EstimationParams> estim_params_list_arg, const SymbolTable& symbol_table_arg) :
+    estim_params_list {move(estim_params_list_arg)}, symbol_table {symbol_table_arg}
 {
 }
 
 void
-EstimatedParamsRemoveStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+EstimatedParamsRemoveStatement::writeOutput(ostream& output,
+                                            [[maybe_unused]] const string& basename,
                                             [[maybe_unused]] bool minimal_workspace) const
 {
-  for (const auto &it : estim_params_list)
+  for (const auto& it : estim_params_list)
     {
       int tsid = symbol_table.getTypeSpecificID(it.name) + 1;
       SymbolType symb_type = symbol_table.getType(it.name);
@@ -1747,42 +1752,54 @@ EstimatedParamsRemoveStatement::writeOutput(ostream &output, [[maybe_unused]] co
           if (symb_type == SymbolType::exogenous)
             output << "tmp1 = find(estim_params_.var_exo(:,1)==" << tsid << ");" << endl
                    << "if isempty(tmp1)" << endl
-                   << "    error(sprintf('estimated_params_remove: the standard deviation of %s is not estimated.', M_.exo_names{" << tsid << "}))" << endl
+                   << "    error(sprintf('estimated_params_remove: the standard deviation of %s is "
+                      "not estimated.', M_.exo_names{"
+                   << tsid << "}))" << endl
                    << "else" << endl
                    << "    estim_params_.var_exo(tmp1,:) = [];"
                    << "end" << endl;
           else if (symb_type == SymbolType::endogenous)
             output << "tmp1 = find(estim_params_.var_endo(:,1)==" << tsid << ");" << endl
                    << "if isempty(tmp1)" << endl
-                   << "    error(sprintf('estimated_params_remove: the standard deviation of the measurement error on %s is not estimated.', M_.endo_names{" << tsid << "}))" << endl
+                   << "    error(sprintf('estimated_params_remove: the standard deviation of the "
+                      "measurement error on %s is not estimated.', M_.endo_names{"
+                   << tsid << "}))" << endl
                    << "else" << endl
                    << "    estim_params_.var_endo(tmp1,:) = [];"
                    << "end" << endl;
           else if (symb_type == SymbolType::parameter)
-              output << "tmp1 = find(estim_params_.param_vals(:,1)==" << tsid << ");" << endl
-                     << "if isempty(tmp1)" << endl
-                     << "    error(sprintf('estimated_params_remove: parameter %s is not estimated.', M_.param_names{" << tsid << "}))" << endl
-                     << "else" << endl
-                     << "    estim_params_.param_vals(tmp1,:) = [];"
-                     << "end" << endl;
+            output << "tmp1 = find(estim_params_.param_vals(:,1)==" << tsid << ");" << endl
+                   << "if isempty(tmp1)" << endl
+                   << "    error(sprintf('estimated_params_remove: parameter %s is not "
+                      "estimated.', M_.param_names{"
+                   << tsid << "}))" << endl
+                   << "else" << endl
+                   << "    estim_params_.param_vals(tmp1,:) = [];"
+                   << "end" << endl;
         }
       else
         {
           int tsid2 = symbol_table.getTypeSpecificID(it.name2) + 1;
           if (symb_type == SymbolType::exogenous)
-              output << "tmp1 = find((estim_params_.corrx(:,1)==" << tsid << " & estim_params_.corrx(:,2)==" << tsid2 << ") | "
-                     <<             "(estim_params_.corrx(:,2)==" << tsid << " & estim_params_.corrx(:,1)==" << tsid2 << "));" << endl
-                     << "if isempty(tmp1)" << endl
-                     << "    error(sprintf('estimated_params_remove: the correlation between %s and %s is not estimated.', M_.exo_names{"
-                     << tsid << "}, M_.exo_names{" << tsid2 << "}))" << endl
-                     << "else" << endl
-                     << "    estim_params_.corrx(tmp1,:) = [];"
-                     << "end" << endl;
-          else if (symb_type == SymbolType::endogenous)
-            output << "tmp1 = find((estim_params_.corrn(:,1)==" << tsid << " & estim_params_.corrn(:,2)==" << tsid2 << ") | "
-                   <<             "(estim_params_.corrn(:,2)==" << tsid << " & estim_params_.corrn(:,1)==" << tsid2 << "));" << endl
+            output << "tmp1 = find((estim_params_.corrx(:,1)==" << tsid
+                   << " & estim_params_.corrx(:,2)==" << tsid2 << ") | "
+                   << "(estim_params_.corrx(:,2)==" << tsid
+                   << " & estim_params_.corrx(:,1)==" << tsid2 << "));" << endl
                    << "if isempty(tmp1)" << endl
-                   << "    error(sprintf('estimated_params_remove: the correlation between measurement errors on %s and %s is not estimated.', M_.endo_names{"
+                   << "    error(sprintf('estimated_params_remove: the correlation between %s and "
+                      "%s is not estimated.', M_.exo_names{"
+                   << tsid << "}, M_.exo_names{" << tsid2 << "}))" << endl
+                   << "else" << endl
+                   << "    estim_params_.corrx(tmp1,:) = [];"
+                   << "end" << endl;
+          else if (symb_type == SymbolType::endogenous)
+            output << "tmp1 = find((estim_params_.corrn(:,1)==" << tsid
+                   << " & estim_params_.corrn(:,2)==" << tsid2 << ") | "
+                   << "(estim_params_.corrn(:,2)==" << tsid
+                   << " & estim_params_.corrn(:,1)==" << tsid2 << "));" << endl
+                   << "if isempty(tmp1)" << endl
+                   << "    error(sprintf('estimated_params_remove: the correlation between "
+                      "measurement errors on %s and %s is not estimated.', M_.endo_names{"
                    << tsid << "}, M_.endo_names{" << tsid2 << "}))" << endl
                    << "else" << endl
                    << "    estim_params_.corrn(tmp1,:) = [];"
@@ -1792,13 +1809,12 @@ EstimatedParamsRemoveStatement::writeOutput(ostream &output, [[maybe_unused]] co
 }
 
 void
-EstimatedParamsRemoveStatement::writeJsonOutput(ostream &output) const
+EstimatedParamsRemoveStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "estimated_params_remove", )"
          << R"("params": [)";
 
-  for (bool printed_something{false};
-       const auto &it : estim_params_list)
+  for (bool printed_something {false}; const auto& it : estim_params_list)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -1823,39 +1839,39 @@ EstimatedParamsRemoveStatement::writeJsonOutput(ostream &output) const
 }
 
 DeterministicTrendsStatement::DeterministicTrendsStatement(trend_elements_t trend_elements_arg,
-                                                       const SymbolTable &symbol_table_arg) :
-  trend_elements{move(trend_elements_arg)},
-  symbol_table{symbol_table_arg}
+                                                           const SymbolTable& symbol_table_arg) :
+    trend_elements {move(trend_elements_arg)}, symbol_table {symbol_table_arg}
 {
 }
 
 void
-DeterministicTrendsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+DeterministicTrendsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                           [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_.trend_coeff = {};" << endl;
-  for (const auto &trend_element : trend_elements)
+  for (const auto& trend_element : trend_elements)
     {
       SymbolType type = symbol_table.getType(trend_element.first);
       if (type == SymbolType::endogenous)
         {
-          output << "tmp1 = strmatch('" << trend_element.first << "',M_.endogenous_names,'exact');" << endl;
+          output << "tmp1 = strmatch('" << trend_element.first << "',M_.endogenous_names,'exact');"
+                 << endl;
           output << "options_.deterministic_trend_coeffs{tmp1} = '";
           trend_element.second->writeOutput(output);
           output << "';" << endl;
         }
       else
-        cerr << "Warning : Non-variable symbol used in deterministic_trends: " << trend_element.first << endl;
+        cerr << "Warning : Non-variable symbol used in deterministic_trends: "
+             << trend_element.first << endl;
     }
 }
 
 void
-DeterministicTrendsStatement::writeJsonOutput(ostream &output) const
+DeterministicTrendsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "deterministic_trends", )"
          << R"("trends" : {)";
-  for (bool printed_something{false};
-       const auto &trend_element : trend_elements)
+  for (bool printed_something {false}; const auto& trend_element : trend_elements)
     {
       if (symbol_table.getType(trend_element.first) == SymbolType::endogenous)
         {
@@ -1866,46 +1882,47 @@ DeterministicTrendsStatement::writeJsonOutput(ostream &output) const
           output << R"(")" << endl;
         }
       else
-        cerr << "Warning : Non-variable symbol used in deterministic_trends: " << trend_element.first << endl;
+        cerr << "Warning : Non-variable symbol used in deterministic_trends: "
+             << trend_element.first << endl;
     }
   output << "}"
          << "}";
 }
 
 ObservationTrendsStatement::ObservationTrendsStatement(trend_elements_t trend_elements_arg,
-                                                       const SymbolTable &symbol_table_arg) :
-  trend_elements{move(trend_elements_arg)},
-  symbol_table{symbol_table_arg}
+                                                       const SymbolTable& symbol_table_arg) :
+    trend_elements {move(trend_elements_arg)}, symbol_table {symbol_table_arg}
 {
 }
 
 void
-ObservationTrendsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+ObservationTrendsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                         [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_.trend_coeff = {};" << endl;
-  for (const auto &trend_element : trend_elements)
+  for (const auto& trend_element : trend_elements)
     {
       SymbolType type = symbol_table.getType(trend_element.first);
       if (type == SymbolType::endogenous)
         {
-          output << "tmp1 = strmatch('" << trend_element.first << "',options_.varobs,'exact');" << endl;
+          output << "tmp1 = strmatch('" << trend_element.first << "',options_.varobs,'exact');"
+                 << endl;
           output << "options_.trend_coeffs{tmp1} = '";
           trend_element.second->writeOutput(output);
           output << "';" << endl;
         }
       else
-        cerr << "Warning : Non-variable symbol used in observation_trends: " << trend_element.first << endl;
+        cerr << "Warning : Non-variable symbol used in observation_trends: " << trend_element.first
+             << endl;
     }
 }
 
 void
-ObservationTrendsStatement::writeJsonOutput(ostream &output) const
+ObservationTrendsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "observation_trends", )"
          << R"("trends" : {)";
-  for (bool printed_something{false};
-       const auto &trend_element : trend_elements)
+  for (bool printed_something {false}; const auto& trend_element : trend_elements)
     {
       if (symbol_table.getType(trend_element.first) == SymbolType::endogenous)
         {
@@ -1916,25 +1933,27 @@ ObservationTrendsStatement::writeJsonOutput(ostream &output) const
           output << R"(")" << endl;
         }
       else
-        cerr << "Warning : Non-variable symbol used in observation_trends: " << trend_element.first << endl;
+        cerr << "Warning : Non-variable symbol used in observation_trends: " << trend_element.first
+             << endl;
     }
   output << "}"
          << "}";
 }
 
-FilterInitialStateStatement::FilterInitialStateStatement(filter_initial_state_elements_t filter_initial_state_elements_arg,
-                                                         const SymbolTable &symbol_table_arg) :
-  filter_initial_state_elements{move(filter_initial_state_elements_arg)},
-  symbol_table{symbol_table_arg}
+FilterInitialStateStatement::FilterInitialStateStatement(
+    filter_initial_state_elements_t filter_initial_state_elements_arg,
+    const SymbolTable& symbol_table_arg) :
+    filter_initial_state_elements {move(filter_initial_state_elements_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-FilterInitialStateStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+FilterInitialStateStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                          [[maybe_unused]] bool minimal_workspace) const
 {
   output << "M_.filter_initial_state = cell(M_.endo_nbr, 2);" << endl;
-  for (const auto &[key, val] : filter_initial_state_elements)
+  for (const auto& [key, val] : filter_initial_state_elements)
     {
       auto [symb_id, lag] = key;
       SymbolType type = symbol_table.getType(symb_id);
@@ -1946,7 +1965,7 @@ FilterInitialStateStatement::writeOutput(ostream &output, [[maybe_unused]] const
               // This function call must remain the 1st statement in this block
               symb_id = symbol_table.searchAuxiliaryVars(symb_id, lag);
             }
-          catch (SymbolTable::SearchFailedException &e)
+          catch (SymbolTable::SearchFailedException& e)
             {
               if (type == SymbolType::endogenous)
                 {
@@ -1958,8 +1977,7 @@ FilterInitialStateStatement::writeOutput(ostream &output, [[maybe_unused]] const
             }
         }
 
-      output << "M_.filter_initial_state("
-             << symbol_table.getTypeSpecificID(symb_id) + 1
+      output << "M_.filter_initial_state(" << symbol_table.getTypeSpecificID(symb_id) + 1
              << ",:) = {'" << symbol_table.getName(symb_id) << "', '";
       val->writeOutput(output);
       output << ";'};" << endl;
@@ -1967,19 +1985,17 @@ FilterInitialStateStatement::writeOutput(ostream &output, [[maybe_unused]] const
 }
 
 void
-FilterInitialStateStatement::writeJsonOutput(ostream &output) const
+FilterInitialStateStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "filter_initial_state", )"
          << R"("states": [)";
 
-  for (bool printed_something{false};
-       const auto &[key, val] : filter_initial_state_elements)
+  for (bool printed_something {false}; const auto& [key, val] : filter_initial_state_elements)
     {
       if (exchange(printed_something, true))
         output << ", ";
-      auto &[symb_id, lag] = key;
-      output << R"({ "var": ")" << symbol_table.getName(symb_id)
-             << R"(", "lag": )" << lag
+      auto& [symb_id, lag] = key;
+      output << R"({ "var": ")" << symbol_table.getName(symb_id) << R"(", "lag": )" << lag
              << R"(, "value": ")";
       val->writeJsonOutput(output, {}, {});
       output << R"(" })";
@@ -1987,14 +2003,14 @@ FilterInitialStateStatement::writeJsonOutput(ostream &output) const
   output << "] }";
 }
 
-OsrParamsStatement::OsrParamsStatement(SymbolList symbol_list_arg, const SymbolTable &symbol_table_arg) :
-  symbol_list{move(symbol_list_arg)},
-  symbol_table{symbol_table_arg}
+OsrParamsStatement::OsrParamsStatement(SymbolList symbol_list_arg,
+                                       const SymbolTable& symbol_table_arg) :
+    symbol_list {move(symbol_list_arg)}, symbol_table {symbol_table_arg}
 {
 }
 
 void
-OsrParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+OsrParamsStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings)
 {
   if (mod_file_struct.osr_params_present)
     cerr << "WARNING: You have more than one osr_params statement in the .mod file." << endl;
@@ -2002,9 +2018,9 @@ OsrParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::parameter }, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::parameter}, symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: osr: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -2012,19 +2028,19 @@ OsrParamsStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
 }
 
 void
-OsrParamsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+OsrParamsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                 [[maybe_unused]] bool minimal_workspace) const
 {
   symbol_list.writeOutput("M_.osr.param_names", output);
   output << "M_.osr.param_names = cellstr(M_.osr.param_names);" << endl
          << "M_.osr.param_indices = zeros(length(M_.osr.param_names), 1);" << endl;
-  for (int i{0};
-       auto &symbol : symbol_list.getSymbols())
-    output << "M_.osr.param_indices(" << ++i <<") = " << symbol_table.getTypeSpecificID(symbol) + 1 << ";" << endl;
+  for (int i {0}; auto& symbol : symbol_list.getSymbols())
+    output << "M_.osr.param_indices(" << ++i << ") = " << symbol_table.getTypeSpecificID(symbol) + 1
+           << ";" << endl;
 }
 
 void
-OsrParamsStatement::writeJsonOutput(ostream &output) const
+OsrParamsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "osr_params")";
   if (!symbol_list.empty())
@@ -2036,29 +2052,32 @@ OsrParamsStatement::writeJsonOutput(ostream &output) const
 }
 
 OsrParamsBoundsStatement::OsrParamsBoundsStatement(vector<OsrParams> osr_params_list_arg) :
-  osr_params_list{move(osr_params_list_arg)}
+    osr_params_list {move(osr_params_list_arg)}
 {
 }
 
 void
-OsrParamsBoundsStatement::checkPass(ModFileStructure &mod_file_struct,
-                                    [[maybe_unused]] WarningConsolidation &warnings)
+OsrParamsBoundsStatement::checkPass(ModFileStructure& mod_file_struct,
+                                    [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (!mod_file_struct.osr_params_present)
     {
-      cerr << "ERROR: you must have an osr_params statement before the osr_params_bounds block." << endl;
+      cerr << "ERROR: you must have an osr_params statement before the osr_params_bounds block."
+           << endl;
       exit(EXIT_FAILURE);
     }
 }
 
 void
-OsrParamsBoundsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+OsrParamsBoundsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                       [[maybe_unused]] bool minimal_workspace) const
 {
 
-  output << "M_.osr.param_bounds = [-inf(length(M_.osr.param_names), 1), inf(length(M_.osr.param_names), 1)];" << endl;
+  output << "M_.osr.param_bounds = [-inf(length(M_.osr.param_names), 1), "
+            "inf(length(M_.osr.param_names), 1)];"
+         << endl;
 
-  for (const auto &it : osr_params_list)
+  for (const auto& it : osr_params_list)
     {
       output << "M_.osr.param_bounds(strcmp(M_.osr.param_names, '" << it.name << "'), :) = [";
       it.low_bound->writeOutput(output);
@@ -2069,12 +2088,11 @@ OsrParamsBoundsStatement::writeOutput(ostream &output, [[maybe_unused]] const st
 }
 
 void
-OsrParamsBoundsStatement::writeJsonOutput(ostream &output) const
+OsrParamsBoundsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "osr_params_bounds")"
          << R"(, "bounds": [)";
-  for (bool printed_something{false};
-       const auto &it : osr_params_list)
+  for (bool printed_something {false}; const auto& it : osr_params_list)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -2091,15 +2109,15 @@ OsrParamsBoundsStatement::writeJsonOutput(ostream &output) const
 }
 
 OsrStatement::OsrStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
-                           const SymbolTable &symbol_table_arg) :
-  symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)},
-  symbol_table{symbol_table_arg}
+                           const SymbolTable& symbol_table_arg) :
+    symbol_list {move(symbol_list_arg)},
+    options_list {move(options_list_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-OsrStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+OsrStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings)
 {
   mod_file_struct.osr_present = true;
 
@@ -2117,7 +2135,6 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation 
       opt && *opt == "1")
     mod_file_struct.osr_analytic_derivation = true;
 
-
   // Option k_order_solver (implicit when order >= 3)
   if (auto opt = options_list.get_if<OptionsList::NumVal>("k_order_solver");
       (opt && *opt == "true") || mod_file_struct.order_option >= 3)
@@ -2125,9 +2142,9 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation 
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::endogenous}, symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: osr: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -2135,7 +2152,7 @@ OsrStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation 
 }
 
 void
-OsrStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+OsrStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                           [[maybe_unused]] bool minimal_workspace) const
 {
   // Ensure that order 3 implies k_order (#844)
@@ -2146,11 +2163,13 @@ OsrStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basena
 
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "[info, oo_, options_, M_] = osr.run(M_, options_, oo_, var_list_,M_.osr.param_names,M_.osr.variable_indices,M_.osr.variable_weights);" << endl;
+  output << "[info, oo_, options_, M_] = osr.run(M_, options_, oo_, "
+            "var_list_,M_.osr.param_names,M_.osr.variable_indices,M_.osr.variable_weights);"
+         << endl;
 }
 
 void
-OsrStatement::writeJsonOutput(ostream &output) const
+OsrStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "osr")";
   if (!options_list.empty())
@@ -2168,31 +2187,32 @@ OsrStatement::writeJsonOutput(ostream &output) const
 
 OptimWeightsStatement::OptimWeightsStatement(var_weights_t var_weights_arg,
                                              covar_weights_t covar_weights_arg,
-                                             const SymbolTable &symbol_table_arg) :
-  var_weights{move(var_weights_arg)},
-  covar_weights{move(covar_weights_arg)},
-  symbol_table{symbol_table_arg}
+                                             const SymbolTable& symbol_table_arg) :
+    var_weights {move(var_weights_arg)},
+    covar_weights {move(covar_weights_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-OptimWeightsStatement::checkPass(ModFileStructure &mod_file_struct,
-                                 [[maybe_unused]] WarningConsolidation &warnings)
+OptimWeightsStatement::checkPass(ModFileStructure& mod_file_struct,
+                                 [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.optim_weights_present = true;
 }
 
 void
-OptimWeightsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+OptimWeightsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                    [[maybe_unused]] bool minimal_workspace) const
 {
   output << "%" << endl
          << "% OPTIM_WEIGHTS" << endl
          << "%" << endl
          << "M_.osr.variable_weights = sparse(M_.endo_nbr,M_.endo_nbr);" << endl
-         << "M_.osr.variable_indices = [];" << endl << endl;
+         << "M_.osr.variable_indices = [];" << endl
+         << endl;
 
-  for (const auto & [name, value] : var_weights)
+  for (const auto& [name, value] : var_weights)
     {
       int id = symbol_table.getTypeSpecificID(name) + 1;
       output << "M_.osr.variable_weights(" << id << "," << id << ") = ";
@@ -2201,24 +2221,25 @@ OptimWeightsStatement::writeOutput(ostream &output, [[maybe_unused]] const strin
       output << "M_.osr.variable_indices = [M_.osr.variable_indices; " << id << "];" << endl;
     }
 
-  for (const auto & [names, value] : covar_weights)
+  for (const auto& [names, value] : covar_weights)
     {
       int id1 = symbol_table.getTypeSpecificID(names.first) + 1;
       int id2 = symbol_table.getTypeSpecificID(names.second) + 1;
       output << "M_.osr.variable_weights(" << id1 << "," << id2 << ") = ";
       value->writeOutput(output);
       output << ";" << endl;
-      output << "M_.osr.variable_indices = [M_.osr.variable_indices; " << id1 << "; " << id2 << "];" << endl;
+      output << "M_.osr.variable_indices = [M_.osr.variable_indices; " << id1 << "; " << id2 << "];"
+             << endl;
     }
 }
 
 void
-OptimWeightsStatement::writeJsonOutput(ostream &output) const
+OptimWeightsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "optim_weights", )"
          << R"("weights": [)";
-  bool printed_something{false};
-  for (const auto &[name, value] : var_weights)
+  bool printed_something {false};
+  for (const auto& [name, value] : var_weights)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -2228,7 +2249,7 @@ OptimWeightsStatement::writeJsonOutput(ostream &output) const
       output << R"("})";
     }
 
-  for (const auto &[names, value] : covar_weights)
+  for (const auto& [names, value] : covar_weights)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -2242,22 +2263,23 @@ OptimWeightsStatement::writeJsonOutput(ostream &output) const
 }
 
 DynaSaveStatement::DynaSaveStatement(SymbolList symbol_list_arg, string filename_arg,
-                        const SymbolTable &symbol_table_arg) :
-  symbol_list{move(symbol_list_arg)},
-  filename{move(filename_arg)},
-  symbol_table{symbol_table_arg}
+                                     const SymbolTable& symbol_table_arg) :
+    symbol_list {move(symbol_list_arg)},
+    filename {move(filename_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-DynaSaveStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                             WarningConsolidation &warnings)
+DynaSaveStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                             WarningConsolidation& warnings)
 {
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous, SymbolType::exogenous }, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::endogenous, SymbolType::exogenous},
+                            symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: dynasave: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -2265,16 +2287,15 @@ DynaSaveStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
 }
 
 void
-DynaSaveStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+DynaSaveStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                [[maybe_unused]] bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
-  output << "dynasave('" << filename
-         << "',var_list_);" << endl;
+  output << "dynasave('" << filename << "',var_list_);" << endl;
 }
 
 void
-DynaSaveStatement::writeJsonOutput(ostream &output) const
+DynaSaveStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "dynasave", )"
          << R"("filename": ")" << filename << R"(")";
@@ -2287,22 +2308,23 @@ DynaSaveStatement::writeJsonOutput(ostream &output) const
 }
 
 DynaTypeStatement::DynaTypeStatement(SymbolList symbol_list_arg, string filename_arg,
-                                     const SymbolTable &symbol_table_arg) :
-  symbol_list(move(symbol_list_arg)),
-  filename(move(filename_arg)),
-  symbol_table{symbol_table_arg}
+                                     const SymbolTable& symbol_table_arg) :
+    symbol_list(move(symbol_list_arg)),
+    filename(move(filename_arg)),
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-DynaTypeStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                             WarningConsolidation &warnings)
+DynaTypeStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                             WarningConsolidation& warnings)
 {
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous, SymbolType::exogenous }, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::endogenous, SymbolType::exogenous},
+                            symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: dynatype: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -2310,16 +2332,15 @@ DynaTypeStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
 }
 
 void
-DynaTypeStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+DynaTypeStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                [[maybe_unused]] bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
-  output << "dynatype('" << filename
-         << "',var_list_);" << endl;
+  output << "dynatype('" << filename << "',var_list_);" << endl;
 }
 
 void
-DynaTypeStatement::writeJsonOutput(ostream &output) const
+DynaTypeStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "dynatype", )"
          << R"("filename": ")" << filename << R"(")";
@@ -2333,21 +2354,19 @@ DynaTypeStatement::writeJsonOutput(ostream &output) const
 
 ModelComparisonStatement::ModelComparisonStatement(filename_list_t filename_list_arg,
                                                    OptionsList options_list_arg) :
-  filename_list{move(filename_list_arg)},
-  options_list{move(options_list_arg)}
+    filename_list {move(filename_list_arg)}, options_list {move(options_list_arg)}
 {
 }
 
 void
-ModelComparisonStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+ModelComparisonStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                       [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
 
-  output << "ModelNames_ = {};" << endl
-         << "ModelPriors_ = [];" << endl;
+  output << "ModelNames_ = {};" << endl << "ModelPriors_ = [];" << endl;
 
-  for (const auto &[name, prior] : filename_list)
+  for (const auto& [name, prior] : filename_list)
     output << "ModelNames_ = { ModelNames_{:} '" << name << "'};" << endl
            << "ModelPriors_ = [ ModelPriors_ ; " << prior << "];" << endl;
 
@@ -2355,14 +2374,13 @@ ModelComparisonStatement::writeOutput(ostream &output, [[maybe_unused]] const st
 }
 
 void
-ModelComparisonStatement::writeJsonOutput(ostream &output) const
+ModelComparisonStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "model_comparison")";
   if (!filename_list.empty())
     output << R"(, "filename_list": {)";
 
-  for (bool printed_something{false};
-       const auto &[name, prior] : filename_list)
+  for (bool printed_something {false}; const auto& [name, prior] : filename_list)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -2382,19 +2400,20 @@ ModelComparisonStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-PlannerObjectiveStatement::PlannerObjectiveStatement(const PlannerObjective &model_tree_arg) :
-  model_tree{model_tree_arg}
+PlannerObjectiveStatement::PlannerObjectiveStatement(const PlannerObjective& model_tree_arg) :
+    model_tree {model_tree_arg}
 {
 }
 
 void
-PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct,
-                                     [[maybe_unused]] WarningConsolidation &warnings)
+PlannerObjectiveStatement::checkPass(ModFileStructure& mod_file_struct,
+                                     [[maybe_unused]] WarningConsolidation& warnings)
 {
   assert(model_tree.equation_number() == 1);
   if (model_tree.exoPresentInEqs())
     {
-      cerr << "ERROR: You cannot include exogenous variables (or variables of undeclared type) in the planner objective. Please "
+      cerr << "ERROR: You cannot include exogenous variables (or variables of undeclared type) in "
+              "the planner objective. Please "
            << "define an auxiliary endogenous variable like eps_aux=epsilon and use it instead "
            << "of the varexo." << endl;
       exit(EXIT_FAILURE);
@@ -2402,36 +2421,36 @@ PlannerObjectiveStatement::checkPass(ModFileStructure &mod_file_struct,
   mod_file_struct.planner_objective_present = true;
 }
 
-const PlannerObjective &
+const PlannerObjective&
 PlannerObjectiveStatement::getPlannerObjective() const
 {
   return model_tree;
 }
 
 void
-PlannerObjectiveStatement::computingPass(const ModFileStructure &mod_file_struct)
+PlannerObjectiveStatement::computingPass(const ModFileStructure& mod_file_struct)
 {
   model_tree.computingPass(max(3, mod_file_struct.order_option), 0, {}, false, false, false);
   computing_pass_called = true;
 }
 
 void
-PlannerObjectiveStatement::writeOutput(ostream &output, const string &basename,
+PlannerObjectiveStatement::writeOutput(ostream& output, const string& basename,
                                        [[maybe_unused]] bool minimal_workspace) const
 {
   output << "M_.NNZDerivatives_objective = [";
-  for (int i=1; i < static_cast<int>(model_tree.getNNZDerivatives().size()); i++)
-    output << (i > model_tree.getComputedDerivsOrder() ? -1 : model_tree.getNNZDerivatives()[i]) << ";";
-  output << "];" << endl
-         << "M_.objective_tmp_nbr = [";
-  for (const auto &temporary_terms_derivative : model_tree.getTemporaryTermsDerivatives())
+  for (int i = 1; i < static_cast<int>(model_tree.getNNZDerivatives().size()); i++)
+    output << (i > model_tree.getComputedDerivsOrder() ? -1 : model_tree.getNNZDerivatives()[i])
+           << ";";
+  output << "];" << endl << "M_.objective_tmp_nbr = [";
+  for (const auto& temporary_terms_derivative : model_tree.getTemporaryTermsDerivatives())
     output << temporary_terms_derivative.size() << "; ";
   output << "];" << endl;
   model_tree.writeStaticFile(basename + ".objective", false, "", {}, false);
 }
 
 void
-PlannerObjectiveStatement::writeJsonOutput(ostream &output) const
+PlannerObjectiveStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "planner_objective")"
          << ", ";
@@ -2444,20 +2463,19 @@ PlannerObjectiveStatement::writeJsonOutput(ostream &output) const
 }
 
 BVARDensityStatement::BVARDensityStatement(int maxnlags_arg, OptionsList options_list_arg) :
-  maxnlags{maxnlags_arg},
-  options_list{move(options_list_arg)}
+    maxnlags {maxnlags_arg}, options_list {move(options_list_arg)}
 {
 }
 
 void
-BVARDensityStatement::checkPass(ModFileStructure &mod_file_struct,
-                                [[maybe_unused]] WarningConsolidation &warnings)
+BVARDensityStatement::checkPass(ModFileStructure& mod_file_struct,
+                                [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.bvar_present = true;
 }
 
 void
-BVARDensityStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+BVARDensityStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                   [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
@@ -2465,7 +2483,7 @@ BVARDensityStatement::writeOutput(ostream &output, [[maybe_unused]] const string
 }
 
 void
-BVARDensityStatement::writeJsonOutput(ostream &output) const
+BVARDensityStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "bvar_density")";
   if (!options_list.empty())
@@ -2477,20 +2495,19 @@ BVARDensityStatement::writeJsonOutput(ostream &output) const
 }
 
 BVARForecastStatement::BVARForecastStatement(int nlags_arg, OptionsList options_list_arg) :
-  nlags{nlags_arg},
-  options_list{move(options_list_arg)}
+    nlags {nlags_arg}, options_list {move(options_list_arg)}
 {
 }
 
 void
-BVARForecastStatement::checkPass(ModFileStructure &mod_file_struct,
-                                 [[maybe_unused]] WarningConsolidation &warnings)
+BVARForecastStatement::checkPass(ModFileStructure& mod_file_struct,
+                                 [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.bvar_present = true;
 }
 
 void
-BVARForecastStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+BVARForecastStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                    [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
@@ -2498,7 +2515,7 @@ BVARForecastStatement::writeOutput(ostream &output, [[maybe_unused]] const strin
 }
 
 void
-BVARForecastStatement::writeJsonOutput(ostream &output) const
+BVARForecastStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "bvar_forecast")";
   if (!options_list.empty())
@@ -2510,46 +2527,44 @@ BVARForecastStatement::writeJsonOutput(ostream &output) const
 }
 
 BVARIRFStatement::BVARIRFStatement(int nirf_arg, string identificationname_arg) :
-  nirf{nirf_arg},
-  identificationname{move(identificationname_arg)}
+    nirf {nirf_arg}, identificationname {move(identificationname_arg)}
 {
 }
 
 void
-BVARIRFStatement::checkPass(ModFileStructure &mod_file_struct,
-                            [[maybe_unused]] WarningConsolidation &warnings)
+BVARIRFStatement::checkPass(ModFileStructure& mod_file_struct,
+                            [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.bvar_present = true;
 }
 
 void
-BVARIRFStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+BVARIRFStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                               [[maybe_unused]] bool minimal_workspace) const
 {
   output << "bvar.irf(" << nirf << ",'" << identificationname << "');" << endl;
 }
 
 void
-BVARIRFStatement::writeJsonOutput(ostream &output) const
+BVARIRFStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "bvar_irf")";
   output << "}";
 }
 
-SBVARStatement::SBVARStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+SBVARStatement::SBVARStatement(OptionsList options_list_arg) : options_list {move(options_list_arg)}
 {
 }
 
 void
-SBVARStatement::checkPass(ModFileStructure &mod_file_struct,
-                          [[maybe_unused]] WarningConsolidation &warnings)
+SBVARStatement::checkPass(ModFileStructure& mod_file_struct,
+                          [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.bvar_present = true;
 }
 
 void
-SBVARStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+SBVARStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                             [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
@@ -2557,7 +2572,7 @@ SBVARStatement::writeOutput(ostream &output, [[maybe_unused]] const string &base
 }
 
 void
-SBVARStatement::writeJsonOutput(ostream &output) const
+SBVARStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "sbvar")";
   if (!options_list.empty())
@@ -2569,19 +2584,18 @@ SBVARStatement::writeJsonOutput(ostream &output) const
 }
 
 MSSBVAREstimationStatement::MSSBVAREstimationStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-MSSBVAREstimationStatement::checkPass(ModFileStructure &mod_file_struct,
-                                      [[maybe_unused]] WarningConsolidation &warnings)
+MSSBVAREstimationStatement::checkPass(ModFileStructure& mod_file_struct,
+                                      [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.bvar_present = true;
 
   if (!options_list.contains("ms.create_init")
-      && (!options_list.contains("datafile")
-          || !options_list.contains("ms.initial_year")))
+      && (!options_list.contains("datafile") || !options_list.contains("ms.initial_year")))
     {
       cerr << "ERROR: If you do not pass no_create_init to ms_estimation, "
            << "you must pass the datafile and initial_year options." << endl;
@@ -2590,7 +2604,7 @@ MSSBVAREstimationStatement::checkPass(ModFileStructure &mod_file_struct,
 }
 
 void
-MSSBVAREstimationStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+MSSBVAREstimationStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                         [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl
@@ -2600,7 +2614,7 @@ MSSBVAREstimationStatement::writeOutput(ostream &output, [[maybe_unused]] const 
 }
 
 void
-MSSBVAREstimationStatement::writeJsonOutput(ostream &output) const
+MSSBVAREstimationStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "ms_sbvar_estimation")";
   if (!options_list.empty())
@@ -2612,27 +2626,26 @@ MSSBVAREstimationStatement::writeJsonOutput(ostream &output) const
 }
 
 MSSBVARSimulationStatement::MSSBVARSimulationStatement(OptionsList options_list_arg) :
-  options_list(move(options_list_arg))
+    options_list(move(options_list_arg))
 {
 }
 
 void
-MSSBVARSimulationStatement::checkPass(ModFileStructure &mod_file_struct,
-                                      [[maybe_unused]] WarningConsolidation &warnings)
+MSSBVARSimulationStatement::checkPass(ModFileStructure& mod_file_struct,
+                                      [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.bvar_present = true;
 }
 
 void
-MSSBVARSimulationStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+MSSBVARSimulationStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                         [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
   options_list.writeOutput(output);
 
   // Redeclare drop option if necessary
-  if ((options_list.contains("ms.mh_replic")
-       || options_list.contains("ms.thinning_factor"))
+  if ((options_list.contains("ms.mh_replic") || options_list.contains("ms.thinning_factor"))
       && !options_list.contains("ms.drop"))
     output << "options_.ms.drop = 0.1*options_.ms.mh_replic*options_.ms.thinning_factor;" << endl;
 
@@ -2640,7 +2653,7 @@ MSSBVARSimulationStatement::writeOutput(ostream &output, [[maybe_unused]] const 
 }
 
 void
-MSSBVARSimulationStatement::writeJsonOutput(ostream &output) const
+MSSBVARSimulationStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "ms_sbvar_simulation")";
   if (!options_list.empty())
@@ -2652,19 +2665,19 @@ MSSBVARSimulationStatement::writeJsonOutput(ostream &output) const
 }
 
 MSSBVARComputeMDDStatement::MSSBVARComputeMDDStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-MSSBVARComputeMDDStatement::checkPass(ModFileStructure &mod_file_struct,
-                                      [[maybe_unused]] WarningConsolidation &warnings)
+MSSBVARComputeMDDStatement::checkPass(ModFileStructure& mod_file_struct,
+                                      [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.bvar_present = true;
 }
 
 void
-MSSBVARComputeMDDStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+MSSBVARComputeMDDStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                         [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
@@ -2673,7 +2686,7 @@ MSSBVARComputeMDDStatement::writeOutput(ostream &output, [[maybe_unused]] const 
 }
 
 void
-MSSBVARComputeMDDStatement::writeJsonOutput(ostream &output) const
+MSSBVARComputeMDDStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "ms_sbvar_compute_mdd")";
   if (!options_list.empty())
@@ -2684,14 +2697,15 @@ MSSBVARComputeMDDStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-MSSBVARComputeProbabilitiesStatement::MSSBVARComputeProbabilitiesStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+MSSBVARComputeProbabilitiesStatement::MSSBVARComputeProbabilitiesStatement(
+    OptionsList options_list_arg) :
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-MSSBVARComputeProbabilitiesStatement::checkPass(ModFileStructure &mod_file_struct,
-                                                [[maybe_unused]] WarningConsolidation &warnings)
+MSSBVARComputeProbabilitiesStatement::checkPass(ModFileStructure& mod_file_struct,
+                                                [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.bvar_present = true;
 
@@ -2705,8 +2719,8 @@ MSSBVARComputeProbabilitiesStatement::checkPass(ModFileStructure &mod_file_struc
 }
 
 void
-MSSBVARComputeProbabilitiesStatement::writeOutput(ostream &output,
-                                                  [[maybe_unused]] const string &basename,
+MSSBVARComputeProbabilitiesStatement::writeOutput(ostream& output,
+                                                  [[maybe_unused]] const string& basename,
                                                   [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
@@ -2715,7 +2729,7 @@ MSSBVARComputeProbabilitiesStatement::writeOutput(ostream &output,
 }
 
 void
-MSSBVARComputeProbabilitiesStatement::writeJsonOutput(ostream &output) const
+MSSBVARComputeProbabilitiesStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "ms_sbvar_compute_probabilities")";
   if (!options_list.empty())
@@ -2727,15 +2741,15 @@ MSSBVARComputeProbabilitiesStatement::writeJsonOutput(ostream &output) const
 }
 
 MSSBVARIrfStatement::MSSBVARIrfStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,
-                                         const SymbolTable &symbol_table_arg) :
-  symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)},
-  symbol_table{symbol_table_arg}
+                                         const SymbolTable& symbol_table_arg) :
+    symbol_list {move(symbol_list_arg)},
+    options_list {move(options_list_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-MSSBVARIrfStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+MSSBVARIrfStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings)
 {
   mod_file_struct.bvar_present = true;
 
@@ -2743,8 +2757,7 @@ MSSBVARIrfStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
       regimes_present = options_list.contains("ms.regimes"),
       filtered_probabilities_present = options_list.contains("ms.filtered_probabilities");
       (filtered_probabilities_present && regime_present)
-      || (filtered_probabilities_present && regimes_present)
-      || (regimes_present && regime_present))
+      || (filtered_probabilities_present && regimes_present) || (regimes_present && regime_present))
     {
       cerr << "ERROR: You may only pass one of regime, regimes and "
            << "filtered_probabilities to ms_irf" << endl;
@@ -2753,9 +2766,9 @@ MSSBVARIrfStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::endogenous}, symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: ms_irf: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -2763,7 +2776,7 @@ MSSBVARIrfStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsoli
 }
 
 void
-MSSBVARIrfStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+MSSBVARIrfStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                  [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
@@ -2773,7 +2786,7 @@ MSSBVARIrfStatement::writeOutput(ostream &output, [[maybe_unused]] const string 
 }
 
 void
-MSSBVARIrfStatement::writeJsonOutput(ostream &output) const
+MSSBVARIrfStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "ms_sbvar_irf")";
   if (!options_list.empty())
@@ -2790,18 +2803,17 @@ MSSBVARIrfStatement::writeJsonOutput(ostream &output) const
 }
 
 MSSBVARForecastStatement::MSSBVARForecastStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-MSSBVARForecastStatement::checkPass(ModFileStructure &mod_file_struct,
-                                    [[maybe_unused]] WarningConsolidation &warnings)
+MSSBVARForecastStatement::checkPass(ModFileStructure& mod_file_struct,
+                                    [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.bvar_present = true;
 
-  if (options_list.contains("ms.regimes")
-      && options_list.contains("ms.regime"))
+  if (options_list.contains("ms.regimes") && options_list.contains("ms.regime"))
     {
       cerr << "ERROR: You may only pass one of regime and regimes to ms_forecast" << endl;
       exit(EXIT_FAILURE);
@@ -2809,7 +2821,7 @@ MSSBVARForecastStatement::checkPass(ModFileStructure &mod_file_struct,
 }
 
 void
-MSSBVARForecastStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+MSSBVARForecastStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                       [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
@@ -2818,7 +2830,7 @@ MSSBVARForecastStatement::writeOutput(ostream &output, [[maybe_unused]] const st
 }
 
 void
-MSSBVARForecastStatement::writeJsonOutput(ostream &output) const
+MSSBVARForecastStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "ms_sbvar_forecast")";
   if (!options_list.empty())
@@ -2829,14 +2841,15 @@ MSSBVARForecastStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-MSSBVARVarianceDecompositionStatement::MSSBVARVarianceDecompositionStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+MSSBVARVarianceDecompositionStatement::MSSBVARVarianceDecompositionStatement(
+    OptionsList options_list_arg) :
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-MSSBVARVarianceDecompositionStatement::checkPass(ModFileStructure &mod_file_struct,
-                                                 [[maybe_unused]] WarningConsolidation &warnings)
+MSSBVARVarianceDecompositionStatement::checkPass(ModFileStructure& mod_file_struct,
+                                                 [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.bvar_present = true;
 
@@ -2844,8 +2857,7 @@ MSSBVARVarianceDecompositionStatement::checkPass(ModFileStructure &mod_file_stru
       regimes_present = options_list.contains("ms.regimes"),
       filtered_probabilities_present = options_list.contains("ms.filtered_probabilities");
       (filtered_probabilities_present && regime_present)
-      || (filtered_probabilities_present && regimes_present)
-      || (regimes_present && regime_present))
+      || (filtered_probabilities_present && regimes_present) || (regimes_present && regime_present))
     {
       cerr << "ERROR: You may only pass one of regime, regimes and "
            << "filtered_probabilities to ms_variance_decomposition" << endl;
@@ -2854,8 +2866,8 @@ MSSBVARVarianceDecompositionStatement::checkPass(ModFileStructure &mod_file_stru
 }
 
 void
-MSSBVARVarianceDecompositionStatement::writeOutput(ostream &output,
-                                                   [[maybe_unused]] const string &basename,
+MSSBVARVarianceDecompositionStatement::writeOutput(ostream& output,
+                                                   [[maybe_unused]] const string& basename,
                                                    [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
@@ -2864,7 +2876,7 @@ MSSBVARVarianceDecompositionStatement::writeOutput(ostream &output,
 }
 
 void
-MSSBVARVarianceDecompositionStatement::writeJsonOutput(ostream &output) const
+MSSBVARVarianceDecompositionStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "ms_sbvar_variance_decomposition")";
   if (!options_list.empty())
@@ -2875,20 +2887,21 @@ MSSBVARVarianceDecompositionStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-IdentificationStatement::IdentificationStatement(OptionsList options_list_arg)
-  : options_list{move(options_list_arg)}
+IdentificationStatement::IdentificationStatement(OptionsList options_list_arg) :
+    options_list {move(options_list_arg)}
 {
   if (auto opt = options_list.get_if<OptionsList::NumVal>("max_dim_cova_group");
       opt && stoi(*opt) == 0)
     {
-      cerr << "ERROR: The max_dim_cova_group option to identification only accepts integers > 0." << endl;
+      cerr << "ERROR: The max_dim_cova_group option to identification only accepts integers > 0."
+           << endl;
       exit(EXIT_FAILURE);
     }
 }
 
 void
-IdentificationStatement::checkPass(ModFileStructure &mod_file_struct,
-                                   [[maybe_unused]] WarningConsolidation &warnings)
+IdentificationStatement::checkPass(ModFileStructure& mod_file_struct,
+                                   [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.identification_present = true;
 
@@ -2897,19 +2910,21 @@ IdentificationStatement::checkPass(ModFileStructure &mod_file_struct,
       int order = stoi(*opt);
       if (order < 1 || order > 3)
         {
-          cerr << "ERROR: the order option of identification command must be between 1 and 3" << endl;
+          cerr << "ERROR: the order option of identification command must be between 1 and 3"
+               << endl;
 
           exit(EXIT_FAILURE);
         }
       mod_file_struct.identification_order = max(mod_file_struct.identification_order, order);
     }
   else
-    // The default value for order is 1 (which triggers 2nd order dynamic derivatives, see preprocessor#40)
+    // The default value for order is 1 (which triggers 2nd order dynamic derivatives, see
+    // preprocessor#40)
     mod_file_struct.identification_order = max(mod_file_struct.identification_order, 1);
 }
 
 void
-IdentificationStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+IdentificationStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                      [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_ident");
@@ -2930,7 +2945,7 @@ IdentificationStatement::writeOutput(ostream &output, [[maybe_unused]] const str
 }
 
 void
-IdentificationStatement::writeJsonOutput(ostream &output) const
+IdentificationStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "identification")";
   if (!options_list.empty())
@@ -2941,100 +2956,105 @@ IdentificationStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-WriteLatexDynamicModelStatement::WriteLatexDynamicModelStatement(const DynamicModel &dynamic_model_arg, bool write_equation_tags_arg) :
-  dynamic_model{dynamic_model_arg},
-  write_equation_tags{write_equation_tags_arg}
+WriteLatexDynamicModelStatement::WriteLatexDynamicModelStatement(
+    const DynamicModel& dynamic_model_arg, bool write_equation_tags_arg) :
+    dynamic_model {dynamic_model_arg}, write_equation_tags {write_equation_tags_arg}
 {
 }
 
 void
-WriteLatexDynamicModelStatement::writeOutput([[maybe_unused]] ostream &output, const string &basename,
+WriteLatexDynamicModelStatement::writeOutput([[maybe_unused]] ostream& output,
+                                             const string& basename,
                                              [[maybe_unused]] bool minimal_workspace) const
 {
   dynamic_model.writeLatexFile(basename, write_equation_tags);
 }
 
 void
-WriteLatexDynamicModelStatement::writeJsonOutput(ostream &output) const
+WriteLatexDynamicModelStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "write_latex_dynamic_model"})";
 }
 
-WriteLatexStaticModelStatement::WriteLatexStaticModelStatement(const StaticModel &static_model_arg, bool write_equation_tags_arg) :
-  static_model(static_model_arg),
-  write_equation_tags(write_equation_tags_arg)
+WriteLatexStaticModelStatement::WriteLatexStaticModelStatement(const StaticModel& static_model_arg,
+                                                               bool write_equation_tags_arg) :
+    static_model(static_model_arg), write_equation_tags(write_equation_tags_arg)
 {
 }
 
 void
-WriteLatexStaticModelStatement::writeOutput([[maybe_unused]] ostream &output, const string &basename,
+WriteLatexStaticModelStatement::writeOutput([[maybe_unused]] ostream& output,
+                                            const string& basename,
                                             [[maybe_unused]] bool minimal_workspace) const
 {
   static_model.writeLatexFile(basename, write_equation_tags);
 }
 
 void
-WriteLatexStaticModelStatement::writeJsonOutput(ostream &output) const
+WriteLatexStaticModelStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "write_latex_static_model"})";
 }
 
-WriteLatexOriginalModelStatement::WriteLatexOriginalModelStatement(const DynamicModel &original_model_arg, bool write_equation_tags_arg) :
-  original_model{original_model_arg},
-  write_equation_tags{write_equation_tags_arg}
+WriteLatexOriginalModelStatement::WriteLatexOriginalModelStatement(
+    const DynamicModel& original_model_arg, bool write_equation_tags_arg) :
+    original_model {original_model_arg}, write_equation_tags {write_equation_tags_arg}
 {
 }
 
 void
-WriteLatexOriginalModelStatement::writeOutput([[maybe_unused]] ostream &output, const string &basename,
+WriteLatexOriginalModelStatement::writeOutput([[maybe_unused]] ostream& output,
+                                              const string& basename,
                                               [[maybe_unused]] bool minimal_workspace) const
 {
   original_model.writeLatexOriginalFile(basename, write_equation_tags);
 }
 
 void
-WriteLatexOriginalModelStatement::writeJsonOutput(ostream &output) const
+WriteLatexOriginalModelStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "write_latex_original_model"})";
 }
 
-WriteLatexSteadyStateModelStatement::WriteLatexSteadyStateModelStatement(const SteadyStateModel &steady_state_model_arg) :
-  steady_state_model{steady_state_model_arg}
+WriteLatexSteadyStateModelStatement::WriteLatexSteadyStateModelStatement(
+    const SteadyStateModel& steady_state_model_arg) :
+    steady_state_model {steady_state_model_arg}
 {
 }
 
 void
-WriteLatexSteadyStateModelStatement::checkPass(ModFileStructure &mod_file_struct,
-                                               [[maybe_unused]] WarningConsolidation &warnings)
+WriteLatexSteadyStateModelStatement::checkPass(ModFileStructure& mod_file_struct,
+                                               [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.write_latex_steady_state_model_present = true;
 }
 
 void
-WriteLatexSteadyStateModelStatement::writeOutput([[maybe_unused]] ostream &output,
-                                                 const string &basename,
+WriteLatexSteadyStateModelStatement::writeOutput([[maybe_unused]] ostream& output,
+                                                 const string& basename,
                                                  [[maybe_unused]] bool minimal_workspace) const
 {
   steady_state_model.writeLatexSteadyStateFile(basename);
 }
 
 void
-WriteLatexSteadyStateModelStatement::writeJsonOutput(ostream &output) const
+WriteLatexSteadyStateModelStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "write_latex_steady_state_model"})";
 }
 
 ShockDecompositionStatement::ShockDecompositionStatement(SymbolList symbol_list_arg,
                                                          OptionsList options_list_arg,
-                                                         const SymbolTable &symbol_table_arg) :
-  symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)},
-  symbol_table{symbol_table_arg}
+                                                         const SymbolTable& symbol_table_arg) :
+    symbol_list {move(symbol_list_arg)},
+    options_list {move(options_list_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-ShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+ShockDecompositionStatement::checkPass(ModFileStructure& mod_file_struct,
+                                       WarningConsolidation& warnings)
 {
   if (auto opt = options_list.get_if<OptionsList::NumVal>("shock_decomp.with_epilogue");
       opt && *opt == "true")
@@ -3042,9 +3062,9 @@ ShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, Warnin
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::endogenous}, symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: shock_decomposition: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -3052,16 +3072,17 @@ ShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, Warnin
 }
 
 void
-ShockDecompositionStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+ShockDecompositionStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                          [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "oo_ = shock_decomposition(M_,oo_,options_,var_list_,bayestopt_,estim_params_);" << endl;
+  output << "oo_ = shock_decomposition(M_,oo_,options_,var_list_,bayestopt_,estim_params_);"
+         << endl;
 }
 
 void
-ShockDecompositionStatement::writeJsonOutput(ostream &output) const
+ShockDecompositionStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "shock_decomposition")";
   if (!options_list.empty())
@@ -3077,17 +3098,17 @@ ShockDecompositionStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-RealtimeShockDecompositionStatement::RealtimeShockDecompositionStatement(SymbolList symbol_list_arg,
-                                                                         OptionsList options_list_arg,
-                                                                         const SymbolTable &symbol_table_arg) :
-  symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)},
-  symbol_table{symbol_table_arg}
+RealtimeShockDecompositionStatement::RealtimeShockDecompositionStatement(
+    SymbolList symbol_list_arg, OptionsList options_list_arg, const SymbolTable& symbol_table_arg) :
+    symbol_list {move(symbol_list_arg)},
+    options_list {move(options_list_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-RealtimeShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+RealtimeShockDecompositionStatement::checkPass(ModFileStructure& mod_file_struct,
+                                               WarningConsolidation& warnings)
 {
   if (auto opt = options_list.get_if<OptionsList::NumVal>("shock_decomp.with_epilogue");
       opt && *opt == "true")
@@ -3095,9 +3116,9 @@ RealtimeShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::endogenous}, symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: realtime_shock_decomposition: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -3105,17 +3126,19 @@ RealtimeShockDecompositionStatement::checkPass(ModFileStructure &mod_file_struct
 }
 
 void
-RealtimeShockDecompositionStatement::writeOutput(ostream &output,
-                                                 [[maybe_unused]] const string &basename,
+RealtimeShockDecompositionStatement::writeOutput(ostream& output,
+                                                 [[maybe_unused]] const string& basename,
                                                  [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "oo_ = realtime_shock_decomposition(M_,oo_,options_,var_list_,bayestopt_,estim_params_);" << endl;
+  output
+      << "oo_ = realtime_shock_decomposition(M_,oo_,options_,var_list_,bayestopt_,estim_params_);"
+      << endl;
 }
 
 void
-RealtimeShockDecompositionStatement::writeJsonOutput(ostream &output) const
+RealtimeShockDecompositionStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "realtime_shock_decomposition")";
   if (!options_list.empty())
@@ -3131,24 +3154,23 @@ RealtimeShockDecompositionStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-PlotShockDecompositionStatement::PlotShockDecompositionStatement(SymbolList symbol_list_arg,
-                                                                 OptionsList options_list_arg,
-                                                                 const SymbolTable &symbol_table_arg) :
-  symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)},
-  symbol_table{symbol_table_arg}
+PlotShockDecompositionStatement::PlotShockDecompositionStatement(
+    SymbolList symbol_list_arg, OptionsList options_list_arg, const SymbolTable& symbol_table_arg) :
+    symbol_list {move(symbol_list_arg)},
+    options_list {move(options_list_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-PlotShockDecompositionStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                                           WarningConsolidation &warnings)
+PlotShockDecompositionStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                                           WarningConsolidation& warnings)
 {
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous, SymbolType::epilogue }, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::endogenous, SymbolType::epilogue}, symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: plot_shock_decomposition: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -3156,7 +3178,8 @@ PlotShockDecompositionStatement::checkPass([[maybe_unused]] ModFileStructure &mo
 }
 
 void
-PlotShockDecompositionStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+PlotShockDecompositionStatement::writeOutput(ostream& output,
+                                             [[maybe_unused]] const string& basename,
                                              [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = set_default_plot_shock_decomposition_options(options_);" << endl;
@@ -3166,7 +3189,7 @@ PlotShockDecompositionStatement::writeOutput(ostream &output, [[maybe_unused]] c
 }
 
 void
-PlotShockDecompositionStatement::writeJsonOutput(ostream &output) const
+PlotShockDecompositionStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "plot_shock_decomposition")";
   if (!options_list.empty())
@@ -3182,17 +3205,17 @@ PlotShockDecompositionStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-InitialConditionDecompositionStatement::InitialConditionDecompositionStatement(SymbolList symbol_list_arg,
-                                                                               OptionsList options_list_arg,
-                                                                               const SymbolTable &symbol_table_arg) :
-  symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)},
-  symbol_table{symbol_table_arg}
+InitialConditionDecompositionStatement::InitialConditionDecompositionStatement(
+    SymbolList symbol_list_arg, OptionsList options_list_arg, const SymbolTable& symbol_table_arg) :
+    symbol_list {move(symbol_list_arg)},
+    options_list {move(options_list_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-InitialConditionDecompositionStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+InitialConditionDecompositionStatement::checkPass(ModFileStructure& mod_file_struct,
+                                                  WarningConsolidation& warnings)
 {
   if (auto opt = options_list.get_if<OptionsList::NumVal>("initial_condition_decomp.with_epilogue");
       opt && *opt == "true")
@@ -3200,9 +3223,9 @@ InitialConditionDecompositionStatement::checkPass(ModFileStructure &mod_file_str
 
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::endogenous}, symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: initial_condition_decomposition: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -3210,18 +3233,20 @@ InitialConditionDecompositionStatement::checkPass(ModFileStructure &mod_file_str
 }
 
 void
-InitialConditionDecompositionStatement::writeOutput(ostream &output,
-                                                    [[maybe_unused]] const string &basename,
+InitialConditionDecompositionStatement::writeOutput(ostream& output,
+                                                    [[maybe_unused]] const string& basename,
                                                     [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_ = set_default_initial_condition_decomposition_options(options_);" << endl;
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "oo_ = initial_condition_decomposition(M_, oo_, options_, var_list_, bayestopt_, estim_params_);" << endl;
+  output << "oo_ = initial_condition_decomposition(M_, oo_, options_, var_list_, bayestopt_, "
+            "estim_params_);"
+         << endl;
 }
 
 void
-InitialConditionDecompositionStatement::writeJsonOutput(ostream &output) const
+InitialConditionDecompositionStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "initial_condition_decomposition")";
   if (!options_list.empty())
@@ -3237,22 +3262,21 @@ InitialConditionDecompositionStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-SqueezeShockDecompositionStatement::SqueezeShockDecompositionStatement(SymbolList symbol_list_arg,
-                                                                       const SymbolTable &symbol_table_arg) :
-  symbol_list{move(symbol_list_arg)},
-  symbol_table{symbol_table_arg}
+SqueezeShockDecompositionStatement::SqueezeShockDecompositionStatement(
+    SymbolList symbol_list_arg, const SymbolTable& symbol_table_arg) :
+    symbol_list {move(symbol_list_arg)}, symbol_table {symbol_table_arg}
 {
 }
 
 void
-SqueezeShockDecompositionStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                                              WarningConsolidation &warnings)
+SqueezeShockDecompositionStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                                              WarningConsolidation& warnings)
 {
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::endogenous}, symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: squeeze_shock_decomposition: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -3260,8 +3284,8 @@ SqueezeShockDecompositionStatement::checkPass([[maybe_unused]] ModFileStructure 
 }
 
 void
-SqueezeShockDecompositionStatement::writeOutput(ostream &output,
-                                                [[maybe_unused]] const string &basename,
+SqueezeShockDecompositionStatement::writeOutput(ostream& output,
+                                                [[maybe_unused]] const string& basename,
                                                 [[maybe_unused]] bool minimal_workspace) const
 {
   if (symbol_list.empty())
@@ -3274,7 +3298,7 @@ SqueezeShockDecompositionStatement::writeOutput(ostream &output,
 }
 
 void
-SqueezeShockDecompositionStatement::writeJsonOutput(ostream &output) const
+SqueezeShockDecompositionStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "squeeze_shock_decomposition")";
   if (!symbol_list.empty())
@@ -3286,13 +3310,13 @@ SqueezeShockDecompositionStatement::writeJsonOutput(ostream &output) const
 }
 
 ConditionalForecastStatement::ConditionalForecastStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-ConditionalForecastStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                                        [[maybe_unused]] WarningConsolidation &warnings)
+ConditionalForecastStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                                        [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (!options_list.contains("parameter_set"))
     {
@@ -3302,7 +3326,7 @@ ConditionalForecastStatement::checkPass([[maybe_unused]] ModFileStructure &mod_f
 }
 
 void
-ConditionalForecastStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+ConditionalForecastStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                           [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_cond_fcst_");
@@ -3310,7 +3334,7 @@ ConditionalForecastStatement::writeOutput(ostream &output, [[maybe_unused]] cons
 }
 
 void
-ConditionalForecastStatement::writeJsonOutput(ostream &output) const
+ConditionalForecastStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "conditional_forecast")";
   if (!options_list.empty())
@@ -3321,24 +3345,23 @@ ConditionalForecastStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-PlotConditionalForecastStatement::PlotConditionalForecastStatement(optional<int> periods_arg,
-                                                                   SymbolList symbol_list_arg,
-                                                                   const SymbolTable &symbol_table_arg) :
-  periods{move(periods_arg)},
-  symbol_list{move(symbol_list_arg)},
-  symbol_table{symbol_table_arg}
+PlotConditionalForecastStatement::PlotConditionalForecastStatement(
+    optional<int> periods_arg, SymbolList symbol_list_arg, const SymbolTable& symbol_table_arg) :
+    periods {move(periods_arg)},
+    symbol_list {move(symbol_list_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-PlotConditionalForecastStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                                            WarningConsolidation &warnings)
+PlotConditionalForecastStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                                            WarningConsolidation& warnings)
 {
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::endogenous}, symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: plot_conditional_forecast: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -3346,7 +3369,8 @@ PlotConditionalForecastStatement::checkPass([[maybe_unused]] ModFileStructure &m
 }
 
 void
-PlotConditionalForecastStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+PlotConditionalForecastStatement::writeOutput(ostream& output,
+                                              [[maybe_unused]] const string& basename,
                                               [[maybe_unused]] bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
@@ -3357,7 +3381,7 @@ PlotConditionalForecastStatement::writeOutput(ostream &output, [[maybe_unused]] 
 }
 
 void
-PlotConditionalForecastStatement::writeJsonOutput(ostream &output) const
+PlotConditionalForecastStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "plot_conditional_forecast")";
   if (periods)
@@ -3370,16 +3394,15 @@ PlotConditionalForecastStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-SvarIdentificationStatement::SvarIdentificationStatement(svar_identification_restrictions_t restrictions_arg,
-                                                         bool upper_cholesky_present_arg,
-                                                         bool lower_cholesky_present_arg,
-                                                         bool constants_exclusion_present_arg,
-                                                         const SymbolTable &symbol_table_arg) :
-  restrictions{move(restrictions_arg)},
-  upper_cholesky_present{upper_cholesky_present_arg},
-  lower_cholesky_present{lower_cholesky_present_arg},
-  constants_exclusion_present{constants_exclusion_present_arg},
-  symbol_table{symbol_table_arg}
+SvarIdentificationStatement::SvarIdentificationStatement(
+    svar_identification_restrictions_t restrictions_arg, bool upper_cholesky_present_arg,
+    bool lower_cholesky_present_arg, bool constants_exclusion_present_arg,
+    const SymbolTable& symbol_table_arg) :
+    restrictions {move(restrictions_arg)},
+    upper_cholesky_present {upper_cholesky_present_arg},
+    lower_cholesky_present {lower_cholesky_present_arg},
+    constants_exclusion_present {constants_exclusion_present_arg},
+    symbol_table {symbol_table_arg}
 {
 }
 
@@ -3387,15 +3410,15 @@ int
 SvarIdentificationStatement::getMaxLag() const
 {
   int max_lag = 0;
-  for (const auto &restriction : restrictions)
+  for (const auto& restriction : restrictions)
     max_lag = max(restriction.lag, max_lag);
 
   return max_lag;
 }
 
 void
-SvarIdentificationStatement::checkPass(ModFileStructure &mod_file_struct,
-                                       [[maybe_unused]] WarningConsolidation &warnings)
+SvarIdentificationStatement::checkPass(ModFileStructure& mod_file_struct,
+                                       [[maybe_unused]] WarningConsolidation& warnings)
 {
   // no equations OK with Svar Identification
   mod_file_struct.bvar_present = true;
@@ -3416,13 +3439,11 @@ SvarIdentificationStatement::checkPass(ModFileStructure &mod_file_struct,
 }
 
 void
-SvarIdentificationStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+SvarIdentificationStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                          [[maybe_unused]] bool minimal_workspace) const
 {
   assert(!(upper_cholesky_present && lower_cholesky_present));
-  output << "%" << endl
-         << "% SVAR IDENTIFICATION" << endl
-         << "%" << endl;
+  output << "%" << endl << "% SVAR IDENTIFICATION" << endl << "%" << endl;
 
   if (upper_cholesky_present)
     output << "options_.ms.upper_cholesky=1;" << endl;
@@ -3438,12 +3459,11 @@ SvarIdentificationStatement::writeOutput(ostream &output, [[maybe_unused]] const
       int n = symbol_table.endo_nbr();
       int m = 1; // this is the constant, not the shocks
       int r = getMaxLag();
-      int k = r*n+m;
+      int k = r * n + m;
 
       if (k < 1)
         {
-          cerr << "ERROR: lag = " << r
-               << ", number of endogenous variables = " << n
+          cerr << "ERROR: lag = " << r << ", number of endogenous variables = " << n
                << ", number of exogenous variables = " << m
                << ". If this is not a logical error in the specification"
                << " of the .mod file, please report it to the Dynare Team." << endl;
@@ -3451,28 +3471,35 @@ SvarIdentificationStatement::writeOutput(ostream &output, [[maybe_unused]] const
         }
       if (n < 1)
         {
-          cerr << "ERROR: Number of endogenous variables = " << n << "< 1. If this is not a logical "
-               << "error in the specification of the .mod file, please report it to the Dynare Team." << endl;
+          cerr
+              << "ERROR: Number of endogenous variables = " << n << "< 1. If this is not a logical "
+              << "error in the specification of the .mod file, please report it to the Dynare Team."
+              << endl;
           exit(EXIT_FAILURE);
         }
       output << "options_.ms.Qi = cell(" << n << ",1);" << endl
              << "options_.ms.Ri = cell(" << n << ",1);" << endl;
 
-      for (auto &it : restrictions)
+      for (auto& it : restrictions)
         {
           assert(it.lag >= 0);
           if (it.lag == 0)
-            output << "options_.ms.Qi{" << it.equation << "}(" << it.restriction_nbr << ", " << it.variable + 1 << ") = ";
+            output << "options_.ms.Qi{" << it.equation << "}(" << it.restriction_nbr << ", "
+                   << it.variable + 1 << ") = ";
           else
             {
-              int col = (it.lag-1)*n+it.variable+1;
+              int col = (it.lag - 1) * n + it.variable + 1;
               if (col > k)
                 {
-                  cerr << "ERROR: lag =" << it.lag << ", num endog vars = " << n << "current endog var index = " << it.variable << ". Index "
-                       << "out of bounds. If the above does not represent a logical error, please report this to the Dynare Team." << endl;
+                  cerr << "ERROR: lag =" << it.lag << ", num endog vars = " << n
+                       << "current endog var index = " << it.variable << ". Index "
+                       << "out of bounds. If the above does not represent a logical error, please "
+                          "report this to the Dynare Team."
+                       << endl;
                   exit(EXIT_FAILURE);
                 }
-              output << "options_.ms.Ri{" << it.equation << "}(" << it.restriction_nbr << ", " << col << ") = ";
+              output << "options_.ms.Ri{" << it.equation << "}(" << it.restriction_nbr << ", "
+                     << col << ") = ";
             }
           it.value->writeOutput(output);
           output << ";" << endl;
@@ -3482,7 +3509,7 @@ SvarIdentificationStatement::writeOutput(ostream &output, [[maybe_unused]] const
 }
 
 void
-SvarIdentificationStatement::writeJsonOutput(ostream &output) const
+SvarIdentificationStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "svar_identification")";
 
@@ -3497,11 +3524,9 @@ SvarIdentificationStatement::writeJsonOutput(ostream &output) const
 
   if (!upper_cholesky_present && !lower_cholesky_present)
     {
-      output << R"(, "nlags": )" << getMaxLag()
-             << R"(, "restrictions": [)";
+      output << R"(, "nlags": )" << getMaxLag() << R"(, "restrictions": [)";
 
-      for (bool printed_something{false};
-           const auto &it : restrictions)
+      for (bool printed_something {false}; const auto& it : restrictions)
         {
           if (exchange(printed_something, true))
             output << ", ";
@@ -3519,18 +3544,19 @@ SvarIdentificationStatement::writeJsonOutput(ostream &output) const
 }
 
 MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
   if (auto opt = options_list.get_if<vector<vector<string>>>("ms.restrictions"))
     {
       int num_regimes {stoi(options_list.get<OptionsList::NumVal>("ms.number_of_regimes"))};
 
-      for (const vector<string> &restriction : *opt)
+      for (const vector<string>& restriction : *opt)
         {
           if (restriction.size() != 3)
             {
-              cerr << "ERROR: restrictions in the subsample statement must be specified in the form "
-                   << "[current_period_regime, next_period_regime, transition_probability]" << endl;
+              cerr
+                  << "ERROR: restrictions in the subsample statement must be specified in the form "
+                  << "[current_period_regime, next_period_regime, transition_probability]" << endl;
               exit(EXIT_FAILURE);
             }
 
@@ -3541,11 +3567,12 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg)
               if (from_regime > num_regimes || to_regime > num_regimes)
                 {
                   cerr << "ERROR: the regimes specified in the restrictions option must be "
-                       << "<= the number of regimes specified in the number_of_regimes option" << endl;
+                       << "<= the number of regimes specified in the number_of_regimes option"
+                       << endl;
                   exit(EXIT_FAILURE);
                 }
 
-              if (restriction_map.contains({ from_regime, to_regime }))
+              if (restriction_map.contains({from_regime, to_regime}))
                 {
                   cerr << "ERROR: two restrictions were given for: " << from_regime << ", "
                        << to_regime << endl;
@@ -3559,9 +3586,9 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg)
                        << " must be less than 1" << endl;
                   exit(EXIT_FAILURE);
                 }
-              restriction_map[{ from_regime, to_regime }] = transition_probability;
+              restriction_map[{from_regime, to_regime}] = transition_probability;
             }
-          catch (const invalid_argument &)
+          catch (const invalid_argument&)
             {
               cerr << "ERROR: The first two arguments for a restriction must be integers "
                    << "specifying the regime and the last must be a floating point specifying the "
@@ -3573,8 +3600,8 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg)
 }
 
 void
-MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct,
-                                    [[maybe_unused]] WarningConsolidation &warnings)
+MarkovSwitchingStatement::checkPass(ModFileStructure& mod_file_struct,
+                                    [[maybe_unused]] WarningConsolidation& warnings)
 {
   int chainNumber {stoi(options_list.get<OptionsList::NumVal>("ms.chain"))};
   if (++mod_file_struct.last_markov_switching_chain != chainNumber)
@@ -3593,10 +3620,10 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct,
       vector all_restrictions_in_col(num_regimes, true);
       for (int row = 0; row < num_regimes; row++)
         for (int col = 0; col < num_regimes; col++)
-          if (restriction_map.contains({ row+1, col+1 }))
+          if (restriction_map.contains({row + 1, col + 1}))
             {
-              row_trans_prob_sum[row] += restriction_map[{ row+1, col+1 }];
-              col_trans_prob_sum[col] += restriction_map[{ row+1, col+1 }];
+              row_trans_prob_sum[row] += restriction_map[{row + 1, col + 1}];
+              col_trans_prob_sum[col] += restriction_map[{row + 1, col + 1}];
             }
           else
             {
@@ -3645,7 +3672,7 @@ MarkovSwitchingStatement::checkPass(ModFileStructure &mod_file_struct,
 }
 
 void
-MarkovSwitchingStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+MarkovSwitchingStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                       [[maybe_unused]] bool minimal_workspace) const
 {
   string chainNumber {options_list.get<OptionsList::NumVal>("ms.chain")};
@@ -3653,54 +3680,51 @@ MarkovSwitchingStatement::writeOutput(ostream &output, [[maybe_unused]] const st
   assert(options_list.contains("ms.duration"));
 
   output << "options_.ms.duration = ";
-  bool isDurationAVec { options_list.visit("ms.duration",
-                                           [&]<class T>(const T &v) -> bool
-                                           {
-                                             if constexpr(is_same_v<T, OptionsList::VecValueVal>)
-                                               {
-                                                 output << "[";
-                                                 for (bool printed_something{false};
-                                                      const auto &it : v)
-                                                   {
-                                                     if (exchange(printed_something, true))
-                                                       output << ", ";
-                                                     output << it;
-                                                   }
-                                                 output << "]";
-                                                 return true;
-                                               }
-                                             else if constexpr(is_same_v<T, OptionsList::NumVal>)
-                                               {
-                                                 output << v;
-                                                 return false;
-                                               }
-                                             else
-                                               {
-                                                 cerr << "MarkovSwitchingStatement::writeOutput: incorrect value type for 'ms.duration' option" << endl;
-                                                 exit(EXIT_FAILURE);
-                                               }
-                                           }) };
+  bool isDurationAVec {options_list.visit("ms.duration", [&]<class T>(const T& v) -> bool {
+    if constexpr (is_same_v<T, OptionsList::VecValueVal>)
+      {
+        output << "[";
+        for (bool printed_something {false}; const auto& it : v)
+          {
+            if (exchange(printed_something, true))
+              output << ", ";
+            output << it;
+          }
+        output << "]";
+        return true;
+      }
+    else if constexpr (is_same_v<T, OptionsList::NumVal>)
+      {
+        output << v;
+        return false;
+      }
+    else
+      {
+        cerr << "MarkovSwitchingStatement::writeOutput: incorrect value type for 'ms.duration' "
+                "option"
+             << endl;
+        exit(EXIT_FAILURE);
+      }
+  })};
   output << ";" << endl;
 
   int NOR {stoi(options_list.get<OptionsList::NumVal>("ms.number_of_regimes"))};
   for (int i {0}; i < NOR; i++)
     {
-      output << "options_.ms.ms_chain(" << chainNumber << ").regime("
-             << i+1 << ").duration = options_.ms.duration";
+      output << "options_.ms.ms_chain(" << chainNumber << ").regime(" << i + 1
+             << ").duration = options_.ms.duration";
       if (isDurationAVec)
-        output << "(" << i+1 << ")";
+        output << "(" << i + 1 << ")";
       output << ";" << endl;
     }
 
-  for (int restrictions_index{0};
-       const auto &[regimes, prob] : restriction_map)
-    output << "options_.ms.ms_chain(" << chainNumber << ").restrictions("
-           << ++restrictions_index << ") = {[" << regimes.first << ", "
-           << regimes.second << ", " << prob << "]};" << endl;
+  for (int restrictions_index {0}; const auto& [regimes, prob] : restriction_map)
+    output << "options_.ms.ms_chain(" << chainNumber << ").restrictions(" << ++restrictions_index
+           << ") = {[" << regimes.first << ", " << regimes.second << ", " << prob << "]};" << endl;
 }
 
 void
-MarkovSwitchingStatement::writeJsonOutput(ostream &output) const
+MarkovSwitchingStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "markov_switching")";
   if (!options_list.empty())
@@ -3711,40 +3735,36 @@ MarkovSwitchingStatement::writeJsonOutput(ostream &output) const
 
   if (!restriction_map.empty())
     output << ", {";
-  for (bool printed_something{false};
-       const auto &[regimes, prob] : restriction_map)
+  for (bool printed_something {false}; const auto& [regimes, prob] : restriction_map)
     {
       if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"current_period_regime": )" << regimes.first
-             << R"(, "next_period_regime": )" << regimes.second
-             << R"(, "transition_probability": )"<< prob
-             << "}";
+      output << R"({"current_period_regime": )" << regimes.first << R"(, "next_period_regime": )"
+             << regimes.second << R"(, "transition_probability": )" << prob << "}";
     }
   if (!restriction_map.empty())
     output << "}";
   output << "}";
 }
 
-SvarStatement::SvarStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+SvarStatement::SvarStatement(OptionsList options_list_arg) : options_list {move(options_list_arg)}
 {
 }
 
 void
-SvarStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                         [[maybe_unused]] WarningConsolidation &warnings)
+SvarStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                         [[maybe_unused]] WarningConsolidation& warnings)
 {
   bool has_coefficients = options_list.contains("ms.coefficients"),
-    has_variances = options_list.contains("ms.variances"),
-    has_constants = options_list.contains("ms.constants");
+       has_variances = options_list.contains("ms.variances"),
+       has_constants = options_list.contains("ms.constants");
   assert((has_coefficients && !has_variances && !has_constants)
          || (!has_coefficients && has_variances && !has_constants)
          || (!has_coefficients && !has_variances && has_constants));
 }
 
 void
-SvarStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+SvarStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                            [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_.ms.ms_chain(" << options_list.get<OptionsList::NumVal>("ms.chain") << ")";
@@ -3775,7 +3795,7 @@ SvarStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basen
 }
 
 void
-SvarStatement::writeJsonOutput(ostream &output) const
+SvarStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "svar")";
   if (!options_list.empty())
@@ -3787,33 +3807,33 @@ SvarStatement::writeJsonOutput(ostream &output) const
 }
 
 void
-SvarGlobalIdentificationCheckStatement::writeOutput(ostream &output,
-                                                    [[maybe_unused]] const string &basename,
+SvarGlobalIdentificationCheckStatement::writeOutput(ostream& output,
+                                                    [[maybe_unused]] const string& basename,
                                                     [[maybe_unused]] bool minimal_workspace) const
 {
   output << "svar_global_identification_check(options_);" << std::endl;
 }
 
 void
-SvarGlobalIdentificationCheckStatement::writeJsonOutput(ostream &output) const
+SvarGlobalIdentificationCheckStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "svar_global_identification"})";
 }
 
 SetTimeStatement::SetTimeStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-SetTimeStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+SetTimeStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                               [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
 }
 
 void
-SetTimeStatement::writeJsonOutput(ostream &output) const
+SetTimeStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "set_time")";
   if (!options_list.empty())
@@ -3825,25 +3845,25 @@ SetTimeStatement::writeJsonOutput(ostream &output) const
 }
 
 EstimationDataStatement::EstimationDataStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-EstimationDataStatement::checkPass(ModFileStructure &mod_file_struct,
-                                   [[maybe_unused]] WarningConsolidation &warnings)
+EstimationDataStatement::checkPass(ModFileStructure& mod_file_struct,
+                                   [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.estimation_data_statement_present = true;
 
   if (auto opt = options_list.get_if<OptionsList::NumVal>("nobs"))
     if (stoi(*opt) <= 0)
       {
-        cerr << "ERROR: The nobs option of the data statement only accepts positive integers." << endl;
+        cerr << "ERROR: The nobs option of the data statement only accepts positive integers."
+             << endl;
         exit(EXIT_FAILURE);
       }
 
-  bool has_file = options_list.contains("file"),
-    has_series = options_list.contains("series");
+  bool has_file = options_list.contains("file"), has_series = options_list.contains("series");
   if (!has_file && !has_series)
     {
       cerr << "ERROR: The file or series option must be passed to the data statement." << endl;
@@ -3851,20 +3871,22 @@ EstimationDataStatement::checkPass(ModFileStructure &mod_file_struct,
     }
   if (has_file && has_series)
     {
-      cerr << "ERROR: The file and series options cannot be used simultaneously in the data statement." << endl;
+      cerr << "ERROR: The file and series options cannot be used simultaneously in the data "
+              "statement."
+           << endl;
       exit(EXIT_FAILURE);
     }
 }
 
 void
-EstimationDataStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+EstimationDataStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                      [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_.dataset");
 }
 
 void
-EstimationDataStatement::writeJsonOutput(ostream &output) const
+EstimationDataStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "estimation_data")";
   if (!options_list.empty())
@@ -3875,24 +3897,22 @@ EstimationDataStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-SubsamplesStatement::SubsamplesStatement(string name1_arg,
-                                         string name2_arg,
+SubsamplesStatement::SubsamplesStatement(string name1_arg, string name2_arg,
                                          subsample_declaration_map_t subsample_declaration_map_arg,
-                                         const SymbolTable &symbol_table_arg) :
-  name1{move(name1_arg)},
-  name2{move(name2_arg)},
-  subsample_declaration_map{move(subsample_declaration_map_arg)},
-  symbol_table{symbol_table_arg}
+                                         const SymbolTable& symbol_table_arg) :
+    name1 {move(name1_arg)},
+    name2 {move(name2_arg)},
+    subsample_declaration_map {move(subsample_declaration_map_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-SubsamplesStatement::writeOutput(ostream &output,
-                                 [[maybe_unused]] const string &basename,
+SubsamplesStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                  [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "subsamples_indx = get_new_or_existing_ei_index('subsamples_index', '"
-         << name1 << "','" << name2 << "');" << endl
+  output << "subsamples_indx = get_new_or_existing_ei_index('subsamples_index', '" << name1 << "','"
+         << name2 << "');" << endl
          << "estimation_info.subsamples_index(subsamples_indx) = {'" << name1;
   if (!name2.empty())
     output << ":" << name2;
@@ -3900,15 +3920,14 @@ SubsamplesStatement::writeOutput(ostream &output,
          << "estimation_info.subsamples(subsamples_indx).range = {};" << endl
          << "estimation_info.subsamples(subsamples_indx).range_index = {};" << endl;
 
-  for (int map_indx{1};
-       const auto &[range, dates] : subsample_declaration_map)
+  for (int map_indx {1}; const auto& [range, dates] : subsample_declaration_map)
     {
       output << "estimation_info.subsamples(subsamples_indx).range_index(" << map_indx << ") = {'"
              << range << "'};" << endl
-             << "estimation_info.subsamples(subsamples_indx).range(" << map_indx << ").date1 = "
-             << dates.first << ";" << endl
-             << "estimation_info.subsamples(subsamples_indx).range(" << map_indx << ").date2 = "
-             << dates.second << ";" << endl;
+             << "estimation_info.subsamples(subsamples_indx).range(" << map_indx
+             << ").date1 = " << dates.first << ";" << endl
+             << "estimation_info.subsamples(subsamples_indx).range(" << map_indx
+             << ").date2 = " << dates.second << ";" << endl;
       map_indx++;
     }
 
@@ -3935,8 +3954,7 @@ SubsamplesStatement::writeOutput(ostream &output,
 
   if (!name2.empty())
     output << "_corr";
-  output << "_prior_index', '"
-         << name1 << "', '";
+  output << "_prior_index', '" << name1 << "', '";
   if (!name2.empty())
     output << name2;
   output << "');" << endl;
@@ -3952,12 +3970,13 @@ SubsamplesStatement::writeOutput(ostream &output,
   output << lhs_field << "(eifind).subsample_prior = estimation_info.empty_prior;" << endl
          << lhs_field << "(eifind).subsample_prior(1:" << subsample_declaration_map.size()
          << ") = estimation_info.empty_prior;" << endl
-         << lhs_field << "(eifind).range_index = estimation_info.subsamples(subsamples_indx).range_index;"
+         << lhs_field
+         << "(eifind).range_index = estimation_info.subsamples(subsamples_indx).range_index;"
          << endl;
 }
 
 void
-SubsamplesStatement::writeJsonOutput(ostream &output) const
+SubsamplesStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "subsamples")"
          << R"(, "name1": ")" << name1 << R"(")";
@@ -3965,8 +3984,7 @@ SubsamplesStatement::writeJsonOutput(ostream &output) const
     output << R"(, "name2": ")" << name2 << R"(")";
 
   output << R"(, "declarations": {)";
-  for (bool printed_something{false};
-       const auto &[range, dates] : subsample_declaration_map)
+  for (bool printed_something {false}; const auto& [range, dates] : subsample_declaration_map)
     {
       if (exchange(printed_something, true))
         output << ",";
@@ -3980,32 +3998,31 @@ SubsamplesStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-SubsamplesEqualStatement::SubsamplesEqualStatement(string to_name1_arg,
-                                                   string to_name2_arg,
-                                                   string from_name1_arg,
-                                                   string from_name2_arg,
-                                                   const SymbolTable &symbol_table_arg) :
-  to_name1{move(to_name1_arg)},
-  to_name2{move(to_name2_arg)},
-  from_name1{move(from_name1_arg)},
-  from_name2{move(from_name2_arg)},
-  symbol_table{symbol_table_arg}
+SubsamplesEqualStatement::SubsamplesEqualStatement(string to_name1_arg, string to_name2_arg,
+                                                   string from_name1_arg, string from_name2_arg,
+                                                   const SymbolTable& symbol_table_arg) :
+    to_name1 {move(to_name1_arg)},
+    to_name2 {move(to_name2_arg)},
+    from_name1 {move(from_name1_arg)},
+    from_name2 {move(from_name2_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-SubsamplesEqualStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+SubsamplesEqualStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                       [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "subsamples_to_indx = get_new_or_existing_ei_index('subsamples_index', '"
-         << to_name1 << "','" << to_name2 << "');" << endl
+  output << "subsamples_to_indx = get_new_or_existing_ei_index('subsamples_index', '" << to_name1
+         << "','" << to_name2 << "');" << endl
          << "estimation_info.subsamples_index(subsamples_to_indx) = {'" << to_name1;
   if (!to_name2.empty())
     output << ":" << to_name2;
   output << "'};" << endl
-         << "subsamples_from_indx = get_existing_subsamples_indx('" << from_name1 << "','" << from_name2 << "');"
-         << endl
-         << "estimation_info.subsamples(subsamples_to_indx) = estimation_info.subsamples(subsamples_from_indx);"
+         << "subsamples_from_indx = get_existing_subsamples_indx('" << from_name1 << "','"
+         << from_name2 << "');" << endl
+         << "estimation_info.subsamples(subsamples_to_indx) = "
+            "estimation_info.subsamples(subsamples_from_indx);"
          << endl;
 
   // Initialize associated subsample substructures in estimation_info
@@ -4031,8 +4048,7 @@ SubsamplesEqualStatement::writeOutput(ostream &output, [[maybe_unused]] const st
 
   if (!to_name2.empty())
     output << "_corr";
-  output << "_prior_index', '"
-         << to_name1 << "', '";
+  output << "_prior_index', '" << to_name1 << "', '";
   if (!to_name2.empty())
     output << to_name2;
   output << "');" << endl;
@@ -4046,14 +4062,17 @@ SubsamplesEqualStatement::writeOutput(ostream &output, [[maybe_unused]] const st
   output << "'};" << endl;
 
   output << lhs_field << "(eifind).subsample_prior = estimation_info.empty_prior;" << endl
-         << lhs_field << "(eifind).subsample_prior(1:size(estimation_info.subsamples(subsamples_to_indx).range_index,2)) = estimation_info.empty_prior;"
+         << lhs_field
+         << "(eifind).subsample_prior(1:size(estimation_info.subsamples(subsamples_to_indx).range_"
+            "index,2)) = estimation_info.empty_prior;"
          << endl
-         << lhs_field << "(eifind).range_index = estimation_info.subsamples(subsamples_to_indx).range_index;"
+         << lhs_field
+         << "(eifind).range_index = estimation_info.subsamples(subsamples_to_indx).range_index;"
          << endl;
 }
 
 void
-SubsamplesEqualStatement::writeJsonOutput(ostream &output) const
+SubsamplesEqualStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "subsamples_equal")"
          << R"(, "to_name1": ")" << to_name1 << R"(")";
@@ -4068,15 +4087,15 @@ SubsamplesEqualStatement::writeJsonOutput(ostream &output) const
 JointPriorStatement::JointPriorStatement(vector<string> joint_parameters_arg,
                                          PriorDistributions prior_shape_arg,
                                          OptionsList options_list_arg) :
-  joint_parameters{move(joint_parameters_arg)},
-  prior_shape{prior_shape_arg},
-  options_list{move(options_list_arg)}
+    joint_parameters {move(joint_parameters_arg)},
+    prior_shape {prior_shape_arg},
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-JointPriorStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                               [[maybe_unused]] WarningConsolidation &warnings)
+JointPriorStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                               [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (joint_parameters.size() < 2)
     {
@@ -4096,8 +4115,7 @@ JointPriorStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struc
       exit(EXIT_FAILURE);
     }
 
-  if (auto opt = options_list.get_if<OptionsList::VecValueVal>("domain");
-      opt && opt->size() != 4)
+  if (auto opt = options_list.get_if<OptionsList::VecValueVal>("domain"); opt && opt->size() != 4)
     {
       cerr << "ERROR: You must pass exactly four values to the domain option." << endl;
       exit(EXIT_FAILURE);
@@ -4105,18 +4123,20 @@ JointPriorStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struc
 }
 
 void
-JointPriorStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+JointPriorStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                  [[maybe_unused]] bool minimal_workspace) const
 {
-  for (const auto &joint_parameter : joint_parameters)
+  for (const auto& joint_parameter : joint_parameters)
     output << "eifind = get_new_or_existing_ei_index('joint_parameter_prior_index', '"
            << joint_parameter << "', '');" << endl
-           << "estimation_info.joint_parameter_prior_index(eifind) = {'" << joint_parameter << "'};" << endl;
+           << "estimation_info.joint_parameter_prior_index(eifind) = {'" << joint_parameter << "'};"
+           << endl;
 
   output << "key = {[";
-  for (const auto &joint_parameter : joint_parameters)
-    output << "get_new_or_existing_ei_index('joint_parameter_prior_index', '" << joint_parameter << "', '') ..."
-           << endl << "    ";
+  for (const auto& joint_parameter : joint_parameters)
+    output << "get_new_or_existing_ei_index('joint_parameter_prior_index', '" << joint_parameter
+           << "', '') ..." << endl
+           << "    ";
   output << "]};" << endl;
 
   string lhs_field("estimation_info.joint_parameter_tmp");
@@ -4146,69 +4166,67 @@ JointPriorStatement::writeOutput(ostream &output, [[maybe_unused]] const string 
          << "    " << lhs_field << ".stdev , ..." << endl
          << "    " << lhs_field << ".truncate , ..." << endl
          << "    " << lhs_field << ".variance];" << endl
-         << "estimation_info.joint_parameter = [estimation_info.joint_parameter; estimation_info.joint_parameter_tmp];" << endl
+         << "estimation_info.joint_parameter = [estimation_info.joint_parameter; "
+            "estimation_info.joint_parameter_tmp];"
+         << endl
          << "estimation_info=rmfield(estimation_info, 'joint_parameter_tmp');" << endl;
 }
 
 void
-JointPriorStatement::writeOutputHelper(ostream &output, const string &field, const string &lhs_field) const
+JointPriorStatement::writeOutputHelper(ostream& output, const string& field,
+                                       const string& lhs_field) const
 {
   output << lhs_field << "." << field << " = {";
   if (options_list.contains(field))
-    options_list.visit(field, [&]<class T>(const T &v)
-                       {
-                         if constexpr(is_same_v<T, OptionsList::NumVal>)
-                           output << v;
-                         else if constexpr(is_same_v<T, OptionsList::VecValueVal>)
-                           {
-                             output << "[";
-                             for (bool printed_something{false};
-                                  const auto &it2 : v)
-                               {
-                                 if (exchange(printed_something, true))
-                                   output << ", ";
-                                 output << it2;
-                               }
-                             output << "]";
-                           }
-                         else if constexpr(is_same_v<T, vector<vector<string>>>)
-                           {
-                             output << "{";
-                             for (bool printed_something{false};
-                                  const auto &it2 : v)
-                               {
-                                 if (exchange(printed_something, true))
-                                   output << ", ";
-                                 output << "[";
-                                 for (bool printed_something2{false};
-                                      const auto &it3 : it2)
-                                   {
-                                     if (exchange(printed_something2, true))
-                                       output << ", ";
-                                     output << it3;
-                                   }
-                                 output << "]";
-                               }
-                             output << "}";
-                           }
-                         else
-                           {
-                             cerr << "JointPriorStatement::writeOutputHelper: unhandled alternative" << endl;
-                             exit(EXIT_FAILURE);
-                           }
-                       });
+    options_list.visit(field, [&]<class T>(const T& v) {
+      if constexpr (is_same_v<T, OptionsList::NumVal>)
+        output << v;
+      else if constexpr (is_same_v<T, OptionsList::VecValueVal>)
+        {
+          output << "[";
+          for (bool printed_something {false}; const auto& it2 : v)
+            {
+              if (exchange(printed_something, true))
+                output << ", ";
+              output << it2;
+            }
+          output << "]";
+        }
+      else if constexpr (is_same_v<T, vector<vector<string>>>)
+        {
+          output << "{";
+          for (bool printed_something {false}; const auto& it2 : v)
+            {
+              if (exchange(printed_something, true))
+                output << ", ";
+              output << "[";
+              for (bool printed_something2 {false}; const auto& it3 : it2)
+                {
+                  if (exchange(printed_something2, true))
+                    output << ", ";
+                  output << it3;
+                }
+              output << "]";
+            }
+          output << "}";
+        }
+      else
+        {
+          cerr << "JointPriorStatement::writeOutputHelper: unhandled alternative" << endl;
+          exit(EXIT_FAILURE);
+        }
+    });
   else
     output << "{}";
   output << "};" << endl;
 }
 
 void
-JointPriorStatement::writeJsonOutput(ostream &output) const
+JointPriorStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "joint_prior")"
          << R"(, "key": [)";
-  for (bool printed_something{false};
-       const auto &it : joint_parameters)
+  for (bool printed_something {false}; const auto& it : joint_parameters)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -4256,22 +4274,20 @@ JointPriorStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-BasicPriorStatement::BasicPriorStatement(string name_arg,
-                                         string subsample_name_arg,
-                                         PriorDistributions prior_shape_arg,
-                                         expr_t variance_arg,
+BasicPriorStatement::BasicPriorStatement(string name_arg, string subsample_name_arg,
+                                         PriorDistributions prior_shape_arg, expr_t variance_arg,
                                          OptionsList options_list_arg) :
-  name{move(name_arg)},
-  subsample_name{move(subsample_name_arg)},
-  prior_shape{prior_shape_arg},
-  variance{variance_arg},
-  options_list{move(options_list_arg)}
+    name {move(name_arg)},
+    subsample_name {move(subsample_name_arg)},
+    prior_shape {prior_shape_arg},
+    variance {variance_arg},
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-BasicPriorStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                               [[maybe_unused]] WarningConsolidation &warnings)
+BasicPriorStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                               [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (prior_shape == PriorDistributions::noShape)
     {
@@ -4288,12 +4304,12 @@ BasicPriorStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struc
   if (bool has_stdev = options_list.contains("stdev");
       (!has_stdev && !variance) || (has_stdev && variance))
     {
-      cerr << "ERROR: You must pass exactly one of stdev and variance to the prior statement." << endl;
+      cerr << "ERROR: You must pass exactly one of stdev and variance to the prior statement."
+           << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (auto opt = options_list.get_if<OptionsList::VecValueVal>("domain");
-      opt && opt->size() != 2)
+  if (auto opt = options_list.get_if<OptionsList::VecValueVal>("domain"); opt && opt->size() != 2)
     {
       cerr << "ERROR: You must pass exactly two values to the domain option." << endl;
       exit(EXIT_FAILURE);
@@ -4309,7 +4325,7 @@ BasicPriorStatement::is_structural_innovation(const SymbolType symb_type) const
 }
 
 void
-BasicPriorStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
+BasicPriorStatement::get_base_name(const SymbolType symb_type, string& lhs_field) const
 {
   if (symb_type == SymbolType::exogenous)
     lhs_field = "structural_innovation";
@@ -4318,7 +4334,7 @@ BasicPriorStatement::get_base_name(const SymbolType symb_type, string &lhs_field
 }
 
 void
-BasicPriorStatement::writeCommonOutput(ostream &output, const string &lhs_field) const
+BasicPriorStatement::writeCommonOutput(ostream& output, const string& lhs_field) const
 {
   output << lhs_field << " = estimation_info.empty_prior;" << endl;
 
@@ -4344,33 +4360,35 @@ BasicPriorStatement::writeCommonOutput(ostream &output, const string &lhs_field)
 }
 
 void
-BasicPriorStatement::writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const
+BasicPriorStatement::writeCommonOutputHelper(ostream& output, const string& field,
+                                             const string& lhs_field) const
 {
   if (options_list.contains(field))
-    options_list.visit(field, [&]<class T>(const T &v)
-                       {
-                         if constexpr(is_same_v<T, OptionsList::NumVal>)
-                           output << lhs_field << "." << field << " = "<< v << ";" << endl;
-                         // TODO: handle other variant types
-                       });
+    options_list.visit(field, [&]<class T>(const T& v) {
+      if constexpr (is_same_v<T, OptionsList::NumVal>)
+        output << lhs_field << "." << field << " = " << v << ";" << endl;
+      // TODO: handle other variant types
+    });
 }
 
 void
-BasicPriorStatement::writePriorOutput(ostream &output, string &lhs_field, const string &name2) const
+BasicPriorStatement::writePriorOutput(ostream& output, string& lhs_field, const string& name2) const
 {
   if (subsample_name.empty())
     lhs_field += ".prior(1)";
   else
     {
-      output << "subsamples_indx = get_existing_subsamples_indx('" << name << "','" << name2 << "');" << endl
-             << "eisind = get_subsamples_range_indx(subsamples_indx, '" << subsample_name << "');" << endl;
+      output << "subsamples_indx = get_existing_subsamples_indx('" << name << "','" << name2
+             << "');" << endl
+             << "eisind = get_subsamples_range_indx(subsamples_indx, '" << subsample_name << "');"
+             << endl;
       lhs_field += ".subsample_prior(eisind)";
     }
   writeCommonOutput(output, lhs_field);
 }
 
 void
-BasicPriorStatement::writeJsonPriorOutput(ostream &output) const
+BasicPriorStatement::writeJsonPriorOutput(ostream& output) const
 {
   output << R"(, "name": ")" << name << R"(")"
          << R"(, "subsample": ")" << subsample_name << R"(")"
@@ -4390,7 +4408,7 @@ BasicPriorStatement::writeJsonPriorOutput(ostream &output) const
 }
 
 void
-BasicPriorStatement::writeJsonShape(ostream &output) const
+BasicPriorStatement::writeJsonShape(ostream& output) const
 {
   output << R"("shape": )";
   switch (prior_shape)
@@ -4424,53 +4442,51 @@ BasicPriorStatement::writeJsonShape(ostream &output) const
     }
 }
 
-PriorStatement::PriorStatement(string name_arg,
-                               string subsample_name_arg,
-                               PriorDistributions prior_shape_arg,
-                               expr_t variance_arg,
+PriorStatement::PriorStatement(string name_arg, string subsample_name_arg,
+                               PriorDistributions prior_shape_arg, expr_t variance_arg,
                                OptionsList options_list_arg) :
-  BasicPriorStatement{move(name_arg), move(subsample_name_arg), prior_shape_arg, variance_arg, move(options_list_arg)}
+    BasicPriorStatement {move(name_arg), move(subsample_name_arg), prior_shape_arg, variance_arg,
+                         move(options_list_arg)}
 {
 }
 
 void
-PriorStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+PriorStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                             [[maybe_unused]] bool minimal_workspace) const
 {
   string lhs_field = "estimation_info.parameter(eifind)";
-  output << "eifind = get_new_or_existing_ei_index('parameter_prior_index', '"
-         << name << "', '');" << endl
+  output << "eifind = get_new_or_existing_ei_index('parameter_prior_index', '" << name << "', '');"
+         << endl
          << "estimation_info.parameter_prior_index(eifind) = {'" << name << "'};" << endl;
   writePriorOutput(output, lhs_field, "");
 }
 
 void
-PriorStatement::writeJsonOutput(ostream &output) const
+PriorStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "prior")";
   writeJsonPriorOutput(output);
   output << "}";
 }
 
-StdPriorStatement::StdPriorStatement(string name_arg,
-                                     string subsample_name_arg,
-                                     PriorDistributions prior_shape_arg,
-                                     expr_t variance_arg,
+StdPriorStatement::StdPriorStatement(string name_arg, string subsample_name_arg,
+                                     PriorDistributions prior_shape_arg, expr_t variance_arg,
                                      OptionsList options_list_arg,
-                                     const SymbolTable &symbol_table_arg) :
-  BasicPriorStatement{move(name_arg), move(subsample_name_arg), prior_shape_arg, variance_arg, move(options_list_arg)},
-  symbol_table{symbol_table_arg}
+                                     const SymbolTable& symbol_table_arg) :
+    BasicPriorStatement {move(name_arg), move(subsample_name_arg), prior_shape_arg, variance_arg,
+                         move(options_list_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-StdPriorStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+StdPriorStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                [[maybe_unused]] bool minimal_workspace) const
 {
   string lhs_field;
   get_base_name(symbol_table.getType(name), lhs_field);
-  output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_prior_index', '"
-         << name << "', '');" << endl
+  output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_prior_index', '" << name
+         << "', '');" << endl
          << "estimation_info." << lhs_field << "_prior_index(eifind) = {'" << name << "'};" << endl;
 
   lhs_field = "estimation_info." + lhs_field + "(eifind)";
@@ -4478,7 +4494,7 @@ StdPriorStatement::writeOutput(ostream &output, [[maybe_unused]] const string &b
 }
 
 void
-StdPriorStatement::writeJsonOutput(ostream &output) const
+StdPriorStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "std_prior")";
   writeJsonPriorOutput(output);
@@ -4487,18 +4503,18 @@ StdPriorStatement::writeJsonOutput(ostream &output) const
 
 CorrPriorStatement::CorrPriorStatement(string name_arg1, string name_arg2,
                                        string subsample_name_arg,
-                                       PriorDistributions prior_shape_arg,
-                                       expr_t variance_arg,
+                                       PriorDistributions prior_shape_arg, expr_t variance_arg,
                                        OptionsList options_list_arg,
-                                       const SymbolTable &symbol_table_arg) :
-  BasicPriorStatement{move(name_arg1), move(subsample_name_arg), prior_shape_arg, variance_arg, move(options_list_arg)},
-  name1{move(name_arg2)},
-  symbol_table{symbol_table_arg}
+                                       const SymbolTable& symbol_table_arg) :
+    BasicPriorStatement {move(name_arg1), move(subsample_name_arg), prior_shape_arg, variance_arg,
+                         move(options_list_arg)},
+    name1 {move(name_arg2)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-CorrPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+CorrPriorStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings)
 {
   BasicPriorStatement::checkPass(mod_file_struct, warnings);
   if (symbol_table.getType(name) != symbol_table.getType(name1))
@@ -4511,7 +4527,7 @@ CorrPriorStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolid
 }
 
 void
-CorrPriorStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+CorrPriorStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                 [[maybe_unused]] bool minimal_workspace) const
 {
   string lhs_field;
@@ -4519,15 +4535,15 @@ CorrPriorStatement::writeOutput(ostream &output, [[maybe_unused]] const string &
 
   output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_corr_prior_index', '"
          << name << "', '" << name1 << "');" << endl
-         << "estimation_info." << lhs_field << "_corr_prior_index(eifind) = {'"
-         << name << ":" << name1 << "'};" << endl;
+         << "estimation_info." << lhs_field << "_corr_prior_index(eifind) = {'" << name << ":"
+         << name1 << "'};" << endl;
 
   lhs_field = "estimation_info." + lhs_field + "_corr(eifind)";
   writePriorOutput(output, lhs_field, name1);
 }
 
 void
-CorrPriorStatement::writeJsonOutput(ostream &output) const
+CorrPriorStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "corr_prior")"
          << R"(, "name2": ")" << name1 << R"(")";
@@ -4535,33 +4551,31 @@ CorrPriorStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-PriorEqualStatement::PriorEqualStatement(string to_declaration_type_arg,
-                                         string to_name1_arg,
-                                         string to_name2_arg,
-                                         string to_subsample_name_arg,
-                                         string from_declaration_type_arg,
-                                         string from_name1_arg,
-                                         string from_name2_arg,
-                                         string from_subsample_name_arg,
-                                         const SymbolTable &symbol_table_arg) :
-  to_declaration_type{move(to_declaration_type_arg)},
-  to_name1{move(to_name1_arg)},
-  to_name2{move(to_name2_arg)},
-  to_subsample_name{move(to_subsample_name_arg)},
-  from_declaration_type{move(from_declaration_type_arg)},
-  from_name1{move(from_name1_arg)},
-  from_name2{move(from_name2_arg)},
-  from_subsample_name{move(from_subsample_name_arg)},
-  symbol_table{symbol_table_arg}
+PriorEqualStatement::PriorEqualStatement(string to_declaration_type_arg, string to_name1_arg,
+                                         string to_name2_arg, string to_subsample_name_arg,
+                                         string from_declaration_type_arg, string from_name1_arg,
+                                         string from_name2_arg, string from_subsample_name_arg,
+                                         const SymbolTable& symbol_table_arg) :
+    to_declaration_type {move(to_declaration_type_arg)},
+    to_name1 {move(to_name1_arg)},
+    to_name2 {move(to_name2_arg)},
+    to_subsample_name {move(to_subsample_name_arg)},
+    from_declaration_type {move(from_declaration_type_arg)},
+    from_name1 {move(from_name1_arg)},
+    from_name2 {move(from_name2_arg)},
+    from_subsample_name {move(from_subsample_name_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-PriorEqualStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                               [[maybe_unused]] WarningConsolidation &warnings)
+PriorEqualStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                               [[maybe_unused]] WarningConsolidation& warnings)
 {
-  if ((to_declaration_type != "par" && to_declaration_type != "std" && to_declaration_type != "corr")
-      || (from_declaration_type != "par" && from_declaration_type != "std" && from_declaration_type != "corr"))
+  if ((to_declaration_type != "par" && to_declaration_type != "std"
+       && to_declaration_type != "corr")
+      || (from_declaration_type != "par" && from_declaration_type != "std"
+          && from_declaration_type != "corr"))
     {
       cerr << "Internal Dynare Error" << endl;
       exit(EXIT_FAILURE);
@@ -4569,7 +4583,7 @@ PriorEqualStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struc
 }
 
 void
-PriorEqualStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
+PriorEqualStatement::get_base_name(const SymbolType symb_type, string& lhs_field) const
 {
   if (symb_type == SymbolType::exogenous)
     lhs_field = "structural_innovation";
@@ -4578,7 +4592,7 @@ PriorEqualStatement::get_base_name(const SymbolType symb_type, string &lhs_field
 }
 
 void
-PriorEqualStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+PriorEqualStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                  [[maybe_unused]] bool minimal_workspace) const
 {
   string lhs_field, rhs_field;
@@ -4600,9 +4614,9 @@ PriorEqualStatement::writeOutput(ostream &output, [[maybe_unused]] const string 
     rhs_field += "_corr";
 
   output << "ei_to_ind = get_new_or_existing_ei_index('" << lhs_field << "_prior_index', '"
-         << to_name1 << "', '" << to_name2<< "');" << endl
+         << to_name1 << "', '" << to_name2 << "');" << endl
          << "ei_from_ind = get_new_or_existing_ei_index('" << rhs_field << "_prior_index', '"
-         << from_name1 << "', '" << from_name2<< "');" << endl
+         << from_name1 << "', '" << from_name2 << "');" << endl
          << "estimation_info." << lhs_field << "_prior_index(ei_to_ind) = {'" << to_name1;
 
   if (to_declaration_type == "corr")
@@ -4622,8 +4636,10 @@ PriorEqualStatement::writeOutput(ostream &output, [[maybe_unused]] const string 
     lhs_field += ".prior";
   else
     {
-      output << "subsamples_to_indx = get_existing_subsamples_indx('" << to_name1 << "','" << to_name2 << "');" << endl
-             << "ei_to_ss_ind = get_subsamples_range_indx(subsamples_to_indx, '" << to_subsample_name << "');" << endl;
+      output << "subsamples_to_indx = get_existing_subsamples_indx('" << to_name1 << "','"
+             << to_name2 << "');" << endl
+             << "ei_to_ss_ind = get_subsamples_range_indx(subsamples_to_indx, '"
+             << to_subsample_name << "');" << endl;
       lhs_field += ".subsample_prior(ei_to_ss_ind)";
     }
 
@@ -4631,8 +4647,10 @@ PriorEqualStatement::writeOutput(ostream &output, [[maybe_unused]] const string 
     rhs_field += ".prior";
   else
     {
-      output << "subsamples_from_indx = get_existing_subsamples_indx('" << from_name1 << "','" << from_name2 << "');" << endl
-             << "ei_from_ss_ind = get_subsamples_range_indx(subsamples_from_indx, '" << from_subsample_name << "');" << endl;
+      output << "subsamples_from_indx = get_existing_subsamples_indx('" << from_name1 << "','"
+             << from_name2 << "');" << endl
+             << "ei_from_ss_ind = get_subsamples_range_indx(subsamples_from_indx, '"
+             << from_subsample_name << "');" << endl;
       rhs_field += ".subsample_prior(ei_from_ss_ind)";
     }
 
@@ -4640,7 +4658,7 @@ PriorEqualStatement::writeOutput(ostream &output, [[maybe_unused]] const string 
 }
 
 void
-PriorEqualStatement::writeJsonOutput(ostream &output) const
+PriorEqualStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "prior_equal")"
          << R"(, "to_name1": ")" << to_name1 << R"(")";
@@ -4654,12 +4672,11 @@ PriorEqualStatement::writeJsonOutput(ostream &output) const
          << "}";
 }
 
-BasicOptionsStatement::BasicOptionsStatement(string name_arg,
-                                             string subsample_name_arg,
+BasicOptionsStatement::BasicOptionsStatement(string name_arg, string subsample_name_arg,
                                              OptionsList options_list_arg) :
-  name{move(name_arg)},
-  subsample_name{move(subsample_name_arg)},
-  options_list{move(options_list_arg)}
+    name {move(name_arg)},
+    subsample_name {move(subsample_name_arg)},
+    options_list {move(options_list_arg)}
 {
 }
 
@@ -4670,7 +4687,7 @@ BasicOptionsStatement::is_structural_innovation(const SymbolType symb_type) cons
 }
 
 void
-BasicOptionsStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
+BasicOptionsStatement::get_base_name(const SymbolType symb_type, string& lhs_field) const
 {
   if (symb_type == SymbolType::exogenous)
     lhs_field = "structural_innovation";
@@ -4679,7 +4696,7 @@ BasicOptionsStatement::get_base_name(const SymbolType symb_type, string &lhs_fie
 }
 
 void
-BasicOptionsStatement::writeCommonOutput(ostream &output, const string &lhs_field) const
+BasicOptionsStatement::writeCommonOutput(ostream& output, const string& lhs_field) const
 {
   output << lhs_field << " = estimation_info.empty_options;" << endl;
 
@@ -4689,33 +4706,36 @@ BasicOptionsStatement::writeCommonOutput(ostream &output, const string &lhs_fiel
 }
 
 void
-BasicOptionsStatement::writeCommonOutputHelper(ostream &output, const string &field, const string &lhs_field) const
+BasicOptionsStatement::writeCommonOutputHelper(ostream& output, const string& field,
+                                               const string& lhs_field) const
 {
   if (options_list.contains(field))
-    options_list.visit(field, [&]<class T>(const T &v)
-                       {
-                         if constexpr(is_same_v<T, OptionsList::NumVal>)
-                           output << lhs_field << "." << field << " = "<< v << ";" << endl;
-                         // TODO: handle other variant types
-                       });
+    options_list.visit(field, [&]<class T>(const T& v) {
+      if constexpr (is_same_v<T, OptionsList::NumVal>)
+        output << lhs_field << "." << field << " = " << v << ";" << endl;
+      // TODO: handle other variant types
+    });
 }
 
 void
-BasicOptionsStatement::writeOptionsOutput(ostream &output, string &lhs_field, const string &name2) const
+BasicOptionsStatement::writeOptionsOutput(ostream& output, string& lhs_field,
+                                          const string& name2) const
 {
   if (subsample_name.empty())
     lhs_field += ".options(1)";
   else
     {
-      output << "subsamples_indx = get_existing_subsamples_indx('" << name << "','" << name2 << "');" << endl
-             << "eisind = get_subsamples_range_indx(subsamples_indx, '" << subsample_name << "');" << endl;
+      output << "subsamples_indx = get_existing_subsamples_indx('" << name << "','" << name2
+             << "');" << endl
+             << "eisind = get_subsamples_range_indx(subsamples_indx, '" << subsample_name << "');"
+             << endl;
       lhs_field += ".subsample_options(eisind)";
     }
   writeCommonOutput(output, lhs_field);
 }
 
 void
-BasicOptionsStatement::writeJsonOptionsOutput(ostream &output) const
+BasicOptionsStatement::writeJsonOptionsOutput(ostream& output) const
 {
   output << R"(, "name": ")" << name << R"(")";
   if (!subsample_name.empty())
@@ -4727,57 +4747,56 @@ BasicOptionsStatement::writeJsonOptionsOutput(ostream &output) const
     }
 }
 
-OptionsStatement::OptionsStatement(string name_arg,
-                                   string subsample_name_arg,
+OptionsStatement::OptionsStatement(string name_arg, string subsample_name_arg,
                                    OptionsList options_list_arg) :
-  BasicOptionsStatement{move(name_arg), move(subsample_name_arg), move(options_list_arg)}
+    BasicOptionsStatement {move(name_arg), move(subsample_name_arg), move(options_list_arg)}
 {
 }
 
 void
-OptionsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+OptionsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                               [[maybe_unused]] bool minimal_workspace) const
 {
   string lhs_field = "estimation_info.parameter(eifind)";
-  output << "eifind = get_new_or_existing_ei_index('parameter_options_index', '"
-         << name << "', '');" << endl
+  output << "eifind = get_new_or_existing_ei_index('parameter_options_index', '" << name
+         << "', '');" << endl
          << "estimation_info.parameter_options_index(eifind) = {'" << name << "'};" << endl;
   writeOptionsOutput(output, lhs_field, "");
 }
 
 void
-OptionsStatement::writeJsonOutput(ostream &output) const
+OptionsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "options")";
   writeJsonOptionsOutput(output);
   output << "}";
 }
 
-StdOptionsStatement::StdOptionsStatement(string name_arg,
-                                         string subsample_name_arg,
+StdOptionsStatement::StdOptionsStatement(string name_arg, string subsample_name_arg,
                                          OptionsList options_list_arg,
-                                         const SymbolTable &symbol_table_arg) :
-  BasicOptionsStatement{move(name_arg), move(subsample_name_arg), move(options_list_arg)},
-  symbol_table{symbol_table_arg}
+                                         const SymbolTable& symbol_table_arg) :
+    BasicOptionsStatement {move(name_arg), move(subsample_name_arg), move(options_list_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-StdOptionsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+StdOptionsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                  [[maybe_unused]] bool minimal_workspace) const
 {
   string lhs_field;
   get_base_name(symbol_table.getType(name), lhs_field);
-  output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_options_index', '"
-         << name << "', '');" << endl
-         << "estimation_info." << lhs_field << "_options_index(eifind) = {'" << name << "'};" << endl;
+  output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_options_index', '" << name
+         << "', '');" << endl
+         << "estimation_info." << lhs_field << "_options_index(eifind) = {'" << name << "'};"
+         << endl;
 
   lhs_field = "estimation_info." + lhs_field + "(eifind)";
   writeOptionsOutput(output, lhs_field, "");
 }
 
 void
-StdOptionsStatement::writeJsonOutput(ostream &output) const
+StdOptionsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "std_options")";
   writeJsonOptionsOutput(output);
@@ -4785,18 +4804,17 @@ StdOptionsStatement::writeJsonOutput(ostream &output) const
 }
 
 CorrOptionsStatement::CorrOptionsStatement(string name_arg1, string name_arg2,
-                                           string subsample_name_arg,
-                                           OptionsList options_list_arg,
-                                           const SymbolTable &symbol_table_arg) :
-  BasicOptionsStatement{move(name_arg1), move(subsample_name_arg), move(options_list_arg)},
-  name1{move(name_arg2)},
-  symbol_table{symbol_table_arg}
+                                           string subsample_name_arg, OptionsList options_list_arg,
+                                           const SymbolTable& symbol_table_arg) :
+    BasicOptionsStatement {move(name_arg1), move(subsample_name_arg), move(options_list_arg)},
+    name1 {move(name_arg2)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-CorrOptionsStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                                [[maybe_unused]] WarningConsolidation &warnings)
+CorrOptionsStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                                [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (symbol_table.getType(name) != symbol_table.getType(name1))
     {
@@ -4808,7 +4826,7 @@ CorrOptionsStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_stru
 }
 
 void
-CorrOptionsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+CorrOptionsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                   [[maybe_unused]] bool minimal_workspace) const
 {
   string lhs_field;
@@ -4816,15 +4834,15 @@ CorrOptionsStatement::writeOutput(ostream &output, [[maybe_unused]] const string
 
   output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_corr_options_index', '"
          << name << "', '" << name1 << "');" << endl
-         << "estimation_info." << lhs_field << "_corr_options_index(eifind) = {'"
-         << name << ":" << name1 << "'};" << endl;
+         << "estimation_info." << lhs_field << "_corr_options_index(eifind) = {'" << name << ":"
+         << name1 << "'};" << endl;
 
   lhs_field = "estimation_info." + lhs_field + "_corr(eifind)";
   writeOptionsOutput(output, lhs_field, name1);
 }
 
 void
-CorrOptionsStatement::writeJsonOutput(ostream &output) const
+CorrOptionsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "corr_options")"
          << R"(, "name2": ")" << name1 << R"(")";
@@ -4832,33 +4850,32 @@ CorrOptionsStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-OptionsEqualStatement::OptionsEqualStatement(string to_declaration_type_arg,
-                                             string to_name1_arg,
-                                             string to_name2_arg,
-                                             string to_subsample_name_arg,
+OptionsEqualStatement::OptionsEqualStatement(string to_declaration_type_arg, string to_name1_arg,
+                                             string to_name2_arg, string to_subsample_name_arg,
                                              string from_declaration_type_arg,
-                                             string from_name1_arg,
-                                             string from_name2_arg,
+                                             string from_name1_arg, string from_name2_arg,
                                              string from_subsample_name_arg,
-                                             const SymbolTable &symbol_table_arg) :
-  to_declaration_type{move(to_declaration_type_arg)},
-  to_name1{move(to_name1_arg)},
-  to_name2{move(to_name2_arg)},
-  to_subsample_name{move(to_subsample_name_arg)},
-  from_declaration_type{move(from_declaration_type_arg)},
-  from_name1{move(from_name1_arg)},
-  from_name2{move(from_name2_arg)},
-  from_subsample_name{move(from_subsample_name_arg)},
-  symbol_table{symbol_table_arg}
+                                             const SymbolTable& symbol_table_arg) :
+    to_declaration_type {move(to_declaration_type_arg)},
+    to_name1 {move(to_name1_arg)},
+    to_name2 {move(to_name2_arg)},
+    to_subsample_name {move(to_subsample_name_arg)},
+    from_declaration_type {move(from_declaration_type_arg)},
+    from_name1 {move(from_name1_arg)},
+    from_name2 {move(from_name2_arg)},
+    from_subsample_name {move(from_subsample_name_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-OptionsEqualStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
-                                 [[maybe_unused]] WarningConsolidation &warnings)
+OptionsEqualStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                                 [[maybe_unused]] WarningConsolidation& warnings)
 {
-  if ((to_declaration_type != "par" && to_declaration_type != "std" && to_declaration_type != "corr")
-      || (from_declaration_type != "par" && from_declaration_type != "std" && from_declaration_type != "corr"))
+  if ((to_declaration_type != "par" && to_declaration_type != "std"
+       && to_declaration_type != "corr")
+      || (from_declaration_type != "par" && from_declaration_type != "std"
+          && from_declaration_type != "corr"))
     {
       cerr << "Internal Dynare Error" << endl;
       exit(EXIT_FAILURE);
@@ -4866,7 +4883,7 @@ OptionsEqualStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_str
 }
 
 void
-OptionsEqualStatement::writeJsonOutput(ostream &output) const
+OptionsEqualStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "options_equal")"
          << R"(, "to_name1": ")" << to_name1 << R"(")";
@@ -4881,7 +4898,7 @@ OptionsEqualStatement::writeJsonOutput(ostream &output) const
 }
 
 void
-OptionsEqualStatement::get_base_name(const SymbolType symb_type, string &lhs_field) const
+OptionsEqualStatement::get_base_name(const SymbolType symb_type, string& lhs_field) const
 {
   if (symb_type == SymbolType::exogenous)
     lhs_field = "structural_innovation";
@@ -4890,7 +4907,7 @@ OptionsEqualStatement::get_base_name(const SymbolType symb_type, string &lhs_fie
 }
 
 void
-OptionsEqualStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+OptionsEqualStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                    [[maybe_unused]] bool minimal_workspace) const
 {
   string lhs_field, rhs_field;
@@ -4912,9 +4929,9 @@ OptionsEqualStatement::writeOutput(ostream &output, [[maybe_unused]] const strin
     rhs_field += "_corr";
 
   output << "ei_to_ind = get_new_or_existing_ei_index('" << lhs_field << "_options_index', '"
-         << to_name1 << "', '" << to_name2<< "');" << endl
+         << to_name1 << "', '" << to_name2 << "');" << endl
          << "ei_from_ind = get_new_or_existing_ei_index('" << rhs_field << "_options_index', '"
-         << from_name1 << "', '" << from_name2<< "');" << endl
+         << from_name1 << "', '" << from_name2 << "');" << endl
          << "estimation_info." << lhs_field << "_options_index(ei_to_ind) = {'" << to_name1;
 
   if (to_declaration_type == "corr")
@@ -4934,8 +4951,10 @@ OptionsEqualStatement::writeOutput(ostream &output, [[maybe_unused]] const strin
     lhs_field += ".options";
   else
     {
-      output << "subsamples_to_indx = get_existing_subsamples_indx('" << to_name1 << "','" << to_name2 << "');" << endl
-             << "ei_to_ss_ind = get_subsamples_range_indx(subsamples_to_indx, '" << to_subsample_name << "');" << endl;
+      output << "subsamples_to_indx = get_existing_subsamples_indx('" << to_name1 << "','"
+             << to_name2 << "');" << endl
+             << "ei_to_ss_ind = get_subsamples_range_indx(subsamples_to_indx, '"
+             << to_subsample_name << "');" << endl;
       lhs_field += ".subsample_options(ei_to_ss_ind)";
     }
 
@@ -4943,8 +4962,10 @@ OptionsEqualStatement::writeOutput(ostream &output, [[maybe_unused]] const strin
     rhs_field += ".options";
   else
     {
-      output << "subsamples_from_indx = get_existing_subsamples_indx('" << from_name1 << "','" << from_name2 << "');" << endl
-             << "ei_from_ss_ind = get_subsamples_range_indx(subsamples_from_indx, '" << from_subsample_name << "');" << endl;
+      output << "subsamples_from_indx = get_existing_subsamples_indx('" << from_name1 << "','"
+             << from_name2 << "');" << endl
+             << "ei_from_ss_ind = get_subsamples_range_indx(subsamples_from_indx, '"
+             << from_subsample_name << "');" << endl;
       rhs_field += ".subsample_options(ei_from_ss_ind)";
     }
 
@@ -4953,22 +4974,22 @@ OptionsEqualStatement::writeOutput(ostream &output, [[maybe_unused]] const strin
 
 CalibSmootherStatement::CalibSmootherStatement(SymbolList symbol_list_arg,
                                                OptionsList options_list_arg,
-                                               const SymbolTable &symbol_table_arg) :
-  symbol_list{move(symbol_list_arg)},
-  options_list{move(options_list_arg)},
-  symbol_table{symbol_table_arg}
+                                               const SymbolTable& symbol_table_arg) :
+    symbol_list {move(symbol_list_arg)},
+    options_list {move(options_list_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
 void
-CalibSmootherStatement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings)
+CalibSmootherStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings)
 {
   mod_file_struct.calib_smoother_present = true;
   try
     {
-      symbol_list.checkPass(warnings, { SymbolType::endogenous }, symbol_table);
+      symbol_list.checkPass(warnings, {SymbolType::endogenous}, symbol_table);
     }
-  catch (SymbolList::SymbolListException &e)
+  catch (SymbolList::SymbolListException& e)
     {
       cerr << "ERROR: calib_smoother: " << e.message << endl;
       exit(EXIT_FAILURE);
@@ -4976,7 +4997,7 @@ CalibSmootherStatement::checkPass(ModFileStructure &mod_file_struct, WarningCons
 }
 
 void
-CalibSmootherStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+CalibSmootherStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                     [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
@@ -4985,11 +5006,13 @@ CalibSmootherStatement::writeOutput(ostream &output, [[maybe_unused]] const stri
   symbol_list.writeOutput("var_list_", output);
   output << "options_.smoother = true;" << endl
          << "options_.order = 1;" << endl
-         << "[oo_, M_, options_, bayestopt_] = evaluate_smoother(options_.parameter_set, var_list_, M_, oo_, options_, bayestopt_, estim_params_);" << endl;
+         << "[oo_, M_, options_, bayestopt_] = evaluate_smoother(options_.parameter_set, "
+            "var_list_, M_, oo_, options_, bayestopt_, estim_params_);"
+         << endl;
 }
 
 void
-CalibSmootherStatement::writeJsonOutput(ostream &output) const
+CalibSmootherStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "calib_smoother")";
   if (!options_list.empty())
@@ -5005,14 +5028,14 @@ CalibSmootherStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-ExtendedPathStatement::ExtendedPathStatement(OptionsList options_list_arg)
-  : options_list{move(options_list_arg)}
+ExtendedPathStatement::ExtendedPathStatement(OptionsList options_list_arg) :
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-ExtendedPathStatement::checkPass(ModFileStructure &mod_file_struct,
-                                 [[maybe_unused]] WarningConsolidation &warnings)
+ExtendedPathStatement::checkPass(ModFileStructure& mod_file_struct,
+                                 [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.extended_path_present = true;
 
@@ -5024,7 +5047,7 @@ ExtendedPathStatement::checkPass(ModFileStructure &mod_file_struct,
 }
 
 void
-ExtendedPathStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+ExtendedPathStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                    [[maybe_unused]] bool minimal_workspace) const
 {
   // Beware: options do not have the same name in the interface and in the M code...
@@ -5038,7 +5061,7 @@ ExtendedPathStatement::writeOutput(ostream &output, [[maybe_unused]] const strin
 }
 
 void
-ExtendedPathStatement::writeJsonOutput(ostream &output) const
+ExtendedPathStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "extended_path")";
   if (!options_list.empty())
@@ -5050,25 +5073,25 @@ ExtendedPathStatement::writeJsonOutput(ostream &output) const
 }
 
 void
-ModelDiagnosticsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+ModelDiagnosticsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                        [[maybe_unused]] bool minimal_workspace) const
 {
   output << "model_diagnostics(M_,options_,oo_);" << endl;
 }
 
 void
-ModelDiagnosticsStatement::writeJsonOutput(ostream &output) const
+ModelDiagnosticsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "model_diagnostics"})";
 }
 
 Smoother2histvalStatement::Smoother2histvalStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-Smoother2histvalStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+Smoother2histvalStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                        [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_smoother2histval");
@@ -5076,7 +5099,7 @@ Smoother2histvalStatement::writeOutput(ostream &output, [[maybe_unused]] const s
 }
 
 void
-Smoother2histvalStatement::writeJsonOutput(ostream &output) const
+Smoother2histvalStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "smoother_2_histval")";
   if (!options_list.empty())
@@ -5088,13 +5111,13 @@ Smoother2histvalStatement::writeJsonOutput(ostream &output) const
 }
 
 MethodOfMomentsStatement::MethodOfMomentsStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+    options_list {move(options_list_arg)}
 {
 }
 
 void
-MethodOfMomentsStatement::checkPass(ModFileStructure &mod_file_struct,
-                                    [[maybe_unused]] WarningConsolidation &warnings)
+MethodOfMomentsStatement::checkPass(ModFileStructure& mod_file_struct,
+                                    [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.mom_estimation_present = true;
   // Fill in option_order of mod_file_struct
@@ -5111,17 +5134,22 @@ MethodOfMomentsStatement::checkPass(ModFileStructure &mod_file_struct,
 
   if (!options_list.contains("mom.mom_method"))
     {
-      cerr << "ERROR: The 'method_of_moments' statement requires a method to be supplied via the 'mom_method' option. Possible values are 'GMM', 'SMM', or 'IRF_MATCHING'." << endl;
+      cerr << "ERROR: The 'method_of_moments' statement requires a method to be supplied via the "
+              "'mom_method' option. Possible values are 'GMM', 'SMM', or 'IRF_MATCHING'."
+           << endl;
       exit(EXIT_FAILURE);
     }
 
   auto mom_method_value = options_list.get_if<OptionsList::StringVal>("mom.mom_method");
-  if ((mom_method_value == "GMM" || mom_method_value == "SMM") && !options_list.contains("datafile"))
+  if ((mom_method_value == "GMM" || mom_method_value == "SMM")
+      && !options_list.contains("datafile"))
     {
-      cerr << "ERROR: The 'method_of_moments' statement requires a data file to be supplied via the 'datafile' option." << endl;
+      cerr << "ERROR: The 'method_of_moments' statement requires a data file to be supplied via "
+              "the 'datafile' option."
+           << endl;
       exit(EXIT_FAILURE);
     }
-    
+
   if (auto opt = options_list.get_if<OptionsList::StringVal>("mom.mom_method");
       opt && *opt == "GMM")
     mod_file_struct.GMM_present = true;
@@ -5135,7 +5163,7 @@ MethodOfMomentsStatement::checkPass(ModFileStructure &mod_file_struct,
       cerr << "ERROR: The analytic_standard_errors statement requires the GMM option." << endl;
       exit(EXIT_FAILURE);
     }
-    
+
   if (auto opt = options_list.get_if<OptionsList::NumVal>("mom.analytic_jacobian");
       opt && *opt == "true")
     mod_file_struct.analytic_jacobian_present = true;
@@ -5148,16 +5176,18 @@ MethodOfMomentsStatement::checkPass(ModFileStructure &mod_file_struct,
 }
 
 void
-MethodOfMomentsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+MethodOfMomentsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                       [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_mom_");
 
-  output << "[oo_, options_mom_, M_] = mom.run(bayestopt_, options_, oo_, estim_params_, M_, options_mom_);" << endl;  
+  output << "[oo_, options_mom_, M_] = mom.run(bayestopt_, options_, oo_, estim_params_, M_, "
+            "options_mom_);"
+         << endl;
 }
 
 void
-MethodOfMomentsStatement::writeJsonOutput(ostream &output) const
+MethodOfMomentsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "method_of_moments")";
   if (!options_list.empty())
@@ -5168,18 +5198,17 @@ MethodOfMomentsStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-
-GenerateIRFsStatement::GenerateIRFsStatement(OptionsList options_list_arg,
-                                             vector<string> generate_irf_names_arg,
-                                             vector<map<string, double>> generate_irf_elements_arg) :
-  options_list{move(options_list_arg)},
-  generate_irf_names{move(generate_irf_names_arg)},
-  generate_irf_elements{move(generate_irf_elements_arg)}
+GenerateIRFsStatement::GenerateIRFsStatement(
+    OptionsList options_list_arg, vector<string> generate_irf_names_arg,
+    vector<map<string, double>> generate_irf_elements_arg) :
+    options_list {move(options_list_arg)},
+    generate_irf_names {move(generate_irf_names_arg)},
+    generate_irf_elements {move(generate_irf_elements_arg)}
 {
 }
 
 void
-GenerateIRFsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+GenerateIRFsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                    [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
@@ -5188,22 +5217,21 @@ GenerateIRFsStatement::writeOutput(ostream &output, [[maybe_unused]] const strin
     return;
 
   output << "options_.irf_opt.irf_shock_graphtitles = { ";
-  for (const auto &generate_irf_name : generate_irf_names)
+  for (const auto& generate_irf_name : generate_irf_names)
     output << "'" << generate_irf_name << "'; ";
   output << "};" << endl;
 
-  output << "options_.irf_opt.irf_shocks = zeros(M_.exo_nbr, "
-         << generate_irf_names.size() << ");" << endl;
+  output << "options_.irf_opt.irf_shocks = zeros(M_.exo_nbr, " << generate_irf_names.size() << ");"
+         << endl;
 
   for (size_t i = 0; i < generate_irf_names.size(); i++)
-    for (auto &[exo_name, exo_value] : generate_irf_elements[i])
-      output << "options_.irf_opt.irf_shocks(M_.exo_names == '"
-             << exo_name << "', " << i + 1 << ") = "
-             << exo_value << ";" << endl;
+    for (auto& [exo_name, exo_value] : generate_irf_elements[i])
+      output << "options_.irf_opt.irf_shocks(M_.exo_names == '" << exo_name << "', " << i + 1
+             << ") = " << exo_value << ";" << endl;
 }
 
 void
-GenerateIRFsStatement::writeJsonOutput(ostream &output) const
+GenerateIRFsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "generate_irfs")";
   if (!options_list.empty())
@@ -5218,8 +5246,8 @@ GenerateIRFsStatement::writeJsonOutput(ostream &output) const
       for (size_t i = 0; i < generate_irf_names.size(); i++)
         {
           output << R"({"name": ")" << generate_irf_names[i] << R"(", "shocks": [)";
-          for (bool printed_something{false};
-               auto &[exo_name, exo_value] : generate_irf_elements[i])
+          for (bool printed_something {false};
+               auto& [exo_name, exo_value] : generate_irf_elements[i])
             {
               if (exchange(printed_something, true))
                 output << ", ";
@@ -5235,22 +5263,23 @@ GenerateIRFsStatement::writeJsonOutput(ostream &output) const
   output << "}";
 }
 
-MatchedMomentsStatement::MatchedMomentsStatement(const SymbolTable &symbol_table_arg,
-                                                 vector<tuple<vector<int>, vector<int>, vector<int>>> moments_arg) :
-  symbol_table{symbol_table_arg}, moments{move(moments_arg)}
+MatchedMomentsStatement::MatchedMomentsStatement(
+    const SymbolTable& symbol_table_arg,
+    vector<tuple<vector<int>, vector<int>, vector<int>>> moments_arg) :
+    symbol_table {symbol_table_arg}, moments {move(moments_arg)}
 {
 }
 
 void
-MatchedMomentsStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+MatchedMomentsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                      [[maybe_unused]] bool minimal_workspace) const
 {
   output << "M_.matched_moments = {" << endl;
-  for (const auto &[symb_ids, lags, powers] : moments)
+  for (const auto& [symb_ids, lags, powers] : moments)
     {
       output << "  [";
       for (int s : symb_ids)
-        output << symbol_table.getTypeSpecificID(s)+1 << ',';
+        output << symbol_table.getTypeSpecificID(s) + 1 << ',';
       output << "], [";
       for (int l : lags)
         output << l << ',';
@@ -5263,33 +5292,29 @@ MatchedMomentsStatement::writeOutput(ostream &output, [[maybe_unused]] const str
 }
 
 void
-MatchedMomentsStatement::writeJsonOutput(ostream &output) const
+MatchedMomentsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "matched_moments", "moments": [)" << endl;
-  for (bool printed_something{false};
-       const auto &[symb_ids, lags, powers] : moments)
+  for (bool printed_something {false}; const auto& [symb_ids, lags, powers] : moments)
     {
       if (exchange(printed_something, true))
         output << ',';
       output << R"(  { "endos": [)";
-      for (bool printed_something2{false};
-           int s : symb_ids)
+      for (bool printed_something2 {false}; int s : symb_ids)
         {
           if (exchange(printed_something2, true))
             output << ',';
-          output << symbol_table.getTypeSpecificID(s)+1;
+          output << symbol_table.getTypeSpecificID(s) + 1;
         }
       output << R"(], "lags": [)";
-      for (bool printed_something2{false};
-           int l : lags)
+      for (bool printed_something2 {false}; int l : lags)
         {
           if (exchange(printed_something2, true))
             output << ',';
           output << l;
         }
       output << R"(], "powers": [)";
-      for (bool printed_something2{false};
-           int p : powers)
+      for (bool printed_something2 {false}; int p : powers)
         {
           if (exchange(printed_something2, true))
             output << ',';
@@ -5300,15 +5325,16 @@ MatchedMomentsStatement::writeJsonOutput(ostream &output) const
   output << "]}" << endl;
 }
 
-OccbinConstraintsStatement::OccbinConstraintsStatement(const DataTree &data_tree_arg,
-                                                       vector<tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>> constraints_arg)
-  : data_tree{data_tree_arg}, constraints{move(constraints_arg)}
+OccbinConstraintsStatement::OccbinConstraintsStatement(
+    const DataTree& data_tree_arg,
+    vector<tuple<string, BinaryOpNode*, BinaryOpNode*, expr_t, expr_t>> constraints_arg) :
+    data_tree {data_tree_arg}, constraints {move(constraints_arg)}
 {
 }
 
 void
-OccbinConstraintsStatement::checkPass(ModFileStructure &mod_file_struct,
-                                      [[maybe_unused]] WarningConsolidation &warnings)
+OccbinConstraintsStatement::checkPass(ModFileStructure& mod_file_struct,
+                                      [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (mod_file_struct.occbin_constraints_present)
     {
@@ -5317,46 +5343,51 @@ OccbinConstraintsStatement::checkPass(ModFileStructure &mod_file_struct,
     }
   if (constraints.size() > 2)
     {
-      cerr << "ERROR: only up to two constraints are supported in 'occbin_constraints' block" << endl;
+      cerr << "ERROR: only up to two constraints are supported in 'occbin_constraints' block"
+           << endl;
       exit(EXIT_FAILURE);
     }
   mod_file_struct.occbin_constraints_present = true;
 }
 
 void
-OccbinConstraintsStatement::writeOutput(ostream &output, const string &basename,
+OccbinConstraintsStatement::writeOutput(ostream& output, const string& basename,
                                         [[maybe_unused]] bool minimal_workspace) const
 {
   output << "M_.occbin.constraint_nbr = " << constraints.size() << ';' << endl
          << "M_.occbin.pswitch = [" << endl;
-  for (const auto &[name, bind, relax, error_bind, error_relax] : constraints)
-    output << data_tree.symbol_table.getTypeSpecificID(ParsingDriver::buildOccbinBindParamName(name)) + 1 << ' ';
+  for (const auto& [name, bind, relax, error_bind, error_relax] : constraints)
+    output << data_tree.symbol_table.getTypeSpecificID(
+                  ParsingDriver::buildOccbinBindParamName(name))
+                  + 1
+           << ' ';
   output << "];" << endl
          << "options_.occbin = struct();" << endl
          << "options_.occbin = occbin.set_default_options(options_.occbin, M_);" << endl
-         << "oo_.dr=set_state_space(oo_.dr,M_);" <<  endl;
+         << "oo_.dr=set_state_space(oo_.dr,M_);" << endl;
 
   filesystem::path filename {"+" + basename + "/occbin_difference.m"};
-  ofstream diff_output{filename, ios::out | ios::binary};
+  ofstream diff_output {filename, ios::out | ios::binary};
   if (!diff_output.is_open())
     {
       cerr << "Error: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
-  diff_output << "function [binding, relax, err] = occbin_difference(zdatalinear, params, steady_state)" << endl;
-  for (int idx{1};
-       const auto &[name, bind, relax, error_bind, error_relax] : constraints)
+  diff_output
+      << "function [binding, relax, err] = occbin_difference(zdatalinear, params, steady_state)"
+      << endl;
+  for (int idx {1}; const auto& [name, bind, relax, error_bind, error_relax] : constraints)
     {
       diff_output << "binding.constraint_" << idx << " = ";
-      dynamic_cast<ExprNode *>(bind)->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
-      diff_output << ';' << endl
-                  << "relax.constraint_" << idx << " = ";
+      dynamic_cast<ExprNode*>(bind)->writeOutput(diff_output,
+                                                 ExprNodeOutputType::occbinDifferenceFile);
+      diff_output << ';' << endl << "relax.constraint_" << idx << " = ";
       if (relax)
-        dynamic_cast<ExprNode *>(relax)->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
+        dynamic_cast<ExprNode*>(relax)->writeOutput(diff_output,
+                                                    ExprNodeOutputType::occbinDifferenceFile);
       else
         diff_output << "~binding.constraint_" << idx;
-      diff_output << ';' << endl
-                  << "err.binding_constraint_" << idx << " = ";
+      diff_output << ';' << endl << "err.binding_constraint_" << idx << " = ";
       if (error_bind)
         error_bind->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
       else
@@ -5367,8 +5398,7 @@ OccbinConstraintsStatement::writeOutput(ostream &output, const string &basename,
           bind->arg2->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
           diff_output << "))";
         }
-      diff_output << ';' << endl
-                  << "err.relax_constraint_" << idx << " = ";
+      diff_output << ';' << endl << "err.relax_constraint_" << idx << " = ";
       if (error_relax)
         error_relax->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
       else if (relax)
@@ -5402,19 +5432,19 @@ OccbinConstraintsStatement::writeOutput(ostream &output, const string &basename,
 }
 
 void
-OccbinConstraintsStatement::writeJsonOutput(ostream &output) const
+OccbinConstraintsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "occbin_constraints", "constraints": [)" << endl;
-  for (bool printed_something{false};
-       const auto &[name, bind, relax, error_bind, error_relax] : constraints)
+  for (bool printed_something {false};
+       const auto& [name, bind, relax, error_bind, error_relax] : constraints)
     {
       if (exchange(printed_something, true))
         output << ',';
       output << R"({ "name": ")" << name << R"(", "bind": ")";
-      dynamic_cast<ExprNode *>(bind)->writeJsonOutput(output, {}, {});
+      dynamic_cast<ExprNode*>(bind)->writeJsonOutput(output, {}, {});
       output << R"(", "relax": ")";
       if (relax)
-        dynamic_cast<ExprNode *>(relax)->writeJsonOutput(output, {}, {});
+        dynamic_cast<ExprNode*>(relax)->writeJsonOutput(output, {}, {});
       output << R"(", "error_bind": ")";
       if (error_bind)
         error_bind->writeJsonOutput(output, {}, {});
@@ -5426,13 +5456,12 @@ OccbinConstraintsStatement::writeJsonOutput(ostream &output) const
   output << "]}" << endl;
 }
 
-ResidStatement::ResidStatement(OptionsList options_list_arg) :
-  options_list{move(options_list_arg)}
+ResidStatement::ResidStatement(OptionsList options_list_arg) : options_list {move(options_list_arg)}
 {
 }
 
 void
-ResidStatement::writeOutput(ostream &output, [[maybe_unused]] const string &basename,
+ResidStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                             [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_resid_");
@@ -5440,7 +5469,7 @@ ResidStatement::writeOutput(ostream &output, [[maybe_unused]] const string &base
 }
 
 void
-ResidStatement::writeJsonOutput(ostream &output) const
+ResidStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "resid")";
   if (!options_list.empty())

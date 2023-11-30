@@ -26,25 +26,25 @@
 using namespace macro;
 
 void
-Eval::interpret(ostream &output, Environment &env, [[maybe_unused]] vector<filesystem::path> &paths)
+Eval::interpret(ostream& output, Environment& env, [[maybe_unused]] vector<filesystem::path>& paths)
 {
   try
     {
       output << expr->eval(env)->to_string();
     }
-  catch (StackTrace &ex)
+  catch (StackTrace& ex)
     {
       ex.push("Evaluation", location);
       error(ex);
     }
-  catch (exception &e)
+  catch (exception& e)
     {
       error(StackTrace("Evaluation", e.what(), location));
     }
 }
 
 void
-Include::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
+Include::interpret(ostream& output, Environment& env, vector<filesystem::path>& paths)
 {
   using namespace filesystem;
   try
@@ -56,7 +56,7 @@ Include::interpret(ostream &output, Environment &env, vector<filesystem::path> &
       ifstream incfile(filename, ios::binary);
       if (incfile.fail())
         {
-          for (const auto &dir : paths)
+          for (const auto& dir : paths)
             {
               incfile = ifstream(dir / filename, ios::binary);
               if (incfile.good())
@@ -66,10 +66,12 @@ Include::interpret(ostream &output, Environment &env, vector<filesystem::path> &
             {
               ostringstream errmsg;
               errmsg << "   * " << current_path().string() << endl;
-              for (const auto &dir : paths)
+              for (const auto& dir : paths)
                 errmsg << "   * " << absolute(dir).string() << endl;
-              error(StackTrace("@#include", "Could not open " + filename.string()
-                               +". The following directories were searched:\n" + errmsg.str(), location));
+              error(StackTrace("@#include",
+                               "Could not open " + filename.string()
+                                   + ". The following directories were searched:\n" + errmsg.str(),
+                               location));
             }
         }
       Driver m;
@@ -79,12 +81,12 @@ Include::interpret(ostream &output, Environment &env, vector<filesystem::path> &
          https://en.cppreference.com/w/cpp/filesystem/path/native. */
       m.parse(filename.string(), incfile, false, {}, env, paths, output);
     }
-  catch (StackTrace &ex)
+  catch (StackTrace& ex)
     {
       ex.push("@#include", location);
       error(ex);
     }
-  catch (exception &e)
+  catch (exception& e)
     {
       error(StackTrace("@#include", e.what(), location));
     }
@@ -92,7 +94,8 @@ Include::interpret(ostream &output, Environment &env, vector<filesystem::path> &
 }
 
 void
-IncludePath::interpret([[maybe_unused]] ostream &output, Environment &env, vector<filesystem::path> &paths)
+IncludePath::interpret([[maybe_unused]] ostream& output, Environment& env,
+                       vector<filesystem::path>& paths)
 {
   using namespace filesystem;
   try
@@ -110,7 +113,7 @@ IncludePath::interpret([[maybe_unused]] ostream &output, Environment &env, vecto
       string ipstr = static_cast<string>(*msp);
       while (ipstr.size() > 1 && (ipstr.back() == '/' || ipstr.back() == '\\'))
         ipstr.pop_back();
-      path ip{ipstr};
+      path ip {ipstr};
 #else
       path ip = static_cast<string>(*msp);
 #endif
@@ -120,12 +123,12 @@ IncludePath::interpret([[maybe_unused]] ostream &output, Environment &env, vecto
         warning(StackTrace("@#includepath", ip.string() + " does not exist", location));
       paths.emplace_back(ip);
     }
-  catch (StackTrace &ex)
+  catch (StackTrace& ex)
     {
       ex.push("@#includepath", location);
       error(ex);
     }
-  catch (exception &e)
+  catch (exception& e)
     {
       error(StackTrace("@#includepath", e.what(), location));
     }
@@ -133,7 +136,8 @@ IncludePath::interpret([[maybe_unused]] ostream &output, Environment &env, vecto
 }
 
 void
-Define::interpret([[maybe_unused]] ostream &output, Environment &env, [[maybe_unused]] vector<filesystem::path> &paths)
+Define::interpret([[maybe_unused]] ostream& output, Environment& env,
+                  [[maybe_unused]] vector<filesystem::path>& paths)
 {
   try
     {
@@ -144,12 +148,12 @@ Define::interpret([[maybe_unused]] ostream &output, Environment &env, [[maybe_un
       else
         throw StackTrace("LHS of can be either a variable or a function");
     }
-  catch (StackTrace &ex)
+  catch (StackTrace& ex)
     {
       ex.push("@#define", location);
       error(ex);
     }
-  catch (exception &e)
+  catch (exception& e)
     {
       error(StackTrace("@#define", e.what(), location));
     }
@@ -157,18 +161,18 @@ Define::interpret([[maybe_unused]] ostream &output, Environment &env, [[maybe_un
 }
 
 void
-Echo::interpret(ostream &output, Environment &env, [[maybe_unused]] vector<filesystem::path> &paths)
+Echo::interpret(ostream& output, Environment& env, [[maybe_unused]] vector<filesystem::path>& paths)
 {
   try
     {
       cout << "@#echo (" << getLocation() << "): " << expr->eval(env)->to_string() << endl;
     }
-  catch (StackTrace &ex)
+  catch (StackTrace& ex)
     {
       ex.push("@#echo", location);
       error(ex);
     }
-  catch (exception &e)
+  catch (exception& e)
     {
       error(StackTrace("@#echo", e.what(), location));
     }
@@ -176,25 +180,27 @@ Echo::interpret(ostream &output, Environment &env, [[maybe_unused]] vector<files
 }
 
 void
-Error::interpret([[maybe_unused]] ostream &output, Environment &env, [[maybe_unused]] vector<filesystem::path> &paths)
+Error::interpret([[maybe_unused]] ostream& output, Environment& env,
+                 [[maybe_unused]] vector<filesystem::path>& paths)
 {
   try
     {
       throw StackTrace(expr->eval(env)->to_string());
     }
-  catch (StackTrace &ex)
+  catch (StackTrace& ex)
     {
       ex.push("@#error", location);
       error(ex);
     }
-  catch (exception &e)
+  catch (exception& e)
     {
       error(StackTrace("@#error", e.what(), location));
     }
 }
 
 void
-EchoMacroVars::interpret(ostream &output, Environment &env, [[maybe_unused]] vector<filesystem::path> &paths)
+EchoMacroVars::interpret(ostream& output, Environment& env,
+                         [[maybe_unused]] vector<filesystem::path>& paths)
 {
   if (save)
     env.print(output, vars, location.begin.line, true);
@@ -204,7 +210,7 @@ EchoMacroVars::interpret(ostream &output, Environment &env, [[maybe_unused]] vec
 }
 
 void
-For::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
+For::interpret(ostream& output, Environment& env, vector<filesystem::path>& paths)
 {
   ArrayPtr ap;
   try
@@ -213,12 +219,12 @@ For::interpret(ostream &output, Environment &env, vector<filesystem::path> &path
       if (!ap)
         throw StackTrace("The index must loop through an array");
     }
-  catch (StackTrace &ex)
+  catch (StackTrace& ex)
     {
       ex.push("@#for", location);
       error(ex);
     }
-  catch (exception &e)
+  catch (exception& e)
     {
       error(StackTrace("@#for", e.what(), location));
     }
@@ -237,8 +243,11 @@ For::interpret(ostream &output, Environment &env, vector<filesystem::path> &path
             {
               TuplePtr mtp = dynamic_pointer_cast<Tuple>(btp);
               if (index_vec.size() != mtp->size())
-                error(StackTrace("@#for", "Encountered tuple of size " + to_string(mtp->size())
-                                 + " but only have " + to_string(index_vec.size()) + " index variables", location));
+                error(StackTrace("@#for",
+                                 "Encountered tuple of size " + to_string(mtp->size())
+                                     + " but only have " + to_string(index_vec.size())
+                                     + " index variables",
+                                 location));
               else
                 for (size_t j = 0; j < index_vec.size(); j++)
                   env.define(index_vec.at(j), mtp->at(j));
@@ -246,7 +255,7 @@ For::interpret(ostream &output, Environment &env, vector<filesystem::path> &path
         }
 
       bool printLine = true;
-      for (const auto &statement : statements)
+      for (const auto& statement : statements)
         {
           if (printLine)
             {
@@ -260,10 +269,9 @@ For::interpret(ostream &output, Environment &env, vector<filesystem::path> &path
 }
 
 void
-If::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths)
+If::interpret(ostream& output, Environment& env, vector<filesystem::path>& paths)
 {
-  for (bool first_clause{true};
-       const auto &[expr, body] : expr_and_body)
+  for (bool first_clause {true}; const auto& [expr, body] : expr_and_body)
     try
       {
         if ((ifdef || ifndef) && exchange(first_clause, false))
@@ -285,8 +293,8 @@ If::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths
             RealPtr dp = dynamic_pointer_cast<Real>(tmp);
             BoolPtr bp = dynamic_pointer_cast<Bool>(tmp);
             if (!bp && !dp)
-              error(StackTrace("@#if",
-                               "The condition must evaluate to a boolean or a double", location));
+              error(StackTrace("@#if", "The condition must evaluate to a boolean or a double",
+                               location));
             if ((bp && *bp) || (dp && *dp))
               {
                 interpretBody(body, output, env, paths);
@@ -294,12 +302,12 @@ If::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths
               }
           }
       }
-    catch (StackTrace &ex)
+    catch (StackTrace& ex)
       {
         ex.push("@#if", location);
         error(ex);
       }
-    catch (exception &e)
+    catch (exception& e)
       {
         error(StackTrace("@#if", e.what(), location));
       }
@@ -307,10 +315,10 @@ If::interpret(ostream &output, Environment &env, vector<filesystem::path> &paths
 }
 
 void
-If::interpretBody(const vector<DirectivePtr> &body, ostream &output, Environment &env, vector<filesystem::path> &paths)
+If::interpretBody(const vector<DirectivePtr>& body, ostream& output, Environment& env,
+                  vector<filesystem::path>& paths)
 {
-  for (bool printLine{true};
-       const auto &statement : body)
+  for (bool printLine {true}; const auto& statement : body)
     {
       if (exchange(printLine, false))
         statement->printLineInfo(output);
