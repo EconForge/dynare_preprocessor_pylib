@@ -28,9 +28,9 @@ using namespace std;
 // Announce to Flex the prototype we want for lexing function
 #define YY_DECL                                                \
   Dynare::parser::token_type                                   \
-    DynareFlex::lex(Dynare::parser::semantic_type *yylval,     \
-                    Dynare::parser::location_type *yylloc,     \
-                    ParsingDriver &driver)
+    DynareFlex::lex(Dynare::parser::semantic_type* yylval,     \
+                    Dynare::parser::location_type* yylloc,     \
+                    ParsingDriver& driver)
 
 // Shortcut to access tokens defined by Bison
 using token = Dynare::parser::token;
@@ -38,7 +38,7 @@ using token = Dynare::parser::token;
 /* By default yylex returns int, we use token_type.
    Unfortunately yyterminate by default returns 0, which is
    not of token_type.  */
-#define yyterminate() return Dynare::parser::token_type (0);
+#define yyterminate() return Dynare::parser::token_type(0);
 
 int comment_caller, line_caller;
 string eofbuff;
@@ -254,8 +254,8 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 
  /* Inside  of a Dynare statement */
 <DYNARE_STATEMENT>{DATE} {
-                           char *yycopy = strdup(yytext);
-                           char *uput = yycopy + yyleng;
+                           char* yycopy = strdup(yytext);
+                           char* uput = yycopy + yyleng;
                            unput(')');
                            unput('\'');
                            while (uput > yycopy)
@@ -779,7 +779,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>non_zero {return token::NON_ZERO;}
 
 <DYNARE_STATEMENT>\$[^$]*\$ {
-  strtok(yytext+1, "$");
+  strtok(yytext + 1, "$");
   yylval->build<string>(yytext + 1);
   return token::TEX_NAME;
 }
@@ -1156,7 +1156,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 
   bool dynare_statement = true;
 
-  while(getline(ss, token, ','))
+  while (getline(ss, token, ','))
     if (driver.symbol_exists_and_is_not_modfile_local_or_external_function(token))
       val.push_back(token);
     else
@@ -1227,7 +1227,7 @@ DynareFlex::DynareFlex(istream* in, ostream* out)
 }
 
 void
-DynareFlex::location_increment(Dynare::parser::location_type *yylloc, const char *yytext)
+DynareFlex::location_increment(Dynare::parser::location_type* yylloc, const char* yytext)
 {
   while (*yytext != 0)
     if (*yytext++ == '\n')

@@ -57,19 +57,21 @@ class ParsingDriver;
 /* Little hack: we redefine the macro which computes the locations, because
    we need to access the location from within the parsing driver for error
    and warning messages. */
-#define YYLLOC_DEFAULT(Current, Rhs, N)                         \
-  do {                                                          \
-    if (N)                                                      \
-      {                                                         \
-        (Current).begin = YYRHSLOC(Rhs, 1).begin;               \
-        (Current).end   = YYRHSLOC(Rhs, N).end;                 \
-      }                                                         \
-    else                                                        \
-      {                                                         \
-        (Current).begin = (Current).end = YYRHSLOC(Rhs, 0).end;	\
-      }                                                         \
-    driver.location = (Current);                                \
-  } while(false)
+#define YYLLOC_DEFAULT(Current, Rhs, N)                           \
+  do                                                              \
+    {                                                             \
+      if (N)                                                      \
+        {                                                         \
+          (Current).begin = YYRHSLOC(Rhs, 1).begin;               \
+          (Current).end   = YYRHSLOC(Rhs, N).end;                 \
+        }                                                         \
+      else                                                        \
+        {                                                         \
+          (Current).begin = (Current).end = YYRHSLOC(Rhs, 0).end; \
+        }                                                         \
+      driver.location = (Current);                                \
+    }                                                             \
+  while (false)
 
 #include "ParsingDriver.hh"
 
@@ -422,7 +424,7 @@ symbol_list_with_tex : symbol_list_with_tex symbol
                          $$.emplace_back($3, "");
                        }
                      | symbol
-                       { $$ = { { $1, "" }}; }
+                       { $$ = {{$1, ""}}; }
                      | symbol_list_with_tex symbol TEX_NAME
                        {
                          $$ = $1;
@@ -434,16 +436,16 @@ symbol_list_with_tex : symbol_list_with_tex symbol
                          $$.emplace_back($3, $4);
                        }
                      | symbol TEX_NAME
-                       { $$ = { { $1, $2 } }; }
+                       { $$ = {{$1, $2}}; }
                      ;
 
 partition_elem : symbol EQUAL QUOTED_STRING
-                 { $$ = { $1, $3 }; }
+                 { $$ = {$1, $3}; }
 
 partition_1 : '(' partition_elem
-              { $$ = { $2 }; }
+              { $$ = {$2}; }
             | '(' COMMA partition_elem
-              { $$ = { $3 }; }
+              { $$ = {$3}; }
             | partition_1 partition_elem
               {
                 $$ = $1;
@@ -471,7 +473,7 @@ symbol_list_with_tex_and_partition : symbol_list_with_tex_and_partition symbol
                                        $$.emplace_back($3, "", vector<pair<string,string>>{});
                                      }
                                    | symbol
-                                     { $$ = { { $1, "", {} }}; }
+                                     { $$ = {{$1, "", {}}}; }
                                    | symbol_list_with_tex_and_partition symbol partition
                                      {
                                        $$ = $1;
@@ -483,7 +485,7 @@ symbol_list_with_tex_and_partition : symbol_list_with_tex_and_partition symbol
                                        $$.emplace_back($3, "", $4);
                                      }
                                    | symbol partition
-                                     { $$ = { { $1, "", $2 }}; }
+                                     { $$ = {{$1, "", $2}}; }
                                    | symbol_list_with_tex_and_partition symbol TEX_NAME
                                      {
                                        $$ = $1;
@@ -495,7 +497,7 @@ symbol_list_with_tex_and_partition : symbol_list_with_tex_and_partition symbol
                                        $$.emplace_back($3, $4, vector<pair<string,string>>{});
                                      }
                                    | symbol TEX_NAME
-                                     { $$ = { { $1, $2, {} }}; }
+                                     { $$ = {{$1, $2, {}}}; }
                                    | symbol_list_with_tex_and_partition symbol TEX_NAME partition
                                      {
                                        $$ = $1;
@@ -507,7 +509,7 @@ symbol_list_with_tex_and_partition : symbol_list_with_tex_and_partition symbol
                                        $$.emplace_back($3, $4, $5);
                                      }
                                    | symbol TEX_NAME partition
-                                     { $$ = { { $1, $2, $3 }}; }
+                                     { $$ = {{$1, $2, $3}}; }
                                    ;
 
 rplot : RPLOT symbol_list ';' { driver.rplot($2); };
@@ -641,7 +643,7 @@ change_type_arg : PARAMETERS
 init_param : symbol EQUAL expression ';' { driver.init_param($1, $3); };
 
 expression : '(' expression ')'
-             { $$ = $2;}
+             { $$ = $2; }
            | namespace_qualified_symbol
              { $$ = driver.add_expression_variable($1); }
            | non_negative_number
@@ -760,10 +762,10 @@ initval_list : initval_list initval_elem
 initval_elem : symbol EQUAL expression ';' { driver.init_val($1, $3); };
 
 histval_file : HISTVAL_FILE '(' h_options_list ')' ';'
-              { driver.histval_file();};
+              { driver.histval_file(); };
 
 initval_file : INITVAL_FILE '(' h_options_list ')' ';'
-              { driver.initval_file();};
+              { driver.initval_file(); };
 
 h_options_list: h_options_list COMMA h_options
                | h_options
@@ -850,7 +852,7 @@ matched_moments : MATCHED_MOMENTS ';' { driver.begin_matched_moments(); }
                 ;
 
 matched_moments_list : hand_side ';'
-                       { $$ = { $1 }; }
+                       { $$ = {$1}; }
                      | matched_moments_list hand_side ';'
                        {
                          $$ = $1;
@@ -864,7 +866,7 @@ occbin_constraints : OCCBIN_CONSTRAINTS ';' { driver.begin_occbin_constraints();
 
 
 occbin_constraints_regimes_list : occbin_constraints_regime
-                                  { $$ = { $1 }; }
+                                  { $$ = {$1}; }
                                 | occbin_constraints_regimes_list occbin_constraints_regime
                                   {
                                     $$ = $1;
@@ -886,12 +888,12 @@ occbin_constraints_regime : NAME QUOTED_STRING ';' occbin_constraints_regime_opt
                                              || relax->op_code == BinaryOpcode::lessEqual
                                              || relax->op_code == BinaryOpcode::greaterEqual))
                                 driver.error("The 'relax' expression must be an inequality constraint");
-                              $$ = { $2, bind, relax, $4["error_bind"], $4["error_relax"] };
+                              $$ = {$2, bind, relax, $4["error_bind"], $4["error_relax"]};
                             }
                           ;
 
 occbin_constraints_regime_options_list : occbin_constraints_regime_option
-                                         { $$ = { $1 }; }
+                                         { $$ = {$1}; }
                                        | occbin_constraints_regime_options_list occbin_constraints_regime_option
                                          {
                                            $$ = $1;
@@ -902,13 +904,13 @@ occbin_constraints_regime_options_list : occbin_constraints_regime_option
                                        ;
 
 occbin_constraints_regime_option : BIND hand_side ';'
-                                   { $$ = { "bind", $2 }; }
+                                   { $$ = {"bind", $2}; }
                                  | RELAX hand_side ';'
-                                   { $$ = { "relax", $2 }; }
+                                   { $$ = {"relax", $2}; }
                                  | ERROR_BIND hand_side ';'
-                                   { $$ = { "error_bind", $2 }; }
+                                   { $$ = {"error_bind", $2}; }
                                  | ERROR_RELAX hand_side ';'
-                                   { $$ = { "error_relax", $2 }; }
+                                   { $$ = {"error_relax", $2}; }
                                  ;
 
 pac_target_info : PAC_TARGET_INFO '(' symbol ')' ';'
@@ -969,7 +971,7 @@ model_option : BLOCK { driver.block(); }
              | STATIC_MFS EQUAL INT_NUMBER { driver.static_mfs($3); };
              | BYTECODE { driver.bytecode(); }
              | USE_DLL { driver.use_dll(); }
-             | NO_STATIC { driver.no_static();}
+             | NO_STATIC { driver.no_static(); }
              | DIFFERENTIATE_FORWARD_VARS { driver.differentiate_forward_vars_all(); }
              | DIFFERENTIATE_FORWARD_VARS EQUAL '(' symbol_list ')' { driver.differentiate_forward_vars_some($4); }
              | LINEAR { driver.linear(); };
@@ -1011,17 +1013,17 @@ tag_pair_list : tag_pair_list COMMA tag_pair
                     driver.error("Tag '" + $3.first + "' cannot be used twice for the same equation");
                 }
               | tag_pair
-                { $$ = { $1 }; }
+                { $$ = {$1}; }
               ;
 
 tag_pair : symbol EQUAL QUOTED_STRING
-           { $$ = { str_tolower($1), $3 }; }
+           { $$ = {str_tolower($1), $3}; }
          | symbol
-           { $$ = { str_tolower($1), "" }; }
+           { $$ = {str_tolower($1), ""}; }
          ;
 
 hand_side : '(' hand_side ')'
-            { $$ = $2;}
+            { $$ = $2; }
           | namespace_qualified_symbol
             { $$ = driver.add_model_variable($1); }
           | symbol PIPE_E
@@ -1156,20 +1158,20 @@ model_replace : MODEL_REPLACE '(' tag_pair_list_for_selection ')' ';'
 model_options : MODEL_OPTIONS '(' model_options_list ')' ';'
 
 tag_pair_list_for_selection : QUOTED_STRING
-                              { $$ = { { { "name", $1 } } }; }
+                              { $$ = {{{"name", $1}}}; }
                             | tag_pair
-                              { $$ = { { $1 } }; }
+                              { $$ = {{$1}}; }
                             | '[' tag_pair_list ']'
-                              { $$ = { $2 }; }
+                              { $$ = {$2}; }
                             | tag_pair_list_for_selection COMMA QUOTED_STRING
                               {
                                 $$ = $1;
-                                $$.push_back({ { "name", $3 } });
+                                $$.push_back({{"name", $3}});
                               }
                             | tag_pair_list_for_selection COMMA tag_pair
                               {
                                 $$ = $1;
-                                $$.push_back({ $3 });
+                                $$.push_back({$3});
                               }
                             | tag_pair_list_for_selection COMMA '[' tag_pair_list ']'
                               {
@@ -1234,7 +1236,7 @@ heteroskedastic_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value
                              { driver.add_heteroskedastic_shock($2, $5, $8, true); }
                            ;
 
-svar_identification : SVAR_IDENTIFICATION {driver.begin_svar_identification();} ';' svar_identification_list END ';'
+svar_identification : SVAR_IDENTIFICATION { driver.begin_svar_identification(); } ';' svar_identification_list END ';'
                       { driver.end_svar_identification(); }
                     ;
 
@@ -1247,9 +1249,9 @@ svar_identification_elem : EXCLUSION LAG INT_NUMBER ';' svar_equation_list
                          | EXCLUSION CONSTANTS ';'
                            { driver.add_constants_exclusion(); }
                          | RESTRICTION EQUATION INT_NUMBER COMMA
-			 { driver.add_restriction_equation_nbr($3);}
+			 { driver.add_restriction_equation_nbr($3); }
                            restriction_expression EQUAL
-                                {driver.add_restriction_equal();}
+                                { driver.add_restriction_equal(); }
                            restriction_expression ';'
                          | UPPER_CHOLESKY ';'
                            { driver.add_upper_cholesky(); }
@@ -1263,7 +1265,7 @@ svar_equation_list : svar_equation_list EQUATION INT_NUMBER COMMA symbol_list ';
                      { driver.add_restriction_in_equation($2, $4); }
                    ;
 
-restriction_expression : expression {driver.check_restriction_expression_constant($1);}
+restriction_expression : expression { driver.check_restriction_expression_constant($1); }
                        | restriction_expression_1
                        ;
 
@@ -1272,13 +1274,13 @@ restriction_expression_1 : restriction_elem_expression
                          ;
 
 restriction_elem_expression : COEFF '(' symbol COMMA INT_NUMBER ')'
-                                 { driver.add_positive_restriction_element($3,$5);}
+                                 { driver.add_positive_restriction_element($3, $5); }
                             | PLUS COEFF '(' symbol COMMA INT_NUMBER ')'
-		                 { driver.add_positive_restriction_element($4,$6);}
+		                 { driver.add_positive_restriction_element($4, $6); }
                             | MINUS COEFF '(' symbol COMMA INT_NUMBER ')'
-		                 { driver.add_negative_restriction_element($4,$6);}
+		                 { driver.add_negative_restriction_element($4, $6); }
                             | expression TIMES COEFF '(' symbol COMMA INT_NUMBER ')'
-                                 { driver.add_positive_restriction_element($1,$5,$7);}
+                                 { driver.add_positive_restriction_element($1, $5, $7); }
                             ;
 
 svar_global_identification_check: SVAR_GLOBAL_IDENTIFICATION_CHECK ';'
@@ -1323,14 +1325,16 @@ mshocks : MSHOCKS ';' mshock_list END ';'
                alternative in the variant, so that default initialization of the
                variant by the [] operator will give false */
             if ($3.contains("learnt_in"))
-              driver.end_mshocks_learnt_in(get<string>($3.at("learnt_in")), get<bool>($3["overwrite"]), get<bool>($3["relative_to_initval"]));
+              driver.end_mshocks_learnt_in(get<string>($3.at("learnt_in")),
+                                           get<bool>($3["overwrite"]),
+                                           get<bool>($3["relative_to_initval"]));
             else
               driver.end_mshocks(get<bool>($3["overwrite"]), get<bool>($3["relative_to_initval"]));
           }
         ;
 
 mshocks_options_list : mshocks_option
-                       { $$ = { $1 }; }
+                       { $$ = {$1}; }
                      | mshocks_options_list mshocks_option
                        {
                          $$ = $1;
@@ -1341,11 +1345,11 @@ mshocks_options_list : mshocks_option
                      ;
 
 mshocks_option : OVERWRITE
-                 { $$ = { "overwrite", true }; }
+                 { $$ = {"overwrite", true}; }
                | LEARNT_IN EQUAL INT_NUMBER
-                 { $$ = { "learnt_in", $3 }; }
+                 { $$ = {"learnt_in", $3}; }
                | RELATIVE_TO_INITVAL
-                 { $$ = { "relative_to_initval", true }; }
+                 { $$ = {"relative_to_initval", true}; }
                ;
 
 mshock_list : mshock_list det_shock_elem
@@ -1385,12 +1389,12 @@ period_list : period_list COMMA INT_NUMBER
                 int p1 = stoi($1), p2 = stoi($3);
                 if (p1 > p2)
                   driver.error("Can't have first period index greater than second index in range specification");
-                $$ = { { p1, p2 } };
+                $$ = {{p1, p2}};
               }
             | INT_NUMBER
               {
                 int p = stoi($1);
-                $$ = { { p, p } };
+                $$ = {{p, p}};
               }
             ;
 
@@ -1405,26 +1409,26 @@ value_list : value_list COMMA '(' expression ')'
                $$.push_back($3);
              }
            | '(' expression ')'
-             { $$ = { $2 }; }
+             { $$ = {$2}; }
            | value_list COMMA signed_number
              {
                $$ = $1;
-               $$.push_back($3.at(0) == '-' ?
-                            driver.add_uminus(driver.add_non_negative_constant($3.substr(1))) :
-                            driver.add_non_negative_constant($3));
+               $$.push_back($3.at(0) == '-'
+                            ? driver.add_uminus(driver.add_non_negative_constant($3.substr(1)))
+                            : driver.add_non_negative_constant($3));
              }
            | value_list signed_number
              {
                $$ = $1;
-               $$.push_back($2.at(0) == '-' ?
-                            driver.add_uminus(driver.add_non_negative_constant($2.substr(1))) :
-                            driver.add_non_negative_constant($2));
+               $$.push_back($2.at(0) == '-'
+                            ? driver.add_uminus(driver.add_non_negative_constant($2.substr(1)))
+                            : driver.add_non_negative_constant($2));
              }
            | signed_number
              {
-               $$ = { $1.at(0) == '-' ?
-                      driver.add_uminus(driver.add_non_negative_constant($1.substr(1))) :
-                      driver.add_non_negative_constant($1) };
+               $$ = {$1.at(0) == '-'
+                     ? driver.add_uminus(driver.add_non_negative_constant($1.substr(1)))
+                     : driver.add_non_negative_constant($1)};
              }
            ;
 
@@ -1501,8 +1505,8 @@ perfect_foresight_solver : PERFECT_FORESIGHT_SOLVER ';'
                          ;
 
 perfect_foresight_solver_options_list : perfect_foresight_solver_options_list COMMA perfect_foresight_solver_options
-                                     | perfect_foresight_solver_options
-                                     ;
+                                      | perfect_foresight_solver_options
+                                      ;
 
 perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_markowitz
@@ -1663,11 +1667,11 @@ method_of_moments_option : o_add_tiny_number_to_cholesky
                          ;
 
 prior_function : PRIOR_FUNCTION '(' prior_posterior_function_options_list ')' ';'
-                { driver.prior_posterior_function(true); }
+                 { driver.prior_posterior_function(true); }
                ;
 
 posterior_function : POSTERIOR_FUNCTION '(' prior_posterior_function_options_list ')' ';'
-                    { driver.prior_posterior_function(false); }
+                     { driver.prior_posterior_function(false); }
                    ;
 
 prior_posterior_function_options_list : prior_posterior_function_options_list COMMA prior_posterior_function_options
@@ -2081,11 +2085,11 @@ subsamples_eq : subsamples_eq_opt EQUAL subsamples_eq_opt ';'
               ;
 
 subsamples_eq_opt : symbol '.' SUBSAMPLES
-                    { $$ = { $1, "" }; }
+                    { $$ = {$1, ""}; }
                   | STD '(' symbol ')' '.' SUBSAMPLES
-                    { $$ = { $3, "" }; }
+                    { $$ = {$3, ""}; }
                   | CORR '(' symbol COMMA symbol ')' '.' SUBSAMPLES
-                    { $$ = { $3, $5 }; }
+                    { $$ = {$3, $5}; }
                   ;
 
 subsamples_name_list : subsamples_name_list COMMA o_subsample_name
@@ -2146,17 +2150,17 @@ prior_eq : prior_eq_opt EQUAL prior_eq_opt ';'
          ;
 
 prior_eq_opt : symbol '.' PRIOR
-               { $$ = { "par", $1, "", "" }; }
+               { $$ = {"par", $1, "", ""}; }
              | symbol '.' symbol '.' PRIOR
-               { $$ = { "par", $1, "", $3 }; }
+               { $$ = {"par", $1, "", $3}; }
              | STD '(' symbol ')' '.'  PRIOR
-               { $$ = { "std", $3, "", "" }; }
+               { $$ = {"std", $3, "", ""}; }
              | STD '(' symbol ')' '.' symbol '.' PRIOR
-               { $$ = { "std", $3, "", $6 }; }
+               { $$ = {"std", $3, "", $6}; }
              | CORR '(' symbol COMMA symbol ')' '.'  PRIOR
-               { $$ = { "corr", $3, $5, "" }; }
+               { $$ = {"corr", $3, $5, ""}; }
              | CORR '(' symbol COMMA symbol ')' '.' symbol '.' PRIOR
-               { $$ = { "corr", $3, $5, $8 }; }
+               { $$ = {"corr", $3, $5, $8}; }
              ;
 
 options : symbol '.' OPTIONS '(' options_options_list ')' ';'
@@ -2188,17 +2192,17 @@ options_eq : options_eq_opt EQUAL options_eq_opt ';'
            ;
 
 options_eq_opt : symbol '.' OPTIONS
-                 { $$ = { "par", $1, "", "" }; }
+                 { $$ = {"par", $1, "", ""}; }
                | symbol '.' symbol '.' OPTIONS
-                 { $$ = { "par", $1, "", $3 }; }
+                 { $$ = {"par", $1, "", $3}; }
                | STD '(' symbol ')' '.'  OPTIONS
-                 { $$ = { "std", $3, "", "" }; }
+                 { $$ = {"std", $3, "", ""}; }
                | STD '(' symbol ')' '.' symbol '.' OPTIONS
-                 { $$ = { "std", $3, "", $6 }; }
+                 { $$ = {"std", $3, "", $6}; }
                | CORR '(' symbol COMMA symbol ')' '.'  OPTIONS
-                 { $$ = { "corr", $3, $5, "" }; }
+                 { $$ = {"corr", $3, $5, ""}; }
                | CORR '(' symbol COMMA symbol ')' '.' symbol '.' OPTIONS
-                 { $$ = { "corr", $3, $5, $8 }; }
+                 { $$ = {"corr", $3, $5, $8}; }
                ;
 
 estimation : ESTIMATION ';'
@@ -2422,13 +2426,17 @@ trend_list : trend_list trend_element
 
 trend_element :  symbol '(' expression ')' ';' { driver.set_trend_element($1, $3); };
 
-filter_initial_state : FILTER_INITIAL_STATE ';' filter_initial_state_list END ';' { driver.set_filter_initial_state(); };
+filter_initial_state : FILTER_INITIAL_STATE ';' filter_initial_state_list END ';'
+                       { driver.set_filter_initial_state(); }
+                     ;
 
 filter_initial_state_list : filter_initial_state_list filter_initial_state_element
                           | filter_initial_state_element
                           ;
 
-filter_initial_state_element : symbol '(' signed_integer ')' EQUAL expression ';' { driver.set_filter_initial_state_element($1, $3, $6); };
+filter_initial_state_element : symbol '(' signed_integer ')' EQUAL expression ';'
+                               { driver.set_filter_initial_state_element($1, $3, $6); }
+                             ;
 
 unit_root_vars : UNIT_ROOT_VARS symbol_list ';' { driver.set_unit_root_vars(); };
 
@@ -2469,7 +2477,7 @@ osr : OSR ';'
     | OSR symbol_list ';'
       { driver.run_osr($2); }
     | OSR '(' osr_options_list ')' symbol_list ';'
-      {driver.run_osr($5); }
+      { driver.run_osr($5); }
     ;
 
 dynatype : DYNATYPE '(' filename ')' ';'
@@ -2606,13 +2614,13 @@ ramsey_constraints_list : ramsey_constraints_list ramsey_constraint
 		 ;
 
 ramsey_constraint : NAME  LESS expression ';'
-                    { driver.ramsey_constraint_add_less($1,$3); }
+                    { driver.ramsey_constraint_add_less($1, $3); }
 		  | NAME  GREATER  expression ';'
-                    { driver.ramsey_constraint_add_greater($1,$3); }
+                    { driver.ramsey_constraint_add_greater($1, $3); }
 		  | NAME  LESS_EQUAL expression ';'
-                    { driver.ramsey_constraint_add_less_equal($1,$3); }
+                    { driver.ramsey_constraint_add_less_equal($1, $3); }
 		  | NAME  GREATER_EQUAL  expression ';'
-                    { driver.ramsey_constraint_add_greater_equal($1,$3); }
+                    { driver.ramsey_constraint_add_greater_equal($1, $3); }
 		  ;
 
 evaluate_planner_objective : EVALUATE_PLANNER_OBJECTIVE ';'
@@ -3280,9 +3288,9 @@ homotopy_list : homotopy_item
               ;
 
 homotopy_item : symbol COMMA expression COMMA expression ';'
-                { driver.homotopy_val($1, $3, $5);}
+                { driver.homotopy_val($1, $3, $5); }
               | symbol COMMA expression ';'
-                { driver.homotopy_val($1, nullptr, $3);}
+                { driver.homotopy_val($1, nullptr, $3); }
               ;
 
 forecast: FORECAST ';'
@@ -3336,7 +3344,9 @@ conditional_forecast_paths_shock_list : conditional_forecast_paths_shock_elem
                                       ;
 
 conditional_forecast_paths_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
-                                        { driver.add_det_shock($2, $5, $8, ParsingDriver::DetShockType::conditional_forecast); }
+                                        { driver.add_det_shock(
+                                              $2, $5, $8,
+                                              ParsingDriver::DetShockType::conditional_forecast); }
                                       ;
 
 steady_state_model : STEADY_STATE_MODEL ';' { driver.begin_steady_state_model(); }
@@ -3442,11 +3452,12 @@ model_diagnostics : MODEL_DIAGNOSTICS ';'
                   ;
 
 calibration_range : '[' expression COMMA expression ']'
-                    { $$ = { $2, $4 }; }
+                    { $$ = {$2, $4}; }
                   | PLUS
-                    { $$ = { driver.add_non_negative_constant("0"), driver.add_inf_constant() }; }
+                    { $$ = {driver.add_non_negative_constant("0"), driver.add_inf_constant()}; }
                   | MINUS
-                    { $$ = { driver.add_uminus(driver.add_inf_constant()), driver.add_non_negative_constant("0") }; }
+                    { $$ = {driver.add_uminus(driver.add_inf_constant()),
+                            driver.add_non_negative_constant("0")}; }
                   ;
 
 moment_calibration : MOMENT_CALIBRATION ';' moment_calibration_list END ';'
@@ -3503,7 +3514,7 @@ smoother2histval_option : o_infile
 shock_groups : SHOCK_GROUPS ';' shock_group_list END ';'
                { driver.end_shock_groups("default"); }
              | SHOCK_GROUPS '(' NAME EQUAL symbol ')' ';' shock_group_list END ';'
-               {driver.end_shock_groups($5);}
+               { driver.end_shock_groups($5); }
              ;
 
 shock_group_list : shock_group_list shock_group_element
@@ -3514,15 +3525,15 @@ shock_group_element : symbol EQUAL shock_name_list ';' { driver.add_shock_group(
                     | QUOTED_STRING EQUAL shock_name_list ';' { driver.add_shock_group($1); }
                     ;
 
-shock_name_list : shock_name_list COMMA symbol {driver.add_shock_group_element($3);}
-                | shock_name_list symbol {driver.add_shock_group_element($2);}
-                | symbol {driver.add_shock_group_element($1);}
+shock_name_list : shock_name_list COMMA symbol { driver.add_shock_group_element($3); }
+                | shock_name_list symbol { driver.add_shock_group_element($2); }
+                | symbol { driver.add_shock_group_element($1); }
                 ;
 
 init2shocks : INIT2SHOCKS ';' init2shocks_list END ';'
               { driver.end_init2shocks("default"); }
             | INIT2SHOCKS '(' NAME EQUAL symbol ')' ';' init2shocks_list END ';'
-              {driver.end_init2shocks($5);}
+              { driver.end_init2shocks($5); }
             ;
 
 init2shocks_list : init2shocks_list init2shocks_element
@@ -3648,7 +3659,7 @@ o_bounds : BOUNDS EQUAL vec_value_w_inf { driver.option_vec_value("bounds", $3);
 o_domain : DOMAINN EQUAL vec_value { driver.option_vec_value("domain", $3); };
 o_interval : INTERVAL EQUAL vec_value { driver.option_vec_value("interval", $3); };
 o_variance : VARIANCE EQUAL expression { driver.set_prior_variance($3); }
-o_variance_mat : VARIANCE EQUAL vec_of_vec_value { driver.option_vec_of_vec_value("variance",$3); }
+o_variance_mat : VARIANCE EQUAL vec_of_vec_value { driver.option_vec_of_vec_value("variance", $3); }
 o_prefilter : PREFILTER EQUAL INT_NUMBER { driver.option_num("prefilter", $3); };
 o_presample : PRESAMPLE EQUAL INT_NUMBER { driver.option_num("presample", $3); };
 o_lik_init : LIK_INIT EQUAL INT_NUMBER { driver.option_num("lik_init", $3); };
@@ -3727,8 +3738,8 @@ o_posterior_max_subsample_draws : POSTERIOR_MAX_SUBSAMPLE_DRAWS EQUAL INT_NUMBER
 o_mh_drop : MH_DROP EQUAL non_negative_number { driver.option_num("mh_drop", $3); };
 o_mh_jscale : MH_JSCALE EQUAL non_negative_number { driver.option_num("mh_jscale", $3); };
 o_mh_tune_jscale : MH_TUNE_JSCALE EQUAL non_negative_number
-                 { driver.option_num("mh_tune_jscale.target", $3); driver.option_num("mh_tune_jscale.status", "true");}
-                 | MH_TUNE_JSCALE {driver.option_num("mh_tune_jscale.status", "true");};
+                 { driver.option_num("mh_tune_jscale.target", $3); driver.option_num("mh_tune_jscale.status", "true"); }
+                 | MH_TUNE_JSCALE { driver.option_num("mh_tune_jscale.status", "true"); };
 o_mh_tune_guess : MH_TUNE_GUESS EQUAL non_negative_number { driver.option_num("mh_tune_jscale.guess", $3); };
 o_optim : OPTIM  EQUAL '(' name_value_pair_with_boolean_list ')' { driver.option_str("optim_opt", $4); };
 o_posterior_sampler_options : POSTERIOR_SAMPLER_OPTIONS EQUAL '(' name_value_pair_with_suboptions_list ')' { driver.option_str("posterior_sampler_options.sampling_opt", $4); };
@@ -3753,7 +3764,7 @@ o_load_results_after_load_mh : LOAD_RESULTS_AFTER_LOAD_MH { driver.option_num("l
 o_loglinear : LOGLINEAR { driver.option_num("loglinear", "true"); };
 o_linear_approximation : LINEAR_APPROXIMATION { driver.option_num("linear_approximation", "true"); };
 o_logdata : LOGDATA { driver.option_num("logdata", "true"); };
-o_conditional_likelihood : CONDITIONAL_LIKELIHOOD {driver.option_num("conditional_likelihood.status", "true"); };
+o_conditional_likelihood : CONDITIONAL_LIKELIHOOD { driver.option_num("conditional_likelihood.status", "true"); };
 o_nodiagnostic : NODIAGNOSTIC { driver.option_num("nodiagnostic", "true"); };
 o_bayesian_irf : BAYESIAN_IRF { driver.option_num("bayesian_irf", "true"); };
 o_dsge_var : DSGE_VAR EQUAL non_negative_number
@@ -3789,9 +3800,9 @@ o_xls_sheet : XLS_SHEET EQUAL symbol { driver.option_str("xls_sheet", $3); } // 
 o_xls_range : XLS_RANGE EQUAL range { driver.option_str("xls_range", $3); };
 o_filter_step_ahead : FILTER_STEP_AHEAD EQUAL vec_int { driver.option_vec_int("filter_step_ahead", $3); };
 o_taper_steps : TAPER_STEPS EQUAL vec_int { driver.option_vec_int("convergence.geweke.taper_steps", $3); };
-o_geweke_interval : GEWEKE_INTERVAL EQUAL vec_value { driver.option_vec_value("convergence.geweke.geweke_interval",$3); };
+o_geweke_interval : GEWEKE_INTERVAL EQUAL vec_value { driver.option_vec_value("convergence.geweke.geweke_interval", $3); };
 o_raftery_lewis_diagnostics : RAFTERY_LEWIS_DIAGNOSTICS { driver.option_num("convergence.rafterylewis.indicator", "true"); };
-o_raftery_lewis_qrs : RAFTERY_LEWIS_QRS EQUAL vec_value { driver.option_vec_value("convergence.rafterylewis.qrs",$3); };
+o_raftery_lewis_qrs : RAFTERY_LEWIS_QRS EQUAL vec_value { driver.option_vec_value("convergence.rafterylewis.qrs", $3); };
 o_brooks_gelman_plotrows: BROOKS_GELMAN_PLOTROWS EQUAL INT_NUMBER { driver.option_num("convergence.brooksgelman.plotrows", $3); };
 o_constant : CONSTANT { driver.option_num("noconstant", "false"); };
 o_noconstant : NOCONSTANT { driver.option_num("noconstant", "true"); };
@@ -3800,29 +3811,29 @@ o_mh_initialize_from_previous_mcmc : MH_INITIALIZE_FROM_PREVIOUS_MCMC { driver.o
 o_mh_initialize_from_previous_mcmc_directory : MH_INITIALIZE_FROM_PREVIOUS_MCMC_DIRECTORY EQUAL filename { driver.option_str("mh_initialize_from_previous_mcmc.directory", $3); };
 o_mh_initialize_from_previous_mcmc_record : MH_INITIALIZE_FROM_PREVIOUS_MCMC_RECORD EQUAL filename { driver.option_str("mh_initialize_from_previous_mcmc.record", $3); };
 o_mh_initialize_from_previous_mcmc_prior : MH_INITIALIZE_FROM_PREVIOUS_MCMC_PRIOR EQUAL filename { driver.option_str("mh_initialize_from_previous_mcmc.prior", $3); };
-o_diffuse_filter: DIFFUSE_FILTER {driver.option_num("diffuse_filter", "true"); };
-o_plot_priors: PLOT_PRIORS EQUAL INT_NUMBER {driver.option_num("plot_priors", $3); };
-o_aim_solver: AIM_SOLVER {driver.option_num("aim_solver", "true"); };
-o_partial_information : PARTIAL_INFORMATION {driver.option_num("partial_information", "true"); };
-o_sub_draws: SUB_DRAWS EQUAL INT_NUMBER {driver.option_num("sub_draws",$3);};
+o_diffuse_filter: DIFFUSE_FILTER { driver.option_num("diffuse_filter", "true"); };
+o_plot_priors: PLOT_PRIORS EQUAL INT_NUMBER { driver.option_num("plot_priors", $3); };
+o_aim_solver: AIM_SOLVER { driver.option_num("aim_solver", "true"); };
+o_partial_information : PARTIAL_INFORMATION { driver.option_num("partial_information", "true"); };
+o_sub_draws: SUB_DRAWS EQUAL INT_NUMBER { driver.option_num("sub_draws", $3); };
 o_planner_discount : PLANNER_DISCOUNT EQUAL expression { driver.set_planner_discount($3); };
 o_planner_discount_latex_name : PLANNER_DISCOUNT_LATEX_NAME EQUAL TEX_NAME { driver.set_planner_discount_latex_name($3); };
-o_sylvester : SYLVESTER EQUAL FIXED_POINT {driver.option_num("sylvester_fp", "true"); }
-               | SYLVESTER EQUAL DEFAULT {driver.option_num("sylvester_fp", "false"); };
-o_sylvester_fixed_point_tol : SYLVESTER_FIXED_POINT_TOL EQUAL non_negative_number {driver.option_num("sylvester_fixed_point_tol",$3);};
-o_lyapunov : LYAPUNOV EQUAL FIXED_POINT {driver.option_num("lyapunov_fp", "true"); }
-              | LYAPUNOV EQUAL DOUBLING {driver.option_num("lyapunov_db", "true"); }
-              | LYAPUNOV EQUAL SQUARE_ROOT_SOLVER {driver.option_num("lyapunov_srs", "true"); }
-              | LYAPUNOV EQUAL DEFAULT {driver.option_num("lyapunov_fp", "false"); driver.option_num("lyapunov_db", "false"); driver.option_num("lyapunov_srs", "false");};
-o_lyapunov_complex_threshold : LYAPUNOV_COMPLEX_THRESHOLD EQUAL non_negative_number {driver.option_num("lyapunov_complex_threshold",$3);};
-o_lyapunov_fixed_point_tol : LYAPUNOV_FIXED_POINT_TOL EQUAL non_negative_number {driver.option_num("lyapunov_fixed_point_tol",$3);};
-o_lyapunov_doubling_tol : LYAPUNOV_DOUBLING_TOL EQUAL non_negative_number {driver.option_num("lyapunov_doubling_tol",$3);};
-o_dr : DR EQUAL CYCLE_REDUCTION {driver.option_num("dr_cycle_reduction", "true"); }
-       | DR EQUAL LOGARITHMIC_REDUCTION {driver.option_num("dr_logarithmic_reduction", "true"); }
-       | DR EQUAL DEFAULT {driver.option_num("dr_cycle_reduction", "false"); driver.option_num("dr_logarithmic_reduction", "false");};
-o_dr_cycle_reduction_tol : DR_CYCLE_REDUCTION_TOL EQUAL non_negative_number {driver.option_num("dr_cycle_reduction_tol",$3);};
-o_dr_logarithmic_reduction_tol : DR_LOGARITHMIC_REDUCTION_TOL EQUAL non_negative_number {driver.option_num("dr_logarithmic_reduction_tol",$3);};
-o_dr_logarithmic_reduction_maxiter : DR_LOGARITHMIC_REDUCTION_MAXITER EQUAL INT_NUMBER {driver.option_num("dr_logarithmic_reduction_maxiter",$3);};
+o_sylvester : SYLVESTER EQUAL FIXED_POINT { driver.option_num("sylvester_fp", "true"); }
+               | SYLVESTER EQUAL DEFAULT { driver.option_num("sylvester_fp", "false"); };
+o_sylvester_fixed_point_tol : SYLVESTER_FIXED_POINT_TOL EQUAL non_negative_number { driver.option_num("sylvester_fixed_point_tol", $3); };
+o_lyapunov : LYAPUNOV EQUAL FIXED_POINT { driver.option_num("lyapunov_fp", "true"); }
+              | LYAPUNOV EQUAL DOUBLING { driver.option_num("lyapunov_db", "true"); }
+              | LYAPUNOV EQUAL SQUARE_ROOT_SOLVER { driver.option_num("lyapunov_srs", "true"); }
+              | LYAPUNOV EQUAL DEFAULT { driver.option_num("lyapunov_fp", "false"); driver.option_num("lyapunov_db", "false"); driver.option_num("lyapunov_srs", "false"); };
+o_lyapunov_complex_threshold : LYAPUNOV_COMPLEX_THRESHOLD EQUAL non_negative_number { driver.option_num("lyapunov_complex_threshold", $3); };
+o_lyapunov_fixed_point_tol : LYAPUNOV_FIXED_POINT_TOL EQUAL non_negative_number { driver.option_num("lyapunov_fixed_point_tol", $3); };
+o_lyapunov_doubling_tol : LYAPUNOV_DOUBLING_TOL EQUAL non_negative_number { driver.option_num("lyapunov_doubling_tol", $3); };
+o_dr : DR EQUAL CYCLE_REDUCTION { driver.option_num("dr_cycle_reduction", "true"); }
+       | DR EQUAL LOGARITHMIC_REDUCTION { driver.option_num("dr_logarithmic_reduction", "true"); }
+       | DR EQUAL DEFAULT { driver.option_num("dr_cycle_reduction", "false"); driver.option_num("dr_logarithmic_reduction", "false"); };
+o_dr_cycle_reduction_tol : DR_CYCLE_REDUCTION_TOL EQUAL non_negative_number { driver.option_num("dr_cycle_reduction_tol", $3); };
+o_dr_logarithmic_reduction_tol : DR_LOGARITHMIC_REDUCTION_TOL EQUAL non_negative_number { driver.option_num("dr_logarithmic_reduction_tol", $3); };
+o_dr_logarithmic_reduction_maxiter : DR_LOGARITHMIC_REDUCTION_MAXITER EQUAL INT_NUMBER { driver.option_num("dr_logarithmic_reduction_maxiter", $3); };
 o_psd_detail_plot : DETAIL_PLOT { driver.option_num("plot_shock_decomp.detail_plot", "true"); };
 o_icd_detail_plot : DETAIL_PLOT { driver.option_num("initial_condition_decomp.detail_plot", "true"); };
 o_psd_interactive : INTERACTIVE { driver.option_num("plot_shock_decomp.interactive", "true"); };
@@ -3870,22 +3881,22 @@ o_diagonal_only : DIAGONAL_ONLY { driver.option_num("irf_opt.diagonal_only", "tr
 o_number_of_particles : NUMBER_OF_PARTICLES EQUAL INT_NUMBER { driver.option_num("particle.number_of_particles", $3); };
 o_particle_filter_options : PARTICLE_FILTER_OPTIONS EQUAL '(' name_value_pair_with_boolean_list ')' { driver.option_str("particle.particle_filter_options", $4); }
 o_resampling : RESAMPLING EQUAL SYSTEMATIC
-              | RESAMPLING EQUAL NONE {driver.option_num("particle.resampling.status.systematic", "false"); driver.option_num("particle.resampling.status.none", "true"); }
-              | RESAMPLING EQUAL GENERIC {driver.option_num("particle.resampling.status.systematic", "false"); driver.option_num("particle.resampling.status.generic", "true"); };
+              | RESAMPLING EQUAL NONE { driver.option_num("particle.resampling.status.systematic", "false"); driver.option_num("particle.resampling.status.none", "true"); }
+              | RESAMPLING EQUAL GENERIC { driver.option_num("particle.resampling.status.systematic", "false"); driver.option_num("particle.resampling.status.generic", "true"); };
 o_resampling_threshold : RESAMPLING_THRESHOLD EQUAL non_negative_number { driver.option_num("particle.resampling.threshold", $3); };
-o_resampling_method : RESAMPLING_METHOD EQUAL KITAGAWA {driver.option_num("particle.resampling.method.kitagawa", "true"); driver.option_num("particle.resampling.method.smooth", "false"); driver.option_num("particle.resampling.smethod.stratified", "false"); }
-              | RESAMPLING_METHOD EQUAL SMOOTH {driver.option_num("particle.resampling.method.kitagawa", "false"); driver.option_num("particle.resampling.method.smooth", "true"); driver.option_num("particle.resampling.smethod.stratified", "false"); }
-              | RESAMPLING_METHOD EQUAL STRATIFIED {driver.option_num("particle.resampling.method.kitagawa", "false"); driver.option_num("particle.resampling.method.smooth", "false"); driver.option_num("particle.resampling.method.stratified", "true"); };
-o_cpf_weights : CPF_WEIGHTS EQUAL AMISANOTRISTANI {driver.option_num("particle.cpf_weights_method.amisanotristani", "true"); driver.option_num("particle.cpf_weights_method.murrayjonesparslow", "false"); }
-              | CPF_WEIGHTS EQUAL MURRAYJONESPARSLOW {driver.option_num("particle.cpf_weights_method.amisanotristani", "false"); driver.option_num("particle.cpf_weights_method.murrayjonesparslow", "true"); };
+o_resampling_method : RESAMPLING_METHOD EQUAL KITAGAWA { driver.option_num("particle.resampling.method.kitagawa", "true"); driver.option_num("particle.resampling.method.smooth", "false"); driver.option_num("particle.resampling.smethod.stratified", "false"); }
+              | RESAMPLING_METHOD EQUAL SMOOTH { driver.option_num("particle.resampling.method.kitagawa", "false"); driver.option_num("particle.resampling.method.smooth", "true"); driver.option_num("particle.resampling.smethod.stratified", "false"); }
+              | RESAMPLING_METHOD EQUAL STRATIFIED { driver.option_num("particle.resampling.method.kitagawa", "false"); driver.option_num("particle.resampling.method.smooth", "false"); driver.option_num("particle.resampling.method.stratified", "true"); };
+o_cpf_weights : CPF_WEIGHTS EQUAL AMISANOTRISTANI { driver.option_num("particle.cpf_weights_method.amisanotristani", "true"); driver.option_num("particle.cpf_weights_method.murrayjonesparslow", "false"); }
+              | CPF_WEIGHTS EQUAL MURRAYJONESPARSLOW { driver.option_num("particle.cpf_weights_method.amisanotristani", "false"); driver.option_num("particle.cpf_weights_method.murrayjonesparslow", "true"); };
 o_filter_algorithm : FILTER_ALGORITHM EQUAL symbol { driver.option_str("particle.filter_algorithm", $3); };
 o_nonlinear_filter_initialization : NONLINEAR_FILTER_INITIALIZATION EQUAL INT_NUMBER { driver.option_num("particle.initialization", $3); };
-o_proposal_approximation : PROPOSAL_APPROXIMATION EQUAL CUBATURE {driver.option_num("particle.proposal_approximation.cubature", "true"); driver.option_num("particle.proposal_approximation.unscented", "false"); driver.option_num("particle.proposal_approximation.montecarlo", "false");}
-		| PROPOSAL_APPROXIMATION EQUAL UNSCENTED {driver.option_num("particle.proposal_approximation.cubature", "false"); driver.option_num("particle.proposal_approximation.unscented", "true"); driver.option_num("particle.proposal_approximation.montecarlo", "false");}
-		| PROPOSAL_APPROXIMATION EQUAL MONTECARLO {driver.option_num("particle.proposal_approximation.cubature", "false"); driver.option_num("particle.proposal_approximation.unscented", "false"); driver.option_num("particle.proposal_approximation.montecarlo", "true");} ;
-o_distribution_approximation : DISTRIBUTION_APPROXIMATION EQUAL CUBATURE {driver.option_num("particle.distribution_approximation.cubature", "true"); driver.option_num("particle.distribution_approximation.unscented", "false"); driver.option_num("particle.distribution_approximation.montecarlo", "false");}
-		| DISTRIBUTION_APPROXIMATION EQUAL UNSCENTED {driver.option_num("particle.distribution_approximation.cubature", "false"); driver.option_num("particle.distribution_approximation.unscented", "true"); driver.option_num("particle.distribution_approximation.montecarlo", "false");}
-		| DISTRIBUTION_APPROXIMATION EQUAL MONTECARLO {driver.option_num("particle.distribution_approximation.cubature", "false"); driver.option_num("particle.distribution_approximation.unscented", "false"); driver.option_num("particle.distribution_approximation.montecarlo", "true");} ;
+o_proposal_approximation : PROPOSAL_APPROXIMATION EQUAL CUBATURE { driver.option_num("particle.proposal_approximation.cubature", "true"); driver.option_num("particle.proposal_approximation.unscented", "false"); driver.option_num("particle.proposal_approximation.montecarlo", "false"); }
+		| PROPOSAL_APPROXIMATION EQUAL UNSCENTED { driver.option_num("particle.proposal_approximation.cubature", "false"); driver.option_num("particle.proposal_approximation.unscented", "true"); driver.option_num("particle.proposal_approximation.montecarlo", "false"); }
+		| PROPOSAL_APPROXIMATION EQUAL MONTECARLO { driver.option_num("particle.proposal_approximation.cubature", "false"); driver.option_num("particle.proposal_approximation.unscented", "false"); driver.option_num("particle.proposal_approximation.montecarlo", "true"); } ;
+o_distribution_approximation : DISTRIBUTION_APPROXIMATION EQUAL CUBATURE { driver.option_num("particle.distribution_approximation.cubature", "true"); driver.option_num("particle.distribution_approximation.unscented", "false"); driver.option_num("particle.distribution_approximation.montecarlo", "false"); }
+		| DISTRIBUTION_APPROXIMATION EQUAL UNSCENTED { driver.option_num("particle.distribution_approximation.cubature", "false"); driver.option_num("particle.distribution_approximation.unscented", "true"); driver.option_num("particle.distribution_approximation.montecarlo", "false"); }
+		| DISTRIBUTION_APPROXIMATION EQUAL MONTECARLO { driver.option_num("particle.distribution_approximation.cubature", "false"); driver.option_num("particle.distribution_approximation.unscented", "false"); driver.option_num("particle.distribution_approximation.montecarlo", "true"); } ;
 o_gsa_identification : IDENTIFICATION EQUAL INT_NUMBER { driver.option_num("identification", $3); }; /*not in doc */
 o_gsa_morris : MORRIS EQUAL INT_NUMBER { driver.option_num("morris", $3); };
 o_gsa_stab : STAB  EQUAL INT_NUMBER { driver.option_num("stab", $3); };
@@ -3902,7 +3913,7 @@ o_gsa_load_rmse : LOAD_RMSE EQUAL INT_NUMBER { driver.option_num("load_rmse", $3
 o_gsa_load_stab : LOAD_STAB EQUAL INT_NUMBER { driver.option_num("load_stab", $3); };
 o_gsa_alpha2_stab : ALPHA2_STAB EQUAL non_negative_number { driver.option_num("alpha2_stab", $3); };
 o_gsa_logtrans_redform : LOGTRANS_REDFORM EQUAL INT_NUMBER { driver.option_num("logtrans_redform", $3); };
-o_gsa_threshold_redform : THRESHOLD_REDFORM EQUAL vec_value_w_inf { driver.option_vec_value("threshold_redform",$3); };
+o_gsa_threshold_redform : THRESHOLD_REDFORM EQUAL vec_value_w_inf { driver.option_vec_value("threshold_redform", $3); };
 o_gsa_ksstat_redform : KSSTAT_REDFORM EQUAL non_negative_number { driver.option_num("ksstat_redform", $3); };
 o_gsa_alpha2_redform : ALPHA2_REDFORM EQUAL non_negative_number { driver.option_num("alpha2_redform", $3); };
 o_gsa_namendo : NAMENDO EQUAL '(' symbol_list_or_wildcard ')' { driver.option_symbol_list("namendo", $4); };
@@ -3929,10 +3940,10 @@ o_prior_mc : PRIOR_MC EQUAL INT_NUMBER { driver.option_num("prior_mc", $3); }
 o_advanced : ADVANCED EQUAL signed_integer { driver.option_num("advanced", $3); }
 o_max_dim_cova_group : MAX_DIM_COVA_GROUP EQUAL INT_NUMBER { driver.option_num("max_dim_cova_group", $3); }
 
-o_homotopy_mode : HOMOTOPY_MODE EQUAL INT_NUMBER {driver.option_num("homotopy_mode",$3); };
-o_homotopy_steps : HOMOTOPY_STEPS EQUAL INT_NUMBER {driver.option_num("homotopy_steps",$3); };
-o_homotopy_force_continue: HOMOTOPY_FORCE_CONTINUE EQUAL INT_NUMBER { driver.option_num("homotopy_force_continue",$3); };
-o_nocheck : NOCHECK {driver.option_num("steadystate.nocheck","true"); };
+o_homotopy_mode : HOMOTOPY_MODE EQUAL INT_NUMBER { driver.option_num("homotopy_mode", $3); };
+o_homotopy_steps : HOMOTOPY_STEPS EQUAL INT_NUMBER { driver.option_num("homotopy_steps", $3); };
+o_homotopy_force_continue: HOMOTOPY_FORCE_CONTINUE EQUAL INT_NUMBER { driver.option_num("homotopy_force_continue", $3); };
+o_nocheck : NOCHECK { driver.option_num("steadystate.nocheck", "true"); };
 
 o_controlled_varexo : CONTROLLED_VAREXO EQUAL '(' symbol_list ')' { driver.option_symbol_list("controlled_varexo", $4); };
 o_parameter_set : PARAMETER_SET EQUAL PRIOR_MODE
@@ -3955,102 +3966,102 @@ o_spectral_density : SPECTRAL_DENSITY { driver.option_num("SpectralDensity.trigg
 o_ms_drop : DROP EQUAL INT_NUMBER { driver.option_num("ms.drop", $3); };
 o_ms_mh_replic : MH_REPLIC EQUAL INT_NUMBER { driver.option_num("ms.mh_replic", $3); };
 o_freq : FREQ EQUAL INT_NUMBER
-         { driver.option_num("ms.freq",$3); }
+         { driver.option_num("ms.freq", $3); }
        | FREQ EQUAL MONTHLY
-         { driver.option_num("ms.freq","12"); }
+         { driver.option_num("ms.freq", "12"); }
        | FREQ EQUAL QUARTERLY
-         { driver.option_num("ms.freq","4"); }
+         { driver.option_num("ms.freq", "4"); }
        ;
-o_initial_year : INITIAL_YEAR EQUAL INT_NUMBER {driver.option_num("ms.initial_year",$3); };
-o_initial_subperiod : INITIAL_SUBPERIOD EQUAL INT_NUMBER {driver.option_num("ms.initial_subperiod",$3); };
-o_final_year : FINAL_YEAR EQUAL INT_NUMBER {driver.option_num("ms.final_year",$3); };
-o_final_subperiod : FINAL_SUBPERIOD EQUAL INT_NUMBER {driver.option_num("ms.final_subperiod",$3); };
+o_initial_year : INITIAL_YEAR EQUAL INT_NUMBER { driver.option_num("ms.initial_year", $3); };
+o_initial_subperiod : INITIAL_SUBPERIOD EQUAL INT_NUMBER { driver.option_num("ms.initial_subperiod", $3); };
+o_final_year : FINAL_YEAR EQUAL INT_NUMBER { driver.option_num("ms.final_year", $3); };
+o_final_subperiod : FINAL_SUBPERIOD EQUAL INT_NUMBER { driver.option_num("ms.final_subperiod", $3); };
 o_data : DATA EQUAL filename { driver.option_str("ms.data", $3); };
-o_vlist : VLIST EQUAL INT_NUMBER {driver.option_num("ms.vlist",$3); };
-o_vlistlog : VLISTLOG EQUAL '(' symbol_list ')' {driver.option_symbol_list("ms.vlistlog", $4); };
-o_vlistper : VLISTPER EQUAL INT_NUMBER {driver.option_num("ms.vlistper",$3); };
+o_vlist : VLIST EQUAL INT_NUMBER { driver.option_num("ms.vlist", $3); };
+o_vlistlog : VLISTLOG EQUAL '(' symbol_list ')' { driver.option_symbol_list("ms.vlistlog", $4); };
+o_vlistper : VLISTPER EQUAL INT_NUMBER { driver.option_num("ms.vlistper", $3); };
 o_restriction_fname : RESTRICTION_FNAME EQUAL NAME
                       {
                         driver.warning("restriction_fname is now deprecated, and may be removed in a future version of Dynare. Use svar_identification instead.");
-                        driver.option_str("ms.restriction_fname",$3);
+                        driver.option_str("ms.restriction_fname", $3);
                       }
                     | RESTRICTION_FNAME EQUAL UPPER_CHOLESKY
                       {
                         driver.warning("restriction_fname is now deprecated, and may be removed in a future version of Dynare. Use svar_identification instead.");
-                        driver.option_str("ms.restriction_fname","upper_cholesky");
+                        driver.option_str("ms.restriction_fname", "upper_cholesky");
                       }
                     | RESTRICTION_FNAME EQUAL LOWER_CHOLESKY
                       {
                         driver.warning("restriction_fname is now deprecated, and may be removed in a future version of Dynare. Use svar_identification instead.");
-                        driver.option_str("ms.restriction_fname","lower_cholesky");
+                        driver.option_str("ms.restriction_fname", "lower_cholesky");
                       }
                     ;
-o_nlags : NLAGS EQUAL INT_NUMBER {driver.option_num("ms.nlags",$3); };
-o_cross_restrictions : CROSS_RESTRICTIONS {driver.option_num("ms.cross_restrictions","true"); };
-o_contemp_reduced_form : CONTEMP_REDUCED_FORM {driver.option_num("ms.contemp_reduced_form","true"); };
-o_real_pseudo_forecast : REAL_PSEUDO_FORECAST EQUAL INT_NUMBER {driver.option_num("ms.real_pseudo_forecast",$3); };
-o_no_bayesian_prior : NO_BAYESIAN_PRIOR {driver.option_num("ms.bayesian_prior","false"); };
-o_dummy_obs : DUMMY_OBS EQUAL INT_NUMBER {driver.option_num("ms.dummy_obs",$3); };
-o_nstates : NSTATES EQUAL INT_NUMBER {driver.option_num("ms.nstates",$3); };
-o_indxscalesstates : INDXSCALESSTATES EQUAL INT_NUMBER {driver.option_num("ms.indxscalesstates",$3); };
-o_alpha : ALPHA EQUAL non_negative_number {driver.option_num("ms.alpha",$3); };
-o_beta : BETA EQUAL non_negative_number {driver.option_num("ms.beta",$3); };
-o_gsig2_lmdm : GSIG2_LMDM EQUAL INT_NUMBER {driver.option_num("ms.gsig2_lmdm",$3); };
+o_nlags : NLAGS EQUAL INT_NUMBER { driver.option_num("ms.nlags", $3); };
+o_cross_restrictions : CROSS_RESTRICTIONS { driver.option_num("ms.cross_restrictions", "true"); };
+o_contemp_reduced_form : CONTEMP_REDUCED_FORM { driver.option_num("ms.contemp_reduced_form", "true"); };
+o_real_pseudo_forecast : REAL_PSEUDO_FORECAST EQUAL INT_NUMBER { driver.option_num("ms.real_pseudo_forecast", $3); };
+o_no_bayesian_prior : NO_BAYESIAN_PRIOR { driver.option_num("ms.bayesian_prior", "false"); };
+o_dummy_obs : DUMMY_OBS EQUAL INT_NUMBER { driver.option_num("ms.dummy_obs", $3); };
+o_nstates : NSTATES EQUAL INT_NUMBER { driver.option_num("ms.nstates", $3); };
+o_indxscalesstates : INDXSCALESSTATES EQUAL INT_NUMBER { driver.option_num("ms.indxscalesstates", $3); };
+o_alpha : ALPHA EQUAL non_negative_number { driver.option_num("ms.alpha", $3); };
+o_beta : BETA EQUAL non_negative_number { driver.option_num("ms.beta", $3); };
+o_gsig2_lmdm : GSIG2_LMDM EQUAL INT_NUMBER { driver.option_num("ms.gsig2_lmdm", $3); };
 o_specification : SPECIFICATION EQUAL SIMS_ZHA
-                  {driver.option_num("ms.specification","1"); }
+                  { driver.option_num("ms.specification", "1"); }
                 | SPECIFICATION EQUAL NONE
-                  {driver.option_num("ms.specification","0"); }
+                  { driver.option_num("ms.specification", "0"); }
                 ;
-o_q_diag : Q_DIAG EQUAL non_negative_number {driver.option_num("ms.q_diag",$3); };
-o_flat_prior : FLAT_PRIOR EQUAL INT_NUMBER {driver.option_num("ms.flat_prior",$3); };
-o_ncsk : NCSK EQUAL INT_NUMBER {driver.option_num("ms.ncsk",$3); };
-o_nstd : NSTD EQUAL INT_NUMBER {driver.option_num("ms.nstd",$3); };
-o_ninv : NINV EQUAL INT_NUMBER {driver.option_num("ms.ninv",$3); };
-o_indxparr : INDXPARR EQUAL INT_NUMBER {driver.option_num("ms.indxparr",$3); };
-o_indxovr : INDXOVR EQUAL INT_NUMBER {driver.option_num("ms.indxovr",$3); };
-o_aband : ABAND EQUAL INT_NUMBER {driver.option_num("ms.aband",$3); };
-o_indxap : INDXAP EQUAL INT_NUMBER {driver.option_num("ms.indxap",$3); };
-o_apband : APBAND EQUAL INT_NUMBER {driver.option_num("ms.apband",$3); };
-o_indximf : INDXIMF EQUAL INT_NUMBER {driver.option_num("ms.indximf",$3); };
-o_indxfore : INDXFORE EQUAL INT_NUMBER {driver.option_num("ms.indxfore",$3); };
-o_foreband : FOREBAND EQUAL INT_NUMBER {driver.option_num("ms.foreband",$3); };
-o_indxgforhat : INDXGFOREHAT EQUAL INT_NUMBER {driver.option_num("ms.indxgforehat",$3); };
-o_indxgimfhat : INDXGIMFHAT EQUAL INT_NUMBER {driver.option_num("ms.indxgimfhat",$3); };
-o_indxestima : INDXESTIMA EQUAL INT_NUMBER {driver.option_num("ms.indxestima",$3); };
-o_indxgdls : INDXGDLS EQUAL INT_NUMBER {driver.option_num("ms.indxgdls",$3); };
-o_eq_ms : EQ_MS EQUAL INT_NUMBER {driver.option_num("ms.eq_ms",$3); };
-o_cms : CMS EQUAL INT_NUMBER {driver.option_num("ms.cms",$3); };
-o_ncms : NCMS EQUAL INT_NUMBER {driver.option_num("ms.ncms",$3); };
-o_eq_cms : EQ_CMS EQUAL INT_NUMBER {driver.option_num("ms.eq_cms",$3); };
-o_tlindx : TLINDX EQUAL INT_NUMBER {driver.option_num("ms.tlindx",$3); };
-o_tlnumber : TLNUMBER EQUAL INT_NUMBER {driver.option_num("ms.tlnumber",$3); };
-o_cnum : CNUM EQUAL INT_NUMBER {driver.option_num("ms.cnum",$3); };
-o_k_order_solver : K_ORDER_SOLVER {driver.option_num("k_order_solver","true"); };
+o_q_diag : Q_DIAG EQUAL non_negative_number { driver.option_num("ms.q_diag", $3); };
+o_flat_prior : FLAT_PRIOR EQUAL INT_NUMBER { driver.option_num("ms.flat_prior", $3); };
+o_ncsk : NCSK EQUAL INT_NUMBER { driver.option_num("ms.ncsk", $3); };
+o_nstd : NSTD EQUAL INT_NUMBER { driver.option_num("ms.nstd", $3); };
+o_ninv : NINV EQUAL INT_NUMBER { driver.option_num("ms.ninv", $3); };
+o_indxparr : INDXPARR EQUAL INT_NUMBER { driver.option_num("ms.indxparr", $3); };
+o_indxovr : INDXOVR EQUAL INT_NUMBER { driver.option_num("ms.indxovr", $3); };
+o_aband : ABAND EQUAL INT_NUMBER { driver.option_num("ms.aband", $3); };
+o_indxap : INDXAP EQUAL INT_NUMBER { driver.option_num("ms.indxap", $3); };
+o_apband : APBAND EQUAL INT_NUMBER { driver.option_num("ms.apband", $3); };
+o_indximf : INDXIMF EQUAL INT_NUMBER { driver.option_num("ms.indximf", $3); };
+o_indxfore : INDXFORE EQUAL INT_NUMBER { driver.option_num("ms.indxfore", $3); };
+o_foreband : FOREBAND EQUAL INT_NUMBER { driver.option_num("ms.foreband", $3); };
+o_indxgforhat : INDXGFOREHAT EQUAL INT_NUMBER { driver.option_num("ms.indxgforehat", $3); };
+o_indxgimfhat : INDXGIMFHAT EQUAL INT_NUMBER { driver.option_num("ms.indxgimfhat", $3); };
+o_indxestima : INDXESTIMA EQUAL INT_NUMBER { driver.option_num("ms.indxestima", $3); };
+o_indxgdls : INDXGDLS EQUAL INT_NUMBER { driver.option_num("ms.indxgdls", $3); };
+o_eq_ms : EQ_MS EQUAL INT_NUMBER { driver.option_num("ms.eq_ms", $3); };
+o_cms : CMS EQUAL INT_NUMBER { driver.option_num("ms.cms", $3); };
+o_ncms : NCMS EQUAL INT_NUMBER { driver.option_num("ms.ncms", $3); };
+o_eq_cms : EQ_CMS EQUAL INT_NUMBER { driver.option_num("ms.eq_cms", $3); };
+o_tlindx : TLINDX EQUAL INT_NUMBER { driver.option_num("ms.tlindx", $3); };
+o_tlnumber : TLNUMBER EQUAL INT_NUMBER { driver.option_num("ms.tlnumber", $3); };
+o_cnum : CNUM EQUAL INT_NUMBER { driver.option_num("ms.cnum", $3); };
+o_k_order_solver : K_ORDER_SOLVER { driver.option_num("k_order_solver", "true"); };
 o_pruning : PRUNING { driver.option_num("pruning", "true"); };
-o_chain : CHAIN EQUAL INT_NUMBER { driver.option_num("ms.chain",$3); };
+o_chain : CHAIN EQUAL INT_NUMBER { driver.option_num("ms.chain", $3); };
 o_restrictions : RESTRICTIONS EQUAL vec_of_vec_value
-                 { driver.option_vec_of_vec_value("ms.restrictions",$3); }
+                 { driver.option_vec_of_vec_value("ms.restrictions", $3); }
                ;
 o_duration : DURATION EQUAL non_negative_number
-             { driver.option_num("ms.duration",$3); }
+             { driver.option_num("ms.duration", $3); }
            | DURATION EQUAL vec_value_w_inf
-             { driver.option_vec_value("ms.duration",$3); }
+             { driver.option_vec_value("ms.duration", $3); }
            ;
-o_number_of_regimes : NUMBER_OF_REGIMES EQUAL INT_NUMBER { driver.option_num("ms.number_of_regimes",$3); };
-o_number_of_lags : NUMBER_OF_LAGS EQUAL INT_NUMBER { driver.option_num("ms.number_of_lags",$3); };
+o_number_of_regimes : NUMBER_OF_REGIMES EQUAL INT_NUMBER { driver.option_num("ms.number_of_regimes", $3); };
+o_number_of_lags : NUMBER_OF_LAGS EQUAL INT_NUMBER { driver.option_num("ms.number_of_lags", $3); };
 o_parameters : PARAMETERS EQUAL '[' symbol_list ']' { driver.option_symbol_list("ms.parameters", $4); };
-o_coefficients : COEFFICIENTS { driver.option_str("ms.coefficients","svar_coefficients"); };
-o_variances : VARIANCES { driver.option_str("ms.variances","svar_variances"); };
+o_coefficients : COEFFICIENTS { driver.option_str("ms.coefficients", "svar_coefficients"); };
+o_variances : VARIANCES { driver.option_str("ms.variances", "svar_variances"); };
 o_equations : EQUATIONS EQUAL vec_int
-              { driver.option_vec_int("ms.equations",$3); }
+              { driver.option_vec_int("ms.equations", $3); }
             | EQUATIONS EQUAL vec_int_number
-              { driver.option_vec_int("ms.equations",$3); }
+              { driver.option_vec_int("ms.equations", $3); }
             ;
 o_silent_optimizer : SILENT_OPTIMIZER { driver.option_num("silent_optimizer", "true"); };
-o_instruments : INSTRUMENTS EQUAL '(' symbol_list ')' {driver.option_symbol_list("instruments", $4); };
+o_instruments : INSTRUMENTS EQUAL '(' symbol_list ')' { driver.option_symbol_list("instruments", $4); };
 
 o_ext_func_name : EXT_FUNC_NAME EQUAL namespace_qualified_filename { driver.external_function_option("name", $3); };
-o_ext_func_nargs : EXT_FUNC_NARGS EQUAL INT_NUMBER { driver.external_function_option("nargs",$3); };
+o_ext_func_nargs : EXT_FUNC_NARGS EQUAL INT_NUMBER { driver.external_function_option("nargs", $3); };
 o_first_deriv_provided : FIRST_DERIV_PROVIDED EQUAL namespace_qualified_filename
                          { driver.external_function_option("first_deriv_provided", $3); }
                        | FIRST_DERIV_PROVIDED
@@ -4062,85 +4073,85 @@ o_second_deriv_provided : SECOND_DERIV_PROVIDED EQUAL namespace_qualified_filena
                           { driver.external_function_option("second_deriv_provided", ""); }
                         ;
 o_filter_covariance : FILTER_COVARIANCE
-                        { driver.option_num("filter_covariance","true");}
+                        { driver.option_num("filter_covariance", "true"); }
                       ;
 o_updated_covariance : UPDATED_COVARIANCE
-                        { driver.option_num("updated_covariance","true");}
+                        { driver.option_num("updated_covariance", "true"); }
 
 o_filter_decomposition : FILTER_DECOMPOSITION
-                           { driver.option_num("filter_decomposition","true");}
+                           { driver.option_num("filter_decomposition", "true"); }
                          ;
 o_smoothed_state_uncertainty : SMOOTHED_STATE_UNCERTAINTY
-                           { driver.option_num("smoothed_state_uncertainty","true");}
+                           { driver.option_num("smoothed_state_uncertainty", "true"); }
                          ;
 o_smoother_redux : SMOOTHER_REDUX
-                           { driver.option_num("smoother_redux","true");}
+                           { driver.option_num("smoother_redux", "true"); }
 
 o_selected_variables_only : SELECTED_VARIABLES_ONLY
-                           { driver.option_num("selected_variables_only","true");}
+                           { driver.option_num("selected_variables_only", "true"); }
                           ;
 o_cova_compute : COVA_COMPUTE EQUAL INT_NUMBER
-                 { driver.option_num("cova_compute",$3);}
+                 { driver.option_num("cova_compute", $3); }
                ;
-o_output_file_tag : OUTPUT_FILE_TAG EQUAL filename {driver.option_str("ms.output_file_tag", $3); };
+o_output_file_tag : OUTPUT_FILE_TAG EQUAL filename { driver.option_str("ms.output_file_tag", $3); };
 o_file_tag : FILE_TAG EQUAL filename { driver.option_str("ms.file_tag", $3); };
 o_no_create_init : NO_CREATE_INIT { driver.option_num("ms.create_init", "false"); };
 o_simulation_file_tag : SIMULATION_FILE_TAG EQUAL filename { driver.option_str("ms.simulation_file_tag", $3); };
 o_coefficients_prior_hyperparameters : COEFFICIENTS_PRIOR_HYPERPARAMETERS EQUAL vec_value
-                                       { driver.option_vec_value("ms.coefficients_prior_hyperparameters",$3); };
+                                       { driver.option_vec_value("ms.coefficients_prior_hyperparameters", $3); };
 o_convergence_starting_value : CONVERGENCE_STARTING_VALUE EQUAL non_negative_number
-                               { driver.option_num("ms.convergence_starting_value",$3); };
+                               { driver.option_num("ms.convergence_starting_value", $3); };
 o_convergence_ending_value : CONVERGENCE_ENDING_VALUE EQUAL non_negative_number
-                             { driver.option_num("ms.convergence_ending_value",$3); };
+                             { driver.option_num("ms.convergence_ending_value", $3); };
 o_convergence_increment_value : CONVERGENCE_INCREMENT_VALUE EQUAL non_negative_number
-                                { driver.option_num("ms.convergence_increment_value",$3); };
+                                { driver.option_num("ms.convergence_increment_value", $3); };
 o_max_iterations_starting_value : MAX_ITERATIONS_STARTING_VALUE EQUAL INT_NUMBER
-                                  { driver.option_num("ms.max_iterations_starting_value",$3); };
+                                  { driver.option_num("ms.max_iterations_starting_value", $3); };
 o_max_iterations_increment_value : MAX_ITERATIONS_INCREMENT_VALUE EQUAL non_negative_number
-                                   { driver.option_num("ms.max_iterations_increment_value",$3); };
+                                   { driver.option_num("ms.max_iterations_increment_value", $3); };
 o_max_block_iterations : MAX_BLOCK_ITERATIONS EQUAL INT_NUMBER
-                         { driver.option_num("ms.max_block_iterations",$3); };
+                         { driver.option_num("ms.max_block_iterations", $3); };
 o_max_repeated_optimization_runs : MAX_REPEATED_OPTIMIZATION_RUNS EQUAL INT_NUMBER
-                                   { driver.option_num("ms.max_repeated_optimization_runs",$3); };
+                                   { driver.option_num("ms.max_repeated_optimization_runs", $3); };
 o_function_convergence_criterion : FUNCTION_CONVERGENCE_CRITERION EQUAL non_negative_number
-                                   { driver.option_num("ms.function_convergence_criterion",$3); };
+                                   { driver.option_num("ms.function_convergence_criterion", $3); };
 o_parameter_convergence_criterion : PARAMETER_CONVERGENCE_CRITERION EQUAL non_negative_number
-                                    { driver.option_num("ms.parameter_convergence_criterion",$3); };
+                                    { driver.option_num("ms.parameter_convergence_criterion", $3); };
 o_number_of_large_perturbations : NUMBER_OF_LARGE_PERTURBATIONS EQUAL INT_NUMBER
-                                  { driver.option_num("ms.number_of_large_perturbations",$3); };
+                                  { driver.option_num("ms.number_of_large_perturbations", $3); };
 o_number_of_small_perturbations : NUMBER_OF_SMALL_PERTURBATIONS EQUAL INT_NUMBER
-                                  { driver.option_num("ms.number_of_small_perturbations",$3); };
+                                  { driver.option_num("ms.number_of_small_perturbations", $3); };
 o_number_of_posterior_draws_after_perturbation : NUMBER_OF_POSTERIOR_DRAWS_AFTER_PERTURBATION EQUAL INT_NUMBER
-                                                 { driver.option_num("ms.number_of_posterior_draws_after_perturbation",$3); };
+                                                 { driver.option_num("ms.number_of_posterior_draws_after_perturbation", $3); };
 o_max_number_of_stages : MAX_NUMBER_OF_STAGES EQUAL INT_NUMBER
-                         { driver.option_num("ms.max_number_of_stages",$3); };
+                         { driver.option_num("ms.max_number_of_stages", $3); };
 o_random_function_convergence_criterion : RANDOM_FUNCTION_CONVERGENCE_CRITERION EQUAL non_negative_number
-                                          { driver.option_num("ms.random_function_convergence_criterion",$3); };
+                                          { driver.option_num("ms.random_function_convergence_criterion", $3); };
 o_random_parameter_convergence_criterion : RANDOM_PARAMETER_CONVERGENCE_CRITERION EQUAL non_negative_number
-                                           { driver.option_num("ms.random_parameter_convergence_criterion",$3); };
-o_thinning_factor : THINNING_FACTOR EQUAL INT_NUMBER { driver.option_num("ms.thinning_factor",$3); };
-o_adaptive_mh_draws : ADAPTIVE_MH_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.adaptive_mh_draws",$3); };
-o_save_draws : SAVE_DRAWS { driver.option_num("ms.save_draws","true"); };
-o_proposal_draws : PROPOSAL_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.proposal_draws",$3); };
-o_use_mean_center : USE_MEAN_CENTER { driver.option_num("ms.use_mean_center","true"); };
-o_proposal_type : PROPOSAL_TYPE EQUAL INT_NUMBER { driver.option_num("ms.proposal_type",$3); }
-o_proposal_lower_bound : PROPOSAL_LOWER_BOUND EQUAL signed_number { driver.option_num("ms.proposal_lower_bound",$3); }
-o_proposal_upper_bound : PROPOSAL_UPPER_BOUND EQUAL signed_number { driver.option_num("ms.proposal_upper_bound",$3); }
-o_parameter_uncertainty : PARAMETER_UNCERTAINTY { driver.option_num("ms.parameter_uncertainty","true"); };
-o_horizon : HORIZON EQUAL INT_NUMBER { driver.option_num("ms.horizon",$3); };
-o_filtered_probabilities : FILTERED_PROBABILITIES { driver.option_num("ms.filtered_probabilities","true"); };
-o_real_time_smoothed : REAL_TIME_SMOOTHED { driver.option_num("ms.real_time_smoothed_probabilities","true"); };
-o_no_error_bands : NO_ERROR_BANDS { driver.option_num("ms.error_bands","false"); };
-o_error_band_percentiles : ERROR_BAND_PERCENTILES EQUAL vec_value { driver.option_vec_value("ms.percentiles",$3); };
-o_shock_draws : SHOCK_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.shock_draws",$3); };
-o_shocks_per_parameter : SHOCKS_PER_PARAMETER EQUAL INT_NUMBER { driver.option_num("ms.shocks_per_parameter",$3); };
-o_free_parameters : FREE_PARAMETERS EQUAL vec_value { driver.option_vec_value("ms.free_parameters",$3); };
-o_median : MEDIAN { driver.option_num("ms.median","1"); }
+                                           { driver.option_num("ms.random_parameter_convergence_criterion", $3); };
+o_thinning_factor : THINNING_FACTOR EQUAL INT_NUMBER { driver.option_num("ms.thinning_factor", $3); };
+o_adaptive_mh_draws : ADAPTIVE_MH_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.adaptive_mh_draws", $3); };
+o_save_draws : SAVE_DRAWS { driver.option_num("ms.save_draws", "true"); };
+o_proposal_draws : PROPOSAL_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.proposal_draws", $3); };
+o_use_mean_center : USE_MEAN_CENTER { driver.option_num("ms.use_mean_center", "true"); };
+o_proposal_type : PROPOSAL_TYPE EQUAL INT_NUMBER { driver.option_num("ms.proposal_type", $3); }
+o_proposal_lower_bound : PROPOSAL_LOWER_BOUND EQUAL signed_number { driver.option_num("ms.proposal_lower_bound", $3); }
+o_proposal_upper_bound : PROPOSAL_UPPER_BOUND EQUAL signed_number { driver.option_num("ms.proposal_upper_bound", $3); }
+o_parameter_uncertainty : PARAMETER_UNCERTAINTY { driver.option_num("ms.parameter_uncertainty", "true"); };
+o_horizon : HORIZON EQUAL INT_NUMBER { driver.option_num("ms.horizon", $3); };
+o_filtered_probabilities : FILTERED_PROBABILITIES { driver.option_num("ms.filtered_probabilities", "true"); };
+o_real_time_smoothed : REAL_TIME_SMOOTHED { driver.option_num("ms.real_time_smoothed_probabilities", "true"); };
+o_no_error_bands : NO_ERROR_BANDS { driver.option_num("ms.error_bands", "false"); };
+o_error_band_percentiles : ERROR_BAND_PERCENTILES EQUAL vec_value { driver.option_vec_value("ms.percentiles", $3); };
+o_shock_draws : SHOCK_DRAWS EQUAL INT_NUMBER { driver.option_num("ms.shock_draws", $3); };
+o_shocks_per_parameter : SHOCKS_PER_PARAMETER EQUAL INT_NUMBER { driver.option_num("ms.shocks_per_parameter", $3); };
+o_free_parameters : FREE_PARAMETERS EQUAL vec_value { driver.option_vec_value("ms.free_parameters", $3); };
+o_median : MEDIAN { driver.option_num("ms.median", "1"); }
          | MEDIAN EQUAL signed_number { driver.option_num("median", $3); };
-o_regimes : REGIMES { driver.option_num("ms.regimes","true"); };
-o_regime : REGIME EQUAL INT_NUMBER { driver.option_num("ms.regime",$3); };
-o_data_obs_nbr : DATA_OBS_NBR EQUAL INT_NUMBER { driver.option_num("ms.forecast_data_obs",$3); };
-o_discretionary_tol: DISCRETIONARY_TOL EQUAL non_negative_number { driver.option_num("discretionary_tol",$3); };
+o_regimes : REGIMES { driver.option_num("ms.regimes", "true"); };
+o_regime : REGIME EQUAL INT_NUMBER { driver.option_num("ms.regime", $3); };
+o_data_obs_nbr : DATA_OBS_NBR EQUAL INT_NUMBER { driver.option_num("ms.forecast_data_obs", $3); };
+o_discretionary_tol: DISCRETIONARY_TOL EQUAL non_negative_number { driver.option_num("discretionary_tol", $3); };
 o_analytic_derivation : ANALYTIC_DERIVATION { driver.option_num("analytic_derivation", "1"); }
 o_analytic_derivation_mode : ANALYTIC_DERIVATION_MODE EQUAL signed_number { driver.option_num("analytic_derivation_mode", $3); }
 o_endogenous_prior : ENDOGENOUS_PRIOR { driver.option_num("endogenous_prior", "true"); }
@@ -4154,7 +4165,7 @@ o_mcmc_jumping_covariance : MCMC_JUMPING_COVARIANCE EQUAL HESSIAN
                             { driver.option_str("MCMC_jumping_covariance", $3); }
                           ;
 o_rescale_prediction_error_covariance : RESCALE_PREDICTION_ERROR_COVARIANCE { driver.option_num("rescale_prediction_error_covariance", "true"); };
-o_use_penalized_objective_for_hessian : USE_PENALIZED_OBJECTIVE_FOR_HESSIAN { driver.option_num("hessian.use_penalized_objective","true"); };
+o_use_penalized_objective_for_hessian : USE_PENALIZED_OBJECTIVE_FOR_HESSIAN { driver.option_num("hessian.use_penalized_objective", "true"); };
 o_irf_plot_threshold : IRF_PLOT_THRESHOLD EQUAL non_negative_number { driver.option_num("impulse_responses.plot_threshold", $3); };
 o_dr_display_tol : DR_DISPLAY_TOL EQUAL non_negative_number { driver.option_num("dr_display_tol", $3); };
 o_consider_all_endogenous : CONSIDER_ALL_ENDOGENOUS { driver.option_str("endo_vars_for_moment_computations_in_estimation", "all_endogenous_variables"); };
@@ -4175,14 +4186,14 @@ o_invars : INVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("invars"
 o_period : PERIOD EQUAL INT_NUMBER { driver.option_num("period", $3); };
 o_outfile : OUTFILE EQUAL filename { driver.option_str("outfile", $3); };
 o_outvars : OUTVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("outvars", $4); };
-o_lmmcp : LMMCP {driver.option_num("lmmcp.status", "true"); };
+o_lmmcp : LMMCP { driver.option_num("lmmcp.status", "true"); };
 o_function : FUNCTION EQUAL filename { driver.option_str("function", $3); };
-o_sampling_draws : SAMPLING_DRAWS EQUAL INT_NUMBER { driver.option_num("sampling_draws",$3); };
-o_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("plot_shock_decomp.use_shock_groups","default"); }
+o_sampling_draws : SAMPLING_DRAWS EQUAL INT_NUMBER { driver.option_num("sampling_draws", $3); };
+o_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("plot_shock_decomp.use_shock_groups", "default"); }
                    | USE_SHOCK_GROUPS EQUAL symbol { driver.option_str("plot_shock_decomp.use_shock_groups", $3); }
                    ;
-o_colormap : COLORMAP EQUAL symbol { driver.option_num("plot_shock_decomp.colormap",$3); };
-o_icd_colormap : COLORMAP EQUAL symbol { driver.option_num("initial_condition_decomp.colormap",$3); };
+o_colormap : COLORMAP EQUAL symbol { driver.option_num("plot_shock_decomp.colormap", $3); };
+o_icd_colormap : COLORMAP EQUAL symbol { driver.option_num("initial_condition_decomp.colormap", $3); };
 o_no_init_estimation_check_first_obs : NO_INIT_ESTIMATION_CHECK_FIRST_OBS { driver.option_num("no_init_estimation_check_first_obs", "true"); };
 o_heteroskedastic_filter : HETEROSKEDASTIC_FILTER { driver.option_num("heteroskedastic_filter", "true"); };
 o_pfwee_constant_simulation_length : CONSTANT_SIMULATION_LENGTH { driver.option_num("pfwee.constant_simulation_length", "true"); };
@@ -4234,9 +4245,9 @@ o_tol_deriv : TOL_DERIV EQUAL non_negative_number { driver.option_num("tol_deriv
 o_tol_sv : TOL_SV EQUAL non_negative_number { driver.option_num("tol_sv", $3); };
 o_checks_via_subsets : CHECKS_VIA_SUBSETS EQUAL INT_NUMBER { driver.option_num("checks_via_subsets", $3); };
 o_max_dim_subsets_groups : MAX_DIM_SUBSETS_GROUPS EQUAL INT_NUMBER { driver.option_num("max_dim_subsets_groups", $3); };
-o_block_static : BLOCK_STATIC { driver.option_num("block_static","true"); };
-o_block_dynamic : BLOCK_DYNAMIC { driver.option_num("block_dynamic","true"); };
-o_incidence : INCIDENCE { driver.option_num("incidence","true"); };
+o_block_static : BLOCK_STATIC { driver.option_num("block_static", "true"); };
+o_block_dynamic : BLOCK_DYNAMIC { driver.option_num("block_dynamic", "true"); };
+o_incidence : INCIDENCE { driver.option_num("incidence", "true"); };
 
 // Some options to "evaluate_planner_objective"
 o_evaluate_planner_objective_periods : PERIODS EQUAL INT_NUMBER { driver.option_num("ramsey.periods", $3); };
@@ -4292,9 +4303,9 @@ integer_range : INT_NUMBER ':' INT_NUMBER
                 { $$ = $1 + ':' + $3; }
 
 integer_range_w_inf : INT_NUMBER ':' INT_NUMBER
-                      { $$ = { $1, $3 }; }
+                      { $$ = {$1, $3}; }
                     | INT_NUMBER ':' INF_CONSTANT
-                      { $$ = { $1, "Inf" }; }
+                      { $$ = {$1, "Inf"}; }
                     ;
 
 signed_integer_range : signed_integer ':' signed_integer
@@ -4303,7 +4314,7 @@ signed_integer_range : signed_integer ':' signed_integer
                        { $$ = "-(" + $3 + ':' + $5 + ")"; };
 
 vec_int_number : INT_NUMBER
-                 { $$ = { stoi($1) }; }
+                 { $$ = {stoi($1)}; }
                ;
 
 vec_int_elem : vec_int_number
@@ -4316,9 +4327,9 @@ vec_int_elem : vec_int_number
              ;
 
 vec_int_1 : '[' vec_int_elem
-            { $$ = $2;}
+            { $$ = $2; }
           | '[' COMMA vec_int_elem
-            { $$ = $3;}
+            { $$ = $3; }
           | vec_int_1 vec_int_elem
             {
               $$ = $1;
@@ -4336,9 +4347,9 @@ vec_int : vec_int_1 ']'
         ;
 
 vec_str_1 : '[' QUOTED_STRING
-            { $$ = { $2 }; }
+            { $$ = {$2}; }
           | '[' COMMA QUOTED_STRING
-            { $$ = { $3 }; }
+            { $$ = {$3}; }
           | vec_str_1 QUOTED_STRING
             {
               $$ = $1;
@@ -4356,9 +4367,9 @@ vec_str : vec_str_1 ']'
         ;
 
 vec_value_1 : '[' signed_number
-              { $$ = { $2 }; }
+              { $$ = {$2}; }
             | '[' COMMA signed_number
-              { $$ = { $3 }; }
+              { $$ = {$3}; }
             | vec_value_1 signed_number
               {
                 $$ = $1;
@@ -4376,7 +4387,7 @@ vec_value : vec_value_1 ']'
           ;
 
 vec_value_w_inf_1 : signed_number_w_inf
-                    { $$ = { $1 }; }
+                    { $$ = {$1}; }
                   | vec_value_w_inf_1 signed_number_w_inf
                     {
                       $$ = $1;
@@ -4399,7 +4410,7 @@ vec_of_vec_value_1 : vec_of_vec_value_1 COMMA vec_value
                        $$.push_back($3);
                      }
                    | vec_value
-                     { $$ = { $1 }; }
+                     { $$ = {$1}; }
                    ;
 
 vec_of_vec_value : '[' vec_of_vec_value_1 ']'
@@ -4443,8 +4454,7 @@ symbol : NAME
 %%
 
 void
-Dynare::parser::error(const Dynare::parser::location_type &l,
-                      const string &m)
+Dynare::parser::error(const Dynare::parser::location_type& l, const string& m)
 {
   driver.error(l, m);
 }

@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /*
- * Copyright © 2019-2022 Dynare Team
+ * Copyright © 2019-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -32,7 +32,7 @@
 namespace macro { class Driver; }
 }
 
-%param { macro::Driver &driver }
+%param { macro::Driver& driver }
 
 %locations
 %initial-action
@@ -190,7 +190,7 @@ for : FOR { driver.pushContext(); } expr IN expr for_when EOL statements ENDFOR
         if (tmpv)
           vvnp.emplace_back(tmpv);
         else if (tmpt)
-          for (const auto & it : tmpt->getValue())
+          for (const auto& it : tmpt->getValue())
             {
               auto vnp = dynamic_pointer_cast<Variable>(it);
               if (!vnp)
@@ -307,7 +307,10 @@ function : NAME LPAREN RPAREN
 function_args : symbol
                 { $$ = {$1}; }
               | function_args COMMA symbol
-                { $1.emplace_back($3); $$ = $1; }
+                {
+                  $1.emplace_back($3);
+                  $$ = $1;
+                }
               ;
 
 comma_expr : %empty
@@ -315,7 +318,10 @@ comma_expr : %empty
            | expr
              { $$ = {$1}; }
            | comma_expr COMMA expr
-             { $1.emplace_back($3); $$ = $1; }
+             {
+               $1.emplace_back($3);
+               $$ = $1;
+             }
            ;
 
 tuple_comma_expr : %empty
@@ -325,7 +331,10 @@ tuple_comma_expr : %empty
                  | expr COMMA expr
                    { $$ = {$1, $3}; }
                  | tuple_comma_expr COMMA expr
-                   { $1.emplace_back($3); $$ = $1; }
+                   {
+                     $1.emplace_back($3);
+                     $$ = $1;
+                   }
                  ;
 
 primary_expr : LPAREN expr RPAREN
@@ -333,9 +342,7 @@ primary_expr : LPAREN expr RPAREN
              | symbol
                { $$ = $1; } // Explicit rule needed for type conversion
              | NAME LBRACKET comma_expr RBRACKET
-               {
-                 $$ = make_shared<Variable>($1, make_shared<Array>($3, @3), @$);
-               }
+               { $$ = make_shared<Variable>($1, make_shared<Array>($3, @3), @$); }
              | NAME LPAREN comma_expr RPAREN
                { $$ = make_shared<Function>($1, $3, @$); }
              | TRUE
@@ -496,7 +503,7 @@ expr : oper_expr
 %%
 
 void
-Tokenizer::parser::error(const Tokenizer::parser::location_type &l, const string &m)
+Tokenizer::parser::error(const Tokenizer::parser::location_type& l, const string& m)
 {
   driver.error(l, m);
 }

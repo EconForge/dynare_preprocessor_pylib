@@ -24,9 +24,9 @@
 // Announce to Flex the prototype we want for lexing function
 #define YY_DECL                                                \
   Tokenizer::parser::token_type                                \
-  TokenizerFlex::lex(Tokenizer::parser::semantic_type *yylval, \
-                     Tokenizer::parser::location_type *yylloc, \
-                     macro::Driver &driver)
+  TokenizerFlex::lex(Tokenizer::parser::semantic_type* yylval, \
+                     Tokenizer::parser::location_type* yylloc, \
+                     macro::Driver& driver)
 
 // Shortcut to access tokens defined by Bison
 using token = Tokenizer::parser::token;
@@ -34,7 +34,7 @@ using token = Tokenizer::parser::token;
 /* By default yylex returns int, we use token_type.
    Unfortunately yyterminate by default returns 0, which is
    not of token_type.  */
-#define yyterminate() return Tokenizer::parser::token_type (0);
+#define yyterminate() return Tokenizer::parser::token_type(0);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -199,7 +199,7 @@ CONT \\\\{SPC}*
 #pragma GCC diagnostic pop
 
 void
-TokenizerFlex::location_increment(Tokenizer::parser::location_type *yylloc, const char *yytext)
+TokenizerFlex::location_increment(Tokenizer::parser::location_type* yylloc, const char* yytext)
 {
   while (*yytext != 0)
     if (*yytext++ == '\n')
