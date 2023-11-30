@@ -65,3 +65,10 @@ build_macos_arm64:
   artifacts:
     paths:
       - build/src/dynare-preprocessor
+
+test_clang_format:
+  stage: test
+  script:
+    - meson setup build-clang-format
+    - ninja -C build-clang-format clang-format-check
+  needs: []
