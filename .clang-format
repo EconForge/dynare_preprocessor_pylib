@@ -11,6 +11,7 @@ BreakInheritanceList: AfterColon
 Cpp11BracedListStyle: true
 DeriveLineEnding: false
 IndentPPDirectives: AfterHash
+PackConstructorInitializers: NextLine
 PPIndentWidth: 1
 PointerAlignment: Left
 SpaceAfterTemplateKeyword: false
